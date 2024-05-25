@@ -1,0 +1,27 @@
+{
+  "name": "comedy",
+  "type": "module",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "dev": "nodemon"
+  },
+  "module": "CommonJS",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@tsconfig/node22": "^22.0.0",
+    "moment-timezone": "^0.5.45",
+    "nodemon": "^3.1.0",
+    "puppeteer": "^22.8.0",
+    "puppeteer-core": "^22.8.0",
+    "typescript": "^5.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.12",
+    "@typescript-eslint/eslint-plugin": "^7.9.0",
+    "@typescript-eslint/parser": "^7.9.0",
+    "eslint": "^8.57.0"
+  }

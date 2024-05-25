@@ -1,0 +1,80 @@
+[
+    {
+        "name": "Comedy Cellar",
+        "city": "New York",
+        "website": "https://www.comedycellar.com/new-york-line-up/",
+        "scraper": "comedy_cellar",
+        "timezone": "America/New_York",
+        "htmlConfig": {
+            "dateMenuSelector": "#cc_lineup_select_dates",
+            "lineupsParentSelector": "#lineup_sets",
+            "lineupItemsSelector": "#lineup_sets > div",
+            "setContentSelector": "div.set-content",
+            "selectedDateSelector": "h1[data-selected-date]",
+            "selectedTimeSelector": ".bold",
+            "selectedOptionalShowNameSelector": ".title",
+            "dateOptionSelector": "option",
+            "comedianNameSelector": ".name",
+            "comedianWebsiteSelector": "p.website a",
+            "comedianHeadshotSelector": ".img",
+            "dateMenuOptionSelector" : "select#cc_lineup_select_dates",
+            "optionValueAttribute": "value"
+        },
+        "textConfig": {
+            "extraTimeString": " show",
+            "extraDateString": " show"
+        }
+    },
+    {
+        "name": "Comedy Cellar",
+        "city": "Las Vegas",
+        "website": "https://www.comedycellar.com/las-vegas-line-up/",
+        "scraper": "comedy_cellar",
+        "timezone": "America/Los_Angeles",
+        "htmlConfig": {
+            "dateMenuSelector": "#cc_lineup_select_dates",
+            "lineupsParentSelector": "#lineup_sets",
+            "lineupItemsSelector": "#lineup_sets > div> div.set-header",
+            "setContentSelector": "div.set-content",
+            "selectedDateSelector": "h1[data-selected-date]",
+            "selectedTimeSelector": ".bold",
+            "selectedOptionalShowNameSelector": ".title",
+            "dateOptionSelector": "option",
+            "comedianNameSelector": ".name",
+            "comedianWebsiteSelector": "p.website a",
+            "comedianHeadshotSelector": ".img",
+            "dateMenuOptionSelector" : "select#cc_lineup_select_dates",
+            "optionValueAttribute": "value"
+        },
+        "textConfig": {
+            "extraTimeString": " show",
+            "extraDateString": " show"
+        }
+    },
+    {
+        "name": "The Stand",
+        "city": "New York",
+        "website": "https://thestandnyc.com/shows",
+        "scraper": "the_stand",
+        "timezone": "America/New_York",
+        "htmlConfig": {
+            "dateMenuSelector": "#cc_lineup_select_dates",
+            "lineupsParentSelector": "#lineup_sets",
+            "lineupItemsSelector": "#lineup_sets > div> div.set-header",
+            "setContentSelector": "div.set-content",
+            "selectedDateSelector": "h1[data-selected-date]",
+            "selectedTimeSelector": ".bold",
+            "selectedOptionalShowNameSelector": ".title",
+            "dateOptionSelector": "option",
+            "comedianNameSelector": ".name",
+            "comedianWebsiteSelector": "p.website a",
+            "comedianHeadshotSelector": ".img",
+            "dateMenuOptionSelector" : "select#cc_lineup_select_dates",
+            "optionValueAttribute": "value"
+        },
+        "textConfig": {
+            "extraTimeString": " show",
+            "extraDateString": " show"
+        }
+    }
+]
