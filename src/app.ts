@@ -7,7 +7,6 @@ const scrapeData = async () => {
     const clubs = readJsonFile();
 
     for (const config of clubs) {
-        console.log(`Scraping ${config.name} ${config.city}...`);
         await scrapeClub(config);
     }
 };

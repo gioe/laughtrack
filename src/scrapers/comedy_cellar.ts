@@ -2,7 +2,7 @@ import puppeteer from 'puppeteer';
 import { ClubConfig, Show } from '../types/index.js';
 import { getDateDropdown, getDateDropdownItems, getSelectedValue } from '../helpers/html/datedropdown_div.js';
 import { scrapeLineups } from '../helpers/html/lineup_div.js';
-import { writeObjectContentsToLocalFiles } from '../helpers/file/files_sytem.js';
+import { writeToDatabase } from '../helpers/storage/data_store.js';
 
 export const scrapeComedyCellar = async (config: ClubConfig) => {
 
@@ -38,7 +38,7 @@ const loopThroughDates = async (page: puppeteer.Page, dateDropdown: puppeteer.El
       await delay(100);
     }
 
-    writeObjectContentsToLocalFiles(shows, `${config.name}_${config.city}_shows.json`);
+    writeToDatabase(shows);
     return shows;
 }
 
