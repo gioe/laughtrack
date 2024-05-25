@@ -32,13 +32,10 @@ const loopThroughDates = async (page: puppeteer.Page, dateDropdown: puppeteer.El
 
     for (let i = 0; i < allDateDropdownItems.length - 1; i++) {   
       const currentSelectedDate = await getSelectedValue(page);   
-      console.log(`Scraping ${config.city} on ${currentSelectedDate}...`);
       const selectedDateShows = await scrapeLineups(page, config, currentSelectedDate);    
       shows.push(...selectedDateShows);
-      console.log(`Now selecting ${allDateDropdownItems[i+1]}`);
       await page.select("select#cc_lineup_select_dates", allDateDropdownItems[i+1]);
       await delay(100);
-      await page.screenshot({ path: `${allDateDropdownItems[i+1]}_${config.city}.png` });
     }
 
     writeObjectContentsToLocalFiles(shows, `${config.name}_${config.city}_shows.json`);

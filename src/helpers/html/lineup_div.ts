@@ -13,7 +13,6 @@ export const scrapeLineups = async (page: puppeteer.Page, clubConfig: ClubConfig
     const shows: Show[] = [];
 
     if (lineupItems) {
-        console.log(`Scraping ${lineupItems.length} shows...`);
         for (const lineupItem of lineupItems) {
             const show = await scrapeShowFromLineupItem(lineupItem, clubConfig, dateString);
             shows.push(show);

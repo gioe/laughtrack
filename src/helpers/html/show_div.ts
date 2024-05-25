@@ -45,7 +45,6 @@ export const scrapeShowFromLineupItem = async (lineupItem: puppeteer.ElementHand
    const dateTime = await scrapeShowDateTime(lineupItem, clubConfig, dateString);
    const name = await scrapeOptionalShowName(lineupItem, clubConfig);
    const comedians = await scrapeComediansFromLineupItem(lineupItem, clubConfig);
-   console.log(`Scraped ${name} on ${dateTime} with ${comedians.length} comedians.`);
    return {
       club: {
          name: clubConfig.name,
