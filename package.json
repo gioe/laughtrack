@@ -5,7 +5,8 @@
   "main": "app.js",
   "scripts": {
     "dev": "nodemon",
-    "start": "node app.js"
+    "start": "node dist/app.js",
+    "gcp-build": "tsc -p ."
   },
   "module": "CommonJS",
   "keywords": [],
