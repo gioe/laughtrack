@@ -3,6 +3,7 @@ import { ClubConfig, Show } from '../types/index.js';
 import { getDateDropdown, getDateDropdownItems, getSelectedValue } from '../helpers/html/datedropdown_div.js';
 import { scrapeLineups } from '../helpers/html/lineup_div.js';
 import { writeToDatabase } from '../helpers/storage/data_store.js';
+import { addDelay } from '../helpers/time/time_helpers.js';
 
 export const scrapeComedyCellar = async (config: ClubConfig) => {
 
@@ -17,9 +18,7 @@ export const scrapeComedyCellar = async (config: ClubConfig) => {
 
     if (dateDropdown) {
       await loopThroughDates(page, dateDropdown, config);
-    } else {
-      // TODO: Get the default date if for some reason there's no datedropdown picked up
-    }
+    } 
 
     await browser.close();
 }
@@ -34,16 +33,10 @@ const loopThroughDates = async (page: puppeteer.Page, dateDropdown: puppeteer.El
       const currentSelectedDate = await getSelectedValue(page);   
       const selectedDateShows = await scrapeLineups(page, config, currentSelectedDate);    
       shows.push(...selectedDateShows);
-      await page.select("select#cc_lineup_select_dates", allDateDropdownItems[i+1]);
-      await delay(100);
+      await page.select("#cc_lineup_select_dates", allDateDropdownItems[i+1]);
+      await addDelay(100);
     }
 
-    writeToDatabase(shows);
+    writeToDatabase(shows, config);
     return shows;
-}
-
-function delay(time: number) {
-  return new Promise(function(resolve) { 
-      setTimeout(resolve, time)
-  });
 }

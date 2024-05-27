@@ -47,3 +47,9 @@ export const cleanTimeString = (timeString: string, clubConfig: ClubConfig): str
 export const convertDatetimeToLocalTimezone = (dateTime: Date, clubConfig: ClubConfig): string => {
     return moment(dateTime).tz(clubConfig.timezone).format();
 }
+
+export const addDelay = (time: number) => {
+    return new Promise(function(resolve) { 
+        setTimeout(resolve, time)
+    });
+  }

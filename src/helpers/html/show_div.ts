@@ -48,7 +48,6 @@ export const scrapeShowFromLineupItem = async (lineupItem: puppeteer.ElementHand
    return {
       club: {
          name: clubConfig.name,
-         city: clubConfig.city,
          website: clubConfig.website,
       },
       dateTime: convertDatetimeToLocalTimezone(dateTime, clubConfig),

@@ -1,32 +1,25 @@
-import fs from "fs";
+import cron from 'node-cron'
 import { scrapeComedyCellar } from "./scrapers/comedy_cellar.js";
 import { ClubConfig } from "./types/index.js";
+import { readJsonFile } from "./helpers/storage/files_system.js";
 
 
 const scrapeData = async () => {
-    const clubs = readJsonFile();
+    console.log('Starting scraping job at:', new Date().toLocaleString());
+    const clubs = readJsonFile('src/clubs.json');
 
     for (const config of clubs) {
         await scrapeClub(config);
     }
 };
 
-const readJsonFile = () => {
-    try {
-        const data = fs.readFileSync('src/clubs.json', 'utf8');
-        return JSON.parse(data);
-    } catch (err) {
-        console.error('Error reading file:', err);
-    }
-};
-
 const scrapeClub = async (config: ClubConfig) => {
-    
 switch (config.scraper) {
     case "comedy_cellar": return await scrapeComedyCellar(config);
     default: return Promise.resolve();
 }
 };
 
-
-scrapeData();
+cron.schedule('0 0 * * *', () => {
+    scrapeData();
+});

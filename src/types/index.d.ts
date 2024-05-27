@@ -1,6 +1,5 @@
 export interface Club {
     name: string;
-    city: string;
     website: string;
 }
 
@@ -18,7 +17,6 @@ export interface Comedian {
 
 interface ClubConfig {
     name: string;
-    city: string;
     website: string;
     scraper: string;
     timezone: string;

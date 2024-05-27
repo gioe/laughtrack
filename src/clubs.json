@@ -1,7 +1,6 @@
 [
     {
-        "name": "Comedy Cellar",
-        "city": "New York",
+        "name": "Comedy Cellar New York",
         "website": "https://www.comedycellar.com/new-york-line-up/",
         "scraper": "comedy_cellar",
         "timezone": "America/New_York",
@@ -26,8 +25,7 @@
         }
     },
     {
-        "name": "Comedy Cellar",
-        "city": "Las Vegas",
+        "name": "Comedy Cellar Las Vegas",
         "website": "https://www.comedycellar.com/las-vegas-line-up/",
         "scraper": "comedy_cellar",
         "timezone": "America/Los_Angeles",
