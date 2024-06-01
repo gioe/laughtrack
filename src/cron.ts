@@ -21,6 +21,7 @@ const scrapeData = async () => {
 };
 
 export const scheduleScrapes = () => {
+    console.log('Scheduling scrapes');
     cron.schedule('0 0 * * *', () => {
         scrapeData();
     });
