@@ -1,25 +1,18 @@
-import cron from 'node-cron'
-import { scrapeComedyCellar } from "./scrapers/comedy_cellar.js";
-import { ClubConfig } from "./types/index.js";
-import { readJsonFile } from "./helpers/storage/files_system.js";
+import express, { Express, Request, Response } from "express";
+import dotenv from "dotenv";
+import { scheduleScrapes } from "./cron.js";
+
+dotenv.config();
+
+const app: Express = express();
+const port = process.env.PORT || 3000;
+
+app.get("/", (req: Request, res: Response) => {
+  res.send("Express + TypeScript Server");
+});
 
 
-const scrapeData = async () => {
-    console.log('Starting scraping job at:', new Date().toLocaleString());
-    const clubs = readJsonFile('src/clubs.json');
-
-    for (const config of clubs) {
-        await scrapeClub(config);
-    }
-};
-
-const scrapeClub = async (config: ClubConfig) => {
-switch (config.scraper) {
-    case "comedy_cellar": return await scrapeComedyCellar(config);
-    default: return Promise.resolve();
-}
-};
-
-cron.schedule('0 0 * * *', () => {
-    scrapeData();
+app.listen(port, () => {
+  console.log(`[server]: Server is running at http://localhost:${port}`);
+  scheduleScrapes()
 });
