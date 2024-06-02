@@ -1,13 +1,7 @@
-interface ClubConfig {
-    name: string;
-    website: string;
-    scraper: string;
-    timezone: string;
-    htmlConfig: HTMLConfig;
-    textConfig: TextConfig;
-}
+import { Club } from "./club.interface.js";
 
-interface HTMLConfig {
+export interface HTMLConfigurable extends Club {
+    scraper: string;
     dateMenuSelector: string;
     lineupsParentSelector: string;
     lineupItemsSelector: string;
@@ -21,9 +15,6 @@ interface HTMLConfig {
     comedianHeadshotSelector: string;
     dateMenuOptionSelector: string;
     optionValueAttribute: string;
-}
-
-interface TextConfig {
     extraTimeString: string;
     extraDateString: string;
 }

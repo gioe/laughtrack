@@ -2,8 +2,6 @@ import app from "../app.js";
 import { Show } from "../types/show.interface.js";
 import { scheduleScrapes } from "../util/cron.js";
 
-
-
 export const findAll = async (): Promise<Show[]> => {
     return [];
 };

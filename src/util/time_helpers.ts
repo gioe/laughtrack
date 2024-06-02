@@ -1,11 +1,11 @@
-import { ClubConfig } from "../types/configs.interface.js";
+import { HTMLConfigurable } from "../types/configs.interface.js";
 import moment from 'moment-timezone';
 
-export const combineDateAndTimeStrings = (showDateString: string, showTimeString: string, clubConfig: ClubConfig): Date => {
+export const combineDateAndTimeStrings = (showDateString: string, showTimeString: string, config: HTMLConfigurable): Date => {
 
 
-    const cleanedDateString = cleanDateString(showDateString, clubConfig);
-    const cleanedTimeString = cleanTimeString(showTimeString, clubConfig);
+    const cleanedDateString = cleanDateString(showDateString, config);
+    const cleanedTimeString = cleanTimeString(showTimeString, config);
 
     const dateTimeStr = `${cleanedDateString}/${cleanedTimeString}`;
 
@@ -29,23 +29,23 @@ export const stringIsDateTime = (inputString: string): boolean => {
 }
 
 
-export const cleanDateString = (dateString: string, clubConfig: ClubConfig): string => {
+export const cleanDateString = (dateString: string, config: HTMLConfigurable): string => {
     if (stringIsDateTime(dateString)) {
         return dateString;
     }
-    return dateString.replace(clubConfig.textConfig.extraDateString, '');
+    return dateString.replace(config.extraDateString, '');
 }
 
 
-export const cleanTimeString = (timeString: string, clubConfig: ClubConfig): string => {
+export const cleanTimeString = (timeString: string, config: HTMLConfigurable): string => {
     if (stringIsDateTime(timeString)) {
         return timeString;
     }
-    return timeString.replace(clubConfig.textConfig.extraTimeString, '').toUpperCase();
+    return timeString.replace(config.extraTimeString, '').toUpperCase();
 }
 
-export const convertDatetimeToLocalTimezone = (dateTime: Date, clubConfig: ClubConfig): string => {
-    return moment(dateTime).tz(clubConfig.timezone).format();
+export const convertDatetimeToLocalTimezone = (dateTime: Date, timezone: string): string => {
+    return moment(dateTime).tz(timezone).format();
 }
 
 export const addDelay = (time: number) => {

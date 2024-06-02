@@ -1,7 +1,8 @@
 import { Club } from "../types/club.interface.js";
 import { Firestore } from "@google-cloud/firestore"
+import { HTMLConfigurable } from "../types/configs.interface.js";
 
-export const writeToFirestore = async (object: any, clubConfig: ClubConfig) => {
+export const writeToFirestore = async (object: any, config: HTMLConfigurable) => {
     const db = new Firestore({
         projectId: process.env.GCP_PROJECT_ID,
         keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS_PATH,

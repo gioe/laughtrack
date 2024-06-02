@@ -1,57 +1,60 @@
 import puppeteer from 'puppeteer';
-import { ClubConfig, Comedian, Show } from "../types/configs.interface.js";
+import { HTMLConfigurable } from "../types/configs.interface.js";
+import { Comedian } from "../types/comedian.interface.js";
+
 import { combineDateAndTimeStrings, convertDatetimeToLocalTimezone } from '../util/time_helpers.js';
 import { scrapeComedianDivForComedian } from './comedian_div.js';
+import { Show } from '../types/show.interface.js';
 
 
-export const scrapeSelectedDateString = async (page: puppeteer.Page, clubConfig: ClubConfig): Promise<string> => {
-   return await page.$(clubConfig.htmlConfig.selectedDateSelector).then(element => {
+export const scrapeSelectedDateString = async (page: puppeteer.Page, config: HTMLConfigurable): Promise<string> => {
+   return await page.$(config.selectedDateSelector).then(element => {
       return element?.evaluate(element => element.textContent)
   }) ?? "";
 }
 
-export const scrapeOptionalShowName = async (parentDiv: puppeteer.ElementHandle<Element>, clubConfig: ClubConfig): Promise<string> => {
-   return await parentDiv.$(clubConfig.htmlConfig.selectedOptionalShowNameSelector).then(element => {
+export const scrapeOptionalShowName = async (parentDiv: puppeteer.ElementHandle<Element>, config: HTMLConfigurable): Promise<string> => {
+   return await parentDiv.$(config.selectedOptionalShowNameSelector).then(element => {
       return element?.evaluate(element => element.textContent)
    }) ?? "";
 }
 
-export const scrapeShowDateTime = async (parentDiv: puppeteer.ElementHandle<Element>, clubConfig: ClubConfig, dateString: string): Promise<Date> => {
+export const scrapeShowDateTime = async (parentDiv: puppeteer.ElementHandle<Element>, config: HTMLConfigurable, dateString: string): Promise<Date> => {
   
-   const showTime = await parentDiv.$(clubConfig.htmlConfig.selectedTimeSelector).then(element => {
+   const showTime = await parentDiv.$(config.selectedTimeSelector).then(element => {
        return element?.evaluate(element => element.textContent)
    });
    
    if (showTime) {
-      return combineDateAndTimeStrings(dateString, showTime, clubConfig);
+      return combineDateAndTimeStrings(dateString, showTime, config);
    } else {
       return new Date();
    }
 }
 
-export const scrapeComediansFromLineupItem = async (parentDiv: puppeteer.ElementHandle<Element>, clubConfig: ClubConfig): Promise<Comedian[]> => {
-   const comedianDivList = (await parentDiv.$$(clubConfig.htmlConfig.setContentSelector));
+export const scrapeComediansFromLineupItem = async (parentDiv: puppeteer.ElementHandle<Element>, config: HTMLConfigurable): Promise<Comedian[]> => {
+   const comedianDivList = (await parentDiv.$$(config.setContentSelector));
    const comedianList: Comedian[] = [];
 
    for (const comedianDiv of comedianDivList) {
-      const comedian = await scrapeComedianDivForComedian(comedianDiv, clubConfig);
+      const comedian = await scrapeComedianDivForComedian(comedianDiv, config);
       comedianList.push(comedian);
    }
 
    return comedianList
 }
 
-export const scrapeShowFromLineupItem = async (lineupItem: puppeteer.ElementHandle<Element>, clubConfig: ClubConfig, dateString: string): Promise<Show> => {
-   const dateTime = await scrapeShowDateTime(lineupItem, clubConfig, dateString);
-   const name = await scrapeOptionalShowName(lineupItem, clubConfig);
-   const comedians = await scrapeComediansFromLineupItem(lineupItem, clubConfig);
+export const scrapeShowFromLineupItem = async (lineupItem: puppeteer.ElementHandle<Element>, config: HTMLConfigurable, dateString: string): Promise<Show> => {
+   const dateTime = await scrapeShowDateTime(lineupItem, config, dateString);
+   const name = await scrapeOptionalShowName(lineupItem, config);
+   const comedians = await scrapeComediansFromLineupItem(lineupItem, config);
    return {
       club: {
-         name: clubConfig.name,
-         website: clubConfig.website,
+         name: config.name,
+         website: config.website,
       },
-      dateTime: convertDatetimeToLocalTimezone(dateTime, clubConfig),
+      dateTime: convertDatetimeToLocalTimezone(dateTime, ""),
       name,
       comedians,
-   }
+   } as Show
 }

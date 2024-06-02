@@ -1,20 +1,21 @@
 import puppeteer from "puppeteer";
-import { ClubConfig, Show } from "../types/configs.interface.js";
+import { HTMLConfigurable } from "../types/configs.interface.js";
 import { scrapeShowFromLineupItem } from './show_div.js';
+import { Show } from "../types/show.interface.js";
 
-export const getLineupsParent = async (page: puppeteer.Page, clubConfig: ClubConfig) => {
-    return await page.$(clubConfig.htmlConfig.lineupsParentSelector);
+export const getLineupsParent = async (page: puppeteer.Page, config: HTMLConfigurable) => {
+    return await page.$(config.lineupsParentSelector);
 }
 
-export const scrapeLineups = async (page: puppeteer.Page, clubConfig: ClubConfig, dateString: string) => {
+export const scrapeLineups = async (page: puppeteer.Page, config: HTMLConfigurable, dateString: string) => {
     // While looping through each date in the dropdown, the page will be updated with the new lineup.
     // This will be called for every unique page instance.
-    const lineupItems = await getLineupItems(page, clubConfig);
+    const lineupItems = await getLineupItems(page, config);
     const shows: Show[] = [];
 
     if (lineupItems) {
         for (const lineupItem of lineupItems) {
-            const show = await scrapeShowFromLineupItem(lineupItem, clubConfig, dateString);
+            const show = await scrapeShowFromLineupItem(lineupItem, config, dateString);
             shows.push(show);
         }
     }
@@ -23,10 +24,10 @@ export const scrapeLineups = async (page: puppeteer.Page, clubConfig: ClubConfig
 }
 
 
-export const getLineupItems = async (page: puppeteer.Page,  clubConfig: ClubConfig) => {
-    const lineupsParent = await getLineupsParent(page, clubConfig);
+export const getLineupItems = async (page: puppeteer.Page,  config: HTMLConfigurable) => {
+    const lineupsParent = await getLineupsParent(page, config);
     if (lineupsParent) {
-        return await lineupsParent.$$(clubConfig.htmlConfig.lineupItemsSelector);
+        return await lineupsParent.$$(config.lineupItemsSelector);
     } 
 
 }

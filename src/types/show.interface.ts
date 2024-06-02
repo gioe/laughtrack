@@ -7,7 +7,3 @@ export interface Show {
     name: string;
     comedians: Comedian[];
 }
-
-export interface Item extends Show {
-    id: number;
-  }
