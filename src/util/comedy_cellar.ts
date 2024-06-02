@@ -2,7 +2,7 @@ import puppeteer from 'puppeteer';
 import { ClubConfig, Show } from "../types/index.js";
 import { getDateDropdown, getDateDropdownItems, getSelectedValue } from '../util/datedropdown_div.js';
 import { scrapeLineups } from '../util/lineup_div.js';
-import { writeToDatabase } from '../util/data_store.js';
+import { writeToFirestore } from '../util/data_store.js';
 import { addDelay } from './time_helpers.js';
 
 export const scrapeComedyCellar = async (config: ClubConfig) => {
@@ -37,6 +37,6 @@ const loopThroughDates = async (page: puppeteer.Page, dateDropdown: puppeteer.El
       await addDelay(100);
     }
 
-    writeToDatabase(shows, config);
+    writeToFirestore(shows, config);
     return shows;
 }
