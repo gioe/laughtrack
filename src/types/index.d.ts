@@ -28,7 +28,7 @@ interface HTMLConfig {
     dateMenuSelector: string;
     lineupsParentSelector: string;
     lineupItemsSelector: string;
-    setContentSelector: strong;
+    setContentSelector: string;
     selectedDateSelector: string;
     selectedTimeSelector: string;
     selectedOptionalShowNameSelector: string;

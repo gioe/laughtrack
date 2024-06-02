@@ -4,9 +4,10 @@
       "allowJs": true,
       "checkJs": true,
       "outDir": "dist",
-      "lib": ["dom", "ESNext"]
+      "lib": ["dom", "ESNext"],
+      "esModuleInterop": true
     },
-    "include": ["src/**/*"],
+    "include": ["src/**/*", "src/app.ts"],
     "exclude": ["node_modules"],
     "moduleResolution": "Bundler"
   }

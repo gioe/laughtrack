@@ -1,9 +1,9 @@
 import puppeteer from 'puppeteer';
-import { ClubConfig, Show } from '../types/index.js';
-import { getDateDropdown, getDateDropdownItems, getSelectedValue } from '../helpers/html/datedropdown_div.js';
-import { scrapeLineups } from '../helpers/html/lineup_div.js';
-import { writeToDatabase } from '../helpers/storage/data_store.js';
-import { addDelay } from '../helpers/time/time_helpers.js';
+import { ClubConfig, Show } from "../types/index.js";
+import { getDateDropdown, getDateDropdownItems, getSelectedValue } from '../util/datedropdown_div.js';
+import { scrapeLineups } from '../util/lineup_div.js';
+import { writeToDatabase } from '../util/data_store.js';
+import { addDelay } from './time_helpers.js';
 
 export const scrapeComedyCellar = async (config: ClubConfig) => {
 

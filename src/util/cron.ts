@@ -1,7 +1,7 @@
 import cron from 'node-cron'
-import { scrapeComedyCellar } from "./scrapers/comedy_cellar.js";
-import { ClubConfig } from "./types/index.js";
-import { readJsonFile } from "./helpers/storage/files_system.js";
+import { scrapeComedyCellar } from "../util/comedy_cellar.js";
+import { ClubConfig } from "../types/index.js";
+import { readJsonFile } from "../util/files_system.js";
 
 
 const scrapeClub = async (config: ClubConfig) => {

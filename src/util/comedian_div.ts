@@ -1,5 +1,5 @@
 import puppeteer from 'puppeteer';
-import { ClubConfig, Comedian } from "../../types/index.js";
+import { ClubConfig, Comedian } from "../types/index.js";
 
 export const scrapeComedianDivForComedian = async (element: puppeteer.ElementHandle<Element>, clubConfig: ClubConfig): Promise<Comedian> => {
     const name = await getComedianNameFromElement(element, clubConfig);

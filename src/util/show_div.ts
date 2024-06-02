@@ -1,6 +1,6 @@
 import puppeteer from 'puppeteer';
-import { ClubConfig, Comedian, Show } from "../../types/index.js";
-import { combineDateAndTimeStrings, convertDatetimeToLocalTimezone } from '../time/time_helpers.js';
+import { ClubConfig, Comedian, Show } from "../types/index.js";
+import { combineDateAndTimeStrings, convertDatetimeToLocalTimezone } from '../util/time_helpers.js';
 import { scrapeComedianDivForComedian } from './comedian_div.js';
 
 
