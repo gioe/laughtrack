@@ -1,15 +1,10 @@
 import { Request, Response } from 'express';
+import { scheduleScrapes, scrapeAllClubs } from '../util/cron.js';
 
 
 export const runAllScrapers = (req: Request, res: Response) => {
- res.json({
-   message: 'Running all scrapers',
- });
-};
-
-
-export const scrapeClub = (req: Request, res: Response) => {
- res.json({
-   message: 'Another test route',
- });
+    scrapeAllClubs()
+    res.json({
+        message: 'Running scrapers',
+      });
 };
