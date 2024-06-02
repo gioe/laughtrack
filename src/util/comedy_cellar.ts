@@ -1,5 +1,5 @@
 import puppeteer from 'puppeteer';
-import { ClubConfig, Show } from "../types/index.js";
+import { ClubConfig, Show } from "../types/configs.interface.js";
 import { getDateDropdown, getDateDropdownItems, getSelectedValue } from '../util/datedropdown_div.js';
 import { scrapeLineups } from '../util/lineup_div.js';
 import { writeToFirestore } from '../util/data_store.js';

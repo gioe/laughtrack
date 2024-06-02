@@ -1,4 +1,4 @@
-import { ClubConfig } from "../types/index.js";
+import { ClubConfig } from "../types/configs.interface.js";
 import moment from 'moment-timezone';
 
 export const combineDateAndTimeStrings = (showDateString: string, showTimeString: string, clubConfig: ClubConfig): Date => {

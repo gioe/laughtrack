@@ -1,5 +1,5 @@
 import puppeteer from 'puppeteer';
-import { ClubConfig } from "../types/index.js";
+import { ClubConfig } from "../types/configs.interface.js";
 
 export const getDateDropdown = async (page: puppeteer.Page, config: ClubConfig) => {
     return await page.$(config.htmlConfig.dateMenuSelector);

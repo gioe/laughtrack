@@ -1,4 +1,4 @@
-import { ClubConfig } from "../types/index.js";
+import { Club } from "../types/club.interface.js";
 import { Firestore } from "@google-cloud/firestore"
 
 export const writeToFirestore = async (object: any, clubConfig: ClubConfig) => {

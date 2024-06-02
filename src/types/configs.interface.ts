@@ -1,20 +1,3 @@
-export interface Club {
-    name: string;
-    website: string;
-}
-
-export interface Show {
-    club: Club;
-    dateTime: string;
-    name: string;
-    comedians: Comedian[];
-}
-
-export interface Comedian { 
-    name: string;
-    website: string;
-}
-
 interface ClubConfig {
     name: string;
     website: string;

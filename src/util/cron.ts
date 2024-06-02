@@ -1,6 +1,6 @@
 import cron from 'node-cron'
 import { scrapeComedyCellar } from "../util/comedy_cellar.js";
-import { ClubConfig } from "../types/index.js";
+import { ClubConfig } from "../types/configs.interface.js";
 import { readJsonFile } from "../util/files_system.js";
 
 

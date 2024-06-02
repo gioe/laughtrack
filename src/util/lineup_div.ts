@@ -1,5 +1,5 @@
 import puppeteer from "puppeteer";
-import { ClubConfig, Show } from "../types/index.js";
+import { ClubConfig, Show } from "../types/configs.interface.js";
 import { scrapeShowFromLineupItem } from './show_div.js';
 
 export const getLineupsParent = async (page: puppeteer.Page, clubConfig: ClubConfig) => {
