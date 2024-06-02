@@ -7,7 +7,9 @@
     "dev": "nodemon",
     "serve": "node dist/server.js",
     "start": "npm run serve",
-    "gcp-build": "tsc -p ."
+    "gcp-build": "tsc -p .",
+    "type-check": "tsc",
+    "build": "rimraf dist && tsc --noEmit false && tsc-alias"
   },
   "module": "CommonJS",
   "keywords": [],

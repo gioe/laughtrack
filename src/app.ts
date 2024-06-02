@@ -4,7 +4,8 @@ import cors from "cors";
 import helmet from "helmet";
 import { errorHandler } from "./middleware/error.middleware.js";
 import { notFoundHandler } from "./middleware/not-found.middleware.js";
-
+import { scraperApiRouter } from "./router/scraperApiRouter.js";
+import { scheduleScrapes } from "./util/cron.js";
 
 dotenv.config();
 
@@ -15,7 +16,16 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 
+app.use('/api/scraper', scraperApiRouter);
+
 app.use(errorHandler);
 app.use(notFoundHandler);
 
-export default app;
+app.listen(app.get("port"), () => {
+    console.log(
+        "App is running at http://localhost:%d in %s mode",
+        app.get("port"),
+        app.get("env")
+    );
+    scheduleScrapes();
+});

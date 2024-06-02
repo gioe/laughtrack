@@ -5,7 +5,7 @@ export const notFoundHandler = (
   response: Response,
   next: NextFunction
 ) => {
-
+  console.log(request);
   const message = "Resource not found";
 
   response.status(404).send(message);
