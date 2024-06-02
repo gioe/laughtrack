@@ -1,7 +1,7 @@
 import puppeteer from "puppeteer";
-import { HTMLConfigurable } from "../types/configs.interface.js";
+import { HTMLConfigurable } from "../../types/configs.interface.js";
 import { scrapeShowFromLineupItem } from './show_div.js';
-import { Show } from "../types/show.interface.js";
+import { Show } from "../../types/show.interface.js";
 
 export const getLineupsParent = async (page: puppeteer.Page, config: HTMLConfigurable) => {
     return await page.$(config.lineupsParentSelector);

@@ -1,5 +1,5 @@
 import puppeteer from 'puppeteer';
-import { HTMLConfigurable } from "../types/configs.interface.js";
+import { HTMLConfigurable } from "../../types/configs.interface.js";
 
 export const getDateDropdown = async (page: puppeteer.Page, config: HTMLConfigurable) => {
     return await page.$(config.dateMenuSelector);

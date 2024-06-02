@@ -1,10 +1,10 @@
 import puppeteer from 'puppeteer';
-import { HTMLConfigurable } from "../types/configs.interface.js";
-import { Comedian } from "../types/comedian.interface.js";
+import { HTMLConfigurable } from "../../types/configs.interface.js";
+import { Comedian } from "../../types/comedian.interface.js";
 
-import { combineDateAndTimeStrings, convertDatetimeToLocalTimezone } from '../util/time_helpers.js';
+import { combineDateAndTimeStrings, convertDatetimeToLocalTimezone } from '../dateTime.js';
 import { scrapeComedianDivForComedian } from './comedian_div.js';
-import { Show } from '../types/show.interface.js';
+import { Show } from '../../types/show.interface.js';
 
 
 export const scrapeSelectedDateString = async (page: puppeteer.Page, config: HTMLConfigurable): Promise<string> => {

@@ -1,7 +1,7 @@
 import cron from 'node-cron'
-import { scrapeComedyCellar } from "../util/comedy_cellar.js";
+import { scrapeComedyCellar } from "./comedyCellar.js";
 import { HTMLConfigurable } from "../types/configs.interface.js";
-import { readJsonFile } from "../util/files_system.js";
+import { readJsonFile } from "./storage/fileSystem.js";
 
 
 export const scrapeClub = async (config: HTMLConfigurable) => {
@@ -21,8 +21,7 @@ export const scrapeAllClubs = async () => {
 };
 
 export const scheduleScrapes = () => {
-    cron.schedule('0 0 * * *', () => {
-        scrapeAllClubs();
-    });
+    scrapeAllClubs();
+
 }
 

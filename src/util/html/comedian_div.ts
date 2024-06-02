@@ -1,6 +1,6 @@
 import puppeteer from 'puppeteer';
-import { HTMLConfigurable } from "../types/configs.interface.js";
-import { Comedian } from '../types/comedian.interface.js';
+import { HTMLConfigurable } from "../../types/configs.interface.js";
+import { Comedian } from '../../types/comedian.interface.js';
 
 export const scrapeComedianDivForComedian = async (element: puppeteer.ElementHandle<Element>, config: HTMLConfigurable): Promise<Comedian> => {
     const name = await getComedianNameFromElement(element, config);

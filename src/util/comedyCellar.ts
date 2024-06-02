@@ -1,9 +1,9 @@
 import puppeteer from 'puppeteer';
 import {HTMLConfigurable } from "../types/configs.interface.js";
-import { getDateDropdown, getDateDropdownItems, getSelectedValue } from '../util/datedropdown_div.js';
-import { scrapeLineups } from '../util/lineup_div.js';
-import { writeToFirestore } from '../util/data_store.js';
-import { addDelay } from './time_helpers.js';
+import { getDateDropdown, getDateDropdownItems, getSelectedValue } from '../util/html/datedropdown_div.js';
+import { scrapeLineups } from '../util/html/lineup_div.js';
+import { writeToFirestore } from '../util/storage/dataStore.js';
+import { addDelay } from './dateTime.js';
 import { Show } from '../types/show.interface.js';
 
 export const scrapeComedyCellar = async (config: HTMLConfigurable) => {

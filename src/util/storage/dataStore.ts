@@ -1,6 +1,5 @@
-import { Club } from "../types/club.interface.js";
 import { Firestore } from "@google-cloud/firestore"
-import { HTMLConfigurable } from "../types/configs.interface.js";
+import { HTMLConfigurable } from "../../types/configs.interface.js";
 
 export const writeToFirestore = async (object: any, config: HTMLConfigurable) => {
     const db = new Firestore({
