@@ -1,8 +1,10 @@
 import { Club } from "./club.interface.js";
 
 export interface HTMLConfigurable extends Club {
-    scraper: string;
-    dateMenuSelector: string;
+    allDateOptionsSelector: string;
+    dateMenuSelector:string;
+    allShowsSelector: string;
+
     lineupsParentSelector: string;
     lineupItemsSelector: string;
     setContentSelector: string;
@@ -13,7 +15,6 @@ export interface HTMLConfigurable extends Club {
     comedianNameSelector: string;
     comedianWebsiteSelector: string;
     comedianHeadshotSelector: string;
-    dateMenuOptionSelector: string;
     optionValueAttribute: string;
     extraTimeString: string;
     extraDateString: string;

@@ -13,6 +13,7 @@ fs.writeFile(fileName, data, (err) => {
 }
 
 export const readJsonFile = (sourceFile: string) => {
+    console.log(sourceFile)
     try {
         const data = fs.readFileSync(sourceFile, 'utf8');
         return JSON.parse(data);

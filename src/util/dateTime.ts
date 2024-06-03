@@ -1,13 +1,9 @@
 import { HTMLConfigurable } from "../types/configs.interface.js";
 import moment from 'moment-timezone';
 
-export const combineDateAndTimeStrings = (showDateString: string, showTimeString: string, config: HTMLConfigurable): Date => {
+export const combineDateAndTimeStrings = (showDateString: string, showTimeString: string): Date => {
 
-
-    const cleanedDateString = cleanDateString(showDateString, config);
-    const cleanedTimeString = cleanTimeString(showTimeString, config);
-
-    const dateTimeStr = `${cleanedDateString}/${cleanedTimeString}`;
+    const dateTimeStr = `${showDateString}/${showTimeString}`;
 
     const [dateComponents, timeComponents] = dateTimeStr.split('/');
     
@@ -28,24 +24,23 @@ export const stringIsDateTime = (inputString: string): boolean => {
     return /^\d{4}-\d{2}-\d{2} \d{2}:\d{2} [AP]M$/.test(inputString);
 }
 
-
-export const cleanDateString = (dateString: string, config: HTMLConfigurable): string => {
+export const cleanDateString = (dateString: string, extra: string): string => {
     if (stringIsDateTime(dateString)) {
         return dateString;
     }
-    return dateString.replace(config.extraDateString, '');
+    return dateString.replace(extra, '');
 }
 
 
-export const cleanTimeString = (timeString: string, config: HTMLConfigurable): string => {
+export const cleanTimeString = (timeString: string, extra: string): string => {
     if (stringIsDateTime(timeString)) {
         return timeString;
     }
-    return timeString.replace(config.extraTimeString, '').toUpperCase();
+    return timeString.replace(extra, '').toUpperCase();
 }
 
-export const convertDatetimeToLocalTimezone = (dateTime: Date, timezone: string): string => {
-    return moment(dateTime).tz(timezone).format();
+export const convertDatetimeToString = (dateTime: Date): string => {
+    return moment(dateTime).format();
 }
 
 export const addDelay = (time: number) => {

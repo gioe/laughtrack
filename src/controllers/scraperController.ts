@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
-import { scheduleScrapes, scrapeAllClubs } from '../util/cron.js';
-
+import { scrapeAllClubs } from '../util/scrapers/index.js';
 
 export const runAllScrapers = (req: Request, res: Response) => {
     scrapeAllClubs()
