@@ -2,11 +2,13 @@ import puppeteer from 'puppeteer';
 import { HTMLConfigurable } from "../../types/configs.interface.js";
 import { ComedyCellarScaper } from "./comedyCellar.js";
 import { readJsonFile } from "../storage/fileSystem.js";
+import { Club } from '../../types/club.interface.js';
 
-const getScraper = (clubConfig: HTMLConfigurable) => {
-    switch (clubConfig.scraper) {
-        case "comedy_cellar": return new ComedyCellarScaper(clubConfig);
-        default: undefined;
+const getScraper = (club: Club) => {
+    switch (club.scraper) {
+        case "comedy_cellar_vegas": return new ComedyCellarScaper(club);
+        case "comedy_cellar_new_york": return new ComedyCellarScaper(club);
+        default:  return undefined;
     }
 }
 
@@ -23,5 +25,6 @@ export const scrapeAllClubs = async () => {
             await scraper.scrape(page);
             await browser.close();
         }
+        
     }
 };
