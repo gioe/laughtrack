@@ -2,7 +2,7 @@ import { FieldValue, Firestore } from "@google-cloud/firestore"
 import { Show } from "../../types/show.interface.js";
 import { removeWhiteSpace } from "../string/stringUtil.js";
 
-const SHOW_COLLECTION = 'shows'
+const SHOW_COLLECTION_NAME = 'shows'
 
 const db = new Firestore({
   projectId: process.env.GCP_PROJECT_ID,
@@ -11,13 +11,13 @@ const db = new Firestore({
 
 export const writeToFirestore = async (shows: Show[], storagePath: string) => {
   
-  const showsRef = db.collection(SHOW_COLLECTION)
+  const showsRef = db.collection(SHOW_COLLECTION_NAME)
 
   for (const show of shows) {
     for (const comedian of show.comedians) {
       const comedianDocTitle = removeWhiteSpace(comedian.name.toLowerCase());
      
-      const showsRef = db.collection(SHOW_COLLECTION).doc(comedianDocTitle);
+      const showsRef = db.collection(SHOW_COLLECTION_NAME).doc(comedianDocTitle);
       
       showsRef.get().then((docSnapshot) => {
         if (docSnapshot.exists) {
@@ -44,13 +44,13 @@ export const writeToFirestore = async (shows: Show[], storagePath: string) => {
 }
 
 export const getComedianShowDocuments = async (comedian: string) => {
-  const showsRef = db.collection(SHOW_COLLECTION).doc(comedian);
+  const showsRef = db.collection(SHOW_COLLECTION_NAME).doc(comedian);
   const doc = await showsRef.get();
-  return doc.get(SHOW_COLLECTION)
+  return doc.get('shows"')
 }
 
 export const getAllComedianDocuments = async () => {
-  const showsRef = await db.collection(SHOW_COLLECTION)
+  const showsRef = await db.collection(SHOW_COLLECTION_NAME)
   const allDocuments = await showsRef.listDocuments();
 
   return Promise.all(allDocuments.map(doc => getValue(doc, "comedian")));
