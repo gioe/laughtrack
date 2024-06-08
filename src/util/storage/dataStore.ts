@@ -17,28 +17,27 @@ export const writeToFirestore = async (shows: Show[], storagePath: string) => {
     for (const comedian of show.comedians) {
       const comedianDocTitle = removeWhiteSpace(comedian.name.toLowerCase());
      
-      const showsRef = db.collection(SHOW_COLLECTION_NAME).doc(comedianDocTitle);
-      
-      showsRef.get().then((docSnapshot) => {
-        if (docSnapshot.exists) {
-          showsRef.update(
-            {
+      const comedianDocRef = db.collection(SHOW_COLLECTION_NAME).doc(comedianDocTitle);
+      const comedianDoc = comedianDocRef.get()
+
+      if ((await comedianDoc).exists) {
+        comedianDocRef.update(
+          {
             shows: FieldValue.arrayUnion({
               dateTime: show.dateTime,
               showName: show.name,
-            })
-          });
-        } else {
-          showsRef.set({
-            lastUpdate: new Date().toISOString(),
-            comedian: comedian.name, 
-            shows: FieldValue.arrayUnion({
-              dateTime: show.dateTime,
-              showName: show.name,
-            })
-          });
-        }
-    });
+          })
+        });
+      } else {
+        comedianDocRef.set({
+          lastUpdate: new Date().toDateString(),
+          comedian: comedian.name, 
+          shows: FieldValue.arrayUnion({
+            dateTime: show.dateTime,
+            showName: show.name,
+          })
+        });
+      }
     }
   }
 }
@@ -46,13 +45,12 @@ export const writeToFirestore = async (shows: Show[], storagePath: string) => {
 export const getComedianShowDocuments = async (comedian: string) => {
   const showsRef = db.collection(SHOW_COLLECTION_NAME).doc(comedian);
   const doc = await showsRef.get();
-  return doc.get('shows"')
+  return doc.get('shows')
 }
 
 export const getAllComedianDocuments = async () => {
-  const showsRef = await db.collection(SHOW_COLLECTION_NAME)
+  const showsRef = db.collection(SHOW_COLLECTION_NAME)
   const allDocuments = await showsRef.listDocuments();
-
   return Promise.all(allDocuments.map(doc => getValue(doc, "comedian")));
 }
 

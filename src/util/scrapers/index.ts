@@ -13,7 +13,7 @@ const getScraper = (club: Club) => {
 }
 
 export const scrapeAllClubs = async () => {
-    console.log('Starting scraping job at:', new Date().toLocaleString());
+    console.log('Starting scraping job at:', new Date().toDateString());
     const clubs = readJsonFile(process.env.CLUBS_FILE ?? "src/clubs.json");
 
     for (const club of clubs) {
