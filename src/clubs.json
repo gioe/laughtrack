@@ -2,51 +2,36 @@
     {
         "name": "Comedy Cellar New York",
         "website": "https://www.comedycellar.com/new-york-line-up/",
-        "scraper": "comedy_cellar",
         "timezone": "America/New_York",
+        "scraper": "comedy_cellar_new_york",
         "htmlConfig": {
+            "allDateOptionsSelector": "#cc_lineup_select_dates  > option",
             "dateMenuSelector": "#cc_lineup_select_dates",
-            "lineupsParentSelector": "#lineup_sets",
-            "lineupItemsSelector": "#lineup_sets > div",
-            "setContentSelector": "div.set-content",
-            "selectedDateSelector": "h1[data-selected-date]",
+            "allShowsSelector": "#lineup_sets > div",
             "selectedTimeSelector": ".bold",
             "selectedOptionalShowNameSelector": ".title",
-            "dateOptionSelector": "option",
-            "comedianNameSelector": ".name",
-            "comedianWebsiteSelector": "p.website a",
-            "comedianHeadshotSelector": ".img",
-            "dateMenuOptionSelector" : "select#cc_lineup_select_dates",
-            "optionValueAttribute": "value"
-        },
-        "textConfig": {
             "extraTimeString": " show",
-            "extraDateString": " show"
+            "extraDateString": " show",
+            "setContentSelector": "div.set-content",
+            "comedianWebsiteSelector": "p.website a",
+            "comedianNameSelector": ".name"
         }
-    },
+    },    
     {
         "name": "Comedy Cellar Las Vegas",
         "website": "https://www.comedycellar.com/las-vegas-line-up/",
-        "scraper": "comedy_cellar",
-        "timezone": "America/Los_Angeles",
+        "scraper": "comedy_cellar_vegas",
         "htmlConfig": {
+            "allDateOptionsSelector": "#cc_lineup_select_dates  > option",
             "dateMenuSelector": "#cc_lineup_select_dates",
-            "lineupsParentSelector": "#lineup_sets",
-            "lineupItemsSelector": "#lineup_sets > div> div.set-header",
-            "setContentSelector": "div.set-content",
-            "selectedDateSelector": "h1[data-selected-date]",
+            "allShowsSelector": "#lineup_sets > div",
             "selectedTimeSelector": ".bold",
             "selectedOptionalShowNameSelector": ".title",
-            "dateOptionSelector": "option",
-            "comedianNameSelector": ".name",
-            "comedianWebsiteSelector": "p.website a",
-            "comedianHeadshotSelector": ".img",
-            "dateMenuOptionSelector" : "select#cc_lineup_select_dates",
-            "optionValueAttribute": "value"
-        },
-        "textConfig": {
             "extraTimeString": " show",
-            "extraDateString": " show"
+            "extraDateString": " show",
+            "setContentSelector": "div.set-content",
+            "comedianWebsiteSelector": "p.website a",
+            "comedianNameSelector": ".name"
         }
     }
 ]
