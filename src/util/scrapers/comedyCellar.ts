@@ -39,7 +39,6 @@ export class ComedyCellarScaper implements Scraper {
 
     for (let i = 0; i < allDates.length - 1; i++) {   
       const shows = await this.scrapeShowsOnDate(allDates[i], page);    
-
       scrapedShows.push(...shows);
 
       await page.select(this.htmlConfig().dateMenuSelector, allDates[i+1]);
@@ -47,7 +46,11 @@ export class ComedyCellarScaper implements Scraper {
       await addDelay(100);
     }
 
-    writeToFirestore(scrapedShows, this.storagePath());
+    if (scrapedShows.length == 0) {
+      console.log(`Scraper returned no shows for ${this.website}`)
+    } else {
+      writeToFirestore(scrapedShows, this.storagePath());
+    }
     
   }
   
