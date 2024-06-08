@@ -44,16 +44,17 @@ export const writeToFirestore = async (shows: Show[], storagePath: string) => {
 }
 
 export const getComedianShowDocuments = async (comedian: string) => {
+  
   const db = new Firestore({
     projectId: process.env.GCP_PROJECT_ID,
     keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS_PATH,
   });
   
-  console.log(comedian)
 
+  
   const showsRef = db.collection(SHOW_COLLECTION).doc(comedian);
-  console.log(showsRef)
-
+  const doc = await showsRef.get();
+  return doc.get("shows")
 }
 
 export const getAllComedianDocuments = async () => {
