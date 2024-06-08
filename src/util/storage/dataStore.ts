@@ -50,13 +50,29 @@ export const getComedianShowDocuments = async (comedian: string) => {
     keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS_PATH,
   });
   
-
-  
   const showsRef = db.collection(SHOW_COLLECTION).doc(comedian);
   const doc = await showsRef.get();
   return doc.get("shows")
 }
 
 export const getAllComedianDocuments = async () => {
-  
+  const db = new Firestore({
+    projectId: process.env.GCP_PROJECT_ID,
+    keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS_PATH,
+  });
+
+  var comedianDocs: any[] = [];
+
+  db.collection(SHOW_COLLECTION)
+  .onSnapshot((querySnapshot) => {
+      querySnapshot.forEach((doc) => {
+        comedianDocs.push({
+          docName: doc.id,
+          comedianName: doc.get("comedian")
+        })
+      })
+    });
+
+    return comedianDocs;
+
 }
