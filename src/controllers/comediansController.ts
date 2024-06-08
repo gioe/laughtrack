@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 import { getAllComedianDocuments } from '../util/storage/dataStore.js';
 
-export const getAllComedians = (req: Request, res: Response) => {
+export const getAllComedians = async (req: Request, res: Response) => {
     res.json({
-        comedians: getAllComedianDocuments(),
+        comedians: await getAllComedianDocuments(),
       });
 };

@@ -4,12 +4,12 @@ import { removeWhiteSpace } from "../string/stringUtil.js";
 
 const SHOW_COLLECTION = 'shows'
 
+const db = new Firestore({
+  projectId: process.env.GCP_PROJECT_ID,
+  keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS_PATH,
+});
+
 export const writeToFirestore = async (shows: Show[], storagePath: string) => {
-  
-  const db = new Firestore({
-    projectId: process.env.GCP_PROJECT_ID,
-    keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS_PATH,
-  });
   
   const showsRef = db.collection(SHOW_COLLECTION)
 
@@ -44,35 +44,23 @@ export const writeToFirestore = async (shows: Show[], storagePath: string) => {
 }
 
 export const getComedianShowDocuments = async (comedian: string) => {
-  
-  const db = new Firestore({
-    projectId: process.env.GCP_PROJECT_ID,
-    keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS_PATH,
-  });
-  
   const showsRef = db.collection(SHOW_COLLECTION).doc(comedian);
   const doc = await showsRef.get();
-  return doc.get("shows")
+  return doc.get(SHOW_COLLECTION)
 }
 
 export const getAllComedianDocuments = async () => {
-  const db = new Firestore({
-    projectId: process.env.GCP_PROJECT_ID,
-    keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS_PATH,
-  });
+  const showsRef = await db.collection(SHOW_COLLECTION)
+  const allDocuments = await showsRef.listDocuments();
 
-  var comedianDocs: any[] = [];
+  return Promise.all(allDocuments.map(doc => getValue(doc, "comedian")));
+}
 
-  db.collection(SHOW_COLLECTION)
-  .onSnapshot((querySnapshot) => {
-      querySnapshot.forEach((doc) => {
-        comedianDocs.push({
-          docName: doc.id,
-          comedianName: doc.get("comedian")
-        })
-      })
-    });
-
-    return comedianDocs;
-
+const getValue = async (docRef: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData, FirebaseFirestore.DocumentData>, 
+  valueName: string) => {
+    const doc = await docRef.get();
+   return {
+    docName: doc.id,
+    comedianName: doc.get(valueName)
+   };
 }

@@ -1,3 +1,3 @@
 export const removeWhiteSpace = (whiteSpaceString: string) => {
-    return whiteSpaceString.replace(" ", "_")
+    return whiteSpaceString.replaceAll(" ", "_")
 }
