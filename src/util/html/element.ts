@@ -1,5 +1,5 @@
-export const getOptionsProperty = (options: Element[], property: string) => {
-  return options.map(option => option.getAttribute(property) ?? "")
+export const getPropertyOfElements = (elements: Element[], property: string) => {
+  return elements.map(element => element.getAttribute(property) ?? "")
 }
 
 export const getTextContent = (element: Element) => {

@@ -5,4 +5,5 @@ export interface Show {
     timeZone: string;
     name: string;
     comedians: Comedian[];
+    ticketLink: string;
 }

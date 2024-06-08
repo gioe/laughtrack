@@ -1,8 +1,8 @@
 import { HTMLConfigurable } from "./configs.interface.js";
-import { Writable } from "./writable.interface.js";
 
-export interface Club extends Writable, HTMLConfigurable {
+export interface Club extends HTMLConfigurable {
     name: string;
-    website: string;
+    baseWebsite: string;
+    scrapedWebsite: string;
     scraper: string;
 }

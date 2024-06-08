@@ -1,13 +1,13 @@
 import puppeteer from 'puppeteer';
 import { HTMLConfigurable } from "../../types/configs.interface.js";
-import { getOptionsProperty, getTextContent } from '../html/element.js';
+import { getPropertyOfElements, getTextContent } from '../html/element.js';
 import { writeToFirestore } from '../../util/storage/dataStore.js';
-import { addDelay, cleanDateString, cleanTimeString, combineDateAndTimeStrings, convertDatetimeToString } from '../dateTime.js';
+import { addDelay, combineDateAndTimeStrings } from '../dateTime.js';
 import { Show } from '../../types/show.interface.js';
 import { Scraper } from '../../types/scraper.interface.js';
 import { Comedian } from '../../types/comedian.interface.js';
 import { Club } from '../../types/club.interface.js';
-import { Writable } from '../../types/writable.interface.js';
+import { combineWebsite } from '../website.js';
 
 export class ComedyCellarScaper implements Scraper {
   private club: Club;
@@ -20,36 +20,36 @@ export class ComedyCellarScaper implements Scraper {
     return (this.club as HTMLConfigurable).htmlConfig;
   }
 
-  private storagePath() {
-    return (this.club as Writable).storagePath;
+  private baseWebsite() {
+    return this.club.baseWebsite
   }
 
-  private website() {
-    return this.club.website
+  private scrapedWebsite() {
+    return this.club.scrapedWebsite
   }
 
   scrape = async (page: puppeteer.Page) => {
-    console.log(`Scraping ${this.website()}`)
-    await page.goto(this.website())
+    console.log(`Scraping ${this.scrapedWebsite()}`)
+    await page.goto(this.scrapedWebsite())
 
     // Get the date do
-    const allDates = await page.$$eval(this.htmlConfig().allDateOptionsSelector, getOptionsProperty, "value")
+    const dates = await page.$$eval(this.htmlConfig().allDateOptionsSelector, getPropertyOfElements, "value")
 
     const scrapedShows: Show[] = [];
 
-    for (let i = 0; i < allDates.length - 1; i++) {   
-      const shows = await this.scrapeShowsOnDate(allDates[i], page);    
+    for (let i = 0; i < dates.length - 1; i++) {   
+      const shows = await this.scrapeShowsOnDate(dates[i], page);    
       scrapedShows.push(...shows);
 
-      await page.select(this.htmlConfig().dateMenuSelector, allDates[i+1]);
+      await page.select(this.htmlConfig().dateMenuSelector, dates[i+1]);
 
       await addDelay(100);
     }
 
     if (scrapedShows.length == 0) {
-      console.log(`Scraper returned no shows for ${this.website}`)
+      console.log(`Scraper returned no shows for ${this.scrapedWebsite}`)
     } else {
-      writeToFirestore(scrapedShows, this.storagePath());
+      writeToFirestore(scrapedShows);
     }
     
   }
@@ -71,27 +71,20 @@ private scrapeShowsOnDate = async (dateString: string, page: puppeteer.Page) => 
 
 scrapeShow = async (showDiv: puppeteer.ElementHandle<Element>, dateString: string): Promise<Show> => {
   const timeString =  await showDiv.$eval(this.htmlConfig().selectedTimeSelector, getTextContent)
+  const ticketLinkDivs = await showDiv.$$eval(this.htmlConfig().ticketLinkSelector, getPropertyOfElements, "href")
   const name =  await showDiv.$eval(this.htmlConfig().selectedOptionalShowNameSelector, getTextContent)
-  
-  const comedians = await this.scrapeComediansFromLineupItem(showDiv);
+  const comedianDivList = await showDiv.$$(this.htmlConfig().setContentSelector);
+  const comedians = await this.scrapeComediansFromLineupItem(comedianDivList);
 
   return {
-     dateTime: this.transformDateTime(dateString, timeString ?? ""),
+     dateTime: combineDateAndTimeStrings(dateString, timeString ?? ""),
      name,
      comedians,
+     ticketLink: combineWebsite(this.baseWebsite(), ticketLinkDivs),
   } as Show
 }
 
-transformDateTime = (dateString: string, timeString: string): string => {
-  const cleanedDateString = cleanDateString(dateString, this.htmlConfig().extraDateString);
-  const cleanedTimeString = cleanTimeString(timeString, this.htmlConfig().extraTimeString);
-  const date = combineDateAndTimeStrings(dateString, timeString) ?? new Date()
-  return convertDatetimeToString(date);
-}
-
-
-scrapeComediansFromLineupItem = async (parentDiv: puppeteer.ElementHandle<Element>): Promise<Comedian[]> => {
-  const comedianDivList = (await parentDiv.$$(this.htmlConfig().setContentSelector));
+scrapeComediansFromLineupItem = async (comedianDivList: puppeteer.ElementHandle<Element>[]): Promise<Comedian[]> => {
   const comedianList: Comedian[] = [];
 
   for (const comedianDiv of comedianDivList) {
@@ -103,7 +96,7 @@ scrapeComediansFromLineupItem = async (parentDiv: puppeteer.ElementHandle<Elemen
 }
 
 scrapeComedianDivForComedian = async (element: puppeteer.ElementHandle<Element>): Promise<Comedian> => {
-  const website = await element.$$eval(this.htmlConfig().comedianWebsiteSelector, getOptionsProperty, "href")
+  const website = await element.$$eval(this.htmlConfig().comedianWebsiteSelector, getPropertyOfElements, "href")
   const name = await element.$eval(this.htmlConfig().comedianNameSelector, getTextContent)
 
   return {

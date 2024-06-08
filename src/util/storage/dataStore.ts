@@ -9,10 +9,8 @@ const db = new Firestore({
   keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS_PATH,
 });
 
-export const writeToFirestore = async (shows: Show[], storagePath: string) => {
+export const writeToFirestore = async (shows: Show[]) => {
   
-  const showsRef = db.collection(SHOW_COLLECTION_NAME)
-
   for (const show of shows) {
     for (const comedian of show.comedians) {
       const comedianDocTitle = removeWhiteSpace(comedian.name.toLowerCase());
@@ -26,15 +24,18 @@ export const writeToFirestore = async (shows: Show[], storagePath: string) => {
             shows: FieldValue.arrayUnion({
               dateTime: show.dateTime,
               showName: show.name,
+              ticketLink: show.ticketLink
           })
         });
       } else {
         comedianDocRef.set({
           lastUpdate: new Date().toDateString(),
           comedian: comedian.name, 
+          website: comedian.website ?? "",
           shows: FieldValue.arrayUnion({
             dateTime: show.dateTime,
             showName: show.name,
+            ticketLink: show.ticketLink
           })
         });
       }

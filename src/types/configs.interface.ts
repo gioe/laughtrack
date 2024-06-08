@@ -6,11 +6,10 @@ export interface HTMLConfiguration {
     allShowsSelector: string
     selectedTimeSelector: string;
     selectedOptionalShowNameSelector: string,
-    extraTimeString: string,
-    extraDateString: string,
     setContentSelector: string,
     comedianWebsiteSelector: string,
-    comedianNameSelector: string
+    comedianNameSelector: string,
+    ticketLinkSelector: string,
 }
 
 export interface HTMLConfigurable {

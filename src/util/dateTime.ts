@@ -1,7 +1,6 @@
-import { HTMLConfigurable } from "../types/configs.interface.js";
 import moment from 'moment-timezone';
 
-export const combineDateAndTimeStrings = (showDateString: string, showTimeString: string): Date => {
+export const combineDateAndTimeStrings = (showDateString: string, showTimeString: string): string => {
 
     const dateTimeStr = `${showDateString}/${showTimeString}`;
 
@@ -16,27 +15,13 @@ export const combineDateAndTimeStrings = (showDateString: string, showTimeString
     
      // Format date string
     const formattedDateString = `${dateComponents} ${adjustedHours}:${minutes}:00`;
-  
-    return new Date(formattedDateString);
+    
+    const newDate = new Date(formattedDateString);
+    return convertDatetimeToString(newDate);
 }
 
 export const stringIsDateTime = (inputString: string): boolean => {
     return /^\d{4}-\d{2}-\d{2} \d{2}:\d{2} [AP]M$/.test(inputString);
-}
-
-export const cleanDateString = (dateString: string, extra: string): string => {
-    if (stringIsDateTime(dateString)) {
-        return dateString;
-    }
-    return dateString.replace(extra, '');
-}
-
-
-export const cleanTimeString = (timeString: string, extra: string): string => {
-    if (stringIsDateTime(timeString)) {
-        return timeString;
-    }
-    return timeString.replace(extra, '').toUpperCase();
 }
 
 export const convertDatetimeToString = (dateTime: Date): string => {
