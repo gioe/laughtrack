@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
+import { getComedianShowDocuments } from '../util/storage/dataStore.js';
 
-export const getShowsForBlah = (req: Request, res: Response) => {
+export const getShowsForComic = (req: Request, res: Response) => {
+  const name = req.params.name;
     res.json({
-        message: 'Running scrapers',
+        shows: getComedianShowDocuments(name)
       });
 };

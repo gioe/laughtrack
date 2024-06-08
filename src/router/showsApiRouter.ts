@@ -1,9 +1,9 @@
 import express from "express";
-import { getShowsForBlah } from "../controllers/showController.js";
+import { getShowsForComic } from "../controllers/showController.js";
 
 export const showsApiRouter = express.Router();
 
 // POST items
 
-showsApiRouter.get("/blah", getShowsForBlah)
+showsApiRouter.get("/:name", getShowsForComic)
 

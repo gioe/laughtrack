@@ -1,5 +1,8 @@
 import { FieldValue, Firestore } from "@google-cloud/firestore"
 import { Show } from "../../types/show.interface.js";
+import { removeWhiteSpace } from "../string/stringUtil.js";
+
+const SHOW_COLLECTION = 'shows'
 
 export const writeToFirestore = async (shows: Show[], storagePath: string) => {
   
@@ -8,13 +11,18 @@ export const writeToFirestore = async (shows: Show[], storagePath: string) => {
     keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS_PATH,
   });
   
+  const showsRef = db.collection(SHOW_COLLECTION)
+
   for (const show of shows) {
     for (const comedian of show.comedians) {
-      const showsRef = db.collection('shows').doc(comedian.name);
-      showsRef.get()
-      .then((docSnapshot) => {
+      const comedianDocTitle = removeWhiteSpace(comedian.name.toLowerCase());
+     
+      const showsRef = db.collection(SHOW_COLLECTION).doc(comedianDocTitle);
+      
+      showsRef.get().then((docSnapshot) => {
         if (docSnapshot.exists) {
-          showsRef.update({
+          showsRef.update(
+            {
             shows: FieldValue.arrayUnion({
               dateTime: show.dateTime,
               showName: show.name,
@@ -22,6 +30,8 @@ export const writeToFirestore = async (shows: Show[], storagePath: string) => {
           });
         } else {
           showsRef.set({
+            lastUpdate: new Date().toISOString(),
+            comedian: comedian.name, 
             shows: FieldValue.arrayUnion({
               dateTime: show.dateTime,
               showName: show.name,
@@ -31,4 +41,21 @@ export const writeToFirestore = async (shows: Show[], storagePath: string) => {
     });
     }
   }
+}
+
+export const getComedianShowDocuments = async (comedian: string) => {
+  const db = new Firestore({
+    projectId: process.env.GCP_PROJECT_ID,
+    keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS_PATH,
+  });
+  
+  console.log(comedian)
+
+  const showsRef = db.collection(SHOW_COLLECTION).doc(comedian);
+  console.log(showsRef)
+
+}
+
+export const getAllComedianDocuments = async () => {
+  
 }
