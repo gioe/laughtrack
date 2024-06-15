@@ -7,6 +7,7 @@ import { notFoundHandler } from "./middleware/not-found.middleware.js";
 import { showsApiRouter } from "./router/showsApiRouter.js";
 import { scraperApiRouter } from "./router/scraperApiRouter.js";
 import { comediansApiRouter } from "./router/comediansApiRouter.js";
+import { userApiRouter } from "./router/userApiRouter.js";
 import { scheduleScrapes } from "./util/cron.js";
 
 dotenv.config();
@@ -21,6 +22,7 @@ app.use(express.json());
 app.use('/api/comedians', comediansApiRouter);
 app.use('/api/scraper', scraperApiRouter);
 app.use('/api/shows', showsApiRouter);
+app.use('/api/user', userApiRouter);
 
 app.use(errorHandler);
 app.use(notFoundHandler);
