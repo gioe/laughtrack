@@ -11,7 +11,10 @@ export type User = {
 }
 
 export type Comedian = {
+  name: string;
+  image: string;
   shows: Show[];
+  showCount: number;
 }
 
 export type Show = {

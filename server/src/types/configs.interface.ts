@@ -1,5 +1,3 @@
-import { Club } from "./club.interface.js";
-
 export interface HTMLConfiguration {
     allDateOptionsSelector: string;
     dateMenuSelector: string;
