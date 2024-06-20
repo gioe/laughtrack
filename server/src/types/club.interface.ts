@@ -6,3 +6,4 @@ export interface Club extends HTMLConfigurable {
     scrapedWebsite: string;
     scraper: string;
 }
+

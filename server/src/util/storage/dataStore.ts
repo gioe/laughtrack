@@ -2,64 +2,57 @@ import { FieldValue, Firestore } from "@google-cloud/firestore"
 import { Show } from "../../types/show.interface.js";
 import { removeWhiteSpace } from "../string/stringUtil.js";
 
-const SHOW_COLLECTION_NAME = 'shows'
-
 const db = new Firestore({
   projectId: process.env.GCP_PROJECT_ID,
   keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS_PATH,
 });
 
-export const writeToFirestore = async (shows: Show[]) => {
-  
-  for (const show of shows) {
-    for (const comedian of show.comedians) {
-      const comedianDocTitle = removeWhiteSpace(comedian.name.toLowerCase());
-     
-      const comedianDocRef = db.collection(SHOW_COLLECTION_NAME).doc(comedianDocTitle);
-      const comedianDoc = comedianDocRef.get()
+export const updateDocument = async (documentReference: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData, FirebaseFirestore.DocumentData>, data: any) => {
+  return documentReference.update({
+    lastUpdate: new Date().toDateString(),
+    data
+});}
+ 
+export const createNewDocument = async (documentReference: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData, FirebaseFirestore.DocumentData>, data: any) => {
+  return documentReference.set({
+        lastUpdate: new Date().toDateString(),
+        data
+  });
+}
 
-      if ((await comedianDoc).exists) {
-        comedianDocRef.update(
-          {
-            shows: FieldValue.arrayUnion({
-              dateTime: show.dateTime,
-              showName: show.name,
-              ticketLink: show.ticketLink
-          })
-        });
-      } else {
-        comedianDocRef.set({
-          lastUpdate: new Date().toDateString(),
-          comedian: comedian.name, 
-          website: comedian.website ?? "",
-          shows: FieldValue.arrayUnion({
-            dateTime: show.dateTime,
-            showName: show.name,
-            ticketLink: show.ticketLink
-          })
-        });
-      }
-    }
+export const writeToFirestore = async (collectionName: string, documentName: string, data: any) => {
+  const formattedDocName = removeWhiteSpace(documentName)
+  const docRef = db.collection(collectionName).doc(formattedDocName);
+  const comedianDoc = await docRef.get()
+
+  if (comedianDoc.exists) {
+    updateDocument(docRef, data)
+  } else {
+    createNewDocument(docRef, data)
   }
 }
 
-export const getComedianShowDocuments = async (comedian: string) => {
-  const showsRef = db.collection(SHOW_COLLECTION_NAME).doc(comedian);
-  const doc = await showsRef.get();
-  return doc.get('shows')
+export const getValueFromAllDocuments = async (collectionName: string, value: string) => {
+  const collectionRef = db.collection(collectionName)
+  const allDocuments = await collectionRef.listDocuments();
+  return Promise.all(allDocuments.map(docRef => getValueFromDocumentReference(docRef, value)));
 }
 
-export const getAllComedianDocuments = async () => {
-  const showsRef = db.collection(SHOW_COLLECTION_NAME)
-  const allDocuments = await showsRef.listDocuments();
-  return Promise.all(allDocuments.map(doc => getValue(doc, "comedian")));
+export const getValueFromSpecificDocument = async (collectionName: string, docName: string, value: string) => {
+  const doc = await db.collection(collectionName).doc(docName).get()
+  return getValueFromDocument(doc, value);
 }
 
-const getValue = async (docRef: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData, FirebaseFirestore.DocumentData>, 
-  valueName: string) => {
+const getValueFromDocumentReference = async (docRef: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData, FirebaseFirestore.DocumentData>, 
+  value: string) => {
     const doc = await docRef.get();
-   return {
+    return getValueFromDocument(doc, value)
+  }
+
+const getValueFromDocument = (doc: FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData, FirebaseFirestore.DocumentData>, value: string) => {
+  return {
     docName: doc.id,
-    comedianName: doc.get(valueName)
+    value: doc.get(value)
    };
-}
+  }
+    
