@@ -18,12 +18,15 @@ export type Comedian = {
 }
 
 export type Show = {
-  club: Club;
-  dateTime: string;
+  clubName: string;
+  clubWebsite: string;
+  dateTime: Date;
   timeZone: string;
   name: string;
   ticketLink: string;
 }
+
+
 
 export type Club = {
   name: string;

@@ -24,7 +24,7 @@ export const createNewDocument = async (
 export const writeToFirestore = async (
   collectionName: string, 
   storable: Storable) => {
-  const formattedDocName = removeWhiteSpace(storable.getDocumentName())
+  const formattedDocName = removeWhiteSpace(storable.getDocumentName().toLowerCase())
   const docRef = db.collection(collectionName).doc(formattedDocName);
   const comedianDoc = await docRef.get()
 
@@ -48,7 +48,7 @@ export const getValueFromDocument = async (
   collectionName: string, 
   docName: string,
   values: string[]) => {
-  const documentReference = await db.collection(collectionName).doc(docName);
+  const documentReference = db.collection(collectionName).doc(docName);
   return getValuesFromDocumentReference(documentReference, values)
 }
 

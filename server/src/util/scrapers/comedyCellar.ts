@@ -1,7 +1,7 @@
 import puppeteer from 'puppeteer';
 import { HTMLConfigurable } from "../../types/configs.interface.js";
 import { getPropertyOfElements, getTextContent } from '../html/element.js';
-import { addDelay, combineDateAndTimeStrings } from '../dateTime.js';
+import { addDelay, combineDateAndTime } from '../dateTime.js';
 import { Show } from '../../types/show.interface.js';
 import { Scraper } from '../../types/scraper.interface.js';
 import { Club } from '../../types/club.interface.js';
@@ -93,7 +93,7 @@ export class ComedyCellarScaper implements Scraper {
     const name = await showDiv.$eval(this.htmlConfig().selectedOptionalShowNameSelector, getTextContent)
 
     return {
-      dateTime: combineDateAndTimeStrings(dateString, timeString ?? ""),
+      dateTime: combineDateAndTime(dateString, timeString ?? ""),
       name,
       ticketLink: combineWebsite(this.baseWebsite(), ticketLinkDivs),
       clubName: this.club.name,

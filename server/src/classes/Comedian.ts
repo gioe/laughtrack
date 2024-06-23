@@ -24,7 +24,7 @@ export class Comedian implements ComedianInterface {
   }
 
   getDocumentName = () => {
-    return removeWhiteSpace(this.name);
+    return removeWhiteSpace(this.name).toLowerCase();
   }
 
   getData = () => {

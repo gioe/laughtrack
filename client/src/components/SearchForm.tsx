@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 import { Calendar } from "./ui/calendar";
 
 export const formSchema = z.object({
-    comics: z.string().min(2).max(50),
+    comedian: z.string().min(2).max(50),
     dates: z.object({
         from: z.date(),
         to: z.date()
@@ -35,7 +35,7 @@ function SearchForm() {
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            comics: "",
+            comedian: "",
             dates: {
                 from: undefined,
                 to: undefined
@@ -44,15 +44,9 @@ function SearchForm() {
     })
 
     function onSubmit(values: z.infer<typeof formSchema>) {
-        const startDayDate = values.dates.from.getDate().toString();
-        const startDayMonth = (values.dates.from.getMonth() + 1).toString();
-        const startDayYear = values.dates.from.getFullYear().toString();
-        const endDateDate = values.dates.to.getDate().toString();
-        const endDateMonth = (values.dates.to.getDate() + 1).toString();
-        const endDateYear = values.dates.to.getDate().toString();
-
-        router.push(`search?comics=${values.comics}&from=${values.dates.from}&to=${values.dates.to}`)
-
+        const startDayDate = values.dates.from.toDateString()
+        const endDateDate = values.dates.to.toDateString()
+        router.push(`search?name=${values.comedian}&from=${startDayDate}&to=${endDateDate}`)
     }
 
     return <Form {...form}>
@@ -63,7 +57,7 @@ function SearchForm() {
             <div className="grid w-full lg:max-w-sm items-center gap-1.5">
                 <FormField
                     control={form.control}
-                    name="comics"
+                    name="comedian"
                     render={({ field }) => (
                         <FormItem>
                             <FormLabel className="text-white flex">
@@ -71,7 +65,7 @@ function SearchForm() {
                             </FormLabel>
                             <FormMessage />
                             <FormControl>
-                                <Input placeholder="Dave Chappelle" {...field} />
+                                <Input placeholder="e.g. Dave Chappelle" {...field} />
                             </FormControl>
                         </FormItem>
                     )}

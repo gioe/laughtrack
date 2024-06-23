@@ -1,6 +1,6 @@
 import moment from 'moment-timezone';
 
-export const combineDateAndTimeStrings = (showDateString: string, showTimeString: string): string => {
+export const combineDateAndTime = (showDateString: string, showTimeString: string): Date => {
 
     const dateTimeStr = `${showDateString}/${showTimeString}`;
 
@@ -11,13 +11,13 @@ export const combineDateAndTimeStrings = (showDateString: string, showTimeString
     const [minutes, meridiem] = minutesAndMeridiem.split(' ');
 
     // Adjust hours for PM
-    const adjustedHours = parseInt(hours) + (meridiem.match('PM') ? 12 : 0);
+    const adjustedHours = parseInt(hours) + (meridiem.includes('p') ? 12 : 0);
     
      // Format date string
     const formattedDateString = `${dateComponents} ${adjustedHours}:${minutes}:00`;
     
     const newDate = new Date(formattedDateString);
-    return convertDatetimeToString(newDate);
+    return new Date(formattedDateString);;
 }
 
 export const stringIsDateTime = (inputString: string): boolean => {

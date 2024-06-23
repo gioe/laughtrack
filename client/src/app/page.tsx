@@ -1,7 +1,5 @@
 'use client';
 
-import Home from '@/ui/pages/Home'
-import { trending_data } from '@/data/trending'
 import SearchForm from '@/components/SearchForm'
 import { useEffect, useState } from 'react'
 import { Comedian } from '@/util/types';
@@ -19,7 +17,6 @@ export default function Page() {
         const fetchedComedians = data.comedians as Comedian[]
         const trendingComedians = fetchedComedians.splice(0,5)
         const sortedComedians = fetchedComedians.sort((a, b) => a.name.localeCompare(b.name))
-        console.log(trendingComedians)
         setAllComedians(sortedComedians)
         setTrendingComedians(trendingComedians)
       }
@@ -46,7 +43,7 @@ export default function Page() {
         <div className="flex space-x-4 py-5 overflow-x-scroll">
           {trendingComedians.map((item) => {
             return <div key={item.name} className="space-y-1 shrink-0 cursor-pointer">
-              <img key={item.name} className="w-80 h-72 object-cover rounded-lg pb-2" alt='' src={item.name} />
+              <img key={item.name} className="w-80 h-72 object-cover rounded-lg pb-2" alt='' src={""} />
               <p className="font-bold"> {item.name} </p>
               <p className="font-light text-sm"> {`${item.showCount} shows`} </p>
             </div>
