@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { getValueFromDocument, getValuesFromCollection } from '../util/storage/fireStore.js';
 import { FIRESTORE_COLLECTIONS } from '../constants/firestore.js';
 import { Show } from '../types/show.interface.js';
-import { removeWhiteSpace } from '../util/string/stringUtil.js';
+import { removeAllWhiteSpace } from '../util/types/stringUtil.js';
 
 export const getAllComedians = async (req: Request, res: Response) => {
   
@@ -30,7 +30,7 @@ export const getShowsForComedian = async (req: Request, res: Response) => {
   const fromDateString = req.query.from;
   const toDate = new Date(toDateString as string);
   const fromDate = new Date(fromDateString as string);
-  const documentName = removeWhiteSpace(name as string).toLowerCase()
+  const documentName = removeAllWhiteSpace(name as string).toLowerCase()
   const comedianDoc = await getValueFromDocument(FIRESTORE_COLLECTIONS.comedians, documentName, ["name", "shows"]);
 
   var returnedShows: Show[] = []

@@ -1,5 +1,5 @@
 import { Firestore } from "@google-cloud/firestore"
-import { removeWhiteSpace } from "../string/stringUtil.js";
+import { removeAllWhiteSpace } from "../types/stringUtil.js";
 import { Storable } from "../../types/storable.interface.js";
 
 const db = new Firestore({
@@ -24,7 +24,7 @@ export const createNewDocument = async (
 export const writeToFirestore = async (
   collectionName: string, 
   storable: Storable) => {
-  const formattedDocName = removeWhiteSpace(storable.getDocumentName().toLowerCase())
+  const formattedDocName = removeAllWhiteSpace(storable.getDocumentName().toLowerCase())
   const docRef = db.collection(collectionName).doc(formattedDocName);
   const comedianDoc = await docRef.get()
 

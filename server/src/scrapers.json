@@ -1,0 +1,70 @@
+[
+    {
+        "baseWebsite": "https://www.comedycellar.com",
+        "clubs": [
+            {
+                "name": "Comedy Cellar New York",
+                "scrapedPage": "https://www.comedycellar.com/new-york-line-up/",
+                "homePage":  "https://www.comedycellar.com"
+            },
+            {
+                "name": "Comedy Cellar Las Vegas",
+                "scrapedPage": "https://www.comedycellar.com/las-vegas-line-up/",
+                "homePage":  "https://www.comedycellar.com"
+            }
+        ],
+        "htmlConfig": {
+            "clubConfig": {
+                "allShowsSelector": "#lineup_sets > div"
+            },
+            "datesConfig": {
+                "dateMenuSelector": "#cc_lineup_select_dates",
+                "dateOptionsSelector": "#cc_lineup_select_dates > option"
+            },            
+            "showConfig": {
+                "showLineupSelector": "div.set-content",
+                "showNameSelector": ".title",
+                "showTimeSelector": "div.set-header > div > h2 > span.bold",
+                "showDateSelector": "",
+                "showTicketSelector": ""
+            },
+            "comedianConfig": {
+                "allComedianNameSelector": ".name"
+            }
+        }, 
+        "textConfig": {
+            "badCharacters": ["(", "&"],
+            "badWords": ["",  "More!!"],
+            "commaPlacement": "  " 
+        }
+    }, 
+    {
+        "baseWebsite": "https://comicstriplive.com/",
+        "clubs": [
+            {
+                "name": "Comic Strip Live NYC",
+                "scrapedPage": "https://comicstriplive.com/schedule/",
+                "homePage": "https://comicstriplive.com/"
+            }
+        ],
+        "htmlConfig": {
+            "clubConfig": {
+                "allShowsSelector": "div.summary"
+            },     
+            "showConfig": {
+                "showLineupSelector": "div.summary > h3 > a",
+                "showDateTimeSelector": "h4",
+                "showTicketSelector": "div.summary > a"
+            },
+            "comedianConfig": {
+                "allComedianNameSelector": "div.summary > h3 > a"
+            }
+        },
+        "textConfig": {
+            "badCharacters": ["(", "&"],
+            "badWords": ["",  "More!!"],
+            "commaPlacement": "  " ,
+            "showSignifiers": ["with",  "presents", "and friends"]
+        }
+    }     
+]

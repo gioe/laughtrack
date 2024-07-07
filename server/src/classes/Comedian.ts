@@ -1,31 +1,31 @@
 import { FieldValue } from "@google-cloud/firestore";
 import { ComedianInterface } from "../types/comedian.interface.js";
 import { Show } from "../types/show.interface.js";
-import { removeWhiteSpace } from "../util/string/stringUtil.js";
+import { removeAllWhiteSpace, removeBadWhiteSpace } from "../util/types/stringUtil.js";
 
 export class Comedian implements ComedianInterface {
   name: string = ""
   website: string = ""
   shows: Show[] = []
 
-  addShows(shows: Show[]) {
-    shows.forEach(show => {
-      this.shows.push(show)
-    })
+  addShow(show: Show) {
+    this.shows.push(show)
   }
 
   constructor(name: string, website: string) {
-    this.name = name
-    if (website === undefined) {
-      this.website = "";
-    } else {
-      this.website = website;
-    }
+    this.name = this.formattedComedianName(name);
+    this.website = website;
   }
 
-  getDocumentName = () => {
-    return removeWhiteSpace(this.name).toLowerCase();
+  formattedComedianName = (name: string): string => {
+    return removeBadWhiteSpace(name);
   }
+
+  formattedComedianWebsite = (website: string): string => {
+    return website
+  }
+
+  getDocumentName = () => { return removeAllWhiteSpace(this.name).toLowerCase(); }
 
   getData = () => {
     return {
