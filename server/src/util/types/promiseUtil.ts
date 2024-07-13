@@ -13,3 +13,9 @@ export function emptyStringPromise(): Promise<string> {
     resolve("");
   });
 }
+
+export function providedStringPromise(input: string): Promise<string> {
+  return new Promise((resolve) => {
+    resolve(input);
+  });
+}

@@ -1,5 +1,6 @@
 export class Logger {
     baseSite: string;
+    
     constructor(baseSite: string) {
         this.baseSite = baseSite;
     }

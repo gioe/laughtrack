@@ -1,13 +1,11 @@
-export const CLUB_KEYS = {
-    name: 'name',
-    scrapedPage: 'scrapedPage',
-    homePage: 'homePage',
-  };
-
   export const SCRAPER_KEYS = {
     name: 'name',
     baseWebsite: 'baseWebsite',
     htmlConfig: 'htmlConfig',
-    clubs: 'clubs',
     textConfig: 'textConfig',
+    scrapedPage: 'scrapedPage',
+    comedianConfig: "comedianConfig",
+    showConfig: "showConfig",
+    clubConfig: "clubConfig",
+    dateConfig: "dateConfig"
   };

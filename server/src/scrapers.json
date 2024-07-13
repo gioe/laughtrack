@@ -1,32 +1,21 @@
 [
     {
         "baseWebsite": "https://www.comedycellar.com",
-        "clubs": [
-            {
-                "name": "Comedy Cellar New York",
-                "scrapedPage": "https://www.comedycellar.com/new-york-line-up/",
-                "homePage":  "https://www.comedycellar.com"
-            },
-            {
-                "name": "Comedy Cellar Las Vegas",
-                "scrapedPage": "https://www.comedycellar.com/las-vegas-line-up/",
-                "homePage":  "https://www.comedycellar.com"
-            }
-        ],
+        "name": "Comedy Cellar New York",
+        "scrapedPage": "https://www.comedycellar.com/new-york-line-up/",
         "htmlConfig": {
             "clubConfig": {
-                "allShowsSelector": "#lineup_sets > div"
+                "allShowsSelector": ".sets > div"
             },
-            "datesConfig": {
+            "dateConfig": {
                 "dateMenuSelector": "#cc_lineup_select_dates",
-                "dateOptionsSelector": "#cc_lineup_select_dates > option"
+                "dateOptionsSelector": ".header > div > select > option"
             },            
             "showConfig": {
-                "showLineupSelector": "div.set-content",
-                "showNameSelector": ".title",
-                "showTimeSelector": "div.set-header > div > h2 > span.bold",
-                "showDateSelector": "",
-                "showTicketSelector": ""
+                "showLineupSelector": ".set-content",
+                "showNameSelector": ".info > h2 > span.title",
+                "showTimeSelector": ".info > h2 > span.bold",
+                "showTicketSelector": ".make-reservation > a"
             },
             "comedianConfig": {
                 "allComedianNameSelector": ".name"
@@ -35,18 +24,43 @@
         "textConfig": {
             "badCharacters": ["(", "&"],
             "badWords": ["",  "More!!"],
-            "commaPlacement": "  " 
+            "commaPlacement": "  ",
+            "showSignifiers": ["with",  "presents", "and friends"]
+        }
+    }, 
+    {
+        "baseWebsite": "https://www.comedycellar.com",
+        "name": "Comedy Cellar Las Vegas",
+        "scrapedPage": "https://www.comedycellar.com/las-vegas-line-up/",
+        "htmlConfig": {
+            "clubConfig": {
+                "allShowsSelector": ".sets > div"
+            },
+            "dateConfig": {
+                "dateMenuSelector": "#cc_lineup_select_dates",
+                "dateOptionsSelector": ".header > div > select > option"
+            },            
+            "showConfig": {
+                "showLineupSelector": ".set-content",
+                "showNameSelector": ".info > h2 > span.title",
+                "showTimeSelector": ".info > h2 > span.bold",
+                "showTicketSelector": ".make-reservation > a"
+            },
+            "comedianConfig": {
+                "allComedianNameSelector": ".name"
+            }
+        }, 
+        "textConfig": {
+            "badCharacters": ["(", "&"],
+            "badWords": ["",  "More!!"],
+            "commaPlacement": "  ",
+            "showSignifiers": ["with",  "presents", "and friends"]
         }
     }, 
     {
         "baseWebsite": "https://comicstriplive.com/",
-        "clubs": [
-            {
-                "name": "Comic Strip Live NYC",
-                "scrapedPage": "https://comicstriplive.com/schedule/",
-                "homePage": "https://comicstriplive.com/"
-            }
-        ],
+        "name": "Comic Strip Live NYC",
+        "scrapedPage": "https://comicstriplive.com/schedule/",
         "htmlConfig": {
             "clubConfig": {
                 "allShowsSelector": "div.summary"

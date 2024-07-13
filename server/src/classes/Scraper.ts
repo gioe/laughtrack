@@ -1,248 +1,131 @@
-import puppeteer from "puppeteer";
-import { ScraperInterface } from "../types/scraper.interface.js";
-import { HTMLConfigurable } from "../types/htmlconfigurable.interface.js";
-import { Club } from "./Club.js";
-import { Comedian } from "./Comedian.js";
-import { SCRAPER_KEYS } from "../constants/objects.js";
-import { Logger } from "../util/logger.js";
-import { Show } from "../types/show.interface.js";
+import puppeteer from 'puppeteer';
+import { Logger } from "./Logger.js";
 
-import {
-  emptyStringPromise,
-  runTasks
-} from "../util/types/promiseUtil.js";
+export class Scraper {
+  logger: Logger;
+  scrapedPage: string;
 
-import {
-  getElementHandlers,
-  getHrefFromSingeElement,
-  getTextValueFromSingleElement,
-  getTextValuesFromAllElements
-} from "../util/puppeteer/puppeteerUtils.js";
-
-import {
-  buildShowFromScrapedElements
-} from "../util/types/showUtil.js";
-
-import {
-  buildComedianFromScrapedElements,
-  flattenComedians,
-} from "../util/types/comedianUtil.js";
-
-import { TextConfigurable } from "../types/textConfigurable.interface.js";
-
-export class Scraper implements ScraperInterface {
-  private logger = new Logger("https://comicstriplive.com/");
-  public baseWebsite: string;
-  private htmlConfig: HTMLConfigurable;
-  private textConfig: TextConfigurable;
-  private clubs: Club[];
-  private browser: puppeteer.Browser;
-
-  private shouldNavigateDates = () => {
-    return this.htmlConfig.datesConfig != undefined;
+  constructor(logger: Logger, scrapedPage: string) {
+    this.logger = logger;
+    this.scrapedPage = scrapedPage;
   }
 
-  private shouldScrapeShowDatetime = () => {
-    return this.htmlConfig.showConfig?.showDateTimeSelector != undefined;
+  getElementCount = async (object: puppeteer.Page | puppeteer.ElementHandle<Element>, 
+    selector: string): Promise<number> => {
+    return object.$$eval(selector, (e: Element[]) => e.length)
+    .then((count: number) => count)
+    .catch((error) => {
+      this.log(`There was an error getting element count for ${selector}`)
+      return 0
+    })
   }
-
-  private shouldScrapeShowName = () => {
-    return this.htmlConfig.showConfig?.showNameSelector != undefined;
+  
+  getTextValuesFromAllElements = async (object: puppeteer.Page | puppeteer.ElementHandle<Element>, 
+    selector: string): Promise<string[]> => {
+      return this.getElementCount(object, selector)
+      .then((count: number) => {
+        if (count > 0) {
+          return object.$$eval(selector, (e: Element[]) => e.map(e => e.textContent ?? "") ?? [])
+          .catch(() => {
+            this.log(`There was an error getting all text values for ${selector}`)
+            return []
+          })
+        }
+        this.log(`No text values found for ${selector}`)
+        return [];
+      })
   }
-
-  private shouldScrapeShowTime = () => {
-    return this.htmlConfig.showConfig?.showTimeSelector != undefined;
+  
+  getTextValueFromSingleElement = async (object: puppeteer.Page | puppeteer.ElementHandle<Element>, 
+    selector: string): Promise<string> => {
+  
+      return this.getElementCount(object, selector)
+      .then((count: number) => {
+        if (count > 0) {
+          return object.$eval(selector, (e: Element) => e.textContent ?? "")
+          .catch(() => {
+            this.log(`There was an error get text value for ${selector}`)
+            return ""
+          })
+        }
+        this.log(`No text value found for ${selector}`)
+        return ""
+      })
   }
-
-  private shouldScrapeShowDate = () => {
-    return this.htmlConfig.showConfig?.showDateSelector != undefined;
+  
+  getHrefFromAllElements = async (object: puppeteer.Page | puppeteer.ElementHandle<Element>, 
+    selector: string): Promise<string[]> => {
+  
+      return this.getElementCount(object, selector)
+      .then((count: number) => {
+        if (count > 0) {
+          return object.$$eval(selector, (e: Element[]) => e.map(e => e.getAttribute('href') ?? "") ?? [])
+          .catch((error) => {
+            this.log(`There was an error getting all links for ${selector}`)
+            return []
+          })
+        }
+        this.log(`No href values found for ${selector}`)
+        return []
+      })
+  
   }
-
-  private shouldScrapeShowTicket = () => {
-    return this.htmlConfig.showConfig?.showTicketSelector != undefined;
+  
+  getHrefFromSingeElement = async (object: puppeteer.Page | puppeteer.ElementHandle<Element>, 
+    selector: string): Promise<string> => {
+      
+    return this.getElementCount(object, selector)
+      .then((count: number) => {
+        if (count > 0) {
+          return object.$eval(selector, (e: Element) => e.getAttribute('href') ?? "")
+          .catch(() => {
+            this.log(`There was an error getting link for ${selector}`)
+            return ""
+          })
+        }
+        this.log(`No href value found for ${selector}`)
+        return ""
+      })
   }
-
-  private dateOptionsSelector = () => {
-    return this.htmlConfig.datesConfig?.dateOptionsSelector ?? "";
+  
+  getAllElements = async (object: puppeteer.Page | puppeteer.ElementHandle<Element>, 
+    selector: string): Promise<Element[]> => {
+  
+      return this.getElementCount(object, selector)
+      .then((count: number) => {
+        if (count > 0) {
+          return object.$$eval(selector, (e: Element[]) => e )
+          .catch(() => {
+            this.log(`There was an error getting all elements for ${selector}`)
+            return []
+          })
+        }
+        this.log(`No elements found for ${selector}`)
+        return []
+      })
   }
-
-  private dateMenuSelector = () => {
-    return this.htmlConfig.datesConfig?.dateMenuSelector ?? "";
+  
+getElementHandlers = async (object: puppeteer.Page | puppeteer.ElementHandle<Element>, 
+    selector: string): Promise<puppeteer.ElementHandle<Element>[]> => {
+      return this.getElementCount(object, selector)
+      .then((count: number) => {
+        if (count > 0) {
+          return object.$$(selector)
+          .catch(() => {
+            this.log(`There was an error getting element handlers for ${selector}`)
+            return []
+          })
+        }
+        this.log(`No element handlers found for ${selector}`)
+        return []
+      })
+  
   }
-
-  private allShowsSelector = () => {
-    return this.htmlConfig.clubConfig?.allShowsSelector ?? "";
+  
+  // #region Logger
+  log = (input: any) => {
+    this.logger.log(this.scrapedPage, input)
   }
-
-  private showDateTimeSelector = () => {
-    return this.htmlConfig.showConfig?.showDateTimeSelector ?? "";
-  }
-
-  private showNameSelector = () => {
-    return this.htmlConfig.showConfig?.showNameSelector ?? "";
-  }
-
-  private showTimeSelector = () => {
-    return this.htmlConfig.showConfig?.showTimeSelector ?? "";
-  }
-
-  private showDateSelector = () => {
-    return this.htmlConfig.showConfig?.showDateSelector ?? "";
-  }
-
-  private showTicketSelector = () => {
-    return this.htmlConfig.showConfig?.showTicketSelector ?? "";
-  }
-
-  private allComedianNameSelector = () => {
-    return this.htmlConfig.comedianConfig?.allComedianNameSelector ?? "";
-  }
-
-  getShowDateTime = async (showComponent: puppeteer.ElementHandle<Element>) => {
-    return getTextValueFromSingleElement(showComponent, this.showDateTimeSelector())
-  }
-
-  getShowTime = async (showComponent: puppeteer.ElementHandle<Element>) => {
-    return getTextValueFromSingleElement(showComponent, this.showTimeSelector())
-  }
-
-  getShowDate = async (showComponent: puppeteer.ElementHandle<Element>) => {
-    return getTextValueFromSingleElement(showComponent, this.showDateSelector())
-  }
-
-  getShowName = async (showComponent: puppeteer.ElementHandle<Element>) => {
-    return getTextValueFromSingleElement(showComponent, this.showNameSelector())
-  }
-
-  getShowTicket = async (showComponent: puppeteer.ElementHandle<Element>) => {
-    return getHrefFromSingeElement(showComponent, this.showTicketSelector())
-  }
-
-  getAllShowElementHandlers = async (page: puppeteer.Page): Promise<puppeteer.ElementHandle<Element>[]> => {
-    return getElementHandlers(page, this.allShowsSelector())
-  }
-
-  getAllDates = async (page: puppeteer.Page): Promise<string[]> => {
-    return getTextValuesFromAllElements(page, this.dateOptionsSelector())
-  }
-
-  getAllComedianNames = async (showComponent: puppeteer.ElementHandle<Element>): Promise<string[]> => {
-    return getTextValuesFromAllElements(showComponent, this.allComedianNameSelector())
-  }
-
-  private generatePage = () => {
-    return this.browser.newPage();
-  }
-
-  constructor(jsonModel: any, browser: puppeteer.Browser) {
-    this.browser = browser;
-    this.baseWebsite = jsonModel[SCRAPER_KEYS.baseWebsite]
-    this.htmlConfig = jsonModel[SCRAPER_KEYS.htmlConfig]
-    this.textConfig = jsonModel[SCRAPER_KEYS.textConfig]
-    this.clubs = jsonModel[SCRAPER_KEYS.clubs].map((config: any) => new Club(config));
-  }
-
-  public scrape = async (): Promise<Comedian[]> => {
-    const tasks = this.clubs.map((club: Club) => { return this.scrapeClub(club) });
-
-    return runTasks(tasks)
-    .then((comedianArrays: Comedian[][]) => flattenComedians(comedianArrays));
-  }
-
-  scrapeClub = async (club: Club) => {
-
-    this.logger.log(this.baseWebsite, `Started scraping ${club.name} at ${new Date()}`);
-
-    return this.generatePage()
-      .then((page: puppeteer.Page) => runTasks(this.getPageScrapingTask(page, club)))
-      .then((comedianArrays: Comedian[][]) => flattenComedians(comedianArrays));
-  }
-
-  scrapePage = async (page: puppeteer.Page, club: Club): Promise<Comedian[]> => {
-    this.logger.log(this.baseWebsite, `Started scraping ${club.scrapedPage}`);
-
-    return page.goto(club.scrapedPage)
-      .then(() => this.getAllShowElementHandlers(page))
-      .then((showElementHandlers: puppeteer.ElementHandle<Element>[]) => this.scrapeShowElements(showElementHandlers, club));
-  }
-
-  scrapeShowElements = async (showElementHandlers: puppeteer.ElementHandle<Element>[], club: Club): Promise<Comedian[]> => {
-    const showScrapingJobs = showElementHandlers.map((showElementHandler) => { return this.scrapeShow(showElementHandler, club); })
-    
-    return runTasks(showScrapingJobs)
-    .then((comedianArrays: Comedian[][]) => flattenComedians(comedianArrays));
-  }
-
-  scrapePageTree = async (page: puppeteer.Page, club: Club) => {
-
-    this.logger.log(this.baseWebsite, `Started scraping ${this.baseWebsite} page tree`);
-
-    return this.getAllDates(page)
-      .then((dates: string[]) => {
-        const tasks = dates.map(date => { return this.selectDateAndScrapePage(date, page, club); })
-        return runTasks(tasks);
-      });
-
-  }
-
-  selectDateAndScrapePage = async (date: string, page: puppeteer.Page, club: Club) => {
-    return page.select(this.dateMenuSelector(), date)
-    .then(() => this.scrapePage(page, club));
-  }
-
-  scrapeShow = async (showComponent: puppeteer.ElementHandle<Element>, club: Club): Promise<Comedian[]> => {
-
-    var jobs: Promise<string>[] = this.getShowScrapingTasks(showComponent);
-
-    return runTasks(jobs)
-    .then((scrapedValues: string[]) => buildShowFromScrapedElements(scrapedValues, club))
-    .then((show: Show) => this.scrapeComedians(showComponent, show))
-  }
-
-  scrapeComedians = async (showComponent: puppeteer.ElementHandle<Element>, show: Show) => {
-    return this.getAllComedianNames(showComponent)
-      .then((comedianNames: string[]) => buildComedianFromScrapedElements(comedianNames, this.textConfig, show))
-  }
-
-  getPageScrapingTask = (page: puppeteer.Page, club: Club) => {
-    return this.shouldNavigateDates() ? /* [this.scrapePageTree(page, club)] */ [] : [this.scrapePage(page, club)];
-  }
-
-  getShowScrapingTasks = (showComponent: puppeteer.ElementHandle<Element>) => {
- 
-    var jobs: Promise<string>[] = [];
-
-    if (this.shouldScrapeShowDatetime()) {
-      jobs.push(this.getShowDateTime(showComponent))
-    } else {
-      jobs.push(emptyStringPromise())
-    }
-
-    if (this.shouldScrapeShowTicket()) {
-      jobs.push(this.getShowTicket(showComponent))
-    } else {
-      jobs.push(emptyStringPromise())
-    }
-
-    if (this.shouldScrapeShowDate()) {
-      jobs.push(this.getShowDate(showComponent))
-    } else {
-      jobs.push(emptyStringPromise())
-    }
-
-    if (this.shouldScrapeShowName()) {
-      jobs.push(this.getShowName(showComponent))
-    } else {
-      jobs.push(emptyStringPromise())
-    }
-
-    if (this.shouldScrapeShowTime()) {
-      jobs.push(this.getShowTime(showComponent))
-    } else {
-      jobs.push(emptyStringPromise())
-    }
-
-    return jobs
-  }
+  // #endregion
 
 }
