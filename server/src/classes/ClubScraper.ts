@@ -23,7 +23,7 @@ export class ScrapingManager implements ScraperInterface {
     this.browser = browser;
     this.scrapedPage = jsonModel[SCRAPER_KEYS.scrapedPage]
     this.clubConfig = jsonModel[SCRAPER_KEYS.htmlConfig][SCRAPER_KEYS.clubConfig]
-    this.dateConfig = jsonModel[SCRAPER_KEYS.scrapedPage][SCRAPER_KEYS.dateConfig]
+    this.dateConfig = jsonModel[SCRAPER_KEYS.htmlConfig][SCRAPER_KEYS.dateConfig]
     this.comedianScraper = new ComedianScraper(logger, jsonModel)
     this.club = new Club(jsonModel);
     this.scraper = new Scraper(logger, this.scrapedPage)
@@ -79,11 +79,7 @@ export class ScrapingManager implements ScraperInterface {
   // #region Scrapers
   public scrape = async (): Promise<Comedian[]> => {
     return this.scrapeClub(this.club)
-      .then((comedians: Comedian[]) => {
-
-        comedians.forEach(comedian => this.log(comedian.name))
-        return comedians
-  });
+      .then((comedians: Comedian[]) => comedians);
   }
 
   scrapeClub = async (club: Club) => {

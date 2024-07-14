@@ -12,19 +12,14 @@ export class Comedian implements ComedianInterface {
     this.shows.push(show)
   }
 
-  constructor(name: string, website: string) {
+  constructor(name: string) {
     this.name = this.formattedComedianName(name);
-    this.website = website;
   }
 
   formattedComedianName = (name: string): string => {
     return removeBadWhiteSpace(name);
   }
-
-  formattedComedianWebsite = (website: string): string => {
-    return website
-  }
-
+  
   getDocumentName = () => { return removeAllWhiteSpace(this.name).toLowerCase(); }
 
   getData = () => {

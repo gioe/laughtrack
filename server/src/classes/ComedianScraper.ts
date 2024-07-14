@@ -5,7 +5,7 @@ import { TextConfigurable } from '../types/textConfigurable.interface.js';
 import { Scraper } from "./Scraper.js";
 import { ComedianHTMLConfiguration, HTMLConfigurable } from "../types/htmlconfigurable.interface.js";
 import { SCRAPER_KEYS } from "../constants/objects.js";
-import { cleanNameString } from "../util/types/comedianUtil.js";
+import { normalizeNameString } from "../util/types/comedianUtil.js";
 import { Club } from "./Club.js";
 import { runTasks } from "../util/types/promiseUtil.js";
 import { ShowScraper } from "./ShowScraper.js";
@@ -43,7 +43,8 @@ export class ComedianScraper {
       })
 
       return runTasks(showScrapingJobs)
-      .then((comedianArrays: Comedian[][]) => flattenElements(comedianArrays))
+      .then((comedianArrays: Comedian[][]) =>  flattenElements(comedianArrays))
+
     }
 
   getAllComedians = async (showComponent: puppeteer.ElementHandle<Element>, club: Club, date?: string): Promise<Comedian[]> => {
@@ -60,16 +61,8 @@ export class ComedianScraper {
 
   buildComedianFromScrapedElements = (comedianNames: string[]): Comedian[] => {
     return comedianNames
-      .map((comedianName: string) => {
-        this.log(comedianName)
-        return cleanNameString(comedianName, this.textConfig)
-      })
-      .map((actualName: string) => this.buildComedian(actualName))
-  }
-
-  buildComedian = (name: string): Comedian => {
-    const comedian = new Comedian(name, "");
-    return comedian
+      .map((comedianName: string) => normalizeNameString(comedianName, this.textConfig))
+      .flatMap((names: string[]) => names.map((name: string) => new Comedian(name)))
   }
 
   // #region Logger

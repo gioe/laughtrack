@@ -24,7 +24,7 @@
         "textConfig": {
             "badCharacters": ["(", "&"],
             "badWords": ["",  "More!!"],
-            "commaPlacement": "  ",
+            "commaPlacements": ["  ", " , "],
             "showSignifiers": ["with",  "presents", "and friends"]
         }
     }, 
@@ -53,7 +53,7 @@
         "textConfig": {
             "badCharacters": ["(", "&"],
             "badWords": ["",  "More!!"],
-            "commaPlacement": "  ",
+            "commaPlacements": ["  ", " , "],
             "showSignifiers": ["with",  "presents", "and friends"]
         }
     }, 
@@ -77,7 +77,7 @@
         "textConfig": {
             "badCharacters": ["(", "&"],
             "badWords": ["",  "More!!"],
-            "commaPlacement": "  " ,
+            "commaPlacements": ["  ", " , "],
             "showSignifiers": ["with",  "presents", "and friends"]
         }
     }     

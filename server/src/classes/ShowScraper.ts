@@ -147,6 +147,7 @@ export class ShowScraper {
       comedian.addShow(show)
       return comedian
     })
+
     return comedians;
   }
 
@@ -155,6 +156,7 @@ export class ShowScraper {
     if (dateTime) {
       return buildDateFromDateTimeString(dateTime)
     }
+    
     //TODO: Handle cases where the date and time are separate strings
     return new Date()
   }

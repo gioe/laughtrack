@@ -7,6 +7,7 @@ import puppeteer from "puppeteer";
 import { ScraperInterface } from "../types/scraper.interface.js";
 import { flattenElements } from "../util/types/arrayUtil.js";
 import { Logger } from "../classes/Logger.js";
+import { cleanFinalComedianList } from "../util/types/comedianUtil.js";
 
 const scrapers = readJsonFile(process.env.SCRAPERS_FILE ?? "src/scrapers.json") as ScraperInterface[];
 const logger = new Logger("https://www.comedycellar.com/new-york-line-up/");
@@ -19,7 +20,7 @@ export const scrapeAllClubs = async () => {
         return parallelizeScrapers(browser)
     })
     .then((comedians: Comedian[]) => {
-        // const cleanedComedians = cleanFinalComedianList(comedians);
+        const cleanedComedians = cleanFinalComedianList(comedians);
         // storeData(comedians)
     })
 }
@@ -31,8 +32,7 @@ const parallelizeScrapers = async (browser: puppeteer.Browser): Promise<Comedian
 
 const getIndividualTasks = (browser: puppeteer.Browser): Promise<Comedian[]>[]  => {
     return scrapers.map((scraperModel: ScraperInterface) => { 
-        const scraper = new ScrapingManager(scraperModel, browser, logger)
-        return scraper.scrape();
+        return new ScrapingManager(scraperModel, browser, logger).scrape()
     })
 };
 
@@ -41,3 +41,7 @@ const storeData = (scrapedComedians: Comedian[]) => {
         writeToFirestore(FIRESTORE_COLLECTIONS.comedians, comedian)
     })
 }
+
+const log = (input: any) => {
+    logger.log(logger.baseSite, input)
+  }
