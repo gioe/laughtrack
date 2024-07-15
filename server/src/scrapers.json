@@ -1,84 +1,127 @@
 [
     {
-        "baseWebsite": "https://www.comedycellar.com",
-        "name": "Comedy Cellar New York",
-        "scrapedPage": "https://www.comedycellar.com/new-york-line-up/",
+        "club": {
+            "name": "Comedy Cellar New York",
+            "baseWebsite": "https://www.comedycellar.com",
+            "schedulePage": "/new-york-line-up/"
+        },
         "htmlConfig": {
             "clubConfig": {
-                "allShowsSelector": ".sets > div"
-            },
-            "dateConfig": {
+                "allShowsSelector": ".sets > div",
                 "dateMenuSelector": "#cc_lineup_select_dates",
                 "dateOptionsSelector": ".header > div > select > option"
-            },            
+            },
             "showConfig": {
                 "showLineupSelector": ".set-content",
-                "showNameSelector": ".info > h2 > span.title",
                 "showTimeSelector": ".info > h2 > span.bold",
-                "showTicketSelector": ".make-reservation > a"
+                "showNameSelector": ".info > h2 > span.title",
+                "showTicketSelector": ".make-reservation > a",
+                "badTimeStrings": [
+                    " show",
+                    " show"
+                ]
             },
             "comedianConfig": {
-                "allComedianNameSelector": ".name"
+                "allComedianNameSelector": ".name",
+                "badComedianNameCharacters": [
+                    "(",
+                    "&"
+                ],
+                "badComedianNameStrings": [
+                    "",
+                    "More!!"
+                ],
+                "showSignifiers": [
+                    "with",
+                    "presents",
+                    "and friends"
+                ],
+                "commaPlacements": [
+                    "  ",
+                    " , "
+                ]
             }
-        }, 
-        "textConfig": {
-            "badCharacters": ["(", "&"],
-            "badWords": ["",  "More!!"],
-            "commaPlacements": ["  ", " , "],
-            "showSignifiers": ["with",  "presents", "and friends"]
         }
-    }, 
+    },
     {
-        "baseWebsite": "https://www.comedycellar.com",
-        "name": "Comedy Cellar Las Vegas",
-        "scrapedPage": "https://www.comedycellar.com/las-vegas-line-up/",
+        "club": {
+            "name": "Comedy Cellar Las Vegas",
+            "baseWebsite": "https://www.comedycellar.com",
+            "schedulePage": "/las-vegas-line-up/"
+        },
         "htmlConfig": {
             "clubConfig": {
-                "allShowsSelector": ".sets > div"
-            },
-            "dateConfig": {
+                "allShowsSelector": ".sets > div",
                 "dateMenuSelector": "#cc_lineup_select_dates",
                 "dateOptionsSelector": ".header > div > select > option"
-            },            
+            },
             "showConfig": {
                 "showLineupSelector": ".set-content",
-                "showNameSelector": ".info > h2 > span.title",
                 "showTimeSelector": ".info > h2 > span.bold",
-                "showTicketSelector": ".make-reservation > a"
+                "showNameSelector": ".info > h2 > span.title",
+                "showTicketSelector": ".make-reservation > a",
+                "badTimeStrings": [
+                    " show",
+                    " show"
+                ]
             },
             "comedianConfig": {
-                "allComedianNameSelector": ".name"
+                "allComedianNameSelector": ".name",
+                "badComedianNameCharacters": [
+                    "(",
+                    "&"
+                ],
+                "badComedianNameStrings": [
+                    "",
+                    "More!!"
+                ],
+                "showSignifiers": [
+                    "with",
+                    "presents",
+                    "and friends"
+                ],
+                "commaPlacements": [
+                    "  ",
+                    " , "
+                ]
             }
-        }, 
-        "textConfig": {
-            "badCharacters": ["(", "&"],
-            "badWords": ["",  "More!!"],
-            "commaPlacements": ["  ", " , "],
-            "showSignifiers": ["with",  "presents", "and friends"]
         }
-    }, 
+    },
     {
-        "baseWebsite": "https://comicstriplive.com/",
-        "name": "Comic Strip Live NYC",
-        "scrapedPage": "https://comicstriplive.com/schedule/",
+        "club": {
+            "name": "Comic Strip Live NYC",
+            "baseWebsite": "https://comicstriplive.com",
+            "schedulePage": "/schedule/"
+        },
         "htmlConfig": {
             "clubConfig": {
                 "allShowsSelector": "div.summary"
-            },     
+            },
             "showConfig": {
                 "showLineupSelector": "div.summary > h3 > a",
-                "showDateTimeSelector": "h4",
+                "showDateTimeSelector": "div.summary > h4.date-time",
                 "showTicketSelector": "div.summary > a"
             },
             "comedianConfig": {
-                "allComedianNameSelector": "div.summary > h3 > a"
+                "allComedianNameSelector": "div.summary > h3 > a",
+                "badComedianNameCharacters": [
+                    "(",
+                    "&"
+                ],
+                "badComedianNameStrings": [
+                    "",
+                    "More!!"
+                ],
+                "commaPlacements": [
+                    "  ",
+                    " , "
+                ],
+                "showSignifiers": [
+                    "with",
+                    "presents",
+                    "and friends"
+                ]
             }
-        },
-        "textConfig": {
-            "badCharacters": ["(", "&"],
-            "badWords": ["",  "More!!"],
-            "commaPlacements": ["  ", " , "],
-            "showSignifiers": ["with",  "presents", "and friends"]
         }
-    }     
+    }
 ]

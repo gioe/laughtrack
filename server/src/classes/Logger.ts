@@ -1,12 +1,12 @@
 export class Logger {
-    baseSite: string;
+    scrapedPage: string;
     
-    constructor(baseSite: string) {
-        this.baseSite = baseSite;
+    constructor(scrapedPage: string) {
+        this.scrapedPage = scrapedPage;
     }
 
     log = (website: string, content: any) => {
-        if (website === this.baseSite) {
+        if (website === this.scrapedPage) {
             console.log(content);
         }
     }

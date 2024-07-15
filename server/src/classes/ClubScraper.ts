@@ -1,77 +1,78 @@
 import puppeteer from "puppeteer";
-import { ScraperInterface } from "../types/scraper.interface.js";
-import { ClubHTMLConfiguration, DatesHTMLConfiguration, HTMLConfigurable } from "../types/htmlconfigurable.interface.js";
 import { Club } from "./Club.js";
 import { Comedian } from "./Comedian.js";
 import { SCRAPER_KEYS } from "../constants/objects.js";
 import { Logger } from "./Logger.js";
-import { Scraper } from "./Scraper.js";
+import { ElementScaper } from "./ElementScaper.js";
 import { ComedianScraper } from "./ComedianScraper.js";
 import { flattenElements } from "../util/types/arrayUtil.js";
+import { ClubHTMLConfiguration } from "../types/htmlconfigurable.interface.js";
 
-export class ScrapingManager implements ScraperInterface {
-  scrapedPage: string;
-  private scraper: Scraper;
-  private comedianScraper: ComedianScraper;
-  private clubConfig: ClubHTMLConfiguration;
-  private dateConfig: DatesHTMLConfiguration;
+export class ClubScraper {
+
   private club: Club;
+  private json: any;
   private browser: puppeteer.Browser;
+  private elementScraper: ElementScaper;
+  private comedianScraper: ComedianScraper;
   private logger: Logger;
 
-  constructor(jsonModel: any, browser: puppeteer.Browser, logger: Logger) {
+  constructor(club: Club,
+    json: any,
+    browser: puppeteer.Browser,
+    elementScraper: ElementScaper,
+    comedianScraper: ComedianScraper,
+    logger: Logger
+  ) {
+    this.club = club;
     this.browser = browser;
-    this.scrapedPage = jsonModel[SCRAPER_KEYS.scrapedPage]
-    this.clubConfig = jsonModel[SCRAPER_KEYS.htmlConfig][SCRAPER_KEYS.clubConfig]
-    this.dateConfig = jsonModel[SCRAPER_KEYS.htmlConfig][SCRAPER_KEYS.dateConfig]
-    this.comedianScraper = new ComedianScraper(logger, jsonModel)
-    this.club = new Club(jsonModel);
-    this.scraper = new Scraper(logger, this.scrapedPage)
-    this.logger = logger
+    this.json = json;
+    this.elementScraper = elementScraper;
+    this.comedianScraper = comedianScraper;
+    this.logger = logger;
   }
 
-  // #region Computed booleans
+  // #region Computed variables
   private shouldNavigateDates = () => {
-    return this.dateConfig != undefined;
+    return this.getClubHtmlConfig().dateMenuSelector != undefined;
   }
+
+  private getClubHtmlConfig = (): ClubHTMLConfiguration => {
+    return this.json[SCRAPER_KEYS.htmlConfig][SCRAPER_KEYS.clubConfig];
+  }
+
   // #endregion
 
   // #region Element selectors
   private dateOptionsSelector = () => {
-    return this.dateConfig.dateOptionsSelector ?? "";
+    return this.getClubHtmlConfig().dateOptionsSelector ?? "";
   }
 
   private dateMenuSelector = () => {
-    return this.dateConfig.dateMenuSelector ?? "";
+    return this.getClubHtmlConfig().dateMenuSelector ?? "";
   }
 
   private allShowsSelector = () => {
-    return this.clubConfig.allShowsSelector ?? "";
+    return this.getClubHtmlConfig().allShowsSelector ?? "";
   }
 
   // #endregion
 
   // #region Element getters
   getAllShowElementHandlers = async (page: puppeteer.Page): Promise<puppeteer.ElementHandle<Element>[]> => {
-
-    return this.scraper.getElementHandlers(page, this.allShowsSelector())
+    return this.elementScraper.getElementHandlers(page, this.allShowsSelector())
   }
 
   getAllDates = async (page: puppeteer.Page): Promise<string[]> => {
-    return this.scraper.getTextValuesFromAllElements(page, this.dateOptionsSelector())
+    return this.elementScraper.getTextValuesFromAllElements(page, this.dateOptionsSelector())
   }
 
   // #endregion
 
   // #region Task getters
   getPageScrapingTasks = async (basePage: puppeteer.Page, club: Club): Promise<Comedian[]> => {
-    this.log(`Started scraping ${basePage.url()}`);
-
-    if (this.shouldNavigateDates()) {
-      return this.scrapePageTree(basePage, club)
-    } else {
-      return this.scrapePage(basePage, club)
-    }
+    this.log(`Started scraping ${club.getName()} at ${new Date()}`);
+    return this.shouldNavigateDates() ? this.scrapePageTree(basePage, club) : this.scrapePage(basePage, club)
   }
 
   // #endregion
@@ -83,9 +84,7 @@ export class ScrapingManager implements ScraperInterface {
   }
 
   scrapeClub = async (club: Club) => {
-    this.log(`Started scraping ${club.name} at ${new Date()}`);
-
-    return this.generatePageAndNavigateToRoot(club.scrapedPage)
+    return this.generatePageAndNavigateToRoot(club.getScrapedPage())
       .then((response: puppeteer.Page) => this.getPageScrapingTasks(response, club));
   }
 
@@ -119,6 +118,7 @@ export class ScrapingManager implements ScraperInterface {
   scrapePage = async (page: puppeteer.Page, club: Club, date?: string): Promise<Comedian[]> => {
     return this.getAllShowElementHandlers(page)
       .then((showElementHandlers: puppeteer.ElementHandle<Element>[]) => {
+        this.log(`Found ${showElementHandlers.length} shows to scrape`);
         return this.comedianScraper.scrapeComedians(showElementHandlers, club, date)
       });
   }
@@ -126,7 +126,7 @@ export class ScrapingManager implements ScraperInterface {
 
   // #region Logger
   log = (input: any) => {
-    this.logger.log(this.scraper.scrapedPage, input)
+    this.logger.log(this.club.getScrapedPage(), input)
   }
   // #endregion
 

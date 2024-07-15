@@ -1,15 +1,11 @@
 export interface HTMLConfigurable {
     clubConfig?: ClubHTMLConfiguration;
-    datesConfig?: DatesHTMLConfiguration;
     showConfig?: ShowHTMLConfiguration;
     comedianConfig?: ComedianHTMLConfiguration;
 }
 
 export interface ClubHTMLConfiguration {
     allShowsSelector?: string    
-}
-
-export interface DatesHTMLConfiguration {
     dateMenuSelector?: string;
     dateOptionsSelector?: string;
 }
@@ -17,15 +13,20 @@ export interface DatesHTMLConfiguration {
 export interface ShowHTMLConfiguration {
     showLineupSelector?: string;
     showDateTimeSelector?: string;
-    showNameSelector?: string;
-    showTimeSelector?: string;
     showDateSelector?: string;
+    showTimeSelector?: string;
+    showNameSelector?: string;
     showTicketSelector?: string;
+    badTimeStrings?: string[];
 }
 
 export interface ComedianHTMLConfiguration {
     comedianWebsiteSelector?: string;
     comedianNameSelector?: string;    
     allComedianNameSelector?: string;    
+    badComedianNameCharacters?: string[];
+    badComedianNameStrings?: string[];
+    commaPlacements?: string[];
+    showSignifiers?: string[];
 }
 

@@ -1,16 +1,16 @@
 import { Comedian } from "../../classes/Comedian.js"
+import { ComedianHTMLConfiguration } from "../../types/htmlconfigurable.interface.js";
 import { Show } from "../../types/show.interface.js";
-import { TextConfigurable } from "../../types/textConfigurable.interface.js";
 import { isLikelyShow } from "./showUtil.js";
 import { removeSubstrings, replaceSubstrings } from "./stringUtil.js";
 
 const PARENTHESIS_REGEX = /\(([^()]+)\)/g;
 const SEPARATOR = ",";
 
-  export const normalizeNameString = (nameString: string, textConfig: TextConfigurable): string[] => {
-    const cleanedString = cleanNameString(nameString, textConfig);
+  export const normalizeNameString = (nameString: string, comedianConfig: ComedianHTMLConfiguration): string[] => {
+    const cleanedString = cleanNameString(nameString, comedianConfig);
     
-    if (isLikelyShow(cleanedString, textConfig.showSignifiers)) {
+    if (isLikelyShow(cleanedString, comedianConfig.showSignifiers ?? [])) {
       console.warn(`${cleanedString} is a likely show that needs fixing`)
       return []
     }
@@ -19,12 +19,12 @@ const SEPARATOR = ",";
 
   }
 
-  const cleanNameString = (nameString: string, textConfig: TextConfigurable): string => {
+  const cleanNameString = (nameString: string, comedianConfig: ComedianHTMLConfiguration): string => {
     var cleanedString = nameString
 
     cleanedString = removeCredits(cleanedString)
-    cleanedString = removeBadConfigContent(cleanedString, textConfig)
-    cleanedString = replaceSubstrings(cleanedString, textConfig.commaPlacements, SEPARATOR)
+    cleanedString = removeBadConfigContent(cleanedString, comedianConfig)
+    cleanedString = replaceSubstrings(cleanedString, comedianConfig.commaPlacements ?? [], SEPARATOR)
 
     return cleanedString;
   }
@@ -34,9 +34,9 @@ const SEPARATOR = ",";
     return removeSubstrings(nameString, credits)
   }
 
-  const removeBadConfigContent = (nameString: string, textConfig: TextConfigurable): string => {
-    const badContent = textConfig.badCharacters.concat(textConfig.badWords)
-    return removeSubstrings(nameString, badContent)
+  const removeBadConfigContent = (nameString: string, comedianConfig: ComedianHTMLConfiguration): string => {
+    const badContent = comedianConfig.badComedianNameCharacters?.concat(comedianConfig.badComedianNameStrings ?? [])
+    return removeSubstrings(nameString, badContent ?? [])
   }
   
   const likelyContainsMultipleComedians = (nameString: string): boolean => {
@@ -65,13 +65,6 @@ const SEPARATOR = ",";
           })
         }
       })
-
-      if (containerComic.name === 'Joe List') {
-        containerComic.shows.forEach((show: Show) => {
-          console.log(show)
-        })
-      }
-
       return containerComic;
   }
 

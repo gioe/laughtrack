@@ -1,84 +1,94 @@
 import puppeteer from "puppeteer";
 import { Logger } from "./Logger.js";
-import { Show } from '../types/show.interface.js';
 import { Club } from './Club.js';
-import { buildDateFromDateTimeString } from '../util/types/dateTime.js';
 import { emptyStringPromise, providedStringPromise, runTasks } from "../util/types/promiseUtil.js";
-import { ShowHTMLConfiguration } from "../types/htmlconfigurable.interface.js";
 import { SCRAPER_KEYS } from "../constants/objects.js";
-import { Scraper } from "./Scraper.js";
+import { ElementScaper } from "./ElementScaper.js";
 import { Comedian } from "./Comedian.js";
+import { createShow } from "../util/types/showUtil.js";
+import { ShowHTMLConfiguration } from "../types/htmlconfigurable.interface.js";
+
 
 export class ShowScraper {
+  club: Club;
+  json: any;
+  elementScraper: ElementScaper;
   logger: Logger;
-  showConfig: ShowHTMLConfiguration;
-  scraper: Scraper;
 
-  constructor(logger: Logger,
-    json: any) {
+  constructor(
+    club: Club,
+    json: any,
+    elementScraper: ElementScaper,
+    logger: Logger,
+  ) {
+    this.club = club;
+    this.json = json;
+    this.elementScraper = elementScraper
     this.logger = logger;
-    this.showConfig = json[SCRAPER_KEYS.htmlConfig][SCRAPER_KEYS.showConfig];
-    this.scraper = new Scraper(logger, json[SCRAPER_KEYS.scrapedPage])
+  }
+
+  private getShowHtmlConfig = (): ShowHTMLConfiguration => {
+    return this.json[SCRAPER_KEYS.htmlConfig][SCRAPER_KEYS.showConfig];
   }
 
   private shouldScrapeShowDatetime = () => {
-    return this.showConfig.showDateTimeSelector != undefined;
+    return this.getShowHtmlConfig().showDateTimeSelector != undefined;
   }
 
   private shouldScrapeShowName = () => {
-    return this.showConfig.showNameSelector != undefined;
+    return this.getShowHtmlConfig().showNameSelector != undefined;
   }
 
   private shouldScrapeShowTime = () => {
-    return this.showConfig.showTimeSelector != undefined;
+    return this.getShowHtmlConfig().showTimeSelector != undefined;
   }
 
   private shouldScrapeShowDate = () => {
-    return this.showConfig.showDateSelector != undefined;
+    return this.getShowHtmlConfig().showDateSelector != undefined;
   }
 
   private shouldScrapeShowTicket = () => {
-    return this.showConfig.showTicketSelector != undefined;
+    return this.getShowHtmlConfig().showTicketSelector != undefined;
   }
 
   private showDateTimeSelector = () => {
-    return this.showConfig.showDateSelector ?? "";
+    return this.getShowHtmlConfig().showDateTimeSelector ?? "";
   }
 
   private showTimeSelector = () => {
-    return this.showConfig.showTimeSelector ?? "";
+    return this.getShowHtmlConfig().showTimeSelector ?? "";
   }
 
   private showDateSelector = () => {
-    return this.showConfig.showDateSelector ?? "";
+    return this.getShowHtmlConfig().showDateSelector ?? "";
   }
 
   private showNameSelector = () => {
-    return this.showConfig.showNameSelector ?? "";
+    return this.getShowHtmlConfig().showNameSelector ?? "";
   }
 
   private showTicketSelector = () => {
-    return this.showConfig.showTicketSelector ?? "";
+    return this.getShowHtmlConfig().showTicketSelector ?? "";
   }
 
   getShowDateTime = async (showComponent: puppeteer.ElementHandle<Element>) => {
-    return this.scraper.getTextValueFromSingleElement(showComponent, this.showDateTimeSelector())
+    return this.elementScraper.getTextValueFromSingleElement(showComponent, this.showDateTimeSelector())
   }
 
   getShowTime = async (showComponent: puppeteer.ElementHandle<Element>) => {
-    return this.scraper.getTextValueFromSingleElement(showComponent, this.showTimeSelector())
+    return this.elementScraper.getTextValueFromSingleElement(showComponent, this.showTimeSelector())
   }
 
   getShowDate = async (showComponent: puppeteer.ElementHandle<Element>) => {
-    return this.scraper.getTextValueFromSingleElement(showComponent, this.showDateSelector())
+    return this.elementScraper.getTextValueFromSingleElement(showComponent, this.showDateSelector())
   }
 
   getShowName = async (showComponent: puppeteer.ElementHandle<Element>) => {
-    return this.scraper.getTextValueFromSingleElement(showComponent, this.showNameSelector())
+    return this.elementScraper.getTextValueFromSingleElement(showComponent, this.showNameSelector())
   }
 
   getShowTicket = async (showComponent: puppeteer.ElementHandle<Element>) => {
-    return this.scraper.getHrefFromSingeElement(showComponent, this.showTicketSelector())
+    return this.elementScraper.getHrefFromSingeElement(showComponent, this.showTicketSelector())
   }
 
   getShowScrapingTasks = (showComponent: puppeteer.ElementHandle<Element>, date?: string) => {
@@ -86,12 +96,6 @@ export class ShowScraper {
 
     if (this.shouldScrapeShowDatetime()) {
       jobs.push(this.getShowDateTime(showComponent))
-    } else {
-      jobs.push(emptyStringPromise())
-    }
-
-    if (this.shouldScrapeShowTicket()) {
-      jobs.push(this.getShowTicket(showComponent))
     } else {
       jobs.push(emptyStringPromise())
     }
@@ -104,14 +108,20 @@ export class ShowScraper {
       jobs.push(emptyStringPromise())
     }
 
+    if (this.shouldScrapeShowTime()) {
+      jobs.push(this.getShowTime(showComponent))
+    } else {
+      jobs.push(emptyStringPromise())
+    }
+
     if (this.shouldScrapeShowName()) {
       jobs.push(this.getShowName(showComponent))
     } else {
       jobs.push(emptyStringPromise())
     }
 
-    if (this.shouldScrapeShowTime()) {
-      jobs.push(this.getShowTime(showComponent))
+    if (this.shouldScrapeShowTicket()) {
+      jobs.push(this.getShowTicket(showComponent))
     } else {
       jobs.push(emptyStringPromise())
     }
@@ -127,21 +137,16 @@ export class ShowScraper {
     var jobs: Promise<string>[] = this.getShowScrapingTasks(showComponent, date);
 
     return runTasks(jobs)
-      .then((scrapedValues: string[]) => this.buildShowFromScrapedElements(scrapedValues, comedians, club, date))
+      .then((scrapedValues: string[]) => this.buildShowFromScrapedElements(scrapedValues, comedians, club, date));
   }
 
-  buildShowFromScrapedElements = (scrapedValues: string[], comedians: Comedian[], club: Club, date?: string): Comedian[] => {
-    const formattedDateTime = this.formatShowDateTimes(scrapedValues[0], scrapedValues[1], scrapedValues[2]);
-    const formattedName = this.formatShowName(scrapedValues[3]);
-    const formattedTicketLink = this.formatShowTicketLink(scrapedValues[4]);
+  buildShowFromScrapedElements = (scrapedValues: string[],
+    comedians: Comedian[],
+    club: Club,
+    date?: string): Comedian[] => {
 
-    const show =  {
-      clubName: club.name,
-      clubWebsite: club.scrapedPage,
-      dateTime: formattedDateTime,
-      name: formattedName,
-      ticketLink: formattedTicketLink,
-    } as Show
+      this.log(scrapedValues)
+    const show = createShow(scrapedValues, club, this.getShowHtmlConfig(), date)
 
     comedians.forEach((comedian: Comedian) => {
       comedian.addShow(show)
@@ -151,27 +156,10 @@ export class ShowScraper {
     return comedians;
   }
 
-  formatShowDateTimes = (dateTime: string, date: string, time: string): Date => {
-
-    if (dateTime) {
-      return buildDateFromDateTimeString(dateTime)
-    }
-    
-    //TODO: Handle cases where the date and time are separate strings
-    return new Date()
-  }
-
-  formatShowName = (name: string): string => {
-    return "";
-  }
-
-  formatShowTicketLink = (ticketLink: string): string => {
-    return ticketLink
-  }
 
   // #region Logger
   log = (input: any) => {
-    this.logger.log(this.scraper.scrapedPage, input)
+    this.logger.log(this.club.getScrapedPage(), input)
   }
   // #endregion
 
