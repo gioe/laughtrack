@@ -3,12 +3,13 @@ import { Logger } from "./Logger.js";
 import { Comedian } from './Comedian.js';
 import { ElementScaper } from "./ElementScaper.js";
 import { SCRAPER_KEYS } from "../constants/objects.js";
-import { normalizeNameString } from "../util/types/comedianUtil.js";
+import { buildComediansFromNames } from "../util/types/comedianUtil.js";
 import { Club } from "./Club.js";
 import { runTasks } from "../util/types/promiseUtil.js";
 import { ShowScraper } from "./ShowScraper.js";
 import { flattenElements } from "../util/types/arrayUtil.js";
 import { ComedianHTMLConfiguration } from "../types/htmlconfigurable.interface.js";
+import { Show } from "../types/show.interface.js";
 
 export class ComedianScraper {
   club: Club;
@@ -31,12 +32,12 @@ export class ComedianScraper {
     this.logger = logger;
   }
 
-  private getComedianHtmlConfig = (): ComedianHTMLConfiguration => {
+  private comedianHtmlConfig = (): ComedianHTMLConfiguration => {
     return this.json[SCRAPER_KEYS.htmlConfig][SCRAPER_KEYS.comedianConfig];
   }
 
   private allComedianNameSelector = () => {
-    return this.getComedianHtmlConfig().allComedianNameSelector ?? "";
+    return this.comedianHtmlConfig().allComedianNameSelector ?? "";
   }
 
   scrapeComedians = async (showElementHandlers: puppeteer.ElementHandle<Element>[],
@@ -49,23 +50,26 @@ export class ComedianScraper {
 
     return runTasks(showScrapingJobs)
       .then((comedianArrays: Comedian[][]) => flattenElements(comedianArrays))
-
   }
 
   getAllComedians = async (showComponent: puppeteer.ElementHandle<Element>, date?: string): Promise<Comedian[]> => {
     return this.getAllComedianNames(showComponent)
-      .then((names: string[]) => this.buildComedianFromScrapedElements(names))
-      .then((comedians: Comedian[]) => this.showScraper.scrapeShowForComedians(showComponent, comedians, date))
+      .then((names: string[]) => buildComediansFromNames(names, this.comedianHtmlConfig()))
+      .then((comedians: Comedian[]) =>  this.addShowToComedianShowList(showComponent, comedians, date))
+  }
+
+  addShowToComedianShowList = async (showComponent: puppeteer.ElementHandle<Element>, comedians: Comedian[], date?: string): Promise<Comedian[]> => {
+    return this.showScraper.scrapeShow(showComponent, date).then((show: Show) => {
+      comedians.forEach((comedian: Comedian) => {
+        comedian.addShow(show)
+        return comedian
+      })
+      return comedians
+    })
   }
 
   getAllComedianNames = async (showComponent: puppeteer.ElementHandle<Element>): Promise<string[]> => {
     return this.elementScraper.getTextValuesFromAllElements(showComponent, this.allComedianNameSelector())
-  }
-
-  buildComedianFromScrapedElements = (comedianNames: string[]): Comedian[] => {
-    return comedianNames
-      .map((comedianName: string) => normalizeNameString(comedianName, this.getComedianHtmlConfig()))
-      .flatMap((names: string[]) => names.map((name: string) => new Comedian(name)))
   }
 
   // #region Logger

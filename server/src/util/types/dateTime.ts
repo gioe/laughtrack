@@ -1,45 +1,81 @@
-import moment from 'moment-timezone';
-import { removeLeadingWhiteSpace, removeSubstrings } from './stringUtil.js';
+import { REGEX } from '../../constants/regex.js';
+import { removeBadWhiteSpace, removeSubstrings, replaceSubstrings } from './stringUtil.js';
+import { ShowHTMLConfiguration } from '../../types/htmlconfigurable.interface.js';
+import moment from 'moment';
 
-// export const formatDateTime = (dateTimeString: string): string => {
-//     console.log(dateTimeString)
-//     const [weekday, date, month, dateComponents, timeComponents, meridiem] = dateTimeString.split(' ');
-//     const [componentMonth, componentDate, componentYear] = dateComponents.split('/');    
-
-//     return formatDateComponents(componentYear, componentMonth, componentDate);
-// }
-
-// export const formatDate = (dateString: string): string => {
-//     const dateMillis = Date.parse(dateString);
-//     const dateObject = new Date(dateMillis);
-
-//     var date = dateObject.getDate()
-//     var month = dateObject.getMonth() + 1;
-//     var year = dateObject.getFullYear();
-
-//     return formatDateComponents(year, month, date);
-// }
-
-
-export const buildDate = (inputString: string, timezone: string): Date => {
-    console.log(inputString)
-    const [dateComponents, timeComponents, meridiem] = inputString.split(' ');
-
-    // // Extract time components
-    const [hours, minutes] = timeComponents.split(':');
-
-    // Adjust hours for PM
-    const adjustedHours = parseInt(hours) + (meridiem.includes('p') ? 12 : 0);
-
-    // Format date string
-    const formattedDateString = `${dateComponents}T${adjustedHours}:${minutes}:00Z`;
-
-    return moment.tz(formattedDateString, timezone).toDate()
+const cleanDateTime = (dateTime: string, badStrings?: string[]) => {
+    const noWhiteSpaceString = removeBadWhiteSpace(dateTime)
+    return removeSubstrings(noWhiteSpaceString, badStrings)
 }
 
-export const formatTimeString = (timeString: string) => {
-    const [timeComponents, meridiem] = timeString.split(' ');
-    const [hours, minutes] = timeComponents.split(':');
+export const normalizeDateTime = (dateTime: string, config: ShowHTMLConfiguration) => {
+    const cleanedDateTime = cleanDateTime(dateTime, config.badTimeStrings)
+    const normalizedDateString = extractDateFromDateTime(cleanedDateTime)
+    const normalizedTimeString = exactTimeFromDateTime(cleanedDateTime)
+
+    return normalizedDateString + "T" + normalizedTimeString
+}
+
+export const extractDateFromDateTime = (inputString: string): string => {
+
+    var dateString = inputString
+
+    const dateValues = inputString.match(REGEX.dateWithSlash) ?? [];
+
+    if (stringIsAValidDate(inputString)) dateString = inputString
+    else if (dateValues.length > 0) dateString = getDateFromRegexMatch(dateValues)
+
+    return normalizeDateString(dateString)
+
+}
+
+export const exactTimeFromDateTime = (inputString: string): string => {
+    var timeString = ""
+    const meridiem = inputString.includes('p') ? "pm" : "am"
+
+    const timeValues = inputString.match(REGEX.time) ?? [];
+
+    if (timeValues.length > 0) timeString = timeValues[0] as string
+    return normalizeTimeString(timeString, meridiem)
+}
+
+
+export const normalizeDateString = (dateString: string) => {
+    const dateObject = new Date(dateString);
+    const year = dateObject.getFullYear();
+    const month = dateObject.getMonth() + 1;
+    const day = dateObject.getDate();
+
+    return year.toString() + "-" + month.toString() + "-" + day.toString();
+}
+
+export const normalizeTimeString = (time: string, meridiem: string) => {
+    const [hours, minutes] = time.split(':');
     const adjustedHours = parseInt(hours) + (meridiem.includes('p') ? 12 : 0);
-    return `${adjustedHours}:${minutes}:00Z`;
+    return `${adjustedHours}:${minutes}:00`;
+}
+
+const stringIsAValidDate = (string: string): boolean => {
+    var date = Date.parse(string);
+    return isNaN(date) ? false : true
+}
+
+const getDateFromRegexMatch = (regexMatchArray: RegExpMatchArray | []): string =>  {
+    const dateString = regexMatchArray[0] as string
+    if (dateString != undefined && stringIsAValidDate(dateString)) {
+        return dateString
+    } 
+    return ""
+}
+
+export const createDate = (dateTimeString: string, timeZone: string) => {
+    const [date, time] = dateTimeString.split('T');
+    const [hours, minutes, seconds] = time.split(':');
+
+    const newDate = new Date(date)
+    newDate.setHours(Number(hours))
+    newDate.setMinutes(Number(minutes))
+    newDate.setSeconds(Number(seconds))
+    
+    return newDate;
 }

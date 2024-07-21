@@ -5,6 +5,7 @@ export interface HTMLConfigurable {
 }
 
 export interface ClubHTMLConfiguration {
+    shouldScapeByDate: boolean;
     allShowsSelector?: string    
     dateMenuSelector?: string;
     dateOptionsSelector?: string;

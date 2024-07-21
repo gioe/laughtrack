@@ -12,6 +12,7 @@ import { ComedianScraper } from "../classes/ComedianScraper.js";
 import { ElementScaper } from "../classes/ElementScaper.js";
 import { Logger } from "../classes/Logger.js";
 import { ShowScraper } from "../classes/ShowScraper.js";
+import { DateTimeScraper } from "../classes/DateTimeScraper.js";
 
 const scrapers = readJsonFile(process.env.SCRAPERS_FILE ?? "src/scrapers.json")
 
@@ -22,7 +23,7 @@ export const scrapeAllClubs = async () => {
         .then(browser => runScrapers(browser))
         .then((comedians: Comedian[]) => {
             const cleanedComedians = cleanFinalComedianList(comedians);
-            // storeData(comedians)
+            storeData(cleanedComedians)
         })
 }
 
@@ -38,7 +39,8 @@ const getIndividualTasks = (browser: puppeteer.Browser): Promise<Comedian[]>[] =
         const logger = new Logger("https://www.comedycellar.com/new-york-line-up/");
 
         const elementScraper = new ElementScaper(club, logger);
-        const showScraper = new ShowScraper(club, json, elementScraper, logger);
+        const dateTimeScraper = new DateTimeScraper(club, json, elementScraper, logger);
+        const showScraper = new ShowScraper(club, json, elementScraper, dateTimeScraper, logger);
         const comedianScraper = new ComedianScraper(club, json, elementScraper, showScraper, logger);
         const clubScraper = new ClubScraper(club, json, browser, elementScraper, comedianScraper, logger)
 

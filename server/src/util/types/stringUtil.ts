@@ -28,10 +28,10 @@ export const replaceSubstrings = (inputString: string, targets: string[], replac
     return mutatedString
 }
 
-export const removeSubstrings = (inputString: string, replacements: string[]) => {
+export const removeSubstrings = (inputString: string, replacements?: string[]) => {
     var mutatedString = inputString;
     
-    for (const provider of replacements) {
+    for (const provider of replacements ?? []) {
         mutatedString = mutatedString.replaceAll(provider, "")
     }
 

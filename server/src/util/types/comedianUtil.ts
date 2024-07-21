@@ -1,11 +1,17 @@
 import { Comedian } from "../../classes/Comedian.js"
+import { REGEX } from "../../constants/regex.js";
 import { ComedianHTMLConfiguration } from "../../types/htmlconfigurable.interface.js";
 import { Show } from "../../types/show.interface.js";
 import { isLikelyShow } from "./showUtil.js";
 import { removeSubstrings, replaceSubstrings } from "./stringUtil.js";
 
-const PARENTHESIS_REGEX = /\(([^()]+)\)/g;
 const SEPARATOR = ",";
+
+export const buildComediansFromNames = (comedianNames: string[], comedianConfig: ComedianHTMLConfiguration) => {
+  return comedianNames
+  .map((comedianName: string) => normalizeNameString(comedianName, comedianConfig))
+  .flatMap((names: string[]) => names.map((name: string) => new Comedian(name)))
+}
 
   export const normalizeNameString = (nameString: string, comedianConfig: ComedianHTMLConfiguration): string[] => {
     const cleanedString = cleanNameString(nameString, comedianConfig);
@@ -14,9 +20,8 @@ const SEPARATOR = ",";
       console.warn(`${nameString} is a likely show that needs fixing`)
       return []
     }
-    
+  
     return likelyContainsMultipleComedians(cleanedString) ? cleanedString.split(SEPARATOR) : [nameString]
-
   }
 
   const cleanNameString = (nameString: string, comedianConfig: ComedianHTMLConfiguration): string => {
@@ -30,7 +35,7 @@ const SEPARATOR = ",";
   }
 
   const removeCredits = (nameString: string): string => {
-    const credits = nameString.match(PARENTHESIS_REGEX) ?? [];
+    const credits = nameString.match(REGEX.parenthesis) ?? [];
     return removeSubstrings(nameString, credits)
   }
 

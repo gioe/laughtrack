@@ -72,6 +72,26 @@ export class ElementScaper {
 
   }
 
+
+
+  getValuesFromAllElements = async (object: puppeteer.Page | puppeteer.ElementHandle<Element>,
+    selector: string): Promise<string[]> => {
+
+    return this.getElementCount(object, selector)
+      .then((count: number) => {
+        if (count > 0) {
+          return object.$$eval(selector, (e: Element[]) => e.map(e => e.getAttribute('value') ?? "") ?? [])
+            .catch((error) => {
+              this.log(`There was an error getting all links for ${selector} while scraping ${this.club.getName()}`)
+              return []
+            })
+        }
+        this.log(`No values found for ${selector} while scraping ${this.club.getName()}`)
+        return []
+      })
+
+  }
+
   getHrefFromSingeElement = async (object: puppeteer.Page | puppeteer.ElementHandle<Element>,
     selector: string): Promise<string> => {
 

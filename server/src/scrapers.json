@@ -7,6 +7,7 @@
         },
         "htmlConfig": {
             "clubConfig": {
+                "shouldScapeByDate": true,
                 "allShowsSelector": ".sets > div",
                 "dateMenuSelector": "#cc_lineup_select_dates",
                 "dateOptionsSelector": ".header > div > select > option"
@@ -32,7 +33,9 @@
                 "showSignifiers": [
                     "with",
                     "presents",
-                    "and friends"
+                    "and friends",
+                    "come to papa",
+                    "podcast"
                 ],
                 "commaPlacements": [
                     "  ",
@@ -49,6 +52,7 @@
         },
         "htmlConfig": {
             "clubConfig": {
+                "shouldScapeByDate": true,
                 "allShowsSelector": ".sets > div",
                 "dateMenuSelector": "#cc_lineup_select_dates",
                 "dateOptionsSelector": ".header > div > select > option"
@@ -91,6 +95,7 @@
         },
         "htmlConfig": {
             "clubConfig": {
+                "shouldScapeByDate": false,
                 "allShowsSelector": "div.summary"
             },
             "showConfig": {

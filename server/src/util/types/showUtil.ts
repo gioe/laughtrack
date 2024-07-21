@@ -1,8 +1,8 @@
 import { Club } from "../../classes/Club.js";
 import { ShowHTMLConfiguration } from "../../types/htmlconfigurable.interface.js";
+import { ScrapedShow } from "../../types/scrapedShow.interfac.js";
 import { Show } from "../../types/show.interface.js";
-import { buildDate, formatTimeString, } from "./dateTime.js";
-import { removeBadWhiteSpace, removeSubstrings } from "./stringUtil.js";
+import { createDate } from "./dateTime.js";
 
 export const isLikelyShow = (inputString: string, showSignifiers: string[]): boolean => {
     var isLikely = false;
@@ -14,24 +14,22 @@ export const isLikelyShow = (inputString: string, showSignifiers: string[]): boo
     return isLikely
   }
 
-  export const createShow = (scrapedValues: string[], 
+  export const createShow = (
+    scrapedShow: ScrapedShow, 
     club: Club, 
     showConfig: ShowHTMLConfiguration,
   ): Show => {
 
-      const dateTimeString = scrapedValues[0]
-      const nameString = scrapedValues[1]
-      const ticketString = scrapedValues[2]
-
-      const formattedDateTime = buildDate(dateTimeString, showConfig.timezone)
-      const formattedName = formatShowName(nameString);
-      const formattedTicketLink = formatShowTicketLink(ticketString, club);
+      const dateTime = createDate(scrapedShow.dateTimeString, showConfig.timezone)
+    
+      const name = formatShowName(scrapedShow.nameString);
+      const ticketLink = formatShowTicketLink(scrapedShow.ticketString, club);
 
       return {
         clubName: club.getName(),
-        dateTime: formattedDateTime,
-        name: formattedName,
-        ticketLink: formattedTicketLink,
+        dateTime,
+        name,
+        ticketLink,
       }
 
   }
@@ -44,17 +42,4 @@ export const isLikelyShow = (inputString: string, showSignifiers: string[]): boo
     return !ticketLink.includes("http") ? club.getBaseWebsite() + ticketLink : ticketLink
   }
 
-  export const normalizeDatetime = (datetime: string) => {
-    return removeBadWhiteSpace(datetime);
-  }
-
-  export const combinedScrapedDatesAndTime =  (scrapedValues: string[], showConfig: ShowHTMLConfiguration) => {
-    const dateString = scrapedValues[0]
-    const cleanedDate = "";
-    
-    const cleanedTime = removeSubstrings(scrapedValues[1], showConfig.badTimeStrings ?? []);
-    const formattedTime = formatTimeString(cleanedTime)
-
-    return ""
-}
 

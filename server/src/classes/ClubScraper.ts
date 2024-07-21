@@ -7,6 +7,7 @@ import { ElementScaper } from "./ElementScaper.js";
 import { ComedianScraper } from "./ComedianScraper.js";
 import { flattenElements } from "../util/types/arrayUtil.js";
 import { ClubHTMLConfiguration } from "../types/htmlconfigurable.interface.js";
+import { delay } from "../util/types/promiseUtil.js";
 
 export class ClubScraper {
 
@@ -33,14 +34,13 @@ export class ClubScraper {
   }
 
   // #region Computed variables
-  private shouldNavigateDates = () => {
-    return this.getClubHtmlConfig().dateMenuSelector != undefined;
+  private scrapeByDate = () => {
+    return this.getClubHtmlConfig().shouldScapeByDate;
   }
 
   private getClubHtmlConfig = (): ClubHTMLConfiguration => {
     return this.json[SCRAPER_KEYS.htmlConfig][SCRAPER_KEYS.clubConfig];
   }
-
   // #endregion
 
   // #region Element selectors
@@ -55,7 +55,6 @@ export class ClubScraper {
   private allShowsSelector = () => {
     return this.getClubHtmlConfig().allShowsSelector ?? "";
   }
-
   // #endregion
 
   // #region Element getters
@@ -64,31 +63,25 @@ export class ClubScraper {
   }
 
   getAllDates = async (page: puppeteer.Page): Promise<string[]> => {
-    return this.elementScraper.getTextValuesFromAllElements(page, this.dateOptionsSelector())
+    return this.elementScraper.getValuesFromAllElements(page, this.dateOptionsSelector())
   }
-
   // #endregion
 
   // #region Task getters
   getPageScrapingTasks = async (basePage: puppeteer.Page): Promise<Comedian[]> => {
     this.log(`Started scraping ${this.club.getName()} at ${new Date()}`);
-    return this.shouldNavigateDates() ? this.scrapePageTree(basePage) : this.scrapePage(basePage)
+    return this.scrapeByDate() ? this.scrapePageTree(basePage) : this.scrapePage(basePage)
   }
-
   // #endregion
 
   // #region Scrapers
   public scrape = async (): Promise<Comedian[]> => {
-    return this.scrapeClub(this.club)
-      .then((comedians: Comedian[]) => comedians);
+    return this.buildRootPage(this.club.getScrapedPage())
+    .then((response: puppeteer.Page) => this.getPageScrapingTasks(response))
+    .then((comedians: Comedian[]) => comedians);
   }
 
-  scrapeClub = async (club: Club) => {
-    return this.generatePageAndNavigateToRoot(club.getScrapedPage())
-      .then((response: puppeteer.Page) => this.getPageScrapingTasks(response));
-  }
-
-  private generatePageAndNavigateToRoot = async (destination: string): Promise<puppeteer.Page> => {
+  private buildRootPage = async (destination: string): Promise<puppeteer.Page> => {
     return this.browser.newPage()
       .then((page: puppeteer.Page) => page.goto(destination).then(() => page));
   }
@@ -112,6 +105,7 @@ export class ClubScraper {
 
   selectDateAndScrapePage = async (page: puppeteer.Page, date: string): Promise<Comedian[]> => {
     return page.select(this.dateMenuSelector(), date)
+      .then(() => delay(1000))
       .then(() => this.scrapePage(page, date))
   }
 
