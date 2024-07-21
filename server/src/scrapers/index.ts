@@ -35,7 +35,7 @@ const getIndividualTasks = (browser: puppeteer.Browser): Promise<Comedian[]>[] =
     return scrapers.map((json: any) => {
 
         const club = new Club(json[SCRAPER_KEYS.club])
-        const logger = new Logger("https://comicstriplive.com/schedule/");
+        const logger = new Logger("https://www.comedycellar.com/new-york-line-up/");
 
         const elementScraper = new ElementScaper(club, logger);
         const showScraper = new ShowScraper(club, json, elementScraper, logger);

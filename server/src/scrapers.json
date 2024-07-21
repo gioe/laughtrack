@@ -16,10 +16,8 @@
                 "showTimeSelector": ".info > h2 > span.bold",
                 "showNameSelector": ".info > h2 > span.title",
                 "showTicketSelector": ".make-reservation > a",
-                "badTimeStrings": [
-                    " show",
-                    " show"
-                ]
+                "badTimeStrings": [" show"],
+                "timezone": "America/New_York"
             },
             "comedianConfig": {
                 "allComedianNameSelector": ".name",
@@ -60,10 +58,8 @@
                 "showTimeSelector": ".info > h2 > span.bold",
                 "showNameSelector": ".info > h2 > span.title",
                 "showTicketSelector": ".make-reservation > a",
-                "badTimeStrings": [
-                    " show",
-                    " show"
-                ]
+                "badTimeStrings": [" show"],
+                "timezone": "America/Los_Angeles"
             },
             "comedianConfig": {
                 "allComedianNameSelector": ".name",
@@ -100,7 +96,8 @@
             "showConfig": {
                 "showLineupSelector": "div.summary > h3 > a",
                 "showDateTimeSelector": "div.summary > h4.date-time",
-                "showTicketSelector": "div.summary > a"
+                "showTicketSelector": "div.summary > a",
+                "timezone": "America/New_York"
             },
             "comedianConfig": {
                 "allComedianNameSelector": "div.summary > h3 > a",
@@ -110,7 +107,7 @@
                 ],
                 "badComedianNameStrings": [
                     "",
-                    "More!!"
+                    "& More!"
                 ],
                 "commaPlacements": [
                     "  ",
@@ -119,7 +116,9 @@
                 "showSignifiers": [
                     "with",
                     "presents",
-                    "and friends"
+                    "friends",
+                    "more", 
+                    "tour"
                 ]
             }
         }

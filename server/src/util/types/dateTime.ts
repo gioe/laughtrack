@@ -1,37 +1,45 @@
 import moment from 'moment-timezone';
-import { removeLeadingWhiteSpace } from './stringUtil.js';
+import { removeLeadingWhiteSpace, removeSubstrings } from './stringUtil.js';
+
+// export const formatDateTime = (dateTimeString: string): string => {
+//     console.log(dateTimeString)
+//     const [weekday, date, month, dateComponents, timeComponents, meridiem] = dateTimeString.split(' ');
+//     const [componentMonth, componentDate, componentYear] = dateComponents.split('/');    
+
+//     return formatDateComponents(componentYear, componentMonth, componentDate);
+// }
+
+// export const formatDate = (dateString: string): string => {
+//     const dateMillis = Date.parse(dateString);
+//     const dateObject = new Date(dateMillis);
+
+//     var date = dateObject.getDate()
+//     var month = dateObject.getMonth() + 1;
+//     var year = dateObject.getFullYear();
+
+//     return formatDateComponents(year, month, date);
+// }
 
 
-export const buildDateFromDateTimeString = (dateTimeString: string): Date => {
-    const trimmedString = removeLeadingWhiteSpace(dateTimeString)
-    const [day, date, month, dateComponents, timeComponents, meridiem] = trimmedString.split(' ');
-    return buildDateFromDateAndTimeStrings(dateComponents, timeComponents, meridiem)
-}
+export const buildDate = (inputString: string, timezone: string): Date => {
+    console.log(inputString)
+    const [dateComponents, timeComponents, meridiem] = inputString.split(' ');
 
-export const buildDateFromDateAndTimeStrings = (dateString: string, timeString: string, meridiem: string): Date => {    
     // // Extract time components
-    const [hours, minutes] = timeString.split(':');
+    const [hours, minutes] = timeComponents.split(':');
 
     // Adjust hours for PM
     const adjustedHours = parseInt(hours) + (meridiem.includes('p') ? 12 : 0);
-    
-     // Format date string
-    const formattedDateString = `${dateString} ${adjustedHours}:${minutes}:00`;
-    
-    return new Date(formattedDateString);;
+
+    // Format date string
+    const formattedDateString = `${dateComponents}T${adjustedHours}:${minutes}:00Z`;
+
+    return moment.tz(formattedDateString, timezone).toDate()
 }
 
-
-export const stringIsDateTime = (inputString: string): boolean => {
-    return /^\d{4}-\d{2}-\d{2} \d{2}:\d{2} [AP]M$/.test(inputString);
+export const formatTimeString = (timeString: string) => {
+    const [timeComponents, meridiem] = timeString.split(' ');
+    const [hours, minutes] = timeComponents.split(':');
+    const adjustedHours = parseInt(hours) + (meridiem.includes('p') ? 12 : 0);
+    return `${adjustedHours}:${minutes}:00Z`;
 }
-
-export const convertDatetimeToString = (dateTime: Date): string => {
-    return moment(dateTime).format();
-}
-
-export const addDelay = (time: number) => {
-    return new Promise(function(resolve) { 
-        setTimeout(resolve, time)
-    });
-  }

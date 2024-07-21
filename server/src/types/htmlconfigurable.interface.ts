@@ -18,6 +18,7 @@ export interface ShowHTMLConfiguration {
     showNameSelector?: string;
     showTicketSelector?: string;
     badTimeStrings?: string[];
+    timezone: string;
 }
 
 export interface ComedianHTMLConfiguration {

@@ -5,7 +5,7 @@ import { emptyStringPromise, providedStringPromise, runTasks } from "../util/typ
 import { SCRAPER_KEYS } from "../constants/objects.js";
 import { ElementScaper } from "./ElementScaper.js";
 import { Comedian } from "./Comedian.js";
-import { createShow } from "../util/types/showUtil.js";
+import { combinedScrapedDatesAndTime, createShow, normalizeDatetime } from "../util/types/showUtil.js";
 import { ShowHTMLConfiguration } from "../types/htmlconfigurable.interface.js";
 
 
@@ -73,6 +73,29 @@ export class ShowScraper {
 
   getShowDateTime = async (showComponent: puppeteer.ElementHandle<Element>) => {
     return this.elementScraper.getTextValueFromSingleElement(showComponent, this.showDateTimeSelector())
+    .then((datetime: string) => {
+      return normalizeDatetime(datetime)
+    })
+  }
+  
+  getShowDateTimeJob = async (showComponent: puppeteer.ElementHandle<Element>, date?: string) => {
+    return this.shouldScrapeShowDatetime() ? this.getShowDateTime(showComponent) : this.combineDateAndTime(showComponent, date)
+  }
+
+  combineDateAndTime = async (showComponent: puppeteer.ElementHandle<Element>, date?: string) => {
+    const dateTask = date ? providedStringPromise(date) : this.getShowDate(showComponent)
+    const timeTask = this.getShowTime(showComponent)
+    
+    return runTasks([dateTask, timeTask])
+    .then((scrapedValues: string[]) => combinedScrapedDatesAndTime(scrapedValues, this.getShowHtmlConfig()))
+  }
+
+  getShowNameJob = async (showComponent: puppeteer.ElementHandle<Element>) => {
+    return this.shouldScrapeShowName() ? this.getShowName(showComponent) : providedStringPromise("")
+  }
+
+  getShowTicketJob = async (showComponent: puppeteer.ElementHandle<Element>) => {
+    return this.shouldScrapeShowName() ? this.getShowTicket(showComponent) : providedStringPromise("")
   }
 
   getShowTime = async (showComponent: puppeteer.ElementHandle<Element>) => {
@@ -92,62 +115,28 @@ export class ShowScraper {
   }
 
   getShowScrapingTasks = (showComponent: puppeteer.ElementHandle<Element>, date?: string) => {
-    var jobs: Promise<string>[] = [];
-
-    if (this.shouldScrapeShowDatetime()) {
-      jobs.push(this.getShowDateTime(showComponent))
-    } else {
-      jobs.push(emptyStringPromise())
-    }
-
-    if (this.shouldScrapeShowDate()) {
-      jobs.push(this.getShowDate(showComponent))
-    } else if (date) {
-      jobs.push(providedStringPromise(date))
-    } else {
-      jobs.push(emptyStringPromise())
-    }
-
-    if (this.shouldScrapeShowTime()) {
-      jobs.push(this.getShowTime(showComponent))
-    } else {
-      jobs.push(emptyStringPromise())
-    }
-
-    if (this.shouldScrapeShowName()) {
-      jobs.push(this.getShowName(showComponent))
-    } else {
-      jobs.push(emptyStringPromise())
-    }
-
-    if (this.shouldScrapeShowTicket()) {
-      jobs.push(this.getShowTicket(showComponent))
-    } else {
-      jobs.push(emptyStringPromise())
-    }
-
-    return jobs
+    const datetimeJob = this.getShowDateTimeJob(showComponent, date)
+    const showNameJob = this.getShowNameJob(showComponent)
+    const ticketJob = this.getShowTicketJob(showComponent)
+    return [datetimeJob, showNameJob, ticketJob]
   }
 
   scrapeShowForComedians = async (showComponent: puppeteer.ElementHandle<Element>,
     comedians: Comedian[],
-    club: Club,
     date?: string): Promise<Comedian[]> => {
 
     var jobs: Promise<string>[] = this.getShowScrapingTasks(showComponent, date);
 
     return runTasks(jobs)
-      .then((scrapedValues: string[]) => this.buildShowFromScrapedElements(scrapedValues, comedians, club, date));
+      .then((scrapedValues: string[]) => this.buildShowFromScrapedElements(scrapedValues, comedians, date));
   }
 
   buildShowFromScrapedElements = (scrapedValues: string[],
     comedians: Comedian[],
-    club: Club,
     date?: string): Comedian[] => {
 
-      this.log(scrapedValues)
-    const show = createShow(scrapedValues, club, this.getShowHtmlConfig(), date)
-
+    const show = createShow(scrapedValues, this.club, this.getShowHtmlConfig())
+    
     comedians.forEach((comedian: Comedian) => {
       comedian.addShow(show)
       return comedian
@@ -155,7 +144,6 @@ export class ShowScraper {
 
     return comedians;
   }
-
 
   // #region Logger
   log = (input: any) => {

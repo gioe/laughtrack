@@ -1,14 +1,8 @@
 import { Club } from "../../classes/Club.js";
 import { ShowHTMLConfiguration } from "../../types/htmlconfigurable.interface.js";
 import { Show } from "../../types/show.interface.js";
-import { buildDateFromDateTimeString } from "./dateTime.js";
-import { removeSubstrings } from "./stringUtil.js";
-
-const DATETIME_INDEX = 0
-const DATE_INDEX = 1
-const TIME_INDEX = 2
-const NAME_INDEX = 3
-const TICKET_INDEX = 4
+import { buildDate, formatTimeString, } from "./dateTime.js";
+import { removeBadWhiteSpace, removeSubstrings } from "./stringUtil.js";
 
 export const isLikelyShow = (inputString: string, showSignifiers: string[]): boolean => {
     var isLikely = false;
@@ -23,15 +17,13 @@ export const isLikelyShow = (inputString: string, showSignifiers: string[]): boo
   export const createShow = (scrapedValues: string[], 
     club: Club, 
     showConfig: ShowHTMLConfiguration,
-    date?: string
   ): Show => {
-      const dateTimeString = scrapedValues[DATETIME_INDEX]
-      const dateString = date ?? scrapedValues[DATE_INDEX]
-      const timeString = scrapedValues[TIME_INDEX]
-      const nameString = scrapedValues[NAME_INDEX]
-      const ticketString = scrapedValues[TICKET_INDEX]
 
-      const formattedDateTime = formatShowDateTime(dateTimeString, dateString, timeString, showConfig);
+      const dateTimeString = scrapedValues[0]
+      const nameString = scrapedValues[1]
+      const ticketString = scrapedValues[2]
+
+      const formattedDateTime = buildDate(dateTimeString, showConfig.timezone)
       const formattedName = formatShowName(nameString);
       const formattedTicketLink = formatShowTicketLink(ticketString, club);
 
@@ -44,28 +36,6 @@ export const isLikelyShow = (inputString: string, showSignifiers: string[]): boo
 
   }
 
-  const formatShowDateTime = (dateTimeString: string, 
-    dateString: string, 
-    timeString: string, 
-    showConfig: ShowHTMLConfiguration
-  ): Date => {
-    var newDateTimeString = dateTimeString
-
-    if (newDateTimeString === "") {
-      const formattedTimeString = formatTime(timeString, showConfig)
-      newDateTimeString = dateString + formattedTimeString
-    }
-
-    return new Date()
-
-    // return buildDateFromDateTimeString(newDateTimeString)
-
-  }
-
-  const formatTime = (time: string, showConfig: ShowHTMLConfiguration): string => {
-    return removeSubstrings(time, showConfig.badTimeStrings ?? []);
-  }
-
   const formatShowName = (name: string): string => {
     return name;
   }
@@ -73,4 +43,18 @@ export const isLikelyShow = (inputString: string, showSignifiers: string[]): boo
   const formatShowTicketLink = (ticketLink: string, club: Club): string => {
     return !ticketLink.includes("http") ? club.getBaseWebsite() + ticketLink : ticketLink
   }
+
+  export const normalizeDatetime = (datetime: string) => {
+    return removeBadWhiteSpace(datetime);
+  }
+
+  export const combinedScrapedDatesAndTime =  (scrapedValues: string[], showConfig: ShowHTMLConfiguration) => {
+    const dateString = scrapedValues[0]
+    const cleanedDate = "";
+    
+    const cleanedTime = removeSubstrings(scrapedValues[1], showConfig.badTimeStrings ?? []);
+    const formattedTime = formatTimeString(cleanedTime)
+
+    return ""
+}
 

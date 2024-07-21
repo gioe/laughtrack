@@ -9,12 +9,12 @@ const SEPARATOR = ",";
 
   export const normalizeNameString = (nameString: string, comedianConfig: ComedianHTMLConfiguration): string[] => {
     const cleanedString = cleanNameString(nameString, comedianConfig);
-    
+
     if (isLikelyShow(cleanedString, comedianConfig.showSignifiers ?? [])) {
-      console.warn(`${cleanedString} is a likely show that needs fixing`)
+      console.warn(`${nameString} is a likely show that needs fixing`)
       return []
     }
-
+    
     return likelyContainsMultipleComedians(cleanedString) ? cleanedString.split(SEPARATOR) : [nameString]
 
   }
