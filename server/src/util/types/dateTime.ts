@@ -17,6 +17,7 @@ export const normalizeDateTime = (dateTime: string, config: ShowHTMLConfiguratio
 }
 
 export const extractDateFromDateTime = (inputString: string): string => {
+    console.log(inputString)
 
     var dateString = inputString
 
@@ -24,9 +25,7 @@ export const extractDateFromDateTime = (inputString: string): string => {
 
     if (stringIsAValidDate(inputString)) dateString = inputString
     else if (dateValues.length > 0) dateString = getDateFromRegexMatch(dateValues)
-
     return normalizeDateString(dateString)
-
 }
 
 export const exactTimeFromDateTime = (inputString: string): string => {

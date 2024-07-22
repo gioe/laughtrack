@@ -1,5 +1,4 @@
 import puppeteer from "puppeteer";
-import { Logger } from "./Logger.js";
 import { Club } from './Club.js';
 import { providedStringPromise, runTasks } from "../util/types/promiseUtil.js";
 import { SCRAPER_KEYS } from "../constants/objects.js";
@@ -14,20 +13,17 @@ export class ShowScraper {
   json: any;
   elementScraper: ElementScaper;
   dateTimeScraper: DateTimeScraper;
-  logger: Logger;
 
   constructor(
     club: Club,
     json: any,
     elementScraper: ElementScaper,
-    dateTimeScraper: DateTimeScraper,
-    logger: Logger,
+    dateTimeScraper: DateTimeScraper
   ) {
     this.club = club;
     this.json = json;
     this.elementScraper = elementScraper
     this.dateTimeScraper = dateTimeScraper
-    this.logger = logger;
   }
 
   private getShowHtmlConfig = (): ShowHTMLConfiguration => {
@@ -70,7 +66,8 @@ export class ShowScraper {
   }
 
   scrapeShow = async (showComponent: puppeteer.ElementHandle<Element>,
-    date?: string): Promise<Show> => {
+    date?: string,
+    url?: string): Promise<Show> => {
 
     var jobs: Promise<string>[] = this.getShowScrapingTasks(showComponent, date);
 
@@ -80,18 +77,11 @@ export class ShowScraper {
           { 
             dateTimeString: scrapedValues[0], 
             nameString: scrapedValues[1], 
-            ticketString: scrapedValues[2]
+            ticketString: url ?? scrapedValues[2]
           }, 
           this.club, 
           this.getShowHtmlConfig()
         )
     });
   }
-
-  // #region Logger
-  log = (input: any) => {
-    this.logger.log(this.club.getScrapedPage(), input)
-  }
-  // #endregion
-
 }

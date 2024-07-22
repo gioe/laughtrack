@@ -7,8 +7,9 @@
         },
         "htmlConfig": {
             "clubConfig": {
-                "shouldScapeByDate": true,
-                "allShowsSelector": ".sets > div",
+                "shouldScapeByDates": true,
+                "shouldScrapeByShows": false,
+                "allShowElementsSelector": ".sets > div",
                 "dateMenuSelector": "#cc_lineup_select_dates",
                 "dateOptionsSelector": ".header > div > select > option"
             },
@@ -52,8 +53,9 @@
         },
         "htmlConfig": {
             "clubConfig": {
-                "shouldScapeByDate": true,
-                "allShowsSelector": ".sets > div",
+                "shouldScapeByDates": true,
+                "shouldScrapeByShows": false,
+                "allShowElementsSelector": ".sets > div",
                 "dateMenuSelector": "#cc_lineup_select_dates",
                 "dateOptionsSelector": ".header > div > select > option"
             },
@@ -95,8 +97,9 @@
         },
         "htmlConfig": {
             "clubConfig": {
-                "shouldScapeByDate": false,
-                "allShowsSelector": "div.summary"
+                "shouldScapeByDates": false,
+                "shouldScrapeByShows": false,
+                "allShowElementsSelector": "div.summary"
             },
             "showConfig": {
                 "showLineupSelector": "div.summary > h3 > a",
@@ -124,6 +127,87 @@
                     "friends",
                     "more", 
                     "tour"
+                ]
+            }
+        }
+    },
+    {
+        "club": {
+            "name": "New York Comedy Club Midtown",
+            "baseWebsite": "https://newyorkcomedyclub.com",
+            "schedulePage": "/calendar/Midtown"
+        },
+        "htmlConfig": {
+            "clubConfig": {
+                "shouldScapeByDates": false,
+                "shouldScrapeByShows": true,
+                "allShowElementsSelector": "div.row.container-inner",
+                "allShowLinksSelector": "div.col-xs-12.col-sm-6.col-lg-7.upcoming-list-description.calendar-upcoming-list-description > a"
+            },
+            "showConfig": {
+                "showDateTimeSelector": "div.mobile-event-header.header.visible-xs",
+                "showNameSelector": "div.event-venue-nickname.visible-xs",
+                "badTimeStrings": ["-", "  "],
+                "timezone": "America/New_York"
+            },
+            "comedianConfig": {
+                "allComedianNameSelector": "div.event-comedians-container > div > p.comedian-name",
+                "showSignifiers": [
+                    "new jokes"
+                ]
+            }
+        }
+    },
+    {
+        "club": {
+            "name": "New York Comedy Club East Village",
+            "baseWebsite": "https://newyorkcomedyclub.com",
+            "schedulePage": "/calendar/East-Village"
+        },
+        "htmlConfig": {
+            "clubConfig": {
+                "shouldScapeByDates": false,
+                "shouldScrapeByShows": true,
+                "allShowElementsSelector": "div.row.container-inner",
+                "allShowLinksSelector": "div.col-xs-12.col-sm-6.col-lg-7.upcoming-list-description.calendar-upcoming-list-description > a"
+            },
+            "showConfig": {
+                "showDateTimeSelector": "div.mobile-event-header.header.visible-xs",
+                "showNameSelector": "div.event-venue-nickname.visible-xs",
+                "badTimeStrings": ["-", "  "],
+                "timezone": "America/New_York"
+            },
+            "comedianConfig": {
+                "allComedianNameSelector": "div.event-comedians-container > div > p.comedian-name",
+                "showSignifiers": [
+                    "new jokes"
+                ]
+            }
+        }
+    },
+    {
+        "club": {
+            "name": "New York Comedy Club Upper West Side",
+            "baseWebsite": "https://newyorkcomedyclub.com",
+            "schedulePage": "/calendar/Upper-West-Side"
+        },
+        "htmlConfig": {
+            "clubConfig": {
+                "shouldScapeByDates": false,
+                "shouldScrapeByShows": true,
+                "allShowElementsSelector": "div.row.container-inner",
+                "allShowLinksSelector": "div.col-xs-12.col-sm-6.col-lg-7.upcoming-list-description.calendar-upcoming-list-description > a"
+            },
+            "showConfig": {
+                "showDateTimeSelector": "div.mobile-event-header.header.visible-xs",
+                "showNameSelector": "div.event-venue-nickname.visible-xs",
+                "badTimeStrings": ["-", "  "],
+                "timezone": "America/New_York"
+            },
+            "comedianConfig": {
+                "allComedianNameSelector": "div.event-comedians-container > div > p.comedian-name",
+                "showSignifiers": [
+                    "new jokes"
                 ]
             }
         }

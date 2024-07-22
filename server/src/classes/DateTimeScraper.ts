@@ -1,5 +1,4 @@
 import puppeteer from "puppeteer";
-import { Logger } from "./Logger.js";
 import { ElementScaper } from "./ElementScaper.js";
 import { SCRAPER_KEYS } from "../constants/objects.js";
 import { providedStringPromise, runTasks } from "../util/types/promiseUtil.js";
@@ -11,18 +10,15 @@ export class DateTimeScraper {
   club: Club;
   json: any;
   elementScraper: ElementScaper;
-  logger: Logger;
 
   constructor(
     club: Club,
     json: any,
     elementScraper: ElementScaper,
-    logger: Logger,
   ) {
     this.club = club
     this.json = json;
     this.elementScraper = elementScraper
-    this.logger = logger;
   }
 
   private showHtmlConfig = (): ShowHTMLConfiguration => {
@@ -80,11 +76,5 @@ export class DateTimeScraper {
     }
     return this.combineDateAndTime(showComponent, date)
   }
-
-  // #region Logger
-  log = (input: any) => {
-    this.logger.log(this.club.getScrapedPage(), input)
-  }
-  // #endregion
 
 }

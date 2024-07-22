@@ -19,13 +19,10 @@ const Home = () => {
 }
 
 Home.getInitialProps = async (context: NextPageContext) => {
-  console.log("MAKING CALL")
   const [userData, comediansData] = await Promise.all([
     await apiClient.get(AUTH_ENDPOINTS.currentUser).then(r => r.data.json()),
     await apiClient.get(COMEDIAN_ENDPOINTS.getAllComedians).then(r => r.data.json()),
   ]);
-  console.log(userData)
-  console.log(comediansData)
   return { user: userData, comedians: comediansData }
 };
 

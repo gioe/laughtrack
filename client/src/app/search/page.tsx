@@ -25,8 +25,6 @@ function SearchPage({searchParams}: Props) {
         response => response.json()
       ).then(
         data => {
-            console.log(data.comedian.name)
-            console.log(data.comedian.shows)
             setComedianName(data.comedian.name)
             setShows(data.comedian.shows)
         }
