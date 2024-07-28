@@ -18,7 +18,7 @@
                 "showTimeSelector": ".info > h2 > span.bold",
                 "showNameSelector": ".info > h2 > span.title",
                 "showTicketSelector": ".make-reservation > a",
-                "badTimeStrings": [" show"],
+                "badDateTimeStrings": [" show"],
                 "timezone": "America/New_York"
             },
             "comedianConfig": {
@@ -64,7 +64,7 @@
                 "showTimeSelector": ".info > h2 > span.bold",
                 "showNameSelector": ".info > h2 > span.title",
                 "showTicketSelector": ".make-reservation > a",
-                "badTimeStrings": [" show"],
+                "badDateTimeStrings": [" show"],
                 "timezone": "America/Los_Angeles"
             },
             "comedianConfig": {
@@ -147,7 +147,7 @@
             "showConfig": {
                 "showDateTimeSelector": "div.mobile-event-header.header.visible-xs",
                 "showNameSelector": "div.event-venue-nickname.visible-xs",
-                "badTimeStrings": ["-", "  "],
+                "badDateTimeStrings": [" -"],
                 "timezone": "America/New_York"
             },
             "comedianConfig": {
@@ -174,7 +174,7 @@
             "showConfig": {
                 "showDateTimeSelector": "div.mobile-event-header.header.visible-xs",
                 "showNameSelector": "div.event-venue-nickname.visible-xs",
-                "badTimeStrings": ["-", "  "],
+                "badDateTimeStrings": [" -"],
                 "timezone": "America/New_York"
             },
             "comedianConfig": {
@@ -201,7 +201,7 @@
             "showConfig": {
                 "showDateTimeSelector": "div.mobile-event-header.header.visible-xs",
                 "showNameSelector": "div.event-venue-nickname.visible-xs",
-                "badTimeStrings": ["-", "  "],
+                "badDateTimeStrings": [" -"],
                 "timezone": "America/New_York"
             },
             "comedianConfig": {

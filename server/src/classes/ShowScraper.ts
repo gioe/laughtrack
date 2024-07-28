@@ -46,8 +46,8 @@ export class ShowScraper {
     return this.shouldScrapeShowName() ? this.getShowName(showComponent) : providedStringPromise("")
   }
 
-  getShowTicketJob = async (showComponent: puppeteer.ElementHandle<Element>) => {
-    return this.shouldScrapeShowName() ? this.getShowTicket(showComponent) : providedStringPromise("")
+  getShowTicketJob = async (showComponent: puppeteer.ElementHandle<Element>, url?: string) => {
+    return url ? providedStringPromise(url) : this.getShowTicket(showComponent)
   }
 
   getShowName = async (showComponent: puppeteer.ElementHandle<Element>) => {
@@ -55,13 +55,13 @@ export class ShowScraper {
   }
 
   getShowTicket = async (showComponent: puppeteer.ElementHandle<Element>) => {
-    return this.elementScraper.getHrefFromSingeElement(showComponent, this.showTicketSelector())
+    return this.elementScraper.getHrefFromSingleElement(showComponent, this.showTicketSelector())
   }
 
-  getShowScrapingTasks = (showComponent: puppeteer.ElementHandle<Element>, date?: string) => {
+  getShowScrapingTasks = (showComponent: puppeteer.ElementHandle<Element>, date?: string, url?: string) => {
     const datetimeJob = this.dateTimeScraper.getShowDateTimeJob(showComponent, date)
     const showNameJob = this.getShowNameJob(showComponent)
-    const ticketJob = this.getShowTicketJob(showComponent)
+    const ticketJob = this.getShowTicketJob(showComponent, url)
     return [datetimeJob, showNameJob, ticketJob]
   }
 
@@ -69,7 +69,7 @@ export class ShowScraper {
     date?: string,
     url?: string): Promise<Show> => {
 
-    var jobs: Promise<string>[] = this.getShowScrapingTasks(showComponent, date);
+    var jobs: Promise<string>[] = this.getShowScrapingTasks(showComponent, date, url);
 
     return runTasks(jobs)
       .then((scrapedValues: string[]) => {
@@ -77,11 +77,12 @@ export class ShowScraper {
           { 
             dateTimeString: scrapedValues[0], 
             nameString: scrapedValues[1], 
-            ticketString: url ?? scrapedValues[2]
+            ticketString: scrapedValues[2]
           }, 
           this.club, 
           this.getShowHtmlConfig()
         )
     });
   }
+
 }

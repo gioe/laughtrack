@@ -2,7 +2,7 @@ import { Club } from "../../classes/Club.js";
 import { ShowHTMLConfiguration } from "../../types/htmlconfigurable.interface.js";
 import { ScrapedShow } from "../../types/scrapedShow.interfac.js";
 import { Show } from "../../types/show.interface.js";
-import { createDate } from "./dateTime.js";
+import { createDateObject } from "./dateTimeUtil.js";
 
 export const isLikelyShow = (inputString: string, showSignifiers: string[]): boolean => {
     var isLikely = false;
@@ -20,8 +20,7 @@ export const isLikelyShow = (inputString: string, showSignifiers: string[]): boo
     showConfig: ShowHTMLConfiguration,
   ): Show => {
 
-      const dateTime = createDate(scrapedShow.dateTimeString, showConfig.timezone)
-    
+      const dateTime = createDateObject(scrapedShow.dateTimeString, showConfig.timezone)
       const name = formatShowName(scrapedShow.nameString);
       const ticketLink = formatShowTicketLink(scrapedShow.ticketString, club);
 

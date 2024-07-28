@@ -20,7 +20,7 @@ export interface ShowHTMLConfiguration {
     showTimeSelector?: string;
     showNameSelector?: string;
     showTicketSelector?: string;
-    badTimeStrings?: string[];
+    badDateTimeStrings?: string[];
     timezone: string;
 }
 

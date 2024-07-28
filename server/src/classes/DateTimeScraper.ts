@@ -4,7 +4,7 @@ import { SCRAPER_KEYS } from "../constants/objects.js";
 import { providedStringPromise, runTasks } from "../util/types/promiseUtil.js";
 import { ShowHTMLConfiguration } from "../types/htmlconfigurable.interface.js";
 import { Club } from "./Club.js";
-import { normalizeDateTime } from "../util/types/dateTime.js";
+import { normalizeDateTime } from "../util/types/dateTimeUtil.js";
 
 export class DateTimeScraper {
   club: Club;
@@ -76,5 +76,6 @@ export class DateTimeScraper {
     }
     return this.combineDateAndTime(showComponent, date)
   }
+
 
 }

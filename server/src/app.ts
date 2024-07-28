@@ -8,7 +8,7 @@ import { showsApiRouter } from "./router/showsApiRouter.js";
 import { scraperApiRouter } from "./router/scraperApiRouter.js";
 import { comediansApiRouter } from "./router/comediansApiRouter.js";
 import { userApiRouter } from "./router/userApiRouter.js";
-import { scheduleScrapes } from "./util/types/cron.js";
+import { scheduleScrapes } from "./util/types/cronUtil.js";
 
 dotenv.config();
 
