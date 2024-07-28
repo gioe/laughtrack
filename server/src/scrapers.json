@@ -162,5 +162,32 @@
                 "showSignifiers": ["new jokes"]
             }
         }
+    },
+    {
+        "club": {
+            "name": "The Stand",
+            "baseWebsite": "https://thestandnyc.com/",
+            "schedulePage": "shows"
+        },
+        "htmlConfig": {
+            "clubConfig": {
+                "shouldScapeByDates": false,
+                "shouldScrapeByShows": true,
+                "allShowLinksSelector": "div.d-grid.gap-2 > a.btn.btn-outline-light.the-ticket",
+                "allShowElementsSelector": "div.col-12.col-md-9"
+            },
+            "showConfig": {
+                "showDateTimeSelector": "body > div.container-xl.space-top.text-white > div > div.col-12.col-md-9 > h3",
+                "showNameSelector": "h1.showtitle",
+                "showTicketSelector": "body > div.container-xl.space-top.text-white > div > div.col-12.col-md-9 > div.row > div > div > a",
+                "badDateStrings": [" |"],
+                "badTimeStrings": [" Upstairs", " Main room"],
+                "timezone": "America/New_York"
+            },
+            "comedianConfig": {
+                "allComedianNameSelector": "div.flex-grow-1.ms-3 > a > h4 > strong",
+                "showSignifiers": ["new jokes"]
+            }
+        }
     }
 ]

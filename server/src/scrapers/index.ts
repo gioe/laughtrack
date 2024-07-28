@@ -39,10 +39,10 @@ const runScrapers = async (browser: puppeteer.Browser): Promise<Comedian[]> => {
 
 const getIndividualTasks = (browser: puppeteer.Browser): Promise<Comedian[]>[] => {
     return scrapers
-    // .filter((json: any) => {
-    //     const club = new Club(json[SCRAPER_KEYS.club])
-    //     return club.getName() == "New York Comedy Club Midtown"
-    // })
+    .filter((json: any) => {
+        const club = new Club(json[SCRAPER_KEYS.club])
+        return club.getName() == "The Stand"
+    })
     .map((json: any) => {
 
         const club = new Club(json[SCRAPER_KEYS.club])
