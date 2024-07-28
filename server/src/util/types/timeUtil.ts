@@ -3,8 +3,8 @@ import { ShowHTMLConfiguration } from "../../types/htmlconfigurable.interface.js
 import { removeBadWhiteSpace, removeSubstrings } from "./stringUtil.js";
 
 export const cleanTimeString = (timeString: string, config: ShowHTMLConfiguration): string => {
-    const cleanedString = removeSubstrings(timeString, config.badTimeStrings)
-    return removeBadWhiteSpace(cleanedString)
+    const cleanedTimeString = removeSubstrings(timeString, config.badTimeStrings)
+    return removeBadWhiteSpace(cleanedTimeString)
 }
 
 export const stringIsAValidTime = (string: string): boolean => {

@@ -9,6 +9,7 @@ import { ComedianHTMLConfiguration } from "../types/htmlconfigurable.interface.j
 import { Show } from "../types/show.interface.js";
 import { Club } from "../classes/Club.js";
 import { Comedian } from "../classes/Comedian.js";
+import { ProvidedScrapingValue } from "../types/providedScrapingValue.interface.js";
 
 export class ComedianScraper {
   private club: Club;
@@ -40,28 +41,28 @@ export class ComedianScraper {
   }
 
   scrapeComedians = async (showElementHandlers: puppeteer.ElementHandle<Element>[],
-    date?: string,
-    url?: string): Promise<Comedian[]> => {
+    providedScrapingValues?: ProvidedScrapingValue
+  ): Promise<Comedian[]> => {
 
     const showScrapingJobs = showElementHandlers
-      .map((showElementHandler: puppeteer.ElementHandle<Element>) => this.getAllComedians(showElementHandler, date, url))
+      .map((showElementHandler: puppeteer.ElementHandle<Element>) => this.getAllComedians(showElementHandler, providedScrapingValues))
 
     return runTasks(showScrapingJobs)
-      .then((comedianArrays: Comedian[][]) => this.handleComedianArrays(comedianArrays, date, url));
+      .then((comedianArrays: Comedian[][]) => this.handleComedianArrays(comedianArrays, providedScrapingValues));
   }
 
-  getAllComedians = async (showComponent: puppeteer.ElementHandle<Element>, date?: string, url?: string): Promise<Comedian[]> => {
+  getAllComedians = async (showComponent: puppeteer.ElementHandle<Element>, providedScrapingValues?: ProvidedScrapingValue): Promise<Comedian[]> => {
     return this.getAllComedianNames(showComponent)
       .then((names: string[]) => buildComediansFromNames(names, this.comedianHtmlConfig()))
-      .then((comedians: Comedian[]) => this.addShowToComedianShowList(showComponent, comedians, date, url))
+      .then((comedians: Comedian[]) => this.addShowToComedianShowList(showComponent, comedians, providedScrapingValues))
   }
 
   addShowToComedianShowList = async (showComponent: puppeteer.ElementHandle<Element>,
     comedians: Comedian[],
-    date?: string,
-    url?: string): Promise<Comedian[]> => {
+    providedScrapingValues?: ProvidedScrapingValue
+  ): Promise<Comedian[]> => {
 
-    return this.showScraper.scrapeShow(showComponent, date, url).then((show: Show) => {
+    return this.showScraper.scrapeShow(showComponent, providedScrapingValues).then((show: Show) => {
       comedians.forEach((comedian: Comedian) => {
         comedian.addShow(show)
         return comedian
@@ -70,9 +71,9 @@ export class ComedianScraper {
     })
   }
 
-  handleComedianArrays = (comedianArrays: Comedian[][], date?: string, url?: string, ) => {
-    const urlOrDefault = url ? ` at ${url}` : ""
-    const dateOrDefault = date ? ` on ${date}` : ""
+  handleComedianArrays = (comedianArrays: Comedian[][], providedScrapingValues?: ProvidedScrapingValue ) => {
+    const urlOrDefault = providedScrapingValues?.ticketUrl ? ` at ${providedScrapingValues.ticketUrl}` : ""
+    const dateOrDefault = providedScrapingValues?.date  ? ` on ${providedScrapingValues.date}` : ""
 
     const flattened = flattenElements(comedianArrays)
     if (flattened.length == 0) console.warn(`Scraping ${this.club.getName()}${urlOrDefault}${dateOrDefault} resuled in no comedians`)

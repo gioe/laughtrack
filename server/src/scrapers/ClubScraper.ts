@@ -4,10 +4,14 @@ import { ElementScaper } from "./ElementScaper.js";
 import { ComedianScraper } from "./ComedianScraper.js";
 import { flattenElements } from "../util/types/arrayUtil.js";
 import { ClubHTMLConfiguration } from "../types/htmlconfigurable.interface.js";
-import { delay } from "../util/types/promiseUtil.js";
 import { LINKS } from "../constants/links.js";
 import { Club } from "../classes/Club.js";
 import { Comedian } from "../classes/Comedian.js";
+import { ElementInteractor } from "./ElementInteractor.js";
+import { ProvidedScrapingValue } from "../types/providedScrapingValue.interface.js";
+
+
+const INTERACTION_DELAY = 1000;
 
 export class ClubScraper {
 
@@ -16,6 +20,7 @@ export class ClubScraper {
   private browser: puppeteer.Browser;
   private comedianScraper: ComedianScraper;
   private elementScraper = new ElementScaper();
+  private elementInteractor = new ElementInteractor();
 
   constructor(club: Club,
     json: any,
@@ -33,13 +38,14 @@ export class ClubScraper {
     return this.json[SCRAPER_KEYS.htmlConfig][SCRAPER_KEYS.clubConfig];
   }
 
-  private shouldScrapeByDates = () => {
+  private requiresSelectingDates = () => {
     return this.getClubHtmlConfig().shouldScapeByDates;
   }
 
-  private shouldScrapeByShows = () => {
+  private requiresNavigatingToShowLinks = () => {
     return this.getClubHtmlConfig().shouldScrapeByShows;
   }
+
   // #endregion
 
   // #region Element selectors
@@ -58,6 +64,10 @@ export class ClubScraper {
   private allShowLinksSelector = () => {
     return this.getClubHtmlConfig().allShowLinksSelector ?? "";
   }
+
+  private expansionSelector = () => {
+    return this.getClubHtmlConfig().expansionSelector ?? "";
+  }
   // #endregion
 
   // #region Element getters
@@ -65,32 +75,23 @@ export class ClubScraper {
     return this.elementScraper.getElementHandlers(page, this.allShowElementsSelector())
   }
 
-  getAllDates = async (page: puppeteer.Page): Promise<string[]> => {
+  getAllDateOptions = async (page: puppeteer.Page): Promise<string[]> => {
     return this.elementScraper.getValuesFromAllElements(page, this.dateOptionsSelector())
   }
 
-  getAllShowDetailLinks = async (page: puppeteer.Page): Promise<string[]> => {
+  getAllShowLinks = async (page: puppeteer.Page): Promise<string[]> => {
     return this.elementScraper.getElementCount(page, this.allShowLinksSelector())
       .then((count: number) => count > 0 ? this.elementScraper.getHrefFromAllElements(page, this.allShowLinksSelector()) : [])
       .then((links: string[]) => links.filter((link: string) => !LINKS.badLinks.includes(link)))
   }
   // #endregion
 
-  // #region Task getters
-  getPageScrapingTasks = async (basePage: puppeteer.Page): Promise<Comedian[]> => {
-    console.log(`Started scraping ${this.club.getName()} at ${new Date()}`);
-
-    if (this.shouldScrapeByDates()) return this.scrapeByDates(basePage)
-    else if (this.shouldScrapeByShows()) return this.scrapeByShowDetails(basePage)
-    else return this.scrapePage(basePage)
-
-  }
-  // #endregion
-
-  // #region Scrapers
+  // #region Main logic
   public scrape = async (): Promise<Comedian[]> => {
+    console.log(`Started scraping ${this.club.getName()} at ${new Date()}`);
     return this.buildRootPage(this.club.getScrapedPage())
-      .then((response: puppeteer.Page) => this.getPageScrapingTasks(response))
+      .then((response: puppeteer.Page) => this.elementInteractor.expandPage(response, this.expansionSelector()))
+      .then((response: puppeteer.Page) => this.dispatchPageScrapingTasks(response))
       .then((comedians: Comedian[]) => comedians);
   }
 
@@ -99,56 +100,64 @@ export class ClubScraper {
       .then((page: puppeteer.Page) => page.goto(destination).then(() => page));
   }
 
-  scrapeByShowDetails = async (page: puppeteer.Page): Promise<Comedian[]> => {
-    return this.getAllShowDetailLinks(page)
+  // #endregion
+
+  // #region Scraping tasks
+  dispatchPageScrapingTasks = async (basePage: puppeteer.Page): Promise<Comedian[]> => {
+    if (this.requiresSelectingDates()) return this.scrapeByDates(basePage)
+    else if (this.requiresNavigatingToShowLinks()) return this.scrapeByShowLinks(basePage)
+    else return this.scrapeCurrentPage(basePage)
+  }
+  // #endregion
+
+  private scrapeByShowLinks = async (page: puppeteer.Page): Promise<Comedian[]> => {
+    return this.getAllShowLinks(page)
       .then((links: string[]) => this.scrapeAllTicketLinks(page, links))
-      .then((comedianArrays: Comedian[][]) => flattenElements(comedianArrays));
+      .then((comedianArrays: Comedian[][]) => flattenElements(comedianArrays))
   }
 
   scrapeAllTicketLinks = async (page: puppeteer.Page, links: string[]): Promise<Comedian[][]> => {
     var comedianArrays: Comedian[][] = [];
 
     for (const link of links) {
-      const comedians = await this.navigateToUrlAndScrapePage(page, link)
+      const url = this.club.getBaseWebsite() + link;
+      const comedians = await this.navigateToUrlAndScrapePage(page, url)
       comedianArrays.push(comedians)
     }
 
     return comedianArrays
   }
 
-  navigateToUrlAndScrapePage = async (page: puppeteer.Page, link: string): Promise<Comedian[]> => {
-    const url = this.club.getBaseWebsite() + link;
-    return page.goto(url)
-      .then(() => delay(1000))
-      .then(() => this.scrapePage(page, undefined, url))
+  navigateToUrlAndScrapePage = async (page: puppeteer.Page, url: string): Promise<Comedian[]> => {
+    return this.elementInteractor.navigateToUrl(url, page, INTERACTION_DELAY)
+      .then(() => this.scrapeCurrentPage(page, {ticketUrl: url}))
   }
 
   scrapeByDates = async (page: puppeteer.Page): Promise<Comedian[]> => {
-    return this.getAllDates(page)
-      .then((dates: string[]) => this.scrapeAllDates(page, dates))
+    return this.getAllDateOptions(page)
+      .then((dateOptions: string[]) => this.loopThroughDateOptions(page, dateOptions))
       .then((comedianArrays: Comedian[][]) => flattenElements(comedianArrays));
   }
 
-  scrapeAllDates = async (page: puppeteer.Page, dates: string[]): Promise<Comedian[][]> => {
+  loopThroughDateOptions = async (page: puppeteer.Page, dateOptions: string[]): Promise<Comedian[][]> => {
     var comedianArrays: Comedian[][] = [];
 
-    for (const date of dates) {
-      const comedians = await this.selectDateAndScrapePage(page, date)
+    for (const dateOption of dateOptions) {
+      const comedians = await this.selectDateOptionAndScrapePage(page, dateOption)
       comedianArrays.push(comedians)
     }
 
     return comedianArrays
   }
 
-  selectDateAndScrapePage = async (page: puppeteer.Page, date: string): Promise<Comedian[]> => {
-    return page.select(this.dateMenuSelector(), date)
-      .then(() => delay(1000))
-      .then(() => this.scrapePage(page, date))
+  selectDateOptionAndScrapePage = async (page: puppeteer.Page, dateOption: string): Promise<Comedian[]> => {
+    return this.elementInteractor.selectOption(dateOption, this.dateMenuSelector(), page, INTERACTION_DELAY)
+      .then(() => this.scrapeCurrentPage(page, {date: dateOption}))
   }
 
-  scrapePage = async (page: puppeteer.Page, date?: string, url?: string): Promise<Comedian[]> => {
+  scrapeCurrentPage = async (page: puppeteer.Page, providedScrapingValues?: ProvidedScrapingValue): Promise<Comedian[]> => {
     return this.getAllShowElementHandlers(page)
-      .then((showElementHandlers: puppeteer.ElementHandle<Element>[]) => this.comedianScraper.scrapeComedians(showElementHandlers, date, url));
+      .then((showElementHandlers: puppeteer.ElementHandle<Element>[]) => this.comedianScraper.scrapeComedians(showElementHandlers, providedScrapingValues));
   }
   // #endregion
 

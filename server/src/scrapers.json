@@ -9,6 +9,7 @@
             "clubConfig": {
                 "shouldScapeByDates": true,
                 "shouldScrapeByShows": false,
+                "shouldExpandPage": false,
                 "allShowElementsSelector": ".sets > div",
                 "dateMenuSelector": "#cc_lineup_select_dates",
                 "dateOptionsSelector": ".header > div > select > option"
@@ -16,7 +17,6 @@
             "showConfig": {
                 "showLineupSelector": ".set-content",
                 "showTimeSelector": ".info > h2 > span.bold",
-                "showNameSelector": ".info > h2 > span.title",
                 "showTicketSelector": ".make-reservation > a",
                 "badTimeStrings": [" show"],
                 "timezone": "America/New_York"
@@ -40,6 +40,7 @@
             "clubConfig": {
                 "shouldScapeByDates": true,
                 "shouldScrapeByShows": false,
+                "shouldExpandPage": false,
                 "allShowElementsSelector": ".sets > div",
                 "dateMenuSelector": "#cc_lineup_select_dates",
                 "dateOptionsSelector": ".header > div > select > option"
@@ -47,7 +48,6 @@
             "showConfig": {
                 "showLineupSelector": ".set-content",
                 "showTimeSelector": ".info > h2 > span.bold",
-                "showNameSelector": ".info > h2 > span.title",
                 "showTicketSelector": ".make-reservation > div > a",
                 "badTimeStrings": [" show"],
                 "timezone": "America/Los_Angeles"
@@ -71,6 +71,7 @@
             "clubConfig": {
                 "shouldScapeByDates": false,
                 "shouldScrapeByShows": false,
+                "shouldExpandPage": false,
                 "allShowElementsSelector": "div.summary"
             },
             "showConfig": {
@@ -98,12 +99,12 @@
             "clubConfig": {
                 "shouldScapeByDates": false,
                 "shouldScrapeByShows": true,
+                "shouldExpandPage": false,
                 "allShowElementsSelector": "div.row.container-inner",
                 "allShowLinksSelector": "div.col-xs-12.col-sm-6.col-lg-7.upcoming-list-description.calendar-upcoming-list-description > a"
             },
             "showConfig": {
                 "showDateTimeSelector": "div.mobile-event-header.header.visible-xs",
-                "showNameSelector": "div.event-venue-nickname.visible-xs",
                 "badDateStrings": [" -"],
                 "timezone": "America/New_York"
             },
@@ -123,12 +124,12 @@
             "clubConfig": {
                 "shouldScapeByDates": false,
                 "shouldScrapeByShows": true,
+                "shouldExpandPage": false,
                 "allShowElementsSelector": "div.row.container-inner",
                 "allShowLinksSelector": "div.col-xs-12.col-sm-6.col-lg-7.upcoming-list-description.calendar-upcoming-list-description > a"
             },
             "showConfig": {
                 "showDateTimeSelector": "div.mobile-event-header.header.visible-xs",
-                "showNameSelector": "div.event-venue-nickname.visible-xs",
                 "badDateStrings": [" -"],
                 "timezone": "America/New_York"
             },
@@ -148,12 +149,12 @@
             "clubConfig": {
                 "shouldScapeByDates": false,
                 "shouldScrapeByShows": true,
+                "shouldExpandPage": false,
                 "allShowElementsSelector": "div.row.container-inner",
                 "allShowLinksSelector": "div.col-xs-12.col-sm-6.col-lg-7.upcoming-list-description.calendar-upcoming-list-description > a"
             },
             "showConfig": {
                 "showDateTimeSelector": "div.mobile-event-header.header.visible-xs",
-                "showNameSelector": "div.event-venue-nickname.visible-xs",
                 "badDateStrings": [" -"],
                 "timezone": "America/New_York"
             },
@@ -173,15 +174,16 @@
             "clubConfig": {
                 "shouldScapeByDates": false,
                 "shouldScrapeByShows": true,
+                "shouldExpandPage": true,
                 "allShowLinksSelector": "div.d-grid.gap-2 > a.btn.btn-outline-light.the-ticket",
-                "allShowElementsSelector": "div.col-12.col-md-9"
+                "allShowElementsSelector": "div.col-12.col-md-9",
+                "expansionSelector": "div.row.moreitems.dark-links.my-5"
             },
             "showConfig": {
                 "showDateTimeSelector": "body > div.container-xl.space-top.text-white > div > div.col-12.col-md-9 > h3",
-                "showNameSelector": "h1.showtitle",
                 "showTicketSelector": "body > div.container-xl.space-top.text-white > div > div.col-12.col-md-9 > div.row > div > div > a",
                 "badDateStrings": [" |"],
-                "badTimeStrings": [" Upstairs", " Main room"],
+                "badTimeStrings": ["Upstairs", "Main", "room"],
                 "timezone": "America/New_York"
             },
             "comedianConfig": {

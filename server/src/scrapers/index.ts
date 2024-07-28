@@ -57,6 +57,7 @@ const getIndividualTasks = (browser: puppeteer.Browser): Promise<Comedian[]>[] =
 
 const storeData = (scrapedComedians: Comedian[]) => {
     scrapedComedians.forEach(comedian => {
+        console.log(`Writing ${comedian.name} to storage`)
         return writeToFirestore(FIRESTORE_COLLECTIONS.comedians, comedian)}
     )
 }

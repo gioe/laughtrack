@@ -5,12 +5,14 @@ export interface HTMLConfigurable {
 }
 
 export interface ClubHTMLConfiguration {
+    shouldExpandPage: boolean;
     shouldScapeByDates: boolean;
     shouldScrapeByShows: boolean;
     allShowElementsSelector?: string    
     allShowLinksSelector?: string    
     dateMenuSelector?: string;
     dateOptionsSelector?: string;
+    expansionSelector?: string;
 }
 
 export interface ShowHTMLConfiguration {
