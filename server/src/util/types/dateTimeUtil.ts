@@ -1,42 +1,37 @@
-import { removeBadWhiteSpace, removeSubstrings, replaceSubstrings } from './stringUtil.js';
 import { ShowHTMLConfiguration } from '../../types/htmlconfigurable.interface.js';
-import { normalizeDateString, stringIsAValidDate } from './dateUtil.js';
-import { getTimeByRegex, normalizeTimeString, stringIsAValidTime } from './timeUtil.js';
+import { cleanDateString, normalizeDateString, stringIsAValidDate } from './dateUtil.js';
+import { cleanTimeString, getTimeByRegex, normalizeTimeString, stringIsAValidTime } from './timeUtil.js';
 
 export const normalizeDateTime = (dateTime: string, config: ShowHTMLConfiguration) => {
-    const cleanedDateTime = cleanDateTime(dateTime, config.badDateTimeStrings)
-    const timeValue = getTimeByRegex(cleanedDateTime)
-
-    var dateString = ""
-    var timeString = ""
+    const timeValue = getTimeByRegex(dateTime)
 
     // We passed in the date and time together no matter what.
     // The time value will be the most straightforward to find so split by the time value itself in order to get the two
     // strings
     if (timeValue) {
-        dateString = cleanedDateTime.split(timeValue)[0]
-        timeString = timeValue + cleanedDateTime.split(timeValue)[1]
+        var dateString = dateTime.split(timeValue)[0]
+        var timeString = timeValue + dateTime.split(timeValue)[1]
+
+        dateString = normalizeDateIfNecessary(dateString, config)
+        timeString = normalizeTimeIfNecessary(timeString, config)
+
+        return dateString + "T" + timeString
     }
     
-    dateString = normalizeDateIfNecessary(dateString)
-    timeString = normalizeTimeIfNecessary(timeString)
+    throw new Error(`${dateTime} doesn't have a time to separate on`)
 
-    return dateString + "T" + timeString
 }
 
-export const normalizeDateIfNecessary = (dateString: string): string => {
+export const normalizeDateIfNecessary = (dateString: string, config: ShowHTMLConfiguration): string => {
+    const cleanedDateString = cleanDateString(dateString, config)
     if (stringIsAValidDate(dateString)) return dateString
-    else return normalizeDateString(dateString)
+    else return normalizeDateString(cleanedDateString)
 }
 
-export const normalizeTimeIfNecessary = (timeString: string): string => {
-    if (stringIsAValidTime(timeString)) return timeString
-    else return normalizeTimeString(timeString)
-}
-
-const cleanDateTime = (dateTime: string, badStrings?: string[]) => {
-    const cleanedString = removeSubstrings(dateTime, badStrings)
-    return removeBadWhiteSpace(cleanedString)
+export const normalizeTimeIfNecessary = (timeString: string, config: ShowHTMLConfiguration): string => {
+    const cleanedTimeString = cleanTimeString(timeString, config)
+    if (stringIsAValidTime(cleanedTimeString)) return cleanedTimeString
+    else return normalizeTimeString(cleanedTimeString)
 }
 
 export const createDateObject = (dateTimeString: string, timeZone: string) => {

@@ -1,31 +1,29 @@
 import puppeteer from "puppeteer";
-import { Comedian } from './Comedian.js';
 import { ElementScaper } from "./ElementScaper.js";
 import { SCRAPER_KEYS } from "../constants/objects.js";
 import { buildComediansFromNames } from "../util/types/comedianUtil.js";
-import { Club } from "./Club.js";
 import { runTasks } from "../util/types/promiseUtil.js";
 import { ShowScraper } from "./ShowScraper.js";
 import { flattenElements } from "../util/types/arrayUtil.js";
 import { ComedianHTMLConfiguration } from "../types/htmlconfigurable.interface.js";
 import { Show } from "../types/show.interface.js";
+import { Club } from "../classes/Club.js";
+import { Comedian } from "../classes/Comedian.js";
 
 export class ComedianScraper {
-  club: Club;
-  json: any;
-  elementScraper: ElementScaper;
-  showScraper: ShowScraper;
+  private club: Club;
+  private json: any;
+  private showScraper: ShowScraper;
+  private elementScraper = new ElementScaper();
 
   constructor(
     club: Club,
     json: any,
-    elementScraper: ElementScaper,
     showScraper: ShowScraper
   ) {
     this.club = club;
     this.json = json;
-    this.elementScraper = elementScraper
-    this.showScraper = showScraper
+    this.showScraper = showScraper;
   }
 
   private comedianHtmlConfig = (): ComedianHTMLConfiguration => {
@@ -73,11 +71,11 @@ export class ComedianScraper {
   }
 
   handleComedianArrays = (comedianArrays: Comedian[][], date?: string, url?: string, ) => {
-    const urlOrDefault = url ?? ""
+    const urlOrDefault = url ? ` at ${url}` : ""
     const dateOrDefault = date ? ` on ${date}` : ""
 
     const flattened = flattenElements(comedianArrays)
-    if (flattened.length == 0) console.warn(`Scraping ${urlOrDefault}${dateOrDefault} resuled in no comedians`)
+    if (flattened.length == 0) console.warn(`Scraping ${this.club.getName()}${urlOrDefault}${dateOrDefault} resuled in no comedians`)
     return flattened;
   }
 

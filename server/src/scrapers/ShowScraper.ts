@@ -1,5 +1,4 @@
 import puppeteer from "puppeteer";
-import { Club } from './Club.js';
 import { providedStringPromise, runTasks } from "../util/types/promiseUtil.js";
 import { SCRAPER_KEYS } from "../constants/objects.js";
 import { ElementScaper } from "./ElementScaper.js";
@@ -7,23 +6,22 @@ import { createShow } from "../util/types/showUtil.js";
 import { ShowHTMLConfiguration } from "../types/htmlconfigurable.interface.js";
 import { Show } from "../types/show.interface.js";
 import { DateTimeScraper } from "./DateTimeScraper.js";
+import { Club } from "../classes/Club.js";
 
 export class ShowScraper {
   club: Club;
   json: any;
-  elementScraper: ElementScaper;
   dateTimeScraper: DateTimeScraper;
+  elementScraper = new ElementScaper();
 
   constructor(
     club: Club,
     json: any,
-    elementScraper: ElementScaper,
     dateTimeScraper: DateTimeScraper
   ) {
     this.club = club;
     this.json = json;
-    this.elementScraper = elementScraper
-    this.dateTimeScraper = dateTimeScraper
+    this.dateTimeScraper = dateTimeScraper;
   }
 
   private getShowHtmlConfig = (): ShowHTMLConfiguration => {
@@ -55,7 +53,8 @@ export class ShowScraper {
   }
 
   getShowTicket = async (showComponent: puppeteer.ElementHandle<Element>) => {
-    return this.elementScraper.getHrefFromSingleElement(showComponent, this.showTicketSelector())
+    return this.elementScraper.getElementCount(showComponent, this.showTicketSelector())
+    .then((count: number) => count > 0 ? this.elementScraper.getHrefFromSingleElement(showComponent, this.showTicketSelector()) : "")
   }
 
   getShowScrapingTasks = (showComponent: puppeteer.ElementHandle<Element>, date?: string, url?: string) => {

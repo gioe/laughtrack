@@ -1,6 +1,4 @@
 import puppeteer from "puppeteer";
-import { Club } from "./Club.js";
-import { Comedian } from "./Comedian.js";
 import { SCRAPER_KEYS } from "../constants/objects.js";
 import { ElementScaper } from "./ElementScaper.js";
 import { ComedianScraper } from "./ComedianScraper.js";
@@ -8,25 +6,25 @@ import { flattenElements } from "../util/types/arrayUtil.js";
 import { ClubHTMLConfiguration } from "../types/htmlconfigurable.interface.js";
 import { delay } from "../util/types/promiseUtil.js";
 import { LINKS } from "../constants/links.js";
+import { Club } from "../classes/Club.js";
+import { Comedian } from "../classes/Comedian.js";
 
 export class ClubScraper {
 
   private club: Club;
   private json: any;
   private browser: puppeteer.Browser;
-  private elementScraper: ElementScaper;
   private comedianScraper: ComedianScraper;
+  private elementScraper = new ElementScaper();
 
   constructor(club: Club,
     json: any,
     browser: puppeteer.Browser,
-    elementScraper: ElementScaper,
     comedianScraper: ComedianScraper,
   ) {
     this.club = club;
     this.browser = browser;
     this.json = json;
-    this.elementScraper = elementScraper;
     this.comedianScraper = comedianScraper;
   }
 
@@ -104,7 +102,7 @@ export class ClubScraper {
   scrapeByShowDetails = async (page: puppeteer.Page): Promise<Comedian[]> => {
     return this.getAllShowDetailLinks(page)
       .then((links: string[]) => this.scrapeAllTicketLinks(page, links))
-      .then((comedianArrays: Comedian[][]) => this.handleComedianArrays(comedianArrays))
+      .then((comedianArrays: Comedian[][]) => flattenElements(comedianArrays));
   }
 
   scrapeAllTicketLinks = async (page: puppeteer.Page, links: string[]): Promise<Comedian[][]> => {
@@ -128,7 +126,7 @@ export class ClubScraper {
   scrapeByDates = async (page: puppeteer.Page): Promise<Comedian[]> => {
     return this.getAllDates(page)
       .then((dates: string[]) => this.scrapeAllDates(page, dates))
-      .then((comedianArrays: Comedian[][]) => this.handleComedianArrays(comedianArrays));
+      .then((comedianArrays: Comedian[][]) => flattenElements(comedianArrays));
   }
 
   scrapeAllDates = async (page: puppeteer.Page, dates: string[]): Promise<Comedian[][]> => {
@@ -153,11 +151,5 @@ export class ClubScraper {
       .then((showElementHandlers: puppeteer.ElementHandle<Element>[]) => this.comedianScraper.scrapeComedians(showElementHandlers, date, url));
   }
   // #endregion
-
-  handleComedianArrays = (comedianArrays: Comedian[][]) => {
-    const flattened = flattenElements(comedianArrays)
-    if (flattened.length == 0) console.warn(`Scraping ${this.club.getName} resuled in no comedians`)
-    return flattened;
-  }
 
 }

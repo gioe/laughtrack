@@ -1,12 +1,6 @@
 import puppeteer from 'puppeteer';
-import { Club } from './Club.js';
 
 export class ElementScaper {
-  club: Club;
-
-  constructor(club: Club) {
-    this.club = club
-  }
 
   getElementCount = async (object: puppeteer.Page | puppeteer.ElementHandle<Element>,
     selector: string): Promise<number> => {

@@ -3,22 +3,21 @@ import { ElementScaper } from "./ElementScaper.js";
 import { SCRAPER_KEYS } from "../constants/objects.js";
 import { providedStringPromise, runTasks } from "../util/types/promiseUtil.js";
 import { ShowHTMLConfiguration } from "../types/htmlconfigurable.interface.js";
-import { Club } from "./Club.js";
 import { normalizeDateTime } from "../util/types/dateTimeUtil.js";
+import { Club } from "../classes/Club.js";
+import { removeSubstrings } from "../util/types/stringUtil.js";
 
 export class DateTimeScraper {
-  club: Club;
-  json: any;
-  elementScraper: ElementScaper;
+  private club: Club;
+  private json: any;
+  private elementScraper = new ElementScaper();
 
   constructor(
     club: Club,
     json: any,
-    elementScraper: ElementScaper,
   ) {
     this.club = club
     this.json = json;
-    this.elementScraper = elementScraper
   }
 
   private showHtmlConfig = (): ShowHTMLConfiguration => {
@@ -62,19 +61,14 @@ export class DateTimeScraper {
     .then((scrapedValues: string[]) => {
 
       if (scrapedValues.length == 0) return ''
-
       const dateTime = scrapedValues[0] + ' ' + scrapedValues[1]
-      
       return normalizeDateTime(dateTime, this.showHtmlConfig())
     })
 
   }
   
   getShowDateTimeJob = async (showComponent: puppeteer.ElementHandle<Element>, date?: string) => {
-    if (this.shouldScrapeShowDatetime()) {
-     return this.getShowDateTime(showComponent)  
-    }
-    return this.combineDateAndTime(showComponent, date)
+    return this.shouldScrapeShowDatetime() ? this.getShowDateTime(showComponent)  : this.combineDateAndTime(showComponent, date)
   }
 
 

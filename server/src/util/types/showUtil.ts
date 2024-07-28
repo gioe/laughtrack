@@ -3,6 +3,7 @@ import { ShowHTMLConfiguration } from "../../types/htmlconfigurable.interface.js
 import { ScrapedShow } from "../../types/scrapedShow.interfac.js";
 import { Show } from "../../types/show.interface.js";
 import { createDateObject } from "./dateTimeUtil.js";
+import { removeBadWhiteSpace } from "./stringUtil.js";
 
 export const isLikelyShow = (inputString: string, showSignifiers: string[]): boolean => {
     var isLikely = false;
@@ -19,7 +20,7 @@ export const isLikelyShow = (inputString: string, showSignifiers: string[]): boo
     club: Club, 
     showConfig: ShowHTMLConfiguration,
   ): Show => {
-
+ 
       const dateTime = createDateObject(scrapedShow.dateTimeString, showConfig.timezone)
       const name = formatShowName(scrapedShow.nameString);
       const ticketLink = formatShowTicketLink(scrapedShow.ticketString, club);
@@ -34,7 +35,7 @@ export const isLikelyShow = (inputString: string, showSignifiers: string[]): boo
   }
 
   const formatShowName = (name: string): string => {
-    return name;
+    return removeBadWhiteSpace(name);
   }
 
   const formatShowTicketLink = (ticketLink: string, club: Club): string => {

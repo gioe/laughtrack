@@ -1,5 +1,11 @@
 import { REGEX } from "../../constants/regex.js";
-import { removeSubstrings } from "./stringUtil.js";
+import { ShowHTMLConfiguration } from "../../types/htmlconfigurable.interface.js";
+import { removeBadWhiteSpace, removeSubstrings } from "./stringUtil.js";
+
+export const cleanTimeString = (timeString: string, config: ShowHTMLConfiguration): string => {
+    const cleanedString = removeSubstrings(timeString, config.badTimeStrings)
+    return removeBadWhiteSpace(cleanedString)
+}
 
 export const stringIsAValidTime = (string: string): boolean => {
     const [hourString, minuteString] = string.split(':');
@@ -29,7 +35,8 @@ export const getTimeByRegex = (timeString: string): string | undefined =>  {
 
 export const normalizeTimeString = (time: string) => {
     const meridiem = getMeridiem(time)
-    const numericString = removeSubstrings(time, [meridiem])
+
+    const numericString = removeSubstrings(time, [meridiem, meridiem.toLowerCase()])
 
     const [hours, minutes] = numericString.split(':');
 

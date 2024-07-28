@@ -1,21 +1,31 @@
 import { DATE } from "../../constants/dateConstants.js";
 import { REGEX } from "../../constants/regex.js";
+import { ShowHTMLConfiguration } from "../../types/htmlconfigurable.interface.js";
 import { removeBadWhiteSpace, removeSubstrings } from "./stringUtil.js";
 
-const cleanDateString = (dateString: string): string => {
-    const cleanedString = removeSubstrings(dateString, DATE.days.concat(DATE.ordinals))
+export const cleanDateString = (dateString: string, config: ShowHTMLConfiguration): string => {
+    const badStringString = config.badDateStrings?.concat(DATE.days, DATE.ordinals)
+    const cleanedString = removeSubstrings(dateString, badStringString)
+    return removeBadWhiteSpace(cleanedString)
+}
+
+export const cleanTimeString = (timeString: string, config: ShowHTMLConfiguration): string => {
+    const cleanedString = removeSubstrings(timeString, config.badTimeStrings)
     return removeBadWhiteSpace(cleanedString)
 }
 
 export const stringIsAValidDate = (string: string): boolean => {
-    if (string !== undefined) {
-        const values = string.split(" ")
-        var date = Date.parse(string);
-    
-        // Should be 3 values and the date should be a number
-        return values.length == 3 && !isNaN(date) 
-    }
-    return false
+    if (string == undefined) return false
+    const hasThreeValues = checkForValidDateValues(string)
+    var date = Date.parse(string);
+    return hasThreeValues && !isNaN(date) 
+}
+
+const checkForValidDateValues = (string: string): boolean => {
+    const values = [" ", "-", "/"]
+    .map((separator: string) => string.split(separator))
+    .filter((splitValues: string[]) => splitValues.length == 3);
+    return values.length > 0
 }
 
 export const extractDateUsingRegex = (dateString: string): string =>  {
@@ -38,13 +48,11 @@ const addDateValues = (dateString: string) => {
     return dateString + " 2024"
 }
 
-const geenrateValidDateString = (dateString: string): string => {
-    var cleanedDateString = cleanDateString(dateString);
+const geenrateValidDateString = (dateString: string): string => {    
+    var regexDate = extractDateUsingRegex(dateString);
+    var completeDate = addDateValues(dateString);
 
-    var regexDate = extractDateUsingRegex(cleanedDateString);
-    var completeDate = addDateValues(cleanedDateString);
-
-    if (stringIsAValidDate(cleanedDateString)) return cleanedDateString
+    if (stringIsAValidDate(dateString)) return dateString
     else if (stringIsAValidDate(regexDate)) return regexDate
     else if (stringIsAValidDate(completeDate)) return completeDate
 

@@ -18,30 +18,15 @@
                 "showTimeSelector": ".info > h2 > span.bold",
                 "showNameSelector": ".info > h2 > span.title",
                 "showTicketSelector": ".make-reservation > a",
-                "badDateTimeStrings": [" show"],
+                "badTimeStrings": [" show"],
                 "timezone": "America/New_York"
             },
             "comedianConfig": {
                 "allComedianNameSelector": ".name",
-                "badComedianNameCharacters": [
-                    "(",
-                    "&"
-                ],
-                "badComedianNameStrings": [
-                    "",
-                    "More!!"
-                ],
-                "showSignifiers": [
-                    "with",
-                    "presents",
-                    "and friends",
-                    "come to papa",
-                    "podcast"
-                ],
-                "commaPlacements": [
-                    "  ",
-                    " , "
-                ]
+                "badComedianNameCharacters": ["(", "&"],
+                "badComedianNameStrings": ["", "More!!"],
+                "showSignifiers": ["with", "presents", "and friends", "come to papa", "podcast"],
+                "commaPlacements": ["  ", " , "]
             }
         }
     },
@@ -63,29 +48,16 @@
                 "showLineupSelector": ".set-content",
                 "showTimeSelector": ".info > h2 > span.bold",
                 "showNameSelector": ".info > h2 > span.title",
-                "showTicketSelector": ".make-reservation > a",
-                "badDateTimeStrings": [" show"],
+                "showTicketSelector": ".make-reservation > div > a",
+                "badTimeStrings": [" show"],
                 "timezone": "America/Los_Angeles"
             },
             "comedianConfig": {
                 "allComedianNameSelector": ".name",
-                "badComedianNameCharacters": [
-                    "(",
-                    "&"
-                ],
-                "badComedianNameStrings": [
-                    "",
-                    "More!!"
-                ],
-                "showSignifiers": [
-                    "with",
-                    "presents",
-                    "and friends"
-                ],
-                "commaPlacements": [
-                    "  ",
-                    " , "
-                ]
+                "badComedianNameCharacters": ["(", "&"],
+                "badComedianNameStrings": ["", "More!!"],
+                "showSignifiers": ["with", "presents", "and friends", "come to papa", "podcast"],
+                "commaPlacements": ["  ", " , "]
             }
         }
     },
@@ -109,25 +81,10 @@
             },
             "comedianConfig": {
                 "allComedianNameSelector": "div.summary > h3 > a",
-                "badComedianNameCharacters": [
-                    "(",
-                    "&"
-                ],
-                "badComedianNameStrings": [
-                    "",
-                    "& More!"
-                ],
-                "commaPlacements": [
-                    "  ",
-                    " , "
-                ],
-                "showSignifiers": [
-                    "with",
-                    "presents",
-                    "friends",
-                    "more", 
-                    "tour"
-                ]
+                "badComedianNameCharacters": ["(", "&"],
+                "badComedianNameStrings": ["", "& More!"],
+                "commaPlacements": ["  ", " , "],
+                "showSignifiers": ["with", "presents", "friends", "more",  "tour"]
             }
         }
     },
@@ -147,14 +104,12 @@
             "showConfig": {
                 "showDateTimeSelector": "div.mobile-event-header.header.visible-xs",
                 "showNameSelector": "div.event-venue-nickname.visible-xs",
-                "badDateTimeStrings": [" -"],
+                "badDateStrings": [" -"],
                 "timezone": "America/New_York"
             },
             "comedianConfig": {
                 "allComedianNameSelector": "div.event-comedians-container > div > p.comedian-name",
-                "showSignifiers": [
-                    "new jokes"
-                ]
+                "showSignifiers": ["new jokes"]
             }
         }
     },
@@ -174,14 +129,12 @@
             "showConfig": {
                 "showDateTimeSelector": "div.mobile-event-header.header.visible-xs",
                 "showNameSelector": "div.event-venue-nickname.visible-xs",
-                "badDateTimeStrings": [" -"],
+                "badDateStrings": [" -"],
                 "timezone": "America/New_York"
             },
             "comedianConfig": {
                 "allComedianNameSelector": "div.event-comedians-container > div > p.comedian-name",
-                "showSignifiers": [
-                    "new jokes"
-                ]
+                "showSignifiers": ["new jokes"]
             }
         }
     },
@@ -201,14 +154,12 @@
             "showConfig": {
                 "showDateTimeSelector": "div.mobile-event-header.header.visible-xs",
                 "showNameSelector": "div.event-venue-nickname.visible-xs",
-                "badDateTimeStrings": [" -"],
+                "badDateStrings": [" -"],
                 "timezone": "America/New_York"
             },
             "comedianConfig": {
                 "allComedianNameSelector": "div.event-comedians-container > div > p.comedian-name",
-                "showSignifiers": [
-                    "new jokes"
-                ]
+                "showSignifiers": ["new jokes"]
             }
         }
     }
