@@ -1,4 +1,5 @@
 import puppeteer from 'puppeteer';
+import { runTasks } from '../util/types/promiseUtil.js';
 
 export class ElementScaper {
 
@@ -8,52 +9,60 @@ export class ElementScaper {
       .then((count: number) => count)
   }
 
-  getTextValuesFromAllElements = async (object: puppeteer.Page | puppeteer.ElementHandle<Element>,
+  getAllTextContentFrom = async (object: puppeteer.Page | puppeteer.ElementHandle<Element>,
     selector: string): Promise<string[]> => {
     return object.$$eval(selector, (e: Element[]) => e.map(e => e.textContent ?? "") ?? [])
       .catch(() => { throw new Error(`Error with ${selector} text values`) })
   }
 
-  getTextValueFromSingleElement = async (object: puppeteer.Page | puppeteer.ElementHandle<Element>,
+  getTextContentFrom = async (object: puppeteer.Page | puppeteer.ElementHandle<Element>,
     selector: string): Promise<string> => {
 
     return object.$eval(selector, (e: Element) => e.textContent ?? "")
       .catch(() => { throw new Error(`Error with ${selector} text value`) })
   }
 
-  getHrefFromAllElements = async (object: puppeteer.Page | puppeteer.ElementHandle<Element>,
+  getAllHrefsFrom = async (object: puppeteer.Page | puppeteer.ElementHandle<Element>,
     selector: string): Promise<string[]> => {
 
     return object.$$eval(selector, (e: Element[]) => e.map(e => e.getAttribute('href') ?? ""))
       .catch(() => { throw new Error(`Error with ${selector} hrefs`) })
   }
 
-  getValuesFromAllElements = async (object: puppeteer.Page | puppeteer.ElementHandle<Element>,
+  getAllValuesFrom = async (object: puppeteer.Page | puppeteer.ElementHandle<Element>,
     selector: string): Promise<string[]> => {
 
     return  object.$$eval(selector, (e: Element[]) => e.map(e => e.getAttribute('value') ?? "") ?? [])
       .catch(() => { throw new Error(`Error with ${selector} values`) })
   }
 
-  getHrefFromSingleElement = async (object: puppeteer.Page | puppeteer.ElementHandle<Element>,
+  getHrefFrom = async (object: puppeteer.Page | puppeteer.ElementHandle<Element>,
     selector: string): Promise<string> => {
 
     return object.$eval(selector, (e: Element) => e.getAttribute('href') ?? "")
       .catch(() => { throw new Error(`Error with ${selector} href`) })
   }
 
-  getAllElements = async (object: puppeteer.Page | puppeteer.ElementHandle<Element>,
+  getAllElementsFrom = async (object: puppeteer.Page | puppeteer.ElementHandle<Element>,
     selector: string): Promise<Element[]> => {
 
     return object.$$eval(selector, (e: Element[]) => e)
       .catch(() => { throw new Error(`Error with ${selector} elements`) })
   }
 
-  getElementHandlers = async (object: puppeteer.Page | puppeteer.ElementHandle<Element>,
+  getAllElementsHandlersFrom = async (object: puppeteer.Page | puppeteer.ElementHandle<Element>,
     selector: string): Promise<puppeteer.ElementHandle<Element>[]> => {
     return object.$$(selector)
       .catch(() => { throw new Error(`Error with ${selector} element handlers`) })
   }
 
+  validateElements = async (object: puppeteer.ElementHandle<Element>,
+    requiredSelectors: string[]): Promise<puppeteer.ElementHandle<Element> | undefined> => {
+      const tasks = requiredSelectors.map(selector => this.getElementCount(object, selector))
+    
+      return runTasks(tasks)
+      .then((counts: number[]) => counts.filter(count => count > 0).length == tasks.length)
+      .then((valid: boolean) => valid ? object : undefined)
+  }
 
 }

@@ -22,20 +22,10 @@ export class ElementInteractor {
       .then(() => delay(providedDelay))
   }
 
-  expandPage = async (basePage: puppeteer.Page, selector: string): Promise<puppeteer.Page> => {
-    return selector !== "" ? this.expandIfPossible(basePage, selector) : basePage;
-  }
-
-  private expandIfPossible = async (page: puppeteer.Page, selector: string): Promise<puppeteer.Page> => {
-    return this.elementScraper.getElementCount(page, selector)
-      .then((count: number) => count == 0 ? page : this.clickExpander(page, selector));
-  }
-
-  private clickExpander = async (page: puppeteer.Page, selector: string): Promise<puppeteer.Page> => {
+  clickExpander = async (page: puppeteer.Page, selector: string): Promise<puppeteer.Page> => {
     return page.click(selector)
       .then(() => page.waitForSelector(selector))
-      .then(() => this.expandIfPossible(page, selector))
-      .catch((error) => page)
+      .then(() => page)
   }
 
 }

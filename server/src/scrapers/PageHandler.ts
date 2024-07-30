@@ -1,0 +1,36 @@
+import puppeteer from 'puppeteer';
+import { ElementInteractor } from './ElementInteractor.js';
+import { ElementScaper } from './ElementScaper.js';
+
+export class PageHandler {
+
+  private elementInteractor = new ElementInteractor();
+  private elementScraper = new ElementScaper();
+
+  buildRootPage = async (browser: puppeteer.Browser,  destination: string): Promise<puppeteer.Page> => {
+    return browser.newPage()
+      .then((page: puppeteer.Page) => page.goto(destination).then(() => page));
+  }
+
+  expandPageIfPossible = async (page: puppeteer.Page, expansionSelector: string): Promise<puppeteer.Page> => {
+    return this.elementScraper.getElementCount(page, expansionSelector)
+    .then((count: number) =>  {
+      if (count == 0) {
+        return page 
+      } else {
+        return this.elementInteractor.clickExpander(page, expansionSelector)
+      }
+    })
+    .then((page: puppeteer.Page) => this.expandPageIfPossible(page, expansionSelector))
+    .catch(() => page)
+  }
+
+  navigateToUrl = async (url: string, page: puppeteer.Page,delay: number): Promise<unknown> => {
+    return this.elementInteractor.navigateToUrl(url, page, delay)
+  }
+
+  selectOption = async (selector: string, dateOption: string, page: puppeteer.Page, delay: number): Promise<unknown> => {    
+    return this.elementInteractor.selectOption(dateOption, selector, page, delay)
+  }
+
+}

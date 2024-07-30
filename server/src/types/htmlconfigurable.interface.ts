@@ -9,10 +9,12 @@ export interface ClubHTMLConfiguration {
     shouldScapeByDates: boolean;
     shouldScrapeByShows: boolean;
     allShowElementsSelector?: string    
-    allShowLinksSelector?: string    
+    showPageLinkSelector?: string    
     dateMenuSelector?: string;
     dateOptionsSelector?: string;
     expansionSelector?: string;
+    showLinkContainerSelector?: string
+    validShowContainerSignifier?: string
 }
 
 export interface ShowHTMLConfiguration {

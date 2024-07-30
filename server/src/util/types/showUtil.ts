@@ -17,14 +17,13 @@ export const isLikelyShow = (inputString: string, showSignifiers: string[]): boo
   export const createShow = (
     scrapedShow: ScrapedShow, 
     club: Club, 
-    showConfig: ShowHTMLConfiguration,
   ): Show => {
    
-      const dateTime = createDateObject(scrapedShow.dateTimeString, showConfig.timezone)
+      const dateTime = createDateObject(scrapedShow.dateTimeString, club.showConfig.timezone)
       const ticketLink = formatShowTicketLink(scrapedShow.ticketString, club);
       
       return {
-        clubName: club.getName(),
+        clubName: club.name,
         dateTime,
         ticketLink,
       }
@@ -32,7 +31,7 @@ export const isLikelyShow = (inputString: string, showSignifiers: string[]): boo
   }
 
   const formatShowTicketLink = (ticketLink: string, club: Club): string => {
-    return !ticketLink.includes("http") ? club.getBaseWebsite() + ticketLink : ticketLink
+    return !ticketLink.includes("http") ? club.baseWebsite + ticketLink : ticketLink
   }
 
 
