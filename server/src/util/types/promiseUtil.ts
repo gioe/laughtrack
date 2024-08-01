@@ -39,3 +39,10 @@ export function provideGenericPromiseResponse<T>(input: T): Promise<T> {
     resolve(input);
   });
 }
+
+export function emptyUndefinedPromise(): Promise<undefined> {
+  return new Promise((resolve) => {
+    resolve(undefined)
+  });
+}
+

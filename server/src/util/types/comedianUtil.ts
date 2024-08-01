@@ -8,9 +8,11 @@ import { removeSubstrings, replaceSubstrings } from "./stringUtil.js";
 const SEPARATOR = ",";
 
 export const buildComediansFromNames = (comedianNames: string[], comedianConfig: ComedianHTMLConfiguration) => {
+
   return comedianNames
   .map((comedianName: string) => normalizeNameString(comedianName, comedianConfig))
   .flatMap((names: string[]) => names.map((name: string) => new Comedian(name)))
+  
 }
 
   export const normalizeNameString = (nameString: string, comedianConfig: ComedianHTMLConfiguration): string[] => {
@@ -40,7 +42,7 @@ export const buildComediansFromNames = (comedianNames: string[], comedianConfig:
   }
 
   const removeBadConfigContent = (nameString: string, comedianConfig: ComedianHTMLConfiguration): string => {
-    const badContent = comedianConfig.badComedianNameCharacters?.concat(comedianConfig.badComedianNameStrings ?? [])
+    const badContent = comedianConfig.badNameCharacters?.concat(comedianConfig.badNameStrings ?? [])
     return removeSubstrings(nameString, badContent ?? [])
   }
   

@@ -3,28 +3,42 @@
         "name": "Comedy Cellar New York",
         "baseWebsite": "https://www.comedycellar.com",
         "schedulePage": "/new-york-line-up",
+        "timezone": "America/New_York",
         "htmlConfig": {
             "clubConfig": {
                 "shouldScapeByDates": true,
-                "shouldScrapeByShows": false,
-                "shouldExpandPage": false,
-                "allShowElementsSelector": ".sets > div",
                 "dateMenuSelector": "#cc_lineup_select_dates",
-                "dateOptionsSelector": ".header > div > select > option"
+                "dateOptionsSelector": "div.header > div > select > option",
+                "showSelector": "div.sets > div"
             },
             "showConfig": {
-                "showLineupSelector": ".set-content",
-                "showTimeSelector": ".info > h2 > span.bold",
-                "showTicketSelector": ".make-reservation > a",
-                "badTimeStrings": [" show"],
-                "timezone": "America/New_York"
+                "timeSelector": "div.info > h2 > span.bold",
+                "ticketLinkSelector": "div.make-reservation > a",
+                "badTimeStrings": [
+                    " show"
+                ]
             },
             "comedianConfig": {
-                "allComedianNameSelector": ".name",
-                "badComedianNameCharacters": ["(", "&"],
-                "badComedianNameStrings": ["", "More!!"],
-                "showSignifiers": ["with", "presents", "and friends", "come to papa", "podcast"],
-                "commaPlacements": ["  ", " , "]
+                "commaPlacements": [
+                    "  ",
+                    " , "
+                ],
+                "nameSelector": "span.name",
+                "badNameCharacters": [
+                    "(",
+                    "&"
+                ],
+                "badNameStrings": [
+                    "",
+                    "More!!"
+                ],
+                "showSignifiers": [
+                    "with",
+                    "presents",
+                    "and friends",
+                    "come to papa",
+                    "podcast"
+                ]
             }
         }
     },
@@ -32,28 +46,42 @@
         "name": "Comedy Cellar Las Vegas",
         "baseWebsite": "https://www.comedycellar.com",
         "schedulePage": "/las-vegas-line-up",
+        "timezone": "America/Los_Angeles",
         "htmlConfig": {
             "clubConfig": {
                 "shouldScapeByDates": true,
-                "shouldScrapeByShows": false,
-                "shouldExpandPage": false,
-                "allShowElementsSelector": ".sets > div",
                 "dateMenuSelector": "#cc_lineup_select_dates",
-                "dateOptionsSelector": ".header > div > select > option"
+                "dateOptionsSelector": "div.header > div > select > option",
+                "showSelector": "div.sets > div"
             },
             "showConfig": {
-                "showLineupSelector": ".set-content",
-                "showTimeSelector": ".info > h2 > span.bold",
-                "showTicketSelector": ".make-reservation > div > a",
-                "badTimeStrings": [" show"],
-                "timezone": "America/Los_Angeles"
+                "timeSelector": "div.info > h2 > span.bold",
+                "ticketLinkSelector": "div.make-reservation > a",
+                "badTimeStrings": [
+                    " show"
+                ]
             },
             "comedianConfig": {
-                "allComedianNameSelector": ".name",
-                "badComedianNameCharacters": ["(", "&"],
-                "badComedianNameStrings": ["", "More!!"],
-                "showSignifiers": ["with", "presents", "and friends", "come to papa", "podcast"],
-                "commaPlacements": ["  ", " , "]
+                "commaPlacements": [
+                    "  ",
+                    " , "
+                ],
+                "nameSelector": "span.name",
+                "badNameCharacters": [
+                    "(",
+                    "&"
+                ],
+                "badNameStrings": [
+                    "",
+                    "More!!"
+                ],
+                "showSignifiers": [
+                    "with",
+                    "presents",
+                    "and friends",
+                    "come to papa",
+                    "podcast"
+                ]
             }
         }
     },
@@ -61,25 +89,40 @@
         "name": "Comic Strip Live NYC",
         "baseWebsite": "https://comicstriplive.com",
         "schedulePage": "/schedule",
+        "timezone": "America/New_York",
         "htmlConfig": {
-            "clubConfig": {
-                "shouldScapeByDates": false,
-                "shouldScrapeByShows": false,
-                "shouldExpandPage": false,
-                "allShowElementsSelector": "div.summary"
+            "showDetailPageConfig": {
+                "showSelector": "div.summary"
             },
             "showConfig": {
-                "showLineupSelector": "div.summary > h3 > a",
-                "showDateTimeSelector": "div.summary > h4.date-time",
-                "showTicketSelector": "div.summary > a",
-                "timezone": "America/New_York"
+                "lineupSelector": "div.summary > h3 > a",
+                "dateTimeSelector": "div.summary > h4.date-time",
+                "ticketSelector": "div.summary > a",
+                "badTimeStrings": [
+                    " show"
+                ]
             },
             "comedianConfig": {
-                "allComedianNameSelector": "div.summary > h3 > a",
-                "badComedianNameCharacters": ["(", "&"],
-                "badComedianNameStrings": ["", "& More!"],
-                "commaPlacements": ["  ", " , "],
-                "showSignifiers": ["with", "presents", "friends", "more",  "tour"]
+                "nameSelector": "div.summary > h3 > a",
+                "badComedianNameCharacters": [
+                    "(",
+                    "&"
+                ],
+                "badComedianNameStrings": [
+                    "",
+                    "& More!"
+                ],
+                "commaPlacements": [
+                    "  ",
+                    " , "
+                ],
+                "showSignifiers": [
+                    "with",
+                    "presents",
+                    "and friends",
+                    "come to papa",
+                    "podcast"
+                ]
             }
         }
     },
@@ -87,25 +130,27 @@
         "name": "New York Comedy Club Midtown",
         "baseWebsite": "https://newyorkcomedyclub.com",
         "schedulePage": "/calendar/Midtown",
+        "timezone": "America/New_York",
         "htmlConfig": {
             "clubConfig": {
-                "shouldScapeByDates": false,
-                "shouldScrapeByShows": true,
                 "shouldExpandPage": true,
-                "allShowElementsSelector": "div.row.container-inner",
+                "shouldScrapeByShowDetails": true,
+                "expansionSelector": "#--load-more-shows",
                 "showPageLinkSelector": "div.col-xs-12.col-sm-6.col-lg-7.upcoming-list-description.calendar-upcoming-list-description > a",
                 "showLinkContainerSelector": "div.row.upcoming-container-list",
-                "expansionSelector": "#--load-more-shows",
                 "validShowContainerSignifier": "div.col-xs-12.col-sm-6.col-lg-7.upcoming-list-description.calendar-upcoming-list-description > a"
             },
             "showConfig": {
-                "showDateTimeSelector": "div.mobile-event-header.header.visible-xs",
-                "badDateStrings": [" -"],
-                "timezone": "America/New_York"
+                "dateTimeSelector": "div.mobile-event-header.header.visible-xs",
+                "badDateStrings": [
+                    " -"
+                ]
             },
             "comedianConfig": {
-                "allComedianNameSelector": "div.event-comedians-container > div > p.comedian-name",
-                "showSignifiers": ["new jokes"]
+                "nameSelector": "div.event-comedians-container > div > p.comedian-name",
+                "showSignifiers": [
+                    "new jokes"
+                ]
             }
         }
     },
@@ -113,25 +158,28 @@
         "name": "New York Comedy Club East Village",
         "baseWebsite": "https://newyorkcomedyclub.com",
         "schedulePage": "/calendar/East-Village",
+        "timezone": "America/New_York",
         "htmlConfig": {
             "clubConfig": {
-                "shouldScapeByDates": false,
-                "shouldScrapeByShows": true,
+                "shouldScrapeByShowDetails": true,
                 "shouldExpandPage": true,
-                "allShowElementsSelector": "div.row.container-inner",
+                "expansionSelector": "#--load-more-shows",
+                "showSelector": "div.row.container-inner",
                 "showPageLinkSelector": "div.col-xs-12.col-sm-6.col-lg-7.upcoming-list-description.calendar-upcoming-list-description > a",
                 "showLinkContainerSelector": "div.row.upcoming-container-list",
-                "expansionSelector": "#--load-more-shows",
                 "validShowContainerSignifier": "div.col-xs-12.col-sm-6.col-lg-7.upcoming-list-description.calendar-upcoming-list-description > a"
             },
             "showConfig": {
-                "showDateTimeSelector": "div.mobile-event-header.header.visible-xs",
-                "badDateStrings": [" -"],
-                "timezone": "America/New_York"
+                "dateTimeSelector": "div.mobile-event-header.header.visible-xs",
+                "badDateStrings": [
+                    " -"
+                ]
             },
             "comedianConfig": {
-                "allComedianNameSelector": "div.event-comedians-container > div > p.comedian-name",
-                "showSignifiers": ["new jokes"]
+                "nameSelector": "div.event-comedians-container > div > p.comedian-name",
+                "showSignifiers": [
+                    "new jokes"
+                ]
             }
         }
     },
@@ -139,25 +187,26 @@
         "name": "New York Comedy Club Upper West Side",
         "baseWebsite": "https://newyorkcomedyclub.com",
         "schedulePage": "/calendar/Upper-West-Side",
+        "timezone": "America/New_York",
         "htmlConfig": {
             "clubConfig": {
-                "shouldScapeByDates": false,
-                "shouldScrapeByShows": true,
+                "shouldScrapeByShowDetails": true,
                 "shouldExpandPage": true,
-                "allShowElementsSelector": "div.row.container-inner",
+                "expansionSelector": "#--load-more-shows",
+                "showSelector": "div.row.container-inner",
                 "showPageLinkSelector": "div.col-xs-12.col-sm-6.col-lg-7.upcoming-list-description.calendar-upcoming-list-description > a",
                 "showLinkContainerSelector": "div.row.upcoming-container-list",
-                "expansionSelector": "#--load-more-shows",
                 "validShowContainerSignifier": "div.col-xs-12.col-sm-6.col-lg-7.upcoming-list-description.calendar-upcoming-list-description > a"
             },
             "showConfig": {
-                "showDateTimeSelector": "div.mobile-event-header.header.visible-xs",
-                "badDateStrings": [" -"],
-                "timezone": "America/New_York"
+                "dateTimeSelector": "div.mobile-event-header.header.visible-xs",
+                "badDateStrings": " -"
             },
             "comedianConfig": {
-                "allComedianNameSelector": "div.event-comedians-container > div > p.comedian-name",
-                "showSignifiers": ["new jokes"]
+                "nameSelector": "div.event-comedians-container > div > p.comedian-name",
+                "showSignifiers": [
+                    "new jokes"
+                ]
             }
         }
     },
@@ -165,27 +214,196 @@
         "name": "The Stand",
         "baseWebsite": "https://thestandnyc.com",
         "schedulePage": "/shows",
+        "timezone": "America/New_York",
         "htmlConfig": {
             "clubConfig": {
-                "shouldScapeByDates": false,
-                "shouldScrapeByShows": true,
+                "shouldScrapeByShowDetails": true,
                 "shouldExpandPage": true,
-                "showPageLinkSelector": "div.d-grid.gap-2 > a.btn.btn-outline-light.the-ticket",
-                "allShowElementsSelector": "div.col-12.col-md-9",
                 "expansionSelector": "div.row.moreitems.dark-links.my-5",
+                "showPageLinkSelector": "div.d-grid.gap-2 > a.btn.btn-outline-light.the-ticket",
+                "showSelector": "div.col-12.col-md-9",
                 "showLinkContainerSelector": "div.row.show_row",
                 "validShowContainerSignifier": "div.col-4.col-md-3.col-xl-2.lineup-item"
             },
             "showConfig": {
-                "showDateTimeSelector": "body > div.container-xl.space-top.text-white > div > div.col-12.col-md-9 > h3",
-                "showTicketSelector": "body > div.container-xl.space-top.text-white > div > div.col-12.col-md-9 > div.row > div > div > a",
-                "badDateStrings": [" |"],
-                "badTimeStrings": ["Upstairs", "Main", "room"],
-                "timezone": "America/New_York"
+                "dateTimeSelector": "body > div.container-xl.space-top.text-white > div > div.col-12.col-md-9 > h3",
+                "ticketSelector": "body > div.container-xl.space-top.text-white > div > div.col-12.col-md-9 > div.row > div > div > a",
+                "badTimeStrings": [
+                    "Upstairs",
+                    "Main",
+                    "room"
+                ],
+                "badDateStrings": [
+                    " |"
+                ]
             },
             "comedianConfig": {
-                "allComedianNameSelector": "div.flex-grow-1.ms-3 > a > h4 > strong",
-                "showSignifiers": ["new jokes"]
+                "nameSelector": "div.flex-grow-1.ms-3 > a > h4 > strong",
+                "showSignifiers": [
+                    "new jokes"
+                ]
+            }
+        }
+    },
+    {
+        "name": "The Grisly Pear",
+        "baseWebsite": "https://www.grislypearstandup.com",
+        "schedulePage": "/calendar",
+        "timezone": "America/New_York",
+        "htmlConfig": {
+            "clubConfig": {
+                "shouldScrapeByShowDetails": true,
+                "shouldExpandPage": true,
+                "expansionSelector": "#--load-more-shows",
+                "showPageLinkSelector": "div.col-xs-12.col-sm-6.col-sm-offset-1.upcoming-list-description > a.btn.btn-default",
+                "showLinkContainerSelector": "div.row.upcoming-container-list"
+            },
+            "showConfig": {
+                "dateTimeSelector": "li.featured-event-date"
+            },
+            "comedianConfig": {
+                "nameSelector": "p.comedian-name"
+            }
+        }
+    },
+    {
+        "name": "The Tiny Cupboard",
+        "baseWebsite": "https://www.thetinycupboard.com",
+        "schedulePage": "/calendar",
+        "timezone": "America/New_York",
+        "htmlConfig": {
+            "clubConfig": {
+                "shouldScrapeByShowDetails": true,
+                "shouldExpandPage": true,
+                "expansionSelector": "div.row.moreitems.dark-links.my-5",
+                "showPageLinkSelector": "div.d-grid.gap-2 > a.btn.btn-outline-light.the-ticket",
+                "showSelector": "div.col-12.col-md-9",
+                "showLinkContainerSelector": "div.row.show_row",
+                "validShowContainerSignifier": "div.col-4.col-md-3.col-xl-2.lineup-item"
+            },
+            "showConfig": {
+                "dateTimeSelector": "body > div.container-xl.space-top.text-white > div > div.col-12.col-md-9 > h3",
+                "ticketSelector": "body > div.container-xl.space-top.text-white > div > div.col-12.col-md-9 > div.row > div > div > a",
+                "nameSelector": "div.flex-grow-1.ms-3 > a > h4 > strong"
+            },
+            "comedianConfig": {
+                "nameSelector": "p.comedian-name"
+            }
+        }
+    },
+    {
+        "name": "Caveat",
+        "baseWebsite": "https://www.caveat.nyc/",
+        "schedulePage": "/events",
+        "timezone": "America/New_York",
+        "htmlConfig": {
+            "clubConfig": {
+                "shouldScrapeByShowDetails": true,
+                "shouldExpandPage": true,
+                "expansionSelector": "div.row.moreitems.dark-links.my-5",
+                "showPageLinkSelector": "div.d-grid.gap-2 > a.btn.btn-outline-light.the-ticket",
+                "showSelector": "div.col-12.col-md-9",
+                "showLinkContainerSelector": "div.row.show_row",
+                "validShowContainerSignifier": "div.col-4.col-md-3.col-xl-2.lineup-item"
+            },
+            "showConfig": {
+                "ticketSelector": "body > div.container-xl.space-top.text-white > div > div.col-12.col-md-9 > div.row > div > div > a",
+                "dateTimeSelector": "body > div.container-xl.space-top.text-white > div > div.col-12.col-md-9 > h3"
+            },
+            "comedianConfig": {
+                "nameSelector": "p.comedian-name"
+            }
+        }
+    },
+    {
+        "name": "QED",
+        "baseWebsite": "https://qedastoria.com/",
+        "schedulePage": "/collections/shows",
+        "timezone": "America/New_York",
+        "htmlConfig": {
+            "clubConfig": {
+                "shouldScrapeByShowDetails": true,
+                "shouldExpandPage": true,
+                "expansionSelector": "div.row.moreitems.dark-links.my-5",
+                "showPageLinkSelector": "div.d-grid.gap-2 > a.btn.btn-outline-light.the-ticket",
+                "showSelector": "div.col-12.col-md-9",
+                "showLinkContainerSelector": "div.row.show_row",
+                "validShowContainerSignifier": "div.col-4.col-md-3.col-xl-2.lineup-item"
+            },
+            "showConfig": {
+                "dateTimeSelector": "body > div.container-xl.space-top.text-white > div > div.col-12.col-md-9 > h3",
+                "ticketSelector": "body > div.container-xl.space-top.text-white > div > div.col-12.col-md-9 > div.row > div > div > a"
+            },
+            "comedianConfig": {
+                "nameSelector": "div.flex-grow-1.ms-3 > a > h4 > strong"
+            }
+        }
+    },
+    {
+        "name": "West Side Comedy Club",
+        "baseWebsite": "https://www.westsidecomedyclub.com",
+        "schedulePage": "/calendar",
+        "timezone": "America/New_York",
+        "htmlConfig": {
+            "clubConfig": {
+                "shouldScrapeByShowDetails": true,
+                "shouldExpandPage": true,
+                "expansionSelector": "div.row.moreitems.dark-links.my-5",
+                "showPageLinkSelector": "div.d-grid.gap-2 > a.btn.btn-outline-light.the-ticket",
+                "showSelector": "div.col-12.col-md-9",
+                "showLinkContainerSelector": "div.row.show_row",
+                "validShowContainerSignifier": "div.col-4.col-md-3.col-xl-2.lineup-item"
+            },
+            "showConfig": {
+                "ticketSelector": "body > div.container-xl.space-top.text-white > div > div.col-12.col-md-9 > div.row > div > div > a",
+                "dateTimeSelector": "body > div.container-xl.space-top.text-white > div > div.col-12.col-md-9 > h3"
+            },
+            "comedianConfig": {
+                "nameSelector": "div.flex-grow-1.ms-3 > a > h4 > strong"
+            }
+        }
+    },
+    {
+        "name": "The Bell House",
+        "baseWebsite": "https://thebellhouseny.com",
+        "schedulePage": "/calendar",
+        "timezone": "America/New_York",
+        "htmlConfig": {
+            "clubConfig": {
+                "shouldScrapeByShowDetails": true,
+                "shouldExpandPage": true,
+                "expansionSelector": "div.row.moreitems.dark-links.my-5"
+            },
+            "showConfig": {
+                "dateTimeSelector": "body > div.container-xl.space-top.text-white > div > div.col-12.col-md-9 > h3",
+                "ticketSelector": "body > div.container-xl.space-top.text-white > div > div.col-12.col-md-9 > div.row > div > div > a"
+            },
+            "comedianConfig": {
+                "nameSelector": "div.flex-grow-1.ms-3 > a > h4 > strong"
+            }
+        }
+    },
+    {
+        "name": "Union Hall",
+        "baseWebsite": "https://thestandnyc.com",
+        "schedulePage": "/shows",
+        "timezone": "America/New_York",
+        "htmlConfig": {
+            "clubConfig": {
+                "shouldScrapeByShowDetails": true,
+                "shouldExpandPage": true,
+                "expansionSelector": "div.row.moreitems.dark-links.my-5",
+                "showPageLinkSelector": "div.d-grid.gap-2 > a.btn.btn-outline-light.the-ticket",
+                "showSelector": "div.col-12.col-md-9",
+                "showLinkContainerSelector": "div.row.show_row",
+                "validShowContainerSignifier": "div.col-4.col-md-3.col-xl-2.lineup-item"
+            },
+            "showConfig": {
+                "ticketSelector": "body > div.container-xl.space-top.text-white > div > div.col-12.col-md-9 > div.row > div > div > a",
+                "dateTimeSelector": "body > div.container-xl.space-top.text-white > div > div.col-12.col-md-9 > h3"
+            },
+            "comedianConfig": {
+                "nameSelector": "div.flex-grow-1.ms-3 > a > h4 > strong"
             }
         }
     }

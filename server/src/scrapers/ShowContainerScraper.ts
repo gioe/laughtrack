@@ -7,10 +7,10 @@ export class ShowContainerScraper {
 
   private elementScraper = new ElementScaper();
 
-  getShowLinks = async (page: puppeteer.Page,
-    showLinkContainerSelector: string,
-    validSignifierSelector: string,
-    showPageLinkSelector: string, 
+  getShowDetailPageLinks = async (page: puppeteer.Page,
+    showLinkContainerSelector?: string,
+    validSignifierSelector?: string,
+    showPageLinkSelector?: string, 
   ): Promise<string[]> => {
     
     return this.getShowLinkContainers(page, showLinkContainerSelector)
@@ -22,20 +22,20 @@ export class ShowContainerScraper {
   }
 
   getShowLinkContainers = async (page: puppeteer.Page,
-    showLinkContainerSelector: string
+    showLinkContainerSelector?: string
   ): Promise<puppeteer.ElementHandle<Element>[]>  => {
     return this.elementScraper.getElementCount(page, showLinkContainerSelector)
     .then((count: number) => count > 0 ? this.elementScraper.getAllElementsHandlersFrom(page, showLinkContainerSelector) : [])
   }
 
   filterInvalidElements = async (elements: puppeteer.ElementHandle<Element>[], 
-    requiredSelectors: string[]) => {
+    requiredSelectors: any[]) => {
       const tasks = elements.map((element) => this.elementScraper.validateElements(element, requiredSelectors))
       return runTasks(tasks)
     }
 
   getAllUrls = async (elements: puppeteer.ElementHandle<Element>[], 
-    showPageLinkSelector: string): Promise<string[]> => {
+    showPageLinkSelector?: string): Promise<string[]> => {
       const tasks = elements.map((element) => this.elementScraper.getHrefFrom(element, showPageLinkSelector))      
       return runTasks(tasks)
   }

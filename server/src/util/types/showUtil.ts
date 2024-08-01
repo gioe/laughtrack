@@ -19,7 +19,7 @@ export const isLikelyShow = (inputString: string, showSignifiers: string[]): boo
     club: Club, 
   ): Show => {
    
-      const dateTime = createDateObject(scrapedShow.dateTimeString, club.showConfig.timezone)
+      const dateTime = createDateObject(scrapedShow.dateTimeString, club.timezone)
       const ticketLink = formatShowTicketLink(scrapedShow.ticketString, club);
       
       return {

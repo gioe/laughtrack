@@ -1,40 +1,35 @@
 export interface HTMLConfigurable {
-    clubConfig?: ClubHTMLConfiguration;
-    showConfig?: ShowHTMLConfiguration;
-    comedianConfig?: ComedianHTMLConfiguration;
+    clubConfig: ClubHTMLConfiguration;    
+    showConfig: ShowHTMLConfiguration;
+    comedianConfig: ComedianHTMLConfiguration;
 }
 
 export interface ClubHTMLConfiguration {
-    shouldExpandPage: boolean;
-    shouldScapeByDates: boolean;
-    shouldScrapeByShows: boolean;
-    allShowElementsSelector?: string    
-    showPageLinkSelector?: string    
+    shouldExpandPage?: boolean;
+    shouldScapeByDates?: boolean;
+    shouldScrapeByShowDetails?: boolean;
     dateMenuSelector?: string;
     dateOptionsSelector?: string;
-    expansionSelector?: string;
-    showLinkContainerSelector?: string
-    validShowContainerSignifier?: string
+    moreShowsSelector?: string;
+    showSelector?: string;
+    showContainerSelector?: string;
+    validShowContainerSignifier?: string;
+    showDetailPageLinkSelector?: string;
 }
 
 export interface ShowHTMLConfiguration {
-    showLineupSelector?: string;
-    showDateTimeSelector?: string;
-    showDateSelector?: string;
-    showTimeSelector?: string;
-    showNameSelector?: string;
-    showTicketSelector?: string;
-    badTimeStrings?: string[];
+    dateTimeSelector?: string;
+    dateSelector?: string;
+    timeSelector?: string;
+    ticketLinkSelector?: string;
     badDateStrings?: string[];
-    timezone: string;
+    badTimeStrings?: string[];
 }
 
 export interface ComedianHTMLConfiguration {
-    comedianWebsiteSelector?: string;
-    comedianNameSelector?: string;    
-    allComedianNameSelector?: string;    
-    badComedianNameCharacters?: string[];
-    badComedianNameStrings?: string[];
+    nameSelector?: string;
+    badNameCharacters?: string[];
+    badNameStrings?: string[];
     commaPlacements?: string[];
     showSignifiers?: string[];
 }

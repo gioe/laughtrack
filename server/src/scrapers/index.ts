@@ -38,35 +38,46 @@ const runScrapers = async (browser: puppeteer.Browser): Promise<Comedian[]> => {
 
 
 const getIndividualTasks = (browser: puppeteer.Browser): Promise<Comedian[]>[] => {
-    
+
     const ALL_CLUBS = [
-        "Comedy Cellar New York", 
-        "Comedy Cellar Las Vegas", 
+        "Comedy Cellar New York",
+        "Comedy Cellar Las Vegas",
         "Comic Strip Live NYC",
         "New York Comedy Club Midtown",
         "New York Comedy Club East Village",
         "New York Comedy Club Upper West Side",
-        "The Stand"
-     ]
+        "The Stand",
+        "The Grisly Pear",
+        "The Tiny Cupboard",
+        "Caveat",
+        "QED",
+        "The Bell House",
+        "Union Hall"
+    ]
 
     return scrapers
-    .map((json: any) => {
-        const club = new Club(json)
-        const dateTimeScraper = new DateTimeScraper(club);
+        .filter((json: any) => {
+            const club = new Club(json)
+            return club.name == ALL_CLUBS[7]
+        })
+        .map((json: any) => {
+            const club = new Club(json)
 
-        const comedianScraper = new ComedianScraper(json);
+            const dateTimeScraper = new DateTimeScraper(club);
 
-        const showScraper = new ShowScraper(club, comedianScraper, dateTimeScraper);
+            const comedianScraper = new ComedianScraper(club);
 
-        const clubScraper = new ClubScraper(club, browser, showScraper)
+            const showScraper = new ShowScraper(club, comedianScraper, dateTimeScraper);
 
-        return clubScraper.scrape()
-    });
+            const clubScraper = new ClubScraper(club, browser, showScraper)
+
+            return clubScraper.scrape()
+        });
 };
 
 const storeData = (scrapedComedians: Comedian[]) => {
     scrapedComedians.forEach(comedian => {
         console.log(`Writing ${comedian.name} to storage`)
-        return writeToFirestore(FIRESTORE_COLLECTIONS.comedians, comedian)}
-    )
+        return writeToFirestore(FIRESTORE_COLLECTIONS.comedians, comedian)
+    })
 }

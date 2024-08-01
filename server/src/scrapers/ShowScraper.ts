@@ -1,9 +1,7 @@
 import puppeteer from "puppeteer";
 import { providedStringPromise, runTasks } from "../util/types/promiseUtil.js";
-import { SCRAPER_KEYS } from "../constants/objects.js";
 import { ElementScaper } from "./ElementScaper.js";
 import { createShow } from "../util/types/showUtil.js";
-import { ShowHTMLConfiguration } from "../types/htmlconfigurable.interface.js";
 import { DateTimeScraper } from "./DateTimeScraper.js";
 import { Club } from "../classes/Club.js";
 import { ProvidedScrapingValue } from "../types/providedScrapingValue.interface.js";
@@ -27,26 +25,23 @@ export class ShowScraper {
     this.dateTimeScraper = dateTimeScraper;
   }
 
-  private showTicketSelector = () => {
-    return this.club.showConfig.showTicketSelector ?? "";
-  }
-
-  getShowTicketJob = async (showComponent: puppeteer.ElementHandle<Element>, url?: string) => {
+  getShowTicketJob = async (showComponent: puppeteer.ElementHandle<Element> | puppeteer.Page, url?: string) => {
     return url ? providedStringPromise(url) : this.getShowTicket(showComponent)
   }
 
-  getShowTicket = async (showComponent: puppeteer.ElementHandle<Element>) => {
-    return this.elementScraper.getElementCount(showComponent, this.showTicketSelector())
-      .then((count: number) => count > 0 ? this.elementScraper.getHrefFrom(showComponent, this.showTicketSelector()) : "")
+  getShowTicket = async (showComponent: puppeteer.ElementHandle<Element> | puppeteer.Page) => {
+    return this.elementScraper.getElementCount(showComponent, this.club.showConfig.ticketLinkSelector)
+      .then((count: number) => count > 0 ? this.elementScraper.getHrefFrom(showComponent, this.club.showConfig.ticketLinkSelector) : "")
   }
 
-  getShowScrapingTasks = (showComponent: puppeteer.ElementHandle<Element>, providedScrapingValues?: ProvidedScrapingValue) => {
+  getShowScrapingTasks = (showComponent: puppeteer.ElementHandle<Element> | puppeteer.Page, 
+    providedScrapingValues?: ProvidedScrapingValue) => {
     const datetimeJob = this.dateTimeScraper.getShowDateTimeJob(showComponent, providedScrapingValues?.date)
     const ticketJob = this.getShowTicketJob(showComponent, providedScrapingValues?.ticketUrl)
     return [datetimeJob, ticketJob]
   }
 
-  scrapeShows = async (showElementHandlers: puppeteer.ElementHandle<Element>[],
+  scrapeSchedulePage = async (showElementHandlers: puppeteer.ElementHandle<Element>[],
     providedScrapingValues?: ProvidedScrapingValue
   ): Promise<Comedian[][]> => {
 
@@ -58,6 +53,14 @@ export class ShowScraper {
     return runTasks(showScrapingJobs)
   }
 
+  scrapeDetailPage = async (page: puppeteer.Page,
+    providedScrapingValues?: ProvidedScrapingValue
+  ): Promise<Comedian[]> => {
+
+    return this.comedianScraper.getAllComedians(page)
+      .then((comedians: Comedian[]) => this.runShowScrapingTasks(page, comedians, providedScrapingValues))
+  }
+
   scrapeShow = async (showElementHandler: puppeteer.ElementHandle<Element>,
     providedScrapingValues?: ProvidedScrapingValue): Promise<Comedian[]> => {
 
@@ -66,12 +69,13 @@ export class ShowScraper {
 
   }
 
-  runShowScrapingTasks = async (showComponent: puppeteer.ElementHandle<Element>,
+  runShowScrapingTasks = async (showComponent: puppeteer.ElementHandle<Element> | puppeteer.Page,
     comedians: Comedian[],
     providedScrapingValue?: ProvidedScrapingValue
   ): Promise<Comedian[]> => {
 
     var jobs: Promise<string>[] = this.getShowScrapingTasks(showComponent, providedScrapingValue);
+
     return runTasks(jobs)
       .then((scrapedValues: string[]) => this.addShowToComedians(scrapedValues, comedians));
   }

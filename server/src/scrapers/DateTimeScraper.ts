@@ -14,20 +14,21 @@ export class DateTimeScraper {
     this.club = club
   }
 
-  getShowTime = async (showComponent: puppeteer.ElementHandle<Element>) => {
-    return this.elementScraper.getTextContentFrom(showComponent, this.club.showTimeSelector)
+  getShowTime = async (showComponent: puppeteer.ElementHandle<Element> | puppeteer.Page) => {
+    return this.elementScraper.getTextContentFrom(showComponent, this.club.showConfig.timeSelector)
   }
 
-  getShowDate = async (showComponent: puppeteer.ElementHandle<Element>) => {
-    return this.elementScraper.getTextContentFrom(showComponent, this.club.showDateSelector)
+  getShowDate = async (showComponent: puppeteer.ElementHandle<Element> | puppeteer.Page) => {
+    return this.elementScraper.getTextContentFrom(showComponent, this.club.showConfig.dateSelector)
   }
 
-  getShowDateTime = async (showComponent: puppeteer.ElementHandle<Element>) => {
-    return this.elementScraper.getTextContentFrom(showComponent, this.club.showDateTimeSelector)
+  getShowDateTime = async (showComponent: puppeteer.ElementHandle<Element> | puppeteer.Page) => {
+    return this.elementScraper.getTextContentFrom(showComponent, this.club.showConfig.dateTimeSelector)
     .then((datetime: string) => normalizeDateTime(datetime, this.club.showConfig))
   }
 
-  combineDateAndTime = async (showComponent: puppeteer.ElementHandle<Element>, date?: string) => {
+  combineDateAndTime = async (showComponent: puppeteer.ElementHandle<Element> | puppeteer.Page,
+     date?: string) => {
     const dateTask = date ? providedStringPromise(date) : this.getShowDate(showComponent)
     const timeTask = this.getShowTime(showComponent)
     
@@ -40,8 +41,9 @@ export class DateTimeScraper {
 
   }
 
-  getShowDateTimeJob = async (showComponent: puppeteer.ElementHandle<Element>, date?: string) => {
-    return this.club.shouldScrapeShowDatetime ? this.getShowDateTime(showComponent)  : this.combineDateAndTime(showComponent, date)
+  getShowDateTimeJob = async (showComponent: puppeteer.ElementHandle<Element> | puppeteer.Page,
+    date?: string) => {
+    return this.club.showConfig.dateTimeSelector ? this.getShowDateTime(showComponent)  : this.combineDateAndTime(showComponent, date)
   }
 
 }

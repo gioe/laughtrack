@@ -1,18 +1,23 @@
 import puppeteer from 'puppeteer';
 import { ElementScaper } from './ElementScaper.js';
-import { delay} from "../util/types/promiseUtil.js";
+import { delay, emptyStringPromise, emptyUndefinedPromise, provideGenericPromiseResponse} from "../util/types/promiseUtil.js";
 
 export class ElementInteractor {
 
   private elementScraper = new ElementScaper();
 
-  selectOption = async (option: string, 
-    selector: string, 
-    page: puppeteer.Page,
-    providedDelay: number): Promise<unknown> => {
-    
-      return page.select(selector, option)
-      .then(() => delay(providedDelay))
+
+  selectOption = async (page: puppeteer.Page,
+    providedDelay: number,
+    option?: string, 
+    selector?: string): Promise<unknown> => {
+
+      if (option && selector) {
+        return page.select(selector, option)
+        .then(() => delay(providedDelay))
+      }
+
+      return emptyUndefinedPromise()
   }
 
   navigateToUrl = async (url: string, 
@@ -22,10 +27,14 @@ export class ElementInteractor {
       .then(() => delay(providedDelay))
   }
 
-  clickExpander = async (page: puppeteer.Page, selector: string): Promise<puppeteer.Page> => {
-    return page.click(selector)
+  clickExpander = async (page: puppeteer.Page, selector?: string): Promise<puppeteer.Page> => {
+
+    if (selector) {
+      return page.click(selector)
       .then(() => page.waitForSelector(selector))
       .then(() => page)
+    }
+    return provideGenericPromiseResponse(page)
   }
 
 }
