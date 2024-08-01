@@ -7,6 +7,7 @@ import { Club } from "../classes/Club.js";
 import { ProvidedScrapingValue } from "../types/providedScrapingValue.interface.js";
 import { Comedian } from "../classes/Comedian.js";
 import { ComedianScraper } from "./ComedianScraper.js";
+import Scrapable from "../types/scrapable.interface.js";
 
 export class ShowScraper {
 
@@ -25,16 +26,16 @@ export class ShowScraper {
     this.dateTimeScraper = dateTimeScraper;
   }
 
-  getShowTicketJob = async (showComponent: puppeteer.ElementHandle<Element> | puppeteer.Page, url?: string) => {
+  getShowTicketJob = async (showComponent: Scrapable, url?: string) => {
     return url ? providedStringPromise(url) : this.getShowTicket(showComponent)
   }
 
-  getShowTicket = async (showComponent: puppeteer.ElementHandle<Element> | puppeteer.Page) => {
+  getShowTicket = async (showComponent: Scrapable) => {
     return this.elementScraper.getElementCount(showComponent, this.club.showConfig.ticketLinkSelector)
       .then((count: number) => count > 0 ? this.elementScraper.getHrefFrom(showComponent, this.club.showConfig.ticketLinkSelector) : "")
   }
 
-  getShowScrapingTasks = (showComponent: puppeteer.ElementHandle<Element> | puppeteer.Page, 
+  getShowScrapingTasks = (showComponent: Scrapable, 
     providedScrapingValues?: ProvidedScrapingValue) => {
     const datetimeJob = this.dateTimeScraper.getShowDateTimeJob(showComponent, providedScrapingValues?.date)
     const ticketJob = this.getShowTicketJob(showComponent, providedScrapingValues?.ticketUrl)
@@ -69,7 +70,7 @@ export class ShowScraper {
 
   }
 
-  runShowScrapingTasks = async (showComponent: puppeteer.ElementHandle<Element> | puppeteer.Page,
+  runShowScrapingTasks = async (showComponent: Scrapable,
     comedians: Comedian[],
     providedScrapingValue?: ProvidedScrapingValue
   ): Promise<Comedian[]> => {

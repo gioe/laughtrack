@@ -3,6 +3,7 @@ import { ElementScaper } from "./ElementScaper.js";
 import { providedStringPromise, runTasks } from "../util/types/promiseUtil.js";
 import { normalizeDateTime } from "../util/types/dateTimeUtil.js";
 import { Club } from "../classes/Club.js";
+import Scrapable from "../types/scrapable.interface.js";
 
 export class DateTimeScraper {
   private club: Club;
@@ -14,20 +15,20 @@ export class DateTimeScraper {
     this.club = club
   }
 
-  getShowTime = async (showComponent: puppeteer.ElementHandle<Element> | puppeteer.Page) => {
+  getShowTime = async (showComponent: Scrapable) => {
     return this.elementScraper.getTextContentFrom(showComponent, this.club.showConfig.timeSelector)
   }
 
-  getShowDate = async (showComponent: puppeteer.ElementHandle<Element> | puppeteer.Page) => {
+  getShowDate = async (showComponent: Scrapable) => {
     return this.elementScraper.getTextContentFrom(showComponent, this.club.showConfig.dateSelector)
   }
 
-  getShowDateTime = async (showComponent: puppeteer.ElementHandle<Element> | puppeteer.Page) => {
+  getShowDateTime = async (showComponent: Scrapable) => {
     return this.elementScraper.getTextContentFrom(showComponent, this.club.showConfig.dateTimeSelector)
     .then((datetime: string) => normalizeDateTime(datetime, this.club.showConfig))
   }
 
-  combineDateAndTime = async (showComponent: puppeteer.ElementHandle<Element> | puppeteer.Page,
+  combineDateAndTime = async (showComponent: Scrapable,
      date?: string) => {
     const dateTask = date ? providedStringPromise(date) : this.getShowDate(showComponent)
     const timeTask = this.getShowTime(showComponent)
@@ -41,7 +42,7 @@ export class DateTimeScraper {
 
   }
 
-  getShowDateTimeJob = async (showComponent: puppeteer.ElementHandle<Element> | puppeteer.Page,
+  getShowDateTimeJob = async (showComponent: Scrapable,
     date?: string) => {
     return this.club.showConfig.dateTimeSelector ? this.getShowDateTime(showComponent)  : this.combineDateAndTime(showComponent, date)
   }

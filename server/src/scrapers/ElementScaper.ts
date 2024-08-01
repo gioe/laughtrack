@@ -1,9 +1,10 @@
 import puppeteer from 'puppeteer';
 import { provideGenericPromiseResponse, runTasks } from '../util/types/promiseUtil.js';
+import Scrapable from '../types/scrapable.interface.js';
 
 export class ElementScaper {
 
-  getElementCount = async (object: puppeteer.Page | puppeteer.ElementHandle<Element>,
+  getElementCount = async (object: Scrapable,
     selector?: string): Promise<number> => {
     if (selector) {
       return object.$$eval(selector, (e: Element[]) => e.length)
@@ -12,7 +13,7 @@ export class ElementScaper {
     return provideGenericPromiseResponse(0)
   }
 
-  getAllTextContentFrom = async (object: puppeteer.Page | puppeteer.ElementHandle<Element>,
+  getAllTextContentFrom = async (object: Scrapable,
     selector?: string): Promise<string[]> => {
 
     if (selector) {
@@ -23,7 +24,7 @@ export class ElementScaper {
 
   }
 
-  getTextContentFrom = async (object: puppeteer.Page | puppeteer.ElementHandle<Element>,
+  getTextContentFrom = async (object: Scrapable,
     selector?: string): Promise<string> => {
 
       if (selector) {
@@ -34,14 +35,14 @@ export class ElementScaper {
 
   }
 
-  getAllHrefsFrom = async (object: puppeteer.Page | puppeteer.ElementHandle<Element>,
+  getAllHrefsFrom = async (object: Scrapable,
     selector: string): Promise<string[]> => {
 
     return object.$$eval(selector, (e: Element[]) => e.map(e => e.getAttribute('href') ?? ""))
       .catch(() => { throw new Error(`Error with ${selector} hrefs`) })
   }
 
-  getAllValuesFrom = async (object: puppeteer.Page | puppeteer.ElementHandle<Element>,
+  getAllValuesFrom = async (object: Scrapable,
     selector?: string): Promise<string[]> => {
 
     if (selector) {
@@ -51,7 +52,7 @@ export class ElementScaper {
     return provideGenericPromiseResponse([])
   }
 
-  getHrefFrom = async (object: puppeteer.Page | puppeteer.ElementHandle<Element>,
+  getHrefFrom = async (object: Scrapable,
     selector?: string): Promise<string> => {
     if (selector) {
       return object.$eval(selector, (e: Element) => e.getAttribute('href') ?? "")
@@ -60,13 +61,13 @@ export class ElementScaper {
     return provideGenericPromiseResponse("")
   }
 
-  getAllElementsFrom = async (object: puppeteer.Page | puppeteer.ElementHandle<Element>,
+  getAllElementsFrom = async (object: Scrapable,
     selector: string): Promise<Element[]> => {
     return object.$$eval(selector, (e: Element[]) => e)
       .catch(() => { throw new Error(`Error with ${selector} elements`) })
   }
 
-  getAllElementsHandlersFrom = async (object: puppeteer.Page | puppeteer.ElementHandle<Element>,
+  getAllElementsHandlersFrom = async (object: Scrapable,
     selector?: string): Promise<puppeteer.ElementHandle<Element>[]> => {
     if (selector) {
       return object.$$(selector)
@@ -75,8 +76,8 @@ export class ElementScaper {
     return provideGenericPromiseResponse([])
   }
 
-  validateElements = async (object: puppeteer.ElementHandle<Element>,
-    requiredSelectors: any[]): Promise<puppeteer.ElementHandle<Element> | undefined> => {
+  validateElements = async (object: Scrapable,
+    requiredSelectors: any[]): Promise<Scrapable | undefined> => {
     const tasks = requiredSelectors
       .filter((selector: string) => selector !== "" && selector !== undefined)
       .map(selector => this.getElementCount(object, selector))
