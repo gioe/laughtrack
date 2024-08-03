@@ -12,7 +12,6 @@ export class Club implements HTMLConfigurable {
   }
   */
 
-  json: any;
 
   name: string;
   baseWebsite: string;
@@ -25,8 +24,6 @@ export class Club implements HTMLConfigurable {
   comedianConfig: ComedianHTMLConfiguration;
 
   constructor(json: any) {
-    this.json = json;
-
     this.clubConfig = json[SCRAPER_KEYS.clubConfig]
     this.showConfig = json[SCRAPER_KEYS.showConfig]
     this.comedianConfig = json[SCRAPER_KEYS.comedianConfig]
@@ -36,7 +33,6 @@ export class Club implements HTMLConfigurable {
     this.schedulePage = json[SCRAPER_KEYS.schedulePage];
     this.timezone = json[SCRAPER_KEYS.timezone];
     this.scrapedPage = this.baseWebsite + this.schedulePage;
-    
   }
   
 }

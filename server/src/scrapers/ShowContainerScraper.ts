@@ -2,6 +2,7 @@ import puppeteer from 'puppeteer';
 import { runTasks } from '../util/types/promiseUtil.js';
 import { ElementScaper } from './ElementScaper.js';
 import { LINKS } from '../constants/links.js';
+import Scrapable from '../types/scrapable.interface.js';
 
 export class ShowContainerScraper {
 
@@ -15,8 +16,8 @@ export class ShowContainerScraper {
     
     return this.getShowLinkContainers(page, showLinkContainerSelector)
     .then((elements: puppeteer.ElementHandle<Element>[]) => this.filterInvalidElements(elements, [validSignifierSelector, showPageLinkSelector]))
-    .then((validatedValues: (puppeteer.ElementHandle<Element> | undefined)[]) => validatedValues.filter((value) =>  value !== undefined) as puppeteer.ElementHandle<Element>[])
-    .then((finalElements: puppeteer.ElementHandle<Element>[]) => this.getAllUrls(finalElements, showPageLinkSelector))
+    .then((validatedValues: (Scrapable | undefined)[]) => validatedValues.filter((value) =>  value !== undefined) as Scrapable[])
+    .then((finalElements: Scrapable[]) => this.getAllUrls(finalElements, showPageLinkSelector))
     .then((links: string[]) => links.filter((link: string) => !LINKS.badLinks.includes(link)))
     
   }
@@ -30,11 +31,11 @@ export class ShowContainerScraper {
 
   filterInvalidElements = async (elements: puppeteer.ElementHandle<Element>[], 
     requiredSelectors: any[]) => {
-      const tasks = elements.map((element) => this.elementScraper.validateElements(element, requiredSelectors))
+      const tasks = elements.map((element) => this.elementScraper.validateElement(element, requiredSelectors))
       return runTasks(tasks)
     }
 
-  getAllUrls = async (elements: puppeteer.ElementHandle<Element>[], 
+  getAllUrls = async (elements: Scrapable[], 
     showPageLinkSelector?: string): Promise<string[]> => {
       const tasks = elements.map((element) => this.elementScraper.getHrefFrom(element, showPageLinkSelector))      
       return runTasks(tasks)

@@ -1,14 +1,11 @@
+import puppeteer from "puppeteer";
 import { readJsonFile } from "../util/storage/fileSystem.js";
 import { writeToFirestore } from '../util/storage/fireStore.js';
 import { FIRESTORE_COLLECTIONS } from '../constants/firestore.js';
 import { Comedian } from "../classes/Comedian.js";
-import puppeteer from "puppeteer";
 import { flattenElements } from "../util/types/arrayUtil.js";
 import { cleanFinalComedianList } from "../util/types/comedianUtil.js";
 import { Club } from "../classes/Club.js";
-import { DateTimeScraper } from "./DateTimeScraper.js";
-import { ShowScraper } from "./ShowScraper.js";
-import { ComedianScraper } from "./ComedianScraper.js";
 import { ClubScraper } from "./ClubScraper.js";
 
 
@@ -58,18 +55,11 @@ const getIndividualTasks = (browser: puppeteer.Browser): Promise<Comedian[]>[] =
     return scrapers
         .filter((json: any) => {
             const club = new Club(json)
-            return club.name == ALL_CLUBS[7]
+            return club.name == ALL_CLUBS[3]
         })
         .map((json: any) => {
             const club = new Club(json)
-
-            const dateTimeScraper = new DateTimeScraper(club);
-
-            const comedianScraper = new ComedianScraper(club);
-
-            const showScraper = new ShowScraper(club, comedianScraper, dateTimeScraper);
-
-            const clubScraper = new ClubScraper(club, browser, showScraper)
+            const clubScraper = new ClubScraper(club, browser)
 
             return clubScraper.scrape()
         });

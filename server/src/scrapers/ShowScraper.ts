@@ -1,5 +1,5 @@
 import puppeteer from "puppeteer";
-import { providedStringPromise, runTasks } from "../util/types/promiseUtil.js";
+import { runTasks } from "../util/types/promiseUtil.js";
 import { ElementScaper } from "./ElementScaper.js";
 import { createShow } from "../util/types/showUtil.js";
 import { DateTimeScraper } from "./DateTimeScraper.js";
@@ -8,84 +8,75 @@ import { ProvidedScrapingValue } from "../types/providedScrapingValue.interface.
 import { Comedian } from "../classes/Comedian.js";
 import { ComedianScraper } from "./ComedianScraper.js";
 import Scrapable from "../types/scrapable.interface.js";
+import { TicketScraper } from "./TicketScraper.js";
+import { DateTimeContainer } from "../classes/DateTimeContainer.js";
 
 export class ShowScraper {
 
-  club: Club;
-  dateTimeScraper: DateTimeScraper;
-  comedianScraper: ComedianScraper;
-  elementScraper = new ElementScaper();
+  private club: Club;
+  private comedianScraper: ComedianScraper;
+  private dateTimeScraper: DateTimeScraper;
+  private ticketScraper: TicketScraper;
+  private elementScraper = new ElementScaper();
 
-  constructor(
-    club: Club,
-    comedianScraper: ComedianScraper,
-    dateTimeScraper: DateTimeScraper
-  ) {
+  constructor(club: Club) {
     this.club = club;
-    this.comedianScraper = comedianScraper
-    this.dateTimeScraper = dateTimeScraper;
+    this.dateTimeScraper = new DateTimeScraper(club);
+    this.ticketScraper = new TicketScraper(club);
+    this.comedianScraper = new ComedianScraper(club);
   }
 
-  getShowTicketJob = async (showComponent: Scrapable, url?: string) => {
-    return url ? providedStringPromise(url) : this.getShowTicket(showComponent)
-  }
-
-  getShowTicket = async (showComponent: Scrapable) => {
-    return this.elementScraper.getElementCount(showComponent, this.club.showConfig.ticketLinkSelector)
-      .then((count: number) => count > 0 ? this.elementScraper.getHrefFrom(showComponent, this.club.showConfig.ticketLinkSelector) : "")
-  }
-
-  getShowScrapingTasks = (showComponent: Scrapable, 
-    providedScrapingValues?: ProvidedScrapingValue) => {
-    const datetimeJob = this.dateTimeScraper.getShowDateTimeJob(showComponent, providedScrapingValues?.date)
-    const ticketJob = this.getShowTicketJob(showComponent, providedScrapingValues?.ticketUrl)
-    return [datetimeJob, ticketJob]
-  }
-
-  scrapeSchedulePage = async (showElementHandlers: puppeteer.ElementHandle<Element>[],
-    providedScrapingValues?: ProvidedScrapingValue
-  ): Promise<Comedian[][]> => {
-
-    console.log(`Scraping ${showElementHandlers.length} shows`)
-    
-    const showScrapingJobs = showElementHandlers
-      .map((showElementHandler: puppeteer.ElementHandle<Element>) => this.scrapeShow(showElementHandler, providedScrapingValues))
-
-    return runTasks(showScrapingJobs)
-  }
-
-  scrapeDetailPage = async (page: puppeteer.Page,
-    providedScrapingValues?: ProvidedScrapingValue
-  ): Promise<Comedian[]> => {
-
-    return this.comedianScraper.getAllComedians(page)
-      .then((comedians: Comedian[]) => this.runShowScrapingTasks(page, comedians, providedScrapingValues))
-  }
-
-  scrapeShow = async (showElementHandler: puppeteer.ElementHandle<Element>,
-    providedScrapingValues?: ProvidedScrapingValue): Promise<Comedian[]> => {
-
-    return this.comedianScraper.getAllComedians(showElementHandler)
-      .then((comedians: Comedian[]) => this.runShowScrapingTasks(showElementHandler, comedians, providedScrapingValues))
-
+  getAllShowsOnPage = async (page: puppeteer.Page): Promise<puppeteer.ElementHandle<Element>[]> => {
+    return this.elementScraper.getAllElementsHandlersFrom(page, this.club.clubConfig.showSelector)
   }
 
   runShowScrapingTasks = async (showComponent: Scrapable,
     comedians: Comedian[],
-    providedScrapingValue?: ProvidedScrapingValue
-  ): Promise<Comedian[]> => {
+    providedScrapingValues?: ProvidedScrapingValue): Promise<Comedian[]> => {
+    
+    if (comedians.length == 0) return []
+    
+    this.writeLog(providedScrapingValues)
 
-    var jobs: Promise<string>[] = this.getShowScrapingTasks(showComponent, providedScrapingValue);
+    const datetimeTask = this.dateTimeScraper.getShowDateTimeTask(showComponent, providedScrapingValues?.date)
+    const ticketTask = this.ticketScraper.getShowTicketTask(showComponent, providedScrapingValues?.ticketUrl)
+    
+    return runTasks([datetimeTask, ticketTask])
+    .then((scrapedValues: any[]) => this.addShowToComedians(scrapedValues, comedians))
 
-    return runTasks(jobs)
-      .then((scrapedValues: string[]) => this.addShowToComedians(scrapedValues, comedians));
   }
+
+  scrapeAllShows = async (page: puppeteer.Page,
+    providedScrapingValues?: ProvidedScrapingValue
+  ): Promise<Comedian[][]> => {
+
+    return this.getAllShowsOnPage(page)
+      .then((showElements: puppeteer.ElementHandle<Element>[]) => {
+      
+        if (showElements.length == 0) return []
+
+        console.log(`Scraping ${showElements.length} shows`)
+
+        const showScrapingJobs = showElements
+        .map((showElementHandler: puppeteer.ElementHandle<Element>) => this.scrapeShow(showElementHandler, providedScrapingValues))
+        
+        return runTasks(showScrapingJobs)
+      })
+  }
+
+  scrapeShow = async (showElementHandler: Scrapable,
+    providedScrapingValues?: ProvidedScrapingValue): Promise<Comedian[]> => {
+
+    return this.comedianScraper.getAllComedians(showElementHandler)
+      .then((comedians: Comedian[]) => this.runShowScrapingTasks(showElementHandler, comedians, providedScrapingValues))
+   
+    }
 
   addShowToComedians = (scrapedValues: string[], comedians: Comedian[]) => {
 
     const show = createShow(
       {
-        dateTimeString: scrapedValues[0],
+        dateTimeContainer: new DateTimeContainer(scrapedValues[0], this.club.showConfig),
         ticketString: scrapedValues[1]
       },
       this.club,
@@ -97,5 +88,12 @@ export class ShowScraper {
 
     return comedians;
   }
+  
+  writeLog = (providedScrapingValues?: ProvidedScrapingValue) => {
+    
+    if (providedScrapingValues?.ticketUrl) {
+      console.log(`Scraping ${providedScrapingValues?.ticketUrl}`)
+    }
 
+  }
 }

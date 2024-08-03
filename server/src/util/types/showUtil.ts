@@ -1,17 +1,19 @@
 import { Club } from "../../classes/Club.js";
-import { ShowHTMLConfiguration } from "../../types/htmlconfigurable.interface.js";
 import { ScrapedShow } from "../../types/scrapedShow.interface.js";
 import { Show } from "../../types/show.interface.js";
-import { createDateObject } from "./dateTimeUtil.js";
 
-export const isLikelyShow = (inputString: string, showSignifiers: string[]): boolean => {
-    var isLikely = false;
+export const isLikelyShow = (inputString: string, showSignifiers?: string[]): boolean => {
+  var isLikely = false;
+ 
+  if (showSignifiers) {
     for (const singifier of showSignifiers) {
       if (inputString.toLowerCase().includes(singifier)) {
         isLikely = true;
       }
     }
-    return isLikely
+  }
+  
+  return isLikely
   }
 
   export const createShow = (
@@ -19,7 +21,7 @@ export const isLikelyShow = (inputString: string, showSignifiers: string[]): boo
     club: Club, 
   ): Show => {
    
-      const dateTime = createDateObject(scrapedShow.dateTimeString, club.timezone)
+      const dateTime = scrapedShow.dateTimeContainer.asDateObject()
       const ticketLink = formatShowTicketLink(scrapedShow.ticketString, club);
       
       return {

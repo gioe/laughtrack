@@ -1,17 +1,33 @@
 import { DATE } from "../../constants/dateConstants.js";
 import { REGEX } from "../../constants/regex.js";
 import { ShowHTMLConfiguration } from "../../types/htmlconfigurable.interface.js";
-import { removeBadWhiteSpace, removeSubstrings } from "./stringUtil.js";
+import { removeBadWhiteSpace, removeNonNumbers, removeSubstrings } from "./stringUtil.js";
+
+var months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+
+export const normalizeDateString = (dateString: string, config: ShowHTMLConfiguration): string => {
+    return cleanDateString(dateString, config)
+}
+
+export const buildDateObjectIfPossible = (dateString: string): Date | undefined => {    
+    var regexDate = getDateByRegex(dateString);
+
+    if (stringIsAValidDate(dateString)) return new Date(dateString);
+    else if (stringIsAValidDate(regexDate)) return new Date(regexDate);
+    else return undefined;
+    
+}
 
 export const cleanDateString = (dateString: string, config: ShowHTMLConfiguration): string => {
-    const badStringString = config.badDateStrings?.concat(DATE.days, DATE.ordinals)
-    const cleanedString = removeSubstrings(dateString, badStringString)
+    const badDateContent = getBadDateStringContent(config)
+    const cleanedString = removeSubstrings(dateString, badDateContent)
     return removeBadWhiteSpace(cleanedString)
 }
 
-export const cleanTimeString = (timeString: string, config: ShowHTMLConfiguration): string => {
-    const cleanedString = removeSubstrings(timeString, config.badTimeStrings)
-    return removeBadWhiteSpace(cleanedString)
+const getBadDateStringContent = (config: ShowHTMLConfiguration) => {
+    var badContent: string[] = config.badDateStrings ?? []
+    badContent = badContent.concat(DATE.days);
+    return badContent
 }
 
 export const stringIsAValidDate = (string: string): boolean => {
@@ -28,34 +44,28 @@ const checkForValidDateValues = (string: string): boolean => {
     return values.length > 0
 }
 
-export const extractDateUsingRegex = (dateString: string): string =>  {
+export const getDateByRegex = (dateString: string): string =>  {
     const dateValues = dateString.match(REGEX.dateWithSlash) ?? [];
     return dateValues[0] as string
 }
 
-export const normalizeDateString = (dateString: string) => {
-    const validDate = geenrateValidDateString(dateString);
-
-    const dateObject = new Date(validDate);
-    const year = dateObject.getFullYear();
-    const month = dateObject.getMonth() + 1;
-    const day = dateObject.getDate();
-
-    return year.toString() + "-" + month.toString() + "-" + day.toString();
+export const determineDay = (dateString: string): number => {
+    const numberString = removeNonNumbers(dateString);
+    return Number(numberString)
 }
 
-const addDateValues = (dateString: string) => {
-    return dateString + " 2024"
+export const determineMonth = (dateString: string): number => {
+    var monthIndex = 0;
+    months.forEach((month, index) => {
+        if (dateString.toLowerCase().includes(month)) {
+            monthIndex = index
+        }
+    })
+    return monthIndex;
 }
 
-const geenrateValidDateString = (dateString: string): string => {    
-    var regexDate = extractDateUsingRegex(dateString);
-    var completeDate = addDateValues(dateString);
-
-    if (stringIsAValidDate(dateString)) return dateString
-    else if (stringIsAValidDate(regexDate)) return regexDate
-    else if (stringIsAValidDate(completeDate)) return completeDate
-
-    throw new Error(`Can't turn ${dateString} into a date`)
+export const determineYear = (month: number): number => {
+    const currentDate = new Date()
+    return currentDate.getMonth() < month ? currentDate.getFullYear() + 1 : currentDate.getFullYear();
 }
 

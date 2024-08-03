@@ -4,7 +4,7 @@
     timezone: 'timezone',
     baseWebsite: 'baseWebsite',
     schedulePage: 'schedulePage',
-    clubConfig: "clubConfig",
-    showConfig: "showConfig",
-    comedianConfig: "comedianConfig"
+    clubConfig: "clubHtmlConfig",
+    showConfig: "showHtmlConfig",
+    comedianConfig: "comedianHtmlConfig"
   };

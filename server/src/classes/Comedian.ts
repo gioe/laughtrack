@@ -5,7 +5,6 @@ import { removeAllWhiteSpace, removeBadWhiteSpace } from "../util/types/stringUt
 
 export class Comedian implements ComedianInterface {
   name: string = ""
-  website: string = ""
   shows: Show[] = []
 
   addShow(show: Show) {
@@ -25,7 +24,6 @@ export class Comedian implements ComedianInterface {
   getData = () => {
     return {
       name: this.name,
-      website: this.website,
       shows: FieldValue.arrayUnion(...this.shows),
     }
   }

@@ -1,4 +1,3 @@
-import puppeteer from "puppeteer";
 import { ElementScaper } from "./ElementScaper.js";
 import { buildComediansFromNames } from "../util/types/comedianUtil.js";
 import { Comedian } from "../classes/Comedian.js";

@@ -1,4 +1,6 @@
+import { DateTimeContainer } from "../classes/DateTimeContainer.js";
+
 export interface ScrapedShow {
-    dateTimeString: string;
+    dateTimeContainer: DateTimeContainer;
     ticketString: string;
 }

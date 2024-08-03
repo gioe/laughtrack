@@ -21,6 +21,7 @@ export interface ShowHTMLConfiguration {
     dateTimeSelector?: string;
     dateSelector?: string;
     timeSelector?: string;
+    dateSeparator?: string;
     ticketLinkSelector?: string;
     badDateStrings?: string[];
     badTimeStrings?: string[];
@@ -30,7 +31,6 @@ export interface ComedianHTMLConfiguration {
     nameSelector?: string;
     badNameCharacters?: string[];
     badNameStrings?: string[];
-    commaPlacements?: string[];
     showSignifiers?: string[];
 }
 

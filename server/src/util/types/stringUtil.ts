@@ -10,8 +10,12 @@ export const removeTrailingWhiteSpace = (whiteSpaceString: string) => {
     return whiteSpaceString.trimEnd()
 }
 
-export const makeAlphaNumeric = (inputStrings: string[]) => {
-    return inputStrings.map((regexString: string) => regexString.replace(/[^0-9a-z]/gi, ''))
+export const makeAlphaNumeric = (inputString: string) => {
+    return inputString.replace(/[^0-9a-z]/gi, '')
+}
+
+export const removeNonNumbers = (inputString: string) => {
+    return inputString.replace(/\D/g,'');
 }
 
 export const replaceSubstrings = (inputString: string, targets: string[], replacement: string) => {
@@ -35,7 +39,7 @@ export const removeSubstrings = (inputString: string, replacements?: string[]) =
         mutatedString = mutatedString.replaceAll(replacement, "")
     }
 
-    return mutatedString
+    return removeBadWhiteSpace(mutatedString)
 }
 
 export const removeBadWhiteSpace = (whiteSpaceString: string) => {
