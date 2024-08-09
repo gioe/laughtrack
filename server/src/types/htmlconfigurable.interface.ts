@@ -1,13 +1,12 @@
-export interface HTMLConfigurable {
-    clubConfig: ClubHTMLConfiguration;    
-    showConfig: ShowHTMLConfiguration;
-    comedianConfig: ComedianHTMLConfiguration;
-}
+import PageInteractionConfig from "./pageInteractable.interface.js";
 
-export interface ClubHTMLConfiguration {
+export interface HTMLConfigurable {
+    interactionConfig: PageInteractionConfig,
     shouldExpandPage?: boolean;
     shouldScapeByDates?: boolean;
     shouldScrapeByShowDetails?: boolean;
+    showScrapeShowDetailsOnDifferentPages?: boolean;
+    pagesToScrape?: number;
     dateMenuSelector?: string;
     dateOptionsSelector?: string;
     moreShowsSelector?: string;
@@ -15,9 +14,6 @@ export interface ClubHTMLConfiguration {
     showContainerSelector?: string;
     validShowContainerSignifier?: string;
     showDetailPageLinkSelector?: string;
-}
-
-export interface ShowHTMLConfiguration {
     dateTimeSelector?: string;
     dateSelector?: string;
     timeSelector?: string;
@@ -25,12 +21,10 @@ export interface ShowHTMLConfiguration {
     ticketLinkSelector?: string;
     badDateStrings?: string[];
     badTimeStrings?: string[];
-}
-
-export interface ComedianHTMLConfiguration {
     nameSelector?: string;
     badNameCharacters?: string[];
     badNameStrings?: string[];
     showSignifiers?: string[];
 }
+
 

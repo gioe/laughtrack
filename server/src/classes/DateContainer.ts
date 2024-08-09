@@ -1,30 +1,38 @@
 import DateContainerInterface from "../types/dateContainer.interface.js";
-import { ShowHTMLConfiguration } from "../types/htmlconfigurable.interface.js";
-import { buildDateObjectIfPossible, determineDay, determineMonth, determineYear, normalizeDateString } from "../util/types/dateUtil.js";
+import { determineDay, determineMonth, determineYear, normalizeDateString } from "../util/types/dateUtil.js";
+import { ScrapingConfig } from "./ScrapingConfig.js";
+
+
+// Used for cases where the string value is a valid string, but doesn't contain a year so the DateConstructor
+// defaults to 2001 instead of the current year;
+const DEFAULT_YEAR = 2001;
 
 export class DateContainer implements DateContainerInterface {
 
-  config: ShowHTMLConfiguration;
   dateString: string = "";
-  dateObject?: Date;
+  dateObject: Date;
 
   constructor(dateString: string,
-    config: ShowHTMLConfiguration) {
-    this.config = config;
+    config: ScrapingConfig) {
     this.dateString = normalizeDateString(dateString, config);
-    this.dateObject = buildDateObjectIfPossible(dateString);
-  }
-
-  getDay = (): number => {
-    return this.dateObject ? this.dateObject.getDate() : determineDay(this.dateString);
-  }
-
-  getMonth = (): number => {
-    return this.dateObject ? this.dateObject.getMonth() + 1 : determineMonth(this.dateString) + 1;
+    this.dateObject = new Date(this.dateString);
   }
 
   getYear = (): number => {
-    return this.dateObject ? this.dateObject.getFullYear() : determineYear(this.getMonth());
+    if (isNaN(this.dateObject.getTime())) {
+      return determineYear(this.getMonth()) 
+    } else {
+      const year = this.dateObject.getFullYear();
+      return year == DEFAULT_YEAR ? new Date().getFullYear() : year
+    }
+  }
+
+  getMonth = (): number => {
+    return isNaN(this.dateObject.getTime()) ?  determineMonth(this.dateString) : this.dateObject.getMonth();
+  }
+
+  getDay = (): number => {
+    return isNaN(this.dateObject.getTime()) ? determineDay(this.dateString) : this.dateObject.getDate();
   }
 
 }

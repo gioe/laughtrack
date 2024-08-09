@@ -1,7 +1,7 @@
 import { FieldValue } from "@google-cloud/firestore";
 import { ComedianInterface } from "../types/comedian.interface.js";
-import { Show } from "../types/show.interface.js";
 import { removeAllWhiteSpace, removeBadWhiteSpace } from "../util/types/stringUtil.js";
+import { Show } from "./Show.js";
 
 export class Comedian implements ComedianInterface {
   name: string = ""

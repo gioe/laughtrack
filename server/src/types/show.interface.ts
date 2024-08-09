@@ -1,5 +1,4 @@
-export interface Show {
-    clubName: string;
-    dateTime: Date;
+export interface ShowInterface {
+    dateTime?: Date;
     ticketLink: string;
 }

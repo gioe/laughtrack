@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 import { getValueFromDocument, getValuesFromCollection } from '../util/storage/fireStore.js';
 import { FIRESTORE_COLLECTIONS } from '../constants/firestore.js';
-import { Show } from '../types/show.interface.js';
 import { removeAllWhiteSpace } from '../util/types/stringUtil.js';
+import { Show } from '../classes/Show.js';
 
 export const getAllComedians = async (req: Request, res: Response) => {
   

@@ -1,4 +1,4 @@
-import { Show } from "./show.interface.js";
+import { Show } from "../classes/Show.js";
 import { Storable } from "./storable.interface.js";
 
 export interface ComedianInterface extends Storable { 

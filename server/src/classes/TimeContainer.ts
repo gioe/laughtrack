@@ -1,25 +1,23 @@
-import { ShowHTMLConfiguration } from "../types/htmlconfigurable.interface.js";
 import TimeContainerInterface from "../types/timeContainer.interface.js";
 import { normalizeTimeString } from "../util/types/timeUtil.js";
+import { ScrapingConfig } from "./ScrapingConfig.js";
 
 export class TimeContainer implements TimeContainerInterface {
 
-  config: ShowHTMLConfiguration;
   timeString: string = "";
   timeComponents: string[];
 
   constructor(timeString: string,
-    config: ShowHTMLConfiguration) {
-    this.config = config;
+    config: ScrapingConfig) {
     this.timeString = normalizeTimeString(timeString, config);
     this.timeComponents = this.timeString.split(":")
   }
 
-  getHour = (): number => {
+  getHours = (): number => {
     return Number(this.timeComponents[0]);
   }
 
-  getMinute = (): number => {
+  getMinutes = (): number => {
     return Number(this.timeComponents[1]);
   }
 

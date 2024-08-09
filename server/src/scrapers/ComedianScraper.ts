@@ -1,29 +1,22 @@
+import Scrapable from "../types/scrapable.interface.js";
 import { ElementScaper } from "./ElementScaper.js";
 import { buildComediansFromNames } from "../util/types/comedianUtil.js";
 import { Comedian } from "../classes/Comedian.js";
-import { Club } from "../classes/Club.js";
-import Scrapable from "../types/scrapable.interface.js";
+import { ScrapingConfig } from "../classes/ScrapingConfig.js";
 
 export class ComedianScraper {
-  private club: Club;
+
+  private scrapingConfig: ScrapingConfig;
   private elementScraper = new ElementScaper();
 
-  constructor(
-    club: Club,
-  ) {
-    this.club = club;
+  constructor(scrapingConfig: ScrapingConfig) {
+    this.scrapingConfig = scrapingConfig
   }
 
-  getAllComedians = async (showComponent: Scrapable): Promise<Comedian[]> => {
-    return this.getAllComedianNames(showComponent)
-      .then((names: string[]) => {
-        return buildComediansFromNames(names, this.club.comedianConfig)
-      })
-  }
-
-  getAllComedianNames = async (showComponent: Scrapable): Promise<string[]> => {
-    return this.elementScraper.getElementCount(showComponent, this.club.comedianConfig.nameSelector)
-      .then((count: number) => count > 0 ? this.elementScraper.getAllTextContentFrom(showComponent, this.club.comedianConfig.nameSelector) : [])
+  getAllComedianNames = async (showComponent: Scrapable): Promise<Comedian[]> => {
+    return this.elementScraper.getElementCount(showComponent, this.scrapingConfig.nameSelector)
+      .then((count: number) => count > 0 ? this.elementScraper.getAllTextContent(showComponent, this.scrapingConfig.nameSelector) : [])
+      .then((names: string[]) =>  buildComediansFromNames(names, this.scrapingConfig))
   }
 
 }

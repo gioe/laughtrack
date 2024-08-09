@@ -1,6 +1,6 @@
 import puppeteer from 'puppeteer';
-import { provideGenericPromiseResponse, runTasks } from '../util/types/promiseUtil.js';
 import Scrapable from '../types/scrapable.interface.js';
+import { provideGenericPromiseResponse, runTasks } from '../util/types/promiseUtil.js';
 import { removeBadWhiteSpace } from '../util/types/stringUtil.js';
 
 export class ElementScaper {
@@ -16,7 +16,7 @@ export class ElementScaper {
     return provideGenericPromiseResponse(0)
   }
 
-  getAllTextContentFrom = async (object: Scrapable,
+  getAllTextContent = async (object: Scrapable,
     selector?: string): Promise<string[]> => {
 
     if (selector) {
@@ -28,7 +28,7 @@ export class ElementScaper {
     return provideGenericPromiseResponse([])
   }
 
-  getTextContentFrom = async (object: Scrapable,
+  getTextContent = async (object: Scrapable,
     selector?: string): Promise<string> => {
 
     if (selector) {
@@ -41,7 +41,7 @@ export class ElementScaper {
 
   }
 
-  getAllHrefsFrom = async (object: Scrapable,
+  getAllHrefs = async (object: Scrapable,
     selector?: string): Promise<string[]> => {
 
     if (selector) {
@@ -53,19 +53,20 @@ export class ElementScaper {
     return provideGenericPromiseResponse([])
   }
 
-  getAllValuesFrom = async (object: Scrapable,
+  getAllValues = async (object: Scrapable,
     selector?: string): Promise<string[]> => {
-
     if (selector) {
       return object.$$eval(selector, (e: Element[]) => e.map(e => e.getAttribute('value') ?? "") ?? [])
-        .then((values: string[]) => values.map((value: string) => removeBadWhiteSpace(value)))
+        .then((values: string[]) => {
+          return values.map((value: string) => removeBadWhiteSpace(value))
+        })
         .catch(() => { throw new Error(`Error with ${selector} values`) })
     }
 
     return provideGenericPromiseResponse([])
   }
 
-  getHrefFrom = async (object: Scrapable,
+  getHref = async (object: Scrapable,
     selector?: string): Promise<string> => {
 
     if (selector) {
@@ -77,7 +78,7 @@ export class ElementScaper {
     return provideGenericPromiseResponse("")
   }
 
-  getAllElementsFrom = async (object: Scrapable,
+  getAllElements = async (object: Scrapable,
     selector?: string): Promise<Element[]> => {
 
     if (selector) {
@@ -89,7 +90,7 @@ export class ElementScaper {
 
   }
 
-  getAllElementsHandlersFrom = async (object: Scrapable,
+  getAllElementsHandlers = async (object: Scrapable,
     selector?: string): Promise<puppeteer.ElementHandle<Element>[]> => {
 
     if (selector) {
@@ -102,8 +103,8 @@ export class ElementScaper {
 
   validateElement = async (object: Scrapable,
     requiredSelectors: any[]): Promise<Scrapable | undefined> => {
-      
-    const tasks = requiredSelectors
+    
+      const tasks = requiredSelectors
       .filter((selector: string) => selector !== "" && selector !== undefined)
       .map(selector => this.getElementCount(object, selector))
 

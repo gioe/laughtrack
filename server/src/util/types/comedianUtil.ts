@@ -1,23 +1,23 @@
 import { Comedian } from "../../classes/Comedian.js"
+import { ScrapingConfig } from "../../classes/ScrapingConfig.js";
+import { Show } from "../../classes/Show.js";
 import { REGEX } from "../../constants/regex.js";
-import { ComedianHTMLConfiguration } from "../../types/htmlconfigurable.interface.js";
-import { Show } from "../../types/show.interface.js";
 import { isLikelyShow } from "./showUtil.js";
 import { removeSubstrings } from "./stringUtil.js";
 
 const SEPARATOR = ",";
 
-export const buildComediansFromNames = (comedianNames: string[], comedianConfig: ComedianHTMLConfiguration) => {
+export const buildComediansFromNames = (comedianNames: string[], config: ScrapingConfig) => {
 
   return comedianNames
-  .map((comedianName: string) => normalizeNameString(comedianName, comedianConfig))
+  .map((comedianName: string) => normalizeNameString(comedianName, config))
   .flatMap((names: string[]) => names.map((name: string) => new Comedian(name)))
 }
 
-  export const normalizeNameString = (nameString: string, comedianConfig: ComedianHTMLConfiguration): string[] => {
-    const cleanedString = cleanNameString(nameString, comedianConfig);
+  export const normalizeNameString = (nameString: string, config: ScrapingConfig): string[] => {
+    const cleanedString = cleanNameString(nameString, config);
 
-    if (isLikelyShow(cleanedString, comedianConfig.showSignifiers)) {
+    if (isLikelyShow(cleanedString, config.showSignifiers)) {
       console.warn(`${nameString} is probably a show and not a comedian name`)
       return []
     }
@@ -25,16 +25,16 @@ export const buildComediansFromNames = (comedianNames: string[], comedianConfig:
     return likelyContainsMultipleComedians(cleanedString) ? cleanedString.split(SEPARATOR) : [nameString]
   }
 
-  const cleanNameString = (nameString: string, comedianConfig: ComedianHTMLConfiguration): string => {
-    const badContent = combineBadContent(nameString, comedianConfig)
+  const cleanNameString = (nameString: string, config: ScrapingConfig): string => {
+    const badContent = combineBadContent(nameString, config)
     return removeSubstrings(nameString, badContent ?? [])
     ;
   }
 
-  const combineBadContent = (nameString: string, comedianConfig: ComedianHTMLConfiguration) => {
+  const combineBadContent = (nameString: string, config: ScrapingConfig) => {
     var credits = nameString.match(REGEX.parenthesis) as string[] ?? [];
-    credits = credits.concat(comedianConfig.badNameCharacters ?? [])
-    credits = credits.concat(comedianConfig.badNameStrings ?? [])
+    credits = credits.concat(config.badNameCharacters ?? [])
+    credits = credits.concat(config.badNameStrings ?? [])
     return credits
   }
 

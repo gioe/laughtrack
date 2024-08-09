@@ -1,30 +1,25 @@
+import { ScrapingConfig } from "../../classes/ScrapingConfig.js";
 import { DATE } from "../../constants/dateConstants.js";
 import { REGEX } from "../../constants/regex.js";
-import { ShowHTMLConfiguration } from "../../types/htmlconfigurable.interface.js";
-import { removeBadWhiteSpace, removeNonNumbers, removeSubstrings } from "./stringUtil.js";
+import { removeNonNumbers, removeSubstrings } from "./stringUtil.js";
 
 var months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
 
-export const normalizeDateString = (dateString: string, config: ShowHTMLConfiguration): string => {
-    return cleanDateString(dateString, config)
+export const normalizeDateString = (dateString: string, config: ScrapingConfig): string => {
+    const cleanedDateString = cleanDateString(dateString, config)
+    if (stringIsAValidDate(cleanedDateString)) return cleanedDateString
+    else {
+        const regexDate = getDateByRegex(cleanedDateString);
+        return regexDate ? regexDate: cleanedDateString;
+    }
 }
 
-export const buildDateObjectIfPossible = (dateString: string): Date | undefined => {    
-    var regexDate = getDateByRegex(dateString);
-
-    if (stringIsAValidDate(dateString)) return new Date(dateString);
-    else if (stringIsAValidDate(regexDate)) return new Date(regexDate);
-    else return undefined;
-    
-}
-
-export const cleanDateString = (dateString: string, config: ShowHTMLConfiguration): string => {
+export const cleanDateString = (dateString: string, config: ScrapingConfig): string => {
     const badDateContent = getBadDateStringContent(config)
-    const cleanedString = removeSubstrings(dateString, badDateContent)
-    return removeBadWhiteSpace(cleanedString)
+    return removeSubstrings(dateString, badDateContent)
 }
 
-const getBadDateStringContent = (config: ShowHTMLConfiguration) => {
+const getBadDateStringContent = (config: ScrapingConfig) => {
     var badContent: string[] = config.badDateStrings ?? []
     badContent = badContent.concat(DATE.days);
     return badContent
@@ -32,21 +27,13 @@ const getBadDateStringContent = (config: ShowHTMLConfiguration) => {
 
 export const stringIsAValidDate = (string: string): boolean => {
     if (string == undefined) return false
-    const hasThreeValues = checkForValidDateValues(string)
     var date = Date.parse(string);
-    return hasThreeValues && !isNaN(date) 
+    return !isNaN(date) 
 }
 
-const checkForValidDateValues = (string: string): boolean => {
-    const values = [" ", "-", "/"]
-    .map((separator: string) => string.split(separator))
-    .filter((splitValues: string[]) => splitValues.length == 3);
-    return values.length > 0
-}
-
-export const getDateByRegex = (dateString: string): string =>  {
-    const dateValues = dateString.match(REGEX.dateWithSlash) ?? [];
-    return dateValues[0] as string
+export const getDateByRegex = (dateString: string): string | undefined =>  {
+    const dateValues = dateString.match(REGEX.dateRegex);
+    return dateValues ? dateValues[0] as string : undefined
 }
 
 export const determineDay = (dateString: string): number => {

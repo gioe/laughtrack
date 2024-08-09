@@ -1,6 +1,6 @@
 export default interface TimeContainerInterface {
-    getHour: () => number;
-    getMinute: () => number;
+    getHours: () => number;
+    getMinutes: () => number;
     getSeconds: () => number;
 }
 

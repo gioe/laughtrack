@@ -6,16 +6,19 @@ import { Comedian } from "../classes/Comedian.js";
 import { flattenElements } from "../util/types/arrayUtil.js";
 import { cleanFinalComedianList } from "../util/types/comedianUtil.js";
 import { Club } from "../classes/Club.js";
-import { ClubScraper } from "./ClubScraper.js";
+import { PageManager } from "./PageManager.js";
+import { ScrapingConfig } from "../classes/ScrapingConfig.js";
+import { Scraper } from "./Scraper.js";
+import { InteractionConfig } from "../classes/InteractionConfig.js";
+import { CLUB_KEYS, JSON_KEYS } from "../constants/objects.js";
 
-
-const scrapers = readJsonFile(process.env.SCRAPERS_FILE ?? "src/scrapers.json")
+const clubs = readJsonFile(process.env.CLUBS_FILE ?? "src/clubs.json")
 
 export const scrapeAllClubs = async () => {
     const startDate = new Date()
     console.log(`Started all scraping jobs at ${startDate}`);
 
-    puppeteer.launch({ dumpio: true, pipe: true })
+    puppeteer.launch({ dumpio: true, pipe: true, headless: true, args: ['--no-sandbox'] })
         .then(browser => runScrapers(browser))
         .then((comedians: Comedian[]) => {
             const cleanedComedians = cleanFinalComedianList(comedians);
@@ -46,23 +49,30 @@ const getIndividualTasks = (browser: puppeteer.Browser): Promise<Comedian[]>[] =
         "The Stand",
         "The Grisly Pear",
         "The Tiny Cupboard",
-        "Caveat",
-        "QED",
+        "West Side Comedy Club",
         "The Bell House",
         "Union Hall"
     ]
 
-    return scrapers
-        .filter((json: any) => {
-            const club = new Club(json)
-            return club.name == ALL_CLUBS[3]
-        })
-        .map((json: any) => {
-            const club = new Club(json)
-            const clubScraper = new ClubScraper(club, browser)
+    return clubs
+        .flatMap((json: any) => {
+            const clubNames = json[JSON_KEYS.clubs]
 
-            return clubScraper.scrape()
-        });
+            const interactionConfig = new InteractionConfig(json[JSON_KEYS.interactionConfig]);
+            const scrapingConfig = new ScrapingConfig(json[JSON_KEYS.scrapingConfig]);
+
+            const pageManager = new PageManager(interactionConfig, scrapingConfig);
+
+            return clubNames
+            .filter((clubJson: any) => {
+                return clubJson[CLUB_KEYS.name] == ALL_CLUBS[0]
+            })
+            .map((clubJson: any) => {
+                const club = new Club(clubJson)
+                return new Scraper(club, browser, pageManager, interactionConfig).scrape()
+            })
+
+        })
 };
 
 const storeData = (scrapedComedians: Comedian[]) => {
