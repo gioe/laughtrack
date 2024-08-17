@@ -1,19 +1,21 @@
-import puppeteer from "puppeteer";
+import playwright from "playwright";
 import { Club } from "../classes/Club.js";
 import { Comedian } from "../classes/Comedian.js";
 import { PageManager } from "./PageManager.js";
 import { InteractionConfig } from "../classes/InteractionConfig.js";
-import { GetInteractableFunction, ScrapableElement, ScraperFunction } from "../types/scrapingFunction.js";
+import { flattenElements } from "../util/types/arrayUtil.js";
+import { ScraperType } from "../types/scraperTypes.js";
+import { runInteractionLoop } from "../util/types/scraperUtil.js";
 
 export class Scraper {
 
   private club: Club;
-  private browser: puppeteer.Browser;
+  private browser: playwright.Browser;
   private pageManager: PageManager;
   private interactionConfig: InteractionConfig;
 
   constructor(json: any,
-    browser: puppeteer.Browser,
+    browser: playwright.Browser,
     pageManager: PageManager,
     interactionConfig: InteractionConfig
   ) {
@@ -22,85 +24,67 @@ export class Scraper {
     this.pageManager = pageManager;
     this.interactionConfig = interactionConfig;
   }
+  
+  public scrape = async (): Promise<Comedian[]> => {
+    console.log(`Started scraping ${this.club.name} at ${new Date()} with scraper of type ${this.interactionConfig.scraperType}`);
 
-  public scrape = async (): Promise<Comedian[][]> => {
-    console.log(`Started scraping ${this.club.name} at ${new Date()}`);
     return this.browser.newPage()
-      .then((page: puppeteer.Page) => this.pageManager.navigateToUrl(page, this.club.schedulePageUrl))
-      .then((page: puppeteer.Page) => this.pageManager.expandPage(page))
-      .then((page: puppeteer.Page) => this.dispatchTasks(page))
+      .then((page: playwright.Page) => this.pageManager.navigateToUrl(page, this.club.schedulePageUrl))
+      .then((page: playwright.Page) => this.runClubScrapingFunctions(page))
+      .then((comedianArrays: Comedian[][]) => flattenElements(comedianArrays))
   }
 
-  dispatchTasks = async (page: puppeteer.Page): Promise<Comedian[][]> => {
-
-    if (this.interactionConfig.shouldScrapeByOptionSelection) {
-      return this.runScrapeLoop(page, 
-        this.pageManager.optionSelectionScrape().scraperFunction,
-        this.pageManager.optionSelectionScrape().firstLoopFunction
-      )
+  runClubScrapingFunctions = async (page: playwright.Page): Promise<Comedian[][]> => { 
+    switch (this.interactionConfig.scraperType) {
+      case ScraperType.A: return this.runAScraper(page)
+      case ScraperType.B: return this.runBScraper(page)
+      case ScraperType.C: return this.runCScraper(page)
+      case ScraperType.D: return this.runDScraper(page)
+      default: throw new Error("No scraping type found")
     }
-
-    else if (this.interactionConfig.shouldScrapeByDetailPage) {
-      return this.runScrapeLoop(page, 
-        this.pageManager.detailPageScrape().scraperFunction,
-        this.pageManager.detailPageScrape().firstLoopFunction
-      )
-    }
-
-    else if (this.interactionConfig.shouldScrapeByNavigationAndDetailPages) {
-      return this.runScrapeLoop(page, 
-        this.pageManager.navigationAndDetailPageScrape().scraperFunction,
-        this.pageManager.navigationAndDetailPageScrape().firstLoopFunction,
-        this.pageManager.navigationAndDetailPageScrape().secondLoopFunction
-      )
-    }
-
-    return this.runScrapeLoop(page, this.pageManager.containerScrape().scraperFunction)
   }
 
-  runScrapeLoop = async (page: puppeteer.Page, 
-    scraperFunction: ScraperFunction, 
-    outerloopFunction?: GetInteractableFunction, 
-    innerLoopFunction?: GetInteractableFunction): Promise<Comedian[][]> => {
-   
-    if (outerloopFunction) {
-      return outerloopFunction(page)
-      .then(interactables => {
-        if (innerLoopFunction) {
-          return this.runScrapeLoop(page, scraperFunction, innerLoopFunction)
-        }
-        return this.loopAndScrape(page, interactables, scraperFunction)
-      })
-    }
-
-    return this.runScraperFunction(page, scraperFunction)
+  runAScraper = async (page: playwright.Page) => {
+    return this.pageManager.getAllDateOptions(page)
+    .then((dateOptions: string[]) => {
+      return runInteractionLoop(page, 
+        dateOptions,
+        this.pageManager.selectDateOption,   
+        this.pageManager.scrapeContainers)
+    })
   }
 
-  runScraperFunction = async (page: puppeteer.Page,
-    scraperFunction: ScraperFunction,
-    input?: any
-  ): Promise<Comedian[][]> => {
-    if (scraperFunction.interactionFunction) {
-      return scraperFunction.interactionFunction(page, input)
-      .then((page: puppeteer.Page) => this.scrapeScrapeableElement(page, scraperFunction))
-    }
-    return this.scrapeScrapeableElement(page, scraperFunction)
+  runBScraper = async (page: playwright.Page) => {
+    return this.pageManager.expandPage(page)
+    .then((page: playwright.Page) => this.pageManager.getValidDetailPageLinks(page))
+    .then((links: string[]) => {
+      return runInteractionLoop(page, 
+        links,
+        this.pageManager.navigateToUrl,   
+        this.pageManager.scrapeDetailPage)
+    })
   }
 
-  scrapeScrapeableElement = async (page: puppeteer.Page, scraperFunction: ScraperFunction) => {
-    return scraperFunction.getScrapableElementsFunction(page)
-    .then((scrapableElement: ScrapableElement) => scraperFunction.scrapeFunction(scrapableElement))
+  runCScraper = async (page: playwright.Page) => {
+    return this.pageManager.expandPage(page)
+    .then((page: playwright.Page) => this.pageManager.getAllDateOptions(page))
+    .then((dateOptions: string[]) => {
+      return runInteractionLoop(page, 
+        dateOptions,
+        this.pageManager.selectDateOption,   
+        this.pageManager.scrapeContainers)
+    })
   }
 
-  loopAndScrape = async (page: puppeteer.Page, inputs: any, scraperFunction: ScraperFunction): Promise<Comedian[][]> => {
-    var comedianArrays: Comedian[][] = [];
-
-    for (let index = 0; index < inputs.length - 1; index++) {
-      const comedians = await this.runScraperFunction(page, scraperFunction, inputs[index])
-      comedianArrays = comedianArrays.concat(comedians)
-    }
-
-    return comedianArrays
+  runDScraper = async (page: playwright.Page) => {
+    return this.pageManager.expandPage(page)
+    .then((page: playwright.Page) => this.pageManager.getAllDateOptions(page))
+    .then((dateOptions: string[]) => {
+      return runInteractionLoop(page, 
+        dateOptions,
+        this.pageManager.selectDateOption,   
+        this.pageManager.scrapeContainers)
+    })
   }
 
 }

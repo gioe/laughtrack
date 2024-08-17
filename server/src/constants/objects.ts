@@ -1,17 +1,21 @@
   export const SCRAPER_KEYS = {
     pagesToScrape: 'pagesToScrape',
-    optionsSelector: "optionsSelector",
+    dateOptionsSelector: "dateOptionsSelector",
+    dateSelectSelector: "dateSelectSelector",  
+    
     showDetailContainerSelector: "showDetailContainerSelector",
+    detailPageButtonSelector: 'detailPageButtonSelector',
+    
     validShowContainerSignifier: "validShowContainerSignifier",
     showDetailPageLinkSelector: "showDetailPageLinkSelector",
+    showTicketLinkSelector: "showTicketLinkSelector",
     dateTimeSelector: "dateTimeSelector",
     dateSelector: "dateSelector",
-    timeSelector: "timeSelector",
+    showTimeSelector: "showTimeSelector",
     dateSeparator: "dateSeparator",
-    ticketLinkSelector: "ticketLinkSelector",
     badDateStrings: "badDateStrings",
     badTimeStrings: "badTimeStrings",
-    nameSelector: "nameSelector",
+    comedianNameSelector: "comedianNameSelector",
     badNameCharacters: "badNameCharacters",
     badNameStrings: "badNameStrings",
     showSignifiers: "showSignifiers",
@@ -36,9 +40,5 @@
     moreShowsButtonSelector: "moreShowsButtonSelector",
     showDetailContainerSelector: "showDetailContainerSelector",
     nextPageLinkSelector: "nextPageLinkSelector",
-    shouldScrapeByOptionSelection: "shouldScrapeByOptionSelection",
-    shouldScrapeByDetailPage: "shouldScrapeByDetailPage",
-    shouldScrapeByNavigationAndDetailPages: "shouldScrapeByNavigationAndDetailPages",
-    optionsSelector: "optionsSelector",
-    selectSelector: "selectSelector"
+    scraperType: "scraperType",
   };

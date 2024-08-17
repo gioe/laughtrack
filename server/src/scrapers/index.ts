@@ -1,4 +1,4 @@
-import puppeteer from "puppeteer";
+import playwright from "playwright";
 import { readJsonFile } from "../util/storage/fileSystem.js";
 import { writeToFirestore } from '../util/storage/fireStore.js';
 import { FIRESTORE_COLLECTIONS } from '../constants/firestore.js';
@@ -18,7 +18,7 @@ export const scrapeAllClubs = async () => {
     const startDate = new Date()
     console.log(`Started all scraping jobs at ${startDate}`);
 
-    puppeteer.launch({ dumpio: true, pipe: true, headless: true, args: ['--no-sandbox'] })
+    playwright.chromium.launch({ headless: true })
         .then(browser => runScrapers(browser))
         .then((comedians: Comedian[]) => {
             const cleanedComedians = cleanFinalComedianList(comedians);
@@ -31,18 +31,17 @@ const logCompletionTime = (startDate: Date) => {
     console.log(`Finished in ${(new Date().getTime() - startDate.getTime()) / 1000} seconds`);
 }
 
-const runScrapers = async (browser: puppeteer.Browser): Promise<Comedian[]> => {
+const runScrapers = async (browser: playwright.Browser): Promise<Comedian[]> => {
     return Promise.all(getIndividualTasks(browser))
-        .then((comedianArrays: Comedian[][]) => flattenElements(comedianArrays));
+        .then((comedianArrays: Comedian[][]) =>  flattenElements(comedianArrays));
 }
 
 
-const getIndividualTasks = (browser: puppeteer.Browser): Promise<Comedian[]>[] => {
+const getIndividualTasks = (browser: playwright.Browser): Promise<Comedian[]>[] => {
 
     const ALL_CLUBS = [
         "Comedy Cellar New York",
         "Comedy Cellar Las Vegas",
-        "Comic Strip Live NYC",
         "New York Comedy Club Midtown",
         "New York Comedy Club East Village",
         "New York Comedy Club Upper West Side",
@@ -65,7 +64,7 @@ const getIndividualTasks = (browser: puppeteer.Browser): Promise<Comedian[]>[] =
 
             return clubNames
             .filter((clubJson: any) => {
-                return clubJson[CLUB_KEYS.name] == ALL_CLUBS[0]
+                return clubJson[CLUB_KEYS.name] == ALL_CLUBS[2] || clubJson[CLUB_KEYS.name] == ALL_CLUBS[3] || clubJson[CLUB_KEYS.name] == ALL_CLUBS[4]
             })
             .map((clubJson: any) => {
                 const club = new Club(clubJson)
@@ -78,6 +77,6 @@ const getIndividualTasks = (browser: puppeteer.Browser): Promise<Comedian[]>[] =
 const storeData = (scrapedComedians: Comedian[]) => {
     scrapedComedians.forEach(comedian => {
         console.log(`Writing ${comedian.name} to storage`)
-        return writeToFirestore(FIRESTORE_COLLECTIONS.comedians, comedian)
+        // writeToFirestore(FIRESTORE_COLLECTIONS.comedians, comedian)
     })
 }

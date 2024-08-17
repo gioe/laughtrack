@@ -1,0 +1,85 @@
+import playwright from "playwright";
+import { provideGenericPromiseResponse } from '../util/types/promiseUtil.js';
+import { Scrapable } from "../types/scrapable.interface.js";
+
+export class ScrapableScraper {
+
+  getAllTextContent = async (scrapable: Scrapable,
+    selector?: string): Promise<string[]> => {
+
+    if (selector) {
+      return scrapable.$$eval(selector, (e: Element[]) => e.map(e => e.textContent ?? "") ?? [])
+        .catch(() => { throw new Error(`Error with ${selector} text values`) })
+    }
+
+    return provideGenericPromiseResponse([])
+  }
+
+  getTextContent = async (scrapable: Scrapable,
+    selector?: string): Promise<string> => {
+
+    if (selector) {
+      return scrapable.$eval(selector, (e: Element) => e.textContent ?? "")
+        .catch(() => { throw new Error(`Error with ${selector} text value`) })
+    }
+
+    return provideGenericPromiseResponse("")
+
+  }
+
+  getAllHrefs = async (scrapable: Scrapable,
+    selector?: string): Promise<string[]> => {
+
+    if (selector) {
+      return scrapable.$$eval(selector, (e: Element[]) => e.map(e => e.getAttribute('href') ?? ""))
+        .catch(() => { throw new Error(`Error with ${selector} hrefs`) })
+    }
+
+    return provideGenericPromiseResponse([])
+  }
+
+  getAllValues = async (scrapable?: Scrapable,
+    selector?: string): Promise<string[]> => {
+
+    if (selector && scrapable) {
+        return scrapable.$$eval(selector, (e: Element[]) => e.map(e => e.getAttribute('value') ?? "") ?? [])
+        .catch(() => { throw new Error(`Error with ${selector} values`) })
+    }
+
+    return provideGenericPromiseResponse([])
+  }
+
+  getHref = async (scrapable?: Scrapable,
+    selector?: string): Promise<string> => {
+
+    if (selector && scrapable) {
+        return scrapable.$eval(selector, (e: Element) => e.getAttribute('href') ?? "")
+        .catch(() => { throw new Error(`Error with ${selector} href`) })
+    }
+
+    return provideGenericPromiseResponse("")
+  }
+
+  getAllElements = async (scrapable?: Scrapable,
+    selector?: string): Promise<Element[]> => {
+
+    if (selector && scrapable) {
+        return scrapable.$$eval(selector, (e: Element[]) => e)
+        .catch(() => { throw new Error(`Error with ${selector} elements`) })
+    }
+    return provideGenericPromiseResponse([])
+
+  }
+
+  getAllElementsHandlers = async (scrapable?: Scrapable,
+    selector?: string): Promise<playwright.ElementHandle<Element>[]> => {
+
+    if (selector && scrapable) {
+      return scrapable.$$(selector)
+        .catch(() => { throw new Error(`Error with ${selector} element handlers`) })
+    }
+
+    return provideGenericPromiseResponse([])
+  }
+
+}

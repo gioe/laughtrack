@@ -1,32 +1,34 @@
-import Scrapable from "../types/scrapable.interface.js";
-import { ElementScaper } from "./ElementScaper.js";
+import { ScrapableScraper } from "./ScrapableScraper.js";
 import { providedStringPromise, runTasks } from "../util/types/promiseUtil.js";
 import { ScrapingConfig } from "../classes/ScrapingConfig.js";
+import { stringIsAValidDate } from "../util/types/dateUtil.js";
+import { Scrapable } from "../types/scrapable.interface.js";
 
 export class DateTimeScraper {
   private scrapingConfig: ScrapingConfig;
-  private elementScraper = new ElementScaper();
+  private scraper = new ScrapableScraper();
 
   constructor(scrapingConfig: ScrapingConfig) {
     this.scrapingConfig = scrapingConfig
   }
 
-  getShowTime = async (showComponent: Scrapable) => {
-    return this.elementScraper.getTextContent(showComponent, this.scrapingConfig.timeSelector)
+  getShowTime = async (scrapable: Scrapable) => {
+    return this.scraper.getTextContent(scrapable, this.scrapingConfig.showTimeSelector)
   }
 
-  getShowDate = async (showComponent: Scrapable) => {
-    return this.elementScraper.getTextContent(showComponent, this.scrapingConfig.dateSelector)
+  getShowDate = async (scrapable: Scrapable) => {
+    return this.scraper.getTextContent(scrapable, this.scrapingConfig.dateSelector)
   }
 
-  getShowDateTime = async (showComponent: Scrapable): Promise<string>  => {
-    return this.elementScraper.getTextContent(showComponent, this.scrapingConfig.dateTimeSelector)
+  getShowDateTime = async (scrapable: Scrapable): Promise<string>  => {
+    return this.scraper.getTextContent(scrapable, this.scrapingConfig.dateTimeSelector)
   }
 
-  combineDateAndTime = async (showComponent: Scrapable,
+  combineDateAndTime = async (scrapable: Scrapable,
      date?: string): Promise<string> => {
-    const dateTask = date ? providedStringPromise(date) : this.getShowDate(showComponent)
-    const timeTask = this.getShowTime(showComponent)
+    const dateTask = stringIsAValidDate(date ?? "") ? providedStringPromise(date ?? "") : this.getShowDate(scrapable)
+    
+    const timeTask = this.getShowTime(scrapable)
   
     return runTasks([dateTask, timeTask])
     .then((scrapedValues: string[]) => {
@@ -37,9 +39,10 @@ export class DateTimeScraper {
 
   }
 
-  getShowDateTimeTask = async (showComponent: Scrapable,
+  getShowDateTimeTask = async (scrapable: Scrapable,
     date?: string): Promise<string> => {
-    return this.scrapingConfig.dateTimeSelector ? this.getShowDateTime(showComponent)  : this.combineDateAndTime(showComponent, date)
+    
+    return this.scrapingConfig.dateTimeSelector ? this.getShowDateTime(scrapable) : this.combineDateAndTime(scrapable, date)
   }
 
 }

@@ -1,43 +1,53 @@
 import ValidationRules from '../types/validationRules.interface.js';
-import Scrapable from '../types/scrapable.interface.js';
 import { runTasks } from '../util/types/promiseUtil.js';
 import { ElementCounter } from './ElementCounter.js';
-import { ElementScaper } from './ElementScaper.js';
+import { removeBadWhiteSpace } from '../util/types/stringUtil.js';
+import { ElementHandle } from "playwright";
+import { ElementHandler } from './ElementHandler.js';
 
 export class ElementValidator {
 
   private elementCounter = new ElementCounter();
-  private elementScraper = new ElementScaper();
+  private elementHandler = new ElementHandler();
 
-  validateElements = async (elements: Scrapable[],
-    rules: ValidationRules): Promise<Scrapable[]> => {
-    
-      const tasks = elements.map(element => this.validateElement(element, rules))
-      return runTasks(tasks)
-    }
-  
+  filterInvalidElements = async (elementHandles: ElementHandle<Element>[], rules: ValidationRules): Promise<ElementHandle<Element>[]> => {
+    const tasks = elementHandles.map(elementHandle => this.filterInvalidElement(elementHandle, rules))
+    return runTasks(tasks)
+    .then((values: (ElementHandle<Element> | undefined)[]) => {
+      return values.filter(value => value !== undefined) as ElementHandle<Element>[]
+    })
+  }
 
-  validateElement = async (object: Scrapable,
-    rules: ValidationRules): Promise<Scrapable> => {
-    
-      const requiredSelectorTask = this.checkForRequiredSelectors(object, rules.requiredSelectors)
-      const invalidValueTask = this.checkforValidValue(object, rules.invalidText)
+  filterInvalidElement = async (elementHandle: ElementHandle<Element>, rules: ValidationRules): Promise<Promise<ElementHandle<Element> | undefined>> => {
+    return this.validateElement(elementHandle, rules).then((valid: boolean) =>  valid ? elementHandle : undefined)
+  }
+
+  validateElement = async (elementHandle: ElementHandle<Element>,
+    rules: ValidationRules
+  ): Promise<boolean> => {
+
+    const requiredSelectorTask = this.checkForRequiredSelectors(elementHandle, rules.requiredSelectors)
+    const invalidValueTask = this.checkforValidTextValue(elementHandle, rules.invalidText)
 
     return runTasks([requiredSelectorTask, invalidValueTask])
-      .then((validations: boolean[]) => {
-        return object
-      })
+      .then((validations: boolean[]) => validations.filter(validation => validation == false).length == 0)
+  }
 
+  checkForRequiredSelectors = async (elementHandle: ElementHandle<Element>,
+    requiredSelectors?: string[]): Promise<boolean> => {
+    if (requiredSelectors) {
+      const validationTasks = requiredSelectors.map(selector => this.elementCounter.getElementCount(elementHandle, selector))
+      return runTasks(validationTasks).then((counts: number[]) => counts.includes(0))
     }
+    return true
+  }
 
-    checkForRequiredSelectors = async (element: Scrapable,
-      requiredSelectors?: string[]): Promise<boolean> => {
-      
-        return runTasks([]).then(() => true)
-      }
-
-      checkforValidValue = async (element: Scrapable,
-        invalidValue?: string): Promise<boolean> => {
-          return runTasks([]).then(() => true)
-        }
+  checkforValidTextValue = async (elementHandle: ElementHandle<Element>,
+    invalidTextValue?: string): Promise<boolean> => {
+    if (invalidTextValue) {
+      return this.elementHandler.getTextContent(elementHandle)
+        .then((textContent: string) => removeBadWhiteSpace(textContent) != invalidTextValue)
+    }
+    return true;
+  }
 }

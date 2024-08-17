@@ -15,26 +15,17 @@
             }
         ],
         "interactionConfig": {
-            "shouldScrapeByOptionSelection": true,
-            "optionsSelector": "div.header > div > select > option",
-            "selectSelector": "#cc_lineup_select_dates" 
+            "scraperType": "A"
         },
         "scrapingConfig": {
-            "optionsSelector": "div.header > div > select > option",
+            "dateSelectSelector": "#cc_lineup_select_dates",
+            "dateOptionsSelector": "div.header > div > select > option",
             "showDetailContainerSelector": "div.sets > div",
-            "timeSelector": "div.info > h2 > span.bold",
-            "ticketLinkSelector": "div.make-reservation > a",
+            "showTimeSelector": "div.info > h2 > span.bold",
+            "showTicketLinkSelector": "div.make-reservation > a",
+            "comedianNameSelector": "span.name",
             "badTimeStrings": [
                 " show"
-            ],
-            "nameSelector": "span.name",
-            "badNameCharacters": [
-                "(",
-                "&"
-            ],
-            "badNameStrings": [
-                "",
-                "More!!"
             ],
             "showSignifiers": [
                 "with",
@@ -68,23 +59,17 @@
             }
         ],
         "interactionConfig": {
-            "shouldScrapeByDetailPage": true
+            "scraperType": "B",
+            "moreShowsButtonSelector": "#--load-more-shows"
         },
         "scrapingConfig": {
-            "shouldExpandPage": true,
-            "shouldScrapeByShowDetails": true,
-            "moreShowsButtonSelector": "#--load-more-shows",
-            "showDetailPageLinkSelector": "div.col-xs-12.col-sm-6.col-lg-7.upcoming-list-description.calendar-upcoming-list-description > a",
-            "showContainerSelector": "div.row.upcoming-container-list",
-            "validShowContainerSignifier": "div.col-xs-12.col-sm-6.col-lg-7.upcoming-list-description.calendar-upcoming-list-description > a",
+            "detailPageButtonSelector": "div.col-xs-12.col-sm-6.col-lg-7.upcoming-list-description.calendar-upcoming-list-description > a.btn.btn-default",
+            "invalidLinkText": "SOLD OUT",
             "dateTimeSelector": "div.mobile-event-header.header.visible-xs",
             "badDateStrings": [
                 " -"
             ],
-            "nameSelector": "div.event-comedians-container > div > p.comedian-name",
-            "showSignifiers": [
-                "new jokes"
-            ]
+            "comedianNameSelector": "div.event-comedians-container > div > p.comedian-name"
         }
     },
     {
@@ -97,10 +82,9 @@
             }
         ],
         "interactionConfig": {
-            "shouldScrapeByDetailPage": true
+            "scraperType": "B"
         },
         "scrapingConfig": {
-            "shouldScrapeByShowDetails": true,
             "shouldExpandPage": true,
             "moreShowsButtonSelector": "div.row.moreitems.dark-links.my-5",
             "showDetailPageLinkSelector": "div.d-grid.gap-2 > a.btn.btn-outline-light.the-ticket",
@@ -118,7 +102,7 @@
             "badDateStrings": [
                 " |"
             ],
-            "nameSelector": "div.flex-grow-1.ms-3 > a > h4 > strong",
+            "comedianNameSelector": "div.flex-grow-1.ms-3 > a > h4 > strong",
             "showSignifiers": [
                 "new jokes"
             ]
@@ -134,16 +118,15 @@
             }
         ],
         "interactionConfig": {
-            "shouldScrapeByDetailPage": true
+            "scraperType": "B"
         },
         "scrapingConfig": {
-            "shouldScrapeByShowDetails": true,
             "shouldExpandPage": true,
             "moreShowsButtonSelector": "#--load-more-shows",
             "showDetailPageLinkSelector": "div.col-xs-12.col-sm-6.col-sm-offset-1.upcoming-list-description > a.btn.btn-default",
             "showContainerSelector": "div.row.upcoming-container-list",
             "dateTimeSelector": "li.featured-event-date",
-            "nameSelector": "p.comedian-name"
+            "comedianNameSelector": "p.comedian-name"
         }
     },
     {
@@ -156,14 +139,13 @@
             }
         ],
         "interactionConfig": {
-            "shouldScrapeByDetailPage": true
+            "scraperType": "B"
         },
         "scrapingConfig": {
-            "shouldScrapeByShowDetails": true,
             "showContainerSelector": "div.row.upcoming-container-list",
             "showDetailPageLinkSelector": "div.col-xs-12.col-sm-3.upcoming-list-description > a.btn.btn-default",
             "dateTimeSelector": "li.featured-event-date",
-            "nameSelector": "p.comedian-name"
+            "comedianNameSelector": "p.comedian-name"
         }
     },
     {
@@ -176,10 +158,9 @@
             }
         ],
         "interactionConfig": {
-            "shouldScrapeByDetailPage": true
+            "scraperType": "C"
         },
         "scrapingConfig": {
-            "showScrapeShowDetailsOnDifferentPages": true,
             "pagesToScrape": 4,
             "nextPageLinkSelector": "div.calendar-next-btn > a",
             "showContainerSelector": "div.popover-event-container > div",
@@ -188,9 +169,7 @@
             "badDateStrings": [
                 " -"
             ],
-            "comedianHtmlConfig": {
-                "nameSelector": "p.comedian-name"
-            }
+            "comedianNameSelector": "p.comedian-name"
         }
     },
     {
@@ -203,15 +182,14 @@
             }
         ],
         "interactionConfig": {
-            "shouldScrapeByDetailPage": true
+            "scraperType": "B"
         },
         "scrapingConfig": {
-            "shouldScrapeByShowDetails": true,
             "shouldExpandPage": true,
             "moreShowsButtonSelector": "div.row.moreitems.dark-links.my-5",
             "dateTimeSelector": "body > div.container-xl.space-top.text-white > div > div.col-12.col-md-9 > h3",
             "ticketLinkSelector": "body > div.container-xl.space-top.text-white > div > div.col-12.col-md-9 > div.row > div > div > a",
-            "nameSelector": "div.flex-grow-1.ms-3 > a > h4 > strong"
+            "comedianNameSelector": "div.flex-grow-1.ms-3 > a > h4 > strong"
         }
     },
     {
@@ -224,14 +202,13 @@
             }
         ],
         "interactionConfig": {
-            "shouldScrapeByDetailPage": true
+            "scraperType": "B"
         },
         "scrapingConfig": {
-            "shouldScrapeByShowDetails": true,
             "showContainerSelector": "div.eventColl-overlay",
             "showDetailPageLinkSelector": "div.eventColl-btns > a",
             "dateTimeSelector": "p.event-page-date",
-            "nameSelector": "div.flex-grow-1.ms-3 > a > h4 > strong"
+            "comedianNameSelector": "div.flex-grow-1.ms-3 > a > h4 > strong"
         }
     }
 ]

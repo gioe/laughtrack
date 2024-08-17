@@ -1,6 +1,6 @@
-import puppeteer from 'puppeteer';
+import playwright from 'playwright';
 import { Comedian } from '../classes/Comedian.js';
 
 export interface ScraperInterface {
-    scrape: (page: puppeteer.Page) => Promise<Comedian[]>
+    scrape: (page: playwright.Page) => Promise<Comedian[]>
 }

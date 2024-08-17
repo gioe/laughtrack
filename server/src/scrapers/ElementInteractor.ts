@@ -1,35 +1,31 @@
-import puppeteer from 'puppeteer';
-import { delay, provideGenericPromiseResponse} from "../util/types/promiseUtil.js";
-import Interactable from '../types/interactable.interface.js';
-import { InteractableElement } from '../types/scrapingFunction.js';
+import playwright, { ElementHandle } from "playwright";
+import { delay, provideGenericPromiseResponse } from "../util/types/promiseUtil.js";
 
 const INTERACTION_DELAY = 1000;
 
 export class ElementInteractor {
 
-  select = async (interactable: InteractableElement, 
+  select = async (page: playwright.Page,
     selector?: string,
-    option?: string): Promise<puppeteer.Page> => {
-      if (option && selector) {
-        return (interactable as Interactable).select(selector, option)
-        .then(() => delay(INTERACTION_DELAY))
-        .then(() => interactable as puppeteer.Page)
-      }
+    option?: string): Promise<playwright.Page> => {
 
-      return provideGenericPromiseResponse(interactable as puppeteer.Page)
+    if (selector && option) {
+      return page.selectOption(selector, option)
+        .then(() => delay(INTERACTION_DELAY))
+        .then(() => page)
+    }
+    return provideGenericPromiseResponse(page)
   }
 
-  click = async (interactable: InteractableElement, 
-    selector?: string): Promise<puppeteer.Page> => {
-
+  clickPageButton = async (page: playwright.Page,
+    selector?: string): Promise<playwright.Page> => {
+    
     if (selector) {
-      return (interactable as Interactable).click(selector)
-      .then(() => (interactable as Interactable).waitForSelector(selector))
-      .then(() => delay(INTERACTION_DELAY))
-      .then(() => interactable as puppeteer.Page)
-    }
-
-    return provideGenericPromiseResponse(interactable as puppeteer.Page)
+      return page.click(selector)
+        .then(() => delay(INTERACTION_DELAY))
+        .then(() => page)
+    }  
+    return provideGenericPromiseResponse(page)
   }
 
 }

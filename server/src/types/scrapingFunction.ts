@@ -1,29 +1,11 @@
 import { Comedian } from "../classes/Comedian.js";
-import puppeteer from "puppeteer";
-import Scrapable from "./scrapable.interface.js";
-import Interactable from "./interactable.interface.js";
+import playwright, { ElementHandle } from "playwright";
+import { Scrapable } from "./scrapable.interface.js";
 
-export type InteractableElement = (Interactable | Interactable[])
-export type ScrapableElement = (Scrapable | Scrapable[])
+export type ScrapableElement = (playwright.Page | ElementHandle | ElementHandle[])
 
-export type GetInteractableFunction = (scrapable: Scrapable) => Promise<any>
-export type InteractionFunction = (interactable: InteractableElement, input?: any) => Promise<puppeteer.Page>
+export type LoopProviderFunction = (page?: playwright.Page) => Promise<any[]>
 
-export type GetScrapablesFunction = (scrapable: Scrapable) => Promise<ScrapableElement>
-export type ScrapingFunction = (scrapable: ScrapableElement) => Promise<Comedian[][]>
-
-export interface ClubScraper {
-    firstLoopFunction?: GetInteractableFunction;
-    secondLoopFunction?: GetInteractableFunction
-    scraperFunction: ScraperFunction;
-}
-
-export interface ScraperFunction {
-    interactionFunction?: InteractionFunction;
-    getScrapableElementsFunction: GetScrapablesFunction;
-    scrapeFunction: ScrapingFunction;
-}
-
-
-
-
+export type InteractionFunction = (page: playwright.Page, input?: any) => Promise<playwright.Page>
+export type GetScrapablesFunction = (scrapable: Scrapable) => Promise<Scrapable>
+export type ScrapingFunction = (scrapable: Scrapable, input?: any) => Promise<Comedian[][]>
