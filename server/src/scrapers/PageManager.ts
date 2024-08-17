@@ -10,11 +10,13 @@ import { provideGenericPromiseResponse, runTasks } from "../util/types/promiseUt
 import { ScrapableElement } from "../types/scrapingFunction.js";
 import { ElementHandler } from "./ElementHandler.js";
 import { Scrapable } from "../types/scrapable.interface.js";
+import { ElementCounter } from "./ElementCounter.js";
 
 export class PageManager {
 
   private elementInteractor = new ElementInteractor();
   private scraper = new ScrapableScraper();
+  private elementCounter = new ElementCounter();
   private elementValidator = new ElementValidator();
   private elementHandler = new ElementHandler();
 
@@ -86,11 +88,13 @@ export class PageManager {
   }
 
   expandPage = async (page: playwright.Page): Promise<playwright.Page> => {
-    console.log(`Checking if we can expand ${page.url()}`)
 
     return this.elementInteractor.clickPageButton(page, this.interactionConfig.moreShowsButtonSelector)
       .then((page: playwright.Page) => this.expandPage(page))
-      .catch(() => page)
+      .catch((error) => {
+        console.warn(error)
+        return page
+      })
   }
 
   getNextPageLink = (page: playwright.Page): Promise<string> => {

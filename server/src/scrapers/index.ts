@@ -18,7 +18,7 @@ export const scrapeAllClubs = async () => {
     const startDate = new Date()
     console.log(`Started all scraping jobs at ${startDate}`);
 
-    playwright.chromium.launch({ headless: true })
+    playwright.chromium.launch({ headless: false })
         .then(browser => runScrapers(browser))
         .then((comedians: Comedian[]) => {
             const cleanedComedians = cleanFinalComedianList(comedians);
@@ -41,7 +41,6 @@ const getIndividualTasks = (browser: playwright.Browser): Promise<Comedian[]>[] 
 
     const ALL_CLUBS = [
         "Comedy Cellar New York",
-        "Comedy Cellar Las Vegas",
         "New York Comedy Club Midtown",
         "New York Comedy Club East Village",
         "New York Comedy Club Upper West Side",
@@ -64,7 +63,7 @@ const getIndividualTasks = (browser: playwright.Browser): Promise<Comedian[]>[] 
 
             return clubNames
             .filter((clubJson: any) => {
-                return clubJson[CLUB_KEYS.name] == ALL_CLUBS[2] || clubJson[CLUB_KEYS.name] == ALL_CLUBS[3] || clubJson[CLUB_KEYS.name] == ALL_CLUBS[4]
+                return clubJson[CLUB_KEYS.name] == ALL_CLUBS[1];
             })
             .map((clubJson: any) => {
                 const club = new Club(clubJson)

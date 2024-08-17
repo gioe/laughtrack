@@ -13,7 +13,6 @@ export const runInteractionLoop = async (page: playwright.Page,
   console.log(`Looping through ${inputs.length} elements`)
 
   for (let index = 0; index < inputs.length - 1; index++) {
-    console.log(index)
     const comedians = await interactAndScrape(page, inputs[index], interactionFunction, scrapingFunction)
     comedianArrays = comedianArrays.concat(comedians)
   }

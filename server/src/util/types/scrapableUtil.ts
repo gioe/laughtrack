@@ -7,3 +7,9 @@ export const generateCompleteUrl = (scrapable: Scrapable, path: string): string 
     const pageOrigin = new URL(page.url()).origin;
 	return `${pageOrigin}${path}`
 }
+
+export const generateUrlsFromPaths = (scrapable: Scrapable, paths: string[]): string[] => {
+	return paths.map(path => generateCompleteUrl(scrapable, path))
+}
+
+

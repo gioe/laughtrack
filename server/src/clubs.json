@@ -6,12 +6,6 @@
                 "baseUrl": "https://www.comedycellar.com",
                 "schedulePageUrl": "https://www.comedycellar.com/new-york-line-up",
                 "timezone": "America/New_York"
-            },
-            {
-                "name": "Comedy Cellar Las Vegas",
-                "baseUrl": "https://www.comedycellar.com",
-                "schedulePageUrl": "https://www.comedycellar.com/las-vegas-line-up",
-                "timezone": "America/Los_Angeles"
             }
         ],
         "interactionConfig": {

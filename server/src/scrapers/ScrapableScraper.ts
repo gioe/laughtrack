@@ -1,15 +1,18 @@
 import playwright from "playwright";
 import { provideGenericPromiseResponse } from '../util/types/promiseUtil.js';
 import { Scrapable } from "../types/scrapable.interface.js";
+import { ElementHandler } from "./ElementHandler.js";
 
 export class ScrapableScraper {
 
+  private elementHandler = new ElementHandler();
+  
   getAllTextContent = async (scrapable: Scrapable,
     selector?: string): Promise<string[]> => {
 
     if (selector) {
       return scrapable.$$eval(selector, (e: Element[]) => e.map(e => e.textContent ?? "") ?? [])
-        .catch(() => { throw new Error(`Error with ${selector} text values`) })
+        .catch(() => { console.warn(`Error with ${selector} text values`) })
     }
 
     return provideGenericPromiseResponse([])
@@ -20,7 +23,7 @@ export class ScrapableScraper {
 
     if (selector) {
       return scrapable.$eval(selector, (e: Element) => e.textContent ?? "")
-        .catch(() => { throw new Error(`Error with ${selector} text value`) })
+        .catch(() => { console.warn(`Error with ${selector} text value`) })
     }
 
     return provideGenericPromiseResponse("")
@@ -32,7 +35,7 @@ export class ScrapableScraper {
 
     if (selector) {
       return scrapable.$$eval(selector, (e: Element[]) => e.map(e => e.getAttribute('href') ?? ""))
-        .catch(() => { throw new Error(`Error with ${selector} hrefs`) })
+        .catch(() => { console.warn(`Error with ${selector} hrefs`) })
     }
 
     return provideGenericPromiseResponse([])
@@ -43,7 +46,7 @@ export class ScrapableScraper {
 
     if (selector && scrapable) {
         return scrapable.$$eval(selector, (e: Element[]) => e.map(e => e.getAttribute('value') ?? "") ?? [])
-        .catch(() => { throw new Error(`Error with ${selector} values`) })
+        .catch(() => { console.warn(`Error with ${selector} values`) })
     }
 
     return provideGenericPromiseResponse([])
@@ -54,7 +57,7 @@ export class ScrapableScraper {
 
     if (selector && scrapable) {
         return scrapable.$eval(selector, (e: Element) => e.getAttribute('href') ?? "")
-        .catch(() => { throw new Error(`Error with ${selector} href`) })
+        .catch(() => { console.warn(`Error with ${selector} href`) })
     }
 
     return provideGenericPromiseResponse("")
@@ -65,7 +68,7 @@ export class ScrapableScraper {
 
     if (selector && scrapable) {
         return scrapable.$$eval(selector, (e: Element[]) => e)
-        .catch(() => { throw new Error(`Error with ${selector} elements`) })
+        .catch(() => { console.warn(`Error with ${selector} elements`) })
     }
     return provideGenericPromiseResponse([])
 
@@ -76,10 +79,29 @@ export class ScrapableScraper {
 
     if (selector && scrapable) {
       return scrapable.$$(selector)
-        .catch(() => { throw new Error(`Error with ${selector} element handlers`) })
+        .catch(() => { 
+          console.warn(`Error with ${selector} element handlers`)
+          return []
+         })
     }
 
     return provideGenericPromiseResponse([])
   }
 
+  getElementVisibility = async (scrapable?: Scrapable,
+    selector?: string): Promise<boolean> => {
+
+    if (selector && scrapable) {
+      return scrapable.$$(selector)
+      .then(elementHandles => this.elementHandler.getIsVisible(elementHandles[0]))
+      .catch((error) => {
+        console.warn(error)
+        return true
+      })
+    }
+    return provideGenericPromiseResponse(false)
+  }
+
+
+  
 }

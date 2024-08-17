@@ -1,21 +1,38 @@
-import { ElementHandle } from "playwright";
+import playwright, { ElementHandle } from "playwright";
 import { runTasks } from '../util/types/promiseUtil.js';
 import { Scrapable } from "../types/scrapable.interface.js";
-import { generateCompleteUrl } from "../util/types/scrapableUtil.js";
+import { generateCompleteUrl, generateUrlsFromPaths } from "../util/types/scrapableUtil.js";
+
+const EMPTY_STYLE_INDICATORS = ['display: none;']
 
 export class ElementHandler {
 
-  getTextContent = async (elementHandle: ElementHandle<Element>): Promise<string> => {
-    return elementHandle.evaluate(element => element.textContent ?? "")
+  getStyle = async (elementHandle: ElementHandle<Element>): Promise<string> => {
+    return elementHandle.getAttribute('style').then(href => href ?? "")
+  }
+
+  getIsVisible = async (elementHandle: ElementHandle<Element>): Promise<boolean> => {
+    return this.getStyle(elementHandle)
+    .then(style => {
+      const isNotVisible = EMPTY_STYLE_INDICATORS.includes(style)
+      console.log(!isNotVisible)
+      return !isNotVisible
+    })
+  }
+  
+  getTextContent = async (elementHandle: ElementHandle<Element>):  Promise<string> => {
+    return elementHandle.textContent().then(text => text ?? "")
+  }
+  
+  getHref = async (elementHandle: ElementHandle<Element>): Promise<string> => {
+    return elementHandle.getAttribute('href').then(href => href ?? "")
   }
 
   getAllHrefs = async (scrapable: Scrapable, elementHandles: ElementHandle<Element>[]): Promise<string[]> => {
     const tasks = elementHandles.map(elementHandle => this.getHref(elementHandle))
-    return runTasks(tasks).then((paths: string[]) =>  paths.map(path => generateCompleteUrl(scrapable, path)))
+   
+    return runTasks(tasks).then((paths: string[]) => generateUrlsFromPaths(scrapable, paths))
   }
 
-  getHref = async (elementHandle: ElementHandle<Element>): Promise<string> => {
-    return elementHandle.evaluate(element => element.getAttribute('href') ?? "")
-  }
-
+  
 }
