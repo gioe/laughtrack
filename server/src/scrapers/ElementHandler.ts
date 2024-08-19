@@ -11,13 +11,10 @@ export class ElementHandler {
     return elementHandle.getAttribute('style').then(href => href ?? "")
   }
 
-  getIsVisible = async (elementHandle: ElementHandle<Element>): Promise<boolean> => {
+  getIsVisible = async (elementHandle?: ElementHandle<Element>): Promise<boolean> => {
+    if (elementHandle == undefined) return false
     return this.getStyle(elementHandle)
-    .then(style => {
-      const isNotVisible = EMPTY_STYLE_INDICATORS.includes(style)
-      console.log(!isNotVisible)
-      return !isNotVisible
-    })
+    .then(style => !EMPTY_STYLE_INDICATORS.includes(style))
   }
   
   getTextContent = async (elementHandle: ElementHandle<Element>):  Promise<string> => {

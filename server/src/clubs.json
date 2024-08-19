@@ -71,35 +71,18 @@
             {
                 "name": "The Stand",
                 "baseUrl": "https://thestandnyc.com",
-                "schedulePageUrlUrl": "https://thestandnyc.com/shows",
+                "schedulePageUrl": "https://thestandnyc.com/shows",
                 "timezone": "America/New_York"
             }
         ],
         "interactionConfig": {
-            "scraperType": "B"
+            "scraperType": "B",
+            "moreShowsButtonSelector": "div.row.moreitems.dark-links.my-5 > div > div > a"
         },
         "scrapingConfig": {
-            "shouldExpandPage": true,
-            "moreShowsButtonSelector": "div.row.moreitems.dark-links.my-5",
-            "showDetailPageLinkSelector": "div.d-grid.gap-2 > a.btn.btn-outline-light.the-ticket",
-            "showDetailContainerSelector": "div.col-12.col-md-9",
-            "showContainerSelector": "div.row.show_row",
-            "validShowContainerSignifier": "div.col-4.col-md-3.col-xl-2.lineup-item",
-            "dateTimeSelector": "body > div.container-xl.space-top.text-white > div > div.col-12.col-md-9 > h3",
-            "ticketLinkSelector": "body > div.container-xl.space-top.text-white > div > div.col-12.col-md-9 > div.row > div > div > a",
-            "badTimeStrings": [
-                "Upstairs",
-                "Main",
-                "Patio",
-                "room"
-            ],
-            "badDateStrings": [
-                " |"
-            ],
-            "comedianNameSelector": "div.flex-grow-1.ms-3 > a > h4 > strong",
-            "showSignifiers": [
-                "new jokes"
-            ]
+            "detailPageButtonSelector": "a.btn.btn-outline-light.the-ticket",
+            "dateTimeSelector": "h3.showinfo",
+            "comedianNameSelector": "div.flex-grow-1.ms-3 > a > h4 > strong"
         }
     },
     {
@@ -112,14 +95,13 @@
             }
         ],
         "interactionConfig": {
-            "scraperType": "B"
+            "scraperType": "B",
+            "moreShowsButtonSelector": "#--load-more-shows"
         },
         "scrapingConfig": {
-            "shouldExpandPage": true,
-            "moreShowsButtonSelector": "#--load-more-shows",
-            "showDetailPageLinkSelector": "div.col-xs-12.col-sm-6.col-sm-offset-1.upcoming-list-description > a.btn.btn-default",
-            "showContainerSelector": "div.row.upcoming-container-list",
-            "dateTimeSelector": "li.featured-event-date",
+            "detailPageButtonSelector": "div.col-xs-12.col-sm-6.col-sm-offset-1.upcoming-list-description > a",
+            "invalidLinkText": "SOLD OUT",
+            "dateTimeSelector": "ul > li.featured-event-date",
             "comedianNameSelector": "p.comedian-name"
         }
     },
@@ -133,36 +115,12 @@
             }
         ],
         "interactionConfig": {
-            "scraperType": "B"
-        },
-        "scrapingConfig": {
-            "showContainerSelector": "div.row.upcoming-container-list",
-            "showDetailPageLinkSelector": "div.col-xs-12.col-sm-3.upcoming-list-description > a.btn.btn-default",
-            "dateTimeSelector": "li.featured-event-date",
-            "comedianNameSelector": "p.comedian-name"
-        }
-    },
-    {
-        "clubs": [
-            {
-                "name": "West Side Comedy Club",
-                "baseUrl": "https://www.westsidecomedyclub.com",
-                "schedulePageUrl": "https://www.westsidecomedyclub.com/calendar",
-                "timezone": "America/New_York"
-            }
-        ],
-        "interactionConfig": {
             "scraperType": "C"
         },
         "scrapingConfig": {
-            "pagesToScrape": 4,
-            "nextPageLinkSelector": "div.calendar-next-btn > a",
-            "showContainerSelector": "div.popover-event-container > div",
-            "showDetailPageLinkSelector": "div.clearfix > a",
-            "dateTimeSelector": "p.event-page-date",
-            "badDateStrings": [
-                " -"
-            ],
+            "detailPageButtonSelector": "div.col-xs-12.col-sm-3.upcoming-list-description.--btn-container > a",
+            "invalidLinkText": "SOLD OUT",
+            "dateTimeSelector": "ul > li.featured-event-date",
             "comedianNameSelector": "p.comedian-name"
         }
     },
@@ -176,14 +134,13 @@
             }
         ],
         "interactionConfig": {
-            "scraperType": "B"
+            "scraperType": "C"
         },
         "scrapingConfig": {
-            "shouldExpandPage": true,
-            "moreShowsButtonSelector": "div.row.moreitems.dark-links.my-5",
-            "dateTimeSelector": "body > div.container-xl.space-top.text-white > div > div.col-12.col-md-9 > h3",
-            "ticketLinkSelector": "body > div.container-xl.space-top.text-white > div > div.col-12.col-md-9 > div.row > div > div > a",
-            "comedianNameSelector": "div.flex-grow-1.ms-3 > a > h4 > strong"
+            "detailPageButtonSelector": "a.button.eventColl-statusBtn.eventColl-statusBtn--buy",
+            "invalidLinkText": "SOLD OUT",
+            "dateTimeSelector": "div.event-details__main-inner > time",
+            "comedianNameSelector": "ul.performers__list > li.supporters"
         }
     },
     {
@@ -196,13 +153,33 @@
             }
         ],
         "interactionConfig": {
-            "scraperType": "B"
+            "scraperType": "C"
         },
         "scrapingConfig": {
-            "showContainerSelector": "div.eventColl-overlay",
-            "showDetailPageLinkSelector": "div.eventColl-btns > a",
+            "detailPageButtonSelector": "a.button.eventColl-statusBtn.eventColl-statusBtn--buy",
+            "invalidLinkText": "SOLD OUT",
+            "dateTimeSelector": "div.event-details__main-inner > time",
+            "comedianNameSelector": "ul.performers__list > li.supporters"
+        }
+    },
+    {
+        "clubs": [
+            {
+                "name": "West Side Comedy Club",
+                "baseUrl": "https://www.westsidecomedyclub.com",
+                "schedulePageUrl": "https://www.westsidecomedyclub.com/calendar",
+                "timezone": "America/New_York"
+            }
+        ],
+        "interactionConfig": {
+            "scraperType": "D"
+        },
+        "scrapingConfig": {
+            "nextPageLinkSelector": "div.calendar-next-btn > a",
+            "detailPageButtonSelector": "div.popover-event-container > div.event-single > div.event-info.clearfix > div.clearfix > a",
+            "invalidLinkText": "SOLD OUT",
             "dateTimeSelector": "p.event-page-date",
-            "comedianNameSelector": "div.flex-grow-1.ms-3 > a > h4 > strong"
+            "comedianNameSelector": "p.comedian-name"
         }
     }
 ]

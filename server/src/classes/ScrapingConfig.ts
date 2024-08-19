@@ -8,6 +8,7 @@ export class ScrapingConfig {
 
   showDetailContainerSelector?: string;
   detailPageButtonSelector?: string;
+  nextPageLinkSelector?: string;
 
   validShowContainerSignifier?: string;
   showDetailPageLinkSelector?: string;
@@ -37,6 +38,7 @@ export class ScrapingConfig {
 
     this.validShowContainerSignifier = json[SCRAPER_KEYS.validShowContainerSignifier];
     this.showDetailPageLinkSelector = json[SCRAPER_KEYS.showDetailPageLinkSelector];
+    this.nextPageLinkSelector = json[SCRAPER_KEYS.nextPageLinkSelector]
 
     this.dateTimeSelector = json[SCRAPER_KEYS.dateTimeSelector];
     this.dateSelector = json[SCRAPER_KEYS.dateSelector];

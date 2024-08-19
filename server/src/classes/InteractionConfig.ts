@@ -6,14 +6,12 @@ export class InteractionConfig implements PageInteractable {
 
   moreShowsButtonSelector: string;
   showDetailContainerSelector: string;
-  nextPageLinkSelector: string;
   
   scraperType: ScraperType;
 
   constructor(json: any) {
     this.moreShowsButtonSelector = json[INTERACTION_KEYS.moreShowsButtonSelector];
     this.showDetailContainerSelector = json[INTERACTION_KEYS.showDetailContainerSelector];
-    this.nextPageLinkSelector = json[INTERACTION_KEYS.nextPageLinkSelector];
 
     this.scraperType = json[INTERACTION_KEYS.scraperType];
   }

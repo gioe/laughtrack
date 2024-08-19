@@ -6,17 +6,15 @@ import { InteractionConfig } from "../classes/InteractionConfig.js";
 import { Comedian } from "../classes/Comedian.js";
 import { ScrapingConfig } from "../classes/ScrapingConfig.js";
 import { ShowScraper } from "./ShowScraper.js";
-import { provideGenericPromiseResponse, runTasks } from "../util/types/promiseUtil.js";
-import { ScrapableElement } from "../types/scrapingFunction.js";
+import { runTasks } from "../util/types/promiseUtil.js";
 import { ElementHandler } from "./ElementHandler.js";
 import { Scrapable } from "../types/scrapable.interface.js";
-import { ElementCounter } from "./ElementCounter.js";
+import { generateCompleteUrl } from "../util/types/scrapableUtil.js";
 
 export class PageManager {
 
   private elementInteractor = new ElementInteractor();
   private scraper = new ScrapableScraper();
-  private elementCounter = new ElementCounter();
   private elementValidator = new ElementValidator();
   private elementHandler = new ElementHandler();
 
@@ -48,20 +46,27 @@ export class PageManager {
             invalidText: this.scrapingConfig.invalidLinkText
           })
       })
-      .then((elementHandlers: ElementHandle<Element>[]) => {
-        return this.elementHandler.getAllHrefs(scrapable, elementHandlers)
-      })
+      .then((elementHandlers: ElementHandle<Element>[]) => this.elementHandler.getAllHrefs(scrapable, elementHandlers))
   }
 
-  getLoopCount = (): Promise<number[]> => {
-    const pagesToScrape = this.scrapingConfig.pagesToScrape ?? 0
-    var values: number[] = []
+  getAllPageLinks = async (scrapable: Scrapable, allPageLinks?: string[]): Promise<string[]> => {
+    const page = scrapable as playwright.Page;
+    var pageLinks = allPageLinks ?? []
 
-    for (let index = 0; index < pagesToScrape - 1; index++) {
-      values.push(index)
-    }
-
-    return provideGenericPromiseResponse(values)
+    return this.getNextPageLink(page)
+    .then((link: string) => {
+      const completeUrl = generateCompleteUrl(page, link);
+      if (!pageLinks.includes(completeUrl)) {
+        pageLinks.push(completeUrl)
+        return this.navigateToUrl(page, completeUrl)
+      }
+      throw new Error("Page is already in the link list. Breaking loop")
+    })
+    .then((page: playwright.Page) => this.getAllPageLinks(page, pageLinks))
+    .catch((error) => {
+      console.warn(error)
+      return pageLinks
+    })
   }
 
   selectDateOption = async (page: playwright.Page, option?: string): Promise<playwright.Page> => {
@@ -81,14 +86,13 @@ export class PageManager {
     return this.showScraper.scapeShow(page, page.url()).then((comedianArray: Comedian[]) => [comedianArray])
   }
 
-  navigateToUrl = async (page: playwright.Page, input?: any): Promise<playwright.Page> => {
+  navigateToUrl = async (page: playwright.Page, input?: string): Promise<playwright.Page> => {
     console.log(`Navigating to ${input}`)
-    if (input) return page.goto(input as string).then(() => page)
+    if (input) return page.goto(input).then(() => page)
     return page
   }
 
   expandPage = async (page: playwright.Page): Promise<playwright.Page> => {
-
     return this.elementInteractor.clickPageButton(page, this.interactionConfig.moreShowsButtonSelector)
       .then((page: playwright.Page) => this.expandPage(page))
       .catch((error) => {
@@ -98,7 +102,7 @@ export class PageManager {
   }
 
   getNextPageLink = (page: playwright.Page): Promise<string> => {
-    return this.scraper.getHref(page, this.interactionConfig.nextPageLinkSelector);
+    return this.scraper.getHref(page, this.scrapingConfig.nextPageLinkSelector);
   }
 
 }

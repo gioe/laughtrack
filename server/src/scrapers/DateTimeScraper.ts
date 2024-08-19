@@ -33,8 +33,7 @@ export class DateTimeScraper {
     return runTasks([dateTask, timeTask])
     .then((scrapedValues: string[]) => {
       if (scrapedValues.length == 0) return ""
-      const dateTime = scrapedValues[0] + ' ' + scrapedValues[1]
-      return dateTime
+      return scrapedValues[0] + ' ' + scrapedValues[1]
     })
 
   }

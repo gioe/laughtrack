@@ -62,9 +62,6 @@ const getIndividualTasks = (browser: playwright.Browser): Promise<Comedian[]>[] 
             const pageManager = new PageManager(interactionConfig, scrapingConfig);
 
             return clubNames
-            .filter((clubJson: any) => {
-                return clubJson[CLUB_KEYS.name] == ALL_CLUBS[1];
-            })
             .map((clubJson: any) => {
                 const club = new Club(clubJson)
                 return new Scraper(club, browser, pageManager, interactionConfig).scrape()

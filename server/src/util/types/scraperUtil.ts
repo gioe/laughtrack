@@ -1,19 +1,40 @@
 import playwright from "playwright";
-import { InteractionFunction, ScrapableElement, ScrapingFunction } from "../../types/scrapingFunction.js";
+import { 
+  ScrapingLoopFunction,
+  InteractionFunction, 
+  LoopProviderFunction, 
+  ScrapingFunction 
+} from "../../types/scrapingFunction.js";
 import { Comedian } from "../../classes/Comedian.js";
 import { Scrapable } from "../../types/scrapable.interface.js";
 
-export const runInteractionLoop = async (page: playwright.Page, 
+export const generateScrapingLoop = async (
+  page: playwright.Page, 
+  loopProviderFunction: LoopProviderFunction,
+  action: InteractionFunction, 
+  scrapingFunction: ScrapingFunction | ScrapingLoopFunction) => {
+
+    return loopProviderFunction(page)
+    .then((loopValues: any[]) => {
+      return runInteractionLoop(page, 
+        loopValues,   
+        action,
+        scrapingFunction)
+    })
+}
+
+export const runInteractionLoop = async (
+  page: playwright.Page, 
   inputs: any[], 
-  interactionFunction: InteractionFunction, 
-  scrapingFunction: ScrapingFunction): Promise<Comedian[][]> => {
+  action: InteractionFunction,
+  scrapingFunction: ScrapingFunction | ScrapingLoopFunction): Promise<Comedian[][]> => {
 
   var comedianArrays: Comedian[][] = [];
 
   console.log(`Looping through ${inputs.length} elements`)
 
   for (let index = 0; index < inputs.length - 1; index++) {
-    const comedians = await interactAndScrape(page, inputs[index], interactionFunction, scrapingFunction)
+    const comedians = await actThenScrape(action(page, inputs[index]), scrapingFunction)
     comedianArrays = comedianArrays.concat(comedians)
   }
   
@@ -21,11 +42,8 @@ export const runInteractionLoop = async (page: playwright.Page,
   
 }
 
-export const interactAndScrape = async (page: playwright.Page, 
-  input: any,
-  interactionFunction: InteractionFunction, 
-  scrapingFunction: ScrapingFunction
+export const actThenScrape = async (pageResponse: Promise<playwright.Page>,
+  scrape: ScrapingFunction | ScrapingLoopFunction
 ): Promise<Comedian[][]> => {
-  return interactionFunction(page, input)
-  .then((scrapable: Scrapable) => scrapingFunction(scrapable))
+  return pageResponse.then((scrapable: Scrapable) => scrape(scrapable))
 }

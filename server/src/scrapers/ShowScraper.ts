@@ -36,6 +36,7 @@ export class ShowScraper {
   }
 
   addShowToComedians = (scrapedValues: string[], comedians: Comedian[]) => {
+    console.log(scrapedValues)
     const show = new Show(scrapedValues)
 
     comedians.forEach((comedian: Comedian) => {

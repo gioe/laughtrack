@@ -5,7 +5,8 @@
     
     showDetailContainerSelector: "showDetailContainerSelector",
     detailPageButtonSelector: 'detailPageButtonSelector',
-    
+    nextPageLinkSelector: 'nextPageLinkSelector',
+
     validShowContainerSignifier: "validShowContainerSignifier",
     showDetailPageLinkSelector: "showDetailPageLinkSelector",
     showTicketLinkSelector: "showTicketLinkSelector",

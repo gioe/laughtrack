@@ -5,7 +5,8 @@ import { PageManager } from "./PageManager.js";
 import { InteractionConfig } from "../classes/InteractionConfig.js";
 import { flattenElements } from "../util/types/arrayUtil.js";
 import { ScraperType } from "../types/scraperTypes.js";
-import { runInteractionLoop } from "../util/types/scraperUtil.js";
+import { generateScrapingLoop } from "../util/types/scraperUtil.js";
+import { Scrapable } from "../types/scrapable.interface.js";
 
 export class Scraper {
 
@@ -36,55 +37,38 @@ export class Scraper {
 
   runClubScrapingFunctions = async (page: playwright.Page): Promise<Comedian[][]> => { 
     switch (this.interactionConfig.scraperType) {
-      case ScraperType.A: return this.runAScraper(page)
-      case ScraperType.B: return this.runBScraper(page)
-      case ScraperType.C: return this.runCScraper(page)
-      case ScraperType.D: return this.runDScraper(page)
+      
+      case ScraperType.A: return this.selectDateOptionAndScrape(page)
+      case ScraperType.B: return this.pageManager.expandPage(page).then(page => this.goToDetailPageAndScrape(page))
+      case ScraperType.C: return this.goToDetailPageAndScrape(page)
+      case ScraperType.D: return this.runPaginatedDetailPageLoop(page)
+
       default: throw new Error("No scraping type found")
     }
   }
 
-  runAScraper = async (page: playwright.Page) => {
-    return this.pageManager.getAllDateOptions(page)
-    .then((dateOptions: string[]) => {
-      return runInteractionLoop(page, 
-        dateOptions,
-        this.pageManager.selectDateOption,   
-        this.pageManager.scrapeContainers)
-    })
+  selectDateOptionAndScrape = async (scrapable: Scrapable) => {
+    return generateScrapingLoop(scrapable as playwright.Page,
+      this.pageManager.getAllDateOptions,
+      this.pageManager.selectDateOption,
+      this.pageManager.scrapeContainers
+    )
   }
 
-  runBScraper = async (page: playwright.Page) => {
-    return this.pageManager.expandPage(page)
-    .then((page: playwright.Page) => this.pageManager.getValidDetailPageLinks(page))
-    .then((links: string[]) => {
-      return runInteractionLoop(page, 
-        links,
-        this.pageManager.navigateToUrl,   
-        this.pageManager.scrapeDetailPage)
-    })
+  goToDetailPageAndScrape = async (scrapable: Scrapable) => {
+    return generateScrapingLoop(scrapable as playwright.Page,
+      this.pageManager.getValidDetailPageLinks,
+      this.pageManager.navigateToUrl,
+      this.pageManager.scrapeDetailPage
+    )
   }
 
-  runCScraper = async (page: playwright.Page) => {
-    return this.pageManager.expandPage(page)
-    .then((page: playwright.Page) => this.pageManager.getAllDateOptions(page))
-    .then((dateOptions: string[]) => {
-      return runInteractionLoop(page, 
-        dateOptions,
-        this.pageManager.selectDateOption,   
-        this.pageManager.scrapeContainers)
-    })
-  }
-
-  runDScraper = async (page: playwright.Page) => {
-    return this.pageManager.expandPage(page)
-    .then((page: playwright.Page) => this.pageManager.getAllDateOptions(page))
-    .then((dateOptions: string[]) => {
-      return runInteractionLoop(page, 
-        dateOptions,
-        this.pageManager.selectDateOption,   
-        this.pageManager.scrapeContainers)
-    })
+  runPaginatedDetailPageLoop = async (page: playwright.Page) => {
+    return generateScrapingLoop(page,
+      this.pageManager.getAllPageLinks,
+      this.pageManager.navigateToUrl,
+      this.goToDetailPageAndScrape
+    )
   }
 
 }
