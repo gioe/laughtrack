@@ -3,10 +3,10 @@ import { Club } from "../classes/Club.js";
 import { Comedian } from "../classes/Comedian.js";
 import { PageManager } from "./PageManager.js";
 import { InteractionConfig } from "../classes/InteractionConfig.js";
-import { flattenElements } from "../util/types/arrayUtil.js";
-import { ScraperType } from "../types/scraperTypes.js";
-import { generateScrapingLoop } from "../util/types/scraperUtil.js";
-import { Scrapable } from "../types/scrapable.interface.js";
+import { flattenElements } from "../util/arrayUtil.js";
+import { ScraperType } from "../types/ScraperType.js";
+import { generateScrapingLoop } from "../util/scraperUtil.js";
+import { Scrapable } from "../api/interfaces/scrapable.interface.js";
 
 export class Scraper {
 

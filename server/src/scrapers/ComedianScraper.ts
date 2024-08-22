@@ -1,10 +1,9 @@
 import { ScrapableScraper } from "./ScrapableScraper.js";
-import { buildComediansFromNames } from "../util/types/comedianUtil.js";
+import { buildComediansFromNames } from "../util/comedianUtil.js";
 import { Comedian } from "../classes/Comedian.js";
 import { ScrapingConfig } from "../classes/ScrapingConfig.js";
 import { ElementCounter } from "./ElementCounter.js";
-import { ScrapableElement } from "../types/scrapingFunction.js";
-import { Scrapable } from "../types/scrapable.interface.js";
+import { Scrapable } from "../api/interfaces/scrapable.interface.js";
 
 export class ComedianScraper {
 

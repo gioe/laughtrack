@@ -6,10 +6,10 @@ import { InteractionConfig } from "../classes/InteractionConfig.js";
 import { Comedian } from "../classes/Comedian.js";
 import { ScrapingConfig } from "../classes/ScrapingConfig.js";
 import { ShowScraper } from "./ShowScraper.js";
-import { runTasks } from "../util/types/promiseUtil.js";
+import { runTasks } from "../util/promiseUtil.js";
 import { ElementHandler } from "./ElementHandler.js";
-import { Scrapable } from "../types/scrapable.interface.js";
-import { generateCompleteUrl } from "../util/types/scrapableUtil.js";
+import { Scrapable } from "../api/interfaces/scrapable.interface.js";
+import { generateCompleteUrl } from "../util/scrapableUtil.js";
 
 export class PageManager {
 

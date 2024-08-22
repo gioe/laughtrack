@@ -1,8 +1,8 @@
 import { ScrapableScraper } from "./ScrapableScraper.js";
-import { providedStringPromise, runTasks } from "../util/types/promiseUtil.js";
+import { providedStringPromise, runTasks } from "../util/promiseUtil.js";
 import { ScrapingConfig } from "../classes/ScrapingConfig.js";
-import { stringIsAValidDate } from "../util/types/dateUtil.js";
-import { Scrapable } from "../types/scrapable.interface.js";
+import { stringIsAValidDate } from "../util/dateUtil.js";
+import { Scrapable } from "../api/interfaces/scrapable.interface.js";
 
 export class DateTimeScraper {
   private scrapingConfig: ScrapingConfig;

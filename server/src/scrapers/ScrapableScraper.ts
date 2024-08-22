@@ -1,6 +1,6 @@
 import playwright from "playwright";
-import { provideGenericPromiseResponse } from '../util/types/promiseUtil.js';
-import { Scrapable } from "../types/scrapable.interface.js";
+import { provideGenericPromiseResponse } from '../util/promiseUtil.js';
+import { Scrapable } from "../api/interfaces/scrapable.interface.js";
 import { ElementHandler } from "./ElementHandler.js";
 
 export class ScrapableScraper {

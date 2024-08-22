@@ -1,9 +1,7 @@
-import { FieldValue } from "@google-cloud/firestore";
-import { ComedianInterface } from "../types/comedian.interface.js";
-import { removeAllWhiteSpace, removeBadWhiteSpace } from "../util/types/stringUtil.js";
+import { removeBadWhiteSpace } from "../util/stringUtil.js";
 import { Show } from "./Show.js";
 
-export class Comedian implements ComedianInterface {
+export class Comedian {
   name: string = ""
   shows: Show[] = []
 
@@ -19,13 +17,4 @@ export class Comedian implements ComedianInterface {
     return removeBadWhiteSpace(name);
   }
   
-  getDocumentName = () => { return removeAllWhiteSpace(this.name).toLowerCase(); }
-
-  getData = () => {
-    return {
-      name: this.name,
-      shows: FieldValue.arrayUnion(...this.shows),
-    }
-  }
-
 }

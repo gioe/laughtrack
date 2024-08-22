@@ -1,16 +1,14 @@
 import playwright from "playwright";
-import { readJsonFile } from "../util/storage/fileSystem.js";
-import { writeToFirestore } from '../util/storage/fireStore.js';
-import { FIRESTORE_COLLECTIONS } from '../constants/firestore.js';
+import { readJsonFile } from "../util/fileSystemUtil.js";
 import { Comedian } from "../classes/Comedian.js";
-import { flattenElements } from "../util/types/arrayUtil.js";
-import { cleanFinalComedianList } from "../util/types/comedianUtil.js";
+import { flattenElements } from "../util/arrayUtil.js";
+import { cleanFinalComedianList } from "../util/comedianUtil.js";
 import { Club } from "../classes/Club.js";
 import { PageManager } from "./PageManager.js";
 import { ScrapingConfig } from "../classes/ScrapingConfig.js";
 import { Scraper } from "./Scraper.js";
 import { InteractionConfig } from "../classes/InteractionConfig.js";
-import { CLUB_KEYS, JSON_KEYS } from "../constants/objects.js";
+import { JSON_KEYS } from "../constants/objects.js";
 
 const clubs = readJsonFile(process.env.CLUBS_FILE ?? "src/clubs.json")
 
@@ -73,6 +71,6 @@ const getIndividualTasks = (browser: playwright.Browser): Promise<Comedian[]>[] 
 const storeData = (scrapedComedians: Comedian[]) => {
     scrapedComedians.forEach(comedian => {
         console.log(`Writing ${comedian.name} to storage`)
-        // writeToFirestore(FIRESTORE_COLLECTIONS.comedians, comedian)
+
     })
 }

@@ -1,8 +1,7 @@
 import { INTERACTION_KEYS } from "../constants/objects.js";
-import PageInteractable from "../types/pageInteractable.interface.js";
-import { ScraperType } from "../types/scraperTypes.js";
+import { ScraperType } from "../types/ScraperType.js";
 
-export class InteractionConfig implements PageInteractable {
+export class InteractionConfig {
 
   moreShowsButtonSelector: string;
   showDetailContainerSelector: string;

@@ -1,11 +1,11 @@
-import { runTasks } from "../util/types/promiseUtil.js";
+import { runTasks } from "../util/promiseUtil.js";
 import { DateTimeScraper } from "./DateTimeScraper.js";
 import { Comedian } from "../classes/Comedian.js";
 import { ComedianScraper } from "./ComedianScraper.js";
 import { TicketScraper } from "./TicketScraper.js";
 import { ScrapingConfig } from "../classes/ScrapingConfig.js";
 import { Show } from "../classes/Show.js";
-import { Scrapable } from "../types/scrapable.interface.js";
+import { Scrapable } from "../api/interfaces/scrapable.interface.js";
 
 export class ShowScraper {
 

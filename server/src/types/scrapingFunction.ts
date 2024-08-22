@@ -1,5 +1,5 @@
 import playwright, { ElementHandle } from "playwright";
-import { Scrapable } from "./scrapable.interface.js";
+import { Scrapable } from "../api/interfaces/scrapable.interface.js";
 import { Comedian } from "../classes/Comedian.js";
 
 export type ScrapableElement = (playwright.Page | ElementHandle | ElementHandle[])

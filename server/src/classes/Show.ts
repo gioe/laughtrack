@@ -1,6 +1,4 @@
-import { ShowInterface } from "../types/show.interface.js";
-
-export class Show implements ShowInterface {
+export class Show {
 
   date?: string;
   time?: string;
@@ -8,8 +6,7 @@ export class Show implements ShowInterface {
   ticketLink: string = ""
 
   constructor(scrapedValues: string[]) {
-  // const dateTime = scrapedShow.dateTimeContainer.asDateObject()
-  // const ticketLink = formatShowTicketLink(scrapedShow.ticketString, club);
+
   }
 
   setDate = (dateString: string) => {

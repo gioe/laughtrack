@@ -1,5 +1,5 @@
-import { Scrapable } from '../types/scrapable.interface.js';
-import { provideGenericPromiseResponse, runTasks } from '../util/types/promiseUtil.js';
+import { Scrapable } from '../api/interfaces/scrapable.interface.js';
+import { provideGenericPromiseResponse, runTasks } from '../util/promiseUtil.js';
 
 export class ElementCounter {
 
