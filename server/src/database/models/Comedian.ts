@@ -2,9 +2,9 @@ import { DataTypes, Model, Optional } from 'sequelize';
 import sequelizeConnection from '../config.js';
 
 interface ComedianAttributes {
-    id: number;
-    slug: string;
     name: string;
+    slug?: string;
+    id?: number;
     createdAt?: Date;
     updatedAt?: Date;
     deletedAt?: Date;
@@ -25,7 +25,7 @@ class Comedian extends Model<ComedianAttributes, ComedianInput> implements Comed
 
 Comedian.init({
   id: {
-    type: DataTypes.INTEGER.UNSIGNED,
+    type: DataTypes.INTEGER,
     autoIncrement: true,
     primaryKey: true,
   },

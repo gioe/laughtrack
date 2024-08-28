@@ -4,6 +4,7 @@ const { isEmpty } = pkg;
 import Club, { ClubInput, ClubOuput } from '../models/Club.js'
 import { GetAllClubsFilters } from './types.js'
 
+
 export const create = async (payload: ClubInput): Promise<ClubOuput> => {
     const club = await Club.create(payload)
     return club

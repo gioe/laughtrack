@@ -5,7 +5,8 @@ export type CreateClubDTO = {
   baseUrl: string;
   schedulePageUrl: string;
   timezone: string;
-  slug?: string;
+  scraperType: string;
+  scrapingConfig: any;
 }
 
 export type UpdateClubDTO = Optional<CreateClubDTO, 'name'>

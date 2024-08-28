@@ -5,6 +5,16 @@ import * as comedianDal from '../dal/comedian.js'
 import { GetAllComediansFilters } from '../dal/types.js'
 import { ComedianInput, ComedianOuput } from '../models/Comedian.js'
 
+
+export const findOrCreate = async (payload: ComedianInput): Promise<ComedianOuput> => {
+    let slug = kebabCase(payload.name)
+    const slugExists = await comedianDal.checkSlugExists(slug)
+
+    payload.slug = slugExists ? `${slug}-${Math.floor(Math.random() * 1000)}` : slug
+    
+    return comedianDal.findOrCreate(payload)
+}
+
 export const create = async (payload: ComedianInput): Promise<ComedianOuput> => {
     let slug = kebabCase(payload.name)
     const slugExists = await comedianDal.checkSlugExists(slug)

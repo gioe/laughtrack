@@ -9,7 +9,7 @@ export const create = async (payload: ComedianInput): Promise<ComedianOuput> => 
     return comedian
 }
 
-export const findOrCreate = async (payload: ComedianInput): Promise<ComedianInput> => {
+export const findOrCreate = async (payload: ComedianInput): Promise<ComedianOuput> => {
     const [comedian] = await Comedian.findOrCreate({
         where: {
             name: payload.name

@@ -7,6 +7,10 @@ import localCache from '../../../lib/local-cache.js'
 
 const primaryCacheKey = 'shows'
 
+export const updateOrCreateAll = async(payload: CreateShowDTO[]): Promise<void> => {
+    await service.updateOrCreateAll(payload);
+}
+
 export const create = async(payload: CreateShowDTO): Promise<Show> => {
     return mapper.toShow(await service.create(payload))
 }

@@ -10,7 +10,8 @@ import { showsApiRouter } from "./api/routes/shows.js";
 import { userApiRouter } from "./api/routes/user.js";
 import { errorHandler } from "./api/middleware/error.middleware.js";
 import { notFoundHandler } from "./api/middleware/not-found.middleware.js";
-
+import { clubsApiRouter } from "./api/routes/clubs.js";
+import Club from "./database/models/Club.js";
 
 const isDev = process.env.NODE_ENV === 'development'
 
@@ -28,6 +29,7 @@ class App {
     protected databaseSync(): void {
         Show.sync({ alter: isDev })
         Comedian.sync({ alter: isDev })
+        Club.sync({ alter: isDev })
     }
 
     protected routes(): void {
@@ -35,6 +37,7 @@ class App {
         this.app.use('/scraper', scraperApiRouter);
         this.app.use('/shows', showsApiRouter);
         this.app.use('/user', userApiRouter);
+        this.app.use('/clubs', clubsApiRouter);
     }
 
     protected middleLayers(): void {

@@ -8,10 +8,8 @@
                 "timezone": "America/New_York"
             }
         ],
-        "interactionConfig": {
-            "scraperType": "A"
-        },
         "scrapingConfig": {
+            "type": "A",
             "dateSelectSelector": "#cc_lineup_select_dates",
             "dateOptionsSelector": "div.header > div > select > option",
             "showDetailContainerSelector": "div.sets > div",
@@ -52,11 +50,9 @@
                 "timezone": "America/New_York"
             }
         ],
-        "interactionConfig": {
-            "scraperType": "B",
-            "moreShowsButtonSelector": "#--load-more-shows"
-        },
         "scrapingConfig": {
+            "type": "B",
+            "moreShowsButtonSelector": "#--load-more-shows",
             "detailPageButtonSelector": "div.col-xs-12.col-sm-6.col-lg-7.upcoming-list-description.calendar-upcoming-list-description > a.btn.btn-default",
             "invalidLinkText": "SOLD OUT",
             "dateTimeSelector": "div.mobile-event-header.header.visible-xs",
@@ -75,11 +71,9 @@
                 "timezone": "America/New_York"
             }
         ],
-        "interactionConfig": {
-            "scraperType": "B",
-            "moreShowsButtonSelector": "div.row.moreitems.dark-links.my-5 > div > div > a"
-        },
         "scrapingConfig": {
+            "type": "B",
+            "moreShowsButtonSelector": "div.row.moreitems.dark-links.my-5 > div > div > a",
             "detailPageButtonSelector": "a.btn.btn-outline-light.the-ticket",
             "dateTimeSelector": "h3.showinfo",
             "comedianNameSelector": "div.flex-grow-1.ms-3 > a > h4 > strong"
@@ -94,11 +88,9 @@
                 "timezone": "America/New_York"
             }
         ],
-        "interactionConfig": {
-            "scraperType": "B",
-            "moreShowsButtonSelector": "#--load-more-shows"
-        },
         "scrapingConfig": {
+            "type": "B",
+            "moreShowsButtonSelector": "#--load-more-shows",
             "detailPageButtonSelector": "div.col-xs-12.col-sm-6.col-sm-offset-1.upcoming-list-description > a",
             "invalidLinkText": "SOLD OUT",
             "dateTimeSelector": "ul > li.featured-event-date",
@@ -114,10 +106,8 @@
                 "timezone": "America/New_York"
             }
         ],
-        "interactionConfig": {
-            "scraperType": "C"
-        },
         "scrapingConfig": {
+            "type": "C",
             "detailPageButtonSelector": "div.col-xs-12.col-sm-3.upcoming-list-description.--btn-container > a",
             "invalidLinkText": "SOLD OUT",
             "dateTimeSelector": "ul > li.featured-event-date",
@@ -133,10 +123,8 @@
                 "timezone": "America/New_York"
             }
         ],
-        "interactionConfig": {
-            "scraperType": "C"
-        },
         "scrapingConfig": {
+            "type": "C",
             "detailPageButtonSelector": "a.button.eventColl-statusBtn.eventColl-statusBtn--buy",
             "invalidLinkText": "SOLD OUT",
             "dateTimeSelector": "div.event-details__main-inner > time",
@@ -152,10 +140,8 @@
                 "timezone": "America/New_York"
             }
         ],
-        "interactionConfig": {
-            "scraperType": "C"
-        },
         "scrapingConfig": {
+            "type": "C",
             "detailPageButtonSelector": "a.button.eventColl-statusBtn.eventColl-statusBtn--buy",
             "invalidLinkText": "SOLD OUT",
             "dateTimeSelector": "div.event-details__main-inner > time",
@@ -171,10 +157,8 @@
                 "timezone": "America/New_York"
             }
         ],
-        "interactionConfig": {
-            "scraperType": "D"
-        },
         "scrapingConfig": {
+            "type": "D",
             "nextPageLinkSelector": "div.calendar-next-btn > a",
             "detailPageButtonSelector": "div.popover-event-container > div.event-single > div.event-info.clearfix > div.clearfix > a",
             "invalidLinkText": "SOLD OUT",

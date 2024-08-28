@@ -7,6 +7,13 @@ import localCache from '../../../lib/local-cache.js'
 
 const primaryCacheKey = 'clubs'
 
+export const createAll = async(payload: CreateClubDTO[]): Promise<Club[]> => {
+    const clubs = await service.createAll(payload);
+    return clubs.map(club => {
+        return mapper.toClub(club)
+    })
+}
+
 export const create = async(payload: CreateClubDTO): Promise<Club> => {
     return mapper.toClub(await service.create(payload))
 }

@@ -2,14 +2,13 @@ import playwright, { ElementHandle } from "playwright";
 import { ElementInteractor } from "./ElementInteractor.js";
 import { ScrapableScraper } from "./ScrapableScraper.js";
 import { ElementValidator } from "./ElementValidator.js";
-import { InteractionConfig } from "../classes/InteractionConfig.js";
-import { Comedian } from "../classes/Comedian.js";
-import { ScrapingConfig } from "../classes/ScrapingConfig.js";
+import { ScrapingConfig } from "../../classes/ScrapingConfig.js";
 import { ShowScraper } from "./ShowScraper.js";
-import { runTasks } from "../util/promiseUtil.js";
+import { runTasks } from "../../util/promiseUtil.js";
 import { ElementHandler } from "./ElementHandler.js";
-import { Scrapable } from "../api/interfaces/scrapable.interface.js";
-import { generateCompleteUrl } from "../util/scrapableUtil.js";
+import { Scrapable } from "../../api/interfaces/scrapable.interface.js";
+import { generateCompleteUrl } from "../../util/scrapableUtil.js";
+import { Show } from "../../api/interfaces/show.interface.js";
 
 export class PageManager {
 
@@ -18,16 +17,14 @@ export class PageManager {
   private elementValidator = new ElementValidator();
   private elementHandler = new ElementHandler();
 
-  private interactionConfig: InteractionConfig;
   private scrapingConfig: ScrapingConfig;
   private showScraper: ShowScraper;
 
-  constructor(interactionConfig: InteractionConfig,
-    scrapingConfig: ScrapingConfig,
+  constructor(
+    config: any,
   ) {
-    this.interactionConfig = interactionConfig;
-    this.scrapingConfig = scrapingConfig;
-    this.showScraper = new ShowScraper(scrapingConfig)
+    this.scrapingConfig = new ScrapingConfig(config)
+    this.showScraper = new ShowScraper(this.scrapingConfig)
   }
 
   getAllDateOptions = async (scrapable: Scrapable): Promise<string[]> => {
@@ -73,7 +70,7 @@ export class PageManager {
     return this.elementInteractor.select(page, this.scrapingConfig.dateSelectSelector, option)
   }
 
-  scrapeContainers = async (scrapable: Scrapable, input?: any): Promise<Comedian[][]> => {
+  scrapeContainers = async (scrapable: Scrapable, input?: any): Promise<Show[]> => {
     return this.getShowContainers(scrapable as playwright.Page)
       .then((elementHandlers: ElementHandle<Element>[]) => {
         const tasks = elementHandlers.map(handler => this.showScraper.scapeShow(handler, input))
@@ -81,19 +78,18 @@ export class PageManager {
       })
   }
 
-  scrapeDetailPage = async (scrapable: Scrapable): Promise<Comedian[][]> => {
+  scrapeDetailPage = async (scrapable: Scrapable): Promise<Show[]> => {
     const page = scrapable as playwright.Page
-    return this.showScraper.scapeShow(page, page.url()).then((comedianArray: Comedian[]) => [comedianArray])
+    return this.showScraper.scapeShow(page, page.url()).then((show: Show) => [show])
   }
 
   navigateToUrl = async (page: playwright.Page, input?: string): Promise<playwright.Page> => {
-    console.log(`Navigating to ${input}`)
     if (input) return page.goto(input).then(() => page)
     return page
   }
 
   expandPage = async (page: playwright.Page): Promise<playwright.Page> => {
-    return this.elementInteractor.clickPageButton(page, this.interactionConfig.moreShowsButtonSelector)
+    return this.elementInteractor.clickPageButton(page, this.scrapingConfig.moreShowsButtonSelector)
       .then((page: playwright.Page) => this.expandPage(page))
       .catch((error) => {
         console.warn(error)

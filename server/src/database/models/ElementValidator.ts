@@ -1,7 +1,7 @@
-import { ValidationRules} from '../types/ValidationRules.js';
-import { runTasks } from '../util/promiseUtil.js';
+import { ValidationRules} from '../../types/ValidationRules.js';
+import { runTasks } from '../../util/promiseUtil.js';
 import { ElementCounter } from './ElementCounter.js';
-import { removeBadWhiteSpace } from '../util/stringUtil.js';
+import { removeBadWhiteSpace } from '../../util/stringUtil.js';
 import { ElementHandle } from "playwright";
 import { ElementHandler } from './ElementHandler.js';
 

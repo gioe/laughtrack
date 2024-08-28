@@ -1,11 +1,11 @@
-import { runTasks } from "../util/promiseUtil.js";
+import { runTasks } from "../../util/promiseUtil.js";
 import { DateTimeScraper } from "./DateTimeScraper.js";
-import { Comedian } from "../classes/Comedian.js";
+import { Comedian } from "../../classes/Comedian.js";
 import { ComedianScraper } from "./ComedianScraper.js";
 import { TicketScraper } from "./TicketScraper.js";
-import { ScrapingConfig } from "../classes/ScrapingConfig.js";
-import { Show } from "../classes/Show.js";
-import { Scrapable } from "../api/interfaces/scrapable.interface.js";
+import { ScrapingConfig } from "../../classes/ScrapingConfig.js";
+import { Show } from "../../classes/Show.js";
+import { Scrapable } from "../../api/interfaces/scrapable.interface.js";
 
 export class ShowScraper {
 
@@ -19,14 +19,14 @@ export class ShowScraper {
     this.dateTimeScraper = new DateTimeScraper(scrapingConfig);
   }
 
-  scapeShow = async (scrapable: Scrapable, input?: any): Promise<Comedian[]> => {
+  scapeShow = async (scrapable: Scrapable, input?: any): Promise<Show> => {
     return this.comedianScraper.getAllComedianNames(scrapable)
     .then((comedians: Comedian[]) => this.runShowScrapingTasks(scrapable, comedians, input))
   } 
 
   runShowScrapingTasks = async (scrapable: Scrapable,
     comedians: Comedian[],
-    input?: any): Promise<Comedian[]> => {
+    input?: any): Promise<Show> => {
       
     const ticketTask = this.ticketScraper.getShowTicketTask(scrapable, input)
     const datetimeTask = this.dateTimeScraper.getShowDateTimeTask(scrapable, input)
@@ -35,15 +35,8 @@ export class ShowScraper {
     .then((scrapedValues: any[]) => this.addShowToComedians(scrapedValues, comedians))
   }
 
-  addShowToComedians = (scrapedValues: string[], comedians: Comedian[]) => {
-    console.log(scrapedValues)
-    const show = new Show(scrapedValues)
-
-    comedians.forEach((comedian: Comedian) => {
-      comedian.addShow(show)
-    })
-
-    return comedians;
+  addShowToComedians = (scrapedValues: string[], comedians: Comedian[]): Show => {
+    return new Show(scrapedValues, [])
   }
   
 }

@@ -4,6 +4,22 @@ const { kebabCase } = pkg;
 import * as showDal from '../dal/show.js'
 import { ShowInput, ShowOutput } from '../models/Show.js'
 import { GetAllShowsFilters } from '../dal/types.js'
+import { runTasks } from '../../util/promiseUtil.js';
+
+export const updateOrCreateAll = async(payload: ShowInput[]): Promise<ShowOutput[]> => {
+    const tasks = payload.map(element => updateOrCreate(element))
+    return runTasks(tasks)
+}
+
+export const updateOrCreate = async (payload: ShowInput): Promise<ShowOutput> => {
+    const showExists = await showDal.checkIfShowExists(payload) 
+
+    if (showExists) {
+        return create(payload)
+    }
+
+    return create(payload)
+}
 
 export const create = async (payload: ShowInput): Promise<ShowOutput> => {
     let slug = kebabCase(payload.ticketLink)

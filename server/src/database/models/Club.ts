@@ -1,13 +1,15 @@
 import { DataTypes, Model, Optional } from 'sequelize';
 import sequelizeConnection from '../config.js';
+import Show from './Show.js';
 
 interface ClubAttributes {
     id: number;
-    slug: string;
     name: string;
     baseUrl: string;
-    schedulePageUrl: string;
-    timezone: string;
+    schedulePageUrl: string
+    timezone: string
+    scrapingConfig: any;
+    slug?: string;
     createdAt?: Date;
     updatedAt?: Date;
     deletedAt?: Date;
@@ -20,10 +22,11 @@ export interface ClubOuput extends Required<ClubAttributes> {}
 class Club extends Model<ClubAttributes, ClubInput> implements ClubAttributes {
   public id!: number
   public name!: string
-  public slug!: string
   public baseUrl!: string
   public schedulePageUrl!: string
   public timezone!: string
+  public slug!: string
+  public scrapingConfig!: any
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
   public readonly deletedAt!: Date;
@@ -31,14 +34,14 @@ class Club extends Model<ClubAttributes, ClubInput> implements ClubAttributes {
 
 Club.init({
   id: {
-    type: DataTypes.INTEGER.UNSIGNED,
+    type: DataTypes.INTEGER,
     autoIncrement: true,
     primaryKey: true,
   },
   slug: {
-    type: DataTypes.INTEGER.UNSIGNED,
-    autoIncrement: true,
-    primaryKey: true,
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true
   },
   name: {
     type: DataTypes.STRING,
@@ -47,7 +50,7 @@ Club.init({
   baseUrl: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true
+    unique: false
   },
   schedulePageUrl: {
     type: DataTypes.STRING,
@@ -57,13 +60,21 @@ Club.init({
   timezone: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true
+    unique: false
+  },
+  scrapingConfig: {
+    type: DataTypes.JSON,
+    allowNull: false,
+    unique: false
   },
 }, {
   timestamps: true,
   sequelize: sequelizeConnection,
   paranoid: true
 })
+
+Club.hasMany(Show)
+Club.belongsTo(Show)
 
 export default Club;
 

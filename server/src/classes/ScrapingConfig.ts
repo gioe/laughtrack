@@ -5,11 +5,11 @@ export class ScrapingConfig {
   pagesToScrape?: number;
   dateOptionsSelector?: string;
   dateSelectSelector?: string;
-
+  type?: string;
   showDetailContainerSelector?: string;
   detailPageButtonSelector?: string;
   nextPageLinkSelector?: string;
-
+  moreShowsButtonSelector?: string;
   validShowContainerSignifier?: string;
   showDetailPageLinkSelector?: string;
   dateTimeSelector?: string;
@@ -18,7 +18,6 @@ export class ScrapingConfig {
   dateSeparator?: string;
   showTicketLinkSelector?: string;
   invalidLinkText?: string;
-
   badDateStrings?: string[];
   badTimeStrings?: string[];
   comedianNameSelector?: string;
@@ -27,19 +26,17 @@ export class ScrapingConfig {
   showSignifiers?: string[];
   requiredSelectors?: string[];
 
-
   constructor(json: any) {
+    this.type = json[SCRAPER_KEYS.type]
     this.pagesToScrape = json[SCRAPER_KEYS.pagesToScrape];
     this.dateOptionsSelector = json[SCRAPER_KEYS.dateOptionsSelector];
     this.dateSelectSelector = json[SCRAPER_KEYS.dateSelectSelector];
-
     this.showDetailContainerSelector = json[SCRAPER_KEYS.showDetailContainerSelector];
     this.detailPageButtonSelector = json[SCRAPER_KEYS.detailPageButtonSelector];
-
+    this.moreShowsButtonSelector = json[SCRAPER_KEYS.detailPageButtonSelector];
     this.validShowContainerSignifier = json[SCRAPER_KEYS.validShowContainerSignifier];
     this.showDetailPageLinkSelector = json[SCRAPER_KEYS.showDetailPageLinkSelector];
     this.nextPageLinkSelector = json[SCRAPER_KEYS.nextPageLinkSelector]
-
     this.dateTimeSelector = json[SCRAPER_KEYS.dateTimeSelector];
     this.dateSelector = json[SCRAPER_KEYS.dateSelector];
     this.showTimeSelector = json[SCRAPER_KEYS.showTimeSelector];

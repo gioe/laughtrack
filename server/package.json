@@ -32,7 +32,8 @@
     "pg": "^8.12.0",
     "pg-hstore": "^2.3.4",
     "playwright": "^1.46.1",
-    "postgres": "^3.4.4"
+    "postgres": "^3.4.4",
+    "sequelize": "^6.37.3"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

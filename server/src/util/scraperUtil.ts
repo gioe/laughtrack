@@ -5,14 +5,18 @@ import {
   LoopProviderFunction, 
   ScrapingFunction 
 } from "../types/scrapingFunction.js";
-import { Comedian } from "../classes/Comedian.js";
 import { Scrapable } from "../api/interfaces/scrapable.interface.js";
+import { Show } from "../api/interfaces/show.interface.js";
+
+// Generic functions applicable to all scrapers. These approximate the interactions a user might take
+// with the same pages.
+
 
 export const generateScrapingLoop = async (
   page: playwright.Page, 
   loopProviderFunction: LoopProviderFunction,
   action: InteractionFunction, 
-  scrapingFunction: ScrapingFunction | ScrapingLoopFunction) => {
+  scrapingFunction: ScrapingFunction | ScrapingLoopFunction): Promise<Show[]> => {
 
     return loopProviderFunction(page)
     .then((loopValues: any[]) => {
@@ -27,23 +31,23 @@ export const runInteractionLoop = async (
   page: playwright.Page, 
   inputs: any[], 
   action: InteractionFunction,
-  scrapingFunction: ScrapingFunction | ScrapingLoopFunction): Promise<Comedian[][]> => {
+  scrapingFunction: ScrapingFunction | ScrapingLoopFunction): Promise<Show[]> => {
 
-  var comedianArrays: Comedian[][] = [];
+  var scrapedShows: Show[] = [];
 
   console.log(`Looping through ${inputs.length} elements`)
 
   for (let index = 0; index < inputs.length - 1; index++) {
-    const comedians = await actThenScrape(action(page, inputs[index]), scrapingFunction)
-    comedianArrays = comedianArrays.concat(comedians)
+    const shows = await actThenScrape(action(page, inputs[index]), scrapingFunction)
+    scrapedShows = scrapedShows.concat(shows)
   }
   
-  return comedianArrays
+  return scrapedShows
   
 }
 
 export const actThenScrape = async (pageResponse: Promise<playwright.Page>,
   scrape: ScrapingFunction | ScrapingLoopFunction
-): Promise<Comedian[][]> => {
+): Promise<Show[]> => {
   return pageResponse.then((scrapable: Scrapable) => scrape(scrapable))
 }

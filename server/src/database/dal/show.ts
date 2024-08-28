@@ -4,6 +4,7 @@ const { isEmpty } = pkg;
 import Show, { ShowInput, ShowOutput } from "../models/Show.js"
 import { GetAllShowsFilters } from "./types.js"
 
+
 export const create = async (payload: ShowInput): Promise<ShowOutput> => {
     const show = await Show.create(payload)
     return show
@@ -38,11 +39,21 @@ export const getAll = async (filters?: GetAllShowsFilters): Promise<ShowOutput[]
 }
 
 export const checkSlugExists = async (slug: string): Promise<boolean> => {
-    const comedianWithSlug = await Show.findOne({
+    const showWithSlug = await Show.findOne({
         where: {
             slug
         }
     });
 
-    return !isEmpty(comedianWithSlug)
+    return !isEmpty(showWithSlug)
+}
+
+export const checkIfShowExists = async (payload: ShowInput): Promise<boolean> => {
+    const show = await Show.findOne({
+        where: {
+            
+        }
+    });
+
+    return !isEmpty(show)
 }

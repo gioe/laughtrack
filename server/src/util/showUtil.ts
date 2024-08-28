@@ -1,4 +1,4 @@
-import { Club } from "../classes/Club.js";
+import { Club } from "../api/interfaces/club.interface.js";
 
 export const isLikelyShow = (inputString: string, showSignifiers?: string[]): boolean => {
   var isLikely = false;
@@ -10,7 +10,6 @@ export const isLikelyShow = (inputString: string, showSignifiers?: string[]): bo
   }
   return isLikely
 }
-
 
 const formatShowTicketLink = (ticketLink: string, club: Club): string => {
   return !ticketLink.includes("http") ? club.baseUrl + ticketLink : ticketLink

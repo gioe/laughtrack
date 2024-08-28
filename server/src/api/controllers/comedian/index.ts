@@ -7,6 +7,10 @@ import localCache from '../../../lib/local-cache.js'
 
 const primaryCacheKey = 'comedians'
 
+export const findOrCreate = async(payload: CreateComedianDTO): Promise<Comedian> => {
+    return mapper.toComedian(await service.findOrCreate(payload))
+}
+
 export const create = async(payload: CreateComedianDTO): Promise<Comedian> => {
     return mapper.toComedian(await service.create(payload))
 }
