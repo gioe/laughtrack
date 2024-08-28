@@ -30,7 +30,7 @@ showsApiRouter.delete('/:id', async (req: Request, res: Response) => {
 
 showsApiRouter.post('/',  async (req: Request, res: Response) => {
     const payload: CreateShowDTO = req.body
-    const result = await showController.create(payload)
+    const result = await showController.updateOrCreate(payload)
     return res.status(200).send(result)
 })
 

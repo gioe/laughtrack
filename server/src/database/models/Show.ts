@@ -1,52 +1,54 @@
-import { DataTypes, Model, Optional } from 'sequelize';
 import sequelizeConnection from '../config.js';
+import { DataTypes, Model, Optional } from 'sequelize';
 
 interface ShowAttributes {
-    id: number;
-    dateTime?: Date;
-    ticketLink?: string;
-    slug?: string;
-    createdAt?: Date;
-    updatedAt?: Date;
-    deletedAt?: Date;
+  id: string;
+  clubId: string;
+  dateTime: Date;
+  ticketLink: string;
+  comedianIds: string[]
 };
 
-export interface ShowInput extends Optional<ShowAttributes, 'id' | 'slug'> {}
 
-export interface ShowOutput extends Required<ShowAttributes> {}
+export interface ShowCreationAttributes extends Optional<ShowAttributes, 'id'> { }
+export interface ShowOutput extends Required<ShowAttributes> { }
 
-class Show extends Model<ShowAttributes, ShowInput> implements ShowAttributes {
-  public id!: number
-  public dateTime!: Date
-  public ticketLink!: string
-  public slug!: string; 
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
-  public readonly deletedAt!: Date;
+interface ShowInstance
+  extends Model<ShowAttributes, ShowCreationAttributes>,
+  ShowAttributes {
+  createdAt?: Date;
+  updatedAt?: Date;
+  deletedAt?: Date;
 }
 
-Show.init({
-  id: {
-    type: DataTypes.INTEGER,
-    autoIncrement: true,
-    primaryKey: true,
-  },
-  dateTime: {
-    type: DataTypes.DATE,
-    allowNull: false,
-  },
-  ticketLink: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
-  slug: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique: true
-  }
-}, {
+const Show = sequelizeConnection.define<ShowInstance>(
+  'Show',
+  {
+    id: {
+      allowNull: false,
+      autoIncrement: false,
+      primaryKey: true,
+      type: DataTypes.UUID,
+      unique: true,
+    },
+    dateTime: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
+    ticketLink: {
+      type: DataTypes.TEXT,
+      allowNull: false
+    },
+    clubId: {
+      allowNull: false,
+      type: DataTypes.UUID,
+    },
+    comedianIds: {
+      allowNull: false,
+      type: DataTypes.ARRAY(DataTypes.STRING),
+    },
+  }, {
   timestamps: true,
-  sequelize: sequelizeConnection,
   paranoid: true
 });
 

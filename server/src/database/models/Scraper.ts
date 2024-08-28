@@ -5,6 +5,7 @@ import { generateScrapingLoop } from "../../util/scraperUtil.js";
 import { Scrapable } from "../../api/interfaces/scrapable.interface.js";
 import { Club } from "../../api/interfaces/club.interface.js";
 import { Show } from "../../api/interfaces/show.interface.js";
+import { ShowModel } from "../../classes/ShowModel.js";
 
 export class Scraper {
 
@@ -20,12 +21,19 @@ export class Scraper {
     this.pageManager = new PageManager(club.scrapingConfig);
   }
   
-  public scrape = async (): Promise<Show[]> => {
+  public scrape = async (): Promise<ShowModel[]> => {
     console.log(`Started scraping ${this.club.name} at ${new Date()} with scraper of type ${this.club.scrapingConfig.type}`);
 
     return this.browser.newPage()
       .then((page: playwright.Page) => this.pageManager.navigateToUrl(page, this.club.schedulePageUrl))
       .then((page: playwright.Page) => this.runClubScrapingFunction(page))
+      .then((shows: Show[]) => {
+        const showModels = shows as ShowModel[]
+        showModels.forEach(showModel => showModel.setClub(this.club))
+        return showModels
+      }
+    )
+
   }
 
   runClubScrapingFunction = async (page: playwright.Page): Promise<Show[]> => { 
@@ -35,7 +43,6 @@ export class Scraper {
       case ScraperType.B: return this.expandPageGoToDetailPageAndScrape(page)
       case ScraperType.C: return this.goToDetailPageAndScrape(page)
       case ScraperType.D: return this.runPaginatedDetailPageLoop(page)
-
       default: throw new Error("No scraping type found")
     }
   }

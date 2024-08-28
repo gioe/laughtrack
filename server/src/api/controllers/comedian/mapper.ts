@@ -4,10 +4,6 @@ import { Comedian } from "../../interfaces/comedian.interface.js"
 export const toComedian = (comedian: ComedianOuput): Comedian => {
     return {
         id: comedian.id,
-        name: comedian.name,
-        slug: comedian.slug,
-        createdAt: comedian.createdAt,
-        updatedAt: comedian.updatedAt,
-        deletedAt: comedian.deletedAt
+        name: comedian.name
     }
 }

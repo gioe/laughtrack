@@ -2,45 +2,37 @@ import { DataTypes, Model, Optional } from 'sequelize';
 import sequelizeConnection from '../config.js';
 
 interface ComedianAttributes {
-    name: string;
-    slug?: string;
-    id?: number;
-    createdAt?: Date;
-    updatedAt?: Date;
-    deletedAt?: Date;
+  id: string;
+  name: string;
 };
 
-export interface ComedianInput extends Optional<ComedianAttributes, 'id' | 'slug'> {}
+export interface ComedianCreationAttributes extends Optional<ComedianAttributes, 'id'> { }
+export interface ComedianOuput extends Required<ComedianAttributes> { }
 
-export interface ComedianOuput extends Required<ComedianAttributes> {}
-
-class Comedian extends Model<ComedianAttributes, ComedianInput> implements ComedianAttributes {
-  public id!: number
-  public name!: string
-  public slug!: string
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
-  public readonly deletedAt!: Date;
+interface ComedianInstance
+  extends Model<ComedianAttributes, ComedianCreationAttributes>,
+  ComedianAttributes {
+  createdAt?: Date;
+  updatedAt?: Date;
+  deletedAt?: Date;
 }
 
-Comedian.init({
-  id: {
-    type: DataTypes.INTEGER,
-    autoIncrement: true,
-    primaryKey: true,
-  },
-  name: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
-  slug: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique: true
-  },
-}, {
+const Comedian = sequelizeConnection.define<ComedianInstance>(
+  "Comedian",
+  {
+    id: {
+      allowNull: false,
+      autoIncrement: false,
+      primaryKey: true,
+      type: DataTypes.UUID,
+      unique: true,
+    },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+  }, {
   timestamps: true,
-  sequelize: sequelizeConnection,
   paranoid: true
 })
 

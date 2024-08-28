@@ -14,7 +14,7 @@ export const scrapeAllClubs = async () => {
 
     clubController.getAll({})
         .then((clubs: Club[]) => runScrapers(clubs))
-        .then((scrapedShows: Show[]) => showController.updateOrCreateAll(scrapedShows))
+        .then((scrapedShows: Show[]) => showController.updateOrCreateAll([]))
 
     console.log(`Finished in ${(new Date().getTime() - startDate.getTime()) / 1000} seconds`);
 }

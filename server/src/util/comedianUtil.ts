@@ -1,17 +1,16 @@
-import { Comedian } from "../classes/Comedian.js"
+import { ComedianModel } from "../classes/ComedianModel.js"
 import { ScrapingConfig } from "../classes/ScrapingConfig.js";
-import { Show } from "../classes/Show.js";
 import { REGEX } from "../constants/regex.js";
 import { isLikelyShow } from "./showUtil.js";
 import { removeSubstrings } from "./stringUtil.js";
 
 const SEPARATOR = ",";
 
-export const buildComediansFromNames = (comedianNames: string[], config: ScrapingConfig) => {
+export const buildComediansFromNames = (comedianNames: string[], config: ScrapingConfig): ComedianModel[] => {
 
   return comedianNames
   .map((comedianName: string) => normalizeNameString(comedianName, config))
-  .flatMap((names: string[]) => names.map((name: string) => new Comedian(name)))
+  .flatMap((names: string[]) => names.map((name: string) => new ComedianModel(name)))
 }
 
   export const normalizeNameString = (nameString: string, config: ScrapingConfig): string[] => {
@@ -47,29 +46,4 @@ export const buildComediansFromNames = (comedianNames: string[], config: Scrapin
     const spaceCount = nameString.match(" ")?.length ?? 0
 
     return includesCommas || spaceCount > 3
-  }
-  
-  export const cleanFinalComedianList = (comedianArray: Comedian[]): Comedian[] => {
-    const allComicNames = getUniqueNames(comedianArray);
-    return allComicNames.map((name: string) => createMergedComics(name, comedianArray))
-  }
-
-  const createMergedComics = (name: string, comedianArray: Comedian[]) => {
-    const containerComic = new Comedian(name)
-
-      comedianArray.forEach((comedian: Comedian) => {
-        if (comedian.name === name) {
-          comedian.shows.forEach((show: Show) => {
-            containerComic.addShow(show)
-          })
-        }
-      })
-      return containerComic;
-  }
-
-  const getUniqueNames = (comedianArray: Comedian[]) => {
-    const allComicNames = comedianArray
-    .filter((comedian: Comedian) => comedian.name !== "")
-    .map((comedian: Comedian) => comedian.name)   
-    return  [...new Set(allComicNames)]
   }

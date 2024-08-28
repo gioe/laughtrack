@@ -1,7 +1,12 @@
+import { Club } from "../interfaces/club.interface.js";
+import { Comedian } from "../interfaces/comedian.interface.js";
+
 export type CreateShowDTO = {
-    dateTime?: Date;
-    ticketLink?: string;
-    slug?: string;
+    clubId: string;
+    dateTime: Date;
+    ticketLink: string;
+    comedians: Comedian[];
+    club: Club;
 }
 
 export type FilterShowsDTO = {

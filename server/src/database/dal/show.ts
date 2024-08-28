@@ -1,21 +1,21 @@
 import pkg from 'lodash';
 const { isEmpty } = pkg;
 
-import Show, { ShowInput, ShowOutput } from "../models/Show.js"
+import Show, { ShowCreationAttributes, ShowOutput } from "../models/Show.js"
 import { GetAllShowsFilters } from "./types.js"
 
 
-export const create = async (payload: ShowInput): Promise<ShowOutput> => {
+export const create = async (payload: ShowCreationAttributes): Promise<ShowOutput> => {
     const show = await Show.create(payload)
     return show
 }
 
-export const update = async (id: number, payload: Partial<ShowInput>): Promise<ShowOutput> => {
+export const update = async (id: number, payload: Partial<ShowCreationAttributes>): Promise<ShowOutput> => {
     const show = await Show.findByPk(id)
     if (!show) {
         throw new Error('not found')
     }
-    const updatedShow = await (show as Show).update(payload)
+    const updatedShow = await show.update(payload)
     return updatedShow
 }
 
@@ -38,20 +38,11 @@ export const getAll = async (filters?: GetAllShowsFilters): Promise<ShowOutput[]
     return Show.findAll()
 }
 
-export const checkSlugExists = async (slug: string): Promise<boolean> => {
-    const showWithSlug = await Show.findOne({
-        where: {
-            slug
-        }
-    });
-
-    return !isEmpty(showWithSlug)
-}
-
-export const checkIfShowExists = async (payload: ShowInput): Promise<boolean> => {
+export const checkIfShowExists = async (payload: ShowCreationAttributes): Promise<boolean> => {
     const show = await Show.findOne({
         where: {
-            
+            clubId: payload.clubId,
+            dateTime: payload.dateTime
         }
     });
 

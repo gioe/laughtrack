@@ -1,11 +1,13 @@
 import { runTasks } from "../../util/promiseUtil.js";
 import { DateTimeScraper } from "./DateTimeScraper.js";
-import { Comedian } from "../../classes/Comedian.js";
+import { ComedianModel } from "../../classes/ComedianModel.js";
+import { Comedian } from "../../api/interfaces/comedian.interface.js";
 import { ComedianScraper } from "./ComedianScraper.js";
 import { TicketScraper } from "./TicketScraper.js";
 import { ScrapingConfig } from "../../classes/ScrapingConfig.js";
-import { Show } from "../../classes/Show.js";
 import { Scrapable } from "../../api/interfaces/scrapable.interface.js";
+import { Show } from "../../api/interfaces/show.interface.js";
+import { ShowModel } from "../../classes/ShowModel.js";
 
 export class ShowScraper {
 
@@ -21,22 +23,22 @@ export class ShowScraper {
 
   scapeShow = async (scrapable: Scrapable, input?: any): Promise<Show> => {
     return this.comedianScraper.getAllComedianNames(scrapable)
-    .then((comedians: Comedian[]) => this.runShowScrapingTasks(scrapable, comedians, input))
+    .then((comedians: ComedianModel[]) => this.runShowScrapingTasks(scrapable, comedians, input))
   } 
 
   runShowScrapingTasks = async (scrapable: Scrapable,
-    comedians: Comedian[],
+    comedians: ComedianModel[],
     input?: any): Promise<Show> => {
       
     const ticketTask = this.ticketScraper.getShowTicketTask(scrapable, input)
     const datetimeTask = this.dateTimeScraper.getShowDateTimeTask(scrapable, input)
 
     return runTasks([datetimeTask, ticketTask])
-    .then((scrapedValues: any[]) => this.addShowToComedians(scrapedValues, comedians))
+    .then((scrapedValues: any[]) => this.addComediansToShow(scrapedValues, comedians))
   }
 
-  addShowToComedians = (scrapedValues: string[], comedians: Comedian[]): Show => {
-    return new Show(scrapedValues, [])
+  addComediansToShow = (scrapedValues: string[], comedians: ComedianModel[]): Show => {
+    return new ShowModel(scrapedValues, comedians)
   }
   
 }

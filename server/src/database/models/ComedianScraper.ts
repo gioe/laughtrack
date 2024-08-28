@@ -1,6 +1,6 @@
 import { ScrapableScraper } from "./ScrapableScraper.js";
 import { buildComediansFromNames } from "../../util/comedianUtil.js";
-import { Comedian } from "../../classes/Comedian.js";
+import { ComedianModel } from "../../classes/ComedianModel.js";
 import { ScrapingConfig } from "../../classes/ScrapingConfig.js";
 import { ElementCounter } from "./ElementCounter.js";
 import { Scrapable } from "../../api/interfaces/scrapable.interface.js";
@@ -15,7 +15,7 @@ export class ComedianScraper {
     this.scrapingConfig = scrapingConfig
   }
 
-  getAllComedianNames = async (scrapable: Scrapable): Promise<Comedian[]> => {
+  getAllComedianNames = async (scrapable: Scrapable): Promise<ComedianModel[]> => {
     return this.elementCounter.getElementCount(scrapable, this.scrapingConfig.comedianNameSelector)
       .then((count: number) => count > 0 ? this.scraper.getAllTextContent(scrapable, this.scrapingConfig.comedianNameSelector) : [])
       .then((names: string[]) =>  buildComediansFromNames(names, this.scrapingConfig))

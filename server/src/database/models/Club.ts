@@ -3,62 +3,52 @@ import sequelizeConnection from '../config.js';
 import Show from './Show.js';
 
 interface ClubAttributes {
-    id: number;
+    id: string;
     name: string;
     baseUrl: string;
     schedulePageUrl: string
     timezone: string
     scrapingConfig: any;
-    slug?: string;
-    createdAt?: Date;
-    updatedAt?: Date;
-    deletedAt?: Date;
 };
 
-export interface ClubInput extends Optional<ClubAttributes, 'id' | 'slug'> {}
-
+export interface ClubCreationAttributes extends Optional<ClubAttributes, 'id'> {}
 export interface ClubOuput extends Required<ClubAttributes> {}
 
-class Club extends Model<ClubAttributes, ClubInput> implements ClubAttributes {
-  public id!: number
-  public name!: string
-  public baseUrl!: string
-  public schedulePageUrl!: string
-  public timezone!: string
-  public slug!: string
-  public scrapingConfig!: any
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
-  public readonly deletedAt!: Date;
-}
+interface ClubInstance
+  extends Model<ClubAttributes, ClubCreationAttributes>,
+    ClubAttributes {
+      createdAt?: Date;
+      updatedAt?: Date;
+      deletedAt?: Date;
+    }
 
-Club.init({
+
+const Club = sequelizeConnection.define<ClubInstance>(
+  'Club',
+  {
   id: {
-    type: DataTypes.INTEGER,
-    autoIncrement: true,
-    primaryKey: true,
-  },
-  slug: {
-    type: DataTypes.STRING,
     allowNull: false,
-    unique: true
+    autoIncrement: false,
+    primaryKey: true,
+    type: DataTypes.UUID,
+    unique: true,
   },
   name: {
-    type: DataTypes.STRING,
+    type: DataTypes.TEXT,
     allowNull: false
   },
   baseUrl: {
-    type: DataTypes.STRING,
+    type: DataTypes.TEXT,
     allowNull: false,
     unique: false
   },
   schedulePageUrl: {
-    type: DataTypes.STRING,
+    type: DataTypes.TEXT,
     allowNull: false,
     unique: true
   },
   timezone: {
-    type: DataTypes.STRING,
+    type: DataTypes.TEXT,
     allowNull: false,
     unique: false
   },
@@ -69,12 +59,19 @@ Club.init({
   },
 }, {
   timestamps: true,
-  sequelize: sequelizeConnection,
   paranoid: true
 })
 
-Club.hasMany(Show)
-Club.belongsTo(Show)
+Club.hasMany(Show, {
+  sourceKey: 'id',
+  foreignKey: 'clubId',
+  as: 'shows'
+});
+
+Show.belongsTo(Club, {
+  foreignKey: 'clubId',
+  as: 'club'
+});
 
 export default Club;
 

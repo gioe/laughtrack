@@ -53,7 +53,7 @@ clubsApiRouter.post('/',  async (req: Request, res: Response) => {
     return res.status(200).send(result)
 })
 
-clubsApiRouter.post('/all',  async (req: Request, res: Response) => {
+clubsApiRouter.post('/all', async (req: Request, res: Response) => {
     await clubController.createAll(clubs)
     return res.status(200).send({
         success: true
