@@ -22,7 +22,7 @@ export class Scraper {
   }
   
   public scrape = async (): Promise<ShowModel[]> => {
-    console.log(`Started scraping ${this.club.name} at ${new Date()} with scraper of type ${this.club.scrapingConfig.type}`);
+    console.log(`Started scraping ${this.club.name} at ${new Date()}`);
 
     return this.browser.newPage()
       .then((page: playwright.Page) => this.pageManager.navigateToUrl(page, this.club.schedulePageUrl))

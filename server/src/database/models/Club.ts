@@ -31,6 +31,7 @@ const Club = sequelizeConnection.define<ClubInstance>(
     autoIncrement: false,
     primaryKey: true,
     type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
     unique: true,
   },
   name: {

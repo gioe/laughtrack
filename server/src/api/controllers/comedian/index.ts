@@ -1,9 +1,9 @@
-import { Comedian } from '../../interfaces/comedian.interface.js'
 import * as mapper from './mapper.js'
 import * as service from '../../../database/services/ComedianService.js'
+import localCache from '../../../lib/local-cache.js'
 import { CreateComedianDTO, UpdateComedianDTO } from '../../dto/comedian.dto.js'
 import { GetAllComediansFilters } from '../../../database/dal/types.js'
-import localCache from '../../../lib/local-cache.js'
+import { Comedian } from '../../interfaces/comedian.interface.js'
 
 const primaryCacheKey = 'comedians'
 

@@ -11,6 +11,7 @@ export class ShowModel implements Show {
   club?: Club
 
   constructor(scrapedValues: string[], comedians: ComedianModel[]) {
+    console.log(scrapedValues)
     this.comedians = comedians
     this.dateTime = new Date()
     this.ticketLink = ""

@@ -30,7 +30,7 @@ export const update = async (id: number, payload: Partial<ClubCreationAttributes
     return updatedClub
 }
 
-export const getById = async (id: number): Promise<ClubOuput> => {
+export const getById = async (id: string): Promise<ClubOuput> => {
     const club = await Club.findByPk(id)
     if (!club) {
         throw new Error('not found')

@@ -11,7 +11,7 @@ comediansApiRouter.get('/', async (req: Request, res: Response) => {
     return res.status(200).send(results)
 })
 
-comediansApiRouter.get(':/id', async (req: Request, res: Response) => {
+comediansApiRouter.get('/:id', async (req: Request, res: Response) => {
     const id = Number(req.params.id)
     const result = await comedianController.getById(id)
     return res.status(200).send(result)

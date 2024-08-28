@@ -13,7 +13,7 @@ showsApiRouter.get('/', async (req: Request, res: Response) => {
     return res.status(200).send(results)
 })
 
-showsApiRouter.get(':/name', async (req: Request, res: Response) => {
+showsApiRouter.get('/:name', async (req: Request, res: Response) => {
     const id = Number(req.params.id)
     const result = await showController.getById(id)
     return res.status(200).send(result)

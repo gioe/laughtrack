@@ -19,7 +19,7 @@ export const update = async (id: number, payload: Partial<ClubCreationAttributes
     return clubDal.update(id, payload)
 }
 
-export const getById = (id: number): Promise<ClubOuput> => {
+export const getById = (id: string): Promise<ClubOuput> => {
     return clubDal.getById(id)
 }
 

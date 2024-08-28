@@ -24,8 +24,8 @@ clubsApiRouter.get('/', async (req: Request, res: Response) => {
     return res.status(200).send(results)
 })
 
-clubsApiRouter.get(':/id', async (req: Request, res: Response) => {
-    const id = Number(req.params.id)
+clubsApiRouter.get('/"id', async (req: Request, res: Response) => {
+    const id = String(req.params.id)
     const result = await clubController.getById(id)
     return res.status(200).send(result)
 })
