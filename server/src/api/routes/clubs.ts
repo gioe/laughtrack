@@ -1,9 +1,10 @@
 import * as clubController from "../controllers/club/index.js"
 import express, { Request, Response} from "express"; 
-import { GetAllClubsFilters } from "../../database/dal/types.js";
 import { CreateClubDTO, UpdateClubDTO } from "../dto/club.dto.js";
 import { readJsonFile } from "../../util/fileSystemUtil.js";
 import { JSON_KEYS } from "../../constants/objects.js";
+
+export const clubsApiRouter = express.Router();
 
 const clubs = readJsonFile(process.env.CLUBS_FILE ?? "src/clubs.json")
 .flatMap((json: any) => {
@@ -16,15 +17,12 @@ const clubs = readJsonFile(process.env.CLUBS_FILE ?? "src/clubs.json")
     })
 })
 
-export const clubsApiRouter = express.Router();
-
 clubsApiRouter.get('/', async (req: Request, res: Response) => {
-    const filters: GetAllClubsFilters = req.query
-    const results = await clubController.getAll(filters)
+    const results = await clubController.getAll()
     return res.status(200).send(results)
 })
 
-clubsApiRouter.get('/"id', async (req: Request, res: Response) => {
+clubsApiRouter.get('/:id', async (req: Request, res: Response) => {
     const id = String(req.params.id)
     const result = await clubController.getById(id)
     return res.status(200).send(result)
@@ -47,7 +45,7 @@ clubsApiRouter.delete('/:id', async (req: Request, res: Response) => {
     })
 })
 
-clubsApiRouter.post('/',  async (req: Request, res: Response) => {
+clubsApiRouter.post('/', async (req: Request, res: Response) => {
     const payload: CreateClubDTO = req.body
     const result = await clubController.create(payload)
     return res.status(200).send(result)

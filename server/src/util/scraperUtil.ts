@@ -38,7 +38,8 @@ export const runInteractionLoop = async (
   console.log(`Looping through ${inputs.length} elements`)
 
   for (let index = 0; index < inputs.length - 1; index++) {
-    const shows = await actThenScrape(action(page, inputs[index]), scrapingFunction)
+    const input = inputs[index];
+    const shows = await actThenScrape(action(page, input), input, scrapingFunction)
     scrapedShows = scrapedShows.concat(shows)
   }
   
@@ -47,7 +48,8 @@ export const runInteractionLoop = async (
 }
 
 export const actThenScrape = async (pageResponse: Promise<playwright.Page>,
+  input: any,
   scrape: ScrapingFunction | ScrapingLoopFunction
 ): Promise<Show[]> => {
-  return pageResponse.then((scrapable: Scrapable) => scrape(scrapable))
+  return pageResponse.then((scrapable: Scrapable) => scrape(scrapable, input))
 }

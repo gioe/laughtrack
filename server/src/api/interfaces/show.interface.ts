@@ -1,4 +1,3 @@
-import { Club } from "./club.interface.js";
 import { Comedian } from "./comedian.interface.js";
 
 export interface Show {
@@ -8,7 +7,6 @@ export interface Show {
     comedianIds?: string[]
     id?: string
     clubId?: string
-    club?: Club
     createdAt?: Date
     updatedAt?: Date
     deletedAt?: Date 

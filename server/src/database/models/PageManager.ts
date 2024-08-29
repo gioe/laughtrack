@@ -71,6 +71,7 @@ export class PageManager {
   }
 
   scrapeContainers = async (scrapable: Scrapable, input?: any): Promise<Show[]> => {
+    
     return this.getShowContainers(scrapable as playwright.Page)
       .then((elementHandlers: ElementHandle<Element>[]) => {
         const tasks = elementHandlers.map(handler => this.showScraper.scapeShow(handler, input))

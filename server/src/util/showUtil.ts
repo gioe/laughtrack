@@ -11,7 +11,7 @@ export const isLikelyShow = (inputString: string, showSignifiers?: string[]): bo
   return isLikely
 }
 
-const formatShowTicketLink = (ticketLink: string, club: Club): string => {
+export const formatShowTicketLink = (ticketLink: string, club: Club): string => {
   return !ticketLink.includes("http") ? club.baseUrl + ticketLink : ticketLink
 }
 

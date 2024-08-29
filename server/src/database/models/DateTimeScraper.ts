@@ -26,8 +26,8 @@ export class DateTimeScraper {
 
   combineDateAndTime = async (scrapable: Scrapable,
      date?: string): Promise<string> => {
+
     const dateTask = stringIsAValidDate(date ?? "") ? providedStringPromise(date ?? "") : this.getShowDate(scrapable)
-    
     const timeTask = this.getShowTime(scrapable)
   
     return runTasks([dateTask, timeTask])
@@ -35,12 +35,10 @@ export class DateTimeScraper {
       if (scrapedValues.length == 0) return ""
       return scrapedValues[0] + ' ' + scrapedValues[1]
     })
-
   }
 
   getShowDateTimeTask = async (scrapable: Scrapable,
     date?: string): Promise<string> => {
-    
     return this.scrapingConfig.dateTimeSelector ? this.getShowDateTime(scrapable) : this.combineDateAndTime(scrapable, date)
   }
 

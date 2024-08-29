@@ -31,6 +31,6 @@ export const deleteById = (id: number): Promise<boolean> => {
     return clubDal.deleteById(id)
 }
 
-export const getAll = (filters: GetAllClubsFilters): Promise<ClubOuput[]> => {
-    return clubDal.getAll(filters)
+export const getAll = (): Promise<ClubOuput[]> => {
+    return clubDal.getAll()
 }

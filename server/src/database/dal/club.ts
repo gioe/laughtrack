@@ -61,7 +61,7 @@ export const deleteById = async (id: number): Promise<boolean> => {
     return !!deletedClubCount
 }
 
-export const getAll = async (filters?: GetAllClubsFilters): Promise<ClubOuput[]> => {
+export const getAll = async (): Promise<ClubOuput[]> => {
     return Club.findAll()
 }
 

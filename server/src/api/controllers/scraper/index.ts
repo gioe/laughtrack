@@ -7,15 +7,14 @@ import { Club } from "../../interfaces/club.interface.js";
 import { runTasks } from "../../../util/promiseUtil.js";
 import { Show } from "../../interfaces/show.interface.js";
 
-
 export const scrapeClub = async (id: string) => {
     const startDate = new Date()
 
     console.log(`Started all scraping jobs at ${startDate}`);
 
-    clubController.getById(id)
+    await clubController.getById(id)
         .then((club: Club) => runScraper(club))
-        .then((scrapedShows: Show[]) => showController.updateOrCreateAll([]))
+        .then((scrapedShows: Show[]) => console.log(scrapedShows))
 
     console.log(`Finished in ${(new Date().getTime() - startDate.getTime()) / 1000} seconds`);
 }
@@ -25,20 +24,15 @@ export const scrapeAllClubs = async () => {
 
     console.log(`Started all scraping jobs at ${startDate}`);
 
-    clubController.getAll({})
-        .then((clubs: Club[]) => runScrapers(clubs))
+    await clubController.getAll()
+        .then((clubs: Club[]) => {
+            const jobs = clubs.map((club: Club) => runScraper(club))
+            return runTasks(jobs)
+        })
+        .then((scrapedShows: Show[][]) => flatten(scrapedShows))
         .then((scrapedShows: Show[]) => console.log(scrapedShows))
 
     console.log(`Finished in ${(new Date().getTime() - startDate.getTime()) / 1000} seconds`);
-}
-
-const runScrapers = async (clubs: Club[]): Promise<Show[]> => {
-    return playwright.chromium.launch({ headless: true })
-        .then(browser => {
-            const jobs = clubs.map((club: Club) => new Scraper(club, browser).scrape())
-            return runTasks(jobs)
-        })
-        .then((showArrays: Show[][]) => flatten(showArrays))
 }
 
 const runScraper = async (club: Club): Promise<Show[]> => {

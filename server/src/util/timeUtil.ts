@@ -16,7 +16,6 @@ export const normalizeTimeString = (timeString: string, config: ScrapingConfig) 
     return minutes === undefined ? `${adjustedHours}:00` : `${adjustedHours}:${minutes}`;
 }
 
-
 export const cleanTimeString = (timeString: string, config: ScrapingConfig): string => {
     const badTimeContent = getBadTimeStringContent(config)
     return removeSubstrings(timeString, badTimeContent)

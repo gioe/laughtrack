@@ -52,7 +52,6 @@ export class Scraper {
     .then(page => this.goToDetailPageAndScrape(page))
   }
 
-
   selectDateOptionAndScrape = async (scrapable: Scrapable): Promise<Show[]> => {
     return generateScrapingLoop(scrapable as playwright.Page,
       this.pageManager.getAllDateOptions,

@@ -31,8 +31,8 @@ export const deleteById = async(id: number): Promise<Boolean> => {
     return isDeleted
 }
 
-export const getAll = async (filters: GetAllClubsFilters): Promise<Club[]> => {
-    const clubs = await service.getAll(filters).then((clubs) => clubs.map(mapper.toClub))
+export const getAll = async (): Promise<Club[]> => {
+    const clubs = await service.getAll().then((clubs) => clubs.map(mapper.toClub))
     
     if (clubs.length) {
         localCache.set(primaryCacheKey, clubs)
