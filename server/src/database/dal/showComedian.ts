@@ -1,6 +1,7 @@
 import { DATABASE } from "../../constants/database.js"
 import { 
     create,
+    deleteWithCondition,
     executeQuery
 } from "../../util/queryUtil.js"
 import { CreateShowComedianDTO, CreateShowComedianOutput } from "../../api/dto/showComedian.dto.js"
@@ -43,3 +44,8 @@ export const getAllComediansInShow = async (showId: number): Promise<GetComedian
     `
     return await executeQuery<GetComedianDetailsOutput>(queryString, [showId])
 }
+
+export const deleteAllShows = async (showIds: number[]): Promise<boolean> => {
+    return deleteWithCondition(DATABASE.SHOW_COMEDIANS_TABLE, `show_id = ANY($1::int[])`, [showIds])
+}
+

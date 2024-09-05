@@ -12,7 +12,6 @@ export const getById = async (id: number): Promise<GetComedianDetailsOutput> => 
 
 export const getAllShowsById = async (id: number): Promise<GetComedianShowsOutput> => {
     const comedian = await comedianDal.getComedianById(id);
-    console.log(comedian)
     return showComedianDal.getAllShowsForComedian(id, comedian.name)
 }
 

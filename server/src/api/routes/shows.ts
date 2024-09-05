@@ -32,3 +32,9 @@ showsApiRouter.post('/',  async (req: Request, res: Response) => {
     return res.status(200).send(result)
 })
 
+showsApiRouter.delete('/', async (req: Request, res: Response) => {
+    const result = await showController.deleteOldShows()
+    return res.status(204).send({
+        success: result
+    })
+})

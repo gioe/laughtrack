@@ -36,3 +36,13 @@ export const deleteById = async(id: number): Promise<boolean> => {
 export const getAll = async (): Promise<GetShowDetailsOutput[]> => {
     return showDal.getAllShows()
 }
+
+export const deleteOldShows = async (): Promise<boolean[]> => {
+    const oldShows = await showDal.getOldShows()
+    const oldShowIds: number[] = oldShows.map(show => show.id);
+    await showComedianDal.deleteAllShows(oldShowIds)
+
+    const tasks = oldShowIds.map(id => showDal.deleteShowById(id))
+    return runTasks(tasks);
+
+}

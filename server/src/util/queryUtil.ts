@@ -34,7 +34,7 @@ export async function getAll<T>(table: string): Promise<T[]> {
 
 export async function getAllWithCondition<T>(table: string, 
     condition: string, 
-    values: any[]): Promise<T[]> {
+    values?: any[]): Promise<T[]> {
     const queryString = `SELECT * FROM ${table} WHERE ${condition}`
     const { rows } = await pool.query(queryString, values)
     return rows
