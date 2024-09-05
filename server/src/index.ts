@@ -1,7 +1,6 @@
 import express, { Application } from "express";
 import cors from "cors";
 import helmet from "helmet";
-import { scheduleScrapes } from "./util/cronUtil.js";
 import { comediansApiRouter } from "./api/routes/comedians.js";
 import { scraperApiRouter } from "./api/routes/scraper.js";
 import { showsApiRouter } from "./api/routes/shows.js";
@@ -16,7 +15,6 @@ class App {
 
     constructor() {
         this.app = express()
-        this.app.set("port", process.env.PORT || 3000);
         this.routes()
         this.middleLayers()
         this.databaseSync()
@@ -48,11 +46,6 @@ class App {
 
 const app = new App().app;
 
-app.listen(app.get("port"), () => {
-    console.log(
-        "App is running at http://localhost:%d in %s mode",
-        app.get("port"),
-        app.get("env")
-    );
-    scheduleScrapes();
+app.listen(process.env.PORT, () => {
+    console.log("App is running at http://localhost:%d", process.env.PORT,);
 });
