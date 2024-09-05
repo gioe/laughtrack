@@ -1,13 +1,11 @@
-import DateContainerInterface from "../types/dateContainer.interface.js";
-import { determineDay, determineMonth, determineYear, normalizeDateString } from "../util/types/dateUtil.js";
+import { determineDay, determineMonth, determineYear, normalizeDateString } from "../util/dateUtil.js";
 import { ScrapingConfig } from "./ScrapingConfig.js";
-
 
 // Used for cases where the string value is a valid string, but doesn't contain a year so the DateConstructor
 // defaults to 2001 instead of the current year;
 const DEFAULT_YEAR = 2001;
 
-export class DateContainer implements DateContainerInterface {
+export class DateContainer {
 
   dateString: string = "";
   dateObject: Date;

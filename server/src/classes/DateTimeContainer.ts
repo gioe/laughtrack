@@ -1,10 +1,9 @@
-import DateTimeContainerInterface from "../types/dateTimeContainer.interface.js";
-import { getTimeByRegex } from "../util/types/timeUtil.js";
+import { getTimeByRegex } from "../util/timeUtil.js";
 import { DateContainer } from "./DateContainer.js";
 import { ScrapingConfig } from "./ScrapingConfig.js";
 import { TimeContainer } from "./TimeContainer.js";
 
-export class DateTimeContainer implements DateTimeContainerInterface {
+export class DateTimeContainer  {
 
   dateContainer: DateContainer;
   timeContainer: TimeContainer;
@@ -18,31 +17,17 @@ export class DateTimeContainer implements DateTimeContainerInterface {
     this.timeContainer = new TimeContainer(timeValue + dateTimeString.split(timeValue)[1], config)
   }
 
-asDateObject = (): Date => {   
-    // console.log(`Full string: ${this.dateTimeString}`)
-    // console.log(`Year: ${this.dateContainer.getYear()}`)
-    // console.log(`Month: ${this.dateContainer.getMonth()}`)
-    // console.log(`Day: ${this.dateContainer.getDay()}`)
-    // console.log(`Hour: ${this.timeContainer.getHours()}`)
-    // console.log(`Minute: ${this.timeContainer.getMinutes()}`)
-    // console.log(`Second: ${this.timeContainer.getSeconds()}`)
-    
-
-    // const dateObject = new Date(this.dateContainer.getYear(), 
-    // this.dateContainer.getMonth(), 
-    // this.dateContainer.getDay(), 
-    // this.timeContainer.getHours(), 
-    // this.timeContainer.getMinutes(), 
-    // this.timeContainer.getSeconds())
-
-    // console.log(`Object version: ${dateObject}`)
-    
+asDateObject = (): Date => {       
     return new Date(this.dateContainer.getYear(), 
     this.dateContainer.getMonth(), 
     this.dateContainer.getDay(), 
     this.timeContainer.getHours(), 
     this.timeContainer.getMinutes(), 
     this.timeContainer.getSeconds())
+}
+
+isValid = (): boolean => {
+  return !isNaN(this.asDateObject().getTime())
 }
 
 }

@@ -5,7 +5,13 @@
       "checkJs": true,
       "outDir": "dist",
       "lib": ["dom", "ESNext"],
-      "esModuleInterop": true
+      "esModuleInterop": true,
+      "target": "es6", 
+      "sourceMap": true, 
+      "strict": true,  
+      "skipLibCheck": true,  
+      "forceConsistentCasingInFileNames": true,
+      "allowSyntheticDefaultImports": true
     },
     "include": ["src/**/*", "src/app.ts"],
     "exclude": ["node_modules"],

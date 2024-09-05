@@ -2,16 +2,16 @@
     pagesToScrape: 'pagesToScrape',
     dateOptionsSelector: "dateOptionsSelector",
     dateSelectSelector: "dateSelectSelector",  
-    
+    type: "type",
     showDetailContainerSelector: "showDetailContainerSelector",
     detailPageButtonSelector: 'detailPageButtonSelector',
     nextPageLinkSelector: 'nextPageLinkSelector',
-
     validShowContainerSignifier: "validShowContainerSignifier",
     showDetailPageLinkSelector: "showDetailPageLinkSelector",
     showTicketLinkSelector: "showTicketLinkSelector",
     dateTimeSelector: "dateTimeSelector",
     dateSelector: "dateSelector",
+    timeSelector: "timeSelector",
     showTimeSelector: "showTimeSelector",
     dateSeparator: "dateSeparator",
     badDateStrings: "badDateStrings",
@@ -22,11 +22,11 @@
     showSignifiers: "showSignifiers",
     invalidLinkText: "invalidLinkText",
     requiredSelectors: "requiredSelectors",
+    moreShowsButtonSelector: "moreShowsButtonSelector",
   };
 
   export const JSON_KEYS = {
     clubs: 'clubs',
-    interactionConfig: 'interactionConfig',
     scrapingConfig: 'scrapingConfig',
   };
 
@@ -35,11 +35,4 @@
     baseUrl: 'baseUrl',
     schedulePageUrl: 'schedulePageUrl',
     timezone: 'timezone',
-  };
-
-  export const INTERACTION_KEYS = {
-    moreShowsButtonSelector: "moreShowsButtonSelector",
-    showDetailContainerSelector: "showDetailContainerSelector",
-    nextPageLinkSelector: "nextPageLinkSelector",
-    scraperType: "scraperType",
   };

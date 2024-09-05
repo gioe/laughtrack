@@ -1,8 +1,7 @@
-import TimeContainerInterface from "../types/timeContainer.interface.js";
-import { normalizeTimeString } from "../util/types/timeUtil.js";
+import { normalizeTimeString } from "../util/timeUtil.js";
 import { ScrapingConfig } from "./ScrapingConfig.js";
 
-export class TimeContainer implements TimeContainerInterface {
+export class TimeContainer {
 
   timeString: string = "";
   timeComponents: string[];

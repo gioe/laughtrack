@@ -1,32 +1,39 @@
-import { ShowInterface } from "../types/show.interface.js";
+import { ClubInterface } from "../api/interfaces/club.interface.js";
+import { ComedianInterface } from "../api/interfaces/comedian.interface.js";
+import { ShowInterface } from "../api/interfaces/show.interface.js";
+import { stringIsAValidDate } from "../util/dateUtil.js";
+import { formatShowTicketLink } from "../util/showUtil.js";
+import { Comedian } from "./Comedian.js";
+import { DateTimeContainer } from "./DateTimeContainer.js";
 
 export class Show implements ShowInterface {
 
-  date?: string;
-  time?: string;
-  dateTime?: Date;
-  ticketLink: string = ""
+  dateTime: Date = new Date();
+  ticketLink: string = "";
+  dateTimeString: string = "";
+  path: string;
+  comedians: ComedianInterface[]
+  clubId: number = 0;
+  isValid: boolean = true;
 
-  constructor(scrapedValues: string[]) {
-  // const dateTime = scrapedShow.dateTimeContainer.asDateObject()
-  // const ticketLink = formatShowTicketLink(scrapedShow.ticketString, club);
+  constructor(scrapedValues: string[], comedians: Comedian[]) {
+    this.comedians = comedians
+    this.dateTimeString = scrapedValues[0]
+    this.path = scrapedValues[1]
   }
 
-  setDate = (dateString: string) => {
-    this.date = dateString
+  setClub = (club: ClubInterface) => {
+    this.clubId = club.id;
+    this.ticketLink = formatShowTicketLink(this.path, club);
+    this.handleDateTime(club)
   }
 
-  setTime = (timeString: string) => {
-    this.time = timeString
-  }
-
-  setDateTime = (dateTime: Date) => {
-    this.dateTime = dateTime
-  }
-
-
-  setTicketLink = (ticketLinkString: string) => {
-    this.ticketLink = ticketLinkString
+  handleDateTime = (club: ClubInterface) => {
+    if (this.dateTimeString !== undefined) {
+      const dateTimeContainer = new DateTimeContainer(this.dateTimeString, club.scrapingConfig);
+      this.isValid = dateTimeContainer.isValid();
+      this.dateTime = dateTimeContainer.asDateObject();
+    }
   }
 
 }
