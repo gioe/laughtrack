@@ -12,6 +12,5 @@ export const readFile = (sourceFile: string) => {
 export const deleteFile = (sourceFile: string) => {
     fs.unlink(sourceFile, (err) => {
         if (err) throw err;
-        console.log(`${sourceFile} was deleted`);
     })
 };
