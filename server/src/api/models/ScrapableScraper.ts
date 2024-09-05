@@ -76,7 +76,7 @@ export class ScrapableScraper {
 
   getAllElementsHandlers = async (scrapable?: Scrapable,
     selector?: string): Promise<playwright.ElementHandle<Element>[]> => {
-
+    
     if (selector && scrapable) {
       return scrapable.$$(selector)
         .catch(() => { 

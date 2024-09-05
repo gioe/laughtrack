@@ -11,6 +11,7 @@
     showTicketLinkSelector: "showTicketLinkSelector",
     dateTimeSelector: "dateTimeSelector",
     dateSelector: "dateSelector",
+    timeSelector: "timeSelector",
     showTimeSelector: "showTimeSelector",
     dateSeparator: "dateSeparator",
     badDateStrings: "badDateStrings",

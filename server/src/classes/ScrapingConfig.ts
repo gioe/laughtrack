@@ -14,6 +14,7 @@ export class ScrapingConfig {
   showDetailPageLinkSelector?: string;
   dateTimeSelector?: string;
   dateSelector?: string;
+  timeSelector?: string;
   showTimeSelector?: string;
   dateSeparator?: string;
   showTicketLinkSelector?: string;
@@ -33,11 +34,12 @@ export class ScrapingConfig {
     this.dateSelectSelector = json[SCRAPER_KEYS.dateSelectSelector];
     this.showDetailContainerSelector = json[SCRAPER_KEYS.showDetailContainerSelector];
     this.detailPageButtonSelector = json[SCRAPER_KEYS.detailPageButtonSelector];
-    this.moreShowsButtonSelector = json[SCRAPER_KEYS.detailPageButtonSelector];
+    this.moreShowsButtonSelector = json[SCRAPER_KEYS.moreShowsButtonSelector];
     this.validShowContainerSignifier = json[SCRAPER_KEYS.validShowContainerSignifier];
     this.showDetailPageLinkSelector = json[SCRAPER_KEYS.showDetailPageLinkSelector];
     this.nextPageLinkSelector = json[SCRAPER_KEYS.nextPageLinkSelector]
     this.dateTimeSelector = json[SCRAPER_KEYS.dateTimeSelector];
+    this.timeSelector = json[SCRAPER_KEYS.timeSelector];
     this.dateSelector = json[SCRAPER_KEYS.dateSelector];
     this.showTimeSelector = json[SCRAPER_KEYS.showTimeSelector];
     this.dateSeparator = json[SCRAPER_KEYS.dateSeparator];

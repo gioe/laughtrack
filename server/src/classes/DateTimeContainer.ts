@@ -26,4 +26,8 @@ asDateObject = (): Date => {
     this.timeContainer.getSeconds())
 }
 
+isValid = (): boolean => {
+  return !isNaN(this.asDateObject().getTime())
+}
+
 }

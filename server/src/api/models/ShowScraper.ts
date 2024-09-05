@@ -1,12 +1,12 @@
 import { runTasks } from "../../util/promiseUtil.js";
 import { DateTimeScraper } from "./DateTimeScraper.js";
-import { ComedianModel } from "../../classes/ComedianModel.js";
+import { Comedian } from "../../classes/Comedian.js";
 import { ComedianScraper } from "./ComedianScraper.js";
 import { TicketScraper } from "./TicketScraper.js";
 import { ScrapingConfig } from "../../classes/ScrapingConfig.js";
 import { Scrapable } from "../../api/interfaces/scrapable.interface.js";
-import { Show } from "../../api/interfaces/show.interface.js";
-import { ShowModel } from "../../classes/ShowModel.js";
+import { ShowInterface } from "../../api/interfaces/show.interface.js";
+import { Show } from "../../classes/Show.js";
 
 export class ShowScraper {
 
@@ -20,14 +20,14 @@ export class ShowScraper {
     this.dateTimeScraper = new DateTimeScraper(scrapingConfig);
   }
 
-  scapeShow = async (scrapable: Scrapable, input?: any): Promise<Show> => {
+  scapeShow = async (scrapable: Scrapable, input?: any): Promise<ShowInterface> => {
     return this.comedianScraper.getAllComedianNames(scrapable)
-    .then((comedians: ComedianModel[]) => this.runShowScrapingTasks(scrapable, comedians, input))
+    .then((comedians: Comedian[]) => this.runShowScrapingTasks(scrapable, comedians, input))
   } 
 
   runShowScrapingTasks = async (scrapable: Scrapable,
-    comedians: ComedianModel[],
-    input?: any): Promise<Show> => {
+    comedians: Comedian[],
+    input?: any): Promise<ShowInterface> => {
         
     const ticketTask = this.ticketScraper.getShowTicketTask(scrapable, input)
     const datetimeTask = this.dateTimeScraper.getShowDateTimeTask(scrapable, input)
@@ -36,8 +36,8 @@ export class ShowScraper {
     .then((scrapedValues: any[]) => this.addComediansToShow(scrapedValues, comedians))
   }
 
-  addComediansToShow = (scrapedValues: string[], comedians: ComedianModel[]): Show => {
-    return new ShowModel(scrapedValues, comedians)
+  addComediansToShow = (scrapedValues: string[], comedians: Comedian[]): ShowInterface => {
+    return new Show(scrapedValues, comedians)
   }
   
 }

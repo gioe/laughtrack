@@ -1,48 +1,38 @@
-import * as showService from '../../../database/services/ShowService.js'
-import * as clubService from '../../../database/services/ClubService.js'
-import * as comedianService from '../../../database/services/ComedianService.js'
-import * as mapper from './mapper.js'
-import localCache from '../../../lib/local-cache.js'
-import { GetAllShowsFilters } from '../../../database/dal/types.js'
-import { CreateShowDTO } from '../../dto/show.dto.js'
-import { Show } from '../../interfaces/show.interface.js'
-import { runTasks } from '../../../util/promiseUtil.js'
+import * as showDal from "../../../database/dal/show.js"
+import * as comedianDal from "../../../database/dal/comedian.js"
+import * as showComedianDal from "../../../database/dal/showComedian.js"
+import { CreateShowDTO, CreateShowOutput, GetShowDetailsOutput } from '../../dto/show.dto.js'
+import { ShowInterface } from "../../interfaces/show.interface.js"
+import { runTasks } from "../../../util/promiseUtil.js"
 
-const primaryCacheKey = 'shows'
 
-export const updateOrCreateAll = async(payloads: CreateShowDTO[]): Promise<Show[]> => {
-    const shows = payloads.map(payload => updateOrCreate(payload))
-    return runTasks(shows)
+export const createAll = async(allShows: ShowInterface[]): Promise<CreateShowOutput[]> => {
+    const tasks = allShows.map((show: ShowInterface) => {
+        return create({
+            club_id: show.clubId,
+            date_time: show.dateTime,
+            ticket_link: show.ticketLink,
+            comedians: show.comedians
+        })
+    })
+    return runTasks(tasks);
 }
 
-export const updateOrCreate = async(payload: CreateShowDTO): Promise<Show> => {
-    const club = await clubService.getByName(payload.club.name)
-    const comedianIds = await comedianService.getByIds(payload.comedians)
-
-    return mapper.toShow(await showService.updateOrCreate({
-        comedianIds: comedianIds,
-        dateTime: payload.dateTime,
-        ticketLink: payload.ticketLink,
-        clubId: club.id
-    }))
-
+export const create = async(payload: CreateShowDTO): Promise<CreateShowOutput> => {
+    const show = await showDal.createShow(payload)
+    const comedians = await comedianDal.createAllComedians(payload.comedians)
+    await showComedianDal.createShowComedianRelationships(comedians, show)
+    return show;
 }
 
-export const getById = async (id: number): Promise<Show> => {
-    return mapper.toShow(await showService.getById(id))
+export const getById = async (id: number): Promise<GetShowDetailsOutput> => {
+    return showDal.getShowById(id)
 }
 
-export const deleteById = async(id: number): Promise<Boolean> => {
-    const isDeleted = await showService.deleteById(id)
-    return isDeleted
+export const deleteById = async(id: number): Promise<boolean> => {
+    return showDal.deleteShowById(id)
 }
 
-export const getAll = async (filters: GetAllShowsFilters): Promise<Show[]> => {
-    const shows = await showService.getAll(filters).then((shows) => shows.map(mapper.toShow))
-    
-    if (shows.length) {
-        localCache.set(primaryCacheKey, shows)
-    }
-
-    return shows
+export const getAll = async (): Promise<GetShowDetailsOutput[]> => {
+    return showDal.getAllShows()
 }

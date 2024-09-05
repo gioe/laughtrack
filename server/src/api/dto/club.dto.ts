@@ -1,16 +1,26 @@
-import { Optional } from 'sequelize'
-
 export type CreateClubDTO = {
   name: string;
-  baseUrl: string;
-  schedulePageUrl: string;
+  base_url: string;
+  schedule_page_url: string;
   timezone: string;
-  scrapingConfig: any;
+  scraping_config: any;
 }
 
-export type UpdateClubDTO = Optional<CreateClubDTO, 'name'>
-
-export type FilterClubsDTO = {
-  isDeleted?: boolean
-  includeDeleted?: boolean
+export type CreateClubOutput = {
+  id: number;
 }
+
+export type UpdateClubDTO = {
+  id: number;
+  name: string;
+  base_url: string;
+  schedule_page_url: string;
+  timezone: string;
+  scraping_config: any;
+}
+
+export type ClubExistenceDTO = {
+  name: string;
+}
+
+export type GetClubOutput = UpdateClubDTO;

@@ -1,4 +1,4 @@
-import { ComedianModel } from "../classes/ComedianModel.js"
+import { Comedian } from "../classes/Comedian.js"
 import { ScrapingConfig } from "../classes/ScrapingConfig.js";
 import { REGEX } from "../constants/regex.js";
 import { isLikelyShow } from "./showUtil.js";
@@ -6,11 +6,11 @@ import { removeSubstrings } from "./stringUtil.js";
 
 const SEPARATOR = ",";
 
-export const buildComediansFromNames = (comedianNames: string[], config: ScrapingConfig): ComedianModel[] => {
+export const buildComediansFromNames = (comedianNames: string[], config: ScrapingConfig): Comedian[] => {
 
   return comedianNames
   .map((comedianName: string) => normalizeNameString(comedianName, config))
-  .flatMap((names: string[]) => names.map((name: string) => new ComedianModel(name)))
+  .flatMap((names: string[]) => names.map((name: string) => new Comedian(name)))
 }
 
   export const normalizeNameString = (nameString: string, config: ScrapingConfig): string[] => {

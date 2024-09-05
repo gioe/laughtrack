@@ -1,6 +1,5 @@
 import * as showController from '../controllers/show/index.js'
 import express, { Request, Response} from "express"; 
-import { GetAllShowsFilters } from "../../database/dal/types.js";
 import { CreateShowDTO } from "../dto/show.dto.js";
 
 export const showsApiRouter = express.Router();
@@ -8,8 +7,7 @@ export const showsApiRouter = express.Router();
 // POST items
 
 showsApiRouter.get('/', async (req: Request, res: Response) => {
-    const filters: GetAllShowsFilters = req.query
-    const results = await showController.getAll(filters)
+    const results = await showController.getAll()
     return res.status(200).send(results)
 })
 
@@ -30,7 +28,7 @@ showsApiRouter.delete('/:id', async (req: Request, res: Response) => {
 
 showsApiRouter.post('/',  async (req: Request, res: Response) => {
     const payload: CreateShowDTO = req.body
-    const result = await showController.updateOrCreate(payload)
+    const result = await showController.create(payload)
     return res.status(200).send(result)
 })
 

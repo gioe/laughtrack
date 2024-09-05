@@ -1,8 +1,6 @@
 import express, { Application } from "express";
 import cors from "cors";
 import helmet from "helmet";
-import Show from "./database/models/Show.js";
-import Comedian from "./database/models/Comedian.js";
 import { scheduleScrapes } from "./util/cronUtil.js";
 import { comediansApiRouter } from "./api/routes/comedians.js";
 import { scraperApiRouter } from "./api/routes/scraper.js";
@@ -11,9 +9,7 @@ import { userApiRouter } from "./api/routes/user.js";
 import { errorHandler } from "./api/middleware/error.middleware.js";
 import { notFoundHandler } from "./api/middleware/not-found.middleware.js";
 import { clubsApiRouter } from "./api/routes/clubs.js";
-import Club from "./database/models/Club.js";
-
-const isDev = process.env.NODE_ENV === 'development'
+import { createClubsTable, createComediansTable, createShowsTable, createShowComediansTable } from "./database/config.js";
 
 class App {
     public app: Application;
@@ -27,9 +23,10 @@ class App {
     }
 
     protected databaseSync(): void {
-        Show.sync({ alter: isDev })
-        Comedian.sync({ alter: isDev })
-        Club.sync({ alter: isDev })
+        createClubsTable()
+        .then(() => createShowsTable())
+        .then(() => createComediansTable())
+        .then(() => createShowComediansTable())
     }
 
     protected routes(): void {

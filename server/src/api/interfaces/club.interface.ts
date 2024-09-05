@@ -1,11 +1,8 @@
-export interface Club {
-    id: string
+export interface ClubInterface {
+    id: number
     name: string
     baseUrl: string;
     schedulePageUrl: string;
     timezone: string;
     scrapingConfig: any;
-    createdAt?: Date
-    updatedAt?: Date
-    deletedAt?: Date 
-  }
+}

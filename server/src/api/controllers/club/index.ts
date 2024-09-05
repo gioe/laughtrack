@@ -1,42 +1,26 @@
-import * as mapper from './mapper.js'
-import * as service from '../../../database/services/ClubService.js'
-import localCache from '../../../lib/local-cache.js'
-import { Club } from '../../interfaces/club.interface.js'
-import { CreateClubDTO, UpdateClubDTO } from '../../dto/club.dto.js'
-import { GetAllClubsFilters } from '../../../database/dal/types.js'
+import * as clubDal from "../../../database/dal/club.js"
+import * as mapper from "./mapper.js"
 
-const primaryCacheKey = 'clubs'
+import { ClubInterface } from '../../interfaces/club.interface.js'
+import { CreateClubDTO, CreateClubOutput, GetClubOutput } from '../../dto/club.dto.js'
 
-export const createAll = async(payload: CreateClubDTO[]): Promise<Club[]> => {
-    const clubs = await service.createAll(payload);
-    return clubs.map(club => {
-        return mapper.toClub(club)
-    })
+export const createAll = async(payload: CreateClubDTO[]): Promise<CreateClubOutput[]> => {
+    return clubDal.createAllClubs(payload);
 }
 
-export const create = async(payload: CreateClubDTO): Promise<Club> => {
-    return mapper.toClub(await service.create(payload))
+export const create = async(payload: CreateClubDTO): Promise<CreateClubOutput> => {
+    return clubDal.createClub(payload)
 }
 
-export const update = async (id: number, payload: UpdateClubDTO): Promise<Club> => {
-    return mapper.toClub(await service.update(id, payload))
-}
-
-export const getById = async (id: string): Promise<Club> => {
-    return mapper.toClub(await service.getById(id))
+export const getById = async (id: number): Promise<ClubInterface> => {
+    return clubDal.getClubById(id)
+    .then(output =>  mapper.toClub(output))
 }
 
 export const deleteById = async(id: number): Promise<Boolean> => {
-    const isDeleted = await service.deleteById(id)
-    return isDeleted
+    return clubDal.deleteClubById(id)
 }
 
-export const getAll = async (): Promise<Club[]> => {
-    const clubs = await service.getAll().then((clubs) => clubs.map(mapper.toClub))
-    
-    if (clubs.length) {
-        localCache.set(primaryCacheKey, clubs)
-    }
-
-    return clubs
+export const getAll = async (): Promise<ClubInterface[]> => {
+    return clubDal.getAllClubs()
 }

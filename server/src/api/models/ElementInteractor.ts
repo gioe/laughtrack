@@ -1,6 +1,5 @@
 import playwright from "playwright";
 import { delay, provideGenericPromiseResponse } from "../../util/promiseUtil.js";
-import { ElementCounter } from "./ElementCounter.js";
 import { ScrapableScraper } from "./ScrapableScraper.js";
 
 const INTERACTION_DELAY = 1000;

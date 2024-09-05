@@ -1,76 +1,38 @@
-import pkg from 'lodash';
-const { isEmpty } = pkg;
+import { ClubExistenceDTO, CreateClubDTO, CreateClubOutput, GetClubOutput } from "../../api/dto/club.dto.js"
+import { ClubInterface } from "../../api/interfaces/club.interface.js"
+import { runTasks } from "../../util/promiseUtil.js"
+import { checkForExistence, deleteWithCondition, getAll, getFirstWithCondition, create, upsert } from "../../util/queryUtil.js"
+import { DATABASE } from "../../constants/database.js"
 
-import Club, { ClubCreationAttributes, ClubOuput } from '../models/Club.js'
-import { GetAllClubsFilters } from './types.js'
-
-
-export const create = async (payload: ClubCreationAttributes): Promise<ClubOuput> => {
-    const club = await Club.create(payload)
-    return club
+export const createAllClubs = async (clubDtos: CreateClubDTO[]): Promise<CreateClubOutput[]> => {
+    const tasks = clubDtos.map(clubDto => createClub(clubDto))
+    return runTasks(tasks)
 }
 
-export const findOrCreate = async (payload: ClubCreationAttributes): Promise<ClubOuput> => {
-    const [club] = await Club.findOrCreate({
-        where: {
-            name: payload.name
-        },
-        defaults: payload
-    })
-
-    return club
+export const createClub = async (payload: CreateClubDTO): Promise<CreateClubOutput> => {
+    return upsert(DATABASE.CLUBS_TABLE, 
+        `(name, base_url, schedule_page_url, timezone, scraping_config) VALUES($1, $2, $3, $4, $5)`,
+        `(name)`,
+        `base_url=$2, schedule_page_url=$3, timezone=$4, scraping_config=$5`,
+        [payload.name, payload.base_url, payload.schedule_page_url, payload.timezone, payload.scraping_config])
 }
 
-export const update = async (id: number, payload: Partial<ClubCreationAttributes>): Promise<ClubOuput> => {
-    const club = await Club.findByPk(id)
-    if (!club) {
-        throw new Error('not found')
-    }
-    const updatedClub = await club.update(payload)
-    return updatedClub
+export const getClubByName = async (name: string): Promise<ClubInterface> => {
+    return getFirstWithCondition<ClubInterface>(DATABASE.CLUBS_TABLE, `name=$1`, [name])
 }
 
-export const getById = async (id: string): Promise<ClubOuput> => {
-    const club = await Club.findByPk(id)
-    if (!club) {
-        throw new Error('not found')
-    }
-    return club
+export const checkIfClubExists = async (payload: ClubExistenceDTO): Promise<boolean> => {
+    return checkForExistence(DATABASE.CLUBS_TABLE, "name=$1", [payload.name])
 }
 
-export const getByName = async (name: string): Promise<ClubOuput> => {
-   
-    const club = await Club.findOne({
-        where: {
-            name,
-        }
-    });
-
-    if (!club) {
-        throw new Error('not found')
-    }
-    
-    return club
+export const getClubById = async (id: number): Promise<GetClubOutput> => {
+    return getFirstWithCondition<GetClubOutput>(DATABASE.CLUBS_TABLE, `id=$1`, [id])
 }
 
-
-export const deleteById = async (id: number): Promise<boolean> => {
-    const deletedClubCount = await Club.destroy({
-        where: {id}
-    })
-    return !!deletedClubCount
+export const getAllClubs = async (): Promise<ClubInterface[]> => {
+    return getAll<ClubInterface>(DATABASE.CLUBS_TABLE)
 }
 
-export const getAll = async (): Promise<ClubOuput[]> => {
-    return Club.findAll()
-}
-
-export const checkIfClubExists = async (payload: ClubCreationAttributes): Promise<boolean> => {
-    const club = await Club.findOne({
-        where: {
-            name: payload.name,
-        }
-    });
-
-    return !isEmpty(club)
+export const deleteClubById = async (id: number): Promise<boolean> => {
+    return deleteWithCondition(DATABASE.CLUBS_TABLE, `id=$1`, [id])
 }

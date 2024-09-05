@@ -1,7 +1,7 @@
-import { Comedian } from "../api/interfaces/comedian.interface.js";
+import { ComedianInterface } from "../api/interfaces/comedian.interface.js";
 import { removeBadWhiteSpace } from "../util/stringUtil.js";
 
-export class ComedianModel implements Comedian {
+export class Comedian implements ComedianInterface {
   
   name: string;
 

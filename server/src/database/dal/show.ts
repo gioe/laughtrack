@@ -1,50 +1,37 @@
-import pkg from 'lodash';
-const { isEmpty } = pkg;
+import {  CreateShowDTO, CreateShowOutput, GetShowByClubAndTimeDTO, GetShowDetailsOutput, GetShowIdOutput,  ShowExistenceDTO } from "../../api/dto/show.dto.js"
+import { DATABASE } from "../../constants/database.js"
+import { runTasks } from "../../util/promiseUtil.js"
+import { checkForExistence, deleteWithCondition, getAll, getFirstWithCondition, upsert } from "../../util/queryUtil.js"
 
-import Show, { ShowCreationAttributes, ShowOutput } from "../models/Show.js"
-import { GetAllShowsFilters } from "./types.js"
-
-
-export const create = async (payload: ShowCreationAttributes): Promise<ShowOutput> => {
-    const show = await Show.create(payload)
-    return show
+export const createAllShows = async (clubDtos: CreateShowDTO[]): Promise<CreateShowOutput[]> => {
+    const tasks = clubDtos.map(clubDto => createShow(clubDto))
+    return runTasks(tasks)
 }
 
-export const update = async (id: number, payload: Partial<ShowCreationAttributes>): Promise<ShowOutput> => {
-    const show = await Show.findByPk(id)
-    if (!show) {
-        throw new Error('not found')
-    }
-    const updatedShow = await show.update(payload)
-    return updatedShow
+export const createShow = async (payload: CreateShowDTO): Promise<CreateShowOutput> => {
+    return upsert(DATABASE.SHOWS_TABLE, 
+        `(date_time, ticket_link, club_id) VALUES($1, $2, $3)`,
+        `(club_id, date_time)`,
+        `ticket_link=$2`,
+        [payload.date_time, payload.ticket_link, payload.club_id])
 }
 
-export const getById = async (id: number): Promise<ShowOutput> => {
-    const show = await Show.findByPk(id)
-    if (!show) {
-        throw new Error('not found')
-    }
-    return show
+export const getShowByClubAndTime = async (payload: GetShowByClubAndTimeDTO): Promise<GetShowIdOutput> => {
+    return getFirstWithCondition(DATABASE.SHOWS_TABLE, `club_id=$1 AND date_time=$2`, [payload.club_id, payload.date_time])
 }
 
-export const deleteById = async (id: number): Promise<boolean> => {
-    const deletedShowCount = await Show.destroy({
-        where: {id}
-    })
-    return !!deletedShowCount
+export const checkIfShowExists = async (payload: ShowExistenceDTO): Promise<boolean> => {
+    return checkForExistence(DATABASE.SHOWS_TABLE, "club_id=$1 AND date_time=$2", [payload.club_id, payload.date_time])
 }
 
-export const getAll = async (filters?: GetAllShowsFilters): Promise<ShowOutput[]> => {
-    return Show.findAll()
+export const getShowById = async (id: number): Promise<GetShowDetailsOutput> => {
+    return getFirstWithCondition<GetShowDetailsOutput>(DATABASE.SHOWS_TABLE, `id=$1`, [id])
 }
 
-export const checkIfShowExists = async (payload: ShowCreationAttributes): Promise<boolean> => {
-    const show = await Show.findOne({
-        where: {
-            clubId: payload.clubId,
-            dateTime: payload.dateTime
-        }
-    });
+export const getAllShows = async (): Promise<GetShowDetailsOutput[]>  => {
+    return getAll<GetShowDetailsOutput>(DATABASE.SHOWS_TABLE)
+}
 
-    return !isEmpty(show)
+export const deleteShowById = async (id: number): Promise<boolean> => {
+    return deleteWithCondition(DATABASE.SHOWS_TABLE, `id=$1`, [id])
 }

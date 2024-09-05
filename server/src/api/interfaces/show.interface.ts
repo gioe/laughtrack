@@ -1,13 +1,9 @@
-import { Comedian } from "./comedian.interface.js";
+import { ComedianInterface } from "./comedian.interface.js";
 
-export interface Show {
+export interface ShowInterface {
+    id?: number
     dateTime: Date;
     ticketLink: string
-    comedians?: Comedian[]
-    comedianIds?: string[]
-    id?: string
-    clubId?: string
-    createdAt?: Date
-    updatedAt?: Date
-    deletedAt?: Date 
+    comedians: ComedianInterface[]
+    clubId: number
   }

@@ -12,7 +12,7 @@ scraperApiRouter.post("/all", async (req: Request, res: Response) => {
 
 scraperApiRouter.post('/:id', async (req: Request, res: Response) => {
   
-  const id = String(req.params.id)
+  const id = Number(req.params.id)
 
   scraperController.scrapeClub(id)
 

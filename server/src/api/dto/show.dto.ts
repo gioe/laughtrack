@@ -1,15 +1,34 @@
-import { Club } from "../interfaces/club.interface.js";
-import { Comedian } from "../interfaces/comedian.interface.js";
+import { ComedianInterface } from "../interfaces/comedian.interface.js";
+
+export type UpdateShowOutput = CreateShowOutput;
+export type GetShowIdOutput = CreateShowOutput;
+export type GetShowByIdDTO = CreateShowOutput;
+export type GetShowDetailsOutput = UpdateShowDTO;
 
 export type CreateShowDTO = {
-    clubId: string;
-    dateTime: Date;
-    ticketLink: string;
-    comedians: Comedian[];
-    club: Club;
+    club_id: number;
+    date_time: Date;
+    ticket_link: string;
+    comedians: ComedianInterface[];
 }
 
-export type FilterShowsDTO = {
-    isDeleted?: boolean
-    includeDeleted?: boolean
+export type CreateShowOutput = {
+    id: number;
+}
+
+export type UpdateShowDTO = {
+    id: number;
+    club_id: string;
+    date_time: Date;
+    ticket_link: string;
+}
+
+export type GetShowByClubAndTimeDTO = {
+    club_id: string;
+    date_time: Date;
+}
+
+export type ShowExistenceDTO = {
+    club_id: string;
+    date_time: Date;
 }

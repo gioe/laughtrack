@@ -1,13 +1,32 @@
-import { Optional } from 'sequelize'
+import { GetShowDetailsOutput } from "./show.dto.js";
 
 export type CreateComedianDTO = {
+  name: string;
+  instagram?: string;
+  slug?: string;
+}
+
+export type CreateComedianOutput = {
+  id: number;
+}
+
+export type UpdateComedianDTO = {
   name: string;
   slug?: string;
 }
 
-export type UpdateComedianDTO = Optional<CreateComedianDTO, 'name'>
+export type ComedianExistenceDTO = {
+  name: string;
+}
 
-export type FilterComediansDTO = {
-  isDeleted?: boolean
-  includeDeleted?: boolean
+export type GetComedianDetailsOutput = {
+  id: number;
+  name: string;
+  instagram?: string;
+}
+
+export type GetComedianShowsOutput = {
+  name: string;
+  count: number;
+  shows: GetShowDetailsOutput[];
 }

@@ -8,7 +8,7 @@ import { runTasks } from "../../util/promiseUtil.js";
 import { ElementHandler } from "./ElementHandler.js";
 import { Scrapable } from "../../api/interfaces/scrapable.interface.js";
 import { generateCompleteUrl } from "../../util/scrapableUtil.js";
-import { Show } from "../../api/interfaces/show.interface.js";
+import { ShowInterface } from "../../api/interfaces/show.interface.js";
 
 export class PageManager {
 
@@ -70,7 +70,7 @@ export class PageManager {
     return this.elementInteractor.select(page, this.scrapingConfig.dateSelectSelector, option)
   }
 
-  scrapeContainers = async (scrapable: Scrapable, input?: any): Promise<Show[]> => {
+  scrapeContainers = async (scrapable: Scrapable, input?: any): Promise<ShowInterface[]> => {
     
     return this.getShowContainers(scrapable as playwright.Page)
       .then((elementHandlers: ElementHandle<Element>[]) => {
@@ -79,9 +79,9 @@ export class PageManager {
       })
   }
 
-  scrapeDetailPage = async (scrapable: Scrapable): Promise<Show[]> => {
+  scrapeDetailPage = async (scrapable: Scrapable): Promise<ShowInterface[]> => {
     const page = scrapable as playwright.Page
-    return this.showScraper.scapeShow(page, page.url()).then((show: Show) => [show])
+    return this.showScraper.scapeShow(page, page.url()).then((show: ShowInterface) => [show])
   }
 
   navigateToUrl = async (page: playwright.Page, input?: string): Promise<playwright.Page> => {

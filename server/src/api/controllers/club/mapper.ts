@@ -1,13 +1,13 @@
-import { ClubOuput } from "../../../database/models/Club.js"
-import { Club } from "../../interfaces/club.interface.js"
+import { ClubInterface } from '../../interfaces/club.interface.js'
+import { GetClubOutput } from '../../dto/club.dto.js'
 
-export const toClub = (club: ClubOuput): Club => {
+export const toClub = async(payload: GetClubOutput): Promise<ClubInterface> => {
     return {
-        id: club.id,
-        name: club.name,
-        baseUrl: club.baseUrl,
-        schedulePageUrl: club.schedulePageUrl,
-        timezone: club.timezone,
-        scrapingConfig: club.scrapingConfig,
+        id: payload.id, 
+        name: payload.name,
+        baseUrl: payload.base_url,
+        schedulePageUrl: payload.schedule_page_url,
+        timezone: payload.timezone,
+        scrapingConfig: payload.scraping_config
     }
 }

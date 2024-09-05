@@ -3,8 +3,8 @@
         "clubs": [
             {
                 "name": "Comedy Cellar New York",
-                "baseUrl": "https://www.comedycellar.com",
-                "schedulePageUrl": "https://www.comedycellar.com/new-york-line-up",
+                "base_url": "https://www.comedycellar.com",
+                "schedule_page_url": "https://www.comedycellar.com/new-york-line-up",
                 "timezone": "America/New_York"
             }
         ],
@@ -33,20 +33,20 @@
         "clubs": [
             {
                 "name": "New York Comedy Club Midtown",
-                "baseUrl": "https://newyorkcomedyclub.com",
-                "schedulePageUrl": "https://newyorkcomedyclub.com/calendar/Midtown",
+                "base_url": "https://newyorkcomedyclub.com",
+                "schedule_page_url": "https://newyorkcomedyclub.com/calendar/Midtown",
                 "timezone": "America/New_York"
             },
             {
                 "name": "New York Comedy Club East Village",
-                "baseUrl": "https://newyorkcomedyclub.com",
-                "schedulePageUrl": "https://newyorkcomedyclub.com/calendar/East-Village",
+                "base_url": "https://newyorkcomedyclub.com",
+                "schedule_page_url": "https://newyorkcomedyclub.com/calendar/East-Village",
                 "timezone": "America/New_York"
             },
             {
                 "name": "New York Comedy Club Upper West Side",
-                "baseUrl": "https://newyorkcomedyclub.com",
-                "schedulePageUrl": "https://newyorkcomedyclub.com/calendar/Upper-West-Side",
+                "base_url": "https://newyorkcomedyclub.com",
+                "schedule_page_url": "https://newyorkcomedyclub.com/calendar/Upper-West-Side",
                 "timezone": "America/New_York"
             }
         ],
@@ -66,8 +66,8 @@
         "clubs": [
             {
                 "name": "The Stand",
-                "baseUrl": "https://thestandnyc.com",
-                "schedulePageUrl": "https://thestandnyc.com/shows",
+                "base_url": "https://thestandnyc.com",
+                "schedule_page_url": "https://thestandnyc.com/shows",
                 "timezone": "America/New_York"
             }
         ],
@@ -83,8 +83,8 @@
         "clubs": [
             {
                 "name": "The Grisly Pear",
-                "baseUrl": "https://www.grislypearstandup.com",
-                "schedulePageUrl": "https://www.grislypearstandup.com/calendar",
+                "base_url": "https://www.grislypearstandup.com",
+                "schedule_page_url": "https://www.grislypearstandup.com/calendar",
                 "timezone": "America/New_York"
             }
         ],
@@ -101,8 +101,8 @@
         "clubs": [
             {
                 "name": "The Tiny Cupboard",
-                "baseUrl": "https://www.thetinycupboard.com",
-                "schedulePageUrl": "https://www.thetinycupboard.com/calendar",
+                "base_url": "https://www.thetinycupboard.com",
+                "schedule_page_url": "https://www.thetinycupboard.com/calendar",
                 "timezone": "America/New_York"
             }
         ],
@@ -118,8 +118,8 @@
         "clubs": [
             {
                 "name": "The Bell House",
-                "baseUrl": "https://thebellhouseny.com",
-                "schedulePageUrl": "https://thebellhouseny.com/calendar",
+                "base_url": "https://thebellhouseny.com",
+                "schedule_page_url": "https://thebellhouseny.com/calendar",
                 "timezone": "America/New_York"
             }
         ],
@@ -127,16 +127,20 @@
             "type": "C",
             "detailPageButtonSelector": "a.button.eventColl-statusBtn.eventColl-statusBtn--buy",
             "invalidLinkText": "SOLD OUT",
-            "dateTimeSelector": "div.event-details__main-inner > time",
-            "comedianNameSelector": "ul.performers__list > li.supporters"
+            "dateSelector": "div.event-details__main-inner > time",
+            "timeSelector": "div.event-details__main-inner > p.summary > strong",
+            "comedianNameSelector": "ul.performers__list > li.supporters",
+            "showSignifiers": [
+                "special guests"
+            ]   
         }
     },
     {
         "clubs": [
             {
                 "name": "Union Hall",
-                "baseUrl": "https://unionhallny.com",
-                "schedulePageUrl": "https://unionhallny.com/calendar",
+                "base_url": "https://unionhallny.com",
+                "schedule_page_url": "https://unionhallny.com/calendar",
                 "timezone": "America/New_York"
             }
         ],
@@ -144,7 +148,8 @@
             "type": "C",
             "detailPageButtonSelector": "a.button.eventColl-statusBtn.eventColl-statusBtn--buy",
             "invalidLinkText": "SOLD OUT",
-            "dateTimeSelector": "div.event-details__main-inner > time",
+            "dateSelector": "div.event-details__main-inner > time",
+            "timeSelector": "div.event-details__main-inner > p.summary > strong",
             "comedianNameSelector": "ul.performers__list > li.supporters"
         }
     },
@@ -152,8 +157,8 @@
         "clubs": [
             {
                 "name": "West Side Comedy Club",
-                "baseUrl": "https://www.westsidecomedyclub.com",
-                "schedulePageUrl": "https://www.westsidecomedyclub.com/calendar",
+                "base_url": "https://www.westsidecomedyclub.com",
+                "schedule_page_url": "https://www.westsidecomedyclub.com/calendar",
                 "timezone": "America/New_York"
             }
         ],

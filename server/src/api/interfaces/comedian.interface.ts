@@ -1,7 +1,4 @@
-export interface Comedian {
-    name: string
-    id?: string
-    createdAt?: Date
-    updatedAt?: Date
-    deletedAt?: Date 
-  }
+export interface ComedianInterface {
+  id?: number
+  name: string
+}

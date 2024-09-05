@@ -6,17 +6,13 @@ import {
   ScrapingFunction 
 } from "../types/scrapingFunction.js";
 import { Scrapable } from "../api/interfaces/scrapable.interface.js";
-import { Show } from "../api/interfaces/show.interface.js";
-
-// Generic functions applicable to all scrapers. These approximate the interactions a user might take
-// with the same pages.
-
+import { ShowInterface } from "../api/interfaces/show.interface.js";
 
 export const generateScrapingLoop = async (
   page: playwright.Page, 
   loopProviderFunction: LoopProviderFunction,
   action: InteractionFunction, 
-  scrapingFunction: ScrapingFunction | ScrapingLoopFunction): Promise<Show[]> => {
+  scrapingFunction: ScrapingFunction | ScrapingLoopFunction): Promise<ShowInterface[]> => {
 
     return loopProviderFunction(page)
     .then((loopValues: any[]) => {
@@ -31,9 +27,9 @@ export const runInteractionLoop = async (
   page: playwright.Page, 
   inputs: any[], 
   action: InteractionFunction,
-  scrapingFunction: ScrapingFunction | ScrapingLoopFunction): Promise<Show[]> => {
+  scrapingFunction: ScrapingFunction | ScrapingLoopFunction): Promise<ShowInterface[]> => {
 
-  var scrapedShows: Show[] = [];
+  var scrapedShows: ShowInterface[] = [];
 
   console.log(`Looping through ${inputs.length} elements`)
 
@@ -50,6 +46,6 @@ export const runInteractionLoop = async (
 export const actThenScrape = async (pageResponse: Promise<playwright.Page>,
   input: any,
   scrape: ScrapingFunction | ScrapingLoopFunction
-): Promise<Show[]> => {
+): Promise<ShowInterface[]> => {
   return pageResponse.then((scrapable: Scrapable) => scrape(scrapable, input))
 }

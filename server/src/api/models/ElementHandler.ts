@@ -1,7 +1,7 @@
-import playwright, { ElementHandle } from "playwright";
+import { ElementHandle } from "playwright";
 import { runTasks } from '../../util/promiseUtil.js';
 import { Scrapable } from "../../api/interfaces/scrapable.interface.js";
-import { generateCompleteUrl, generateUrlsFromPaths } from "../../util/scrapableUtil.js";
+import {  generateUrlsFromPaths } from "../../util/scrapableUtil.js";
 
 const EMPTY_STYLE_INDICATORS = ['display: none;']
 

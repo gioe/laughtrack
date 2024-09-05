@@ -1,6 +1,6 @@
 import * as clubController from "../controllers/club/index.js"
 import express, { Request, Response} from "express"; 
-import { CreateClubDTO, UpdateClubDTO } from "../dto/club.dto.js";
+import { CreateClubDTO } from "../dto/club.dto.js";
 import { readJsonFile } from "../../util/fileSystemUtil.js";
 import { JSON_KEYS } from "../../constants/objects.js";
 
@@ -12,7 +12,7 @@ const clubs = readJsonFile(process.env.CLUBS_FILE ?? "src/clubs.json")
     .map((club: any) => {
         return {
             ...club,
-            scrapingConfig: json[JSON_KEYS.scrapingConfig],
+            scraping_config: json[JSON_KEYS.scrapingConfig],
         }
     })
 })
@@ -23,17 +23,9 @@ clubsApiRouter.get('/', async (req: Request, res: Response) => {
 })
 
 clubsApiRouter.get('/:id', async (req: Request, res: Response) => {
-    const id = String(req.params.id)
+    const id = Number(req.params.id)
     const result = await clubController.getById(id)
     return res.status(200).send(result)
-})
-
-clubsApiRouter.put('/:id', async (req: Request, res: Response) => {
-    const id = Number(req.params.id)
-    const payload: UpdateClubDTO = req.body
-
-    const result = await clubController.update(id, payload)
-    return res.status(201).send(result)
 })
 
 clubsApiRouter.delete('/:id', async (req: Request, res: Response) => {
