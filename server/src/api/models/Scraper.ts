@@ -32,15 +32,13 @@ export class Scraper {
 
   private closeBrowserAndReturnShows = async (shows: ShowInterface[]) => {
     return this.browser.close()
-    .then(() => this.returnValidShows(shows))
+    .then(() => {
+      const showModels = shows as Show[]
+      showModels.forEach(showModel => showModel.setClub(this.club))
+      return showModels.filter(showModel => showModel.isValid)
+    })
   }
 
-  private returnValidShows = (shows: ShowInterface[]) => {
-    const showModels = shows as Show[]
-    showModels.forEach(showModel => showModel.setClub(this.club))
-    return showModels.filter(showModel => showModel.isValid)
-  }
-  
   runClubScrapingFunction = async (page: playwright.Page): Promise<ShowInterface[]> => { 
     switch (this.club.scrapingConfig.type) {
       

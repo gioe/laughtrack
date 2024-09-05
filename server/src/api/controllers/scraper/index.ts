@@ -36,7 +36,7 @@ export const scrapeAllClubs = async () => {
 }
 
 const runScraper = async (club: ClubInterface): Promise<ShowInterface[]> => {
-    return playwright.chromium.launch({ headless: true })
+    return playwright.chromium.launch({ headless: false })
         .then(browser => getScrapingJob(browser, club))
 }
 

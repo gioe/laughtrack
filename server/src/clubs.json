@@ -76,7 +76,12 @@
             "moreShowsButtonSelector": "div.row.moreitems.dark-links.my-5 > div > div > a",
             "detailPageButtonSelector": "a.btn.btn-outline-light.the-ticket",
             "dateTimeSelector": "h3.showinfo",
-            "comedianNameSelector": "div.flex-grow-1.ms-3 > a > h4 > strong"
+            "comedianNameSelector": "div.flex-grow-1.ms-3 > a > h4 > strong",
+            "badTimeStrings": [
+                "Main room", 
+                "Upstairs", 
+                "Patio"
+            ]
         }
     },
     {
