@@ -8,6 +8,7 @@ import { userApiRouter } from "./api/routes/user.js";
 import { errorHandler } from "./api/middleware/error.middleware.js";
 import { notFoundHandler } from "./api/middleware/not-found.middleware.js";
 import { clubsApiRouter } from "./api/routes/clubs.js";
+import { healthCheckApiRouter } from "./api/routes/healthcheck.js";
 import { createClubsTable, createComediansTable, createShowsTable, createShowComediansTable } from "./database/config.js";
 
 class App {
@@ -33,6 +34,7 @@ class App {
         this.app.use('/shows', showsApiRouter);
         this.app.use('/user', userApiRouter);
         this.app.use('/clubs', clubsApiRouter);
+        this.app.use('/healthcheck', healthCheckApiRouter);
     }
 
     protected middleLayers(): void {
