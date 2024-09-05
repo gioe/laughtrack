@@ -11,7 +11,7 @@ healthCheckApiRouter.get("/", async (req: Request, res: Response) => {
         uptime: process.uptime(),
         responsetime: process.hrtime(),
         message: 'OK',
-        timestampe: Date.now(),
+        timestamp: Date.now(),
     }
    
     try {
