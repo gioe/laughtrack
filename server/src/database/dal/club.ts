@@ -4,8 +4,14 @@ import { runTasks } from "../../util/promiseUtil.js"
 import { checkForExistence, deleteWithCondition, getAll, getFirstWithCondition, create, upsert } from "../../util/queryUtil.js"
 import { DATABASE } from "../../constants/database.js"
 
-export const createAllClubs = async (clubDtos: CreateClubDTO[]): Promise<CreateClubOutput[]> => {
-    const tasks = clubDtos.map(clubDto => createClub(clubDto))
+export const createAllClubs = async (clubs: ClubInterface[]): Promise<CreateClubOutput[]> => {
+    const tasks = clubs.map(club => createClub({
+        name: club.name,
+        base_url: club.baseUrl,
+        schedule_page_url: club.schedulePageUrl,
+        timezone: club.timezone,
+        scraping_config: club.scrapingConfig
+    }))
     return runTasks(tasks)
 }
 

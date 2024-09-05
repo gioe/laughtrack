@@ -1,21 +1,9 @@
 import * as clubController from "../controllers/club/index.js"
+import * as storage from "../../common/storage.js"
 import express, { Request, Response} from "express"; 
 import { CreateClubDTO } from "../dto/club.dto.js";
-import { readJsonFile } from "../../util/fileSystemUtil.js";
-import { JSON_KEYS } from "../../constants/objects.js";
 
 export const clubsApiRouter = express.Router();
-
-const clubs = readJsonFile(process.env.CLUBS_FILE ?? "src/clubs.json")
-.flatMap((json: any) => {
-    return json[JSON_KEYS.clubs]
-    .map((club: any) => {
-        return {
-            ...club,
-            scraping_config: json[JSON_KEYS.scrapingConfig],
-        }
-    })
-})
 
 clubsApiRouter.get('/', async (req: Request, res: Response) => {
     const results = await clubController.getAll()
@@ -44,6 +32,7 @@ clubsApiRouter.post('/', async (req: Request, res: Response) => {
 })
 
 clubsApiRouter.post('/all', async (req: Request, res: Response) => {
+    const clubs = await storage.getClubs();
     await clubController.createAll(clubs)
     return res.status(200).send({
         success: true
