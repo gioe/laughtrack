@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "dev": "nodemon",
-    "serve": "node --env-file=.env dist/server.js",
+    "serve": "node --env-file=.env dist/index.js",
     "start": "npm run serve",
     "gcp-build": "tsc -p .",
     "type-check": "tsc",
