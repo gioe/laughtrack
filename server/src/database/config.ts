@@ -1,17 +1,23 @@
 import pkg from 'pg';
 const { Pool } = pkg;
+import {AuthTypes, Connector, IpAddressTypes} from '@google-cloud/cloud-sql-connector';
+
+const connector = new Connector();
+
+const clientOpts = connector.getOptions({
+  instanceConnectionName: process.env.GCP_INSTANCE_CONNECTION_NAME as string,
+  ipType: IpAddressTypes.PUBLIC,
+  authType: AuthTypes.IAM,
+});
 
 const pool = new Pool({
+  ...clientOpts,
   user: process.env.POSTGRES_USER as string,
-  host: process.env.POSTGRES_HOST as string,
   database: process.env.POSTGRES_DB as string, 
   password: process.env.POSTGRES_PASSWORD as string,
-  port: process.env.POSTGRES_PORT as unknown as number,
-  max: 5,
-  connectionTimeoutMillis: 20000,
-  idleTimeoutMillis: 20000,
-  allowExitOnIdle: false
+  max: 5
 })
+
   
 export async function createClubsTable() {
   try {
