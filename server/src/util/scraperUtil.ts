@@ -4,7 +4,7 @@ import {
   InteractionFunction, 
   LoopProviderFunction, 
   ScrapingFunction 
-} from "../types/scrapingFunction.js";
+} from "../@types/scrapingFunction.js";
 import { Scrapable } from "../api/interfaces/scrapable.interface.js";
 import { ShowInterface } from "../api/interfaces/show.interface.js";
 
@@ -30,8 +30,6 @@ export const runInteractionLoop = async (
   scrapingFunction: ScrapingFunction | ScrapingLoopFunction): Promise<ShowInterface[]> => {
 
   var scrapedShows: ShowInterface[] = [];
-
-  console.log(`Looping through ${inputs.length} elements`)
 
   for (let index = 0; index < inputs.length - 1; index++) {
     const input = inputs[index];

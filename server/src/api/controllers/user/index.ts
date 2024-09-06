@@ -1,16 +1,25 @@
+import { getUsers } from "../../../common/storage.js";
 import * as userDal from "../../../database/dal/user.js"
-import { LoginUserDTO, RegisterUserDTO, RegisterUserOutput } from "../../dto/user.dto.js";
+import { GetUserDetailsOutput, RegisterUserDTO } from "../../dto/user.dto.js";
  
 export const checkIfUserExists = async (email: string) => {
   return userDal.checkIfUserExists(email)
 }
 
-export const register = async (params: RegisterUserDTO) => {
-  return userDal.register(params).then((output: RegisterUserOutput) => {
-    return userDal.getUserById(output.id)
-  });
+export const register = async (emailString: string, passwordHash: string) => {
+  return getUsers().then((adminUsers: string) => {
+    return userDal.register({
+      email: emailString,
+      password: passwordHash,
+      role: adminUsers.includes(emailString) ? 'admin' : 'user'
+    });
+  })
 };
 
-export const getUserByEmail = async (email: string) => {
+export const getUserByEmail = async (email: string): Promise<GetUserDetailsOutput> => {
   return userDal.getUserByEmail(email);
+};
+
+export const getUserById = async (userId: number) => {
+  return userDal.getUserById(userId);
 };

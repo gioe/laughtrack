@@ -1,6 +1,6 @@
 import playwright from "playwright";
 import { PageManager } from "./PageManager.js";
-import { ScraperType } from "../../types/ScraperType.js";
+import { ScraperType } from "../../@types/ScraperType.js";
 import { generateScrapingLoop } from "../../util/scraperUtil.js";
 import { Scrapable } from "../../api/interfaces/scrapable.interface.js";
 import { ClubInterface } from "../../api/interfaces/club.interface.js";

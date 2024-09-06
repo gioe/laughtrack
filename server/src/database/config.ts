@@ -26,7 +26,6 @@ export async function createClubsTable() {
       );
     `;
     await pool.query(query);
-    console.log('Clubs table created');
   } catch (err) {
     console.error(err);
     console.error('Clubs table creation failed');
@@ -47,7 +46,6 @@ export async function createShowsTable() {
     `;
 
     await pool.query(query);
-    console.log('Shows table created');
   } catch (err) {
     console.error(err);
     console.error('Shows table creation failed');
@@ -65,7 +63,6 @@ export async function createComediansTable() {
     `;
 
     await pool.query(query);
-    console.log('Comedians table created');
   } catch (err) {
     console.error(err);
     console.error('Comedians table creation failed');
@@ -85,7 +82,6 @@ export async function createShowComediansTable() {
     `;
 
     await pool.query(query);
-    console.log('Show comedians table created');
   } catch (err) {
     console.error(err);
     console.error('Show comedians table creation failed');
@@ -104,7 +100,6 @@ export async function createUsersTable() {
     `;
 
     await pool.query(query);
-    console.log('Users table created');
   } catch (err) {
     console.error(err);
     console.error('Users table creation failed');

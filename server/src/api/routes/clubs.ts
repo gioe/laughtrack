@@ -1,23 +1,22 @@
 import * as clubController from "../controllers/club/index.js"
 import * as storage from "../../common/storage.js"
 import express, { Request, Response} from "express"; 
+import { assignUser } from "../middleware/assignUser.middleware.js";
+import { authenticateRole } from "../middleware/authenticateRole.middleware.js";
+import { UserRole } from "../../@types/UserRole.js";
 import { CreateClubDTO } from "../dto/club.dto.js";
-import { authenticateRole, verifyToken } from "../middleware/auth.middleware.js";
-import { UserRole } from "../../types/UserRole.js";
 
 export const clubsApiRouter = express.Router();
+clubsApiRouter.use(assignUser)
+clubsApiRouter.use(authenticateRole(UserRole.Admin))
 
-clubsApiRouter.get('/', 
-    verifyToken, 
-    authenticateRole(UserRole.Admin), 
+clubsApiRouter.get('/',
     async (req: Request, res: Response) => {
     const results = await clubController.getAll()
     return res.status(200).send(results)
 })
 
 clubsApiRouter.get('/:id',
-    verifyToken,
-    authenticateRole(UserRole.Admin), 
     async (req: Request, res: Response) => {
     const id = Number(req.params.id)
     const result = await clubController.getById(id)
@@ -25,8 +24,6 @@ clubsApiRouter.get('/:id',
 })
 
 clubsApiRouter.delete('/:id', 
-    verifyToken, 
-    authenticateRole(UserRole.Admin), 
     async (req: Request, res: Response) => {
     const id = Number(req.params.id)
 
@@ -37,8 +34,6 @@ clubsApiRouter.delete('/:id',
 })
 
 clubsApiRouter.post('/', 
-    verifyToken,     
-    authenticateRole(UserRole.Admin), 
     async (req: Request, res: Response) => {
     const payload: CreateClubDTO = req.body
     const result = await clubController.create(payload)
@@ -46,10 +41,7 @@ clubsApiRouter.post('/',
 })
 
 clubsApiRouter.post('/all', 
-    verifyToken,    
-    authenticateRole(UserRole.Admin), 
     async (req: Request, res: Response) => {
-    
     const clubs = await storage.getClubs();
     await clubController.createAll(clubs)
     return res.status(200).send({
