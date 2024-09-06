@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import * as userController from '../controllers/user/index.js'
 import { GetUserDetailsOutput } from "../dto/user.dto.js";
+import { getUsers } from "../../common/storage.js";
 
 export const userApiRouter = express.Router();
 
@@ -16,13 +17,14 @@ userApiRouter.post('/register', async (req: Request, res: Response) => {
         });
     }
 
-    const { email, password } = req.query;
-
+    const { email, password } = req.query
+    const admins = await getUsers() as string[];
     return bcrypt.hash(password as string, 10)
         .then((hash: string) => {
             return userController.register({
                 email: email as string,
-                password: hash
+                password: hash,
+                role: admins.includes(email as string) ? 'admin' : 'user'
             })
         }).then((user: GetUserDetailsOutput) => {
             const token = jwt.sign({ email: user.email }, process.env.SECRET_KEY as string);

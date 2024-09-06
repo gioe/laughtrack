@@ -11,10 +11,6 @@ export const register = async (params: RegisterUserDTO) => {
   });
 };
 
-export const login = async (params: LoginUserDTO) => {
-  return userDal.login(params);
-};
-
 export const getUserByEmail = async (email: string) => {
   return userDal.getUserByEmail(email);
 };

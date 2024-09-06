@@ -27,7 +27,9 @@
 
   export const JSON_KEYS = {
     clubs: 'clubs',
+    admins: 'admins',
     scrapingConfig: 'scrapingConfig',
+    email: 'email',
   };
 
   export const CLUB_KEYS = {
