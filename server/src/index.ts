@@ -9,7 +9,7 @@ import { errorHandler } from "./api/middleware/error.middleware.js";
 import { notFoundHandler } from "./api/middleware/not-found.middleware.js";
 import { clubsApiRouter } from "./api/routes/clubs.js";
 import { healthCheckApiRouter } from "./api/routes/healthcheck.js";
-import { createClubsTable, createComediansTable, createShowsTable, createShowComediansTable } from "./database/config.js";
+import { createClubsTable, createComediansTable, createShowsTable, createShowComediansTable, createUsersTable } from "./database/config.js";
 
 class App {
     public app: Application;
@@ -26,6 +26,7 @@ class App {
         .then(() => createShowsTable())
         .then(() => createComediansTable())
         .then(() => createShowComediansTable())
+        .then(() => createUsersTable())
     }
 
     protected routes(): void {

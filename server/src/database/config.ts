@@ -72,7 +72,6 @@ export async function createComediansTable() {
   }
 }
 
-
 export async function createShowComediansTable() {
   try {
     const query = `
@@ -90,6 +89,24 @@ export async function createShowComediansTable() {
   } catch (err) {
     console.error(err);
     console.error('Show comedians table creation failed');
+  }
+}
+
+export async function createUsersTable() {
+  try {
+    const query = `
+      CREATE TABLE IF NOT EXISTS users (
+      id SERIAL PRIMARY KEY,
+      email TEXT NOT NULL UNIQUE,
+      password VARCHAR NOT NULL
+      );
+    `;
+
+    await pool.query(query);
+    console.log('Users table created');
+  } catch (err) {
+    console.error(err);
+    console.error('Users table creation failed');
   }
 }
 

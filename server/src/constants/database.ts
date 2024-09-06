@@ -3,5 +3,6 @@ export const DATABASE = {
     CLUBS_TABLE: 'clubs',
     SHOWS_TABLE: 'shows',
     SHOW_COMEDIANS_TABLE: 'show_comedians',
+    USERS_TABLE: 'users',
   };
   

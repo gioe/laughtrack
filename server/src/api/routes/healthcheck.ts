@@ -1,11 +1,11 @@
 import express, { Request, Response} from "express"; 
-import { getUser } from "../controllers/user/userController.js";
+import { verifyToken } from "../middleware/auth.middleware.js";
 
 export const healthCheckApiRouter = express.Router();
 
 // POST items
 
-healthCheckApiRouter.get("/", async (req: Request, res: Response) => {
+healthCheckApiRouter.get("/", verifyToken, async (req: Request, res: Response) => {
    
     const healthCheck = {
         uptime: process.uptime(),

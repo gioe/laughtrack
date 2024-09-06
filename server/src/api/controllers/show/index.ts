@@ -5,7 +5,6 @@ import { CreateShowDTO, CreateShowOutput, GetShowDetailsOutput } from '../../dto
 import { ShowInterface } from "../../interfaces/show.interface.js"
 import { runTasks } from "../../../util/promiseUtil.js"
 
-
 export const createAll = async(allShows: ShowInterface[]): Promise<CreateShowOutput[]> => {
     const tasks = allShows.map((show: ShowInterface) => {
         return create({

@@ -16,7 +16,7 @@ export const createComedian = async (payload: CreateComedianDTO): Promise<Create
         [payload.name, payload.instagram])
 }
 
-export const checkForComdedianExistence = async (payload: ComedianExistenceDTO): Promise<boolean> => {
+export const checkForComedianExistence = async (payload: ComedianExistenceDTO): Promise<boolean> => {
     return checkForExistence(DATABASE.COMEDIANS_TABLE, "name=$1", [payload.name])
 }
 

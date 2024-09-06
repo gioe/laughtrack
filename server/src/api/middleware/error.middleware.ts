@@ -8,6 +8,5 @@ export const errorHandler = (
   next: NextFunction
 ) => {
   const status = error.statusCode || error.status || 500;
-
   response.status(status).send(error);
 };
