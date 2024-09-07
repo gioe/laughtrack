@@ -2,19 +2,12 @@ import pkg from 'pg';
 const { Pool } = pkg;
 import {AuthTypes, Connector, IpAddressTypes} from '@google-cloud/cloud-sql-connector';
 import {GoogleAuth} from 'google-auth-library';
-
-const connector = new Connector();
     
-const clientOpts = connector.getOptions({
-  instanceConnectionName: process.env.INSTANCE_CONNECTION_NAME as string,
-  authType: AuthTypes.IAM,
-  ipType: IpAddressTypes.PUBLIC,
-});
-
 const pool = new Pool({
-  ...clientOpts,
   user: process.env.DB_USER as string,
   database: process.env.DB_NAME as string, 
+  password: process.env.DB_PASSWORD as string,
+  host: process.env.INSTANCE_UNIX_SOCKET as string,
   max: 5
 })
 
