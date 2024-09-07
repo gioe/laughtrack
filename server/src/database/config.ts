@@ -15,6 +15,7 @@ const pool = new Pool({
   user: process.env.POSTGRES_USER as string,
   database: process.env.POSTGRES_DB as string, 
   password: process.env.POSTGRES_PASSWORD as string,
+  host: process.env.GCP_INSTANCE_CONNECTION_NAME as string,
   max: 5
 })
 
