@@ -19,7 +19,6 @@ class App {
         this.routes()
         this.middleLayers()
         this.databaseSync()
-        console.log(process.env)
     }
 
     protected databaseSync(): void {
@@ -51,5 +50,6 @@ class App {
 const app = new App().app;
 
 app.listen(process.env.PORT, () => {
+    console.log(process.env)
     console.log("App is running at http://localhost:%d", process.env.PORT,);
 });
