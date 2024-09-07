@@ -1,7 +1,6 @@
 {
     "extends": "@tsconfig/node20/tsconfig.json",
     "compilerOptions": {
-      "module": "node16",
       "allowJs": true,
       "checkJs": true,
       "outDir": "dist",
@@ -10,7 +9,6 @@
       "target": "es6", 
       "sourceMap": true, 
       "strict": true,  
-      "moduleResolution": "node16",
       "skipLibCheck": true,  
       "forceConsistentCasingInFileNames": true,
       "allowSyntheticDefaultImports": true
