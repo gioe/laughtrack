@@ -19,6 +19,7 @@ class App {
         this.routes()
         this.middleLayers()
         this.databaseSync()
+        console.log(process.env)
     }
 
     protected databaseSync(): void {
