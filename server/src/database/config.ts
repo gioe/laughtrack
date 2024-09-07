@@ -5,17 +5,14 @@ import {AuthTypes, Connector, IpAddressTypes} from '@google-cloud/cloud-sql-conn
 const connector = new Connector();
 
 const clientOpts = connector.getOptions({
-  instanceConnectionName: process.env.GCP_INSTANCE_CONNECTION_NAME as string,
-  ipType: IpAddressTypes.PUBLIC,
+  instanceConnectionName: process.env.INSTANCE_CONNECTION_NAME as string,
   authType: AuthTypes.IAM,
 });
 
 const pool = new Pool({
   ...clientOpts,
-  user: process.env.POSTGRES_USER as string,
-  database: process.env.POSTGRES_DB as string, 
-  password: process.env.POSTGRES_PASSWORD as string,
-  host: process.env.GCP_INSTANCE_CONNECTION_NAME as string,
+  user: process.env.DB_USER as string,
+  database: process.env.DB_NAME as string, 
   max: 5
 })
 
