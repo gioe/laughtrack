@@ -56,5 +56,5 @@ class App {
 const app = new App().app;
 
 app.listen(process.env.PORT, () => {
-    console.log(`App is running at http://localhost:${process.env.PORT} on ${process.env.K_REVISION}`);
+    console.log(`App is running at http://localhost:${process.env.PORT}`);
 });

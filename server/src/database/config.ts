@@ -1,6 +1,7 @@
 import pkg from 'pg';
 const { Pool } = pkg;
 import {AuthTypes, Connector, IpAddressTypes} from '@google-cloud/cloud-sql-connector';
+import {GoogleAuth} from 'google-auth-library';
 
 const connector = new Connector();
     
