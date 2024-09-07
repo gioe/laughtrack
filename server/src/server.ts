@@ -9,7 +9,13 @@ import { errorHandler } from "./api/middleware/error.middleware.js";
 import { notFoundHandler } from "./api/middleware/not-found.middleware.js";
 import { clubsApiRouter } from "./api/routes/clubs.js";
 import { healthCheckApiRouter } from "./api/routes/healthcheck.js";
-import { createClubsTable, createComediansTable, createShowsTable, createShowComediansTable, createUsersTable, getIpType } from "./database/config.js";
+import {
+    createClubsTable, 
+    createComediansTable, 
+    createShowsTable, 
+    createShowComediansTable, 
+    createUsersTable 
+} from "./database/config.js";
 
 class App {
     public app: Application;
@@ -50,5 +56,5 @@ class App {
 const app = new App().app;
 
 app.listen(process.env.PORT, () => {
-    console.log(`App is running at http://localhost:${process.env.PORT}, IP type: ${getIpType()}`);
+    console.log(`App is running at http://localhost:${process.env.PORT} on ${process.env.K_REVISION}`);
 });

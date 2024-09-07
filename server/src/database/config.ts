@@ -1,14 +1,8 @@
 import pkg from 'pg';
 const { Pool } = pkg;
 import {AuthTypes, Connector, IpAddressTypes} from '@google-cloud/cloud-sql-connector';
-import {GoogleAuth} from 'google-auth-library';
 
 const connector = new Connector();
-
-export const getIpType = () =>
-  process.env.PRIVATE_IP === '1' || process.env.PRIVATE_IP === 'true'
-    ? IpAddressTypes.PRIVATE
-    : IpAddressTypes.PUBLIC;
     
 const clientOpts = connector.getOptions({
   instanceConnectionName: process.env.INSTANCE_CONNECTION_NAME as string,
