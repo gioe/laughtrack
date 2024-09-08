@@ -1,10 +1,11 @@
 
 
-import { Storage } from '@google-cloud/storage';
+import { Storage, GetFilesResponse, File } from '@google-cloud/storage';
 import fs from 'fs/promises';
 import path from 'path';
 
-const storage = new Storage();
+const storage = new Storage()
+const bucket = storage.bucket(process.env.STORAGE_BUCKET as string);
 
 export async function downloadFile(fileName: any): Promise<void> {
     const __dirname = path.resolve();
@@ -15,9 +16,9 @@ export async function downloadFile(fileName: any): Promise<void> {
         destination,
     };
 
-    storage.bucket(process.env.STORAGE_BUCKET as string).file(fileName).download(options)
-    .catch((error) => {
-        console.error(error)
+    bucket.getFiles()
+    .then((response: GetFilesResponse) => {
+        return response[0].forEach((file: File) => console.log(file.name))
     })
 
 }
