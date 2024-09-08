@@ -1,6 +1,6 @@
 
 
-import { Storage, GetFilesResponse, File, GetFileMetadataCallback } from '@google-cloud/storage';
+import { Storage, GetFilesResponse, File, TransferManager, Bucket, DownloadResponse } from '@google-cloud/storage';
 import fs from 'fs/promises';
 import path from 'path';
 import { runTasks } from './promiseUtil.js';
@@ -12,20 +12,14 @@ export async function downloadBucketContents(bucketString: string): Promise<void
     const bucket = storage.bucket(bucketString);
     bucket.setUserProject(process.env.CLOUD_STORAGE_PROJECT_ID as string);
 
-    bucket.getFiles()
-    .then((response: GetFilesResponse) => downloadFiles(response[0]))
-    .catch((error) => console.log(error))
+    const transferManager = new TransferManager(bucket);
 
-}
-
-export async function downloadFiles(files: File[]): Promise<void> {
-    
-    const tasks = files.map((file: File) => file.download({
-        destination: getPath(file.name)
-      }))
-
-    runTasks(tasks)
-    .catch((err) => console.log(err))
+    transferManager.downloadManyFiles(process.env.CLOUD_STORAGE_FOLDER_NAME as string, {
+        passthroughOptions: {
+            destination: process.env.DIRECTORY_PATH as string
+        }
+    })
+    .catch((error: Error) => console.log(error))
 }
 
 export const readFile = async (sourceFile: string): Promise<string> => {
