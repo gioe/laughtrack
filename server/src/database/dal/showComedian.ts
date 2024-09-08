@@ -29,7 +29,7 @@ export const getAllShowsForComedian = async (comedianId: number, comedianName: s
     const queryString = `
     SELECT * FROM ${DATABASE.SHOW_COMEDIANS_TABLE} cs INNER JOIN ${DATABASE.SHOWS_TABLE} s ON s.id = cs.show_id WHERE cs.comedian_id = $1;
     `
-    const shows  = await executeQuery<GetShowDetailsOutput>(queryString, [comedianId])
+    const shows  = await executeQuery<GetShowDetailsOutput[]>(queryString, [comedianId])
 
     return {
         name: comedianName,
@@ -42,7 +42,7 @@ export const getAllComediansInShow = async (showId: number): Promise<GetComedian
     const queryString = `
     SELECT * FROM ${DATABASE.SHOW_COMEDIANS_TABLE} cs INNER JOIN ${DATABASE.COMEDIANS_TABLE} c ON c.id = cs.comedian_id WHERE cs.show_id = $1;
     `
-    return await executeQuery<GetComedianDetailsOutput>(queryString, [showId])
+    return await executeQuery<GetComedianDetailsOutput[]>(queryString, [showId])
 }
 
 export const deleteAllShows = async (showIds: number[]): Promise<boolean> => {

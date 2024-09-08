@@ -66,7 +66,6 @@ export async function createShowsTable(pool: pkg.Pool) {
         CONSTRAINT fk_club FOREIGN KEY(club_id) REFERENCES clubs(id)
       );
     `;
-
     await pool.query(query);
   } catch (err) {
     console.error(err);

@@ -1,8 +1,27 @@
+import path from 'path';
 import { ClubExistenceDTO, CreateClubDTO, CreateClubOutput, GetClubOutput } from "../../api/dto/club.dto.js"
 import { ClubInterface } from "../../api/interfaces/club.interface.js"
 import { runTasks } from "../../util/promiseUtil.js"
 import { checkForExistence, deleteWithCondition, getAll, getFirstWithCondition, create, upsert } from "../../util/queryUtil.js"
 import { DATABASE } from "../../constants/database.js"
+import {  downloadFile } from "../../util/storageUtil.js"
+import { JSON_KEYS } from "../../constants/objects.js"
+
+export const getAllClubsFromFile = async (): Promise<ClubInterface[]> => {
+    
+    return downloadFile(process.env.STORAGE_BUCKET as string, 
+        process.env.CLUBS_FILE as string, 
+        process.env.CLUBS_FILE_NAME as string)
+        .then((json: any) => {
+            return json[JSON_KEYS.clubs].map((club: any) => {
+                return {
+                    ...club,
+                    scrapingConfig: json[JSON_KEYS.scrapingConfig],
+                }
+            })
+        })
+}
+
 
 export const createAllClubs = async (clubs: ClubInterface[]): Promise<CreateClubOutput[]> => {
     const tasks = clubs.map(club => createClub({

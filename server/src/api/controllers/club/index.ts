@@ -4,8 +4,9 @@ import * as mapper from "./mapper.js"
 import { ClubInterface } from '../../interfaces/club.interface.js'
 import { CreateClubDTO, CreateClubOutput } from '../../dto/club.dto.js'
 
-export const createAll = async (payload: ClubInterface[]): Promise<CreateClubOutput[]> => {
-    return clubDal.createAllClubs(payload);
+export const createAll = async (): Promise<CreateClubOutput[]> => {
+    return clubDal.getAllClubsFromFile()
+    .then((payload) => clubDal.createAllClubs(payload));
 }
 
 export const create = async(payload: CreateClubDTO): Promise<CreateClubOutput> => {

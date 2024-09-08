@@ -1,5 +1,5 @@
 import * as clubController from "../controllers/club/index.js"
-import * as storage from "../../common/storage.js"
+import * as storage from "../../util/storageUtil.js"
 import express, { Request, Response} from "express"; 
 import { assignUser } from "../middleware/assignUser.middleware.js";
 import { authenticateRole } from "../middleware/authenticateRole.middleware.js";
@@ -42,8 +42,7 @@ clubsApiRouter.post('/',
 
 clubsApiRouter.post('/all', 
     async (req: Request, res: Response) => {
-    const clubs = await storage.getClubs();
-    await clubController.createAll(clubs)
+    await clubController.createAll()
     return res.status(200).send({
         success: true
     })
