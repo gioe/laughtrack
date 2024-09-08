@@ -19,6 +19,8 @@ import {
     createUsersTable, 
     generateDBConnectionPool
 } from "./database/config.js";
+import { downloadFile } from "./util/storageUtil.js";
+
 
 class App {
     public app: Application;
@@ -27,15 +29,26 @@ class App {
         this.app = express()
         this.routes()
         this.middleLayers()
-        generateDBConnectionPool().then((pool: pkg.Pool) => this.databaseSync(pool))
+        this.setupDb()
+        this.generateCachedFiles()
     }
 
-    protected databaseSync(pool: pkg.Pool): void {
-        createClubsTable(pool)
+    protected setupDb(): void {
+        generateDBConnectionPool()
+        .then((pool: pkg.Pool) =>  this.generateTables(pool))
+    }
+
+    protected generateTables = async (pool: pkg.Pool) => {
+        return createClubsTable(pool)
         .then(() => createShowsTable(pool))
         .then(() => createComediansTable(pool))
         .then(() => createShowComediansTable(pool))
         .then(() => createUsersTable(pool));
+    }
+
+    protected generateCachedFiles = async () => {
+        await downloadFile(process.env.CLUBS_FILE_NAME as string)
+        await downloadFile(process.env.USERS_FILE_NAME as string)
     }
 
     protected routes(): void {

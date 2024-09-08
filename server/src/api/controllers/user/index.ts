@@ -1,5 +1,5 @@
 import * as userDal from "../../../database/dal/user.js"
-import { GetUserDetailsOutput, RegisterUserDTO } from "../../dto/user.dto.js";
+import { GetUserDetailsOutput } from "../../dto/user.dto.js";
  
 export const checkIfUserExists = async (email: string) => {
   return userDal.checkIfUserExists(email)

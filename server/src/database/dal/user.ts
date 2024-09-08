@@ -1,13 +1,12 @@
 import { checkForExistence, getFirstWithCondition, upsert } from "../../util/queryUtil.js"
 import { DATABASE } from "../../constants/database.js"
 import { GetUserDetailsOutput, RegisterUserDTO, RegisterUserOutput } from "../../api/dto/user.dto.js";
-import { downloadFile } from "../../util/storageUtil.js";
+import { readFile } from "../../util/storageUtil.js";
 import { JSON_KEYS } from '../../constants/objects.js';
 
 export const getAdminList = async (): Promise<string[]> => {
 
-    return downloadFile(process.env.STORAGE_BUCKET as string, 
-        process.env.USERS_FILE_NAME as string)        
+    return readFile(process.env.USERS_FILE_NAME as string)        
         .then((json: any) => {
             return json[JSON_KEYS.admins].map((object: any) => {
                 return object[JSON_KEYS.email]

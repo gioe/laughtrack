@@ -6,7 +6,7 @@ import path from 'path';
 
 const storage = new Storage();
 
-export const downloadFile = async (bucketName: any, fileName: any) => {
+export async function downloadFile(fileName: any): Promise<void> {
     const __dirname = path.resolve();
     const cwd = path.join(__dirname, '..');
     const destination = path.join(cwd, fileName);
@@ -14,11 +14,12 @@ export const downloadFile = async (bucketName: any, fileName: any) => {
     const options = {
         destination,
     };
-    
 
-    await storage.bucket(bucketName).file(fileName).download(options);
+    storage.bucket(process.env.STORAGE_BUCKET as string).file(fileName).download(options)
+    .catch((error) => {
+        console.error(error)
+    })
 
-    return readFile(destination)
 }
 
 export const readFile = async (sourceFile: string): Promise<string> => {
