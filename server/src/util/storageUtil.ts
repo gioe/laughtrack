@@ -20,6 +20,7 @@ export async function downloadFile(fileName: any): Promise<void> {
     .then((response: GetFilesResponse) => {
         return response[0].forEach((file: File) => console.log(file.name))
     })
+    .catch((error) => console.log(error))
 
 }
 
