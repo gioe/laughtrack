@@ -29,13 +29,10 @@ export async function downloadFiles(files: File[]): Promise<void> {
 }
 
 export const readFile = async (sourceFile: string): Promise<string> => {
-    return fs.readFile(sourceFile, { encoding: 'utf8' })
-    .then((data: string) => deleteFile(sourceFile, JSON.parse(data)))
-};
-
-export const deleteFile = async (sourceFile: string, data: string): Promise<string> => {
-    return fs.unlink(sourceFile)
-    .then(() => data)
+    const filePath = getPath(sourceFile)
+    return fs.readFile(filePath, { encoding: 'utf8' })
+    .then((data: string) => JSON.parse(data))
+    .catch((error: Error) => console.log(error))
 };
 
 const getPath = (fileName: string) => {
