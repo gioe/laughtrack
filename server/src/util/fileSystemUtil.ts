@@ -1,16 +1,13 @@
-import fs from 'fs';
+import fs from 'fs/promises';
+import path from 'path';
 
-export const readFile = (sourceFile: string) => {
-    try {
-        const data = fs.readFileSync(sourceFile, 'utf8');
-        return JSON.parse(data);
-    } catch (err) {
-        console.error('Error reading file:', err);
-    }
+export const readFile = async (sourceFile: string): Promise<string> => {
+    const filePath = getPath(sourceFile)
+    return fs.readFile(filePath, { encoding: 'utf8' })
+    .then((data: string) => JSON.parse(data))
+    .catch((error: Error) => console.log(error))
 };
 
-export const deleteFile = (sourceFile: string) => {
-    fs.unlink(sourceFile, (err) => {
-        if (err) throw err;
-    })
-};
+const getPath = (fileName: string) => {
+    return path.join(process.env.DIRECTORY_PATH as string, fileName);
+}

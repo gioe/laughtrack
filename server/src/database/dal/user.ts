@@ -1,8 +1,8 @@
 import { checkForExistence, getFirstWithCondition, upsert } from "../../util/queryUtil.js"
 import { DATABASE } from "../../constants/database.js"
 import { GetUserDetailsOutput, RegisterUserDTO, RegisterUserOutput } from "../../api/dto/user.dto.js";
-import { readFile } from "../../util/storageUtil.js";
 import { JSON_KEYS } from '../../constants/objects.js';
+import { readFile } from "../../util/fileSystemUtil.js";
 
 export const getAdminList = async (): Promise<string[]> => {
 
