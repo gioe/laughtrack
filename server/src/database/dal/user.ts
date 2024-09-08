@@ -9,10 +9,9 @@ export const getAdminList = async (): Promise<string[]> => {
     return downloadFile(process.env.STORAGE_BUCKET as string, 
         process.env.USERS_FILE_NAME as string)        
         .then((json: any) => {
-            return []
-            // return json[JSON_KEYS.admins].map((object: any) => {
-            //     return object[JSON_KEYS.email]
-            // })
+            return json[JSON_KEYS.admins].map((object: any) => {
+                return object[JSON_KEYS.email]
+            })
         })
 }
 
