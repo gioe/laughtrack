@@ -17,6 +17,8 @@ export async function downloadBucketContents(): Promise<void> {
 }
 
 export const readFileFromBucket = async (sourceFile: string): Promise<string> => {
+    console.log(sourceFile)
     return bucket.file(sourceFile).download()
-    .then((response: DownloadResponse) => response[0].toString('utf8'))
+    .then((response: DownloadResponse) => JSON.parse(response[0].toString('utf8')))
+    .catch((error: Error) => console.log(error))
 };
