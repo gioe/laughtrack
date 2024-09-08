@@ -1,17 +1,41 @@
 import pkg from 'pg';
 const { Pool } = pkg;
-import {AuthTypes, Connector, IpAddressTypes} from '@google-cloud/cloud-sql-connector';
-import {GoogleAuth} from 'google-auth-library';
+import { AuthTypes, Connector, IpAddressTypes } from '@google-cloud/cloud-sql-connector';
     
-const pool = new Pool({
-  user: process.env.DB_USER as string,
-  database: process.env.DB_NAME as string, 
-  password: process.env.DB_PASSWORD as string,
-  host: process.env.INSTANCE_UNIX_SOCKET as string,
-  max: 5
-})
+export var dbConnectionPool: pkg.Pool;
 
-export async function createClubsTable() {
+export async function generateDBConnectionPool(): Promise<pkg.Pool> {
+
+  if (process.env.K_REVISION == undefined) {
+    console.log(`Generating local DB pool`);
+    const connector = new Connector();
+
+    const clientOpts = connector.getOptions({
+      instanceConnectionName: process.env.INSTANCE_CONNECTION_NAME as string,
+      authType: AuthTypes.IAM,
+      ipType: IpAddressTypes.PUBLIC,
+    });
+    
+    dbConnectionPool = new Pool({
+      ...clientOpts,
+      user: process.env.LOCAL_DB_USER as string,
+      database: process.env.DB_NAME as string, 
+      max: 5
+    })
+  } else {
+    console.log(`Generating remote DB pool`);
+    dbConnectionPool = new Pool({
+      user: process.env.DB_USER as string,
+      database: process.env.DB_NAME as string, 
+      password: process.env.DB_PASSWORD as string,
+      host: process.env.INSTANCE_UNIX_SOCKET as string,
+      max: 5
+    })
+  }
+  return dbConnectionPool;
+}
+
+export async function createClubsTable(pool: pkg.Pool) {
   try {
     const query = `
       CREATE TABLE IF NOT EXISTS clubs (
@@ -30,7 +54,7 @@ export async function createClubsTable() {
   }
 }
 
-export async function createShowsTable() {
+export async function createShowsTable(pool: pkg.Pool) {
   try {
     const query = `
       CREATE TABLE IF NOT EXISTS shows (
@@ -50,7 +74,7 @@ export async function createShowsTable() {
   }
 }
 
-export async function createComediansTable() {
+export async function createComediansTable(pool: pkg.Pool) {
   try {
     const query = `
       CREATE TABLE IF NOT EXISTS comedians (
@@ -67,7 +91,7 @@ export async function createComediansTable() {
   }
 }
 
-export async function createShowComediansTable() {
+export async function createShowComediansTable(pool: pkg.Pool) {
   try {
     const query = `
       CREATE TABLE IF NOT EXISTS show_comedians (
@@ -86,7 +110,7 @@ export async function createShowComediansTable() {
   }
 }
 
-export async function createUsersTable() {
+export async function createUsersTable(pool: pkg.Pool) {
   try {
     const query = `
       CREATE TABLE IF NOT EXISTS users (
@@ -103,5 +127,3 @@ export async function createUsersTable() {
     console.error('Users table creation failed');
   }
 }
-
-export default pool

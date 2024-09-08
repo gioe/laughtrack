@@ -1,4 +1,6 @@
 import express, { Application } from "express";
+import pkg from 'pg';
+const { Pool } = pkg;
 import cors from "cors";
 import helmet from "helmet";
 import { comediansApiRouter } from "./api/routes/comedians.js";
@@ -14,7 +16,8 @@ import {
     createComediansTable, 
     createShowsTable, 
     createShowComediansTable, 
-    createUsersTable 
+    createUsersTable, 
+    generateDBConnectionPool
 } from "./database/config.js";
 
 class App {
@@ -24,15 +27,15 @@ class App {
         this.app = express()
         this.routes()
         this.middleLayers()
-        this.databaseSync()
+        generateDBConnectionPool().then((pool: pkg.Pool) => this.databaseSync(pool))
     }
 
-    protected databaseSync(): void {
-        createClubsTable()
-        .then(() => createShowsTable())
-        .then(() => createComediansTable())
-        .then(() => createShowComediansTable())
-        .then(() => createUsersTable())
+    protected databaseSync(pool: pkg.Pool): void {
+        createClubsTable(pool)
+        .then(() => createShowsTable(pool))
+        .then(() => createComediansTable(pool))
+        .then(() => createShowComediansTable(pool))
+        .then(() => createUsersTable(pool));
     }
 
     protected routes(): void {
