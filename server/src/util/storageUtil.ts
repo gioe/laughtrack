@@ -4,10 +4,10 @@ import { Storage } from '@google-cloud/storage';
 import fs from 'fs/promises';
 import path from 'path';
 
-export const downloadFile = async (bucketName: any, fileName: any, destFileName: string) => {
+export const downloadFile = async (bucketName: any, fileName: any) => {
     const __dirname = path.resolve();
     const cwd = path.join(__dirname, '..');
-    const destination = path.join(cwd, destFileName);
+    const destination = path.join(cwd, fileName);
 
     const storage = new Storage();
     const options = {
