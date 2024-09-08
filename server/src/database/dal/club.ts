@@ -10,7 +10,7 @@ import { JSON_KEYS } from "../../constants/objects.js"
 export const getAllClubsFromFile = async (): Promise<ClubInterface[]> => {
     
     return downloadFile(process.env.STORAGE_BUCKET as string, 
-        process.env.CLUBS_FILE_NAME as string)        
+        process.env.CLUBS_FILE_NAME as string)
         .then((json: any) => {
             return []
             // return json[JSON_KEYS.clubs].map((club: any) => {
