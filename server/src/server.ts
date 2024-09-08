@@ -19,7 +19,7 @@ import {
     createUsersTable, 
     generateDBConnectionPool
 } from "./database/config.js";
-import { downloadFile } from "./util/storageUtil.js";
+import { downloadBucketContents } from "./util/storageUtil.js";
 
 
 class App {
@@ -47,8 +47,7 @@ class App {
     }
 
     protected generateCachedFiles = async () => {
-        await downloadFile(process.env.CLUBS_FILE_NAME as string)
-        await downloadFile(process.env.USERS_FILE_NAME as string)
+        await downloadBucketContents(process.env.STORAGE_BUCKET as string)
     }
 
     protected routes(): void {
