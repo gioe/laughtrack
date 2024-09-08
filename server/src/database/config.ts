@@ -1,12 +1,13 @@
 import pkg from 'pg';
 const { Pool } = pkg;
 import { AuthTypes, Connector, IpAddressTypes } from '@google-cloud/cloud-sql-connector';
+import { isLocal } from '../util/environmentUtil.js';
     
 export var dbConnectionPool: pkg.Pool;
 
 export async function generateDBConnectionPool(): Promise<pkg.Pool> {
 
-  if (process.env.K_REVISION == undefined) {
+  if (isLocal) {
     console.log(`Generating local DB pool`);
     const connector = new Connector();
 

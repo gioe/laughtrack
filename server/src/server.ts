@@ -19,7 +19,8 @@ import {
     createUsersTable, 
     generateDBConnectionPool
 } from "./database/config.js";
-import { downloadBucketContents } from "./util/storageUtil.js";
+import { isLocal } from "./util/environmentUtil.js";
+import { downloadBucketContents } from "./util/cloudStorageUtil.js";
 
 
 class App {
@@ -30,12 +31,14 @@ class App {
         this.routes()
         this.middleLayers()
         this.setupDb()
-        this.generateCachedFiles()
+        if (isLocal) {
+            this.generateCachedFiles()
+        }
     }
 
     protected setupDb(): void {
         generateDBConnectionPool()
-        .then((pool: pkg.Pool) =>  this.generateTables(pool))
+        .then((pool: pkg.Pool) => this.generateTables(pool))
     }
 
     protected generateTables = async (pool: pkg.Pool) => {
@@ -46,8 +49,8 @@ class App {
         .then(() => createUsersTable(pool));
     }
 
-    protected generateCachedFiles = async () => {
-        await downloadBucketContents(process.env.STORAGE_BUCKET as string)
+    protected generateCachedFiles(): void {
+        downloadBucketContents()
     }
 
     protected routes(): void {

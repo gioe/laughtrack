@@ -1,7 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 
-export const readFile = async (sourceFile: string): Promise<string> => {
+export const readFileFromFileSystem = async (sourceFile: string): Promise<string> => {
     const filePath = getPath(sourceFile)
     return fs.readFile(filePath, { encoding: 'utf8' })
     .then((data: string) => JSON.parse(data))

@@ -4,7 +4,7 @@ import { runTasks } from "../../util/promiseUtil.js"
 import { checkForExistence, deleteWithCondition, getAll, getFirstWithCondition, create, upsert } from "../../util/queryUtil.js"
 import { DATABASE } from "../../constants/database.js"
 import { JSON_KEYS } from "../../constants/objects.js"
-import { readFile } from '../../util/fileSystemUtil.js';
+import { readFile } from "../../util/storageUtil.js"
 
 export const getAllClubsFromFile = async (): Promise<ClubInterface[]> => {
     

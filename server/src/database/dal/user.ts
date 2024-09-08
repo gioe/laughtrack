@@ -2,7 +2,7 @@ import { checkForExistence, getFirstWithCondition, upsert } from "../../util/que
 import { DATABASE } from "../../constants/database.js"
 import { GetUserDetailsOutput, RegisterUserDTO, RegisterUserOutput } from "../../api/dto/user.dto.js";
 import { JSON_KEYS } from '../../constants/objects.js';
-import { readFile } from "../../util/fileSystemUtil.js";
+import { readFile } from "../../util/storageUtil.js";
 
 export const getAdminList = async (): Promise<string[]> => {
 
