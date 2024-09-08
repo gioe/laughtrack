@@ -13,12 +13,13 @@ export const getAllClubsFromFile = async (): Promise<ClubInterface[]> => {
         process.env.CLUBS_FILE as string, 
         process.env.CLUBS_FILE_NAME as string)
         .then((json: any) => {
-            return json[JSON_KEYS.clubs].map((club: any) => {
-                return {
-                    ...club,
-                    scrapingConfig: json[JSON_KEYS.scrapingConfig],
-                }
-            })
+            return []
+            // return json[JSON_KEYS.clubs].map((club: any) => {
+            //     return {
+            //         ...club,
+            //         scrapingConfig: json[JSON_KEYS.scrapingConfig],
+            //     }
+            // })
         })
 }
 

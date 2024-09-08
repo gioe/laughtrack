@@ -16,7 +16,7 @@ export const downloadFile = async (bucketName: any, fileName: any, destFileName:
     
     await storage.bucket(bucketName).file(fileName).download(options);
 
-    return readFile(destFileName)
+    // return readFile(destFileName)
 }
 
 export const readFile = async (sourceFile: string): Promise<string> => {

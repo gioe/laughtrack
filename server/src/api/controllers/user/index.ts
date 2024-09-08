@@ -7,7 +7,7 @@ export const checkIfUserExists = async (email: string) => {
 
 export const register = async (emailString: string, passwordHash: string) => {
   return userDal.getAdminList()
-  .then((adminUsers: string) => {
+  .then((adminUsers: string[]) => {
     return userDal.register({
       email: emailString,
       password: passwordHash,

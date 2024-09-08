@@ -4,15 +4,16 @@ import { GetUserDetailsOutput, RegisterUserDTO, RegisterUserOutput } from "../..
 import { downloadFile } from "../../util/storageUtil.js";
 import { JSON_KEYS } from '../../constants/objects.js';
 
-export const getAdminList = async () => {
+export const getAdminList = async (): Promise<string[]> => {
 
     return downloadFile(process.env.STORAGE_BUCKET as string, 
         process.env.USERS_FILE as string, 
         process.env.USERS_FILE_NAME as string)
         .then((json: any) => {
-            return json[JSON_KEYS.admins].map((object: any) => {
-                return object[JSON_KEYS.email]
-            })
+            return []
+            // return json[JSON_KEYS.admins].map((object: any) => {
+            //     return object[JSON_KEYS.email]
+            // })
         })
 }
 
