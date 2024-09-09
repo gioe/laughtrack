@@ -1,13 +1,13 @@
-import { DATABASE } from "../../constants/database.js"
+import { DATABASE } from "../constants/database.js"
 import { 
     create,
     deleteWithCondition,
     executeQuery
-} from "../../util/queryUtil.js"
+} from "../util/queryUtil.js"
 import { CreateShowComedianDTO, CreateShowComedianOutput } from "../../api/dto/showComedian.dto.js"
 import { CreateShowOutput, GetShowDetailsOutput } from "../../api/dto/show.dto.js"
 import { CreateComedianOutput, GetComedianDetailsOutput, GetComedianShowsOutput } from "../../api/dto/comedian.dto.js"
-import { runTasks } from "../../util/promiseUtil.js"
+import { runTasks } from "../../common/util/promiseUtil.js"
 
 export const createShowComedianRelationships = async (comedians: CreateComedianOutput[], show: CreateShowOutput): Promise<CreateShowComedianOutput[]> => {
     const tasks = comedians.map(comedian => {

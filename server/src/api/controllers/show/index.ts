@@ -2,8 +2,8 @@ import * as showDal from "../../../database/dal/show.js"
 import * as comedianDal from "../../../database/dal/comedian.js"
 import * as showComedianDal from "../../../database/dal/showComedian.js"
 import { CreateShowDTO, CreateShowOutput, GetShowDetailsOutput } from '../../dto/show.dto.js'
-import { ShowInterface } from "../../interfaces/show.interface.js"
-import { runTasks } from "../../../util/promiseUtil.js"
+import { ShowInterface } from "../../../common/interfaces/show.interface.js"
+import { runTasks } from "../../../common/util/promiseUtil.js"
 
 export const createAll = async(allShows: ShowInterface[]): Promise<CreateShowOutput[]> => {
     const tasks = allShows.map((show: ShowInterface) => {

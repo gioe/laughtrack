@@ -3,35 +3,39 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import * as userController from '../controllers/user/index.js'
 import { GetUserDetailsOutput, RegisterUserOutput } from "../dto/user.dto.js";
+import bodyParser from "body-parser";
 
 export const userApiRouter = express.Router();
+var urlencodedParser = bodyParser.urlencoded({ extended: false })
 
 userApiRouter.post('/register',
+    urlencodedParser,
      async (req: Request, res: Response) => {
+    
+    const { email, password } = req.body
+    const emailString = email as string;
+    const passwordString = password as string;
 
-    const userExists = await userController.checkIfUserExists(req.params.email)
+    const userExists = await userController.checkIfUserExists(emailString)
 
-    if (userExists) {
+    if (userExists && emailString !== "" && passwordString !== "") {
         return res.status(400).json({
             error: "Email already there, No need to register again.",
         });
     }
-
-    const { email, password } = req.query
-    
-    const emailString = email as string;
-    const passwordString = password as string;
 
     return bcrypt.hash(passwordString, 10)
         .then((hash: string) => userController.register(emailString, hash))
         .then((response: RegisterUserOutput) => userController.getUserById(response.id))
         .then((user: GetUserDetailsOutput) => loginUser(res, user))
         .catch((error: any) => res.status(500).json({ error }))
+
 });
 
 userApiRouter.post('/login', 
+    urlencodedParser,
     async (req: Request, res: Response) => {
-    const { email, password } = req.query
+    const { email, password } = req.body
     
     const emailString = email as string;
     const passwordString = password as string;
@@ -40,7 +44,7 @@ userApiRouter.post('/login',
 
     if (!userExists) {
         return res.status(400).json({
-            error: "User is not registered.",
+            error: "User doesn't exist.",
         });
     }
 

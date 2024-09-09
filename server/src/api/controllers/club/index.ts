@@ -1,7 +1,7 @@
 import * as clubDal from "../../../database/dal/club.js"
 import * as mapper from "./mapper.js"
 
-import { ClubInterface } from '../../interfaces/club.interface.js'
+import { ClubInterface } from '../../../common/interfaces/club.interface.js'
 import { CreateClubDTO, CreateClubOutput } from '../../dto/club.dto.js'
 
 export const createAll = async (): Promise<CreateClubOutput[]> => {

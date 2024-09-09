@@ -3,7 +3,7 @@ import express, { Request, Response} from "express";
 import { CreateShowDTO } from "../dto/show.dto.js";
 import { assignUser } from "../middleware/assignUser.middleware.js";
 import { authenticateRole } from "../middleware/authenticateRole.middleware.js";
-import { UserRole } from '../../@types/UserRole.js';
+import { UserRole } from '../@types/UserRole.js';
 
 export const showsApiRouter = express.Router();
 showsApiRouter.use(assignUser)
@@ -39,12 +39,4 @@ showsApiRouter.post('/',
     const payload: CreateShowDTO = req.body
     const result = await showController.create(payload)
     return res.status(200).send(result)
-})
-
-showsApiRouter.delete('/',
-    async (req: Request, res: Response) => {
-    const result = await showController.deleteOldShows()
-    return res.status(204).send({
-        success: result
-    })
 })

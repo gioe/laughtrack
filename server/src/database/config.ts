@@ -1,7 +1,7 @@
 import pkg from 'pg';
 const { Pool } = pkg;
 import { AuthTypes, Connector, IpAddressTypes } from '@google-cloud/cloud-sql-connector';
-import { isLocal } from '../util/environmentUtil.js';
+import { isLocal } from '../api/util/environmentUtil.js';
     
 export var dbConnectionPool: pkg.Pool;
 

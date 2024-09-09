@@ -1,10 +1,9 @@
 import * as clubController from "../controllers/club/index.js"
-import * as storage from "../../util/storageUtil.js"
 import express, { Request, Response} from "express"; 
 import { assignUser } from "../middleware/assignUser.middleware.js";
 import { authenticateRole } from "../middleware/authenticateRole.middleware.js";
-import { UserRole } from "../../@types/UserRole.js";
 import { CreateClubDTO } from "../dto/club.dto.js";
+import { UserRole } from "../@types/UserRole.js";
 
 export const clubsApiRouter = express.Router();
 clubsApiRouter.use(assignUser)

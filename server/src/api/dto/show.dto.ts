@@ -1,4 +1,4 @@
-import { ComedianInterface } from "../interfaces/comedian.interface.js";
+import { ComedianInterface } from "../../common/interfaces/comedian.interface.js";
 
 export type UpdateShowOutput = CreateShowOutput;
 export type GetShowIdOutput = CreateShowOutput;

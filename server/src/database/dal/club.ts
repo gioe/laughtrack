@@ -1,10 +1,10 @@
 import { ClubExistenceDTO, CreateClubDTO, CreateClubOutput, GetClubOutput } from "../../api/dto/club.dto.js"
-import { ClubInterface } from "../../api/interfaces/club.interface.js"
-import { runTasks } from "../../util/promiseUtil.js"
-import { checkForExistence, deleteWithCondition, getAll, getFirstWithCondition, create, upsert } from "../../util/queryUtil.js"
-import { DATABASE } from "../../constants/database.js"
-import { JSON_KEYS } from "../../constants/objects.js"
-import { readFile } from "../../util/storageUtil.js"
+import { ClubInterface } from "../../common/interfaces/club.interface.js"
+import { runTasks } from "../../common/util/promiseUtil.js"
+import { checkForExistence, deleteWithCondition, getAll, getFirstWithCondition, create, upsert } from "../util/queryUtil.js"
+import { DATABASE } from "../constants/database.js"
+import { readFile } from "../../api/util/storageUtil.js"
+import { JSON_KEYS } from "../../common/constants/keys.js"
 
 export const getAllClubsFromFile = async (): Promise<ClubInterface[]> => {
     
@@ -18,7 +18,6 @@ export const getAllClubsFromFile = async (): Promise<ClubInterface[]> => {
             })
         })
 }
-
 
 export const createAllClubs = async (clubs: ClubInterface[]): Promise<CreateClubOutput[]> => {
     const tasks = clubs.map(club => createClub({

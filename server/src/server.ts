@@ -4,7 +4,6 @@ const { Pool } = pkg;
 import cors from "cors";
 import helmet from "helmet";
 import { comediansApiRouter } from "./api/routes/comedians.js";
-import { scraperApiRouter } from "./api/routes/scraper.js";
 import { showsApiRouter } from "./api/routes/shows.js";
 import { userApiRouter } from "./api/routes/user.js";
 import { errorHandler } from "./api/middleware/error.middleware.js";
@@ -19,8 +18,8 @@ import {
     createUsersTable, 
     generateDBConnectionPool
 } from "./database/config.js";
-import { isLocal } from "./util/environmentUtil.js";
-import { downloadBucketContents } from "./util/cloudStorageUtil.js";
+import { isLocal } from "./api/util/environmentUtil.js";
+import { downloadBucketContents } from "./api/util/cloudStorageUtil.js";
 
 
 class App {
@@ -31,9 +30,7 @@ class App {
         this.routes()
         this.middleLayers()
         this.setupDb()
-        if (isLocal) {
-            this.generateCachedFiles()
-        }
+        if (isLocal) this.generateCachedFiles()
     }
 
     protected setupDb(): void {
@@ -55,7 +52,6 @@ class App {
 
     protected routes(): void {
         this.app.use('/comedians', comediansApiRouter);
-        this.app.use('/scraper', scraperApiRouter);
         this.app.use('/shows', showsApiRouter);
         this.app.use('/user', userApiRouter);
         this.app.use('/clubs', clubsApiRouter);

@@ -3,7 +3,7 @@ import express, { Request, Response} from "express";
 import { CreateComedianDTO } from "../dto/comedian.dto.js";
 import { assignUser } from "../middleware/assignUser.middleware.js";
 import { authenticateRole } from "../middleware/authenticateRole.middleware.js";
-import { UserRole } from "../../@types/UserRole.js";
+import { UserRole } from "../@types/UserRole.js";
 
 export const comediansApiRouter = express.Router();
 comediansApiRouter.use(assignUser)

@@ -1,7 +1,7 @@
 import {  CreateShowDTO, CreateShowOutput, GetShowByClubAndTimeDTO, GetShowDetailsOutput, GetShowIdOutput,  ShowExistenceDTO } from "../../api/dto/show.dto.js"
-import { DATABASE } from "../../constants/database.js"
-import { runTasks } from "../../util/promiseUtil.js"
-import { checkForExistence, deleteWithCondition, getAll, getAllWithCondition, getFirstWithCondition, upsert } from "../../util/queryUtil.js"
+import { DATABASE } from "../constants/database.js"
+import { runTasks } from "../../common/util/promiseUtil.js"
+import { checkForExistence, deleteWithCondition, getAll, getAllWithCondition, getFirstWithCondition, upsert } from "../util/queryUtil.js"
 
 export const createAllShows = async (clubDtos: CreateShowDTO[]): Promise<CreateShowOutput[]> => {
     const tasks = clubDtos.map(clubDto => createShow(clubDto))
