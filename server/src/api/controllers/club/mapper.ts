@@ -1,7 +1,7 @@
 import { ClubInterface } from '../../../common/interfaces/club.interface.js'
 import { GetClubOutput } from '../../dto/club.dto.js'
 
-export const toClub = async(payload: GetClubOutput): Promise<ClubInterface> => {
+export const toClub = (payload: GetClubOutput): ClubInterface => {
     return {
         id: payload.id, 
         name: payload.name,

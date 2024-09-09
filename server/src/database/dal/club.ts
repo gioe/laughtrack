@@ -5,6 +5,7 @@ import { checkForExistence, deleteWithCondition, getAll, getFirstWithCondition, 
 import { DATABASE } from "../constants/database.js"
 import { readFile } from "../../api/util/storageUtil.js"
 import { JSON_KEYS } from "../../common/constants/keys.js"
+import { toClub } from "../../api/controllers/club/mapper.js"
 
 export const getAllClubsFromFile = async (): Promise<ClubInterface[]> => {    
     return readFile(process.env.CLUBS_FILE_NAME as string)
@@ -37,7 +38,10 @@ export const getClubById = async (id: number): Promise<GetClubOutput> => {
 }
 
 export const getAllClubs = async (): Promise<ClubInterface[]> => {
-    return getAll<ClubInterface>(DATABASE.CLUBS_TABLE)
+    return getAll<GetClubOutput>(DATABASE.CLUBS_TABLE)
+    .then((queryResponse: GetClubOutput[]) => {
+        return queryResponse.map((object: GetClubOutput) => toClub(object))
+    })
 }
 
 export const deleteClubById = async (id: number): Promise<boolean> => {
