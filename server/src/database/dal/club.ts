@@ -6,36 +6,22 @@ import { DATABASE } from "../constants/database.js"
 import { readFile } from "../../api/util/storageUtil.js"
 import { JSON_KEYS } from "../../common/constants/keys.js"
 
-export const getAllClubsFromFile = async (): Promise<ClubInterface[]> => {
-    
+export const getAllClubsFromFile = async (): Promise<ClubInterface[]> => {    
     return readFile(process.env.CLUBS_FILE_NAME as string)
-        .then((json: any) => {
-            return json[JSON_KEYS.clubs].map((club: any) => {
-                return {
-                    ...club,
-                    scrapingConfig: json[JSON_KEYS.scrapingConfig],
-                }
-            })
-        })
+        .then((clubsJson: any) => clubArrayFromJson(clubsJson))
 }
 
 export const createAllClubs = async (clubs: ClubInterface[]): Promise<CreateClubOutput[]> => {
-    const tasks = clubs.map(club => createClub({
-        name: club.name,
-        base_url: club.baseUrl,
-        schedule_page_url: club.schedulePageUrl,
-        timezone: club.timezone,
-        scraping_config: club.scrapingConfig
-    }))
+    const tasks = clubs.map(club => createClub(club))
     return runTasks(tasks)
 }
 
-export const createClub = async (payload: CreateClubDTO): Promise<CreateClubOutput> => {
+export const createClub = async (payload: ClubInterface): Promise<CreateClubOutput> => {
     return upsert(DATABASE.CLUBS_TABLE, 
         `(name, base_url, schedule_page_url, timezone, scraping_config) VALUES($1, $2, $3, $4, $5)`,
         `(name)`,
         `base_url=$2, schedule_page_url=$3, timezone=$4, scraping_config=$5`,
-        [payload.name, payload.base_url, payload.schedule_page_url, payload.timezone, payload.scraping_config])
+        [payload.name, payload.baseUrl, payload.schedulePageUrl, payload.timezone, payload.scrapingConfig])
 }
 
 export const getClubByName = async (name: string): Promise<ClubInterface> => {
@@ -56,4 +42,25 @@ export const getAllClubs = async (): Promise<ClubInterface[]> => {
 
 export const deleteClubById = async (id: number): Promise<boolean> => {
     return deleteWithCondition(DATABASE.CLUBS_TABLE, `id=$1`, [id])
+}
+
+
+const clubArrayFromJson = (json: any) => {
+    var clubArray: ClubInterface[] = []
+
+    for (let index = 0; index < json[JSON_KEYS.clubs].length - 1; index++) {
+        const currentItem = json[JSON_KEYS.clubs][index];
+        const currenItemClubs = currentItem[JSON_KEYS.clubDetails];
+
+        currenItemClubs.forEach((club: any) => {
+            const clubObject = {
+                ...club,
+                scrapingConfig: currentItem[JSON_KEYS.scrapingConfig]
+            }
+            clubArray.push(clubObject)
+        })
+      }
+      
+    return clubArray;
+
 }

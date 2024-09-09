@@ -31,18 +31,3 @@ clubsApiRouter.delete('/:id',
         success: result
     })
 })
-
-clubsApiRouter.post('/', 
-    async (req: Request, res: Response) => {
-    const payload: CreateClubDTO = req.body
-    const result = await clubController.create(payload)
-    return res.status(200).send(result)
-})
-
-clubsApiRouter.post('/all', 
-    async (req: Request, res: Response) => {
-    await clubController.createAll()
-    return res.status(200).send({
-        success: true
-    })
-})

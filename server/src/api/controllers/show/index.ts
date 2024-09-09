@@ -36,12 +36,14 @@ export const getAll = async (): Promise<GetShowDetailsOutput[]> => {
     return showDal.getAllShows()
 }
 
-export const deleteOldShows = async (): Promise<boolean[]> => {
+export const deleteOldShows = async (): Promise<void> => {
     const oldShows = await showDal.getOldShows()
-    const oldShowIds: number[] = oldShows.map(show => show.id);
-    await showComedianDal.deleteAllShows(oldShowIds)
 
-    const tasks = oldShowIds.map(id => showDal.deleteShowById(id))
-    return runTasks(tasks);
-
+    if (oldShows !== undefined && oldShows.length > 0) {
+        const oldShowIds: number[] = oldShows.map(show => show.id);
+        await showComedianDal.deleteAllShows(oldShowIds)
+    
+        const tasks = oldShowIds.map(id => showDal.deleteShowById(id))
+        runTasks(tasks);
+    }
 }

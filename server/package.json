@@ -6,10 +6,12 @@
   "scripts": {
     "dev": "nodemon",
     "serve": "node --env-file=.env dist/server.js",
+    "writeclubs":  "npm run build && node --env-file=.env dist/jobs/writeClubs.js",
+    "scrape":  "npm run build && node --env-file=.env dist/jobs/scrape.js",
     "start": "npm run serve",
     "gcp-build": "tsc -p .",
     "type-check": "tsc",
-    "build": "rimraf dist && tsc --noEmit false && tsc-alias"
+    "build": "rimraf dist && tsc --noEmit false"
   },
   "module": "CommonJS",
   "keywords": [],

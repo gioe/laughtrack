@@ -30,6 +30,7 @@ export const SCRAPER_KEYS = {
     admins: 'admins',
     scrapingConfig: 'scrapingConfig',
     email: 'email',
+    clubDetails: 'clubDetails',
   };
 
   export const CLUB_KEYS = {

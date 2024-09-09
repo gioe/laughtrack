@@ -6,13 +6,14 @@ import * as showController from  "../api/controllers/show/index.js"
 import { ShowInterface } from "../common/interfaces/show.interface.js";
 import { ClubInterface } from "../common/interfaces/club.interface.js";
 import { runTasks } from "../common/util/promiseUtil.js";
-import { flatten } from "lodash";
 import { Scraper } from "./classes/models/Scraper.js";
+import { flatten } from "../api/util/arrayUtil.js";
+import { generateDBConnectionPool } from "../database/config.js";
 
-
-async function scrapeAndDeleteShows() {
-  showController.deleteOldShows()
-  .then(() => scrapeAllClubs())
+async function runScrapingJob() {
+    generateDBConnectionPool()
+    .then(() => showController.deleteOldShows()
+    .then(() => scrapeAllClubs()))
 }
 
 export const scrapeClub = async (id: number) => {
@@ -53,4 +54,4 @@ const getScrapingJob = (browser: playwright.Browser, club: ClubInterface): Promi
 };
 
 
-scrapeAndDeleteShows();
+runScrapingJob();

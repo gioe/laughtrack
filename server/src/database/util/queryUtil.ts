@@ -27,6 +27,7 @@ export async function create<T>(table: string,
 
 export async function getAll<T>(table: string): Promise<T[]> {
     const queryString = `SELECT * FROM ${table}`
+    console.log(queryString)
     return executeQuery(queryString)
 }
 
