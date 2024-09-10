@@ -1,40 +1,48 @@
 import pkg from 'pg';
 const { Pool } = pkg;
 import { AuthTypes, Connector, IpAddressTypes } from '@google-cloud/cloud-sql-connector';
-import { isLocal } from '../api/util/environmentUtil.js';
     
 export var dbConnectionPool: pkg.Pool;
 
-export async function generateDBConnectionPool(): Promise<pkg.Pool> {
+export async function generateLocalDBConnection() {
+  const connector = new Connector();
 
-  if (isLocal) {
-    console.log(`Generating local DB pool`);
-    const connector = new Connector();
+  const clientOpts = connector.getOptions({
+    instanceConnectionName: process.env.INSTANCE_CONNECTION_NAME as string,
+    authType: AuthTypes.IAM,
+    ipType: IpAddressTypes.PUBLIC,
+  });
+  
+  dbConnectionPool = new Pool({
+    ...clientOpts,
+    user: process.env.LOCAL_DB_USER as string,
+    database: process.env.DB_NAME as string, 
+    max: 5
+  })
 
-    const clientOpts = connector.getOptions({
-      instanceConnectionName: process.env.INSTANCE_CONNECTION_NAME as string,
-      authType: AuthTypes.IAM,
-      ipType: IpAddressTypes.PUBLIC,
-    });
-    
-    dbConnectionPool = new Pool({
-      ...clientOpts,
-      user: process.env.LOCAL_DB_USER as string,
-      database: process.env.DB_NAME as string, 
-      max: 5
-    })
-  } else {
-    console.log(`Generating remote DB pool`);
-    dbConnectionPool = new Pool({
-      user: process.env.DB_USER as string,
-      database: process.env.DB_NAME as string, 
-      password: process.env.DB_PASSWORD as string,
-      host: process.env.INSTANCE_UNIX_SOCKET as string,
-      max: 5
-    })
-  }
-  return dbConnectionPool;
+  await generateTables(dbConnectionPool)
 }
+
+export async function generateRemoteDBConnection () {
+  dbConnectionPool = new Pool({
+    user: process.env.DB_USER as string,
+    database: process.env.DB_NAME as string, 
+    password: process.env.DB_PASSWORD as string,
+    host: process.env.INSTANCE_UNIX_SOCKET as string,
+    max: 5
+  })
+
+  await generateTables(dbConnectionPool)
+}
+
+async function generateTables(pool: pkg.Pool) {
+  return createClubsTable(pool)
+  .then(() => createShowsTable(pool))
+  .then(() => createComediansTable(pool))
+  .then(() => createShowComediansTable(pool))
+  .then(() => createUsersTable(pool));
+}
+
 
 export async function createClubsTable(pool: pkg.Pool) {
   try {

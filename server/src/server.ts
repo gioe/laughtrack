@@ -11,12 +11,8 @@ import { notFoundHandler } from "./api/middleware/not-found.middleware.js";
 import { clubsApiRouter } from "./api/routes/clubs.js";
 import { healthCheckApiRouter } from "./api/routes/healthcheck.js";
 import {
-    createClubsTable, 
-    createComediansTable, 
-    createShowsTable, 
-    createShowComediansTable, 
-    createUsersTable, 
-    generateDBConnectionPool
+    generateRemoteDBConnection,
+    generateLocalDBConnection
 } from "./database/config.js";
 import { isLocal } from "./api/util/environmentUtil.js";
 import { downloadBucketContents } from "./api/util/cloudStorageUtil.js";
@@ -29,21 +25,17 @@ class App {
         this.app = express()
         this.routes()
         this.middleLayers()
+        this.setupCache()
         this.setupDb()
-        if (isLocal) this.generateCachedFiles()
+    }
+
+    protected setupCache(): void {
+        if (isLocal) downloadBucketContents
     }
 
     protected setupDb(): void {
-        generateDBConnectionPool()
-        .then((pool: pkg.Pool) => this.generateTables(pool))
-    }
-
-    protected generateTables = async (pool: pkg.Pool) => {
-        return createClubsTable(pool)
-        .then(() => createShowsTable(pool))
-        .then(() => createComediansTable(pool))
-        .then(() => createShowComediansTable(pool))
-        .then(() => createUsersTable(pool));
+        if (isLocal) generateLocalDBConnection()
+        else generateRemoteDBConnection()
     }
 
     protected generateCachedFiles(): void {

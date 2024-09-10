@@ -4,11 +4,11 @@ import { ShowInterface } from "../../common/interfaces/show.interface.js";
 import { ClubInterface } from "../../common/interfaces/club.interface.js";
 import { runTasks } from "../../common/util/promiseUtil.js";
 import { flatten } from "../../common/util/arrayUtil.js";
-import { generateDBConnectionPool } from "../../database/config.js";
+import { generateRemoteDBConnection } from "../../database/config.js";
 import { runScraper } from "../../common/functions/scraper.js";
 
 async function runScrapingJob() {
-    generateDBConnectionPool()
+    generateRemoteDBConnection()
     .then(() => showController.deleteOldShows()
     .then(() => scrapeAllClubs()))
 }
