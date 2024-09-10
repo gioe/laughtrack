@@ -1,4 +1,4 @@
-import { determineDay, determineMonth, determineYear, normalizeDateString } from "../../util/dateUtil.js";
+import { determineDay, determineMonth, determineYear, normalizeDateString } from"../../util/dateUtil.js";
 import { ScrapingConfig } from "../models/ScrapingConfig.js";
 
 // Used for cases where the string value is a valid string, but doesn't contain a year so the DateConstructor

@@ -1,9 +1,9 @@
 import playwright from "playwright";
 import { ScrapableScraper } from "./ScrapableScraper.js";
 import { providedStringPromise } from "../../../common/util/promiseUtil.js";
-import { stringIsAValidUrl } from "../../util/urlUtil.js";
 import { Scrapable } from "../../../common/interfaces/scrapable.interface.js";
 import { ScrapingConfig } from "../models/ScrapingConfig.js";
+import { stringIsAValidUrl } from "../../util/urlUtil.js";
 
 export class TicketScraper {
   private scrapingConfig: ScrapingConfig;

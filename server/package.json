@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "nodemon",
     "serve": "node --env-file=.env dist/server.js",
-    "writeclubs":  "npm run build && node --env-file=.env dist/jobs/writeClubs.js",
-    "scrape":  "npm run build && node --env-file=.env dist/jobs/scrape.js",
+    "writeclubs": "npm run build && node --env-file=.env dist/jobs/writeClubs/index.js",
+    "scrape": "npm run build && node --env-file=.env dist/jobs/scrape/index.js",
     "start": "npm run serve",
     "gcp-build": "tsc -p .",
     "type-check": "tsc",
@@ -37,7 +37,9 @@
     "nodemon": "^3.1.0",
     "pg": "^8.12.0",
     "pg-hstore": "^2.3.4",
-    "playwright": "^1.46.1"
+    "playwright": "^1.46.1",
+    "playwright-extra": "^4.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",

@@ -1,9 +1,9 @@
 import { providedStringPromise, runTasks } from "../../../common/util/promiseUtil.js";
-import { stringIsAValidDate } from "../../util/dateUtil.js";
 import { Scrapable } from "../../../common/interfaces/scrapable.interface.js";
-import { getTimeByRegex } from "../../util/timeUtil.js";
 import { ScrapingConfig } from "../models/ScrapingConfig.js";
 import { ScrapableScraper } from "./ScrapableScraper.js";
+import { getTimeByRegex } from "../../util/timeUtil.js";
+import { stringIsAValidDate } from "../../util/dateUtil.js";
 
 export class DateTimeScraper {
   private scrapingConfig: ScrapingConfig;

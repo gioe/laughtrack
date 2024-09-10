@@ -1,8 +1,8 @@
 import { REGEX } from "../../jobs/constants/regex.js";
-import { removeSubstrings } from "../../jobs/util/stringUtil.js";
 import { ScrapingConfig } from "../../jobs/classes/models/ScrapingConfig.js";
 import { Comedian } from "../../jobs/classes/models/Comedian.js";
 import { isLikelyShow } from "../../jobs/util/showUtil.js";
+import { removeSubstrings } from "../../jobs/util/stringUtil.js";
 
 const SEPARATOR = ",";
 

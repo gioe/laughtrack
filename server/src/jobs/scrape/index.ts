@@ -1,14 +1,11 @@
-
-
-import playwright from "playwright";
-import * as clubController from "../api/controllers/club/index.js"
-import * as showController from  "../api/controllers/show/index.js"
-import { ShowInterface } from "../common/interfaces/show.interface.js";
-import { ClubInterface } from "../common/interfaces/club.interface.js";
-import { runTasks } from "../common/util/promiseUtil.js";
-import { Scraper } from "./classes/models/Scraper.js";
-import { flatten } from "../api/util/arrayUtil.js";
-import { generateDBConnectionPool } from "../database/config.js";
+import * as clubController from "../../api/controllers/club/index.js"
+import * as showController from  "../../api/controllers/show/index.js"
+import { ShowInterface } from "../../common/interfaces/show.interface.js";
+import { ClubInterface } from "../../common/interfaces/club.interface.js";
+import { runTasks } from "../../common/util/promiseUtil.js";
+import { flatten } from "../../common/util/arrayUtil.js";
+import { generateDBConnectionPool } from "../../database/config.js";
+import { runScraper } from "../../common/functions/scraper.js";
 
 async function runScrapingJob() {
     generateDBConnectionPool()
@@ -35,7 +32,7 @@ export const scrapeAllClubs = async () => {
 
     await clubController.getAll()
         .then((clubs: ClubInterface[]) => {
-            const jobs = clubs.map((club: ClubInterface) => runScraper(club))
+            const jobs = clubs.filter((club: ClubInterface) => club.name == 'Comedy Cellar New York').map((club: ClubInterface) => runScraper(club))
             return runTasks(jobs)
         })
         .then((scrapedShows: ShowInterface[][]) => flatten(scrapedShows))
@@ -43,15 +40,5 @@ export const scrapeAllClubs = async () => {
 
     console.log(`Finished in ${(new Date().getTime() - startDate.getTime()) / 1000} seconds`);
 }
-
-const runScraper = async (club: ClubInterface): Promise<ShowInterface[]> => {
-    return playwright.chromium.launch({ headless: false })
-        .then(browser => getScrapingJob(browser, club))
-}
-
-const getScrapingJob = (browser: playwright.Browser, club: ClubInterface): Promise<ShowInterface[]> => {
-    return new Scraper(club, browser).scrape()
-};
-
 
 runScrapingJob();

@@ -10,11 +10,11 @@ import { generateScrapingLoop } from "../../util/scraperUtil.js";
 export class Scraper {
 
   private club: ClubInterface;
-  private browser: playwright.Browser;
+  private browser: playwright.BrowserContext
   private pageManager: PageManager;
 
   constructor(club: ClubInterface,
-    browser: playwright.Browser,
+    browser: playwright.BrowserContext,
   ) {
     this.club = club;
     this.browser = browser;
