@@ -13,7 +13,7 @@
       "forceConsistentCasingInFileNames": true,
       "allowSyntheticDefaultImports": true
     },
-    "include": ["src/**/*", "src/app.ts"],
+    "include": ["src/**/*", "src/app.ts", "src/common/functions"],
     "exclude": ["node_modules"],
     "moduleResolution": "Bundler",
     "typeRoots": [

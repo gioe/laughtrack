@@ -1,4 +1,4 @@
-import { buildComediansFromNames } from "../../../api/util/comedianUtil.js";
+import { buildComediansFromNames } from "../../util/comedianUtil.js";
 import { ElementCounter } from "../handlers/ElementCounter.js";
 import { Scrapable } from "../../../common/interfaces/scrapable.interface.js";
 import { ComedianInterface } from "../../../common/interfaces/comedian.interface.js";

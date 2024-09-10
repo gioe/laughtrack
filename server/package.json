@@ -1,8 +1,8 @@
 {
-  "name": "comedy",
+  "name": "laughtrack_server",
   "type": "module",
   "version": "1.0.0",
-  "main": "app.js",
+  "main": "dist/server.js",
   "scripts": {
     "dev": "nodemon",
     "serve": "node --env-file=.env dist/server.js",

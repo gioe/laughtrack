@@ -1,9 +1,9 @@
 import playwright from "playwright";
-import { Scraper } from "../../jobs/classes/models/Scraper.js";
-import { ClubInterface } from "../interfaces/club.interface.js";
-import { ShowInterface } from "../interfaces/show.interface.js";
 import { chromium } from 'playwright-extra'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
+import { ClubInterface } from "../interfaces/club.interface.js";
+import { ShowInterface } from "../interfaces/show.interface.js";
+import { Scraper } from "../../jobs/classes/models/Scraper.js";
 
 export const runScraper = async (club: ClubInterface): Promise<ShowInterface[]> => {
     chromium.use(StealthPlugin())
