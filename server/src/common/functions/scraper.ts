@@ -7,7 +7,7 @@ import { Scraper } from "../../jobs/classes/models/Scraper.js";
 
 export const runScraper = async (club: ClubInterface): Promise<ShowInterface[]> => {
     chromium.use(StealthPlugin())
-    return playwright.chromium.launch({ headless: false })
+    return playwright.chromium.launch({ headless: true })
         .then(browser => browser.newContext())
         .then(browserContext => getScrapingJob(browserContext, club))
 }

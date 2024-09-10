@@ -8,6 +8,8 @@ import { generateRemoteDBConnection } from "../../database/config.js";
 import { runScraper } from "../../common/functions/scraper.js";
 
 async function runScrapingJob() {
+    console.log("Running scraping job")
+    console.log(process.env)
     generateRemoteDBConnection()
     .then(() => showController.deleteOldShows()
     .then(() => scrapeAllClubs()))

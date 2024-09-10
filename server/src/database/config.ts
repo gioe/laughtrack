@@ -5,6 +5,7 @@ import { AuthTypes, Connector, IpAddressTypes } from '@google-cloud/cloud-sql-co
 export var dbConnectionPool: pkg.Pool;
 
 export async function generateLocalDBConnection() {
+  console.log("Building local DB connection")
   const connector = new Connector();
 
   const clientOpts = connector.getOptions({
@@ -24,6 +25,7 @@ export async function generateLocalDBConnection() {
 }
 
 export async function generateRemoteDBConnection () {
+  console.log("Building remote DB connection")
   dbConnectionPool = new Pool({
     user: process.env.DB_USER as string,
     database: process.env.DB_NAME as string, 
