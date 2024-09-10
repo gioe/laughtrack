@@ -1,1 +1,1 @@
-web: node index.js
+web: node --env-file=.env dist/jobs/scrape/index.js
