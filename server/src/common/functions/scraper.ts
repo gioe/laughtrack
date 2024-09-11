@@ -1,21 +1,21 @@
-import chromium from "@sparticuz/chromium";
-import playwright, { Browser } from "playwright-core";
+import playwright from "playwright";
+import { chromium } from 'playwright-extra'
+import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import { ClubInterface } from "../interfaces/club.interface.js";
 import { ShowInterface } from "../interfaces/show.interface.js";
 import { Scraper } from "../../jobs/classes/models/Scraper.js";
 
 export const runScraper = async (club: ClubInterface): Promise<ShowInterface[]> => {
-    return chromium.executablePath()
-    .then((executablePath: any) => {
-        return playwright.chromium.launch({
-            executablePath,
-            headless: true, 
-            args: chromium.args
-          })
-        })
+    chromium.use(StealthPlugin())
+    return playwright.chromium.launch({ headless: true })
         .then(browser => getScrapingJob(browser, club))
 }
 
 const getScrapingJob = (browser: playwright.Browser, club: ClubInterface): Promise<ShowInterface[]> => {
-    return new Scraper(club, browser).scrape()
+    return new Scraper(club, browser).scrape().then(((shows: ShowInterface[]) =>  {
+        if (shows.length == 0) {
+            console.log(`No shows returned for ${club.name}`)
+        }
+        return shows
+    }));
 };
