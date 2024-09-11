@@ -1,4 +1,4 @@
-import playwright from "playwright";
+import playwright from "playwright-core";
 import { ScrapableScraper } from "./ScrapableScraper.js";
 import { providedStringPromise } from "../../../common/util/promiseUtil.js";
 import { Scrapable } from "../../../common/interfaces/scrapable.interface.js";

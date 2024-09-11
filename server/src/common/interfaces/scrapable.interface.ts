@@ -1,4 +1,4 @@
-import { ElementHandle } from "playwright";
+import { ElementHandle } from "playwright-core";
 
 export interface Scrapable {
     $$eval(selector: string, pageFunction: any): Promise<any>;

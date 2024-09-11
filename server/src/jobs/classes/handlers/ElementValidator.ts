@@ -1,6 +1,6 @@
 import { runTasks } from '../../../common/util/promiseUtil.js';
 import { ElementCounter } from './ElementCounter.js';
-import { ElementHandle } from "playwright";
+import { ElementHandle } from "playwright-core";
 import { ElementHandler } from './ElementHandler.js';
 import { ValidationRules } from '../../@types/ValidationRules.js';
 import { removeBadWhiteSpace } from '../../util/stringUtil.js';

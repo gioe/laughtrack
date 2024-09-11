@@ -1,4 +1,4 @@
-import playwright from "playwright";
+import playwright from "playwright-core";
 import { Scrapable } from "../../common/interfaces/scrapable.interface.js";
 
 export const generateCompleteUrl = (scrapable: Scrapable, path: string): string => {

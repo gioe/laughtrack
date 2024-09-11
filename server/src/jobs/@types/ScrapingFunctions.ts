@@ -1,4 +1,4 @@
-import playwright, { ElementHandle } from "playwright";
+import playwright, { ElementHandle } from "playwright-core";
 import { Scrapable } from "../../common/interfaces/scrapable.interface.js";
 import { ShowInterface } from "../../common/interfaces/show.interface.js";
 

@@ -1,4 +1,4 @@
-import playwright from "playwright";
+import playwright from "playwright-core";
 import { 
   ScrapingLoopFunction,
   InteractionFunction, 

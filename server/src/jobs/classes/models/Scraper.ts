@@ -1,4 +1,4 @@
-import playwright from "playwright";
+import playwright from "playwright-core";
 import { PageManager } from "./PageManager.js";
 import { Scrapable } from "../../../common/interfaces/scrapable.interface.js";
 import { ClubInterface } from "../../../common/interfaces/club.interface.js";
@@ -10,11 +10,11 @@ import { generateScrapingLoop } from "../../util/scraperUtil.js";
 export class Scraper {
 
   private club: ClubInterface;
-  private browser: playwright.BrowserContext
+  private browser: playwright.Browser;
   private pageManager: PageManager;
 
   constructor(club: ClubInterface,
-    browser: playwright.BrowserContext,
+    browser: playwright.Browser,
   ) {
     this.club = club;
     this.browser = browser;

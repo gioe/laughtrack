@@ -1,4 +1,4 @@
-import { ElementHandle } from "playwright";
+import { ElementHandle } from "playwright-core";
 import { runTasks } from '../../../common/util/promiseUtil.js';
 import { Scrapable } from "../../../common/interfaces/scrapable.interface.js";
 import { generateUrlsFromPaths } from "../../util/scrapableUtil.js";

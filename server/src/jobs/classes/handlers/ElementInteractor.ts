@@ -1,4 +1,4 @@
-import playwright from "playwright";
+import playwright from "playwright-core";
 import { delay, provideGenericPromiseResponse } from "../../../common/util/promiseUtil.js";
 import { ScrapableScraper } from "../scrapers/ScrapableScraper.js";
 

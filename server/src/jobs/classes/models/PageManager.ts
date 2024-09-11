@@ -1,4 +1,4 @@
-import playwright, { ElementHandle } from "playwright";
+import playwright, { ElementHandle } from "playwright-core";;
 import { ElementInteractor } from "../handlers/ElementInteractor.js";
 import { ElementValidator } from "../handlers/ElementValidator.js";
 import { ShowScraper } from "../scrapers/ShowScraper.js";
