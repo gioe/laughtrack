@@ -12,4 +12,4 @@ RUN npm install
 # Copy local directories to the current local directory of our docker image (/app)
 COPY . .
 
-CMD [ "npm", "scrape" ]
+CMD [ "npm", "run", "scrape" ]
