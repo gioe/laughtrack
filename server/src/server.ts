@@ -30,7 +30,7 @@ class App {
     }
 
     protected setupCache(): void {
-        if (isLocal) downloadBucketContents
+        if (isLocal) downloadBucketContents()
     }
 
     protected setupDb(): void {

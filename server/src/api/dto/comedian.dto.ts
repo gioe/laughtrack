@@ -6,6 +6,11 @@ export type CreateComedianDTO = {
   slug?: string;
 }
 
+export type MergeComedianDTO = {
+  persistantId: number;
+  mergedIds: number[];
+}
+
 export type CreateComedianOutput = {
   id: number;
 }

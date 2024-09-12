@@ -1,6 +1,6 @@
 export type CreateShowComedianDTO = {
-  show_id: number;
-  comedian_id: number;
+  showId: number;
+  comedianId: number;
 }
 
 export type CreateShowComedianOutput = {
@@ -8,6 +8,6 @@ export type CreateShowComedianOutput = {
 }
 
 export type ShowComedianDetailOutput = {
-  show_id: number;
-  comedian_id: number;
+  showId: number;
+  comedianId: number;
 }

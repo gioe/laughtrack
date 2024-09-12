@@ -6,30 +6,19 @@ import { runTasks } from "../../common/util/promiseUtil.js";
 import { flatten } from "../../common/util/arrayUtil.js";
 import { generateLocalDBConnection } from "../../database/config.js";
 import { runScraper } from "../../common/functions/scraper.js";
+import { writeLogToFile } from "../util/logUtil.js";
 
 async function runScrapingJob() {
-    console.log("Running scraping job")
+    writeLogToFile("Running scraping job")
     generateLocalDBConnection()
     .then(() => showController.deleteOldShows()
     .then(() => scrapeAllClubs()))
 }
 
-export const scrapeClub = async (id: number) => {
-    const startDate = new Date()
-
-    console.log(`Started all scraping jobs at ${startDate}`);
-
-    await clubController.getById(id)
-        .then((club: ClubInterface) => runScraper(club))
-        .then((scrapedShows: ShowInterface[]) => showController.createAll(scrapedShows))
-
-    console.log(`Finished in ${(new Date().getTime() - startDate.getTime()) / 1000} seconds`);
-}
-
 export const scrapeAllClubs = async () => {
     const startDate = new Date()
 
-    console.log(`Started all scraping jobs at ${startDate}`);
+    writeLogToFile(`Started all scraping jobs at ${startDate}`);
 
     await clubController.getAll()
         .then((clubs: ClubInterface[]) => {
@@ -39,7 +28,7 @@ export const scrapeAllClubs = async () => {
         .then((scrapedShows: ShowInterface[][]) => flatten(scrapedShows))
         .then((scrapedShows: ShowInterface[]) => showController.createAll(scrapedShows))
 
-    console.log(`Finished in ${(new Date().getTime() - startDate.getTime()) / 1000} seconds`);
+    writeLogToFile(`Finished in ${(new Date().getTime() - startDate.getTime()) / 1000} seconds`);
 }
 
 runScrapingJob();

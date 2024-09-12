@@ -41,8 +41,7 @@ export const deleteOldShows = async (): Promise<void> => {
 
     if (oldShows !== undefined && oldShows.length > 0) {
         const oldShowIds: number[] = oldShows.map(show => show.id);
-        await showComedianDal.deleteAllShows(oldShowIds)
-    
+        await showComedianDal.deleteAllRelationshipsByShows(oldShowIds)
         const tasks = oldShowIds.map(id => showDal.deleteShowById(id))
         runTasks(tasks);
     }

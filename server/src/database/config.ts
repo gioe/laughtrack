@@ -1,14 +1,16 @@
 import pkg from 'pg';
 const { Pool } = pkg;
 import { AuthTypes, Connector, IpAddressTypes } from '@google-cloud/cloud-sql-connector';
+import { writeLogToFile } from '../jobs/util/logUtil.js';
     
 export var dbConnectionPool: pkg.Pool;
 
-export async function generateLocalDBConnection() {
-  console.log("Building local DB connection")
-  const connector = new Connector();
 
-  const clientOpts = connector.getOptions({
+export async function generateLocalDBConnection() {
+  
+  writeLogToFile("Building local DB connection")
+
+  const clientOpts = new Connector().getOptions({
     instanceConnectionName: process.env.INSTANCE_CONNECTION_NAME as string,
     authType: AuthTypes.IAM,
     ipType: IpAddressTypes.PUBLIC,
@@ -25,7 +27,8 @@ export async function generateLocalDBConnection() {
 }
 
 export async function generateRemoteDBConnection () {
-  console.log("Building remote DB connection")
+  writeLogToFile("Building remote DB connection")
+  
   dbConnectionPool = new Pool({
     user: process.env.DB_USER as string,
     database: process.env.DB_NAME as string, 
@@ -45,7 +48,6 @@ async function generateTables(pool: pkg.Pool) {
   .then(() => createUsersTable(pool));
 }
 
-
 export async function createClubsTable(pool: pkg.Pool) {
   try {
     const query = `
@@ -60,8 +62,7 @@ export async function createClubsTable(pool: pkg.Pool) {
     `;
     await pool.query(query);
   } catch (err) {
-    console.error(err);
-    console.error('Clubs table creation failed');
+    console.error(`Clubs table creation failed: ${err}`);
   }
 }
 
@@ -79,8 +80,7 @@ export async function createShowsTable(pool: pkg.Pool) {
     `;
     await pool.query(query);
   } catch (err) {
-    console.error(err);
-    console.error('Shows table creation failed');
+    console.error(`Shows table creation failed: ${err}`);
   }
 }
 
@@ -96,8 +96,7 @@ export async function createComediansTable(pool: pkg.Pool) {
 
     await pool.query(query);
   } catch (err) {
-    console.error(err);
-    console.error('Comedians table creation failed');
+    console.error(`Comedians table creation failed: ${err}`);
   }
 }
 
@@ -105,18 +104,18 @@ export async function createShowComediansTable(pool: pkg.Pool) {
   try {
     const query = `
       CREATE TABLE IF NOT EXISTS show_comedians (
-      id SERIAL PRIMARY KEY,
+      id SERIAL,
       show_id INTEGER,
       comedian_id INTEGER,
       CONSTRAINT fk_shows FOREIGN KEY(show_id) REFERENCES shows(id),
-      CONSTRAINT fk_comedians FOREIGN KEY(comedian_id) REFERENCES comedians(id)
+      CONSTRAINT fk_comedians FOREIGN KEY(comedian_id) REFERENCES comedians(id),
+      CONSTRAINT show_comedan_pkey PRIMARY KEY (show_id, comedian_id)
       );
     `;
 
     await pool.query(query);
   } catch (err) {
-    console.error(err);
-    console.error('Show comedians table creation failed');
+    console.error(`Show comedians table creation failed: ${err}`);
   }
 }
 
@@ -133,7 +132,6 @@ export async function createUsersTable(pool: pkg.Pool) {
 
     await pool.query(query);
   } catch (err) {
-    console.error(err);
-    console.error('Users table creation failed');
+    console.error(`Users table creation failed: ${err}`);
   }
 }

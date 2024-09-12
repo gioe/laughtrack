@@ -9,7 +9,7 @@ export const userApiRouter = express.Router();
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
 
 userApiRouter.post('/register',
-    urlencodedParser,
+     urlencodedParser,
      async (req: Request, res: Response) => {
     
     const { email, password } = req.body
@@ -41,7 +41,6 @@ userApiRouter.post('/login',
     const passwordString = password as string;
 
     const userExists = await userController.checkIfUserExists(emailString)
-
     if (!userExists) {
         return res.status(400).json({
             error: "User doesn't exist.",

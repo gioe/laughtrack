@@ -4,6 +4,7 @@ import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import { ClubInterface } from "../interfaces/club.interface.js";
 import { ShowInterface } from "../interfaces/show.interface.js";
 import { Scraper } from "../../jobs/classes/models/Scraper.js";
+import { writeFailureToFile } from "../../jobs/util/logUtil.js";
 
 export const runScraper = async (club: ClubInterface): Promise<ShowInterface[]> => {
     chromium.use(StealthPlugin())
@@ -14,7 +15,7 @@ export const runScraper = async (club: ClubInterface): Promise<ShowInterface[]> 
 const getScrapingJob = (browser: playwright.Browser, club: ClubInterface): Promise<ShowInterface[]> => {
     return new Scraper(club, browser).scrape().then(((shows: ShowInterface[]) =>  {
         if (shows.length == 0) {
-            console.log(`No shows returned for ${club.name}`)
+            writeFailureToFile(`No shows returned for ${club.name}`)
         }
         return shows
     }));

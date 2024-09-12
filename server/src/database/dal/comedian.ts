@@ -29,5 +29,5 @@ export const getAllComedians = async (): Promise<GetComedianDetailsOutput[]> => 
 }
 
 export const deleteComedianById = async (id: number): Promise<boolean> => {
-    return deleteWithCondition(DATABASE.SHOWS_TABLE, `id=$1`, [id])
+    return deleteWithCondition(DATABASE.COMEDIANS_TABLE, `id=$1`, [id])
 }

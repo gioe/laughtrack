@@ -40,7 +40,8 @@
     "pg-hstore": "^2.3.4",
     "playwright": "^1.46.1",
     "playwright-extra": "^4.3.6",
-    "puppeteer-extra-plugin-stealth": "^2.11.2"
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "winston": "^3.14.2"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",

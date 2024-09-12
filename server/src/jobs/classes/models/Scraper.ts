@@ -6,6 +6,7 @@ import { ShowInterface } from "../../../common/interfaces/show.interface.js";
 import { Show } from "./Show.js";
 import { ScraperType } from "../../@types/ScraperType.js";
 import { generateScrapingLoop } from "../../util/scraperUtil.js";
+import { writeLogToFile } from "../../util/logUtil.js";
 
 export class Scraper {
 
@@ -22,7 +23,7 @@ export class Scraper {
   }
   
   public scrape = async (): Promise<Show[]> => {
-    console.log(`Started scraping ${this.club.name} at ${new Date()}`);
+    writeLogToFile(`Started scraping ${this.club.name} at ${new Date()}`)
 
     return this.browser.newPage()
       .then((page: playwright.Page) => this.pageManager.navigateToUrl(page, this.club.schedulePageUrl))

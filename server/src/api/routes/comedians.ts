@@ -1,6 +1,6 @@
 import * as comedianController from "../controllers/comedian/index.js"
 import express, { Request, Response} from "express"; 
-import { CreateComedianDTO } from "../dto/comedian.dto.js";
+import { CreateComedianDTO, MergeComedianDTO } from "../dto/comedian.dto.js";
 import { assignUser } from "../middleware/assignUser.middleware.js";
 import { authenticateRole } from "../middleware/authenticateRole.middleware.js";
 import { UserRole } from "../@types/UserRole.js";
@@ -25,8 +25,13 @@ comediansApiRouter.get('/:id',
 comediansApiRouter.get('/shows/:id',
     async (req: Request, res: Response) => {
     const id = Number(req.params.id)
-    const result = await comedianController.getAllShowsById(id)
-    return res.status(200).send(result)
+    const comedian = await comedianController.getById(id)
+    const shows = await comedianController.getAllShowsById(id)
+    return res.status(200).send({
+        name: comedian.name,
+        count: shows.length,
+        shows
+    })
 })
 
 comediansApiRouter.delete('/:id', 
@@ -43,5 +48,16 @@ comediansApiRouter.post('/',
     async (req: Request, res: Response) => {
     const payload: CreateComedianDTO = req.body
     const result = await comedianController.create(payload)
+    return res.status(200).send(result)
+})
+
+comediansApiRouter.post('/merge',
+    async (req: Request, res: Response) => {
+    const persistantId = req.query.persistantId as string
+    const mergedIds = req.query.mergedIds as string
+    const result = await comedianController.merge({
+        persistantId: Number(persistantId),
+        mergedIds: mergedIds.split(",").map((id: string) => Number(id))
+    })
     return res.status(200).send(result)
 })
