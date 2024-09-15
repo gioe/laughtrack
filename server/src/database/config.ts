@@ -127,6 +127,7 @@ export async function createUsersTable(pool: pkg.Pool) {
       email TEXT NOT NULL UNIQUE,
       password VARCHAR NOT NULL,
       role TEXT NOT NULL DEFAULT 'user'
+      authProviderId TEXT,
       );
     `;
 
