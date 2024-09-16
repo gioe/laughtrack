@@ -1,15 +1,14 @@
 'use client';
 
-import axois from 'axios';
 import { FcGoogle } from 'react-icons/fc';
-import { useCallback, useState } from 'react'; 
+import { useState } from 'react'; 
 import { 
     FieldValues, 
     SubmitHandler,
     useForm
 } from 'react-hook-form'
 
-import useRegisterModal from '../../hooks/useRegisterModel';
+import useRegisterModal from '@/hooks/useRegisterModel';
 import axios from 'axios';
 import Modal from './Modal';
 import Heading from '../Heading';
@@ -34,7 +33,7 @@ const RegisterModal = () => {
 
     const onSubmit: SubmitHandler<FieldValues> = (data) => {
         setIsLoading(true);
-        axios.post('/api/reister', data)
+        axios.post('/api/register', data)
         .then(() => {
             registerModal.onClose();
         })

@@ -13,6 +13,7 @@ interface InputProps {
     register: UseFormRegister<FieldValues>;
     errors: FieldErrors;
 }
+
 const Input: React.FC<InputProps> = ({
     id,
     label,

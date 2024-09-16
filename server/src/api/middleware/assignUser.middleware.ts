@@ -8,7 +8,7 @@ export const assignUser = async (
     response: Response,
     next: NextFunction
   ) => {
-    const token = request.header('Authorization');
+    const token = request.header("x-auth-token");
     if (!token) return response.status(401).json({ error: 'Access denied' });
     try {
         const decoded = jwt.verify(token, process.env.SECRET_KEY as string) as AuthToken;

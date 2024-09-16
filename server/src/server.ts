@@ -5,7 +5,7 @@ import cors from "cors";
 import helmet from "helmet";
 import { comediansApiRouter } from "./api/routes/comedians.js";
 import { showsApiRouter } from "./api/routes/shows.js";
-import { userApiRouter } from "./api/routes/user.js";
+import { authApiRouter } from "./api/routes/auth.js";
 import { errorHandler } from "./api/middleware/error.middleware.js";
 import { notFoundHandler } from "./api/middleware/not-found.middleware.js";
 import { clubsApiRouter } from "./api/routes/clubs.js";
@@ -43,9 +43,9 @@ class App {
     }
 
     protected routes(): void {
+        this.app.use('/auth', authApiRouter);
         this.app.use('/comedians', comediansApiRouter);
         this.app.use('/shows', showsApiRouter);
-        this.app.use('/user', userApiRouter);
         this.app.use('/clubs', clubsApiRouter);
         this.app.use('/healthcheck', healthCheckApiRouter);
     }
