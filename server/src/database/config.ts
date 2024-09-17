@@ -146,7 +146,7 @@ export async function createCitiesTable(pool: pkg.Pool) {
     const query = `
       CREATE TABLE IF NOT EXISTS cities (
       id SERIAL PRIMARY KEY,
-      name TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL UNIQUE
       );
     `;
 
