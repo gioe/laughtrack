@@ -138,3 +138,20 @@ export async function createUsersTable(pool: pkg.Pool) {
     console.error(`Users table creation failed: ${err}`);
   }
 }
+
+
+export async function createCitiesTable(pool: pkg.Pool) {
+  try {
+    const query = `
+      CREATE TABLE IF NOT EXISTS cities (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL UNIQUE,
+      );
+    `;
+
+    await pool.query(query);
+  } catch (err) {
+    console.error(`Cities table creation failed: ${err}`);
+  }
+}
+

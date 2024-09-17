@@ -19,10 +19,10 @@ export const createAllClubs = async (clubs: ClubInterface[]): Promise<CreateClub
 
 export const createClub = async (payload: ClubInterface): Promise<CreateClubOutput> => {
     return upsert(DATABASE.CLUBS_TABLE, 
-        `(name, base_url, schedule_page_url, timezone, scraping_config) VALUES($1, $2, $3, $4, $5)`,
+        `(name, base_url, schedule_page_url, timezone, scraping_config, city, address) VALUES($1, $2, $3, $4, $5, $6, $7)`,
         `(name)`,
-        `base_url=$2, schedule_page_url=$3, timezone=$4, scraping_config=$5`,
-        [payload.name, payload.baseUrl, payload.schedulePageUrl, payload.timezone, payload.scrapingConfig])
+        `base_url=$2, schedule_page_url=$3, timezone=$4, scraping_config=$5, city=$6, address=$7`,
+        [payload.name, payload.baseUrl, payload.schedulePageUrl, payload.timezone, payload.scrapingConfig, payload.city, payload.address])
 }
 
 export const getClubByName = async (name: string): Promise<ClubInterface> => {
