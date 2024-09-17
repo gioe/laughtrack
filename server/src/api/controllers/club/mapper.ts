@@ -8,6 +8,8 @@ export const toClub = (payload: GetClubOutput): ClubInterface => {
         baseUrl: payload.base_url,
         schedulePageUrl: payload.schedule_page_url,
         timezone: payload.timezone,
-        scrapingConfig: payload.scraping_config
+        scrapingConfig: payload.scraping_config,
+        city: payload.city,
+        address: payload.address
     }
 }

@@ -5,4 +5,6 @@ export interface ClubInterface {
     schedulePageUrl: string;
     timezone: string;
     scrapingConfig: any;
+    city: string;
+    address: string;
 }

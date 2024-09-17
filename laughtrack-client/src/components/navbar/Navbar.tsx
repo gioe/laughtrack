@@ -8,14 +8,19 @@ import React, { useState } from "react";
 import 'react-date-range/dist/styles.css'; // main style file
 import 'react-date-range/dist/theme/default.css'; // theme css file
 import { DateRangePicker, RangeKeyDict } from 'react-date-range';
+import { useRouter } from "next/navigation";
 
 interface NavbarProps {
     currentUser?: User | null;
+    searchPlaceholder?: string
 }
 
 const Navbar: React.FC<NavbarProps> = ({
-    currentUser
+    currentUser, 
+    searchPlaceholder
 }) => {
+
+    const router = useRouter();
 
     const [searchInput, setSearchInput] = useState("")
     const [startDate, setStartDate] = useState(new Date())
@@ -32,8 +37,25 @@ const Navbar: React.FC<NavbarProps> = ({
         setEndDate(ranges.selection.endDate as Date)
     }
 
-    const handleSearchClick = () => {
+    const handleLogoClick = () => {
+        router.push('/')
+    }
 
+    const handleSearchClick = () => {
+        if (searchInput == "") {
+            return;
+        }
+
+        const startDateString = startDate.toISOString();
+        const endDateString = endDate.toISOString();
+
+        const query = new URLSearchParams({
+            location: searchInput,
+            startDate: startDateString,
+            endDate: endDateString,
+            }).toString();
+
+        router.push(`/search?${query}`);
     }
 
     const handleCancelClick = () => {
@@ -45,14 +67,12 @@ const Navbar: React.FC<NavbarProps> = ({
     return (
         <header className="sticky top-0 z-50 grid grid-cols-3 bg-white shadow-md p-5 md:px-10">
             <div className="relative flex items-center h-10 cursor-pointer my-auto">
-                <Logo />
+                <Logo onClick={handleLogoClick}/>
             </div>
             <Search
+                placeholder={searchPlaceholder}
                 searchInput={searchInput}
-                handleSeachInputChange={(value: string) => {
-                    console.log(value)
-                    setSearchInput(value)
-                }} />
+                handleSeachInputChange={(value: string) => setSearchInput(value)} />
             <div className="flex space-x-4 items-center justify-end text-gray-500">
                 <UserMenu currentUser={currentUser} />
             </div>

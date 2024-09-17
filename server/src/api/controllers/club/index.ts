@@ -27,7 +27,6 @@ export const getAll = async (): Promise<ClubInterface[]> => {
 }
 
 export const getAllClubsById = async (ids: number[]): Promise<ClubInterface[]> => {
-    console.log(ids)
     const tasks = ids.map((id: number) => getById(id))
     return runTasks(tasks)
 }

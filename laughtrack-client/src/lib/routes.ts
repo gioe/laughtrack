@@ -3,5 +3,6 @@ export const PUBLIC_ROUTES = {
     LOGIN: '/auth/login/',
     REFRESH_TOKEN: '/auth/refresh',
     TRENDING_CLUBS: '/api/clubs/trending',
-    TRENDING_COMEDIANS: '/api/comedians/trending'
+    TRENDING_COMEDIANS: '/api/comedians/trending',
+    SEARCH_SHOWS: '/api/shows/search'
 }

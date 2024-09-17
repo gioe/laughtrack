@@ -23,7 +23,8 @@ export default async function Home() {
         <ToasterProvider />
         <LoginModal />
         <RegisterModal />
-        <Navbar currentUser={currentUser} />
+        <Navbar 
+        currentUser={currentUser} />
         <Banner />
         <main className="max-w-7xl mx-auto px-8 sm:px-16">
           <section className="pt-6">

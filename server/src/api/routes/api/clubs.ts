@@ -29,7 +29,6 @@ clubsApiRouter.post('/trending',
             })
             .sort((a, b) => b.count - a.count)
             .slice(0, 5)
-        console.log(topFive)
 
         const topFiveIds = topFive.map((object: any) => Number(object.clubId))
 

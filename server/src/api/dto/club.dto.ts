@@ -23,4 +23,13 @@ export type ClubExistenceDTO = {
   name: string;
 }
 
-export type GetClubOutput = UpdateClubDTO;
+export type GetClubOutput = {
+  id: number;
+  name: string;
+  base_url: string;
+  schedule_page_url: string;
+  timezone: string;
+  scraping_config: any;
+  city: string;
+  address: string;
+}
