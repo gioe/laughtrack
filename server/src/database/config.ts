@@ -45,7 +45,8 @@ async function generateTables(pool: pkg.Pool) {
   .then(() => createShowsTable(pool))
   .then(() => createComediansTable(pool))
   .then(() => createShowComediansTable(pool))
-  .then(() => createUsersTable(pool));
+  .then(() => createUsersTable(pool))
+  .then(() => createCitiesTable(pool));
 }
 
 export async function createClubsTable(pool: pkg.Pool) {
