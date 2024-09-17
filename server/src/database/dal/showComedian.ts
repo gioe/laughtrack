@@ -2,12 +2,15 @@ import { DATABASE } from "../constants/database.js"
 import { 
     create,
     deleteWithCondition,
-    executeQuery
+    executeQuery,
+    getAll
 } from "../util/queryUtil.js"
-import { CreateShowComedianDTO, CreateShowComedianOutput } from "../../api/dto/showComedian.dto.js"
+import { CreateShowComedianDTO, CreateShowComedianOutput, ShowComedianDetailOutput } from "../../api/dto/showComedian.dto.js"
 import { CreateShowOutput, GetShowDetailsOutput } from "../../api/dto/show.dto.js"
 import { CreateComedianOutput, GetComedianDetailsOutput } from "../../api/dto/comedian.dto.js"
 import { runTasks } from "../../common/util/promiseUtil.js"
+import { toShowComedian } from "../../api/controllers/showComedian/mapper.js"
+import { ShowComedianInterface } from "../../common/interfaces/showComedian.interface.js"
 
 export const createShowComedianRelationshipsByIds = async (comedianId: number, showIds: number[]): Promise<CreateShowComedianOutput[]> => {
     const tasks = showIds.map(showId => {
@@ -58,4 +61,10 @@ export const deleteAllRelationshipsByComedians = async (comedianIds: number[]): 
     return deleteWithCondition(DATABASE.SHOW_COMEDIANS_TABLE, `comedian_id = ANY($1::int[])`, [comedianIds])
 }
 
+export const getAllShowComedians = async (): Promise<ShowComedianInterface[]> => {
+    return getAll<ShowComedianDetailOutput>(DATABASE.SHOW_COMEDIANS_TABLE)
+    .then((queryResponse: ShowComedianDetailOutput[]) => {
+        return queryResponse.map((object: ShowComedianDetailOutput) => toShowComedian(object))
+    })
+}
 

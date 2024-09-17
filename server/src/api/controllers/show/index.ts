@@ -6,14 +6,7 @@ import { ShowInterface } from "../../../common/interfaces/show.interface.js"
 import { runTasks } from "../../../common/util/promiseUtil.js"
 
 export const createAll = async(allShows: ShowInterface[]): Promise<CreateShowOutput[]> => {
-    const tasks = allShows.map((show: ShowInterface) => {
-        return create({
-            club_id: show.clubId,
-            date_time: show.dateTime,
-            ticket_link: show.ticketLink,
-            comedians: show.comedians
-        })
-    })
+    const tasks = allShows.map((show: ShowInterface) =>  create(show))
     return runTasks(tasks);
 }
 
@@ -32,7 +25,7 @@ export const deleteById = async(id: number): Promise<boolean> => {
     return showDal.deleteShowById(id)
 }
 
-export const getAll = async (): Promise<GetShowDetailsOutput[]> => {
+export const getAll = async (): Promise<ShowInterface[]> => {
     return showDal.getAllShows()
 }
 

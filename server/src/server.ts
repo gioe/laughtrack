@@ -23,7 +23,8 @@ class App {
 
     constructor() {
         this.app = express()
-        this.routes()
+        this.publicRoutes()
+        // this.privateRoutes()
         this.middleLayers()
         this.setupCache()
         this.setupDb()
@@ -42,13 +43,14 @@ class App {
         downloadBucketContents()
     }
 
-    protected routes(): void {
+    protected publicRoutes(): void {
         this.app.use('/auth', authApiRouter);
         this.app.use('/comedians', comediansApiRouter);
-        this.app.use('/shows', showsApiRouter);
         this.app.use('/clubs', clubsApiRouter);
+        this.app.use('/shows', showsApiRouter);
         this.app.use('/healthcheck', healthCheckApiRouter);
     }
+
 
     protected middleLayers(): void {
         this.app.use(errorHandler);
@@ -56,7 +58,8 @@ class App {
         this.app.use(helmet());
         this.app.use(cors());
         this.app.use(express.json());
- }
+    }
+    
 }
 
 const app = new App().app;

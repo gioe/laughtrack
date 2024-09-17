@@ -1,17 +1,20 @@
+import { take } from "lodash"
 import { flatten } from "../../../common/util/arrayUtil.js"
 import { runTasks } from "../../../common/util/promiseUtil.js"
 import * as comedianDal from "../../../database/dal/comedian.js"
 import * as showComedianDal from "../../../database/dal/showComedian.js"
-import { CreateComedianDTO, CreateComedianOutput, GetComedianDetailsOutput, GetComedianShowsOutput, MergeComedianDTO } from '../../dto/comedian.dto.js'
+import { CreateComedianDTO, CreateComedianOutput, GetComedianDetailsOutput, MergeComedianDTO } from '../../dto/comedian.dto.js'
 import { GetShowDetailsOutput } from "../../dto/show.dto.js"
-import { CreateShowComedianOutput } from "../../dto/showComedian.dto.js"
+import { ComedianInterface } from "../../../common/interfaces/comedian.interface.js"
+import { toComedian } from "./mapper.js"
 
 export const create = async(payload: CreateComedianDTO): Promise<CreateComedianOutput> => {
     return comedianDal.createComedian(payload)
 }
 
-export const getById = async (id: number): Promise<GetComedianDetailsOutput> => {
+export const getById = async (id: number): Promise<ComedianInterface> => {
     return comedianDal.getComedianById(id)
+    .then((comedianDetails: GetComedianDetailsOutput) => toComedian(comedianDetails))
 }
 
 export const getAllShowsByIds = async (comedianIds: number[]): Promise<GetShowDetailsOutput[]> => {
@@ -38,17 +41,22 @@ export const getAll = async (): Promise<GetComedianDetailsOutput[]> => {
     return comedianDal.getAllComedians()
 }
 
+export const getAlComediansByIds = async (ids: number[]): Promise<ComedianInterface[]> => {
+    const tasks = ids.map((id: number) => getById(id))
+    return runTasks(tasks)
+}
+
 export const merge = async (payload: MergeComedianDTO): Promise<boolean> => {
     const remainingId = payload.persistantId;
     const mergingIds = payload.mergedIds
 
     return showComedianDal.deleteAllRelationshipsByComedians(mergingIds)
-    .then((success: boolean) => deleteAllComediansById(mergingIds))
-    .then((response: boolean) => getAllShowsByIds(mergingIds)) 
+    .then(() => deleteAllComediansById(mergingIds))
+    .then(() => getAllShowsByIds(mergingIds)) 
     .then((shows: GetShowDetailsOutput[]) => {
         const showIds = shows.map((show: GetShowDetailsOutput) => show.id)
         return showComedianDal.createShowComedianRelationshipsByIds(remainingId, [...new Set(showIds)])
     })
-    .then((shows: CreateShowComedianOutput[]) => true)
+    .then(() => true)
 
 }

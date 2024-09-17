@@ -1,4 +1,5 @@
 export interface ComedianInterface {
-  id?: number
+  id: number
   name: string
+  instagram?: string
 }

@@ -8,6 +8,6 @@ export type CreateShowComedianOutput = {
 }
 
 export type ShowComedianDetailOutput = {
-  showId: number;
-  comedianId: number;
+  show_id: number;
+  comedian_id: number;
 }

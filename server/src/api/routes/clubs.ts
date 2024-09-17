@@ -1,33 +1,69 @@
 import * as clubController from "../controllers/club/index.js"
-import express, { Request, Response} from "express"; 
+import * as showController from "../controllers/show/index.js"
+import express, { Request, Response } from "express";
 import { assignUser } from "../middleware/assignUser.middleware.js";
 import { authenticateRole } from "../middleware/authenticateRole.middleware.js";
-import { CreateClubDTO } from "../dto/club.dto.js";
 import { UserRole } from "../@types/UserRole.js";
+import { groupByPropertyCount } from "../util/groupUtil.js";
+import { getAllClubs } from "../../database/dal/club.js";
+import { ClubInterface } from "../../common/interfaces/club.interface.js";
 
 export const clubsApiRouter = express.Router();
-clubsApiRouter.use(assignUser)
-clubsApiRouter.use(authenticateRole(UserRole.Admin))
+// clubsApiRouter.use(assignUser)
+// clubsApiRouter.use(authenticateRole(UserRole.Admin))
 
 clubsApiRouter.get('/',
     async (req: Request, res: Response) => {
-    const results = await clubController.getAll()
-    return res.status(200).send(results)
-})
+        const results = await clubController.getAll()
+        return res.status(200).send(results)
+    })
 
 clubsApiRouter.get('/:id',
     async (req: Request, res: Response) => {
-    const id = Number(req.params.id)
-    const result = await clubController.getById(id)
-    return res.status(200).send(result)
-})
-
-clubsApiRouter.delete('/:id', 
-    async (req: Request, res: Response) => {
-    const id = Number(req.params.id)
-
-    const result = await clubController.deleteById(id)
-    return res.status(204).send({
-        success: result
+        const id = Number(req.params.id)
+        const result = await clubController.getById(id)
+        return res.status(200).send(result)
     })
-})
+
+clubsApiRouter.delete('/:id',
+    async (req: Request, res: Response) => {
+        const id = Number(req.params.id)
+
+        const result = await clubController.deleteById(id)
+        return res.status(204).send({
+            success: result
+        })
+    })
+
+clubsApiRouter.post('/trending',
+    async (req: Request, res: Response) => {
+        const shows = await showController.getAll()
+        const groupedShows = groupByPropertyCount(shows, "clubId")
+
+        const topFive = Object.keys(groupedShows)
+        .map((clubId: string) => {
+            const showArray = groupedShows[clubId]
+            const size = showArray.length
+            return {
+                clubId,
+                size
+            }
+        })
+        .sort((a, b) => a.size - b.size)
+        .slice(0, 5)
+
+        const topFiveIds = topFive.map((object: any) => Number(object.clubId))
+
+        return clubController.getAllClubsById(topFiveIds).then((clubs: ClubInterface[]) => {
+            const clubsResponse = clubs.map((club: ClubInterface) => {
+                return {
+                    id: club.id,
+                    name: club.name,
+                    url: club.baseUrl,
+                    count: groupedShows[club.id].length
+                }
+            })
+
+            return res.status(200).send(clubsResponse)
+        })
+    })

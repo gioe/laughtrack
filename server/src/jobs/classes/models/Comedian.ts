@@ -3,6 +3,7 @@ import { removeBadWhiteSpace } from "../../util/stringUtil.js";
 
 export class Comedian implements ComedianInterface {
   
+  id: number = 0;
   name: string;
 
   constructor(name: string) {

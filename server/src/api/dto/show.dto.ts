@@ -3,12 +3,18 @@ import { ComedianInterface } from "../../common/interfaces/comedian.interface.js
 export type UpdateShowOutput = CreateShowOutput;
 export type GetShowIdOutput = CreateShowOutput;
 export type GetShowByIdDTO = CreateShowOutput;
-export type GetShowDetailsOutput = UpdateShowDTO;
 
-export type CreateShowDTO = {
+export type GetShowDetailsOutput = {
+    id: number;
     club_id: number;
     date_time: Date;
     ticket_link: string;
+};
+
+export type CreateShowDTO = {
+    clubId: number;
+    dateTime: Date;
+    ticketLink: string;
     comedians: ComedianInterface[];
 }
 
@@ -18,17 +24,17 @@ export type CreateShowOutput = {
 
 export type UpdateShowDTO = {
     id: number;
-    club_id: string;
-    date_time: Date;
-    ticket_link: string;
+    clubId: string;
+    dateTime: Date;
+    ticketLink: string;
 }
 
 export type GetShowByClubAndTimeDTO = {
-    club_id: string;
-    date_time: Date;
+    clubId: string;
+    dateTime: Date;
 }
 
 export type ShowExistenceDTO = {
-    club_id: string;
-    date_time: Date;
+    clubId: string;
+    dateTime: Date;
 }
