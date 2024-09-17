@@ -3,7 +3,6 @@ import GoogleProvider from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import { PUBLIC_ROUTES } from "./lib/routes";
 import { jwtDecode } from "jwt-decode";
-import { JWT } from "next-auth/jwt";
 import { signInSchema } from "./lib/validations";
 import { refreshAccessToken } from "./lib/token";
 

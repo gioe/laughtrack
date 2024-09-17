@@ -37,7 +37,7 @@ const RegisterModal = () => {
         .then(() => {
             registerModal.onClose();
         })
-        .catch((error => {
+        .catch((() => {
             toast.error('Something went wrong')
         }))
         .finally(() => {
