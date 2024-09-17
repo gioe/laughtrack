@@ -1,14 +1,12 @@
 import express, { Request, Response} from "express"; 
-import { assignUser } from "../middleware/assignUser.middleware.js";
-import { authenticateRole } from "../middleware/authenticateRole.middleware.js";
-import { UserRole } from "../@types/UserRole.js";
+import { assignUser } from "../../middleware/assignUser.middleware.js";
+import { authenticateRole } from "../../middleware/authenticateRole.middleware.js";
+import { UserRole } from "../../@types/UserRole.js";
 
 export const healthCheckApiRouter = express.Router();
-healthCheckApiRouter.use(assignUser)
-healthCheckApiRouter.use(authenticateRole(UserRole.Admin))
 // POST items
 
-healthCheckApiRouter.get("/", 
+healthCheckApiRouter.get("/", assignUser, authenticateRole(UserRole.Admin),
     async (req: Request, res: Response) => {
    
     const healthCheck = {

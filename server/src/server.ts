@@ -3,28 +3,30 @@ import pkg from 'pg';
 const { Pool } = pkg;
 import cors from "cors";
 import helmet from "helmet";
-import { privateComediansApiRouter, publicComediansApiRouter } from "./api/routes/comedians.js";
-import { privateShowsApiRouter, publicShowsApiRouter } from "./api/routes/shows.js";
+import { comediansApiRouter } from "./api/routes/api/comedians.js";
+import { showsApiRouter } from "./api/routes/api/shows.js";
 import { authApiRouter } from "./api/routes/auth.js";
 import { errorHandler } from "./api/middleware/error.middleware.js";
 import { notFoundHandler } from "./api/middleware/not-found.middleware.js";
-import { privateClubsApiRouter, publicClubsApiRouter } from "./api/routes/clubs.js";
-import { healthCheckApiRouter } from "./api/routes/healthcheck.js";
+import { clubsApiRouter } from "./api/routes/api/clubs.js";
 import {
     generateRemoteDBConnection,
     generateLocalDBConnection
 } from "./database/config.js";
 import { isLocal } from "./api/util/environmentUtil.js";
 import { downloadBucketContents } from "./api/util/cloudStorageUtil.js";
-
+import { comediansAdminRouter } from "./api/routes/admin/comedians.js";
+import { healthCheckApiRouter } from "./api/routes/admin/healthcheck.js";
+import { clubsAdminRouter } from "./api/routes/admin/clubs.js";
+import { showsAdminRouter } from "./api/routes/admin/shows.js";
 
 class App {
     public app: Application;
 
     constructor() {
         this.app = express()
-        this.publicRoutes()
-        // this.privateRoutes()
+        this.adminRoutes()
+        this.apiRoutes()
         this.middleLayers()
         this.setupCache()
         this.setupDb()
@@ -43,17 +45,19 @@ class App {
         downloadBucketContents()
     }
 
-    protected publicRoutes(): void {
+    protected apiRoutes(): void {
         this.app.use('/auth', authApiRouter);
-        this.app.use('/comedians', privateComediansApiRouter);
-        this.app.use('/comedians', publicComediansApiRouter);
-        this.app.use('/clubs', privateClubsApiRouter);
-        this.app.use('/clubs', publicClubsApiRouter);
-        this.app.use('/shows', privateShowsApiRouter);
-        this.app.use('/shows', publicShowsApiRouter);
-        this.app.use('/healthcheck', healthCheckApiRouter);
+        this.app.use('/api/comedians', comediansApiRouter);
+        this.app.use('/api/clubs', clubsApiRouter);
+        this.app.use('/api/shows', showsApiRouter);
     }
 
+    protected adminRoutes(): void {
+        this.app.use('/admin/comedian', comediansAdminRouter)
+        this.app.use('/admin/clubs', clubsAdminRouter);
+        this.app.use('/admin/shows', showsAdminRouter);
+        this.app.use('/healthcheck', healthCheckApiRouter);
+    }
 
     protected middleLayers(): void {
         this.app.use(errorHandler);

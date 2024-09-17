@@ -7,7 +7,9 @@ export const assignUser = async (
     request: Request,
     response: Response,
     next: NextFunction
-  ) => {
+) => {
+    console.log(request.originalUrl)
+    console.log("ASSIGNING USER")
     const token = request.header("x-auth-token");
     if (!token) return response.status(401).json({ error: 'Access denied' });
     try {
