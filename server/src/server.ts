@@ -3,12 +3,12 @@ import pkg from 'pg';
 const { Pool } = pkg;
 import cors from "cors";
 import helmet from "helmet";
-import { comediansApiRouter } from "./api/routes/comedians.js";
-import { showsApiRouter } from "./api/routes/shows.js";
+import { privateComediansApiRouter, publicComediansApiRouter } from "./api/routes/comedians.js";
+import { privateShowsApiRouter, publicShowsApiRouter } from "./api/routes/shows.js";
 import { authApiRouter } from "./api/routes/auth.js";
 import { errorHandler } from "./api/middleware/error.middleware.js";
 import { notFoundHandler } from "./api/middleware/not-found.middleware.js";
-import { clubsApiRouter } from "./api/routes/clubs.js";
+import { privateClubsApiRouter, publicClubsApiRouter } from "./api/routes/clubs.js";
 import { healthCheckApiRouter } from "./api/routes/healthcheck.js";
 import {
     generateRemoteDBConnection,
@@ -45,9 +45,12 @@ class App {
 
     protected publicRoutes(): void {
         this.app.use('/auth', authApiRouter);
-        this.app.use('/comedians', comediansApiRouter);
-        this.app.use('/clubs', clubsApiRouter);
-        this.app.use('/shows', showsApiRouter);
+        this.app.use('/comedians', privateComediansApiRouter);
+        this.app.use('/comedians', publicComediansApiRouter);
+        this.app.use('/clubs', privateClubsApiRouter);
+        this.app.use('/clubs', publicClubsApiRouter);
+        this.app.use('/shows', privateShowsApiRouter);
+        this.app.use('/shows', publicShowsApiRouter);
         this.app.use('/healthcheck', healthCheckApiRouter);
     }
 

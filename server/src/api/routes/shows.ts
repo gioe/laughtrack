@@ -5,26 +5,28 @@ import { assignUser } from "../middleware/assignUser.middleware.js";
 import { authenticateRole } from "../middleware/authenticateRole.middleware.js";
 import { UserRole } from '../@types/UserRole.js';
 
-export const showsApiRouter = express.Router();
-showsApiRouter.use(assignUser)
-showsApiRouter.use(authenticateRole(UserRole.Admin))
+export const privateShowsApiRouter = express.Router();
+export const publicShowsApiRouter = express.Router();
+
+privateShowsApiRouter.use(assignUser)
+privateShowsApiRouter.use(authenticateRole(UserRole.Admin))
 
 // POST items
 
-showsApiRouter.get('/',  
+privateShowsApiRouter.get('/',  
     async (req: Request, res: Response) => {
     const results = await showController.getAll()
     return res.status(200).send(results)
 })
 
-showsApiRouter.get('/:name', 
+publicShowsApiRouter.get('/:name', 
     async (req: Request, res: Response) => {
     const id = Number(req.params.id)
     const result = await showController.getById(id)
     return res.status(200).send(result)
 })
 
-showsApiRouter.delete('/:id',  
+privateShowsApiRouter.delete('/:id',  
     async (req: Request, res: Response) => {
     const id = Number(req.params.id)
 
@@ -34,7 +36,7 @@ showsApiRouter.delete('/:id',
     })
 })
 
-showsApiRouter.post('/', 
+privateShowsApiRouter.post('/', 
     async (req: Request, res: Response) => {
     const payload: CreateShowDTO = req.body
     const result = await showController.create(payload)

@@ -8,24 +8,25 @@ import { UserRole } from "../@types/UserRole.js";
 import { groupByPropertyCount } from "../util/groupUtil.js";
 import { ComedianInterface } from "../../common/interfaces/comedian.interface.js";
 
-export const comediansApiRouter = express.Router();
-// comediansApiRouter.use(assignUser)
-// comediansApiRouter.use(authenticateRole(UserRole.Admin))
+export const publicComediansApiRouter = express.Router();
+export const privateComediansApiRouter = express.Router();
+privateComediansApiRouter.use(assignUser)
+privateComediansApiRouter.use(authenticateRole(UserRole.Admin))
 
-comediansApiRouter.get('/',
+privateComediansApiRouter.get('/',
     async (req: Request, res: Response) => {
         const results = await comedianController.getAll()
         return res.status(200).send(results)
     })
 
-comediansApiRouter.get('/:id',
+    publicComediansApiRouter.get('/:id',
     async (req: Request, res: Response) => {
         const id = Number(req.params.id)
         const result = await comedianController.getById(id)
         return res.status(200).send(result)
     })
 
-comediansApiRouter.get('/shows/:id',
+    publicComediansApiRouter.get('/shows/:id',
     async (req: Request, res: Response) => {
         const id = Number(req.params.id)
         const comedian = await comedianController.getById(id)
@@ -37,7 +38,7 @@ comediansApiRouter.get('/shows/:id',
         })
     })
 
-comediansApiRouter.delete('/:id',
+    privateComediansApiRouter.delete('/:id',
     async (req: Request, res: Response) => {
         const id = Number(req.params.id)
 
@@ -47,14 +48,14 @@ comediansApiRouter.delete('/:id',
         })
     })
 
-comediansApiRouter.post('/',
+privateComediansApiRouter.post('/',
     async (req: Request, res: Response) => {
         const payload: CreateComedianDTO = req.body
         const result = await comedianController.create(payload)
         return res.status(200).send(result)
     })
 
-comediansApiRouter.post('/merge',
+    privateComediansApiRouter.post('/merge',
     async (req: Request, res: Response) => {
         const persistantId = req.query.persistantId as string
         const mergedIds = req.query.mergedIds as string
@@ -65,7 +66,7 @@ comediansApiRouter.post('/merge',
         return res.status(200).send(result)
     })
 
-comediansApiRouter.post('/trending',
+publicComediansApiRouter.post('/trending',
     async (req: Request, res: Response) => {
         const showComedians = await showComedianController.getAllShowComedians()
         const groupedShows = groupByPropertyCount(showComedians, "comedianId")

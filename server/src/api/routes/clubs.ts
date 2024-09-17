@@ -5,27 +5,27 @@ import { assignUser } from "../middleware/assignUser.middleware.js";
 import { authenticateRole } from "../middleware/authenticateRole.middleware.js";
 import { UserRole } from "../@types/UserRole.js";
 import { groupByPropertyCount } from "../util/groupUtil.js";
-import { getAllClubs } from "../../database/dal/club.js";
 import { ClubInterface } from "../../common/interfaces/club.interface.js";
 
-export const clubsApiRouter = express.Router();
-// clubsApiRouter.use(assignUser)
-// clubsApiRouter.use(authenticateRole(UserRole.Admin))
+export const publicClubsApiRouter = express.Router();
+export const privateClubsApiRouter = express.Router();
+privateClubsApiRouter.use(assignUser)
+privateClubsApiRouter.use(authenticateRole(UserRole.Admin))
 
-clubsApiRouter.get('/',
+privateClubsApiRouter.get('/',
     async (req: Request, res: Response) => {
         const results = await clubController.getAll()
         return res.status(200).send(results)
     })
 
-clubsApiRouter.get('/:id',
+ privateClubsApiRouter.get('/:id',
     async (req: Request, res: Response) => {
         const id = Number(req.params.id)
         const result = await clubController.getById(id)
         return res.status(200).send(result)
     })
 
-clubsApiRouter.delete('/:id',
+    privateClubsApiRouter.delete('/:id',
     async (req: Request, res: Response) => {
         const id = Number(req.params.id)
 
@@ -35,7 +35,7 @@ clubsApiRouter.delete('/:id',
         })
     })
 
-clubsApiRouter.post('/trending',
+publicClubsApiRouter.post('/trending',
     async (req: Request, res: Response) => {
         const shows = await showController.getAll()
         const groupedShows = groupByPropertyCount(shows, "clubId")
