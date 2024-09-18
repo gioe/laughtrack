@@ -11,6 +11,22 @@ export type GetShowDetailsOutput = {
     ticket_link: string;
 };
 
+export type GetFilteredShowsRequest = {
+    location: string;
+    startDate: string;
+    endDate: string;
+};
+
+export type GetFilteredShowsResponse = {
+    show_id: number;
+    date_time: Date;
+    ticket_link: string;
+    name: string;
+    city: string;
+    address: string;
+};
+
+
 export type CreateShowDTO = {
     clubId: number;
     dateTime: Date;

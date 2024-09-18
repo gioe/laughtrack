@@ -1,7 +1,7 @@
 import * as showDal from "../../../database/dal/show.js"
 import * as comedianDal from "../../../database/dal/comedian.js"
 import * as showComedianDal from "../../../database/dal/showComedian.js"
-import { CreateShowDTO, CreateShowOutput, GetShowDetailsOutput } from '../../dto/show.dto.js'
+import { CreateShowDTO, CreateShowOutput, GetFilteredShowsRequest, GetFilteredShowsResponse, GetShowDetailsOutput } from '../../dto/show.dto.js'
 import { ShowInterface } from "../../../common/interfaces/show.interface.js"
 import { runTasks } from "../../../common/util/promiseUtil.js"
 
@@ -27,6 +27,15 @@ export const deleteById = async(id: number): Promise<boolean> => {
 
 export const getAll = async (): Promise<ShowInterface[]> => {
     return showDal.getAllShows()
+}
+
+export const getAllShowsBetweenDatesAtLocation = async (request: GetFilteredShowsRequest): Promise<GetFilteredShowsResponse[]> => {
+    return showDal.getAllShowsBetweenDatesAtLocation(request)
+}
+
+
+export const getAllShowsForClubs = async (clubIds: number[]): Promise<ShowInterface[]> => {
+    return showDal.getAllShowsForClubs(clubIds)
 }
 
 export const deleteOldShows = async (): Promise<void> => {

@@ -11,6 +11,12 @@ export type MergeComedianDTO = {
   mergedIds: number[];
 }
 
+export type GetComedianDetailsOutput = {
+  id: number;
+  name: string;
+  instagram: string;
+}
+
 export type CreateComedianOutput = {
   id: number;
 }
@@ -24,10 +30,15 @@ export type ComedianExistenceDTO = {
   name: string;
 }
 
-export type GetComedianDetailsOutput = {
-  id: number;
-  name: string;
-  instagram?: string;
+export type GetShowComedianDetailsOutput = {
+  comedian_id: number;
+  comedian_name: string;
+  instagram: string;
+  date_time?: Date;
+  ticket_link: string;
+  address: string;
+  base_url: string;
+  club_name: string
 }
 
 export type GetComedianShowsOutput = {

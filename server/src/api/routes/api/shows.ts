@@ -1,10 +1,13 @@
 import * as showController from '../../controllers/show/index.js'
+import * as clubController from '../../controllers/club/index.js'
+import * as showComedianController from '../../controllers/showComedian/index.js'
+
 import express, { Request, Response } from "express";
-import { CreateShowDTO } from "../../dto/show.dto.js";
-import { assignUser } from "../../middleware/assignUser.middleware.js";
-import { authenticateRole } from "../../middleware/authenticateRole.middleware.js";
-import { UserRole } from '../../@types/UserRole.js';
 import bodyParser from "body-parser";
+import { ClubInterface } from '../../../common/interfaces/club.interface.js';
+import { ShowInterface } from '../../../common/interfaces/show.interface.js';
+import { groupByPropertyCount } from '../../util/groupUtil.js';
+import { GetFilteredShowsRequest } from '../../dto/show.dto.js';
 
 export const showsApiRouter = express.Router();
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
@@ -21,18 +24,39 @@ showsApiRouter.get('/:id',
 
     showsApiRouter.post('/search', urlencodedParser,
     async (req: Request, res: Response) => {
-        console.log("GOT SEARCH REQUEST")
-        const { location, startDate, endDate} = req.body;
         
-        // Get all the clubs at the location
+        const shows = await showController.getAllShowsBetweenDatesAtLocation(req.body)
+        const comedians = await showComedianController.getAllComediansOnShows(shows.map(show => show.show_id)) 
 
-        // Get all the shows at that club
+        const groupedShowRecord = groupByPropertyCount(comedians, 'comedian_name')
 
-        // Filter by the dates
+        const topTen = Object.keys(groupedShowRecord)
+        .map((comedianName: string) => {
+            const showArray = groupedShowRecord[comedianName]
+            const count = showArray.length
+            return {
+                comedianName,
+                count
+            }
+        })
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10)
+        .map((object: any) => {
+            return {
+                comedian: object.comedianName, 
+                schedule: groupedShowRecord[object.comedianName].map((value: any) => {
+                    return {
+                        dateTime: value.date_time,
+                        ticketLink: value.ticket_link,
+                        clubName: value.club_name,
+                        address: value.address,
+                        url: value.base_url
+                    }
+                })
+            }
+        })
 
-        // Get all the comedians on those shows
+        console.log(topTen)
 
-        // Return list of comedians and shows
-        
-        return res.status(200).send({})
+        return res.status(200).send({data: topTen})
     })

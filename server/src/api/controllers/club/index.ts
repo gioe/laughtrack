@@ -30,3 +30,7 @@ export const getAllClubsById = async (ids: number[]): Promise<ClubInterface[]> =
     const tasks = ids.map((id: number) => getById(id))
     return runTasks(tasks)
 }
+
+export const getClubsByLocation = async (location: string): Promise<ClubInterface[]> => {
+    return clubDal.getClubsInLocation(location)
+}

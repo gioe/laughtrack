@@ -1,7 +1,7 @@
 import { ClubExistenceDTO, CreateClubDTO, CreateClubOutput, GetClubOutput } from "../../api/dto/club.dto.js"
 import { ClubInterface } from "../../common/interfaces/club.interface.js"
 import { runTasks } from "../../common/util/promiseUtil.js"
-import { checkForExistence, deleteWithCondition, getAll, getFirstWithCondition, create, upsert } from "../util/queryUtil.js"
+import { checkForExistence, deleteWithCondition, getAll, getFirstWithCondition, create, upsert, getAllWithCondition } from "../util/queryUtil.js"
 import { DATABASE } from "../constants/database.js"
 import { readFile } from "../../api/util/storageUtil.js"
 import { JSON_KEYS } from "../../common/constants/keys.js"
@@ -48,6 +48,10 @@ export const deleteClubById = async (id: number): Promise<boolean> => {
     return deleteWithCondition(DATABASE.CLUBS_TABLE, `id=$1`, [id])
 }
 
+export const getClubsInLocation = async (location: string):  Promise<ClubInterface[]> => {
+    return getAllWithCondition<GetClubOutput>(DATABASE.CLUBS_TABLE, `city=$1`, [location])
+    .then((queryResponse: GetClubOutput[]) => queryResponse.map((object: GetClubOutput) => toClub(object)))
+}
 
 const clubArrayFromJson = (json: any) => {
     var clubArray: ClubInterface[] = []

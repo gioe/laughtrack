@@ -1,7 +1,7 @@
-import {  CreateShowDTO, CreateShowOutput, GetShowByClubAndTimeDTO, GetShowDetailsOutput, GetShowIdOutput,  ShowExistenceDTO } from "../../api/dto/show.dto.js"
+import {  CreateShowDTO, CreateShowOutput, GetFilteredShowsRequest, GetFilteredShowsResponse, GetShowByClubAndTimeDTO, GetShowDetailsOutput, GetShowIdOutput,  ShowExistenceDTO } from "../../api/dto/show.dto.js"
 import { DATABASE } from "../constants/database.js"
 import { runTasks } from "../../common/util/promiseUtil.js"
-import { checkForExistence, deleteWithCondition, getAll, getAllWithCondition, getFirstWithCondition, upsert } from "../util/queryUtil.js"
+import { checkForExistence, deleteWithCondition, executeQuery, getAll, getAllWithCondition, getFirstWithCondition, upsert } from "../util/queryUtil.js"
 import { toShow } from "../../api/controllers/show/mapper.js"
 import { ShowInterface } from "../../common/interfaces/show.interface.js"
 
@@ -30,8 +30,22 @@ export const getShowById = async (id: number): Promise<GetShowDetailsOutput> => 
     return getFirstWithCondition<GetShowDetailsOutput>(DATABASE.SHOWS_TABLE, `id=$1`, [id])
 }
 
+export const getAllShowsBetweenDatesAtLocation = async (request: GetFilteredShowsRequest): Promise<GetFilteredShowsResponse[]> => {
+    const queryString = `
+    SELECT show.id as show_id, date_time, ticket_link, name, city, address FROM ${DATABASE.SHOWS_TABLE} show INNER JOIN ${DATABASE.CLUBS_TABLE} c ON c.id = show.club_id WHERE c.city = $1 AND show.date_time < $2 AND $3 < show.date_time
+    `
+    return await executeQuery<GetFilteredShowsResponse>(queryString, [request.location, request.endDate, request.startDate])
+}
+
 export const getAllShows = async (): Promise<ShowInterface[]>  => {
     return getAll<GetShowDetailsOutput>(DATABASE.SHOWS_TABLE)
+    .then((queryResponse: GetShowDetailsOutput[]) => {
+        return queryResponse.map((object: GetShowDetailsOutput) => toShow(object))
+    })
+}
+
+export const getAllShowsForClubs = async (clubIds: number[]): Promise<ShowInterface[]>  => {
+    return getAllWithCondition<GetShowDetailsOutput>(DATABASE.SHOWS_TABLE, `club_id = ANY($1::int[])`, [clubIds])
     .then((queryResponse: GetShowDetailsOutput[]) => {
         return queryResponse.map((object: GetShowDetailsOutput) => toShow(object))
     })

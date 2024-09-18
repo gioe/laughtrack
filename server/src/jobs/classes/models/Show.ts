@@ -7,6 +7,7 @@ import { DateTimeContainer } from "../containers/DateTimeContainer.js";
 
 export class Show implements ShowInterface {
 
+  id: number = 0;
   dateTime: Date = new Date();
   ticketLink: string = "";
   dateTimeString: string = "";

@@ -1,7 +1,7 @@
 import { ComedianInterface } from "./comedian.interface.js";
 
 export interface ShowInterface {
-    id?: number
+    id: number
     dateTime: Date;
     ticketLink: string
     comedians: ComedianInterface[]
