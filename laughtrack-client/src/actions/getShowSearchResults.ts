@@ -1,10 +1,9 @@
+import { ComedianInterface } from "@/interfaces/comedian.interface"
 import { PUBLIC_ROUTES } from "@/lib/routes"
 
 export async function getShowSearchResults(data: any) {
 
-    console.log("GETTING SEARCH RESULTS")
-    console.log(data)
-    const trendingComediansUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.SEARCH_SHOWS
+    const trendingComediansUrl = "http://localhost:8080" + PUBLIC_ROUTES.SEARCH_SHOWS
     
     return fetch(trendingComediansUrl, {
         method: "POST",
@@ -18,6 +17,6 @@ export async function getShowSearchResults(data: any) {
         }),
       })
       .then((response) => response.json())
-      .then((data) => data)
+      .then((data: ComedianInterface[]) => data)
       .catch((error) => console.log(error))
 }

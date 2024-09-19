@@ -8,13 +8,7 @@ interface LogoProps {
 
 const Logo: React.FC<LogoProps> = ({onClick}) => {
     return (
-        <Image alt="Logo" 
-        onClick={onClick}
-        src="/images/logo.png" 
-        layout="fill"
-        objectFit="contain"
-        objectPosition="left"
-        />
+        <div></div>
     )
 }
 

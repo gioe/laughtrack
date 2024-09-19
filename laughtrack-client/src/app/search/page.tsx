@@ -2,7 +2,10 @@
 
 import { getShowSearchResults } from "@/actions/getShowSearchResults";
 import Footer from "@/components/Footer";
+import InfoCard from "@/components/InfoCard";
+import MapComponent from "@/components/MapComponent";
 import Navbar from "@/components/navbar/Navbar";
+import { ComedianInterface } from "@/interfaces/comedian.interface";
 import { format } from "date-fns";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from 'react'
@@ -20,7 +23,8 @@ const Search = async () => {
     const range = `between ${formattedStartDate} - ${formattedEndDate}`
     const searchPlaceholder = `${location} | ${formattedStartDate} - ${formattedEndDate}`
 
-    const results = await getShowSearchResults({location, startDate, endDate})
+    const searchResults = await getShowSearchResults({location, startDate, endDate}) as ComedianInterface[]
+    console.log(searchResults)
 
     return (
         <div>
@@ -35,7 +39,20 @@ const Search = async () => {
                         <p className="button">Sort by Popularity</p>
                         <p className="button">Sort by Distance</p>
                     </div>
+                    <div className="flex flex-col">
 
+                    {searchResults.map((comedian: ComedianInterface) => {
+                        return (
+                            <InfoCard 
+                            key={comedian.name}
+                            comedian={comedian} />
+                        )
+                    })}
+                    </div>
+
+                </section>
+                <section className="hidden xl:inline-flexn xl:min-w-[600px]">
+                    <MapComponent searchResults={searchResults} />
                 </section>
 
             </main>
