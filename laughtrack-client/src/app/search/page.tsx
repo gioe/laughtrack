@@ -10,7 +10,6 @@ import { format } from "date-fns";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from 'react'
 
-
 const Search = async () => {
 
     const searchParams = useSearchParams()
