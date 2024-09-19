@@ -49,7 +49,7 @@ export const getAllShowsForComedian = async (comedianId: number): Promise<GetSho
 
 export const getAllComediansOnShows = async (showIds: number[]): Promise<GetShowComedianDetailsOutput[]> => {
     const queryString = `
-    SELECT comedian_id, c.name as comedian_name, instagram, date_time, ticket_link, address, base_url, cl.name as club_name
+    SELECT comedian_id, c.name as comedian_name, instagram, date_time, ticket_link, address, base_url, cl.name as club_name, latitude, longitude
     FROM ${DATABASE.SHOW_COMEDIANS_TABLE} cs 
     INNER JOIN ${DATABASE.COMEDIANS_TABLE} c ON c.id = cs.comedian_id 
     INNER JOIN ${DATABASE.SHOWS_TABLE} s ON cs.show_id = s.id 

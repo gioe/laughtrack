@@ -10,6 +10,8 @@ export const toClub = (payload: GetClubOutput): ClubInterface => {
         timezone: payload.timezone,
         scrapingConfig: payload.scraping_config,
         city: payload.city,
-        address: payload.address
+        address: payload.address,
+        latitude: payload.latitude,
+        longitude: payload.longitude,
     }
 }

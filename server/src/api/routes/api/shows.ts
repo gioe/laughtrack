@@ -4,6 +4,7 @@ import * as showComedianController from '../../controllers/showComedian/index.js
 import express, { Request, Response } from "express";
 import bodyParser from "body-parser";
 import { groupByPropertyCount } from '../../util/groupUtil.js';
+import { GetShowComedianDetailsOutput } from '../../dto/comedian.dto.js';
 
 export const showsApiRouter = express.Router();
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
@@ -20,11 +21,11 @@ showsApiRouter.get('/:id',
 
 showsApiRouter.post('/search', urlencodedParser,
     async (req: Request, res: Response) => {
+        
         const shows = await showController.getAllShowsBetweenDatesAtLocation(req.body)
         const comedians = await showComedianController.getAllComediansOnShows(shows.map(show => show.show_id))
 
         const groupedShowRecord = groupByPropertyCount(comedians, 'comedian_name')
-        console.log(groupedShowRecord['Maddy Smith'])
 
         const topTen = Object.keys(groupedShowRecord)
             .map((comedianName: string) => {
@@ -39,20 +40,24 @@ showsApiRouter.post('/search', urlencodedParser,
             .slice(0, 10)
             .map((object: any) => {
                 return {
+                    id: groupedShowRecord[object.comedianName][0].comedian_id,
                     name: object.comedianName,
-                    schedule: groupedShowRecord[object.comedianName].map((value: any) => {
+                    instagram: groupedShowRecord[object.comedianName][0].instagram,
+                    schedule: groupedShowRecord[object.comedianName].map((value: GetShowComedianDetailsOutput) => {
                         return {
                             dateTime: value.date_time,
                             ticketLink: value.ticket_link,
-                            clubName: value.club_name,
-                            address: value.address,
-                            url: value.base_url
+                            club: {
+                                name: value.club_name,
+                                address: value.address,
+                                url: value.base_url,
+                                latitude: value.latitude,
+                                longitude: value.longitude
+                            },
                         }
                     })
                 }
             })
-
-        console.log(topTen)
-
+            
         return res.status(200).send({ data: topTen })
     })

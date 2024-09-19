@@ -32,4 +32,6 @@ export type GetClubOutput = {
   scraping_config: any;
   city: string;
   address: string;
+  latitude: number;
+  longitude: number;
 }

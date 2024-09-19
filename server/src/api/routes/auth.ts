@@ -1,7 +1,6 @@
 import express, { Request, Response } from "express";
 
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import * as userController from '../controllers/user/index.js'
 import { GetUserDetailsOutput, RegisterUserOutput } from "../dto/user.dto.js";
 import bodyParser from "body-parser";

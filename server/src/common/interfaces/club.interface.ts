@@ -7,4 +7,6 @@ export interface ClubInterface {
     scrapingConfig: any;
     city: string;
     address: string;
+    latitude: number;
+    longitude: number;
 }
