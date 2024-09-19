@@ -57,6 +57,8 @@ export async function createClubsTable(pool: pkg.Pool) {
         name TEXT NOT NULL unique,
         city TEXT NOT NULL,
         address TEXT NOT NULL,
+        latitude numeric(10, 6) NOT NULL,
+        longitude numeric(10, 6) NOT NULL,
         base_url TEXT NOT NULL,
         schedule_page_url TEXT NOT NULL,
         timezone TEXT NOT NULL,
