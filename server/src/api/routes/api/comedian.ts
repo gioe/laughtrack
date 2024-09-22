@@ -1,23 +1,19 @@
 import * as comedianController from "../../controllers/comedian/index.js"
 import * as showComedianController from "../../controllers/showComedian/index.js"
 import express, { Request, Response } from "express";
-import { CreateComedianDTO } from "../../dto/comedian.dto.js";
-import { assignUser } from "../../middleware/assignUser.middleware.js";
-import { authenticateRole } from "../../middleware/authenticateRole.middleware.js";
-import { UserRole } from "../../@types/UserRole.js";
 import { groupByPropertyCount } from "../../util/groupUtil.js";
 import { ComedianInterface } from "../../../common/interfaces/comedian.interface.js";
 
-export const comediansApiRouter = express.Router();
+export const comedianApiRouter = express.Router();
 
-comediansApiRouter.get('/:id',
+comedianApiRouter.get('/:id',
     async (req: Request, res: Response) => {
         const id = Number(req.params.id)
         const result = await comedianController.getById(id)
         return res.status(200).send(result)
     })
 
-comediansApiRouter.get('/shows/:id',
+comedianApiRouter.get('/shows/:id',
     async (req: Request, res: Response) => {
         const id = Number(req.params.id)
         const comedian = await comedianController.getById(id)
@@ -29,7 +25,7 @@ comediansApiRouter.get('/shows/:id',
         })
     })
 
-comediansApiRouter.post('/trending',
+comedianApiRouter.post('/trending',
     async (req: Request, res: Response) => {
         const showComedians = await showComedianController.getAllShowComedians()
         const groupedShows = groupByPropertyCount(showComedians, "comedianId")
@@ -53,7 +49,6 @@ comediansApiRouter.post('/trending',
         const comediansResponse = comedians.map((comedian: ComedianInterface) => {
             return {
                 name: comedian.name,
-                showCount: comedian.name,
                 instagram: comedian.instagram,
                 count: groupedShows[comedian.id].length
             }

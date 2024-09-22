@@ -34,6 +34,10 @@ export const getAllShowsBetweenDatesAtLocation = async (request: GetFilteredShow
     const queryString = `
     SELECT show.id as show_id, date_time, ticket_link, name, city, address FROM ${DATABASE.SHOWS_TABLE} show INNER JOIN ${DATABASE.CLUBS_TABLE} c ON c.id = show.club_id WHERE c.city = $1 AND show.date_time < $2 AND $3 < show.date_time
     `
+    console.log(queryString)
+    console.log(request.location)
+    console.log(request.endDate)
+    console.log(request.startDate)
     return await executeQuery<GetFilteredShowsResponse>(queryString, [request.location, request.endDate, request.startDate])
 }
 

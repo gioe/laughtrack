@@ -5,15 +5,15 @@ import { assignUser } from "../../middleware/assignUser.middleware.js";
 import { authenticateRole } from "../../middleware/authenticateRole.middleware.js";
 import { UserRole } from "../../@types/UserRole.js";
 
-export const comediansAdminRouter = express.Router();
+export const comedianAdminRouter = express.Router();
 
-comediansAdminRouter.get('/', assignUser, authenticateRole(UserRole.Admin),
+comedianAdminRouter.get('/', assignUser, authenticateRole(UserRole.Admin),
     async (req: Request, res: Response) => {
         const results = await comedianController.getAll()
         return res.status(200).send(results)
     })
 
-comediansAdminRouter.delete('/:id', assignUser, authenticateRole(UserRole.Admin),
+comedianAdminRouter.delete('/:id', assignUser, authenticateRole(UserRole.Admin),
     async (req: Request, res: Response) => {
         const id = Number(req.params.id)
 
@@ -23,14 +23,14 @@ comediansAdminRouter.delete('/:id', assignUser, authenticateRole(UserRole.Admin)
         })
     })
 
-comediansAdminRouter.post('/', assignUser, authenticateRole(UserRole.Admin),
+comedianAdminRouter.post('/', assignUser, authenticateRole(UserRole.Admin),
     async (req: Request, res: Response) => {
         const payload: CreateComedianDTO = req.body
         const result = await comedianController.create(payload)
         return res.status(200).send(result)
     })
 
-comediansAdminRouter.post('/merge', assignUser, authenticateRole(UserRole.Admin),
+comedianAdminRouter.post('/merge', assignUser, authenticateRole(UserRole.Admin),
     async (req: Request, res: Response) => {
         const persistantId = req.query.persistantId as string
         const mergedIds = req.query.mergedIds as string

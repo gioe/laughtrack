@@ -3,22 +3,22 @@ import pkg from 'pg';
 const { Pool } = pkg;
 import cors from "cors";
 import helmet from "helmet";
-import { comediansApiRouter } from "./api/routes/api/comedians.js";
-import { showsApiRouter } from "./api/routes/api/shows.js";
+import { comedianApiRouter } from "./api/routes/api/comedian.js";
+import { showApiRouter } from "./api/routes/api/show.js";
 import { authApiRouter } from "./api/routes/auth.js";
 import { errorHandler } from "./api/middleware/error.middleware.js";
 import { notFoundHandler } from "./api/middleware/not-found.middleware.js";
-import { clubsApiRouter } from "./api/routes/api/clubs.js";
+import { clubApiRouter } from "./api/routes/api/club.js";
 import {
     generateRemoteDBConnection,
     generateLocalDBConnection
 } from "./database/config.js";
 import { isLocal } from "./api/util/environmentUtil.js";
 import { downloadBucketContents } from "./api/util/cloudStorageUtil.js";
-import { comediansAdminRouter } from "./api/routes/admin/comedians.js";
+import { comedianAdminRouter } from "./api/routes/admin/comedian.js";
 import { healthCheckApiRouter } from "./api/routes/admin/healthcheck.js";
-import { clubsAdminRouter } from "./api/routes/admin/clubs.js";
-import { showsAdminRouter } from "./api/routes/admin/shows.js";
+import { clubAdminRouter } from "./api/routes/admin/club.js";
+import { showAdminRouter } from "./api/routes/admin/show.js";
 
 class App {
     public app: Application;
@@ -47,15 +47,15 @@ class App {
 
     protected apiRoutes(): void {
         this.app.use('/auth', authApiRouter);
-        this.app.use('/api/comedians', comediansApiRouter);
-        this.app.use('/api/clubs', clubsApiRouter);
-        this.app.use('/api/shows', showsApiRouter);
+        this.app.use('/api/comedian', comedianApiRouter);
+        this.app.use('/api/club', clubApiRouter);
+        this.app.use('/api/show', showApiRouter);
     }
 
     protected adminRoutes(): void {
-        this.app.use('/admin/comedian', comediansAdminRouter)
-        this.app.use('/admin/clubs', clubsAdminRouter);
-        this.app.use('/admin/shows', showsAdminRouter);
+        this.app.use('/admin/comedian', comedianAdminRouter)
+        this.app.use('/admin/club', clubAdminRouter);
+        this.app.use('/admin/show', showAdminRouter);
         this.app.use('/healthcheck', healthCheckApiRouter);
     }
 

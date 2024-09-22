@@ -6,12 +6,12 @@ import bodyParser from "body-parser";
 import { groupByPropertyCount } from '../../util/groupUtil.js';
 import { GetShowComedianDetailsOutput } from '../../dto/comedian.dto.js';
 
-export const showsApiRouter = express.Router();
+export const showApiRouter = express.Router();
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
 
 // POST items
 
-showsApiRouter.get('/:id',
+showApiRouter.get('/:id',
     async (req: Request, res: Response) => {
         const id = Number(req.params.id)
         const result = await showController.getById(id)
@@ -19,15 +19,14 @@ showsApiRouter.get('/:id',
     })
 
 
-showsApiRouter.post('/search', urlencodedParser,
-    async (req: Request, res: Response) => {
-        
+showApiRouter.post('/search', urlencodedParser,
+    async (req: Request, res: Response) => {        
         const shows = await showController.getAllShowsBetweenDatesAtLocation(req.body)
         const comedians = await showComedianController.getAllComediansOnShows(shows.map(show => show.show_id))
 
         const groupedShowRecord = groupByPropertyCount(comedians, 'comedian_name')
 
-        const topTen = Object.keys(groupedShowRecord)
+        const topTenSearchResults = Object.keys(groupedShowRecord)
             .map((comedianName: string) => {
                 const showArray = groupedShowRecord[comedianName]
                 const count = showArray.length
@@ -43,8 +42,9 @@ showsApiRouter.post('/search', urlencodedParser,
                     id: groupedShowRecord[object.comedianName][0].comedian_id,
                     name: object.comedianName,
                     instagram: groupedShowRecord[object.comedianName][0].instagram,
-                    schedule: groupedShowRecord[object.comedianName].map((value: GetShowComedianDetailsOutput) => {
+                    shows: groupedShowRecord[object.comedianName].map((value: GetShowComedianDetailsOutput) => {
                         return {
+                            id: value.show_id,
                             dateTime: value.date_time,
                             ticketLink: value.ticket_link,
                             club: {
@@ -59,5 +59,5 @@ showsApiRouter.post('/search', urlencodedParser,
                 }
             })
             
-        return res.status(200).send({ data: topTen })
+        return res.status(200).send(topTenSearchResults)
     })

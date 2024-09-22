@@ -4,16 +4,16 @@ import express, { Request, Response } from "express";
 import { groupByPropertyCount } from "../../util/groupUtil.js";
 import { ClubInterface } from "../../../common/interfaces/club.interface.js";
 
-export const clubsApiRouter = express.Router();
+export const clubApiRouter = express.Router();
 
-clubsApiRouter.get('/:id',
+clubApiRouter.get('/:id',
     async (req: Request, res: Response) => {
         const id = Number(req.params.id)
         const result = await clubController.getById(id)
         return res.status(200).send(result)
     })
 
-clubsApiRouter.post('/trending',
+clubApiRouter.post('/trending',
     async (req: Request, res: Response) => {
         const shows = await showController.getAll()
         const groupedShows = groupByPropertyCount(shows, "clubId")

@@ -15,7 +15,7 @@
     },
     "include": ["src/**/*", "src/app.ts", "src/common/functions"],
     "exclude": ["node_modules"],
-    "moduleResolution": "Bundler",
+    "moduleResolution": "node",
     "typeRoots": [
       "@types",
       "./node_modules/@types",

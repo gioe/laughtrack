@@ -41,6 +41,7 @@ export type GetShowComedianDetailsOutput = {
   club_name: string
   latitude: number,
   longitude: number;
+  show_id: number;
 }
 
 export type GetComedianShowsOutput = {

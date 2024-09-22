@@ -10,16 +10,16 @@ export async function generateLocalDBConnection() {
   
   writeLogToFile("Building local DB connection")
 
-  const clientOpts = new Connector().getOptions({
-    instanceConnectionName: process.env.INSTANCE_CONNECTION_NAME as string,
-    authType: AuthTypes.IAM,
-    ipType: IpAddressTypes.PUBLIC,
-  });
+  // const clientOpts = new Connector().getOptions({
+  //   instanceConnectionName: process.env.INSTANCE_CONNECTION_NAME as string,
+  //   authType: AuthTypes.IAM,
+  //   ipType: IpAddressTypes.PUBLIC,
+  // });
   
   dbConnectionPool = new Pool({
-    ...clientOpts,
     user: process.env.LOCAL_DB_USER as string,
     database: process.env.DB_NAME as string, 
+    password: process.env.LOCAL_DB_PASSWORD as string,
     max: 5
   })
 
