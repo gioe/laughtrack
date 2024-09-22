@@ -1,9 +1,8 @@
-import { take } from "lodash"
 import { flatten } from "../../../common/util/arrayUtil.js"
 import { runTasks } from "../../../common/util/promiseUtil.js"
 import * as comedianDal from "../../../database/dal/comedian.js"
 import * as showComedianDal from "../../../database/dal/showComedian.js"
-import { CreateComedianDTO, CreateComedianOutput, GetComedianDetailsOutput, MergeComedianDTO } from '../../dto/comedian.dto.js'
+import { CreateComedianDTO, CreateComedianOutput, GetComedianDetailsOutput, MergeComedianDTO, TrendingComedian } from '../../dto/comedian.dto.js'
 import { GetShowDetailsOutput } from "../../dto/show.dto.js"
 import { ComedianInterface } from "../../../common/interfaces/comedian.interface.js"
 import { toComedian } from "./mapper.js"
@@ -15,6 +14,10 @@ export const create = async(payload: CreateComedianDTO): Promise<CreateComedianO
 export const getById = async (id: number): Promise<ComedianInterface> => {
     return comedianDal.getComedianById(id)
     .then((comedianDetails: GetComedianDetailsOutput) => toComedian(comedianDetails))
+}
+
+export const getTrendingComedians = async (): Promise<TrendingComedian[]> => {
+    return comedianDal.getTrendingComedians()
 }
 
 export const getAllShowsByIds = async (comedianIds: number[]): Promise<GetShowDetailsOutput[]> => {

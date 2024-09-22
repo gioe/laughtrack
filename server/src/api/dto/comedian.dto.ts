@@ -49,3 +49,10 @@ export type GetComedianShowsOutput = {
   count: number;
   shows: GetShowDetailsOutput[];
 }
+
+export type TrendingComedian = {
+  id: number;
+  name: string;
+  instagram: string;
+  count: number;
+}
