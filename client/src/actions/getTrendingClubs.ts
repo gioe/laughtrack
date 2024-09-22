@@ -6,6 +6,7 @@ export async function getTrendingClubs() {
   const trendingClubsUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.TRENDING_CLUBS
 
   return fetch(trendingClubsUrl, {
+    cache: 'no-store',
     method: "POST",
   })
     .then((response) => response.json())

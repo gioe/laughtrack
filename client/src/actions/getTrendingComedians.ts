@@ -6,6 +6,7 @@ export async function getTrendingComedians() {
   const trendingComediansUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.TRENDING_COMEDIANS
 
   return fetch(trendingComediansUrl, {
+    cache: 'no-store',
     method: "POST",
   })
     .then((response) => response.json())

@@ -46,7 +46,7 @@ export const getAllClubs = async (): Promise<ClubInterface[]> => {
 
 export const getTrendingClubs = async (): Promise<TrendingClub[]> => {
     const queryString = `
-    SELECT c.id, c.name, c.base_url, count (*) FROM ${DATABASE.SHOWS_TABLE} s INNER JOIN ${DATABASE.CLUBS_TABLE} c ON s.club_id = c.id 
+    SELECT c.id, c.name, c.base_url as url, count (*) FROM ${DATABASE.SHOWS_TABLE} s INNER JOIN ${DATABASE.CLUBS_TABLE} c ON s.club_id = c.id 
     GROUP BY 1 ORDER BY count DESC LIMIT 5;
     `
     return await executeQuery<TrendingClub>(queryString, [])

@@ -35,7 +35,8 @@ export const deleteComedianById = async (id: number): Promise<boolean> => {
 export const getTrendingComedians = async (): Promise<TrendingComedian[]> => {
     const queryString = `
     SELECT c.id, c.name, c.instagram, count (*) FROM ${DATABASE.SHOW_COMEDIANS_TABLE} 
-    sc INNER JOIN ${DATABASE.COMEDIANS_TABLE} c ON sc.comedian_id = c.id GROUP BY 1 ORDER BY count DESC LIMIT 10;
+    sc INNER JOIN ${DATABASE.COMEDIANS_TABLE} c ON sc.comedian_id = c.id 
+    GROUP BY 1 ORDER BY count DESC LIMIT 10;
     `
     return await executeQuery<TrendingComedian>(queryString, [])
 }

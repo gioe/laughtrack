@@ -21,14 +21,9 @@ const MapComponent: React.FC<MapComponentInterface> = ({
 
   const [selectedClub, setSelectedClub] = useState<ClubInterface | null>(null)
 
-  console.log(searchResults)
-
-
   const clubs = searchResults
   .flatMap((comedian: ComedianInterface) => comedian.shows)
   .map((show: ShowInterface) => show.club)
-
-  console.log(clubs)
 
   const clubStrings = clubs.map((club: ClubInterface) => JSON.stringify(club))
   const uniqueClubStrings = [...new Set(clubStrings)]

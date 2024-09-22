@@ -32,12 +32,12 @@ const LandingPage: React.FC<LandingPageProps> = async ({
           <section className="pt-6">
             <h2 className="text-4xl font-semibold pb-5">Popular Clubs</h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
               {trendingClubs
                 .sort((a, b) => b.count - a.count)
                 .map((item: any) => {
                   return (
-                    <SmallCard key={item.name} name={item.name} url={item.url} count={item.count} />
+                    <SmallCard key={item.name} name={item.name} url={item.url} />
                   )
                 })}
             </div>
@@ -46,7 +46,7 @@ const LandingPage: React.FC<LandingPageProps> = async ({
           <section>
             <h2 className="text-4xl font-semibold py-8">Trending Comedians</h2>
 
-            <div className="flex space-x-3 overflow-scroll scrollbar-hide">
+            <div className="flex space-x-3 overflow-scroll scrollbar-hide p-3 -ml-3">
               {trendingComedians
                 .sort((a, b) => b.count - a.count)
                 .map((item: any) => {

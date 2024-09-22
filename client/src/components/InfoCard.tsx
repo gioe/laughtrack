@@ -20,7 +20,9 @@ const InfoCard: React.FC<InfoCardProps> = ({
                 <Image alt="Comedian"
                     src={'/images/banner.png'}
                     fill
-                    objectFit="cover"
+                    priority={false}
+                    sizes="100vw"
+                    style={{objectFit:"cover"}}
                     className="rounded-2xl" />
             </div>
 

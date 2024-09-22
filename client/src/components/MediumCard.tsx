@@ -1,4 +1,5 @@
-import { BsBuildingFillCheck } from "react-icons/bs";
+import Image from "next/image"
+import Link from "next/link";
 
 interface MediumCardProps {
     name: string;
@@ -9,16 +10,31 @@ interface MediumCardProps {
 export const MediumCard: React.FC<MediumCardProps> = (
     { name, instagram, count }
 ) => {
+    console.log(instagram)
     return (
+        <Link
+        href={{
+            pathname: `https://instagram.com/${instagram}`,
+        }}
+    >
         <div className="cursor-pointer hover:scale-105 transform transition duration-300 ease-out">
             <div className="relative h-80 w-80">
-                <BsBuildingFillCheck className="fill rounded-lg"/>
+                <Image alt="Comedian"
+                    src={'/images/banner.png'}
+                    fill
+                    priority={false}
+                    sizes="80vw"
+                    style={{objectFit:"cover"}}
+                    className="rounded-2xl">
+                </Image>
             </div>
 
             <div>
+                <h3 className="text-xl mt-3">{name}</h3>
                 <h3 className="text-2xl mt-3">{`${count} upcoming shows`}</h3>
             </div>
-        </div>
+            </div>
+        </Link>
     )
 }
 
