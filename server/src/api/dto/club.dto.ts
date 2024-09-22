@@ -35,3 +35,10 @@ export type GetClubOutput = {
   latitude: number;
   longitude: number;
 }
+
+export type TrendingClub = {
+  id: number;
+  name: string;
+  url: string;
+  count: number;
+}

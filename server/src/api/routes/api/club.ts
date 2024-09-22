@@ -15,33 +15,6 @@ clubApiRouter.get('/:id',
 
 clubApiRouter.post('/trending',
     async (req: Request, res: Response) => {
-        const shows = await showController.getAll()
-        const groupedShows = groupByPropertyCount(shows, "clubId")
-
-        const topFive = Object.keys(groupedShows)
-            .map((clubId: string) => {
-                const showArray = groupedShows[clubId]
-                const count = showArray.length
-                return {
-                    clubId,
-                    count
-                }
-            })
-            .sort((a, b) => b.count - a.count)
-            .slice(0, 5)
-
-        const topFiveIds = topFive.map((object: any) => Number(object.clubId))
-
-        const clubs = await clubController.getAllClubsById(topFiveIds)
-
-        const clubsResponse = clubs.map((club: ClubInterface) => {
-            return {
-                id: club.id,
-                name: club.name,
-                url: club.baseUrl,
-                count: groupedShows[club.id].length
-            }
-        })
-
-        return res.status(200).send(clubsResponse)
+        const trendingClubs = await clubController.getTrendingClubs()
+        return res.status(200).send(trendingClubs)
     })

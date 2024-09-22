@@ -1,7 +1,7 @@
-import { ClubExistenceDTO, CreateClubDTO, CreateClubOutput, GetClubOutput } from "../../api/dto/club.dto.js"
+import { ClubExistenceDTO, CreateClubDTO, CreateClubOutput, GetClubOutput, TrendingClub } from "../../api/dto/club.dto.js"
 import { ClubInterface } from "../../common/interfaces/club.interface.js"
 import { runTasks } from "../../common/util/promiseUtil.js"
-import { checkForExistence, deleteWithCondition, getAll, getFirstWithCondition, create, upsert, getAllWithCondition } from "../util/queryUtil.js"
+import { checkForExistence, deleteWithCondition, getAll, getFirstWithCondition, create, upsert, getAllWithCondition, executeQuery } from "../util/queryUtil.js"
 import { DATABASE } from "../constants/database.js"
 import { readFile } from "../../api/util/storageUtil.js"
 import { JSON_KEYS } from "../../common/constants/keys.js"
@@ -42,6 +42,14 @@ export const getAllClubs = async (): Promise<ClubInterface[]> => {
     .then((queryResponse: GetClubOutput[]) => {
         return queryResponse.map((object: GetClubOutput) => toClub(object))
     })
+}
+
+export const getTrendingClubs = async (): Promise<TrendingClub[]> => {
+    const queryString = `
+    SELECT c.id, c.name, c.base_url, count (*) FROM ${DATABASE.SHOWS_TABLE} s INNER JOIN ${DATABASE.CLUBS_TABLE} c ON s.club_id = c.id 
+    GROUP BY 1 ORDER BY count DESC LIMIT 5;
+    `
+    return await executeQuery<TrendingClub>(queryString, [])
 }
 
 export const deleteClubById = async (id: number): Promise<boolean> => {
