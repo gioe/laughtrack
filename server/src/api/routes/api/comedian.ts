@@ -25,7 +25,5 @@ comedianApiRouter.get('/shows/:id',
 comedianApiRouter.post('/trending',
     async (req: Request, res: Response) => {
         const trendingComedians = await comedianController.getTrendingComedians()
-
         return res.status(200).send(trendingComedians)
-
     })

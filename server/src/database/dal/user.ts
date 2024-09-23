@@ -5,7 +5,6 @@ import { readFile } from "../../api/util/storageUtil.js";
 import { JSON_KEYS } from "../../common/constants/keys.js";
 
 export const getAdminList = async (): Promise<string[]> => {
-
     return readFile(process.env.USERS_FILE_NAME as string)        
         .then((json: any) => {
             return json[JSON_KEYS.admins].map((object: any) => {

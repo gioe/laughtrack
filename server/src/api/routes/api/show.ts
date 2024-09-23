@@ -4,7 +4,7 @@ import * as showComedianController from '../../controllers/showComedian/index.js
 import express, { Request, Response } from "express";
 import bodyParser from "body-parser";
 import { groupByPropertyCount } from '../../util/groupUtil.js';
-import { GetShowComedianDetailsOutput } from '../../dto/comedian.dto.js';
+import { GetSearchResultsOutput } from '../../dto/comedian.dto.js';
 
 export const showApiRouter = express.Router();
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
@@ -21,10 +21,10 @@ showApiRouter.get('/:id',
 
 showApiRouter.post('/search', urlencodedParser,
     async (req: Request, res: Response) => {        
-        const shows = await showController.getAllShowsBetweenDatesAtLocation(req.body)
-        const comedians = await showComedianController.getAllComediansOnShows(shows.map(show => show.show_id))
-
-        const groupedShowRecord = groupByPropertyCount(comedians, 'comedian_name')
+        
+        const shows = await showController.getSearchResults(req.body);
+        console.log(shows)
+        const groupedShowRecord = groupByPropertyCount(shows, 'comedian_name')
 
         const topTenSearchResults = Object.keys(groupedShowRecord)
             .map((comedianName: string) => {
@@ -37,27 +37,32 @@ showApiRouter.post('/search', urlencodedParser,
             })
             .sort((a, b) => b.count - a.count)
             .slice(0, 10)
-            .map((object: any) => {
+            .map(({comedianName}) => {
+                const showArray = groupedShowRecord[comedianName]
+                const firstEntry = showArray[0];
                 return {
-                    id: groupedShowRecord[object.comedianName][0].comedian_id,
-                    name: object.comedianName,
-                    instagram: groupedShowRecord[object.comedianName][0].instagram,
-                    shows: groupedShowRecord[object.comedianName].map((value: GetShowComedianDetailsOutput) => {
-                        return {
-                            id: value.show_id,
-                            dateTime: value.date_time,
-                            ticketLink: value.ticket_link,
-                            club: {
-                                name: value.club_name,
-                                address: value.address,
-                                url: value.base_url,
-                                latitude: value.latitude,
-                                longitude: value.longitude
-                            },
-                        }
-                    })
+                    comedians: {
+                        id: firstEntry.comedian_id,
+                        name: comedianName,
+                        instagram: firstEntry.instagram,
+                        shows: showArray.map((value: GetSearchResultsOutput) => {
+                            return {
+                                id: value.show_id,
+                                dateTime: value.date_time,
+                                ticketLink: value.ticket_link,
+                                club: {
+                                    name: value.club_name,
+                                    address: value.address,
+                                    url: value.base_url
+                                },
+                            }
+                        })
+                    },
                 }
             })
             
-        return res.status(200).send(topTenSearchResults)
+        return res.status(200).send({
+            total: shows.length,
+            results: topTenSearchResults,
+        })
     })

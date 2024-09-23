@@ -29,11 +29,6 @@ export const getAll = async (): Promise<ShowInterface[]> => {
     return showDal.getAllShows()
 }
 
-export const getAllShowsBetweenDatesAtLocation = async (request: GetFilteredShowsRequest): Promise<GetFilteredShowsResponse[]> => {
-    return showDal.getAllShowsBetweenDatesAtLocation(request)
-}
-
-
 export const getAllShowsForClubs = async (clubIds: number[]): Promise<ShowInterface[]> => {
     return showDal.getAllShowsForClubs(clubIds)
 }
@@ -47,4 +42,9 @@ export const deleteOldShows = async (): Promise<void> => {
         const tasks = oldShowIds.map(id => showDal.deleteShowById(id))
         runTasks(tasks);
     }
+}
+
+
+export const getSearchResults = async (request: GetFilteredShowsRequest) => {
+    return showDal.getSearchResults(request)
 }

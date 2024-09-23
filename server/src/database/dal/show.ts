@@ -4,6 +4,7 @@ import { runTasks } from "../../common/util/promiseUtil.js"
 import { checkForExistence, deleteWithCondition, executeQuery, getAll, getAllWithCondition, getFirstWithCondition, upsert } from "../util/queryUtil.js"
 import { toShow } from "../../api/controllers/show/mapper.js"
 import { ShowInterface } from "../../common/interfaces/show.interface.js"
+import { GetSearchResultsOutput } from "../../api/dto/comedian.dto.js"
 
 export const createAllShows = async (clubDtos: CreateShowDTO[]): Promise<CreateShowOutput[]> => {
     const tasks = clubDtos.map(clubDto => createShow(clubDto))
@@ -30,13 +31,6 @@ export const getShowById = async (id: number): Promise<GetShowDetailsOutput> => 
     return getFirstWithCondition<GetShowDetailsOutput>(DATABASE.SHOWS_TABLE, `id=$1`, [id])
 }
 
-export const getAllShowsBetweenDatesAtLocation = async (request: GetFilteredShowsRequest): Promise<GetFilteredShowsResponse[]> => {
-    const queryString = `
-    SELECT show.id as show_id, date_time, ticket_link, name, city, address FROM ${DATABASE.SHOWS_TABLE} show INNER JOIN ${DATABASE.CLUBS_TABLE} c ON c.id = show.club_id WHERE c.city = $1 AND show.date_time < $2 AND $3 < show.date_time
-    `
-    return await executeQuery<GetFilteredShowsResponse>(queryString, [request.location, request.endDate, request.startDate])
-}
-
 export const getAllShows = async (): Promise<ShowInterface[]>  => {
     return getAll<GetShowDetailsOutput>(DATABASE.SHOWS_TABLE)
     .then((queryResponse: GetShowDetailsOutput[]) => {
@@ -61,4 +55,16 @@ export const getOldShows = async (): Promise<GetShowIdOutput[]> => {
 
 export const deleteOldShows = async (): Promise<boolean> => {
     return deleteWithCondition(DATABASE.SHOWS_TABLE, `date_time < now()`)
+}
+
+export const getSearchResults = async (request: GetFilteredShowsRequest): Promise<GetSearchResultsOutput[]> => {
+    const queryString = `
+    SELECT show_id, comedian_id, c.name as comedian_name, instagram, date_time, ticket_link, address, base_url, cl.name as club_name, latitude, longitude
+    FROM ${DATABASE.SHOW_COMEDIANS_TABLE} cs 
+    INNER JOIN ${DATABASE.COMEDIANS_TABLE} c ON c.id = cs.comedian_id 
+    INNER JOIN ${DATABASE.SHOWS_TABLE} s ON cs.show_id = s.id 
+    INNER JOIN ${DATABASE.CLUBS_TABLE} cl ON s.club_id = cl.id 
+    WHERE cl.city = $1 AND s.date_time < $2 AND $3 < s.date_time
+    `
+    return await executeQuery<GetSearchResultsOutput>(queryString, [request.location, request.endDate, request.startDate])
 }

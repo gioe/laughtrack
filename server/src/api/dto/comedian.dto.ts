@@ -30,7 +30,7 @@ export type ComedianExistenceDTO = {
   name: string;
 }
 
-export type GetShowComedianDetailsOutput = {
+export type GetSearchResultsOutput = {
   comedian_id: number;
   comedian_name: string;
   instagram: string;
