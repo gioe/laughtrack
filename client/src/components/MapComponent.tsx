@@ -7,33 +7,22 @@ import getCenter from 'geolib/es/getCenter'
 import { ComedianInterface } from '@/interfaces/comedian.interface';
 import { ShowInterface } from '@/interfaces/show.interface';
 import { ClubInterface } from '@/interfaces/club.interface';
-import { SearchResult } from '@/interfaces/searchResult.interface';
 
 const GEOFENCE = turf.circle([-74.0122106, 40.7467898], 5, { units: 'miles' });
 
 interface MapComponentInterface {
-  searchResults: SearchResult[];
+  coordinates: string[];
 }
 
 const MapComponent: React.FC<MapComponentInterface> = ({
-  searchResults
+  coordinates
 }) => {
 
   const [selectedClub, setSelectedClub] = useState<ClubInterface | null>(null)
 
-  const clubs = searchResults
-  .flatMap((comedian: ComedianInterface) => comedian.shows)
-  .map((show: ShowInterface) => show.club)
+  const coordinateObjects = coordinates.map((coordinate: string) => JSON.parse(coordinate))
 
-  const clubStrings = clubs.map((club: ClubInterface) => JSON.stringify(club))
-  const uniqueClubStrings = [...new Set(clubStrings)]
-  const coordinates = uniqueClubStrings.map((club:string) => JSON.parse(club))
-
-  .map((club: ClubInterface) => {
-    return {latitude: club.latitude, longitude: club.longitude}
-  })
-
-  const center = getCenter([]);
+  const center = getCenter(coordinateObjects);
   
   if (!center) throw new Error('points is an empty array')
 

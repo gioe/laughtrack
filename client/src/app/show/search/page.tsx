@@ -5,12 +5,12 @@ import Footer from "@/components/Footer";
 import InfoCard from "@/components/InfoCard";
 import MapComponent from "@/components/MapComponent";
 import Header from "@/components/header/Header";
-import { SearchResult } from "@/interfaces/searchResult.interface";
+import { SearchResult, SearchResultResponse } from "@/interfaces/searchResult.interface";
 import { UserInterface } from "@/interfaces/user.interface";
 import moment from 'moment';
 
 interface UpcomingShowProps {
-    searchResults: SearchResult[];
+    searchResultsResponse: SearchResultResponse;
     range: string;
     searchPlaceholder: string;
     location: string;
@@ -18,16 +18,13 @@ interface UpcomingShowProps {
 }
 
 const UpcomingShows: React.FC<UpcomingShowProps> = async ({
-    searchResults,
+    searchResultsResponse,
     range,
     searchPlaceholder,
     location,
     user
 }) => {
 
-    const totalCount = searchResults
-    .map((searchResult: SearchResult) => searchResult.shows.length)
-    .reduce((sum, current) => sum + current, 0);
 
     return (
         <div>
@@ -38,7 +35,7 @@ const UpcomingShows: React.FC<UpcomingShowProps> = async ({
             <ClientOnly>
                 <main className="flex">
                     <section className="flex-grow pt-14 px-6">
-                        <p className="text-xs">{`${totalCount} shows ${range}`}</p>
+                        <p className="text-xs">{`${searchResultsResponse.total} shows ${range}`}</p>
                         
                         <h1 className="text-3xl font-semibold mt-2 mb-6">{`Shows in ${location}`}</h1>
 
@@ -50,7 +47,7 @@ const UpcomingShows: React.FC<UpcomingShowProps> = async ({
                         
                         <div className="flex flex-col">
 
-                            {searchResults.map((comedian: SearchResult) => {
+                            {searchResultsResponse.results.map((comedian: SearchResult) => {
                                 return (
                                     <InfoCard
                                         key={comedian.name}
@@ -61,7 +58,7 @@ const UpcomingShows: React.FC<UpcomingShowProps> = async ({
 
                     </section>
                     <section className="hidden xl:inline-flex xl:min-w-[600px]">
-                        <MapComponent searchResults={searchResults} />
+                        <MapComponent searchResults={searchResultsResponse.coordinates} />
                     </section>
 
                 </main>
