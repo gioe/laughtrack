@@ -17,6 +17,8 @@ export const SCRAPER_KEYS = {
     badDateStrings: "badDateStrings",
     badTimeStrings: "badTimeStrings",
     comedianNameSelector: "comedianNameSelector",
+    comedianImageSelector: "comedianImageSelector",
+    comedianMetadataContainerSelector: "comedianMetadataContainerSelector",
     badNameCharacters: "badNameCharacters",
     badNameStrings: "badNameStrings",
     showSignifiers: "showSignifiers",

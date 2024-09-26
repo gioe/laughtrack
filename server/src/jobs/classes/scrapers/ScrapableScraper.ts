@@ -103,6 +103,15 @@ export class ScrapableScraper {
     return provideGenericPromiseResponse(false)
   }
 
+  getScreenshotOfElement = async (
+    fileName: string,
+    scrapable?: Scrapable,
+    selector?: string) => {
 
-  
-}
+    if (selector && scrapable) {
+      const element = await scrapable.$(selector)
+      if (element == null) return
+      return element.screenshot({ path: fileName });
+  }
+
+}}

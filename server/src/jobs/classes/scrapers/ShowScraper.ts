@@ -7,6 +7,7 @@ import { ShowInterface } from "../../../common/interfaces/show.interface.js";
 import { Comedian } from "../models/Comedian.js";
 import { ScrapingConfig } from "../models/ScrapingConfig.js";
 import { Show } from "../models/Show.js";
+import { ClubInterface } from "../../../common/interfaces/club.interface.js";
 
 export class ShowScraper {
 
@@ -14,14 +15,14 @@ export class ShowScraper {
   private dateTimeScraper: DateTimeScraper;
   private ticketScraper: TicketScraper;
 
-  constructor(scrapingConfig: ScrapingConfig) {
-    this.comedianScraper = new ComedianScraper(scrapingConfig);
+  constructor(club: ClubInterface, scrapingConfig: ScrapingConfig) {
+    this.comedianScraper = new ComedianScraper(club, scrapingConfig);
     this.ticketScraper = new TicketScraper(scrapingConfig);
     this.dateTimeScraper = new DateTimeScraper(scrapingConfig);
   }
 
   scapeShow = async (scrapable: Scrapable, input?: any): Promise<ShowInterface> => {
-    return this.comedianScraper.getAllComedianNames(scrapable)
+    return this.comedianScraper.getAllComedianData(scrapable)
     .then((comedians: Comedian[]) => this.runShowScrapingTasks(scrapable, comedians, input))
   } 
 

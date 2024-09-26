@@ -9,6 +9,7 @@ import { ShowInterface } from "../../../common/interfaces/show.interface.js";
 import { ScrapableScraper } from "../scrapers/ScrapableScraper.js";
 import { ScrapingConfig } from "./ScrapingConfig.js";
 import { generateCompleteUrl } from "../../util/scrapableUtil.js";
+import { ClubInterface } from "../../../common/interfaces/club.interface.js";
 
 export class PageManager {
 
@@ -20,10 +21,11 @@ export class PageManager {
   private showScraper: ShowScraper;
 
   constructor(
+    club: ClubInterface,
     config: any,
   ) {
     this.scrapingConfig = new ScrapingConfig(config)
-    this.showScraper = new ShowScraper(this.scrapingConfig)
+    this.showScraper = new ShowScraper(club, this.scrapingConfig)
   }
 
   getAllDateOptions = async (scrapable: Scrapable): Promise<string[]> => {

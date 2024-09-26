@@ -21,7 +21,9 @@ export class ScrapingConfig {
   invalidLinkText?: string;
   badDateStrings?: string[];
   badTimeStrings?: string[];
+  comedianMetadataContainerSelector?: string;
   comedianNameSelector?: string;
+  comedianImageSelector?: string;
   badNameCharacters?: string[];
   badNameStrings?: string[];
   showSignifiers?: string[];
@@ -47,6 +49,8 @@ export class ScrapingConfig {
     this.badDateStrings = json[SCRAPER_KEYS.badDateStrings];
     this.badTimeStrings = json[SCRAPER_KEYS.badTimeStrings];
     this.comedianNameSelector = json[SCRAPER_KEYS.comedianNameSelector];
+    this.comedianImageSelector = json[SCRAPER_KEYS.comedianImageSelector];
+    this.comedianMetadataContainerSelector = json[SCRAPER_KEYS.comedianMetadataContainerSelector]
     this.badNameCharacters = json[SCRAPER_KEYS.badNameCharacters];
     this.badNameStrings = json[SCRAPER_KEYS.badNameStrings];
     this.showSignifiers = json[SCRAPER_KEYS.showSignifiers];

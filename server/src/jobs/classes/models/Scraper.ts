@@ -19,7 +19,7 @@ export class Scraper {
   ) {
     this.club = club;
     this.browser = browser;
-    this.pageManager = new PageManager(club.scrapingConfig);
+    this.pageManager = new PageManager(club, club.scrapingConfig);
   }
   
   public scrape = async (): Promise<Show[]> => {
