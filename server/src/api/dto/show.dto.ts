@@ -54,3 +54,9 @@ export type ShowExistenceDTO = {
     clubId: string;
     dateTime: Date;
 }
+
+
+export type ShowScore = {
+    showId: number;
+    score: number;
+}

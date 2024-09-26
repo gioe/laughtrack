@@ -79,7 +79,7 @@ export async function createShowsTable(pool: pkg.Pool) {
         date_time TIMESTAMP NOT NULL,
         ticket_link TEXT NOT NULL,
         club_id INTEGER, 
-        score INTEGER,
+        score FLOAT,
         UNIQUE (club_id, date_time),
         CONSTRAINT fk_club FOREIGN KEY(club_id) REFERENCES clubs(id)
       );
@@ -96,12 +96,12 @@ export async function createComediansTable(pool: pkg.Pool) {
       CREATE TABLE IF NOT EXISTS comedians (
         id SERIAL PRIMARY KEY,
         name TEXT NOT NULL unique,
-        instagram_account TEXT,
+        instagram_account TEXT unique,
         instagram_followers INTEGER,
-        twitter_account TEXT,
-        twitter_followers INTEGER,
-        tiktok_account TEXT,
-        tiktok_followers INTEGER
+        tiktok_account TEXT unique,
+        tiktok_followers INTEGER,
+        website TEXT unique,
+        is_pseudonym boolean DEFAULT false
       );
     `;
 
@@ -120,7 +120,7 @@ export async function createShowComediansTable(pool: pkg.Pool) {
       comedian_id INTEGER,
       CONSTRAINT fk_shows FOREIGN KEY(show_id) REFERENCES shows(id),
       CONSTRAINT fk_comedians FOREIGN KEY(comedian_id) REFERENCES comedians(id),
-      CONSTRAINT show_comedan_pkey PRIMARY KEY (show_id, comedian_id)
+      CONSTRAINT show_comedian_pkey PRIMARY KEY (show_id, comedian_id)
       );
     `;
 

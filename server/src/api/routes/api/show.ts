@@ -23,7 +23,6 @@ showApiRouter.post('/search', urlencodedParser,
     async (req: Request, res: Response) => {        
         
         const shows = await showController.getSearchResults(req.body);
-        console.log(shows)
         const groupedShowRecord = groupByPropertyCount(shows, 'comedian_name')
 
         const topTenSearchResults = Object.keys(groupedShowRecord)

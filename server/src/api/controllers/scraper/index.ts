@@ -13,6 +13,6 @@ export const scrapeClub = async (id: number) => {
     await clubController.getById(id)
         .then((club: ClubInterface) => runScraper(club))
         .then((scrapedShows: ShowInterface[]) => showController.createAll(scrapedShows))
-        
+
     writeLogToFile(`Finished in ${(new Date().getTime() - startDate.getTime()) / 1000} seconds`);
 }

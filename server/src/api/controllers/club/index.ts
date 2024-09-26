@@ -5,20 +5,27 @@ import { CreateClubOutput, TrendingClub } from '../../dto/club.dto.js'
 import { runTasks } from "../../../common/util/promiseUtil.js"
 
 export const createAll = async (): Promise<CreateClubOutput[]> => {
-    return clubDal.getAllClubsFromFile()
-    .then((payload: ClubInterface[]) => clubDal.createAllClubs(payload));
+    const clubs: ClubInterface[] = await clubDal.getAllClubsFromFile()
+    var responses: CreateClubOutput[] = []
+
+    for (let i = 0; i < clubs.length; i++) {
+        const output = await create(clubs[i])
+        responses.push(output)
+    }
+    
+    return responses
 }
 
-export const create = async(payload: ClubInterface): Promise<CreateClubOutput> => {
+export const create = async (payload: ClubInterface): Promise<CreateClubOutput> => {
     return clubDal.createClub(payload)
 }
 
 export const getById = async (id: number): Promise<ClubInterface> => {
     return clubDal.getClubById(id)
-    .then(output =>  mapper.toClub(output))
+        .then(output => mapper.toClub(output))
 }
 
-export const deleteById = async(id: number): Promise<Boolean> => {
+export const deleteById = async (id: number): Promise<Boolean> => {
     return clubDal.deleteClubById(id)
 }
 
@@ -56,16 +63,16 @@ export const getTrendingClubs = async (): Promise<TrendingClub[]> => {
 
     // const topFiveIds = topFive.map((object: any) => Number(object.clubId))
 
-            // const clubsResponse = clubs.map((club: ClubInterface) => {
-        //     return {
-        //         id: club.id,
-        //         name: club.name,
-        //         url: club.baseUrl,
-        //         count: 0
-        //     }
-        // })
+    // const clubsResponse = clubs.map((club: ClubInterface) => {
+    //     return {
+    //         id: club.id,
+    //         name: club.name,
+    //         url: club.baseUrl,
+    //         count: 0
+    //     }
+    // })
 
-        
+
 
     return clubDal.getTrendingClubs()
 }

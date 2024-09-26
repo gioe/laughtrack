@@ -7,6 +7,7 @@ export class ScrapableScraper {
 
   private elementHandler = new ElementHandler();
   
+
   getAllTextContent = async (scrapable: Scrapable,
     selector?: string): Promise<string[]> => {
 

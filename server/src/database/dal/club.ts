@@ -1,24 +1,31 @@
-import { ClubExistenceDTO, CreateClubDTO, CreateClubOutput, GetClubOutput, TrendingClub } from "../../api/dto/club.dto.js"
+import { 
+    ClubExistenceDTO, 
+    CreateClubOutput, 
+    GetClubOutput, 
+    TrendingClub 
+} from "../../api/dto/club.dto.js"
 import { ClubInterface } from "../../common/interfaces/club.interface.js"
-import { runTasks } from "../../common/util/promiseUtil.js"
-import { checkForExistence, deleteWithCondition, getAll, getFirstWithCondition, create, upsert, getAllWithCondition, executeQuery } from "../util/queryUtil.js"
+import { 
+    checkForExistence, 
+    deleteWithCondition, 
+    getAll,
+    getFirstWithCondition, 
+    getAllWithCondition, 
+    executeQuery, 
+    upsertAndReplace
+} from "../util/queryUtil.js"
 import { DATABASE } from "../constants/database.js"
 import { readFile } from "../../api/util/storageUtil.js"
 import { JSON_KEYS } from "../../common/constants/keys.js"
 import { toClub } from "../../api/controllers/club/mapper.js"
 
-export const getAllClubsFromFile = async (): Promise<ClubInterface[]> => {    
+export const getAllClubsFromFile = async (): Promise<ClubInterface[]> => {
     return readFile(process.env.CLUBS_FILE_NAME as string)
         .then((clubsJson: any) => clubArrayFromJson(clubsJson))
 }
 
-export const createAllClubs = async (clubs: ClubInterface[]): Promise<CreateClubOutput[]> => {
-    const tasks = clubs.map(club => createClub(club))
-    return runTasks(tasks)
-}
-
 export const createClub = async (payload: ClubInterface): Promise<CreateClubOutput> => {
-    return upsert(DATABASE.CLUBS_TABLE, 
+    return upsertAndReplace(DATABASE.CLUBS_TABLE,
         `(name, base_url, schedule_page_url, timezone, scraping_config, city, address, latitude, longitude) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
         `(name)`,
         `base_url=$2, schedule_page_url=$3, timezone=$4, scraping_config=$5, city=$6, address=$7, latitude=$8, longitude=$9`,
@@ -26,7 +33,10 @@ export const createClub = async (payload: ClubInterface): Promise<CreateClubOutp
 }
 
 export const getClubByName = async (name: string): Promise<ClubInterface> => {
-    return getFirstWithCondition<ClubInterface>(DATABASE.CLUBS_TABLE, `name=$1`, [name])
+    return getFirstWithCondition<ClubInterface>(DATABASE.CLUBS_TABLE, 
+        `name=$1`, 
+        `id, name, baseUrl, schedulePageUrl, timezone, scrapingConfig, city, address, latitude, longitude`,
+        [name])
 }
 
 export const checkIfClubExists = async (payload: ClubExistenceDTO): Promise<boolean> => {
@@ -34,14 +44,17 @@ export const checkIfClubExists = async (payload: ClubExistenceDTO): Promise<bool
 }
 
 export const getClubById = async (id: number): Promise<GetClubOutput> => {
-    return getFirstWithCondition<GetClubOutput>(DATABASE.CLUBS_TABLE, `id=$1`, [id])
+    return getFirstWithCondition<GetClubOutput>(DATABASE.CLUBS_TABLE, 
+        `id=$1`, 
+        `id, name, baseUrl, schedulePageUrl, timezone, scrapingConfig, city, address, latitude, longitude`,
+        [id])
 }
 
 export const getAllClubs = async (): Promise<ClubInterface[]> => {
     return getAll<GetClubOutput>(DATABASE.CLUBS_TABLE)
-    .then((queryResponse: GetClubOutput[]) => {
-        return queryResponse.map((object: GetClubOutput) => toClub(object))
-    })
+        .then((queryResponse: GetClubOutput[]) => {
+            return queryResponse.map((object: GetClubOutput) => toClub(object))
+        })
 }
 
 export const getTrendingClubs = async (): Promise<TrendingClub[]> => {
@@ -56,9 +69,9 @@ export const deleteClubById = async (id: number): Promise<boolean> => {
     return deleteWithCondition(DATABASE.CLUBS_TABLE, `id=$1`, [id])
 }
 
-export const getClubsInLocation = async (location: string):  Promise<ClubInterface[]> => {
+export const getClubsInLocation = async (location: string): Promise<ClubInterface[]> => {
     return getAllWithCondition<GetClubOutput>(DATABASE.CLUBS_TABLE, `city=$1`, [location])
-    .then((queryResponse: GetClubOutput[]) => queryResponse.map((object: GetClubOutput) => toClub(object)))
+        .then((queryResponse: GetClubOutput[]) => queryResponse.map((object: GetClubOutput) => toClub(object)))
 }
 
 const clubArrayFromJson = (json: any) => {
@@ -75,8 +88,8 @@ const clubArrayFromJson = (json: any) => {
             }
             clubArray.push(clubObject)
         })
-      }
-      
+    }
+
     return clubArray;
 
 }

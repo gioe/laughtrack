@@ -1,8 +1,5 @@
 import * as clubController from "../../controllers/club/index.js"
-import * as showController from "../../controllers/show/index.js"
 import express, { Request, Response } from "express";
-import { groupByPropertyCount } from "../../util/groupUtil.js";
-import { ClubInterface } from "../../../common/interfaces/club.interface.js";
 
 export const clubApiRouter = express.Router();
 

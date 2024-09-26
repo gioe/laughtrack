@@ -1,27 +1,35 @@
+import * as comedianController from '../comedian/index.js'
+import * as showComedianController from '../showComedian/index.js'
 import * as showDal from "../../../database/dal/show.js"
-import * as comedianDal from "../../../database/dal/comedian.js"
 import * as showComedianDal from "../../../database/dal/showComedian.js"
-import { CreateShowDTO, CreateShowOutput, GetFilteredShowsRequest, GetFilteredShowsResponse, GetShowDetailsOutput } from '../../dto/show.dto.js'
+import { CreateShowDTO, CreateShowOutput, GetFilteredShowsRequest, GetShowDetailsOutput, ShowScore } from '../../dto/show.dto.js'
 import { ShowInterface } from "../../../common/interfaces/show.interface.js"
 import { runTasks } from "../../../common/util/promiseUtil.js"
 
-export const createAll = async(allShows: ShowInterface[]): Promise<CreateShowOutput[]> => {
-    const tasks = allShows.map((show: ShowInterface) =>  create(show))
-    return runTasks(tasks);
+export const createAll = async (allShows: ShowInterface[]): Promise<CreateShowOutput[]> => {
+    var responses: CreateShowOutput[] = []
+
+    for (let i = 0; i < allShows.length; i++) {
+        const show = allShows[i]
+        const output = await create(show)
+        responses.push(output)
+    }
+
+    return responses
 }
 
-export const create = async(payload: CreateShowDTO): Promise<CreateShowOutput> => {
-    const show = await showDal.createShow(payload)
-    const comedians = await comedianDal.createAllComedians(payload.comedians)
-    await showComedianDal.createShowComedianRelationships(comedians, show)
-    return show;
+export const create = async (show: CreateShowDTO): Promise<CreateShowOutput> => {
+    const comedians = await comedianController.createAll(show.comedians)
+    const showOutput = await showDal.createShow(show)
+    await showComedianController.createRelationshipForComedians(comedians, showOutput.id)
+    return showOutput;
 }
 
 export const getById = async (id: number): Promise<GetShowDetailsOutput> => {
     return showDal.getShowById(id)
 }
 
-export const deleteById = async(id: number): Promise<boolean> => {
+export const deleteById = async (id: number): Promise<boolean> => {
     return showDal.deleteShowById(id)
 }
 
@@ -44,7 +52,15 @@ export const deleteOldShows = async (): Promise<void> => {
     }
 }
 
-
 export const getSearchResults = async (request: GetFilteredShowsRequest) => {
     return showDal.getSearchResults(request)
+}
+
+export const updateScores = async (scores: ShowScore[]) => {
+
+    for (let i = 0; i < scores.length; i++) {
+        const score = scores[i]
+        await showDal.updateScore(score)
+    }
+    
 }

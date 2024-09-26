@@ -2,8 +2,6 @@ import { GetShowDetailsOutput } from "./show.dto.js";
 
 export type CreateComedianDTO = {
   name: string;
-  instagram?: string;
-  slug?: string;
 }
 
 export type MergeComedianDTO = {
@@ -14,7 +12,7 @@ export type MergeComedianDTO = {
 export type GetComedianDetailsOutput = {
   id: number;
   name: string;
-  instagram: string;
+  instagram_account: string;
 }
 
 export type CreateComedianOutput = {
@@ -55,4 +53,10 @@ export type TrendingComedian = {
   name: string;
   instagram: string;
   count: number;
+}
+
+export type ComedianPopularityData = {
+  instagramFollowers: number | null;
+  tiktokFollowers: number | null;
+  isPseudoynm: number | null;
 }

@@ -9,12 +9,21 @@ export async function executeQuery<T>(queryString: string,
     })
 }
 
-export async function upsert<T>(table: string, 
+export async function upsertAndReplace<T>(table: string, 
     inputs: string, 
     conflictingValue: string, 
     updateStatement: string, 
     values: any[]): Promise<T> {
     const queryString = `INSERT into ${table}${inputs} on conflict${conflictingValue} do update set ${updateStatement} RETURNING id`
+    return executeQuery<T>(queryString, values)
+    .then((queryResponse: any[]) => queryResponse[0])
+}
+
+export async function upsertAndDoNothing<T>(table: string, 
+    inputs: string, 
+    conflictingValue: string, 
+    values: any[]): Promise<T> {
+    const queryString = `INSERT into ${table}${inputs} on conflict${conflictingValue} do NOTHING RETURNING id`
     return executeQuery<T>(queryString, values)
     .then((queryResponse: any[]) => queryResponse[0])
 }
@@ -41,8 +50,9 @@ export async function getAllWithCondition<T>(table: string,
 
 export async function getFirstWithCondition<T>(table: string, 
     condition: string, 
+    returnStatement: string,
     values: any[]): Promise<T> {
-    const queryString = `SELECT * FROM ${table} WHERE ${condition}`
+    const queryString = `SELECT ${returnStatement} FROM ${table} WHERE ${condition}`
     return executeQuery<T>(queryString, values)
     .then((queryResponse: any[]) => queryResponse[0])
 }
