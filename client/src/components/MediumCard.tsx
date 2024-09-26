@@ -10,7 +10,6 @@ interface MediumCardProps {
 export const MediumCard: React.FC<MediumCardProps> = (
     { name, instagram, count }
 ) => {
-    console.log(instagram)
     return (
         <Link
         href={{
