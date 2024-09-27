@@ -1,16 +1,14 @@
 import playwright from "playwright-core";
 import { ElementHandler } from "../handlers/ElementHandler.js";
 import { Scrapable } from "../../../common/interfaces/scrapable.interface.js";
-import { provideGenericPromiseResponse } from "../../../common/util/promiseUtil.js";
+import { delay, provideGenericPromiseResponse } from "../../../common/util/promiseUtil.js";
 
 export class ScrapableScraper {
 
   private elementHandler = new ElementHandler();
   
-
   getAllTextContent = async (scrapable: Scrapable,
     selector?: string): Promise<string[]> => {
-
     if (selector) {
       return scrapable.$$eval(selector, (e: Element[]) => e.map(e => e.textContent ?? "") ?? [])
         .catch(() => { console.warn(`Error with ${selector} text values`) })
@@ -103,20 +101,17 @@ export class ScrapableScraper {
     return provideGenericPromiseResponse(false)
   }
 
-  getScreenshotOfElement = async (
+  takeScreenshot = async (
     fileName: string,
     scrapable?: Scrapable,
     selector?: string) => {
 
     if (selector && scrapable) {
       const element = await scrapable.$(selector)
-      console.log(fileName)
       if (element == null) return
       const visible = await element.isVisible();
-
       if (visible) {
         await element.screenshot({ path: fileName });
       }
   }
-
 }}

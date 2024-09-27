@@ -10,20 +10,24 @@ import { ScrapableScraper } from "../scrapers/ScrapableScraper.js";
 import { ScrapingConfig } from "./ScrapingConfig.js";
 import { generateCompleteUrl } from "../../util/scrapableUtil.js";
 import { ClubInterface } from "../../../common/interfaces/club.interface.js";
+import { ImageScraper } from "../scrapers/ImageScraper.js";
 
 export class PageManager {
 
+  private imageScraper = new ImageScraper();
   private elementInteractor = new ElementInteractor();
   private scraper = new ScrapableScraper();
   private elementValidator = new ElementValidator();
   private elementHandler = new ElementHandler();
   private scrapingConfig: ScrapingConfig;
   private showScraper: ShowScraper;
+  private club: ClubInterface;
 
   constructor(
     club: ClubInterface,
     config: any,
   ) {
+    this.club = club;
     this.scrapingConfig = new ScrapingConfig(config)
     this.showScraper = new ShowScraper(club, this.scrapingConfig)
   }
@@ -72,7 +76,6 @@ export class PageManager {
   }
 
   scrapeContainers = async (scrapable: Scrapable, input?: any): Promise<ShowInterface[]> => {
-    
     return this.getShowContainers(scrapable as playwright.Page)
       .then((elementHandlers: ElementHandle<Element>[]) => {
         const tasks = elementHandlers.map(handler => this.showScraper.scapeShow(handler, input))
