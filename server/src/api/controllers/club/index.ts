@@ -1,6 +1,7 @@
 import * as clubDal from "../../../database/dal/club.js"
 import { ClubInterface } from '../../../common/interfaces/club.interface.js'
 import { CreateClubOutput } from '../../dto/club.dto.js'
+import { generateClubPopularityData } from "../../util/scoringUtil.js"
 
 export const createAll = async (): Promise<CreateClubOutput[]> => {
     const clubs: ClubInterface[] = await clubDal.getAllClubsFromFile()
@@ -37,4 +38,17 @@ export const getClubsByLocation = async (location: string): Promise<ClubInterfac
 
 export const getTrendingClubs = async (): Promise<ClubInterface[]> => {
     return clubDal.getTrendingClubs()
+}
+
+export const generateScores = async (): Promise<boolean> => {
+    const clubs: ClubInterface[] = []
+    
+    const updatedValues = clubs.map((club: ClubInterface) => {
+        return {
+            id: club.id,
+            score: generateClubPopularityData(club.shows ?? [])
+        }
+    })
+
+    return clubDal.updateScores(updatedValues)
 }

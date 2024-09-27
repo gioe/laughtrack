@@ -3,6 +3,7 @@ import {
     CreateComedianDTO,
     CreateComedianOutput,
     GetComedianDetailsOutput,
+    UpdateComedianScoreDTO,
 } from "../../api/dto/comedian.dto.js"
 import { deleteWithCondition, executeQuery, getAll, getFirstWithCondition, upsertAndDoNothing } from "../util/queryUtil.js"
 import { DATABASE } from "../constants/database.js"
@@ -47,6 +48,10 @@ export const getAllComedians = async (): Promise<ComedianInterface[]> => {
 
 export const deleteComedianById = async (id: number): Promise<boolean> => {
     return deleteWithCondition(DATABASE.COMEDIANS_TABLE, `id=$1`, [id])
+}
+
+export const updateScores = async (values: UpdateComedianScoreDTO[]): Promise<boolean> => {
+    return deleteWithCondition(DATABASE.COMEDIANS_TABLE, `id=$1`, [])
 }
 
 export const getTrendingComedians = async (): Promise<ComedianInterface[]> => {

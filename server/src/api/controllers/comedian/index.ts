@@ -7,6 +7,7 @@ import {
 } from '../../dto/comedian.dto.js'
 import { GetShowDetailsOutput } from "../../dto/show.dto.js"
 import { ComedianInterface } from "../../../common/interfaces/comedian.interface.js"
+import { generateComedianPopularityScore } from "../../util/scoringUtil.js"
 
 export const createAll = async (comedians: CreateComedianDTO[]): Promise<CreateComedianOutput[]> => {
     const badComedians = await comedianDal.getBadComedians()
@@ -52,4 +53,17 @@ export const merge = async (payload: MergeComedianDTO): Promise<boolean> => {
     const mergingIds = payload.mergedIds
 
     return true;
+}
+
+export const generateScores = async (): Promise<boolean> => {
+    const comedians = await comedianDal.getAllComedians();
+
+    const updatedValues = comedians.map((comedian: ComedianInterface) => {
+        return {
+            id: comedian.id,
+            score: generateComedianPopularityScore(comedian)
+        }
+    })
+
+    return comedianDal.updateScores(updatedValues)
 }

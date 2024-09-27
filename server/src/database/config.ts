@@ -1,4 +1,5 @@
 import pkg from 'pg';
+import pgPromise from 'pg-promise';
 const { Pool } = pkg;
 import { AuthTypes, Connector, IpAddressTypes } from '@google-cloud/cloud-sql-connector';
 import { writeLogToFile } from '../jobs/util/logUtil.js';

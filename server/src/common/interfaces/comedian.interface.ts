@@ -1,5 +1,3 @@
-import { Schedule } from "./schedule.interface.js"
-
 export interface ComedianInterface {
   id: number
   name: string
@@ -7,4 +5,7 @@ export interface ComedianInterface {
   tikTokAccount?: string  
   website?: string,
   poplarityScore: number;
+  instagramFollowers: number;
+  tiktokFollowers: number;
+  isPseudonym: boolean;
 }

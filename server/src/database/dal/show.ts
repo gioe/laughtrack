@@ -3,7 +3,8 @@ import {
     CreateShowOutput, 
     GetFilteredShowsRequest,
     GetShowDetailsOutput,
-    ShowScore
+    ShowScore,
+    UpdateShowScoreDTO
 } from "../../api/dto/show.dto.js"
 import { DATABASE } from "../constants/database.js"
 import {
@@ -51,6 +52,15 @@ export const deleteShowById = async (id: number): Promise<boolean> => {
     return deleteWithCondition(DATABASE.SHOWS_TABLE, `id=$1`, [id])
 }
 
+export const updateScores = async (values: UpdateShowScoreDTO[]): Promise<boolean[]> => {
+    const queryString = `
+    UPDATE ${DATABASE.SHOWS_TABLE}
+    SET score=$2
+    WHERE id=$1;
+    `
+    return executeQuery<boolean>(queryString, [])
+}
+
 export const getSearchResults = async (request: GetFilteredShowsRequest): Promise<GetSearchResultsOutput[]> => {
     const queryString = `
     SELECT show_id, comedian_id, c.name as comedian_name, instagram_account as instagram, 
@@ -70,5 +80,4 @@ export const updateScore = async (score: ShowScore) => {
     SET score=$2
     WHERE id=$1;
     `
-    return await executeQuery(queryString, [score.showId, score.score])
 }

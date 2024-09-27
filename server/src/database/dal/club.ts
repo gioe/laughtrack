@@ -1,6 +1,7 @@
 import {
     CreateClubOutput,
-    GetClubOutput
+    GetClubOutput,
+    UpdateClubScoreDTO
 } from "../../api/dto/club.dto.js"
 import { ClubInterface } from "../../common/interfaces/club.interface.js"
 import {
@@ -38,6 +39,10 @@ export const getClubById = async (id: number): Promise<ClubInterface> => {
 
 export const deleteClubById = async (id: number): Promise<boolean> => {
     return deleteWithCondition(DATABASE.CLUBS_TABLE, `id=$1`, [id])
+}
+
+export const updateScores = async (values: UpdateClubScoreDTO[]): Promise<boolean> => {
+    return deleteWithCondition(DATABASE.CLUBS_TABLE, `id=$1`, [])
 }
 
 export const createClub = async (payload: ClubInterface): Promise<CreateClubOutput> => {

@@ -7,6 +7,11 @@ export type GetShowDetailsOutput = {
     popularity_score: number;
 };
 
+export type UpdateShowScoreDTO = {
+    id: number;
+    score: number;
+}
+
 export type GetFilteredShowsRequest = {
     location: string;
     startDate: string;

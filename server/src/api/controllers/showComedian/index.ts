@@ -1,10 +1,8 @@
 import * as showComedianDal from "../../../database/dal/showComedian.js"
-import { GetShowDetailsOutput, ShowScore } from "../../dto/show.dto.js";
+import { GetShowDetailsOutput} from "../../dto/show.dto.js";
 import { CreateShowComedianOutput } from "../../dto/showComedian.dto.js";
-import { GetShowPopularityDetailsOutput, ShowComedianInterface } from "../../../common/interfaces/showComedian.interface.js";
+import {  ShowComedianInterface } from "../../../common/interfaces/showComedian.interface.js";
 import { CreateComedianOutput } from "../../dto/comedian.dto.js";
-import { groupByPropertyCount } from "../../util/groupUtil.js";
-import { processPopularityData } from "../../util/scoringUtil.js";
 
 export const createRelationshipForShows = async (comedianId: number, shows: GetShowDetailsOutput[]): Promise<CreateShowComedianOutput[]> => {
   const showIds = shows.map((show: GetShowDetailsOutput) => show.id)
@@ -40,28 +38,3 @@ export const create = async (comedianId: number, showId: number): Promise<Create
 export const getAllShowComedians = async (): Promise<ShowComedianInterface[]> => {
   return showComedianDal.getAllShowComedians();
 }
-
-
-export const getAllShowPopularityDetails = async (): Promise<ShowScore[]> => {
-  return showComedianDal.getAllShowPopularityDetails().then((details: GetShowPopularityDetailsOutput[]) => {
-    const groupedPopularityData =  groupByPropertyCount(details, 'show_id')
-
-    return Object.keys(groupedPopularityData).map((key: string) => {
-
-      
-      const allScores = groupedPopularityData[key].map((response: any) => {
-        return {
-          instagramFollowers: response.instagramfollowers,
-          tiktokFollowers: response.tiktikfollowers,
-          isPseudoynm: response.ispseudonym,
-        }
-      })
-
-      return {
-        showId: Number(key),
-        score: processPopularityData(allScores)
-      }
-    })
-
-  })
-};

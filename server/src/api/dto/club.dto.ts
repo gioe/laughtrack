@@ -2,6 +2,11 @@ export type CreateClubOutput = {
   id: number;
 }
 
+export type UpdateClubScoreDTO = {
+  id: number;
+  score: number;
+}
+
 export type GetClubOutput = {
   id: number;
   name: string;

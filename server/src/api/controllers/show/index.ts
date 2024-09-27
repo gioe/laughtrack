@@ -3,6 +3,7 @@ import * as showComedianController from '../showComedian/index.js'
 import * as showDal from "../../../database/dal/show.js"
 import { CreateShowDTO, CreateShowOutput, GetFilteredShowsRequest, ShowScore } from '../../dto/show.dto.js'
 import { ShowInterface } from "../../../common/interfaces/show.interface.js"
+import { generateShowPopularityData } from '../../util/scoringUtil.js'
 
 export const createAll = async (allShows: ShowInterface[]): Promise<CreateShowOutput[]> => {
     var responses: CreateShowOutput[] = []
@@ -44,10 +45,23 @@ export const getSearchResults = async (request: GetFilteredShowsRequest) => {
 }
 
 export const updateScores = async (scores: ShowScore[]) => {
-
     for (let i = 0; i < scores.length; i++) {
         const score = scores[i]
         await showDal.updateScore(score)
     }
+}
+
+export const generateScores = async (): Promise<boolean[]> => {
+    const shows: ShowInterface[] = []
+    
+    const updatedValues = shows.map((show: ShowInterface) => {
+        return {
+            id: show.id,
+            score: generateShowPopularityData(show.comedians ?? [])
+        }
+    })
+    return showDal.updateScores(updatedValues)
     
 }
+
+
