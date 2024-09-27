@@ -15,6 +15,7 @@ export const toClub = (payload: GetClubOutput): ClubInterface => {
         latitude: payload.latitude,
         longitude: payload.longitude,
         imageName: payload.image_name,
+        popularityScore: payload.popularity_score
     }
 }
 

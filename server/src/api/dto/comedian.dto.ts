@@ -15,19 +15,11 @@ export type GetComedianDetailsOutput = {
   instagram_account: string;
   tiktok_account: string;
   website: string;
+  popularity_score: number;
 }
 
 export type CreateComedianOutput = {
   id: number;
-}
-
-export type UpdateComedianDTO = {
-  name: string;
-  slug?: string;
-}
-
-export type ComedianExistenceDTO = {
-  name: string;
 }
 
 export type GetSearchResultsOutput = {
@@ -44,20 +36,7 @@ export type GetSearchResultsOutput = {
   show_id: number;
 }
 
-export type GetComedianShowsOutput = {
-  name: string;
-  count: number;
-  shows: GetShowDetailsOutput[];
-}
-
-export type TrendingComedian = {
-  id: number;
-  name: string;
-  instagram: string;
-  count: number;
-}
-
-export type ComedianPopularityData = {
+export type ComedianPopularityDTO = {
   instagramFollowers: number | null;
   tiktokFollowers: number | null;
   isPseudoynm: number | null;

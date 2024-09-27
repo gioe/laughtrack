@@ -1,9 +1,8 @@
 import {
-    ComedianPopularityData,
+    ComedianPopularityDTO,
     CreateComedianDTO,
     CreateComedianOutput,
     GetComedianDetailsOutput,
-    TrendingComedian
 } from "../../api/dto/comedian.dto.js"
 import { deleteWithCondition, executeQuery, getAll, getFirstWithCondition, upsertAndDoNothing } from "../util/queryUtil.js"
 import { DATABASE } from "../constants/database.js"
@@ -31,7 +30,6 @@ export const createComedian = async (payload: CreateComedianDTO): Promise<Create
     })
 }
 
-
 export const getComedianById = async (id: number): Promise<ComedianInterface> => {
     return getFirstWithCondition<GetComedianDetailsOutput>(DATABASE.COMEDIANS_TABLE, `id=$1`, [id])
     .then((queryResponse: GetComedianDetailsOutput) => toComedian(queryResponse))
@@ -51,24 +49,23 @@ export const deleteComedianById = async (id: number): Promise<boolean> => {
     return deleteWithCondition(DATABASE.COMEDIANS_TABLE, `id=$1`, [id])
 }
 
-export const getTrendingComedians = async (): Promise<TrendingComedian[]> => {
+export const getTrendingComedians = async (): Promise<ComedianInterface[]> => {
     const queryString = `
-    SELECT c.id, c.name, c.instagram_account as instagram, count (*) 
-    FROM ${DATABASE.SHOW_COMEDIANS_TABLE} 
-    sc INNER JOIN ${DATABASE.COMEDIANS_TABLE} c ON sc.comedian_id = c.id
-    WHERE c.is_pseudonym == false
-    GROUP BY 1 ORDER BY count DESC LIMIT 10;
+    SELECT id, name, instagram_account, tiktik_account, website, popularity_score
+    FROM ${DATABASE.COMEDIANS_TABLE} s 
+    ORDER BY popularity_score DESC LIMIT 5;
     `
-    return await executeQuery<TrendingComedian>(queryString)
+    return executeQuery<GetComedianDetailsOutput>(queryString)
+    .then((response: GetComedianDetailsOutput[]) => response.map((object: GetComedianDetailsOutput) => toComedian(object)))
 }
 
-export const getPopularityData = async (ids: number[]): Promise<ComedianPopularityData[]> => {
+export const getPopularityData = async (ids: number[]): Promise<ComedianPopularityDTO[]> => {
     const queryString = `
     SELECT instagram_followers as instagramFollowers,
     tiktok_followers as tiktokFollowers
     FROM ${DATABASE.COMEDIANS_TABLE} WHERE id = ANY($1::int[])
     `
-    return await executeQuery<ComedianPopularityData>(queryString, [ids])
+    return await executeQuery<ComedianPopularityDTO>(queryString, [ids])
 }
 
 

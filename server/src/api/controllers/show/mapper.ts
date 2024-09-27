@@ -6,7 +6,7 @@ export const toShow = (payload: GetShowDetailsOutput): ShowInterface => {
         id: payload.id,
         dateTime: payload.date_time,
         ticketLink: payload.ticket_link,
-        comedians: [],
-        clubId: payload.club_id
+        clubId: payload.club_id,
+        popularityScore: payload.popularity_score
     }
 }

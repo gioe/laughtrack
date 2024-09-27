@@ -10,4 +10,5 @@ export interface ClubInterface {
     latitude: number;
     longitude: number;
     imageName: string;
+    popularityScore: number;
 }

@@ -5,5 +5,6 @@ export interface ComedianInterface {
   name: string
   instagramAccount?: string
   tikTokAccount?: string  
-  website?: string
+  website?: string,
+  poplarityScore: number;
 }

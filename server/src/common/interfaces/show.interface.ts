@@ -4,6 +4,7 @@ export interface ShowInterface {
     id: number
     dateTime: Date;
     ticketLink: string
-    comedians: ComedianInterface[]
     clubId: number
+    popularityScore: number;
+    comedians?: ComedianInterface[]
   }

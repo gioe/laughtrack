@@ -3,9 +3,7 @@ import * as showComedianDal from "../../../database/dal/showComedian.js"
 import { 
     CreateComedianDTO,
     CreateComedianOutput, 
-    GetComedianDetailsOutput, 
     MergeComedianDTO, 
-    TrendingComedian 
 } from '../../dto/comedian.dto.js'
 import { GetShowDetailsOutput } from "../../dto/show.dto.js"
 import { ComedianInterface } from "../../../common/interfaces/comedian.interface.js"
@@ -37,7 +35,7 @@ export const getById = async (id: number): Promise<ComedianInterface> => {
     return comedianDal.getComedianById(id)
 }
 
-export const getTrendingComedians = async (): Promise<TrendingComedian[]> => {
+export const getTrendingComedians = async (): Promise<ComedianInterface[]> => {
     return comedianDal.getTrendingComedians()
 }
 

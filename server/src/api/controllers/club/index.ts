@@ -1,8 +1,6 @@
 import * as clubDal from "../../../database/dal/club.js"
-import * as mapper from "./mapper.js"
 import { ClubInterface } from '../../../common/interfaces/club.interface.js'
-import { CreateClubOutput, TrendingClub } from '../../dto/club.dto.js'
-import { runTasks } from "../../../common/util/promiseUtil.js"
+import { CreateClubOutput } from '../../dto/club.dto.js'
 
 export const createAll = async (): Promise<CreateClubOutput[]> => {
     const clubs: ClubInterface[] = await clubDal.getAllClubsFromFile()
@@ -37,37 +35,6 @@ export const getClubsByLocation = async (location: string): Promise<ClubInterfac
     return clubDal.getClubsInLocation(location)
 }
 
-export const getTrendingClubs = async (): Promise<TrendingClub[]> => {
-
-    // const clubs = await clubController.getTrendingClubs()
-
-    // const shows = await showController.getAll()
-    // const groupedShows = groupByPropertyCount(shows, "clubId")
-
-    // const topFive = Object.keys(groupedShows)
-    //     .map((clubId: string) => {
-    //         const showArray = groupedShows[clubId]
-    //         const count = showArray.length
-    //         return {
-    //             clubId,
-    //             count
-    //         }
-    //     })
-    //     .sort((a, b) => b.count - a.count)
-    //     .slice(0, 5)
-
-    // const topFiveIds = topFive.map((object: any) => Number(object.clubId))
-
-    // const clubsResponse = clubs.map((club: ClubInterface) => {
-    //     return {
-    //         id: club.id,
-    //         name: club.name,
-    //         url: club.baseUrl,
-    //         count: 0
-    //     }
-    // })
-
-
-
+export const getTrendingClubs = async (): Promise<ClubInterface[]> => {
     return clubDal.getTrendingClubs()
 }

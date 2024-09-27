@@ -7,6 +7,7 @@ export const toComedian = (payload: GetComedianDetailsOutput): ComedianInterface
         name: payload.name,
         instagramAccount: payload.instagram_account,
         tikTokAccount: payload.tiktok_account,
-        website: payload.website
+        website: payload.website,
+        poplarityScore: payload.popularity_score
     }
 }

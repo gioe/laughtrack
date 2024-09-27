@@ -18,12 +18,13 @@ import { toShow } from "../../api/controllers/show/mapper.js"
 import { ShowInterface } from "../../common/interfaces/show.interface.js"
 import { GetSearchResultsOutput } from "../../api/dto/comedian.dto.js"
 
-export const createShow = async (payload: CreateShowDTO): Promise<CreateShowOutput> => {
-    return upsertAndReplace(DATABASE.SHOWS_TABLE,
+export const createShow = async (payload: ShowInterface): Promise<ShowInterface> => {
+    return upsertAndReplace<GetShowDetailsOutput>(DATABASE.SHOWS_TABLE,
         `(date_time, ticket_link, club_id) VALUES($1, $2, $3)`,
         `(club_id, date_time)`,
         `ticket_link=$2`,
         [payload.dateTime, payload.ticketLink, payload.clubId])
+        .then((response: GetShowDetailsOutput) => toShow(response))
 }
 
 export const getShowByClubAndTime = async (payload: GetShowDetailsOutput): Promise<ShowInterface> => {

@@ -1,10 +1,8 @@
 import * as comedianController from '../comedian/index.js'
 import * as showComedianController from '../showComedian/index.js'
 import * as showDal from "../../../database/dal/show.js"
-import * as showComedianDal from "../../../database/dal/showComedian.js"
-import { CreateShowDTO, CreateShowOutput, GetFilteredShowsRequest, GetShowDetailsOutput, ShowScore } from '../../dto/show.dto.js'
+import { CreateShowDTO, CreateShowOutput, GetFilteredShowsRequest, ShowScore } from '../../dto/show.dto.js'
 import { ShowInterface } from "../../../common/interfaces/show.interface.js"
-import { runTasks } from "../../../common/util/promiseUtil.js"
 
 export const createAll = async (allShows: ShowInterface[]): Promise<CreateShowOutput[]> => {
     var responses: CreateShowOutput[] = []
@@ -18,8 +16,8 @@ export const createAll = async (allShows: ShowInterface[]): Promise<CreateShowOu
     return responses
 }
 
-export const create = async (show: CreateShowDTO): Promise<CreateShowOutput> => {
-    const comedians = await comedianController.createAll(show.comedians)
+export const create = async (show: ShowInterface): Promise<CreateShowOutput> => {
+    const comedians = await comedianController.createAll(show.comedians ?? [])
     const showOutput = await showDal.createShow(show)
     await showComedianController.createRelationshipForComedians(comedians, showOutput.id)
     return showOutput;

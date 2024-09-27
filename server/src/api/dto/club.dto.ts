@@ -1,26 +1,5 @@
-export type CreateClubDTO = {
-  name: string;
-  base_url: string;
-  schedule_page_url: string;
-  timezone: string;
-  scraping_config: any;
-}
-
 export type CreateClubOutput = {
   id: number;
-}
-
-export type UpdateClubDTO = {
-  id: number;
-  name: string;
-  base_url: string;
-  schedule_page_url: string;
-  timezone: string;
-  scraping_config: any;
-}
-
-export type ClubExistenceDTO = {
-  name: string;
 }
 
 export type GetClubOutput = {
@@ -35,11 +14,5 @@ export type GetClubOutput = {
   latitude: number;
   longitude: number;
   image_name: string;
-}
-
-export type TrendingClub = {
-  id: number;
-  name: string;
-  url: string;
-  count: number;
+  popularity_score: number;
 }

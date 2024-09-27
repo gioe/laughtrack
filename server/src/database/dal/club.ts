@@ -1,12 +1,9 @@
 import {
-    ClubExistenceDTO,
     CreateClubOutput,
-    GetClubOutput,
-    TrendingClub
+    GetClubOutput
 } from "../../api/dto/club.dto.js"
 import { ClubInterface } from "../../common/interfaces/club.interface.js"
 import {
-    checkForExistence,
     getAll,
     getFirstWithCondition,
     getAllWithCondition,
@@ -54,13 +51,14 @@ export const createClub = async (payload: ClubInterface): Promise<CreateClubOutp
         payload.scrapingConfig, payload.city, payload.address, payload.latitude, payload.longitude, payload.imageName])
 }
 
-export const getTrendingClubs = async (): Promise<TrendingClub[]> => {
+export const getTrendingClubs = async (): Promise<ClubInterface[]> => {
     const queryString = `
-    SELECT c.id, c.name, c.base_url as url, count (*)
-    FROM ${DATABASE.SHOWS_TABLE} s 
-    INNER JOIN ${DATABASE.CLUBS_TABLE} c ON s.club_id = c.id 
-    GROUP BY 1 ORDER BY count DESC LIMIT 5;
+    SELECT c.id, c.name, c.base_url as url, popularity_score
+    FROM ${DATABASE.CLUBS_TABLE} s 
+    ORDER BY popularity_score DESC LIMIT 5;
     `
-    return await executeQuery<TrendingClub>(queryString, [])
+    return await executeQuery<GetClubOutput>(queryString, [])
+    .then((queryResponse: GetClubOutput[]) => queryResponse.map((object: GetClubOutput) => toClub(object)))
+
 }
 

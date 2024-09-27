@@ -15,6 +15,7 @@ export class Show implements ShowInterface {
   comedians: ComedianInterface[]
   clubId: number = 0;
   isValid: boolean = true;
+  popularityScore: number = 0;
 
   constructor(scrapedValues: string[], comedians: Comedian[]) {
     this.comedians = comedians
