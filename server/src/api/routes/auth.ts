@@ -5,6 +5,7 @@ import * as userController from '../controllers/user/index.js'
 import { GetUserDetailsOutput, RegisterUserOutput } from "../dto/user.dto.js";
 import bodyParser from "body-parser";
 import { generateToken, verifyToken } from "../util/tokenUtil.js";
+import { UserInterface } from "../../common/interfaces/user.interface.js";
 
 export const authApiRouter = express.Router();
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
@@ -28,7 +29,7 @@ authApiRouter.post('/register',
         return bcrypt.hash(passwordString, 10)
             .then((hash: string) => userController.register(emailString, hash))
             .then((response: RegisterUserOutput) => userController.getUserById(response.id))
-            .then((user: GetUserDetailsOutput) => res.status(200).json({ id: user.id }))
+            .then((user: UserInterface) => res.status(200).json({ id: user.id }))
             .catch((error: any) => res.status(500).json({ error }))
 
     });
@@ -54,7 +55,7 @@ authApiRouter.post('/login',
                 if (result) return userController.getUserByEmail(emailString)
                 else throw new Error("Passwords don't match")
             })
-            .then((user: GetUserDetailsOutput) => loginUser(res, user))
+            .then((user: UserInterface) => loginUser(res, user))
             .catch((error: any) => res.status(500).json({ error }))
     });
 
@@ -75,7 +76,7 @@ authApiRouter.post('/refresh',
 
     });
 
-const loginUser = (res: Response, user: GetUserDetailsOutput) => {
+const loginUser = (res: Response, user: UserInterface) => {
     const accessToken = generateToken({ id: user.id, email: user.email }, 'access');
     const refreshToken = generateToken({ id: user.id, email: user.email }, 'refresh');
 

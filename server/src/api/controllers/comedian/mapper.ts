@@ -5,6 +5,8 @@ export const toComedian = (payload: GetComedianDetailsOutput): ComedianInterface
     return {
         id: payload.id,
         name: payload.name,
-        instagram: payload.instagram_account
+        instagramAccount: payload.instagram_account,
+        tikTokAccount: payload.tiktok_account,
+        website: payload.website
     }
 }

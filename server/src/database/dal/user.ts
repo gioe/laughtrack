@@ -3,6 +3,8 @@ import { DATABASE } from "../constants/database.js"
 import { GetUserDetailsOutput, RegisterUserDTO, RegisterUserOutput } from "../../api/dto/user.dto.js";
 import { readFile } from "../../api/util/storageUtil.js";
 import { JSON_KEYS } from "../../common/constants/keys.js";
+import { toUser } from "../../api/controllers/user/mapper.js";
+import { UserInterface } from "../../common/interfaces/user.interface.js";
 
 export const getAdminList = async (): Promise<string[]> => {
     return readFile(process.env.USERS_FILE_NAME as string)
@@ -25,17 +27,14 @@ export const register = async (payload: RegisterUserDTO): Promise<RegisterUserOu
         [payload.email, payload.password, payload.role])
 };
 
-export const getUserById = async (id: number): Promise<GetUserDetailsOutput> => {
-    return getFirstWithCondition<GetUserDetailsOutput>(DATABASE.USERS_TABLE, 
-        `id=$1`, 
-        `id, email, password, role`,
-        [id])
+export const getUserById = async (id: number): Promise<UserInterface> => {
+    return getFirstWithCondition<GetUserDetailsOutput>(DATABASE.USERS_TABLE, `id=$1`, [id])
+    .then((response: GetUserDetailsOutput) => toUser(response))
 };
 
-export const getUserByEmail = async (email: string): Promise<GetUserDetailsOutput> => {
-    return getFirstWithCondition<GetUserDetailsOutput>(DATABASE.USERS_TABLE, 
-        `email=$1`, 
-        `id, email, password, role`,
-        [email])
+export const getUserByEmail = async (email: string): Promise<UserInterface> => {
+    return getFirstWithCondition<GetUserDetailsOutput>(DATABASE.USERS_TABLE, `email=$1`, [email])
+    .then((response: GetUserDetailsOutput) => toUser(response))
+
 };
 

@@ -25,7 +25,7 @@ export const create = async (show: CreateShowDTO): Promise<CreateShowOutput> => 
     return showOutput;
 }
 
-export const getById = async (id: number): Promise<GetShowDetailsOutput> => {
+export const getById = async (id: number): Promise<ShowInterface> => {
     return showDal.getShowById(id)
 }
 
@@ -39,17 +39,6 @@ export const getAll = async (): Promise<ShowInterface[]> => {
 
 export const getAllShowsForClubs = async (clubIds: number[]): Promise<ShowInterface[]> => {
     return showDal.getAllShowsForClubs(clubIds)
-}
-
-export const deleteOldShows = async (): Promise<void> => {
-    const oldShows = await showDal.getOldShows()
-
-    if (oldShows !== undefined && oldShows.length > 0) {
-        const oldShowIds: number[] = oldShows.map(show => show.id);
-        await showComedianDal.deleteAllRelationshipsByShows(oldShowIds)
-        const tasks = oldShowIds.map(id => showDal.deleteShowById(id))
-        runTasks(tasks);
-    }
 }
 
 export const getSearchResults = async (request: GetFilteredShowsRequest) => {

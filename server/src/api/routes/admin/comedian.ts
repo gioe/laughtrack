@@ -7,12 +7,6 @@ import { UserRole } from "../../@types/UserRole.js";
 
 export const comedianAdminRouter = express.Router();
 
-comedianAdminRouter.get('/', assignUser, authenticateRole(UserRole.Admin),
-    async (req: Request, res: Response) => {
-        const results = await comedianController.getAll()
-        return res.status(200).send(results)
-    })
-
 comedianAdminRouter.delete('/:id', assignUser, authenticateRole(UserRole.Admin),
     async (req: Request, res: Response) => {
         const id = Number(req.params.id)

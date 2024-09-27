@@ -3,14 +3,15 @@ import * as comedianController from '../api/controllers/comedian/index.js'
 import { GetComedianDetailsOutput } from '../api/dto/comedian.dto.js';
 import { delay, runTasks } from '../common/util/promiseUtil.js';
 import { generateLocalDBConnection } from '../database/config.js';
+import { ComedianInterface } from "../common/interfaces/comedian.interface.js";
 
 async function getFollowers() {
     generateLocalDBConnection()
-        .then(() => comedianController.getAll())
-        .then((comedians: GetComedianDetailsOutput[]) => fetchAndSetFollowers(comedians))
+        .then(() => comedianController.getAllComedians())
+        .then((comedians: ComedianInterface[]) => fetchAndSetFollowers(comedians))
 }
 
-const fetchAndSetFollowers = async (comedians: GetComedianDetailsOutput[]): Promise<any> => {
+const fetchAndSetFollowers = async (comedians: ComedianInterface[]): Promise<any> => {
     const page = await playwright.chromium.launch({ headless: false })
         .then(browser => browser.newContext())
         .then(context => context.newPage())
@@ -29,10 +30,9 @@ const fetchAndSetFollowers = async (comedians: GetComedianDetailsOutput[]): Prom
 
 
 
-const fetchAndSetFollower = async (page: playwright.Page, comedian: GetComedianDetailsOutput): Promise<void> => {
-    const url = `https://www.instagram.com/${comedian.instagram_account}/?hl=en`
-    const followersLink = `${comedian.instagram_account}/followers/?hl=en`
-    const href = `[href*="/${followersLink}"]`
+const fetchAndSetFollower = async (page: playwright.Page, comedian: ComedianInterface): Promise<void> => {
+    const url = `https://www.instagram.com/${comedian.instagramAccount}/?hl=en`
+    const followersLink = `${comedian.instagramAccount}/followers/?hl=en`
     
     await page.goto(url)
     await page.screenshot({ path: `${comedian.name}.png`, fullPage: true});

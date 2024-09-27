@@ -50,9 +50,8 @@ export async function getAllWithCondition<T>(table: string,
 
 export async function getFirstWithCondition<T>(table: string, 
     condition: string, 
-    returnStatement: string,
-    values: any[]): Promise<T> {
-    const queryString = `SELECT ${returnStatement} FROM ${table} WHERE ${condition}`
+    values?: any[]): Promise<T> {
+        const queryString = `SELECT * FROM ${table} WHERE ${condition}`
     return executeQuery<T>(queryString, values)
     .then((queryResponse: any[]) => queryResponse[0])
 }

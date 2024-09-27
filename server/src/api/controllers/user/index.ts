@@ -1,3 +1,4 @@
+import { UserInterface } from "../../../common/interfaces/user.interface.js";
 import * as userDal from "../../../database/dal/user.js"
 import { GetUserDetailsOutput } from "../../dto/user.dto.js";
 
@@ -16,7 +17,7 @@ export const register = async (emailString: string, passwordHash: string) => {
     })
 };
 
-export const getUserByEmail = async (email: string): Promise<GetUserDetailsOutput> => {
+export const getUserByEmail = async (email: string): Promise<UserInterface> => {
   return userDal.getUserByEmail(email);
 };
 

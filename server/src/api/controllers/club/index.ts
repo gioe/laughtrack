@@ -23,7 +23,6 @@ export const create = async (payload: ClubInterface): Promise<CreateClubOutput> 
 
 export const getById = async (id: number): Promise<ClubInterface> => {
     return clubDal.getClubById(id)
-        .then(output => mapper.toClub(output))
 }
 
 export const deleteById = async (id: number): Promise<Boolean> => {
@@ -32,11 +31,6 @@ export const deleteById = async (id: number): Promise<Boolean> => {
 
 export const getAll = async (): Promise<ClubInterface[]> => {
     return clubDal.getAllClubs()
-}
-
-export const getAllClubsById = async (ids: number[]): Promise<ClubInterface[]> => {
-    const tasks = ids.map((id: number) => getById(id))
-    return runTasks(tasks)
 }
 
 export const getClubsByLocation = async (location: string): Promise<ClubInterface[]> => {

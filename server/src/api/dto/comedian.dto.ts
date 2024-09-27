@@ -13,6 +13,8 @@ export type GetComedianDetailsOutput = {
   id: number;
   name: string;
   instagram_account: string;
+  tiktok_account: string;
+  website: string;
 }
 
 export type CreateComedianOutput = {
