@@ -86,7 +86,8 @@ export class PageManager {
   }
 
   navigateToUrl = async (page: playwright.Page, input?: string): Promise<playwright.Page> => {
-    if (input) return page.goto(input, { timeout: 50000 }).then(() => page)
+    if (input) return page.goto(input, { timeout: 50000, waitUntil: "domcontentloaded" },
+    ).then(() => page)
     return page
   }
 

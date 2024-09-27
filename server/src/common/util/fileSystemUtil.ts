@@ -18,6 +18,5 @@ export const checkForFileExistence = (path: string) => {
 }
 
 export const makeDirectory = (path: string) => {
-    console.log(`Creating directory at ${path}`)
     return fsSync.mkdirSync(path)
 }

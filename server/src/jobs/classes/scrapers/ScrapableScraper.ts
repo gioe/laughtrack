@@ -23,7 +23,7 @@ export class ScrapableScraper {
     selector?: string): Promise<string> => {
 
     if (selector) {
-      return scrapable.$eval(selector, (e: Element) => e.textContent ?? "")
+      return scrapable.$eval(selector, (e: Element) =>  e.textContent ?? "")
         .catch(() => { console.warn(`Error with ${selector} text value`) })
     }
 
@@ -110,8 +110,13 @@ export class ScrapableScraper {
 
     if (selector && scrapable) {
       const element = await scrapable.$(selector)
+      console.log(fileName)
       if (element == null) return
-      return element.screenshot({ path: fileName });
+      const visible = await element.isVisible();
+
+      if (visible) {
+        await element.screenshot({ path: fileName });
+      }
   }
 
 }}

@@ -1,5 +1,13 @@
-export const removeAllWhiteSpace = (whiteSpaceString: string) => {
-    return whiteSpaceString.replaceAll(" ", "_")
+export const removeAllWhiteSpace = (whiteSpaceString: string): string => {
+    
+    var newString = whiteSpaceString
+    for (var index = 0; index < whiteSpaceString.length; index++) {
+        if (whiteSpaceString.charCodeAt(index) == 32) {
+            newString = whiteSpaceString.substring(0, index - 1) + whiteSpaceString.substring(index, whiteSpaceString.length);
+        }
+    }
+
+    return newString;
 }
 
 export const removeLeadingWhiteSpace = (whiteSpaceString: string) => {
