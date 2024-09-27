@@ -9,7 +9,8 @@ export const createAll = async (): Promise<CreateClubOutput[]> => {
     var responses: CreateClubOutput[] = []
 
     for (let i = 0; i < clubs.length; i++) {
-        const output = await create(clubs[i])
+        const club = clubs[i]
+        const output = await create(club)
         responses.push(output)
     }
     

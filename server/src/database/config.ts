@@ -62,7 +62,8 @@ export async function createClubsTable(pool: pkg.Pool) {
         base_url TEXT NOT NULL,
         schedule_page_url TEXT NOT NULL,
         timezone TEXT NOT NULL,
-        scraping_config JSON NOT NULL
+        scraping_config JSON NOT NULL,
+        image_name TEXT
       );
     `;
     await pool.query(query);

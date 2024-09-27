@@ -34,6 +34,7 @@ export type GetClubOutput = {
   address: string;
   latitude: number;
   longitude: number;
+  image_name: string;
 }
 
 export type TrendingClub = {

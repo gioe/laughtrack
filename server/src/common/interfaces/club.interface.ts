@@ -9,4 +9,5 @@ export interface ClubInterface {
     address: string;
     latitude: number;
     longitude: number;
+    imageName: string;
 }

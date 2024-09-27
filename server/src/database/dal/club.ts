@@ -21,7 +21,9 @@ import { toClub } from "../../api/controllers/club/mapper.js"
 
 export const getAllClubsFromFile = async (): Promise<ClubInterface[]> => {
     return readFile(process.env.CLUBS_FILE_NAME as string)
-        .then((clubsJson: any) => clubArrayFromJson(clubsJson))
+        .then((clubsJson: any) => {
+            return clubArrayFromJson(clubsJson)
+        })
 }
 
 export const createClub = async (payload: ClubInterface): Promise<CreateClubOutput> => {
@@ -77,16 +79,15 @@ export const getClubsInLocation = async (location: string): Promise<ClubInterfac
 const clubArrayFromJson = (json: any) => {
     var clubArray: ClubInterface[] = []
 
-    for (let index = 0; index < json[JSON_KEYS.clubs].length - 1; index++) {
+    for (let index = 0; index < json[JSON_KEYS.clubs].length; index++) {
         const currentItem = json[JSON_KEYS.clubs][index];
         const currenItemClubs = currentItem[JSON_KEYS.clubDetails];
 
         currenItemClubs.forEach((club: any) => {
-            const clubObject = {
+            clubArray.push({
                 ...club,
                 scrapingConfig: currentItem[JSON_KEYS.scrapingConfig]
-            }
-            clubArray.push(clubObject)
+            })
         })
     }
 
