@@ -16,5 +16,4 @@ export interface GetShowPopularityDetailsOutput {
     instagramFollowers: number;
     tiktokFollowers: number;
     isPseudonym: boolean; 
-
 }

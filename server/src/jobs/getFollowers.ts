@@ -1,13 +1,9 @@
 import playwright from "playwright";
 import * as comedianController from '../api/controllers/comedian/index.js'
-import { GetComedianDetailsOutput } from '../api/dto/comedian.dto.js';
-import { delay, runTasks } from '../common/util/promiseUtil.js';
-import { generateLocalDBConnection } from '../database/config.js';
 import { ComedianInterface } from "../common/interfaces/comedian.interface.js";
 
 async function getFollowers() {
-    generateLocalDBConnection()
-        .then(() => comedianController.getAllComedians())
+    comedianController.getAllComedians()
         .then((comedians: ComedianInterface[]) => fetchAndSetFollowers(comedians))
 }
 

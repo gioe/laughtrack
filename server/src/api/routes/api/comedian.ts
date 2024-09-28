@@ -14,11 +14,7 @@ comedianApiRouter.get('/shows/:id',
     async (req: Request, res: Response) => {
         const id = Number(req.params.id)
         const comedian = await comedianController.getById(id)
-        const shows = await comedianController.getAllShowsById(id)
         return res.status(200).send({
-            name: comedian.name,
-            count: shows.length,
-            shows
         })
     })
 

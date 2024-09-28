@@ -4,6 +4,7 @@ import { CreateComedianDTO } from "../../dto/comedian.dto.js";
 import { assignUser } from "../../middleware/assignUser.middleware.js";
 import { authenticateRole } from "../../middleware/authenticateRole.middleware.js";
 import { UserRole } from "../../@types/UserRole.js";
+import { ComedianInterface } from "../../../common/interfaces/comedian.interface.js";
 
 export const comedianAdminRouter = express.Router();
 
@@ -19,18 +20,12 @@ comedianAdminRouter.delete('/:id', assignUser, authenticateRole(UserRole.Admin),
 
 comedianAdminRouter.post('/', assignUser, authenticateRole(UserRole.Admin),
     async (req: Request, res: Response) => {
-        const payload: CreateComedianDTO = req.body
+        const payload: ComedianInterface = req.body
         const result = await comedianController.create(payload)
         return res.status(200).send(result)
     })
 
 comedianAdminRouter.post('/merge', assignUser, authenticateRole(UserRole.Admin),
     async (req: Request, res: Response) => {
-        const persistantId = req.query.persistantId as string
-        const mergedIds = req.query.mergedIds as string
-        const result = await comedianController.merge({
-            persistantId: Number(persistantId),
-            mergedIds: mergedIds.split(",").map((id: string) => Number(id))
-        })
-        return res.status(200).send(result)
+        return res.status(200).send({})
     })

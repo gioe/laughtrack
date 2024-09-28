@@ -1,6 +1,6 @@
 export type AuthToken = {
-    email: string
     id: number
+    email: string
     iat: number
     exp: number
   }

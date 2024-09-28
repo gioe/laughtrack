@@ -1,8 +1,10 @@
+import { IClient } from 'pg-promise/typescript/pg-subset.js'
 import { JSON_KEYS } from '../../../common/constants/keys.js'
 import { ClubInterface } from '../../../common/interfaces/club.interface.js'
 import { GetClubOutput } from '../../dto/club.dto.js'
+import { IClub } from '../../../database/models.js'
 
-export const toClub = (payload: GetClubOutput): ClubInterface => {
+export const toClub = (payload: IClub): ClubInterface => {
     return {
         id: payload.id, 
         name: payload.name,

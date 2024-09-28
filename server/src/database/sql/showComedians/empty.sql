@@ -1,0 +1,1 @@
+TRUNCATE TABLE show_comedians CASCADE

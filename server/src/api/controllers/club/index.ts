@@ -1,43 +1,42 @@
-import * as clubDal from "../../../database/dal/club.js"
 import { ClubInterface } from '../../../common/interfaces/club.interface.js'
-import { CreateClubOutput } from '../../dto/club.dto.js'
 import { generateClubPopularityData } from "../../util/scoringUtil.js"
+import { db } from '../../../database/index.js';
+import { IClub } from "../../../database/models.js";
+import { readFile } from '../../util/storageUtil.js';
+import { clubArrayFromJson, toClub } from './mapper.js';
 
-export const createAll = async (): Promise<CreateClubOutput[]> => {
-    const clubs: ClubInterface[] = await clubDal.getAllClubsFromFile()
-    var responses: CreateClubOutput[] = []
-
-    for (let i = 0; i < clubs.length; i++) {
-        const club = clubs[i]
-        const output = await create(club)
-        responses.push(output)
-    }
-    
-    return responses
+const getAllClubsFromFile = async () => {
+    return readFile(process.env.CLUBS_FILE_NAME as string)
+    .then((clubsJson: any) => clubArrayFromJson(clubsJson))
 }
 
-export const create = async (payload: ClubInterface): Promise<CreateClubOutput> => {
-    return clubDal.createClub(payload)
+export const addAll = async (): Promise<null> => {
+    const clubs: ClubInterface[] = await getAllClubsFromFile()
+    return db.clubs.addAll(clubs);
 }
 
-export const getById = async (id: number): Promise<ClubInterface> => {
-    return clubDal.getClubById(id)
+export const add = async (payload: ClubInterface): Promise<IClub> => {
+    return db.clubs.add(payload)
 }
 
-export const deleteById = async (id: number): Promise<Boolean> => {
-    return clubDal.deleteClubById(id)
+export const getById = async (id: number):  Promise<IClub | null> => {
+    return db.clubs.findById(id)
+}
+
+export const deleteById = async (id: number): Promise<number> => {
+    return db.clubs.delete(id)
 }
 
 export const getAll = async (): Promise<ClubInterface[]> => {
-    return clubDal.getAllClubs()
+    return db.clubs.all().then((clubs: IClub[]) => clubs.map((club: IClub) => toClub(club)))
 }
 
-export const getClubsByLocation = async (location: string): Promise<ClubInterface[]> => {
-    return clubDal.getClubsInLocation(location)
+export const getClubsByLocation = async (location: string): Promise<IClub[] | null> => {
+    return db.clubs.findByCity(location)
 }
 
-export const getTrendingClubs = async (): Promise<ClubInterface[]> => {
-    return clubDal.getTrendingClubs()
+export const getTrendingClubs = async (): Promise<IClub[] | null> => {
+    return db.clubs.getTrendingClubs()
 }
 
 export const generateScores = async (): Promise<boolean> => {
@@ -50,5 +49,5 @@ export const generateScores = async (): Promise<boolean> => {
         }
     })
 
-    return clubDal.updateScores(updatedValues)
+    return true
 }

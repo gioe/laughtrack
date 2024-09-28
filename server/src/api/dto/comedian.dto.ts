@@ -1,5 +1,3 @@
-import { GetShowDetailsOutput } from "./show.dto.js";
-
 export type CreateComedianDTO = {
   name: string;
 }

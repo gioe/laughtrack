@@ -1,4 +1,5 @@
 import { ComedianInterface } from "../../common/interfaces/comedian.interface.js";
+
 export type GetShowDetailsOutput = {
     id: number;
     club_id: number;

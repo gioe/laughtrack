@@ -4,7 +4,6 @@ import { ShowInterface } from "../common/interfaces/show.interface.js";
 import { ClubInterface } from "../common/interfaces/club.interface.js";
 import { runTasks } from "../common/util/promiseUtil.js";
 import { flatten } from "../common/util/arrayUtil.js";
-import { generateLocalDBConnection } from "../database/config.js";
 import { runScraper } from "../common/functions/scraper.js";
 import { writeLogToFile } from "./util/logUtil.js";
 
@@ -16,8 +15,7 @@ async function runScrapingJob() {
     const idNumbers = ids.map((id: string) => Number(id))
 
     writeLogToFile("Running scraping job")
-    generateLocalDBConnection()
-    .then(() => scrapeClubs(idNumbers))
+    scrapeClubs(idNumbers)
 }
 
 export const scrapeClubs = async (id: number[]) => {

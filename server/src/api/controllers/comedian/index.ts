@@ -1,69 +1,58 @@
-import * as comedianDal from "../../../database/dal/comedian.js"
-import * as showComedianDal from "../../../database/dal/showComedian.js"
-import { 
-    CreateComedianDTO,
-    CreateComedianOutput, 
-    MergeComedianDTO, 
-} from '../../dto/comedian.dto.js'
-import { GetShowDetailsOutput } from "../../dto/show.dto.js"
 import { ComedianInterface } from "../../../common/interfaces/comedian.interface.js"
 import { generateComedianPopularityScore } from "../../util/scoringUtil.js"
+import { db } from '../../../database/index.js';
+import { IComedian } from "../../../database/models.js"
+import { readFile } from "../../util/storageUtil.js";
+import { JSON_KEYS } from "../../../common/constants/keys.js";
+import { toComedian } from "./mapper.js";
 
-export const createAll = async (comedians: CreateComedianDTO[]): Promise<CreateComedianOutput[]> => {
-    const badComedians = await comedianDal.getBadComedians()
-
-    var responses: CreateComedianOutput[] = []
-
-    for (let i = 0; i < comedians.length; i++) {
-        const comedian = comedians[i]
-        if (badComedians.includes(comedian.name)) break;
-        const output = await create(comedian)
-        responses.push(output)
-    }
-
-    return responses
+const getBadComedians = async (): Promise<string[]> => {
+    return readFile(process.env.INVALID_COMEDIANS_FILE_NAME as string)
+        .then((json: any) => {
+            return json[JSON_KEYS.names].map((object: any) => {
+                return object
+            })
+        })
 }
 
-export const create = async (payload: CreateComedianDTO): Promise<CreateComedianOutput> => {
-    return comedianDal.createComedian(payload)
+export const createAll = async (comedians: ComedianInterface[]): Promise<null> => {
+    const badComedians = await getBadComedians()
+
+    const filteredComedians = comedians.filter((comedian: ComedianInterface) => !badComedians.includes(comedian.name))
+
+    return db.comedians.addAll(filteredComedians);
+}
+
+export const create = async (payload: ComedianInterface): Promise<IComedian> => {
+    return db.comedians.add(payload)
 }
 
 export const getAllComedians = async (): Promise<ComedianInterface[]> => {
-    return comedianDal.getAllComedians()
+    return db.comedians.all().then((comedians: IComedian[]) => comedians.map((comedian: IComedian) => toComedian(comedian)))
 }
 
-export const getById = async (id: number): Promise<ComedianInterface> => {
-    return comedianDal.getComedianById(id)
+export const getById = async (id: number): Promise<IComedian | null> => {
+    return db.comedians.findById(id)
 }
 
-export const getTrendingComedians = async (): Promise<ComedianInterface[]> => {
-    return comedianDal.getTrendingComedians()
+export const getTrendingComedians = async (): Promise<IComedian[] | null> => {
+    return db.comedians.getTrendingComedians()
 }
 
-export const getAllShowsById = async (id: number): Promise<GetShowDetailsOutput[]> => {
-    return showComedianDal.getAllShowsForComedian(id)
+export const deleteById = async (id: number): Promise<number> => {
+    return db.comedians.remove(id)
 }
 
-export const deleteById = async (id: number): Promise<boolean> => {
-    return comedianDal.deleteComedianById(id)
-}
+export const generateScores = async (): Promise<boolean[]> => {
+    const comedians = await db.comedians.all();
 
-export const merge = async (payload: MergeComedianDTO): Promise<boolean> => {
-    const remainingId = payload.persistantId;
-    const mergingIds = payload.mergedIds
-
-    return true;
-}
-
-export const generateScores = async (): Promise<boolean> => {
-    const comedians = await comedianDal.getAllComedians();
-
-    const updatedValues = comedians.map((comedian: ComedianInterface) => {
+    const updatedValues = comedians.map((comedian: IComedian) => {
+        const comedianModel = toComedian(comedian)
         return {
-            id: comedian.id,
-            score: generateComedianPopularityScore(comedian)
+            id: comedianModel.id,
+            score: generateComedianPopularityScore(comedianModel)
         }
     })
 
-    return comedianDal.updateScores(updatedValues)
+    return []
 }

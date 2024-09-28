@@ -29,7 +29,12 @@ authApiRouter.post('/register',
         return bcrypt.hash(passwordString, 10)
             .then((hash: string) => userController.register(emailString, hash))
             .then((response: RegisterUserOutput) => userController.getUserById(response.id))
-            .then((user: UserInterface) => res.status(200).json({ id: user.id }))
+            .then((user: UserInterface | null) => {
+                if (user) {
+                    res.status(200).json({ id: user.id })
+                }
+                throw new Error("User doesn't exist")
+            })
             .catch((error: any) => res.status(500).json({ error }))
 
     });
@@ -48,6 +53,11 @@ authApiRouter.post('/login',
         }
 
         const user = await userController.getUserByEmail(emailString)
+
+        if (!user) {
+            return res.status(400).json({ error: "User doesn't exist." });
+        }
+
         const passwordString = password as string;
 
         return bcrypt.compare(passwordString, user.password)
@@ -55,7 +65,12 @@ authApiRouter.post('/login',
                 if (result) return userController.getUserByEmail(emailString)
                 else throw new Error("Passwords don't match")
             })
-            .then((user: UserInterface) => loginUser(res, user))
+            .then((user: UserInterface | null) => {
+                if (user) {
+                    return loginUser(res, user)
+                }
+                throw new Error("User doesn't exist")
+            })
             .catch((error: any) => res.status(500).json({ error }))
     });
 

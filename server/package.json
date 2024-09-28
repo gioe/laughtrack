@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "main": "dist/server.js",
   "scripts": {
+    "clean": "rimraf dist/",
     "dev": "nodemon",
     "serve": "node --env-file=.env dist/server.js",
     "writeclubs": "npm run build && node --env-file=.env dist/jobs/writeClubs.js",
@@ -13,7 +14,8 @@
     "start": "npm run serve",
     "gcp-build": "tsc -p .",
     "type-check": "tsc",
-    "build": "rimraf dist && tsc --noEmit false"
+    "build": "npm run clean && tsc --noEmit false && npm run copy-files",
+    "copy-files": "copyfiles -u 1 src/**/*.sql dist/"
   },
   "module": "CommonJS",
   "keywords": [],
@@ -25,15 +27,16 @@
     "@google-cloud/storage": "^7.12.1",
     "@sparticuz/chromium": "^127.0.0",
     "@tsconfig/node20": "^20.1.4",
+    "@types/pg-promise": "^0.0.28",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.2",
     "cookie-parser": "^1.4.6",
+    "copyfiles": "^2.4.1",
     "cors": "^2.8.5",
     "express": "^4.19.2",
     "express-validator": "^7.2.0",
     "google-auth-library": "^9.14.1",
     "helmet": "^7.1.0",
-    "instagram-followers": "^1.0.0",
     "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",
     "moment": "^2.30.1",
@@ -41,9 +44,8 @@
     "node-cache": "^5.1.2",
     "node-cron": "^3.0.3",
     "nodemon": "^3.1.0",
-    "pg": "^8.12.0",
-    "pg-hstore": "^2.3.4",
-    "pg-promise": "^11.9.1",
+    "pg-monitor": "^2.1.0",
+    "pg-promise": "11.4.3",
     "playwright": "^1.46.1",
     "playwright-extra": "^4.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
@@ -56,7 +58,6 @@
     "@types/jsonwebtoken": "^9.0.6",
     "@types/lodash": "^4.17.7",
     "@types/node-cron": "^3.0.11",
-    "@types/pg": "^8.11.6",
     "typescript": "^5.5.4"
   }
 }
