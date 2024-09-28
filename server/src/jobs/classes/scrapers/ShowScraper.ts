@@ -23,10 +23,7 @@ export class ShowScraper {
 
   scapeShow = async (scrapable: Scrapable, input?: any): Promise<ShowInterface> => {
     return this.comedianScraper.getAllComedianData(scrapable)
-    .then((comedians: Comedian[]) => {
-      console.log(comedians)
-      return this.runShowScrapingTasks(scrapable, comedians, input)
-    })
+    .then((comedians: Comedian[]) => this.runShowScrapingTasks(scrapable, comedians, input))
   } 
 
   runShowScrapingTasks = async (scrapable: Scrapable,

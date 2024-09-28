@@ -8,3 +8,8 @@ export interface ShowInterface {
     popularityScore: number;
     comedians?: ComedianInterface[]
   }
+
+  export interface ShowPopularityScore {
+    id: number;
+    popularity_score: number
+  }

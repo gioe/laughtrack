@@ -1,8 +1,8 @@
 import { GetFilteredShowsRequest, ShowScore } from '../../dto/show.dto.js'
-import { ShowInterface } from "../../../common/interfaces/show.interface.js"
+import { ShowInterface, ShowPopularityScore } from "../../../common/interfaces/show.interface.js"
 import { generateShowPopularityData } from '../../util/scoringUtil.js'
 import { db } from '../../../database/index.js';
-import { IShow } from "../../../database/models.js"
+import { IShow, IShowPopularityData } from "../../../database/models.js"
 
 export const createAll = async (allShows: ShowInterface[]): Promise<null> => {
     return db.shows.addAll(allShows);
@@ -28,20 +28,19 @@ export const getSearchResults = async (request: GetFilteredShowsRequest) => {
     return db.shows.getSearchResults(request)
 }
 
-export const updateScores = async (scores: ShowScore[]) => {
-    return db.shows.updateScores(scores)
-}
+export const generateScores = async (): Promise<null> => {
+    const allData = await db.shows.allPopularityData();
+    console.log(allData)
+    if (!allData) return null
 
-export const generateScores = async (): Promise<boolean[]> => {
-    const shows: ShowInterface[] = []
-    
-    const updatedValues = shows.map((show: ShowInterface) => {
+    const updatedValues = allData.map((data: IShowPopularityData) => {
         return {
-            id: show.id,
-            score: generateShowPopularityData(show.comedians ?? [])
+            id: data.id,
+            popularity_score: generateShowPopularityData(data)
         }
-    })
-    return []
+    }) as ShowPopularityScore[];
+
+    return db.shows.updateScores(updatedValues)
 }
 
 

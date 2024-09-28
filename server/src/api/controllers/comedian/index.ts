@@ -1,7 +1,7 @@
-import { ComedianInterface } from "../../../common/interfaces/comedian.interface.js"
+import { ComedianInterface, ComedianPopularityScore } from "../../../common/interfaces/comedian.interface.js"
 import { generateComedianPopularityScore } from "../../util/scoringUtil.js"
 import { db } from '../../../database/index.js';
-import { IComedian } from "../../../database/models.js"
+import { IComedian, IComedianPopularityData } from "../../../database/models.js"
 import { readFile } from "../../util/storageUtil.js";
 import { JSON_KEYS } from "../../../common/constants/keys.js";
 import { toComedian } from "./mapper.js";
@@ -43,16 +43,16 @@ export const deleteById = async (id: number): Promise<number> => {
     return db.comedians.remove(id)
 }
 
-export const generateScores = async (): Promise<boolean[]> => {
-    const comedians = await db.comedians.all();
+export const generateScores = async (): Promise<null> => {
+    const allData = await db.comedians.allPopularityData();
+    if (!allData) return null
 
-    const updatedValues = comedians.map((comedian: IComedian) => {
-        const comedianModel = toComedian(comedian)
+    const updatedValues = allData.map((data: IComedianPopularityData) => {
         return {
-            id: comedianModel.id,
-            score: generateComedianPopularityScore(comedianModel)
+            id: data.id,
+            popularity_score: generateComedianPopularityScore(data)
         }
-    })
+    }) as ComedianPopularityScore[]
 
-    return []
+    return db.comedians.updateScores(updatedValues)
 }

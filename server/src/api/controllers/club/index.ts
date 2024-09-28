@@ -1,7 +1,7 @@
 import { ClubInterface } from '../../../common/interfaces/club.interface.js'
 import { generateClubPopularityData } from "../../util/scoringUtil.js"
 import { db } from '../../../database/index.js';
-import { IClub } from "../../../database/models.js";
+import { IClub, IClubPopularityData } from "../../../database/models.js";
 import { readFile } from '../../util/storageUtil.js';
 import { clubArrayFromJson, toClub } from './mapper.js';
 
@@ -39,15 +39,17 @@ export const getTrendingClubs = async (): Promise<IClub[] | null> => {
     return db.clubs.getTrendingClubs()
 }
 
-export const generateScores = async (): Promise<boolean> => {
-    const clubs: ClubInterface[] = []
+export const generateScores = async (): Promise<null> => {
+    const allData = await db.clubs.allPopularityData();
     
-    const updatedValues = clubs.map((club: ClubInterface) => {
+    if (!allData) return null
+    
+    const updatedValues = allData.map((data: IClubPopularityData) => {
         return {
-            id: club.id,
-            score: generateClubPopularityData(club.shows ?? [])
+            id: data.id,
+            popularity_score: generateClubPopularityData(data)
         }
-    })
+    }) 
 
-    return true
+    return db.clubs.updateScores(updatedValues)
 }

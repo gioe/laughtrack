@@ -1,9 +1,17 @@
-import {IDatabase, IMain} from 'pg-promise';
-import {IResult} from 'pg-promise/typescript/pg-subset.js';
-import {IShow} from '../models.js';
-import {shows as sql} from '../sql/index.js';
-import { ShowInterface } from '../../common/interfaces/show.interface.js';
+import { ColumnSet, IDatabase, IMain } from 'pg-promise';
+import { IResult } from 'pg-promise/typescript/pg-subset.js';
+import { IShow, IShowPopularityData } from '../models.js';
+import { shows as sql } from '../sql/index.js';
+import { ShowInterface, ShowPopularityScore } from '../../common/interfaces/show.interface.js';
 import { GetFilteredShowsRequest, ShowScore } from '../../api/dto/show.dto.js';
+import { ComedianPopularityScore } from '../../common/interfaces/comedian.interface.js';
+
+var columnSets: {
+    updateScores: ColumnSet | null;
+} = {
+    updateScores: null,
+}
+
 
 export class ShowsRepository {
 
@@ -19,11 +27,7 @@ export class ShowsRepository {
      * or other namespaces available from the root.
      */
     constructor(private db: IDatabase<any>, private pgp: IMain) {
-        /*
-          If your repository needs to use helpers like ColumnSet,
-          you should create it conditionally, inside the constructor,
-          i.e. only once, as a singleton.
-        */
+        columnSets.updateScores = new pgp.helpers.ColumnSet(['?id', 'popularity_score'], { table: 'shows' });
     }
 
     // Creates the table;
@@ -53,7 +57,9 @@ export class ShowsRepository {
 
     // Tries to find a show from id;
     findById(id: number): Promise<IShow | null> {
-        return this.db.oneOrNone('SELECT * FROM shows WHERE id = $1', +id);
+        return this.db.oneOrNone(sql.getWithLineup, {
+            showId: +id,
+        });
     }
 
     // Tries to find a show from name;
@@ -79,7 +85,12 @@ export class ShowsRepository {
         return this.db.any(sql.create);
     }
 
-    updateScores(scores: ShowScore[]): Promise<any[]> {
-        return this.db.any(sql.create);
+    allPopularityData(): Promise<IShowPopularityData[] | null> {
+        return this.db.any(sql.allPopularityData)
+    }
+
+    updateScores(scores: ShowPopularityScore[]): Promise<null> {
+        const update = this.pgp.helpers.update(scores, columnSets.updateScores) + ' WHERE v.id = t.id';
+        return this.db.none(update)
     }
 }

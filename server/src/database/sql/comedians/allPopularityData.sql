@@ -1,0 +1,1 @@
+SELECT id, instagram_followers, tikTok_followers, is_pseudonym FROM comedians;

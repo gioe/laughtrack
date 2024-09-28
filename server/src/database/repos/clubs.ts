@@ -1,8 +1,15 @@
-import {IDatabase, IMain} from 'pg-promise';
+import {ColumnSet, IDatabase, IMain} from 'pg-promise';
 import {IResult} from 'pg-promise/typescript/pg-subset.js';
-import {IClub} from '../models.js';
+import {IClub, IClubPopularityData} from '../models.js';
 import {clubs as sql} from '../sql/index.js';
-import { ClubInterface } from '../../common/interfaces/club.interface.js';
+import { ClubInterface, ClubPopularityScore } from '../../common/interfaces/club.interface.js';
+
+var columnSets: {
+    updateScores: ColumnSet | null;
+} = {
+    updateScores: null,
+}
+
 
 export class ClubsRepository {
 
@@ -18,11 +25,7 @@ export class ClubsRepository {
      * or other namespaces available from the root.
      */
     constructor(private db: IDatabase<any>, private pgp: IMain) {
-        /*
-          If your repository needs to use helpers like ColumnSet,
-          you should create it conditionally, inside the constructor,
-          i.e. only once, as a singleton.
-        */
+          columnSets.updateScores = new pgp.helpers.ColumnSet(['?id', 'popularity_score'], {table: 'clubs'});
     }
 
     // Creates the table;
@@ -87,6 +90,15 @@ export class ClubsRepository {
 
     delete(id: number): Promise<number> {
         return this.db.result('DELETE FROM clubs WHERE id = $1', +id, (r: IResult) => r.rowCount);
+    }
+
+    allPopularityData(): Promise<IClubPopularityData[] | null> {
+        return this.db.any(sql.allPopularityData)
+    }
+
+    updateScores(scores: ClubPopularityScore[]): Promise<null> {
+        const update = this.pgp.helpers.update(scores, columnSets.updateScores) + ' WHERE v.id = t.id';
+        return this.db.none(update)
     }
 
 }

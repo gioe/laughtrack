@@ -51,7 +51,7 @@ export interface IShowComedian {
 
 export interface IShow {
     id: number;
-    club_id: number;
+    club: IClub;
     date_time: Date;
     ticket_link: string;
     popularity_score: any;
@@ -64,3 +64,25 @@ export interface IUser {
     password: string;
     role: string;
 }
+
+export interface IComedianPopularityData {
+    id: number;
+    instagram_followers: number;
+    tiktok_follwers: number;
+    is_pseudonym: boolean;
+}
+
+export interface IShowPopularityData {
+    id: number;
+    scores: IPopularityScore[];
+}
+
+export interface IClubPopularityData {
+    id: number;
+    scores: IPopularityScore[];
+}
+
+export interface IPopularityScore {
+    popularity_score: number
+}
+

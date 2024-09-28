@@ -5,7 +5,6 @@ import {
   UsersRepository, 
   CitiesRepository, 
   ComediansRepository, 
-  ShowComediansRepository, 
   ClubsRepository, 
   ShowsRepository
 } from './repos/index.js';
@@ -25,7 +24,6 @@ const initOptions: IInitOptions<IExtensions> = {
         obj.cities = new CitiesRepository(obj, pgp);
         obj.clubs = new ClubsRepository(obj, pgp);
         obj.comedians = new ComediansRepository(obj, pgp);
-        obj.showComedians = new ShowComediansRepository(obj, pgp);
         obj.shows = new ShowsRepository(obj, pgp);
       }
 };

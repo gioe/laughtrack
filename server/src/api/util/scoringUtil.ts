@@ -1,22 +1,26 @@
-import { ComedianInterface } from "../../common/interfaces/comedian.interface.js";
-import { ShowInterface } from "../../common/interfaces/show.interface.js";
+import { IClubPopularityData, IComedianPopularityData, IPopularityScore, IShowPopularityData } from "../../database/models.js";
 
-export const generateClubPopularityData = (shows: ShowInterface[]): number => {
-    return shows.map((show: ShowInterface) => generateShowPopularityData(show.comedians ?? []))
+export const generateClubPopularityData = (data: IClubPopularityData): number => {
+    const total = data.scores.map((score: IPopularityScore) => score.popularity_score )
     .reduce((partialSum, a) => partialSum + a, 0);
+    const average = total / data.scores.length
+    return Math.floor(average)
 }
 
-export const generateShowPopularityData = (comedians: ComedianInterface[]): number => {
-    return comedians.map((comedian: ComedianInterface) => generateComedianPopularityScore(comedian))
+export const generateShowPopularityData = (data: IShowPopularityData): number => {
+    const total = data.scores.map((score: IPopularityScore) => score.popularity_score )
     .reduce((partialSum, a) => partialSum + a, 0);
+    const average = total / data.scores.length
+    return Math.floor(average)
 }
 
-export const generateComedianPopularityScore = (comedian: ComedianInterface): number => {
-    const instagramScore = (comedian.instagramFollowers ?? 0) * 0.8;
-    const tikTokScore = (comedian.tiktokFollowers ?? 0) * 0.9
+export const generateComedianPopularityScore = (popularityData: IComedianPopularityData): number => {
+    const instagramScore = (popularityData.instagram_followers ?? 0) * 0.8;
+    const tikTokScore = (popularityData.tiktok_follwers ?? 0) * 0.9
     const socialScore = (instagramScore + tikTokScore) / 2
 
-    return comedian.isPseudonym ? socialScore * 1.5 : socialScore
+    const floatingScore = popularityData.is_pseudonym ? socialScore * 1.5 : socialScore
+    return Math.floor(floatingScore)
 }
 
 

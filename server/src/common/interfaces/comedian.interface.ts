@@ -9,3 +9,8 @@ export interface ComedianInterface {
   tiktokFollowers: number;
   isPseudonym: boolean;
 }
+
+export interface ComedianPopularityScore {
+  id: number;
+  popularity_score: number
+}

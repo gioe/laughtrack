@@ -16,7 +16,6 @@ showApiRouter.get('/:id',
         return res.status(200).send(result)
     })
 
-
 showApiRouter.post('/search', urlencodedParser,
     async (req: Request, res: Response) => {        
         

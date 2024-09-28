@@ -15,3 +15,8 @@ export interface ClubInterface {
     popularityScore: number;
     shows?: ShowInterface[]
 }
+
+export interface ClubPopularityScore {
+    id: number;
+    popularity_score: number
+  }

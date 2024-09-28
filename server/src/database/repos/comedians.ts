@@ -1,9 +1,15 @@
-import {IDatabase, IMain} from 'pg-promise';
-import {IResult} from 'pg-promise/typescript/pg-subset.js';
-import {IComedian} from '../models.js';
-import {comedians as sql} from '../sql/index.js';
-import { ComedianInterface } from '../../common/interfaces/comedian.interface.js';
-import { CreateComedianDTO } from '../../api/dto/comedian.dto.js';
+import { ColumnSet, IDatabase, IMain } from 'pg-promise';
+import { IResult } from 'pg-promise/typescript/pg-subset.js';
+import { IComedian, IComedianPopularityData } from '../models.js';
+import { comedians as sql } from '../sql/index.js';
+import { ComedianInterface, ComedianPopularityScore } from '../../common/interfaces/comedian.interface.js';
+
+var columnSets: {
+    updateScores: ColumnSet | null;
+} = {
+    updateScores: null,
+}
+
 
 export class ComediansRepository {
 
@@ -19,11 +25,7 @@ export class ComediansRepository {
      * or other namespaces available from the root.
      */
     constructor(private db: IDatabase<any>, private pgp: IMain) {
-        /*
-          If your repository needs to use helpers like ColumnSet,
-          you should create it conditionally, inside the constructor,
-          i.e. only once, as a singleton.
-        */
+        columnSets.updateScores = new pgp.helpers.ColumnSet(['?id', 'popularity_score'], {table: 'comedians'});
     }
 
     // Creates the table;
@@ -77,5 +79,16 @@ export class ComediansRepository {
 
     addAll(all: ComedianInterface[]): Promise<null> {
         return this.db.none(sql.create);
+    }
+
+    allPopularityData(): Promise<IComedianPopularityData[] | null> {
+        return this.db.any(sql.allPopularityData)
+    }
+
+    // Tries to delete a comedian by id, and returns the number of records deleted;
+    updateScores(scores: ComedianPopularityScore[]): Promise<null> {
+        console.log(scores)
+        const update = this.pgp.helpers.update(scores, columnSets.updateScores) + ' WHERE v.id = t.id';
+        return this.db.none(update)
     }
 }

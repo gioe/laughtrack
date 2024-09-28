@@ -1,7 +1,6 @@
 import {CitiesRepository} from './cities.js';
 import {ClubsRepository} from './clubs.js';
 import {ComediansRepository} from './comedians.js';
-import {ShowComediansRepository} from './showComedians.js';
 import {ShowsRepository} from './shows.js';
 import {UsersRepository} from './users.js';
 
@@ -11,7 +10,6 @@ interface IExtensions {
     cities: CitiesRepository,
     clubs: ClubsRepository,
     comedians: ComediansRepository,
-    showComedians: ShowComediansRepository,
     shows: ShowsRepository
 }
 
@@ -21,6 +19,5 @@ export {
     CitiesRepository,
     ClubsRepository,
     ComediansRepository,
-    ShowComediansRepository,
     ShowsRepository
 };
