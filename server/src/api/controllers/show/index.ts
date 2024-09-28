@@ -30,7 +30,6 @@ export const getSearchResults = async (request: GetFilteredShowsRequest) => {
 
 export const generateScores = async (): Promise<null> => {
     const allData = await db.shows.allPopularityData();
-    console.log(allData)
     if (!allData) return null
 
     const updatedValues = allData.map((data: IShowPopularityData) => {

@@ -41,7 +41,6 @@ export const getTrendingClubs = async (): Promise<IClub[] | null> => {
 
 export const generateScores = async (): Promise<null> => {
     const allData = await db.clubs.allPopularityData();
-    
     if (!allData) return null
     
     const updatedValues = allData.map((data: IClubPopularityData) => {
@@ -50,6 +49,7 @@ export const generateScores = async (): Promise<null> => {
             popularity_score: generateClubPopularityData(data)
         }
     }) 
+    console.log(updatedValues)
 
     return db.clubs.updateScores(updatedValues)
 }

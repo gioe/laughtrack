@@ -3,7 +3,7 @@ SELECT
     jsonb_agg(
         jsonb_build_object(
             'popularity_score',
-            c.popularity_score
+            s.popularity_score
         )
     ) AS scores
 from clubs c

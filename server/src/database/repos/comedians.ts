@@ -87,7 +87,6 @@ export class ComediansRepository {
 
     // Tries to delete a comedian by id, and returns the number of records deleted;
     updateScores(scores: ComedianPopularityScore[]): Promise<null> {
-        console.log(scores)
         const update = this.pgp.helpers.update(scores, columnSets.updateScores) + ' WHERE v.id = t.id';
         return this.db.none(update)
     }
