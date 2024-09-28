@@ -37,7 +37,7 @@ const LandingPage: React.FC<LandingPageProps> = async ({
                 .sort((a, b) => b.count - a.count)
                 .map((item: any) => {
                   return (
-                    <SmallCard key={item.name} name={item.name} url={item.url} />
+                    <SmallCard key={item.name} name={item.name} url={item.url} filePath={item.image_name} />
                   )
                 })}
             </div>

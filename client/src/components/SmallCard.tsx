@@ -3,11 +3,12 @@ import Link from "next/link";
 
 interface SmallCardProps {
     name: string;
+    filePath: string;
     url: string;
 }
 
 export const SmallCard: React.FC<SmallCardProps> = (
-    { name, url }
+    { name, url, filePath}
 ) => {
     return (
         <Link
@@ -19,8 +20,8 @@ export const SmallCard: React.FC<SmallCardProps> = (
         cursor-pointer hover:bg-gray-100 hover:scale-105 transition 
         transform duration-200 ease-out">
                 <div className="relative h-16 w-16">
-                    <Image alt="Comedian"
-                        src={'/images/banner.png'}
+                    <Image alt="Club"
+                        src={`/images/clubs/${filePath}`}
                         fill
                         priority={false}
                         sizes="16vw"
