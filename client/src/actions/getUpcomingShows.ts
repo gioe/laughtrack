@@ -2,11 +2,13 @@
 
 import { SearchResult } from "@/interfaces/searchResult.interface"
 import { PUBLIC_ROUTES } from "@/lib/routes"
+import { date } from "zod"
 
 export async function getUpcomingShowResults(data: any) {
 
   const trendingComediansUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.SEARCH_SHOWS
 
+  
   return fetch(trendingComediansUrl, {
     cache: 'no-store',
     method: "POST",
@@ -20,6 +22,6 @@ export async function getUpcomingShowResults(data: any) {
     }),
   })
     .then((response) => response.json())
-    .then((data: SearchResult[]) => data)
+    .then((data: any) => data)
     .catch((error) => console.log(error))
 }

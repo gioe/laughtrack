@@ -2,7 +2,6 @@ import express, { Request, Response } from "express";
 
 import bcrypt from "bcrypt";
 import * as userController from '../controllers/user/index.js'
-import { GetUserDetailsOutput, RegisterUserOutput } from "../dto/user.dto.js";
 import bodyParser from "body-parser";
 import { generateToken, verifyToken } from "../util/tokenUtil.js";
 import { UserInterface } from "../../common/interfaces/user.interface.js";
@@ -28,7 +27,7 @@ authApiRouter.post('/register',
 
         return bcrypt.hash(passwordString, 10)
             .then((hash: string) => userController.register(emailString, hash))
-            .then((response: RegisterUserOutput) => userController.getUserById(response.id))
+            .then((response: any) => userController.getUserById(response.id))
             .then((user: UserInterface | null) => {
                 if (user) {
                     res.status(200).json({ id: user.id })

@@ -1,15 +1,15 @@
-import { ShowInterface } from "./show.interface";
+import { MapCoordinate } from "./mapCoordinate.interface";
 
 export interface SearchResultResponse {
-    total: number;
-    results: SearchResult[];
-    coordinates: string[];
+    city: string;
+    shows: SearchResult[];
+    coordinates: MapCoordinate[];
 }
-
 
 export interface SearchResult {
     id: number
-    name: string;
-    instagram: string;
-    shows: ShowInterface[];
+    date_time: Date;
+    ticket_link: string;
+    club_name: string[];
+    lineup: any[];
 }

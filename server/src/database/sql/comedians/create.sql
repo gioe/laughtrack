@@ -9,5 +9,7 @@ CREATE TABLE IF NOT EXISTS comedians (
     tiktok_account TEXT unique,
     tiktok_followers INTEGER,
     website TEXT unique,
-    is_pseudonym boolean DEFAULT false
+    is_pseudonym boolean DEFAULT false,
+    popularity_score double precision DEFAULT '0'::double precision,
+    non_comedian boolean DEFAULT false
 );

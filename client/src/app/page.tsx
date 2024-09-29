@@ -1,65 +1,53 @@
-import { getCurrentUser } from "@/actions/getCurrentUser";
 import { getTrendingClubs } from "@/actions/getTrendingClubs";
 import { getTrendingComedians } from "@/actions/getTrendingComedians";
-import Banner from "@/components/Banner";
-import ClientOnly from "@/components/ClientOnly";
-import Header from "@/components/header/Header";
-import MediumCard from "@/components/MediumCard";
-import SmallCard from "@/components/SmallCard";
-import { TrendingClub } from "@/interfaces/trendingClub.interface";
-import { TrendingComedian } from "@/interfaces/trendingComedian";
-import { UserInterface } from "@/interfaces/user.interface";
+import { getCities } from "@/actions/getCities";
+import MediumComedianCard from "@/components/MediumComedianCard";
+import Search from "@/components/Search";
+import Link from "next/link";
+import { ComedianInterface } from "@/interfaces/comedian.interface";
 
 interface LandingPageProps {
-  trendingComedians: TrendingComedian[],
-  trendingClubs: TrendingClub[],
-  user: UserInterface
+  trendingComedians: ComedianInterface[],
+  cities: string[]
 }
 
 const LandingPage: React.FC<LandingPageProps> = async ({
   trendingComedians,
-  trendingClubs,
-  user
+  cities
 }) => {
-
   return (
-    <div>
-      <ClientOnly>
-        <Header
-          currentUser={user} />
-        <Banner />
-        <main className="max-w-7xl mx-auto px-8 sm:px-16">
-          <section className="pt-6">
-            <h2 className="text-4xl font-semibold pb-5">Popular Clubs</h2>
+    <main className="bg-shark">
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
-              {trendingClubs
-                .sort((a, b) => b.count - a.count)
-                .map((item: any) => {
-                  return (
-                    <SmallCard key={item.name} name={item.name} url={item.url} filePath={item.image_name} />
-                  )
-                })}
-            </div>
-          </section>
+      <section className="max-w-7xl mx-auto p-18">
+        <h2 className="font-bold text-5xl text-white pt-6">Find your next show</h2>
+        <h3 className="text-white py-5 text-xl">Search for shows from your favorite comedians. Follow them to know when they're coming to you.</h3>
+      </section>
 
-          <section>
-            <h2 className="text-4xl font-semibold py-8">Trending Comedians</h2>
+      <section className="m-4 mt-0 -mb-14 px-2 lg:px-4">
+        <Search cities={cities} />
+      </section>
 
-            <div className="flex space-x-3 overflow-scroll scrollbar-hide p-3 -ml-3">
-              {trendingComedians
-                .sort((a, b) => b.count - a.count)
-                .map((item: any) => {
-                  return (
-                    <MediumCard key={item.name} name={item.name} instagram={item.instagram} count={item.count} />
-                  )
-                })}
-            </div>
-          </section>
+      <section className="mx-auto max-w-7xl mt-10 p-6 bg-white rounded-lg mb-4">
+        <div className="">
+          <Link
+            href='comedian/all'>
+            <div>See all</div>
+          </Link>
+        </div>
 
-        </main>
-      </ClientOnly>
-    </div>
+        <div className="flex space-x-3 overflow-scroll scrollbar-hide p-3 -ml-3">
+          {
+          trendingComedians
+            .sort((a, b) => b.popularityScore - a.popularityScore)
+            .map((comedian: ComedianInterface) => {
+              return (
+                <MediumComedianCard key={comedian.name} comedian={comedian} />
+              )
+            })
+            }
+        </div>
+      </section>
+    </main>
   );
 }
 
@@ -72,12 +60,11 @@ export default async function Page({ params }: {
   }
 }) {
 
-  const trendingClubs = await getTrendingClubs() as TrendingClub[]
-  const trendingComedians = await getTrendingComedians() as TrendingComedian[]
-  const user = await getCurrentUser() as UserInterface;
+  const trendingComedians = await getTrendingComedians() as ComedianInterface[]
+  const cities = await getCities() as string[]
 
   return (
-    <LandingPage user={user} trendingComedians={trendingComedians} trendingClubs={trendingClubs} />
+    <LandingPage cities={cities} trendingComedians={trendingComedians} />
   )
 }
 

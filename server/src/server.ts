@@ -13,6 +13,7 @@ import { comedianAdminRouter } from "./api/routes/admin/comedian.js";
 import { healthCheckApiRouter } from "./api/routes/admin/healthcheck.js";
 import { clubAdminRouter } from "./api/routes/admin/club.js";
 import { showAdminRouter } from "./api/routes/admin/show.js";
+import { searchApiRouter } from "./api/routes/api/search.js";
 
 class App {
     public app: Application;
@@ -38,6 +39,7 @@ class App {
         this.app.use('/api/comedian', comedianApiRouter);
         this.app.use('/api/club', clubApiRouter);
         this.app.use('/api/show', showApiRouter);
+        this.app.use('/api/search', searchApiRouter);
     }
 
     protected adminRoutes(): void {

@@ -1,6 +1,5 @@
 import * as comedianController from "../../controllers/comedian/index.js"
 import express, { Request, Response } from "express";
-import { CreateComedianDTO } from "../../dto/comedian.dto.js";
 import { assignUser } from "../../middleware/assignUser.middleware.js";
 import { authenticateRole } from "../../middleware/authenticateRole.middleware.js";
 import { UserRole } from "../../@types/UserRole.js";

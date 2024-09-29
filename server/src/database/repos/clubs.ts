@@ -49,7 +49,7 @@ export class ClubsRepository {
 
     // Adds a new club, and returns the new object;
     add(payload: ClubInterface): Promise<IClub> {
-        return this.db.one(sql.add, name);
+        return this.db.one(sql.add, payload.name);
     }
 
     // Tries to delete a club by id, and returns the number of records deleted;
@@ -76,6 +76,10 @@ export class ClubsRepository {
 
     getTrendingClubs(): Promise<IClub[] | null> {
         return this.db.any(sql.getTrending);
+    }
+
+    getAllCities(): Promise<IClub[] | null> {
+        return this.db.any(sql.getCities);
     }
 
     // Returns all club records;

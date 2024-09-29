@@ -2,41 +2,44 @@ import { ComedianInterface } from "@/interfaces/comedian.interface";
 import React from "react";
 import Image from "next/image"
 import { HeartIcon } from "@heroicons/react/outline";
+import { SearchResult } from "@/interfaces/searchResult.interface";
+import { MiniCard } from "./MiniCard";
+import Link from "next/link";
 
 interface InfoCardProps {
-    comedian: ComedianInterface;
+    result: SearchResult;
 }
 
 const InfoCard: React.FC<InfoCardProps> = ({
-    comedian
+    result
 }) => {
+    const time = new Date(result.date_time).toLocaleTimeString();
+    const date = new Date(result.date_time).toLocaleDateString();
+
+    const description = `${time} at ${result.club_name} on ${date}`
+
     return (
-        <div className="flex py-7 px-2 pr-4 
+        <div className="flex mt-3 py-7 px-2 pr-4 
         border-b cursor-pointer hover:opacity-80 
-        hover:shadow-lg transition duration-200 
-        ease-out first:border-t">
-            <div className="relative h-24 w-40 
-            md:h-52 md:w-80 flex-shrink-0">
-                <Image alt="Comedian"
-                    src={'/images/banner.png'}
-                    fill
-                    priority={false}
-                    sizes="100vw"
-                    style={{objectFit:"cover"}}
-                    className="rounded-2xl" />
-            </div>
-
+        hover:shadow-lg transition duration-200 rounded-lg 
+        ease-out first:border-t bg-white">
             <div className="flex flex-col flex-grow pl-5">
-                <div className="flex justify-between">
-                    <p></p>
-                    <HeartIcon className="h-7 cursor-pointer" />
-                </div>
-
-                <h4 className="text-xl">{comedian.name}</h4>
+                <h4 className="text-xl">{description}</h4>
 
                 <div className="border-b w-10 p-2" />
 
-                <p className="p-2 text-sm text-gray-500 flex-grow">Shows</p>
+                <section className="max-w-7xl mt-1 p-1 bg-white rounded-t-lg">
+                <h4 className="text-m">Featuring</h4>
+                <div className="flex space-x-3 overflow-scroll scrollbar-hide p-3 -ml-3 ">
+                        {result.lineup
+                            .sort((a, b) => b.popularity_score - a.popularity_score)
+                            .map((item: any) => {
+                                return (
+                                    <MiniCard key={item.name} name={item.name} id={item.id}  />
+                                )
+                            })}
+                    </div>
+                </section>
             </div>
 
         </div>

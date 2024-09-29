@@ -39,6 +39,10 @@ export const getTrendingClubs = async (): Promise<IClub[] | null> => {
     return db.clubs.getTrendingClubs()
 }
 
+export const getAllCities = async (): Promise<IClub[] | null> => {
+    return db.clubs.getAllCities()
+}
+
 export const generateScores = async (): Promise<null> => {
     const allData = await db.clubs.allPopularityData();
     if (!allData) return null
@@ -49,7 +53,6 @@ export const generateScores = async (): Promise<null> => {
             popularity_score: generateClubPopularityData(data)
         }
     }) 
-    console.log(updatedValues)
 
     return db.clubs.updateScores(updatedValues)
 }

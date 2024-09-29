@@ -1,0 +1,1 @@
+SELECT distinct city from clubs;

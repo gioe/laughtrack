@@ -12,5 +12,6 @@ CREATE TABLE IF NOT EXISTS clubs (
     schedule_page_url TEXT NOT NULL,
     timezone TEXT NOT NULL,
     scraping_config JSON NOT NULL,
-    image_name TEXT
+    image_name TEXT,
+    popularity_score double precision DEFAULT '0'::double precision
 );

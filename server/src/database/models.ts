@@ -41,6 +41,7 @@ export interface IComedian {
     website: string;
     is_pseudonym: boolean;
     popularity_score: any;
+    non_comedian: boolean;
 }
 
 export interface IShowComedian {
@@ -70,6 +71,22 @@ export interface IComedianPopularityData {
     instagram_followers: number;
     tiktok_follwers: number;
     is_pseudonym: boolean;
+}
+
+export interface IShowSearchResult {
+    id: number;
+    date_time: Date;
+    ticket_link: string;
+    club_name: string;
+    club_url: string;
+    popularity_score: number;
+    lineup: IComedian[];
+    coordinates: ICoordinates[];
+}
+
+export interface ICoordinates {
+    latitude: string;
+    longitude: string;
 }
 
 export interface IShowPopularityData {

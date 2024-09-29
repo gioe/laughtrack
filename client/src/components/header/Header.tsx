@@ -1,11 +1,12 @@
 'use client';
 
 import { User } from "@/types/user";
-import Search from "./Search";
+import Search from "../Search";
 import UserMenu from "./UserMenu";
 import React, { useState } from "react";
 import 'react-date-range/dist/styles.css'; // main style file
 import 'react-date-range/dist/theme/default.css'; // theme css file
+import 'mapbox-gl/dist/mapbox-gl.css';
 import { DateRangePicker, RangeKeyDict } from 'react-date-range';
 import { useRouter } from "next/navigation";
 import Logo from "./Logo";
@@ -13,12 +14,10 @@ import Link from "next/link";
 
 interface NavbarProps {
     currentUser?: User | null;
-    searchPlaceholder?: string
 }
 
 const Header: React.FC<NavbarProps> = ({
     currentUser,
-    searchPlaceholder
 }) => {
 
     const router = useRouter();
@@ -58,14 +57,10 @@ const Header: React.FC<NavbarProps> = ({
     }
 
     return (
-        <header className="sticky top-0 z-50 grid grid-cols-3 bg-white shadow-md p-5 md:px-10">
+        <header className="sticky top-0 z-50 grid grid-cols-2 bg-silver-gray shadow-md p-5 md:px-10">
             <div className="relative flex items-center h-10 cursor-pointer my-auto">
                 <Logo onClick={handleLogoClick} />
             </div>
-            <Search
-                placeholder={searchPlaceholder}
-                searchInput={searchInput}
-                handleSeachInputChange={(value: string) => setSearchInput(value)} />
             <div className="flex space-x-4 items-center justify-end text-gray-500">
                 <UserMenu currentUser={currentUser} />
             </div>

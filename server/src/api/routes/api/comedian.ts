@@ -23,3 +23,9 @@ comedianApiRouter.post('/trending',
         const trendingComedians = await comedianController.getTrendingComedians()
         return res.status(200).send(trendingComedians)
     })
+
+    comedianApiRouter.post('/all',
+        async (req: Request, res: Response) => {
+            const comedians = await comedianController.getAllComedians()
+            return res.status(200).send(comedians)
+        })

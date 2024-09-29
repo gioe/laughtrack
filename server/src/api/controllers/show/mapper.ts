@@ -1,12 +1,12 @@
 import { ShowInterface } from '../../../common/interfaces/show.interface.js'
-import { GetShowDetailsOutput } from '../../dto/show.dto.js'
+import { IShow } from '../../../database/models.js'
 
-export const toShow = (payload: GetShowDetailsOutput): ShowInterface => {
+export const toShow = (payload: IShow): ShowInterface => {
     return {
         id: payload.id,
         dateTime: payload.date_time,
         ticketLink: payload.ticket_link,
-        clubId: payload.club_id,
+        clubId: payload.club.id,
         popularityScore: payload.popularity_score
     }
 }

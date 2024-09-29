@@ -10,7 +10,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <body>
+      <body className="bg-shark">
         <Header
           currentUser={currentUser} />
           {children}

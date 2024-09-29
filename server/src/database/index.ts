@@ -2,8 +2,7 @@ import pgPromise from 'pg-promise';
 import {IInitOptions, IDatabase, IMain} from 'pg-promise';
 import {
   IExtensions, 
-  UsersRepository, 
-  CitiesRepository, 
+  UsersRepository,
   ComediansRepository, 
   ClubsRepository, 
   ShowsRepository
@@ -21,7 +20,6 @@ const initOptions: IInitOptions<IExtensions> = {
         // Do not use 'require()' here, because this event occurs for every task and transaction being executed,
         // which should be as fast as possible.
         obj.users = new UsersRepository(obj, pgp);
-        obj.cities = new CitiesRepository(obj, pgp);
         obj.clubs = new ClubsRepository(obj, pgp);
         obj.comedians = new ComediansRepository(obj, pgp);
         obj.shows = new ShowsRepository(obj, pgp);

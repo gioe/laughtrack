@@ -4,12 +4,6 @@ import pkg from 'pg-promise';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-export const cities = {
-    add: sql('cities/add.sql'),
-    create: sql('cities/create.sql'),
-    drop: sql('cities/drop.sql'),
-    empty: sql('cities/empty.sql')
-}
 
 export const clubs = {
     add: sql('clubs/add.sql'),
@@ -18,6 +12,7 @@ export const clubs = {
     delete: sql('clubs/delete.sql'),
     drop: sql('clubs/drop.sql'),
     empty: sql('clubs/empty.sql'),
+    getCities: sql('clubs/getCities.sql'),
     getTrending: sql('clubs/getTrending.sql'),
     getWithSchedule: sql('clubs/getWithSchedule.sql')
 }
@@ -38,7 +33,8 @@ export const shows = {
     create: sql('shows/create.sql'),
     drop: sql('shows/drop.sql'),
     empty: sql('shows/empty.sql'),
-    getWithLineup: sql('shows/getWithLineup.sql')
+    getWithLineup: sql('shows/getWithLineup.sql'),
+    getSearchResults: sql('shows/getSearchResults.sql')
 }
 
 export const users = {

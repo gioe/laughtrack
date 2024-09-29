@@ -1,6 +1,5 @@
 import { ComedianInterface } from '../../../common/interfaces/comedian.interface.js'
 import { IComedian } from '../../../database/models.js'
-import { GetComedianDetailsOutput } from '../../dto/comedian.dto.js'
 
 export const toComedian = (payload: IComedian): ComedianInterface => {
     return {

@@ -1,4 +1,3 @@
-import { GetFilteredShowsRequest, ShowScore } from '../../dto/show.dto.js'
 import { ShowInterface, ShowPopularityScore } from "../../../common/interfaces/show.interface.js"
 import { generateShowPopularityData } from '../../util/scoringUtil.js'
 import { db } from '../../../database/index.js';
@@ -24,7 +23,7 @@ export const getAll = async (): Promise<IShow[] | null> => {
     return db.shows.all()
 }
 
-export const getSearchResults = async (request: GetFilteredShowsRequest) => {
+export const getSearchResults = async (request: any) => {
     return db.shows.getSearchResults(request)
 }
 

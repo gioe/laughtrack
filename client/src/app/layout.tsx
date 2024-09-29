@@ -5,9 +5,10 @@ import ClientOnly from "@/components/ClientOnly";
 import ToasterProvider from "@/providers/ToasterProvider";
 import LoginModal from "@/components/modals/LoginModal";
 import RegisterModal from "@/components/modals/RegisterModal";
-import { getCurrentUser } from "@/actions/getCurrentUser";
-import Header from "@/components/header/Header";
 import Footer from "@/components/Footer";
+import Header from "@/components/header/Header";
+import { getCurrentUser } from "@/actions/getCurrentUser";
+import { UserInterface } from "@/interfaces/user.interface";
 
 export const metadata: Metadata = {
   title: "Laughtrack",
@@ -24,17 +25,21 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
 
+  const user = await getCurrentUser() as UserInterface;
+
   return (
     <html lang="en">
-      <body
-        className={font.className}>
+      <body className="bg-shark">
+        <Header
+          currentUser={user}
+        />
         <ClientOnly>
           <ToasterProvider />
           <LoginModal />
           <RegisterModal />
-          </ClientOnly>
           {children}
           <Footer />
+        </ClientOnly>
       </body>
     </html>
   );
