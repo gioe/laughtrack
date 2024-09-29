@@ -2,11 +2,11 @@ import { ComedianInterface } from "@/interfaces/comedian.interface";
 import Image from "next/image"
 import Link from "next/link";
 
-interface MediumComedianCardProps {
+interface LargeComedianIconProps {
     comedian: ComedianInterface;
 }
 
-export const MediumComedianCard: React.FC<MediumComedianCardProps> = (
+export const LargeComedianIcon: React.FC<LargeComedianIconProps> = (
     { comedian }
 ) => {
     return (
@@ -35,4 +35,4 @@ export const MediumComedianCard: React.FC<MediumComedianCardProps> = (
     )
 }
 
-export default MediumComedianCard;
+export default LargeComedianIcon;

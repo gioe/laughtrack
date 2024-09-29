@@ -1,7 +1,6 @@
 'use client';
 
 import { User } from "@/types/user";
-import Search from "../Search";
 import UserMenu from "./UserMenu";
 import React, { useState } from "react";
 import 'react-date-range/dist/styles.css'; // main style file

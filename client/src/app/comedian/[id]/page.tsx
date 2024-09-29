@@ -1,20 +1,14 @@
 
-interface ComedianDetailPageProps {
-    id: string;
-}
+import { getComedianDetails } from "@/actions/getComedianDetails";
 
-const ComedianDetailPage: React.FC<ComedianDetailPageProps> = async ({
-    id,
-}) => {
-    return (
-        <div></div>
-    )
-}
+export default async function ComedianDetailsPage({ params }: { params: { id: string } }) {
+  const { id } = params;
 
-export default function Page({params}: {
-    params: { id: string  }
-}) { 
+    const comedian = getComedianDetails(id)
+
     return (
-        <ComedianDetailPage id={params.id} />
+        <div>
+            
+        </div>
     )
 }

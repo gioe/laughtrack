@@ -2,21 +2,15 @@
 
 import { SearchResult, SearchResultResponse } from "@/interfaces/searchResult.interface";
 import Link from "next/link";
-import InfoCard from "./InfoCard";
-import MapComponent from "./MapComponent";
-import { MapCoordinate } from "@/interfaces/mapCoordinate.interface";
+import InfoCard from "./SearchResultsInfoCard";
 
-interface SearchPageContentProps {
+interface SearchResultsTableProps {
     searchResults: SearchResultResponse;
 }
 
-const SearchPageContents: React.FC<SearchPageContentProps> = ({
+const SearchResultsTable: React.FC<SearchResultsTableProps> = ({
     searchResults,
 }) => {
-
-    const handlePinSelection = (coordinate: MapCoordinate | null) => {
-
-    }
 
     return (
         <main className="flex">
@@ -34,15 +28,9 @@ const SearchPageContents: React.FC<SearchPageContentProps> = ({
                 </div>
 
             </section>
-
-            <section className="hidden xl:inline-flex xl:min-w-[600px]">
-                <MapComponent coordinates={searchResults.coordinates} 
-                  onSelectCoordinate={handlePinSelection}/>
-            </section>
-
         </main>
     )
 
 }
 
-export default SearchPageContents;
+export default SearchResultsTable;

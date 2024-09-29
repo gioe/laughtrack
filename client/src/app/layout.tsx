@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import { Nunito } from 'next/font/google'
 import "./globals.css";
-import ClientOnly from "@/components/ClientOnly";
+import ClientOnly from "@/components/custom/ClientOnly";
 import ToasterProvider from "@/providers/ToasterProvider";
-import LoginModal from "@/components/modals/LoginModal";
-import RegisterModal from "@/components/modals/RegisterModal";
-import Footer from "@/components/Footer";
-import Header from "@/components/header/Header";
+import LoginModal from "@/components/custom/modals/LoginModal";
+import RegisterModal from "@/components/custom/modals/RegisterModal";
+import Footer from "@/components/custom/Footer";
 import { getCurrentUser } from "@/actions/getCurrentUser";
 import { UserInterface } from "@/interfaces/user.interface";
+import Header from "@/components/custom/header/Header";
 
 export const metadata: Metadata = {
   title: "Laughtrack",

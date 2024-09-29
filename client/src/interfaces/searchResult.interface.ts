@@ -3,7 +3,7 @@ import { MapCoordinate } from "./mapCoordinate.interface";
 export interface SearchResultResponse {
     city: string;
     shows: SearchResult[];
-    coordinates: MapCoordinate[];
+    totalPages: number;
 }
 
 export interface SearchResult {

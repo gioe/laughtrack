@@ -1,10 +1,9 @@
-import { getTrendingClubs } from "@/actions/getTrendingClubs";
 import { getTrendingComedians } from "@/actions/getTrendingComedians";
 import { getCities } from "@/actions/getCities";
-import MediumComedianCard from "@/components/MediumComedianCard";
-import Search from "@/components/Search";
+import Search from "@/components/custom/Search";
 import Link from "next/link";
 import { ComedianInterface } from "@/interfaces/comedian.interface";
+import LargeComedianIcon from "@/components/custom/LargeComedianIcon";
 
 interface LandingPageProps {
   trendingComedians: ComedianInterface[],
@@ -41,7 +40,7 @@ const LandingPage: React.FC<LandingPageProps> = async ({
             .sort((a, b) => b.popularityScore - a.popularityScore)
             .map((comedian: ComedianInterface) => {
               return (
-                <MediumComedianCard key={comedian.name} comedian={comedian} />
+                <LargeComedianIcon key={comedian.name} comedian={comedian} />
               )
             })
             }

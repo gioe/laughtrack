@@ -1,10 +1,17 @@
 'use server'
 
-import { SearchResult } from "@/interfaces/searchResult.interface"
 import { PUBLIC_ROUTES } from "@/lib/routes"
-import { date } from "zod"
 
-export async function getUpcomingShowResults(data: any) {
+const PAGE_SIZE = '20';
+
+interface SearchResultsParams {
+  currentPage: string;
+  location: string;
+  startDate: string;
+  endDate: string;
+}
+
+export async function getUpcomingShowResults(params: SearchResultsParams) {
 
   const trendingComediansUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.SEARCH_SHOWS
 
@@ -16,9 +23,11 @@ export async function getUpcomingShowResults(data: any) {
       'Content-Type': 'application/x-www-form-urlencoded'
     },
     body: new URLSearchParams({
-      location: data.location,
-      startDate: data.startDate,
-      endDate: data.endDate
+      location: params.location,
+      startDate: params.startDate,
+      endDate: params.endDate,
+      page: params.currentPage,
+      pageSize: PAGE_SIZE
     }),
   })
     .then((response) => response.json())

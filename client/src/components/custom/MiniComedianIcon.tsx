@@ -1,13 +1,13 @@
+import { ComedianInterface } from "@/interfaces/comedian.interface";
 import Image from "next/image"
 import Link from "next/link";
 
-interface MiniCardProps {
-    name: string;
-    id: number;
+interface MiniComedianIconProps {
+    comedian: ComedianInterface;
 }
 
-export const MiniCard: React.FC<MiniCardProps> = (
-    { name, id }
+export const MiniComedianIcon: React.FC<MiniComedianIconProps> = (
+    { comedian }
 ) => {
     return (
         <Link
@@ -18,7 +18,7 @@ export const MiniCard: React.FC<MiniCardProps> = (
         <div className="cursor-pointer hover:scale-105 transform transition duration-300 ease-out text-center">
             <div className="relative h-20 w-20">
                 <Image alt="Comedian"
-                    src={`/images/comedians/${name}.png`}
+                    src={`/images/comedians/${comedian.name}.png`}
                     fill
                     priority={false}
                     style={{objectFit:"cover"}}
@@ -27,11 +27,11 @@ export const MiniCard: React.FC<MiniCardProps> = (
             </div>
 
             <div>
-                <label className="md:text-sm text-xs text-gray-500 text-light font-semibold text-left">{name}</label>
+                <label className="md:text-sm text-xs text-gray-500 text-light font-semibold text-left">{comedian.name}</label>
             </div>
             </div>
         </Link>
     )
 }
 
-export default MiniCard;
+export default MiniComedianIcon;

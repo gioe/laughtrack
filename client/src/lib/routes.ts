@@ -7,4 +7,5 @@ export const PUBLIC_ROUTES = {
     TRENDING_COMEDIANS: '/api/comedian/trending',
     SEARCH_SHOWS: '/api/search',
     COMEDIANS: '/api/comedian/all',
+    COMEDIAN_DETAILS: '/api/comedian',
 }

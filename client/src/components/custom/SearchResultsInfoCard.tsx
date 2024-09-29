@@ -1,16 +1,13 @@
-import { ComedianInterface } from "@/interfaces/comedian.interface";
 import React from "react";
-import Image from "next/image"
-import { HeartIcon } from "@heroicons/react/outline";
 import { SearchResult } from "@/interfaces/searchResult.interface";
-import { MiniCard } from "./MiniCard";
-import Link from "next/link";
+import { MiniComedianIcon } from "./MiniComedianIcon";
+import { ComedianInterface } from "@/interfaces/comedian.interface";
 
-interface InfoCardProps {
+interface SearchResultsInfoCardProps {
     result: SearchResult;
 }
 
-const InfoCard: React.FC<InfoCardProps> = ({
+const SearchResultsInfoCard: React.FC<SearchResultsInfoCardProps> = ({
     result
 }) => {
     const time = new Date(result.date_time).toLocaleTimeString();
@@ -33,9 +30,9 @@ const InfoCard: React.FC<InfoCardProps> = ({
                 <div className="flex space-x-3 overflow-scroll scrollbar-hide p-3 -ml-3 ">
                         {result.lineup
                             .sort((a, b) => b.popularity_score - a.popularity_score)
-                            .map((item: any) => {
+                            .map((item: ComedianInterface) => {
                                 return (
-                                    <MiniCard key={item.name} name={item.name} id={item.id}  />
+                                    <MiniComedianIcon key={item.name} comedian={item}  />
                                 )
                             })}
                     </div>
@@ -46,4 +43,4 @@ const InfoCard: React.FC<InfoCardProps> = ({
     )
 }
 
-export default InfoCard;
+export default SearchResultsInfoCard;

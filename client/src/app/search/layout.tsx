@@ -1,5 +1,5 @@
 import { getCurrentUser } from "@/actions/getCurrentUser";
-import Header from "@/components/header/Header";
+import Header from "@/components/custom/header/Header";
 
 export default async function RootLayout({
   children,

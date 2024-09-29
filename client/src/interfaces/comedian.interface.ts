@@ -13,4 +13,5 @@ export interface ComedianInterface {
   isPseudonym: boolean;
   popularityScore: any;
   nonComedian: boolean;
+  userIsFollower: boolean;
 }

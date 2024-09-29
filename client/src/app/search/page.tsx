@@ -1,10 +1,9 @@
-import { getCurrentUser } from "@/actions/getCurrentUser";
 import { getUpcomingShowResults } from "@/actions/getUpcomingShows";
-import SearchPageContents from "@/components/SearchPageContents";
+import { PaginationComponent } from "@/components/custom/Pagination";
 import { SearchResultResponse } from "@/interfaces/searchResult.interface";
 import { UserInterface } from "@/interfaces/user.interface";
 import moment from 'moment';
-import Link from "next/link";
+import SearchResultsTable from "@/components/custom/SearchResultsTable";
 
 interface SearchPageProps {
     searchResults: SearchResultResponse;
@@ -12,10 +11,28 @@ interface SearchPageProps {
     user: UserInterface
 }
 
-const SearchPage: React.FC<SearchPageProps> = async ({
-    searchResults,
-    range,
-}) => {
+export default async function SearchResultsPage({
+    searchParams,
+  }: {
+    searchParams?: {
+      page?: string;
+      location?: string;
+      startDate?: string;
+      endDate?: string;
+    };
+  }) {
+    
+    const formattedStartDate =  searchParams?.startDate ? moment(new Date(searchParams.startDate)).format('ll') :  moment(new Date()).format('ll')
+    const formattedEndDate =  searchParams?.endDate ? moment(new Date(searchParams.endDate)).format('ll') :  moment(new Date()).format('ll')
+
+    const range = `between ${formattedStartDate} - ${formattedEndDate}`
+
+    const searchResults = await getUpcomingShowResults({
+        currentPage: searchParams?.page || '1',
+        location: searchParams?.location || 'New York',
+        startDate: formattedStartDate,
+        endDate: formattedEndDate
+    }) as SearchResultResponse
 
     return (
         <div>
@@ -31,32 +48,11 @@ const SearchPage: React.FC<SearchPageProps> = async ({
                 </div>
                 </section>
                 <section>
-                <SearchPageContents searchResults={searchResults} />
+                <SearchResultsTable searchResults={searchResults} />
+                </section>
+                <section>
+                <PaginationComponent pageCount={searchResults.totalPages} />
                 </section>
         </div>
-    )
-}
-
-export default async function Page({ searchParams }: {
-    searchParams: {
-        location: string,
-        startDate: string,
-        endDate: string
-    }
-}) {
-    const { location, startDate, endDate } = searchParams
-    const formattedStartDate = moment(new Date(startDate)).format('ll')
-    const formattedEndDate = moment(new Date(endDate)).format('ll')
-    const range = `between ${formattedStartDate} - ${formattedEndDate}`
-
-    const searchResults = await getUpcomingShowResults(searchParams) as SearchResultResponse
-    const user = await getCurrentUser() as UserInterface;
-
-    return (
-        <SearchPage
-            user={user}
-            searchResults={searchResults}
-            range={range}
-        />
     )
 }
