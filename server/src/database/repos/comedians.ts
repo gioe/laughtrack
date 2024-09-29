@@ -1,6 +1,6 @@
 import { ColumnSet, IDatabase, IMain } from 'pg-promise';
 import { IResult } from 'pg-promise/typescript/pg-subset.js';
-import { IComedian, IComedianPopularityData } from '../models.js';
+import { IComedian, IComedianDetails, IComedianPopularityData } from '../models.js';
 import { comedians as sql } from '../sql/index.js';
 import { ComedianInterface, ComedianPopularityScore } from '../../common/interfaces/comedian.interface.js';
 
@@ -59,13 +59,15 @@ export class ComediansRepository {
     }
 
     // Tries to find a comedian from name;
-    findByName(name: string): Promise<IComedian | null> {
-        return this.db.oneOrNone('SELECT * FROM comedians WHERE name = $1', name);
+    findByName(name: string): Promise<IComedianDetails | null> {
+        return this.db.oneOrNone(sql.getDetails, {
+            name,
+        });
     }
 
     // Returns all comedian records;
     all(): Promise<IComedian[]> {
-        return this.db.any('SELECT * FROM comedians');
+        return this.db.any('SELECT * FROM comedians ORDER BY popularity_score DESC');
     }
 
     // Returns the total number of comedians;

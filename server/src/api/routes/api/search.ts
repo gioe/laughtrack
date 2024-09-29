@@ -8,16 +8,28 @@ var urlencodedParser = bodyParser.urlencoded({ extended: false })
 
 // POST items
 searchApiRouter.post('/', urlencodedParser,
-    async (req: Request, res: Response) => {        
-        
-        const response = await showController.getSearchResults(req.body);
-        const top10 = response.slice(0,10)
-        const coordinates = top10.map((result: IShowSearchResult) => JSON.stringify(result.coordinates));
-        const uniqueCoordinates = [...new Set(coordinates)]
+    async (req: Request, res: Response) => {
+        const { page, pageSize } = req.body;
+
+        const pageInt = parseInt(page as string);
+        const pageSizeInt = parseInt(pageSize as string);
+
+        // Calculate the start and end indexes for the requested page
+        const startIndex = (pageInt - 1) * pageSizeInt;
+        const endIndex = pageInt * pageSizeInt;
+
+        const results = await showController.getSearchResults(req.body);
+
+        // Slice the products array based on the indexes
+        const paginatedResults = results.slice(startIndex, endIndex);
+
+        // Calculate the total number of pages
+        const totalPages = Math.ceil(results.length / pageSizeInt);
+
 
         return res.status(200).send({
             city: req.body.location,
-            shows: top10,
-            coordinates: uniqueCoordinates.flatMap((coordinateString: string) => JSON.parse(coordinateString))
+            shows: paginatedResults,
+            totalPages
         })
     })

@@ -1,12 +1,16 @@
 import * as comedianController from "../../controllers/comedian/index.js"
 import express, { Request, Response } from "express";
+import bodyParser from "body-parser";
 
 export const comedianApiRouter = express.Router();
+var urlencodedParser = bodyParser.urlencoded({ extended: false })
 
-comedianApiRouter.get('/:id',
+comedianApiRouter.post('/', urlencodedParser,
     async (req: Request, res: Response) => {
-        const id = Number(req.params.id)
-        const result = await comedianController.getById(id)
+        const { name } = req.body;
+        const decodedName = decodeURI(name)
+        const result = await comedianController.getByName(decodedName)
+        console.log(result)
         return res.status(200).send(result)
     })
 
@@ -24,8 +28,27 @@ comedianApiRouter.post('/trending',
         return res.status(200).send(trendingComedians)
     })
 
-    comedianApiRouter.post('/all',
+    comedianApiRouter.post('/all', urlencodedParser,
         async (req: Request, res: Response) => {
+            const { page, pageSize } = req.body;
+            
+            const pageInt = parseInt(page as string);
+            const pageSizeInt = parseInt(pageSize as string);
+            
+            // Calculate the start and end indexes for the requested page
+            const startIndex = (pageInt - 1) * pageSizeInt;
+            const endIndex = pageInt * pageSizeInt;
+
             const comedians = await comedianController.getAllComedians()
-            return res.status(200).send(comedians)
+
+            // Slice the products array based on the indexes
+            const paginatedComedians = comedians.slice(startIndex, endIndex);
+            
+            // Calculate the total number of pages
+            const totalPages = Math.ceil(comedians.length / pageSizeInt);
+
+            return res.status(200).send({
+                comedians: paginatedComedians,
+                totalPages
+            })
         })

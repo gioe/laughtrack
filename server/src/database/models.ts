@@ -71,6 +71,7 @@ export interface IComedianPopularityData {
     instagram_followers: number;
     tiktok_follwers: number;
     is_pseudonym: boolean;
+    non_comedian: boolean;
 }
 
 export interface IShowSearchResult {
@@ -103,3 +104,18 @@ export interface IPopularityScore {
     popularity_score: number
 }
 
+
+export interface IComedianDetails {
+    id: number;
+    name: string;
+    social_data: any;
+    shows: IShowData[]
+}
+
+export interface IShowData {
+    show_id: number
+    city: string;
+    club_name: string;
+    date_time: Date;
+    ticket_link: string;
+}

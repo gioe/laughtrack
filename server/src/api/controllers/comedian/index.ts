@@ -1,7 +1,7 @@
 import { ComedianInterface, ComedianPopularityScore } from "../../../common/interfaces/comedian.interface.js"
 import { generateComedianPopularityScore } from "../../util/scoringUtil.js"
 import { db } from '../../../database/index.js';
-import { IComedian, IComedianPopularityData } from "../../../database/models.js"
+import { IComedian, IComedianDetails, IComedianPopularityData } from "../../../database/models.js"
 import { readFile } from "../../util/storageUtil.js";
 import { JSON_KEYS } from "../../../common/constants/keys.js";
 import { toComedian } from "./mapper.js";
@@ -33,6 +33,10 @@ export const getAllComedians = async (): Promise<ComedianInterface[]> => {
 
 export const getById = async (id: number): Promise<IComedian | null> => {
     return db.comedians.findById(id)
+}
+
+export const getByName = async (name: string): Promise<IComedianDetails | null> => {
+    return db.comedians.findByName(name)
 }
 
 export const getTrendingComedians = async (): Promise<IComedian[] | null> => {

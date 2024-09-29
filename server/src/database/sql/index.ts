@@ -24,6 +24,7 @@ export const comedians = {
     drop: sql('comedians/drop.sql'),
     empty: sql('comedians/empty.sql'),
     getTrending: sql('comedians/getTrending.sql'),
+    getDetails: sql('comedians/getDetails.sql'),
     updateScores: sql('comedians/updateScores.sql')
 }
 

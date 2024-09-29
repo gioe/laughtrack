@@ -19,8 +19,10 @@ export const generateComedianPopularityScore = (popularityData: IComedianPopular
     const tikTokScore = (popularityData.tiktok_follwers ?? 0) * 0.9
     const socialScore = (instagramScore + tikTokScore) / 2
 
-    const floatingScore = popularityData.is_pseudonym ? socialScore * 1.5 : socialScore
-    return Math.floor(floatingScore)
+    const pseudonymScore = popularityData.is_pseudonym ? socialScore * 1.5 : socialScore
+    const celebrityHaircut = popularityData.non_comedian ? pseudonymScore / 10 : pseudonymScore
+
+    return Math.floor(celebrityHaircut)
 }
 
 
