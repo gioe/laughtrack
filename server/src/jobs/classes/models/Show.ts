@@ -4,6 +4,7 @@ import { ShowInterface } from "../../../common/interfaces/show.interface.js";
 import { formatShowTicketLink } from "../../util/showUtil.js";
 import { Comedian } from "./Comedian.js";
 import { DateTimeContainer } from "../containers/DateTimeContainer.js";
+import { Club } from "./Club.js";
 
 export class Show implements ShowInterface {
 
@@ -13,18 +14,19 @@ export class Show implements ShowInterface {
   dateTimeString: string = "";
   path: string;
   comedians: ComedianInterface[]
-  clubId: number = 0;
+  club: ClubInterface;
   isValid: boolean = true;
   popularityScore: number = 0;
 
   constructor(scrapedValues: string[], comedians: Comedian[]) {
+    this.club = new Club;
     this.comedians = comedians
     this.dateTimeString = scrapedValues[0]
     this.path = scrapedValues[1]
   }
 
   setClub = (club: ClubInterface) => {
-    this.clubId = club.id;
+    this.club = club;
     this.ticketLink = formatShowTicketLink(this.path, club);
     this.handleDateTime(club)
   }

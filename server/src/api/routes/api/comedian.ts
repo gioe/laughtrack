@@ -10,7 +10,6 @@ comedianApiRouter.post('/', urlencodedParser,
         const { name } = req.body;
         const decodedName = decodeURI(name)
         const result = await comedianController.getByName(decodedName)
-        console.log(result)
         return res.status(200).send(result)
     })
 
@@ -28,27 +27,27 @@ comedianApiRouter.post('/trending',
         return res.status(200).send(trendingComedians)
     })
 
-    comedianApiRouter.post('/all', urlencodedParser,
-        async (req: Request, res: Response) => {
-            const { page, pageSize } = req.body;
-            
-            const pageInt = parseInt(page as string);
-            const pageSizeInt = parseInt(pageSize as string);
-            
-            // Calculate the start and end indexes for the requested page
-            const startIndex = (pageInt - 1) * pageSizeInt;
-            const endIndex = pageInt * pageSizeInt;
+comedianApiRouter.post('/all', urlencodedParser,
+    async (req: Request, res: Response) => {
+        const { page, pageSize } = req.body;
 
-            const comedians = await comedianController.getAllComedians()
+        const pageInt = parseInt(page as string);
+        const pageSizeInt = parseInt(pageSize as string);
 
-            // Slice the products array based on the indexes
-            const paginatedComedians = comedians.slice(startIndex, endIndex);
-            
-            // Calculate the total number of pages
-            const totalPages = Math.ceil(comedians.length / pageSizeInt);
+        // Calculate the start and end indexes for the requested page
+        const startIndex = (pageInt - 1) * pageSizeInt;
+        const endIndex = pageInt * pageSizeInt;
 
-            return res.status(200).send({
-                comedians: paginatedComedians,
-                totalPages
-            })
+        const comedians = await comedianController.getAllComedians()
+
+        // Slice the products array based on the indexes
+        const paginatedComedians = comedians.slice(startIndex, endIndex);
+
+        // Calculate the total number of pages
+        const totalPages = Math.ceil(comedians.length / pageSizeInt);
+
+        return res.status(200).send({
+            comedians: paginatedComedians,
+            totalPages
         })
+    })

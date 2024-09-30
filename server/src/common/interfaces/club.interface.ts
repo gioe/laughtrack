@@ -20,3 +20,7 @@ export interface ClubPopularityScore {
     id: number;
     popularity_score: number
   }
+
+  export interface ClubDetailsInterface {
+    name: string;
+  }

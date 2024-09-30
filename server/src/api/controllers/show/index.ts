@@ -1,7 +1,7 @@
 import { ShowInterface, ShowPopularityScore } from "../../../common/interfaces/show.interface.js"
 import { generateShowPopularityData } from '../../util/scoringUtil.js'
 import { db } from '../../../database/index.js';
-import { IShow, IShowPopularityData } from "../../../database/models.js"
+import { IShow, IShowPopularityData, IShowPoularityScore } from "../../../database/models.js"
 
 export const createAll = async (allShows: ShowInterface[]): Promise<null> => {
     return db.shows.addAll(allShows);
@@ -36,7 +36,7 @@ export const generateScores = async (): Promise<null> => {
             id: data.id,
             popularity_score: generateShowPopularityData(data)
         }
-    }) as ShowPopularityScore[];
+    }) as IShowPoularityScore[];
 
     return db.shows.updateScores(updatedValues)
 }

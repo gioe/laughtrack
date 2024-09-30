@@ -1,4 +1,5 @@
-import { ShowInterface } from "./show.interface.js";
+import { ShowDetailsInterface, ShowInterface } from "./show.interface.js";
+import { SocialDetailInterface } from "./socialDetail.interface.js";
 
 export interface ComedianInterface {
   id: number
@@ -14,4 +15,11 @@ export interface ComedianInterface {
   popularityScore: any;
   nonComedian: boolean;
   userIsFollower: boolean;
+}
+
+export interface ComedianDetailsInterface {
+  id: number;
+  name: string;
+  socialData: SocialDetailInterface;
+  shows: ShowDetailsInterface[]
 }

@@ -5,3 +5,7 @@ export interface ClubInterface {
     longitude: number;
     latitude: number;
 }
+
+export interface ClubDetailsInterface {
+    name: string;
+}

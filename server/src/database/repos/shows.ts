@@ -1,6 +1,6 @@
 import { ColumnSet, IDatabase, IMain } from 'pg-promise';
 import { IResult } from 'pg-promise/typescript/pg-subset.js';
-import { IShow, IShowPopularityData, IShowSearchResult } from '../models.js';
+import { IShow, IShowPopularityData, IShowPoularityScore, IShowSearchResult } from '../models.js';
 import { shows as sql } from '../sql/index.js';
 import { ShowInterface, ShowPopularityScore } from '../../common/interfaces/show.interface.js';
 
@@ -92,7 +92,7 @@ export class ShowsRepository {
         return this.db.any(sql.allPopularityData)
     }
 
-    updateScores(scores: ShowPopularityScore[]): Promise<null> {
+    updateScores(scores: IShowPoularityScore[]): Promise<null> {
         const update = this.pgp.helpers.update(scores, columnSets.updateScores) + ' WHERE v.id = t.id';
         return this.db.none(update)
     }

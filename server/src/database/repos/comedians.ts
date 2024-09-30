@@ -61,7 +61,7 @@ export class ComediansRepository {
     // Tries to find a comedian from name;
     findByName(name: string): Promise<IComedianDetails | null> {
         return this.db.oneOrNone(sql.getDetails, {
-            name,
+            name
         });
     }
 

@@ -90,6 +90,11 @@ export interface ICoordinates {
     longitude: string;
 }
 
+export interface IShowPoularityScore {
+    id: number;
+    popularity_score: number;
+}
+
 export interface IShowPopularityData {
     id: number;
     scores: IPopularityScore[];
@@ -104,18 +109,32 @@ export interface IPopularityScore {
     popularity_score: number
 }
 
+export interface ISocialData {
+    instagram_account: string;
+    instagram_followers: number;
+    tiktok_account: string;
+    tiktok_followers: number;
+    website: string;
+}
 
 export interface IComedianDetails {
     id: number;
     name: string;
-    social_data: any;
-    shows: IShowData[]
+    social_data: ISocialData;
+    dates: IShowDetails[]
 }
 
-export interface IShowData {
+export interface IShowDetails {
     show_id: number
     city: string;
     club_name: string;
-    date_time: Date;
+    date_time: string;
     ticket_link: string;
+    lineup: ILineupItem[]
+}
+
+export interface ILineupItem {
+    id: number;
+    name: string;
+    popularity_score: number;
 }
