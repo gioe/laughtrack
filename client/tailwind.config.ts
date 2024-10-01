@@ -1,12 +1,14 @@
+import {nextui} from '@nextui-org/theme';
 import type { Config } from "tailwindcss";
 import daisyui from "daisyui"
 
 const config: Config = {
     darkMode: ["class"],
-    content: [
+  content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./node_modules/@nextui-org/theme/dist/components/(select|listbox|divider|popover|button|ripple|spinner|scroll-shadow).js"
   ],
   theme: {
   	extend: {
@@ -78,7 +80,7 @@ const config: Config = {
   		},
   		borderRadius: {
   			lg: 'var(--radius)',
-  			md: 'calc(var(--radius) - 2px)',
+  			md: 'calc(var(npm-radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
   		}
   	}
@@ -86,10 +88,6 @@ const config: Config = {
   variants: {
     fill: ['hover', 'focus'], // this line does the trick
   },
-  plugins: [
-    require("tailwind-scrollbar-hide"),
-    daisyui,
-      require("tailwindcss-animate")
-],
+  plugins: [daisyui,nextui()],
 };
 export default config;

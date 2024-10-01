@@ -1,7 +1,6 @@
-import * as showController from '../../controllers/show/index.js'
+import * as searchController from '../../controllers/search/index.js'
 import express, { Request, Response } from "express";
 import bodyParser from "body-parser";
-import { IShowSearchResult } from '../../../database/models.js';
 
 export const searchApiRouter = express.Router();
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
@@ -18,18 +17,24 @@ searchApiRouter.post('/', urlencodedParser,
         const startIndex = (pageInt - 1) * pageSizeInt;
         const endIndex = pageInt * pageSizeInt;
 
-        const results = await showController.getSearchResults(req.body);
+        const result = await searchController.getHomeSearchResults(req.body);
 
-        // Slice the products array based on the indexes
-        const paginatedResults = results.slice(startIndex, endIndex);
+        if (result) {
+            const paginatedResults = result.shows.slice(startIndex, endIndex);
 
-        // Calculate the total number of pages
-        const totalPages = Math.ceil(results.length / pageSizeInt);
+            // Calculate the total number of pages
+            const totalPages = Math.ceil(result.shows.length / pageSizeInt);
+    
+    
+            return res.status(200).send({
+                city: result.city,
+                shows: paginatedResults,
+                totalPages
+            })
+            
+        }
+        else {
+            return res.status(200).send()
+        }
 
-
-        return res.status(200).send({
-            city: req.body.location,
-            shows: paginatedResults,
-            totalPages
-        })
     })

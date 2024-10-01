@@ -27,12 +27,6 @@ export default async function ComedianDetailsPage({ params }: { params: { id: st
         </ComedianBanner>
       </section>
       <section>
-        <div className="flex flex-row bg-blue-600">
-          <ShowFilters cities={[]}/>
-          <PaginationComponent pageCount={10} /> 
-        </div>
-      </section>
-      <section>
         <ShowTable shows={filteredDates} />
       </section>
 

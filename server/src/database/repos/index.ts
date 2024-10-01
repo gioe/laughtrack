@@ -2,6 +2,7 @@ import {ClubsRepository} from './clubs.js';
 import {ComediansRepository} from './comedians.js';
 import {ShowsRepository} from './shows.js';
 import {UsersRepository} from './users.js';
+import {SearchRepository} from './search.js';
 
 // Database Interface Extensions:
 interface IExtensions {
@@ -9,6 +10,8 @@ interface IExtensions {
     clubs: ClubsRepository,
     comedians: ComediansRepository,
     shows: ShowsRepository
+    search: SearchRepository
+
 }
 
 export {
@@ -16,5 +19,6 @@ export {
     UsersRepository,
     ClubsRepository,
     ComediansRepository,
-    ShowsRepository
+    ShowsRepository, 
+    SearchRepository
 };

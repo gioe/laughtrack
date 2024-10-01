@@ -74,15 +74,9 @@ export interface IComedianPopularityData {
     non_comedian: boolean;
 }
 
-export interface IShowSearchResult {
-    id: number;
-    date_time: Date;
-    ticket_link: string;
-    club_name: string;
-    club_url: string;
-    popularity_score: number;
-    lineup: IComedian[];
-    coordinates: ICoordinates[];
+export interface IHomeSearchResult {
+    city: string;
+    shows: IShowDetails[];
 }
 
 export interface ICoordinates {

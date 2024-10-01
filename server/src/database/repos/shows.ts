@@ -1,6 +1,6 @@
 import { ColumnSet, IDatabase, IMain } from 'pg-promise';
 import { IResult } from 'pg-promise/typescript/pg-subset.js';
-import { IShow, IShowPopularityData, IShowPoularityScore, IShowSearchResult } from '../models.js';
+import { IShow, IShowPopularityData, IShowPoularityScore } from '../models.js';
 import { shows as sql } from '../sql/index.js';
 import { ShowInterface, ShowPopularityScore } from '../../common/interfaces/show.interface.js';
 
@@ -77,15 +77,6 @@ export class ShowsRepository {
 
     addAll(all: ShowInterface[]): Promise<null> {
         return this.db.none(sql.create);
-    }
-
-    getSearchResults(request: any): Promise<IShowSearchResult[]> {
-        const { location, startDate, endDate } = request
-        return this.db.any(sql.getSearchResults, {
-            location,
-            startDate,
-            endDate
-        });
     }
 
     allPopularityData(): Promise<IShowPopularityData[] | null> {

@@ -36,8 +36,11 @@ export const shows = {
     create: sql('shows/create.sql'),
     drop: sql('shows/drop.sql'),
     empty: sql('shows/empty.sql'),
-    getWithLineup: sql('shows/getWithLineup.sql'),
-    getSearchResults: sql('shows/getSearchResults.sql')
+    getWithLineup: sql('shows/getWithLineup.sql')
+}
+
+export const search = {
+    getHomeSearchResults: sql('search/getHomeSearchResults.sql')
 }
 
 export const users = {

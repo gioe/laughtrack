@@ -136,3 +136,22 @@ body,
   stroke: red;
   fill: aqua;
 }
+
+.drawer {
+  position: fixed;
+  top: 0;
+  left: -250px; /* Adjust as needed */
+  height: 100%;
+  width: 250px; /* Adjust as needed */
+  background-color: white;
+  transition: left 0.3s ease-in-out;
+  z-index: 100; /* Ensure it's above other content */
+}
+
+.drawer.open {
+  left: 0;
+}
+
+.drawer-content {
+  padding: 20px;
+}

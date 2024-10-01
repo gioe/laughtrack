@@ -5,8 +5,8 @@ export const PUBLIC_ROUTES = {
     TRENDING_CLUBS: '/api/club/trending',
     CITIES: '/api/club/cities',
     TRENDING_COMEDIANS: '/api/comedian/trending',
-    SEARCH_SHOWS: '/api/search',
     COMEDIANS: '/api/comedian/all',
     COMEDIAN_DETAILS: '/api/comedian',
-    CLUB_DETAILS: '/api/club'
+    CLUB_DETAILS: '/api/club',
+    HOME_SEARCH: '/api/search'
 }

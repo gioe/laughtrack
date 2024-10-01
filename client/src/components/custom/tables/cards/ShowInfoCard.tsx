@@ -19,10 +19,10 @@ const ShowInfoCard: React.FC<ShowInfoCardProps> = ({
     const description = `${dateObject.format('LT')} at ${show.club.name} in ${show.city} on ${dateObject.format('LL')}`
 
     return (
-        <div className="flex flex-row mt-3 py-7 px-2 pr-4 border-b 
+        <div className="flex flex-row mt-3 mb-3 px-2 pr-4 border-b 
         transition duration-200 rounded-lg ease-out first:border-t bg-silver-gray">
             <div className="grid grid-cols-2 divide-x">
-                <div className="flex flex-col items-center m-5">
+                <div className="flex flex-col items-center ml-5 mr-4 mb-5 mt-1">
                     <h4 className="text-xl ml-2 text-center">{dateObject.format('LT')}</h4>
                     <div className="relative h-20 w-20 align-middle">
                         <Link
@@ -44,7 +44,7 @@ const ShowInfoCard: React.FC<ShowInfoCardProps> = ({
                 </div>
 
                 <section>
-                    <div className="grid grid-cols-3 gap-5 ml-10 overflow-scrollscrollbar-hide">
+                    <div className="grid grid-cols-3 gap-5 ml-10 pt-5 overflow-scrollscrollbar-hide">
                         {show.lineup
                             .sort((a, b) => b.popularityScore - a.popularityScore)
                             .map((item: LineupItemInterface) => {

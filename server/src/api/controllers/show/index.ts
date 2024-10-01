@@ -1,4 +1,4 @@
-import { ShowInterface, ShowPopularityScore } from "../../../common/interfaces/show.interface.js"
+import { ShowInterface } from "../../../common/interfaces/show.interface.js"
 import { generateShowPopularityData } from '../../util/scoringUtil.js'
 import { db } from '../../../database/index.js';
 import { IShow, IShowPopularityData, IShowPoularityScore } from "../../../database/models.js"
@@ -23,9 +23,6 @@ export const getAll = async (): Promise<IShow[] | null> => {
     return db.shows.all()
 }
 
-export const getSearchResults = async (request: any) => {
-    return db.shows.getSearchResults(request)
-}
 
 export const generateScores = async (): Promise<null> => {
     const allData = await db.shows.allPopularityData();

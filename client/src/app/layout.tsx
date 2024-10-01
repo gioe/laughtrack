@@ -9,6 +9,7 @@ import Footer from "@/components/custom/Footer";
 import { getCurrentUser } from "@/actions/getCurrentUser";
 import { UserInterface } from "@/interfaces/user.interface";
 import Header from "@/components/custom/header/Header";
+import {NextUIProvider} from "@nextui-org/react";
 
 export const metadata: Metadata = {
   title: "Laughtrack",
@@ -30,7 +31,8 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className="bg-shark">
-        <Header
+      <NextUIProvider>
+      <Header
           currentUser={user}
         />
         <ClientOnly>
@@ -40,6 +42,7 @@ export default async function RootLayout({
           {children}
           <Footer />
         </ClientOnly>
+      </NextUIProvider>
       </body>
     </html>
   );

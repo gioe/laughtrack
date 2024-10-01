@@ -1,15 +1,8 @@
 import { MapCoordinate } from "./mapCoordinate.interface";
+import { ShowDetailsInterface } from "./show.interface";
 
 export interface SearchResultResponse {
     city: string;
-    shows: SearchResult[];
+    shows: ShowDetailsInterface[];
     totalPages: number;
-}
-
-export interface SearchResult {
-    id: number
-    date_time: Date;
-    ticket_link: string;
-    club_name: string[];
-    lineup: any[];
 }

@@ -13,8 +13,7 @@ interface SearchResultsParams {
 
 export async function getUpcomingShowResults(params: SearchResultsParams) {
 
-  const trendingComediansUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.SEARCH_SHOWS
-
+  const trendingComediansUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.HOME_SEARCH
   
   return fetch(trendingComediansUrl, {
     cache: 'no-store',
