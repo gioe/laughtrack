@@ -1,6 +1,6 @@
 import { getComedians, GetComediansResponse } from "@/actions/getComedians";
-import ComedianTable from "@/components/custom/ComedianTable";
 import { PaginationComponent } from "@/components/custom/Pagination";
+import ComedianTable from "@/components/custom/tables/ComedianTable";
 
 export default async function AllComediansPage({
     searchParams,

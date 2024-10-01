@@ -13,6 +13,7 @@ export const clubs = {
     drop: sql('clubs/drop.sql'),
     empty: sql('clubs/empty.sql'),
     getCities: sql('clubs/getCities.sql'),
+    getDetails: sql('clubs/getDetails.sql'),
     getTrending: sql('clubs/getTrending.sql'),
     getWithSchedule: sql('clubs/getWithSchedule.sql')
 }

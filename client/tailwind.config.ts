@@ -83,6 +83,9 @@ const config: Config = {
   		}
   	}
   },
+  variants: {
+    fill: ['hover', 'focus'], // this line does the trick
+  },
   plugins: [
     require("tailwind-scrollbar-hide"),
     daisyui,

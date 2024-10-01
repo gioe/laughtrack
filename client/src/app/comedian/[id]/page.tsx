@@ -1,13 +1,21 @@
 
 import { getComedianDetails } from "@/actions/getComedianDetails";
-import ComedianBanner from "@/components/custom/ComedianBanner";
-import ShowTable from "@/components/custom/ShowTable";
+import ComedianBanner from "@/components/custom/banners/ComedianBanner";
+import ShowTable from "@/components/custom/tables/ShowTable";
 import { ComedianDetailsInterface, ComedianInterface } from "@/interfaces/comedian.interface";
+import { LineupItemInterface, ShowDetailsInterface } from "@/interfaces/show.interface";
 
 export default async function ComedianDetailsPage({ params }: { params: { id: string } }) {
   const { id } = params;
 
   const comedian = await getComedianDetails(id) as ComedianDetailsInterface;
+
+  const filteredDates = comedian.dates.map((data: ShowDetailsInterface) => {
+    return {
+      ...data,
+      lineup: data.lineup.filter((item: LineupItemInterface) => item.name !== comedian.name)
+    }
+  })
 
   return (
     <div>
@@ -17,7 +25,7 @@ export default async function ComedianDetailsPage({ params }: { params: { id: st
         </ComedianBanner>
       </section>
       <section>
-        <ShowTable shows={comedian.shows} />
+        <ShowTable shows={filteredDates} />
       </section>
 
     </div>

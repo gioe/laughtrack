@@ -17,7 +17,8 @@ SELECT
 from
     clubs c
     join shows s on s.club_id = c.id
-WHERE c.id = ${clubId}
+WHERE c.id = ${clubId} and s.date_time > NOW()
 GROUP BY
     c.id,
     c.name
+ORDER BY s.date_time ASC

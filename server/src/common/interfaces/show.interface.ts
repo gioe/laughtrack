@@ -1,5 +1,4 @@
 import { ClubDetailsInterface, ClubInterface } from "./club.interface.js";
-import { ComedianInterface } from "./comedian.interface.js";
 
 export interface ShowInterface {
     id: number;
@@ -17,7 +16,7 @@ export interface ShowInterface {
   export interface ShowDetailsInterface {
     id: number;
     city: string;
-    club: ClubDetailsInterface;
+    club: any;
     dateTime: string;
     ticketLink: string;
     lineup: LineupItemInterface[]

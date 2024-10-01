@@ -1,4 +1,4 @@
-import { ShowInterface } from "./show.interface.js";
+import { ShowDetailsInterface, ShowInterface } from "./show.interface.js";
 
 export interface ClubInterface {
     id: number
@@ -22,5 +22,10 @@ export interface ClubPopularityScore {
   }
 
   export interface ClubDetailsInterface {
+    id: number;
     name: string;
+    city: string;
+    longitude: number;
+    latitude: number;
+    dates: ShowDetailsInterface[];
   }

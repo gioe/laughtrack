@@ -3,7 +3,7 @@ import { PaginationComponent } from "@/components/custom/Pagination";
 import { SearchResultResponse } from "@/interfaces/searchResult.interface";
 import { UserInterface } from "@/interfaces/user.interface";
 import moment from 'moment';
-import SearchResultsTable from "@/components/custom/SearchResultsTable";
+import SearchResultsTable from "@/components/custom/tables/SearchResultsTable";
 
 interface SearchPageProps {
     searchResults: SearchResultResponse;

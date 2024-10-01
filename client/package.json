@@ -46,6 +46,7 @@
   },
   "devDependencies": {
     "@heroicons/react": "^1.0.6",
+    "@svgr/webpack": "^8.1.0",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-date-range": "^1.4.9",

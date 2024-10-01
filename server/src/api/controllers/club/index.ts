@@ -1,9 +1,9 @@
-import { ClubInterface } from '../../../common/interfaces/club.interface.js'
+import { ClubDetailsInterface, ClubInterface } from '../../../common/interfaces/club.interface.js'
 import { generateClubPopularityData } from "../../util/scoringUtil.js"
 import { db } from '../../../database/index.js';
-import { IClub, IClubPopularityData } from "../../../database/models.js";
+import { IClub, IClubDetails, IClubPopularityData } from "../../../database/models.js";
 import { readFile } from '../../util/storageUtil.js';
-import { clubArrayFromJson, toClub } from './mapper.js';
+import { clubArrayFromJson, toClub, toClubDetails } from './mapper.js';
 
 const getAllClubsFromFile = async () => {
     return readFile(process.env.CLUBS_FILE_NAME as string)
@@ -22,6 +22,14 @@ export const add = async (payload: ClubInterface): Promise<IClub> => {
 export const getById = async (id: number):  Promise<IClub | null> => {
     return db.clubs.findById(id)
 }
+
+export const getByName = async (name: string):  Promise<ClubDetailsInterface | null> => {
+    return db.clubs.findByName(name).then((response: IClubDetails | null) => {
+        if (response) return toClubDetails(response)
+        return null
+    })
+}
+
 
 export const deleteById = async (id: number): Promise<number> => {
     return db.clubs.delete(id)

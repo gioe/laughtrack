@@ -105,3 +105,34 @@ body,
     @apply bg-background text-foreground;
   }
 }
+
+.instagram-icon {
+  stroke: white;
+  fill: black;
+}
+
+.instagram-icon:hover {
+  stroke: red;
+  fill: aqua;
+}
+
+.tiktok-icon {
+  stroke: white;
+  fill: black;
+}
+
+.tiktok-icon:hover {
+  stroke: red;
+  fill: aqua;
+}
+
+
+.web-icon {
+  stroke: white;
+  fill: black;
+}
+
+.web-icon:hover {
+  stroke: red;
+  fill: aqua;
+}

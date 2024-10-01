@@ -8,4 +8,5 @@ export const PUBLIC_ROUTES = {
     SEARCH_SHOWS: '/api/search',
     COMEDIANS: '/api/comedian/all',
     COMEDIAN_DETAILS: '/api/comedian',
+    CLUB_DETAILS: '/api/club'
 }

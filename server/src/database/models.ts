@@ -138,3 +138,12 @@ export interface ILineupItem {
     name: string;
     popularity_score: number;
 }
+
+export interface IClubDetails {
+    id: number;
+    name: string;
+    city: string;
+    longitude: number;
+    latitude: number;
+    dates: IShowDetails[];
+}

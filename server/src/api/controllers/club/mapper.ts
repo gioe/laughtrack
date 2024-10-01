@@ -1,6 +1,7 @@
 import { JSON_KEYS } from '../../../common/constants/keys.js'
-import { ClubInterface } from '../../../common/interfaces/club.interface.js'
-import { IClub } from '../../../database/models.js'
+import { ClubDetailsInterface, ClubInterface } from '../../../common/interfaces/club.interface.js'
+import { IClub, IClubDetails, IShowDetails } from '../../../database/models.js'
+import { toShowDetails } from '../show/mapper.js'
 
 export const toClub = (payload: IClub): ClubInterface => {
     return {
@@ -36,4 +37,15 @@ export const clubArrayFromJson = (json: any) => {
 
     return clubArray;
 
+}
+
+export const toClubDetails = (payload: IClubDetails): ClubDetailsInterface => {
+    return {
+        id: payload.id,
+        name: payload.name,
+        city: payload.city,
+        longitude: payload.longitude,
+        latitude: payload.latitude,
+        dates: payload.dates.map((show: IShowDetails) => toShowDetails(show))
+    }
 }

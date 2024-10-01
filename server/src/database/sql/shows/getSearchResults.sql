@@ -33,4 +33,4 @@ GROUP BY
     s.date_time, 
     cl.name,
     cl.base_url
-ORDER BY s.popularity_score DESC
+ORDER BY s.popularity_score DESC, s.date_time ASC

@@ -22,5 +22,5 @@ export interface ComedianDetailsInterface {
   id: number;
   name: string;
   socialData: SocialDatailInterface;
-  shows: ShowDetailsInterface[]
+  dates: ShowDetailsInterface[]
 }

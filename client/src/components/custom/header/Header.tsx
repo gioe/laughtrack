@@ -39,11 +39,6 @@ const Header: React.FC<NavbarProps> = ({
         setEndDate(ranges.selection.endDate as Date)
     }
 
-    const handleLogoClick = () => {
-        console.log("CLIKED LOGO")
-        router.push('/')
-    }
-
     const handleSearchClick = () => {
         if (searchInput == "") {
             return;

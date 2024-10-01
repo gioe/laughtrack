@@ -22,7 +22,7 @@ export const toComedianDetails = (payload: IComedianDetails): ComedianDetailsInt
         id: payload.id,
         name: payload.name,
         socialData: toSocialData(payload.social_data),
-        shows: payload.dates.map((show: IShowDetails) => toShowDetails(show))
+        dates: payload.dates.map((show: IShowDetails) => toShowDetails(show))
     }
 }
 

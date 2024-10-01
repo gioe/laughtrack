@@ -1,6 +1,6 @@
 import {ColumnSet, IDatabase, IMain} from 'pg-promise';
 import {IResult} from 'pg-promise/typescript/pg-subset.js';
-import {IClub, IClubPopularityData} from '../models.js';
+import {IClub, IClubDetails, IClubPopularityData} from '../models.js';
 import {clubs as sql} from '../sql/index.js';
 import { ClubInterface, ClubPopularityScore } from '../../common/interfaces/club.interface.js';
 
@@ -65,10 +65,11 @@ export class ClubsRepository {
     }
 
     // Tries to find a club from name;
-    findByName(name: string): Promise<IClub | null> {
-        return this.db.oneOrNone('SELECT * FROM clubs WHERE name = $1', name);
+    findByName(name: string): Promise<IClubDetails | null> {
+        return this.db.oneOrNone(sql.getDetails, {
+            name
+        });
     }
-
     // Tries to find a club from city;
     findByCity(city: string): Promise<IClub[] | null> {
         return this.db.any('SELECT * FROM clubs WHERE city = $1', city);
