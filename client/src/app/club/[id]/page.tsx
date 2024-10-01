@@ -7,17 +7,16 @@ import { ClubDetailsInterface } from "@/interfaces/club.interface";
 export default async function ClubDetailPage({ params }: { params: { id: string } }) {
   const { id } = params;
 
-  const clubDetails = await getClubDetails(id) as ClubDetailsInterface;
-
+  const response = await getClubDetails(id) as ClubDetailsInterface;
   return (
     <div>
       <section>
         <ClubBanner
-          club={clubDetails}>
+          club={response}>
         </ClubBanner>
       </section>
       <section>
-        <ShowTable shows={clubDetails.dates} />
+        <ShowTable shows={response.dates} />
       </section>
     </div>
   )

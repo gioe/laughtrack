@@ -14,5 +14,7 @@ export interface ClubDetailsInterface {
     city: string;
     longitude: number;
     latitude: number;
+    website: string;
+    baseUrl: string;
     dates: ShowDetailsInterface[];
 }

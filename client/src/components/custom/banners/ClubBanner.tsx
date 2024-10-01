@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { ClubDetailsInterface } from "@/interfaces/club.interface";
+import SocialMediaBar from "../SocialMediaBar";
 
 interface ClubBannerProps {
     club: ClubDetailsInterface;
@@ -22,6 +23,9 @@ const ClubBanner: React.FC<ClubBannerProps> = ({
             />
             <div className="absolute top-1/2 w-full text-center">
             <h2 className="font-bold text-5xl text-white pt-6">{club.name}</h2>
+            <SocialMediaBar data={{
+                website: club.baseUrl
+            }}></SocialMediaBar>
 
             </div>
         </div>

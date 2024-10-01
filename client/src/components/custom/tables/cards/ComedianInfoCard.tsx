@@ -17,10 +17,8 @@ const ComedianInfoCard: React.FC<ComedianInfoCardProps> = ({
     comedian
 }) => {
     return (
-        <div className="flex mt-3 py-7 px-2 pr-4 
-        border-b cursor-pointer hover:opacity-80 
-        hover:shadow-lg transition duration-200 rounded-lg 
-        ease-out first:border-t bg-white">
+        <div className="flex mt-3 py-7 px-2 pr-4 border-b 
+        transition duration-200 rounded-lg ease-out first:border-t bg-silver-gray">
             <Link
                 href={`/comedian/${comedian.name}`}
             >

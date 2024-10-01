@@ -12,16 +12,20 @@ const ShowTable: React.FC<ShowTableProps> = ({
     shows
 }) => {
     return (
-        <div className="flex flex-col">
-            {shows
+        <div className="flex flex-col m-5">
+            {shows.length > 0 ? (
+                shows
                 .map((show: ShowDetailsInterface) => {
-                    return (
-                        <ShowInfoCard
-                            key={show.ticketLink}
-                            show={show}
-                        />
-                    )
-                })}
+                        return (
+                            <ShowInfoCard
+                                key={show.ticketLink}
+                                show={show}
+                            />
+                        )
+                    })
+            ) : (
+                <h2 className="font-bold text-5xl text-white pt-6">No upcoming shows. Check back later.</h2>
+            )}
         </div>
 
     )

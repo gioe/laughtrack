@@ -11,7 +11,7 @@ export const MiniComedianIcon: React.FC<MiniComedianIconProps> = (
     { comedian }
 ) => {
     return (
-        <div className="flex flex-col bg-yellow-500 w-20">
+        <div className="flex flex-col w-20">
         <Link
             href={`/comedian/${comedian.name}`}
         >
@@ -28,7 +28,7 @@ export const MiniComedianIcon: React.FC<MiniComedianIconProps> = (
                 </div>
 
                 <div>
-                    <label className="md:text-sm text-xs text-gray-500 text-light font-semibold text-left">{comedian.name}</label>
+                    <p className="md:text-sm text-xs text-gray-500 text-light font-semibold text-center">{comedian.name}</p>
                 </div>
             </div>
         </Link>

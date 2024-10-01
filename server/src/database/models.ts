@@ -146,4 +146,5 @@ export interface IClubDetails {
     longitude: number;
     latitude: number;
     dates: IShowDetails[];
+    base_url: string;
 }

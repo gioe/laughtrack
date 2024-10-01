@@ -9,8 +9,10 @@ clubApiRouter.post('/', urlencodedParser,
     async (req: Request, res: Response) => {
         const { name } = req.body;
         const decodedName = decodeURI(name)
-        console.Console
-        const result = await clubController.getByName(decodedName)
+        var result = await clubController.getAllDetailsByName(decodedName)
+        if (result == null) {
+            result = await clubController.getBaseDetailsByName(decodedName)
+        }
         return res.status(200).send(result)
     })
 

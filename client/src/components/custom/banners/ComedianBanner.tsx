@@ -23,9 +23,7 @@ const ComedianBanner: React.FC<ComedianBannerProps> = ({
             />
             <div className="absolute top-1/2 w-full text-center">
             <h2 className="font-bold text-5xl text-white pt-6">{comedian.name}</h2>
-            <div>
-                <SocialMediaBar data={comedian.socialData}></SocialMediaBar>
-            </div>
+            <SocialMediaBar data={comedian.socialData}></SocialMediaBar>
 
             </div>
         </div>

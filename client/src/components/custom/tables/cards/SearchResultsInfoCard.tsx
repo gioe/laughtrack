@@ -18,10 +18,8 @@ const SearchResultsInfoCard: React.FC<SearchResultsInfoCardProps> = ({
     const description = `${time} at ${result.club_name} on ${date}`
 
     return (
-        <div className="flex mt-3 py-7 px-2 pr-4 
-        border-b cursor-pointer hover:opacity-80 
-        hover:shadow-lg transition duration-200 rounded-lg 
-        ease-out first:border-t bg-white">
+        <div className="flex mt-3 py-7 px-2 pr-4 border-b 
+        transition duration-200 rounded-lg ease-out first:border-t bg-silver-gray">
             <div className="flex flex-col flex-grow pl-5">
                 <h4 className="text-xl">{description}</h4>
 

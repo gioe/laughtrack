@@ -46,6 +46,7 @@ export const toClubDetails = (payload: IClubDetails): ClubDetailsInterface => {
         city: payload.city,
         longitude: payload.longitude,
         latitude: payload.latitude,
-        dates: payload.dates.map((show: IShowDetails) => toShowDetails(show))
+        baseUrl: payload.base_url,
+        dates: payload.dates == undefined ? [] : payload.dates.map((show: IShowDetails) => toShowDetails(show))
     }
 }

@@ -23,13 +23,19 @@ export const getById = async (id: number):  Promise<IClub | null> => {
     return db.clubs.findById(id)
 }
 
-export const getByName = async (name: string):  Promise<ClubDetailsInterface | null> => {
-    return db.clubs.findByName(name).then((response: IClubDetails | null) => {
+export const getAllDetailsByName = async (name: string):  Promise<ClubDetailsInterface | null> => {
+    return db.clubs.findByNameWithAllDetails(name).then((response: IClubDetails | null) => {
         if (response) return toClubDetails(response)
         return null
     })
 }
 
+export const getBaseDetailsByName = async (name: string):  Promise<ClubDetailsInterface | null> => {
+    return db.clubs.findByNameWithBaseDetails(name).then((response: IClubDetails | null) => {
+        if (response) return toClubDetails(response)
+        return null
+    })
+}
 
 export const deleteById = async (id: number): Promise<number> => {
     return db.clubs.delete(id)
