@@ -21,11 +21,11 @@ import {
 } from '@/components/ui/select'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { format } from 'date-fns';
-import { CalendarIcon, Link, Map } from 'lucide-react';
+import { CalendarIcon } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar'
 import { cn } from "@/lib/utils"
 
-interface ShowFilterParams {
+interface SearchBarProps {
     cities: string[];
 }
 
@@ -40,9 +40,11 @@ export const formSchema = z.object({
     })
 })
 
-const ShowFilters: React.FC<ShowFilterParams> = ({
+const SearchBar: React.FC<SearchBarProps> = ({
     cities
 }) => {
+
+    const router = useRouter();
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -55,13 +57,29 @@ const ShowFilters: React.FC<ShowFilterParams> = ({
         }
     })
 
+    function onSubmit(values: z.infer<typeof formSchema>) {
+        const params = new URLSearchParams();
+
+        const earliest_monthday = values.dates.from.getDate().toString();
+        const earliest_month = (values.dates.from.getMonth() + 1).toString();
+        const earliest_year = values.dates.from.getFullYear().toString()
+
+        const latest_monthday = values.dates.to.getDate().toString();
+        const latest_month = (values.dates.to.getMonth() + 1).toString();
+        const latest_year = values.dates.to.getFullYear().toString()
+
+        params.set("location", values.location);
+        params.set("startDate", `${earliest_year}-${earliest_month}-${earliest_monthday}`);
+        params.set("endDate",  `${latest_year}-${latest_month}-${latest_monthday}`);
+
+        router.push(`/search?${params.toString()}`);
+    }
+
 
     return (
-        <div className='flex flex-row m-5'>
-
-<Form {...form}>
+        <Form {...form}>
             <form
-                onSubmit={() => {}}
+                onSubmit={form.handleSubmit(onSubmit)}
                 className='flex flex-col lg:flex-row lg:max-w-6xl lg:mx-auto items-center justify-center
          space-x-0 lg:space-x-2 space-y-4 lg:space-y-0 rounded-lg'
             >
@@ -75,7 +93,7 @@ const ShowFilters: React.FC<ShowFilterParams> = ({
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                     <FormControl className='bg-white'>
                                         <SelectTrigger>
-                                            <SelectValue className='bg-white' placeholder="Filter by city" />
+                                            <SelectValue className='bg-white' placeholder="Select a location" />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent className='bg-white'>
@@ -116,14 +134,14 @@ const ShowFilters: React.FC<ShowFilterParams> = ({
                                                 {field.value?.from ? (
                                                     field.value?.to ? (
                                                         <>
-                                                            {format(field.value?.from, "LLL dd. yy")} -{" "}
-                                                            {format(field.value?.to, "LLL dd. yy")}
+                                                            {format(field.value?.from, "LLL dd, yyyy")} -{" "}
+                                                            {format(field.value?.to, "LLL dd, yyyy")}
                                                         </>
                                                     ) : (
-                                                        format(field.value?.from, "LLL dd. yy")
+                                                        format(field.value?.from, "LLL dd, yyyy")
                                                     )
                                                 ) : (
-                                                    <span>Filter by dates</span>
+                                                    <span>Select your dates</span>
                                                 )}
                                             </Button>
                                         </FormControl>
@@ -149,11 +167,20 @@ const ShowFilters: React.FC<ShowFilterParams> = ({
                     >
                     </FormField>
                 </div>
+
+
+                <div className='grid lg:max-w-sm flex-1 gap-1.5'>
+                <div className='h-3'></div>
+                <div className='mt-auto'>
+                        <Button type='submit' className='bg-silver-gray'>
+                            Search
+                        </Button>
+                    </div>
+                </div>
+
             </form>
         </Form>
-        </div>
-
     )
 }
 
-export default ShowFilters;
+export default SearchBar;

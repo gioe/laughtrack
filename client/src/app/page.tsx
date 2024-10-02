@@ -1,9 +1,9 @@
 import { getTrendingComedians } from "@/actions/getTrendingComedians";
 import { getCities } from "@/actions/getCities";
-import HomeSearch from "@/components/custom/search/HomeSearchBar";
 import Link from "next/link";
 import { ComedianInterface } from "@/interfaces/comedian.interface";
 import LargeComedianIcon from "@/components/custom/comedianIcons/LargeComedianIcon";
+import SearchBar from "@/components/custom/search/SearchBar";
 
 interface LandingPageProps {
   trendingComedians: ComedianInterface[],
@@ -23,7 +23,7 @@ const LandingPage: React.FC<LandingPageProps> = async ({
       </section>
 
       <section className="m-4 mt-0 -mb-14 px-2 lg:px-4">
-        <HomeSearch cities={cities} />
+        <SearchBar cities={cities} />
       </section>
 
       <section className="mx-auto max-w-7xl mt-10 p-6 bg-white rounded-lg mb-4">

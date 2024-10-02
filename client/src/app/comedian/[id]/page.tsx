@@ -1,10 +1,8 @@
 
 import { getComedianDetails } from "@/actions/getComedianDetails";
 import ComedianBanner from "@/components/custom/banners/ComedianBanner";
-import ShowFilters from "@/components/custom/filters/ShowFilters";
-import { PaginationComponent } from "@/components/custom/Pagination";
 import ShowTable from "@/components/custom/tables/ShowTable";
-import { ComedianDetailsInterface, ComedianInterface } from "@/interfaces/comedian.interface";
+import { ComedianDetailsInterface } from "@/interfaces/comedian.interface";
 import { LineupItemInterface, ShowDetailsInterface } from "@/interfaces/show.interface";
 
 export default async function ComedianDetailsPage({ params }: { params: { id: string } }) {

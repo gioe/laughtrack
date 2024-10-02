@@ -14,9 +14,8 @@ interface ShowInfoCardProps {
 const ShowInfoCard: React.FC<ShowInfoCardProps> = ({
     show
 }) => {
-
+    console.log(show.dateTime)
     const dateObject = moment(new Date(show.dateTime));
-    const description = `${dateObject.format('LT')} at ${show.club.name} in ${show.city} on ${dateObject.format('LL')}`
 
     return (
         <div className="flex flex-row mt-3 mb-3 px-2 pr-4 border-b 

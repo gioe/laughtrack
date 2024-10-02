@@ -23,3 +23,8 @@ export interface ComedianDetailsInterface {
   socialData: SocialDetailInterface;
   dates: ShowDetailsInterface[]
 }
+
+export interface ComedianFilterChipInterface {
+  id: number;
+  name: string
+}

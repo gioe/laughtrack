@@ -14,7 +14,8 @@ export interface ShowInterface {
     club: ClubDetailsInterface;
     lineup: LineupItemInterface[];
     dateTime: string;
-    ticketLink: string
+    ticketLink: string;
+    popularityScore: number;
   }
 
   export interface LineupItemInterface {

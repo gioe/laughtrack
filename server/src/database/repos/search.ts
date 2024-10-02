@@ -15,7 +15,9 @@ export class SearchRepository {
      * Library's root, if ever needed, like to access 'helpers'
      * or other namespaces available from the root.
      */
-    constructor(private db: IDatabase<any>, private pgp: IMain) {}
+    constructor(private db: IDatabase<any>, private pgp: IMain) {
+
+    }
 
     getHomeSearchResults(request: any): Promise<IHomeSearchResult | null> {
         const { location, startDate, endDate } = request

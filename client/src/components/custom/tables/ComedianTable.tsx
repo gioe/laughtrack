@@ -3,10 +3,10 @@
 import React from "react";
 import { ComedianInterface } from "@/interfaces/comedian.interface";
 import ComedianInfoCard from "./cards/ComedianInfoCard";
-import SearchResultsFilters from "../filters/SearchResultsFilters";
-import { PaginationComponent } from "../Pagination";
+import { PaginationComponent } from "../pagination/Pagination";
 import Drawer from "../drawer/Drawer";
 import { useState } from 'react';
+import FilterComponent from "../filters/FilterComponent";
 
 interface ComedianTableProps {
     comedians: ComedianInterface[];
@@ -25,7 +25,7 @@ const ComedianTable: React.FC<ComedianTableProps> = ({
     return (
         <main className="flex flex-col m-5">
             <div className="flex flex-row">
-                <SearchResultsFilters cities={[]} />
+                <FilterComponent />
                 <PaginationComponent pageCount={10} />
             </div>
             <section className="flex-grow flex-row pt-14 px-6">

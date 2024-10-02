@@ -21,7 +21,8 @@ export const toShowDetails = (payload: IShowDetails): ShowDetailsInterface => {
         },
         lineup: payload.lineup.map((lineupItem: ILineupItem) => toLineupItem(lineupItem)),
         dateTime: payload.date_time,
-        ticketLink: payload.ticket_link
+        ticketLink: payload.ticket_link,
+        popularityScore: payload.popularity_score
     }
 }
 export const toLineupItem = (payload: ILineupItem): LineupItemInterface => {

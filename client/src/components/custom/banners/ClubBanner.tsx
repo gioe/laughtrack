@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { ClubDetailsInterface } from "@/interfaces/club.interface";
-import SocialMediaBar from "../SocialMediaBar";
+import SocialMediaBar from "../social/SocialMediaBar";
 
 interface ClubBannerProps {
     club: ClubDetailsInterface;

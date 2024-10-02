@@ -1,5 +1,4 @@
 import { getComedians, GetComediansResponse } from "@/actions/getComedians";
-import { PaginationComponent } from "@/components/custom/Pagination";
 import ComedianTable from "@/components/custom/tables/ComedianTable";
 
 export default async function AllComediansPage({
@@ -16,7 +15,7 @@ export default async function AllComediansPage({
   const pageCount = response.totalPages
 
   return (
-    <main className="flex-grow pt-14 m-5 px-6">
+    <main className="flex-grow pt-14 m-5 px-6 bg-shark">
       <section>
         <ComedianTable comedians={response.comedians} />
       </section>

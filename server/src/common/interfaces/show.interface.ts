@@ -20,6 +20,7 @@ export interface ShowInterface {
     dateTime: string;
     ticketLink: string;
     lineup: LineupItemInterface[]
+    popularityScore: number;
   }
 
   export interface LineupItemInterface {

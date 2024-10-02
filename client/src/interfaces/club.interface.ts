@@ -18,3 +18,8 @@ export interface ClubDetailsInterface {
     baseUrl: string;
     dates: ShowDetailsInterface[];
 }
+
+export interface ClubFilterChipInterface {
+    id: number;
+    name: string;
+}

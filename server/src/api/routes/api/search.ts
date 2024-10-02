@@ -8,7 +8,7 @@ var urlencodedParser = bodyParser.urlencoded({ extended: false })
 // POST items
 searchApiRouter.post('/', urlencodedParser,
     async (req: Request, res: Response) => {
-        const { page, pageSize } = req.body;
+        const { page, pageSize, filter} = req.body;
 
         const pageInt = parseInt(page as string);
         const pageSizeInt = parseInt(pageSize as string);
@@ -17,7 +17,7 @@ searchApiRouter.post('/', urlencodedParser,
         const startIndex = (pageInt - 1) * pageSizeInt;
         const endIndex = pageInt * pageSizeInt;
 
-        const result = await searchController.getHomeSearchResults(req.body);
+        const result = await searchController.getHomeSearchResults(req.body, filter);
 
         if (result) {
             const paginatedResults = result.shows.slice(startIndex, endIndex);
@@ -29,7 +29,8 @@ searchApiRouter.post('/', urlencodedParser,
             return res.status(200).send({
                 city: result.city,
                 shows: paginatedResults,
-                totalPages
+                totalPages, 
+                totalShows: result.shows.length
             })
             
         }

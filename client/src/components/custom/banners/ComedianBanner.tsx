@@ -1,6 +1,6 @@
 import { ComedianDetailsInterface } from "@/interfaces/comedian.interface";
 import Image from "next/image";
-import SocialMediaBar from "../SocialMediaBar";
+import SocialMediaBar from "../social/SocialMediaBar";
 
 interface ComedianBannerProps {
     comedian: ComedianDetailsInterface;

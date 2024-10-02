@@ -9,13 +9,14 @@ interface SearchResultsParams {
   location: string;
   startDate: string;
   endDate: string;
+  filter: string;
 }
 
-export async function getUpcomingShowResults(params: SearchResultsParams) {
+export async function getSearchResults(params: SearchResultsParams) {
 
-  const trendingComediansUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.HOME_SEARCH
-  
-  return fetch(trendingComediansUrl, {
+  const upcomingShowsUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.HOME_SEARCH
+
+  return fetch(upcomingShowsUrl, {
     cache: 'no-store',
     method: "POST",
     headers: {
@@ -26,7 +27,8 @@ export async function getUpcomingShowResults(params: SearchResultsParams) {
       startDate: params.startDate,
       endDate: params.endDate,
       page: params.currentPage,
-      pageSize: PAGE_SIZE
+      pageSize: PAGE_SIZE,
+      filter: params.filter
     }),
   })
     .then((response) => response.json())

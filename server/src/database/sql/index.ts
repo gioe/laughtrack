@@ -9,7 +9,6 @@ export const clubs = {
     add: sql('clubs/add.sql'),
     allPopularityData: sql('clubs/allPopularityData.sql'),
     create: sql('clubs/create.sql'),
-    delete: sql('clubs/delete.sql'),
     drop: sql('clubs/drop.sql'),
     empty: sql('clubs/empty.sql'),
     getCities: sql('clubs/getCities.sql'),

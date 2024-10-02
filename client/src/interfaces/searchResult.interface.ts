@@ -5,4 +5,5 @@ export interface SearchResultResponse {
     city: string;
     shows: ShowDetailsInterface[];
     totalPages: number;
+    totalShows: number;
 }

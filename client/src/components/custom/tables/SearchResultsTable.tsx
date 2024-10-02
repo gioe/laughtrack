@@ -3,30 +3,41 @@
 import { SearchResultResponse } from "@/interfaces/searchResult.interface";
 import { useState } from 'react';
 import ShowInfoCard from "./cards/ShowInfoCard";
-import { ShowDetailsInterface } from "@/interfaces/show.interface";
-import SearchResultsFilters from "../filters/SearchResultsFilters";
-import { PaginationComponent } from "../Pagination";
+import { LineupItemInterface, ShowDetailsInterface } from "@/interfaces/show.interface";
+import { PaginationComponent } from "../pagination/Pagination";
+import FilterComponent from "../filters/FilterComponent";
+import { ComedianFilterChipInterface, ComedianInterface } from "@/interfaces/comedian.interface";
+import { ClubDetailsInterface, ClubFilterChipInterface, ClubInterface } from "@/interfaces/club.interface";
 
 interface SearchResultsTableProps {
     searchResults: SearchResultResponse;
+    selectedFilter?: string
 }
 
 const SearchResultsTable: React.FC<SearchResultsTableProps> = ({
     searchResults,
+    selectedFilter
 }) => {
+
+    var comedians: ComedianFilterChipInterface[] = []
+    var clubs: ClubFilterChipInterface[] = []
+
+    searchResults.shows.forEach((show: ShowDetailsInterface) => {
+        const comedians = show.lineup.flatMap((item: LineupItemInterface) => item.name);
+        comedians.concat(comedians)
+        clubs.push(show.club)
+    })
 
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-
-
     return (
         <main className="flex flex-col m-5">
-                <div className="flex flex-row">
-                    <SearchResultsFilters cities={[]} />
-                    <PaginationComponent pageCount={10} />
-                </div>
+            <div className="flex flex-row">
+                <FilterComponent selectedFilter={selectedFilter} comedians={comedians} clubs={clubs} />
+                <PaginationComponent pageCount={10} />
+            </div>
             <section className="flex-grow pt-14 px-6">
-                <div className="flex flex-col">
+                <div className="relative grid grid-cols-2 gap-5">
                     {searchResults.shows.map((result: ShowDetailsInterface) => {
                         return (
                             <ShowInfoCard

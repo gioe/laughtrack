@@ -1,10 +1,10 @@
 'use client';
 
 import { SocialDetailInterface } from "@/interfaces/socialDetail.interface";
-import InstagramIcon from './icons/InstagramIcon'
-import TikTokIcon from './icons/TikTokIcon'
-import WebIcon from './icons/WebIcon'
 import Link from "next/link";
+import InstagramIcon from "../icons/InstagramIcon";
+import TikTokIcon from "../icons/TikTokIcon";
+import WebIcon from "../icons/WebIcon";
 
 interface SocialMediaBarProps {
     data: SocialDetailInterface;

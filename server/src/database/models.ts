@@ -125,6 +125,7 @@ export interface IShowDetails {
     date_time: string;
     ticket_link: string;
     lineup: ILineupItem[]
+    popularity_score: number;
 }
 
 export interface ILineupItem {

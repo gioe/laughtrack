@@ -3,6 +3,7 @@ WITH lineups as (
         s.id,
         s.date_time,
         s.ticket_link,
+        s.popularity_score,
         club_id,
         array_agg(c.name) as lineup_names,
         jsonb_agg(
@@ -32,7 +33,8 @@ full_data as (
         ticket_link,
         city,
         longitude,
-        latitude
+        latitude,
+        l.popularity_score
     FROM
         lineups l
         INNER JOIN show_comedians sc ON l.id = sc.show_id
@@ -52,7 +54,9 @@ SELECT
             'date_time',
             f.date_time,
             'ticket_link',
-            f.ticket_link
+            f.ticket_link,
+            'popularity_score',
+            f.popularity_score
         )
     ) as shows 
 from
