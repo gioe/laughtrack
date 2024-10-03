@@ -20,8 +20,8 @@ export const Footer = () => {
                     <div className="flex flex-col items-center w-full my-5">
                         <div className="flex flex-col items-center gap-6 mb-8">
                             <div className="flex flex-wrap items-center justify-center gap-5 lg:gap-12 gap-y-3 lg:flex-nowrap text-dark-grey-900">
-                                <Link href="javascript:void(0)" className="text-gray-600 hover:text-gray-900">About</Link>
-                                <Link href="javascript:void(0)" className="text-gray-600 hover:text-gray-900">Contact</Link>
+                                <Link href="/about" className="text-gray-600 hover:text-gray-900">About</Link>
+                                <Link href="/contact" className="text-gray-600 hover:text-gray-900">Contact</Link>
                             </div>
                             <div className="flex items-center gap-8">
                                 <Link href="" className="text-grey-700 hover:text-grey-900">

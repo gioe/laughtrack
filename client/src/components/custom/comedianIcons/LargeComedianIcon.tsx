@@ -28,7 +28,7 @@ export const LargeComedianIcon: React.FC<LargeComedianIconProps> = (
             </div>
 
             <div>
-                <h3 className="text-xl mt-3">{comedian.name}</h3>
+                <h3 className="text-xl text-center mt-3">{comedian.name}</h3>
             </div>
             </div>
         </Link>

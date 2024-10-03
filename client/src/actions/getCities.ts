@@ -10,11 +10,6 @@ export async function getCities() {
     method: "POST",
   })
     .then((response) => response.json())
-    .then((data) => {
-      const json = JSON.stringify(data)
-      console.log(json.length * 2)
-      console.log(json)
-      return data.map((object: any) => object.city)
-    })
+    .then((data) =>  data.map((object: any) => object.city))
     .catch((error) => console.log(error))
 }
