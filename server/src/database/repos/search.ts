@@ -1,5 +1,4 @@
 import { IDatabase, IMain } from 'pg-promise';
-import { IHomeSearchResult } from '../models.js';
 import { search as sql } from '../sql/index.js';
 
 export class SearchRepository {
@@ -19,7 +18,7 @@ export class SearchRepository {
 
     }
 
-    getHomeSearchResults(request: any): Promise<IHomeSearchResult | null> {
+    getHomeSearchResults(request: any): Promise<any | null> {
         const { location, startDate, endDate } = request
         return this.db.oneOrNone(sql.getHomeSearchResults, {
             location,

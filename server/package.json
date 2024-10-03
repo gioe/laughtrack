@@ -10,12 +10,11 @@
     "write-clubs": "npm run build && node --env-file=.env dist/jobs/writeClubs.js",
     "scrape": "npm run build && node --env-file=.env dist/jobs/scrape.js",
     "generate-scores": "npm run build && node --env-file=.env dist/jobs/generateScores.js",
-    "get-followers": "npm run build && node --env-file=.env dist/jobs/getFollowers.js",
     "start": "npm run serve",
     "gcp-build": "tsc -p .",
     "type-check": "tsc",
-    "build": "npm run clean && tsc --noEmit false && npm run copy-files",
-    "copy-files": "copyfiles -u 1 src/**/*.sql dist/"
+    "build": "npm run clean && tsc --noEmit false && npm run copy-sql-files",
+    "copy-sql-files": "copyfiles -u 1 src/**/*.sql dist/"
   },
   "module": "CommonJS",
   "keywords": [],

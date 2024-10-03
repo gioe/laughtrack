@@ -1,8 +1,7 @@
-import {IDatabase, IMain} from 'pg-promise';
-import {IResult} from 'pg-promise/typescript/pg-subset.js';
-import {IUser} from '../models.js';
-import {users as sql} from '../sql/index.js';
-import { UserInterface } from '../../common/interfaces/user.interface.js';
+import { IDatabase, IMain } from 'pg-promise';
+import { IResult } from 'pg-promise/typescript/pg-subset.js';
+import { users as sql } from '../sql/index.js';
+import { CreateUserDTO } from '../../common/interfaces/data/user.interface.js';
 
 export class UsersRepository {
 
@@ -37,8 +36,8 @@ export class UsersRepository {
     }
 
     // Adds a new user, and returns the new object;
-    add(user: UserInterface): Promise<IUser> {
-        return this.db.one(sql.add, name);
+    add(user: CreateUserDTO): Promise<any> {
+        return this.db.one(sql.add, user.email);
     }
 
     // Tries to delete a user by id, and returns the number of records deleted;
@@ -47,22 +46,22 @@ export class UsersRepository {
     }
 
     // Tries to find a user from id;
-    findById(id: number): Promise<IUser | null> {
+    findById(id: number): Promise<any | null> {
         return this.db.oneOrNone('SELECT * FROM users WHERE id = $1', +id);
     }
 
     // Tries to find a user from name;
-    findByEmail(email: string): Promise<IUser | null> {
+    findByEmail(email: string): Promise<any | null> {
         return this.db.oneOrNone('SELECT * FROM users WHERE email = $1', email);
     }
 
         // Tries to find a user from name;
-    checkForExistence(email: string): Promise<IUser | null> {
+    checkForExistence(email: string): Promise<any | null> {
         return this.db.oneOrNone('SELECT * FROM users WHERE email = $1', email);
     }
 
     // Returns all user records;
-    all(): Promise<IUser[]> {
+    all(): Promise<any[]> {
         return this.db.any('SELECT * FROM users');
     }
 

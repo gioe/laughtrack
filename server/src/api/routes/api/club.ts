@@ -1,6 +1,7 @@
 import * as clubController from "../../controllers/club/index.js"
 import express, { Request, Response } from "express";
 import bodyParser from "body-parser";
+import { ClubInterface } from "../../../common/interfaces/client/club.interface.js";
 
 export const clubApiRouter = express.Router();
 var urlencodedParser = bodyParser.urlencoded({ extended: false })

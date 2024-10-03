@@ -1,12 +1,11 @@
 import * as clubController from "../api/controllers/club/index.js"
 import * as showController from  "../api/controllers/show/index.js"
-import { ShowInterface } from "../common/interfaces/show.interface.js";
-import { ClubInterface } from "../common/interfaces/club.interface.js";
 import { runTasks } from "../common/util/promiseUtil.js";
 import { flatten } from "../common/util/arrayUtil.js";
 import { runScraper } from "../common/functions/scraper.js";
-import { writeLogToFile } from "./util/logUtil.js";
-import { IShow } from "../database/models.js";
+import { writeLogToFile } from "../common/util/logUtil.js";
+import { CreateShowDTO } from "../common/interfaces/data/show.interface.js";
+import { ClubInterface } from "../common/interfaces/client/club.interface.js";
 
 async function runScrapingJob() {
     const args = process.argv.slice(2);
@@ -32,8 +31,8 @@ export const scrapeClubs = async (id: number[]) => {
             .map((club: ClubInterface) => runScraper(club))
             return runTasks(jobs)
         })
-        .then((scrapedShows: IShow[][]) => flatten(scrapedShows))
-        .then((scrapedShows: IShow[]) => showController.createAll(scrapedShows))
+        .then((scrapedShows: CreateShowDTO[][]) => flatten(scrapedShows))
+        .then((scrapedShows: CreateShowDTO[]) => showController.createAll(scrapedShows))
 
     writeLogToFile(`Finished in ${(new Date().getTime() - startDate.getTime()) / 1000} seconds`);
 }

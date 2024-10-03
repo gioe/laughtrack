@@ -131,3 +131,4 @@ dist
 
 src/common/resources
 mnt/
+./.DS_Store

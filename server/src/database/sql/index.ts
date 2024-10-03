@@ -9,7 +9,7 @@ export const clubs = {
     create: sql('clubs/create.sql'),
 
     // GETs
-    allPopularityData: sql('clubs/getAllPopularityData.sql'),
+    getAllPopularityData: sql('clubs/getAllPopularityData.sql'),
     getCities: sql('clubs/getCities.sql'),
     getWithAllDetails: sql('clubs/getWithAllDetails.sql'),
     getWithBaseDetails: sql('clubs/getWithBaseDetails.sql'),
@@ -18,13 +18,15 @@ export const clubs = {
 }
 
 export const comedians = {
-    add: sql('comedians/add.sql'),
-    allPopularityData: sql('comedians/allPopularityData.sql'),
+    // Create Table
     create: sql('comedians/create.sql'),
-    drop: sql('comedians/drop.sql'),
-    empty: sql('comedians/empty.sql'),
+
+    // GETs
+    getAllPopularityData: sql('comedians/allPopularityData.sql'),
     getTrending: sql('comedians/getTrending.sql'),
     getDetails: sql('comedians/getDetails.sql'),
+ 
+    // PUTs
     updateScores: sql('comedians/updateScores.sql')
 }
 

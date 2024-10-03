@@ -5,7 +5,6 @@ import bodyParser from "body-parser";
 export const comedianApiRouter = express.Router();
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
 
-
 comedianApiRouter.post('/favorite', urlencodedParser,
     async (req: Request, res: Response) => {
         const { name } = req.body;

@@ -3,12 +3,12 @@ import cors from "cors";
 import helmet from "helmet";
 import { comedianApiRouter } from "./api/routes/api/comedian.js";
 import { showApiRouter } from "./api/routes/api/show.js";
-import { authApiRouter } from "./api/routes/auth.js";
+import { authApiRouter } from "./api/routes/api/auth.js";
 import { errorHandler } from "./api/middleware/error.middleware.js";
 import { notFoundHandler } from "./api/middleware/not-found.middleware.js";
 import { clubApiRouter } from "./api/routes/api/club.js";
-import { isLocal } from "./api/util/environmentUtil.js";
-import { downloadBucketContents } from "./api/util/cloudStorageUtil.js";
+import { isLocal } from "./common/util/environmentUtil.js";
+import { downloadBucketContents } from "./common/util/cloudStorageUtil.js";
 import { searchApiRouter } from "./api/routes/api/search.js";
 
 class App {

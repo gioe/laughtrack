@@ -5,7 +5,6 @@ export async function executeClauseOrDefault<T> (choice: Promise<T>, defaultOpti
   return provideGenericPromiseResponse(defaultOption);
 }
 
-
 export async function runTasks<T>(tasks: Promise<T>[]) {
     return Promise.all(tasks)
   }

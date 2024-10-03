@@ -1,6 +1,5 @@
 import {IDatabase, IMain} from 'pg-promise';
 import {IResult} from 'pg-promise/typescript/pg-subset.js';
-import {IUser} from '../models.js';
 import {favorites as sql} from '../sql/index.js';
 
 export class FavoritesRepository {
@@ -36,7 +35,7 @@ export class FavoritesRepository {
     }
 
     // Adds a new user, and returns the new object;
-    add(comedianId: number, userId: number): Promise<IUser> {
+    add(comedianId: number, userId: number): Promise<any> {
         return this.db.one(sql.add, {
             comedianId, userId
         });
@@ -50,7 +49,7 @@ export class FavoritesRepository {
     }
 
     // Tries to find a user from id;
-    findByUserId(id: number): Promise<IUser | null> {
+    findByUserId(id: number): Promise<any | null> {
         return this.db.oneOrNone('SELECT * FROM favorites WHERE user_id = $1', +id);
     }
 

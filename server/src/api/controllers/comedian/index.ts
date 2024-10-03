@@ -1,10 +1,10 @@
-import { ComedianDetailsInterface, ComedianInterface, ComedianPopularityScore } from "../../../common/interfaces/comedian.interface.js"
-import { generateComedianPopularityScore } from "../../util/scoringUtil.js"
+import { generateComedianPopularityScore } from "../../../common/util/scoringUtil.js"
 import { db } from '../../../database/index.js';
-import { IComedian, IComedianDetails, IComedianPopularityData } from "../../../database/models.js"
-import { readFile } from "../../util/storageUtil.js";
+import { readFile } from "../../../common/util/storageUtil.js";
 import { JSON_KEYS } from "../../../common/constants/keys.js";
-import { toComedianDetailsInterface, toComedianInterface } from "../../util/mappers/comedian/mapper.js";
+import { toComedianInterface } from "../../../common/util/mappers/comedian/mapper.js";
+import { ComedianInterface } from "../../../common/interfaces/client/comedian.interface.js";
+import { CreateComedianDTO } from "../../../common/interfaces/data/comedian.interface.js";
 
 const getBadComedians = async (): Promise<string[]> => {
     return readFile(process.env.INVALID_COMEDIANS_FILE_NAME as string)
@@ -15,39 +15,35 @@ const getBadComedians = async (): Promise<string[]> => {
         })
 }
 
-export const createAll = async (comedians: ComedianInterface[]): Promise<null> => {
+export const createAll = async (comedians: CreateComedianDTO[]): Promise<null> => {
     const badComedians = await getBadComedians()
 
-    const filteredComedians = comedians.filter((comedian: ComedianInterface) => !badComedians.includes(comedian.name))
+    const filteredComedians = comedians.filter((comedian: CreateComedianDTO) => !badComedians.includes(comedian.name))
 
     return db.comedians.addAll(filteredComedians);
 }
 
-export const create = async (payload: ComedianInterface): Promise<IComedian> => {
-    return db.comedians.add(payload)
-}
-
 export const getAllComedians = async (query?: string): Promise<ComedianInterface[]> => {
-    return db.comedians.all().then((comedians: IComedian[]) => {
-        return comedians.filter((comedian: IComedian) => {
+    return db.comedians.all().then((comedians: ComedianInterface[]) => {
+        return comedians.filter((comedian: ComedianInterface) => {
             if (query) return comedian.name.toLocaleLowerCase().includes(query.toLocaleLowerCase())
             return true
-        }).map((comedian: IComedian) => toComedianInterface(comedian))
+        }).map((comedian: ComedianInterface) => toComedianInterface(comedian))
     })
 }
 
-export const getById = async (id: number): Promise<IComedian | null> => {
+export const getById = async (id: number): Promise<ComedianInterface | null> => {
     return db.comedians.findById(id)
 }
 
-export const getByName = async (name: string): Promise<ComedianDetailsInterface | null> => {
-    return db.comedians.findByName(name).then((response: IComedianDetails | null) => {
-        if (response) return toComedianDetailsInterface(response)
+export const getByName = async (name: string): Promise<ComedianInterface | null> => {
+    return db.comedians.findByName(name).then((response: ComedianInterface | null) => {
+        if (response) return toComedianInterface(response)
         return null
     })
 }
 
-export const getTrendingComedians = async (): Promise<IComedian[] | null> => {
+export const getTrendingComedians = async (): Promise<ComedianInterface[] | null> => {
     return db.comedians.getTrendingComedians()
 }
 
@@ -59,20 +55,20 @@ export const generateScores = async (): Promise<null> => {
     const allData = await db.comedians.allPopularityData();
     if (!allData) return null
 
-    const updatedValues = allData.map((data: IComedianPopularityData) => {
+    const updatedValues = allData.map((data: any) => {
         return {
             id: data.id,
             popularity_score: generateComedianPopularityScore(data)
         }
-    }) as ComedianPopularityScore[]
+    }) 
 
     return db.comedians.updateScores(updatedValues)
 }
 
 
-export const favoriteComedian = async (name: string, id: number): Promise<ComedianDetailsInterface | null> => {
-    return db.comedians.findByName(name).then((response: IComedianDetails | null) => {
-        if (response) return toComedianDetailsInterface(response)
+export const favoriteComedian = async (name: string, id: number): Promise<ComedianInterface | null> => {
+    return db.comedians.findByName(name).then((response: ComedianInterface | null) => {
+        if (response) return toComedianInterface(response)
         return null
     })
 }

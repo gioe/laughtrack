@@ -2,12 +2,12 @@
 
 import { SearchResultResponse } from "@/interfaces/searchResult.interface";
 import { useState } from 'react';
-import ShowInfoCard from "./cards/ShowInfoCard";
 import { LineupItemInterface, ShowDetailsInterface } from "@/interfaces/show.interface";
 import { PaginationComponent } from "../pagination/Pagination";
+import { ComedianFilterChipInterface } from "@/interfaces/comedian.interface";
+import { ClubFilterChipInterface } from "@/interfaces/club.interface";
 import FilterComponent from "../filters/FilterComponent";
-import { ComedianFilterChipInterface, ComedianInterface } from "@/interfaces/comedian.interface";
-import { ClubDetailsInterface, ClubFilterChipInterface, ClubInterface } from "@/interfaces/club.interface";
+import ShowInfoCard from "./cards/ShowInfoCard";
 
 interface SearchResultsTableProps {
     searchResults: SearchResultResponse;

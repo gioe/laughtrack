@@ -5,8 +5,6 @@ import bodyParser from "body-parser";
 export const showApiRouter = express.Router();
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
 
-// POST items
-
 showApiRouter.get('/:id', urlencodedParser,
     async (req: Request, res: Response) => {
         const id = Number(req.params.id)

@@ -1,9 +1,8 @@
-import { MapCoordinate } from "./mapCoordinate.interface";
-import { ShowDetailsInterface } from "./show.interface";
+import { ShowInterface } from "./show.interface";
 
-export interface SearchResultResponse {
+export interface HomeSearchResultInterface {
     city: string;
-    shows: ShowDetailsInterface[];
-    totalPages: number;
-    totalShows: number;
+    shows: ShowInterface[];
+    totalPages?: number;
+    totalShows?: number;
 }

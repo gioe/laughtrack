@@ -1,9 +1,8 @@
 import { JSON_KEYS } from "../../../common/constants/keys.js";
-import { UserInterface } from "../../../common/interfaces/user.interface.js";
 import { db } from '../../../database/index.js';
-import { IUser } from "../../../database/models.js"
-import { toUser } from "../../util/mappers/user/mapper.js";
-import { readFile } from "../../util/storageUtil.js";
+import { toUser } from "../../../common/util/mappers/user/mapper.js";
+import { readFile } from "../../../common/util/storageUtil.js";
+import { UserInterface } from "../../../common/interfaces/client/user.interface.js";
 
 const getAdminList = async (): Promise<string[]> => {
   return readFile(process.env.USERS_FILE_NAME as string)
@@ -29,13 +28,13 @@ export const register = async (emailString: string, passwordHash: string) => {
 };
 
 export const getUserByEmail = async (email: string): Promise<UserInterface | null> => {
-  return db.users.findByEmail(email).then((user: IUser | null) => {
+  return db.users.findByEmail(email).then((user: any | null) => {
     return user ? toUser(user) : null
   })
 };
 
 export const getUserById = async (userId: number): Promise<UserInterface | null> => {
-  return db.users.findById(userId).then((user: IUser | null) => {
+  return db.users.findById(userId).then((user: any | null) => {
     return user ? toUser(user) : null
   })
 };

@@ -1,8 +1,6 @@
 import {IDatabase, IMain} from 'pg-promise';
 import {IResult} from 'pg-promise/typescript/pg-subset.js';
-import {IUser} from '../models.js';
 import {lineups as sql} from '../sql/index.js';
-import { UserInterface } from '../../common/interfaces/user.interface.js';
 
 export class LineupsRepository {
 
@@ -37,7 +35,7 @@ export class LineupsRepository {
     }
 
     // Adds a new user, and returns the new object;
-    add(comedianId: number, showId: number): Promise<IUser> {
+    add(comedianId: number, showId: number): Promise<any> {
         return this.db.one(sql.add, {
             comedianId, showId
         });
@@ -51,14 +49,14 @@ export class LineupsRepository {
     }
 
     // Tries to find a user from id;
-    findByShowId(showId: number): Promise<IUser | null> {
+    findByShowId(showId: number): Promise<any | null> {
         return this.db.oneOrNone('SELECT * FROM lineups WHERE show_id = $1', {
             showId
         });
     }
 
     // Tries to find a user from name;
-    findByComedianId(comedianId: number): Promise<IUser | null> {
+    findByComedianId(comedianId: number): Promise<any | null> {
         return this.db.oneOrNone('SELECT * FROM lineups WHERE comedian_id = $1', {
             comedianId
         });

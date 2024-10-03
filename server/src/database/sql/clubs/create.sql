@@ -6,12 +6,10 @@ CREATE TABLE IF NOT EXISTS clubs (
     name TEXT NOT NULL unique,
     city TEXT NOT NULL,
     address TEXT NOT NULL,
-    zip_code VARCHAR(10),
-    latitude numeric(10, 6) NOT NULL,
-    longitude numeric(10, 6) NOT NULL,
     base_url TEXT NOT NULL,
     schedule_page_url TEXT NOT NULL,
     timezone TEXT NOT NULL,
     scraping_config JSON NOT NULL,
-    popularity_score double precision DEFAULT '0'::double precision
+    popularity_score double precision DEFAULT '0'::double precision,
+    zip_code VARCHAR(10)
 );

@@ -5,7 +5,6 @@ import bodyParser from "body-parser";
 export const searchApiRouter = express.Router();
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
 
-// POST items
 searchApiRouter.post('/', urlencodedParser,
     async (req: Request, res: Response) => {
         const { page, pageSize, filter} = req.body;

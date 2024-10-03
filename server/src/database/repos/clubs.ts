@@ -1,7 +1,9 @@
 import {ColumnSet, IDatabase, IMain} from 'pg-promise';
-import {IClub, IClubDetails, IClubPopularityData} from '../models.js';
 import {clubs as sql} from '../sql/index.js';
-import { ClubInterface, ClubPopularityScore } from '../../common/interfaces/club.interface.js';
+import { CreateClubDTO } from '../../common/interfaces/data/club.interface.js';
+import { ClubInterface } from '../../common/interfaces/client/club.interface.js';
+import { PopularityScoreDTO } from '../../common/interfaces/data/popularityScore.interface.js';
+import { provideGenericPromiseResponse } from '../../common/util/promiseUtil.js';
 
 var columnSets: {
     updateScores: ColumnSet | null;
@@ -10,7 +12,6 @@ var columnSets: {
     updateScores: null,
     addAll: null
 }
-
 
 export class ClubsRepository {
 
@@ -38,55 +39,58 @@ export class ClubsRepository {
         return this.db.none(sql.create);
     }
 
-    addAll(all: IClub[]): Promise<null> {
+    addAll(all: CreateClubDTO[]): Promise<null> {
         const batchInsert = this.pgp.helpers.insert(all, columnSets.addAll);
         return this.db.none(batchInsert)
     }
 
     // Tries to find a club from id;
-    findById(id: number): Promise<IClub | null> {
+    findById(id: number): Promise<ClubInterface | null> {
         return this.db.oneOrNone(sql.getWithSchedule, {
             clubId: +id,
         });
     }
 
     // Tries to find a club from name;
-    findByNameWithAllDetails(name: string): Promise<IClubDetails | null> {
+    findByNameWithAllDetails(name: string): Promise<ClubInterface | null> {
         return this.db.oneOrNone(sql.getWithAllDetails, {
             name
         });
     }
 
-    findByNameWithBaseDetails(name: string): Promise<IClubDetails | null> {
+    findByNameWithBaseDetails(name: string): Promise<ClubInterface | null> {
         return this.db.oneOrNone(sql.getWithBaseDetails, {
             name
         });
     }
 
     // Tries to find a club from city;
-    findByCity(city: string): Promise<IClub[] | null> {
+    findByCity(city: string): Promise<ClubInterface[] | null> {
         return this.db.any('SELECT * FROM clubs WHERE city = $1', city);
     }
 
-    getTrendingClubs(): Promise<IClub[] | null> {
+    getTrendingClubs(): Promise<ClubInterface[] | null> {
         return this.db.any(sql.getTrending);
     }
 
-    getAllCities(): Promise<IClub[] | null> {
+    getAllCities(): Promise<ClubInterface[] | null> {
         return this.db.any(sql.getCities);
     }
 
     // Returns all club records;
-    all(): Promise<IClub[]> {
-        return this.db.any('SELECT * FROM clubs');
+    all(): Promise<any[]> {
+        return this.db.any('SELECT * FROM clubs')
     }
 
-    allPopularityData(): Promise<IClubPopularityData[] | null> {
-        return this.db.any(sql.allPopularityData)
+    getAllPopularityData(): Promise<any[] | null> {
+        return this.db.any(sql.getAllPopularityData)
     }
 
-    updateScores(scores: ClubPopularityScore[]): Promise<null> {
+    updateScores(scores: PopularityScoreDTO[] | null): Promise<null> {
+        if (scores == null) return provideGenericPromiseResponse(null)
+
         const update = this.pgp.helpers.update(scores, columnSets.updateScores) + ' WHERE v.id = t.id';
+        
         return this.db.none(update)
     }
 

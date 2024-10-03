@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { UserRole } from "../@types/UserRole.js";
+import { UserRole } from "../../common/@types/UserRole.js";
 
 export const authenticateRole = (role: UserRole) => {
     return (request: Request,

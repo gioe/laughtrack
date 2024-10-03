@@ -1,16 +1,16 @@
 import playwright from "playwright";
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
-import { ClubInterface } from "../interfaces/club.interface.js";
-import { Scraper } from "../../jobs/classes/models/Scraper.js";
 import { chromium } from 'playwright-extra'
-import { IShow } from "../../database/models.js";
+import { Scraper } from "../models/Scraper.js";
+import { CreateShowDTO } from "../interfaces/data/show.interface.js";
+import { ClubInterface } from "../interfaces/client/club.interface.js";
 
-export const runScraper = async (club: ClubInterface): Promise<IShow[]> => {
+export const runScraper = async (club: ClubInterface): Promise<CreateShowDTO[]> => {
     chromium.use(StealthPlugin())
     return playwright.chromium.launch({ headless: true })
         .then(browser => getScrapingJob(browser, club))
 }
 
-const getScrapingJob = (browser: playwright.Browser, club: ClubInterface): Promise<IShow[]> => {
+const getScrapingJob = (browser: playwright.Browser, club: ClubInterface): Promise<CreateShowDTO[]> => {
     return new Scraper(club, browser).scrape()
 };

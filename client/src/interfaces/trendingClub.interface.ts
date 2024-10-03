@@ -4,4 +4,4 @@ export type TrendingClub = {
     imageName: string;
     url: string
     count: number
-  }
+}
