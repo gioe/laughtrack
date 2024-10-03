@@ -4,13 +4,12 @@ import pkg from 'pg-promise';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-
 export const clubs = {
-    add: sql('clubs/add.sql'),
-    allPopularityData: sql('clubs/allPopularityData.sql'),
+    // Create Table
     create: sql('clubs/create.sql'),
-    drop: sql('clubs/drop.sql'),
-    empty: sql('clubs/empty.sql'),
+
+    // GETs
+    allPopularityData: sql('clubs/getAllPopularityData.sql'),
     getCities: sql('clubs/getCities.sql'),
     getWithAllDetails: sql('clubs/getWithAllDetails.sql'),
     getWithBaseDetails: sql('clubs/getWithBaseDetails.sql'),
@@ -29,6 +28,24 @@ export const comedians = {
     updateScores: sql('comedians/updateScores.sql')
 }
 
+export const favorites = {
+    add: sql('favorites/add.sql'),
+    create: sql('favorites/create.sql'),
+    drop: sql('favorites/drop.sql'),
+    empty: sql('favorites/empty.sql'),
+}
+
+export const lineups = {
+    add: sql('lineups/add.sql'),
+    create: sql('lineups/create.sql'),
+    drop: sql('lineups/drop.sql'),
+    empty: sql('lineups/empty.sql'),
+}
+
+export const search = {
+    getHomeSearchResults: sql('search/getHomeSearchResults.sql')
+}
+
 export const shows = {
     add: sql('shows/add.sql'),
     allPopularityData: sql('shows/allPopularityData.sql'),
@@ -38,16 +55,13 @@ export const shows = {
     getWithLineup: sql('shows/getWithLineup.sql')
 }
 
-export const search = {
-    getHomeSearchResults: sql('search/getHomeSearchResults.sql')
-}
-
 export const users = {
     add: sql('users/add.sql'),
     create: sql('users/create.sql'),
     drop: sql('users/drop.sql'),
     empty: sql('users/empty.sql'),
 }
+
 
 ///////////////////////////////////////////////
 // Helper for linking to external query files;

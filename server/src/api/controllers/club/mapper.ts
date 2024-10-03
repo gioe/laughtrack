@@ -21,7 +21,7 @@ export const toClub = (payload: IClub): ClubInterface => {
 }
 
 export const clubArrayFromJson = (json: any) => {
-    var clubArray: ClubInterface[] = []
+    var clubArray: IClub[] = []
 
     for (let index = 0; index < json[JSON_KEYS.clubs].length; index++) {
         const currentItem = json[JSON_KEYS.clubs][index];
@@ -30,7 +30,8 @@ export const clubArrayFromJson = (json: any) => {
         currenItemClubs.forEach((club: any) => {
             clubArray.push({
                 ...club,
-                scrapingConfig: currentItem[JSON_KEYS.scrapingConfig]
+                scraping_config: currentItem[JSON_KEYS.scrapingConfig],
+                popularity_score: 0
             })
         })
     }
@@ -47,6 +48,7 @@ export const toClubDetails = (payload: IClubDetails): ClubDetailsInterface => {
         longitude: payload.longitude,
         latitude: payload.latitude,
         baseUrl: payload.base_url,
-        dates: payload.dates == undefined ? [] : payload.dates.map((show: IShowDetails) => toShowDetails(show))
+        dates: payload.dates == undefined ? [] : payload.dates.map((show: IShowDetails) => toShowDetails(show)),
+        zipCode: payload.zip_code
     }
 }

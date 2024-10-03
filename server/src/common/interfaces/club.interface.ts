@@ -29,4 +29,5 @@ export interface ClubPopularityScore {
     latitude: number;
     baseUrl: string;
     dates: ShowDetailsInterface[];
+    zipCode: string;
   }

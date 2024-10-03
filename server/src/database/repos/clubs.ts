@@ -1,13 +1,14 @@
 import {ColumnSet, IDatabase, IMain} from 'pg-promise';
-import {IResult} from 'pg-promise/typescript/pg-subset.js';
 import {IClub, IClubDetails, IClubPopularityData} from '../models.js';
 import {clubs as sql} from '../sql/index.js';
 import { ClubInterface, ClubPopularityScore } from '../../common/interfaces/club.interface.js';
 
 var columnSets: {
     updateScores: ColumnSet | null;
+    addAll: ColumnSet | null;
 } = {
     updateScores: null,
+    addAll: null
 }
 
 
@@ -25,7 +26,11 @@ export class ClubsRepository {
      * or other namespaces available from the root.
      */
     constructor(private db: IDatabase<any>, private pgp: IMain) {
+          this.create();
           columnSets.updateScores = new pgp.helpers.ColumnSet(['?id', 'popularity_score'], {table: 'clubs'});
+          columnSets.addAll = new pgp.helpers.ColumnSet(['name', 'city', 'zip_code', 'address',
+            'latitude', 'longitude', 'base_url', 'schedule_page_url', 'timezone', 'scraping_config', 'popularity_score'
+          ], {table: 'clubs'});
     }
 
     // Creates the table;
@@ -33,28 +38,9 @@ export class ClubsRepository {
         return this.db.none(sql.create);
     }
 
-    // Drops the table;
-    drop(): Promise<null> {
-        return this.db.none(sql.drop);
-    }
-
-    // Removes all records from the table;
-    empty(): Promise<null> {
-        return this.db.none(sql.empty);
-    }
-
-    addAll(all: ClubInterface[]): Promise<null> {
-        return this.db.none(sql.create);
-    }
-
-    // Adds a new club, and returns the new object;
-    add(payload: ClubInterface): Promise<IClub> {
-        return this.db.one(sql.add, payload.name);
-    }
-
-    // Tries to delete a club by id, and returns the number of records deleted;
-    remove(id: number): Promise<number> {
-        return this.db.result('DELETE FROM clubs WHERE id = $1', +id, (r: IResult) => r.rowCount);
+    addAll(all: IClub[]): Promise<null> {
+        const batchInsert = this.pgp.helpers.insert(all, columnSets.addAll);
+        return this.db.none(batchInsert)
     }
 
     // Tries to find a club from id;
@@ -93,15 +79,6 @@ export class ClubsRepository {
     // Returns all club records;
     all(): Promise<IClub[]> {
         return this.db.any('SELECT * FROM clubs');
-    }
-
-    // Returns the total number of clubs;
-    total(): Promise<number> {
-        return this.db.one('SELECT count(*) FROM clubs', [], (a: { count: string }) => +a.count);
-    }
-
-    delete(id: number): Promise<number> {
-        return this.db.result('DELETE FROM clubs WHERE id = $1', +id, (r: IResult) => r.rowCount);
     }
 
     allPopularityData(): Promise<IClubPopularityData[] | null> {

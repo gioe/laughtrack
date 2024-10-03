@@ -11,12 +11,8 @@ const getAllClubsFromFile = async () => {
 }
 
 export const addAll = async (): Promise<null> => {
-    const clubs: ClubInterface[] = await getAllClubsFromFile()
+    const clubs: IClub[] = await getAllClubsFromFile()
     return db.clubs.addAll(clubs);
-}
-
-export const add = async (payload: ClubInterface): Promise<IClub> => {
-    return db.clubs.add(payload)
 }
 
 export const getById = async (id: number):  Promise<IClub | null> => {
@@ -37,16 +33,8 @@ export const getBaseDetailsByName = async (name: string):  Promise<ClubDetailsIn
     })
 }
 
-export const deleteById = async (id: number): Promise<number> => {
-    return db.clubs.delete(id)
-}
-
 export const getAll = async (): Promise<ClubInterface[]> => {
     return db.clubs.all().then((clubs: IClub[]) => clubs.map((club: IClub) => toClub(club)))
-}
-
-export const getClubsByLocation = async (location: string): Promise<IClub[] | null> => {
-    return db.clubs.findByCity(location)
 }
 
 export const getTrendingClubs = async (): Promise<IClub[] | null> => {

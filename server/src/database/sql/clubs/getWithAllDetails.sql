@@ -17,7 +17,7 @@ WITH lineups as (
         ) as lineup_details
     FROM
         shows s
-        INNER JOIN show_comedians sc ON s.id = sc.show_id
+        INNER JOIN lineups l ON s.id = sc.show_id
         INNER JOIN comedians c ON c.id = sc.comedian_id
     GROUP BY
         s.id
@@ -35,7 +35,7 @@ full_data as (
         latitude
     FROM
         lineups l
-        INNER JOIN show_comedians sc ON l.id = sc.show_id
+        INNER JOIN lineups l ON l.id = sc.show_id
         INNER JOIN comedians c ON c.id = sc.comedian_id
         INNER JOIN clubs cl ON cl.id = l.club_id
 )

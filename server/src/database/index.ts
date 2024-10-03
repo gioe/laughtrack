@@ -6,7 +6,9 @@ import {
   ComediansRepository, 
   ClubsRepository, 
   ShowsRepository,
-  SearchRepository
+  SearchRepository,
+  FavoritesRepository,
+  LineupsRepository
 } from './repos/index.js';
 
 type ExtendedProtocol = IDatabase<IExtensions> & IExtensions;
@@ -25,6 +27,8 @@ const initOptions: IInitOptions<IExtensions> = {
         obj.comedians = new ComediansRepository(obj, pgp);
         obj.shows = new ShowsRepository(obj, pgp);
         obj.search = new SearchRepository(obj, pgp);
+        obj.favorites = new FavoritesRepository(obj, pgp);
+        obj.lineups = new LineupsRepository(obj, pgp);
       }
 };
 

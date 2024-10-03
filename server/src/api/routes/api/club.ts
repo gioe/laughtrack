@@ -29,8 +29,8 @@ clubApiRouter.post('/trending',
         return res.status(200).send(trendingClubs)
     })
 
-    clubApiRouter.post('/cities',
-        async (req: Request, res: Response) => {
-            const trendingClubs = await clubController.getAllCities()
-            return res.status(200).send(trendingClubs)
-        })
+clubApiRouter.post('/cities',
+    async (req: Request, res: Response) => {
+        const trendingClubs = await clubController.getAllCities()
+        return res.status(200).send(trendingClubs)
+    })

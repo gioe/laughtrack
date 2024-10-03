@@ -9,10 +9,6 @@ import { notFoundHandler } from "./api/middleware/not-found.middleware.js";
 import { clubApiRouter } from "./api/routes/api/club.js";
 import { isLocal } from "./api/util/environmentUtil.js";
 import { downloadBucketContents } from "./api/util/cloudStorageUtil.js";
-import { comedianAdminRouter } from "./api/routes/admin/comedian.js";
-import { healthCheckApiRouter } from "./api/routes/admin/healthcheck.js";
-import { clubAdminRouter } from "./api/routes/admin/club.js";
-import { showAdminRouter } from "./api/routes/admin/show.js";
 import { searchApiRouter } from "./api/routes/api/search.js";
 
 class App {
@@ -20,7 +16,6 @@ class App {
 
     constructor() {
         this.app = express()
-        this.adminRoutes()
         this.apiRoutes()
         this.middleLayers()
         this.setupCache()
@@ -40,13 +35,6 @@ class App {
         this.app.use('/api/club', clubApiRouter);
         this.app.use('/api/show', showApiRouter);
         this.app.use('/api/search', searchApiRouter);
-    }
-
-    protected adminRoutes(): void {
-        this.app.use('/admin/comedian', comedianAdminRouter)
-        this.app.use('/admin/club', clubAdminRouter);
-        this.app.use('/admin/show', showAdminRouter);
-        this.app.use('/healthcheck', healthCheckApiRouter);
     }
 
     protected middleLayers(): void {

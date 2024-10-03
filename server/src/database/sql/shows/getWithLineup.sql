@@ -16,8 +16,8 @@ SELECT
         )
     ) AS lineup
 from shows s
-inner join show_comedians sc on s.id = sc.show_id
-inner join comedians c on c.id = sc.comedian_id
+inner join lineups l on s.id = l.show_id
+inner join comedians c on c.id = l.comedian_id
 inner join clubs cl on cl.id = s.club_id
 WHERE s.id = ${showId} AND s.date_time > NOW()
 GROUP BY

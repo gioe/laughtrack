@@ -29,6 +29,7 @@ export interface IClub {
     longitude: number
     image_name: string;
     shows: IShow[];
+    zip_code: string;
 }
 
 export interface IComedian {
@@ -142,4 +143,5 @@ export interface IClubDetails {
     latitude: number;
     dates: IShowDetails[];
     base_url: string;
+    zip_code: string;
 }

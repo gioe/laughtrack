@@ -7,7 +7,7 @@ SELECT
         )
     ) AS scores
 from shows s
-inner join show_comedians sc on s.id = sc.show_id
-inner join comedians c on c.id = sc.comedian_id
+inner join lineups l on s.id = l.show_id
+inner join comedians c on c.id = l.comedian_id
 GROUP BY
     s.id

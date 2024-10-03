@@ -30,9 +30,9 @@ export const SCRAPER_KEYS = {
   export const JSON_KEYS = {
     clubs: 'clubs',
     admins: 'admins',
-    scrapingConfig: 'scrapingConfig',
+    scrapingConfig: 'scraping_config',
     email: 'email',
-    clubDetails: 'clubDetails',
+    clubDetails: 'club_details',
     names: 'names',
   };
 
