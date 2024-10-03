@@ -9,30 +9,21 @@ import { Avatar, Chip } from "@nextui-org/react";
 import { ComedianFilterChipInterface } from "@/interfaces/comedian.interface";
 import { ClubFilterChipInterface } from "@/interfaces/club.interface";
 
-type PropertyFilter = {
+export type PropertyFilter = {
   key: string;
   label: string;
 }
 
-const typeFilters: PropertyFilter[] = [
-  {
-    key: "Popularity",
-    label: "Popularity"
-  },
-  {
-    key: "Date",
-    label: "Date"
-  },
-]
-
 interface FilterComponentProps {
   selectedFilter?: string;
+  propertyFilters?: PropertyFilter[];
   comedians?: ComedianFilterChipInterface[]
   clubs?: ClubFilterChipInterface[]
 }
 
 const FilterComponent: React.FC<FilterComponentProps> = ({
   selectedFilter, 
+  propertyFilters,
   comedians, 
   clubs
 }) => {
@@ -61,18 +52,22 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
 
     <div className="flex w-full flex-wrap md:flex-nowrap gap-4 ml-5">
 
-      <Select
-        label="Sort By"
-        className="max-w-xs text-silver-gray"
-        selectedKeys={[value]}
-        onChange={handleSelectionChange}
-      >
-        {typeFilters.map((item) => (
-          <SelectItem key={item.key}>
-            {item.label}
-          </SelectItem>
-        ))}
-      </Select>
+      {
+        propertyFilters && (
+          <Select
+          label="Sort By"
+          className="max-w-xs text-silver-gray"
+          selectedKeys={[value]}
+          onChange={handleSelectionChange}
+        >
+          {propertyFilters.map((item) => (
+            <SelectItem key={item.key}>
+              {item.label}
+            </SelectItem>
+          ))}
+        </Select>
+        )
+      }
 
       {comedians && (
         <Select

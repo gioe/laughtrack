@@ -3,7 +3,7 @@ import { getCities } from "@/actions/getCities";
 import Link from "next/link";
 import { ComedianInterface } from "@/interfaces/comedian.interface";
 import LargeComedianIcon from "@/components/custom/comedianIcons/LargeComedianIcon";
-import SearchBar from "@/components/custom/search/SearchBar";
+import SearchBar from "@/components/custom/filters/SearchBar";
 
 interface LandingPageProps {
   trendingComedians: ComedianInterface[],

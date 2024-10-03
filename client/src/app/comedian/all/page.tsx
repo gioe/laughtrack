@@ -1,23 +1,34 @@
-import { getComedians, GetComediansResponse } from "@/actions/getComedians";
+import { fetchFilteredComedians, GetComediansResponse } from "@/actions/fetchFilteredComedians";
+import { PaginationComponent } from "@/components/custom/pagination/Pagination";
+import TextSearchBar from "@/components/custom/search/TextSearchBar";
 import ComedianTable from "@/components/custom/tables/ComedianTable";
+import { Suspense } from 'react';
 
 export default async function AllComediansPage({
   searchParams,
 }: {
   searchParams?: {
+    query?: string;
     page?: string;
   };
 }) {
+
+  const query = searchParams?.query || '';
   const currentPage = searchParams?.page || '1';
 
-  const response = await getComedians(currentPage) as GetComediansResponse
-
+  const response = await fetchFilteredComedians(currentPage, query) as GetComediansResponse
   const pageCount = response.totalPages
 
   return (
     <main className="flex-grow pt-14 m-5 px-6 bg-shark">
-      <section>
+      <div className="flex flex-row">
+        <TextSearchBar query={query}/>
+        <PaginationComponent pageCount={pageCount} />
+      </div>
+      <Suspense key={query + currentPage} fallback={<div />}>
         <ComedianTable comedians={response.comedians} />
+      </Suspense>
+      <section>
       </section>
     </main>
   );

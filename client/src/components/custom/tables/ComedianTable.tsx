@@ -6,10 +6,10 @@ import ComedianInfoCard from "./cards/ComedianInfoCard";
 import { PaginationComponent } from "../pagination/Pagination";
 import Drawer from "../drawer/Drawer";
 import { useState } from 'react';
-import FilterComponent from "../filters/FilterComponent";
+import TextSearchBar from "../search/TextSearchBar";
 
 interface ComedianTableProps {
-    comedians: ComedianInterface[];
+    comedians: ComedianInterface[]
 }
 
 const ComedianTable: React.FC<ComedianTableProps> = ({
@@ -24,13 +24,9 @@ const ComedianTable: React.FC<ComedianTableProps> = ({
 
     return (
         <main className="flex flex-col m-5">
-            <div className="flex flex-row">
-                <FilterComponent />
-                <PaginationComponent pageCount={10} />
-            </div>
             <section className="flex-grow flex-row pt-14 px-6">
                 <Drawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
-                <div className="flex flex-col">
+                <div className="grid grid-cols-3 gap-4">
                     {comedians
                         .map((comedian: ComedianInterface) => {
                             return (

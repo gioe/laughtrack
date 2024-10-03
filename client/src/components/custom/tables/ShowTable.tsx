@@ -5,11 +5,23 @@ import { ShowDetailsInterface } from "@/interfaces/show.interface";
 import ShowInfoCard from "./cards/ShowInfoCard";
 import { PaginationComponent } from "../pagination/Pagination";
 import Drawer from "../drawer/Drawer";
-import FilterComponent from "../filters/FilterComponent";
+import FilterComponent, { PropertyFilter } from "../filters/FilterComponent";
 
 interface ShowTableProps {
     shows: ShowDetailsInterface[];
 }
+
+
+const typeFilters: PropertyFilter[] = [
+  {
+    key: "Popularity",
+    label: "Popularity"
+  },
+  {
+    key: "Date",
+    label: "Date"
+  },
+]
 
 const ShowTable: React.FC<ShowTableProps> = ({
     shows
@@ -22,11 +34,9 @@ const ShowTable: React.FC<ShowTableProps> = ({
     };
 
     return (
-
-
         <main className="flex flex-col m-5">
             <div className="flex flex-row">
-                <FilterComponent />
+                <FilterComponent propertyFilters={typeFilters}/>
                 <PaginationComponent pageCount={10} />
             </div>
             <section className="flex-grow flex-row pt-14 px-6">

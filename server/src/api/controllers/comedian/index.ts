@@ -27,8 +27,13 @@ export const create = async (payload: ComedianInterface): Promise<IComedian> => 
     return db.comedians.add(payload)
 }
 
-export const getAllComedians = async (): Promise<ComedianInterface[]> => {
-    return db.comedians.all().then((comedians: IComedian[]) => comedians.map((comedian: IComedian) => toComedian(comedian)))
+export const getAllComedians = async (query?: string): Promise<ComedianInterface[]> => {
+    return db.comedians.all().then((comedians: IComedian[]) => {
+        return comedians.filter((comedian: IComedian) => {
+            if (query) return comedian.name.toLocaleLowerCase().includes(query.toLocaleLowerCase())
+            return true
+        }).map((comedian: IComedian) => toComedian(comedian))
+    })
 }
 
 export const getById = async (id: number): Promise<IComedian | null> => {
@@ -62,4 +67,12 @@ export const generateScores = async (): Promise<null> => {
     }) as ComedianPopularityScore[]
 
     return db.comedians.updateScores(updatedValues)
+}
+
+
+export const favoriteComedian = async (name: string, id: number): Promise<ComedianDetailsInterface | null> => {
+    return db.comedians.findByName(name).then((response: IComedianDetails | null) => {
+        if (response) return toComedianDetails(response)
+        return null
+    })
 }

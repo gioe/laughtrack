@@ -14,7 +14,6 @@ interface ShowInfoCardProps {
 const ShowInfoCard: React.FC<ShowInfoCardProps> = ({
     show
 }) => {
-    console.log(show.dateTime)
     const dateObject = moment(new Date(show.dateTime));
 
     return (

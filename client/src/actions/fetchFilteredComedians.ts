@@ -7,10 +7,11 @@ const PAGE_SIZE = '20';
 
 export interface GetComediansResponse {
   comedians: ComedianInterface[]
+  query: string;
   totalPages: number;
 }
 
-export async function getComedians(currentPage: string) {
+export async function fetchFilteredComedians(currentPage: string, query: string) {
   const allComediansUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.COMEDIANS
 
   return fetch(allComediansUrl, {
@@ -21,6 +22,7 @@ export async function getComedians(currentPage: string) {
     },
     body: new URLSearchParams({
       page: currentPage,
+      query: query,
       pageSize: PAGE_SIZE
     }),
   })

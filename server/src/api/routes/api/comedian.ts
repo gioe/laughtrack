@@ -5,6 +5,15 @@ import bodyParser from "body-parser";
 export const comedianApiRouter = express.Router();
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
 
+
+comedianApiRouter.post('/favorite', urlencodedParser,
+    async (req: Request, res: Response) => {
+        const { name } = req.body;
+        const decodedName = decodeURI(name)
+        const result = await comedianController.favoriteComedian(decodedName, 123)
+        return res.status(200).send(result)
+    })
+
 comedianApiRouter.post('/', urlencodedParser,
     async (req: Request, res: Response) => {
         const { name } = req.body;
@@ -29,7 +38,7 @@ comedianApiRouter.post('/trending',
 
 comedianApiRouter.post('/all', urlencodedParser,
     async (req: Request, res: Response) => {
-        const { page, pageSize } = req.body;
+        const { page, pageSize, query } = req.body;
 
         const pageInt = parseInt(page as string);
         const pageSizeInt = parseInt(pageSize as string);
@@ -38,7 +47,7 @@ comedianApiRouter.post('/all', urlencodedParser,
         const startIndex = (pageInt - 1) * pageSizeInt;
         const endIndex = pageInt * pageSizeInt;
 
-        const comedians = await comedianController.getAllComedians()
+        const comedians = await comedianController.getAllComedians(query)
 
         // Slice the products array based on the indexes
         const paginatedComedians = comedians.slice(startIndex, endIndex);
