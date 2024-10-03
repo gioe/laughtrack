@@ -11,9 +11,9 @@ export interface ClubInterface {
     address: string;
     latitude: number;
     longitude: number;
-    imageName: string;
     popularityScore: number;
-    shows?: ShowInterface[]
+    shows?: ShowInterface[];
+    zipCode: string;
 }
 
 export interface ClubPopularityScore {
@@ -28,6 +28,6 @@ export interface ClubPopularityScore {
     longitude: number;
     latitude: number;
     baseUrl: string;
-    dates: ShowDetailsInterface[];
+    shows: ShowDetailsInterface[];
     zipCode: string;
   }

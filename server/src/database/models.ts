@@ -27,7 +27,6 @@ export interface IClub {
     address: string
     latitude: number
     longitude: number
-    image_name: string;
     shows: IShow[];
     zip_code: string;
 }
@@ -52,7 +51,7 @@ export interface IShowComedian {
 }
 
 export interface IShow {
-    id: number;
+    id?: number;
     club: IClub;
     date_time: Date;
     ticket_link: string;
@@ -141,7 +140,7 @@ export interface IClubDetails {
     city: string;
     longitude: number;
     latitude: number;
-    dates: IShowDetails[];
+    shows: IShowDetails[];
     base_url: string;
     zip_code: string;
 }

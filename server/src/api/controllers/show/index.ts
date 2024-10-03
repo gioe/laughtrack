@@ -1,31 +1,17 @@
-import { ShowInterface } from "../../../common/interfaces/show.interface.js"
 import { generateShowPopularityData } from '../../util/scoringUtil.js'
 import { db } from '../../../database/index.js';
 import { IShow, IShowPopularityData, IShowPoularityScore } from "../../../database/models.js"
 
-export const createAll = async (allShows: ShowInterface[]): Promise<null> => {
+export const createAll = async (allShows: IShow[]): Promise<null> => {
     return db.shows.addAll(allShows);
-}
-
-export const create = async (show: ShowInterface): Promise<IShow> => {
-    return db.shows.add(show);
 }
 
 export const getById = async (id: number): Promise<IShow | null> => {
     return db.shows.findById(id);
 }
 
-export const deleteById = async (id: number): Promise<number> => {
-    return db.shows.remove(id)
-}
-
-export const getAll = async (): Promise<IShow[] | null> => {
-    return db.shows.all()
-}
-
-
 export const generateScores = async (): Promise<null> => {
-    const allData = await db.shows.allPopularityData();
+    const allData = await db.shows.getAllPopularityData();
     if (!allData) return null
 
     const updatedValues = allData.map((data: IShowPopularityData) => {

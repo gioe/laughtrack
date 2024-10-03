@@ -6,8 +6,10 @@ import { ShowInterface, ShowPopularityScore } from '../../common/interfaces/show
 
 var columnSets: {
     updateScores: ColumnSet | null;
+    addAll: ColumnSet | null;
 } = {
     updateScores: null,
+    addAll: null
 }
 
 
@@ -27,6 +29,7 @@ export class ShowsRepository {
     constructor(private db: IDatabase<any>, private pgp: IMain) {
         this.create();
         columnSets.updateScores = new pgp.helpers.ColumnSet(['?id', 'popularity_score'], { table: 'shows' });
+        columnSets.addAll = new pgp.helpers.ColumnSet(['club_id', 'date_time', 'ticket_link', 'popularity_score'], { table: 'shows' });
     }
 
     // Creates the table;
@@ -34,24 +37,8 @@ export class ShowsRepository {
         return this.db.none(sql.create);
     }
 
-    // Drops the table;
-    drop(): Promise<null> {
-        return this.db.none(sql.drop);
-    }
-
-    // Removes all records from the table;
-    empty(): Promise<null> {
-        return this.db.none(sql.empty);
-    }
-
-    // Adds a new show, and returns the new object;
-    add(show: ShowInterface): Promise<IShow> {
-        return this.db.one(sql.add, name);
-    }
-
-    // Tries to delete a show by id, and returns the number of records deleted;
-    remove(id: number): Promise<number> {
-        return this.db.result('DELETE FROM shows WHERE id = $1', +id, (r: IResult) => r.rowCount);
+    addAll(all: IShow[]): Promise<null> {
+        return this.db.none(sql.create);
     }
 
     // Tries to find a show from id;
@@ -61,27 +48,8 @@ export class ShowsRepository {
         });
     }
 
-    // Tries to find a show from name;
-    findByName(name: string): Promise<IShow | null> {
-        return this.db.oneOrNone('SELECT * FROM shows WHERE name = $1', name);
-    }
-
-    // Returns all shows records;
-    all(): Promise<IShow[]> {
-        return this.db.any('SELECT * FROM shows');
-    }
-
-    // Returns the total number of shows;
-    total(): Promise<number> {
-        return this.db.one('SELECT count(*) FROM shows', [], (a: { count: string }) => +a.count);
-    }
-
-    addAll(all: ShowInterface[]): Promise<null> {
-        return this.db.none(sql.create);
-    }
-
-    allPopularityData(): Promise<IShowPopularityData[] | null> {
-        return this.db.any(sql.allPopularityData)
+    getAllPopularityData(): Promise<IShowPopularityData[] | null> {
+        return this.db.any(sql.getAllPopularityData)
     }
 
     updateScores(scores: IShowPoularityScore[]): Promise<null> {

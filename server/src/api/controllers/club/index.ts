@@ -3,7 +3,7 @@ import { generateClubPopularityData } from "../../util/scoringUtil.js"
 import { db } from '../../../database/index.js';
 import { IClub, IClubDetails, IClubPopularityData } from "../../../database/models.js";
 import { readFile } from '../../util/storageUtil.js';
-import { clubArrayFromJson, toClub, toClubDetails } from './mapper.js';
+import { clubArrayFromJson, toClubDetailsInterface, toClubInterface } from '../../util/mappers/club/mapper.js';
 
 const getAllClubsFromFile = async () => {
     return readFile(process.env.CLUBS_FILE_NAME as string)
@@ -21,20 +21,20 @@ export const getById = async (id: number):  Promise<IClub | null> => {
 
 export const getAllDetailsByName = async (name: string):  Promise<ClubDetailsInterface | null> => {
     return db.clubs.findByNameWithAllDetails(name).then((response: IClubDetails | null) => {
-        if (response) return toClubDetails(response)
+        if (response) return toClubDetailsInterface(response)
         return null
     })
 }
 
 export const getBaseDetailsByName = async (name: string):  Promise<ClubDetailsInterface | null> => {
     return db.clubs.findByNameWithBaseDetails(name).then((response: IClubDetails | null) => {
-        if (response) return toClubDetails(response)
+        if (response) return toClubDetailsInterface(response)
         return null
     })
 }
 
 export const getAll = async (): Promise<ClubInterface[]> => {
-    return db.clubs.all().then((clubs: IClub[]) => clubs.map((club: IClub) => toClub(club)))
+    return db.clubs.all().then((clubs: IClub[]) => clubs.map((club: IClub) => toClubInterface(club)))
 }
 
 export const getTrendingClubs = async (): Promise<IClub[] | null> => {

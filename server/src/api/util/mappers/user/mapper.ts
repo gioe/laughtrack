@@ -1,5 +1,5 @@
-import { UserInterface } from '../../../common/interfaces/user.interface.js'
-import { IUser } from '../../../database/models.js'
+import { UserInterface } from "../../../../common/interfaces/user.interface.js"
+import { IUser } from "../../../../database/models.js"
 
 export const toUser = (payload: IUser): UserInterface => {
   return {

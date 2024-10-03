@@ -11,16 +11,17 @@ export class Show implements ShowInterface {
   id: number = 0;
   dateTime: Date = new Date();
   ticketLink: string = "";
-  dateTimeString: string = "";
-  path: string;
-  comedians: ComedianInterface[]
   club: ClubInterface;
-  isValid: boolean = true;
+  lineup: ComedianInterface[]
   popularityScore: number = 0;
 
-  constructor(scrapedValues: string[], comedians: Comedian[]) {
+  dateTimeString: string = "";
+  path: string;
+  isValid: boolean = true;
+
+  constructor(scrapedValues: string[], lineup: Comedian[]) {
     this.club = new Club;
-    this.comedians = comedians
+    this.lineup = lineup
     this.dateTimeString = scrapedValues[0]
     this.path = scrapedValues[1]
   }

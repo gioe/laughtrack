@@ -4,7 +4,7 @@ import { db } from '../../../database/index.js';
 import { IComedian, IComedianDetails, IComedianPopularityData } from "../../../database/models.js"
 import { readFile } from "../../util/storageUtil.js";
 import { JSON_KEYS } from "../../../common/constants/keys.js";
-import { toComedian, toComedianDetails } from "./mapper.js";
+import { toComedianDetailsInterface, toComedianInterface } from "../../util/mappers/comedian/mapper.js";
 
 const getBadComedians = async (): Promise<string[]> => {
     return readFile(process.env.INVALID_COMEDIANS_FILE_NAME as string)
@@ -32,7 +32,7 @@ export const getAllComedians = async (query?: string): Promise<ComedianInterface
         return comedians.filter((comedian: IComedian) => {
             if (query) return comedian.name.toLocaleLowerCase().includes(query.toLocaleLowerCase())
             return true
-        }).map((comedian: IComedian) => toComedian(comedian))
+        }).map((comedian: IComedian) => toComedianInterface(comedian))
     })
 }
 
@@ -42,7 +42,7 @@ export const getById = async (id: number): Promise<IComedian | null> => {
 
 export const getByName = async (name: string): Promise<ComedianDetailsInterface | null> => {
     return db.comedians.findByName(name).then((response: IComedianDetails | null) => {
-        if (response) return toComedianDetails(response)
+        if (response) return toComedianDetailsInterface(response)
         return null
     })
 }
@@ -72,7 +72,7 @@ export const generateScores = async (): Promise<null> => {
 
 export const favoriteComedian = async (name: string, id: number): Promise<ComedianDetailsInterface | null> => {
     return db.comedians.findByName(name).then((response: IComedianDetails | null) => {
-        if (response) return toComedianDetails(response)
+        if (response) return toComedianDetailsInterface(response)
         return null
     })
 }

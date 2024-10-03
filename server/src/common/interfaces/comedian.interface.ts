@@ -11,6 +11,7 @@ export interface ComedianInterface {
   instagramFollowers: number;
   tiktokFollowers: number;
   isPseudonym: boolean;
+  nonComedian: boolean;
 }
 
 export interface ComedianPopularityScore {

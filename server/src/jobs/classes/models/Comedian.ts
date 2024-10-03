@@ -4,6 +4,7 @@ import { removeBadWhiteSpace } from "../../util/stringUtil.js";
 export class Comedian implements ComedianInterface {
   
   instagramFollowers = 0;
+  nonComedian: boolean = false;
   tiktokFollowers = 0;
   isPseudonym = false;
   id: number = 0;

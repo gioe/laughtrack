@@ -7,6 +7,8 @@ import { Show } from "./Show.js";
 import { ScraperType } from "../../@types/ScraperType.js";
 import { generateScrapingLoop } from "../../util/scraperUtil.js";
 import { writeLogToFile } from "../../util/logUtil.js";
+import { IShow } from "../../../database/models.js";
+import { processShowsForStorage } from "../../../database/util/showUtil.js";
 
 export class Scraper {
 
@@ -22,7 +24,7 @@ export class Scraper {
     this.pageManager = new PageManager(club, club.scrapingConfig);
   }
   
-  public scrape = async (): Promise<Show[]> => {
+  public scrape = async (): Promise<IShow[]> => {
     writeLogToFile(`Started scraping ${this.club.name} at ${new Date()}`)
 
     return this.browser.newPage()
@@ -31,13 +33,9 @@ export class Scraper {
       .then((shows: ShowInterface[]) => this.closeBrowserAndReturnShows(shows))
   }
 
-  private closeBrowserAndReturnShows = async (shows: ShowInterface[]) => {
+  private closeBrowserAndReturnShows = async (shows: ShowInterface[]): Promise<IShow[]> => {
     return this.browser.close()
-    .then(() => {
-      const showModels = shows as Show[]
-      showModels.forEach(showModel => showModel.setClub(this.club))
-      return showModels.filter(showModel => showModel.isValid)
-    })
+    .then(() => processShowsForStorage(this.club, shows as Show[]));
   }
 
   runClubScrapingFunction = async (page: playwright.Page): Promise<ShowInterface[]> => { 

@@ -4,6 +4,7 @@ import { ShowInterface } from "../../../common/interfaces/show.interface.js";
 export class Club implements ClubInterface {
   
   id: number = 0;
+  zipCode: string = "";
   name: string = "";
   baseUrl: string = "";
   schedulePageUrl: string = "";

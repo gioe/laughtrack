@@ -6,6 +6,7 @@ import { runTasks } from "../common/util/promiseUtil.js";
 import { flatten } from "../common/util/arrayUtil.js";
 import { runScraper } from "../common/functions/scraper.js";
 import { writeLogToFile } from "./util/logUtil.js";
+import { IShow } from "../database/models.js";
 
 async function runScrapingJob() {
     const args = process.argv.slice(2);
@@ -31,8 +32,8 @@ export const scrapeClubs = async (id: number[]) => {
             .map((club: ClubInterface) => runScraper(club))
             return runTasks(jobs)
         })
-        .then((scrapedShows: ShowInterface[][]) => flatten(scrapedShows))
-        .then((scrapedShows: ShowInterface[]) => showController.createAll(scrapedShows))
+        .then((scrapedShows: IShow[][]) => flatten(scrapedShows))
+        .then((scrapedShows: IShow[]) => showController.createAll(scrapedShows))
 
     writeLogToFile(`Finished in ${(new Date().getTime() - startDate.getTime()) / 1000} seconds`);
 }

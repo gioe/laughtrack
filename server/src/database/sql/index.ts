@@ -47,11 +47,11 @@ export const search = {
 }
 
 export const shows = {
-    add: sql('shows/add.sql'),
-    allPopularityData: sql('shows/allPopularityData.sql'),
+     // Create Table
     create: sql('shows/create.sql'),
-    drop: sql('shows/drop.sql'),
-    empty: sql('shows/empty.sql'),
+
+    // GETs
+    getAllPopularityData: sql('shows/getAllPopularityData.sql'),
     getWithLineup: sql('shows/getWithLineup.sql')
 }
 
