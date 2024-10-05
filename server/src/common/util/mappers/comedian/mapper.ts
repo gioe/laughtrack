@@ -11,8 +11,8 @@ export const toComedianInterface = (payload: any): ComedianInterface => {
     return {
         id: payload.id,
         name: payload.name,
-        socialData: toSocialDataInterface(payload.social_data),
-        dates: toDates(payload.dates),
+        socialData: payload.social_data == undefined ? undefined : toSocialDataInterface(payload.social_data),
+        dates: payload.dates == undefined ? undefined : toDates(payload.dates),
         popularityScore: payload.popularity_score
     }
 }

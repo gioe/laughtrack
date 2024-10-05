@@ -1,14 +1,14 @@
 'use client';
 
 import React, { useState } from "react";
-import { ShowDetailsInterface } from "@/interfaces/show.interface";
 import ShowInfoCard from "./cards/ShowInfoCard";
 import { PaginationComponent } from "../pagination/Pagination";
 import Drawer from "../drawer/Drawer";
 import FilterComponent, { PropertyFilter } from "../filters/FilterComponent";
+import { ShowInterface } from "@/interfaces/show.interface";
 
 interface ShowTableProps {
-    shows: ShowDetailsInterface[];
+    shows: ShowInterface[];
 }
 
 
@@ -44,7 +44,7 @@ const ShowTable: React.FC<ShowTableProps> = ({
                 <div className="flex flex-col">
                     {shows.length > 0 ? (
                         shows
-                            .map((show: ShowDetailsInterface) => {
+                            .map((show: ShowInterface) => {
                                 return (
                                     <ShowInfoCard
                                         key={show.ticketLink}

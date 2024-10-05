@@ -1,14 +1,15 @@
 'use client';
 
 import React from "react";
-import { LineupItemInterface, ShowDetailsInterface } from "@/interfaces/show.interface";
 import MiniComedianIcon from "../../comedianIcons/MiniComedianIcon";
 import moment from "moment";
 import Image from "next/image";
 import Link from "next/link";
+import { ShowInterface } from "@/interfaces/show.interface";
+import { LineupItem } from "@/interfaces/comedian.interface copy";
 
 interface ShowInfoCardProps {
-    show: ShowDetailsInterface;
+    show: ShowInterface;
 }
 
 const ShowInfoCard: React.FC<ShowInfoCardProps> = ({
@@ -24,11 +25,11 @@ const ShowInfoCard: React.FC<ShowInfoCardProps> = ({
                     <h4 className="text-xl ml-2 text-center">{dateObject.format('LT')}</h4>
                     <div className="relative h-20 w-20 align-middle">
                         <Link
-                            href={`/club/${show.club.name}`}
+                            href={`/club/${show.clubName ?? ""}`}
                         >
                             <Image
                                 alt="Club"
-                                src={`/images/clubs/square/${show.club.name}.png`}
+                                src={`/images/clubs/square/${show.clubName ?? ""}.png`}
                                 fill
                                 priority={false}
                                 style={{ objectFit: "cover" }}
@@ -36,7 +37,7 @@ const ShowInfoCard: React.FC<ShowInfoCardProps> = ({
                             </Image>
                         </Link>
                     </div>
-                    <h4 className="text-xl ml-2 text-center">{show.club.name}</h4>
+                    <h4 className="text-xl ml-2 text-center">{show.clubName ?? ""}</h4>
                     <p className="text-m ml-2 text-center">{dateObject.format('LL')}</p>
                     <a className='text-center mt-8 text-sm underline' href={show.ticketLink}>Get tickets</a>
                 </div>
@@ -45,7 +46,7 @@ const ShowInfoCard: React.FC<ShowInfoCardProps> = ({
                     <div className="grid grid-cols-3 gap-5 ml-10 pt-5 overflow-scrollscrollbar-hide">
                         {show.lineup
                             .sort((a, b) => b.popularityScore - a.popularityScore)
-                            .map((item: LineupItemInterface) => {
+                            .map((item: LineupItem) => {
                                 return (
                                     <MiniComedianIcon key={item.name} comedian={item} />
                                 )

@@ -13,4 +13,5 @@ export interface GetShowResponseDTO {
     ticket_link: string;
     popularity_score: number;
     lineup: LineupItemDTO[];
+    club_name: string;
 }

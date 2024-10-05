@@ -17,22 +17,17 @@ export class UsersRepository {
      * or other namespaces available from the root.
      */
     constructor(private db: IDatabase<any>, private pgp: IMain) {
-        this.create();
+        this.createTable();
     }
 
     // Creates the table;
-    create(): Promise<null> {
+    createTable(): Promise<null> {
         return this.db.none(sql.create);
     }
 
     // Adds a new user, and returns the new object;
     add(user: CreateUserDTO): Promise<any> {
         return this.db.one(sql.add, user.email);
-    }
-
-    // Tries to delete a user by id, and returns the number of records deleted;
-    remove(id: number): Promise<number> {
-        return this.db.result('DELETE FROM users WHERE id = $1', +id, (r: IResult) => r.rowCount);
     }
 
     // Tries to find a user from id;

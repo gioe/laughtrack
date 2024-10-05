@@ -1,11 +1,11 @@
-WITH lineups as (
+WITH shows_with_details as (
     SELECT
-        s.id,
-        s.date_time,
-        s.ticket_link,
-        s.popularity_score,
+        s.id as id,
+        s.popularity_score as popularity_score,
+        s.date_time as date_time,
+        s.ticket_link as ticket_link,
         club_id,
-        array_agg(c.name) as lineup_names,
+        cl.city as city,
         jsonb_agg(
             DISTINCT jsonb_build_object(
                 'id',
@@ -20,7 +20,13 @@ WITH lineups as (
         shows s
         INNER JOIN lineups l ON s.id = l.show_id
         INNER JOIN comedians c ON c.id = l.comedian_id
+        INNER JOIN clubs cl on s.club_id = cl.id
+    WHERE
+    cl.city = ${location}
+    AND s.date_time < ${end_date}
+    AND s.date_time > ${start_date}
     GROUP BY
+        cl.city,
         s.id
 ),
 full_data as (
@@ -31,36 +37,37 @@ full_data as (
         lineup_details as lineup_details,
         date_time,
         ticket_link,
-        city,
-        longitude,
-        latitude,
-        l.popularity_score
+        sd.city,
+        sd.popularity_score
     FROM
-        lineups l
-        INNER JOIN lineups l ON l.id = l.show_id
+        shows_with_details sd
+        INNER JOIN lineups l ON sd.id = l.show_id
         INNER JOIN comedians c ON c.id = l.comedian_id
-        INNER JOIN clubs cl ON cl.id = l.club_id
+        INNER JOIN clubs cl ON cl.id = sd.club_id
 )
 SELECT
     f.city,
     jsonb_agg(
         DISTINCT jsonb_build_object(
-            'show_id',
+            'id',
             f.show_id,
-            'lineup',
-            f.lineup_details,
+            'city',
+            f.city,
+            'club_id',
+            f.club_id,
+            'popularity_score',
+            f.popularity_score,
             'club_name',
             f.club_name,
+            'lineup',
+            f.lineup_details,
             'date_time',
             f.date_time,
             'ticket_link',
-            f.ticket_link,
-            'popularity_score',
-            f.popularity_score
+            f.ticket_link
         )
-    ) as shows 
+    ) as shows
 from
     full_data f
-WHERE f.city = ${location} AND f.date_time < ${endDate} AND f.date_time > ${startDate}
 GROUP BY
     f.city

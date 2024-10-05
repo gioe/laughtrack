@@ -31,7 +31,7 @@ export class ClubsRepository {
      * or other namespaces available from the root.
      */
     constructor(private db: IDatabase<any>, private pgp: IMain) {
-          this.create();
+          this.createTable();
           columnSets.updateScores = new pgp.helpers.ColumnSet(['?id', 'popularity_score'], {table: 'clubs'});
           columnSets.addAll = new pgp.helpers.ColumnSet(['name', 'city', 'zip_code', 'address',
             'base_url', 'schedule_page_url', 'timezone', 'scraping_config', 'popularity_score'
@@ -39,7 +39,7 @@ export class ClubsRepository {
     }
 
     // Creates the table;
-    create(): Promise<null> {
+    createTable(): Promise<null> {
         return this.db.none(sql.create);
     }
 

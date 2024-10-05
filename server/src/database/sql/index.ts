@@ -19,12 +19,9 @@ export const comedians = {
     create: sql('comedians/create.sql'),
 
     // GETs
-    getAllPopularityData: sql('comedians/allPopularityData.sql'),
+    getAllPopularityData: sql('comedians/getAllPopularityData.sql'),
+    getByName: sql('comedians/getByName.sql'),
     getTrending: sql('comedians/getTrending.sql'),
-    getDetails: sql('comedians/getDetails.sql'),
- 
-    // PUTs
-    updateScores: sql('comedians/updateScores.sql')
 }
 
 export const favorites = {

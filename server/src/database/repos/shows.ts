@@ -26,18 +26,14 @@ export class ShowsRepository {
      * or other namespaces available from the root.
      */
     constructor(private db: IDatabase<any>, private pgp: IMain) {
-        this.create();
+        this.createTable();
         columnSets.updateScores = new pgp.helpers.ColumnSet(['?id', 'popularity_score'], { table: 'shows' });
         columnSets.addAll = new pgp.helpers.ColumnSet(['club_id', 'date_time', 'ticket_link', 'popularity_score'],
              { table: 'shows' });
     }
 
     // Creates the table;
-    create(): Promise<null> {
-        return this.db.none(sql.create);
-    }
-
-    addAll(all: CreateShowDTO[]): Promise<null> {
+    createTable(): Promise<null> {
         return this.db.none(sql.create);
     }
 

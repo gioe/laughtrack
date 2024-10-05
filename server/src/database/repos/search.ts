@@ -1,5 +1,6 @@
 import { IDatabase, IMain } from 'pg-promise';
 import { search as sql } from '../sql/index.js';
+import { GetHomeSearchResultsDTO, GetHomeSearchResultsResponseDTO } from '../../common/interfaces/data/search.interface.js';
 
 export class SearchRepository {
 
@@ -14,17 +15,10 @@ export class SearchRepository {
      * Library's root, if ever needed, like to access 'helpers'
      * or other namespaces available from the root.
      */
-    constructor(private db: IDatabase<any>, private pgp: IMain) {
+    constructor(private db: IDatabase<any>, private pgp: IMain) {}
 
-    }
-
-    getHomeSearchResults(request: any): Promise<any | null> {
-        const { location, startDate, endDate } = request
-        return this.db.oneOrNone(sql.getHomeSearchResults, {
-            location,
-            startDate,
-            endDate
-        });
+    getHomeSearchResults(request: GetHomeSearchResultsDTO): Promise<GetHomeSearchResultsResponseDTO | null> {
+        return this.db.oneOrNone(sql.getHomeSearchResults, request);
     }
 
 }

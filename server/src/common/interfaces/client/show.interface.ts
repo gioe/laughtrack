@@ -8,4 +8,6 @@ export interface ShowInterface {
   clubId: number;
   lineup: LineupItem[];
   popularityScore?: number;
+  clubName?: string;
+  
 }

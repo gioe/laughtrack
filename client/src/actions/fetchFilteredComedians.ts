@@ -1,6 +1,6 @@
 'use server'
 
-import { ComedianInterface } from "@/interfaces/comedian.interface"
+import { ComedianInterface } from "@/interfaces/comedian.interface";
 import { PUBLIC_ROUTES } from "@/lib/routes"
 
 const PAGE_SIZE = '20';

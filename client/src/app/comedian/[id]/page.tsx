@@ -2,18 +2,20 @@
 import { getComedianDetails } from "@/actions/getComedianDetails";
 import ComedianBanner from "@/components/custom/banners/ComedianBanner";
 import ShowTable from "@/components/custom/tables/ShowTable";
-import { ComedianDetailsInterface } from "@/interfaces/comedian.interface";
-import { LineupItemInterface, ShowDetailsInterface } from "@/interfaces/show.interface";
+import { ComedianInterface } from "@/interfaces/comedian.interface";
+import { LineupItem } from "@/interfaces/comedian.interface copy";
+import { ShowInterface } from "@/interfaces/show.interface";
 
 export default async function ComedianDetailsPage({ params }: { params: { id: string } }) {
   const { id } = params;
 
-  const comedian = await getComedianDetails(id) as ComedianDetailsInterface;
+  const comedian = await getComedianDetails(id) as ComedianInterface;
 
-  const filteredDates = comedian.dates.map((data: ShowDetailsInterface) => {
+  const filteredDates = comedian.dates?.map((data: ShowInterface) => {
+    
     return {
       ...data,
-      lineup: data.lineup.filter((item: LineupItemInterface) => item.name !== comedian.name)
+      lineup: data.lineup.filter((item: LineupItem) => item.name !== comedian.name)
     }
   })
 
@@ -25,7 +27,7 @@ export default async function ComedianDetailsPage({ params }: { params: { id: st
         </ComedianBanner>
       </section>
       <section>
-        <ShowTable shows={filteredDates} />
+        <ShowTable shows={filteredDates ?? []} />
       </section>
 
     </div>

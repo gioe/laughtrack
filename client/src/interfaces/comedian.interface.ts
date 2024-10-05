@@ -1,4 +1,4 @@
-import { ShowInterface } from "./show.interface";
+import { ShowInterface } from "./show.interface.js";
 
 export interface ComedianInterface {
   id?: number;

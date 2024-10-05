@@ -15,18 +15,10 @@ comedianApiRouter.post('/favorite', urlencodedParser,
 
 comedianApiRouter.get('/:name', urlencodedParser,
     async (req: Request, res: Response) => {
-        const { name } = req.body;
+        const { name } = req.params;
         const decodedName = decodeURI(name)
         const result = await comedianController.getByName(decodedName)
         return res.status(200).send(result)
-    })
-
-comedianApiRouter.get('/shows/:id',
-    async (req: Request, res: Response) => {
-        const id = Number(req.params.id)
-        const comedian = await comedianController.getById(id)
-        return res.status(200).send({
-        })
     })
 
 comedianApiRouter.post('/trending',
@@ -53,7 +45,6 @@ comedianApiRouter.post('/all', urlencodedParser,
 
         // Calculate the total number of pages
         const totalPages = Math.ceil(comedians.length / pageSizeInt);
-
         return res.status(200).send({
             comedians: paginatedComedians,
             totalPages

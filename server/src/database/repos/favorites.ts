@@ -16,11 +16,11 @@ export class FavoritesRepository {
      * or other namespaces available from the root.
      */
     constructor(private db: IDatabase<any>, private pgp: IMain) {
-        this.create();
+        this.createTable();
     }
 
     // Creates the table;
-    create(): Promise<null> {
+    createTable(): Promise<null> {
         return this.db.none(sql.create);
     }
 

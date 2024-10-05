@@ -40,6 +40,8 @@ SELECT
             fs.popularity_score,
             'club_id',
             c.id, 
+            'club_name',
+            c.name,
             'lineup',
             fs.lineup
         )

@@ -2,7 +2,7 @@ import { generateComedianPopularityScore } from "../../../common/util/scoringUti
 import { db } from '../../../database/index.js';
 import { toComedianInterface } from "../../../common/util/mappers/comedian/mapper.js";
 import { ComedianInterface } from "../../../common/interfaces/client/comedian.interface.js";
-import { CreateComedianDTO } from "../../../common/interfaces/data/comedian.interface.js";
+import { CreateComedianDTO, GetComedianResponseDTO } from "../../../common/interfaces/data/comedian.interface.js";
 
 export const addAll = async (comedians: CreateComedianDTO[]): Promise<{id: number}[]> => {
     return db.comedians.addAll(comedians);
@@ -17,12 +17,8 @@ export const getAllComedians = async (query?: string): Promise<ComedianInterface
     })
 }
 
-export const getById = async (id: number): Promise<ComedianInterface | null> => {
-    return db.comedians.findById(id)
-}
-
 export const getByName = async (name: string): Promise<ComedianInterface | null> => {
-    return db.comedians.findByName(name).then((response: ComedianInterface | null) => {
+    return db.comedians.findByName(name).then((response: GetComedianResponseDTO | null) => {
         if (response) return toComedianInterface(response)
         return null
     })
@@ -30,10 +26,6 @@ export const getByName = async (name: string): Promise<ComedianInterface | null>
 
 export const getTrendingComedians = async (): Promise<ComedianInterface[] | null> => {
     return db.comedians.getTrendingComedians()
-}
-
-export const deleteById = async (id: number): Promise<number> => {
-    return db.comedians.remove(id)
 }
 
 export const generateScores = async (): Promise<null> => {
@@ -52,8 +44,5 @@ export const generateScores = async (): Promise<null> => {
 
 
 export const favoriteComedian = async (name: string, id: number): Promise<ComedianInterface | null> => {
-    return db.comedians.findByName(name).then((response: ComedianInterface | null) => {
-        if (response) return toComedianInterface(response)
-        return null
-    })
+    return null
 }

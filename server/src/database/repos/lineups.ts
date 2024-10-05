@@ -24,12 +24,12 @@ export class LineupsRepository {
      * or other namespaces available from the root.
      */
     constructor(private db: IDatabase<any>, private pgp: IMain) {
-        this.create();
+        this.createTable();
         columnSets.addAll = new pgp.helpers.ColumnSet(['show_id', 'comedian_id' ], {table: 'lineups'});
     }
 
     // Creates the table;
-    create(): Promise<null> {
+    createTable(): Promise<null> {
         return this.db.none(sql.create);
     }
 

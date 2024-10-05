@@ -1,8 +1,6 @@
-import { ShowInterface } from "./show.interface";
+import { ShowInterface } from "./show.interface.js";
 
 export interface HomeSearchResultInterface {
     city: string;
-    shows: ShowInterface[];
-    totalPages?: number;
-    totalShows?: number;
+    shows: ShowInterface[]
 }
