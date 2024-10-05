@@ -1,3 +1,4 @@
+import { LineupItem } from "./comedian.interface copy.js";
 import { ComedianInterface } from "./comedian.interface.js";
 
 export interface ShowInterface {
@@ -5,6 +6,6 @@ export interface ShowInterface {
   dateTime: Date;
   ticketLink: string
   clubId: number;
-  lineup: ComedianInterface[];
+  lineup: LineupItem[];
   popularityScore?: number;
 }

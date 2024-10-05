@@ -1,7 +1,7 @@
 import { ShowInterface } from "../../../interfaces/client/show.interface.js"
 import { CreateShowDTO, GetShowResponseDTO } from "../../../interfaces/data/show.interface.js"
 import { Show } from "../../../models/Show.js"
-import { toComedianInterfaceArray } from "../comedian/mapper.js"
+import { toLineupItemArray } from "../lineupItem/mapper.js"
 
 export const toDates = (payload: any): ShowInterface[] => {
     return payload.shows.map((show: any) => toShowInterface(show));
@@ -13,7 +13,7 @@ export const toShowInterface = (payload: GetShowResponseDTO): ShowInterface => {
         dateTime: payload.date_time,
         ticketLink: payload.ticket_link,
         clubId: payload.club_id,
-        lineup: payload.lineup == undefined ? [] : toComedianInterfaceArray(payload.lineup),
+        lineup: payload.lineup == undefined ? [] : toLineupItemArray(payload.lineup),
         popularityScore: payload.popularity_score
     }
 }

@@ -1,25 +1,33 @@
-WITH future_shows as (
-    SELECT
-        id,
-        date_time,
-        ticket_link,
-        popularity_score,
-        club_id
-    FROM
-        shows
-    where
-        date_time > NOW()
+WITH future_shows_with_lineup as (
+SELECT
+    s.id,
+    s.club_id as club_id,
+    s.date_time,
+    s.ticket_link,
+    s.popularity_score,
+    jsonb_agg(
+        jsonb_build_object(
+            'id',
+            c.id,
+            'name',
+            c.name,
+            'popularity_score',
+            c.popularity_score
+        )
+    ) AS lineup
+from shows s
+inner join lineups l on s.id = l.show_id
+inner join comedians c on c.id = l.comedian_id
+WHERE date_time > NOW()
+GROUP BY
+    s.id,
+    s.date_time 
+ORDER BY s.date_time ASC
 )
 SELECT
     c.id,
     c.name,
-    c.base_url, 
-    c.timezone,
-    c.city,
-    c.address,
-    c.popularity_score,
-    c.zip_code,
-    COALESCE(
+     COALESCE(
     jsonb_agg(
         jsonb_build_object(
             'id',
@@ -31,17 +39,16 @@ SELECT
             'popularity_score',
             fs.popularity_score,
             'club_id',
-            c.id
+            c.id, 
+            'lineup',
+            fs.lineup
         )
     ) FILTER (WHERE fs.id IS NOT NULL), '[]') AS shows
 from
     clubs c
-    left join future_shows fs on fs.club_id = c.id
+    left join future_shows_with_lineup fs on fs.club_id = c.id
 WHERE
     c.name = ${name}
 GROUP BY
     c.id,
-    c.name,
-    fs.date_time
-ORDER BY
-    fs.date_time ASC
+    c.name

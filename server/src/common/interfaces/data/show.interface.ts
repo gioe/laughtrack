@@ -1,3 +1,5 @@
+import {  LineupItemDTO } from "./lineupItem.interface.js";
+
 export interface CreateShowDTO {
     club_id: number;
     date_time: Date;
@@ -10,5 +12,5 @@ export interface GetShowResponseDTO {
     date_time: Date;
     ticket_link: string;
     popularity_score: number;
-    lineup: any[];
+    lineup: LineupItemDTO[];
 }
