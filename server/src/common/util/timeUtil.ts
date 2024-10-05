@@ -2,18 +2,28 @@ import { REGEX } from "../constants/regex.js";
 import { ScrapingConfig } from "../models/ScrapingConfig.js";
 import { removeSubstrings } from "./stringUtil.js";
 
-export const normalizeTimeString = (timeString: string, config: ScrapingConfig) => {
+export const normalizeTimeString = (timeString: string, meridiem: string, config: ScrapingConfig) => {
     const cleanedTimeString = cleanTimeString(timeString, config)
+    const determinedMeridiem = determineMeridiem(cleanedTimeString, meridiem);
 
-    const meridiem = cleanedTimeString.toLowerCase().includes('pm') ? "PM" : "AM"
+    const numericString = removeSubstrings(cleanedTimeString, [determinedMeridiem, determinedMeridiem.toLowerCase()])
 
-    const numericString = removeSubstrings(cleanedTimeString, [meridiem, meridiem.toLowerCase()])
+    var [hours, minutes] = numericString.split(':');
 
-    const [hours, minutes] = numericString.split(':');
-
-    const adjustedHours = parseInt(hours) + (meridiem == 'PM' ? 12 : 0);
+    if (parseInt(hours) == 12) {
+        hours = "00"
+    }
+    
+    const adjustedHours = parseInt(hours) + (determinedMeridiem == 'PM' ? 12 : 0);
 
     return minutes === undefined ? `${adjustedHours}:00` : `${adjustedHours}:${minutes}`;
+}
+
+const determineMeridiem = (timeString: string, meridiem: string): string => {
+    if (timeString.toLowerCase().includes('pm') || meridiem.toLowerCase() == 'pm' || meridiem.length == 0) {
+        return "PM"
+    }
+    return "AM"
 }
 
 export const cleanTimeString = (timeString: string, config: ScrapingConfig): string => {

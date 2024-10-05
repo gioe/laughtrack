@@ -1,13 +1,11 @@
-import { ScrapingConfig } from "../../../common/models/ScrapingConfig.js";
-import { normalizeTimeString } from "../../../common/util/timeUtil.js";
 
 export class TimeContainer {
 
   timeString: string = "";
   timeComponents: string[];
 
-  constructor(timeString: string, config: ScrapingConfig) {
-    this.timeString = normalizeTimeString(timeString, config);
+  constructor(timeString: string) {
+    this.timeString = timeString;
     this.timeComponents = this.timeString.split(":")
   }
 

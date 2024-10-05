@@ -42,11 +42,9 @@ export const replaceSubstrings = (inputString: string, targets: string[], replac
 
 export const removeSubstrings = (inputString: string, replacements?: string[]) => {
     var mutatedString = inputString;
-    
     for (const replacement of replacements ?? []) {
         mutatedString = mutatedString.replaceAll(replacement, "")
     }
-
     return removeBadWhiteSpace(mutatedString)
 }
 

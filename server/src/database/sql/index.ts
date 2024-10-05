@@ -10,11 +10,8 @@ export const clubs = {
 
     // GETs
     getAllPopularityData: sql('clubs/getAllPopularityData.sql'),
-    getCities: sql('clubs/getCities.sql'),
-    getWithAllDetails: sql('clubs/getWithAllDetails.sql'),
-    getWithBaseDetails: sql('clubs/getWithBaseDetails.sql'),
-    getTrending: sql('clubs/getTrending.sql'),
-    getWithSchedule: sql('clubs/getWithSchedule.sql')
+    getByName: sql('clubs/getByName.sql'),
+    getCities: sql('clubs/getCities.sql')
 }
 
 export const comedians = {
@@ -32,16 +29,12 @@ export const comedians = {
 
 export const favorites = {
     add: sql('favorites/add.sql'),
-    create: sql('favorites/create.sql'),
-    drop: sql('favorites/drop.sql'),
-    empty: sql('favorites/empty.sql'),
+    create: sql('favorites/create.sql')
 }
 
 export const lineups = {
     add: sql('lineups/add.sql'),
-    create: sql('lineups/create.sql'),
-    drop: sql('lineups/drop.sql'),
-    empty: sql('lineups/empty.sql'),
+    create: sql('lineups/create.sql')
 }
 
 export const search = {
@@ -52,6 +45,10 @@ export const shows = {
      // Create Table
     create: sql('shows/create.sql'),
 
+
+    //POST 
+    add: sql('shows/add.sql'),
+
     // GETs
     getAllPopularityData: sql('shows/getAllPopularityData.sql'),
     getWithLineup: sql('shows/getWithLineup.sql')
@@ -59,9 +56,7 @@ export const shows = {
 
 export const users = {
     add: sql('users/add.sql'),
-    create: sql('users/create.sql'),
-    drop: sql('users/drop.sql'),
-    empty: sql('users/empty.sql'),
+    create: sql('users/create.sql')
 }
 
 

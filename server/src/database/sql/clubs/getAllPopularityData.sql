@@ -1,12 +1,12 @@
 SELECT
     c.id,
-    jsonb_agg(
+    COALESCE(jsonb_agg(
         jsonb_build_object(
+        	'id', s.id,
             'popularity_score',
             s.popularity_score
-        )
-    ) AS scores
+        )) FILTER (WHERE s.id IS NOT NULL), '[]') as shows
 from clubs c
-inner join shows s on s.club_id = c.id
+left join shows s on s.club_id = c.id
 GROUP BY
     c.id

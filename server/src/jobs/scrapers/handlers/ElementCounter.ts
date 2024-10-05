@@ -1,4 +1,4 @@
-import { Scrapable } from '../../../common/interfaces/client/scrapable.interface.js';
+import { Scrapable } from '../../../common/interfaces/client/scrape.interface.js';
 import { provideGenericPromiseResponse } from '../../../common/util/promiseUtil.js';
 
 export class ElementCounter {

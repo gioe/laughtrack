@@ -1,5 +1,5 @@
 import playwright from "playwright-core";
-import { Scrapable } from "../interfaces/client/scrapable.interface.js";
+import { Scrapable } from "../interfaces/client/scrape.interface.js";
 
 export const generateCompleteUrl = (scrapable: Scrapable, path: string): string => {
 	if (pathIsCompleteUrl(path)) return path

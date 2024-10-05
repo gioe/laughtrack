@@ -1,5 +1,5 @@
 import playwright from "playwright-core";
-import { Scrapable } from "../../common/interfaces/client/scrapable.interface.js";
+import { Scrapable } from "../../common/interfaces/client/scrape.interface.js";
 import { Comedian } from "../../common/models/Comedian.js";
 import { ScrapingConfig } from "../../common/models/ScrapingConfig.js";
 import { runTasks } from "../../common/util/promiseUtil.js";

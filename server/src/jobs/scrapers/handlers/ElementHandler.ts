@@ -1,7 +1,7 @@
 import { ElementHandle } from "playwright-core";
 import { runTasks } from '../../../common/util/promiseUtil.js';
 import { generateUrlsFromPaths } from "../../../common/util/scrapableUtil.js";
-import { Scrapable } from "../../../common/interfaces/client/scrapable.interface.js";
+import { Scrapable } from "../../../common/interfaces/client/scrape.interface.js";
 
 const EMPTY_STYLE_INDICATORS = ['display: none;']
 

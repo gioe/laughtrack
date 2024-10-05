@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS shows (
     date_time timestamp without time zone NOT NULL,
     ticket_link text NOT NULL,
     club_id integer REFERENCES clubs(id),
+    is_comedy boolean DEFAULT true,
     popularity_score double precision DEFAULT '0'::double precision,
     CONSTRAINT shows_club_id_date_time_key UNIQUE (club_id, date_time)
 );

@@ -1,6 +1,3 @@
-/*
- Creates table Clubs.
- */
 CREATE TABLE IF NOT EXISTS clubs (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL unique,

@@ -4,8 +4,8 @@ import { CreateShowDTO } from '../../../common/interfaces/data/show.interface.js
 import { generateShowPopularityData } from '../../../common/util/scoringUtil.js'
 import { db } from '../../../database/index.js';
 
-export const createAll = async (allShows: CreateShowDTO[]): Promise<null> => {
-    return db.shows.addAll(allShows);
+export const add = async (show: CreateShowDTO): Promise<{id: number}> => {
+    return db.shows.add(show);
 }
 
 export const getById = async (id: number): Promise<ShowInterface | null> => {

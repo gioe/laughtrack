@@ -5,40 +5,40 @@ import { writeLogToFile } from "../util/logUtil.js";
 import { CreateShowDTO } from "../interfaces/data/show.interface.js";
 import { processShowsForStorage } from "../util/showUtil.js";
 import { ScraperType } from "../@types/ScraperType.js";
-import { Scrapable } from "../interfaces/client/scrapable.interface.js";
+import { Scrapable, ScrapingOutput } from "../interfaces/client/scrape.interface.js";
 import { generateScrapingLoop } from "../util/scraperUtil.js";
-import { ClubInterface } from "../interfaces/client/club.interface.js";
+import { ClubScrapingData } from "../interfaces/client/club.interface.js";
 
 export class Scraper {
 
-  private club: ClubInterface;
+  private clubData: ClubScrapingData;
   private browser: playwright.Browser;
   private pageManager: PageManager;
 
-  constructor(club: ClubInterface,
+  constructor(clubData: ClubScrapingData,
     browser: playwright.Browser,
   ) {
-    this.club = club;
+    this.clubData = clubData;
     this.browser = browser;
-    this.pageManager = new PageManager(club.scrapingConfig);
+    this.pageManager = new PageManager(clubData.scrapingConfig);
   }
   
-  public scrape = async (): Promise<CreateShowDTO[]> => {
-    writeLogToFile(`Started scraping ${this.club.name} at ${new Date()}`)
+  public scrape = async (): Promise<ScrapingOutput[]> => {
+    writeLogToFile(`Started scraping ${this.clubData.name} at ${new Date()}`)
 
     return this.browser.newPage()
-      .then((page: playwright.Page) => this.pageManager.navigateToUrl(page, this.club.schedulePageUrl))
+      .then((page: playwright.Page) => this.pageManager.navigateToUrl(page, this.clubData.schedulePageUrl))
       .then((page: playwright.Page) => this.runClubScrapingFunction(page))
-      .then((shows: Show[]) => this.closeBrowserAndReturnShows(shows))
+      .then((shows: Show[]) => this.closeBrowserAndProcess(shows))
   }
 
-  private closeBrowserAndReturnShows = async (shows: Show[]): Promise<CreateShowDTO[]> => {
+  private closeBrowserAndProcess = async (shows: Show[]): Promise<ScrapingOutput[]> => {
     return this.browser.close()
-    .then(() => processShowsForStorage(this.club, shows as Show[]));
+    .then(() => processShowsForStorage(this.clubData, shows as Show[]));
   }
 
   runClubScrapingFunction = async (page: playwright.Page): Promise<Show[]> => { 
-    switch (this.club.scrapingConfig.type) {
+    switch (this.clubData.scrapingConfig.type) {
       
       case ScraperType.A: return this.selectDateOptionAndScrape(page)
       case ScraperType.B: return this.expandPageGoToDetailPageAndScrape(page)

@@ -1,9 +1,9 @@
-import { ClubInterface } from "../interfaces/client/club.interface.js";
+import { ClubScrapingData } from "../interfaces/client/club.interface.js";
+import { ScrapingOutput } from "../interfaces/client/scrape.interface.js";
 import { ShowInterface } from "../interfaces/client/show.interface.js";
 import { CreateShowDTO } from "../interfaces/data/show.interface.js";
 import { Show } from "../models/Show.js";
 import { writeFailureToFile } from "./logUtil.js";
-import { toCreateShowDTO } from "./mappers/show/mapper.js";
 
 export const orderShows = (shows: ShowInterface[], filter?: string): ShowInterface[] => {
   return shows.sort((a: ShowInterface, b: ShowInterface) => {
@@ -27,32 +27,26 @@ export const isLikelyShow = (inputString: string, showSignifiers?: string[]): bo
   return isLikely
 }
 
-export const formatShowTicketLink = (ticketLink: string, club: ClubInterface): string => {
-  return !ticketLink.includes("http") ? club.baseUrl + ticketLink : ticketLink
-}
-
-export const processShowsForStorage = (club: ClubInterface, shows: Show[]): CreateShowDTO[] => {    
+export const processShowsForStorage = (club: ClubScrapingData, shows: Show[]): ScrapingOutput[] => {    
     if (shows.length == 0) writeFailureToFile(`No shows returned for ${club.name}`)
 
-    var uniqueShows: CreateShowDTO[] = []
+    return shows
+    .map((show: Show) => {
+      show.setClubId(club.id)
+      return show;
+    })
+    .map((show: Show) => {
+      const showDto = show.asCreateShowDTO()
+      const comedianArrayDto = show.asCreateComedianDTOArray()
 
-    const validShows = shows
-    .filter((show: Show) => show.lineup.length > 0)
-
-    for (let index = 0; index < validShows.length - 1; index++) {
-        const currentShow = validShows[index]
-        
-        var elementIndex = uniqueShows.findIndex(show => {
-            return currentShow.dateTime == show.date_time &&
-            currentShow.ticketLink == show.ticket_link
-        });
-
-        if (elementIndex == -1) {
-            const covertedShow = toCreateShowDTO(currentShow)
-            uniqueShows.push(covertedShow)
-        }
-    }
-
-    return uniqueShows
+      if (showDto !== null && comedianArrayDto.length > 0) {
+        return {
+          show: show.asCreateShowDTO(),
+          comedians: show.asCreateComedianDTOArray()
+        } as ScrapingOutput
+      }
+      return null
+    })
+    .filter((value: ScrapingOutput | null) => value !== null)
 }
 

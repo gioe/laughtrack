@@ -4,7 +4,7 @@ import { ElementValidator } from "../../jobs/scrapers/handlers/ElementValidator.
 import { ElementHandler } from "../../jobs/scrapers/handlers/ElementHandler.js";
 import { ScrapingConfig } from "./ScrapingConfig.js";
 import { ShowScraper } from "../../jobs/scrapers/ShowScraper.js";
-import { Scrapable } from "../interfaces/client/scrapable.interface.js";
+import { Scrapable } from "../interfaces/client/scrape.interface.js";
 import { generateCompleteUrl } from "../util/scrapableUtil.js";
 import { Show } from "./Show.js";
 import { runTasks } from "../util/promiseUtil.js";
@@ -20,7 +20,7 @@ export class PageManager {
   private scrapingConfig: ScrapingConfig;
   private showScraper: ShowScraper;
 
-  constructor(config: any) {
+  constructor(config: any,) {
     this.scrapingConfig = new ScrapingConfig(config)
     this.showScraper = new ShowScraper(this.scrapingConfig)
   }

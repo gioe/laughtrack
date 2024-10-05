@@ -1,38 +1,47 @@
 
 import { Comedian } from "./Comedian.js";
-import { formatShowTicketLink } from "../util/showUtil.js";
 import { DateTimeContainer } from "../../jobs/scrapers/containers/DateTimeContainer.js";
-import { ClubInterface } from "../interfaces/client/club.interface.js";
+import { CreateShowDTO } from "../interfaces/data/show.interface.js";
+import { ScrapingConfig } from "./ScrapingConfig.js";
+import { CreateComedianDTO } from "../interfaces/data/comedian.interface.js";
 
 export class Show {
 
   lineup: Comedian[];
-  dateTimeString: string;
-  path: string;
+  scrapingConfig: ScrapingConfig;
+  dateTimeContainer: DateTimeContainer;
+  ticketLink: string;
 
   clubId: number = 0;
-  dateTime: Date = new Date();
-  ticketLink: string = "";
-  isValid: boolean = true;
 
-  constructor(scrapedValues: string[], lineup: Comedian[]) {
+  constructor(scrapedValues: string[], lineup: Comedian[], scrapingConfig: ScrapingConfig) {
+    const dateTimeString = scrapedValues[0]
+    const ticketString = scrapedValues[1]
+    this.scrapingConfig = scrapingConfig;
     this.lineup = lineup
-    this.dateTimeString = scrapedValues[0]
-    this.path = scrapedValues[1]
+    this.ticketLink = ticketString;
+    this.dateTimeContainer = new DateTimeContainer(dateTimeString, this.scrapingConfig);
   }
 
-  setClub = (club: ClubInterface) => {
-    this.clubId = club.id;
-    this.ticketLink = formatShowTicketLink(this.path, club);
-    this.handleDateTime(club)
+  setClubId = (id: number) => {
+    this.clubId = id;
   }
 
-  handleDateTime = (club: ClubInterface) => {
-    if (this.dateTimeString !== undefined) {
-      const dateTimeContainer = new DateTimeContainer(this.dateTimeString, club.scrapingConfig);
-      this.isValid = dateTimeContainer.isValid();
-      this.dateTime = dateTimeContainer.asDateObject();
+  asCreateShowDTO = (): CreateShowDTO | null => {
+    if (!this.isValid()) return null
+    return {
+      club_id: this.clubId,
+      date_time: this.dateTimeContainer.asDateObject(),
+      ticket_link: this.ticketLink,
     }
   }
 
+  asCreateComedianDTOArray = (): CreateComedianDTO[] => {
+    return this.lineup.map((comedian: Comedian) => comedian.asCreateComedianDTO())
+  }
+
+  isValid = (): boolean => {
+    return this.clubId !== 0 && this.dateTimeContainer.isValid()
+  }
+ 
 }

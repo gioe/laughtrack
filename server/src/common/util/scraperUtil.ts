@@ -6,7 +6,7 @@ import {
 } from "../@types/ScrapingFunctions.js";
 import { ScrapingFunction } from "../@types/ScrapingFunctions.js";
 import { Show } from "../models/Show.js";
-import { Scrapable } from "../interfaces/client/scrapable.interface.js";
+import { Scrapable } from "../interfaces/client/scrape.interface.js";
 
 export const generateScrapingLoop = async (
   page: playwright.Page, 

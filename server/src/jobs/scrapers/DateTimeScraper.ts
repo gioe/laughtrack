@@ -1,4 +1,4 @@
-import { Scrapable } from "../../common/interfaces/client/scrapable.interface.js";
+import { Scrapable } from "../../common/interfaces/client/scrape.interface.js";
 import { ScrapingConfig } from "../../common/models/ScrapingConfig.js";
 import { stringIsAValidDate } from "../../common/util/dateUtil.js";
 import { providedStringPromise, runTasks } from "../../common/util/promiseUtil.js";

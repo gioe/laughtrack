@@ -1,6 +1,5 @@
-/*
-    Inserts a new User record.
-*/
-INSERT INTO users(name)
-VALUES($1)
-RETURNING *
+INSERT INTO comedians(name) 
+VALUES(${name})
+ON CONFLICT (name) DO UPDATE
+SET name = EXCLUDED.name
+RETURNING id;

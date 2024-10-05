@@ -1,22 +1,29 @@
 import { JSON_KEYS } from "../../../constants/keys.js"
-import { ClubInterface } from "../../../interfaces/client/club.interface.js"
-import { CreateClubDTO } from "../../../interfaces/data/club.interface.js"
+import { ClubInterface, ClubScrapingData } from "../../../interfaces/client/club.interface.js"
+import { CreateClubDTO, GetClubWithShowsResponseDTO } from "../../../interfaces/data/club.interface.js"
+import { GetShowResponseDTO } from "../../../interfaces/data/show.interface.js"
 import { toShowInterface } from "../show/mapper.js"
 
-export const toClubInterface = (payload: any): ClubInterface => {
+export const toClubScrapingData = (payload: any): ClubScrapingData => {
+    return {
+        id: payload.id,
+        name: payload.name,
+        baseUrl: payload.base_url,
+        schedulePageUrl: payload.schedule_page_url, 
+        scrapingConfig: payload.scraping_config
+    }
+}
+export const toClubInterface = (payload: GetClubWithShowsResponseDTO | null): ClubInterface | null => {
+    if (payload == null) return null
     return {
         id: payload.id, 
         name: payload.name,
         baseUrl: payload.base_url,
-        schedulePageUrl: payload.schedule_page_url,
         timezone: payload.timezone,
-        scrapingConfig: payload.scraping_config,
         city: payload.city,
         address: payload.address,
-        latitude: payload.latitude,
-        longitude: payload.longitude,
         popularityScore: payload.popularity_score,
-        shows: payload.shows == undefined ? [] : payload.shows.map((show: any) => toShowInterface(show)),
+        shows: payload.shows.map((show: GetShowResponseDTO) => toShowInterface(show)),
         zipCode: payload.zip_code
     }
 }

@@ -1,5 +1,4 @@
-import { ScrapingConfig } from "../../../common/models/ScrapingConfig.js";
-import { determineDay, determineMonth, determineYear, normalizeDateString } from"../../../common/util/dateUtil.js";
+import { determineDate, determineMonth, determineYear } from"../../../common/util/dateUtil.js";
 
 // Used for cases where the string value is a valid string, but doesn't contain a year so the DateConstructor
 // defaults to 2001 instead of the current year;
@@ -7,11 +6,11 @@ const DEFAULT_YEAR = 2001;
 
 export class DateContainer {
 
-  dateString: string = "";
+  dateString: string;
   dateObject: Date;
 
-  constructor(dateString: string, config: ScrapingConfig) {
-    this.dateString = normalizeDateString(dateString, config);
+  constructor(dateString: string) {
+    this.dateString = dateString
     this.dateObject = new Date(this.dateString);
   }
 
@@ -25,11 +24,18 @@ export class DateContainer {
   }
 
   getMonth = (): number => {
-    return isNaN(this.dateObject.getTime()) ?  determineMonth(this.dateString) : this.dateObject.getMonth();
+    return isNaN(this.dateObject.getTime()) ? determineMonth(this.dateString) : this.dateObject.getMonth();
   }
 
-  getDay = (): number => {
-    return isNaN(this.dateObject.getTime()) ? determineDay(this.dateString) : this.dateObject.getDate();
+  getDate = (): number => {
+    if (isNaN(this.dateObject.getTime())) {
+      const year = this.getYear().toString()
+      const cleanedString =  this.dateString.replaceAll(year, "")
+      return determineDate(cleanedString) 
+    } else {
+      return this.dateObject.getDate();
+    }
+
   }
 
 }

@@ -1,7 +1,7 @@
 import playwright from "playwright-core";
 import { ScrapingConfig } from "../../common/models/ScrapingConfig.js";
 import { ScrapableScraper } from "./ScrapableScraper.js";
-import { Scrapable } from "../../common/interfaces/client/scrapable.interface.js";
+import { Scrapable } from "../../common/interfaces/client/scrape.interface.js";
 import { stringIsAValidUrl } from "../../common/util/urlUtil.js";
 import { providedStringPromise } from "../../common/util/promiseUtil.js";
 

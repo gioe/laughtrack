@@ -24,16 +24,6 @@ export class FavoritesRepository {
         return this.db.none(sql.create);
     }
 
-    // Drops the table;
-    drop(): Promise<null> {
-        return this.db.none(sql.drop);
-    }
-
-    // Removes all records from the table;
-    empty(): Promise<null> {
-        return this.db.none(sql.empty);
-    }
-
     // Adds a new user, and returns the new object;
     add(comedianId: number, userId: number): Promise<any> {
         return this.db.one(sql.add, {

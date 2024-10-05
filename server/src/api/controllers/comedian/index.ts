@@ -1,26 +1,11 @@
 import { generateComedianPopularityScore } from "../../../common/util/scoringUtil.js"
 import { db } from '../../../database/index.js';
-import { readFile } from "../../../common/util/storageUtil.js";
-import { JSON_KEYS } from "../../../common/constants/keys.js";
 import { toComedianInterface } from "../../../common/util/mappers/comedian/mapper.js";
 import { ComedianInterface } from "../../../common/interfaces/client/comedian.interface.js";
 import { CreateComedianDTO } from "../../../common/interfaces/data/comedian.interface.js";
 
-const getBadComedians = async (): Promise<string[]> => {
-    return readFile(process.env.INVALID_COMEDIANS_FILE_NAME as string)
-        .then((json: any) => {
-            return json[JSON_KEYS.names].map((object: any) => {
-                return object
-            })
-        })
-}
-
-export const createAll = async (comedians: CreateComedianDTO[]): Promise<null> => {
-    const badComedians = await getBadComedians()
-
-    const filteredComedians = comedians.filter((comedian: CreateComedianDTO) => !badComedians.includes(comedian.name))
-
-    return db.comedians.addAll(filteredComedians);
+export const addAll = async (comedians: CreateComedianDTO[]): Promise<{id: number}[]> => {
+    return db.comedians.addAll(comedians);
 }
 
 export const getAllComedians = async (query?: string): Promise<ComedianInterface[]> => {

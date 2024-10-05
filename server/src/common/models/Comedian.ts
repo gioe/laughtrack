@@ -1,3 +1,4 @@
+import { CreateComedianDTO } from "../interfaces/data/comedian.interface.js";
 import { removeBadWhiteSpace } from "../util/stringUtil.js";
 
 export class Comedian  {
@@ -8,4 +9,9 @@ export class Comedian  {
     this.name = removeBadWhiteSpace(name);
   }
 
+  asCreateComedianDTO = (): CreateComedianDTO => {
+    return {
+      name: this.name
+    }
+  }
 }

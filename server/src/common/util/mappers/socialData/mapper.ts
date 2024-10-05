@@ -1,4 +1,5 @@
 import { SocialDataInterface } from "../../../interfaces/client/socialData.interface.js"
+import { GetClubPopularityDataDTO } from "../../../interfaces/data/club.interface.js"
 import { PopularityScoreDTO } from "../../../interfaces/data/popularityScore.interface.js"
 import { generateClubPopularityData } from "../../scoringUtil.js"
 
@@ -14,13 +15,13 @@ export const toSocialDataInterface = (payload: any): SocialDataInterface => {
     }
 }
 
-export const toPopularityScores = (payload: any | null): PopularityScoreDTO[] | null => {
+export const toPopularityScores = (payload: GetClubPopularityDataDTO[] | null): PopularityScoreDTO[] | null => {
     if (payload == null) return null
     return payload.map((data: any) => toPopularityScore(data))
 }
 
 
-export const toPopularityScore = (payload: any): PopularityScoreDTO => {
+export const toPopularityScore = (payload: GetClubPopularityDataDTO): PopularityScoreDTO => {
     return {
         id: payload.id,
         popularity_score: generateClubPopularityData(payload)

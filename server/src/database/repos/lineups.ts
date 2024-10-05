@@ -1,6 +1,14 @@
-import {IDatabase, IMain} from 'pg-promise';
+import {ColumnSet, IDatabase, IMain} from 'pg-promise';
 import {IResult} from 'pg-promise/typescript/pg-subset.js';
 import {lineups as sql} from '../sql/index.js';
+import { CreateLineupItemDTO } from '../../common/interfaces/data/lineupItem.interface.js';
+
+var columnSets: {
+    addAll: ColumnSet | null;
+} = {
+    addAll: null
+}
+
 
 export class LineupsRepository {
 
@@ -17,6 +25,7 @@ export class LineupsRepository {
      */
     constructor(private db: IDatabase<any>, private pgp: IMain) {
         this.create();
+        columnSets.addAll = new pgp.helpers.ColumnSet(['show_id', 'comedian_id' ], {table: 'lineups'});
     }
 
     // Creates the table;
@@ -24,20 +33,16 @@ export class LineupsRepository {
         return this.db.none(sql.create);
     }
 
-    // Drops the table;
-    drop(): Promise<null> {
-        return this.db.none(sql.drop);
-    }
-
-    // Removes all records from the table;
-    empty(): Promise<null> {
-        return this.db.none(sql.empty);
+    addAll(all: CreateLineupItemDTO[]): Promise<null> {
+        const batchInsert = this.pgp.helpers.insert(all, columnSets.addAll) + ` ON CONFLICT DO NOTHING`;
+        return this.db.none(batchInsert)
     }
 
     // Adds a new user, and returns the new object;
-    add(comedianId: number, showId: number): Promise<any> {
+    add(lineupItem: CreateLineupItemDTO): Promise<any> {
         return this.db.one(sql.add, {
-            comedianId, showId
+            show_id: lineupItem.show_id,
+            comedian_id: lineupItem.comedian_id,
         });
     }
 

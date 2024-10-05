@@ -11,7 +11,6 @@ var columnSets: {
     addAll: null
 }
 
-
 export class ComediansRepository {
 
     /**
@@ -67,9 +66,9 @@ export class ComediansRepository {
         return this.db.any(sql.getTrending);
     }
 
-    addAll(all: CreateComedianDTO[]): Promise<null> {
-        const batchInsert = this.pgp.helpers.insert(all, columnSets.addAll);
-        return this.db.none(batchInsert)
+    addAll(all: CreateComedianDTO[]): Promise<{id: number}[]> {
+        const batchInsert = this.pgp.helpers.insert(all, columnSets.addAll) + ' ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING id';
+        return this.db.any(batchInsert)
     }
 
     allPopularityData(): Promise<any[] | null> {

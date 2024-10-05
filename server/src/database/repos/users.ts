@@ -25,16 +25,6 @@ export class UsersRepository {
         return this.db.none(sql.create);
     }
 
-    // Drops the table;
-    drop(): Promise<null> {
-        return this.db.none(sql.drop);
-    }
-
-    // Removes all records from the table;
-    empty(): Promise<null> {
-        return this.db.none(sql.empty);
-    }
-
     // Adds a new user, and returns the new object;
     add(user: CreateUserDTO): Promise<any> {
         return this.db.one(sql.add, user.email);
@@ -55,7 +45,7 @@ export class UsersRepository {
         return this.db.oneOrNone('SELECT * FROM users WHERE email = $1', email);
     }
 
-        // Tries to find a user from name;
+    // Tries to find a user from name;
     checkForExistence(email: string): Promise<any | null> {
         return this.db.oneOrNone('SELECT * FROM users WHERE email = $1', email);
     }

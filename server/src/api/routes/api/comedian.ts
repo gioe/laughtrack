@@ -13,7 +13,7 @@ comedianApiRouter.post('/favorite', urlencodedParser,
         return res.status(200).send(result)
     })
 
-comedianApiRouter.post('/', urlencodedParser,
+comedianApiRouter.get('/:name', urlencodedParser,
     async (req: Request, res: Response) => {
         const { name } = req.body;
         const decodedName = decodeURI(name)

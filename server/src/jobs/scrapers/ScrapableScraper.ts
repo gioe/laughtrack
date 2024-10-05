@@ -1,5 +1,5 @@
 import playwright from "playwright-core";
-import { Scrapable } from "../../common/interfaces/client/scrapable.interface.js";
+import { Scrapable } from "../../common/interfaces/client/scrape.interface.js";
 import { provideGenericPromiseResponse } from "../../common/util/promiseUtil.js";
 import { ElementHandler } from "./handlers/ElementHandler.js";
 

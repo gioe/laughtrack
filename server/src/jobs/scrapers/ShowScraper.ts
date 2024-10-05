@@ -3,7 +3,7 @@ import { ComedianScraper } from "./ComedianScraper.js";
 import { TicketScraper } from "./TicketScraper.js";
 import { ScrapingConfig } from "../../common/models/ScrapingConfig.js";
 import { runTasks } from "../../common/util/promiseUtil.js";
-import { Scrapable } from "../../common/interfaces/client/scrapable.interface.js";
+import { Scrapable } from "../../common/interfaces/client/scrape.interface.js";
 import { Comedian } from "../../common/models/Comedian.js";
 import { Show } from "../../common/models/Show.js";
 
@@ -12,8 +12,10 @@ export class ShowScraper {
   private comedianScraper: ComedianScraper;
   private dateTimeScraper: DateTimeScraper;
   private ticketScraper: TicketScraper;
+  private scrapingConfig: ScrapingConfig;
 
   constructor(scrapingConfig: ScrapingConfig) {
+    this.scrapingConfig = scrapingConfig;
     this.comedianScraper = new ComedianScraper(scrapingConfig);
     this.ticketScraper = new TicketScraper(scrapingConfig);
     this.dateTimeScraper = new DateTimeScraper(scrapingConfig);
@@ -36,7 +38,7 @@ export class ShowScraper {
   }
 
   addComediansToShow = (scrapedValues: string[], comedians: Comedian[]): Show => {
-    return new Show(scrapedValues, comedians)
+    return new Show(scrapedValues, comedians, this.scrapingConfig)
   }
   
 }

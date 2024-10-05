@@ -1,7 +1,11 @@
 import {ColumnSet, IDatabase, IMain} from 'pg-promise';
 import {clubs as sql} from '../sql/index.js';
-import { CreateClubDTO } from '../../common/interfaces/data/club.interface.js';
-import { ClubInterface } from '../../common/interfaces/client/club.interface.js';
+import { 
+    CreateClubDTO, 
+    GetCitiesResponseDTO, 
+    GetClubPopularityDataDTO, 
+    GetClubWithShowsResponseDTO 
+} from '../../common/interfaces/data/club.interface.js';
 import { PopularityScoreDTO } from '../../common/interfaces/data/popularityScore.interface.js';
 import { provideGenericPromiseResponse } from '../../common/util/promiseUtil.js';
 
@@ -30,7 +34,7 @@ export class ClubsRepository {
           this.create();
           columnSets.updateScores = new pgp.helpers.ColumnSet(['?id', 'popularity_score'], {table: 'clubs'});
           columnSets.addAll = new pgp.helpers.ColumnSet(['name', 'city', 'zip_code', 'address',
-            'latitude', 'longitude', 'base_url', 'schedule_page_url', 'timezone', 'scraping_config', 'popularity_score'
+            'base_url', 'schedule_page_url', 'timezone', 'scraping_config', 'popularity_score'
           ], {table: 'clubs'});
     }
 
@@ -40,40 +44,18 @@ export class ClubsRepository {
     }
 
     addAll(all: CreateClubDTO[]): Promise<null> {
-        const batchInsert = this.pgp.helpers.insert(all, columnSets.addAll);
+        const batchInsert = this.pgp.helpers.insert(all, columnSets.addAll) + `ON CONFLICT (name) DO UPDATE SET scraping_config = EXCLUDED.scraping_config`
         return this.db.none(batchInsert)
     }
 
     // Tries to find a club from id;
-    findById(id: number): Promise<ClubInterface | null> {
-        return this.db.oneOrNone(sql.getWithSchedule, {
-            clubId: +id,
+    getByName(name: string): Promise<GetClubWithShowsResponseDTO | null> {
+        return this.db.oneOrNone(sql.getByName, {
+            name,
         });
     }
-
-    // Tries to find a club from name;
-    findByNameWithAllDetails(name: string): Promise<ClubInterface | null> {
-        return this.db.oneOrNone(sql.getWithAllDetails, {
-            name
-        });
-    }
-
-    findByNameWithBaseDetails(name: string): Promise<ClubInterface | null> {
-        return this.db.oneOrNone(sql.getWithBaseDetails, {
-            name
-        });
-    }
-
-    // Tries to find a club from city;
-    findByCity(city: string): Promise<ClubInterface[] | null> {
-        return this.db.any('SELECT * FROM clubs WHERE city = $1', city);
-    }
-
-    getTrendingClubs(): Promise<ClubInterface[] | null> {
-        return this.db.any(sql.getTrending);
-    }
-
-    getAllCities(): Promise<ClubInterface[] | null> {
+    
+    getAllCities(): Promise<GetCitiesResponseDTO[] | null> {
         return this.db.any(sql.getCities);
     }
 
@@ -82,7 +64,7 @@ export class ClubsRepository {
         return this.db.any('SELECT * FROM clubs')
     }
 
-    getAllPopularityData(): Promise<any[] | null> {
+    getAllPopularityData(): Promise<GetClubPopularityDataDTO[] | null> {
         return this.db.any(sql.getAllPopularityData)
     }
 
@@ -90,7 +72,7 @@ export class ClubsRepository {
         if (scores == null) return provideGenericPromiseResponse(null)
 
         const update = this.pgp.helpers.update(scores, columnSets.updateScores) + ' WHERE v.id = t.id';
-        
+
         return this.db.none(update)
     }
 

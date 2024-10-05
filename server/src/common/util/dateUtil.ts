@@ -7,6 +7,7 @@ var months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oc
 
 export const normalizeDateString = (dateString: string, config: ScrapingConfig): string => {
     const cleanedDateString = cleanDateString(dateString, config)
+
     if (stringIsAValidDate(cleanedDateString)) return cleanedDateString
     else {
         const regexDate = getDateByRegex(cleanedDateString);
@@ -20,8 +21,8 @@ export const cleanDateString = (dateString: string, config: ScrapingConfig): str
 }
 
 const getBadDateStringContent = (config: ScrapingConfig) => {
-    var badContent: string[] = config.badDateStrings ?? []
-    badContent = badContent.concat(DATE.days);
+    var badContent: string[] = [" -", "-", " |" , ","];
+    badContent = DATE.days.concat(badContent);
     return badContent
 }
 
@@ -36,7 +37,7 @@ export const getDateByRegex = (dateString: string): string | undefined =>  {
     return dateValues ? dateValues[0] as string : undefined
 }
 
-export const determineDay = (dateString: string): number => {
+export const determineDate = (dateString: string): number => {
     const numberString = removeNonNumbers(dateString);
     return Number(numberString)
 }
@@ -53,6 +54,6 @@ export const determineMonth = (dateString: string): number => {
 
 export const determineYear = (month: number): number => {
     const currentDate = new Date()
-    return currentDate.getMonth() < month ? currentDate.getFullYear() + 1 : currentDate.getFullYear();
+    return month < currentDate.getMonth()  ? currentDate.getFullYear() + 1 : currentDate.getFullYear();
 }
 
