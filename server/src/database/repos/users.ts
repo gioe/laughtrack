@@ -1,5 +1,4 @@
 import { IDatabase, IMain } from 'pg-promise';
-import { IResult } from 'pg-promise/typescript/pg-subset.js';
 import { users as sql } from '../sql/index.js';
 import { CreateUserDTO } from '../../common/interfaces/data/user.interface.js';
 
@@ -27,7 +26,11 @@ export class UsersRepository {
 
     // Adds a new user, and returns the new object;
     add(user: CreateUserDTO): Promise<any> {
-        return this.db.one(sql.add, user.email);
+        return this.db.one(sql.add, {
+            email: user.email,
+            role: user.role,
+            password: user.password
+        });
     }
 
     // Tries to find a user from id;

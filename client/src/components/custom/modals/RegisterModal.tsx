@@ -1,18 +1,22 @@
 'use client'
 
-import { FcGoogle } from 'react-icons/fc';
 import { useState } from 'react'; 
 import { useForm, SubmitHandler, FieldValues } from "react-hook-form";
+import { signIn } from 'next-auth/react'
 import useRegisterModal from '@/hooks/useRegisterModel';
-import axios from 'axios';
 import Modal from './Modal';
 import Heading from '../Heading';
 import toast from 'react-hot-toast';
-import Button from '../Button';
-import Input from '../input/Input';
+import useLoginModal from '@/hooks/useLoginModal';
+import axios from 'axios';
+import StylizedInput from '../inputs/StylizedInput';
+import { useRouter } from 'next/navigation';
 
 const RegisterModal = () => {
     const registerModal = useRegisterModal();
+    const loginModal = useLoginModal();
+    const router = useRouter();
+
     const [isLoading, setIsLoading] = useState(false);
 
     const { register, handleSubmit, formState: {
@@ -20,34 +24,49 @@ const RegisterModal = () => {
      }
     } = useForm<FieldValues>({
         defaultValues: {
-            name: '',
             email: '',
             password: ''
         }
     });
 
-    const onSubmit: SubmitHandler<FieldValues> = (data: any ) => {
+    const onSubmit: SubmitHandler<FieldValues> = (data: any) => {
         setIsLoading(true);
         axios.post('/api/register', data)
         .then(() => {
-            registerModal.onClose();
+            return signIn('credentials', {
+                ...data,
+                redirect: false
+            })
         })
-        .catch((() => {
-            toast.error('Something went wrong')
-        }))
-        .finally(() => {
-            setIsLoading(false);
+        .then((callback: any) => {
+            setIsLoading(false)
+            if (callback?.ok) {
+                toast.success("Logged in")
+                router.refresh();
+                loginModal.onClose();
+                registerModal.onClose();
+            }
+
+            if (callback?.error) {
+                toast.error(callback.error)
+            }
         })
+        .catch((() => toast.error('Something went wrong')))
+        .finally(() => setIsLoading(false))
+    }
+
+    const handleLoginClick = () => {
+        registerModal.onClose()
+        loginModal.onOpen();
     }
     
-
     const bodyContent = (
         <div className='flex flex-col gap-4'>
             <Heading
                 title='Welcome to Laughtrack'
                 subtitle='Create an account'            
             />
-            <Input 
+            <StylizedInput 
                 id="email" 
                 label='Email' 
                 disabled={isLoading} 
@@ -55,7 +74,7 @@ const RegisterModal = () => {
                 errors={errors} 
                 required
             />
-            <Input 
+            <StylizedInput 
                 id="password" 
                 type='password'
                 label='Password' 
@@ -70,19 +89,13 @@ const RegisterModal = () => {
     const footerContent = (
         <div className='flex flex-col gap-4 mt-3'>
             <hr />
-            <Button 
-                outline 
-                label="Continue with Google"
-                icon={FcGoogle}
-                onClick={() => {}}
-            />
             <div className='text-neutral-500 text-center mt-4 font-light'>
                 <div className='justify-center flex flex-row items-center gap-2'>
                     <div>
                         Already have an account?
                     </div>
                     <div 
-                    onClick={registerModal.onClose}
+                    onClick={handleLoginClick}
                     className='text-neutral-800 cursor-pointer hover:underline'>
                         Log in
                     </div>

@@ -1,6 +1,6 @@
 'use client';
  
-import {Input} from "@nextui-org/react";
+import { Input } from "@nextui-org/react";
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
 import SearchIcon from "../icons/SearchIcon";
 import React, { useState } from "react";

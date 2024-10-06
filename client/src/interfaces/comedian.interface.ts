@@ -6,4 +6,5 @@ export interface ComedianInterface {
   socialData?: any;
   dates?: ShowInterface[];
   popularityScore?: number;
+  userIsFollower?: boolean;
 }

@@ -5,11 +5,20 @@ import bodyParser from "body-parser";
 export const comedianApiRouter = express.Router();
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
 
-comedianApiRouter.post('/favorite', urlencodedParser,
+comedianApiRouter.post('/favorite/:id', 
+    urlencodedParser,
+
     async (req: Request, res: Response) => {
-        const { name } = req.body;
-        const decodedName = decodeURI(name)
-        const result = await comedianController.favoriteComedian(decodedName, 123)
+        const { id } = req.params;
+        const idNumber = Number(id)
+
+        if (idNumber == 0) return res.status(400).json({ error: "Comedian doesn't exist." });
+        
+        const result = await comedianController.favoriteComedian({
+            comedian_id: idNumber,
+            user_id: 1
+        })
+
         return res.status(200).send(result)
     })
 
@@ -17,7 +26,9 @@ comedianApiRouter.get('/:name', urlencodedParser,
     async (req: Request, res: Response) => {
         const { name } = req.params;
         const decodedName = decodeURI(name)
+        console.log(decodedName)
         const result = await comedianController.getByName(decodedName)
+        console.log(result)
         return res.status(200).send(result)
     })
 

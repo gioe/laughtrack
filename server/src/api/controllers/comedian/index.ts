@@ -3,6 +3,7 @@ import { db } from '../../../database/index.js';
 import { toComedianInterface } from "../../../common/util/mappers/comedian/mapper.js";
 import { ComedianInterface } from "../../../common/interfaces/client/comedian.interface.js";
 import { CreateComedianDTO, GetComedianResponseDTO } from "../../../common/interfaces/data/comedian.interface.js";
+import { CreateFavoriteComedianDTO } from "../../../common/interfaces/data/favorite.interface.js";
 
 export const addAll = async (comedians: CreateComedianDTO[]): Promise<{id: number}[]> => {
     return db.comedians.addAll(comedians);
@@ -43,6 +44,6 @@ export const generateScores = async (): Promise<null> => {
 }
 
 
-export const favoriteComedian = async (name: string, id: number): Promise<ComedianInterface | null> => {
+export const favoriteComedian = async (payload: CreateFavoriteComedianDTO): Promise<ComedianInterface | null> => {
     return null
 }

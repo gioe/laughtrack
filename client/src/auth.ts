@@ -1,5 +1,4 @@
 import NextAuth from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import { PUBLIC_ROUTES } from "./lib/routes";
 import { jwtDecode } from "jwt-decode";
@@ -9,11 +8,6 @@ import { refreshAccessToken } from "./lib/token";
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
 
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    }),
-
     Credentials({
       name: "Credentials",
       credentials: {
@@ -22,6 +16,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
 
       async authorize(credentials) {
+        console.log("AUTHORIZING")
+        console.log(credentials)
 
         if (credentials === null) return null;
 

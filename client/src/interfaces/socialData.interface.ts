@@ -4,6 +4,6 @@ export interface SocialDataInterface {
     tiktokAccount?: string;
     tiktokFollowers?: number;
     website?: string;
-    nonComedian: boolean;
-    isPseudonym: boolean;
+    nonComedian?: boolean;
+    isPseudonym?: boolean;
 }

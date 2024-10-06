@@ -1,8 +1,8 @@
 import { fetchFilteredComedians, GetComediansResponse } from "@/actions/fetchFilteredComedians";
 import { PaginationComponent } from "@/components/custom/pagination/Pagination";
+import { Suspense } from 'react';
 import TextSearchBar from "@/components/custom/search/TextSearchBar";
 import ComedianTable from "@/components/custom/tables/ComedianTable";
-import { Suspense } from 'react';
 
 export default async function AllComediansPage({
   searchParams,

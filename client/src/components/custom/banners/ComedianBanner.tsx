@@ -1,9 +1,9 @@
-import { ComedianDetailsInterface } from "@/interfaces/comedian.interface";
 import Image from "next/image";
 import SocialMediaBar from "../social/SocialMediaBar";
+import { ComedianInterface } from "@/interfaces/comedian.interface";
 
 interface ComedianBannerProps {
-    comedian: ComedianDetailsInterface;
+    comedian: ComedianInterface;
 }
 
 const ComedianBanner: React.FC<ComedianBannerProps> = ({

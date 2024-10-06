@@ -1,6 +1,3 @@
-/*
-    Inserts a new User record.
-*/
-INSERT INTO users(name)
-VALUES($1)
-RETURNING *
+INSERT INTO users(email, password, role) 
+VALUES(${email}, ${password}, ${role})
+RETURNING id;

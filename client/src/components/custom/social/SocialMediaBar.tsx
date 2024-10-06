@@ -1,13 +1,13 @@
 'use client';
 
-import { SocialDetailInterface } from "@/interfaces/socialDetail.interface";
 import Link from "next/link";
 import InstagramIcon from "../icons/InstagramIcon";
 import TikTokIcon from "../icons/TikTokIcon";
 import WebIcon from "../icons/WebIcon";
+import { SocialDataInterface } from "@/interfaces/socialData.interface";
 
 interface SocialMediaBarProps {
-    data: SocialDetailInterface;
+    data: SocialDataInterface;
 
 }
 const SocialMediaBar: React.FC<SocialMediaBarProps> = ({

@@ -4,12 +4,12 @@ import { useCallback, useState } from "react"
 import MenuItem from "./MenuItem"
 import useRegisterModal from "@/hooks/useRegisterModel"
 import useLoginModal from "@/hooks/useLoginModal"
-import { User } from "@/types/user"
 import { signOut } from "next-auth/react"
-import { MenuIcon, UserCircleIcon, UsersIcon } from "@heroicons/react/solid";
+import { MenuIcon, UserCircleIcon } from "@heroicons/react/solid";
+import { UserInterface } from "@/interfaces/user.interface"
 
 interface UserMenuProps {
-    currentUser?: User | null;
+    currentUser?: UserInterface | null;
 }
 
 const UserMenu: React.FC<UserMenuProps> = ({

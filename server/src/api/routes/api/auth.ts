@@ -29,7 +29,7 @@ authApiRouter.post('/register',
             .then((response: any) => userController.getUserById(response.id))
             .then((user: UserInterface | null) => {
                 if (user) {
-                    res.status(200).json({ id: user.id })
+                    return res.status(200).json({ id: user.id })
                 }
                 throw new Error("User doesn't exist")
             })

@@ -1,10 +1,10 @@
 import { ComedianInterface } from "@/interfaces/comedian.interface";
-import { LineupItemInterface } from "@/interfaces/show.interface";
+import { LineupItem } from "@/interfaces/comedian.interface copy";
 import Image from "next/image"
 import Link from "next/link";
 
 interface MiniComedianIconProps {
-    comedian: ComedianInterface | LineupItemInterface;
+    comedian: ComedianInterface | LineupItem;
 }
 
 export const MiniComedianIcon: React.FC<MiniComedianIconProps> = (

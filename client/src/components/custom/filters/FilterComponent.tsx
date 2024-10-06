@@ -6,8 +6,6 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Avatar, Chip } from "@nextui-org/react";
-import { ComedianFilterChipInterface } from "@/interfaces/comedian.interface";
-import { ClubFilterChipInterface } from "@/interfaces/club.interface";
 
 export type PropertyFilter = {
   key: string;
@@ -17,8 +15,8 @@ export type PropertyFilter = {
 interface FilterComponentProps {
   selectedFilter?: string;
   propertyFilters?: PropertyFilter[];
-  comedians?: ComedianFilterChipInterface[]
-  clubs?: ClubFilterChipInterface[]
+  comedians?: any[]
+  clubs?: any[]
 }
 
 const FilterComponent: React.FC<FilterComponentProps> = ({
@@ -82,7 +80,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
             base: "max-w-xs",
             trigger: "min-h-12 py-2",
           }}
-          renderValue={(items: SelectedItems<ComedianFilterChipInterface>) => {
+          renderValue={(items: SelectedItems<any>) => {
             return (
               <div className="flex flex-wrap gap-2">
                 {items.map((item) => (
@@ -107,7 +105,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
 
       {clubs && (
         <Select
-          items={[...new Set(clubs)] ?? []}
+          items={[]}
           variant="bordered"
           isMultiline={true}
           selectionMode="multiple"
@@ -118,7 +116,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
             base: "max-w-xs",
             trigger: "min-h-12 py-2",
           }}
-          renderValue={(items: SelectedItems<ClubFilterChipInterface>) => {
+          renderValue={(items: SelectedItems<any>) => {
             return (
               <div className="flex flex-wrap gap-2">
                 {items.map((item) => (

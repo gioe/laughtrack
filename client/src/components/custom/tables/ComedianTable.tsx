@@ -1,12 +1,10 @@
 'use client';
 
 import React from "react";
-import { ComedianInterface } from "@/interfaces/comedian.interface";
 import ComedianInfoCard from "./cards/ComedianInfoCard";
-import { PaginationComponent } from "../pagination/Pagination";
 import Drawer from "../drawer/Drawer";
 import { useState } from 'react';
-import TextSearchBar from "../search/TextSearchBar";
+import { ComedianInterface } from "@/interfaces/comedian.interface";
 
 interface ComedianTableProps {
     comedians: ComedianInterface[]
@@ -32,7 +30,7 @@ const ComedianTable: React.FC<ComedianTableProps> = ({
                             return (
                                 <ComedianInfoCard
                                     key={comedian.name}
-                                    userIsFollower={comedian.userIsFollower}
+                                    userIsFollower={comedian.userIsFollower ?? false}
                                     comedian={comedian}
                                 />
                             )

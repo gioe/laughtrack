@@ -1,9 +1,9 @@
 import Image from "next/image";
-import { ClubDetailsInterface } from "@/interfaces/club.interface";
 import SocialMediaBar from "../social/SocialMediaBar";
+import { ClubInterface } from "@/interfaces/club.interface";
 
 interface ClubBannerProps {
-    club: ClubDetailsInterface;
+    club: ClubInterface;
 }
 
 const ClubBanner: React.FC<ClubBannerProps> = ({

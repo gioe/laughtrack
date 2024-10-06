@@ -17,9 +17,6 @@ export async function getComedianDetails(name: string) {
     },
   })
     .then((response) => response.json())
-    .then((data) => {
-      console.log(data)
-      return data
-    })
+    .then((data) => data)
     .catch((error) => console.log(error))
 }
