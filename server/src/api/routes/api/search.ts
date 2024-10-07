@@ -8,7 +8,7 @@ var urlencodedParser = bodyParser.urlencoded({ extended: false })
 searchApiRouter.post('/', urlencodedParser,
     async (req: Request, res: Response) => {
         const { location, startDate, endDate, page, pageSize, filter} = req.body;
-
+        console.log(req.body)
         const pageInt = parseInt(page as string);
         const pageSizeInt = parseInt(pageSize as string);
 
@@ -25,7 +25,6 @@ searchApiRouter.post('/', urlencodedParser,
 
             // Calculate the total number of pages
             const totalPages = Math.ceil(result.shows.length / pageSizeInt);
-    
     
             return res.status(200).send({
                 city: result.city,

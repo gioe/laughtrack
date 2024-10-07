@@ -3,13 +3,13 @@
 import { PUBLIC_ROUTES } from "@/lib/routes"
 
 export async function getCities() {
-  const trendingClubsUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.CITIES
+  const getCitiesUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.GET_CITIES
 
-  return fetch(trendingClubsUrl, {
+  return fetch(getCitiesUrl, {
     cache: 'no-store',
     method: "POST",
   })
     .then((response) => response.json())
-    .then((data) =>  data.map((object: any) => object.city))
+    .then((data) => data)
     .catch((error) => console.log(error))
 }

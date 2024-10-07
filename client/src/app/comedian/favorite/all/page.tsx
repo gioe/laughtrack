@@ -1,35 +1,21 @@
-import { GetComediansResponse } from "@/actions/fetchFilteredComedians";
-import { PaginationComponent } from "@/components/custom/pagination/Pagination";
+import { GetComediansResponse } from "@/actions/comedians/getComedians";
 import { Suspense } from 'react';
-import TextSearchBar from "@/components/custom/search/TextSearchBar";
 import ComedianTable from "@/components/custom/tables/ComedianTable";
-import { fetchFavoriteComedians } from "@/actions/fetchFavoriteComedians";
+import { FetchFavoriteComedianParams, getFavoriteComedians } from "@/actions/comedians/getFavoriteComedians";
 
 export default async function FavoriteComediansPage({
-  searchParams,
+  params,
 }: {
-  searchParams?: {
-    query?: string;
-    page?: string;
-  };
+  params?: FetchFavoriteComedianParams;
 }) {
 
-  const query = searchParams?.query || '';
-  const currentPage = searchParams?.page || '1';
-  const response = await fetchFavoriteComedians(currentPage, query) as GetComediansResponse
-  const pageCount = response.totalPages
+  const response = await getFavoriteComedians(params)
 
   return (
     <main className="flex-grow pt-14 m-5 px-6 bg-shark">
-      <div className="flex flex-row">
-        <TextSearchBar query={query}/>
-        <PaginationComponent pageCount={pageCount} />
-      </div>
-      <Suspense key={query + currentPage} fallback={<div />}>
-        <ComedianTable comedians={response.comedians} />
+      <Suspense key={(params?.query ?? 1) + (params?.currentPage ?? "")} fallback={<div />}>
+        <ComedianTable response={response} />
       </Suspense>
-      <section>
-      </section>
     </main>
   );
 }

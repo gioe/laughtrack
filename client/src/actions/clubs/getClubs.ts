@@ -1,23 +1,29 @@
 'use server'
 
-import { ComedianInterface } from "@/interfaces/comedian.interface";
+import { auth } from "@/auth";
+import { ClubInterface } from "@/interfaces/club.interface";
 import { PUBLIC_ROUTES } from "@/lib/routes"
-import { auth } from "../auth"
 
 const PAGE_SIZE = '20';
 
-export interface GetComediansResponse {
-  comedians: ComedianInterface[]
+export interface GetClubsParams {
+  currentPage?: string,
+  query?: string
+}
+
+export interface GetClubsResponse {
+  clubs: ClubInterface[]
   query: string;
   totalPages: number;
 }
 
-export async function fetchFavoriteComedians(currentPage: string, query: string) {
-  const favoriteComediansUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.ALL_FAVORITE_COMEDIANS
+export async function getClubs(params: GetClubsParams) {
+
+  const getClubsUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.GET_ALL_CLUBS
 
   return auth()
     .then((session: any) => {
-      return fetch(favoriteComediansUrl, {
+      return fetch(getClubsUrl, {
         cache: 'no-store',
         method: "POST",
         headers: {
@@ -25,8 +31,8 @@ export async function fetchFavoriteComedians(currentPage: string, query: string)
           'x-auth-token': session.accessToken ?? ''
         },
         body: new URLSearchParams({
-          page: currentPage,
-          query: query,
+          query: params?.query ?? "",
+          page: params?.currentPage ?? "1",
           pageSize: PAGE_SIZE
         }),
       })
@@ -34,5 +40,4 @@ export async function fetchFavoriteComedians(currentPage: string, query: string)
     .then((response) => response.json())
     .then((data) => data)
     .catch((error) => console.log(error))
-
 }

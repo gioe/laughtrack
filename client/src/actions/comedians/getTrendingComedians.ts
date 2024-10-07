@@ -3,8 +3,8 @@
 import { PUBLIC_ROUTES } from "@/lib/routes"
 
 export async function getTrendingComedians() {
-  const trendingComediansUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.TRENDING_COMEDIANS
-
+  const trendingComediansUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.GET_TRENDING_COMEDIANS
+  console.log(trendingComediansUrl)
   return fetch(trendingComediansUrl, {
     cache: 'no-store',
     method: "POST",

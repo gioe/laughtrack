@@ -7,10 +7,10 @@ import { HeartIcon as SolidHeart } from "@heroicons/react/solid";
 import Image from "next/image";
 import Link from "next/link";
 import { ComedianInterface } from '@/interfaces/comedian.interface';
-import { addToFavorites } from '@/actions/addToFavorites';
 import useLoginModal from '@/hooks/useLoginModal';
 import useRegisterModal from '@/hooks/useRegisterModel';
 import { useSession } from "next-auth/react";
+import { updateFavoriteState } from '@/actions/favorite/addToFavorites';
 
 interface ComedianInfoCardProps {
     comedian: ComedianInterface;
@@ -35,7 +35,10 @@ const ComedianInfoCard: React.FC<ComedianInfoCardProps> = ({
 
     const handleFavoriteClick = () => {
         if (session.status == 'authenticated') {
-            addToFavorites(comedian.id ?? 0, isFavorite, session.data.accessToken).then((state: boolean) => {
+            updateFavoriteState({
+                id: comedian.id, 
+                isFavorite
+            }).then((state: boolean) => {
                 setIsFavorite(state)
             })
         }

@@ -1,23 +1,25 @@
 
-import { getClubDetails } from "@/actions/getClubDetails";
-import { ClubInterface } from "@/interfaces/club.interface";
+import { getClubDetails, GetClubDetailsParams, GetClubDetailsResponse } from "@/actions/clubs/getClubDetails";
 import ClubBanner from "@/components/custom/banners/ClubBanner";
 import ShowTable from "@/components/custom/tables/ShowTable";
 
-export default async function ClubDetailPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default async function ClubDetailPage({
+  params,
+}: {
+  params: GetClubDetailsParams;
+}) {
 
-  const response = await getClubDetails(id) as ClubInterface;
+  const response = await getClubDetails(params);
 
   return (
     <div>
       <section>
         <ClubBanner
-          club={response}>
+          club={response.entity}>
         </ClubBanner>
       </section>
       <section>
-        <ShowTable shows={response.shows ?? []} />
+        <ShowTable response={response} />
       </section>
     </div>
   )

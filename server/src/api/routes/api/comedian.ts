@@ -15,30 +15,30 @@ comedianApiRouter.post('/favorite/:id',
     urlencodedParser,
     async (req: Request, res: Response) => {
         const { id } = req.params;
-        
+
         if (id == 'all') {
             const { page, pageSize, query } = req.body;
 
             const pageInt = parseInt(page as string);
             const pageSizeInt = parseInt(pageSize as string);
-    
+
             // Calculate the start and end indexes for the requested page
             const startIndex = (pageInt - 1) * pageSizeInt;
             const endIndex = pageInt * pageSizeInt;
             const comedians = await comedianController.getAllFavorites(req.currentUser.id)
             const paginatedComedians = comedians.slice(startIndex, endIndex);
             const totalPages = Math.ceil(comedians.length / pageSizeInt);
-    
+
             return res.status(200).send({
                 comedians: paginatedComedians,
                 totalPages
-            })   
+            })
         } else {
             const { isFavorite } = req.body;
             const idNumber = Number(id)
-    
+
             if (idNumber == 0) return res.status(400).json({ error: "Comedian doesn't exist." });
-    
+
             const result = await comedianController.favoriteComedian({
                 comedian_id: idNumber,
                 user_id: req.currentUser.id,
@@ -51,10 +51,33 @@ comedianApiRouter.post('/favorite/:id',
 
 comedianApiRouter.get('/:name', urlencodedParser,
     async (req: Request, res: Response) => {
+        const { page, pageSize } = req.body;
         const { name } = req.params;
+
+        const pageInt = parseInt(page as string);
+        const pageSizeInt = parseInt(pageSize as string);
+
+        // Calculate the start and end indexes for the requested page
+        const startIndex = (pageInt - 1) * pageSizeInt;
+        const endIndex = pageInt * pageSizeInt;
+
         const decodedName = decodeURI(name)
+
         const result = await comedianController.getByName(decodedName)
-        return res.status(200).send(result)
+        const dates = result?.dates  ?? []
+        // Slice the products array based on the indexes
+        const paginatedDates = dates.slice(startIndex, endIndex);
+
+        // Calculate the total number of pages
+        const totalPages = Math.ceil(dates.length / pageSizeInt);
+
+        return res.status(200).send({
+            comedian: {
+                ...result,
+                dates: paginatedDates
+            },
+            totalPages: isNaN(totalPages) ? 0 : totalPages
+        })
     })
 
 comedianApiRouter.post('/trending',
@@ -89,7 +112,7 @@ comedianApiRouter.post('/all',
 
         // Calculate the total number of pages
         const totalPages = Math.ceil(comedians.length / pageSizeInt);
-        
+
         return res.status(200).send({
             comedians: paginatedComedians,
             totalPages

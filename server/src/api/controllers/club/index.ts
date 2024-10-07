@@ -26,8 +26,10 @@ export const getAll = async (): Promise<ClubScrapingData[]> => {
     .then((clubs: ClubScrapingData[]) => clubs.map((club: ClubScrapingData) => toClubScrapingData(club)))
 }
 
-export const getAllCities = async (): Promise<GetCitiesResponseDTO[] | null> => {
-    return db.clubs.getAllCities()
+export const getAllCities = async (): Promise<string[]> => {
+    return db.clubs.getAllCities().then((response: GetCitiesResponseDTO[] | null) => {
+        return response == null ? [] : response.map((item: GetCitiesResponseDTO) => item.city)
+    })
 }
 
 export const generateScores = async (): Promise<null> => {

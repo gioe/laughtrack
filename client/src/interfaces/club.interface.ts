@@ -1,6 +1,7 @@
+import { ShowProviderInterface } from "./dateContainer.interface.js";
 import { ShowInterface } from "./show.interface.js";
 
-export interface ClubInterface {
+export interface ClubInterface extends ShowProviderInterface {
   id: number
   name: string
   baseUrl: string;
@@ -9,7 +10,6 @@ export interface ClubInterface {
   address: string;
   popularityScore: number;
   zipCode: string;
-  shows?: ShowInterface[];
 }
 
 export interface ClubScrapingData {

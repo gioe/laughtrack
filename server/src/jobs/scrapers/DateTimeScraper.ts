@@ -41,7 +41,7 @@ export class DateTimeScraper {
  getShowDateAndShowTime = async (scrapable: Scrapable): Promise<string> => {
 
   const dateTask = this.getShowDate(scrapable)
-    const timeTask = this.getShowTime(scrapable).then((timeString: string) => getTimeByRegex(timeString))
+    const timeTask = this.getShowTime(scrapable)
   
     return runTasks([dateTask, timeTask])
     .then((scrapedValues: string[]) => {

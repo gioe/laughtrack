@@ -37,7 +37,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
     router.push(route)
   };
 
-  const [value, setValue] = useState(capitalizeFirstLetter(selectedFilter) ?? 'Popularity');
+  const [value, setValue] = useState(capitalizeFirstLetter(selectedFilter) ?? 'date_time');
 
   const handleSelectionChange = (e: any) => {
     const filterValue = e.target.value as string

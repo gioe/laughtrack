@@ -2,29 +2,34 @@
 
 import React, { useState } from "react";
 import ShowInfoCard from "./cards/ShowInfoCard";
-import { PaginationComponent } from "../pagination/Pagination";
 import Drawer from "../drawer/Drawer";
 import FilterComponent, { PropertyFilter } from "../filters/FilterComponent";
 import { ShowInterface } from "@/interfaces/show.interface";
+import { PaginationComponent } from "../pagination/Pagination";
+import { ShowProviderInterface } from "@/interfaces/dateContainer.interface";
 
-interface ShowTableProps {
-    shows: ShowInterface[];
+export interface PaginatedShowInterface {
+    entity: ShowProviderInterface;
+    totalPages: number
 }
 
+interface ShowTableProps {
+    response: PaginatedShowInterface;
+}
 
 const typeFilters: PropertyFilter[] = [
-  {
-    key: "Popularity",
-    label: "Popularity"
-  },
-  {
-    key: "Date",
-    label: "Date"
-  },
+    {
+        key: "date_time",
+        label: "Date"
+    },
+    {
+        key: "popularity_score",
+        label: "Popularity"
+    }
 ]
 
 const ShowTable: React.FC<ShowTableProps> = ({
-    shows
+    response
 }) => {
 
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -35,15 +40,19 @@ const ShowTable: React.FC<ShowTableProps> = ({
 
     return (
         <main className="flex flex-col m-5">
-            <div className="flex flex-row">
-                <FilterComponent propertyFilters={typeFilters}/>
-                <PaginationComponent pageCount={10} />
-            </div>
+            {
+                response.totalPages && (
+                    <div className="flex flex-row">
+                        <FilterComponent propertyFilters={typeFilters} />
+                        <PaginationComponent pageCount={response.totalPages} />
+                    </div>
+                )
+            }
             <section className="flex-grow flex-row pt-14 px-6">
                 <Drawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
                 <div className="flex flex-col">
-                    {shows.length > 0 ? (
-                        shows
+                    {response.entity.dates.length > 0 ? (
+                        response.entity.dates
                             .map((show: ShowInterface) => {
                                 return (
                                     <ShowInfoCard

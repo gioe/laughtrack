@@ -23,21 +23,29 @@ WITH future_shows_with_lineup_details as (
     WHERE s.date_time > NOW()
     GROUP BY
         s.id
+    ORDER BY s.date_time ASC
 ),
 full_data as (
     SELECT
-    	c.id as comedian_id,
-        c.name as comedian_name,
-        fs.id as show_id,
-        fs.popularity_score as popularity_score,
-        lineup_names,
-        lineup_details,
-        date_time,
-        ticket_link,
-        city,
+        l.comedian_id as comedian_id,
         cl.name as club_name,
         cl.id as club_id,
-        jsonb_build_object(
+        cl.city as city,
+        fs.id as show_id,
+        fs.lineup_details,
+        fs.popularity_score as popularity_score,
+        fs.date_time,
+        fs.ticket_link
+    FROM
+        future_shows_with_lineup_details fs
+        INNER JOIN lineups l ON fs.id = l.show_id
+        INNER JOIN clubs cl ON cl.id = fs.club_id
+        WHERE ${name} = ANY(fs.lineup_names)
+) 
+SELECT 
+c.id,
+c.name, 
+jsonb_build_object(
             'instagram_account',
             c.instagram_account,
             'instagram_followers',
@@ -50,33 +58,16 @@ full_data as (
             c.website,
             'popularity_score',
             c.popularity_score
-        ) AS social_data
-    FROM
-        future_shows_with_lineup_details fs
-        INNER JOIN lineups l ON fs.id = l.show_id
-        INNER JOIN comedians c ON c.id = l.comedian_id
-        INNER JOIN clubs cl ON cl.id = fs.club_id
-)
-SELECT
-f.comedian_id as id,
-f.comedian_name as name,
-f.social_data,
-           jsonb_agg(
+        ) AS social_data,
+COALESCE(jsonb_agg(
             DISTINCT jsonb_build_object(
-                'id', f.show_id,
-                'city',
-                f.city,
-                'club_id', f.club_id,
-                'popularity_score', f.popularity_score,
-                'club_name', f.club_name,
-               	'lineup', f.lineup_details,
-               	'date_time', f.date_time,
-               	'ticket_link', f.ticket_link
-            )
-        ) as dates
-from
-    full_data f
-where
-    ${name} = ANY(lineup_names)
-    AND comedian_name = ${name}
-GROUP BY f.comedian_id, f.comedian_name, f.social_data
+                'id', fd.show_id,
+                'city', fd.city,
+                'club_id', fd.club_id,
+                'popularity_score', fd.popularity_score,
+                'club_name', fd.club_name,
+               	'lineup', fd.lineup_details,
+               	'date_time', fd.date_time,
+               	'ticket_link', fd.ticket_link
+            ) )FILTER (WHERE fd.show_id IS NOT NULL), '[]') as dates
+FROM full_data fd RIGHT JOIN comedians c on c.id = fd.comedian_id where c.name = ${name} GROUP BY c.id, c.name

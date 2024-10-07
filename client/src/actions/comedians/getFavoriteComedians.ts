@@ -2,10 +2,14 @@
 
 import { ComedianInterface } from "@/interfaces/comedian.interface";
 import { PUBLIC_ROUTES } from "@/lib/routes"
-import { getSession } from "next-auth/react";
-import { auth } from "../auth"
+import { auth } from "../../auth"
 
 const PAGE_SIZE = '20';
+
+export interface FetchFavoriteComedianParams {
+  query?: string;
+  currentPage?: string;
+}
 
 export interface GetComediansResponse {
   comedians: ComedianInterface[]
@@ -13,11 +17,12 @@ export interface GetComediansResponse {
   totalPages: number;
 }
 
-export async function fetchFilteredComedians(currentPage: string, query: string) {
-  const allComediansUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.COMEDIANS
+export async function getFavoriteComedians(params?: FetchFavoriteComedianParams) {
+  const favoriteComediansUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.GET_FAVORITE_COMEDIANS
+
   return auth()
     .then((session: any) => {
-      return fetch(allComediansUrl, {
+      return fetch(favoriteComediansUrl, {
         cache: 'no-store',
         method: "POST",
         headers: {
@@ -25,8 +30,8 @@ export async function fetchFilteredComedians(currentPage: string, query: string)
           'x-auth-token': session.accessToken ?? ''
         },
         body: new URLSearchParams({
-          page: currentPage,
-          query: query,
+          query: params?.query ?? "", 
+          page: params?.currentPage ?? "1",
           pageSize: PAGE_SIZE
         }),
       })

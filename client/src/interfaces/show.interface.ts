@@ -9,5 +9,5 @@ export interface ShowInterface {
   lineup: LineupItem[];
   popularityScore?: number;
   clubName?: string;
-  
+
 }

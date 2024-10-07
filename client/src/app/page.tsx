@@ -1,19 +1,21 @@
-import { getTrendingComedians } from "@/actions/getTrendingComedians";
-import { getCities } from "@/actions/getCities";
+import { getTrendingComedians } from "@/actions/comedians/getTrendingComedians";
+import { getCities } from "@/actions/cities/getCities";
 import Link from "next/link";
 import LargeComedianIcon from "@/components/custom/comedianIcons/LargeComedianIcon";
 import SearchBar from "@/components/custom/filters/SearchBar";
 import { ComedianInterface } from "@/interfaces/comedian.interface";
+import { getLandingPageData } from "@/actions/landingPage/getLandingPageData";
 
 interface LandingPageProps {
   trendingComedians: ComedianInterface[],
   cities: string[]
 }
 
-const LandingPage: React.FC<LandingPageProps> = async ({
-  trendingComedians,
-  cities
-}) => {
+
+export default async function LandingPage() {
+
+  const response = await getLandingPageData();
+
   return (
     <main>
       <section className="max-w-7xl mx-auto p-18">
@@ -22,7 +24,7 @@ const LandingPage: React.FC<LandingPageProps> = async ({
       </section>
 
       <section className="m-4 mt-0 -mb-14 px-2 lg:px-4">
-        <SearchBar cities={cities} />
+        <SearchBar cities={response.cities} />
       </section>
 
       <section className="
@@ -39,7 +41,7 @@ const LandingPage: React.FC<LandingPageProps> = async ({
         <div className="flex space-x-3 overflow-scroll
          scrollbar-hide p-3 -ml-3">
           {
-          trendingComedians
+          response.trendingComedians
             .sort((a, b) => (b.popularityScore ?? 0) - (a.popularityScore ?? 0))
             .map((comedian: ComedianInterface) => {
               return (
@@ -52,24 +54,6 @@ const LandingPage: React.FC<LandingPageProps> = async ({
     </main>
   );
 }
-
-
-export default async function Page({ params }: {
-  params: {
-    location: string,
-    startDate: string,
-    endDate: string
-  }
-}) {
-
-  const trendingComedians = await getTrendingComedians() as ComedianInterface[]
-  const cities = await getCities() as string[]
-
-  return (
-    <LandingPage cities={cities} trendingComedians={trendingComedians} />
-  )
-}
-
 
 
 

@@ -6,7 +6,7 @@ import ToasterProvider from "@/providers/ToasterProvider";
 import LoginModal from "@/components/custom/modals/LoginModal";
 import RegisterModal from "@/components/custom/modals/RegisterModal";
 import Footer from "@/components/custom/Footer";
-import { getCurrentUser } from "@/actions/getCurrentUser";
+import { getCurrentUser } from "@/actions/auth/getCurrentUser";
 import { UserInterface } from "@/interfaces/user.interface";
 import Header from "@/components/custom/header/Header";
 import { NextUIProvider } from "@nextui-org/react";

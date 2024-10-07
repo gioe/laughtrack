@@ -15,6 +15,6 @@ clubApiRouter.get('/:name', urlencodedParser,
 
 clubApiRouter.post('/cities',
     async (req: Request, res: Response) => {
-        const trendingClubs = await clubController.getAllCities()
+        const trendingClubs: string[] = await clubController.getAllCities()
         return res.status(200).send(trendingClubs)
     })
