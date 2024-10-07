@@ -5,7 +5,8 @@ import { CreateShowDTO } from "../interfaces/data/show.interface.js";
 import { Show } from "../models/Show.js";
 import { writeFailureToFile } from "./logUtil.js";
 
-export const orderShows = (shows: ShowInterface[], filter?: string): ShowInterface[] => {
+export const orderShows = (shows: ShowInterface[] | undefined, filter?: string): ShowInterface[] => {
+  if (shows == undefined) return []
   return shows.sort((a: ShowInterface, b: ShowInterface) => {
       if (filter == 'date') {
           return new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime();

@@ -75,8 +75,9 @@ authApiRouter.post('/login',
 authApiRouter.post('/refresh',
     urlencodedParser,
     async (req: Request, res: Response) => {
+        const authHeader = req.headers['authorization'];
+        const refreshToken = authHeader && authHeader.split(' ')[1];  // Bear
 
-        const { refreshToken, user } = req.body
         if (!refreshToken) return res.status(401).send("refresh token not provided");
 
         try {

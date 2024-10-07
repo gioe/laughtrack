@@ -10,7 +10,6 @@ export default async function ComedianDetailsPage({ params }: { params: { id: st
   const { id } = params;
 
   const comedian = await getComedianDetails(id) as ComedianInterface;
-  console.log(comedian)
   const filteredDates = comedian.dates?.map((data: ShowInterface) => {
 
     return {

@@ -7,8 +7,6 @@ import { date } from "zod"
 export async function getClubDetails(name: string) {
 
   const clubDetailsUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.CLUB_DETAILS + `/${name}`
-
-  console.log(clubDetailsUrl)
   
   return fetch(clubDetailsUrl, {
     cache: 'no-store',
@@ -18,9 +16,6 @@ export async function getClubDetails(name: string) {
     }
   })
     .then((response) => response.json())
-    .then((data) =>  {
-      console.log(data)
-      return data
-    })
+    .then((data) => data)
     .catch((error) => console.log(error))
 }

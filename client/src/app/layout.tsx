@@ -9,7 +9,8 @@ import Footer from "@/components/custom/Footer";
 import { getCurrentUser } from "@/actions/getCurrentUser";
 import { UserInterface } from "@/interfaces/user.interface";
 import Header from "@/components/custom/header/Header";
-import {NextUIProvider} from "@nextui-org/react";
+import { NextUIProvider } from "@nextui-org/react";
+import { SessionProvider } from "next-auth/react";
 
 export const metadata: Metadata = {
   title: "Laughtrack",
@@ -29,22 +30,25 @@ export default async function RootLayout({
   const user = await getCurrentUser() as UserInterface;
 
   return (
-    <html lang="en">
-      <body className="bg-shark">
-      <NextUIProvider>
-      <Header
-          currentUser={user}
-        />
-        <ClientOnly>
-          <ToasterProvider />
-          <LoginModal />
-          <RegisterModal />
-          {children}
-          <Footer />
-        </ClientOnly>
-      </NextUIProvider>
-      </body>
-    </html>
+    <SessionProvider>
+        <html lang="en">
+          <body className="bg-shark">
+          <NextUIProvider>
+            <Header
+              currentUser={user}
+            />
+            <ClientOnly>
+              <ToasterProvider />
+              <LoginModal />
+              <RegisterModal />
+              {children}
+              <Footer />
+            </ClientOnly>
+            </NextUIProvider>
+
+          </body>
+        </html>
+    </SessionProvider>
   );
 }
 

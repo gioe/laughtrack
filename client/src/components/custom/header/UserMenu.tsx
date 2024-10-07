@@ -7,6 +7,7 @@ import useLoginModal from "@/hooks/useLoginModal"
 import { signOut } from "next-auth/react"
 import { MenuIcon, UserCircleIcon } from "@heroicons/react/solid";
 import { UserInterface } from "@/interfaces/user.interface"
+import { useRouter } from 'next/navigation';
 
 interface UserMenuProps {
     currentUser?: UserInterface | null;
@@ -15,7 +16,7 @@ interface UserMenuProps {
 const UserMenu: React.FC<UserMenuProps> = ({
     currentUser
 }) => {
-
+    const router = useRouter();
     const loginModal = useLoginModal();
     const registerModal = useRegisterModal();
     const [isOpen, setIsOpen] = useState(false);
@@ -48,7 +49,10 @@ const UserMenu: React.FC<UserMenuProps> = ({
                         {currentUser ? (
                             <>
                                 <MenuItem
-                                    onClick={() => {}}
+                                    onClick={() => {
+                                        setIsOpen(false)
+                                        router.push(`/comedian/favorite/all`);
+                                    }}
                                     label="Favorite comedians"
                                 />
                                 <hr />

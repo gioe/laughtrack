@@ -1,9 +1,10 @@
 import { ShowInterface } from "./show.interface.js";
+import { SocialDataInterface } from "./socialData.interface.js";
 
 export interface ComedianInterface {
   id?: number;
   name: string;
-  socialData?: any;
+  socialData?: SocialDataInterface;
   dates?: ShowInterface[];
-  popularityScore?: number;
+  favoriteId?: number
 }

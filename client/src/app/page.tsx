@@ -1,9 +1,9 @@
 import { getTrendingComedians } from "@/actions/getTrendingComedians";
 import { getCities } from "@/actions/getCities";
 import Link from "next/link";
-import { ComedianInterface } from "@/interfaces/comedian.interface";
 import LargeComedianIcon from "@/components/custom/comedianIcons/LargeComedianIcon";
 import SearchBar from "@/components/custom/filters/SearchBar";
+import { ComedianInterface } from "@/interfaces/comedian.interface";
 
 interface LandingPageProps {
   trendingComedians: ComedianInterface[],
@@ -40,7 +40,7 @@ const LandingPage: React.FC<LandingPageProps> = async ({
          scrollbar-hide p-3 -ml-3">
           {
           trendingComedians
-            .sort((a, b) => b.popularityScore - a.popularityScore)
+            .sort((a, b) => (b.popularityScore ?? 0) - (a.popularityScore ?? 0))
             .map((comedian: ComedianInterface) => {
               return (
                 <LargeComedianIcon key={comedian.name} comedian={comedian} />

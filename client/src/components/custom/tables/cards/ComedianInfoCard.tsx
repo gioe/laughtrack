@@ -9,44 +9,38 @@ import Link from "next/link";
 import { ComedianInterface } from '@/interfaces/comedian.interface';
 import { addToFavorites } from '@/actions/addToFavorites';
 import useLoginModal from '@/hooks/useLoginModal';
-import { UserInterface } from '@/interfaces/user.interface';
 import useRegisterModal from '@/hooks/useRegisterModel';
-import { getCurrentUser } from '@/actions/getCurrentUser';
+import { useSession } from "next-auth/react";
 
 interface ComedianInfoCardProps {
-    userIsFollower?: boolean;
     comedian: ComedianInterface;
-    currentUser?: UserInterface
 }
 
 const ComedianInfoCard: React.FC<ComedianInfoCardProps> = ({
-    userIsFollower,
     comedian,
-    currentUser
 }) => {
     
     const loginModal = useLoginModal();
     const registerModal = useRegisterModal();
-
+    const session = useSession();
     const [isOpen, setIsOpen] = useState(false);
 
+    const [isFavorite, setIsFavorite] = useState(comedian.favoriteId ? true : false)
 
-    const [isFollower, setIsFollower] = useState(userIsFollower ?? false)
-
-    const handleLoginClick = useCallback(() => {
+    const requireLogin = useCallback(() => {
         setIsOpen((value => !value));
         registerModal.onOpen()
     }, [loginModal])
 
 
-    const handleFollowClick = () => {
-        if (currentUser == undefined) {
-            handleLoginClick()
+    const handleFavoriteClick = () => {
+        if (session.status == 'authenticated') {
+            addToFavorites(comedian.id ?? 0, isFavorite, session.data.accessToken).then((state: boolean) => {
+                setIsFavorite(state)
+            })
         }
         else {
-            addToFavorites(comedian.id).then((state: boolean) => {
-                setIsFollower(state)
-            })
+            requireLogin()
         }
     }
 
@@ -72,9 +66,9 @@ const ComedianInfoCard: React.FC<ComedianInfoCardProps> = ({
                 <div className="flex flex-col bg-yellow-400">
                     <div className="flex flex-row-reverse items-end">
                         {
-                            isFollower ?
-                                <SolidHeart onClick={handleFollowClick} className="h-7 cursor-pointer"></SolidHeart> :
-                                <OutlineHeart onClick={handleFollowClick} className="h-7 cursor-pointer" />
+                            isFavorite ?
+                                <SolidHeart onClick={handleFavoriteClick} className="h-7 cursor-pointer"></SolidHeart> :
+                                <OutlineHeart onClick={handleFavoriteClick} className="h-7 cursor-pointer" />
                         }
 
                     </div>

@@ -9,5 +9,6 @@ export const PUBLIC_ROUTES = {
     COMEDIAN_DETAILS: '/api/comedian',
     CLUB_DETAILS: '/api/club',
     HOME_SEARCH: '/api/search',
-    FAVORITE_COMEDIAN: '/api/comedian/favorite'
+    FAVORITE_COMEDIAN: '/api/comedian/favorite',
+    ALL_FAVORITE_COMEDIANS: '/api/comedian/favorite/all'
 }

@@ -7,8 +7,9 @@ export interface CreateComedianDTO {
 export interface GetComedianResponseDTO {
     id: number;
     name: string;
-    socialData: GetSocialDataDTO;
-    dates: GetDateDTO;
+    social_data: GetSocialDataDTO;
+    dates: GetDateDTO[];
+    favorite_id?: number;
 }
 
 export interface GetSocialDataDTO {

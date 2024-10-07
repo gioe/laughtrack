@@ -4,7 +4,8 @@ import { CreateShowDTO, GetShowResponseDTO } from "../../../interfaces/data/show
 import { Show } from "../../../models/Show.js"
 import { toLineupItemArray } from "../lineupItem/mapper.js"
 
-export const toDates = (payload: GetDateDTO[] | GetShowResponseDTO[]): ShowInterface[] => {
+export const toDates = (payload: GetDateDTO[] | GetShowResponseDTO[] | undefined): ShowInterface[] | undefined => {
+    if (payload == undefined) return undefined
     return payload.map((show: GetDateDTO | GetShowResponseDTO) => toShowInterface(show));
 }
 

@@ -1,6 +1,7 @@
 import express, { Application } from "express";
 import cors from "cors";
 import helmet from "helmet";
+import cookieParser from 'cookie-parser';
 import { comedianApiRouter } from "./api/routes/api/comedian.js";
 import { showApiRouter } from "./api/routes/api/show.js";
 import { authApiRouter } from "./api/routes/api/auth.js";
@@ -43,6 +44,7 @@ class App {
         this.app.use(helmet());
         this.app.use(cors());
         this.app.use(express.json());
+        this.app.use(cookieParser());
     }
     
 }

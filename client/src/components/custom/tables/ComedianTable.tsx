@@ -30,7 +30,6 @@ const ComedianTable: React.FC<ComedianTableProps> = ({
                             return (
                                 <ComedianInfoCard
                                     key={comedian.name}
-                                    userIsFollower={comedian.userIsFollower ?? false}
                                     comedian={comedian}
                                 />
                             )

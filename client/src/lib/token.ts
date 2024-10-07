@@ -2,32 +2,33 @@ import { JWT } from "next-auth/jwt";
 import { PUBLIC_ROUTES } from "./routes";
 
 export async function refreshAccessToken(token: JWT) {
-
-   try {
       const url = process.env.URL_DOMAIN + PUBLIC_ROUTES.REFRESH_TOKEN
 
-      const response = await fetch(url, {
+      return fetch(url, {
+        cache: 'no-store',
+        method: "POST",
         headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
           "Authorization": `Bearer ${token.refreshToken}`
         }
-      });
-  
-      const tokens = await response.json();
-  
-      if (!response.ok) {
-        throw tokens;
-      }
-      return {
-        ...token,
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken ?? token.refreshToken, // Fall back to old refresh token
-      };
-    } catch (error) {
-      console.log(error);
-  
-      return {
-        ...token,
-        error: "RefreshAccessTokenError",
-      };
-    }
+        })
+        .then((response) => {
+          if (response.ok) return response.json();
+          throw new Error("Response not ok")
+        })
+        .then((data) => {
+          return {
+            ...token,
+            accessToken: data.accessToken,
+            refreshToken: data.refreshToken ?? token.refreshToken, // Fall back to old refresh token
+          };
+        })
+        .catch((error) => {
+          console.log(error)
+          return {
+            ...token,
+            error: "RefreshAccessTokenError",
+          };
+        })
+
   }

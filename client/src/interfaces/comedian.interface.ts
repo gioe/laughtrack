@@ -7,4 +7,5 @@ export interface ComedianInterface {
   dates?: ShowInterface[];
   popularityScore?: number;
   userIsFollower?: boolean;
+  favoriteId?: number
 }

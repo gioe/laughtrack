@@ -20,13 +20,16 @@ export const comedians = {
 
     // GETs
     getAllPopularityData: sql('comedians/getAllPopularityData.sql'),
+    getAllWithFavorites: sql('comedians/getAllWithFavorites.sql'),
+    getAllFavorites: sql('comedians/getAllFavorites.sql'),
     getByName: sql('comedians/getByName.sql'),
     getTrending: sql('comedians/getTrending.sql'),
 }
 
 export const favorites = {
     add: sql('favorites/add.sql'),
-    create: sql('favorites/create.sql')
+    create: sql('favorites/create.sql'),
+    remove: sql('favorites/remove.sql')
 }
 
 export const lineups = {

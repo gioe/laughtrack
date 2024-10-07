@@ -1,6 +1,6 @@
 import { generateComedianPopularityScore } from "../../../common/util/scoringUtil.js"
 import { db } from '../../../database/index.js';
-import { toComedianInterface } from "../../../common/util/mappers/comedian/mapper.js";
+import { toComedianInterface, toComedianInterfaceArray } from "../../../common/util/mappers/comedian/mapper.js";
 import { ComedianInterface } from "../../../common/interfaces/client/comedian.interface.js";
 import { CreateComedianDTO, GetComedianResponseDTO } from "../../../common/interfaces/data/comedian.interface.js";
 import { CreateFavoriteComedianDTO } from "../../../common/interfaces/data/favorite.interface.js";
@@ -10,19 +10,23 @@ export const addAll = async (comedians: CreateComedianDTO[]): Promise<{id: numbe
 }
 
 export const getAllComedians = async (query?: string): Promise<ComedianInterface[]> => {
-    return db.comedians.all().then((comedians: ComedianInterface[]) => {
-        return comedians.filter((comedian: ComedianInterface) => {
-            if (query) return comedian.name.toLocaleLowerCase().includes(query.toLocaleLowerCase())
-            return true
-        }).map((comedian: ComedianInterface) => toComedianInterface(comedian))
-    })
+    return db.comedians.all()
+    .then((comedians: GetComedianResponseDTO[]) => toComedianInterfaceArray(comedians, query))
+}
+
+export const getAllComediansWithFavorites = async (userId: number, query?: string): Promise<ComedianInterface[]> => {
+    return db.comedians.allWithFavorites(userId)
+    .then((comedians: GetComedianResponseDTO[]) => toComedianInterfaceArray(comedians, query))
 }
 
 export const getByName = async (name: string): Promise<ComedianInterface | null> => {
-    return db.comedians.findByName(name).then((response: GetComedianResponseDTO | null) => {
-        if (response) return toComedianInterface(response)
-        return null
-    })
+    return db.comedians.findByName(name)
+    .then((response: GetComedianResponseDTO | null) => toComedianInterface(response))
+}
+
+export const getAllFavorites = async (userId: number): Promise<ComedianInterface[]> => {
+    return db.comedians.getAllFavorites(userId)
+    .then((comedians: GetComedianResponseDTO[] | null) => toComedianInterfaceArray(comedians))
 }
 
 export const getTrendingComedians = async (): Promise<ComedianInterface[] | null> => {
@@ -44,6 +48,7 @@ export const generateScores = async (): Promise<null> => {
 }
 
 
-export const favoriteComedian = async (payload: CreateFavoriteComedianDTO): Promise<ComedianInterface | null> => {
-    return null
+export const favoriteComedian = async (payload: CreateFavoriteComedianDTO): Promise<boolean> => {
+    if (payload.is_favorite) return db.favorites.remove(payload)
+    return db.favorites.add(payload)
 }

@@ -15,7 +15,6 @@ export default async function AllComediansPage({
 
   const query = searchParams?.query || '';
   const currentPage = searchParams?.page || '1';
-
   const response = await fetchFilteredComedians(currentPage, query) as GetComediansResponse
   const pageCount = response.totalPages
 

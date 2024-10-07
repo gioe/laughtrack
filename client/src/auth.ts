@@ -16,8 +16,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
 
       async authorize(credentials) {
-        console.log("AUTHORIZING")
-        console.log(credentials)
 
         if (credentials === null) return null;
 
@@ -76,7 +74,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           user,
         };
       }
-
       if (Date.now() < token.accessTokenExp) return token;
 
       return refreshAccessToken(token);

@@ -3,7 +3,8 @@ import { GetClubPopularityDataDTO } from "../../../interfaces/data/club.interfac
 import { PopularityScoreDTO } from "../../../interfaces/data/popularityScore.interface.js"
 import { generateClubPopularityData } from "../../scoringUtil.js"
 
-export const toSocialDataInterface = (payload: any): SocialDataInterface => {
+export const toSocialDataInterface = (payload?: any): SocialDataInterface | undefined => {
+    if (payload == undefined) return undefined
     return {
         instagramFollowers: payload.instagram_followers,
         instagramAccount: payload.instagram_account,
@@ -11,7 +12,8 @@ export const toSocialDataInterface = (payload: any): SocialDataInterface => {
         tiktokAccount: payload.tiktok_account,
         website: payload.website,
         isPseudonym: payload.is_pseudonym,
-        nonComedian: payload.non_comedian
+        nonComedian: payload.non_comedian,
+        popularityScore: payload.popularity_score
     }
 }
 

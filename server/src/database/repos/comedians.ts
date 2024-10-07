@@ -43,9 +43,21 @@ export class ComediansRepository {
         });
     }
 
+    getAllFavorites(userId: number): Promise<GetComedianResponseDTO[] | null> {
+        return this.db.any(sql.getAllFavorites, {
+            user_id: userId
+        });
+    }
+
     // Returns all comedian records;
-    all(): Promise<any[]> {
+    all(): Promise<GetComedianResponseDTO[]> {
         return this.db.any('SELECT * FROM comedians ORDER BY popularity_score DESC');
+    }
+
+    allWithFavorites(userId: number): Promise<GetComedianResponseDTO[]> {
+        return this.db.any(sql.getAllWithFavorites, {
+            user_id: userId
+        });
     }
 
     getTrendingComedians(): Promise<ComedianInterface[] | null> {

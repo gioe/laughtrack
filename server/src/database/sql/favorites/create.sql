@@ -1,7 +1,7 @@
 /*
  Creates table Comedians.
  */
-CREATE TABLE IF NOT EXISTS favorites (
+CREATE TABLE IF NOT EXISTS favorite_comedians (
     id SERIAL,
     comedian_id integer REFERENCES comedians(id),
     user_id integer REFERENCES users(id),
