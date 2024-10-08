@@ -1,9 +1,10 @@
-import { generateComedianPopularityScore } from "../../../common/util/scoringUtil.js"
 import { db } from '../../../database/index.js';
 import { toComedianInterface, toComedianInterfaceArray } from "../../../common/util/mappers/comedian/mapper.js";
 import { ComedianInterface } from "../../../common/interfaces/client/comedian.interface.js";
 import { CreateComedianDTO, GetComedianResponseDTO } from "../../../common/interfaces/data/comedian.interface.js";
 import { CreateFavoriteComedianDTO } from "../../../common/interfaces/data/favorite.interface.js";
+import { GetSocialDataDTO, PopularityScoreIODTO } from "../../../common/interfaces/data/socialData.interface.js";
+import { toPopularityScores } from '../../../common/util/mappers/socialData/mapper.js';
 
 export const addAll = async (comedians: CreateComedianDTO[]): Promise<{id: number}[]> => {
     return db.comedians.addAll(comedians);
@@ -19,9 +20,9 @@ export const getAllComediansWithFavorites = async (userId: number, query?: strin
     .then((comedians: GetComedianResponseDTO[]) => toComedianInterfaceArray(comedians, query))
 }
 
-export const getByName = async (name: string): Promise<ComedianInterface | null> => {
+export const getByName = async (name: string, sort?: string): Promise<ComedianInterface | null> => {
     return db.comedians.findByName(name)
-    .then((response: GetComedianResponseDTO | null) => toComedianInterface(response))
+    .then((response: GetComedianResponseDTO | null) => toComedianInterface(response, name, sort))
 }
 
 export const getAllFavorites = async (userId: number): Promise<ComedianInterface[]> => {
@@ -34,19 +35,10 @@ export const getTrendingComedians = async (): Promise<ComedianInterface[] | null
 }
 
 export const generateScores = async (): Promise<null> => {
-    const allData = await db.comedians.allPopularityData();
-    if (!allData) return null
-
-    const updatedValues = allData.map((data: any) => {
-        return {
-            id: data.id,
-            popularity_score: generateComedianPopularityScore(data)
-        }
-    }) 
-
-    return db.comedians.updateScores(updatedValues)
+    return db.comedians.getAllSocialData()
+    .then((response: GetSocialDataDTO[] | null) => toPopularityScores(response))
+    .then((popularityScores: PopularityScoreIODTO[] | null) => db.comedians.updateScores(popularityScores))
 }
-
 
 export const favoriteComedian = async (payload: CreateFavoriteComedianDTO): Promise<boolean> => {
     if (payload.is_favorite) return db.favorites.remove(payload)

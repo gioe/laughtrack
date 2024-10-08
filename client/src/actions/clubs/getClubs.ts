@@ -16,7 +16,7 @@ export interface GetClubsResponse {
   totalPages: number;
 }
 
-export async function getClubs(params: GetClubsParams) {
+export async function getClubs(params?: GetClubsParams) {
 
   const getClubsUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.GET_ALL_CLUBS
 

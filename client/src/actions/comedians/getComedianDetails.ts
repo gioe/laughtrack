@@ -2,10 +2,12 @@
 
 import { auth } from "@/auth";
 import { ComedianInterface } from "@/interfaces/comedian.interface";
+import { MEDIUM_ELEMENT_PAGE_REQUEST_SIZE } from "@/lib/contants";
 import { PUBLIC_ROUTES } from "@/lib/routes"
 
 export interface GetComedianDetailsParams {
   id: string;
+  sort?: string;
   query?: string
   page?: string
 }
@@ -25,7 +27,10 @@ export async function getComedianDetails(params: GetComedianDetailsParams) {
       method: "GET",
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        'x-auth-token': session.accessToken ?? ''
+        'x-auth-token': session.accessToken ?? '',
+        'page': params?.page ?? "1",
+        'pageSize': MEDIUM_ELEMENT_PAGE_REQUEST_SIZE,
+        'sort': params.sort ?? "date_time"
       },
     });
   })

@@ -1,10 +1,16 @@
 import { JSON_KEYS } from "../../../constants/keys.js"
 import { ClubInterface, ClubScrapingData } from "../../../interfaces/client/club.interface.js"
-import { CreateClubDTO, GetClubWithShowsResponseDTO } from "../../../interfaces/data/club.interface.js"
-import { GetShowResponseDTO } from "../../../interfaces/data/show.interface.js"
-import { toShowInterface } from "../show/mapper.js"
+import { CreateClubDTO, GetClubDTO } from "../../../interfaces/data/club.interface.js"
+import { toDates } from "../show/mapper.js"
 
-export const toClubScrapingData = (payload: any): ClubScrapingData => {
+export const toClubScrapingDataArray = (payload: GetClubDTO[] | null): ClubScrapingData[]  => {
+    if (payload == null) return []
+    return payload.map((value: GetClubDTO) => toClubScrapingData(value))
+    .filter((value: ClubScrapingData | null) => value !== null)
+}
+
+export const toClubScrapingData = (payload: GetClubDTO | null): ClubScrapingData | null => {
+    if (payload == null) return null
     return {
         id: payload.id,
         name: payload.name,
@@ -13,7 +19,14 @@ export const toClubScrapingData = (payload: any): ClubScrapingData => {
         scrapingConfig: payload.scraping_config
     }
 }
-export const toClubInterface = (payload: GetClubWithShowsResponseDTO | null): ClubInterface | null => {
+
+export const toClubInterfaceArray = (payload: GetClubDTO[] | null): ClubInterface[]  => {
+    if (payload == null) return []
+    return payload.map((value: GetClubDTO) => toClubInterface(value))
+    .filter((value: ClubInterface | null) => value !== null)
+}
+
+export const toClubInterface = (payload: GetClubDTO | null, sort?: string): ClubInterface | null => {
     if (payload == null) return null
     return {
         id: payload.id, 
@@ -23,7 +36,7 @@ export const toClubInterface = (payload: GetClubWithShowsResponseDTO | null): Cl
         city: payload.city,
         address: payload.address,
         popularityScore: payload.popularity_score,
-        shows: payload.shows.map((show: GetShowResponseDTO) => toShowInterface(show)),
+        dates: toDates(payload.dates, sort),
         zipCode: payload.zip_code
     }
 }

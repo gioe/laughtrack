@@ -33,9 +33,9 @@ const ShowTable: React.FC<ShowTableProps> = ({
 }) => {
     return (
         <main className="flex flex-col">
-            <section className="flex flex-row bg-white">
+            <section className="flex flex-row items-center">
                 { response.entity.dates.length > 1 && <FilterComponent propertyFilters={typeFilters} /> }
-                { response.totalPages > 0 && <PaginationComponent pageCount={response.totalPages} /> }
+                { response.totalPages > 1 && <PaginationComponent pageCount={response.totalPages} /> }
             </section>
             <section className="flex-grow flex-row">
                 <div className="flex flex-col">

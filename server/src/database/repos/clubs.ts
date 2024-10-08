@@ -3,11 +3,10 @@ import {clubs as sql} from '../sql/index.js';
 import { 
     CreateClubDTO, 
     GetCitiesResponseDTO, 
-    GetClubPopularityDataDTO, 
-    GetClubWithShowsResponseDTO 
+    GetClubDTO, 
 } from '../../common/interfaces/data/club.interface.js';
-import { PopularityScoreDTO } from '../../common/interfaces/data/popularityScore.interface.js';
 import { provideGenericPromiseResponse } from '../../common/util/promiseUtil.js';
+import { GroupedPopularityScoreDTO, PopularityScoreIODTO } from '../../common/interfaces/data/socialData.interface.js';
 
 var columnSets: {
     updateScores: ColumnSet | null;
@@ -49,7 +48,7 @@ export class ClubsRepository {
     }
 
     // Tries to find a club from id;
-    getByName(name: string): Promise<GetClubWithShowsResponseDTO | null> {
+    getByName(name: string): Promise<GetClubDTO | null> {
         return this.db.oneOrNone(sql.getByName, {
             name,
         });
@@ -60,15 +59,15 @@ export class ClubsRepository {
     }
 
     // Returns all club records;
-    all(): Promise<any[]> {
+    all(): Promise<GetClubDTO[]> {
         return this.db.any('SELECT * FROM clubs')
     }
 
-    getAllPopularityData(): Promise<GetClubPopularityDataDTO[] | null> {
-        return this.db.any(sql.getAllPopularityData)
+    getAllPopularityData(): Promise<GroupedPopularityScoreDTO[] | null> {
+        return this.db.any(sql.getAllShowPopularityData)
     }
 
-    updateScores(scores: PopularityScoreDTO[] | null): Promise<null> {
+    updateScores(scores: PopularityScoreIODTO[] | null): Promise<null> {
         if (scores == null) return provideGenericPromiseResponse(null)
 
         const update = this.pgp.helpers.update(scores, columnSets.updateScores) + ' WHERE v.id = t.id';

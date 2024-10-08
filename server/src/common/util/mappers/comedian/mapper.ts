@@ -4,7 +4,6 @@ import { GetComedianResponseDTO } from "../../../interfaces/data/comedian.interf
 import { toDates } from "../show/mapper.js"
 import { toSocialDataInterface } from "../socialData/mapper.js"
 
-
 export const toComedianInterfaceArray = (payload: GetComedianResponseDTO[] | null, query?: string): ComedianInterface[] => {
     if (payload == null ) return []
 
@@ -17,13 +16,13 @@ export const toComedianInterfaceArray = (payload: GetComedianResponseDTO[] | nul
     })
 }
 
-export const toComedianInterface = (payload: GetComedianResponseDTO | null | undefined): ComedianInterface | null=> {
+export const toComedianInterface = (payload: GetComedianResponseDTO | null | undefined, filter?: string, sort?: string): ComedianInterface | null=> {
     if (payload == null || payload == undefined) return null
     return {
         id: payload.id,
         name: payload.name,
         socialData: toSocialDataInterface(payload.social_data),
-        dates: toDates(payload.dates),
+        dates: toDates(payload.dates, filter, sort),
         favoriteId: payload.favorite_id == null ? undefined : payload.favorite_id
     }
 }

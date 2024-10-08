@@ -1,56 +1,71 @@
-WITH future_shows_with_lineup as (
-SELECT
-    s.id,
-    s.club_id as club_id,
-    s.date_time,
-    s.ticket_link,
-    s.popularity_score,
-    jsonb_agg(
-        jsonb_build_object(
-            'id',
-            c.id,
-            'name',
-            c.name,
-            'popularity_score',
-            c.popularity_score
-        )
-    ) AS lineup
-from shows s
-inner join lineups l on s.id = l.show_id
-inner join comedians c on c.id = l.comedian_id
-WHERE date_time > NOW()
-GROUP BY
-    s.id,
-    s.date_time 
-ORDER BY s.date_time ASC
+with comedian_social_data as (
+    SELECT
+        id,
+        name,
+        jsonb_agg(
+            DISTINCT jsonb_build_object(
+                'popularity_score',
+                popularity_score
+            )
+        ) as social_data
+    FROM
+        comedians c
+    GROUP BY
+        id
+),
+full_lineup_data as (
+    SELECT
+        s.id as id,
+        s.club_id,
+        cl.name as club_name,
+        s.popularity_score as popularity_score,
+        s.date_time as date_time,
+        s.ticket_link as ticket_link,
+        jsonb_agg(
+            DISTINCT jsonb_build_object(
+                'id',
+                c.id,
+                'name',
+                c.name,
+                'social_data',
+                c.social_data
+            )
+        ) as lineup
+    FROM
+        shows s
+        INNER JOIN lineups l ON s.id = l.show_id
+        INNER JOIN comedian_social_data c ON c.id = l.comedian_id
+        INNER JOIN clubs cl ON cl.id = s.club_id
+    WHERE s.date_time > NOW()
+    GROUP BY
+        s.id,
+        cl.name
+    ORDER BY
+        s.date_time ASC
 )
 SELECT
-    c.id,
-    c.name,
-     COALESCE(
+    club_name,
     jsonb_agg(
-        jsonb_build_object(
+        DISTINCT jsonb_build_object(
             'id',
-            fs.id,
-            'date_time',
-            fs.date_time,
-            'ticket_link',
-            fs.ticket_link,
-            'popularity_score',
-            fs.popularity_score,
+            full_lineup_data.id,
             'club_id',
-            c.id, 
+            full_lineup_data.club_id,
             'club_name',
-            c.name,
+            full_lineup_data.club_name,
+            'date_time',
+            full_lineup_data.date_time,
+            'ticket_link',
+            full_lineup_data.ticket_link,
+            'popularity_score',
+            full_lineup_data.popularity_score,
             'lineup',
-            fs.lineup
+            full_lineup_data.lineup
         )
-    ) FILTER (WHERE fs.id IS NOT NULL), '[]') AS shows
+    ) as dates
 from
-    clubs c
-    left join future_shows_with_lineup fs on fs.club_id = c.id
+    full_lineup_data
 WHERE
-    c.name = ${name}
+    club_name = ${name}
 GROUP BY
-    c.id,
-    c.name
+    club_name

@@ -51,13 +51,32 @@ const UserMenu: React.FC<UserMenuProps> = ({
                                 <MenuItem
                                     onClick={() => {
                                         setIsOpen(false)
+                                        router.push(`/club/all`);
+                                    }}
+                                    label="All clubs"
+                                />
+
+                                <MenuItem
+                                    onClick={() => {
+                                        setIsOpen(false)
+                                        router.push(`/comedian/all`);
+                                    }}
+                                    label="All comedians"
+                                />
+
+                                <MenuItem
+                                    onClick={() => {
+                                        setIsOpen(false)
                                         router.push(`/comedian/favorite/all`);
                                     }}
                                     label="Favorite comedians"
                                 />
                                 <hr />
                                 <MenuItem
-                                    onClick={() => signOut()}
+                                    onClick={() => {
+                                        setIsOpen(false)
+                                        signOut()
+                                    }}
                                     label="Logout"
                                 />
                             </>

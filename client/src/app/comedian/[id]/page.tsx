@@ -10,7 +10,7 @@ export default async function ComedianDetailsPage({
 }) {
 
   const response = await getComedianDetails(params) as PaginatedShowPageInterface;
-
+  
   return (
     <div className="flex flex-col">
       <section>

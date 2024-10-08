@@ -9,7 +9,7 @@ export interface ClubInterface {
   address: string;
   popularityScore: number;
   zipCode: string;
-  shows?: ShowInterface[];
+  dates?: ShowInterface[];
 }
 
 export interface ClubScrapingData {

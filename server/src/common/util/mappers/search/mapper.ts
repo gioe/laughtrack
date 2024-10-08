@@ -4,9 +4,8 @@ import { orderShows } from "../../showUtil.js"
 import { toDates } from "../show/mapper.js"
 
 export const toHomeSearchResultInterface = (payload: GetHomeSearchResultsResponseDTO, sort?: string): HomeSearchResultInterface => {
-    const dates = toDates(payload.dates)
     return {
         city: payload.city,
-        shows: orderShows(dates, sort)
+        dates: toDates(payload.dates, sort)
     }
 }

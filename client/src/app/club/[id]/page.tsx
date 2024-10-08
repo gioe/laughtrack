@@ -10,7 +10,6 @@ export default async function ClubDetailPage({
 }) {
 
   const response = await getClubDetails(params) as PaginatedShowPageInterface;
-
   return (
     <div>
       <section>

@@ -48,7 +48,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
 
   return (
 
-    <div className="flex w-full flex-wrap md:flex-nowrap gap-4 ml-5">
+    <div className="flex w-full flex-wrap md:flex-nowrap gap-4 ml-5 pt-5">
 
       {
         propertyFilters && (

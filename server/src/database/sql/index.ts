@@ -1,4 +1,4 @@
-import {  IQueryFileOptions } from 'pg-promise';
+import { IQueryFileOptions } from 'pg-promise';
 import { join } from 'path';
 import pkg from 'pg-promise';
 import path from 'path';
@@ -9,7 +9,7 @@ export const clubs = {
     create: sql('clubs/create.sql'),
 
     // GETs
-    getAllPopularityData: sql('clubs/getAllPopularityData.sql'),
+    getAllShowPopularityData: sql('clubs/getAllShowPopularityData.sql'),
     getByName: sql('clubs/getByName.sql'),
     getCities: sql('clubs/getCities.sql')
 }
@@ -19,7 +19,7 @@ export const comedians = {
     create: sql('comedians/create.sql'),
 
     // GETs
-    getAllPopularityData: sql('comedians/getAllPopularityData.sql'),
+    getAllSocialData: sql('comedians/getAllSocialData.sql'),
     getAllWithFavorites: sql('comedians/getAllWithFavorites.sql'),
     getAllFavorites: sql('comedians/getAllFavorites.sql'),
     getByName: sql('comedians/getByName.sql'),
@@ -27,14 +27,22 @@ export const comedians = {
 }
 
 export const favorites = {
-    add: sql('favorites/add.sql'),
+    // Create Table
     create: sql('favorites/create.sql'),
+
+    // POST
+    add: sql('favorites/add.sql'),
+
+    // DELETE
     remove: sql('favorites/remove.sql')
 }
 
 export const lineups = {
-    add: sql('lineups/add.sql'),
-    create: sql('lineups/create.sql')
+    // Create Table 
+    create: sql('lineups/create.sql'),
+
+    // POST
+    add: sql('lineups/add.sql')
 }
 
 export const search = {
@@ -42,7 +50,7 @@ export const search = {
 }
 
 export const shows = {
-     // Create Table
+    // Create Table
     create: sql('shows/create.sql'),
 
 
@@ -50,13 +58,16 @@ export const shows = {
     add: sql('shows/add.sql'),
 
     // GETs
-    getAllPopularityData: sql('shows/getAllPopularityData.sql'),
+    getAllLineupPopularityData: sql('shows/getAllLineupPopularityData.sql'),
     getWithLineup: sql('shows/getWithLineup.sql')
 }
 
 export const users = {
-    add: sql('users/add.sql'),
-    create: sql('users/create.sql')
+    // Create Table
+    create: sql('users/create.sql'),
+
+    //POST 
+    add: sql('users/add.sql')
 }
 
 
@@ -65,7 +76,7 @@ export const users = {
 function sql(file: string): pkg.QueryFile {
 
     const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
-    const __dirname = path.dirname(__filename); 
+    const __dirname = path.dirname(__filename);
     const fullPath: string = join(__dirname, file); // generating full path;
 
     const options: IQueryFileOptions = {

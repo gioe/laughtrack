@@ -35,7 +35,7 @@ const ComedianTable: React.FC<ComedianTableProps> = ({
         <main className="flex flex-col pb-5">
             <div className="flex flex-row">
                 <TextSearchBar query={query} />
-                { response.totalPages > 0 && <PaginationComponent pageCount={response.totalPages} /> }
+                { response.totalPages > 1 && <PaginationComponent pageCount={response.totalPages} /> }
             </div>
             <section className="flex-grow flex-row pt-5 pl-5 pr-5">
                 <div className="grid grid-cols-3 gap-4">

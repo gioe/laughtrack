@@ -24,7 +24,7 @@ export const PUBLIC_ROUTES = {
     GET_FAVORITE_SHOWS: '/api/show/favorite/all',
 
     // Action
-    FAVORITE_COMEDIAN: '/api/comedian/favorite',
+    FAVORITE_COMEDIAN: '/api/comedian/addToFavorites',
     FAVORITE_SHOW: '/api/show/favorite',
     FAVORITE_CLUB:  '/api/club/favorite',
 

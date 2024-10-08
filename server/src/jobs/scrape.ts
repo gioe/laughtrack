@@ -22,7 +22,7 @@ export const scrapeClubs = async (id: number[]) => {
     const startDate = new Date()
     writeLogToFile(`Started all scraping jobs at ${startDate}`);
 
-    await clubController.getAll()
+    await clubController.getAllScrapingData()
         .then((clubs: ClubScrapingData[]) => {
             const jobs = clubs
             .filter((club: ClubScrapingData) =>  id.length > 0 ?  id.includes(club.id) : true)

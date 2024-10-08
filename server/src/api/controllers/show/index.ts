@@ -1,7 +1,7 @@
 import { ShowInterface } from '../../../common/interfaces/client/show.interface.js';
-import { GroupedPopularityScores } from '../../../common/interfaces/data/popularityScore.interface.js';
 import { CreateShowDTO } from '../../../common/interfaces/data/show.interface.js';
-import { generateShowPopularityData } from '../../../common/util/scoringUtil.js'
+import {  GroupedPopularityScoreDTO, PopularityScoreIODTO } from '../../../common/interfaces/data/socialData.interface.js';
+import { flattenScoreCollections } from '../../../common/util/mappers/socialData/mapper.js';
 import { db } from '../../../database/index.js';
 
 export const add = async (show: CreateShowDTO): Promise<{id: number}> => {
@@ -13,17 +13,7 @@ export const getById = async (id: number): Promise<ShowInterface | null> => {
 }
 
 export const generateScores = async (): Promise<null> => {
-    const allData = await db.shows.getAllPopularityData();
-    if (!allData) return null
-
-    const updatedValues = allData.map((data: GroupedPopularityScores) => {
-        return {
-            id: data.id,
-            popularity_score: generateShowPopularityData(data)
-        }
-    })
-
-    return db.shows.updateScores(updatedValues)
+    return db.shows.getAllLineupPopularityData()
+    .then((response: GroupedPopularityScoreDTO[] | null) => flattenScoreCollections(response))
+    .then((popularityScores: PopularityScoreIODTO[]) =>   db.shows.updateScores(popularityScores))
 }
-
-

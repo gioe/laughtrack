@@ -1,28 +1,23 @@
 import { ShowInterface } from "../../../interfaces/client/show.interface.js"
 import { GetDateDTO } from "../../../interfaces/data/comedian.interface.js"
-import { CreateShowDTO, GetShowResponseDTO } from "../../../interfaces/data/show.interface.js"
-import { Show } from "../../../models/Show.js"
+import { GetShowResponseDTO } from "../../../interfaces/data/show.interface.js"
+import { orderShows } from "../../showUtil.js"
 import { toLineupItemArray } from "../lineupItem/mapper.js"
 
-export const toDates = (payload: GetDateDTO[] | GetShowResponseDTO[] | undefined): ShowInterface[] | undefined => {
-    if (payload == undefined) return undefined
-    return payload.map((show: GetDateDTO | GetShowResponseDTO) => toShowInterface(show));
+export const toDates = (payload: GetDateDTO[] | GetShowResponseDTO[] | undefined, filter?: string, sort?: string): ShowInterface[] => {
+    if (payload == undefined) return []
+    const shows = payload.map((show: GetDateDTO | GetShowResponseDTO) => toShowInterface(show, filter));
+    return orderShows(shows, sort)
 }
 
-export const toShowInterface = (payload: GetShowResponseDTO | GetDateDTO): ShowInterface => {
+export const toShowInterface = (payload: GetShowResponseDTO | GetDateDTO, filter?: string): ShowInterface => {
     return {
         id: payload.id,
         dateTime: payload.date_time,
         ticketLink: payload.ticket_link,
         clubId: payload.club_id,
         clubName: payload.club_name,
-        lineup: payload.lineup == undefined ? [] : toLineupItemArray(payload.lineup),
+        lineup: toLineupItemArray(payload.lineup, filter),
         popularityScore: payload.popularity_score
     }
-}
-
-
-export const toCreateShowDTOArray = (payload?: Show[]): CreateShowDTO[] => {
-    if (payload == undefined) return []
-    return payload.map((show: Show) => show.asCreateShowDTO()).filter((dto: CreateShowDTO | null) => dto !== null)
 }

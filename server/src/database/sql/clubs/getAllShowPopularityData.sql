@@ -5,7 +5,7 @@ SELECT
         	'id', s.id,
             'popularity_score',
             s.popularity_score
-        )) FILTER (WHERE s.id IS NOT NULL), '[]') as shows
+        )) FILTER (WHERE s.id IS NOT NULL), '[]') as scores
 from clubs c
 left join shows s on s.club_id = c.id
 GROUP BY
