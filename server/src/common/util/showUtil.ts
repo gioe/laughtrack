@@ -1,19 +1,15 @@
 import { ClubScrapingData } from "../interfaces/client/club.interface.js";
 import { ScrapingOutput } from "../interfaces/client/scrape.interface.js";
 import { ShowInterface } from "../interfaces/client/show.interface.js";
-import { CreateShowDTO } from "../interfaces/data/show.interface.js";
 import { Show } from "../models/Show.js";
 import { writeFailureToFile } from "./logUtil.js";
 
-export const orderShows = (shows: ShowInterface[] | undefined, filter?: string): ShowInterface[] => {
+export const orderShows = (shows: ShowInterface[] | undefined, sortValue?: string): ShowInterface[] => {
   if (shows == undefined) return []
   return shows.sort((a: ShowInterface, b: ShowInterface) => {
-      if (filter == 'date') {
-          return new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime();
-      } else {
-          return (b.popularityScore ?? 0) - (a.popularityScore ?? 0)
-
-      }
+      if (sortValue == 'date_time') return new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime();
+      else return (b.popularityScore ?? 0) - (a.popularityScore ?? 0)
+      
   })
 }
 

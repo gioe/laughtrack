@@ -6,9 +6,9 @@ import { PUBLIC_ROUTES } from "@/lib/routes"
 import { date } from "zod"
 
 export interface GetClubDetailsParams {
-  name: string;
+  id: string;
   query?: string
-  currentPage?: string
+  page?: string
 }
 
 export interface GetClubDetailsResponse {
@@ -18,7 +18,7 @@ export interface GetClubDetailsResponse {
 
 export async function getClubDetails(params: GetClubDetailsParams) {
 
-  const getClubDetailsUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.GET_CLUB_DETAILS + `/${params.name}`
+  const getClubDetailsUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.GET_CLUB_DETAILS + `/${params.id}`
   
   return auth()
   .then((session: any) => {

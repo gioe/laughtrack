@@ -7,7 +7,7 @@ import WebIcon from "../icons/WebIcon";
 import { SocialDataInterface } from "@/interfaces/socialData.interface";
 
 interface SocialMediaBarProps {
-    data: SocialDataInterface;
+    data?: SocialDataInterface
 
 }
 const SocialMediaBar: React.FC<SocialMediaBarProps> = ({
@@ -16,7 +16,7 @@ const SocialMediaBar: React.FC<SocialMediaBarProps> = ({
     return (
         <div className="flex flex-row gap-4 justify-center pt-6">
 
-            {data.instagramAccount && (
+            {data?.instagramAccount && (
                 <Link
                 href={`https://instagram.com/${data.instagramAccount}`}
                 >
@@ -24,7 +24,7 @@ const SocialMediaBar: React.FC<SocialMediaBarProps> = ({
                 </Link>
             )}
 
-            {data.tiktokAccount && (
+            {data?.tiktokAccount && (
                 <Link
                                 href={`https://tiktok.com/@${data.tiktokAccount}`}
                 >
@@ -32,7 +32,7 @@ const SocialMediaBar: React.FC<SocialMediaBarProps> = ({
                 </Link>
             )}
 
-            {data.website && (
+            {data?.website && (
                                 <Link
                                 href={data.website}
                             >

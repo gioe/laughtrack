@@ -1,21 +1,22 @@
 'use server'
 
 import { auth } from "@/auth";
+import { CityInterface } from "@/interfaces/city.interface";
 import { ShowProviderInterface } from "@/interfaces/dateContainer.interface";
+import { LARGE_ELEMENT_PAGE_REQUEST_SIZE } from "@/lib/contants";
 import { PUBLIC_ROUTES } from "@/lib/routes"
-
-const PAGE_SIZE = '20';
 
 export interface HomeSearchParams {
   location: string;
   startDate: string;
   endDate: string;
   sort?: string;
-  currentPage?: string;
+  page?: string;
 }
 
 export interface HomeSearchResultResponse extends ShowProviderInterface {
-  city: string;
+  entity: CityInterface;
+  totalPages: number
 }
 
 export async function getSearchResults(params: HomeSearchParams) {
@@ -35,8 +36,8 @@ export async function getSearchResults(params: HomeSearchParams) {
         startDate: params.startDate,
         endDate: params.endDate,
         sort: params.sort ?? "date_time",
-        page: params.currentPage ?? "1",
-        pageSize: PAGE_SIZE
+        page: params.page ?? "1",
+        pageSize: LARGE_ELEMENT_PAGE_REQUEST_SIZE
       }),
     })
   })

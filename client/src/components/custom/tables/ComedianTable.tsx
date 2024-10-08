@@ -2,16 +2,16 @@
 
 import React from "react";
 import ComedianInfoCard from "./cards/ComedianInfoCard";
-import Drawer from "../drawer/Drawer";
-import { useState } from 'react';
 import { ComedianInterface } from "@/interfaces/comedian.interface";
-import FilterComponent, { PropertyFilter } from "../filters/FilterComponent";
+import { PropertyFilter } from "../filters/FilterComponent";
 import { PaginationComponent } from "../pagination/Pagination";
 import { GetComediansResponse } from "@/actions/comedians/getFavoriteComedians";
+import TextSearchBar from "../search/TextSearchBar";
 
 interface ComedianTableProps {
     response: GetComediansResponse
     selectedFilter?: string;
+    query?: string;
 }
 
 const typeFilters: PropertyFilter[] = [
@@ -27,27 +27,17 @@ const typeFilters: PropertyFilter[] = [
 
 const ComedianTable: React.FC<ComedianTableProps> = ({
     response,
-    selectedFilter,
+    query
 }) => {
 
-    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
-    const toggleDrawer = () => {
-        setIsDrawerOpen(!isDrawerOpen);
-    };
 
     return (
-        <main className="flex flex-col m-5">
-                        {
-                response.totalPages && (
-                    <div className="flex flex-row">
-                        <FilterComponent propertyFilters={typeFilters} selectedFilter={selectedFilter}/>
-                        <PaginationComponent pageCount={response.totalPages} />
-                    </div>
-                )
-            }
-            <section className="flex-grow flex-row pt-14 px-6">
-                <Drawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
+        <main className="flex flex-col pb-5">
+            <div className="flex flex-row">
+                <TextSearchBar query={query} />
+                { response.totalPages > 0 && <PaginationComponent pageCount={response.totalPages} /> }
+            </div>
+            <section className="flex-grow flex-row pt-5 pl-5 pr-5">
                 <div className="grid grid-cols-3 gap-4">
                     {response.comedians
                         .map((comedian: ComedianInterface) => {

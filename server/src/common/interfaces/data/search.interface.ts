@@ -8,6 +8,6 @@ export interface GetHomeSearchResultsDTO {
 
 export interface GetHomeSearchResultsResponseDTO {
   city: string;
-  shows: GetShowResponseDTO[];
+  dates: GetShowResponseDTO[];
 }
 

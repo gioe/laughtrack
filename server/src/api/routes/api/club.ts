@@ -5,12 +5,18 @@ import bodyParser from "body-parser";
 export const clubApiRouter = express.Router();
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
 
-clubApiRouter.get('/:name', urlencodedParser,
+clubApiRouter.get('/:id', urlencodedParser,
     async (req: Request, res: Response) => {
-        const { name } = req.params;
-        const decodedName = decodeURI(name)
+        const { id } = req.params;
+        const decodedName = decodeURI(id)
         const result = await clubController.getByName(decodedName)
-        return res.status(200).send(result)
+        return res.status(200).send({
+            entity: {
+                name: result?.name ?? id,
+                dates: result?.shows ?? []
+            },
+            totalPages: 0
+        })
     })
 
 clubApiRouter.post('/cities',

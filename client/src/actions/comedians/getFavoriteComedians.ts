@@ -3,17 +3,16 @@
 import { ComedianInterface } from "@/interfaces/comedian.interface";
 import { PUBLIC_ROUTES } from "@/lib/routes"
 import { auth } from "../../auth"
-
-const PAGE_SIZE = '20';
+import { MEDIUM_ELEMENT_PAGE_REQUEST_SIZE } from "@/lib/contants";
 
 export interface FetchFavoriteComedianParams {
   query?: string;
-  currentPage?: string;
+  page?: string;
 }
 
 export interface GetComediansResponse {
   comedians: ComedianInterface[]
-  query: string;
+  query?: string;
   totalPages: number;
 }
 
@@ -31,8 +30,8 @@ export async function getFavoriteComedians(params?: FetchFavoriteComedianParams)
         },
         body: new URLSearchParams({
           query: params?.query ?? "", 
-          page: params?.currentPage ?? "1",
-          pageSize: PAGE_SIZE
+          page: params?.page ?? "1",
+          pageSize: MEDIUM_ELEMENT_PAGE_REQUEST_SIZE
         }),
       })
     })

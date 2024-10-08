@@ -4,17 +4,17 @@ import ComedianTable from "@/components/custom/tables/ComedianTable";
 import { FetchFavoriteComedianParams, getFavoriteComedians } from "@/actions/comedians/getFavoriteComedians";
 
 export default async function FavoriteComediansPage({
-  params,
+  searchParams,
 }: {
-  params?: FetchFavoriteComedianParams;
+  searchParams?: FetchFavoriteComedianParams;
 }) {
 
-  const response = await getFavoriteComedians(params)
+  const response = await getFavoriteComedians(searchParams)
 
   return (
-    <main className="flex-grow pt-14 m-5 px-6 bg-shark">
-      <Suspense key={(params?.query ?? 1) + (params?.currentPage ?? "")} fallback={<div />}>
-        <ComedianTable response={response} />
+    <main className="flex-grow pt-5 bg-shark">
+      <Suspense key={(searchParams?.query ?? 1) + (searchParams?.page ?? "")} fallback={<div />}>
+        <ComedianTable response={response} query={searchParams?.query} />
       </Suspense>
     </main>
   );

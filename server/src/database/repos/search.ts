@@ -18,7 +18,11 @@ export class SearchRepository {
     constructor(private db: IDatabase<any>, private pgp: IMain) {}
 
     getHomeSearchResults(request: GetHomeSearchResultsDTO): Promise<GetHomeSearchResultsResponseDTO | null> {
-        return this.db.oneOrNone(sql.getHomeSearchResults, request);
+        return this.db.oneOrNone(sql.getHomeSearchResults, {
+            location: request.location,
+            start_date: request.start_date,
+            end_date: request.end_date
+        });
     }
 
 }

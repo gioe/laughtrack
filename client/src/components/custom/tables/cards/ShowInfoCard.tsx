@@ -43,7 +43,7 @@ const ShowInfoCard: React.FC<ShowInfoCardProps> = ({
                 </div>
 
                 <section>
-                    <div className="grid grid-cols-3 gap-5 ml-10 pt-5 overflow-scrollscrollbar-hide">
+                    <div className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-7 gap-4 m-3 overflow-scrollscrollbar-hide">
                         {show.lineup
                             .sort((a, b) => b.popularityScore - a.popularityScore)
                             .map((item: LineupItem) => {

@@ -2,12 +2,11 @@
 
 import { auth } from "@/auth";
 import { ClubInterface } from "@/interfaces/club.interface";
+import { MEDIUM_ELEMENT_PAGE_REQUEST_SIZE } from "@/lib/contants";
 import { PUBLIC_ROUTES } from "@/lib/routes"
 
-const PAGE_SIZE = '20';
-
 export interface GetClubsParams {
-  currentPage?: string,
+  page?: string,
   query?: string
 }
 
@@ -32,8 +31,8 @@ export async function getClubs(params: GetClubsParams) {
         },
         body: new URLSearchParams({
           query: params?.query ?? "",
-          page: params?.currentPage ?? "1",
-          pageSize: PAGE_SIZE
+          page: params?.page ?? "1",
+          pageSize: MEDIUM_ELEMENT_PAGE_REQUEST_SIZE
         }),
       })
     })

@@ -1,20 +1,13 @@
-import { getTrendingComedians } from "@/actions/comedians/getTrendingComedians";
-import { getCities } from "@/actions/cities/getCities";
 import Link from "next/link";
 import LargeComedianIcon from "@/components/custom/comedianIcons/LargeComedianIcon";
 import SearchBar from "@/components/custom/filters/SearchBar";
 import { ComedianInterface } from "@/interfaces/comedian.interface";
-import { getLandingPageData } from "@/actions/landingPage/getLandingPageData";
-
-interface LandingPageProps {
-  trendingComedians: ComedianInterface[],
-  cities: string[]
-}
+import { getLandingPageData } from "@/actions/landing/getLandingPageData";
 
 
 export default async function LandingPage() {
 
-  const response = await getLandingPageData();
+  const response = await getLandingPageData()
 
   return (
     <main>
@@ -42,7 +35,7 @@ export default async function LandingPage() {
          scrollbar-hide p-3 -ml-3">
           {
           response.trendingComedians
-            .sort((a, b) => (b.popularityScore ?? 0) - (a.popularityScore ?? 0))
+            .sort((a, b) => (b.socialData?.popularityScore ?? 0) - (a.socialData?.popularityScore ?? 0))
             .map((comedian: ComedianInterface) => {
               return (
                 <LargeComedianIcon key={comedian.name} comedian={comedian} />

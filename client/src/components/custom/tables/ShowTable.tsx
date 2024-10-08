@@ -8,13 +8,13 @@ import { ShowInterface } from "@/interfaces/show.interface";
 import { PaginationComponent } from "../pagination/Pagination";
 import { ShowProviderInterface } from "@/interfaces/dateContainer.interface";
 
-export interface PaginatedShowInterface {
+export interface PaginatedShowPageInterface {
     entity: ShowProviderInterface;
     totalPages: number
 }
 
 interface ShowTableProps {
-    response: PaginatedShowInterface;
+    response: PaginatedShowPageInterface;
 }
 
 const typeFilters: PropertyFilter[] = [
@@ -31,27 +31,15 @@ const typeFilters: PropertyFilter[] = [
 const ShowTable: React.FC<ShowTableProps> = ({
     response
 }) => {
-
-    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
-    const toggleDrawer = () => {
-        setIsDrawerOpen(!isDrawerOpen);
-    };
-
     return (
-        <main className="flex flex-col m-5">
-            {
-                response.totalPages && (
-                    <div className="flex flex-row">
-                        <FilterComponent propertyFilters={typeFilters} />
-                        <PaginationComponent pageCount={response.totalPages} />
-                    </div>
-                )
-            }
-            <section className="flex-grow flex-row pt-14 px-6">
-                <Drawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
+        <main className="flex flex-col">
+            <section className="flex flex-row bg-white">
+                { response.entity.dates.length > 1 && <FilterComponent propertyFilters={typeFilters} /> }
+                { response.totalPages > 0 && <PaginationComponent pageCount={response.totalPages} /> }
+            </section>
+            <section className="flex-grow flex-row">
                 <div className="flex flex-col">
-                    {response.entity.dates.length > 0 ? (
+                    { response.entity.dates.length > 0 ? (
                         response.entity.dates
                             .map((show: ShowInterface) => {
                                 return (

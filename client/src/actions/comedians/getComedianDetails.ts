@@ -4,23 +4,20 @@ import { auth } from "@/auth";
 import { ComedianInterface } from "@/interfaces/comedian.interface";
 import { PUBLIC_ROUTES } from "@/lib/routes"
 
-const PAGE_SIZE = '20';
-
 export interface GetComedianDetailsParams {
-  name: string;
+  id: string;
   query?: string
-  currentPage?: string
+  page?: string
 }
 
 export interface GetComedianDetailsResponse {
-  comedian: ComedianInterface
+  entity: ComedianInterface
   totalPages: number;
 }
 
 export async function getComedianDetails(params: GetComedianDetailsParams) {
 
-  const comedianDetailsUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.GET_COMEDIAN_DETAILS + `/${params.name}`
-
+  const comedianDetailsUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.GET_COMEDIAN_DETAILS + `/${params.id}`
   return auth()
   .then((session: any) => {
     return fetch(comedianDetailsUrl, {

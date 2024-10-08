@@ -3,10 +3,10 @@ import { GetHomeSearchResultsResponseDTO } from "../../../interfaces/data/search
 import { orderShows } from "../../showUtil.js"
 import { toDates } from "../show/mapper.js"
 
-export const toHomeSearchResultInterface = (payload: GetHomeSearchResultsResponseDTO, filter?: string): HomeSearchResultInterface => {
-    const dates = toDates(payload.shows)
+export const toHomeSearchResultInterface = (payload: GetHomeSearchResultsResponseDTO, sort?: string): HomeSearchResultInterface => {
+    const dates = toDates(payload.dates)
     return {
         city: payload.city,
-        shows: orderShows(dates, filter)
+        shows: orderShows(dates, sort)
     }
 }

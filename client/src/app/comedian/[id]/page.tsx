@@ -1,7 +1,7 @@
 
 import { getComedianDetails, GetComedianDetailsParams, GetComedianDetailsResponse } from "@/actions/comedians/getComedianDetails";
-import ComedianBanner from "@/components/custom/banners/ComedianBanner";
-import ShowTable from "@/components/custom/tables/ShowTable";
+import ComedianBanner from "@/components/custom/banners/EntityBanner";
+import ShowTable, { PaginatedShowPageInterface } from "@/components/custom/tables/ShowTable";
 
 export default async function ComedianDetailsPage({
   params,
@@ -9,14 +9,12 @@ export default async function ComedianDetailsPage({
   params: GetComedianDetailsParams;
 }) {
 
-  const response = await getComedianDetails(params);
+  const response = await getComedianDetails(params) as PaginatedShowPageInterface;
 
   return (
-    <div>
+    <div className="flex flex-col">
       <section>
-        <ComedianBanner
-          comedian={response.entity}>
-        </ComedianBanner>
+        <ComedianBanner entity={response.entity} />
       </section>
       <section>
         <ShowTable response={response} />

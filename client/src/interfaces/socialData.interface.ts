@@ -6,4 +6,5 @@ export interface SocialDataInterface {
     website?: string;
     nonComedian?: boolean;
     isPseudonym?: boolean;
+    popularityScore: number
 }

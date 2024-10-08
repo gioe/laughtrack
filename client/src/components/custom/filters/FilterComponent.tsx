@@ -32,7 +32,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
 
   const createNewPageUrl = (filter: number | string) => {
     const params = new URLSearchParams(searchParams);
-    params.set("filter", filter.toString());
+    params.set("sort", filter.toString());
     const route = `${pathname}?${params.toString()}`;
     router.push(route)
   };

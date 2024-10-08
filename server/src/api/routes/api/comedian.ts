@@ -49,10 +49,10 @@ comedianApiRouter.post('/favorite/:id',
 
     })
 
-comedianApiRouter.get('/:name', urlencodedParser,
+comedianApiRouter.get('/:id', urlencodedParser,
     async (req: Request, res: Response) => {
         const { page, pageSize } = req.body;
-        const { name } = req.params;
+        const { id } = req.params;
 
         const pageInt = parseInt(page as string);
         const pageSizeInt = parseInt(pageSize as string);
@@ -61,9 +61,10 @@ comedianApiRouter.get('/:name', urlencodedParser,
         const startIndex = (pageInt - 1) * pageSizeInt;
         const endIndex = pageInt * pageSizeInt;
 
-        const decodedName = decodeURI(name)
-
+        const decodedName = decodeURI(id)
+        
         const result = await comedianController.getByName(decodedName)
+
         const dates = result?.dates  ?? []
         // Slice the products array based on the indexes
         const paginatedDates = dates.slice(startIndex, endIndex);
@@ -72,7 +73,7 @@ comedianApiRouter.get('/:name', urlencodedParser,
         const totalPages = Math.ceil(dates.length / pageSizeInt);
 
         return res.status(200).send({
-            comedian: {
+            entity: {
                 ...result,
                 dates: paginatedDates
             },
