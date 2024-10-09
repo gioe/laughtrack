@@ -13,6 +13,7 @@ export interface FetchComedianParams {
 export interface GetComediansResponse {
   comedians: ComedianInterface[]
   totalPages: number;
+  totalComedians: number;
 }
 
 export async function getComedians(params?: FetchComedianParams) {

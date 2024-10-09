@@ -1,6 +1,6 @@
 'use client';
 
-import React from "react";
+import React, { useState } from "react";
 import MiniComedianIcon from "../../comedianIcons/MiniComedianIcon";
 import moment from "moment";
 import Image from "next/image";
@@ -15,6 +15,13 @@ interface ShowInfoCardProps {
 const ShowInfoCard: React.FC<ShowInfoCardProps> = ({
     show
 }) => {
+
+    const [src, setSrc] = useState<string>(`/images/clubs/square/${show.clubName ?? ""}.png`);
+    
+    const onError = () => {
+      setSrc(`/images/logo.png`);
+    };
+
     const dateObject = moment(new Date(show.dateTime));
 
     return (
@@ -29,8 +36,9 @@ const ShowInfoCard: React.FC<ShowInfoCardProps> = ({
                         >
                             <Image
                                 alt="Club"
-                                src={`/images/clubs/square/${show.clubName ?? ""}.png`}
+                                src={src}
                                 fill
+                                onError={onError}
                                 priority={false}
                                 style={{ objectFit: "cover" }}
                                 className="rounded-2xl bg-orange-700">
@@ -46,11 +54,7 @@ const ShowInfoCard: React.FC<ShowInfoCardProps> = ({
                     <div className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-7 gap-4 m-3 overflow-scrollscrollbar-hide">
                         {show.lineup
                             .sort((a, b) => b.popularityScore - a.popularityScore)
-                            .map((item: LineupItem) => {
-                                return (
-                                    <MiniComedianIcon key={item.name} comedian={item} />
-                                )
-                            })}
+                            .map((item: LineupItem) => <MiniComedianIcon key={item.name} comedian={item} /> )}
                     </div>
                 </section>
             </div>

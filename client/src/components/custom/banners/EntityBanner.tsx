@@ -1,6 +1,9 @@
+'use client';
+
 import Image from "next/image";
 import SocialMediaBar from "../social/SocialMediaBar";
 import { ShowProviderInterface } from "@/interfaces/dateContainer.interface";
+import {  useState } from "react";
 
 interface EntityBannerProps {
     entity: ShowProviderInterface;
@@ -9,14 +12,23 @@ interface EntityBannerProps {
 const EntityBanner: React.FC<EntityBannerProps> = ({
     entity
 }) => {
+
+    const [src, setSrc] = useState<string>(`/images/banners/${entity.name}.png`);
+    
+    const onError = () => {
+      setSrc(`/images/logo.png`);
+    };
+
     return (
         <div className="relative h-[300px] sm:h-[400px] lg:h[500-px] xl:h-[600px] 2xl:h-[700-px]">
             <Image
                 alt="Banner"
-                src={`/images/banners/${entity.name}.png`}
+                src={src}
                 fill
                 priority
+                placeholder="empty"
                 sizes="80vw"
+                onError={onError}
                 style={{
                     objectFit: "cover"
                 }}

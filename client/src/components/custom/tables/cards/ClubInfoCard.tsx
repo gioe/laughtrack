@@ -1,6 +1,6 @@
 'use client';
 
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ClubInterface } from "@/interfaces/club.interface";
@@ -13,6 +13,11 @@ const ClubInfoCard: React.FC<ClubInfoCardProps> = ({
     club
 }) => {
 
+    const [src, setSrc] = useState<string>(`/images/clubs/square/${club.name}.png`);
+    
+    const onError = () => {
+      setSrc(`/images/logo.png`);
+    };
     
     return (
         <div className="flex flex-row bg-orange-500 rounded-xl shadow-md overflow-hidden md:max-w-2xl items-start">
@@ -22,9 +27,10 @@ const ClubInfoCard: React.FC<ClubInfoCardProps> = ({
                 >
                     <div className="relative p-5 m-5 object-fill lg:h-40 lg:w-40 sm:h-40">
                         <Image alt="Comedian"
-                            src={`/images/clubs/square/${club.name}.png`}
+                            src={src}
                             fill
                             priority={false}
+                            onError={onError}
                             style={{ objectFit: "cover" }}
                             className="rounded-badge" />
                     </div>

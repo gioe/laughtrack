@@ -11,7 +11,6 @@ import { UserInterface } from "@/interfaces/user.interface";
 import Header from "@/components/custom/header/Header";
 import { NextUIProvider } from "@nextui-org/react";
 import { SessionProvider } from "next-auth/react";
-import EditSocialDataModal from "@/components/custom/modals/EditSocialDataModal";
 import AddShowModal from "@/components/custom/modals/AddShowModal";
 import AddClubModal from "@/components/custom/modals/AddClubModal";
 import AddComedianModal from "@/components/custom/modals/AddComedianModal";
@@ -43,7 +42,6 @@ export default async function RootLayout({
             />
             <ClientOnly>
               <ToasterProvider />
-              <EditSocialDataModal />
               <AddShowModal />
               <AddClubModal />
               <AddComedianModal />

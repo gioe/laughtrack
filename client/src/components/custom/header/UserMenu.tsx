@@ -51,6 +51,14 @@ const UserMenu: React.FC<UserMenuProps> = ({
                                 <MenuItem
                                     onClick={() => {
                                         setIsOpen(false)
+                                        router.push(`/`);
+                                    }}
+                                    label="Home"
+                                />
+
+                                <MenuItem
+                                    onClick={() => {
+                                        setIsOpen(false)
                                         router.push(`/club/all`);
                                     }}
                                     label="All clubs"

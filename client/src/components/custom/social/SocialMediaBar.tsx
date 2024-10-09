@@ -1,24 +1,39 @@
 'use client';
 
+import { SocialDataInterface } from "@/interfaces/socialData.interface";
+import { useSession } from "next-auth/react";
+import { EditComedianDropdown } from "../dropdown/EditComedianDropdown";
 import Link from "next/link";
 import InstagramIcon from "../icons/InstagramIcon";
 import TikTokIcon from "../icons/TikTokIcon";
 import WebIcon from "../icons/WebIcon";
-import { SocialDataInterface } from "@/interfaces/socialData.interface";
+import useSocialDataModal from "@/hooks/useSocialDataModal";
+import YouTubeIcon from "../icons/YoutubeIcon";
 
 interface SocialMediaBarProps {
-    data?: SocialDataInterface
-
+    data?: SocialDataInterface,
+    showMenu?: boolean
 }
+
 const SocialMediaBar: React.FC<SocialMediaBarProps> = ({
-    data
+    data,
+    showMenu
 }) => {
+
+    const socialDataModal = useSocialDataModal();
+
+    const session = useSession();
+
+    const editSocialData = () => {
+        socialDataModal.onOpen();
+    }
+
     return (
-        <div className="flex flex-row gap-4 justify-center pt-6">
+        <div className="flex flex-row gap-4 justify-center items-center pt-6">
 
             {data?.instagramAccount && (
                 <Link
-                href={`https://instagram.com/${data.instagramAccount}`}
+                    href={`https://instagram.com/${data.instagramAccount}`}
                 >
                     <InstagramIcon className='instagram-icon' />
                 </Link>
@@ -26,19 +41,31 @@ const SocialMediaBar: React.FC<SocialMediaBarProps> = ({
 
             {data?.tiktokAccount && (
                 <Link
-                                href={`https://tiktok.com/@${data.tiktokAccount}`}
+                    href={`https://tiktok.com/@${data.tiktokAccount}`}
                 >
                     <TikTokIcon className='tiktok-icon' />
                 </Link>
             )}
 
-            {data?.website && (
-                                <Link
-                                href={data.website}
-                            >
-                <WebIcon className='web-icon' />
+            {data?.youtubeAccount && (
+                <Link
+                    href={`https://www.youtube.com/@${data.youtubeAccount}`}
+                >
+                    <YouTubeIcon className='youtube-icon' />
                 </Link>
             )}
+
+            {data?.website && (
+                <Link
+                    href={data.website}
+                >
+                    <WebIcon className='web-icon' />
+                </Link>
+            )}
+
+            {
+                session.data?.user.role == 'admin' && showMenu !== false && <EditComedianDropdown handleEditSocialClick={editSocialData} />
+            }
 
         </div>
     )

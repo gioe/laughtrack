@@ -126,6 +126,16 @@ body,
   fill: aqua;
 }
 
+.youtube-icon {
+  stroke: white;
+  fill: black;
+}
+
+.youtube-icon:hover {
+  stroke: red;
+  fill: aqua;
+}
+
 
 .web-icon {
   stroke: white;

@@ -1,7 +1,11 @@
+'use client';
+
+
 import { ComedianInterface } from "@/interfaces/comedian.interface";
 import { LineupItem } from "@/interfaces/comedian.interface copy";
 import Image from "next/image"
 import Link from "next/link";
+import { useState } from "react";
 
 interface MiniComedianIconProps {
     comedian: ComedianInterface | LineupItem;
@@ -10,6 +14,13 @@ interface MiniComedianIconProps {
 export const MiniComedianIcon: React.FC<MiniComedianIconProps> = (
     { comedian }
 ) => {
+
+    const [src, setSrc] = useState<string>(`/images/comedians/square/${comedian.name}.png`);
+    
+    const onError = () => {
+      setSrc(`/images/logo.png`);
+    };
+
     return (
         <div className="flex flex-col w-20">
         <Link
@@ -19,11 +30,13 @@ export const MiniComedianIcon: React.FC<MiniComedianIconProps> = (
             ransform transition duration-300 ease-out text-center">
                 <div className="relative h-20 w-20">
                     <Image alt="Comedian"
-                        src={`/images/comedians/square/${comedian.name}.png`}
+                        src={src}
                         fill
                         priority={false}
                         style={{ objectFit: "cover" }}
-                        className="rounded-2xl">
+                        className="rounded-2xl"
+                        onError={onError}
+                        >
                     </Image>
                 </div>
 

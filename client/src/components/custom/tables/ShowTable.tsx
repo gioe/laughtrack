@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useState } from "react";
+import React from "react";
 import ShowInfoCard from "./cards/ShowInfoCard";
-import Drawer from "../drawer/Drawer";
 import FilterComponent, { PropertyFilter } from "../filters/FilterComponent";
 import { ShowInterface } from "@/interfaces/show.interface";
 import { PaginationComponent } from "../pagination/Pagination";

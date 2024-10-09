@@ -11,6 +11,7 @@ import useLoginModal from '@/hooks/useLoginModal';
 import useRegisterModal from '@/hooks/useRegisterModel';
 import { useSession } from "next-auth/react";
 import { updateFavoriteState } from '@/actions/favorite/addToFavorites';
+import SocialMediaBar from '../../social/SocialMediaBar';
 
 interface ComedianInfoCardProps {
     comedian: ComedianInterface;
@@ -20,6 +21,12 @@ const ComedianInfoCard: React.FC<ComedianInfoCardProps> = ({
     comedian,
 }) => {
     
+    const [src, setSrc] = useState<string>(`/images/comedians/square/${comedian.name}.png`);
+    
+    const onError = () => {
+      setSrc(`/images/logo.png`);
+    };
+
     const loginModal = useLoginModal();
     const registerModal = useRegisterModal();
     const session = useSession();
@@ -56,8 +63,9 @@ const ComedianInfoCard: React.FC<ComedianInfoCardProps> = ({
                 >
                     <div className="relative p-5 m-5 object-fill lg:h-40 lg:w-40 sm:h-40">
                         <Image alt="Comedian"
-                            src={`/images/comedians/square/${comedian.name}.png`}
+                            src={src}
                             fill
+                            onError={onError}
                             priority={false}
                             style={{ objectFit: "cover" }}
                             className="rounded-badge" />
@@ -77,6 +85,8 @@ const ComedianInfoCard: React.FC<ComedianInfoCardProps> = ({
                     </div>
 
                     <h4 className="m:text-sm text-m text-left bg-blue-900">{comedian.name}</h4>
+                    <SocialMediaBar data={comedian.socialData} showMenu={false} />
+                    <h4 className="m:text-sm text-m text-left bg-white">{comedian.socialData?.popularityScore}</h4>
                 </div>
             </div>
         </div>
