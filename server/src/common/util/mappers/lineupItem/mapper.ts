@@ -1,4 +1,4 @@
-import { LineupItem } from "../../../interfaces/client/comedian.interface copy.js"
+import { LineupItem } from "../../../interfaces/client/lineupItem.interface.js"
 import { LineupItemDTO } from "../../../interfaces/data/lineupItem.interface.js"
 
 

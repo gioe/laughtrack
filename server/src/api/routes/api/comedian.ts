@@ -5,6 +5,7 @@ import { authenticateRole } from "../../middleware/authenticateRole.middleware.j
 import { UserRole } from "../../../common/@types/UserRole.js";
 import { assignUser } from "../../middleware/assignUser.middleware.js";
 import { ComedianInterface } from "../../../common/interfaces/client/comedian.interface.js";
+import { generatePopularityScore } from "../../../common/util/scoringUtil.js";
 
 export const comedianApiRouter = express.Router();
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
@@ -116,6 +117,44 @@ comedianApiRouter.post('/all',
 
         return res.status(200).send({
             comedians: paginatedComedians,
-            totalPages
+            totalPages,
+            totalComedians: comedians.length
         })
     })
+
+    comedianApiRouter.put('/social',
+        assignUser,
+        urlencodedParser,
+        async (req: Request, res: Response) => {
+            const {instagramAccount, youtubeAccount, youtubeFollowers, instagramFollowers, tiktokAccount, tiktokFollowers, website, id } = req.body;
+            const instagramFollowerInt = parseInt(instagramFollowers as string)
+            const tiktokFollowerInt = parseInt(tiktokFollowers as string)
+            const youtubeFollowerInt = parseInt(youtubeFollowers as string)
+            const instagramFollowerCount =  !isNaN(instagramFollowerInt) ? instagramFollowerInt : 0;
+            const tiktokFollowerCount = !isNaN(tiktokFollowerInt) ? tiktokFollowerInt : 0;
+            const youtubeFollowerCount = !isNaN(youtubeFollowerInt) ? youtubeFollowerInt : 0;
+
+
+            const idNumber = parseInt(id as string)
+
+            const response = await comedianController.updateSocialData({
+                instagram_account: instagramAccount,
+                tiktok_account: tiktokAccount,
+                youtube_account: youtubeAccount,
+                website: website,
+                instagram_followers: instagramFollowerCount, 
+                tiktok_followers:  tiktokFollowerCount,
+                youtube_followers: youtubeFollowerCount,
+                popularity_score: generatePopularityScore({
+                    id: idNumber,
+                    instagram_followers: instagramFollowerCount,
+                    tiktok_followers:  tiktokFollowerCount,
+                    youtube_followers:  youtubeFollowerCount
+                }),
+                id: idNumber,
+            })
+    
+            return res.status(200).send(response)
+        })
+
+        

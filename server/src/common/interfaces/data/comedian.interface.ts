@@ -1,4 +1,5 @@
 import { LineupItemDTO } from "./lineupItem.interface.js";
+import { GetSocialDataDTO } from "./socialData.interface.js";
 
 export interface CreateComedianDTO {
     name: string;
@@ -10,15 +11,6 @@ export interface GetComedianResponseDTO {
     social_data: GetSocialDataDTO;
     dates: GetDateDTO[];
     favorite_id?: number;
-}
-
-export interface GetSocialDataDTO {
-    wbesite?: string,
-    tiktok_acoount?: string,
-    popularity_score: number,
-    tiktok_follwers?: number,
-    instagram_account?: string,
-    instagram_followers?: number
 }
 
 export interface GetDateDTO {

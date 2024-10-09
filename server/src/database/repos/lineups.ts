@@ -38,14 +38,6 @@ export class LineupsRepository {
         return this.db.none(batchInsert)
     }
 
-    // Adds a new user, and returns the new object;
-    add(lineupItem: CreateLineupItemDTO): Promise<any> {
-        return this.db.one(sql.add, {
-            show_id: lineupItem.show_id,
-            comedian_id: lineupItem.comedian_id,
-        });
-    }
-
     // Tries to delete a user by id, and returns the number of records deleted;
     remove(comedianId: number, showId: number): Promise<number> {
         return this.db.result('DELETE FROM lineups WHERE comedian_id = $1 AND show_id = $2', {

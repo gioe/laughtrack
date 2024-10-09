@@ -3,7 +3,7 @@ import { toComedianInterface, toComedianInterfaceArray } from "../../../common/u
 import { ComedianInterface } from "../../../common/interfaces/client/comedian.interface.js";
 import { CreateComedianDTO, GetComedianResponseDTO } from "../../../common/interfaces/data/comedian.interface.js";
 import { CreateFavoriteComedianDTO } from "../../../common/interfaces/data/favorite.interface.js";
-import { GetSocialDataDTO, PopularityScoreIODTO } from "../../../common/interfaces/data/socialData.interface.js";
+import { GetSocialDataDTO, PopularityScoreIODTO, UpdateSocialDataDTO } from "../../../common/interfaces/data/socialData.interface.js";
 import { toPopularityScores } from '../../../common/util/mappers/socialData/mapper.js';
 
 export const addAll = async (comedians: CreateComedianDTO[]): Promise<{id: number}[]> => {
@@ -12,7 +12,10 @@ export const addAll = async (comedians: CreateComedianDTO[]): Promise<{id: numbe
 
 export const getAllComedians = async (query?: string): Promise<ComedianInterface[]> => {
     return db.comedians.all()
-    .then((comedians: GetComedianResponseDTO[]) => toComedianInterfaceArray(comedians, query))
+    .then((comedians: GetComedianResponseDTO[]) => {
+        console.log(comedians[0])
+        return toComedianInterfaceArray(comedians, query)
+    })
 }
 
 export const getAllComediansWithFavorites = async (userId: number, query?: string): Promise<ComedianInterface[]> => {
@@ -43,4 +46,8 @@ export const generateScores = async (): Promise<null> => {
 export const favoriteComedian = async (payload: CreateFavoriteComedianDTO): Promise<boolean> => {
     if (payload.is_favorite) return db.favorites.remove(payload)
     return db.favorites.add(payload)
+}
+
+export const updateSocialData = async (payload: UpdateSocialDataDTO): Promise<boolean | null> => {
+    return db.comedians.updateSocialData(payload)
 }

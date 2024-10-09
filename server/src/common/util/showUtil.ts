@@ -7,8 +7,8 @@ import { writeFailureToFile } from "./logUtil.js";
 export const orderShows = (shows: ShowInterface[] | undefined, sortValue?: string): ShowInterface[] => {
   if (shows == undefined) return []
   return shows.sort((a: ShowInterface, b: ShowInterface) => {
-      if (sortValue == 'date_time') return new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime();
-      else return (b.popularityScore ?? 0) - (a.popularityScore ?? 0)
+    if (sortValue == 'date_time') return new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime();
+    else return (b.popularityScore ?? 0) - (a.popularityScore ?? 0)
   })
 }
 
@@ -23,10 +23,10 @@ export const isLikelyShow = (inputString: string, showSignifiers?: string[]): bo
   return isLikely
 }
 
-export const processShowsForStorage = (club: ClubScrapingData, shows: Show[]): ScrapingOutput[] => {    
-    if (shows.length == 0) writeFailureToFile(`No shows returned for ${club.name}`)
+export const processShowsForStorage = (club: ClubScrapingData, shows: Show[]): ScrapingOutput[] => {
+  if (shows.length == 0) writeFailureToFile(`No shows returned for ${club.name}`)
 
-    return shows
+  return shows
     .map((show: Show) => {
       show.setClubId(club.id)
       return show;

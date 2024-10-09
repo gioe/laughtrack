@@ -1,18 +1,18 @@
 import { SocialDataInterface } from "../../../interfaces/client/socialData.interface.js"
-import { GroupedPopularityScoreDTO, GetSocialDataDTO, PopularityScoreIODTO } from "../../../interfaces/data/socialData.interface.js"
+import { GetSocialDataDTO, GroupedPopularityScoreDTO, PopularityScoreIODTO } from "../../../interfaces/data/socialData.interface.js"
 import { averagePopularityScore, generatePopularityScore } from "../../scoringUtil.js"
 
-export const toSocialDataInterface = (payload?: any): SocialDataInterface | undefined => {
-    if (payload == undefined) return undefined
+export const toSocialDataInterface = (payload: GetSocialDataDTO | undefined | null): SocialDataInterface | undefined => {
+    if (payload == undefined || payload == null) return undefined
     return {
         instagramFollowers: payload.instagram_followers,
         instagramAccount: payload.instagram_account,
         tiktokFollowers: payload.tiktok_followers,
         tiktokAccount: payload.tiktok_account,
+        youtubeAccount: payload.youtube_account,
+        youtubeFollowers: payload.youtube_followers,
         website: payload.website,
-        isPseudonym: payload.is_pseudonym,
-        nonComedian: payload.non_comedian,
-        popularityScore: payload.popularity_score
+        popularityScore: payload.popularity_score ?? 0
     }
 }
 

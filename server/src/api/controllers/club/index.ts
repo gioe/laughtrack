@@ -16,9 +16,9 @@ export const addAll = async (): Promise<null> => {
     return db.clubs.addAll(clubs);
 }
 
-export const getByName = async (name: string, sort?: string): Promise<ClubInterface | null> => {
+export const getByName = async (name: string, filter?: string, sort?: string): Promise<ClubInterface | null> => {
     return db.clubs.getByName(name)
-    .then((response: GetClubDTO | null) => toClubInterface(response, sort))
+    .then((response: GetClubDTO | null) => toClubInterface(response, filter, sort))
 }
 
 export const getAllClubs =  async (query?: string): Promise<ClubInterface[]> => {

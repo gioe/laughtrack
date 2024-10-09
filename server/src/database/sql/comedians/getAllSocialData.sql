@@ -1,1 +1,1 @@
-SELECT id, instagram_followers, tikTok_followers, is_pseudonym, non_comedian FROM comedians;
+SELECT id, instagram_followers, tiktok_followers, youtube_followers FROM comedians;

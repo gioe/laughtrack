@@ -26,7 +26,7 @@ export const toClubInterfaceArray = (payload: GetClubDTO[] | null): ClubInterfac
     .filter((value: ClubInterface | null) => value !== null)
 }
 
-export const toClubInterface = (payload: GetClubDTO | null, sort?: string): ClubInterface | null => {
+export const toClubInterface = (payload: GetClubDTO | null, filter?: string, sort?: string): ClubInterface | null => {
     if (payload == null) return null
     return {
         id: payload.id, 
@@ -36,7 +36,7 @@ export const toClubInterface = (payload: GetClubDTO | null, sort?: string): Club
         city: payload.city,
         address: payload.address,
         popularityScore: payload.popularity_score,
-        dates: toDates(payload.dates, sort),
+        dates: toDates(payload.dates, filter, sort),
         zipCode: payload.zip_code
     }
 }

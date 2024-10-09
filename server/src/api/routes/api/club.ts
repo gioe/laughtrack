@@ -23,7 +23,7 @@ clubApiRouter.get('/:id', urlencodedParser,
 
         const decodedName = decodeURI(id)
 
-        const result = await clubController.getByName(decodedName, sort)
+        const result = await clubController.getByName(decodedName, undefined, sort)
         const dates = result?.dates ?? []
 
         const paginatedDates = dates.slice(startIndex, endIndex);

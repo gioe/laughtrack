@@ -2,15 +2,17 @@ import { ColumnSet, IDatabase, IMain } from 'pg-promise';
 import { comedians as sql } from '../sql/index.js';
 import { CreateComedianDTO, GetComedianResponseDTO } from '../../common/interfaces/data/comedian.interface.js';
 import { ComedianInterface } from '../../common/interfaces/client/comedian.interface.js';
-import { PopularityScoreIODTO, GetSocialDataDTO } from '../../common/interfaces/data/socialData.interface.js';
+import { PopularityScoreIODTO, GetSocialDataDTO, UpdateSocialDataDTO } from '../../common/interfaces/data/socialData.interface.js';
 import { provideGenericPromiseResponse } from '../../common/util/promiseUtil.js';
 
 var columnSets: {
     updateScores: ColumnSet | null;
     addAll: ColumnSet | null;
+    updateData: ColumnSet | null;
 } = {
     updateScores: null,
-    addAll: null
+    addAll: null,
+    updateData: null
 }
 
 export class ComediansRepository {
@@ -29,6 +31,9 @@ export class ComediansRepository {
     constructor(private db: IDatabase<any>, private pgp: IMain) {
         this.createTable();
         columnSets.updateScores = new pgp.helpers.ColumnSet(['?id', 'popularity_score'], {table: 'comedians'});
+        columnSets.updateData = new pgp.helpers.ColumnSet(['?id', 'instagram_account', 'tiktok_account', 
+            'youtube_account', 'youtube_followers', 
+            'instagram_followers','tiktok_followers',  'popularity_score', 'website'], {table: 'comedians'});
         columnSets.addAll = new pgp.helpers.ColumnSet(['name' ], {table: 'comedians'});
     }
 
@@ -52,11 +57,11 @@ export class ComediansRepository {
 
     // Returns all comedian records;
     all(): Promise<GetComedianResponseDTO[]> {
-        return this.db.any('SELECT * FROM comedians ORDER BY popularity_score DESC');
+        return this.db.any(sql.getAllWithSocialData)
     }
 
     allWithFavorites(userId: number): Promise<GetComedianResponseDTO[]> {
-        return this.db.any(sql.getAllWithFavorites, {
+        return this.db.any(sql.getAllWithFavoritesAndSocialData, {
             user_id: userId
         });
     }
@@ -79,5 +84,10 @@ export class ComediansRepository {
 
         const update = this.pgp.helpers.update(scores, columnSets.updateScores) + ' WHERE v.id = t.id';
         return this.db.none(update)
+    }
+
+    updateSocialData(payload: UpdateSocialDataDTO): Promise<boolean | null> {
+        const update = this.pgp.helpers.update([payload], columnSets.updateData) + ' WHERE v.id = t.id RETURNING 1';
+        return this.db.oneOrNone(update)
     }
 }

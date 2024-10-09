@@ -11,14 +11,13 @@ export const averagePopularityScore = (scores: PopularityScoreIODTO[]): number =
 }
 
 export const generatePopularityScore = (socialData: GetSocialDataDTO): number => {
-    const instagramScore = (socialData.instagram_followers ?? 0) * 0.8;
-    const tikTokScore = (socialData.tikTok_followers ?? 0) * 0.9
-    const socialScore = (instagramScore + tikTokScore) / 2
+    const instagramScore = (socialData.instagram_followers ?? 0) * 0.6;
+    const tiktokScore = (socialData.tiktok_followers ?? 0) * 0.9
+    const youtubeScore = (socialData.youtube_followers ?? 0) * 0.8
 
-    const pseudonymScore = socialData.is_pseudonym ? socialScore * 1.5 : socialScore
-    const celebrityHaircut = socialData.non_comedian ? pseudonymScore / 10 : pseudonymScore
+    const socialScore = (instagramScore + tiktokScore  + youtubeScore ) / 3
 
-    return Math.floor(celebrityHaircut)
+    return Math.floor(socialScore)
 }
 
 

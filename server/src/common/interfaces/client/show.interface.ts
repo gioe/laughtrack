@@ -1,4 +1,4 @@
-import { LineupItem } from "./comedian.interface copy.js";
+import { LineupItem } from "./lineupItem.interface.js";
 import { ComedianInterface } from "./comedian.interface.js";
 
 export interface ShowInterface {

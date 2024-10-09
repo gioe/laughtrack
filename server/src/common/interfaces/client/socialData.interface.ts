@@ -1,11 +1,10 @@
 export interface SocialDataInterface {
     instagramAccount?: string;
-    instagramFollowers?: number;
     tiktokAccount?: string;
+    youtubeAccount?: string;
+    youtubeFollowers?: number;
     tiktokFollowers?: number;
+    instagramFollowers?: number;
     website?: string;
-    nonComedian: boolean;
-    isPseudonym: boolean;
     popularityScore: number;
-    
 }
