@@ -9,8 +9,8 @@ import { errorHandler } from "./api/middleware/error.middleware.js";
 import { notFoundHandler } from "./api/middleware/not-found.middleware.js";
 import { clubApiRouter } from "./api/routes/api/club.js";
 import { isLocal } from "./common/util/environmentUtil.js";
-import { downloadBucketContents } from "./common/util/gcp/cloudStorageUtil.js";
 import { searchApiRouter } from "./api/routes/api/search.js";
+import { downloadBucketContents } from "./common/util/storageUtil.js";
 
 class App {
     public app: Application;

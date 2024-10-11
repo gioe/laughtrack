@@ -1,6 +1,6 @@
-import { DATE } from "../constants/dateConstants.js";
-import { REGEX } from "../constants/regex.js";
-import { ScrapingConfig } from "../models/ScrapingConfig.js";
+import { DATE } from "../../constants/dateConstants.js";
+import { REGEX } from "../../constants/regex.js";
+import { ScrapingConfig } from "../../models/classes/ScrapingConfig.js";
 import { removeNonNumbers, removeSubstrings } from "./stringUtil.js";
 
 var months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];

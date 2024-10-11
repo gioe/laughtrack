@@ -1,13 +1,13 @@
-import playwright, { ElementHandle } from "playwright-core";import { ElementInteractor } from "../../jobs/scrape/elementHandlers/ElementInteractor.js";
-import { ScrapableScraper } from "../../jobs/scrape/scrapers/ScrapableScraper.js";
-import { ElementValidator } from "../../jobs/scrape/elementHandlers/ElementValidator.js";
-import { ElementHandler } from "../../jobs/scrape/elementHandlers/ElementHandler.js";
+import playwright, { ElementHandle } from "playwright-core";import { ElementInteractor } from "../../../jobs/scrape/elementHandlers/ElementInteractor.js";
+import { ScrapableScraper } from "../../../jobs/scrape/scrapers/ScrapableScraper.js";
+import { ElementValidator } from "../../../jobs/scrape/elementHandlers/ElementValidator.js";
+import { ElementHandler } from "../../../jobs/scrape/elementHandlers/ElementHandler.js";
 import { ScrapingConfig } from "./ScrapingConfig.js";
-import { ShowScraper } from "../../jobs/scrape/scrapers/ShowScraper.js";
-import { Scrapable } from "./interfaces/scrape.interface.js";
-import { generateCompleteUrl } from "../util/scrapableUtil.js";
-import { Show } from "./Show.js";
-import { runTasks } from "../util/promiseUtil.js";;
+import { ShowScraper } from "../../../jobs/scrape/scrapers/ShowScraper.js";
+import { Scrapable } from "../interfaces/scrape.interface.js";
+import { generateCompleteUrl } from "../../util/scrapableUtil.js";
+import { runTasks } from "../../util/promiseUtil.js";import { Show } from "./Show.js";
+;
 
 export class PageManager {
 

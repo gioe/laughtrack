@@ -1,5 +1,5 @@
-import { CreateComedianDTO } from "./interfaces/comedian.interface.js";
-import { removeBadWhiteSpace } from "../util/stringUtil.js";
+import { CreateComedianDTO } from "../interfaces/comedian.interface.js";
+import { removeBadWhiteSpace } from "../../util/primatives/stringUtil.js";
 
 export class Comedian  {
   

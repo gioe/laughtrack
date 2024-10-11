@@ -4,8 +4,8 @@ import { CreateComedianDTO, GetComediansDTO, GetComedianResponseDTO, ComedianInt
 import { CreateFavoriteComedianDTO } from "../../../common/models/interfaces/favorite.interface.js";
 import { GetSocialDataDTO, PopularityScoreIODTO, UpdateSocialDataDTO } from "../../../common/models/interfaces/socialData.interface.js";
 import { generatePopularityScore } from '../../../common/util/scoringUtil.js';
-import { sortComedians } from '../../../common/util/domainModels/comedian/comedianUtil.js';
 import { toPopularityScores } from '../../../common/util/domainModels/socialData/mapper.js';
+import { sortComedians } from '../../../common/util/domainModels/comedian/sort.js';
 
 export const addAll = async (comedians: CreateComedianDTO[]): Promise<{ id: number }[]> => {
     return db.comedians.addAll(comedians);

@@ -1,6 +1,6 @@
 import playwright, { ElementHandle } from "playwright-core";
 import { Scrapable } from "../interfaces/scrape.interface.js";
-import { Show } from "../Show.js";
+import { Show } from "../classes/Show.js";
 
 export type ScrapableElement = (playwright.Page | ElementHandle | ElementHandle[])
 

@@ -6,7 +6,7 @@ export interface UserInterface {
   role?: string;
 }
 
-// Data
+// DB
 export interface CreateUserDTO {
   email: string;
   password: string;

@@ -1,12 +1,12 @@
 import playwright from "playwright-core";
 import { PageManager } from "./PageManager.js";
 import { Show } from "./Show.js";
-import { writeLogToFile } from "../util/logUtil.js";
-import { generateScrapingLoop } from "../util/scraperUtil.js";
-import { ClubScrapingData } from "./interfaces/club.interface.js";
-import { processShowsForStorage } from "../util/domainModels/show/showUtil.js";
-import { ScraperType } from "./@types/ScraperType.js";
-import { Scrapable, ScrapingOutput } from "./interfaces/scrape.interface.js";
+import { writeLogToFile } from "../../util/logUtil.js";
+import { generateScrapingLoop } from "../../util/scraperUtil.js";
+import { ClubScrapingData } from "../interfaces/club.interface.js";
+import { processShowsForStorage } from "../../util/domainModels/show/showUtil.js";
+import { ScraperType } from "../@types/ScraperType.js";
+import { Scrapable, ScrapingOutput } from "../interfaces/scrape.interface.js";
 
 export class Scraper {
 

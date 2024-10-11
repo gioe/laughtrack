@@ -1,6 +1,6 @@
 import { Scrapable } from "../../../common/models/interfaces/scrape.interface.js";
-import { ScrapingConfig } from "../../../common/models/ScrapingConfig.js";
-import { stringIsAValidDate } from "../../../common/util/dateUtil.js";
+import { ScrapingConfig } from "../../../common/models/classes/ScrapingConfig.js";
+import { stringIsAValidDate } from "../../../common/util/primatives/dateUtil.js";
 import { providedStringPromise, runTasks } from "../../../common/util/promiseUtil.js";
 import { ScrapableScraper } from "./ScrapableScraper.js";
 

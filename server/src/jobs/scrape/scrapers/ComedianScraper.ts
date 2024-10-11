@@ -1,7 +1,7 @@
 import playwright from "playwright-core";
 import { Scrapable } from "../../../common/models/interfaces/scrape.interface.js";
-import { Comedian } from "../../../common/models/Comedian.js";
-import { ScrapingConfig } from "../../../common/models/ScrapingConfig.js";
+import { Comedian } from "../../../common/models/classes/Comedian.js";
+import { ScrapingConfig } from "../../../common/models/classes/ScrapingConfig.js";
 import { runTasks } from "../../../common/util/promiseUtil.js";
 import { ElementCounter } from "../elementHandlers/ElementCounter.js";
 import { ScrapableScraper } from "./ScrapableScraper.js";

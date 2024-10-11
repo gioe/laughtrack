@@ -1,8 +1,8 @@
 import { REGEX } from "../../../constants/regex.js";
-import { Comedian } from "../../../models/Comedian.js";
-import { ScrapingConfig } from "../../../models/ScrapingConfig.js";
+import { Comedian } from "../../../models/classes/Comedian.js";
+import { ScrapingConfig } from "../../../models/classes/ScrapingConfig.js";
 import { isLikelyShow } from "../show/showUtil.js";
-import { removeSubstrings } from "../../stringUtil.js";
+import { removeSubstrings } from "../../primatives/stringUtil.js";
 import { ComedianInterface } from "../../../models/interfaces/comedian.interface.js";
 
 const SEPARATOR = ",";
@@ -39,7 +39,6 @@ export const buildComediansFromNames = (comedianNames: string[], config: Scrapin
   }
 
   const likelyContainsMultipleComedians = (nameString: string): boolean => {
-
     // Does the name have commas?
     const includesCommas = nameString.includes(SEPARATOR)
 
@@ -47,11 +46,4 @@ export const buildComediansFromNames = (comedianNames: string[], config: Scrapin
     const spaceCount = nameString.match(" ")?.length ?? 0
 
     return includesCommas || spaceCount > 3
-  }
-
-  export const sortComedians = (comedians: ComedianInterface[], sortValue?: string): ComedianInterface[] => {
-    return comedians.sort((a: ComedianInterface, b: ComedianInterface) => {
-      if (sortValue == 'alphabetical') return a.name < b.name ? -1 : 1;
-      else return (b.socialData?.popularityScore ?? 0) - (a.socialData?.popularityScore ?? 0)
-    })
   }

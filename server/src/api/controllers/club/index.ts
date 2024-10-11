@@ -11,7 +11,7 @@ import {
 } from "../../../common/models/interfaces/club.interface.js";
 import { GroupedPopularityScoreDTO, PopularityScoreIODTO } from '../../../common/models/interfaces/socialData.interface.js';
 import { averagePopularityScore } from '../../../common/util/scoringUtil.js';
-import { sortClubs } from '../../../common/util/domainModels/club/clubUtil.js';
+import { sortClubs } from '../../../common/util/domainModels/club/sort.js';
 
 const getAllClubsFromFile = async () => {
     return readFile(process.env.CLUBS_FILE_NAME as string)
@@ -33,8 +33,7 @@ export const getAllClubs =  async (payload: GetClubsDTO): Promise<ClubInterface[
     .then((clubs: GetClubDTO[]) => {
         const clubResponse = toClubInterfaceArray(clubs, payload.query);
         return payload.sort ? sortClubs(clubResponse, payload.sort) : clubResponse
-    })
-    
+    })   
 }
 
 export const getAllScrapingData = async (): Promise<ClubScrapingData[]> => {

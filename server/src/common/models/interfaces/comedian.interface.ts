@@ -2,7 +2,6 @@ import { LineupItemDTO } from "./lineupItem.interface.js";
 import { ShowInterface } from "./show.interface.js";
 import { GetSocialDataDTO, SocialDataInterface } from "./socialData.interface.js";
 
-
 // Client
 export interface ComedianInterface {
   id?: number;
@@ -12,9 +11,7 @@ export interface ComedianInterface {
   favoriteId?: number
 }
 
-
-// Data
-
+// DB
 export interface GetComediansDTO {
   userId?: number;
   query?: string;

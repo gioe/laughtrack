@@ -1,8 +1,8 @@
 import playwright from "playwright-core";
-import { ScrapingConfig } from "../../../common/models/ScrapingConfig.js";
+import { ScrapingConfig } from "../../../common/models/classes/ScrapingConfig.js";
 import { ScrapableScraper } from "./ScrapableScraper.js";
 import { providedStringPromise } from "../../../common/util/promiseUtil.js";
-import { stringIsAValidUrl } from "../../../common/util/stringUtil.js";
+import { stringIsAValidUrl } from "../../../common/util/primatives/stringUtil.js";
 import { Scrapable } from "../../../common/models/interfaces/scrape.interface.js";
 
 export class TicketScraper {

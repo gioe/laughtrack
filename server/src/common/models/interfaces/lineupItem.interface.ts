@@ -6,7 +6,7 @@ export interface LineupItem {
   popularityScore: number;
 }
 
-// Data
+// DB
 export interface CreateLineupItemDTO {
   show_id: number;
   comedian_id: number;

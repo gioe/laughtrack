@@ -1,5 +1,5 @@
 import playwright from "playwright-core";
-import { Show } from "../models/Show.js";
+import { Show } from "../models/classes/Show.js";
 import { Scrapable } from "../models/interfaces/scrape.interface.js";
 import {
   InteractionFunction,

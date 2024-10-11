@@ -2,7 +2,7 @@ import { runTasks } from '../../../common/util/promiseUtil.js';
 import { ElementCounter } from './ElementCounter.js';
 import { ElementHandle } from "playwright-core";
 import { ElementHandler } from './ElementHandler.js';
-import { removeBadWhiteSpace } from '../../../common/util/stringUtil.js';
+import { removeBadWhiteSpace } from '../../../common/util/primatives/stringUtil.js';
 import { ValidationRules } from '../../../common/models/@types/ValidationRules.js';
 
 export class ElementValidator {

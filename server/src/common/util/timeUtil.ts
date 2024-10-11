@@ -1,6 +1,6 @@
 import { REGEX } from "../constants/regex.js";
-import { ScrapingConfig } from "../models/ScrapingConfig.js";
-import { removeSubstrings } from "./stringUtil.js";
+import { ScrapingConfig } from "../models/classes/ScrapingConfig.js";
+import { removeSubstrings } from "./primatives/stringUtil.js";
 
 export const normalizeTimeString = (timeString: string, meridiem: string, config: ScrapingConfig) => {
     const cleanedTimeString = cleanTimeString(timeString, config)

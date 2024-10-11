@@ -5,8 +5,8 @@ import * as scrapingController from  "../../api/controllers/scrape/index.js"
 import { runScraper } from "../../common/functions/scraper.js";
 import { ClubScrapingData } from "../../common/models/interfaces/club.interface.js";
 import { ScrapingOutput } from "../../common/models/interfaces/scrape.interface.js";
-import { flatten } from "../../common/util/arrayUtil.js";
 import { writeLogToFile } from "../../common/util/logUtil.js";
+import { flatten } from "../../common/util/primatives/arrayUtil.js";
 import { runTasks } from "../../common/util/promiseUtil.js";
 
 async function runScrapingJob() {

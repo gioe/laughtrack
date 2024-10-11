@@ -21,9 +21,7 @@ export interface ClubScrapingData {
   scrapingConfig: any;
 }
 
-//DB
-
-
+// DB
 export interface CreateClubDTO {
   id: number;
   name: string;

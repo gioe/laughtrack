@@ -1,5 +1,5 @@
-import { ScrapingConfig } from "../../../common/models/ScrapingConfig.js";
-import { normalizeDateString } from "../../../common/util/dateUtil.js";
+import { ScrapingConfig } from "../../../common/models/classes/ScrapingConfig.js";
+import { normalizeDateString } from "../../../common/util/primatives/dateUtil.js";
 import { getTimeByRegex, normalizeTimeString } from "../../../common/util/timeUtil.js";
 import { DateContainer } from "./DateContainer.js";
 import { TimeContainer } from "./TimeContainer.js";

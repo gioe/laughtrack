@@ -11,7 +11,7 @@ export interface ShowInterface {
   clubName?: string;
 }
 
-// Data
+// DB
 export interface CreateShowDTO {
   club_id: number;
   date_time: Date;

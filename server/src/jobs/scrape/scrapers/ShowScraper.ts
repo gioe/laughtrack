@@ -1,11 +1,11 @@
 import { DateTimeScraper } from "./DateTimeScraper.js";
 import { ComedianScraper } from "./ComedianScraper.js";
 import { TicketScraper } from "./TicketScraper.js";
-import { ScrapingConfig } from "../../../common/models/ScrapingConfig.js";
+import { ScrapingConfig } from "../../../common/models/classes/ScrapingConfig.js";
 import { runTasks } from "../../../common/util/promiseUtil.js";
 import { Scrapable } from "../../../common/models/interfaces/scrape.interface.js";
-import { Comedian } from "../../../common/models/Comedian.js";
-import { Show } from "../../../common/models/Show.js";
+import { Comedian } from "../../../common/models/classes/Comedian.js";
+import { Show } from "../../../common/models/classes/Show.js";
 
 export class ShowScraper {
 
