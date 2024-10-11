@@ -1,4 +1,4 @@
-import { JSON_KEYS } from "../../../common/constants/keys.js";
+import { JSON_KEYS } from "../../../common/util/constants/keys.js";
 import { db } from '../../../database/index.js';
 import { readFile } from "../../../common/util/storageUtil.js";
 import { UserInterface } from "../../../common/models/interfaces/user.interface.js";
@@ -28,13 +28,11 @@ export const register = async (emailString: string, passwordHash: string) => {
 };
 
 export const getUserByEmail = async (email: string): Promise<UserInterface | null> => {
-  return db.users.findByEmail(email).then((user: any | null) => {
-    return user ? toUser(user) : null
-  })
+  return db.users.findByEmail(email)
+  .then((user: any | null) =>  user ? toUser(user) : null)
 };
 
 export const getUserById = async (userId: number): Promise<UserInterface | null> => {
-  return db.users.findById(userId).then((user: any | null) => {
-    return user ? toUser(user) : null
-  })
+  return db.users.findById(userId)
+  .then((user: any | null) => user ? toUser(user) : null)
 };

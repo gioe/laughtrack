@@ -1,8 +1,5 @@
 import { ClubScrapingData } from "../../../models/interfaces/club.interface.js";
 import { ScrapingOutput } from "../../../models/interfaces/scrape.interface.js";
-import { LineupItemDTO } from "../../../models/interfaces/lineupItem.interface.js";
-import { GetHomeSearchResultsDTO, GetHomeSearchResultsResponseDTO } from "../../../models/interfaces/search.interface.js";
-import { GetShowResponseDTO } from "../../../models/interfaces/show.interface.js";
 import { Show } from "../../../models/classes/Show.js";
 import { writeFailureToFile } from "../../logUtil.js";
 

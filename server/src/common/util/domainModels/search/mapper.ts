@@ -1,4 +1,4 @@
-import { GetHomeSearchResultsDTO, GetHomeSearchResultsResponseDTO, HomeSearchResultInterface} from "../../../models/interfaces/search.interface.js"
+import { GetHomeSearchResultsDTO, GetHomeSearchResultsResponseDTO, HomeSearchResultInterface } from "../../../models/interfaces/search.interface.js"
 import { toDates } from "../show/mapper.js"
 
 export const toHomeSearchResultInterface = (payload: GetHomeSearchResultsResponseDTO, comedianFilters?: string, showFilters?: string, sort?: string): HomeSearchResultInterface => {
@@ -13,9 +13,6 @@ export const toGetHomeSearchResultsDTO = (payload: any): GetHomeSearchResultsDTO
     return {
         location: payload.location,
         start_date: payload.startDate,
-        end_date: payload.endDate,
-        comedians: payload.query == '' ? undefined : payload.query,
-        clubs: payload.clubs == '' ? undefined : payload.clubs,
-        sort: payload.sort == '' ? undefined : payload.sort
+        end_date: payload.endDate
     }
 }

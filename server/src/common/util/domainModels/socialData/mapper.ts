@@ -2,12 +2,12 @@ import {
     GetSocialDataDTO,
     GroupedPopularityScoreDTO,
     PopularityScoreIODTO,
-    SocialDataInterface
+    SocialDataInterface,
+    UpdateSocialDataDTO
 } from "../../../models/interfaces/socialData.interface.js"
 import { averagePopularityScore, generatePopularityScore } from "../../scoringUtil.js"
 
-export const toSocialDataInterface = (payload: GetSocialDataDTO | undefined | null): SocialDataInterface | undefined => {
-    if (payload == undefined || payload == null) return undefined
+export const toSocialDataInterface = (payload: GetSocialDataDTO): SocialDataInterface => {
     return {
         instagramFollowers: payload.instagram_followers,
         instagramAccount: payload.instagram_account,
@@ -15,29 +15,50 @@ export const toSocialDataInterface = (payload: GetSocialDataDTO | undefined | nu
         tiktokAccount: payload.tiktok_account,
         youtubeAccount: payload.youtube_account,
         youtubeFollowers: payload.youtube_followers,
-        website: payload.website,
-        popularityScore: payload.popularity_score ?? 0
+        website: payload.website
     }
 }
 
-export const toPopularityScores = (payload: GetSocialDataDTO[] | null): PopularityScoreIODTO[] => {
-    return payload == null ? [] : payload.map((data: any) => toPopularityScore(data))
+export const toUpdateSocialDataDTO = (payload: any): UpdateSocialDataDTO => {
+    const { instagramAccount, instagramFollowers, youtubeAccount, youtubeFollowers, tiktokAccount, tiktokFollowers, website, id } = payload;
+
+    const instagramFollowerInt = parseInt(instagramFollowers as string)
+    const tiktokFollowerInt = parseInt(tiktokFollowers as string)
+    const youtubeFollowerInt = parseInt(youtubeFollowers as string)
+    const instagramFollowerCount = !isNaN(instagramFollowerInt) ? instagramFollowerInt : 0;
+    const tiktokFollowerCount = !isNaN(tiktokFollowerInt) ? tiktokFollowerInt : 0;
+    const youtubeFollowerCount = !isNaN(youtubeFollowerInt) ? youtubeFollowerInt : 0;
+    const idNumber = parseInt(id as string)
+    const popularityScore = generatePopularityScore({
+        id: idNumber,
+        instagram_followers: instagramFollowerCount,
+        tiktok_followers: tiktokFollowerCount,
+        youtube_followers: youtubeFollowerCount
+    })
+
+
+    return {
+        id: idNumber,
+        instagram_followers: instagramFollowerCount,
+        tiktok_followers: tiktokFollowerCount,
+        youtube_followers: youtubeFollowerCount,
+        popularity_score: popularityScore,
+        instagram_account: instagramAccount,
+        youtube_account: youtubeAccount,
+        tiktok_account: tiktokAccount,
+        website: website
+    }
 }
 
-export const toPopularityScore = (payload: GetSocialDataDTO): PopularityScoreIODTO => {
+export const toPopularityScores = (payload: GroupedPopularityScoreDTO[] | GetSocialDataDTO[]): PopularityScoreIODTO[] => {
+    return payload.map((data: any) => toPopularityScore(data))
+}
+
+export const toPopularityScore = (payload: any): PopularityScoreIODTO => {
     return {
         id: payload.id,
-        popularity_score: generatePopularityScore(payload)
+        popularity_score: payload.scores ? averagePopularityScore(payload.scores) : generatePopularityScore(payload)
     }
 }
 
-export const flattenScoreCollections = (response: GroupedPopularityScoreDTO[] | null): PopularityScoreIODTO[] => {
-    if (response == null) return []
-    return response.map((item: GroupedPopularityScoreDTO) => {
-        return {
-            id: item.id,
-            popularity_score: averagePopularityScore(item.scores)
-        } as PopularityScoreIODTO
-    })
-}
 

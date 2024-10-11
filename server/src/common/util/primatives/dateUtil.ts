@@ -1,9 +1,7 @@
-import { DATE } from "../../constants/dateConstants.js";
-import { REGEX } from "../../constants/regex.js";
+import { DATE } from "../constants/dateConstants.js";
+import { REGEX } from "../constants/regex.js";
 import { ScrapingConfig } from "../../models/classes/ScrapingConfig.js";
 import { removeNonNumbers, removeSubstrings } from "./stringUtil.js";
-
-var months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
 
 export const normalizeDateString = (dateString: string, config: ScrapingConfig): string => {
     const cleanedDateString = cleanDateString(dateString, config)
@@ -44,7 +42,7 @@ export const determineDate = (dateString: string): number => {
 
 export const determineMonth = (dateString: string): number => {
     var monthIndex = 0;
-    months.forEach((month, index) => {
+    DATE.months.forEach((month, index) => {
         if (dateString.toLowerCase().includes(month)) {
             monthIndex = index
         }

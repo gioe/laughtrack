@@ -52,8 +52,3 @@ export interface GetClubDTO {
 export interface GetCitiesResponseDTO {
   city: string;
 }
-
-export interface GetClubsDTO {
-  sort?: string;
-  query?: string;
-}

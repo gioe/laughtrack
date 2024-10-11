@@ -3,7 +3,6 @@ import * as clubController from "../../controllers/club/index.js"
 import bodyParser from "body-parser";
 import express, { Request, Response } from "express";
 import { ClubInterface } from "../../../common/models/interfaces/club.interface.js";
-import { toGetClubsDto } from "../../../common/util/domainModels/club/mapper.js";
 import { toPaginatedData } from "../../../common/util/domainModels/pagination/mapper.js";
 
 export const clubApiRouter = express.Router();
@@ -18,7 +17,7 @@ clubApiRouter.get('/:id', urlencodedParser,
 
         const decodedName = decodeURI(id)
 
-        const result = await clubController.getByName(decodedName, undefined, sort)
+        const result = await clubController.getByName(decodedName)
         const dates = result?.dates ?? []
 
         const page = req.header("page") as string;
@@ -45,9 +44,7 @@ clubApiRouter.post('/all',
     async (req: Request, res: Response) => {
         const { page, pageSize } = req.body;
 
-        const dto = toGetClubsDto(req.body)
-
-        var clubs: ClubInterface[] = await clubController.getAllClubs(dto)
+        var clubs: ClubInterface[] = await clubController.getAllClubs()
         var cities: string[] = await clubController.getAllCities()
 
         const paginationData = toPaginatedData(clubs, page, pageSize)

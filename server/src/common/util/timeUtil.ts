@@ -1,4 +1,4 @@
-import { REGEX } from "../constants/regex.js";
+import { REGEX } from "./constants/regex.js";
 import { ScrapingConfig } from "../models/classes/ScrapingConfig.js";
 import { removeSubstrings } from "./primatives/stringUtil.js";
 

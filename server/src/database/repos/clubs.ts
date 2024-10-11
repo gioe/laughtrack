@@ -54,12 +54,12 @@ export class ClubsRepository {
         });
     }
     
-    getAllCities(): Promise<GetCitiesResponseDTO[] | null> {
+    getAllCities(): Promise<GetCitiesResponseDTO[]> {
         return this.db.any(sql.getCities);
     }
 
     // Returns all club records;
-    all(): Promise<GetClubDTO[]> {
+    all(): Promise<GetClubDTO[] | null> {
         return this.db.any('SELECT * FROM clubs')
     }
 

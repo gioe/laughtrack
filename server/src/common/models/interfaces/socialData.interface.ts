@@ -7,7 +7,6 @@ export interface SocialDataInterface {
   tiktokFollowers?: number;
   instagramFollowers?: number;
   website?: string;
-  popularityScore: number;
 }
 
 // DB
@@ -32,7 +31,6 @@ export interface GetSocialDataDTO {
   tiktok_account?: string;
   youtube_account?: string;
   website?: string;
-  popularity_score?: number
 }
 
 export interface GroupedPopularityScoreDTO {

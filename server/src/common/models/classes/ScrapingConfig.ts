@@ -1,4 +1,4 @@
-import { SCRAPER_KEYS } from "../../constants/keys.js";
+import { SCRAPER_KEYS } from "../../util/constants/keys.js";
 
 export class ScrapingConfig {
 

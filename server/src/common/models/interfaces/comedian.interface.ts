@@ -9,13 +9,12 @@ export interface ComedianInterface {
   socialData?: SocialDataInterface;
   dates?: ShowInterface[];
   favoriteId?: number
+  popularityScore?: number;
 }
 
 // DB
 export interface GetComediansDTO {
   userId?: number;
-  query?: string;
-  sort?: string;
 }
 
 export interface CreateComedianDTO {
@@ -26,6 +25,7 @@ export interface GetComedianResponseDTO {
   id: number;
   name: string;
   social_data: GetSocialDataDTO;
+  popularity_score?: number
   dates: GetDateDTO[];
   favorite_id?: number;
 }

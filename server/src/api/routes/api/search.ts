@@ -22,6 +22,7 @@ searchApiRouter.post('/', urlencodedParser,
 
         const result = await searchController.getHomeSearchResults(dto);
         const dates = result?.dates ?? []
+        const clubs = result?.clubs ?? []
 
         const paginationData = toPaginatedData(dates, page, pageSize)
 
@@ -30,7 +31,7 @@ searchApiRouter.post('/', urlencodedParser,
                 name: location,
                 dates: paginationData.data
             },
-            clubs: result?.clubs ?? [],
+            clubs,
             totalPages: paginationData.totalPages,
             totalShows: dates.length
         })

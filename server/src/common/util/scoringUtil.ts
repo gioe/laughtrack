@@ -1,4 +1,4 @@
-import { PopularityScoreIODTO, GetSocialDataDTO } from "../models/interfaces/socialData.interface.js"
+import { GetSocialDataDTO, PopularityScoreIODTO } from "../models/interfaces/socialData.interface.js";
 
 export const averagePopularityScore = (scores: PopularityScoreIODTO[]): number => {
     if (scores.length == 0) return 0

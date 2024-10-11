@@ -8,6 +8,7 @@ import { ComedianInterface } from "../../../common/models/interfaces/comedian.in
 import { toGetComediansDTO } from "../../../common/util/domainModels/comedian/mapper.js";
 import { UserRole } from "../../../common/models/@types/UserRole.js";
 import { toPaginatedData } from "../../../common/util/domainModels/pagination/mapper.js";
+import { toUpdateSocialDataDTO } from "../../../common/util/domainModels/socialData/mapper.js";
 
 export const comedianApiRouter = express.Router();
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
@@ -42,9 +43,8 @@ comedianApiRouter.post('/addToFavorites/:id',
 
         const result = await comedianController.favoriteComedian({
             comedian_id: idNumber,
-            user_id: req.currentUser.id,
-            is_favorite: isFavorite == "1" ? true : false
-        })
+            user_id: req.currentUser.id
+        }, isFavorite == "1")
 
         return res.status(200).send(result)
 
@@ -60,7 +60,8 @@ comedianApiRouter.get('/:id', urlencodedParser,
 
         const decodedName = decodeURI(id)
 
-        const result = await comedianController.getByName(decodedName, sort)
+        const result = await comedianController.getByName(decodedName)
+
         const dates = result?.dates ?? []
 
         const paginationData = toPaginatedData(dates, page, pageSize)
@@ -90,11 +91,7 @@ comedianApiRouter.post('/all',
 
         var comedians: ComedianInterface[] = [];
 
-        if (req.currentUser == undefined) {
-            comedians = await comedianController.getAllComedians(dto)
-        } else {
-            comedians = await comedianController.getAllComediansWithFavorites(dto)
-        }
+        comedians = await comedianController.getAllComedians(dto)
 
         const paginationData = toPaginatedData(comedians, page, pageSize)
 
@@ -109,7 +106,10 @@ comedianApiRouter.put('/social',
     assignUser,
     urlencodedParser,
     async (req: Request, res: Response) => {
-        const response = await comedianController.updateSocialData(req.body)
+        const input = toUpdateSocialDataDTO(req.body)
+        
+        const response = await comedianController.updateSocialData(input)
+
         return res.status(200).send(response)
     })
 

@@ -8,13 +8,8 @@ const storage = new Storage()
 const bucket = storage.bucket(process.env.STORAGE_BUCKET as string);
 bucket.setUserProject(process.env.CLOUD_STORAGE_PROJECT_ID as string);
 
-
 export async function readFile(fileName: string): Promise<string> {
-    if (isLocal) {
-        return readFileFromFileSystem(fileName)
-    } else {
-        return readFileFromBucket(fileName)
-    }
+    return isLocal ? readFileFromFileSystem(fileName) : readFileFromBucket(fileName)
 }
 
 export const readFileFromFileSystem = async (sourceFile: string): Promise<string> => {
@@ -41,7 +36,6 @@ export const readFileFromBucket = async (sourceFile: string): Promise<string> =>
     .then((response: DownloadResponse) => JSON.parse(response[0].toString('utf8')))
     .catch((error: Error) => console.log(error))
 };
-
 
 export async function downloadBucketContents(): Promise<void> {
 

@@ -47,20 +47,18 @@ export class ComediansRepository {
         });
     }
 
+    // Returns all comedian records;
+    all(): Promise<GetComedianResponseDTO[] | null> {
+        return this.db.any(sql.getAllWithSocialData)
+    }
+
     getAllFavorites(userId: number): Promise<GetComedianResponseDTO[] | null> {
         return this.db.any(sql.getAllFavorites, {
             user_id: userId
         });
     }
 
-    // Returns all comedian records;
-    all(): Promise<GetComedianResponseDTO[]> {
-        return this.db.any(sql.getAllWithSocialData)
-    }
-
-    allWithFavorites(userId?: number): Promise<GetComedianResponseDTO[]> {
-        if (userId == undefined) return provideGenericPromiseResponse([])
-
+    allWithFavorites(userId: number): Promise<GetComedianResponseDTO[] | null> {
         return this.db.any(sql.getAllWithFavoritesAndSocialData, {
             user_id: userId
         });
