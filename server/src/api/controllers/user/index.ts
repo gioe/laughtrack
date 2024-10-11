@@ -1,8 +1,8 @@
 import { JSON_KEYS } from "../../../common/constants/keys.js";
 import { db } from '../../../database/index.js';
-import { toUser } from "../../../common/util/mappers/user/mapper.js";
 import { readFile } from "../../../common/util/storageUtil.js";
-import { UserInterface } from "../../../common/interfaces/client/user.interface.js";
+import { UserInterface } from "../../../common/models/interfaces/user.interface.js";
+import { toUser } from "../../../common/util/domainModels/user/mapper.js";
 
 const getAdminList = async (): Promise<string[]> => {
   return readFile(process.env.USERS_FILE_NAME as string)

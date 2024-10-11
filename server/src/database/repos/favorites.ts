@@ -1,8 +1,7 @@
 import { IDatabase, IMain } from 'pg-promise';
 import { IResult } from 'pg-promise/typescript/pg-subset.js';
 import { favorites as sql } from '../sql/index.js';
-import { CreateFavoriteComedianDTO } from '../../common/interfaces/data/favorite.interface.js';
-import { UpdateSocialDataDTO } from '../../common/interfaces/data/socialData.interface.js';
+import { CreateFavoriteComedianDTO } from '../../common/models/interfaces/favorite.interface.js';
 
 export class FavoritesRepository {
 

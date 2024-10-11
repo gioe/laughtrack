@@ -1,7 +1,7 @@
-import { ShowInterface } from '../../../common/interfaces/client/show.interface.js';
-import { CreateShowDTO } from '../../../common/interfaces/data/show.interface.js';
-import {  GroupedPopularityScoreDTO, PopularityScoreIODTO } from '../../../common/interfaces/data/socialData.interface.js';
-import { flattenScoreCollections } from '../../../common/util/mappers/socialData/mapper.js';
+import { ShowInterface } from '../../../common/models/interfaces/show.interface.js';
+import { CreateShowDTO } from '../../../common/models/interfaces/show.interface.js';
+import {  GroupedPopularityScoreDTO, PopularityScoreIODTO } from '../../../common/models/interfaces/socialData.interface.js';
+import { flattenScoreCollections } from '../../../common/util/domainModels/socialData/mapper.js';
 import { db } from '../../../database/index.js';
 
 export const add = async (show: CreateShowDTO): Promise<{id: number}> => {

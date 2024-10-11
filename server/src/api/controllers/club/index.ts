@@ -1,10 +1,17 @@
 import { db } from '../../../database/index.js';
 import { readFile } from '../../../common/util/storageUtil.js';
-import { clubArrayFromJson, toClubInterface, toClubInterfaceArray, toClubScrapingDataArray } from '../../../common/util/mappers/club/mapper.js';
-import { CreateClubDTO, GetCitiesResponseDTO, GetClubDTO } from "../../../common/interfaces/data/club.interface.js";
-import { ClubInterface, ClubScrapingData } from "../../../common/interfaces/client/club.interface.js";
-import { GroupedPopularityScoreDTO, PopularityScoreIODTO } from '../../../common/interfaces/data/socialData.interface.js';
+import { clubArrayFromJson, toClubInterface, toClubInterfaceArray, toClubScrapingDataArray } from '../../../common/util/domainModels/club/mapper.js';
+import { 
+    CreateClubDTO,
+    GetCitiesResponseDTO, 
+    GetClubDTO, 
+    GetClubsDTO, 
+    ClubInterface,
+    ClubScrapingData 
+} from "../../../common/models/interfaces/club.interface.js";
+import { GroupedPopularityScoreDTO, PopularityScoreIODTO } from '../../../common/models/interfaces/socialData.interface.js';
 import { averagePopularityScore } from '../../../common/util/scoringUtil.js';
+import { sortClubs } from '../../../common/util/domainModels/club/clubUtil.js';
 
 const getAllClubsFromFile = async () => {
     return readFile(process.env.CLUBS_FILE_NAME as string)
@@ -21,11 +28,14 @@ export const getByName = async (name: string, filter?: string, sort?: string): P
     .then((response: GetClubDTO | null) => toClubInterface(response, filter, sort))
 }
 
-export const getAllClubs =  async (query?: string): Promise<ClubInterface[]> => {
+export const getAllClubs =  async (payload: GetClubsDTO): Promise<ClubInterface[]> => {
     return db.clubs.all()
-    .then((clubs: GetClubDTO[]) => toClubInterfaceArray(clubs))
+    .then((clubs: GetClubDTO[]) => {
+        const clubResponse = toClubInterfaceArray(clubs, payload.query);
+        return payload.sort ? sortClubs(clubResponse, payload.sort) : clubResponse
+    })
+    
 }
-
 
 export const getAllScrapingData = async (): Promise<ClubScrapingData[]> => {
     return db.clubs.all()

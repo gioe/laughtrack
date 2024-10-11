@@ -1,9 +1,10 @@
+import * as userController from '../../controllers/user/index.js'
+
 import express, { Request, Response } from "express";
 import bcrypt from "bcrypt";
-import * as userController from '../../controllers/user/index.js'
 import bodyParser from "body-parser";
 import { generateToken, verifyToken } from "../../../common/util/tokenUtil.js";
-import { UserInterface } from "../../../common/interfaces/client/user.interface.js";
+import { UserInterface } from "../../../common/models/interfaces/user.interface.js";
 
 export const authApiRouter = express.Router();
 var urlencodedParser = bodyParser.urlencoded({ extended: false })

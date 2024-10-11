@@ -1,7 +1,7 @@
 import {ColumnSet, IDatabase, IMain} from 'pg-promise';
 import {IResult} from 'pg-promise/typescript/pg-subset.js';
 import {lineups as sql} from '../sql/index.js';
-import { CreateLineupItemDTO } from '../../common/interfaces/data/lineupItem.interface.js';
+import { CreateLineupItemDTO } from '../../common/models/interfaces/lineupItem.interface.js';
 
 var columnSets: {
     addAll: ColumnSet | null;

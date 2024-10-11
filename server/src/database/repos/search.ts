@@ -1,6 +1,6 @@
 import { IDatabase, IMain } from 'pg-promise';
 import { search as sql } from '../sql/index.js';
-import { GetHomeSearchResultsDTO, GetHomeSearchResultsResponseDTO } from '../../common/interfaces/data/search.interface.js';
+import { GetHomeSearchResultsDTO, GetHomeSearchResultsResponseDTO } from '../../common/models/interfaces/search.interface.js';
 
 export class SearchRepository {
 

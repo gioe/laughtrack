@@ -16,8 +16,6 @@ export function capitalizeFirstLetter(string?: string) {
 
 export function handleUrlParams(searchParams: URLSearchParams, param: string, value: string | number): string {
 
-  console.log(`Editing ${param} param with value: ${value}`)
-
   const stringParam = value.toString();
   const params = new URLSearchParams(searchParams)
 

@@ -1,12 +1,11 @@
 import { db } from '../../../database/index.js';
-import { toComedianInterface, toComedianInterfaceArray } from "../../../common/util/mappers/comedian/mapper.js";
-import { ComedianInterface } from "../../../common/interfaces/client/comedian.interface.js";
-import { CreateComedianDTO, GetComediansDTO, GetComedianResponseDTO } from "../../../common/interfaces/data/comedian.interface.js";
-import { CreateFavoriteComedianDTO } from "../../../common/interfaces/data/favorite.interface.js";
-import { GetSocialDataDTO, PopularityScoreIODTO, UpdateSocialDataDTO } from "../../../common/interfaces/data/socialData.interface.js";
-import { toPopularityScores } from '../../../common/util/mappers/socialData/mapper.js';
+import { toComedianInterface, toComedianInterfaceArray } from "../../../common/util/domainModels/comedian/mapper.js";
+import { CreateComedianDTO, GetComediansDTO, GetComedianResponseDTO, ComedianInterface } from "../../../common/models/interfaces/comedian.interface.js";
+import { CreateFavoriteComedianDTO } from "../../../common/models/interfaces/favorite.interface.js";
+import { GetSocialDataDTO, PopularityScoreIODTO, UpdateSocialDataDTO } from "../../../common/models/interfaces/socialData.interface.js";
 import { generatePopularityScore } from '../../../common/util/scoringUtil.js';
-import { sortComedians } from '../../../common/util/comedianUtil.js';
+import { sortComedians } from '../../../common/util/domainModels/comedian/comedianUtil.js';
+import { toPopularityScores } from '../../../common/util/domainModels/socialData/mapper.js';
 
 export const addAll = async (comedians: CreateComedianDTO[]): Promise<{ id: number }[]> => {
     return db.comedians.addAll(comedians);

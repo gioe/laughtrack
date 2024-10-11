@@ -1,11 +1,12 @@
 import * as comedianController from "../../controllers/comedian/index.js"
+
 import express, { Request, Response } from "express";
 import bodyParser from "body-parser";
 import { authenticateRole } from "../../middleware/authenticateRole.middleware.js";
-import { UserRole } from "../../../common/@types/UserRole.js";
 import { assignUser } from "../../middleware/assignUser.middleware.js";
-import { ComedianInterface } from "../../../common/interfaces/client/comedian.interface.js";
-import { toGetComediansDTO } from "../../../common/util/mappers/comedian/mapper.js";
+import { ComedianInterface } from "../../../common/models/interfaces/comedian.interface.js";
+import { toGetComediansDTO } from "../../../common/util/domainModels/comedian/mapper.js";
+import { UserRole } from "../../../common/models/@types/UserRole.js";
 
 export const comedianApiRouter = express.Router();
 var urlencodedParser = bodyParser.urlencoded({ extended: false })

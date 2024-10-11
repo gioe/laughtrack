@@ -1,9 +1,8 @@
 import { ColumnSet, IDatabase, IMain } from 'pg-promise';
 import { comedians as sql } from '../sql/index.js';
-import { CreateComedianDTO, GetComedianResponseDTO } from '../../common/interfaces/data/comedian.interface.js';
-import { ComedianInterface } from '../../common/interfaces/client/comedian.interface.js';
-import { PopularityScoreIODTO, GetSocialDataDTO, UpdateSocialDataDTO } from '../../common/interfaces/data/socialData.interface.js';
 import { provideGenericPromiseResponse } from '../../common/util/promiseUtil.js';
+import { ComedianInterface, CreateComedianDTO, GetComedianResponseDTO } from '../../common/models/interfaces/comedian.interface.js';
+import { GetSocialDataDTO, PopularityScoreIODTO, UpdateSocialDataDTO } from '../../common/models/interfaces/socialData.interface.js';
 
 var columnSets: {
     updateScores: ColumnSet | null;
@@ -61,7 +60,7 @@ export class ComediansRepository {
 
     allWithFavorites(userId?: number): Promise<GetComedianResponseDTO[]> {
         if (userId == undefined) return provideGenericPromiseResponse([])
-            
+
         return this.db.any(sql.getAllWithFavoritesAndSocialData, {
             user_id: userId
         });

@@ -1,8 +1,8 @@
 import { ColumnSet, IDatabase, IMain } from 'pg-promise';
 import { shows as sql } from '../sql/index.js';
-import { CreateShowDTO } from '../../common/interfaces/data/show.interface.js';
+import { CreateShowDTO } from '../../common/models/interfaces/show.interface.js';
+import { PopularityScoreIODTO, GroupedPopularityScoreDTO } from '../../common/models/interfaces/socialData.interface.js';
 import { provideGenericPromiseResponse } from '../../common/util/promiseUtil.js';
-import { PopularityScoreIODTO, GroupedPopularityScoreDTO } from '../../common/interfaces/data/socialData.interface.js';
 
 var columnSets: {
     updateScores: ColumnSet | null;

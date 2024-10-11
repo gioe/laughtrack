@@ -1,9 +1,9 @@
 
 import { Comedian } from "./Comedian.js";
-import { DateTimeContainer } from "../../jobs/scrapers/containers/DateTimeContainer.js";
-import { CreateShowDTO } from "../interfaces/data/show.interface.js";
+import { DateTimeContainer } from "../../jobs/scrape/objectContainers/DateTimeContainer.js";
+import { CreateShowDTO } from "./interfaces/show.interface.js";
 import { ScrapingConfig } from "./ScrapingConfig.js";
-import { CreateComedianDTO } from "../interfaces/data/comedian.interface.js";
+import { CreateComedianDTO } from "./interfaces/comedian.interface.js";
 
 export class Show {
 

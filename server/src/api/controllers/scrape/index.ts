@@ -2,8 +2,8 @@ import * as showController from '../../controllers/show/index.js'
 import * as comedianController from '../../controllers/comedian/index.js'
 import * as lineupController from '../../controllers/lineup/index.js'
 
-import { ScrapingOutput } from "../../../common/interfaces/client/scrape.interface.js";
-import { CreateLineupItemDTO } from '../../../common/interfaces/data/lineupItem.interface.js';
+import { ScrapingOutput } from "../../../common/models/interfaces/scrape.interface.js";
+import { CreateLineupItemDTO } from '../../../common/models/interfaces/lineupItem.interface.js';
 
 export const storeOutput = async (all: ScrapingOutput[]): Promise<void> => {
 

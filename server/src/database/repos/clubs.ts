@@ -4,9 +4,9 @@ import {
     CreateClubDTO, 
     GetCitiesResponseDTO, 
     GetClubDTO, 
-} from '../../common/interfaces/data/club.interface.js';
+} from '../../common/models/interfaces/club.interface.js';
 import { provideGenericPromiseResponse } from '../../common/util/promiseUtil.js';
-import { GroupedPopularityScoreDTO, PopularityScoreIODTO } from '../../common/interfaces/data/socialData.interface.js';
+import { GroupedPopularityScoreDTO, PopularityScoreIODTO } from '../../common/models/interfaces/socialData.interface.js';
 
 var columnSets: {
     updateScores: ColumnSet | null;

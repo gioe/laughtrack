@@ -20,35 +20,19 @@ export default async function AllComediansPage({
   return (
     <main className="flex-grow pt-5 bg-shark">
       <FilterPageContainer
-        defaultSort={sortOptions[0].value}
         title={title}
+        defaultSort={sortOptions[0].value}
         searchPlaceholder={'Search for comics'}
         totalPages={response.totalPages}
         query={searchParams?.query}
         filterOptions={[]}
         sortOptions={sortOptions}
-      child={
-      <Suspense key={(searchParams?.query ?? 1) + (searchParams?.page ?? "")} fallback={<div />}>
-        <ComedianTable response={response} />
-      </Suspense>
-      } />
+        child={
+          <Suspense key={(searchParams?.query ?? 1) + (searchParams?.page ?? "")} fallback={<div />}>
+            <ComedianTable response={response} />
+          </Suspense>
+        } />
     </main>
   );
 }
 
-const buildFilters =(params: any, results: any) => {
-  
-  const clubFilter = {
-    id: 'clubs',
-    name: 'Clubs',
-    options: results.clubs.map((clubName: string) => {
-      return {
-        value: clubName.toLowerCase(),
-        label: clubName,
-        selected: params.clubs?.includes(clubName.toLowerCase())
-      } as FilterOption;
-    })
-  }
-
-  return [clubFilter];
-}

@@ -1,8 +1,7 @@
 import * as searchController from '../../controllers/search/index.js'
 import express, { Request, Response } from "express";
 import bodyParser from "body-parser";
-import { ShowInterface } from '../../../common/interfaces/client/show.interface.js';
-import { toGetHomeSearchResultsDTO } from '../../../common/util/mappers/search/mapper.js';
+import { toGetHomeSearchResultsDTO } from '../../../common/util/domainModels/search/mapper.js';
 
 export const searchApiRouter = express.Router();
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
@@ -38,5 +37,5 @@ searchApiRouter.post('/', urlencodedParser,
             totalPages: isNaN(totalPages) ? 0 : totalPages,
             totalShows: dates.length
         })
-        
+
     })

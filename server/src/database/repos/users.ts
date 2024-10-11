@@ -1,6 +1,6 @@
 import { IDatabase, IMain } from 'pg-promise';
 import { users as sql } from '../sql/index.js';
-import { CreateUserDTO } from '../../common/interfaces/data/user.interface.js';
+import { CreateUserDTO } from '../../common/models/interfaces/user.interface.js';
 
 export class UsersRepository {
 

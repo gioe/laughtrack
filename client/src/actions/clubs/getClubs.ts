@@ -8,12 +8,14 @@ import { PUBLIC_ROUTES } from "@/lib/routes"
 export interface GetClubsParams {
   page?: string,
   query?: string
+  sort?: string
 }
 
 export interface GetClubsResponse {
   clubs: ClubInterface[]
-  query: string;
   totalPages: number;
+  totalClubs: number;
+  cities: string[]
 }
 
 export async function getClubs(params?: GetClubsParams) {
@@ -31,6 +33,7 @@ export async function getClubs(params?: GetClubsParams) {
         },
         body: new URLSearchParams({
           query: params?.query ?? "",
+          sort: params?.sort ?? "",
           page: params?.page ?? "1",
           pageSize: MEDIUM_ELEMENT_PAGE_REQUEST_SIZE
         }),
