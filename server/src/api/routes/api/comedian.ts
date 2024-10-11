@@ -5,6 +5,7 @@ import { authenticateRole } from "../../middleware/authenticateRole.middleware.j
 import { UserRole } from "../../../common/@types/UserRole.js";
 import { assignUser } from "../../middleware/assignUser.middleware.js";
 import { ComedianInterface } from "../../../common/interfaces/client/comedian.interface.js";
+import { toGetComediansDTO } from "../../../common/util/mappers/comedian/mapper.js";
 
 export const comedianApiRouter = express.Router();
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
@@ -52,7 +53,7 @@ comedianApiRouter.post('/addToFavorites/:id',
         })
 
         return res.status(200).send(result)
-        
+
     })
 
 comedianApiRouter.get('/:id', urlencodedParser,
@@ -95,26 +96,26 @@ comedianApiRouter.post('/all',
     assignUser,
     urlencodedParser,
     async (req: Request, res: Response) => {
-        const { page, pageSize, query } = req.body;
+        const { page, pageSize } = req.body;
 
         const pageInt = parseInt(page as string);
         const pageSizeInt = parseInt(pageSize as string);
-
         const startIndex = (pageInt - 1) * pageSizeInt;
         const endIndex = pageInt * pageSizeInt;
+
+        const dto = toGetComediansDTO(req)
 
         var comedians: ComedianInterface[] = [];
 
         if (req.currentUser == undefined) {
-            comedians = await comedianController.getAllComedians(query)
+            comedians = await comedianController.getAllComedians(dto)
         } else {
-            comedians = await comedianController.getAllComediansWithFavorites(req.currentUser.id, query)
+            comedians = await comedianController.getAllComediansWithFavorites(dto)
         }
 
         const paginatedComedians = comedians.slice(startIndex, endIndex);
         const totalPages = Math.ceil(comedians.length / pageSizeInt);
 
-        
         return res.status(200).send({
             comedians: paginatedComedians,
             totalPages,
@@ -122,14 +123,14 @@ comedianApiRouter.post('/all',
         })
     })
 
-    comedianApiRouter.put('/social',
-        assignUser,
-        urlencodedParser,
-        async (req: Request, res: Response) => {
+comedianApiRouter.put('/social',
+    assignUser,
+    urlencodedParser,
+    async (req: Request, res: Response) => {
 
-            const response = await comedianController.updateSocialData(req.body)
-    
-            return res.status(200).send(response)
-        })
+        const response = await comedianController.updateSocialData(req.body)
 
-        
+        return res.status(200).send(response)
+    })
+
+

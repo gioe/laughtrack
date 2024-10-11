@@ -1,4 +1,5 @@
 import { REGEX } from "../constants/regex.js";
+import { ComedianInterface } from "../interfaces/client/comedian.interface.js";
 import { Comedian } from "../models/Comedian.js";
 import { ScrapingConfig } from "../models/ScrapingConfig.js";
 import { isLikelyShow } from "./showUtil.js";
@@ -46,4 +47,11 @@ export const buildComediansFromNames = (comedianNames: string[], config: Scrapin
     const spaceCount = nameString.match(" ")?.length ?? 0
 
     return includesCommas || spaceCount > 3
+  }
+
+  export const sortComedians = (comedians: ComedianInterface[], sortValue?: string): ComedianInterface[] => {
+    return comedians.sort((a: ComedianInterface, b: ComedianInterface) => {
+      if (sortValue == 'alphabetical') return a.name < b.name ? -1 : 1;
+      else return (b.socialData?.popularityScore ?? 0) - (a.socialData?.popularityScore ?? 0)
+    })
   }

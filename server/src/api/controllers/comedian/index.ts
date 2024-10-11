@@ -1,25 +1,31 @@
 import { db } from '../../../database/index.js';
 import { toComedianInterface, toComedianInterfaceArray } from "../../../common/util/mappers/comedian/mapper.js";
 import { ComedianInterface } from "../../../common/interfaces/client/comedian.interface.js";
-import { CreateComedianDTO, GetComedianResponseDTO } from "../../../common/interfaces/data/comedian.interface.js";
+import { CreateComedianDTO, GetComediansDTO, GetComedianResponseDTO } from "../../../common/interfaces/data/comedian.interface.js";
 import { CreateFavoriteComedianDTO } from "../../../common/interfaces/data/favorite.interface.js";
 import { GetSocialDataDTO, PopularityScoreIODTO, UpdateSocialDataDTO } from "../../../common/interfaces/data/socialData.interface.js";
 import { toPopularityScores } from '../../../common/util/mappers/socialData/mapper.js';
 import { generatePopularityScore } from '../../../common/util/scoringUtil.js';
+import { sortComedians } from '../../../common/util/comedianUtil.js';
 
 export const addAll = async (comedians: CreateComedianDTO[]): Promise<{ id: number }[]> => {
     return db.comedians.addAll(comedians);
 }
 
-export const getAllComedians = async (query?: string): Promise<ComedianInterface[]> => {
+export const getAllComedians = async (payload: GetComediansDTO): Promise<ComedianInterface[]> => {
     return db.comedians.all()
-        .then((comedians: GetComedianResponseDTO[]) => toComedianInterfaceArray(comedians, query))
+        .then((comedians: GetComedianResponseDTO[]) => {
+            const comedianResponse = toComedianInterfaceArray(comedians, payload.query);
+            return payload.sort ? sortComedians(comedianResponse, payload.sort) : comedianResponse
+        })
 }
 
-export const getAllComediansWithFavorites = async (userId: number, query?: string): Promise<ComedianInterface[]> => {
-    return db.comedians.allWithFavorites(userId)
-        .then((comedians: GetComedianResponseDTO[]) => toComedianInterfaceArray(comedians, query))
-}
+export const getAllComediansWithFavorites = async (payload: GetComediansDTO): Promise<ComedianInterface[]> => {
+    return db.comedians.allWithFavorites(payload.userId)
+    .then((comedians: GetComedianResponseDTO[]) => {
+        const comedianResponse = toComedianInterfaceArray(comedians, payload.query);
+        return payload.sort ? sortComedians(comedianResponse, payload.sort) : comedianResponse
+    })}
 
 export const getByName = async (name: string, sort?: string): Promise<ComedianInterface | null> => {
     return db.comedians.findByName(name)

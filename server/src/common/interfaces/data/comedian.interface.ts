@@ -1,6 +1,12 @@
 import { LineupItemDTO } from "./lineupItem.interface.js";
 import { GetSocialDataDTO } from "./socialData.interface.js";
 
+export interface GetComediansDTO {
+    userId?: number;
+    query?: string;
+    sort?: string;
+}
+
 export interface CreateComedianDTO {
     name: string;
 }

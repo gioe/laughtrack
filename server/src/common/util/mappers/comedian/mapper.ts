@@ -1,6 +1,6 @@
 
 import { ComedianInterface } from "../../../interfaces/client/comedian.interface.js"
-import { GetComedianResponseDTO } from "../../../interfaces/data/comedian.interface.js"
+import { GetComedianResponseDTO, GetComediansDTO } from "../../../interfaces/data/comedian.interface.js"
 import { toDates } from "../show/mapper.js"
 import { toSocialDataInterface } from "../socialData/mapper.js"
 
@@ -24,5 +24,13 @@ export const toComedianInterface = (payload: GetComedianResponseDTO | null | und
         socialData: toSocialDataInterface(payload.social_data),
         dates: toDates(payload.dates, filter, sort),
         favoriteId: payload.favorite_id == null ? undefined : payload.favorite_id
+    }
+}
+
+export const toGetComediansDTO = (payload: any): GetComediansDTO => {
+    return {
+        userId: payload.currentUser.id == '' ? undefined : payload.currentUser.id,
+        query: payload.body.query == '' ? undefined : payload.body.query,
+        sort: payload.body.sort == '' ? undefined : payload.body.sort
     }
 }

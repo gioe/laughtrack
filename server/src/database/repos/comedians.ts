@@ -59,7 +59,9 @@ export class ComediansRepository {
         return this.db.any(sql.getAllWithSocialData)
     }
 
-    allWithFavorites(userId: number): Promise<GetComedianResponseDTO[]> {
+    allWithFavorites(userId?: number): Promise<GetComedianResponseDTO[]> {
+        if (userId == undefined) return provideGenericPromiseResponse([])
+            
         return this.db.any(sql.getAllWithFavoritesAndSocialData, {
             user_id: userId
         });
