@@ -36,6 +36,7 @@ interface FilterPageContainerProps {
     title: string;
     child: ReactNode;
     sortOptions: any[];
+    defaultSort: string;
     filterOptions: Filter[];
     query?: string;
     totalPages: number;
@@ -49,10 +50,11 @@ const FilterPageContainer: React.FC<FilterPageContainerProps> = ({
     filterOptions,
     query,
     totalPages,
-    searchPlaceholder
+    searchPlaceholder,
+    defaultSort
 }) => {
 
-    const [selectedSort, setSelectedSort] = useState("date")
+    const [selectedSort, setSelectedSort] = useState(defaultSort)
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
 
     const pathname = usePathname();

@@ -1,49 +1,11 @@
 import { FetchComedianParams, getComedians, GetComediansResponse } from "@/actions/comedians/getComedians";
 import { Suspense } from 'react';
 import ComedianTable from "@/components/custom/tables/ComedianTable";
-import FilterPageContainer from "@/components/custom/filters/FilterPageContainer";
+import FilterPageContainer, { FilterOption } from "@/components/custom/filters/FilterPageContainer";
 
 const sortOptions = [
   { name: 'Most Popular', value: 'popularity' },
-  { name: 'A-Z', value: 'alphabetically' },
-]
-
-const filters = [
-  {
-      id: 'color',
-      name: 'Color',
-      options: [
-          { value: 'white', label: 'White', selected: false },
-          { value: 'beige', label: 'Beige', selected: false },
-          { value: 'blue', label: 'Blue', selected: true },
-          { value: 'brown', label: 'Brown', selected: false },
-          { value: 'green', label: 'Green', selected: false },
-          { value: 'purple', label: 'Purple', selected: false },
-      ],
-  },
-  {
-      id: 'category',
-      name: 'Category',
-      options: [
-          { value: 'new-arrivals', label: 'New Arrivals', selected: false },
-          { value: 'sale', label: 'Sale', selected: false },
-          { value: 'travel', label: 'Travel', selected: true },
-          { value: 'organization', label: 'Organization', selected: false },
-          { value: 'accessories', label: 'Accessories', selected: false },
-      ],
-  },
-  {
-      id: 'size',
-      name: 'Size',
-      options: [
-          { value: '2l', label: '2L', selected: false },
-          { value: '6l', label: '6L', selected: false },
-          { value: '12l', label: '12L', selected: false },
-          { value: '18l', label: '18L', selected: false },
-          { value: '20l', label: '20L', selected: false },
-          { value: '40l', label: '40L', selected: true },
-      ],
-  },
+  { name: 'A-Z', value: 'alphabetical' },
 ]
 
 export default async function AllComediansPage({
@@ -53,14 +15,40 @@ export default async function AllComediansPage({
 }) {
 
   const response = await getComedians(searchParams) as GetComediansResponse
-  
+  const title = `Browsing ${response.totalComedians} comedians`
+
   return (
     <main className="flex-grow pt-5 bg-shark">
-      <FilterPageContainer filters={filters} sortOptions={sortOptions} title={`Browsing ${response.totalComedians} comedians`} child={
-        <Suspense key={(searchParams?.query ?? 1) + (searchParams?.page ?? "")} fallback={<div />}>
-          <ComedianTable response={response} />
-        </Suspense>
+      <FilterPageContainer
+        defaultSort={sortOptions[0].value}
+        title={title}
+        searchPlaceholder={'Search for comics'}
+        totalPages={response.totalPages}
+        query={searchParams?.query}
+        filterOptions={[]}
+        sortOptions={sortOptions}
+      child={
+      <Suspense key={(searchParams?.query ?? 1) + (searchParams?.page ?? "")} fallback={<div />}>
+        <ComedianTable response={response} />
+      </Suspense>
       } />
     </main>
   );
+}
+
+const buildFilters =(params: any, results: any) => {
+  
+  const clubFilter = {
+    id: 'clubs',
+    name: 'Clubs',
+    options: results.clubs.map((clubName: string) => {
+      return {
+        value: clubName.toLowerCase(),
+        label: clubName,
+        selected: params.clubs?.includes(clubName.toLowerCase())
+      } as FilterOption;
+    })
+  }
+
+  return [clubFilter];
 }

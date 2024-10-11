@@ -6,8 +6,9 @@ import { auth } from "../../auth"
 import { MEDIUM_ELEMENT_PAGE_REQUEST_SIZE } from "@/lib/contants";
 
 export interface FetchComedianParams {
-  page?: string,
+  page?: string
   query?: string
+  sort?: string
 }
 
 export interface GetComediansResponse {
@@ -29,6 +30,7 @@ export async function getComedians(params?: FetchComedianParams) {
           'x-auth-token': session.accessToken ?? ''
         },
         body: new URLSearchParams({
+          sort: params?.sort ?? 'popularity',
           query: params?.query ?? "",
           page: params?.page ?? "1",
           pageSize: MEDIUM_ELEMENT_PAGE_REQUEST_SIZE

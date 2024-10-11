@@ -27,6 +27,7 @@ export default async function CityDetailPage({
         totalPages={searchResults.totalPages}
         query={searchParams.query}
         filterOptions={filters}
+        defaultSort={sortOptions[0].value}
         sortOptions={sortOptions}
         child={ <SearchResultsTable searchResults={searchResults} />} />
     </main>
@@ -34,7 +35,7 @@ export default async function CityDetailPage({
 }
 
 const buildFilters =(params: any, results: any) => {
-  
+
   const clubFilter = {
     id: 'clubs',
     name: 'Clubs',
