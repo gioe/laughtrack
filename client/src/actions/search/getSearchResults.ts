@@ -12,14 +12,19 @@ export interface HomeSearchParams {
   endDate: string;
   sort?: string;
   page?: string;
+  clubs?: string;
+  query?: string
 }
 
 export interface HomeSearchResultResponse extends ShowProviderInterface {
   entity: CityInterface;
+  clubs: string[];
   totalPages: number
+  totalShows: number
 }
 
 export async function getSearchResults(params: HomeSearchParams) {
+
   const upcomingShowsUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.HOME_SEARCH
 
   return auth()
@@ -35,8 +40,10 @@ export async function getSearchResults(params: HomeSearchParams) {
         location: params.location,
         startDate: params.startDate,
         endDate: params.endDate,
-        sort: params.sort ?? "date_time",
+        query: params.query ?? "",
+        sort: params.sort ?? "date",
         page: params.page ?? "1",
+        filters: params.clubs ?? "",
         pageSize: LARGE_ELEMENT_PAGE_REQUEST_SIZE
       }),
     })

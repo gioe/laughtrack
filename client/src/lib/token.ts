@@ -24,7 +24,6 @@ export async function refreshAccessToken(token: JWT) {
       };
     })
     .catch((error) => {
-      console.log(error)
       return {
         ...token,
         error: "RefreshAccessTokenError",

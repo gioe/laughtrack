@@ -71,10 +71,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
         params.set("location", values.location);
         params.set("startDate", `${earliest_year}-${earliest_month}-${earliest_monthday}`);
         params.set("endDate",  `${latest_year}-${latest_month}-${latest_monthday}`);
-
         router.push(`/search?${params.toString()}`);
     }
-
 
     return (
         <Form {...form}>

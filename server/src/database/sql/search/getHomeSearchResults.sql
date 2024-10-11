@@ -66,7 +66,8 @@ SELECT
             'lineup',
             full_lineup_data.lineup
         )
-    ) as dates
+    ) as dates,
+    COALESCE(jsonb_agg(distinct full_lineup_data.club_name)) as clubs
 from
     full_lineup_data
 WHERE

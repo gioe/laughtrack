@@ -1,6 +1,6 @@
 "use client";
 import { FC } from "react";
-import { usePathname, useSearchParams, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import {
   Pagination,
@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/pagination";
 
 import { Button } from "@/components/ui/button";
+import { handleUrlParams } from "@/lib/utils";
 
 interface PaginationProps {
   pageCount: number;
@@ -16,23 +17,23 @@ interface PaginationProps {
 
 interface PaginationArrowProps {
   direction: "left" | "right";
-  href: string;
+  handleClick: (direction: string) => void;
   isDisabled: boolean;
 }
 
 const PaginationArrow: FC<PaginationArrowProps> = ({
   direction,
-  href,
+  handleClick,
   isDisabled,
 }) => {
-  const router = useRouter();
+
   const isLeft = direction === "left";
   const disabledClassName = isDisabled ? "opacity-50 cursor-not-allowed" : "";
 
   return (
     <Button
-      onClick={() => router.push(href)}
-      className={`bg-gray-100 text-gray-500 hover:bg-gray-200 ${disabledClassName}`}
+      onClick={() => handleClick(direction)}
+      className={`bg-clear text-gray-500 hover:bg-gray-200 ${disabledClassName}`}
       aria-disabled={isDisabled}
       disabled={isDisabled}
     >
@@ -42,15 +43,16 @@ const PaginationArrow: FC<PaginationArrowProps> = ({
 };
 
 export function PaginationComponent({ pageCount }: Readonly<PaginationProps>) {
-  const pathname = usePathname();
   const searchParams = useSearchParams();
+  const pathname = usePathname()
+  const { replace } = useRouter()
+
   const currentPage = Number(searchParams.get("page")) || 1;
 
-  const createPageURL = (pageNumber: number | string) => {
-    const params = new URLSearchParams(searchParams);
-    params.set("page", pageNumber.toString());
-    return `${pathname}?${params.toString()}`;
-  };
+  const handleArrowSelection = (direction: string) => {
+    const adjustedParams =  handleUrlParams(searchParams, 'page', direction == 'left' ? currentPage - 1 : currentPage + 1)
+    replace(`${pathname}?${adjustedParams.toString()}`)
+  }
 
   return (
     <Pagination className="m-5">
@@ -58,7 +60,7 @@ export function PaginationComponent({ pageCount }: Readonly<PaginationProps>) {
         <PaginationItem>
           <PaginationArrow
             direction="left"
-            href={createPageURL(currentPage - 1)}
+            handleClick={handleArrowSelection}
             isDisabled={currentPage <= 1}
           />
         </PaginationItem>
@@ -70,7 +72,7 @@ export function PaginationComponent({ pageCount }: Readonly<PaginationProps>) {
         <PaginationItem>
           <PaginationArrow
             direction="right"
-            href={createPageURL(currentPage + 1)}
+            handleClick={handleArrowSelection}
             isDisabled={currentPage >= pageCount}
           />
         </PaginationItem>

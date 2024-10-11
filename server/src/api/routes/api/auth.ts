@@ -98,6 +98,7 @@ const loginUser = (res: Response, user: UserInterface) => {
         success: true,
         data: {
             user: {
+                id: user.id,
                 email: user.email,
                 role: user.role
             },

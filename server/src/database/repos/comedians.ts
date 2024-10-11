@@ -32,8 +32,7 @@ export class ComediansRepository {
         this.createTable();
         columnSets.updateScores = new pgp.helpers.ColumnSet(['?id', 'popularity_score'], {table: 'comedians'});
         columnSets.updateData = new pgp.helpers.ColumnSet(['?id', 'instagram_account', 'tiktok_account', 
-            'youtube_account', 'youtube_followers', 
-            'instagram_followers','tiktok_followers',  'popularity_score', 'website'], {table: 'comedians'});
+            'youtube_account', 'youtube_followers', 'instagram_followers', 'tiktok_followers', 'popularity_score', 'website'], {table: 'comedians'});
         columnSets.addAll = new pgp.helpers.ColumnSet(['name' ], {table: 'comedians'});
     }
 

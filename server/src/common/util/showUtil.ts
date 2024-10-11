@@ -7,7 +7,7 @@ import { writeFailureToFile } from "./logUtil.js";
 export const orderShows = (shows: ShowInterface[] | undefined, sortValue?: string): ShowInterface[] => {
   if (shows == undefined) return []
   return shows.sort((a: ShowInterface, b: ShowInterface) => {
-    if (sortValue == 'date_time') return new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime();
+    if (sortValue == 'date') return new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime();
     else return (b.popularityScore ?? 0) - (a.popularityScore ?? 0)
   })
 }

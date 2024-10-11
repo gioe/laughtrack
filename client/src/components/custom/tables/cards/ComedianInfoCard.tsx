@@ -2,8 +2,8 @@
 
 import { useState, useCallback } from 'react'
 import React from "react";
-import { HeartIcon as OutlineHeart } from "@heroicons/react/outline";
-import { HeartIcon as SolidHeart } from "@heroicons/react/solid";
+import { HeartIcon as OutlineHeart } from "@heroicons/react/24/outline";
+import { HeartIcon as SolidHeart } from "@heroicons/react/24/solid";
 import Image from "next/image";
 import Link from "next/link";
 import { ComedianInterface } from '@/interfaces/comedian.interface';

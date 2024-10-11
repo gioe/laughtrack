@@ -33,13 +33,13 @@ const EditSocialDataModal: React.FC<EditSocialDataModalProps> = ({
     }
     } = useForm<FieldValues>({
         defaultValues: {
-            instagramAccount: entity?.socialData?.instagramAccount,
-            instagramFollowers: entity?.socialData?.instagramFollowers,
-            tiktokAccount: entity?.socialData?.tiktokAccount,
-            tiktokFollowers: entity?.socialData?.tiktokFollowers,
-            youtubeAccount: entity?.socialData?.youtubeAccount,
-            youtubeFollowers: entity?.socialData?.youtubeFollowers,
-            website: entity?.socialData?.website
+            instagramAccount: entity?.socialData?.instagramAccount ?? "",
+            instagramFollowers: entity?.socialData?.instagramFollowers ?? "",
+            tiktokAccount: entity?.socialData?.tiktokAccount ?? "",
+            tiktokFollowers: entity?.socialData?.tiktokFollowers ?? "",
+            youtubeAccount: entity?.socialData?.youtubeAccount ?? "",
+            youtubeFollowers: entity?.socialData?.youtubeFollowers ?? "",
+            website: entity?.socialData?.website ?? ""
         }
     });
 

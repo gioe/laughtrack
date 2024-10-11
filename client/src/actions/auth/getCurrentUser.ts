@@ -11,9 +11,9 @@ export async function getCurrentUser() {
         }
 
         return {
-            id: 0,
-            email: "",
-            role: ""
+            id: session.user.id,
+            email: session.user.email,
+            role: session.user.role
         }
     }
     catch (error) {

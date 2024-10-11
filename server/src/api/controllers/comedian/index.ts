@@ -5,32 +5,30 @@ import { CreateComedianDTO, GetComedianResponseDTO } from "../../../common/inter
 import { CreateFavoriteComedianDTO } from "../../../common/interfaces/data/favorite.interface.js";
 import { GetSocialDataDTO, PopularityScoreIODTO, UpdateSocialDataDTO } from "../../../common/interfaces/data/socialData.interface.js";
 import { toPopularityScores } from '../../../common/util/mappers/socialData/mapper.js';
+import { generatePopularityScore } from '../../../common/util/scoringUtil.js';
 
-export const addAll = async (comedians: CreateComedianDTO[]): Promise<{id: number}[]> => {
+export const addAll = async (comedians: CreateComedianDTO[]): Promise<{ id: number }[]> => {
     return db.comedians.addAll(comedians);
 }
 
 export const getAllComedians = async (query?: string): Promise<ComedianInterface[]> => {
     return db.comedians.all()
-    .then((comedians: GetComedianResponseDTO[]) => {
-        console.log(comedians[0])
-        return toComedianInterfaceArray(comedians, query)
-    })
+        .then((comedians: GetComedianResponseDTO[]) => toComedianInterfaceArray(comedians, query))
 }
 
 export const getAllComediansWithFavorites = async (userId: number, query?: string): Promise<ComedianInterface[]> => {
     return db.comedians.allWithFavorites(userId)
-    .then((comedians: GetComedianResponseDTO[]) => toComedianInterfaceArray(comedians, query))
+        .then((comedians: GetComedianResponseDTO[]) => toComedianInterfaceArray(comedians, query))
 }
 
 export const getByName = async (name: string, sort?: string): Promise<ComedianInterface | null> => {
     return db.comedians.findByName(name)
-    .then((response: GetComedianResponseDTO | null) => toComedianInterface(response, name, sort))
+        .then((response: GetComedianResponseDTO | null) => toComedianInterface(response, undefined, sort))
 }
 
 export const getAllFavorites = async (userId: number): Promise<ComedianInterface[]> => {
     return db.comedians.getAllFavorites(userId)
-    .then((comedians: GetComedianResponseDTO[] | null) => toComedianInterfaceArray(comedians))
+        .then((comedians: GetComedianResponseDTO[] | null) => toComedianInterfaceArray(comedians))
 }
 
 export const getTrendingComedians = async (): Promise<ComedianInterface[] | null> => {
@@ -39,8 +37,8 @@ export const getTrendingComedians = async (): Promise<ComedianInterface[] | null
 
 export const generateScores = async (): Promise<null> => {
     return db.comedians.getAllSocialData()
-    .then((response: GetSocialDataDTO[] | null) => toPopularityScores(response))
-    .then((popularityScores: PopularityScoreIODTO[] | null) => db.comedians.updateScores(popularityScores))
+        .then((response: GetSocialDataDTO[] | null) => toPopularityScores(response))
+        .then((popularityScores: PopularityScoreIODTO[] | null) => db.comedians.updateScores(popularityScores))
 }
 
 export const favoriteComedian = async (payload: CreateFavoriteComedianDTO): Promise<boolean> => {
@@ -48,6 +46,34 @@ export const favoriteComedian = async (payload: CreateFavoriteComedianDTO): Prom
     return db.favorites.add(payload)
 }
 
-export const updateSocialData = async (payload: UpdateSocialDataDTO): Promise<boolean | null> => {
-    return db.comedians.updateSocialData(payload)
+export const updateSocialData = async (payload: any): Promise<boolean | null> => {
+    const { instagramAccount, instagramFollowers, youtubeAccount, youtubeFollowers, tiktokAccount, tiktokFollowers, website, id } = payload;
+    
+    const instagramFollowerInt = parseInt(instagramFollowers as string)
+    const tiktokFollowerInt = parseInt(tiktokFollowers as string)
+    const youtubeFollowerInt = parseInt(youtubeFollowers as string)
+    const instagramFollowerCount = !isNaN(instagramFollowerInt) ? instagramFollowerInt : 0;
+    const tiktokFollowerCount = !isNaN(tiktokFollowerInt) ? tiktokFollowerInt : 0;
+    const youtubeFollowerCount = !isNaN(youtubeFollowerInt) ? youtubeFollowerInt : 0;
+
+    const idNumber = parseInt(id as string)
+
+    var input = {
+        instagram_followers: instagramFollowerCount,
+        tiktok_followers: tiktokFollowerCount,
+        youtube_followers: youtubeFollowerCount,
+        popularity_score: generatePopularityScore({
+            id: idNumber,
+            instagram_followers: instagramFollowerCount,
+            tiktok_followers: tiktokFollowerCount,
+            youtube_followers: youtubeFollowerCount
+        }),
+        id: idNumber,
+        instagram_account: instagramAccount,
+        youtube_account: youtubeAccount,
+        tiktok_account: tiktokAccount,
+        website: website
+    } as UpdateSocialDataDTO
+
+    return db.comedians.updateSocialData(input)
 }

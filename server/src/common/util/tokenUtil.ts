@@ -6,7 +6,7 @@ const secret = process.env.SECRET_KEY as string
 export const generateToken = (payload: any, type: string) => {
     if (type === "access") {
         return jwt.sign(payload, secret, {
-            expiresIn: "1h",
+            expiresIn: "24h",
         });
       } else if (type === "refresh") {
         return jwt.sign(payload, secret, {

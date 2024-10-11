@@ -5,6 +5,7 @@ import { toDates } from "../show/mapper.js"
 export const toHomeSearchResultInterface = (payload: GetHomeSearchResultsResponseDTO, filter?: string, sort?: string): HomeSearchResultInterface => {
     return {
         city: payload.city,
-        dates: toDates(payload.dates, filter, sort)
+        dates: toDates(payload.dates, filter, sort),
+        clubs: payload.clubs
     }
 }

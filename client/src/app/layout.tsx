@@ -14,6 +14,7 @@ import { SessionProvider } from "next-auth/react";
 import AddShowModal from "@/components/custom/modals/AddShowModal";
 import AddClubModal from "@/components/custom/modals/AddClubModal";
 import AddComedianModal from "@/components/custom/modals/AddComedianModal";
+import { use } from "react";
 
 export const metadata: Metadata = {
   title: "Laughtrack",
@@ -31,7 +32,7 @@ export default async function RootLayout({
 }>) {
 
   const user = await getCurrentUser() as UserInterface;
-
+  
   return (
     <SessionProvider>
         <html lang="en">

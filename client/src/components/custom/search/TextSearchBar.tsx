@@ -8,10 +8,12 @@ import { useDebouncedCallback } from 'use-debounce';
 
 interface SearchBarProps {
   query?: string
+  inputPlaceholder: string;
 }
 
 const TextSearchBar: React.FC<SearchBarProps> = ({
-  query
+  query,
+  inputPlaceholder
 }) => {
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -37,7 +39,7 @@ const TextSearchBar: React.FC<SearchBarProps> = ({
   return (
     <div className="w-full flex flex-col gap-2 max-w-[240px] m-5">
       <Input
-        placeholder="Search for comedian"
+        placeholder={inputPlaceholder}
         value={value}
         onValueChange={handleInputChange}
         startContent={

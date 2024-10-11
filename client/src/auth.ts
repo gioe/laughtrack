@@ -4,6 +4,7 @@ import { PUBLIC_ROUTES } from "./lib/routes";
 import { jwtDecode } from "jwt-decode";
 import { signInSchema } from "./lib/validations";
 import { refreshAccessToken } from "./lib/token";
+import { error } from "console";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -16,7 +17,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
 
       async authorize(credentials) {
-
         if (credentials === null) return null;
 
         try {
@@ -39,10 +39,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return {
             accessToken: jsonResponse.data.accessToken,
             refreshToken: jsonResponse.data.refreshToken,
+            id: jsonResponse.data.user.id,
             role: jsonResponse.data.user.role,
             email: jsonResponse.data.user.email,
           };
         } catch (e) {
+          console.log(error)
           console.error(e);
           return null;
         }
@@ -58,15 +60,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
   callbacks: {
 
-    async jwt({ token, account, user }) {
+    async jwt({user, token}) {
 
-      if (token.accessToken) {
-        const decodedToken = jwtDecode(token.accessToken);
-        const exp = decodedToken?.exp ? decodedToken.exp * 1000 : 0;
-        token.accessTokenExp = exp
-      }
-
-      if (account && user) {
+      if (user) {
         return {
           ...token,
           accessToken: user.accessToken,
@@ -74,12 +70,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           user,
         };
       }
-      if (Date.now() < token.accessTokenExp) return token;
+
+      if (token.accessToken) {
+        const decodedToken = jwtDecode(token.accessToken);
+        const exp = decodedToken?.exp ? decodedToken.exp * 1000 : 0;
+        token.accessTokenExp = exp
+      }
+
+      if (Date.now() < token.accessTokenExp) return token
 
       return refreshAccessToken(token);
     },
 
-    async session({ session, token }) {
+    async session(value: any) {
+      const { session, token } = value
       if (token) {
         session.accessToken = token.accessToken;
         session.user = token.user;

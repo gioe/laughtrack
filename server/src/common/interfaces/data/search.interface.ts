@@ -9,5 +9,6 @@ export interface GetHomeSearchResultsDTO {
 export interface GetHomeSearchResultsResponseDTO {
   city: string;
   dates: GetShowResponseDTO[];
+  clubs: string[]
 }
 
