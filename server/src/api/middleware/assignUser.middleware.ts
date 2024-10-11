@@ -1,6 +1,7 @@
-import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
 import * as userController from '../controllers/user/index.js'
+
+import jwt from "jsonwebtoken";
+import { Request, Response, NextFunction } from "express";
 import { AuthToken } from "../../common/models/interfaces/token.interface.js";
 
 export const assignUser = async (

@@ -1,7 +1,7 @@
 import * as showController from '../../controllers/show/index.js'
 
-import express, { Request, Response } from "express";
 import bodyParser from "body-parser";
+import express, { Request, Response } from "express";
 
 export const showApiRouter = express.Router();
 var urlencodedParser = bodyParser.urlencoded({ extended: false })

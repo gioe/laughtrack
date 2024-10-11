@@ -1,12 +1,13 @@
 import * as comedianController from "../../controllers/comedian/index.js"
 
-import express, { Request, Response } from "express";
 import bodyParser from "body-parser";
+import express, { Request, Response } from "express";
 import { authenticateRole } from "../../middleware/authenticateRole.middleware.js";
 import { assignUser } from "../../middleware/assignUser.middleware.js";
 import { ComedianInterface } from "../../../common/models/interfaces/comedian.interface.js";
 import { toGetComediansDTO } from "../../../common/util/domainModels/comedian/mapper.js";
 import { UserRole } from "../../../common/models/@types/UserRole.js";
+import { toPaginatedData } from "../../../common/util/domainModels/pagination/mapper.js";
 
 export const comedianApiRouter = express.Router();
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
@@ -16,22 +17,14 @@ comedianApiRouter.post('/favorite/all',
     authenticateRole([UserRole.Admin, UserRole.User]),
     urlencodedParser,
     async (req: Request, res: Response) => {
-        const { id } = req.params;
-        const { page, pageSize, query } = req.body;
+        const { page, pageSize } = req.body;
 
-        const pageInt = parseInt(page as string);
-        const pageSizeInt = parseInt(pageSize as string);
-
-        // Calculate the start and end indexes for the requested page
-        const startIndex = (pageInt - 1) * pageSizeInt;
-        const endIndex = pageInt * pageSizeInt;
         const comedians = await comedianController.getAllFavorites(req.currentUser.id)
-        const paginatedComedians = comedians.slice(startIndex, endIndex);
-        const totalPages = Math.ceil(comedians.length / pageSizeInt);
+        const paginationData = toPaginatedData(comedians, page, pageSize)
 
         return res.status(200).send({
-            comedians: paginatedComedians,
-            totalPages
+            comedians: paginationData.data,
+            totalPages: paginationData.totalPages
         })
 
     })
@@ -61,29 +54,23 @@ comedianApiRouter.get('/:id', urlencodedParser,
     async (req: Request, res: Response) => {
         const { id } = req.params;
 
-        const page = req.header("page");
-        const pageSize = req.header("pageSize");
+        const page = req.header("page") as string;
+        const pageSize = req.header("pageSize") as string;
         const sort = req.header("sort")
-
-        const pageInt = parseInt(page as string);
-        const pageSizeInt = parseInt(pageSize as string);
-        const startIndex = (pageInt - 1) * pageSizeInt;
-        const endIndex = pageInt * pageSizeInt;
 
         const decodedName = decodeURI(id)
 
         const result = await comedianController.getByName(decodedName, sort)
         const dates = result?.dates ?? []
 
-        const paginatedDates = dates.slice(startIndex, endIndex);
-        const totalPages = Math.ceil(dates.length / pageSizeInt);
+        const paginationData = toPaginatedData(dates, page, pageSize)
 
         return res.status(200).send({
             entity: {
                 ...result,
-                dates: paginatedDates
+                dates: paginationData.data
             },
-            totalPages: isNaN(totalPages) ? 0 : totalPages
+            totalPages: paginationData.totalPages
         })
     })
 
@@ -99,11 +86,6 @@ comedianApiRouter.post('/all',
     async (req: Request, res: Response) => {
         const { page, pageSize } = req.body;
 
-        const pageInt = parseInt(page as string);
-        const pageSizeInt = parseInt(pageSize as string);
-        const startIndex = (pageInt - 1) * pageSizeInt;
-        const endIndex = pageInt * pageSizeInt;
-
         const dto = toGetComediansDTO(req)
 
         var comedians: ComedianInterface[] = [];
@@ -114,12 +96,11 @@ comedianApiRouter.post('/all',
             comedians = await comedianController.getAllComediansWithFavorites(dto)
         }
 
-        const paginatedComedians = comedians.slice(startIndex, endIndex);
-        const totalPages = Math.ceil(comedians.length / pageSizeInt);
+        const paginationData = toPaginatedData(comedians, page, pageSize)
 
         return res.status(200).send({
-            comedians: paginatedComedians,
-            totalPages,
+            comedians: paginationData.data,
+            totalPages: paginationData.totalPages,
             totalComedians: comedians.length
         })
     })
@@ -128,9 +109,7 @@ comedianApiRouter.put('/social',
     assignUser,
     urlencodedParser,
     async (req: Request, res: Response) => {
-
         const response = await comedianController.updateSocialData(req.body)
-
         return res.status(200).send(response)
     })
 

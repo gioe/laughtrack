@@ -1,40 +1,37 @@
 import * as searchController from '../../controllers/search/index.js'
-import express, { Request, Response } from "express";
+
 import bodyParser from "body-parser";
+import express, { Request, Response } from "express";
 import { toGetHomeSearchResultsDTO } from '../../../common/util/domainModels/search/mapper.js';
+import { toPaginatedData } from '../../../common/util/domainModels/pagination/mapper.js';
 
 export const searchApiRouter = express.Router();
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
 
 searchApiRouter.post('/', urlencodedParser,
     async (req: Request, res: Response) => {
-        const { location, startDate, endDate, page, pageSize} = req.body;
+        const { location, startDate, endDate, page, pageSize } = req.body;
 
-        if (location == 'undefined' || startDate == 'undefined' || endDate == 'undefined') { {
-            return res.status(401).json({ error: 'Required fields missing' })
-        }}
+        if (location == 'undefined' || startDate == 'undefined' || endDate == 'undefined') {
+            {
+                return res.status(401).json({ error: 'Required fields missing' })
+            }
+        }
 
-        const pageInt = parseInt(page as string);
-        const pageSizeInt = parseInt(pageSize as string);
-
-        const startIndex = (pageInt - 1) * pageSizeInt;
-        const endIndex = pageInt * pageSizeInt;
         const dto = toGetHomeSearchResultsDTO(req.body)
 
         const result = await searchController.getHomeSearchResults(dto);
-
         const dates = result?.dates ?? []
 
-        const paginatedResults = dates.slice(startIndex, endIndex);
-        const totalPages = Math.ceil(dates.length / pageSizeInt);
+        const paginationData = toPaginatedData(dates, page, pageSize)
 
         return res.status(200).send({
             entity: {
                 name: location,
-                dates: paginatedResults
+                dates: paginationData.data
             },
             clubs: result?.clubs ?? [],
-            totalPages: isNaN(totalPages) ? 0 : totalPages,
+            totalPages: paginationData.totalPages,
             totalShows: dates.length
         })
 

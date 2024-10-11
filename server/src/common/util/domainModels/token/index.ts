@@ -8,11 +8,11 @@ export const generateToken = (payload: any, type: string) => {
         return jwt.sign(payload, secret, {
             expiresIn: "24h",
         });
-      } else if (type === "refresh") {
+    } else if (type === "refresh") {
         return jwt.sign(payload, secret, {
-          expiresIn: "30d",
+            expiresIn: "30d",
         });
-      }
+    }
 };
 
 export const verifyToken = (token: string) => {
