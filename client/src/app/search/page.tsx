@@ -1,18 +1,12 @@
 import moment from 'moment';
 import SearchResultsTable from "@/components/custom/tables/SearchResultsTable";
 import { getSearchResults, HomeSearchParams, HomeSearchResultResponse } from "@/actions/search/getSearchResults";
-import FilterPageContainer, { Filter, FilterOption } from '@/components/custom/filters/FilterPageContainer';
+import FilterPageContainer, { FilterOption } from '@/components/custom/filters/FilterPageContainer';
 
 const sortOptions = [
   { name: 'Date', value: 'date' },
   { name: 'Most Popular', value: 'popularity' }
 ]
-
-var clubFilter: Filter = {
-  id: 'clubs',
-  name: 'Clubs',
-  options: []
-}
 
 export default async function CityDetailPage({
   searchParams,
@@ -20,36 +14,45 @@ export default async function CityDetailPage({
   searchParams: HomeSearchParams;
 }) {
 
-  const formattedStartDate = searchParams?.startDate ? moment(new Date(searchParams.startDate)).format('ll') : moment(new Date()).format('ll')
-  const formattedEndDate = searchParams?.endDate ? moment(new Date(searchParams.endDate)).format('ll') : moment(new Date()).format('ll')
-  const range = `between ${formattedStartDate} - ${formattedEndDate}`
-
   const searchResults = await getSearchResults(searchParams) as HomeSearchResultResponse;
-
-  clubFilter = {
-    ...clubFilter,
-    options: searchResults.clubs.map((clubName: string) => {
-      return {
-        value: clubName.toLowerCase(),
-        label: clubName,
-        selected: false
-      } as FilterOption;
-    })
-  }
+  const title = buildTitle(searchParams, searchResults)
+  const filters = buildFilters(searchParams, searchResults)
 
   return (
 
     <main className="flex-grow pt-5 bg-shark">
       <FilterPageContainer
-        searchPlaceholder={'Search for comedian'}
-        query={searchParams.query}
+        title={title}
+        searchPlaceholder={'Search for comics'}
         totalPages={searchResults.totalPages}
-        filters={[clubFilter]}
+        query={searchParams.query}
+        filterOptions={filters}
         sortOptions={sortOptions}
-        title={`${searchResults.totalShows} shows in ${searchResults.entity.name} ${range}`}
-        child={
-          <SearchResultsTable searchResults={searchResults} />
-        } />
+        child={ <SearchResultsTable searchResults={searchResults} />} />
     </main>
   )
+}
+
+const buildFilters =(params: any, results: any) => {
+  
+  const clubFilter = {
+    id: 'clubs',
+    name: 'Clubs',
+    options: results.clubs.map((clubName: string) => {
+      return {
+        value: clubName.toLowerCase(),
+        label: clubName,
+        selected: params.clubs?.includes(clubName.toLowerCase())
+      } as FilterOption;
+    })
+  }
+
+  return [clubFilter];
+}
+
+const buildTitle = (params: any, results: any): string => {
+  const formattedStartDate = params?.startDate ? moment(new Date(params.startDate)).format('ll') : moment(new Date()).format('ll')
+  const formattedEndDate = params?.endDate ? moment(new Date(params.endDate)).format('ll') : moment(new Date()).format('ll')
+  const range = `between ${formattedStartDate} - ${formattedEndDate}`
+  return `${results.totalShows} shows in ${results.entity.name} ${range}`
 }

@@ -40,10 +40,10 @@ export async function getSearchResults(params: HomeSearchParams) {
         location: params.location,
         startDate: params.startDate,
         endDate: params.endDate,
-        query: params.query ?? "",
         sort: params.sort ?? "date",
+        clubs: params.clubs ?? "",
+        query: params.query ?? "",
         page: params.page ?? "1",
-        filters: params.clubs ?? "",
         pageSize: LARGE_ELEMENT_PAGE_REQUEST_SIZE
       }),
     })

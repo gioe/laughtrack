@@ -36,7 +36,7 @@ interface FilterPageContainerProps {
     title: string;
     child: ReactNode;
     sortOptions: any[];
-    filters: Filter[];
+    filterOptions: Filter[];
     query?: string;
     totalPages: number;
     searchPlaceholder: string
@@ -46,30 +46,29 @@ const FilterPageContainer: React.FC<FilterPageContainerProps> = ({
     title,
     child,
     sortOptions,
-    filters,
+    filterOptions,
     query,
     totalPages,
     searchPlaceholder
 }) => {
 
+    const [selectedSort, setSelectedSort] = useState("date")
+    const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const { replace } = useRouter();
 
-    const appendFilterParams = (filter: string) => {
-        const adjustedParams = handleUrlParams(searchParams, 'filter', filter)
+    const appendFilterParams = (type: string, filter: string) => {
+        const adjustedParams = handleUrlParams(searchParams, type, filter)
         replace(`${pathname}?${adjustedParams.toString()}`)
     };
-
-    const [selectedSort, setSelectedSort] = useState("date")
 
     const handleSortSelection = (sortValue: string) => {
         setSelectedSort(sortValue)
         const adjustedParams = handleUrlParams(searchParams, 'sort', sortValue)
         replace(`${pathname}?${adjustedParams.toString()}`)
     }
-
-    const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
 
     return (
         <div className="bg-shark">
@@ -98,7 +97,7 @@ const FilterPageContainer: React.FC<FilterPageContainerProps> = ({
                             </div>
 
                             <form className="mt-4 border-t border-gray-200">
-                                {filters.map((section) => (
+                                {filterOptions.map((section) => (
                                     <Disclosure key={section.id} as="div" className="border-t border-gray-200 px-4 py-6">
                                         <h3 className="-mx-2 -my-3 flow-root">
                                             <DisclosureButton className="group flex w-full items-center justify-between bg-white px-2 py-3 text-gray-400 hover:text-gray-500">
@@ -114,9 +113,7 @@ const FilterPageContainer: React.FC<FilterPageContainerProps> = ({
                                                 {section.options.map((option, optionIdx) => (
                                                     <div key={option.value} className="flex items-center">
                                                         <input
-                                                            onClick={() => {
-                                                                appendFilterParams(option.value)
-                                                            }}
+                                                            onClick={() => appendFilterParams(section.id, option.value)}
                                                             defaultValue={option.value}
                                                             defaultChecked={option.selected}
                                                             id={`filter-mobile-${section.id}-${optionIdx}`}
@@ -198,7 +195,7 @@ const FilterPageContainer: React.FC<FilterPageContainerProps> = ({
 
                                 <TextSearchBar query={query} inputPlaceholder={searchPlaceholder}/>
 
-                                {filters.map((section) => (
+                                {filterOptions.map((section) => (
                                     <Disclosure key={section.id} as="div" className="border-b border-gray-200 py-6">
 
                                         <h3 className="-my-3 flow-root">
@@ -216,9 +213,7 @@ const FilterPageContainer: React.FC<FilterPageContainerProps> = ({
                                                 {section.options.map((option, optionIdx) => (
                                                     <div key={option.value} className="flex items-center">
                                                         <input
-                                                            onClick={() => {
-                                                                appendFilterParams(option.value)
-                                                            }}
+                                                            onClick={() => appendFilterParams(section.id, option.value)}
                                                             defaultValue={option.value}
                                                             defaultChecked={option.selected}
                                                             id={`filter-${section.id}-${optionIdx}`}

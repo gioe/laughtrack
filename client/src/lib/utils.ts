@@ -27,19 +27,33 @@ export function handleUrlParams(searchParams: URLSearchParams, param: string, va
     case 'page': return addOrRemoveSingleValue(params, param, stringParam)
     default: return addOrRemoveCommaSeparatedValue(params, param, stringParam)
   }
-  
+
 }
 
 const addOrRemoveSingleValue = (params: URLSearchParams, param: string, value: string) => {
-  if (value) {
-    params.set(param, value);
-  } else {
-    params.delete(param);
-  }
+  if (value) params.set(param, value)
+  else params.delete(param);
+
   return params.toString();
 }
 
 const addOrRemoveCommaSeparatedValue = (params: URLSearchParams, param: string, value: string) => {
-  return ""
+  const filters = params.get(param)
+  var allValues = filters?.split(",") ?? []
+  const valueIncluded = allValues.includes(value)
+
+  if (!valueIncluded) {
+    allValues.push(value)
+  } else {
+    allValues = allValues.filter((paramValues: string) => paramValues !== value);
+  }
+
+  if (allValues.length > 0) {
+    params.set(param, allValues.join(","))
+  } else {
+    params.delete(param);
+  }
+
+  return params.toString();
 }
 
