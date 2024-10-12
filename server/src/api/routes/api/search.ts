@@ -12,8 +12,7 @@ var urlencodedParser = bodyParser.urlencoded({ extended: false })
 
 searchApiRouter.post('/', urlencodedParser,
     async (req: Request, res: Response) => {
-        const { location, startDate, endDate, page, pageSize, query, sort } = req.body;
-
+        const { location, startDate, endDate, page, pageSize, query, sort, clubs } = req.body;
         if (location == 'undefined' || startDate == 'undefined' || endDate == 'undefined') {
             {
                 return res.status(401).json({ error: 'Required fields missing' })
@@ -24,9 +23,10 @@ searchApiRouter.post('/', urlencodedParser,
 
         const result = await searchController.getHomeSearchResults(dto);
         var dates = result?.dates ?? []
-        const clubs = result?.clubs ?? []
+        const clubFilters = result?.clubs ?? []
 
         dates = filterShows(dates, {
+            clubs: clubs,
             name: query
         })
 
@@ -41,7 +41,7 @@ searchApiRouter.post('/', urlencodedParser,
                 name: location,
                 dates: paginationData.data
             },
-            clubs,
+            clubs: clubFilters,
             totalPages: paginationData.totalPages,
             totalShows: dates.length
         })
