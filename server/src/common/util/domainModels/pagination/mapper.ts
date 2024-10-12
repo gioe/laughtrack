@@ -6,6 +6,7 @@ export const toPaginatedData = (input: any[], page: string, pageSize: string): P
     const pageSizeInt = parseInt(pageSize as string);
     const startIndex = (currentPage - 1) * pageSizeInt;
     const endIndex = currentPage * pageSizeInt;
+
     const paginatedData = input.slice(startIndex, endIndex);
     const totalPages = Math.ceil(input.length / pageSizeInt);
 

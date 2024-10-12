@@ -6,6 +6,7 @@ import { MEDIUM_ELEMENT_PAGE_REQUEST_SIZE } from "@/lib/contants";
 import { PUBLIC_ROUTES } from "@/lib/routes"
 
 export interface GetClubsParams {
+  city?: string,
   page?: string,
   query?: string
   sort?: string
@@ -35,6 +36,7 @@ export async function getClubs(params?: GetClubsParams) {
           query: params?.query ?? "",
           sort: params?.sort ?? "",
           page: params?.page ?? "1",
+          city: params?.city ?? "",
           pageSize: MEDIUM_ELEMENT_PAGE_REQUEST_SIZE
         }),
       })

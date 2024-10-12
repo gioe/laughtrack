@@ -15,12 +15,14 @@ export default async function AllClubsPage({
 }) {
 
   const response = await getClubs(searchParams) as GetClubsResponse
+
   const title = `Browsing ${response.totalClubs} clubs`
-  const filters = buildFilters(searchParams, response)
+  const filters = buildFilters(response, searchParams)
 
   return (
     <main className="flex-grow pt-5 bg-shark">
       <FilterPageContainer 
+      totalItems={response.totalClubs}
       title={title}
       defaultSort={sortOptions[0].value}
       searchPlaceholder={'Search for clubs'}
@@ -37,16 +39,16 @@ export default async function AllClubsPage({
   );
 }
 
-const buildFilters = (params: any, results: any) => {
+const buildFilters = (results: GetClubsResponse, params?: GetClubsParams) => {
 
   const cityFilter = {
-    id: 'cities',
+    id: 'city',
     name: 'Cities',
     options: results.cities.map((cityName: string) => {
       return {
         value: cityName.toLowerCase(),
         label: cityName,
-        selected: params.cities?.includes(cityName.toLowerCase())
+        selected: params?.city?.includes(cityName.toLowerCase())
       } as FilterOption;
     })
   }

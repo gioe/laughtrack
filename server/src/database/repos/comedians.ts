@@ -29,10 +29,10 @@ export class ComediansRepository {
      */
     constructor(private db: IDatabase<any>, private pgp: IMain) {
         this.createTable();
-        columnSets.updateScores = new pgp.helpers.ColumnSet(['?id', 'popularity_score'], {table: 'comedians'});
-        columnSets.updateData = new pgp.helpers.ColumnSet(['?id', 'instagram_account', 'tiktok_account', 
-            'youtube_account', 'youtube_followers', 'instagram_followers', 'tiktok_followers', 'popularity_score', 'website'], {table: 'comedians'});
-        columnSets.addAll = new pgp.helpers.ColumnSet(['name' ], {table: 'comedians'});
+        columnSets.updateScores = new pgp.helpers.ColumnSet(['?id', 'popularity_score'], { table: 'comedians' });
+        columnSets.updateData = new pgp.helpers.ColumnSet(['?id', 'instagram_account', 'tiktok_account',
+            'youtube_account', 'youtube_followers', 'instagram_followers', 'tiktok_followers', 'popularity_score', 'website'], { table: 'comedians' });
+        columnSets.addAll = new pgp.helpers.ColumnSet(['name'], { table: 'comedians' });
     }
 
     // Creates the table;
@@ -68,7 +68,7 @@ export class ComediansRepository {
         return this.db.any(sql.getTrending);
     }
 
-    addAll(all: CreateComedianDTO[]): Promise<{id: number}[]> {
+    addAll(all: CreateComedianDTO[]): Promise<{ id: number }[]> {
         const batchInsert = this.pgp.helpers.insert(all, columnSets.addAll) + ' ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING id';
         return this.db.any(batchInsert)
     }

@@ -20,7 +20,6 @@ import {
 } from '@heroicons/react/24/outline'
 import { ChevronDownIcon } from '@heroicons/react/24/solid'
 import { UserInterface } from '@/interfaces/user.interface'
-import { useRouter } from 'next/navigation'
 import useLoginModal from '@/hooks/useLoginModal'
 import useRegisterModal from '@/hooks/useRegisterModel'
 

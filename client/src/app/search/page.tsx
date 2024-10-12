@@ -15,6 +15,7 @@ export default async function CityDetailPage({
 }) {
 
   const searchResults = await getSearchResults(searchParams) as HomeSearchResultResponse;
+  console.log(searchResults)
   const title = buildTitle(searchParams, searchResults)
   const filters = buildFilters(searchParams, searchResults)
 
@@ -22,6 +23,7 @@ export default async function CityDetailPage({
 
     <main className="flex-grow pt-5 bg-shark">
       <FilterPageContainer
+        totalItems={searchResults.totalShows}
         title={title}
         searchPlaceholder={'Search for comics'}
         totalPages={searchResults.totalPages}

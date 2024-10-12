@@ -59,10 +59,9 @@ jsonb_build_object(
             'youtube_followers',
             c.youtube_followers,
             'website',
-            c.website,
-            'popularity_score',
-            c.popularity_score
+            c.website
         ) AS social_data,
+c.popularity_score,
 COALESCE(jsonb_agg(
             DISTINCT jsonb_build_object(
                 'id', fd.show_id,

@@ -2,13 +2,12 @@
 
 import React from "react";
 import ShowInfoCard from "./cards/ShowInfoCard";
-import PropertyFilter from "../filters/FilterComponent";
 import { ShowInterface } from "@/interfaces/show.interface";
-import { PaginationComponent } from "../pagination/Pagination";
 import { ShowProviderInterface } from "@/interfaces/dateContainer.interface";
 
 export interface PaginatedShowPageInterface {
     entity: ShowProviderInterface;
+    totalShows: number;
     totalPages: number
 }
 

@@ -33,18 +33,20 @@ export interface Filter {
 }
 
 interface FilterPageContainerProps {
-    title: string;
+    title?: string;
     child: ReactNode;
     sortOptions: any[];
     defaultSort: string;
-    filterOptions: Filter[];
+    filterOptions?: Filter[];
     query?: string;
+    totalItems: number;
     totalPages: number;
     searchPlaceholder: string
 }
 
 const FilterPageContainer: React.FC<FilterPageContainerProps> = ({
     title,
+    totalItems,
     child,
     sortOptions,
     filterOptions,
@@ -99,7 +101,7 @@ const FilterPageContainer: React.FC<FilterPageContainerProps> = ({
                             </div>
 
                             <form className="mt-4 border-t border-gray-200">
-                                {filterOptions.map((section) => (
+                                { filterOptions && filterOptions.map((section) => (
                                     <Disclosure key={section.id} as="div" className="border-t border-gray-200 px-4 py-6">
                                         <h3 className="-mx-2 -my-3 flow-root">
                                             <DisclosureButton className="group flex w-full items-center justify-between bg-white px-2 py-3 text-gray-400 hover:text-gray-500">
@@ -141,8 +143,8 @@ const FilterPageContainer: React.FC<FilterPageContainerProps> = ({
                 </Dialog>
 
                 <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-baseline justify-between border-b border-gray-200 pb-6 pt-24">
-                        <h1 className="text-3xl font-bold tracking-tifght text-white">{title}</h1>
+                    <div className="flex items-baseline justify-between border-b border-gray-200 pb-6 pt-10">
+                        { title && <h1 className="text-3xl font-bold tracking-tight text-white">{title}</h1>}
 
                         <div className="flex items-center">
                         {totalPages > 1 && <PaginationComponent pageCount={totalPages} />}
@@ -195,9 +197,9 @@ const FilterPageContainer: React.FC<FilterPageContainerProps> = ({
                         <div className="grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-4">
                             <form className="hidden lg:block">
 
-                                <TextSearchBar query={query} inputPlaceholder={searchPlaceholder}/>
+                                { totalItems && <TextSearchBar query={query} inputPlaceholder={searchPlaceholder}/> }
 
-                                {filterOptions.map((section) => (
+                                { filterOptions && filterOptions.map((section) => (
                                     <Disclosure key={section.id} as="div" className="border-b border-gray-200 py-6">
 
                                         <h3 className="-my-3 flow-root">

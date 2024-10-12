@@ -12,7 +12,7 @@ export const toComedian = (payload: GetComedianResponseDTO): ComedianInterface =
         id: payload.id,
         name: payload.name,
         socialData: toSocialDataInterface(payload.social_data),
-        dates: toDates(payload.dates),
+        dates: payload.dates == undefined ? [] : toDates(payload.dates),
         favoriteId: payload.favorite_id == null ? undefined : payload.favorite_id,
         popularityScore: payload.popularity_score
     }

@@ -20,7 +20,7 @@ const EntityBanner: React.FC<EntityBannerProps> = ({
     };
 
     return (
-        <div className="relative h-[300px] sm:h-[400px] lg:h[500-px] xl:h-[600px] 2xl:h-[700-px]">
+        <div className="relative h-[100px] sm:h-[200px] lg:h[300-px] xl:h-[400px] 2xl:h-[500-px]">
             <Image
                 alt="Banner"
                 src={src}

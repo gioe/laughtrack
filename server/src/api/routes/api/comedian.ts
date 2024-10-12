@@ -9,6 +9,8 @@ import { toGetComediansDTO } from "../../../common/util/domainModels/comedian/ma
 import { UserRole } from "../../../common/models/@types/UserRole.js";
 import { toPaginatedData } from "../../../common/util/domainModels/pagination/mapper.js";
 import { toUpdateSocialDataDTO } from "../../../common/util/domainModels/socialData/mapper.js";
+import { sortComedians } from "../../../common/util/domainModels/comedian/sort.js";
+import { filterComedians } from "../../../common/util/domainModels/comedian/filter.js";
 
 export const comedianApiRouter = express.Router();
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
@@ -71,6 +73,7 @@ comedianApiRouter.get('/:id', urlencodedParser,
                 ...result,
                 dates: paginationData.data
             },
+            totalShows: paginationData.data.length,
             totalPages: paginationData.totalPages
         })
     })
@@ -85,13 +88,19 @@ comedianApiRouter.post('/all',
     assignUser,
     urlencodedParser,
     async (req: Request, res: Response) => {
-        const { page, pageSize } = req.body;
+        const { page, pageSize, sort, query } = req.body;
 
         const dto = toGetComediansDTO(req)
 
-        var comedians: ComedianInterface[] = [];
+        var comedians = await comedianController.getAllComedians(dto)
 
-        comedians = await comedianController.getAllComedians(dto)
+        comedians = filterComedians(comedians, {
+            name: query
+        })
+
+        if (sort) {
+            comedians = sortComedians(comedians, sort)
+        }
 
         const paginationData = toPaginatedData(comedians, page, pageSize)
 
