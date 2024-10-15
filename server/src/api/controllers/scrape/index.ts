@@ -4,6 +4,7 @@ import * as lineupController from '../../controllers/lineup/index.js'
 
 import { ScrapingOutput } from "../../../common/models/interfaces/scrape.interface.js";
 import { toCreateLineupItemDTOArray } from '../../../common/util/domainModels/lineupItem/mapper.js';
+import { providedPromiseResponse } from '../../../common/util/promiseUtil.js';
 
 export const storeOutput = async (all: ScrapingOutput[]): Promise<void> => {
 
@@ -13,10 +14,15 @@ export const storeOutput = async (all: ScrapingOutput[]): Promise<void> => {
 }
 
 export const storeOutputInstance = async (instance: ScrapingOutput): Promise<null> => {
-    
-    const show = await showController.add(instance.show)
-    const comedians = await comedianController.addAll(instance.comedians)
-    const lineupItems = toCreateLineupItemDTOArray(comedians, show.id)
 
-    return lineupController.addAll(lineupItems)
+    const show = await showController.add(instance.show)
+
+    if (instance.comedians.length > 0) {
+        const comedians = await comedianController.addAll(instance.comedians)
+        const lineupItems = toCreateLineupItemDTOArray(comedians, show.id)
+        return lineupController.addAll(lineupItems)
+    }
+
+    return providedPromiseResponse(null)
+
 }

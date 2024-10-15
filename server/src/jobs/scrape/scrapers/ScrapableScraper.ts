@@ -1,117 +1,66 @@
-import playwright from "playwright-core";
-import { Scrapable } from "../../../common/models/interfaces/scrape.interface.js";
-import { provideGenericPromiseResponse } from "../../../common/util/promiseUtil.js";
-import { ElementHandler } from "../elementHandlers/ElementHandler.js";
+import playwright, { ElementHandle } from "playwright-core";
+import { generateValidUrl, generateValidUrls, removeBadWhiteSpace } from "../../../common/util/primatives/stringUtil.js";
 
 export class ScrapableScraper {
 
-  private elementHandler = new ElementHandler();
+  getLink = async (page: playwright.Page, selector: string): Promise<string> => {
+    const basePageUrl = page.url()
+    return this.getHref(page.locator(selector)).then((href: string) => generateValidUrl(basePageUrl, href));
+  }
+
+  getTextContent = async (page: playwright.Page, selector: string): Promise<string[]> => {
+    var values: string[] = []
+    for (const element of (await page.locator(selector).all())) {
+      const value = await this.getText(element)
+      values.push(value)
+    }
+    return values
+  }
+
+  getValues = async (page: playwright.Page, selector: string): Promise<string[]> => {
+    var values: string[] = []
+    for (const element of (await page.locator(selector).all())) {
+      const value = await this.getValue(element)
+      values.push(value)
+    }
+    return values
+  }
+
+  getLinks = async (page: playwright.Page, selector: string): Promise<string[]> => {
+    return this.getAllHrefs(page, selector)
+    .then((hrefs: string[]) => {
+      const basePageUrl = page.url()
+      return generateValidUrls(basePageUrl, hrefs)
+    })
+  }
+
+  getElementVisibility = async (page: playwright.Page, selector: string): Promise<boolean> => {
+    return page.locator(selector).isVisible()
+  }
   
-  getAllTextContent = async (scrapable: Scrapable,
-    selector?: string): Promise<string[]> => {
-    if (selector) {
-      return scrapable.$$eval(selector, (e: Element[]) => e.map(e => e.textContent ?? "") ?? [])
-        .catch(() => { console.warn(`Error with ${selector} text values`) })
+  getAllHrefs = async (page: playwright.Page, selector: string): Promise<string[]> => {
+    var hrefs: string[] = []
+    for (const element of (await page.locator(selector).all())) {
+      const href = await this.getHref(element)
+      hrefs.push(href)
     }
-
-    return provideGenericPromiseResponse([])
+    return hrefs
   }
 
-  getTextContent = async (scrapable: Scrapable,
-    selector?: string): Promise<string> => {
-
-    if (selector) {
-      return scrapable.$eval(selector, (e: Element) =>  e.textContent ?? "")
-        .catch(() => { console.warn(`Error with ${selector} text value`) })
-    }
-
-    return provideGenericPromiseResponse("")
-
+  getHref = async (locator: playwright.Locator): Promise<string> => {
+    return locator.getAttribute('href').then(href => href ?? "")
   }
 
-  getAllHrefs = async (scrapable: Scrapable,
-    selector?: string): Promise<string[]> => {
-
-    if (selector) {
-      return scrapable.$$eval(selector, (e: Element[]) => e.map(e => e.getAttribute('href') ?? ""))
-        .catch(() => { console.warn(`Error with ${selector} hrefs`) })
-    }
-
-    return provideGenericPromiseResponse([])
+  getStyle = async (elementHandle: ElementHandle<Element>): Promise<string> => {
+    return elementHandle.getAttribute('style').then(style => style ?? "")
   }
 
-  getAllValues = async (scrapable?: Scrapable,
-    selector?: string): Promise<string[]> => {
-
-    if (selector && scrapable) {
-        return scrapable.$$eval(selector, (e: Element[]) => e.map(e => e.getAttribute('value') ?? "") ?? [])
-        .catch(() => { console.warn(`Error with ${selector} values`) })
-    }
-
-    return provideGenericPromiseResponse([])
+  getValue = async (locator: playwright.Locator): Promise<string> => {
+    return locator.getAttribute('value').then(value => value ?? "")
   }
 
-  getHref = async (scrapable?: Scrapable,
-    selector?: string): Promise<string> => {
-
-    if (selector && scrapable) {
-        return scrapable.$eval(selector, (e: Element) => e.getAttribute('href') ?? "")
-        .catch(() => { console.warn(`Error with ${selector} href`) })
-    }
-
-    return provideGenericPromiseResponse("")
+  getText = async (locator: playwright.Locator): Promise<string> => {
+    return locator.evaluate(node => node.textContent ?? "").then((value: string) => removeBadWhiteSpace(value))
   }
 
-  getAllElements = async (scrapable?: Scrapable,
-    selector?: string): Promise<Element[]> => {
-
-    if (selector && scrapable) {
-        return scrapable.$$eval(selector, (e: Element[]) => e)
-        .catch(() => { console.warn(`Error with ${selector} elements`) })
-    }
-    return provideGenericPromiseResponse([])
-
-  }
-
-  getAllElementsHandlers = async (scrapable?: Scrapable,
-    selector?: string): Promise<playwright.ElementHandle<Element>[]> => {
-    
-    if (selector && scrapable) {
-      return scrapable.$$(selector)
-        .catch(() => { 
-          console.warn(`Error with ${selector} element handlers`)
-          return []
-         })
-    }
-
-    return provideGenericPromiseResponse([])
-  }
-
-  getElementVisibility = async (scrapable?: Scrapable,
-    selector?: string): Promise<boolean> => {
-
-    if (selector && scrapable) {
-      return scrapable.$$(selector)
-      .then(elementHandles => this.elementHandler.getIsVisible(elementHandles[0]))
-      .catch((error) => {
-        console.warn(error)
-        return true
-      })
-    }
-    return provideGenericPromiseResponse(false)
-  }
-
-  takeScreenshot = async (
-    fileName: string,
-    scrapable?: Scrapable,
-    selector?: string) => {
-
-    if (selector && scrapable) {
-      const element = await scrapable.$(selector)
-      if (element == null) return
-      const visible = await element.isVisible();
-      if (visible) {
-        await element.screenshot({ path: fileName });
-      }
-  }
-}}
+}

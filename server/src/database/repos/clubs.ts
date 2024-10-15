@@ -5,7 +5,7 @@ import {
     GetCitiesResponseDTO, 
     GetClubDTO, 
 } from '../../common/models/interfaces/club.interface.js';
-import { provideGenericPromiseResponse } from '../../common/util/promiseUtil.js';
+import { providedPromiseResponse } from '../../common/util/promiseUtil.js';
 import { GroupedPopularityScoreDTO, PopularityScoreIODTO } from '../../common/models/interfaces/socialData.interface.js';
 
 var columnSets: {
@@ -33,7 +33,7 @@ export class ClubsRepository {
           this.createTable();
           columnSets.updateScores = new pgp.helpers.ColumnSet(['?id', 'popularity_score'], {table: 'clubs'});
           columnSets.addAll = new pgp.helpers.ColumnSet(['name', 'city', 'zip_code', 'address',
-            'base_url', 'schedule_page_url', 'timezone', 'scraping_config', 'popularity_score'
+            'base_url', 'schedule_page_url', 'scraping_config', 'popularity_score'
           ], {table: 'clubs'});
     }
 
@@ -68,7 +68,7 @@ export class ClubsRepository {
     }
 
     updateScores(scores: PopularityScoreIODTO[] | null): Promise<null> {
-        if (scores == null) return provideGenericPromiseResponse(null)
+        if (scores == null) return providedPromiseResponse(null)
 
         const update = this.pgp.helpers.update(scores, columnSets.updateScores) + ' WHERE v.id = t.id';
 

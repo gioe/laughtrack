@@ -1,47 +1,39 @@
 
 import { Comedian } from "./Comedian.js";
-import { DateTimeContainer } from "../../../jobs/scrape/objectContainers/DateTimeContainer.js";
-import { CreateShowDTO } from "../interfaces/show.interface.js";
-import { ScrapingConfig } from "./ScrapingConfig.js";
+import { CreateShowDTO, ShowInput } from "../interfaces/show.interface.js";
 import { CreateComedianDTO } from "../interfaces/comedian.interface.js";
 
 export class Show {
 
   lineup: Comedian[];
-  scrapingConfig: ScrapingConfig;
-  dateTimeContainer: DateTimeContainer;
+  dateTime: Date;
   ticketLink: string;
+  name: string;
 
   clubId: number = 0;
 
-  constructor(scrapedValues: string[], lineup: Comedian[], scrapingConfig: ScrapingConfig) {
-    const dateTimeString = scrapedValues[0]
-    const ticketString = scrapedValues[1]
-    this.scrapingConfig = scrapingConfig;
-    this.lineup = lineup
-    this.ticketLink = ticketString;
-    this.dateTimeContainer = new DateTimeContainer(dateTimeString, this.scrapingConfig);
+  constructor(showInput: ShowInput) {
+    this.lineup = showInput.lineup
+    this.dateTime = showInput.dateTime;
+    this.ticketLink = showInput.ticketLink;
+    this.name = showInput.name
   }
 
   setClubId = (id: number) => {
     this.clubId = id;
   }
 
-  asCreateShowDTO = (): CreateShowDTO | null => {
-    if (!this.isValid()) return null
+  asCreateShowDTO = (): CreateShowDTO => {
     return {
       club_id: this.clubId,
-      date_time: this.dateTimeContainer.asDateObject(),
+      date_time: this.dateTime,
       ticket_link: this.ticketLink,
+      name: this.name 
     }
   }
 
   asCreateComedianDTOArray = (): CreateComedianDTO[] => {
     return this.lineup.map((comedian: Comedian) => comedian.asCreateComedianDTO())
-  }
-
-  isValid = (): boolean => {
-    return this.clubId !== 0 && this.dateTimeContainer.isValid()
   }
  
 }

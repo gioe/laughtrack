@@ -30,7 +30,6 @@ export const toClub = (payload: GetClubDTO): ClubInterface => {
         id: payload.id,
         name: payload.name,
         baseUrl: payload.base_url,
-        timezone: payload.timezone,
         city: payload.city,
         address: payload.address,
         popularityScore: payload.popularity_score,

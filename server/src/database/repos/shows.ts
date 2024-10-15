@@ -2,7 +2,7 @@ import { ColumnSet, IDatabase, IMain } from 'pg-promise';
 import { shows as sql } from '../sql/index.js';
 import { CreateShowDTO } from '../../common/models/interfaces/show.interface.js';
 import { PopularityScoreIODTO, GroupedPopularityScoreDTO } from '../../common/models/interfaces/socialData.interface.js';
-import { provideGenericPromiseResponse } from '../../common/util/promiseUtil.js';
+import { providedPromiseResponse } from '../../common/util/promiseUtil.js';
 
 var columnSets: {
     updateScores: ColumnSet | null;
@@ -42,7 +42,8 @@ export class ShowsRepository {
         return this.db.one(sql.add, {
          club_id: instance.club_id,
          date_time: instance.date_time,
-         ticket_link: instance.ticket_link  
+         ticket_link: instance.ticket_link,
+         name: instance.name  
         });
     }
 
@@ -57,9 +58,7 @@ export class ShowsRepository {
         return this.db.any(sql.getAllLineupPopularityData)
     }
 
-    updateScores(scores: PopularityScoreIODTO[] | null): Promise<null> {
-        if (scores == null) return provideGenericPromiseResponse(null)
-
+    updateScores(scores: PopularityScoreIODTO[]): Promise<null> {
         const update = this.pgp.helpers.update(scores, columnSets.updateScores) + ' WHERE v.id = t.id';
         return this.db.none(update)
     }

@@ -20,7 +20,6 @@ export async function getClubDetails(id: string, params: GetClubDetailsParams) {
 
   const getClubDetailsUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.GET_CLUB_DETAILS + `/${id}`
 
-  console.log(params)
   return auth()
   .then((session: any) => {
     return fetch(getClubDetailsUrl, {

@@ -27,7 +27,7 @@ export const scrapeClubs = async (id: number[]) => {
     await clubController.getAllScrapingData()
         .then((clubs: ClubScrapingData[]) => {
             const jobs = clubs
-            .filter((club: ClubScrapingData) =>  id.length > 0 ?  id.includes(club.id) : true)
+            .filter((club: ClubScrapingData) =>  id.length > 0 ? id.includes(club.id) : true)
             .map((club: ClubScrapingData) => runScraper(club))
             return runTasks(jobs)
         })

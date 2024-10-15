@@ -15,7 +15,6 @@ export default async function CityDetailPage({
 }) {
 
   const searchResults = await getSearchResults(searchParams) as HomeSearchResultResponse;
-  console.log(searchResults)
   const title = buildTitle(searchParams, searchResults)
   const filters = buildFilters(searchParams, searchResults)
 

@@ -1,10 +1,8 @@
 import playwright from "playwright-core";
 import { Show } from "../models/classes/Show.js";
-import { Scrapable } from "../models/interfaces/scrape.interface.js";
 import {
   InteractionFunction,
   LoopProviderFunction,
-  ScrapingLoopFunction,
   ScrapingFunction
 } from "../models/@types/ScrapingFunctions.js";
 
@@ -12,7 +10,7 @@ export const generateScrapingLoop = async (
   page: playwright.Page,
   loopProviderFunction: LoopProviderFunction,
   action: InteractionFunction,
-  scrapingFunction: ScrapingFunction | ScrapingLoopFunction): Promise<Show[]> => {
+  scrapingFunction: ScrapingFunction): Promise<Show[]> => {
 
   return loopProviderFunction(page)
     .then((loopValues: any[]) => {
@@ -27,8 +25,8 @@ export const runInteractionLoop = async (
   page: playwright.Page,
   inputs: any[],
   action: InteractionFunction,
-  scrapingFunction: ScrapingFunction | ScrapingLoopFunction): Promise<Show[]> => {
-
+  scrapingFunction: ScrapingFunction): Promise<Show[]> => {
+  
   var scrapedShows: Show[] = [];
 
   for (let index = 0; index < inputs.length - 1; index++) {
@@ -43,7 +41,7 @@ export const runInteractionLoop = async (
 
 export const actThenScrape = async (pageResponse: Promise<playwright.Page>,
   input: any,
-  scrape: ScrapingFunction | ScrapingLoopFunction
-): Promise<Show[]> => {
-  return pageResponse.then((scrapable: Scrapable) => scrape(scrapable, input))
+  scrape: ScrapingFunction
+): Promise<Show> => {
+  return pageResponse.then((page: playwright.Page) => scrape(page, input))
 }

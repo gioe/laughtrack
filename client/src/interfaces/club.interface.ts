@@ -5,7 +5,6 @@ export interface ClubInterface extends ShowProviderInterface {
   id: number
   name: string
   baseUrl: string;
-  timezone: string;
   city: string;
   address: string;
   popularityScore: number;

@@ -1,10 +1,9 @@
 import { DATE } from "../constants/dateConstants.js";
 import { REGEX } from "../constants/regex.js";
-import { ScrapingConfig } from "../../models/classes/ScrapingConfig.js";
-import { removeNonNumbers, removeSubstrings } from "./stringUtil.js";
+import { removeNonNumbers, removeSubstrings, stringIsAValidDate } from "./stringUtil.js";
 
-export const normalizeDateString = (dateString: string, config: ScrapingConfig): string => {
-    const cleanedDateString = cleanDateString(dateString, config)
+export const normalizeDateString = (dateString: string): string => {
+    const cleanedDateString = cleanDateString(dateString)
 
     if (stringIsAValidDate(cleanedDateString)) return cleanedDateString
     else {
@@ -13,21 +12,15 @@ export const normalizeDateString = (dateString: string, config: ScrapingConfig):
     }
 }
 
-export const cleanDateString = (dateString: string, config: ScrapingConfig): string => {
-    const badDateContent = getBadDateStringContent(config)
+export const cleanDateString = (dateString: string): string => {
+    const badDateContent = getBadDateStringContent()
     return removeSubstrings(dateString, badDateContent)
 }
 
-const getBadDateStringContent = (config: ScrapingConfig) => {
-    var badContent: string[] = [" -", "-", " |" , ","];
+const getBadDateStringContent = () => {
+    var badContent: string[] = ["-","|" ,",","·"];
     badContent = DATE.days.concat(badContent);
     return badContent
-}
-
-export const stringIsAValidDate = (string: string): boolean => {
-    if (string == undefined) return false
-    var date = Date.parse(string);
-    return !isNaN(date) 
 }
 
 export const getDateByRegex = (dateString: string): string | undefined =>  {

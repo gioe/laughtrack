@@ -1,5 +1,5 @@
 import playwright from "playwright-core";
-import { delay, provideGenericPromiseResponse } from "../../../common/util/promiseUtil.js";
+import { delay, providedPromiseResponse } from "../../../common/util/promiseUtil.js";
 import { ScrapableScraper } from "../scrapers/ScrapableScraper.js";
 
 const INTERACTION_DELAY = 1000;
@@ -17,23 +17,19 @@ export class ElementInteractor {
         .then(() => delay(INTERACTION_DELAY))
         .then(() => page)
     }
-    return provideGenericPromiseResponse(page)
+    return providedPromiseResponse(page)
   }
 
   clickPageButton = async (page: playwright.Page,
-    selector?: string): Promise<playwright.Page> => {
+    selector: string): Promise<playwright.Page> => {
 
-      if (selector) {
-        return this.scrapableScraper.getElementVisibility(page, selector)
-        .then((visible: boolean) => {
-          if (visible) return page.click(selector)
-          throw new Error("Button not visible. No reason to try to click.")
-        })
-        .then(() => delay(INTERACTION_DELAY))
-        .then(() => page)
-
-      }
-      return provideGenericPromiseResponse(page)
+      return this.scrapableScraper.getElementVisibility(page, selector)
+      .then((visible: boolean) => {
+        if (visible) return page.locator(selector).click()
+        throw new Error("Button not visible. No reason to try to click.")
+      })
+      .then(() => delay(INTERACTION_DELAY))
+      .then(() => page)
     }
 
 

@@ -1,39 +1,23 @@
-import { ScrapingConfig } from "../../../common/models/classes/ScrapingConfig.js";
-import { normalizeDateString } from "../../../common/util/primatives/dateUtil.js";
-import { getTimeByRegex, normalizeTimeString } from "../../../common/util/timeUtil.js";
 import { DateContainer } from "./DateContainer.js";
 import { TimeContainer } from "./TimeContainer.js";
 
-const DEFAULT_DATE = "Sep 9 1989"
-const DEFAULT_TIME = "10:00 PM"
+const DEFAULT_STRING = "Friday January 1st, 1990 - 8:00PM"
 
 export class DateTimeContainer {
 
   dateContainer: DateContainer;
   timeContainer: TimeContainer;
 
-  constructor(dateTimeString: string, config: ScrapingConfig) {
+  constructor(scrapedValues: string[]) {    
+    var fullString = scrapedValues.join()
 
-    var providedString = dateTimeString;
-
-    if (dateTimeString == undefined) {
-      providedString = DEFAULT_DATE
+    if (scrapedValues.length == 0) {
+      fullString = DEFAULT_STRING
     }
 
-    var timeValue = getTimeByRegex(providedString);
+    this.timeContainer = new TimeContainer(fullString)
+    this.dateContainer = new DateContainer(fullString, this.timeContainer.getTimeString())
 
-    if (timeValue.length == 0) {
-      timeValue = DEFAULT_TIME
-      providedString = providedString + ' ' + timeValue
-    }
-
-    const dateString = providedString.split(timeValue)[0];
-    const meridiem = providedString.split(timeValue)[1];
-    const normalizedDateString = normalizeDateString(dateString, config)
-    const normalizedTimeString = normalizeTimeString(timeValue, meridiem, config)
-
-    this.dateContainer = new DateContainer(normalizedDateString)
-    this.timeContainer = new TimeContainer(normalizedTimeString)
   }
 
   asDateObject = (): Date => {

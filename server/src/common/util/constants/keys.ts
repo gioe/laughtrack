@@ -15,14 +15,13 @@ export const SCRAPER_KEYS = {
     showTimeSelector: "showTimeSelector",
     dateSeparator: "dateSeparator",
     badDateStrings: "badDateStrings",
-    badTimeStrings: "badTimeStrings",
+    showNameSelector: "showNameSelector",
     comedianNameSelector: "comedianNameSelector",
     comedianImageSelector: "comedianImageSelector",
     comedianMetadataContainerSelector: "comedianMetadataContainerSelector",
     badNameCharacters: "badNameCharacters",
     badNameStrings: "badNameStrings",
     showSignifiers: "showSignifiers",
-    invalidLinkText: "invalidLinkText",
     requiredSelectors: "requiredSelectors",
     moreShowsButtonSelector: "moreShowsButtonSelector",
   };
@@ -40,5 +39,4 @@ export const SCRAPER_KEYS = {
     name: 'name',
     baseUrl: 'baseUrl',
     schedulePageUrl: 'schedulePageUrl',
-    timezone: 'timezone',
   };

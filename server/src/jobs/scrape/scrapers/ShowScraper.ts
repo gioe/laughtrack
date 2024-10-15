@@ -1,44 +1,74 @@
-import { DateTimeScraper } from "./DateTimeScraper.js";
+import playwright from "playwright-core";
 import { ComedianScraper } from "./ComedianScraper.js";
-import { TicketScraper } from "./TicketScraper.js";
-import { ScrapingConfig } from "../../../common/models/classes/ScrapingConfig.js";
-import { runTasks } from "../../../common/util/promiseUtil.js";
-import { Scrapable } from "../../../common/models/interfaces/scrape.interface.js";
-import { Comedian } from "../../../common/models/classes/Comedian.js";
+import { ScrapingConfig } from "./ScrapingConfig.js";
+import { providedPromiseResponse, runTasks } from "../../../common/util/promiseUtil.js";
 import { Show } from "../../../common/models/classes/Show.js";
+import { ScrapableScraper } from "./ScrapableScraper.js";
+import { ShowInput } from "../../../common/models/interfaces/show.interface.js";
+import { DateTimeContainer } from "../objectContainers/DateTimeContainer.js";
+import { Comedian } from "../../../common/models/classes/Comedian.js";
 
 export class ShowScraper {
 
   private comedianScraper: ComedianScraper;
-  private dateTimeScraper: DateTimeScraper;
-  private ticketScraper: TicketScraper;
   private scrapingConfig: ScrapingConfig;
+  private scraper = new ScrapableScraper();
 
   constructor(scrapingConfig: ScrapingConfig) {
     this.scrapingConfig = scrapingConfig;
     this.comedianScraper = new ComedianScraper(scrapingConfig);
-    this.ticketScraper = new TicketScraper(scrapingConfig);
-    this.dateTimeScraper = new DateTimeScraper(scrapingConfig);
   }
 
-  scapeShow = async (scrapable: Scrapable, input?: any): Promise<Show> => {
-    return this.comedianScraper.getAllComedianData(scrapable)
-    .then((comedians: Comedian[]) => this.runShowScrapingTasks(scrapable, comedians, input))
-  } 
-
-  runShowScrapingTasks = async (scrapable: Scrapable,
-    comedians: Comedian[],
-    input?: any): Promise<Show> => {
-        
-    const ticketTask = this.ticketScraper.getShowTicketTask(scrapable, input)
-    const datetimeTask = this.dateTimeScraper.getShowDateTimeTask(scrapable, input)
-
-    return runTasks([datetimeTask, ticketTask])
-    .then((scrapedValues: any[]) => this.addComediansToShow(scrapedValues, comedians))
+  getShowLineup = async (page: playwright.Page): Promise<Comedian[]> => {
+    return this.comedianScraper.scrapeComedians(page)
   }
 
-  addComediansToShow = (scrapedValues: string[], comedians: Comedian[]): Show => {
-    return new Show(scrapedValues, comedians, this.scrapingConfig)
+  getShowDateTime = async (page: playwright.Page): Promise<Date> => {
+    return this.scrapingConfig.dateTimeSelector ? this.getDateTime(page) : this.combineDateAndTime(page)
   }
-  
+
+  combineDateAndTime = async (page: playwright.Page): Promise<Date> => {
+    return runTasks([this.getDate(page), this.getTime(page)])
+    .then((scrapedValues: string[]) => new DateTimeContainer(scrapedValues).asDateObject());
+  }
+
+  getDateTime = async (page: playwright.Page): Promise<Date> => {
+    if (this.scrapingConfig.dateTimeSelector) {
+      console.log(page.url())
+      return this.scraper.getTextContent(page, this.scrapingConfig.dateTimeSelector)
+      .then((scrapedValues: string[]) => new DateTimeContainer(scrapedValues).asDateObject());
+    }
+    throw new Error(`No selector provided for datetime`)
+  }
+
+  getTicketLink = async (page: playwright.Page): Promise<string> => {
+    const url = page.url()
+    return providedPromiseResponse(url)
+  }
+
+  getName = async (page: playwright.Page): Promise<string> => {
+    if (this.scrapingConfig.showNameSelector) {
+      return this.scraper.getText(page.locator(this.scrapingConfig.showNameSelector))
+    }
+    throw new Error(`No selector provided scraping show name`)
+  }
+
+  scapeShow = async (page: playwright.Page): Promise<Show> => {
+    const tasks = [this.getShowLineup(page), this.getShowDateTime(page), this.getTicketLink(page), this.getName(page)]
+
+    return runTasks<any>(tasks)
+      .then((scrapedValues: any[]) => {
+
+        const input = {
+          lineup: scrapedValues[0],
+          dateTime: scrapedValues[1],
+          ticketLink: scrapedValues[2],
+          name: scrapedValues[3]
+        } as ShowInput
+
+        return new Show(input)
+
+      })
+  }
+
 }

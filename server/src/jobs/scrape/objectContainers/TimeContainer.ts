@@ -1,12 +1,26 @@
+import { getMeridiemByRegex, getTimeByRegex } from "../../../common/util/timeUtil.js";
 
 export class TimeContainer {
 
-  timeString: string = "";
   timeComponents: string[];
+  timeString: string;
 
-  constructor(timeString: string) {
-    this.timeString = timeString;
-    this.timeComponents = this.timeString.split(":")
+  constructor(inputString: string) {
+
+    var timeValue = getTimeByRegex(inputString);
+    this.timeString = timeValue
+
+    var meridiem = getMeridiemByRegex(inputString);
+
+    var [hours, minutes] = timeValue.split(':');
+
+    if (parseInt(hours) == 12) {
+        hours = "00"
+    }
+    
+    const adjustedHours = parseInt(hours) + (meridiem == 'PM' ? 12 : 0);
+    const timeString = minutes === undefined ? `${adjustedHours}:00` : `${adjustedHours}:${minutes}`;
+    this.timeComponents = timeString.split(":")
   }
 
   getHours = (): number => {
@@ -19,6 +33,10 @@ export class TimeContainer {
 
   getSeconds = (): number => {
     return 0;
+  }
+
+  getTimeString = (): string => {
+    return this.timeString;
   }
 
 }

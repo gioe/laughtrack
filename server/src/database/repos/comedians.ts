@@ -1,6 +1,6 @@
 import { ColumnSet, IDatabase, IMain } from 'pg-promise';
 import { comedians as sql } from '../sql/index.js';
-import { provideGenericPromiseResponse } from '../../common/util/promiseUtil.js';
+import { providedPromiseResponse } from '../../common/util/promiseUtil.js';
 import { ComedianInterface, CreateComedianDTO, GetComedianResponseDTO } from '../../common/models/interfaces/comedian.interface.js';
 import { GetSocialDataDTO, PopularityScoreIODTO, UpdateSocialDataDTO } from '../../common/models/interfaces/socialData.interface.js';
 
@@ -78,7 +78,7 @@ export class ComediansRepository {
     }
 
     updateScores(scores: PopularityScoreIODTO[] | null): Promise<null> {
-        if (scores == null) return provideGenericPromiseResponse(null)
+        if (scores == null) return providedPromiseResponse(null)
 
         const update = this.pgp.helpers.update(scores, columnSets.updateScores) + ' WHERE v.id = t.id';
         return this.db.none(update)

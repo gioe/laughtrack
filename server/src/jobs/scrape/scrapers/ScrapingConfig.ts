@@ -1,4 +1,4 @@
-import { SCRAPER_KEYS } from "../../util/constants/keys.js";
+import { SCRAPER_KEYS } from "../../../common/util/constants/keys.js";
 
 export class ScrapingConfig {
 
@@ -18,15 +18,13 @@ export class ScrapingConfig {
   showTimeSelector?: string;
   dateSeparator?: string;
   showTicketLinkSelector?: string;
-  invalidLinkText?: string;
   badDateStrings?: string[];
-  badTimeStrings?: string[];
   comedianMetadataContainerSelector?: string;
-  comedianNameSelector?: string;
+  comedianNameSelector: string;
+  showNameSelector?: string;
   comedianImageSelector?: string;
   badNameCharacters?: string[];
   badNameStrings?: string[];
-  showSignifiers?: string[];
   requiredSelectors?: string[];
 
   constructor(json: any) {
@@ -47,15 +45,13 @@ export class ScrapingConfig {
     this.dateSeparator = json[SCRAPER_KEYS.dateSeparator];
     this.showTicketLinkSelector = json[SCRAPER_KEYS.showTicketLinkSelector];
     this.badDateStrings = json[SCRAPER_KEYS.badDateStrings];
-    this.badTimeStrings = json[SCRAPER_KEYS.badTimeStrings];
     this.comedianNameSelector = json[SCRAPER_KEYS.comedianNameSelector];
+    this.showNameSelector = json[SCRAPER_KEYS.showNameSelector];
     this.comedianImageSelector = json[SCRAPER_KEYS.comedianImageSelector];
     this.comedianMetadataContainerSelector = json[SCRAPER_KEYS.comedianMetadataContainerSelector]
     this.badNameCharacters = json[SCRAPER_KEYS.badNameCharacters];
     this.badNameStrings = json[SCRAPER_KEYS.badNameStrings];
-    this.showSignifiers = json[SCRAPER_KEYS.showSignifiers];
     this.requiredSelectors = json[SCRAPER_KEYS.requiredSelectors];
-    this.invalidLinkText = json[SCRAPER_KEYS.invalidLinkText];
   }
 
 }

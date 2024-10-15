@@ -1,7 +1,7 @@
 import playwright from "playwright";
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import { chromium } from 'playwright-extra'
-import { Scraper } from "../models/classes/Scraper.js";
+import { Scraper } from "../../jobs/scrape/scrapers/Scraper.js";
 import { ClubScrapingData } from "../models/interfaces/club.interface.js";
 import { ScrapingOutput } from "../models/interfaces/scrape.interface.js";
 
