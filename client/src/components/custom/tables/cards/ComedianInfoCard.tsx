@@ -12,9 +12,10 @@ import useRegisterModal from '@/hooks/useRegisterModel';
 import { useSession } from "next-auth/react";
 import { updateFavoriteState } from '@/actions/favorite/addToFavorites';
 import SocialMediaBar from '../../social/SocialMediaBar';
+import { LineupItem } from '@/interfaces/lineupItem.interface';
 
 interface ComedianInfoCardProps {
-    comedian: ComedianInterface;
+    comedian: ComedianInterface | LineupItem
 }
 
 const ComedianInfoCard: React.FC<ComedianInfoCardProps> = ({

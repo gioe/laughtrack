@@ -17,6 +17,7 @@ full_lineup_data as (
     SELECT
         s.id as id,
         s.club_id,
+        s.name,
         cl.name as club_name,
         s.popularity_score as popularity_score,
         s.date_time as date_time,
@@ -33,8 +34,8 @@ full_lineup_data as (
         ) as lineup
     FROM
         shows s
-        INNER JOIN lineups l ON s.id = l.show_id
-        INNER JOIN comedian_social_data c ON c.id = l.comedian_id
+        LEFT JOIN lineups l ON s.id = l.show_id
+        LEFT JOIN comedian_social_data c ON c.id = l.comedian_id
         INNER JOIN clubs cl ON cl.id = s.club_id
     WHERE s.date_time > NOW()
     GROUP BY
@@ -55,6 +56,8 @@ SELECT
             full_lineup_data.club_name,
             'date_time',
             full_lineup_data.date_time,
+            'name',
+            full_lineup_data.name,
             'ticket_link',
             full_lineup_data.ticket_link,
             'popularity_score',

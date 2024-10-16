@@ -1,6 +1,6 @@
 import { db } from '../../../database/index.js';
-import { toComedian } from "../../../common/util/domainModels/comedian/mapper.js";
-import { CreateComedianDTO, GetComediansDTO, GetComedianResponseDTO, ComedianInterface } from "../../../common/models/interfaces/comedian.interface.js";
+import { toComedian, toComedianFilter } from "../../../common/util/domainModels/comedian/mapper.js";
+import { CreateComedianDTO, GetComediansDTO, GetComedianResponseDTO, ComedianInterface, ComedianFilterInterface } from "../../../common/models/interfaces/comedian.interface.js";
 import { CreateFavoriteComedianDTO } from "../../../common/models/interfaces/favorite.interface.js";
 import { GetSocialDataDTO, PopularityScoreIODTO, UpdateSocialDataDTO } from "../../../common/models/interfaces/socialData.interface.js";
 import { toPopularityScores } from '../../../common/util/domainModels/socialData/mapper.js';
@@ -43,4 +43,10 @@ export const favoriteComedian = async (payload: CreateFavoriteComedianDTO, isFav
 
 export const updateSocialData = async (payload: UpdateSocialDataDTO): Promise<boolean | null> => {
     return db.comedians.updateSocialData(payload)
+}
+
+export const getAllComedianFilters = async (): Promise<ComedianFilterInterface[]> => {
+
+    return db.comedians.all()
+        .then((response: GetComedianResponseDTO[] | null) => response ? response.map((item: any) => toComedianFilter(item)) : [])
 }

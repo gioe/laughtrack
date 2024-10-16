@@ -13,7 +13,7 @@ import Heading from '../Heading';
 import StylizedInput from '../inputs/StylizedInput';
 import toast from 'react-hot-toast';
 import axios from 'axios';
-import { ShowProviderInterface } from '@/interfaces/dateContainer.interface';
+import { ShowProviderInterface } from '@/interfaces/showProvider.interface';
 
 interface EditSocialDataModalProps {
     entity?: ShowProviderInterface

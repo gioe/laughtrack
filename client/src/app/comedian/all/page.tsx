@@ -1,4 +1,4 @@
-import { FetchComedianParams, getComedians, GetComediansResponse } from "@/actions/comedians/getComedians";
+import { FetchPaginatedComedianParams, getPaginatedComedians, GetPaginatedComediansResponse } from "@/actions/comedians/getPaginatedComedians";
 import { Suspense } from 'react';
 import ComedianTable from "@/components/custom/tables/ComedianTable";
 import FilterPageContainer, { FilterOption } from "@/components/custom/filters/FilterPageContainer";
@@ -11,10 +11,10 @@ const sortOptions = [
 export default async function AllComediansPage({
   searchParams,
 }: {
-  searchParams?: FetchComedianParams;
+  searchParams?: FetchPaginatedComedianParams;
 }) {
 
-  const response = await getComedians(searchParams) as GetComediansResponse
+  const response = await getPaginatedComedians(searchParams) as GetPaginatedComediansResponse
   const title = `Browsing ${response.totalComedians} comedians`
 
   return (

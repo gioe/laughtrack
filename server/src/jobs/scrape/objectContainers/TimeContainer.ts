@@ -1,34 +1,45 @@
-import { getMeridiemByRegex, getTimeByRegex } from "../../../common/util/timeUtil.js";
+import { containsTimeRange, containsTimeValue, getMeridiemByRegex, getTimeByRegex } from "../../../common/util/timeUtil.js";
 
 export class TimeContainer {
 
-  timeComponents: string[];
   timeString: string;
+  hourString: string;
+  hour: number;
+  minutes: number;
 
   constructor(inputString: string) {
+    this.timeString = inputString
+    
+    if (containsTimeRange(inputString)) {
+      this.timeString = inputString.split("-")[0]
+    }
+    
+    if (!containsTimeValue(this.timeString)) {
+      this.timeString = this.timeString.trimEnd() + ":00PM"
+    }
 
-    var timeValue = getTimeByRegex(inputString);
+    var timeValue = getTimeByRegex(this.timeString);
+    var meridiem = getMeridiemByRegex(this.timeString).toUpperCase()
+    
     this.timeString = timeValue
 
-    var meridiem = getMeridiemByRegex(inputString);
-
     var [hours, minutes] = timeValue.split(':');
+    this.hourString = " " + hours;
 
     if (parseInt(hours) == 12) {
         hours = "00"
     }
     
-    const adjustedHours = parseInt(hours) + (meridiem == 'PM' ? 12 : 0);
-    const timeString = minutes === undefined ? `${adjustedHours}:00` : `${adjustedHours}:${minutes}`;
-    this.timeComponents = timeString.split(":")
+    this.hour = parseInt(hours) + (meridiem == 'PM' ? 12 : 0);
+    this.minutes = parseInt(minutes);
   }
 
   getHours = (): number => {
-    return Number(this.timeComponents[0]);
+    return this.hour;
   }
 
   getMinutes = (): number => {
-    return Number(this.timeComponents[1]);
+    return this.minutes;
   }
 
   getSeconds = (): number => {
@@ -37,6 +48,10 @@ export class TimeContainer {
 
   getTimeString = (): string => {
     return this.timeString;
+  }
+
+  getHourString = (): string => {
+    return this.hourString;
   }
 
 }

@@ -1,23 +1,27 @@
 import { DateContainer } from "./DateContainer.js";
 import { TimeContainer } from "./TimeContainer.js";
 
-const DEFAULT_STRING = "Friday January 1st, 1990 - 8:00PM"
+const DEFAULT_DATE = "1/1/90 8:00PM"
 
 export class DateTimeContainer {
 
   dateContainer: DateContainer;
   timeContainer: TimeContainer;
 
-  constructor(scrapedValues: string[]) {    
+  constructor(scrapedValues: string[], dateTimeSeparator?: string) {    
+
     var fullString = scrapedValues.join()
 
+    if (dateTimeSeparator) {
+      fullString = fullString.replaceAll(dateTimeSeparator, " ")
+    }
+
     if (scrapedValues.length == 0) {
-      fullString = DEFAULT_STRING
+      fullString = DEFAULT_DATE
     }
 
     this.timeContainer = new TimeContainer(fullString)
-    this.dateContainer = new DateContainer(fullString, this.timeContainer.getTimeString())
-
+    this.dateContainer = new DateContainer(fullString, this.timeContainer.getHourString())
   }
 
   asDateObject = (): Date => {

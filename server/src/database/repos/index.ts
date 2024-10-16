@@ -5,16 +5,20 @@ import {UsersRepository} from './users.js';
 import {SearchRepository} from './search.js';
 import {LineupsRepository} from './lineups.js';
 import {FavoritesRepository} from './favorites.js';
+import {TagsRepository} from './tags.js';
+import {GroupsRepository} from './groups.js';
 
 // Database Interface Extensions:
 interface IExtensions {
-    users: UsersRepository,
-    clubs: ClubsRepository,
-    comedians: ComediansRepository,
-    shows: ShowsRepository,
-    search: SearchRepository,
+    users: UsersRepository
+    clubs: ClubsRepository
+    comedians: ComediansRepository
+    shows: ShowsRepository
+    search: SearchRepository
     favorites: FavoritesRepository
     lineups: LineupsRepository
+    tags: TagsRepository
+    groups: GroupsRepository
 }
 
 export {
@@ -25,5 +29,7 @@ export {
     ShowsRepository, 
     SearchRepository,
     LineupsRepository,
-    FavoritesRepository
+    FavoritesRepository,
+    TagsRepository,
+    GroupsRepository
 };

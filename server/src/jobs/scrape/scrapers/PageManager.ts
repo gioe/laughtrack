@@ -5,6 +5,7 @@ import { ShowScraper } from "./ShowScraper.js";
 import { providedPromiseResponse } from "../../../common/util/promiseUtil.js";
 import { Show } from "../../../common/models/classes/Show.js";
 import { ScrapingConfig } from "./ScrapingConfig.js";
+import { error } from "winston";
 
 export class PageManager {
 
@@ -27,7 +28,7 @@ export class PageManager {
 
   getAllLinksOnPage = async (page: playwright.Page): Promise<string[]> => {
     if (this.scrapingConfig.detailPageButtonSelector) {
-      return this.scraper.getLinks(page, this.scrapingConfig.detailPageButtonSelector)
+      return this.scraper.getLinks(page, this.scrapingConfig.detailPageButtonSelector, this.scrapingConfig.linkContainer)
     }
     throw new Error(`No selector provided for links`)
   }
@@ -51,7 +52,7 @@ export class PageManager {
       .then((page: playwright.Page) => this.getLinksAcrossPages(page, pageLinks, scrapedLinks))
       .catch((error) => {
         console.warn(error)
-        return scrapedLinks
+        return [...new Set(scrapedLinks)]
       })
   }
 
@@ -65,6 +66,10 @@ export class PageManager {
 
   navigateToUrl = async (page: playwright.Page, input?: string): Promise<playwright.Page> => {
     if (input) return page.goto(input).then(() => page)
+      .catch((error) => {
+        console.error(`Error navigating to ${input}: ${error}`)
+        return page
+      })
     return providedPromiseResponse(page)
   }
 
@@ -84,7 +89,7 @@ export class PageManager {
     if (this.scrapingConfig.nextPageLinkSelector) {
       return this.scraper.getLink(page, this.scrapingConfig.nextPageLinkSelector);
     }
-    throw new Error(`No page link on ${page.url()}`)
+    throw new Error(`No page link selector provided}`)
   }
 
 

@@ -4,6 +4,7 @@ import { ComedianInterface } from "@/interfaces/comedian.interface";
 import { PUBLIC_ROUTES } from "@/lib/routes"
 import { auth } from "../../auth"
 import { MEDIUM_ELEMENT_PAGE_REQUEST_SIZE } from "@/lib/contants";
+import { LineupItem } from "@/interfaces/lineupItem.interface";
 
 export interface FetchFavoriteComedianParams {
   query?: string;
@@ -11,7 +12,7 @@ export interface FetchFavoriteComedianParams {
 }
 
 export interface GetComediansResponse {
-  comedians: ComedianInterface[]
+  comedians: ComedianInterface[] | LineupItem[]
   query?: string;
   totalPages: number;
 }

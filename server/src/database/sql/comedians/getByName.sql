@@ -4,6 +4,7 @@ WITH future_shows_with_lineup_details as (
         s.popularity_score,
         s.date_time,
         s.ticket_link,
+        s.name,
         club_id,
         array_agg(c.name) as lineup_names,
         jsonb_agg(
@@ -35,7 +36,8 @@ full_data as (
         fs.lineup_details,
         fs.popularity_score as popularity_score,
         fs.date_time,
-        fs.ticket_link
+        fs.ticket_link,
+        fs.name
     FROM
         future_shows_with_lineup_details fs
         INNER JOIN lineups l ON fs.id = l.show_id
@@ -71,6 +73,7 @@ COALESCE(jsonb_agg(
                 'club_name', fd.club_name,
                	'lineup', fd.lineup_details,
                	'date_time', fd.date_time,
-               	'ticket_link', fd.ticket_link
+               	'ticket_link', fd.ticket_link,
+                'name', fd.name
             ) )FILTER (WHERE fd.show_id IS NOT NULL), '[]') as dates
 FROM full_data fd RIGHT JOIN comedians c on c.id = fd.comedian_id where c.name = ${name} GROUP BY c.id, c.name

@@ -1,6 +1,7 @@
 
 import { getClubDetails, GetClubDetailsParams } from "@/actions/clubs/getClubDetails";
 import EntityBanner from "@/components/custom/banners/EntityBanner";
+import { EditClubDowndown } from "@/components/custom/dropdown/EditClubDropdown";
 import FilterPageContainer from "@/components/custom/filters/FilterPageContainer";
 import ShowTable, { PaginatedShowPageInterface } from "@/components/custom/tables/ShowTable";
 import { Suspense } from "react";
@@ -24,7 +25,7 @@ export default async function ClubDetailPage({
   return (
     <div>
       <section>
-        <EntityBanner entity={response.entity} />
+        <EntityBanner entity={response.entity} menu={<EditClubDowndown />}/>
       </section>
       <section>
         <FilterPageContainer

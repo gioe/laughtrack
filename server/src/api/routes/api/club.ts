@@ -18,6 +18,7 @@ clubApiRouter.post('/all',
         const { page, pageSize, sort, city, query} = req.body;
 
         var clubs: ClubInterface[] = await clubController.getAllClubs()
+        const totalClubs = clubs.length
         var cities: string[] = await clubController.getAllCities()
 
         clubs = filterClubs(clubs, {
@@ -34,7 +35,7 @@ clubApiRouter.post('/all',
         return res.status(200).send({
             clubs: paginationData.data,
             totalPages: paginationData.totalPages,
-            totalClubs: clubs.length,
+            totalClubs,
             cities
         })
     })
@@ -71,7 +72,7 @@ clubApiRouter.get('/:id', urlencodedParser,
                 name: id,
                 dates: paginationData.data
             },
-            totalShows: paginationData.data.length,
+            totalShows: dates.length,
             totalPages: paginationData.totalPages
         })
     })

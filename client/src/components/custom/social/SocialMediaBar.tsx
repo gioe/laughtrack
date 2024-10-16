@@ -2,30 +2,25 @@
 
 import { SocialDataInterface } from "@/interfaces/socialData.interface";
 import { useSession } from "next-auth/react";
-import { EditComedianDropdown } from "../dropdown/EditComedianDropdown";
 import Link from "next/link";
 import InstagramIcon from "../icons/InstagramIcon";
 import TikTokIcon from "../icons/TikTokIcon";
 import WebIcon from "../icons/WebIcon";
-import useSocialDataModal from "@/hooks/useSocialDataModal";
 import YouTubeIcon from "../icons/YoutubeIcon";
+import { ReactNode } from "react";
 
 interface SocialMediaBarProps {
     data?: SocialDataInterface,
-    showMenu?: boolean
+    menu: ReactNode,
 }
 
 const SocialMediaBar: React.FC<SocialMediaBarProps> = ({
     data,
-    showMenu
+    menu
 }) => {
-    const socialDataModal = useSocialDataModal();
-
     const session = useSession();
 
-    const editSocialData = () => {
-        socialDataModal.onOpen();
-    }
+    const shouldShowMenu = session.data?.user.role == 'admin'
 
     return (
         <div className="flex flex-row gap-4 justify-center items-center pt-6">
@@ -61,9 +56,8 @@ const SocialMediaBar: React.FC<SocialMediaBarProps> = ({
                     <WebIcon className='web-icon' />
                 </Link>
             )}
-
             {
-                session.data?.user.role == 'admin' && showMenu !== false && <EditComedianDropdown handleEditSocialClick={editSocialData} />
+                shouldShowMenu && <>{menu}</>
             }
 
         </div>

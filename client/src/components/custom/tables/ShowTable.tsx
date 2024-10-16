@@ -3,7 +3,7 @@
 import React from "react";
 import ShowInfoCard from "./cards/ShowInfoCard";
 import { ShowInterface } from "@/interfaces/show.interface";
-import { ShowProviderInterface } from "@/interfaces/dateContainer.interface";
+import { ShowProviderInterface } from "@/interfaces/showProvider.interface";
 
 export interface PaginatedShowPageInterface {
     entity: ShowProviderInterface;

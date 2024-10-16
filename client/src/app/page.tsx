@@ -3,7 +3,6 @@ import SearchBar from "@/components/custom/filters/SearchBar";
 import { ComedianInterface } from "@/interfaces/comedian.interface";
 import { getLandingPageData } from "@/actions/landing/getLandingPageData";
 
-
 export default async function LandingPage() {
 
   const response = await getLandingPageData()

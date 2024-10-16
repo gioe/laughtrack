@@ -2,7 +2,8 @@ SELECT
     s.id,
     s.date_time,
     s.ticket_link,
-    cl.name,
+    s.name as name,
+    cl.name as club_name,
     cl.base_url,
     s.popularity_score,
     jsonb_agg(
@@ -16,8 +17,8 @@ SELECT
         )
     ) AS lineup
 from shows s
-inner join lineups l on s.id = l.show_id
-inner join comedians c on c.id = l.comedian_id
+left join lineups l on s.id = l.show_id
+left join comedians c on c.id = l.comedian_id
 inner join clubs cl on cl.id = s.club_id
 WHERE s.id = ${showId} AND s.date_time > NOW()
 GROUP BY

@@ -2,14 +2,17 @@
 
 import Image from "next/image";
 import SocialMediaBar from "../social/SocialMediaBar";
-import { ShowProviderInterface } from "@/interfaces/dateContainer.interface";
-import {  useState } from "react";
+import {  ReactNode, useState } from "react";
+import { BannerProviderInterface } from "@/interfaces/bannerProvider.interface";
+
 
 interface EntityBannerProps {
-    entity: ShowProviderInterface;
+    entity: BannerProviderInterface;
+    menu: ReactNode,
 }
 
 const EntityBanner: React.FC<EntityBannerProps> = ({
+    menu,
     entity
 }) => {
 
@@ -35,7 +38,7 @@ const EntityBanner: React.FC<EntityBannerProps> = ({
             />
             <div className="absolute top-1/2 w-full text-center">
             <h2 className="font-bold text-5xl text-white pt-6">{entity.name}</h2>
-            <SocialMediaBar data={entity.socialData}></SocialMediaBar>
+            <SocialMediaBar data={entity.socialData} menu={menu}></SocialMediaBar>
             </div>
         </div>
     )

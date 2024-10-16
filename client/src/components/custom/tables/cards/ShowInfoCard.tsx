@@ -6,7 +6,7 @@ import moment from "moment";
 import Image from "next/image";
 import Link from "next/link";
 import { ShowInterface } from "@/interfaces/show.interface";
-import { LineupItem } from "@/interfaces/comedian.interface copy";
+import { LineupItem } from "@/interfaces/lineupItem.interface";
 
 interface ShowInfoCardProps {
     show: ShowInterface;
@@ -17,9 +17,9 @@ const ShowInfoCard: React.FC<ShowInfoCardProps> = ({
 }) => {
 
     const [src, setSrc] = useState<string>(`/images/clubs/square/${show.clubName ?? ""}.png`);
-    
+
     const onError = () => {
-      setSrc(`/images/logo.png`);
+        setSrc(`/images/logo.png`);
     };
 
     const dateObject = moment(new Date(show.dateTime));
@@ -50,11 +50,16 @@ const ShowInfoCard: React.FC<ShowInfoCardProps> = ({
                     <a className='text-center mt-8 text-sm underline' href={show.ticketLink}>Get tickets</a>
                 </div>
 
-                <section>
+                <section className="flex flex-col px-10">
+                    <Link
+                        href={`/show/${show.id}`}
+                    >
+                        <h4 className="text-m text-center">{show.name ?? ""}</h4>
+                    </Link>
                     <div className="grid grid-cols-4 md:grid-cols-4 lg:grid-cols-4 gap-4 m-3 overflow-scrollscrollbar-hide">
                         {show.lineup
                             .sort((a, b) => b.popularityScore - a.popularityScore)
-                            .map((item: LineupItem) => <MiniComedianIcon key={item.name} comedian={item} /> )}
+                            .map((item: LineupItem) => <MiniComedianIcon key={item.name} comedian={item} />)}
                     </div>
                 </section>
             </div>

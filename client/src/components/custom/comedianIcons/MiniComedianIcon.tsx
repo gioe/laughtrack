@@ -2,7 +2,7 @@
 
 
 import { ComedianInterface } from "@/interfaces/comedian.interface";
-import { LineupItem } from "@/interfaces/comedian.interface copy";
+import { LineupItem } from "@/interfaces/lineupItem.interface";
 import Image from "next/image"
 import Link from "next/link";
 import { useState } from "react";

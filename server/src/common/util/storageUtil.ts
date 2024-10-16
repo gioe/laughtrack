@@ -2,7 +2,7 @@ import * as fsPromises from 'fs/promises';
 import * as fsSync from 'fs';
 import path from 'path';
 import { isLocal } from './environmentUtil.js';
-import { Storage, TransferManager, DownloadResponse } from '@google-cloud/storage';
+import { Storage, TransferManager, DownloadResponse, UploadResponse } from '@google-cloud/storage';
 
 const storage = new Storage()
 const bucket = storage.bucket(process.env.STORAGE_BUCKET as string);
@@ -30,6 +30,12 @@ export const checkForFileExistence = (path: string) => {
 export const makeDirectory = (path: string) => {
     return fsSync.mkdirSync(path)
 }
+
+export const uploadFileToBucket = async (sourceFile: string): Promise<boolean> => {
+    const filePath = getPath(sourceFile)
+    await storage.bucket(bucket.name).upload(filePath, {destination: process.env.CLUBS_FILE_NAME});
+    return true
+};
 
 export const readFileFromBucket = async (sourceFile: string): Promise<string> => {
     return bucket.file(sourceFile).download()

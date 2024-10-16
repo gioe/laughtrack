@@ -5,19 +5,19 @@ import { PUBLIC_ROUTES } from "@/lib/routes"
 import { auth } from "../../auth"
 import { MEDIUM_ELEMENT_PAGE_REQUEST_SIZE } from "@/lib/contants";
 
-export interface FetchComedianParams {
+export interface FetchPaginatedComedianParams {
   page?: string
   query?: string
   sort?: string
 }
 
-export interface GetComediansResponse {
+export interface GetPaginatedComediansResponse {
   comedians: ComedianInterface[]
   totalPages: number;
   totalComedians: number;
 }
 
-export async function getComedians(params?: FetchComedianParams) {
+export async function getPaginatedComedians(params?: FetchPaginatedComedianParams) {
   const allComediansUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.GET_ALL_COMEDIANS
 
   return auth()

@@ -1,0 +1,121 @@
+'use client'
+
+import { useState } from 'react';
+import {
+    FieldValues,
+    SubmitHandler,
+    useForm
+} from 'react-hook-form'
+import Modal from './Modal';
+import Heading from '../Heading';
+import toast from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
+import useAddShowTagModal from '@/hooks/useAddShowTagModal';
+import axios from 'axios';
+import { ShowInterface } from '@/interfaces/show.interface';
+import { TagInterface } from '@/interfaces/tag.interface';
+import { Disclosure, DisclosurePanel } from '@headlessui/react';
+import { FilterOption } from '../filters/FilterPageContainer';
+
+interface AddShowTagModalProps {
+    show: ShowInterface
+    tags: TagInterface[]
+}
+
+const AddShowTagModal: React.FC<AddShowTagModalProps> = ({
+    show, tags
+}) => {
+
+    const router = useRouter();
+    const addShowTagModal = useAddShowTagModal();
+    const [isLoading, setIsLoading] = useState(false);
+
+    const { register, handleSubmit, formState: {
+        errors,
+    }
+    } = useForm<FieldValues>({
+        defaultValues: {
+            email: '',
+            password: ''
+        }
+    });
+
+    const filterOptions: FilterOption[] = tags.map((item: TagInterface) => {
+        const tagIndex = show.tags?.findIndex((value: TagInterface) => value.id = item.id)
+        return {
+            value: item.id.toString(),
+            label: item.name,
+            selected: tagIndex ? true : false
+        }
+    })
+
+
+    console.log(filterOptions.length)
+
+    const onSubmit: SubmitHandler<FieldValues> = (data) => {
+        setIsLoading(true);
+
+        axios.post('/api/editSocial', {
+            ...data,
+        })
+            .then((response) => {
+                if (response) {
+                    setIsLoading(false)
+                    toast.success("Successfully updated")
+                    router.refresh();
+                    addShowTagModal.onClose();
+                }
+            })
+    }
+
+    const bodyContent = (
+        <div className='flex flex-col gap-4'>
+            <Heading
+                title='Add'
+                subtitle='Add tags to show'
+            />
+            <form className="lg:block">
+                <Disclosure as="div" className="border-b border-gray-200 py-6">
+                    <DisclosurePanel className="pt-6">
+
+                    </DisclosurePanel>
+                    {tags.length > 0 &&
+                        <div className="space-y-4">
+                            {filterOptions.map((option, optionIdx) => (
+                                <div key={option.value} className="flex items-center">
+                                    <input
+                                        onClick={() => { }}
+                                        defaultValue={option.value}
+                                        defaultChecked={option.selected}
+                                        id={`filter-${option.value}-${optionIdx}`}
+                                        name={`${option.value}[]`}
+                                        type="checkbox"
+                                        className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                    />
+                                    <label htmlFor={`filter-${option.value}-${optionIdx}`} className="ml-3 text-sm text-gray-600">
+                                        {option.label}
+                                    </label>
+                                </div>
+                            ))}
+                        </div>
+                    }
+                </Disclosure>
+
+            </form>
+        </div>
+    )
+
+    return (
+        <Modal
+            disabled={isLoading}
+            isOpen={addShowTagModal.isOpen}
+            title='Add Tags'
+            actionLabel='Continue'
+            onClose={addShowTagModal.onClose}
+            onSubmit={handleSubmit(onSubmit)}
+            body={bodyContent}
+        />
+    )
+}
+
+export default AddShowTagModal;

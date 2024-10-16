@@ -1,12 +1,16 @@
+'use client';
+
+import useSocialDataModal from "@/hooks/useSocialDataModal";
 import {Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button} from "@nextui-org/react";
 
-interface EditComedianDropdownProps {
-  handleEditSocialClick?: () => void;
-}
+export const EditComedianDropdown = () => {
 
-export const EditComedianDropdown: React.FC<EditComedianDropdownProps> = (
-  { handleEditSocialClick }
-) => {
+  const socialDataModal = useSocialDataModal();
+
+  const editSocialData = () => {
+    socialDataModal.onOpen();
+  }
+
   const items = [
     {
       key: "show",
@@ -19,8 +23,8 @@ export const EditComedianDropdown: React.FC<EditComedianDropdownProps> = (
   ];
 
   const handleClick = (key: string) => {
-    if (key == 'social' && handleEditSocialClick) {
-      handleEditSocialClick();
+    if (key == 'social') {
+      editSocialData();
     }
   }
 

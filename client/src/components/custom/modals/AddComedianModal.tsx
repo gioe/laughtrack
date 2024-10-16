@@ -1,27 +1,38 @@
 'use client'
 
-import { useState } from 'react'; 
-import { 
-    FieldValues, 
+import { useState } from 'react';
+import {
+    FieldValues,
     SubmitHandler,
     useForm
 } from 'react-hook-form'
+import { Select, SelectItem } from "@nextui-org/react";
 
 import useAddComedianModal from '@/hooks/useAddComedianModal';
 import Modal from './Modal';
 import Heading from '../Heading';
-import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
-import StylizedInput from '../inputs/StylizedInput';
+import { ComedianFilterInterface, ComedianInterface } from '@/interfaces/comedian.interface';
+import { LineupItem } from '@/interfaces/lineupItem.interface';
+import axios from 'axios';
+import toast from 'react-hot-toast';
 
-const AddComedianModal = () => {
+interface AddComedianModalProps {
+    comedians: ComedianInterface[] | LineupItem[]
+    filters: ComedianFilterInterface[]
+}
+
+const AddComedianModal: React.FC<AddComedianModalProps> = ({
+    comedians,
+    filters
+}) => {
     const router = useRouter();
     const addComedianModal = useAddComedianModal();
     const [isLoading, setIsLoading] = useState(false);
 
     const { register, handleSubmit, formState: {
         errors,
-     }
+    }
     } = useForm<FieldValues>({
         defaultValues: {
             email: '',
@@ -32,31 +43,37 @@ const AddComedianModal = () => {
     const onSubmit: SubmitHandler<FieldValues> = (data) => {
         setIsLoading(true);
 
+        axios.post('/api/addComedian', {
+            ...data,
+        })
+            .then((response) => {
+                if (response) {
+                    setIsLoading(false)
+                    toast.success("Successfully updated")
+                    router.refresh();
+                    addComedianModal.onClose();
+                }
+            })
     }
-    
+
     const bodyContent = (
         <div className='flex flex-col gap-4'>
             <Heading
-                title='Welcome back'
-                subtitle='Login to your account'            
+                title='Add'
+                subtitle='Add comedian to show'
             />
-            <StylizedInput 
-                id="email" 
-                label='Email' 
-                disabled={isLoading} 
-                register={register} 
-                errors={errors} 
-                required
-            />
-            <StylizedInput 
-                id="password" 
-                type='password'
-                label='Password' 
-                disabled={isLoading} 
-                register={register} 
-                errors={errors} 
-                required
-            />
+            <Select
+                label="Comedians"
+                placeholder="Select a comedian"
+                selectionMode="multiple"
+                className="max-w-xs"
+            >
+                {filters.map((filter) => (
+                    <SelectItem key={filter.id}>
+                        {filter.name}
+                    </SelectItem>
+                ))}
+            </Select>
         </div>
     )
 

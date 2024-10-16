@@ -4,7 +4,6 @@ import bodyParser from "body-parser";
 import express, { Request, Response } from "express";
 import { authenticateRole } from "../../middleware/authenticateRole.middleware.js";
 import { assignUser } from "../../middleware/assignUser.middleware.js";
-import { ComedianInterface } from "../../../common/models/interfaces/comedian.interface.js";
 import { toGetComediansDTO } from "../../../common/util/domainModels/comedian/mapper.js";
 import { UserRole } from "../../../common/models/@types/UserRole.js";
 import { toPaginatedData } from "../../../common/util/domainModels/pagination/mapper.js";
@@ -102,6 +101,7 @@ comedianApiRouter.post('/all',
             comedians = sortComedians(comedians, sort)
         }
 
+
         const paginationData = toPaginatedData(comedians, page, pageSize)
 
         return res.status(200).send({
@@ -116,10 +116,19 @@ comedianApiRouter.put('/social',
     urlencodedParser,
     async (req: Request, res: Response) => {
         const input = toUpdateSocialDataDTO(req.body)
-        
+
         const response = await comedianController.updateSocialData(input)
 
         return res.status(200).send(response)
     })
 
-
+comedianApiRouter.post('/filters/all',
+    assignUser,
+    urlencodedParser,
+    async (req: Request, res: Response) => {
+        var filters = await comedianController.getAllComedianFilters()
+        const sortedFilters = filters.sort((a, b) => a.name < b.name ? -1 : 1)
+        return res.status(200).send({
+            filters: sortedFilters
+        })
+    })

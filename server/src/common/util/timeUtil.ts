@@ -7,5 +7,13 @@ export const getTimeByRegex = (timeString: string): string =>  {
 
 export const getMeridiemByRegex = (timeString: string): string =>  {
     const timeValues = timeString.match(REGEX.meridiem) ?? [];
-    return timeValues[0] ?? "";
+    return timeValues[0] ?? "PM";
+}
+
+export const containsTimeValue = (timeString: string): boolean => {
+    return timeString.match(REGEX.time) !== null
+}
+
+export const containsTimeRange = (timeString: string): boolean => {
+    return timeString.includes("-")
 }

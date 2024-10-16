@@ -1,5 +1,6 @@
 
-import { ComedianInterface, GetComedianResponseDTO, GetComediansDTO } from "../../../models/interfaces/comedian.interface.js"
+import { ComedianFilterInterface, ComedianInterface, GetComedianResponseDTO, GetComediansDTO } from "../../../models/interfaces/comedian.interface.js"
+import { ComedianFilter } from "../show/filter.js"
 import { toDates } from "../show/mapper.js"
 import { toSocialDataInterface } from "../socialData/mapper.js"
 
@@ -17,6 +18,14 @@ export const toComedian = (payload: GetComedianResponseDTO): ComedianInterface =
         popularityScore: payload.popularity_score
     }
 }
+
+export const toComedianFilter = (payload: GetComedianResponseDTO): ComedianFilterInterface => {
+    return {
+        id: payload.id,
+        name: payload.name
+    }
+}
+
 
 export const toGetComediansDTO = (payload: any): GetComediansDTO => {
     return {

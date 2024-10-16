@@ -1,6 +1,6 @@
 import { ColumnSet, IDatabase, IMain } from 'pg-promise';
 import { shows as sql } from '../sql/index.js';
-import { CreateShowDTO } from '../../common/models/interfaces/show.interface.js';
+import { CreateShowDTO, GetShowResponseDTO } from '../../common/models/interfaces/show.interface.js';
 import { PopularityScoreIODTO, GroupedPopularityScoreDTO } from '../../common/models/interfaces/socialData.interface.js';
 import { providedPromiseResponse } from '../../common/util/promiseUtil.js';
 
@@ -48,7 +48,7 @@ export class ShowsRepository {
     }
 
     // Tries to find a show from id;
-    findById(id: number): Promise<any | null> {
+    findById(id: number): Promise<GetShowResponseDTO | null> {
         return this.db.oneOrNone(sql.getWithLineup, {
             showId: +id,
         });

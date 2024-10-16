@@ -18,5 +18,5 @@ export const processShowsForStorage = (club: ClubScrapingData, shows: Show[]): S
       } as ScrapingOutput
     })
 
-    return []
+    return output
 }

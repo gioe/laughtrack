@@ -38,25 +38,8 @@ const AddShowModal = () => {
     const bodyContent = (
         <div className='flex flex-col gap-4'>
             <Heading
-                title='Welcome back'
-                subtitle='Login to your account'            
-            />
-            <StylizedInput 
-                id="email" 
-                label='Email' 
-                disabled={isLoading} 
-                register={register} 
-                errors={errors} 
-                required
-            />
-            <StylizedInput 
-                id="password" 
-                type='password'
-                label='Password' 
-                disabled={isLoading} 
-                register={register} 
-                errors={errors} 
-                required
+                title='Add show'
+                subtitle='Add show to club schedule'            
             />
         </div>
     )

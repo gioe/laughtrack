@@ -31,10 +31,12 @@ export interface CreateShowDTO {
 
 export interface GetShowResponseDTO {
   id: number;
-  club_id: number;
-  club_name: string;
   date_time: Date;
   ticket_link: string;
+  name: string;
+  club_id: number;
+  club_name: string;
+  base_url: string;
   popularity_score: number;
   lineup: LineupItemDTO[];
 }

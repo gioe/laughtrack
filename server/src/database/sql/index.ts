@@ -38,6 +38,11 @@ export const favorites = {
     remove: sql('favorites/remove.sql')
 }
 
+export const groups = {
+    // Create Table
+    // create: sql('groups/create.sql'),
+}
+
 export const lineups = {
     // Create Table 
     create: sql('lineups/create.sql')
@@ -58,6 +63,17 @@ export const shows = {
     // GETs
     getAllLineupPopularityData: sql('shows/getAllLineupPopularityData.sql'),
     getWithLineup: sql('shows/getWithLineup.sql')
+}
+
+export const tags = {
+    // Create Tables
+    create: sql('tags/create.sql'),
+    createClubTags: sql('tags/createClubTags.sql'),
+    createComedianTags: sql('tags/createComedianTags.sql'),
+    createShowTags: sql('tags/createShowTags.sql'),
+    
+    // GET
+    getAllByType: sql('tags/getAllByType.sql')
 }
 
 export const users = {

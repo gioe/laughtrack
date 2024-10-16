@@ -2,7 +2,7 @@
 
 import { auth } from "@/auth";
 import { CityInterface } from "@/interfaces/city.interface";
-import { ShowProviderInterface } from "@/interfaces/dateContainer.interface";
+import { ShowProviderInterface } from "@/interfaces/showProvider.interface";
 import { LARGE_ELEMENT_PAGE_REQUEST_SIZE } from "@/lib/contants";
 import { PUBLIC_ROUTES } from "@/lib/routes"
 

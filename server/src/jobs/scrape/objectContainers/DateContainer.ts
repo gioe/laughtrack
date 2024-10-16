@@ -36,7 +36,10 @@ export class DateContainer {
     } else {
       return this.dateObject.getDate();
     }
+  }
 
+  getDateString = (): string => {
+    return this.dateString;
   }
 
 }

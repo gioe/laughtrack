@@ -12,6 +12,11 @@ export interface ComedianInterface {
   popularityScore?: number;
 }
 
+export interface ComedianFilterInterface {
+  id: number;
+  name: string;
+}
+
 // DB
 export interface GetComediansDTO {
   userId?: number;
@@ -39,4 +44,5 @@ export interface GetDateDTO {
   popularity_score: number;
   date_time: Date;
   ticket_link: string
+  name: string;
 }
