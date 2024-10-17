@@ -6,7 +6,8 @@ export async function POST(
     request: Request
 ) {
     const data = await request.json();
-    const url = process.env.URL_DOMAIN + PUBLIC_ROUTES.UPDATE_SOCIAL_DATA
+    const url = process.env.URL_DOMAIN + PUBLIC_ROUTES.UPDATE_SHOW_LINEUP
+    
     const session = await auth();
 
     const response = await fetch(url, {

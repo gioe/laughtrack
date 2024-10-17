@@ -23,40 +23,49 @@ interface AddShowTagModalProps {
 }
 
 const AddShowTagModal: React.FC<AddShowTagModalProps> = ({
-    show, tags
+    show, 
+    tags
 }) => {
 
     const router = useRouter();
     const addShowTagModal = useAddShowTagModal();
+  
     const [isLoading, setIsLoading] = useState(false);
+    const [selectedTags, setSelectedTags] = useState(show.tags ? show.tags.map((tag: TagInterface) => tag.id) :[]);
+    
+    const { handleSubmit } = useForm<FieldValues>();
 
-    const { register, handleSubmit, formState: {
-        errors,
-    }
-    } = useForm<FieldValues>({
-        defaultValues: {
-            email: '',
-            password: ''
+    const handleSelection = (value: string) => {
+        var valueNumber = Number(value)
+        var newTags = selectedTags
+
+        const existingTag = selectedTags.find((id: number) => id == valueNumber)
+
+        if (existingTag) {
+            newTags = newTags.filter((id: number) => id !== valueNumber)
+        } else {
+            newTags.push(valueNumber)
         }
-    });
+
+        setSelectedTags(newTags)
+
+    }
 
     const filterOptions: FilterOption[] = tags.map((item: TagInterface) => {
-        const tagIndex = show.tags?.findIndex((value: TagInterface) => value.id = item.id)
+        const tag = selectedTags.find((tag: number) => tag == item.id)
         return {
             value: item.id.toString(),
             label: item.name,
-            selected: tagIndex ? true : false
+            selected: tag ? true : false
         }
     })
-
-
-    console.log(filterOptions.length)
 
     const onSubmit: SubmitHandler<FieldValues> = (data) => {
         setIsLoading(true);
 
-        axios.post('/api/editSocial', {
-            ...data,
+        axios.post('/api/addTag', {
+            showId: show.id, 
+            tags: selectedTags
         })
             .then((response) => {
                 if (response) {
@@ -84,7 +93,7 @@ const AddShowTagModal: React.FC<AddShowTagModalProps> = ({
                             {filterOptions.map((option, optionIdx) => (
                                 <div key={option.value} className="flex items-center">
                                     <input
-                                        onClick={() => { }}
+                                        onClick={() => handleSelection(option.value)}
                                         defaultValue={option.value}
                                         defaultChecked={option.selected}
                                         id={`filter-${option.value}-${optionIdx}`}

@@ -4,7 +4,6 @@ import EntityBanner from "@/components/custom/banners/EntityBanner";
 import { getShowDetails, GetShowDetailsParams, GetShowDetailsResponse } from "@/actions/shows/getShowDetails";
 import { EditShowDropdown } from "@/components/custom/dropdown/EditShowDropdown";
 import { Suspense } from "react";
-import { getAllComedianFilters, GetAllComedianFiltersResponse } from "@/actions/comedians/getAllComedians";
 import { getAllShowTags, GetAllShowTagsReponse } from "@/actions/shows/getAllShowTags";
 import AddShowTagModal from "@/components/custom/modals/AddShowTagModal";
 import AddComedianModal from "@/components/custom/modals/AddComedianModal";
@@ -18,13 +17,12 @@ export default async function ComedianDetailsPage({
 }) {
 
   const response = await getShowDetails(params.id, searchParams) as GetShowDetailsResponse;
-  const filtersResponse = await getAllComedianFilters() as GetAllComedianFiltersResponse
   const showTagsResponse = await getAllShowTags() as GetAllShowTagsReponse
 
   return (
     <main className="flex-grow pt-5 bg-shark">
       <AddShowTagModal show={response.entity} tags={showTagsResponse.tags} />
-      <AddComedianModal comedians={response.entity.lineup} filters={filtersResponse.filters}/>
+      <AddComedianModal intialComedians={response.entity.lineup} show={response.entity}/>
       <section>
         <EntityBanner entity={response.entity} menu={<EditShowDropdown />} />
       </section>
