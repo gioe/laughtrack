@@ -66,10 +66,10 @@ clubApiRouter.get('/:id', urlencodedParser,
         const pageSize = req.header("pageSize") as string
         
         const paginationData = toPaginatedData(dates, page, pageSize)
-
         return res.status(200).send({
             entity: {
                 name: id,
+                socialData: result?.socialData,
                 dates: paginationData.data
             },
             totalShows: dates.length,

@@ -1,6 +1,7 @@
 import { LineupItemDTO } from "./lineupItem.interface.js";
 import { ShowInterface } from "./show.interface.js";
 import { GetSocialDataDTO, SocialDataInterface } from "./socialData.interface.js";
+import { GetTagDTO, GetTagResponseDTO } from "./tag.interface.js";
 
 // Client
 export interface ComedianInterface {
@@ -43,6 +44,7 @@ export interface GetDateDTO {
   club_id: number;
   popularity_score: number;
   date_time: Date;
-  ticket_link: string
+  social_data: GetSocialDataDTO;
   name: string;
+  tags: GetTagResponseDTO[]
 }

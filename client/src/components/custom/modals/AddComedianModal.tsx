@@ -55,7 +55,6 @@ const AddComedianModal: React.FC<AddComedianModalProps> = ({
     const handleSelection = (key: Key | null) => {
         if (key) {
             const selectedComedian = list.items.find(comedian => comedian.id == key)
-            console.log(selectedComedian)
             var newComedians = comedians;
             if (selectedComedian) {
                 newComedians.push(selectedComedian)
@@ -70,7 +69,6 @@ const AddComedianModal: React.FC<AddComedianModalProps> = ({
 
     const onSubmit: SubmitHandler<FieldValues> = (data) => {
         setIsLoading(true);
-        console.log(comedians)
 
         axios.post('/api/addToLineup', {
             showId: show.id, 

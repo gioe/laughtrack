@@ -19,3 +19,7 @@ export interface GetTagResponseDTO {
   user_facing: boolean;
 }
 
+export interface TagShowDTO {
+  show_id: number;
+  tag_id: number;
+}

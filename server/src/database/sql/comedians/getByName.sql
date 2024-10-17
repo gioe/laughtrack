@@ -34,15 +34,23 @@ full_data as (
         cl.city as city,
         fs.id as show_id,
         fs.lineup_details,
-        fs.popularity_score as popularity_score,
         fs.date_time,
-        fs.ticket_link,
-        fs.name
+        fs.name,
+        jsonb_agg(
+        DISTINCT jsonb_build_object(
+            'id', 
+            fs.id,
+            'ticket_link', 
+            fs.ticket_link,
+            'popularity_score',
+            fs.popularity_score
+        )) as social_data
     FROM
         future_shows_with_lineup_details fs
         INNER JOIN lineups l ON fs.id = l.show_id
         INNER JOIN clubs cl ON cl.id = fs.club_id
         WHERE ${name} = ANY(fs.lineup_names)
+        GROUP BY l.comedian_id, cl.name, cl.id, fs.id, fs.lineup_details, fs.date_time, fs.name
 ) 
 SELECT 
 c.id,
@@ -69,11 +77,10 @@ COALESCE(jsonb_agg(
                 'id', fd.show_id,
                 'city', fd.city,
                 'club_id', fd.club_id,
-                'popularity_score', fd.popularity_score,
                 'club_name', fd.club_name,
                	'lineup', fd.lineup_details,
                	'date_time', fd.date_time,
-               	'ticket_link', fd.ticket_link,
+               	'social_data', fd.social_data,
                 'name', fd.name
             ) )FILTER (WHERE fd.show_id IS NOT NULL), '[]') as dates
 FROM full_data fd RIGHT JOIN comedians c on c.id = fd.comedian_id where c.name = ${name} GROUP BY c.id, c.name

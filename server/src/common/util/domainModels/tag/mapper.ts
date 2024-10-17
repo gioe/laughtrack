@@ -1,12 +1,9 @@
-import { GetTagResponseDTO, TagInterface } from "../../../models/interfaces/tag.interface.js"
+import { TagShowDTO, GetTagResponseDTO, TagInterface } from "../../../models/interfaces/tag.interface.js"
 import { UserInterface } from "../../../models/interfaces/user.interface.js"
-
-
 
 export const toTagInterfaceArray = (payload: GetTagResponseDTO[]): TagInterface[] => {
     return payload.map((item: GetTagResponseDTO) => toTagInterface(item));
   }
-  
   
 export const toTagInterface = (payload: GetTagResponseDTO): TagInterface => {
   return {
@@ -15,3 +12,11 @@ export const toTagInterface = (payload: GetTagResponseDTO): TagInterface => {
   }
 }
 
+export const toCreateShowTagDTOArray = (tags: { id: number }[], showId: number): TagShowDTO[] => {
+  return tags.map((tag: { id: number }) => {
+      return {
+          show_id: showId,
+          tag_id: tag.id
+      }
+  })
+}

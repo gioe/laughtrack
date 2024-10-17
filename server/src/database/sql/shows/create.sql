@@ -7,6 +7,8 @@ CREATE TABLE IF NOT EXISTS shows (
     date_time timestamp without time zone NOT NULL,
     ticket_link text NOT NULL,
     club_id integer REFERENCES clubs(id),
+    price numeric(7,5),
+    currency text DEFAULT 'USD'::text CHECK (currency = 'USD'::text),
     popularity_score double precision DEFAULT '0'::double precision,
     CONSTRAINT shows_club_id_date_time_key UNIQUE (club_id, date_time)
 );

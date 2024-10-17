@@ -1,4 +1,5 @@
 import { GetShowResponseDTO, ShowInterface } from "./show.interface.js";
+import { GetSocialDataDTO, SocialDataInterface } from "./socialData.interface.js";
 
 // Client
 export interface ClubInterface {
@@ -10,6 +11,7 @@ export interface ClubInterface {
   popularityScore: number;
   zipCode: string;
   dates?: ShowInterface[];
+  socialData? :SocialDataInterface;
 }
 
 export interface ClubScrapingData {
@@ -44,6 +46,7 @@ export interface GetClubDTO {
   zip_code: string;
   popularity_score: number;
   dates?: GetShowResponseDTO[];
+  social_data?: GetSocialDataDTO
 }
 
 export interface GetCitiesResponseDTO {

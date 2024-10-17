@@ -16,12 +16,20 @@ with comedian_social_data as (
 full_lineup_data as (
     SELECT
         s.id as id,
-        s.club_id,
         s.name,
+        cl.base_url as club_website,
+        cl.id as club_id,
         cl.name as club_name,
-        s.popularity_score as popularity_score,
         s.date_time as date_time,
-        s.ticket_link as ticket_link,
+        jsonb_agg(
+        DISTINCT jsonb_build_object(
+            'id', 
+            s.id,
+            'ticket_link', 
+            s.ticket_link,
+            'popularity_score',
+            s.popularity_score
+        )) as social_data,
         jsonb_agg(
             DISTINCT jsonb_build_object(
                 'id',
@@ -40,28 +48,32 @@ full_lineup_data as (
     WHERE s.date_time > NOW()
     GROUP BY
         s.id,
-        cl.name
+        cl.name,
+        cl.base_url,
+        cl.id
     ORDER BY
         s.date_time ASC
 )
 SELECT
     club_name,
+        jsonb_build_object( 
+                        'id',
+            full_lineup_data.club_id,
+            'website',
+            full_lineup_data.club_website
+        ) as social_data,
     jsonb_agg(
         DISTINCT jsonb_build_object(
             'id',
             full_lineup_data.id,
-            'club_id',
-            full_lineup_data.club_id,
             'club_name',
             full_lineup_data.club_name,
             'date_time',
             full_lineup_data.date_time,
             'name',
             full_lineup_data.name,
-            'ticket_link',
-            full_lineup_data.ticket_link,
-            'popularity_score',
-            full_lineup_data.popularity_score,
+            'social_data',
+            full_lineup_data.social_data,
             'lineup',
             full_lineup_data.lineup
         )
@@ -71,4 +83,6 @@ from
 WHERE
     club_name = ${name}
 GROUP BY
-    club_name
+    club_name,
+    full_lineup_data.club_id,
+    full_lineup_data.club_website

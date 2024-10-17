@@ -1,6 +1,10 @@
-import { GetTagDTO, GetTagResponseDTO, TagInterface } from '../../../common/models/interfaces/tag.interface.js';
+import { TagShowDTO, GetTagDTO, GetTagResponseDTO, TagInterface } from '../../../common/models/interfaces/tag.interface.js';
 import { toTagInterfaceArray } from '../../../common/util/domainModels/tag/mapper.js';
 import { db } from '../../../database/index.js';
+
+export const addAll = async (items: TagShowDTO[]): Promise<null> => {
+    return db.tags.addAll(items);
+}
 
 export const getAllByType = async (payload: GetTagDTO):  Promise<TagInterface[]>=> {
     return db.tags.getAllByType(payload).then((response: GetTagResponseDTO[] | null) => response ? toTagInterfaceArray(response) : [])

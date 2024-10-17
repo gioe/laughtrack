@@ -1,6 +1,13 @@
-import {IDatabase, IMain} from 'pg-promise';
+import {ColumnSet, IDatabase, IMain} from 'pg-promise';
 import {tags as sql} from '../sql/index.js';
-import { GetTagDTO, GetTagResponseDTO, TagInterface } from '../../common/models/interfaces/tag.interface.js';
+import { GetTagDTO, GetTagResponseDTO, TagShowDTO } from '../../common/models/interfaces/tag.interface.js';
+
+var columnSets: {
+    addAll: ColumnSet | null;
+} = {
+    addAll: null
+}
+
 
 export class TagsRepository {
 
@@ -20,7 +27,7 @@ export class TagsRepository {
           this.createClubTagsTable();
           this.createComedianTagsTable();
           this.createShowTagsTable();
-
+          columnSets.addAll = new pgp.helpers.ColumnSet(['show_id', 'tag_id' ], {table: 'show_tags'});
     }
 
     create(): Promise<null> {
@@ -44,6 +51,11 @@ export class TagsRepository {
         return this.db.any(sql.getAllByType, {
             type: dto.type
         });
+    }
+    
+    addAll(all: TagShowDTO[]): Promise<null> {
+        const batchInsert = this.pgp.helpers.insert(all, columnSets.addAll) + ` ON CONFLICT DO NOTHING`;
+        return this.db.none(batchInsert)
     }
 
 }

@@ -6,6 +6,7 @@ import {
     ClubScrapingData
 } from "../../../models/interfaces/club.interface.js"
 import { toDates } from "../show/mapper.js"
+import { toSocialDataInterface } from "../socialData/mapper.js"
 
 export const clubArrayFromJson = (json: any) => {
     var clubArray: CreateClubDTO[] = []
@@ -34,7 +35,8 @@ export const toClub = (payload: GetClubDTO): ClubInterface => {
         address: payload.address,
         popularityScore: payload.popularity_score,
         zipCode: payload.zip_code,
-        dates: payload.dates !== undefined ? toDates(payload.dates) : []
+        dates: payload.dates !== undefined ? toDates(payload.dates) : [],
+        socialData: payload.social_data !== undefined ? toSocialDataInterface(payload.social_data) : undefined
     }
 }
 
