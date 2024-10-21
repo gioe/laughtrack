@@ -8,8 +8,7 @@ export class DateTimeContainer {
   dateContainer: DateContainer;
   timeContainer: TimeContainer;
 
-  constructor(scrapedValues: string[], dateTimeSeparator?: string) {    
-
+  constructor(scrapedValues: string[], dateTimeSeparator?: string) {
     var fullString = scrapedValues.join()
 
     if (dateTimeSeparator) {
@@ -19,7 +18,7 @@ export class DateTimeContainer {
     if (scrapedValues.length == 0) {
       fullString = DEFAULT_DATE
     }
-
+    
     this.timeContainer = new TimeContainer(fullString)
     this.dateContainer = new DateContainer(fullString, this.timeContainer.getHourString())
   }

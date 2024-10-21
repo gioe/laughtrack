@@ -1,6 +1,7 @@
 import { nextui } from '@nextui-org/theme';
 import type { Config } from "tailwindcss";
 import daisyui from "daisyui"
+import withMT from "@material-tailwind/react/utils/withMT";
 
 const config: Config = {
 	darkMode: ["class"],
@@ -90,4 +91,4 @@ const config: Config = {
 	},
 	plugins: [daisyui, nextui(), require('@tailwindcss/forms')],
 };
-export default config;
+export default withMT(config);

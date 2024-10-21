@@ -17,3 +17,9 @@ export interface LineupItemDTO {
   name: string;
   popularity_score: number;
 }
+
+export interface GetLineupItemDTO {
+  id: number;
+  show_id: number;
+  comedian_id: number;
+}

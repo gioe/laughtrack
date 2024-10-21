@@ -6,12 +6,12 @@ import SearchIcon from "../icons/SearchIcon";
 import React, { useState } from "react";
 import { useDebouncedCallback } from 'use-debounce';
 
-interface SearchBarProps {
+interface TextSearchBarProps {
   query?: string
   inputPlaceholder: string;
 }
 
-const TextSearchBar: React.FC<SearchBarProps> = ({
+const TextSearchBar: React.FC<TextSearchBarProps> = ({
   query,
   inputPlaceholder
 }) => {

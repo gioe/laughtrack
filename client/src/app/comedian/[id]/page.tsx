@@ -1,18 +1,19 @@
 
 import { getComedianDetails, GetComedianDetailsParams, GetComedianDetailsResponse } from "@/actions/comedians/getComedianDetails";
 import EntityBanner from "@/components/custom/banners/EntityBanner";
-import ComedianBanner from "@/components/custom/banners/EntityBanner";
 import { EditComedianDropdown } from "@/components/custom/dropdown/EditComedianDropdown";
-import { EditShowDropdown } from "@/components/custom/dropdown/EditShowDropdown";
 import FilterPageContainer from "@/components/custom/filters/FilterPageContainer";
+import AddShowModal from "@/components/custom/modals/AddShowModal";
 import EditSocialDataModal from "@/components/custom/modals/EditSocialDataModal";
+import MergeComediansModal from "@/components/custom/modals/MergeComediansModal";
 import ShowTable, { PaginatedShowPageInterface } from "@/components/custom/tables/ShowTable";
-import useSocialDataModal from "@/hooks/useSocialDataModal";
 import { Suspense } from "react";
 
 const sortOptions = [
   { name: 'Date', value: 'date' },
-  { name: 'Most Popular', value: 'popularity' }
+  { name: 'Most Popular', value: 'popularity' },
+  { name: 'Price: Low to High', value: 'low_to_high' },
+  { name: 'Price: High to Low', value: 'high_to_low' }
 ]
 
 export default async function ComedianDetailsPage({
@@ -26,12 +27,17 @@ export default async function ComedianDetailsPage({
   const response = await getComedianDetails(params.id, searchParams) as PaginatedShowPageInterface;
   const title = `${response.totalShows} upcoming shows`
 
-
   return (
     <div className="flex flex-col">
+      <MergeComediansModal entity={response.entity} />
+      <AddShowModal entity={response.entity} />
       <EditSocialDataModal entity={response.entity} />
       <section>
-        <EntityBanner entity={response.entity} menu={<EditComedianDropdown />} />
+        <EntityBanner entity={response.entity} menu=
+          {
+            <EditComedianDropdown />
+          }
+        />
       </section>
       <section>
         <FilterPageContainer

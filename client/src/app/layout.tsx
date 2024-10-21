@@ -41,9 +41,6 @@ export default async function RootLayout({
             />
             <ClientOnly>
               <ToasterProvider />
-              <AddShowModal />
-              <AddClubModal />
-              <AddShowModal />
               <LoginModal />
               <RegisterModal />
               {children}

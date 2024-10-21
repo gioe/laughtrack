@@ -1,7 +1,6 @@
 'use client';
 
 import { SocialDataInterface } from "@/interfaces/socialData.interface";
-import { useSession } from "next-auth/react";
 import Link from "next/link";
 import InstagramIcon from "../icons/InstagramIcon";
 import TikTokIcon from "../icons/TikTokIcon";
@@ -11,19 +10,16 @@ import { ReactNode } from "react";
 
 interface SocialMediaBarProps {
     data?: SocialDataInterface,
-    menu: ReactNode,
+    menu?: ReactNode,
 }
 
 const SocialMediaBar: React.FC<SocialMediaBarProps> = ({
     data,
     menu
 }) => {
-    const session = useSession();
-
-    const shouldShowMenu = session.data?.user.role == 'admin'
 
     return (
-        <div className="flex flex-row gap-4 justify-center items-center pt-6">
+        <div className="flex flex-row gap-4 justify-center items-center pb-6">
 
             {data?.instagramAccount && data.instagramAccount !== "" && (
                 <Link
@@ -56,10 +52,6 @@ const SocialMediaBar: React.FC<SocialMediaBarProps> = ({
                     <WebIcon className='web-icon' />
                 </Link>
             )}
-            {
-                shouldShowMenu && <>{menu}</>
-            }
-
         </div>
     )
 }

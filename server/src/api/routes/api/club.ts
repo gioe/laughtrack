@@ -15,7 +15,7 @@ var urlencodedParser = bodyParser.urlencoded({ extended: false })
 clubApiRouter.post('/all',
     urlencodedParser,
     async (req: Request, res: Response) => {
-        const { page, pageSize, sort, city, query} = req.body;
+        const { page, pageSize, sort, city, query } = req.body;
 
         var clubs: ClubInterface[] = await clubController.getAllClubs()
         const totalClubs = clubs.length
@@ -64,7 +64,7 @@ clubApiRouter.get('/:id', urlencodedParser,
 
         const page = req.header("page") as string;
         const pageSize = req.header("pageSize") as string
-        
+
         const paginationData = toPaginatedData(dates, page, pageSize)
         return res.status(200).send({
             entity: {

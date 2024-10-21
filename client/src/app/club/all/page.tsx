@@ -5,7 +5,7 @@ import FilterPageContainer, { FilterOption } from '@/components/custom/filters/F
 
 const sortOptions = [
   { name: 'Most Popular', value: 'popularity' },
-  { name: 'A-Z', value: 'alphabetical' },
+  { name: 'A-Z', value: 'alphabetical' }
 ]
 
 export default async function AllClubsPage({

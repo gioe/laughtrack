@@ -1,6 +1,5 @@
 'use client'
 
-import TextSearchBar from '../search/TextSearchBar'
 import { ReactNode, useState } from 'react'
 import {
     Dialog,
@@ -17,8 +16,8 @@ import {
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { ChevronDownIcon, FunnelIcon, MinusIcon, PlusIcon } from '@heroicons/react/20/solid'
 import { cn, handleUrlParams } from '@/lib/utils'
-import { PaginationComponent } from '../pagination/Pagination'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { TablePaginationComponent } from '../pagination/TablePaginationComponent'
 
 export interface FilterOption {
     value: string;
@@ -86,14 +85,21 @@ const FilterPageContainer: React.FC<FilterPageContainerProps> = ({
                     <div className="fixed inset-0 z-40 flex">
                         <DialogPanel
                             transition
-                            className="relative ml-auto flex h-full w-full max-w-xs transform flex-col overflow-y-auto bg-white py-4 pb-12 shadow-xl transition duration-300 ease-in-out data-[closed]:translate-x-full"
+                            className="relative ml-auto flex h-full w-full max-w-xs
+                             transform flex-col overflow-y-auto bg-shark py-4 pb-12
+                              shadow-xl transition duration-300 ease-in-out 
+                              data-[closed]:translate-x-full"
                         >
                             <div className="flex items-center justify-between px-4">
-                                <h2 className="text-lg font-medium text-gray-900">Filters</h2>
+                                <h2 className="text-lg font-medium text-white">Filters</h2>
                                 <button
                                     type="button"
                                     onClick={() => setMobileFiltersOpen(false)}
-                                    className="-mr-2 flex h-10 w-10 items-center justify-center rounded-md bg-white p-2 text-gray-400"
+                                    className="-mr-2 flex h-10 w-10 items-center
+                                     justify-center rounded-md
+                                     bg-shark 
+                                     p-2
+                                      text-white"
                                 >
                                     <span className="sr-only">Close menu</span>
                                     <XMarkIcon aria-hidden="true" className="h-6 w-6" />
@@ -104,7 +110,9 @@ const FilterPageContainer: React.FC<FilterPageContainerProps> = ({
                                 { filterOptions && filterOptions.map((section) => (
                                     <Disclosure key={section.id} as="div" className="border-t border-gray-200 px-4 py-6">
                                         <h3 className="-mx-2 -my-3 flow-root">
-                                            <DisclosureButton className="group flex w-full items-center justify-between bg-white px-2 py-3 text-gray-400 hover:text-gray-500">
+                                            <DisclosureButton className="group flex w-full items-center
+                                             justify-between bg-shark px-2 py-3
+                                              text-white hover:text-gray-500">
                                                 <span className="font-medium text-white">{section.name}</span>
                                                 <span className="ml-6 flex items-center">
                                                     <PlusIcon aria-hidden="true" className="h-5 w-5 group-data-[open]:hidden" />
@@ -113,7 +121,7 @@ const FilterPageContainer: React.FC<FilterPageContainerProps> = ({
                                             </DisclosureButton>
                                         </h3>
                                         <DisclosurePanel className="pt-6">
-                                            <div className="space-y-6">
+                                            <div className="space-y-2">
                                                 {section.options.map((option, optionIdx) => (
                                                     <div key={option.value} className="flex items-center">
                                                         <input
@@ -145,9 +153,11 @@ const FilterPageContainer: React.FC<FilterPageContainerProps> = ({
                 <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex items-baseline justify-between border-b border-gray-200 pb-6 pt-10">
                         { title && <h1 className="text-3xl font-bold tracking-tight text-white">{title}</h1>}
+                    </div>
 
-                        <div className="flex items-center">
-                        {totalPages > 1 && <PaginationComponent pageCount={totalPages} />}
+                    <section aria-labelledby="filters-heading" className="pb-10 pt-5">
+                    <div className="flex items-center">
+                        { totalPages > 0 && <TablePaginationComponent  pageCount={totalPages}/> }
 
                             <Menu as="div" className="relative inline-block text-left">
                                 <div>
@@ -191,54 +201,11 @@ const FilterPageContainer: React.FC<FilterPageContainerProps> = ({
                                 <FunnelIcon aria-hidden="true" className="h-5 w-5" />
                             </button>
                         </div>
-                    </div>
-
-                    <section aria-labelledby="filters-heading" className="pb-24 pt-6">
-                        <div className="grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-4">
-                            <form className="hidden lg:block">
-
-                                { totalItems && <TextSearchBar query={query} inputPlaceholder={searchPlaceholder}/> }
-
-                                { filterOptions && filterOptions.map((section) => (
-                                    <Disclosure key={section.id} as="div" className="border-b border-gray-200 py-6">
-
-                                        <h3 className="-my-3 flow-root">
-                                            <DisclosureButton className="group flex w-full items-center justify-between bg-shark py-3 text-sm text-silver-gray hover:text-gray-500">
-                                                <span className="font-medium text-silver-gray">{section.name}</span>
-                                                <span className="ml-6 flex items-center">
-                                                    <PlusIcon aria-hidden="true" className="h-5 w-5 group-data-[open]:hidden" />
-                                                    <MinusIcon aria-hidden="true" className="h-5 w-5 [.group:not([data-open])_&]:hidden" />
-                                                </span>
-                                            </DisclosureButton>
-                                        </h3>
-
-                                        <DisclosurePanel className="pt-6">
-                                            <div className="space-y-4">
-                                                {section.options.map((option, optionIdx) => (
-                                                    <div key={option.value} className="flex items-center">
-                                                        <input
-                                                            onClick={() => appendFilterParams(section.id, option.value)}
-                                                            defaultValue={option.value}
-                                                            defaultChecked={option.selected}
-                                                            id={`filter-${section.id}-${optionIdx}`}
-                                                            name={`${section.id}[]`}
-                                                            type="checkbox"
-                                                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                                                        />
-                                                        <label htmlFor={`filter-${section.id}-${optionIdx}`} className="ml-3 text-sm text-gray-200">
-                                                            {option.label}
-                                                        </label>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </DisclosurePanel>
-
-                                    </Disclosure>
-                                ))}
-                            </form>
-                            <div className="lg:col-span-3">{child}</div>
+                        <div className="grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-5">
+                            <div className="lg:col-span-4">{child}</div>
                         </div>
                     </section>
+
                 </main>
             </div>
         </div>

@@ -7,7 +7,7 @@ import { toCreateLineupItemDTOArray } from '../../../common/util/domainModels/li
 import { providedPromiseResponse } from '../../../common/util/promiseUtil.js';
 
 export const storeOutput = async (all: ScrapingOutput[]): Promise<void> => {
-
+    
     for (let index = 0; index < all.length - 1; index++) {
         await storeOutputInstance(all[index])
     }

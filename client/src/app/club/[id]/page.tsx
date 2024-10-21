@@ -8,7 +8,9 @@ import { Suspense } from "react";
 
 const sortOptions = [
   { name: 'Date', value: 'date' },
-  { name: 'Most Popular', value: 'popularity' }
+  { name: 'Most Popular', value: 'popularity' },
+  { name: 'Price: Low to High', value: 'low_to_high' },
+  { name: 'Price: High to Low', value: 'high_to_low' }
 ]
 
 export default async function ClubDetailPage({

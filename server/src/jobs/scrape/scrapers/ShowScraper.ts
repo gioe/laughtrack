@@ -1,79 +1,78 @@
-import playwright from "playwright-core";
-import { ComedianScraper } from "./ComedianScraper.js";
-import { ScrapingConfig } from "./ScrapingConfig.js";
-import { providedPromiseResponse, runTasks } from "../../../common/util/promiseUtil.js";
-import { Show } from "../../../common/models/classes/Show.js";
-import { ScrapableScraper } from "./ScrapableScraper.js";
-import { ShowInput } from "../../../common/models/interfaces/show.interface.js";
-import { DateTimeContainer } from "../objectContainers/DateTimeContainer.js";
+import { Locator } from "playwright-core";
+import { capitalized } from "../../../common/util/primatives/stringUtil.js";
+import { toPrice } from "../../../common/util/primatives/priceUtil.js";
 import { Comedian } from "../../../common/models/classes/Comedian.js";
-import { isEventbritePage } from "../../../common/util/primatives/urlUtil.js";
+import { runTasks } from "../../../common/util/promiseUtil.js";
+import { PageManager } from "../handlers/PageManager.js";
+
+export interface ScrapingArgs {
+  comedianNameLocator?: Locator;
+  dateTimeLocator: Locator;
+  ticketLinkLocator?: Locator;
+  showNameLocator: Locator;
+  priceLocator?: Locator;
+}
 
 export class ShowScraper {
 
-  private comedianScraper: ComedianScraper;
-  private scrapingConfig: ScrapingConfig;
-  private scraper = new ScrapableScraper();
+  private pageManager = new PageManager();
 
-  constructor(scrapingConfig: ScrapingConfig) {
-    this.scrapingConfig = scrapingConfig;
-    this.comedianScraper = new ComedianScraper(scrapingConfig);
+  getShowLineup = async (locator?: Locator): Promise<Comedian[]> => {
+    return locator == undefined ? [] :
+      this.pageManager.getText(locator)
+        .then((names: string[]) => names.map((name: string) => new Comedian(name)))
+        .catch((error) => {
+          console.error(`Error getting show names: ${error}`)
+          return []
+        })
   }
 
-  getShowLineup = async (page: playwright.Page): Promise<Comedian[]> => {
-    return this.comedianScraper.scrapeComedians(page)
-  }
-
-  getShowDateTime = async (page: playwright.Page): Promise<Date> => {
-    const selector = isEventbritePage(page) ? this.scrapingConfig.eventbriteDateTimeSelector : this.scrapingConfig.dateTimeSelector
-    
-    if (selector) {
-      return this.scraper.getTextContent(page, selector, this.scrapingConfig.dateTimeContainer)
-        .then((scrapedValues: string[]) => new DateTimeContainer(scrapedValues, this.scrapingConfig.dateTimeSeparator).asDateObject())
+  getShowDateTime = async (locator?: Locator): Promise<string[]> => {
+    return locator == undefined ? [] :
+      this.pageManager.getText(locator)
         .catch((error) => {
           console.error(`Error getting show datetime: ${error}`)
-          return new DateTimeContainer([], this.scrapingConfig.dateTimeSeparator).asDateObject()
+          return []
         })
-    }
-
-    throw new Error(`No selector provided for datetime`)
   }
 
-  getTicketLink = async (page: playwright.Page): Promise<string> => {
-    const url = page.url()
-    return providedPromiseResponse(url)
+  getTicketLink = async (locator?: Locator): Promise<string> => {
+    return locator == undefined ? "" :
+      this.pageManager.getHref(locator.first())
+        .catch((error) => {
+          console.error(`Error getting show ticket link: ${error}`)
+          return ""
+        })
   }
 
-  getName = async (page: playwright.Page): Promise<string> => {
-    const selector = isEventbritePage(page) ? this.scrapingConfig.eventbriteShowNameSelector : this.scrapingConfig.showNameSelector
-   
-    if (selector) {
-      return this.scraper.getText(page.locator(selector))
+  getName = async (locator?: Locator): Promise<string> => {
+    return locator == undefined ? "" :
+      this.pageManager.getTextContent(locator.first())
+        .then((name: string) => capitalized(name))
         .catch((error) => {
           console.error(`Error getting show name: ${error}`)
           return ""
         })
-    }
-    
-    throw new Error(`No selector provided scraping show name`)
   }
 
-  scapeShow = async (page: playwright.Page): Promise<Show> => {
-    const tasks = [this.getShowLineup(page), this.getShowDateTime(page), this.getTicketLink(page), this.getName(page)]
+  getPrice = async (locator?: Locator): Promise<string> => {
+    return locator == undefined ? "0.00" :
+      this.pageManager.getTextContent(locator.first())
+        .then((price: string) => toPrice(price))
+        .catch((error) => {
+          console.error(`Error getting price: ${error}`)
+          return "0.00"
+        })
+  }
 
-    return runTasks<any>(tasks)
-      .then((scrapedValues: any[]) => {
-
-        const input = {
-          lineup: scrapedValues[0],
-          dateTime: scrapedValues[1],
-          ticketLink: scrapedValues[2],
-          name: scrapedValues[3]
-        } as ShowInput
-
-        return new Show(input)
-
-      })
+  scrape = async (args: ScrapingArgs): Promise<any[]> => {
+    return runTasks<any>([
+      this.getShowLineup(args.comedianNameLocator),
+      this.getShowDateTime(args.dateTimeLocator),
+      this.getTicketLink(args.ticketLinkLocator),
+      this.getName(args.showNameLocator),
+      this.getPrice(args.priceLocator)
+    ])
   }
 
 }

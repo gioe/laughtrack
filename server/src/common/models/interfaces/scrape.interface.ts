@@ -5,3 +5,8 @@ export interface ScrapingOutput {
     show: CreateShowDTO;
     comedians: CreateComedianDTO[];
 }
+
+export interface ClubScraper {
+    scrape: () => Promise<ScrapingOutput[]>;
+}
+

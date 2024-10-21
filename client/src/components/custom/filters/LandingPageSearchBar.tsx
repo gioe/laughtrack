@@ -25,7 +25,7 @@ import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar'
 import { cn } from "@/lib/utils"
 
-interface SearchBarProps {
+interface LandingPageSearchBarProps {
     cities: string[];
 }
 
@@ -40,7 +40,7 @@ export const formSchema = z.object({
     })
 })
 
-const SearchBar: React.FC<SearchBarProps> = ({
+const LandingPageSearchBar: React.FC<LandingPageSearchBarProps> = ({
     cities
 }) => {
 
@@ -70,7 +70,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
         params.set("location", values.location);
         params.set("startDate", `${earliest_year}-${earliest_month}-${earliest_monthday}`);
-        params.set("endDate",  `${latest_year}-${latest_month}-${latest_monthday}`);
+        params.set("endDate", `${latest_year}-${latest_month}-${latest_monthday}`);
         router.push(`/search?${params.toString()}`);
     }
 
@@ -82,7 +82,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
          space-x-0 lg:space-x-2 space-y-4 lg:space-y-0 rounded-lg'
             >
                 <div className='grid w-full lg:max-w-sm flex-1 items-center gap-1.5'>
-                <FormField
+                    <FormField
                         control={form.control}
                         name="location"
                         render={({ field }) => {
@@ -93,20 +93,20 @@ const SearchBar: React.FC<SearchBarProps> = ({
                                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                                             <FormControl className='bg-white rounded-lg'>
                                                 <SelectTrigger>
-                                                <SelectValue className={cn(
-                                                            "w-full lg:w-[300px] justify-start text-left font-normal",
-                                                            field.value == '' && "text-blue-500"
-                                                        )} placeholder="Select your location" />
+                                                    <SelectValue className={cn(
+                                                        "w-full lg:w-[300px] justify-start text-left font-normal",
+                                                        field.value == '' && "text-blue-500"
+                                                    )} placeholder="Select your location" />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent className="rounded-lg">
                                                 {
-                                                    cities.map((city: string ) => (
+                                                    cities.map((city: string) => (
                                                         <SelectItem className='bg-white rounded-lg'
-                                                         key={city} 
-                                                         value={city}>
+                                                            key={city}
+                                                            value={city}>
                                                             {city}
-                                                         </SelectItem>
+                                                        </SelectItem>
                                                     ))
                                                 }
                                             </SelectContent>
@@ -158,7 +158,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                                             </PopoverTrigger>
                                             <PopoverContent className='w-auto p-0 rounded-lg' align='start'>
                                                 <Calendar
-                                                className='rounded-lg'
+                                                    className='rounded-lg'
                                                     initialFocus
                                                     mode="range"
                                                     selected={field.value}
@@ -169,7 +169,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                                                         date < new Date(new Date().setHours(0, 0, 0, 0))
                                                     }
                                                 >
-        
+
                                                 </Calendar>
                                             </PopoverContent>
                                         </Popover>
@@ -183,8 +183,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
 
                 <div className='grid lg:max-w-sm flex-0 gap-1.5'>
-                <div className='h-3'></div>
-                <div className='mt-auto'>
+                    <div className='h-3'></div>
+                    <div className='mt-auto'>
                         <Button type='submit' className='bg-silver-gray rounded-lg'>
                             Search
                         </Button>
@@ -196,4 +196,4 @@ const SearchBar: React.FC<SearchBarProps> = ({
     )
 }
 
-export default SearchBar;
+export default LandingPageSearchBar;

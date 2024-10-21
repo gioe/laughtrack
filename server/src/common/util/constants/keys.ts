@@ -2,7 +2,6 @@ export const SCRAPER_KEYS = {
     dateOptionsSelector: "dateOptionsSelector",
     dateTimeSeparator: "dateTimeSeparator",
     dateSelectSelector: "dateSelectSelector",  
-    type: "type",
     linkContainer: "linkContainer",
     detailPageButtonSelector: 'detailPageButtonSelector',
     nextPageLinkSelector: 'nextPageLinkSelector',
@@ -16,7 +15,10 @@ export const SCRAPER_KEYS = {
     dateTimeContainer: "dateTimeContainer",
     eventbriteDateTimeSelector: "eventbriteDateTimeSelector",
     eventbriteShowNameSelector: "eventbriteShowNameSelector",
-    eventbriteComedianNameSelector: "eventbriteComedianNameSelector"
+    eventbriteComedianNameSelector: "eventbriteComedianNameSelector",
+    priceSelector: "priceSelector",
+    showContainerSelector: "showContainerSelector",
+    showTicketLinkSelector: "showTicketLinkSelector"
   };
 
   export const JSON_KEYS = {

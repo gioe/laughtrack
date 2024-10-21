@@ -1,15 +1,17 @@
 import * as comedianController from "../../controllers/comedian/index.js"
+import * as lineupController from "../../controllers/lineup/index.js"
 
 import bodyParser from "body-parser";
 import express, { Request, Response } from "express";
 import { authenticateRole } from "../../middleware/authenticateRole.middleware.js";
 import { assignUser } from "../../middleware/assignUser.middleware.js";
-import { toGetComediansDTO } from "../../../common/util/domainModels/comedian/mapper.js";
+import { toGetComediansDTO, toUpdateComedianRelationshipDTO } from "../../../common/util/domainModels/comedian/mapper.js";
 import { UserRole } from "../../../common/models/@types/UserRole.js";
 import { toPaginatedData } from "../../../common/util/domainModels/pagination/mapper.js";
 import { toUpdateSocialDataDTO } from "../../../common/util/domainModels/socialData/mapper.js";
 import { sortComedians } from "../../../common/util/domainModels/comedian/sort.js";
 import { filterComedians } from "../../../common/util/domainModels/comedian/filter.js";
+import { lineups } from "../../../database/sql/index.js";
 
 export const comedianApiRouter = express.Router();
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
@@ -130,5 +132,21 @@ comedianApiRouter.post('/filters/all',
         const sortedFilters = filters.sort((a, b) => a.name < b.name ? -1 : 1)
         return res.status(200).send({
             filters: sortedFilters
+        })
+    })
+
+
+comedianApiRouter.put('/merge',
+    assignUser,
+    authenticateRole([UserRole.Admin]),
+    urlencodedParser,
+    async (req: Request, res: Response) => {
+        const input = toUpdateComedianRelationshipDTO(req.body)
+        
+        await comedianController.updateParentage(input.child_id)
+        await lineupController.update(input)
+
+        return res.status(200).send({
+            success: true
         })
     })

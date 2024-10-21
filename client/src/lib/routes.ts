@@ -18,6 +18,7 @@ export const PUBLIC_ROUTES = {
     GET_TRENDING_COMEDIANS: '/api/comedian/trending',
     GET_FAVORITE_COMEDIANS: '/api/comedian/favorite/all',
     UPDATE_SOCIAL_DATA: '/api/comedian/social',
+    MERGE_COMEDIANS: '/api/comedian/merge',
 
     // Shows
     GET_SHOW_DETAILS: '/api/show',

@@ -55,7 +55,7 @@ export function PaginationComponent({ pageCount }: Readonly<PaginationProps>) {
   }
 
   return (
-    <Pagination className="m-5">
+    <Pagination className="ml-5 mr-5">
       <PaginationContent>
         <PaginationItem>
           <PaginationArrow

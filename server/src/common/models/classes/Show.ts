@@ -2,6 +2,8 @@
 import { Comedian } from "./Comedian.js";
 import { CreateShowDTO, ShowInput } from "../interfaces/show.interface.js";
 import { CreateComedianDTO } from "../interfaces/comedian.interface.js";
+import { capitalized } from "../../util/primatives/stringUtil.js";
+import { generateValidUrl } from "../../util/primatives/urlUtil.js";
 
 export class Show {
 
@@ -9,18 +11,26 @@ export class Show {
   dateTime: Date;
   ticketLink: string;
   name: string;
-
-  clubId: number = 0;
+  price: string;
+  clubId: number;
 
   constructor(showInput: ShowInput) {
     this.lineup = showInput.lineup
     this.dateTime = showInput.dateTime;
     this.ticketLink = showInput.ticketLink;
     this.name = showInput.name
+    this.price = showInput.price
+    this.clubId = showInput.clubId
   }
 
-  setClubId = (id: number) => {
-    this.clubId = id;
+  overrideDate = (date: string): void => {
+    const providedDate = new Date(date);
+    this.dateTime = new Date(providedDate.getUTCFullYear(),
+      providedDate.getUTCMonth(),
+      providedDate.getUTCDate(),
+      this.dateTime.getHours(),
+      this.dateTime.getMinutes(),
+      this.dateTime.getSeconds())
   }
 
   asCreateShowDTO = (): CreateShowDTO => {
@@ -28,12 +38,14 @@ export class Show {
       club_id: this.clubId,
       date_time: this.dateTime,
       ticket_link: this.ticketLink,
-      name: this.name 
+      name: this.name,
+      price: this.price
     }
   }
 
   asCreateComedianDTOArray = (): CreateComedianDTO[] => {
     return this.lineup.map((comedian: Comedian) => comedian.asCreateComedianDTO())
   }
- 
+
+
 }

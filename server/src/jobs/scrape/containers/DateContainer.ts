@@ -1,4 +1,4 @@
-import { determineDate, determineMonth, determineYear, normalizeDateString } from"../../../common/util/primatives/dateUtil.js";
+import { determineDate, determineMonth, determineYear, normalizeDateString } from  "../../../common/util/primatives/dateUtil.js";
 
 // Used for cases where the string value is a valid string, but doesn't contain a year so the DateConstructor
 // defaults to 2001 instead of the current year;
@@ -19,13 +19,13 @@ export class DateContainer {
     if (isNaN(this.dateObject.getTime())) {
       return determineYear(this.getMonth()) 
     } else {
-      const year = this.dateObject.getFullYear();
-      return year == DEFAULT_YEAR ? new Date().getFullYear() : year
+      const year = this.dateObject.getUTCFullYear();
+      return year == DEFAULT_YEAR ? new Date().getUTCFullYear() : year
     }
   }
 
   getMonth = (): number => {
-    return isNaN(this.dateObject.getTime()) ? determineMonth(this.dateString) : this.dateObject.getMonth();
+    return isNaN(this.dateObject.getTime()) ? determineMonth(this.dateString) : this.dateObject.getUTCMonth();
   }
 
   getDate = (): number => {
@@ -34,7 +34,7 @@ export class DateContainer {
       const cleanedString =  this.dateString.replaceAll(year, "")
       return determineDate(cleanedString) 
     } else {
-      return this.dateObject.getDate();
+      return this.dateObject.getUTCDate();
     }
   }
 

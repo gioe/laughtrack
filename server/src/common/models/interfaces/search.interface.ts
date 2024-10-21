@@ -18,5 +18,6 @@ export interface GetHomeSearchResultsResponseDTO {
   city: string;
   dates: GetShowResponseDTO[];
   clubs: string[]
+  price: string;
 }
 

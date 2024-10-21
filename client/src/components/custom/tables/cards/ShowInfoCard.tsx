@@ -47,7 +47,12 @@ const ShowInfoCard: React.FC<ShowInfoCardProps> = ({
                     </div>
                     <h4 className="text-xl ml-2 text-center">{show.clubName ?? ""}</h4>
                     <p className="text-m ml-2 text-center">{dateObject.format('LL')}</p>
-                    <a className='text-center mt-8 text-sm underline' href={show.ticketLink}>Get tickets</a>
+                    <h1 className='text-center mt-8 text-sm'>{`$${show.price.toString()}`}</h1>
+                    <Link
+                        className='text-center text-sm underline'
+                        href={show.ticketLink}>
+                        <p className="text-m ml-2 text-center">Get tickets</p>
+                    </Link>
                 </div>
 
                 <section className="flex flex-col px-10">

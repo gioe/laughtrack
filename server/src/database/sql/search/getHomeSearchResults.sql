@@ -17,11 +17,18 @@ full_lineup_data as (
     SELECT
         s.id as id,
         s.club_id,
+        s.price,
+        s.name as show_name,
         cl.name as club_name,
         cl.city,
-        s.popularity_score as popularity_score,
+                s.ticket_link as ticket_link,
         s.date_time as date_time,
-        s.ticket_link as ticket_link,
+                jsonb_build_object(
+                'id',
+                s.id,
+                'popularity_score',
+                s.popularity_score
+            ) as social_data,
         jsonb_agg(
             DISTINCT jsonb_build_object(
                 'id',
@@ -57,12 +64,16 @@ SELECT
             full_lineup_data.club_id,
             'club_name',
             full_lineup_data.club_name,
+            'name',
+            full_lineup_data.show_name,
             'date_time',
             full_lineup_data.date_time,
             'ticket_link',
             full_lineup_data.ticket_link,
-            'popularity_score',
-            full_lineup_data.popularity_score,
+            'social_data',
+            full_lineup_data.social_data,
+            'price',
+            full_lineup_data.price,
             'lineup',
             full_lineup_data.lineup
         )

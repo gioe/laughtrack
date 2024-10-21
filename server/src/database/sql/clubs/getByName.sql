@@ -17,16 +17,16 @@ full_lineup_data as (
     SELECT
         s.id as id,
         s.name,
+        s.price,
         cl.base_url as club_website,
         cl.id as club_id,
         cl.name as club_name,
         s.date_time as date_time,
+        s.ticket_link as ticket_link,
         jsonb_agg(
         DISTINCT jsonb_build_object(
             'id', 
             s.id,
-            'ticket_link', 
-            s.ticket_link,
             'popularity_score',
             s.popularity_score
         )) as social_data,
@@ -74,6 +74,10 @@ SELECT
             full_lineup_data.name,
             'social_data',
             full_lineup_data.social_data,
+            'price',
+            full_lineup_data.price,
+            'ticket_link', 
+            full_lineup_data.ticket_link,
             'lineup',
             full_lineup_data.lineup
         )

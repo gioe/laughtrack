@@ -47,4 +47,20 @@ export interface GetDateDTO {
   social_data: GetSocialDataDTO;
   name: string;
   tags: GetTagResponseDTO[]
+  price: string;
+  ticket_link: string;
+}
+
+export interface UpdateComedianRelationshipDTO {
+  parent_id: number
+  child_id: number;
+}
+export interface UpdateParentageDTO {
+  id: number;
+  is_parent: boolean
+}
+
+export interface UpdateLineupItemDTO {
+  id: number,
+  comedian_id: number
 }

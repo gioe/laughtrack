@@ -14,6 +14,8 @@ export interface ShowInterface {
   popularityScore?: number;
   clubName?: string;
   tags: TagInterface[]
+  price: number;
+  ticketLink: string;
 }
 
 export interface ShowInput {
@@ -21,8 +23,9 @@ export interface ShowInput {
   dateTime: Date;
   ticketLink: string;
   name: string;
+  price: string;
+  clubId: number;
 }
-
 
 // DB
 export interface CreateShowDTO {
@@ -30,6 +33,7 @@ export interface CreateShowDTO {
   date_time: Date;
   ticket_link: string;
   name: string;
+  price: string
 }
 
 export interface GetShowResponseDTO {
@@ -43,4 +47,6 @@ export interface GetShowResponseDTO {
   popularity_score: number;
   lineup: LineupItemDTO[];
   tags: GetTagResponseDTO[]
+  price: string;
+  ticket_link: string;
 }

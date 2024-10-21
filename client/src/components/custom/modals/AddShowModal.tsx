@@ -7,14 +7,20 @@ import {
     useForm
 } from 'react-hook-form'
 
-import useAddShowModal from '@/hooks/useAddShowModal';
+import useAddShowModal from '@/hooks/useAddShowsModal';
 import Modal from './Modal';
 import Heading from '../Heading';
-import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
-import StylizedInput from '../inputs/StylizedInput';
+import { ShowProviderInterface } from '@/interfaces/showProvider.interface';
 
-const AddShowModal = () => {
+interface AddShowModalProps {
+    entity?: ShowProviderInterface
+}
+
+
+const AddShowModal: React.FC<AddShowModalProps> = ({
+    entity
+}) => {
     const router = useRouter();
     const addShowModal = useAddShowModal();
 

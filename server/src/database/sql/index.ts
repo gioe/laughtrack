@@ -45,7 +45,10 @@ export const groups = {
 
 export const lineups = {
     // Create Table 
-    create: sql('lineups/create.sql')
+    create: sql('lineups/create.sql'),
+
+    getByComedianId: sql('lineups/getByComedianId.sql'),
+    getByShowId: sql('lineups/getByShowId.sql')
 }
 
 export const search = {

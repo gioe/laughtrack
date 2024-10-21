@@ -1,10 +1,14 @@
 
-import { ComedianFilterInterface, ComedianInterface, GetComedianResponseDTO, GetComediansDTO } from "../../../models/interfaces/comedian.interface.js"
-import { ComedianFilter } from "../show/filter.js"
+import { 
+    ComedianFilterInterface, 
+    ComedianInterface,
+    GetComedianResponseDTO, 
+    GetComediansDTO, 
+    UpdateComedianRelationshipDTO} from "../../../models/interfaces/comedian.interface.js"
 import { toDates } from "../show/mapper.js"
 import { toSocialDataInterface } from "../socialData/mapper.js"
 
-export const toComedianInterfaceArray = (payload: GetComedianResponseDTO[]): ComedianInterface[] => {
+export const toComedianArray = (payload: GetComedianResponseDTO[]): ComedianInterface[] => {
     return payload.map((item: any) => toComedian(item))
 }
 
@@ -26,9 +30,15 @@ export const toComedianFilter = (payload: GetComedianResponseDTO): ComedianFilte
     }
 }
 
-
 export const toGetComediansDTO = (payload: any): GetComediansDTO => {
     return {
         userId: payload.currentUser.id == '' ? undefined : payload.currentUser.id,
+    }
+}
+
+export const toUpdateComedianRelationshipDTO = (payload: any): UpdateComedianRelationshipDTO => {
+    return {
+        parent_id: Number(payload.parentId),
+        child_id: Number(payload.childId)
     }
 }

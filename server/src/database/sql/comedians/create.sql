@@ -4,6 +4,7 @@
 CREATE TABLE IF NOT EXISTS comedians (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL unique,
+    is_parent boolean DEFAULT true,
     instagram_account TEXT,
     instagram_followers INTEGER,
     tiktok_account TEXT,

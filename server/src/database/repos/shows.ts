@@ -30,7 +30,7 @@ export class ShowsRepository {
         this.createTable();
         columnSets.updateScores = new pgp.helpers.ColumnSet(['?id', 'popularity_score'], { table: 'shows' });
         columnSets.addAll = new pgp.helpers.ColumnSet(['club_id', 'date_time', 'ticket_link', 'popularity_score'],
-             { table: 'shows' });
+            { table: 'shows' });
     }
 
     // Creates the table;
@@ -38,12 +38,13 @@ export class ShowsRepository {
         return this.db.none(sql.create);
     }
 
-    add(instance: CreateShowDTO): Promise<{id: number}> {
+    add(instance: CreateShowDTO): Promise<{ id: number }> {
         return this.db.one(sql.add, {
-         club_id: instance.club_id,
-         date_time: instance.date_time,
-         ticket_link: instance.ticket_link,
-         name: instance.name  
+            club_id: instance.club_id,
+            date_time: instance.date_time,
+            ticket_link: instance.ticket_link,
+            name: instance.name,
+            price: instance.price
         });
     }
 

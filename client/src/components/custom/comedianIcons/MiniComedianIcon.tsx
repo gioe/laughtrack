@@ -41,7 +41,7 @@ export const MiniComedianIcon: React.FC<MiniComedianIconProps> = (
                 </div>
 
                 <div>
-                    <p className="md:text-sm text-xs text-gray-500 text-light font-semibold text-center">{comedian.name}</p>
+                    <p className="mt-1 md:text-sm text-xs text-black text-center">{comedian.name}</p>
                 </div>
             </div>
         </Link>

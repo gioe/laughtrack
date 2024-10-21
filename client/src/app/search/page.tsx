@@ -5,7 +5,9 @@ import FilterPageContainer, { FilterOption } from '@/components/custom/filters/F
 
 const sortOptions = [
   { name: 'Date', value: 'date' },
-  { name: 'Most Popular', value: 'popularity' }
+  { name: 'Most Popular', value: 'popularity' },
+  { name: 'Price: Low to High', value: 'low_to_high' },
+  { name: 'Price: High to Low', value: 'high_to_low' }
 ]
 
 export default async function CityDetailPage({
@@ -49,7 +51,67 @@ const buildFilters =(params: any, results: any) => {
     })
   }
 
-  return [clubFilter];
+  const priceFilter = {
+    id: 'prices',
+    name: 'Price Range',
+    options: [
+      {
+        value: 'free', 
+        label: "Free",
+        selected: false
+      },
+      {
+        value: '1-20', 
+        label: "$1 to $20",
+        selected: false
+      },
+      {
+        value: '21-50', 
+        label: "$21 to $50",
+        selected: false
+      },
+      {
+        value: '51-100', 
+        label: "$51 to $100",
+        selected: false
+      },
+      {
+        value: '100+', 
+        label: "$100+",
+        selected: false
+      }
+    ]
+    }
+
+    const showType = {
+      id: 'type',
+      name: 'Show Type',
+      options: [
+        {
+          value: 'open-mic', 
+          label: "Open Mic",
+          selected: false
+        },
+        {
+          value: 'standup', 
+          label: "Standup",
+          selected: false
+        },
+        {
+          value: 'podcast', 
+          label: "Live Podcast",
+          selected: false
+        },
+        {
+          value: 'sketch', 
+          label: "Sketch",
+          selected: false
+        }
+      ]
+      }
+
+
+  return [clubFilter, priceFilter, showType];
 }
 
 const buildTitle = (params: any, results: any): string => {

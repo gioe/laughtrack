@@ -1,17 +1,18 @@
-import { SCRAPER_KEYS } from "../../../common/util/constants/keys.js";
+import { SCRAPER_KEYS } from "../../common/util/constants/keys.js";
 
 export class ScrapingConfig {
 
   dateTimeSeparator?: string;
   dateOptionsSelector?: string;
   dateSelectSelector?: string;
-  type?: string;
   detailPageButtonSelector?: string;
   linkContainer?: string;
   nextPageLinkSelector?: string;
+  showContainerSelector?: string;
   moreShowsButtonSelector?: string;
   dateTimeContainer?: string;
   dateTimeSelector?: string;
+  showTicketLinkSelector?: string;
   dateSelector?: string;
   timeSelector?: string;
   comedianNameSelector?: string;
@@ -19,9 +20,9 @@ export class ScrapingConfig {
   eventbriteDateTimeSelector?: string;
   eventbriteShowNameSelector?: string;
   eventbriteComedianNameSelector?: string;
+  priceSelector?: string;
 
   constructor(json: any) {
-    this.type = json[SCRAPER_KEYS.type]
     this.dateTimeSeparator = json[SCRAPER_KEYS.dateTimeSeparator]
     this.dateOptionsSelector = json[SCRAPER_KEYS.dateOptionsSelector];
     this.dateSelectSelector = json[SCRAPER_KEYS.dateSelectSelector];
@@ -37,7 +38,10 @@ export class ScrapingConfig {
     this.showNameSelector = json[SCRAPER_KEYS.showNameSelector];
     this.eventbriteDateTimeSelector = json[SCRAPER_KEYS.eventbriteDateTimeSelector];
     this.eventbriteShowNameSelector = json[SCRAPER_KEYS.eventbriteShowNameSelector];
-    this.eventbriteComedianNameSelector = json[SCRAPER_KEYS.eventbriteComedianNameSelector]
+    this.eventbriteComedianNameSelector = json[SCRAPER_KEYS.eventbriteComedianNameSelector];
+    this.priceSelector = json[SCRAPER_KEYS.priceSelector]
+    this.showContainerSelector = json[SCRAPER_KEYS.showContainerSelector]
+    this.showTicketLinkSelector = json[SCRAPER_KEYS.showTicketLinkSelector]
   }
 
 }

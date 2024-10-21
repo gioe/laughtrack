@@ -72,7 +72,6 @@ const ComedianInfoCard: React.FC<ComedianInfoCardProps> = ({
                             className="rounded-badge" />
                     </div>
                 </Link>
-
             </div>
             <div className="bg-red-900 flex-1">
                 <div className="flex flex-col bg-yellow-400">
@@ -86,7 +85,7 @@ const ComedianInfoCard: React.FC<ComedianInfoCardProps> = ({
                     </div>
 
                     <h4 className="m:text-sm text-m text-left bg-blue-900">{comedian.name}</h4>
-                    <SocialMediaBar data={comedian.socialData} showMenu={false} />
+                    <SocialMediaBar data={comedian.socialData} menu={<div/>}/>
                     <h4 className="m:text-sm text-m text-left bg-white">{comedian.socialData?.popularityScore}</h4>
                 </div>
             </div>

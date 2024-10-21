@@ -2,6 +2,7 @@ export const REGEX = {
     parenthesis: /\(([^()]+)\)/g,
     dateRegex: /\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}/g,
     time: /\d{1,2}[:]\d{1,2}/g,
-    meridiem: /([AaPp][Mm])/
+    meridiem: /([AaPp][Mm])/,
+    price: /\$(\d+(?:\.\d{2})?)/
   };
   

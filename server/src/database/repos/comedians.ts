@@ -1,17 +1,19 @@
 import { ColumnSet, IDatabase, IMain } from 'pg-promise';
 import { comedians as sql } from '../sql/index.js';
 import { providedPromiseResponse } from '../../common/util/promiseUtil.js';
-import { ComedianInterface, CreateComedianDTO, GetComedianResponseDTO } from '../../common/models/interfaces/comedian.interface.js';
+import { ComedianInterface, CreateComedianDTO, GetComedianResponseDTO, UpdateParentageDTO } from '../../common/models/interfaces/comedian.interface.js';
 import { GetSocialDataDTO, PopularityScoreIODTO, UpdateSocialDataDTO } from '../../common/models/interfaces/socialData.interface.js';
 
 var columnSets: {
     updateScores: ColumnSet | null;
     addAll: ColumnSet | null;
-    updateData: ColumnSet | null;
+    updateSocial: ColumnSet | null;
+    updateParentage: ColumnSet | null;
 } = {
     updateScores: null,
     addAll: null,
-    updateData: null
+    updateSocial: null,
+    updateParentage: null
 }
 
 export class ComediansRepository {
@@ -29,8 +31,9 @@ export class ComediansRepository {
      */
     constructor(private db: IDatabase<any>, private pgp: IMain) {
         this.createTable();
+        columnSets.updateParentage = new pgp.helpers.ColumnSet(['?id', 'is_parent'], { table: 'comedians' });
         columnSets.updateScores = new pgp.helpers.ColumnSet(['?id', 'popularity_score'], { table: 'comedians' });
-        columnSets.updateData = new pgp.helpers.ColumnSet(['?id', 'instagram_account', 'tiktok_account',
+        columnSets.updateSocial = new pgp.helpers.ColumnSet(['?id', 'instagram_account', 'tiktok_account',
             'youtube_account', 'youtube_followers', 'instagram_followers', 'tiktok_followers', 'popularity_score', 'website'], { table: 'comedians' });
         columnSets.addAll = new pgp.helpers.ColumnSet(['name'], { table: 'comedians' });
     }
@@ -64,7 +67,7 @@ export class ComediansRepository {
         });
     }
 
-    getTrendingComedians(): Promise<ComedianInterface[] | null> {
+    getTrendingComedians(): Promise<GetComedianResponseDTO[] | null> {
         return this.db.any(sql.getTrending);
     }
 
@@ -85,7 +88,12 @@ export class ComediansRepository {
     }
 
     updateSocialData(payload: UpdateSocialDataDTO): Promise<boolean | null> {
-        const update = this.pgp.helpers.update([payload], columnSets.updateData) + ' WHERE v.id = t.id RETURNING 1';
+        const update = this.pgp.helpers.update([payload], columnSets.updateSocial) + ' WHERE v.id = t.id RETURNING 1';
+        return this.db.oneOrNone(update)
+    }
+
+    updateParentage(payload: UpdateParentageDTO): Promise<null> {
+        const update = this.pgp.helpers.update([payload], columnSets.updateParentage) + ' WHERE v.id = t.id RETURNING 1';
         return this.db.oneOrNone(update)
     }
 }

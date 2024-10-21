@@ -30,3 +30,11 @@ export const stringIsAValidDate = (string: string): boolean => {
     var date = Date.parse(string);
     return !isNaN(date) 
 }
+
+export const capitalized = (inputString: string): string => {
+    return inputString.toLowerCase()
+    .split(" ")
+    .filter((word) => word !== "")
+    .map((word) =>  word[0].toUpperCase() + word.substring(1))
+    .join(" ");
+}

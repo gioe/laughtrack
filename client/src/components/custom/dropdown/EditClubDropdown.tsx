@@ -1,6 +1,6 @@
 'use client';
 
-import useAddShowsModal from "@/hooks/useAddShowModal";
+import useAddShowsModal from "@/hooks/useAddShowsModal";
 import {Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button} from "@nextui-org/react";
 
 export const EditClubDowndown = () => {

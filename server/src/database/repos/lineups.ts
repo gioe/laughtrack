@@ -1,12 +1,15 @@
 import {ColumnSet, IDatabase, IMain} from 'pg-promise';
 import {IResult} from 'pg-promise/typescript/pg-subset.js';
 import {lineups as sql} from '../sql/index.js';
-import { CreateLineupItemDTO } from '../../common/models/interfaces/lineupItem.interface.js';
+import { CreateLineupItemDTO, GetLineupItemDTO } from '../../common/models/interfaces/lineupItem.interface.js';
+import { UpdateLineupItemDTO } from '../../common/models/interfaces/comedian.interface.js';
 
 var columnSets: {
     addAll: ColumnSet | null;
+    updateItems: ColumnSet | null;
 } = {
-    addAll: null
+    addAll: null, 
+    updateItems: null
 }
 
 
@@ -26,6 +29,7 @@ export class LineupsRepository {
     constructor(private db: IDatabase<any>, private pgp: IMain) {
         this.createTable();
         columnSets.addAll = new pgp.helpers.ColumnSet(['show_id', 'comedian_id' ], {table: 'lineups'});
+        columnSets.updateItems = new pgp.helpers.ColumnSet(['?id', 'comedian_id' ], {table: 'lineups'});
     }
 
     // Creates the table;
@@ -47,16 +51,24 @@ export class LineupsRepository {
 
     // Tries to find a user from id;
     findByShowId(showId: number): Promise<any | null> {
-        return this.db.oneOrNone('SELECT * FROM lineups WHERE show_id = $1', {
+        return this.db.oneOrNone(sql.getByShowId, {
             showId
         });
+
     }
 
     // Tries to find a user from name;
-    findByComedianId(comedianId: number): Promise<any | null> {
-        return this.db.oneOrNone('SELECT * FROM lineups WHERE comedian_id = $1', {
+    findByComedianId(comedianId: number): Promise<GetLineupItemDTO[] | null> {
+        return this.db.any(sql.getByComedianId, {
             comedianId
         });
+        
     }
+
+    updateLineups(updateRecords: UpdateLineupItemDTO[]): Promise<null> {
+        const update = this.pgp.helpers.update(updateRecords, columnSets.updateItems) + ' WHERE v.id = t.id RETURNING 1';
+        return this.db.oneOrNone(update)
+    }
+
 
 }
