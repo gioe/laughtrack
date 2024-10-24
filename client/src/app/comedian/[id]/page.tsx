@@ -16,13 +16,14 @@ const sortOptions = [
   { name: 'Price: High to Low', value: 'high_to_low' }
 ]
 
-export default async function ComedianDetailsPage({
-  params,
-  searchParams
-}: {
-  params: { id: string };
-  searchParams: GetComedianDetailsParams;
-}) {
+export default async function ComedianDetailsPage(
+  props: {
+    params: Promise<{ id: string }>;
+    searchParams: Promise<GetComedianDetailsParams>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
 
   const response = await getComedianDetails(params.id, searchParams) as PaginatedShowPageInterface;
   const title = `${response.totalShows} upcoming shows`

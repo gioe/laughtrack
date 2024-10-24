@@ -8,11 +8,12 @@ const sortOptions = [
   { name: 'A-Z', value: 'alphabetical' },
 ]
 
-export default async function AllComediansPage({
-  searchParams,
-}: {
-  searchParams?: FetchPaginatedComedianParams;
-}) {
+export default async function AllComediansPage(
+  props: {
+    searchParams?: Promise<FetchPaginatedComedianParams>;
+  }
+) {
+  const searchParams = await props.searchParams;
 
   const response = await getPaginatedComedians(searchParams) as GetPaginatedComediansResponse
   const title = `Browsing ${response.totalComedians} comedians`

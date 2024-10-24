@@ -8,13 +8,14 @@ import { getAllShowTags, GetAllShowTagsReponse } from "@/actions/shows/getAllSho
 import AddShowTagModal from "@/components/custom/modals/AddShowTagModal";
 import AddComedianModal from "@/components/custom/modals/AddComedianModal";
 
-export default async function ComedianDetailsPage({
-  params,
-  searchParams
-}: {
-  params: { id: string };
-  searchParams: GetShowDetailsParams;
-}) {
+export default async function ComedianDetailsPage(
+  props: {
+    params: Promise<{ id: string }>;
+    searchParams: Promise<GetShowDetailsParams>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
 
   const response = await getShowDetails(params.id, searchParams) as GetShowDetailsResponse;
   const showTagsResponse = await getAllShowTags() as GetAllShowTagsReponse

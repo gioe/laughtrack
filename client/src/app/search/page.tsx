@@ -10,11 +10,12 @@ const sortOptions = [
   { name: 'Price: High to Low', value: 'high_to_low' }
 ]
 
-export default async function CityDetailPage({
-  searchParams,
-}: {
-  searchParams: HomeSearchParams;
-}) {
+export default async function CityDetailPage(
+  props: {
+    searchParams: Promise<HomeSearchParams>;
+  }
+) {
+  const searchParams = await props.searchParams;
 
   const searchResults = await getSearchResults(searchParams) as HomeSearchResultResponse;
   const title = buildTitle(searchParams, searchResults)

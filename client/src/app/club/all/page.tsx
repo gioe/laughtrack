@@ -8,11 +8,12 @@ const sortOptions = [
   { name: 'A-Z', value: 'alphabetical' }
 ]
 
-export default async function AllClubsPage({
-  searchParams,
-}: {
-  searchParams?: GetClubsParams;
-}) {
+export default async function AllClubsPage(
+  props: {
+    searchParams?: Promise<GetClubsParams>;
+  }
+) {
+  const searchParams = await props.searchParams;
 
   const response = await getClubs(searchParams) as GetClubsResponse
 

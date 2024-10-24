@@ -11,7 +11,7 @@ export default async function LandingPage() {
 
   const getCities = async () => {
     const res = await fetch('http://localhost:3000/api/cities', {
-      headers: { Cookie: cookies().toString() },
+      headers: { Cookie: (await cookies()).toString() },
     })
     console.log(res)
     return res.json()

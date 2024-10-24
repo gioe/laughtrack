@@ -2,11 +2,12 @@ import { Suspense } from 'react';
 import ComedianTable from "@/components/custom/tables/ComedianTable";
 import { FetchFavoriteComedianParams, getFavoriteComedians } from "@/actions/comedians/getFavoriteComedians";
 
-export default async function FavoriteComediansPage({
-  searchParams,
-}: {
-  searchParams?: FetchFavoriteComedianParams;
-}) {
+export default async function FavoriteComediansPage(
+  props: {
+    searchParams?: Promise<FetchFavoriteComedianParams>;
+  }
+) {
+  const searchParams = await props.searchParams;
 
   const response = await getFavoriteComedians(searchParams)
 
