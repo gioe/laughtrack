@@ -1,3 +1,6 @@
+/*
+ Creates table show_tags.
+ */
 CREATE TABLE IF NOT EXISTS show_tags (
     id SERIAL,
     show_id integer REFERENCES shows(id),

@@ -54,7 +54,6 @@ export class LineupsRepository {
         return this.db.oneOrNone(sql.getByShowId, {
             showId
         });
-
     }
 
     // Tries to find a user from name;
@@ -65,9 +64,9 @@ export class LineupsRepository {
         
     }
 
-    updateLineups(updateRecords: UpdateLineupItemDTO[]): Promise<null> {
+    updateLineups(updateRecords: UpdateLineupItemDTO[]): Promise<any[]> {
         const update = this.pgp.helpers.update(updateRecords, columnSets.updateItems) + ' WHERE v.id = t.id RETURNING 1';
-        return this.db.oneOrNone(update)
+        return this.db.manyOrNone(update)
     }
 
 

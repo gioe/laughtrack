@@ -9,16 +9,16 @@ export async function POST(
 
     const response = await fetch(url, {
         method: 'POST',
-        headers:{
+        headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
-          },   
-          body: new URLSearchParams({
+        },
+        body: new URLSearchParams({
             email: data.email,
             password: data.password,
         }),
     })
-    .then((response) => response.json())
-    .catch((error) => console.error(error))
+        .then((response) => response.json())
+        .catch((error) => console.error(error))
 
     return NextResponse.json(response)
 }

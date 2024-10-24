@@ -1,18 +1,18 @@
-import * as searchController from '../../controllers/search/index.js'
+import * as searchController from '../controllers/search/index.js'
 
 import bodyParser from "body-parser";
 import express, { Request, Response } from "express";
-import { toGetHomeSearchResultsDTO } from '../../../common/util/domainModels/search/mapper.js';
-import { toPaginatedData } from '../../../common/util/domainModels/pagination/mapper.js';
-import { filterShows } from '../../../common/util/domainModels/show/filter.js';
-import { sortShows } from '../../../common/util/domainModels/show/sort.js';
+import { toGetHomeSearchResultsDTO } from '../../common/util/domainModels/search/mapper.js';
+import { toPaginatedData } from '../../common/util/domainModels/pagination/mapper.js';
+import { filterShows } from '../../common/util/domainModels/show/filter.js';
+import { sortShows } from '../../common/util/domainModels/show/sort.js';
 
 export const searchApiRouter = express.Router();
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
 
 searchApiRouter.post('/', urlencodedParser,
     async (req: Request, res: Response) => {
-        const { location, startDate, endDate, page, pageSize, query, sort, clubs } = req.body;
+        const { location, startDate, endDate, page, rows, query, sort, clubs } = req.body;
         if (location == 'undefined' || startDate == 'undefined' || endDate == 'undefined') {
             {
                 return res.status(401).json({ error: 'Required fields missing' })
@@ -34,7 +34,7 @@ searchApiRouter.post('/', urlencodedParser,
             dates = sortShows(dates, sort)
         }
 
-        const paginationData = toPaginatedData(dates, page, pageSize)
+        const paginationData = toPaginatedData(dates, page, rows)
 
         return res.status(200).send({
             entity: {

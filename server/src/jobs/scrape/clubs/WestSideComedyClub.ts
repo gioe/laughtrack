@@ -57,7 +57,7 @@ export class WestSideComedyClub implements ClubScraper {
 
   navigateToUrlAndScrape = async (page: playwright.Page, link: string): Promise<ScrapingOutput> => {
     return this.pageManager.navigateToUrl(page, link)
-      .then((page) => {
+      .then(() => {
         return this.scraper.scrape({
           comedianNameLocator: page.locator(COMEDIAN_NAME),
           dateTimeLocator: page.locator(DATE_TIME),

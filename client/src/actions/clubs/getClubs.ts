@@ -2,19 +2,16 @@
 
 import { auth } from "@/auth";
 import { ClubInterface } from "@/interfaces/club.interface";
+import { FilterParams } from "@/interfaces/filterParams.interface";
 import { MEDIUM_ELEMENT_PAGE_REQUEST_SIZE } from "@/lib/contants";
 import { PUBLIC_ROUTES } from "@/lib/routes"
 
-export interface GetClubsParams {
+export interface GetClubsParams extends FilterParams {
   city?: string,
-  page?: string,
-  query?: string
-  sort?: string
 }
 
 export interface GetClubsResponse {
   clubs: ClubInterface[]
-  totalPages: number;
   totalClubs: number;
   cities: string[]
 }
@@ -37,7 +34,7 @@ export async function getClubs(params?: GetClubsParams) {
           sort: params?.sort ?? "",
           page: params?.page ?? "1",
           city: params?.city ?? "",
-          pageSize: MEDIUM_ELEMENT_PAGE_REQUEST_SIZE
+          rows: params?.rows ?? MEDIUM_ELEMENT_PAGE_REQUEST_SIZE
         }),
       })
     })

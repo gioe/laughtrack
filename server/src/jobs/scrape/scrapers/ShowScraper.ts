@@ -4,14 +4,7 @@ import { toPrice } from "../../../common/util/primatives/priceUtil.js";
 import { Comedian } from "../../../common/models/classes/Comedian.js";
 import { runTasks } from "../../../common/util/promiseUtil.js";
 import { PageManager } from "../handlers/PageManager.js";
-
-export interface ScrapingArgs {
-  comedianNameLocator?: Locator;
-  dateTimeLocator: Locator;
-  ticketLinkLocator?: Locator;
-  showNameLocator: Locator;
-  priceLocator?: Locator;
-}
+import { ScrapingArgs } from "../../../common/models/interfaces/scrape.interface.js";
 
 export class ShowScraper {
 

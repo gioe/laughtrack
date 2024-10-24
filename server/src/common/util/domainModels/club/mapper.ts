@@ -18,7 +18,6 @@ export const clubArrayFromJson = (json: any) => {
         currenItemClubs.forEach((club: any) => {
             clubArray.push({
                 ...club,
-                scraping_config: currentItem[JSON_KEYS.scrapingConfig],
                 popularity_score: 0
             })
         })
@@ -46,6 +45,5 @@ export const toClubScrapingData = (payload: GetClubDTO): ClubScrapingData => {
         name: payload.name,
         baseUrl: payload.base_url,
         schedulePageUrl: payload.schedule_page_url,
-        scrapingConfig: payload.scraping_config
     }
 }

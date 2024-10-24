@@ -1,19 +1,17 @@
-import { ColumnSet, IDatabase, IMain } from 'pg-promise';
+import { ColumnSet, IDatabase, IMain, } from 'pg-promise';
 import { comedians as sql } from '../sql/index.js';
 import { providedPromiseResponse } from '../../common/util/promiseUtil.js';
-import { ComedianInterface, CreateComedianDTO, GetComedianResponseDTO, UpdateParentageDTO } from '../../common/models/interfaces/comedian.interface.js';
+import { CreateComedianDTO, GetComedianResponseDTO } from '../../common/models/interfaces/comedian.interface.js';
 import { GetSocialDataDTO, PopularityScoreIODTO, UpdateSocialDataDTO } from '../../common/models/interfaces/socialData.interface.js';
 
 var columnSets: {
     updateScores: ColumnSet | null;
     addAll: ColumnSet | null;
     updateSocial: ColumnSet | null;
-    updateParentage: ColumnSet | null;
 } = {
     updateScores: null,
     addAll: null,
     updateSocial: null,
-    updateParentage: null
 }
 
 export class ComediansRepository {
@@ -31,11 +29,12 @@ export class ComediansRepository {
      */
     constructor(private db: IDatabase<any>, private pgp: IMain) {
         this.createTable();
-        columnSets.updateParentage = new pgp.helpers.ColumnSet(['?id', 'is_parent'], { table: 'comedians' });
         columnSets.updateScores = new pgp.helpers.ColumnSet(['?id', 'popularity_score'], { table: 'comedians' });
-        columnSets.updateSocial = new pgp.helpers.ColumnSet(['?id', 'instagram_account', 'tiktok_account',
-            'youtube_account', 'youtube_followers', 'instagram_followers', 'tiktok_followers', 'popularity_score', 'website'], { table: 'comedians' });
-        columnSets.addAll = new pgp.helpers.ColumnSet(['name'], { table: 'comedians' });
+        columnSets.updateSocial = new pgp.helpers.ColumnSet(['?id', 'instagram_account', 
+            'tiktok_account', 'youtube_account', 'youtube_followers', 
+            'instagram_followers', 'tiktok_followers', 
+            'popularity_score', 'website'], { table: 'comedians' });
+        columnSets.addAll = new pgp.helpers.ColumnSet(['name', 'uuid_id'], { table: 'comedians' });
     }
 
     // Creates the table;
@@ -72,7 +71,7 @@ export class ComediansRepository {
     }
 
     addAll(all: CreateComedianDTO[]): Promise<{ id: number }[]> {
-        const batchInsert = this.pgp.helpers.insert(all, columnSets.addAll) + ' ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING id';
+        const batchInsert = this.pgp.helpers.insert(all, columnSets.addAll) + ' ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name, uuid_id = EXCLUDED.uuid_id RETURNING id';
         return this.db.any(batchInsert)
     }
 
@@ -92,8 +91,8 @@ export class ComediansRepository {
         return this.db.oneOrNone(update)
     }
 
-    updateParentage(payload: UpdateParentageDTO): Promise<null> {
-        const update = this.pgp.helpers.update([payload], columnSets.updateParentage) + ' WHERE v.id = t.id RETURNING 1';
-        return this.db.oneOrNone(update)
+    getParentIds(payload: {id: number}[]): Promise<{ id: number }[]> {
+        return this.db.any(sql.getAllParents, [payload.map((value: any) => value.id)])
     }
+
 }

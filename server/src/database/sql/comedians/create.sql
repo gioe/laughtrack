@@ -1,10 +1,9 @@
 /*
- Creates table Comedians.
+ Creates table comedians.
  */
 CREATE TABLE IF NOT EXISTS comedians (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL unique,
-    is_parent boolean DEFAULT true,
     instagram_account TEXT,
     instagram_followers INTEGER,
     tiktok_account TEXT,
@@ -12,5 +11,6 @@ CREATE TABLE IF NOT EXISTS comedians (
     youtube_account TEXT,
     youtube_followers INTEGER,
     website TEXT,
-    popularity_score double precision DEFAULT '0'::double precision
+    popularity_score double precision DEFAULT '0'::double precision,
+    uuid_id uuid UNIQUE
 );

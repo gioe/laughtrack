@@ -1,3 +1,6 @@
+/*
+ Creates table tags.
+ */
 CREATE TABLE IF NOT EXISTS tags (
     id SERIAL PRIMARY KEY,
     tag_name text,

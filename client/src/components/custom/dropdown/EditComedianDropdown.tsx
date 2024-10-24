@@ -31,7 +31,6 @@ export const EditComedianDropdown = () => {
     if (key == 'social') {
       socialDataModal.onOpen();
     } else if (key == 'merge') {
-      console.log("OPEN MERGE COMDIANS MODAL")
       mergeComediansModal.onOpen();
     } else if (key == "social") {
       addShowsModal.onOpen();

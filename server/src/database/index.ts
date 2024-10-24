@@ -9,7 +9,8 @@ import {
   SearchRepository,
   FavoritesRepository,
   LineupsRepository,
-  TagsRepository
+  TagsRepository,
+  GroupsRepository
 } from './repos/index.js';
 
 type ExtendedProtocol = IDatabase<IExtensions> & IExtensions;
@@ -31,6 +32,7 @@ const initOptions: IInitOptions<IExtensions> = {
         obj.favorites = new FavoritesRepository(obj, pgp);
         obj.lineups = new LineupsRepository(obj, pgp);
         obj.tags = new TagsRepository(obj, pgp);
+        obj.groups = new GroupsRepository(obj, pgp)
       }
 };
 

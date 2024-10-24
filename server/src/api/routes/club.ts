@@ -1,13 +1,14 @@
-import * as clubController from "../../controllers/club/index.js"
+import * as clubController from "../controllers/club/index.js"
+import * as showController from "../controllers/show/index.js"
 
 import bodyParser from "body-parser";
 import express, { Request, Response } from "express";
-import { ClubInterface } from "../../../common/models/interfaces/club.interface.js";
-import { toPaginatedData } from "../../../common/util/domainModels/pagination/mapper.js";
-import { sortShows } from "../../../common/util/domainModels/show/sort.js";
-import { sortClubs } from "../../../common/util/domainModels/club/sort.js";
-import { filterClubs } from "../../../common/util/domainModels/club/filter.js";
-import { filterShows } from "../../../common/util/domainModels/show/filter.js";
+import { ClubInterface } from "../../common/models/interfaces/club.interface.js";
+import { toPaginatedData } from "../../common/util/domainModels/pagination/mapper.js";
+import { sortShows } from "../../common/util/domainModels/show/sort.js";
+import { sortClubs } from "../../common/util/domainModels/club/sort.js";
+import { filterClubs } from "../../common/util/domainModels/club/filter.js";
+import { filterShows } from "../../common/util/domainModels/show/filter.js";
 
 export const clubApiRouter = express.Router();
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
@@ -50,7 +51,6 @@ clubApiRouter.get('/:id', urlencodedParser,
         const query = req.header("query")
 
         const decodedName = decodeURI(id)
-
         const result = await clubController.getByName(decodedName)
         var dates = result?.dates ?? []
 
@@ -63,12 +63,13 @@ clubApiRouter.get('/:id', urlencodedParser,
         })
 
         const page = req.header("page") as string;
-        const pageSize = req.header("pageSize") as string
+        const rows = req.header("rows") as string
 
-        const paginationData = toPaginatedData(dates, page, pageSize)
+        const paginationData = toPaginatedData(dates, page, rows)
         return res.status(200).send({
             entity: {
-                name: id,
+                id: result?.id,
+                name: result?.name,
                 socialData: result?.socialData,
                 dates: paginationData.data
             },
@@ -77,8 +78,18 @@ clubApiRouter.get('/:id', urlencodedParser,
         })
     })
 
-clubApiRouter.post('/cities',
+clubApiRouter.get('/cities',
     async (req: Request, res: Response) => {
         const trendingClubs: string[] = await clubController.getAllCities()
         return res.status(200).send(trendingClubs)
+    })
+
+
+clubApiRouter.post('/clear', urlencodedParser,
+    async (req: Request, res: Response) => {
+        const { id } = req.body
+        await showController.deleteShowsForClub(id)
+        return res.status(200).send({
+            success: true
+        })
     })

@@ -32,12 +32,20 @@ export const getAllClubs = async (): Promise<ClubInterface[]> => {
 
 export const getByName = async (name: string): Promise<ClubInterface | null> => {
     return db.clubs.getByName(name)
-        .then((response: GetClubDTO | null) => response ? toClub(response) : null)
+        .then((response: GetClubDTO | null) => {
+            return response ? toClub(response) : null
+        })
 }
 
-export const getAllScrapingData = async (): Promise<ClubScrapingData[]> => {
+export const getAllScrapingData = async (ids: number[]): Promise<ClubScrapingData[]> => {
     return db.clubs.all()
-        .then((response: GetClubDTO[] | null) => response ? response.map((value: GetClubDTO) => toClubScrapingData(value)) : [])
+        .then((response: GetClubDTO[] | null) => response ? 
+        response.filter((value: GetClubDTO) => {
+            if (ids.length == 0) return true
+            return ids.includes(value.id)
+        })
+        .map((value: GetClubDTO) => toClubScrapingData(value)) : []
+    )
 }
 
 export const getAllCities = async (): Promise<string[]> => {

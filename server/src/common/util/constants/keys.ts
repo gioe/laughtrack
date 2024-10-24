@@ -24,7 +24,6 @@ export const SCRAPER_KEYS = {
   export const JSON_KEYS = {
     clubs: 'clubs',
     admins: 'admins',
-    scrapingConfig: 'scraping_config',
     email: 'email',
     clubDetails: 'club_details',
     names: 'names',

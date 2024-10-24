@@ -1,30 +1,27 @@
-import * as comedianController from "../../controllers/comedian/index.js"
-import * as lineupController from "../../controllers/lineup/index.js"
+import * as comedianController from "../controllers/comedian/index.js"
+import * as lineupController from "../controllers/lineup/index.js"
+import * as groupController from "../controllers/group/index.js"
 
 import bodyParser from "body-parser";
 import express, { Request, Response } from "express";
-import { authenticateRole } from "../../middleware/authenticateRole.middleware.js";
-import { assignUser } from "../../middleware/assignUser.middleware.js";
-import { toGetComediansDTO, toUpdateComedianRelationshipDTO } from "../../../common/util/domainModels/comedian/mapper.js";
-import { UserRole } from "../../../common/models/@types/UserRole.js";
-import { toPaginatedData } from "../../../common/util/domainModels/pagination/mapper.js";
-import { toUpdateSocialDataDTO } from "../../../common/util/domainModels/socialData/mapper.js";
-import { sortComedians } from "../../../common/util/domainModels/comedian/sort.js";
-import { filterComedians } from "../../../common/util/domainModels/comedian/filter.js";
-import { lineups } from "../../../database/sql/index.js";
+import { assignUser } from "../middleware/assignUser.middleware.js";
+import { toGetComediansDTO, toUpdateComedianRelationshipDTO } from "../../common/util/domainModels/comedian/mapper.js";
+import { toPaginatedData } from "../../common/util/domainModels/pagination/mapper.js";
+import { toUpdateSocialDataDTO } from "../../common/util/domainModels/socialData/mapper.js";
+import { sortComedians } from "../../common/util/domainModels/comedian/sort.js";
+import { filterComedians } from "../../common/util/domainModels/comedian/filter.js";
 
 export const comedianApiRouter = express.Router();
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
 
 comedianApiRouter.post('/favorite/all',
     assignUser,
-    authenticateRole([UserRole.Admin, UserRole.User]),
     urlencodedParser,
     async (req: Request, res: Response) => {
-        const { page, pageSize } = req.body;
+        const { page, rows } = req.body;
 
         const comedians = await comedianController.getAllFavorites(req.currentUser.id)
-        const paginationData = toPaginatedData(comedians, page, pageSize)
+        const paginationData = toPaginatedData(comedians, page, rows)
 
         return res.status(200).send({
             comedians: paginationData.data,
@@ -35,7 +32,6 @@ comedianApiRouter.post('/favorite/all',
 
 comedianApiRouter.post('/addToFavorites/:id',
     assignUser,
-    authenticateRole([UserRole.Admin, UserRole.User]),
     urlencodedParser,
     async (req: Request, res: Response) => {
         const { id } = req.params;
@@ -58,7 +54,7 @@ comedianApiRouter.get('/:id', urlencodedParser,
         const { id } = req.params;
 
         const page = req.header("page") as string;
-        const pageSize = req.header("pageSize") as string;
+        const rows = req.header("rows") as string;
         const sort = req.header("sort")
 
         const decodedName = decodeURI(id)
@@ -67,7 +63,7 @@ comedianApiRouter.get('/:id', urlencodedParser,
 
         const dates = result?.dates ?? []
 
-        const paginationData = toPaginatedData(dates, page, pageSize)
+        const paginationData = toPaginatedData(dates, page, rows)
 
         return res.status(200).send({
             entity: {
@@ -89,7 +85,7 @@ comedianApiRouter.post('/all',
     assignUser,
     urlencodedParser,
     async (req: Request, res: Response) => {
-        const { page, pageSize, sort, query } = req.body;
+        const { page, rows, sort, query } = req.body;
 
         const dto = toGetComediansDTO(req)
 
@@ -104,7 +100,7 @@ comedianApiRouter.post('/all',
         }
 
 
-        const paginationData = toPaginatedData(comedians, page, pageSize)
+        const paginationData = toPaginatedData(comedians, page, rows)
 
         return res.status(200).send({
             comedians: paginationData.data,
@@ -138,12 +134,11 @@ comedianApiRouter.post('/filters/all',
 
 comedianApiRouter.put('/merge',
     assignUser,
-    authenticateRole([UserRole.Admin]),
     urlencodedParser,
     async (req: Request, res: Response) => {
         const input = toUpdateComedianRelationshipDTO(req.body)
         
-        await comedianController.updateParentage(input.child_id)
+        await groupController.establishGroup(input)
         await lineupController.update(input)
 
         return res.status(200).send({

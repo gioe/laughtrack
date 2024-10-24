@@ -1,3 +1,6 @@
+/*
+ Creates table club_tags.
+ */
 CREATE TABLE IF NOT EXISTS club_tags (
     id SERIAL,
     club_id integer REFERENCES clubs(id),

@@ -2,7 +2,6 @@ export const removeNonNumbers = (inputString: string) => {
     return inputString.replace(/\D/g,'');
 }
 
-
 export const removeSubstrings = (inputString: string, replacements?: string[]) => {
     var mutatedString = inputString;
     for (const replacement of replacements ?? []) {
@@ -38,3 +37,7 @@ export const capitalized = (inputString: string): string => {
     .map((word) =>  word[0].toUpperCase() + word.substring(1))
     .join(" ");
 }
+
+export const removeNonAlphanumeric = (str: string): string => {
+    return str.replace(/[^a-zA-Z0-9]/g, '');
+  }

@@ -25,6 +25,7 @@ export interface GetComediansDTO {
 
 export interface CreateComedianDTO {
   name: string;
+  uuid_id?: string
 }
 
 export interface GetComedianResponseDTO {
@@ -54,10 +55,6 @@ export interface GetDateDTO {
 export interface UpdateComedianRelationshipDTO {
   parent_id: number
   child_id: number;
-}
-export interface UpdateParentageDTO {
-  id: number;
-  is_parent: boolean
 }
 
 export interface UpdateLineupItemDTO {

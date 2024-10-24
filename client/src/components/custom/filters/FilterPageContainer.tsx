@@ -38,20 +38,16 @@ interface FilterPageContainerProps {
     defaultSort: string;
     filterOptions?: Filter[];
     query?: string;
-    totalItems: number;
-    totalPages: number;
+    itemCount: number;
     searchPlaceholder: string
 }
 
 const FilterPageContainer: React.FC<FilterPageContainerProps> = ({
     title,
-    totalItems,
+    itemCount,
     child,
     sortOptions,
     filterOptions,
-    query,
-    totalPages,
-    searchPlaceholder,
     defaultSort
 }) => {
 
@@ -107,7 +103,7 @@ const FilterPageContainer: React.FC<FilterPageContainerProps> = ({
                             </div>
 
                             <form className="mt-4 border-t border-gray-200">
-                                { filterOptions && filterOptions.map((section) => (
+                                {filterOptions && filterOptions.map((section) => (
                                     <Disclosure key={section.id} as="div" className="border-t border-gray-200 px-4 py-6">
                                         <h3 className="-mx-2 -my-3 flow-root">
                                             <DisclosureButton className="group flex w-full items-center
@@ -151,15 +147,24 @@ const FilterPageContainer: React.FC<FilterPageContainerProps> = ({
                 </Dialog>
 
                 <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-baseline justify-between border-b border-gray-200 pb-6 pt-10">
-                        { title && <h1 className="text-3xl font-bold tracking-tight text-white">{title}</h1>}
+                    <div className="flex items-baseline justify-between border-b border-gray-200 pb-6 pt-10 bg-blue-gray-900">
+                        {title && <h1 className="text-3xl font-bold tracking-tight text-white">{title}</h1>}
                     </div>
 
                     <section aria-labelledby="filters-heading" className="pb-10 pt-5">
-                    <div className="flex items-center">
-                        { totalPages > 0 && <TablePaginationComponent  pageCount={totalPages}/> }
+                        <div className="flex flex-row-reverse gap-4 items-center">
+                            <div className='flex-item tems-end justify-end'>
+                                <button
+                                    type="button"
+                                    onClick={() => setMobileFiltersOpen(true)}
+                                    className="-m-2 ml-4 p-2 text-gray-400 hover:text-gray-500 sm:ml-6"
+                                >
+                                    <span className="sr-only">Filters</span>
+                                    <FunnelIcon aria-hidden="true" className="h-5 w-5" />
+                                </button>
+                            </div>
 
-                            <Menu as="div" className="relative inline-block text-left">
+                            <Menu as="div" className="flex-item items-end relative inline-block text-left">
                                 <div>
                                     <MenuButton className="group inline-flex justify-center text-sm font-medium text-gray-300 hover:text-gray-500">
                                         Sort
@@ -172,7 +177,10 @@ const FilterPageContainer: React.FC<FilterPageContainerProps> = ({
 
                                 <MenuItems
                                     transition
-                                    className="absolute right-0 z-10 mt-2 w-40 origin-top-right rounded-md bg-white shadow-2xl ring-1 ring-black ring-opacity-5 transition focus:outline-none data-[closed]:scale-95 data-[closed]:transform data-[closed]:opacity-0 data-[enter]:duration-100 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
+                                    className="absolute right-0 z-10 mt-2 w-40 origin-top-right rounded-md
+                                     bg-white shadow-2xl ring-1 ring-black ring-opacity-5 transition focus:outline-none 
+                                     data-[closed]:scale-95 data-[closed]:transform data-[closed]:opacity-0 data-[enter]:duration-100
+                                      data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
                                 >
                                     <div className="py-1">
                                         {sortOptions.map((option) => (
@@ -191,15 +199,9 @@ const FilterPageContainer: React.FC<FilterPageContainerProps> = ({
                                     </div>
                                 </MenuItems>
                             </Menu>
-
-                            <button
-                                type="button"
-                                onClick={() => setMobileFiltersOpen(true)}
-                                className="-m-2 ml-4 p-2 text-gray-400 hover:text-gray-500 sm:ml-6"
-                            >
-                                <span className="sr-only">Filters</span>
-                                <FunnelIcon aria-hidden="true" className="h-5 w-5" />
-                            </button>
+                            <div className='flex-item items-end'>
+                                {itemCount > 0 && <TablePaginationComponent itemCount={itemCount} />}
+                            </div>
                         </div>
                         <div className="grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-5">
                             <div className="lg:col-span-4">{child}</div>

@@ -42,10 +42,9 @@ export default async function ComedianDetailsPage({
       <section>
         <FilterPageContainer
           title={title}
-          totalItems={response.totalShows}
+          itemCount={response.totalShows}
           defaultSort={sortOptions[0].value}
           searchPlaceholder={'Search for comedian'}
-          totalPages={response.totalPages}
           query={searchParams?.query}
           sortOptions={sortOptions}
           child={

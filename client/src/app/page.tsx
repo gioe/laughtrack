@@ -1,12 +1,39 @@
-import LargeComedianIcon from "@/components/custom/comedianIcons/LargeComedianIcon";
-import SearchBar from "@/components/custom/filters/LandingPageSearchBar";
+'use server';
+
 import { ComedianInterface } from "@/interfaces/comedian.interface";
-import { getLandingPageData } from "@/actions/landing/getLandingPageData";
 import LargeComedianInfoCard from "@/components/custom/tables/cards/LargeComedianInfoCard";
+import LandingPageSearchBar from "@/components/custom/filters/LandingPageSearchBar";
+import { cookies } from "next/headers";
+import { LandingPageResponseInterface } from "@/interfaces/landingPageResponse.interface";
 
 export default async function LandingPage() {
 
-  const response = await getLandingPageData()
+
+  const getCities = async () => {
+    const res = await fetch('http://localhost:3000/api/cities', {
+      headers: { Cookie: cookies().toString() },
+    })
+    console.log(res)
+    return res.json()
+  }
+
+
+  // const getTrendingComedians = async () => {
+  //   const res = await fetch('http://localhost:3000/api/trending')
+  //   console.log(res)
+  //   return res.json()
+  // }
+
+  // const getLandingPageData  = async () => {
+  //   return Promise.all([getCities(), getTrendingComedians()]).then((responses: any[]) => {
+  //     return {
+  //       cities: responses[0],
+  //       trendingComedians: responses[1],
+  //     } as LandingPageResponseInterface
+  //   })
+  // }
+
+  const response = await getCities()
 
   return (
     <main>
@@ -16,7 +43,7 @@ export default async function LandingPage() {
       </section>
 
       <section className="m-4 mt-0 -mb-14 px-2 lg:px-4">
-        <SearchBar cities={response.cities} />
+        <LandingPageSearchBar cities={response.cities} />
       </section>
 
       <section className="
@@ -25,19 +52,16 @@ export default async function LandingPage() {
         <div className="flex space-x-3 overflow-scroll
          scrollbar-hide p-3 -ml-3">
           {
-          response.trendingComedians
-            .sort((a, b) => (b.socialData?.popularityScore ?? 0) - (a.socialData?.popularityScore ?? 0))
-            .map((comedian: ComedianInterface) => {
-              return (
-                <LargeComedianInfoCard key={comedian.name} comedian={comedian} />
-              )
-            })
-            }
+            // response.trendingComedians
+            //   .sort((a, b) => (b.socialData?.popularityScore ?? 0) - (a.socialData?.popularityScore ?? 0))
+            //   .map((comedian: ComedianInterface) => {
+            //     return (
+            //       <LargeComedianInfoCard key={comedian.name} comedian={comedian} />
+            //     )
+            //   })
+          }
         </div>
       </section>
     </main>
   );
 }
-
-
-

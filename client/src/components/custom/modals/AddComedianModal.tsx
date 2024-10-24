@@ -18,7 +18,6 @@ import { LineupItem } from '@/interfaces/lineupItem.interface';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { getPaginatedComedians } from '@/actions/comedians/getPaginatedComedians';
-import Link from 'next/link';
 import { ShowInterface } from '@/interfaces/show.interface';
 
 interface AddComedianModalProps {

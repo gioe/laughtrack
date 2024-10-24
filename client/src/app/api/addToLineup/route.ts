@@ -7,7 +7,7 @@ export async function POST(
 ) {
     const data = await request.json();
     const url = process.env.URL_DOMAIN + PUBLIC_ROUTES.UPDATE_SHOW_LINEUP
-    
+
     const session = await auth();
 
     const response = await fetch(url, {
@@ -15,11 +15,11 @@ export async function POST(
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
             'x-auth-token': session?.accessToken ?? ''
-          },
-          body: new URLSearchParams(data),
+        },
+        body: new URLSearchParams(data),
     })
-    .then((response) => response.json())
-    .catch((error) => console.error(error))
+        .then((response) => response.json())
+        .catch((error) => console.error(error))
 
     return NextResponse.json(response)
 }

@@ -21,20 +21,19 @@ export default async function AllClubsPage({
 
   return (
     <main className="flex-grow pt-5 bg-shark">
-      <FilterPageContainer 
-      totalItems={response.totalClubs}
-      title={title}
-      defaultSort={sortOptions[0].value}
-      searchPlaceholder={'Search for clubs'}
-      totalPages={response.totalPages}
-      query={searchParams?.query}
-      filterOptions={filters}
-      sortOptions={sortOptions}  
-      child={
-        <Suspense key={(searchParams?.query ?? 1) + (searchParams?.page ?? "")} fallback={<div />}>
-          <ClubTable response={response}  />
-        </Suspense>
-      } />
+      <FilterPageContainer
+        itemCount={response.totalClubs}
+        title={title}
+        defaultSort={sortOptions[0].value}
+        searchPlaceholder={'Search for clubs'}
+        query={searchParams?.query}
+        filterOptions={filters}
+        sortOptions={sortOptions}
+        child={
+          <Suspense key={(searchParams?.query ?? 1) + (searchParams?.page ?? "")} fallback={<div />}>
+            <ClubTable response={response} />
+          </Suspense>
+        } />
     </main>
   );
 }

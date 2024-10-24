@@ -1,3 +1,6 @@
+/*
+ Creates table comedian_tags.
+ */
 CREATE TABLE IF NOT EXISTS comedian_tags (
     id SERIAL,
     comedian_id integer REFERENCES comedians(id),

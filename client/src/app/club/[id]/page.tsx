@@ -3,6 +3,8 @@ import { getClubDetails, GetClubDetailsParams } from "@/actions/clubs/getClubDet
 import EntityBanner from "@/components/custom/banners/EntityBanner";
 import { EditClubDowndown } from "@/components/custom/dropdown/EditClubDropdown";
 import FilterPageContainer from "@/components/custom/filters/FilterPageContainer";
+import ClearShowsModal from "@/components/custom/modals/ClearShowsModal";
+import ScrapeClubModal from "@/components/custom/modals/ScrapeClubModal";
 import ShowTable, { PaginatedShowPageInterface } from "@/components/custom/tables/ShowTable";
 import { Suspense } from "react";
 
@@ -25,17 +27,18 @@ export default async function ClubDetailPage({
   const title = `${response.totalShows} upcoming shows`
 
   return (
-    <div>
+    <main className="flex-grow pt-5 bg-shark">
+      <ScrapeClubModal clubId={response.entity.id} />
+      <ClearShowsModal clubId={response.entity.id} />
       <section>
-        <EntityBanner entity={response.entity} menu={<EditClubDowndown />}/>
+        <EntityBanner entity={response.entity} menu={<EditClubDowndown />} />
       </section>
       <section>
         <FilterPageContainer
           title={title}
-          totalItems={response.totalShows}
+          itemCount={response.totalShows}
           defaultSort={sortOptions[0].value}
           searchPlaceholder={'Search for comedian'}
-          totalPages={response.totalPages}
           query={searchParams?.query}
           sortOptions={sortOptions}
           child={
@@ -44,6 +47,6 @@ export default async function ClubDetailPage({
             </Suspense>
           } />
       </section>
-    </div>
+    </main>
   )
 }

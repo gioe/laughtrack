@@ -1,75 +1,63 @@
 "use client";
-import { FC, useState } from "react";
+import { useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import TablePagination from '@mui/material/TablePagination';
-
-import { Button } from "@/components/ui/button";
+import TablePagination from '@mui/material/TablePagination'
 import { handleUrlParams } from "@/lib/utils";
 
 interface TablePaginationComponentProps {
-  pageCount: number;
+  itemCount: number;
 }
 
-interface PaginationArrowProps {
-  direction: "left" | "right";
-  handleClick: (direction: string) => void;
-  isDisabled: boolean;
-}
-
-const PaginationArrow: FC<PaginationArrowProps> = ({
-  direction,
-  handleClick,
-  isDisabled,
-}) => {
-
-  const isLeft = direction === "left";
-  const disabledClassName = isDisabled ? "opacity-50 cursor-not-allowed" : "";
-
-  return (
-    <Button
-      onClick={() => handleClick(direction)}
-      className={`bg-clear text-gray-500 hover:bg-gray-200 ${disabledClassName}`}
-      aria-disabled={isDisabled}
-      disabled={isDisabled}
-    >
-      {isLeft ? "«" : "»"}
-    </Button>
-  );
-};
-
-export function TablePaginationComponent({ pageCount }: Readonly<TablePaginationComponentProps>) {
+export function TablePaginationComponent({ itemCount }: Readonly<TablePaginationComponentProps>) {
   const searchParams = useSearchParams();
   const pathname = usePathname()
   const { replace } = useRouter()
 
-  const currentPage = Number(searchParams.get("page")) || 1;
+  const currentPage = Number(searchParams.get("page")) || 0;
 
-  const handleArrowSelection = (direction: string) => {
-    const adjustedParams =  handleUrlParams(searchParams, 'page', direction == 'left' ? currentPage - 1 : currentPage + 1)
-    replace(`${pathname}?${adjustedParams.toString()}`)
-  }
-
-  const [page, setPage] = useState(2);
+  const [page, setPage] = useState(currentPage);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const handleChangePage = (
     event: React.MouseEvent<HTMLButtonElement> | null,
     newPage: number,
   ) => {
+    const adjustedParams = handleUrlParams(searchParams, 'page', newPage)
+    replace(`${pathname}?${adjustedParams.toString()}`)
     setPage(newPage);
   };
 
   const handleChangeRowsPerPage = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+    const rows = parseInt(event.target.value, 10);
+    const adjustedParams = handleUrlParams(searchParams, 'rows', rows)
+    replace(`${pathname}?${adjustedParams.toString()}`)
+    setRowsPerPage(rows);
+    setPage(1);
   };
 
   return (
     <TablePagination
+      sx={{
+        ".MuiTablePagination-displayedRows": {
+          color: "#C0C0C0",
+        },
+        ".MuiTablePagination-input": {
+          color: "#C0C0C0",
+        },
+        ".MuiTablePagination-selectLabel": {
+          color: "#C0C0C0",
+        },
+        ".MuiTablePagination-selectIcon": {
+          color: "#C0C0C0",
+        },
+        ".MuiTablePagination-actions": {
+          color: "#C0C0C0",
+        },
+      }}
       component="div"
-      count={100}
+      count={itemCount}
       page={page}
       onPageChange={handleChangePage}
       rowsPerPage={rowsPerPage}

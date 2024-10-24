@@ -1,25 +1,84 @@
 import * as showController from '../../controllers/show/index.js'
 import * as comedianController from '../../controllers/comedian/index.js'
 import * as lineupController from '../../controllers/lineup/index.js'
+import * as clubController from '../../controllers/club/index.js'
+import playwright from "playwright";
 
 import { ScrapingOutput } from "../../../common/models/interfaces/scrape.interface.js";
 import { toCreateLineupItemDTOArray } from '../../../common/util/domainModels/lineupItem/mapper.js';
-import { providedPromiseResponse } from '../../../common/util/promiseUtil.js';
+import { providedPromiseResponse, runTasks } from '../../../common/util/promiseUtil.js';
+import { ClubScrapingData } from '../../../common/models/interfaces/club.interface.js';
+import { flattenArrayList } from '../../../common/util/primatives/arrayUtil.js';
+import {
+    ComedyCellar,
+    NewYorkComedyClub,
+    TheStand,
+    TheGrislyPear,
+    TheTinyCupboard,
+    UnionHall,
+    WilliamsburgComedyClub,
+    Rodneys,
+    EastvilleComedyClub,
+    Caveat,
+    WestSideComedyClub,
+    ComedyVillage
+} from '../../../jobs/scrape/clubs/index.js';
 
-export const storeOutput = async (all: ScrapingOutput[]): Promise<void> => {
-    
+export const scrapeClubs = async (id: number[], headless?: boolean) => {
+    const startDate = new Date()
+    console.log(`Started scraping job for ${id} at ${startDate}`);
+
+    await clubController.getAllScrapingData(id)
+        .then((clubs: ClubScrapingData[]) => {
+            const jobs = clubs
+                .map((club: ClubScrapingData) => runScraper(club, headless))
+            return runTasks(jobs)
+        }) 
+        .then((scrapingOutput: ScrapingOutput[][]) => flattenArrayList(scrapingOutput))
+        .then((scrapingOutput: ScrapingOutput[]) => storeOutput(scrapingOutput))
+        .then(() => console.log(`Finished in ${(new Date().getTime() - startDate.getTime()) / 1000} seconds`))
+}
+
+const storeOutput = async (all: ScrapingOutput[]): Promise<void> => {
     for (let index = 0; index < all.length - 1; index++) {
         await storeOutputInstance(all[index])
     }
 }
 
-export const storeOutputInstance = async (instance: ScrapingOutput): Promise<null> => {
+const runScraper = async (club: ClubScrapingData, headless?: boolean): Promise<ScrapingOutput[]> => {
+    return playwright.chromium.launch({ headless: headless ? headless : true })
+        .then(browser => createScrapingFunction(club, browser))
+}
+
+const createScrapingFunction = (club: ClubScrapingData, browser: playwright.Browser): Promise<ScrapingOutput[]> => {
+    switch (club.name) {
+        case 'Comedy Cellar New York': return new ComedyCellar(club, browser).scrape();
+        case 'New York Comedy Club East Village': return new NewYorkComedyClub(club, browser).scrape();
+        case 'New York Comedy Club Upper West Side': return new NewYorkComedyClub(club, browser).scrape();
+        case 'New York Comedy Club Midtown': return new NewYorkComedyClub(club, browser).scrape();
+        case 'The Stand': return new TheStand(club, browser).scrape();
+        case 'The Grisly Pear': return new TheGrislyPear(club, browser).scrape();
+        case 'The Tiny Cupboard': return new TheTinyCupboard(club, browser).scrape();
+        case 'Union Hall': return new UnionHall(club, browser).scrape();
+        case 'Williamsburg Comedy Club': return new WilliamsburgComedyClub(club, browser).scrape();
+        case 'Rodney’s': return new Rodneys(club, browser).scrape();
+        case 'Eastville Comedy Club Brooklyn': return new EastvilleComedyClub(club, browser).scrape();
+        case 'Comedy Village': return new ComedyVillage(club, browser).scrape();
+        case 'Caveat': return new Caveat(club, browser).scrape();
+        case "West Side Comedy Club": return new WestSideComedyClub(club, browser).scrape()
+        default: throw new Error("No club name found")
+    }
+
+}
+
+const storeOutputInstance = async (instance: ScrapingOutput): Promise<null> => {
 
     const show = await showController.add(instance.show)
 
     if (instance.comedians.length > 0) {
         const comedians = await comedianController.addAll(instance.comedians)
-        const lineupItems = toCreateLineupItemDTOArray(comedians, show.id)
+        const parentComedians = await comedianController.getParents(comedians)
+        const lineupItems = toCreateLineupItemDTOArray(parentComedians, show.id)
         return lineupController.addAll(lineupItems)
     }
 

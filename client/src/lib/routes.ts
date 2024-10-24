@@ -7,6 +7,7 @@ export const PUBLIC_ROUTES = {
     GET_CLUB_DETAILS: '/api/club',
     GET_ALL_CLUBS: '/api/club/all',
     GET_TRENDING_CLUBS: '/api/club/trending',
+    CLEAR_CLUB: '/api/club/clear',
 
     // Cities
     GET_CITIES: '/api/club/cities',
@@ -39,5 +40,8 @@ export const PUBLIC_ROUTES = {
     FAVORITE_CLUB: '/api/club/favorite',
 
     // Search
-    HOME_SEARCH: '/api/search'
+    HOME_SEARCH: '/api/search',
+
+    // Scrape
+    SCRAPE: '/api/scrape'
 }

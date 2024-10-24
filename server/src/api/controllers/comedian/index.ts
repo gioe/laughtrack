@@ -1,12 +1,18 @@
 import { db } from '../../../database/index.js';
 import { toComedian, toComedianArray, toComedianFilter } from "../../../common/util/domainModels/comedian/mapper.js";
-import { CreateComedianDTO, GetComediansDTO, GetComedianResponseDTO, ComedianInterface, ComedianFilterInterface } from "../../../common/models/interfaces/comedian.interface.js";
+import { CreateComedianDTO, 
+    GetComediansDTO,
+     GetComedianResponseDTO, 
+     ComedianInterface,
+      ComedianFilterInterface } from "../../../common/models/interfaces/comedian.interface.js";
 import { CreateFavoriteComedianDTO } from "../../../common/models/interfaces/favorite.interface.js";
 import { GetSocialDataDTO, PopularityScoreIODTO, UpdateSocialDataDTO } from "../../../common/models/interfaces/socialData.interface.js";
 import { toPopularityScores } from '../../../common/util/domainModels/socialData/mapper.js';
+import { generateComedianHashes } from '../../../common/util/domainModels/comedian/hash.js';
 
 export const addAll = async (comedians: CreateComedianDTO[]): Promise<{ id: number }[]> => {
-    return db.comedians.addAll(comedians);
+    const hashedComedians = generateComedianHashes(comedians);
+    return db.comedians.addAll(hashedComedians);
 }
 
 export const getAllComedians = async (payload: GetComediansDTO): Promise<ComedianInterface[]> => {
@@ -48,14 +54,11 @@ export const updateSocialData = async (payload: UpdateSocialDataDTO): Promise<bo
 }
 
 export const getAllComedianFilters = async (): Promise<ComedianFilterInterface[]> => {
-
     return db.comedians.all()
         .then((response: GetComedianResponseDTO[] | null) => response ? response.map((item: any) => toComedianFilter(item)) : [])
 }
 
-export const updateParentage = async (childId: number): Promise<null> => {
-    return db.comedians.updateParentage({
-        id: childId,
-        is_parent: false
-    })
+export const getParents = async (ids: {id: number}[]): Promise<{ id: number }[]> => {
+    return db.comedians.getParentIds(ids)        
 }
+

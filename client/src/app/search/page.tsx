@@ -24,20 +24,19 @@ export default async function CityDetailPage({
 
     <main className="flex-grow pt-5 bg-shark">
       <FilterPageContainer
-        totalItems={searchResults.totalShows}
+        itemCount={searchResults.totalShows}
         title={title}
         searchPlaceholder={'Search for comics'}
-        totalPages={searchResults.totalPages}
         query={searchParams.query}
         filterOptions={filters}
         defaultSort={sortOptions[0].value}
         sortOptions={sortOptions}
-        child={ <SearchResultsTable searchResults={searchResults} />} />
+        child={<SearchResultsTable searchResults={searchResults} />} />
     </main>
   )
 }
 
-const buildFilters =(params: any, results: any) => {
+const buildFilters = (params: any, results: any) => {
 
   const clubFilter = {
     id: 'clubs',
@@ -56,59 +55,59 @@ const buildFilters =(params: any, results: any) => {
     name: 'Price Range',
     options: [
       {
-        value: 'free', 
+        value: 'free',
         label: "Free",
         selected: false
       },
       {
-        value: '1-20', 
+        value: '1-20',
         label: "$1 to $20",
         selected: false
       },
       {
-        value: '21-50', 
+        value: '21-50',
         label: "$21 to $50",
         selected: false
       },
       {
-        value: '51-100', 
+        value: '51-100',
         label: "$51 to $100",
         selected: false
       },
       {
-        value: '100+', 
+        value: '100+',
         label: "$100+",
         selected: false
       }
     ]
-    }
+  }
 
-    const showType = {
-      id: 'type',
-      name: 'Show Type',
-      options: [
-        {
-          value: 'open-mic', 
-          label: "Open Mic",
-          selected: false
-        },
-        {
-          value: 'standup', 
-          label: "Standup",
-          selected: false
-        },
-        {
-          value: 'podcast', 
-          label: "Live Podcast",
-          selected: false
-        },
-        {
-          value: 'sketch', 
-          label: "Sketch",
-          selected: false
-        }
-      ]
+  const showType = {
+    id: 'type',
+    name: 'Show Type',
+    options: [
+      {
+        value: 'open-mic',
+        label: "Open Mic",
+        selected: false
+      },
+      {
+        value: 'standup',
+        label: "Standup",
+        selected: false
+      },
+      {
+        value: 'podcast',
+        label: "Live Podcast",
+        selected: false
+      },
+      {
+        value: 'sketch',
+        label: "Sketch",
+        selected: false
       }
+    ]
+  }
 
 
   return [clubFilter, priceFilter, showType];

@@ -21,10 +21,9 @@ export default async function AllComediansPage({
     <main className="flex-grow pt-5 bg-shark">
       <FilterPageContainer
         title={title}
-        totalItems={response.totalComedians}
+        itemCount={response.totalComedians}
         defaultSort={sortOptions[0].value}
         searchPlaceholder={'Search for comics'}
-        totalPages={response.totalPages}
         query={searchParams?.query}
         sortOptions={sortOptions}
         child={

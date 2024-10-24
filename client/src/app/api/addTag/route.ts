@@ -14,11 +14,11 @@ export async function POST(
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
             'x-auth-token': session?.accessToken ?? ''
-          },
-          body: new URLSearchParams(data),
+        },
+        body: new URLSearchParams(data),
     })
-    .then((response) => response.json())
-    .catch((error) => console.error(error))
+        .then((response) => response.json())
+        .catch((error) => console.error(error))
 
     return NextResponse.json(response)
 }

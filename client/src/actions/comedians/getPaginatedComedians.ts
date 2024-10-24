@@ -4,16 +4,12 @@ import { ComedianInterface } from "@/interfaces/comedian.interface";
 import { PUBLIC_ROUTES } from "@/lib/routes"
 import { auth } from "../../auth"
 import { MEDIUM_ELEMENT_PAGE_REQUEST_SIZE } from "@/lib/contants";
+import { FilterParams } from "@/interfaces/filterParams.interface";
 
-export interface FetchPaginatedComedianParams {
-  page?: string
-  query?: string
-  sort?: string
-}
+export interface FetchPaginatedComedianParams extends FilterParams {}
 
 export interface GetPaginatedComediansResponse {
   comedians: ComedianInterface[]
-  totalPages: number;
   totalComedians: number;
 }
 
@@ -33,7 +29,7 @@ export async function getPaginatedComedians(params?: FetchPaginatedComedianParam
           sort: params?.sort ?? 'popularity',
           query: params?.query ?? "",
           page: params?.page ?? "1",
-          pageSize: MEDIUM_ELEMENT_PAGE_REQUEST_SIZE
+          rows: params?.rows ?? MEDIUM_ELEMENT_PAGE_REQUEST_SIZE,
         }),
       })
     })

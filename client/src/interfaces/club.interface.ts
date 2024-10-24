@@ -16,5 +16,4 @@ export interface ClubScrapingData {
   name: string
   baseUrl: string;
   schedulePageUrl: string;
-  scrapingConfig: any;
 }

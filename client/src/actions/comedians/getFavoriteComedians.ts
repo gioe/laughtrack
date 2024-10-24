@@ -5,16 +5,13 @@ import { PUBLIC_ROUTES } from "@/lib/routes"
 import { auth } from "../../auth"
 import { MEDIUM_ELEMENT_PAGE_REQUEST_SIZE } from "@/lib/contants";
 import { LineupItem } from "@/interfaces/lineupItem.interface";
+import { FilterParams } from "@/interfaces/filterParams.interface";
 
-export interface FetchFavoriteComedianParams {
-  query?: string;
-  page?: string;
-}
+export interface FetchFavoriteComedianParams extends FilterParams {}
 
 export interface GetComediansResponse {
   comedians: ComedianInterface[] | LineupItem[]
   query?: string;
-  totalPages: number;
 }
 
 export async function getFavoriteComedians(params?: FetchFavoriteComedianParams) {
@@ -30,9 +27,9 @@ export async function getFavoriteComedians(params?: FetchFavoriteComedianParams)
           'x-auth-token': session.accessToken ?? ''
         },
         body: new URLSearchParams({
-          query: params?.query ?? "", 
+          query: params?.query ?? "",
           page: params?.page ?? "1",
-          pageSize: MEDIUM_ELEMENT_PAGE_REQUEST_SIZE
+          rows: params?.rows ?? MEDIUM_ELEMENT_PAGE_REQUEST_SIZE,
         }),
       })
     })

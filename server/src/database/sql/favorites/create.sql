@@ -1,5 +1,5 @@
 /*
- Creates table Comedians.
+ Creates table favorite_comedians.
  */
 CREATE TABLE IF NOT EXISTS favorite_comedians (
     id SERIAL,

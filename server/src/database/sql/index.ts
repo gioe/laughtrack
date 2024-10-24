@@ -25,6 +25,7 @@ export const comedians = {
     getAllFavorites: sql('comedians/getAllFavorites.sql'),
     getByName: sql('comedians/getByName.sql'),
     getTrending: sql('comedians/getTrending.sql'),
+    getAllParents: sql('comedians/getAllParents.sql'),
 }
 
 export const favorites = {
@@ -40,7 +41,10 @@ export const favorites = {
 
 export const groups = {
     // Create Table
-    // create: sql('groups/create.sql'),
+    create: sql('groups/comedianGroupCreate.sql'),
+
+    // POST
+    add: sql('groups/add.sql'),
 }
 
 export const lineups = {
@@ -65,7 +69,11 @@ export const shows = {
 
     // GETs
     getAllLineupPopularityData: sql('shows/getAllLineupPopularityData.sql'),
-    getWithLineup: sql('shows/getWithLineup.sql')
+    getWithLineup: sql('shows/getWithLineup.sql'),
+    
+    //DELETE 
+
+    deleteByClub: sql('shows/deleteByClub.sql')
 }
 
 export const tags = {

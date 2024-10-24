@@ -1,30 +1,30 @@
 'use client';
 
-import useAddShowsModal from "@/hooks/useAddShowsModal";
+import useClearShowsModal from "@/hooks/useClearShowsModal";
+import useRunScrapeModal from "@/hooks/useRunScrapeModal";
 import {Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button} from "@nextui-org/react";
 
 export const EditClubDowndown = () => {
 
-  const addShowsModal = useAddShowsModal();
-
-  const addShow = () => {
-    addShowsModal.onOpen();
-  }
-
-  const addComedian = () => {
-    addShowsModal.onOpen();
-  }
+  const runScrapeModal = useRunScrapeModal();
+  const clearShowsModal = useClearShowsModal();
 
   const items = [
     {
-      key: "show",
-      label: "Add Show",
+      key: "clear",
+      label: "Clear Shows",
+    },
+    {
+      key: "scrape",
+      label: "Run Scrape",
     }
   ];
 
   const handleClick = (key: string) => {
-    if (key == 'show') {
-      addShow();
+    if (key == 'clear') {
+      clearShowsModal.onOpen();
+    }  else  if (key == 'scrape') {
+      runScrapeModal.onOpen();
     }
   }
 

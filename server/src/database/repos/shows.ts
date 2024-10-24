@@ -63,4 +63,11 @@ export class ShowsRepository {
         const update = this.pgp.helpers.update(scores, columnSets.updateScores) + ' WHERE v.id = t.id';
         return this.db.none(update)
     }
+
+    deleteForClub(id: number): Promise<null> {
+        return this.db.none(sql.deleteByClub, {
+            clubId: id
+        })
+    }
+
 }

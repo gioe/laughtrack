@@ -1,4 +1,6 @@
 CREATE TABLE IF NOT EXISTS comedian_group (
     id SERIAL,
-    comedian_id integer REFERENCES shows(id)
+    parent_id integer REFERENCES comedians(id),
+    child_id integer REFERENCES comedians(id),
+    CONSTRAINT parent_child_pkey PRIMARY KEY (parent_id, child_id)
 );

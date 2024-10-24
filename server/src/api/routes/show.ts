@@ -1,11 +1,11 @@
-import * as showController from '../../controllers/show/index.js'
-import * as tagController from '../../controllers/tag/index.js'
-import * as lineupController from '../../controllers/lineup/index.js'
+import * as showController from '../controllers/show/index.js'
+import * as tagController from '../controllers/tag/index.js'
+import * as lineupController from '../controllers/lineup/index.js'
 
 import bodyParser from "body-parser";
 import express, { Request, Response } from "express";
-import { toCreateLineupItemDTOArray } from '../../../common/util/domainModels/lineupItem/mapper.js';
-import { toCreateShowTagDTOArray } from '../../../common/util/domainModels/tag/mapper.js';
+import { toCreateLineupItemDTOArray } from '../../common/util/domainModels/lineupItem/mapper.js';
+import { toCreateShowTagDTOArray } from '../../common/util/domainModels/tag/mapper.js';
 
 export const showApiRouter = express.Router();
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
@@ -30,7 +30,6 @@ showApiRouter.get('/tags/all', urlencodedParser,
             tags: result
         })
     })
-
 
 showApiRouter.put('/lineup', urlencodedParser,
     async (req: Request, res: Response) => {

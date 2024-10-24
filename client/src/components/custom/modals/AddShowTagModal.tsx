@@ -23,16 +23,16 @@ interface AddShowTagModalProps {
 }
 
 const AddShowTagModal: React.FC<AddShowTagModalProps> = ({
-    show, 
+    show,
     tags
 }) => {
 
     const router = useRouter();
     const addShowTagModal = useAddShowTagModal();
-  
+
     const [isLoading, setIsLoading] = useState(false);
-    const [selectedTags, setSelectedTags] = useState(show.tags ? show.tags.map((tag: TagInterface) => tag.id) :[]);
-    
+    const [selectedTags, setSelectedTags] = useState(show.tags ? show.tags.map((tag: TagInterface) => tag.id) : []);
+
     const { handleSubmit } = useForm<FieldValues>();
 
     const handleSelection = (value: string) => {
@@ -64,7 +64,7 @@ const AddShowTagModal: React.FC<AddShowTagModalProps> = ({
         setIsLoading(true);
 
         axios.post('/api/addTag', {
-            showId: show.id, 
+            showId: show.id,
             tags: selectedTags
         })
             .then((response) => {

@@ -11,8 +11,6 @@ import { UserInterface } from "@/interfaces/user.interface";
 import Header from "@/components/custom/header/Header";
 import { NextUIProvider } from "@nextui-org/react";
 import { SessionProvider } from "next-auth/react";
-import AddShowModal from "@/components/custom/modals/AddShowModal";
-import AddClubModal from "@/components/custom/modals/AddClubModal";
 
 export const metadata: Metadata = {
   title: "Laughtrack",

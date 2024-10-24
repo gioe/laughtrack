@@ -6,11 +6,10 @@ export const addAll = async (items: CreateLineupItemDTO[]): Promise<null> => {
     return db.lineups.addAll(items);
 }
 
-export const update = async (payload: UpdateComedianRelationshipDTO): Promise<null> => {
+export const update = async (payload: UpdateComedianRelationshipDTO): Promise<any[]> => {
     const shows = await db.lineups.findByComedianId(payload.child_id)
-    console.log(shows)
-    if (shows) {
-        console.log("UPDATING SHOWS")
+
+    if (shows && shows.length > 0) {
         const updateRecords = shows.map((item: GetLineupItemDTO) => {
             return {
                 id: item.id,
@@ -18,12 +17,11 @@ export const update = async (payload: UpdateComedianRelationshipDTO): Promise<nu
             } as UpdateLineupItemDTO;
         })
 
-        console.log(`Updating ${updateRecords.length} records: ${updateRecords}`)
         return db.lineups.updateLineups(updateRecords)
     } 
 
 
-    return null
+    return []
 }
 
 

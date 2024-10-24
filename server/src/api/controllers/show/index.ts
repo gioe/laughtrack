@@ -18,3 +18,9 @@ export const generateScores = async (): Promise<null> => {
     .then((response: GroupedPopularityScoreDTO[] | null) => response ? toPopularityScores(response) : [])
     .then((popularityScores: PopularityScoreIODTO[]) => popularityScores.length > 0 ? db.shows.updateScores(popularityScores) : null)
 }
+
+export const deleteShowsForClub = async (payload: any): Promise<null> => {
+    return db.shows.deleteForClub(payload)
+}
+
+
