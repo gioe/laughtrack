@@ -19,8 +19,7 @@ const StylizedInput: React.FC<StylizedInputProps> = ({
     type = 'text', 
     disabled, 
     register,
-    required,
-    errors
+    required
 }) => {
     return (
         <div className="w-full relative"> 

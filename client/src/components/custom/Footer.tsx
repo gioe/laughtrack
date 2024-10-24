@@ -1,14 +1,5 @@
-import React, { Component } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import {
-    IoLogoFacebook,
-    IoLogoInstagram,
-    IoLogoLinkedin,
-    IoLogoTiktok,
-    IoLogoTwitter,
-    IoLogoYoutube,
-} from "react-icons/io5";
 
 export const Footer = () => {
     const currentYear = new Date().getFullYear();

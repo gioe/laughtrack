@@ -4,7 +4,7 @@ interface SideDrawerProps {
     onClose: () => void;
 }
 
-const Drawer: React.FC<SideDrawerProps> = ({ isOpen, onClose }) => {
+const Drawer: React.FC<SideDrawerProps> = ({ isOpen }) => {
   return (
     <div className={`drawer ${isOpen ? 'open' : ''}`}>
       <div className="drawer-content">

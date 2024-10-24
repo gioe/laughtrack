@@ -1,7 +1,5 @@
 
 import { clsx, type ClassValue } from "clsx"
-import { usePathname, useSearchParams } from "next/navigation";
-import { useRouter } from "next/router";
 import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
@@ -37,7 +35,7 @@ const addOrRemoveSingleValue = (params: URLSearchParams, param: string, value: s
 
 const addOrRemoveCommaSeparatedValue = (params: URLSearchParams, param: string, value: string) => {
   const filters = params.get(param)
-  var allValues = filters?.split(",") ?? []
+  let allValues = filters?.split(",") ?? []
   const valueIncluded = allValues.includes(value)
 
   if (!valueIncluded) {

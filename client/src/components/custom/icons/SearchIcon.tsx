@@ -1,5 +1,5 @@
-const SearchIcon = (props: any) => (
-    <svg
+const SearchIcon = (props: React.JSX.IntrinsicAttributes & React.SVGProps<SVGSVGElement>) => (
+  <svg
       aria-hidden="true"
       fill="none"
       focusable="false"

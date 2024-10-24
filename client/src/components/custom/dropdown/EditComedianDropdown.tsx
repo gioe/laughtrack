@@ -1,6 +1,5 @@
 'use client';
 
-import useAddShowsModal from "@/hooks/useAddShowsModal";
 import useMergeComediansModal from "@/hooks/useMergeComediansModal";
 import useSocialDataModal from "@/hooks/useSocialDataModal";
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button } from "@nextui-org/react";
@@ -11,7 +10,6 @@ export const EditComedianDropdown = () => {
   
   const mergeComediansModal = useMergeComediansModal();
 
-  const addShowsModal = useAddShowsModal();
 
   const items = [
     {
@@ -20,11 +18,7 @@ export const EditComedianDropdown = () => {
     }, {
       key: "merge",
       label: "Merge Comedians",
-    },
-    {
-      key: "show",
-      label: "Add Show",
-    },
+    }
   ];
 
   const handleClick = (key: string) => {
@@ -32,8 +26,6 @@ export const EditComedianDropdown = () => {
       socialDataModal.onOpen();
     } else if (key == 'merge') {
       mergeComediansModal.onOpen();
-    } else if (key == "social") {
-      addShowsModal.onOpen();
     }
   }
 

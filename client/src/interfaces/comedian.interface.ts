@@ -1,5 +1,4 @@
 import { ShowProviderInterface } from "./showProvider.interface.js";
-import { ShowInterface } from "./show.interface.js";
 
 export interface ComedianInterface extends ShowProviderInterface {
   id: number;

@@ -13,6 +13,7 @@ var urlencodedParser = bodyParser.urlencoded({ extended: false })
 searchApiRouter.post('/', urlencodedParser,
     async (req: Request, res: Response) => {
         const { location, startDate, endDate, page, rows, query, sort, clubs } = req.body;
+
         if (location == 'undefined' || startDate == 'undefined' || endDate == 'undefined') {
             {
                 return res.status(401).json({ error: 'Required fields missing' })

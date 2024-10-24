@@ -17,7 +17,7 @@ export default async function ComedianDetailsPage(
   const searchParams = await props.searchParams;
   const params = await props.params;
 
-  const response = await getShowDetails(params.id, searchParams) as GetShowDetailsResponse;
+  const response = await getShowDetails(params.id) as GetShowDetailsResponse;
   const showTagsResponse = await getAllShowTags() as GetAllShowTagsReponse
 
   return (
@@ -30,8 +30,7 @@ export default async function ComedianDetailsPage(
       <section>
         <Suspense key={(searchParams?.query ?? 1) + (searchParams?.page ?? "")} fallback={<div />}>
           <ComedianTable response={{
-            comedians: response.entity.lineup,
-            totalPages: 1,
+            comedians: response.entity.lineup
           }} />
         </Suspense>
       </section>

@@ -15,7 +15,6 @@ interface SocialMediaBarProps {
 
 const SocialMediaBar: React.FC<SocialMediaBarProps> = ({
     data,
-    menu
 }) => {
 
     return (

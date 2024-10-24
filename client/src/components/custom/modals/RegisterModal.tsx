@@ -29,7 +29,7 @@ const RegisterModal = () => {
         }
     });
 
-    const onSubmit: SubmitHandler<FieldValues> = (data: any) => {
+    const onSubmit: SubmitHandler<FieldValues> = (data) => {
         setIsLoading(true);
         axios.post('/api/register', data)
         .then(() => {
@@ -38,7 +38,7 @@ const RegisterModal = () => {
                 redirect: false
             })
         })
-        .then((callback: any) => {
+        .then((callback) => {
             setIsLoading(false)
             if (callback?.ok) {
                 toast.success("Logged in")

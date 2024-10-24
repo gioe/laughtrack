@@ -16,22 +16,25 @@ var urlencodedParser = bodyParser.urlencoded({ extended: false })
 clubApiRouter.post('/all',
     urlencodedParser,
     async (req: Request, res: Response) => {
-        const { page, pageSize, sort, city, query } = req.body;
-
+        const { page, rows, sort, city, query } = req.body;
         var clubs: ClubInterface[] = await clubController.getAllClubs()
+
         const totalClubs = clubs.length
+
         var cities: string[] = await clubController.getAllCities()
 
-        clubs = filterClubs(clubs, {
-            city,
-            name: query
-        })
+        if (query) {
+            clubs = filterClubs(clubs, {
+                city,
+                name: query
+            })
+        }
 
         if (sort) {
             clubs = sortClubs(clubs, sort)
         }
 
-        const paginationData = toPaginatedData(clubs, page, pageSize)
+        const paginationData = toPaginatedData(clubs, page, rows)
 
         return res.status(200).send({
             clubs: paginationData.data,
@@ -78,7 +81,7 @@ clubApiRouter.get('/:id', urlencodedParser,
         })
     })
 
-clubApiRouter.get('/cities',
+clubApiRouter.post('/cities',
     async (req: Request, res: Response) => {
         const trendingClubs: string[] = await clubController.getAllCities()
         return res.status(200).send(trendingClubs)

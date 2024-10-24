@@ -55,6 +55,9 @@ export function TablePaginationComponent({ itemCount }: Readonly<TablePagination
         ".MuiTablePagination-actions": {
           color: "#C0C0C0",
         },
+        ".MuiButtonBase-root": {
+          color: "#C0C0C0",
+        },
       }}
       component="div"
       count={itemCount}

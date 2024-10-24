@@ -18,6 +18,7 @@ import { ChevronDownIcon, FunnelIcon, MinusIcon, PlusIcon } from '@heroicons/rea
 import { cn, handleUrlParams } from '@/lib/utils'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { TablePaginationComponent } from '../pagination/TablePaginationComponent'
+import { SortOptionInterface } from '@/interfaces/sortOption.interface'
 
 export interface FilterOption {
     value: string;
@@ -34,7 +35,7 @@ export interface Filter {
 interface FilterPageContainerProps {
     title?: string;
     child: ReactNode;
-    sortOptions: any[];
+    sortOptions: SortOptionInterface[];
     defaultSort: string;
     filterOptions?: Filter[];
     query?: string;

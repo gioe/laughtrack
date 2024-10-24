@@ -2,10 +2,10 @@
 
 import { PUBLIC_ROUTES } from "@/lib/routes"
 
-export async function getTrendingClubs() {
-  const trendingClubsUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.GET_TRENDING_CLUBS
+export async function getTrendingComedians() {
+  const trendingComediansUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.GET_TRENDING_COMEDIANS
 
-  return fetch(trendingClubsUrl, {
+  return fetch(trendingComediansUrl, {
     method: "POST",
   })
     .then((response) => response.json())

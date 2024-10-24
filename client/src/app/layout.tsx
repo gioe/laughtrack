@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Nunito } from 'next/font/google'
 import "./globals.css";
 import ClientOnly from "@/components/custom/ClientOnly";
 import ToasterProvider from "@/providers/ToasterProvider";
@@ -17,9 +16,6 @@ export const metadata: Metadata = {
   description: "Find comics you love",
 };
 
-const font = Nunito({
-  subsets: ["latin"]
-})
 
 export default async function RootLayout({
   children,

@@ -37,7 +37,7 @@ export default async function CityDetailPage(
   )
 }
 
-const buildFilters = (params: any, results: any) => {
+const buildFilters = (params: HomeSearchParams, results: HomeSearchResultResponse) => {
 
   const clubFilter = {
     id: 'clubs',
@@ -114,7 +114,7 @@ const buildFilters = (params: any, results: any) => {
   return [clubFilter, priceFilter, showType];
 }
 
-const buildTitle = (params: any, results: any): string => {
+const buildTitle = (params: HomeSearchParams, results: HomeSearchResultResponse): string => {
   const formattedStartDate = params?.startDate ? moment(new Date(params.startDate)).format('ll') : moment(new Date()).format('ll')
   const formattedEndDate = params?.endDate ? moment(new Date(params.endDate)).format('ll') : moment(new Date()).format('ll')
   const range = `between ${formattedStartDate} - ${formattedEndDate}`

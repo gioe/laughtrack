@@ -5,7 +5,6 @@ export async function refreshAccessToken(token: JWT) {
   const url = process.env.URL_DOMAIN + PUBLIC_ROUTES.REFRESH_TOKEN
 
   return fetch(url, {
-    cache: 'no-store',
     method: "POST",
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
@@ -24,6 +23,7 @@ export async function refreshAccessToken(token: JWT) {
       };
     })
     .catch((error) => {
+      console.error(error)
       return {
         ...token,
         error: "RefreshAccessTokenError",

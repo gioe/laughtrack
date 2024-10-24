@@ -36,8 +36,8 @@ const AddShowTagModal: React.FC<AddShowTagModalProps> = ({
     const { handleSubmit } = useForm<FieldValues>();
 
     const handleSelection = (value: string) => {
-        var valueNumber = Number(value)
-        var newTags = selectedTags
+        const valueNumber = Number(value)
+        let newTags = selectedTags
 
         const existingTag = selectedTags.find((id: number) => id == valueNumber)
 
@@ -60,7 +60,7 @@ const AddShowTagModal: React.FC<AddShowTagModalProps> = ({
         }
     })
 
-    const onSubmit: SubmitHandler<FieldValues> = (data) => {
+    const onSubmit: SubmitHandler<FieldValues> = () => {
         setIsLoading(true);
 
         axios.post('/api/addTag', {

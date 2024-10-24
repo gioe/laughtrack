@@ -1,15 +1,15 @@
 
-import { getComedianDetails, GetComedianDetailsParams, GetComedianDetailsResponse } from "@/actions/comedians/getComedianDetails";
+import { getComedianDetails, GetComedianDetailsParams } from "@/actions/comedians/getComedianDetails";
 import EntityBanner from "@/components/custom/banners/EntityBanner";
 import { EditComedianDropdown } from "@/components/custom/dropdown/EditComedianDropdown";
 import FilterPageContainer from "@/components/custom/filters/FilterPageContainer";
-import AddShowModal from "@/components/custom/modals/AddShowModal";
 import EditSocialDataModal from "@/components/custom/modals/EditSocialDataModal";
 import MergeComediansModal from "@/components/custom/modals/MergeComediansModal";
 import ShowTable, { PaginatedShowPageInterface } from "@/components/custom/tables/ShowTable";
+import { SortOptionInterface } from "@/interfaces/sortOption.interface";
 import { Suspense } from "react";
 
-const sortOptions = [
+const sortOptions: SortOptionInterface[] = [
   { name: 'Date', value: 'date' },
   { name: 'Most Popular', value: 'popularity' },
   { name: 'Price: Low to High', value: 'low_to_high' },
@@ -31,7 +31,6 @@ export default async function ComedianDetailsPage(
   return (
     <div className="flex flex-col">
       <MergeComediansModal entity={response.entity} />
-      <AddShowModal entity={response.entity} />
       <EditSocialDataModal entity={response.entity} />
       <section>
         <EntityBanner entity={response.entity} menu=

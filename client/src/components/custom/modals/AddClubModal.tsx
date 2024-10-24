@@ -10,12 +10,9 @@ import {
 import useAddClubModal from '@/hooks/useAddClubModal';
 import Modal from './Modal';
 import Heading from '../Heading';
-import toast from 'react-hot-toast';
-import { useRouter } from 'next/navigation';
 import StylizedInput from '../inputs/StylizedInput';
 
 const AddClubModal = () => {
-    const router = useRouter();
     const addClubModal = useAddClubModal();
     const [isLoading, setIsLoading] = useState(false);
 
@@ -29,7 +26,7 @@ const AddClubModal = () => {
         }
     });
 
-    const onSubmit: SubmitHandler<FieldValues> = (data) => {
+    const onSubmit: SubmitHandler<FieldValues> = () => {
         setIsLoading(true);
 
     }

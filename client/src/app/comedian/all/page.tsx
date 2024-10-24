@@ -1,7 +1,7 @@
 import { FetchPaginatedComedianParams, getPaginatedComedians, GetPaginatedComediansResponse } from "@/actions/comedians/getPaginatedComedians";
 import { Suspense } from 'react';
 import ComedianTable from "@/components/custom/tables/ComedianTable";
-import FilterPageContainer, { FilterOption } from "@/components/custom/filters/FilterPageContainer";
+import FilterPageContainer from "@/components/custom/filters/FilterPageContainer";
 
 const sortOptions = [
   { name: 'Most Popular', value: 'popularity' },

@@ -7,7 +7,6 @@ import { HeartIcon as SolidHeart } from "@heroicons/react/24/solid";
 import Image from "next/image";
 import Link from "next/link";
 import { ComedianInterface } from '@/interfaces/comedian.interface';
-import useLoginModal from '@/hooks/useLoginModal';
 import useRegisterModal from '@/hooks/useRegisterModel';
 import { useSession } from "next-auth/react";
 import { updateFavoriteState } from '@/actions/favorite/addToFavorites';
@@ -28,17 +27,16 @@ const ComedianInfoCard: React.FC<ComedianInfoCardProps> = ({
       setSrc(`/images/logo.png`);
     };
 
-    const loginModal = useLoginModal();
     const registerModal = useRegisterModal();
     const session = useSession();
-    const [isOpen, setIsOpen] = useState(false);
+    const [/*isOpen */, setIsOpen] = useState(false);
 
     const [isFavorite, setIsFavorite] = useState(comedian.favoriteId ? true : false)
 
     const requireLogin = useCallback(() => {
         setIsOpen((value => !value));
         registerModal.onOpen()
-    }, [loginModal])
+    }, [registerModal])
 
 
     const handleFavoriteClick = () => {

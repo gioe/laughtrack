@@ -1,5 +1,5 @@
 import * as React from "react"
-const InstagramIcon = (props: any) => (
+const InstagramIcon = (props: React.JSX.IntrinsicAttributes & React.SVGProps<SVGSVGElement>) => (
   <svg
     className="hover:fill-current"
     xmlns="http://www.w3.org/2000/svg"

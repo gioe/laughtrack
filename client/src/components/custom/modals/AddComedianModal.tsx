@@ -13,7 +13,6 @@ import { Chip } from "@nextui-org/react";
 import useAddComedianModal from '@/hooks/useAddComedianModal';
 import Modal from './Modal';
 import { useRouter } from 'next/navigation';
-import { ComedianFilterInterface, ComedianInterface } from '@/interfaces/comedian.interface';
 import { LineupItem } from '@/interfaces/lineupItem.interface';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -32,9 +31,9 @@ const AddComedianModal: React.FC<AddComedianModalProps> = ({
 
     const router = useRouter();
 
-    let list = useAsyncList<LineupItem>({
-        async load({ signal, filterText }) {
-            let res = await getPaginatedComedians({
+    const list = useAsyncList<LineupItem>({
+        async load({ filterText }) {
+            const res = await getPaginatedComedians({
                 query: filterText,
                 sort: "alphabetical"
             })
@@ -44,7 +43,7 @@ const AddComedianModal: React.FC<AddComedianModalProps> = ({
         },
     });
 
-    const { register, handleSubmit, formState } = useForm<FieldValues>();
+    const { handleSubmit } = useForm<FieldValues>();
 
     const addComedianModal = useAddComedianModal();
 
@@ -54,7 +53,7 @@ const AddComedianModal: React.FC<AddComedianModalProps> = ({
     const handleSelection = (key: Key | null) => {
         if (key) {
             const selectedComedian = list.items.find(comedian => comedian.id == key)
-            var newComedians = comedians;
+            const newComedians = comedians;
             if (selectedComedian) {
                 newComedians.push(selectedComedian)
                 setComedians(newComedians)
@@ -66,7 +65,7 @@ const AddComedianModal: React.FC<AddComedianModalProps> = ({
         setComedians(comedians.filter(comedian => comedian.name !== item.name));
     };
 
-    const onSubmit: SubmitHandler<FieldValues> = (data) => {
+    const onSubmit: SubmitHandler<FieldValues> = () => {
         setIsLoading(true);
 
         axios.post('/api/addToLineup', {

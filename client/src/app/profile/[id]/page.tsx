@@ -3,9 +3,7 @@ interface ProfilePageProps {
     id: string;
 }
 
-const ProfilePage: React.FC<ProfilePageProps> = async ({
-    id,
-}) => {
+const ProfilePage: React.FC<ProfilePageProps> = async () => {
     return (
         <div></div>
     )

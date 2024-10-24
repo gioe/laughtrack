@@ -7,7 +7,6 @@ import toast from 'react-hot-toast';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import useClearShowsModal from '@/hooks/useClearShowsModal';
-import { ShowProviderInterface } from '@/interfaces/showProvider.interface';
 
 interface ClearShowsModalParams {
     clubId: number

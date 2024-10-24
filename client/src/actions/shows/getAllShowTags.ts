@@ -3,6 +3,7 @@
 import { auth } from "@/auth";
 import { TagInterface } from "@/interfaces/tag.interface";
 import { PUBLIC_ROUTES } from "@/lib/routes"
+import { Session } from "next-auth";
 
 export interface GetAllShowTagsReponse {
   tags: TagInterface[];
@@ -13,13 +14,12 @@ export async function getAllShowTags() {
   const getClubDetailsUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.GET_SHOW_TAGS
 
   return auth()
-    .then((session: any) => {
+    .then((session: Session | null) => {
       return fetch(getClubDetailsUrl, {
-        cache: 'no-store',
         method: "GET",
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          'x-auth-token': session.accessToken ?? ''
+          'x-auth-token': session?.accessToken ?? ''
         },
       });
     })

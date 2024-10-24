@@ -6,6 +6,8 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Avatar, Chip } from "@nextui-org/react";
+import { ComedianInterface } from "@/interfaces/comedian.interface";
+import { ClubInterface } from "@/interfaces/club.interface";
 
 export type PropertyFilter = {
   key: string;
@@ -15,8 +17,8 @@ export type PropertyFilter = {
 interface FilterComponentProps {
   selectedFilter?: string;
   propertyFilters?: PropertyFilter[];
-  comedians?: any[]
-  clubs?: any[]
+  comedians?: ComedianInterface[]
+  clubs?: ClubInterface[]
 }
 
 const FilterComponent: React.FC<FilterComponentProps> = ({
@@ -39,7 +41,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
 
   const [value, setValue] = useState(capitalizeFirstLetter(selectedFilter) ?? 'date_time');
 
-  const handleSelectionChange = (e: any) => {
+  const handleSelectionChange = (e: { target: { value: string; }; }) => {
     const filterValue = e.target.value as string
     setValue(filterValue);
     createNewPageUrl(filterValue.toLowerCase())
@@ -80,7 +82,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
             base: "max-w-xs",
             trigger: "min-h-12 py-2",
           }}
-          renderValue={(items: SelectedItems<any>) => {
+          renderValue={(items: SelectedItems<ComedianInterface>) => {
             return (
               <div className="flex flex-wrap gap-2">
                 {items.map((item) => (
@@ -116,7 +118,7 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
             base: "max-w-xs",
             trigger: "min-h-12 py-2",
           }}
-          renderValue={(items: SelectedItems<any>) => {
+          renderValue={(items: SelectedItems<ClubInterface>) => {
             return (
               <div className="flex flex-wrap gap-2">
                 {items.map((item) => (

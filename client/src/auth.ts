@@ -4,7 +4,6 @@ import { PUBLIC_ROUTES } from "./lib/routes";
 import { jwtDecode } from "jwt-decode";
 import { signInSchema } from "./lib/validations";
 import { refreshAccessToken } from "./lib/token";
-import { error } from "console";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -44,7 +43,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             email: jsonResponse.data.user.email,
           };
         } catch (e) {
-          console.log(error)
           console.error(e);
           return null;
         }
@@ -82,7 +80,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return refreshAccessToken(token);
     },
 
-    async session(value: any) {
+    async session(value) {
       const { session, token } = value
       if (token) {
         session.accessToken = token.accessToken;

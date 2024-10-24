@@ -8,7 +8,6 @@ import { ShowProviderInterface } from "@/interfaces/showProvider.interface";
 export interface PaginatedShowPageInterface {
     entity: ShowProviderInterface;
     totalShows: number;
-    totalPages: number
 }
 
 interface ShowTableProps {
