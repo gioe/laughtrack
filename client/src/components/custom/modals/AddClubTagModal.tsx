@@ -10,35 +10,33 @@ import Modal from './Modal';
 import Heading from '../Heading';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
-import useAddShowTagModal from '@/hooks/useAddShowTagModal';
 import axios from 'axios';
-import { ShowInterface } from '@/interfaces/show.interface';
 import { TagInterface } from '@/interfaces/tag.interface';
 import { Disclosure, DisclosurePanel } from '@headlessui/react';
 import { FilterOption } from '../filters/FilterPageContainer';
+import { ClubInterface } from '@/interfaces/club.interface';
+import useAddClubModal from '@/hooks/useAddClubModal';
 
-interface AddShowTagModalProps {
-    show: ShowInterface
+interface AddClubTagModalProps {
+    club: ClubInterface
     tags: TagInterface[]
 }
 
-const AddShowTagModal: React.FC<AddShowTagModalProps> = ({
-    show,
+const AddClubTagModal: React.FC<AddClubTagModalProps> = ({
+    club,
     tags
 }) => {
 
     const router = useRouter();
-    const addShowTagModal = useAddShowTagModal();
-
+    const addClubTagModal = useAddClubModal();
     const [isLoading, setIsLoading] = useState(false);
-    const [selectedTags, setSelectedTags] = useState(show.tags ? show.tags.map((tag: TagInterface) => tag.id) : []);
+    const [selectedTags, setSelectedTags] = useState(club.tags ? club.tags.map((tag: TagInterface) => tag.id) : []);
 
     const { handleSubmit } = useForm<FieldValues>();
 
     const handleSelection = (value: string) => {
         const valueNumber = Number(value)
         let newTags = selectedTags
-
         const existingTag = selectedTags.find((id: number) => id == valueNumber)
 
         if (existingTag) {
@@ -63,8 +61,8 @@ const AddShowTagModal: React.FC<AddShowTagModalProps> = ({
     const onSubmit: SubmitHandler<FieldValues> = () => {
         setIsLoading(true);
 
-        axios.post('/api/show/addTag', {
-            showId: show.id,
+        axios.post('/api/club/addTag', {
+            clubId: club.id,
             tags: selectedTags
         })
             .then((response) => {
@@ -72,7 +70,7 @@ const AddShowTagModal: React.FC<AddShowTagModalProps> = ({
                     setIsLoading(false)
                     toast.success("Successfully updated")
                     router.refresh();
-                    addShowTagModal.onClose();
+                    addClubTagModal.onClose();
                 }
             })
     }
@@ -117,14 +115,14 @@ const AddShowTagModal: React.FC<AddShowTagModalProps> = ({
     return (
         <Modal
             disabled={isLoading}
-            isOpen={addShowTagModal.isOpen}
+            isOpen={addClubTagModal.isOpen}
             title='Add Tags'
             actionLabel='Continue'
-            onClose={addShowTagModal.onClose}
+            onClose={addClubTagModal.onClose}
             onSubmit={handleSubmit(onSubmit)}
             body={bodyContent}
         />
     )
 }
 
-export default AddShowTagModal;
+export default AddClubTagModal;

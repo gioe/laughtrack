@@ -1,6 +1,7 @@
 import * as comedianController from "../controllers/comedian/index.js"
 import * as lineupController from "../controllers/lineup/index.js"
 import * as groupController from "../controllers/group/index.js"
+import * as tagController from "../controllers/tag/index.js"
 
 import bodyParser from "body-parser";
 import express, { Request, Response } from "express";
@@ -10,6 +11,7 @@ import { toPaginatedData } from "../../common/util/domainModels/pagination/mappe
 import { toUpdateSocialDataDTO } from "../../common/util/domainModels/socialData/mapper.js";
 import { sortComedians } from "../../common/util/domainModels/comedian/sort.js";
 import { filterComedians } from "../../common/util/domainModels/comedian/filter.js";
+import { toCreateComedianTagDTOArray } from "../../common/util/domainModels/tag/mapper.js";
 
 export const comedianApiRouter = express.Router();
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
@@ -137,10 +139,38 @@ comedianApiRouter.put('/merge',
     urlencodedParser,
     async (req: Request, res: Response) => {
         const input = toUpdateComedianRelationshipDTO(req.body)
-        
+
         await groupController.establishGroup(input)
         await lineupController.update(input)
 
+        return res.status(200).send({
+            success: true
+        })
+    })
+
+comedianApiRouter.get('/tags/all', urlencodedParser,
+    async (req: Request, res: Response) => {
+        const result = await tagController.getAllByType({
+            type: 'comedian'
+        })
+        return res.status(200).send({
+            tags: result
+        })
+    })
+
+
+comedianApiRouter.put('/tag', urlencodedParser,
+    async (req: Request, res: Response) => {
+        const { tags, comedianId } = req.body
+        const idArray = tags.split(",")
+        const tagIds = idArray.map((value: string) => {
+            return {
+                id: value
+            }
+        })
+        const input = toCreateComedianTagDTOArray(tagIds, comedianId)
+
+        await tagController.addComedianTags(input)
         return res.status(200).send({
             success: true
         })

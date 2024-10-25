@@ -20,6 +20,7 @@ export const PUBLIC_ROUTES = {
     GET_FAVORITE_COMEDIANS: '/api/comedian/favorite/all',
     UPDATE_SOCIAL_DATA: '/api/comedian/social',
     MERGE_COMEDIANS: '/api/comedian/merge',
+    UPDATE_COMEDIAN_TAGS: '/api/comedian/tag',
 
     // Shows
     GET_SHOW_DETAILS: '/api/show',
@@ -31,7 +32,7 @@ export const PUBLIC_ROUTES = {
 
     // Tags
     GET_SHOW_TAGS: '/api/show/tags/all',
-    GET_COMEDIAN_TAGS: '/api/comedian/tag/all',
+    GET_COMEDIAN_TAGS: '/api/comedian/tags/all',
     GET_CLUB_TAGS: '/api/club/tag/all',
 
     // Action

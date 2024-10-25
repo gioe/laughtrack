@@ -9,9 +9,9 @@ import Link from "next/link";
 import { ComedianInterface } from '@/interfaces/comedian.interface';
 import useRegisterModal from '@/hooks/useRegisterModel';
 import { useSession } from "next-auth/react";
-import { updateFavoriteState } from '@/actions/favorite/addToFavorites';
 import SocialMediaBar from '../../social/SocialMediaBar';
 import { LineupItem } from '@/interfaces/lineupItem.interface';
+import axios from 'axios';
 
 interface ComedianInfoCardProps {
     comedian: ComedianInterface | LineupItem
@@ -41,11 +41,11 @@ const ComedianInfoCard: React.FC<ComedianInfoCardProps> = ({
 
     const handleFavoriteClick = () => {
         if (session.status == 'authenticated') {
-            updateFavoriteState({
-                id: comedian.id, 
+            axios.put(`/api/comedian/${comedian.id}/avorite`, {
                 isFavorite
-            }).then((state: boolean) => {
-                setIsFavorite(state)
+            })
+            .then((response: any) => {
+                setIsFavorite(response.state)
             })
         }
         else {

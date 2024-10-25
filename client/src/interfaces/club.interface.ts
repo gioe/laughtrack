@@ -1,4 +1,5 @@
 import { ShowProviderInterface } from "./showProvider.interface.js";
+import { TagInterface } from "./tag.interface.js";
 
 export interface ClubInterface extends ShowProviderInterface {
   id: number
@@ -8,6 +9,7 @@ export interface ClubInterface extends ShowProviderInterface {
   address: string;
   popularityScore: number;
   zipCode: string;
+  tags?: TagInterface[]
 }
 
 export interface ClubScrapingData {

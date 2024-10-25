@@ -1,5 +1,6 @@
 import * as clubController from "../controllers/club/index.js"
 import * as showController from "../controllers/show/index.js"
+import * as tagController from "../controllers/tag/index.js"
 
 import bodyParser from "body-parser";
 import express, { Request, Response } from "express";
@@ -9,6 +10,7 @@ import { sortShows } from "../../common/util/domainModels/show/sort.js";
 import { sortClubs } from "../../common/util/domainModels/club/sort.js";
 import { filterClubs } from "../../common/util/domainModels/club/filter.js";
 import { filterShows } from "../../common/util/domainModels/show/filter.js";
+import { toCreateClubTagDTOArray, toCreateComedianTagDTOArray } from "../../common/util/domainModels/tag/mapper.js";
 
 export const clubApiRouter = express.Router();
 var urlencodedParser = bodyParser.urlencoded({ extended: false })
@@ -92,6 +94,33 @@ clubApiRouter.post('/clear', urlencodedParser,
     async (req: Request, res: Response) => {
         const { id } = req.body
         await showController.deleteShowsForClub(id)
+        return res.status(200).send({
+            success: true
+        })
+    })
+
+clubApiRouter.get('/tags/all', urlencodedParser,
+    async (req: Request, res: Response) => {
+        const result = await tagController.getAllByType({
+            type: 'club'
+        })
+        return res.status(200).send({
+            tags: result
+        })
+    })
+
+clubApiRouter.put('/tag', urlencodedParser,
+    async (req: Request, res: Response) => {
+        const { tags, clubId } = req.body
+        const idArray = tags.split(",")
+        const tagIds = idArray.map((value: string) => {
+            return {
+                id: value
+            }
+        })
+        const input = toCreateClubTagDTOArray(tagIds, clubId)
+
+        await tagController.addClubTags(input)
         return res.status(200).send({
             success: true
         })

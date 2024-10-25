@@ -1,7 +1,11 @@
 import moment from 'moment';
 import SearchResultsTable from "@/components/custom/tables/SearchResultsTable";
-import { getSearchResults, HomeSearchParams, HomeSearchResultResponse } from "@/actions/search/getSearchResults";
 import FilterPageContainer, { FilterOption } from '@/components/custom/filters/FilterPageContainer';
+import { PUBLIC_ROUTES } from '@/lib/routes';
+import { CityInterface } from '@/interfaces/city.interface';
+import { ShowProviderInterface } from '@/interfaces/showProvider.interface';
+import { FilterParams } from '@/interfaces/filterParams.interface';
+import { executePost } from '@/actions/executePost';
 
 const sortOptions = [
   { name: 'Date', value: 'date' },
@@ -10,6 +14,35 @@ const sortOptions = [
   { name: 'Price: High to Low', value: 'high_to_low' }
 ]
 
+export interface HomeSearchParams extends FilterParams {
+  location: string;
+  startDate: string;
+  endDate: string;
+  clubs?: string;
+}
+
+export interface HomeSearchResultResponse extends ShowProviderInterface {
+  entity: CityInterface;
+  clubs: string[];
+  totalShows: number
+}
+
+export async function getSearchResults(params: HomeSearchParams) {
+
+  const upcomingShowsUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.HOME_SEARCH
+
+  return executePost<HomeSearchResultResponse>(upcomingShowsUrl, {
+    location: params.location,
+    startDate: params.startDate,
+    endDate: params.endDate,
+    sort: params.sort ?? "date",
+    clubs: params.clubs ?? "",
+    query: params.query ?? "",
+    page: params.page ?? "0",
+    rows: params.rows ?? "10"
+  })
+}
+
 export default async function CityDetailPage(
   props: {
     searchParams: Promise<HomeSearchParams>;
@@ -17,7 +50,7 @@ export default async function CityDetailPage(
 ) {
   const searchParams = await props.searchParams;
 
-  const searchResults = await getSearchResults(searchParams) as HomeSearchResultResponse;
+  const searchResults = await getSearchResults(searchParams);
   const title = buildTitle(searchParams, searchResults)
   const filters = buildFilters(searchParams, searchResults)
 

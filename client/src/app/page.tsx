@@ -1,10 +1,31 @@
 'use server';
 
 import { ComedianInterface } from "@/interfaces/comedian.interface";
+import { PUBLIC_ROUTES } from "@/lib/routes"
 import LargeComedianInfoCard from "@/components/custom/tables/cards/LargeComedianInfoCard";
 import LandingPageSearchBar from "@/components/custom/filters/LandingPageSearchBar";
-import { LandingPageResponseInterface } from "@/interfaces/landingPageResponse.interface";
-import { getLandingPageData } from "@/actions/landing/getLandingPageData";
+import { executePost } from "@/actions/executePost";
+
+export interface LandingPageResponseInterface {
+  trendingComedians: ComedianInterface[]
+  cities: string[];
+}
+
+export async function getLandingPageData() {
+
+  const getCitiesUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.GET_CITIES
+  const trendingComediansUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.GET_TRENDING_COMEDIANS
+
+  return Promise.all([
+    executePost<string[]>(getCitiesUrl),
+    executePost<ComedianInterface[]>(trendingComediansUrl)]
+    ).then((responses) => {
+    return {
+      cities: responses[0],
+      trendingComedians: responses[1],
+    } as LandingPageResponseInterface
+  })
+}
 
 export default async function LandingPage() {
 

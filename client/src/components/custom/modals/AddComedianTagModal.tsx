@@ -10,35 +10,34 @@ import Modal from './Modal';
 import Heading from '../Heading';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
-import useAddShowTagModal from '@/hooks/useAddShowTagModal';
 import axios from 'axios';
-import { ShowInterface } from '@/interfaces/show.interface';
 import { TagInterface } from '@/interfaces/tag.interface';
 import { Disclosure, DisclosurePanel } from '@headlessui/react';
 import { FilterOption } from '../filters/FilterPageContainer';
+import { ShowProviderInterface } from '@/interfaces/showProvider.interface';
+import useAddComedianTagModal from '@/hooks/useAddComedianTagModal';
+import { ComedianInterface } from '@/interfaces/comedian.interface';
 
-interface AddShowTagModalProps {
-    show: ShowInterface
+interface AddComediantagModalProps {
+    comedian: ComedianInterface
     tags: TagInterface[]
 }
 
-const AddShowTagModal: React.FC<AddShowTagModalProps> = ({
-    show,
+const AddComedianTagModal: React.FC<AddComediantagModalProps> = ({
+    comedian,
     tags
 }) => {
 
     const router = useRouter();
-    const addShowTagModal = useAddShowTagModal();
-
+    const addComedianTagModal = useAddComedianTagModal();
     const [isLoading, setIsLoading] = useState(false);
-    const [selectedTags, setSelectedTags] = useState(show.tags ? show.tags.map((tag: TagInterface) => tag.id) : []);
+    const [selectedTags, setSelectedTags] = useState(comedian.tags ? comedian.tags.map((tag: TagInterface) => tag.id) : []);
 
     const { handleSubmit } = useForm<FieldValues>();
 
     const handleSelection = (value: string) => {
         const valueNumber = Number(value)
         let newTags = selectedTags
-
         const existingTag = selectedTags.find((id: number) => id == valueNumber)
 
         if (existingTag) {
@@ -63,8 +62,8 @@ const AddShowTagModal: React.FC<AddShowTagModalProps> = ({
     const onSubmit: SubmitHandler<FieldValues> = () => {
         setIsLoading(true);
 
-        axios.post('/api/show/addTag', {
-            showId: show.id,
+        axios.post('/api/comedian/addTag', {
+            comedianId: comedian.id,
             tags: selectedTags
         })
             .then((response) => {
@@ -72,7 +71,7 @@ const AddShowTagModal: React.FC<AddShowTagModalProps> = ({
                     setIsLoading(false)
                     toast.success("Successfully updated")
                     router.refresh();
-                    addShowTagModal.onClose();
+                    addComedianTagModal.onClose();
                 }
             })
     }
@@ -117,14 +116,14 @@ const AddShowTagModal: React.FC<AddShowTagModalProps> = ({
     return (
         <Modal
             disabled={isLoading}
-            isOpen={addShowTagModal.isOpen}
+            isOpen={addComedianTagModal.isOpen}
             title='Add Tags'
             actionLabel='Continue'
-            onClose={addShowTagModal.onClose}
+            onClose={addComedianTagModal.onClose}
             onSubmit={handleSubmit(onSubmit)}
             body={bodyContent}
         />
     )
 }
 
-export default AddShowTagModal;
+export default AddComedianTagModal;

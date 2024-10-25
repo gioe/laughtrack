@@ -5,17 +5,42 @@ import ToasterProvider from "@/providers/ToasterProvider";
 import LoginModal from "@/components/custom/modals/LoginModal";
 import RegisterModal from "@/components/custom/modals/RegisterModal";
 import Footer from "@/components/custom/Footer";
-import { getCurrentUser } from "@/actions/auth/getCurrentUser";
 import { UserInterface } from "@/interfaces/user.interface";
 import Header from "@/components/custom/header/Header";
 import { NextUIProvider } from "@nextui-org/react";
 import { SessionProvider } from "next-auth/react";
+import { auth } from "@/auth";
+import { cache } from "react";
 
 export const metadata: Metadata = {
   title: "Laughtrack",
   description: "Find comics you love",
 };
 
+export const getSession = cache(async () => {
+  const session = await auth();
+  return session;
+});
+
+export async function getCurrentUser() {
+  try {
+      const session = await getSession();
+
+      if (!session?.user?.email) {
+          return null;
+      }
+
+      return {
+          id: session.user.id,
+          email: session.user.email,
+          role: session.user.role
+      }
+  }
+  catch (error) {
+      return null;
+  }
+
+}
 
 export default async function RootLayout({
   children,

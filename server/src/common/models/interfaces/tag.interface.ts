@@ -23,3 +23,14 @@ export interface TagShowDTO {
   show_id: number;
   tag_id: number;
 }
+
+export interface TagComedianDTO {
+  comedian_id: number;
+  tag_id: number;
+}
+
+export interface TagClubDTO {
+  club_id: number;
+  tag_id: number;
+}
+

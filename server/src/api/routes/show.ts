@@ -22,7 +22,6 @@ showApiRouter.get('/:id', urlencodedParser,
 
 showApiRouter.get('/tags/all', urlencodedParser,
     async (req: Request, res: Response) => {
-        const id = Number(req.params.id)
         const result = await tagController.getAllByType({
             type: 'show'
         })
@@ -58,7 +57,7 @@ showApiRouter.put('/tag', urlencodedParser,
         })
         const input = toCreateShowTagDTOArray(tagIds, showId)
         
-        await tagController.addAll(input)
+        await tagController.addShowTags(input)
         return res.status(200).send({
             success: true
         })

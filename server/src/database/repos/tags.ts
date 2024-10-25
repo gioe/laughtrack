@@ -1,11 +1,16 @@
 import {ColumnSet, IDatabase, IMain} from 'pg-promise';
 import {tags as sql} from '../sql/index.js';
-import { GetTagDTO, GetTagResponseDTO, TagShowDTO } from '../../common/models/interfaces/tag.interface.js';
+import { GetTagDTO, GetTagResponseDTO, TagClubDTO, TagComedianDTO, TagShowDTO } from '../../common/models/interfaces/tag.interface.js';
 
 var columnSets: {
-    addAll: ColumnSet | null;
+    addAllShowTags: ColumnSet | null;
+    addAllComedianTags: ColumnSet | null;
+    addAllClubTags: ColumnSet | null;
+
 } = {
-    addAll: null
+    addAllShowTags: null,
+    addAllComedianTags: null,
+    addAllClubTags: null
 }
 
 
@@ -27,7 +32,9 @@ export class TagsRepository {
           this.createClubTagsTable();
           this.createComedianTagsTable();
           this.createShowTagsTable();
-          columnSets.addAll = new pgp.helpers.ColumnSet(['show_id', 'tag_id' ], {table: 'show_tags'});
+          columnSets.addAllShowTags = new pgp.helpers.ColumnSet(['show_id', 'tag_id' ], {table: 'show_tags'});
+          columnSets.addAllComedianTags = new pgp.helpers.ColumnSet(['comedian_id', 'tag_id' ], {table: 'comedian_tags'});
+          columnSets.addAllClubTags = new pgp.helpers.ColumnSet(['club_id', 'tag_id' ], {table: 'club_tags'});
     }
 
     create(): Promise<null> {
@@ -53,8 +60,18 @@ export class TagsRepository {
         });
     }
     
-    addAll(all: TagShowDTO[]): Promise<null> {
-        const batchInsert = this.pgp.helpers.insert(all, columnSets.addAll) + ` ON CONFLICT DO NOTHING`;
+    addAllShowTags(all: TagShowDTO[]): Promise<null> {
+        const batchInsert = this.pgp.helpers.insert(all, columnSets.addAllShowTags) + ` ON CONFLICT DO NOTHING`;
+        return this.db.none(batchInsert)
+    }
+
+    addAllComedianTags(all: TagComedianDTO[]): Promise<null> {
+        const batchInsert = this.pgp.helpers.insert(all, columnSets.addAllComedianTags) + ` ON CONFLICT DO NOTHING`;
+        return this.db.none(batchInsert)
+    }
+
+    addAllClubTags(all: TagClubDTO[]): Promise<null> {
+        const batchInsert = this.pgp.helpers.insert(all, columnSets.addAllClubTags) + ` ON CONFLICT DO NOTHING`;
         return this.db.none(batchInsert)
     }
 
