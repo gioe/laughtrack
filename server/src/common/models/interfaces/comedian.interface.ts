@@ -61,3 +61,8 @@ export interface UpdateLineupItemDTO {
   id: number,
   comedian_id: number
 }
+
+export interface UpdateComedianHashDTO {
+  id: number;
+  uuid_id: string
+}

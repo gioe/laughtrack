@@ -46,7 +46,7 @@ const storeOutput = async (all: ScrapingOutput[]): Promise<void> => {
 }
 
 const runScraper = async (club: ClubScrapingData, headless?: boolean): Promise<ScrapingOutput[]> => {
-    return playwright.chromium.launch({ headless: headless ? headless : true })
+    return playwright.chromium.launch({ headless: headless ? headless : false })
         .then(browser => createScrapingFunction(club, browser))
 }
 
@@ -76,9 +76,9 @@ const storeOutputInstance = async (instance: ScrapingOutput): Promise<null> => {
     const show = await showController.add(instance.show)
 
     if (instance.comedians.length > 0) {
-        const comedians = await comedianController.addAll(instance.comedians)
-        const parentComedians = await comedianController.getParents(comedians)
-        const lineupItems = toCreateLineupItemDTOArray(parentComedians, show.id)
+        const uuids = await comedianController.addAll(instance.comedians)
+        const ids = await comedianController.getByUUIDs(uuids)
+        const lineupItems = toCreateLineupItemDTOArray(ids, show.id)
         return lineupController.addAll(lineupItems)
     }
 

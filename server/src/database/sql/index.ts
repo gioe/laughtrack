@@ -25,7 +25,7 @@ export const comedians = {
     getAllFavorites: sql('comedians/getAllFavorites.sql'),
     getByName: sql('comedians/getByName.sql'),
     getTrending: sql('comedians/getTrending.sql'),
-    getAllParents: sql('comedians/getAllParents.sql'),
+    getAllIdsByUuids: sql('comedians/getAllIdsByUuids.sql')
 }
 
 export const favorites = {

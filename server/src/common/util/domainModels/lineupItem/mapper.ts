@@ -12,11 +12,11 @@ export const toLineupItem = (payload: LineupItemDTO): LineupItem => {
     }
 }
 
-export const toCreateLineupItemDTOArray = (comedians: { id: number }[], showId: number): CreateLineupItemDTO[] => {
-    return comedians.map((comedian: { id: number }) => {
+export const toCreateLineupItemDTOArray = (comedianIds: number[], showId: number): CreateLineupItemDTO[] => {
+    return comedianIds.map((id: number ) => {
         return {
             show_id: showId,
-            comedian_id: comedian.id
+            comedian_id: id
         }
     })
 }

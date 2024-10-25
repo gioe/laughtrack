@@ -1,17 +1,19 @@
 import { ColumnSet, IDatabase, IMain, } from 'pg-promise';
 import { comedians as sql } from '../sql/index.js';
 import { providedPromiseResponse } from '../../common/util/promiseUtil.js';
-import { CreateComedianDTO, GetComedianResponseDTO } from '../../common/models/interfaces/comedian.interface.js';
+import { CreateComedianDTO, GetComedianResponseDTO, UpdateComedianHashDTO } from '../../common/models/interfaces/comedian.interface.js';
 import { GetSocialDataDTO, PopularityScoreIODTO, UpdateSocialDataDTO } from '../../common/models/interfaces/socialData.interface.js';
 
 var columnSets: {
     updateScores: ColumnSet | null;
     addAll: ColumnSet | null;
     updateSocial: ColumnSet | null;
+    updateHashes: ColumnSet | null
 } = {
     updateScores: null,
     addAll: null,
     updateSocial: null,
+    updateHashes: null
 }
 
 export class ComediansRepository {
@@ -30,11 +32,12 @@ export class ComediansRepository {
     constructor(private db: IDatabase<any>, private pgp: IMain) {
         this.createTable();
         columnSets.updateScores = new pgp.helpers.ColumnSet(['?id', 'popularity_score'], { table: 'comedians' });
-        columnSets.updateSocial = new pgp.helpers.ColumnSet(['?id', 'instagram_account', 
-            'tiktok_account', 'youtube_account', 'youtube_followers', 
-            'instagram_followers', 'tiktok_followers', 
+        columnSets.updateSocial = new pgp.helpers.ColumnSet(['?id', 'instagram_account',
+            'tiktok_account', 'youtube_account', 'youtube_followers',
+            'instagram_followers', 'tiktok_followers',
             'popularity_score', 'website'], { table: 'comedians' });
         columnSets.addAll = new pgp.helpers.ColumnSet(['name', 'uuid_id'], { table: 'comedians' });
+        columnSets.updateHashes = new pgp.helpers.ColumnSet(['?id', 'uuid_id'], { table: 'comedians' });
     }
 
     // Creates the table;
@@ -70,9 +73,9 @@ export class ComediansRepository {
         return this.db.any(sql.getTrending);
     }
 
-    addAll(all: CreateComedianDTO[]): Promise<{ id: number }[]> {
-        const batchInsert = this.pgp.helpers.insert(all, columnSets.addAll) + ' ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name, uuid_id = EXCLUDED.uuid_id RETURNING id';
-        return this.db.any(batchInsert)
+    addAll(all: CreateComedianDTO[]): Promise<null> {
+        const batchInsert = this.pgp.helpers.insert(all, columnSets.addAll) + ' ON CONFLICT (uuid_id) DO NOTHING';
+        return this.db.none(batchInsert)
     }
 
     getAllSocialData(): Promise<GetSocialDataDTO[] | null> {
@@ -91,8 +94,14 @@ export class ComediansRepository {
         return this.db.oneOrNone(update)
     }
 
-    getParentIds(payload: {id: number}[]): Promise<{ id: number }[]> {
-        return this.db.any(sql.getAllParents, [payload.map((value: any) => value.id)])
+    writeHashes(all: UpdateComedianHashDTO[]): Promise<null> {
+        const batchInsert = this.pgp.helpers.update(all, columnSets.updateHashes) +
+            'WHERE v.id = t.id'
+        return this.db.none(batchInsert)
     }
 
+    getIds(uuids: string[]): Promise<{id: number}[]> {
+        return this.db.any(sql.getAllIdsByUuids, [uuids])
+    }
 }
+
