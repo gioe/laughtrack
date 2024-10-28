@@ -1,4 +1,4 @@
-export interface FilterParams {
+export interface SearchParams {
   page?: string,
   query?: string
   sort?: string

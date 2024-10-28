@@ -1,12 +1,7 @@
+import { ModalState } from '@/interfaces/modalState.interface';
 import { create } from 'zustand'
 
-interface ClearShowsModalState {
-    isOpen: boolean;
-    onOpen: ()  => void;
-    onClose: () => void;
-}
-
-const useClearShowsModal = create<ClearShowsModalState>((set) => ({
+const useClearShowsModal = create<ModalState>((set) => ({
     isOpen: false,
     onOpen: () => set({isOpen : true}),
     onClose: () => set({isOpen : false})

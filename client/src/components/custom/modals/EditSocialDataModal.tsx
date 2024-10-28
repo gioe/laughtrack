@@ -13,14 +13,14 @@ import Heading from '../Heading';
 import StylizedInput from '../inputs/StylizedInput';
 import toast from 'react-hot-toast';
 import axios from 'axios';
-import { ShowProviderInterface } from '@/interfaces/showProvider.interface';
+import { ComedianInterface } from '@/interfaces/comedian.interface';
 
 interface EditSocialDataModalProps {
-    entity?: ShowProviderInterface
+    comedian?: ComedianInterface
 }
 
 const EditSocialDataModal: React.FC<EditSocialDataModalProps> = ({
-    entity
+    comedian
 }) => {
 
     const socialDataModal = useSocialDataModal();
@@ -33,13 +33,13 @@ const EditSocialDataModal: React.FC<EditSocialDataModalProps> = ({
     }
     } = useForm<FieldValues>({
         defaultValues: {
-            instagramAccount: entity?.socialData?.instagramAccount ?? "",
-            instagramFollowers: entity?.socialData?.instagramFollowers ?? "",
-            tiktokAccount: entity?.socialData?.tiktokAccount ?? "",
-            tiktokFollowers: entity?.socialData?.tiktokFollowers ?? "",
-            youtubeAccount: entity?.socialData?.youtubeAccount ?? "",
-            youtubeFollowers: entity?.socialData?.youtubeFollowers ?? "",
-            website: entity?.socialData?.website ?? ""
+            instagramAccount: comedian?.socialData?.instagramAccount ?? "",
+            instagramFollowers: comedian?.socialData?.instagramFollowers ?? "",
+            tiktokAccount: comedian?.socialData?.tiktokAccount ?? "",
+            tiktokFollowers: comedian?.socialData?.tiktokFollowers ?? "",
+            youtubeAccount: comedian?.socialData?.youtubeAccount ?? "",
+            youtubeFollowers: comedian?.socialData?.youtubeFollowers ?? "",
+            website: comedian?.socialData?.website ?? ""
         }
     });
 
@@ -48,7 +48,7 @@ const EditSocialDataModal: React.FC<EditSocialDataModalProps> = ({
 
         axios.post('/api/editSocial', {
             ...data,
-            id: entity?.id
+            id: comedian?.id
         })
             .then((response) => {
                 if (response) {

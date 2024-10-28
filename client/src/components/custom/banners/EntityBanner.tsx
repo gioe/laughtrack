@@ -5,16 +5,16 @@ import SocialMediaBar from "../social/SocialMediaBar";
 import { ReactNode, useState } from "react";
 import { BannerProviderInterface } from "@/interfaces/bannerProvider.interface";
 import { useSession } from "next-auth/react";
-
+import { Menu, DropdownMenuItem } from "../menu/Menu";
 
 interface EntityBannerProps {
     entity: BannerProviderInterface;
-    menu: ReactNode,
+    menuItems?: DropdownMenuItem[],
 }
 
 const EntityBanner: React.FC<EntityBannerProps> = ({
-    menu,
-    entity
+    entity,
+    menuItems
 }) => {
 
     const session = useSession();
@@ -42,10 +42,8 @@ const EntityBanner: React.FC<EntityBannerProps> = ({
             />
             <div className="absolute top-1/2 w-full text-center">
                 <h2 className="font-bold sm:text-4xl m:text-4xl lg:text-4xl xl:text-4xl 2xl:text-4xl text-white pt-6 pb-6">{entity.name}</h2>
-                <SocialMediaBar data={entity.socialData} ></SocialMediaBar>
-                {
-                    shouldShowMenu && menu && <>{menu}</>
-                }
+                {entity.socialData && <SocialMediaBar data={entity.socialData} ></SocialMediaBar>}
+                {shouldShowMenu && menuItems && <Menu items={menuItems} />}
             </div>
         </div>
     )

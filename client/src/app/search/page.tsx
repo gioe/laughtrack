@@ -1,30 +1,22 @@
 import moment from 'moment';
 import SearchResultsTable from "@/components/custom/tables/SearchResultsTable";
-import FilterPageContainer, { FilterOption } from '@/components/custom/filters/FilterPageContainer';
+import FilterPageContainer from '@/components/custom/filters/FilterPageContainer';
 import { PUBLIC_ROUTES } from '@/lib/routes';
 import { CityInterface } from '@/interfaces/city.interface';
-import { ShowProviderInterface } from '@/interfaces/showProvider.interface';
-import { FilterParams } from '@/interfaces/filterParams.interface';
+import { SearchParams } from '@/interfaces/searchParams.interface';
 import { executePost } from '@/actions/executePost';
+import { SORT_OPTIONS } from '@/lib/sort';
+import { ShowProvider } from '@/interfaces/showProvider.interface';
+import { Paginated } from '@/interfaces/paginated.interface';
 
-const sortOptions = [
-  { name: 'Date', value: 'date' },
-  { name: 'Most Popular', value: 'popularity' },
-  { name: 'Price: Low to High', value: 'low_to_high' },
-  { name: 'Price: High to Low', value: 'high_to_low' }
-]
-
-export interface HomeSearchParams extends FilterParams {
+export interface HomeSearchParams extends SearchParams {
   location: string;
   startDate: string;
   endDate: string;
-  clubs?: string;
 }
 
-export interface HomeSearchResultResponse extends ShowProviderInterface {
-  entity: CityInterface;
-  clubs: string[];
-  totalShows: number
+export interface HomeSearchResultResponse extends ShowProvider, Paginated {
+  city: CityInterface;
 }
 
 export async function getSearchResults(params: HomeSearchParams) {
@@ -36,7 +28,6 @@ export async function getSearchResults(params: HomeSearchParams) {
     startDate: params.startDate,
     endDate: params.endDate,
     sort: params.sort ?? "date",
-    clubs: params.clubs ?? "",
     query: params.query ?? "",
     page: params.page ?? "0",
     rows: params.rows ?? "10"
@@ -50,106 +41,29 @@ export default async function CityDetailPage(
 ) {
   const searchParams = await props.searchParams;
 
-  const searchResults = await getSearchResults(searchParams);
-  const title = buildTitle(searchParams, searchResults)
-  const filters = buildFilters(searchParams, searchResults)
+  const {totalResults, city} = await getSearchResults(searchParams);
+  const title = formattedTitle(searchParams, totalResults, city)
 
   return (
 
     <main className="flex-grow pt-5 bg-shark">
       <FilterPageContainer
-        itemCount={searchResults.totalShows}
         title={title}
-        searchPlaceholder={'Search for comics'}
-        query={searchParams.query}
-        filterOptions={filters}
-        defaultSort={sortOptions[0].value}
-        sortOptions={sortOptions}
-        child={<SearchResultsTable searchResults={searchResults} />} />
+        itemCount={totalResults}
+        sortOptions={SORT_OPTIONS.SHOW}
+        child={
+          <SearchResultsTable searchResults={city.dates}
+          />
+        }
+      />
     </main>
   )
+
 }
 
-const buildFilters = (params: HomeSearchParams, results: HomeSearchResultResponse) => {
-
-  const clubFilter = {
-    id: 'clubs',
-    name: 'Clubs',
-    options: results.clubs.map((clubName: string) => {
-      return {
-        value: clubName.toLowerCase(),
-        label: clubName,
-        selected: params.clubs?.includes(clubName.toLowerCase())
-      } as FilterOption;
-    })
-  }
-
-  const priceFilter = {
-    id: 'prices',
-    name: 'Price Range',
-    options: [
-      {
-        value: 'free',
-        label: "Free",
-        selected: false
-      },
-      {
-        value: '1-20',
-        label: "$1 to $20",
-        selected: false
-      },
-      {
-        value: '21-50',
-        label: "$21 to $50",
-        selected: false
-      },
-      {
-        value: '51-100',
-        label: "$51 to $100",
-        selected: false
-      },
-      {
-        value: '100+',
-        label: "$100+",
-        selected: false
-      }
-    ]
-  }
-
-  const showType = {
-    id: 'type',
-    name: 'Show Type',
-    options: [
-      {
-        value: 'open-mic',
-        label: "Open Mic",
-        selected: false
-      },
-      {
-        value: 'standup',
-        label: "Standup",
-        selected: false
-      },
-      {
-        value: 'podcast',
-        label: "Live Podcast",
-        selected: false
-      },
-      {
-        value: 'sketch',
-        label: "Sketch",
-        selected: false
-      }
-    ]
-  }
-
-
-  return [clubFilter, priceFilter, showType];
-}
-
-const buildTitle = (params: HomeSearchParams, results: HomeSearchResultResponse): string => {
+const formattedTitle = (params: HomeSearchParams, totalResults: number, city: CityInterface): string => {
   const formattedStartDate = params?.startDate ? moment(new Date(params.startDate)).format('ll') : moment(new Date()).format('ll')
   const formattedEndDate = params?.endDate ? moment(new Date(params.endDate)).format('ll') : moment(new Date()).format('ll')
   const range = `between ${formattedStartDate} - ${formattedEndDate}`
-  return `${results.totalShows} shows in ${results.entity.name} ${range}`
+  return `${totalResults} shows in ${city.name} ${range}`
 }

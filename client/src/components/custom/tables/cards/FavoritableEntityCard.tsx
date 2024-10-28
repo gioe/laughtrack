@@ -6,22 +6,24 @@ import { HeartIcon as OutlineHeart } from "@heroicons/react/24/outline";
 import { HeartIcon as SolidHeart } from "@heroicons/react/24/solid";
 import Image from "next/image";
 import Link from "next/link";
-import { ComedianInterface } from '@/interfaces/comedian.interface';
 import useRegisterModal from '@/hooks/useRegisterModel';
 import { useSession } from "next-auth/react";
 import SocialMediaBar from '../../social/SocialMediaBar';
-import { LineupItem } from '@/interfaces/lineupItem.interface';
 import axios from 'axios';
+import { Favoritable } from '@/interfaces/favoritable.interface';
+import { SocialDiscoverable } from '@/interfaces/socialData.interface';
 
-interface ComedianInfoCardProps {
-    comedian: ComedianInterface | LineupItem
+interface FavoritableEntityCardProps {
+    type: Entity;
+    entity: Favoritable & SocialDiscoverable
 }
 
-const ComedianInfoCard: React.FC<ComedianInfoCardProps> = ({
-    comedian,
+const FavoritableEntityCard: React.FC<FavoritableEntityCardProps> = ({
+    type,
+    entity,
 }) => {
     
-    const [src, setSrc] = useState<string>(`/images/comedians/square/${comedian.name}.png`);
+    const [src, setSrc] = useState<string>(`/images/${type.valueOf()}/square/${entity.name}.png`);
     
     const onError = () => {
       setSrc(`/images/logo.png`);
@@ -31,7 +33,7 @@ const ComedianInfoCard: React.FC<ComedianInfoCardProps> = ({
     const session = useSession();
     const [/*isOpen */, setIsOpen] = useState(false);
 
-    const [isFavorite, setIsFavorite] = useState(comedian.favoriteId ? true : false)
+    const [isFavorite, setIsFavorite] = useState(entity.isFavorite ? true : false)
 
     const requireLogin = useCallback(() => {
         setIsOpen((value => !value));
@@ -41,7 +43,8 @@ const ComedianInfoCard: React.FC<ComedianInfoCardProps> = ({
 
     const handleFavoriteClick = () => {
         if (session.status == 'authenticated') {
-            axios.put(`/api/comedian/${comedian.id}/avorite`, {
+            axios.put(`/api/${type.valueOf()}/favorite`, {
+                id: entity.id,
                 isFavorite
             })
             .then((response: any) => {
@@ -58,7 +61,7 @@ const ComedianInfoCard: React.FC<ComedianInfoCardProps> = ({
         <div className="flex flex-row bg-orange-500 rounded-xl shadow-md overflow-hidden md:max-w-2xl items-start">
             <div className='bg-green-800 flex-1'>
                 <Link
-                    href={`/comedian/${comedian.name}`}
+                    href={`/${type.valueOf()}/${entity.name}`}
                 >
                     <div className="relative p-5 m-5 object-fill lg:h-40 lg:w-40 sm:h-40">
                         <Image alt="Comedian"
@@ -82,13 +85,12 @@ const ComedianInfoCard: React.FC<ComedianInfoCardProps> = ({
 
                     </div>
 
-                    <h4 className="m:text-sm text-m text-left bg-blue-900">{comedian.name}</h4>
-                    <SocialMediaBar data={comedian.socialData} menu={<div/>}/>
-                    <h4 className="m:text-sm text-m text-left bg-white">{comedian.socialData?.popularityScore}</h4>
+                    <h4 className="m:text-sm text-m text-left bg-blue-900">{entity.name}</h4>
+                    <SocialMediaBar data={entity.socialData} />
                 </div>
             </div>
         </div>
     )
 }
 
-export default ComedianInfoCard;
+export default FavoritableEntityCard;

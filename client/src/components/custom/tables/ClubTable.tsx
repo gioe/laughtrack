@@ -1,16 +1,15 @@
 'use client';
 
 import React from "react";
-import ClubInfoCard from "./cards/ClubInfoCard";
 import { ClubInterface } from "@/interfaces/club.interface";
-import { GetClubsResponse } from "@/actions/clubs/getClubs";
+import FavoritableEntityCard from "./cards/FavoritableEntityCard";
 
 interface ClubTableProps {
-    response: GetClubsResponse
+    clubs: ClubInterface[]
 }
 
 const ClubTable: React.FC<ClubTableProps> = ({
-    response
+    clubs
 }) => {
 
 
@@ -18,12 +17,13 @@ const ClubTable: React.FC<ClubTableProps> = ({
         <main className="flex flex-col pb-5">
             <section className="flex-grow flex-row pt-5 pl-5 pr-5">
                 <div className="grid grid-cols-3 gap-4">
-                    {response.clubs
+                    {clubs
                         .map((club: ClubInterface) => {
                             return (
-                                <ClubInfoCard
+                                <FavoritableEntityCard
                                     key={club.name}
-                                    club={club}
+                                    type={Entity.Club}
+                                    entity={club}
                                 />
                             )
                         })}

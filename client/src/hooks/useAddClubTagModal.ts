@@ -1,12 +1,7 @@
+import { ModalState } from '@/interfaces/modalState.interface';
 import { create } from 'zustand'
 
-interface AddClubTagModalState {
-    isOpen: boolean;
-    onOpen: ()  => void;
-    onClose: () => void;
-}
-
-const useAddClubTagModal = create<AddClubTagModalState>((set) => ({
+const useAddClubTagModal = create<ModalState>((set) => ({
     isOpen: false,
     onOpen: () => set({isOpen : true}),
     onClose: () => set({isOpen : false})

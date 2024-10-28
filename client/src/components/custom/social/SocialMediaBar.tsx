@@ -9,8 +9,7 @@ import YouTubeIcon from "../icons/YoutubeIcon";
 import { ReactNode } from "react";
 
 interface SocialMediaBarProps {
-    data?: SocialDataInterface,
-    menu?: ReactNode,
+    data: SocialDataInterface,
 }
 
 const SocialMediaBar: React.FC<SocialMediaBarProps> = ({
@@ -20,7 +19,7 @@ const SocialMediaBar: React.FC<SocialMediaBarProps> = ({
     return (
         <div className="flex flex-row gap-4 justify-center items-center pb-6">
 
-            {data?.instagramAccount && data.instagramAccount !== "" && (
+            {data.instagramAccount && data.instagramAccount !== "" && (
                 <Link
                     href={`https://instagram.com/${data.instagramAccount}`}
                 >
@@ -28,7 +27,7 @@ const SocialMediaBar: React.FC<SocialMediaBarProps> = ({
                 </Link>
             )}
 
-            {data?.tiktokAccount && data.tiktokAccount !== "" &&(
+            {data.tiktokAccount && data.tiktokAccount !== "" &&(
                 <Link
                     href={`https://tiktok.com/@${data.tiktokAccount}`}
                 >
@@ -36,7 +35,7 @@ const SocialMediaBar: React.FC<SocialMediaBarProps> = ({
                 </Link>
             )}
 
-            {data?.youtubeAccount && data.youtubeAccount !== ""  &&(
+            {data.youtubeAccount && data.youtubeAccount !== ""  &&(
                 <Link
                     href={`https://www.youtube.com/@${data.youtubeAccount}`}
                 >
@@ -44,7 +43,7 @@ const SocialMediaBar: React.FC<SocialMediaBarProps> = ({
                 </Link>
             )}
 
-            {data?.website && data.website !== "" && (
+            {data.website && data.website !== "" && (
                 <Link
                     href={data.website}
                 >

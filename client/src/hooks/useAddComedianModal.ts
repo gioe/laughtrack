@@ -1,12 +1,7 @@
+import { ModalState } from '@/interfaces/modalState.interface';
 import { create } from 'zustand'
 
-interface AddComediansModalState {
-    isOpen: boolean;
-    onOpen: ()  => void;
-    onClose: () => void;
-}
-
-const useAddComedianModal = create<AddComediansModalState>((set) => ({
+const useAddComedianModal = create<ModalState>((set) => ({
     isOpen: false,
     onOpen: () => set({isOpen : true}),
     onClose: () => set({isOpen : false})

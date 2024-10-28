@@ -2,16 +2,16 @@
 
 import { ComedianInterface } from "@/interfaces/comedian.interface";
 import { PUBLIC_ROUTES } from "@/lib/routes"
+import { executePost } from "@/actions/executePost";
 import LargeComedianInfoCard from "@/components/custom/tables/cards/LargeComedianInfoCard";
 import LandingPageSearchBar from "@/components/custom/filters/LandingPageSearchBar";
-import { executePost } from "@/actions/executePost";
 
 export interface LandingPageResponseInterface {
   trendingComedians: ComedianInterface[]
   cities: string[];
 }
 
-export async function getLandingPageData() {
+export async function getLandingPageData(): Promise<LandingPageResponseInterface> {
 
   const getCitiesUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.GET_CITIES
   const trendingComediansUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.GET_TRENDING_COMEDIANS
@@ -19,17 +19,17 @@ export async function getLandingPageData() {
   return Promise.all([
     executePost<string[]>(getCitiesUrl),
     executePost<ComedianInterface[]>(trendingComediansUrl)]
-    ).then((responses) => {
+  ).then((responses) => {
     return {
       cities: responses[0],
       trendingComedians: responses[1],
-    } as LandingPageResponseInterface
+    }
   })
 }
 
 export default async function LandingPage() {
 
-  const response = await getLandingPageData() as LandingPageResponseInterface;
+  const { cities, trendingComedians } = await getLandingPageData();
 
   return (
     <main>
@@ -39,7 +39,7 @@ export default async function LandingPage() {
       </section>
 
       <section className="m-4 mt-0 -mb-14 px-2 lg:px-4">
-        <LandingPageSearchBar cities={response.cities} />
+        <LandingPageSearchBar cities={cities} />
       </section>
 
       <section className="
@@ -48,7 +48,7 @@ export default async function LandingPage() {
         <div className="flex space-x-3 overflow-scroll
          scrollbar-hide p-3 -ml-3">
           {
-            response.trendingComedians
+            trendingComedians
               .sort((a, b) => (b.socialData?.popularityScore ?? 0) - (a.socialData?.popularityScore ?? 0))
               .map((comedian: ComedianInterface) => {
                 return (

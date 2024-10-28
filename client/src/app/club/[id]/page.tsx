@@ -1,74 +1,77 @@
 
-import { executeGet } from "@/actions/executeGet";
-import EntityBanner from "@/components/custom/banners/EntityBanner";
-import { EditClubDowndown } from "@/components/custom/dropdown/EditClubDropdown";
-import FilterPageContainer from "@/components/custom/filters/FilterPageContainer";
-import AddClubTagModal from "@/components/custom/modals/AddClubTagModal";
-import ClearShowsModal from "@/components/custom/modals/ClearShowsModal";
-import ScrapeClubModal from "@/components/custom/modals/ScrapeClubModal";
-import ShowTable, { PaginatedShowPageInterface } from "@/components/custom/tables/ShowTable";
 import { ClubInterface } from "@/interfaces/club.interface";
-import { FilterParams } from "@/interfaces/filterParams.interface";
+import { SearchParams } from "@/interfaces/searchParams.interface";
 import { TagInterface } from "@/interfaces/tag.interface";
+import { SORT_OPTIONS } from "@/lib/sort";
 import { PUBLIC_ROUTES } from "@/lib/routes";
 import { Suspense } from "react";
+import { Paginated } from "@/interfaces/paginated.interface";
+import { executeGet } from "@/actions/executeGet";
+import EntityBanner from "@/components/custom/banners/EntityBanner";
+import FilterPageContainer from "@/components/custom/filters/FilterPageContainer";
+import ClearShowsModal from "@/components/custom/modals/ClearShowsModal";
+import ScrapeClubModal from "@/components/custom/modals/ScrapeClubModal";
+import ShowTable from "@/components/custom/tables/ShowTable";
+import useAddClubTagModal from "@/hooks/useAddClubTagModal";
+import useRunScrapeModal from "@/hooks/useRunScrapeModal";
+import useClearShowsModal from "@/hooks/useClearShowsModal";
+import TagEntityModal from "@/components/custom/modals/TagEntityModal";
 
-export interface GetClubDetailsParams extends FilterParams { }
+const menuItems = [
+  { key: "tags", label: "Add Tags", store: useAddClubTagModal },
+  { key: "scrape", label: "Run Scrape", store: useRunScrapeModal },
+  { key: "clear", label: "Clear SHows", store: useClearShowsModal }
+]
 
-export async function getClubDetailPageData(id: string, params: GetClubDetailsParams) {
+interface ClubDetailPageInterface extends Paginated {
+  club: ClubInterface;
+  tags: TagInterface[];
+ }
+
+export async function getClubDetail(id: string, params: SearchParams): Promise<ClubDetailPageInterface> {
   const getClubDetailsUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.GET_CLUB_DETAILS + `/${id}`
   const getAllClubsTags = process.env.URL_DOMAIN + PUBLIC_ROUTES.GET_CLUB_TAGS
 
-  return Promise.all([
-    executeGet<PaginatedShowPageInterface>(getClubDetailsUrl, params),
-    executeGet<TagInterface[]>(getAllClubsTags)]
-    ).then((responses) => {
+  return Promise.all(
+    [executeGet<any>(getClubDetailsUrl, params), 
+      executeGet<TagInterface[]>(getAllClubsTags)]
+  ).then((responses) => {
     return {
-      paginatedData: responses[0],
-      clubTags: responses[1],
+      ...responses[0],
+      tags: responses[1],
     }
   })
-
 }
-
-const sortOptions = [
-  { name: 'Date', value: 'date' },
-  { name: 'Most Popular', value: 'popularity' },
-  { name: 'Price: Low to High', value: 'low_to_high' },
-  { name: 'Price: High to Low', value: 'high_to_low' }
-]
 
 export default async function ClubDetailPage(
   props: {
     params: Promise<{ id: string }>;
-    searchParams: Promise<GetClubDetailsParams>;
+    searchParams: Promise<SearchParams>;
   }
 ) {
   const searchParams = await props.searchParams;
   const params = await props.params;
 
-  const response = await getClubDetailPageData(params.id, searchParams)
-  const title = `${response.paginatedData.totalShows} upcoming shows`
+  const { tags, club, totalResults } = await getClubDetail(params.id, searchParams)
+  const title = `${totalResults} upcoming shows`
 
   return (
     <main className="flex-grow pt-5 bg-shark">
-      <ScrapeClubModal clubId={response.paginatedData.entity.id} />
-      <ClearShowsModal clubId={response.paginatedData.entity.id} />
-      <AddClubTagModal club={response.paginatedData.entity as ClubInterface} tags={response.clubTags} />
+      <ScrapeClubModal club={club} />
+      <ClearShowsModal club={club} />
+      
+      <TagEntityModal entity={club} type={Entity.Club} tags={tags} />
       <section>
-        <EntityBanner entity={response.paginatedData.entity} menu={<EditClubDowndown />} />
+        <EntityBanner entity={club} menuItems={menuItems} />
       </section>
       <section>
         <FilterPageContainer
           title={title}
-          itemCount={response.paginatedData.totalShows}
-          defaultSort={sortOptions[0].value}
-          searchPlaceholder={'Search for comedian'}
-          query={searchParams?.query}
-          sortOptions={sortOptions}
+          itemCount={totalResults}
+          sortOptions={SORT_OPTIONS.CLUB}
           child={
             <Suspense key={(searchParams?.query ?? 1) + (searchParams?.page ?? "")} fallback={<div />}>
-              <ShowTable response={response.paginatedData} />
+              <ShowTable shows={club.dates} />
             </Suspense>
           } />
       </section>

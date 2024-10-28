@@ -1,27 +1,19 @@
-import { Suspense } from 'react';
 import ClubTable from "@/components/custom/tables/ClubTable";
-import FilterPageContainer, { FilterOption } from '@/components/custom/filters/FilterPageContainer';
+import FilterPageContainer from '@/components/custom/filters/FilterPageContainer';
 import { ClubInterface } from "@/interfaces/club.interface";
-import { FilterParams } from "@/interfaces/filterParams.interface";
+import { SearchParams } from "@/interfaces/searchParams.interface";
 import { PUBLIC_ROUTES } from "@/lib/routes"
-import { executePost } from '@/actions/executeGet';
-
-const sortOptions = [
-  { name: 'Most Popular', value: 'popularity' },
-  { name: 'A-Z', value: 'alphabetical' }
-]
-
-export interface GetClubsParams extends FilterParams {
-  city?: string,
-}
+import { executePost } from '@/actions/executePost';
+import { SORT_OPTIONS } from '@/lib/sort';
+import { Suspense } from 'react';
 
 export interface GetClubsResponse {
   clubs: ClubInterface[]
-  totalClubs: number;
-  cities: string[]
+  count: number;
+  filters: string[][]
 }
 
-export async function getClubs(params?: GetClubsParams) {
+export async function getClubs(params?: SearchParams) {
 
   const getClubsUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.GET_ALL_CLUBS
 
@@ -29,33 +21,28 @@ export async function getClubs(params?: GetClubsParams) {
     query: params?.query ?? "",
     sort: params?.sort ?? "date",
     page: params?.page ?? "0",
-    city: params?.city ?? "",
     rows: params?.rows ?? "10"
   })
+
 }
 
 export default async function AllClubsPage(
   props: {
-    searchParams?: Promise<GetClubsParams>;
+    searchParams?: Promise<SearchParams>;
   }
 ) {
 
   const searchParams = await props.searchParams;
   const response = await getClubs(searchParams);
 
-  const title = `Browsing ${response.totalClubs} clubs`
-  const filters = buildFilters(response, searchParams)
+  const title = `Browsing ${response.count} clubs`
 
   return (
     <main className="flex-grow pt-5 bg-shark">
       <FilterPageContainer
-        itemCount={response.totalClubs}
         title={title}
-        defaultSort={sortOptions[0].value}
-        searchPlaceholder={'Search for clubs'}
-        query={searchParams?.query}
-        filterOptions={filters}
-        sortOptions={sortOptions}
+        itemCount={response.count}
+        sortOptions={SORT_OPTIONS.CLUB}
         child={
           <Suspense key={(searchParams?.query ?? 1) + (searchParams?.page ?? "")} fallback={<div />}>
             <ClubTable response={response} />
@@ -63,21 +50,4 @@ export default async function AllClubsPage(
         } />
     </main>
   );
-}
-
-const buildFilters = (results: GetClubsResponse, params?: GetClubsParams) => {
-
-  const cityFilter = {
-    id: 'city',
-    name: 'Cities',
-    options: results.cities.map((cityName: string) => {
-      return {
-        value: cityName.toLowerCase(),
-        label: cityName,
-        selected: params?.city?.includes(cityName.toLowerCase())
-      } as FilterOption;
-    })
-  }
-
-  return [cityFilter];
 }

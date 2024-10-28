@@ -3,26 +3,20 @@
 import React from "react";
 import ShowInfoCard from "./cards/ShowInfoCard";
 import { ShowInterface } from "@/interfaces/show.interface";
-import { ShowProviderInterface } from "@/interfaces/showProvider.interface";
-
-export interface PaginatedShowPageInterface {
-    entity: ShowProviderInterface;
-    totalShows: number;
-}
 
 interface ShowTableProps {
-    response: PaginatedShowPageInterface;
+    shows: ShowInterface[];
 }
 
 const ShowTable: React.FC<ShowTableProps> = ({
-    response
+    shows
 }) => {
     return (
         <main className="flex flex-col">
             <section className="flex-grow flex-row">
                 <div className="flex flex-col">
-                    { response.entity.dates.length > 0 ? (
-                        response.entity.dates
+                    { shows.length > 0 ? (
+                        shows
                             .map((show: ShowInterface) => {
                                 return (
                                     <ShowInfoCard

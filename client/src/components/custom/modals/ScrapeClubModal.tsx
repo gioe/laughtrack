@@ -7,13 +7,14 @@ import toast from 'react-hot-toast';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import useRunScrapeModal from '@/hooks/useRunScrapeModal';
+import { ClubInterface } from '@/interfaces/club.interface';
 
 interface ScrapeClubModalParams {
-    clubId: number
+    club: ClubInterface
 }
 
 const ScrapeClubModal: React.FC<ScrapeClubModalParams> = ({
-    clubId
+    club
 }) => {
     const runScrapeModal = useRunScrapeModal();
     const router = useRouter();
@@ -22,7 +23,7 @@ const ScrapeClubModal: React.FC<ScrapeClubModalParams> = ({
     const handleSubmit = () => {
         setIsLoading(true);
         axios.post('/api/scrape', {
-            id: clubId,
+            id: club.id,
         })
             .then((response) => {
                 if (response) {

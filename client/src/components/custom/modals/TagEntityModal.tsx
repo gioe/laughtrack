@@ -10,28 +10,30 @@ import Modal from './Modal';
 import Heading from '../Heading';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import useAddShowTagModal from '@/hooks/useAddShowTagModal';
 import axios from 'axios';
 import { TagInterface } from '@/interfaces/tag.interface';
 import { Disclosure, DisclosurePanel } from '@headlessui/react';
-import { FilterOption } from '../filters/FilterPageContainer';
-import { ShowProviderInterface } from '@/interfaces/showProvider.interface';
-import useAddComedianTagModal from '@/hooks/useAddComedianTagModal';
-import { ComedianInterface } from '@/interfaces/comedian.interface';
+import { FilterOption } from '@/interfaces/filter.interface';
+import { Taggable } from '@/interfaces/taggable.interface';
 
-interface AddComediantagModalProps {
-    comedian: ComedianInterface
+interface TagEntityModalProps {
+    entity: Taggable;
+    type: Entity
     tags: TagInterface[]
 }
 
-const AddComedianTagModal: React.FC<AddComediantagModalProps> = ({
-    comedian,
+const TagEntityModal: React.FC<TagEntityModalProps> = ({
+    type,
+    entity,
     tags
 }) => {
 
     const router = useRouter();
-    const addComedianTagModal = useAddComedianTagModal();
+    const addShowTagModal = useAddShowTagModal();
+
     const [isLoading, setIsLoading] = useState(false);
-    const [selectedTags, setSelectedTags] = useState(comedian.tags ? comedian.tags.map((tag: TagInterface) => tag.id) : []);
+    const [selectedTags, setSelectedTags] = useState(entity.tags ? entity.tags.map((tag: TagInterface) => tag.id) : []);
 
     const { handleSubmit } = useForm<FieldValues>();
 
@@ -39,15 +41,12 @@ const AddComedianTagModal: React.FC<AddComediantagModalProps> = ({
         const valueNumber = Number(value)
         let newTags = selectedTags
         const existingTag = selectedTags.find((id: number) => id == valueNumber)
-
         if (existingTag) {
             newTags = newTags.filter((id: number) => id !== valueNumber)
         } else {
             newTags.push(valueNumber)
         }
-
         setSelectedTags(newTags)
-
     }
 
     const filterOptions: FilterOption[] = tags.map((item: TagInterface) => {
@@ -62,8 +61,8 @@ const AddComedianTagModal: React.FC<AddComediantagModalProps> = ({
     const onSubmit: SubmitHandler<FieldValues> = () => {
         setIsLoading(true);
 
-        axios.post('/api/comedian/addTag', {
-            comedianId: comedian.id,
+        axios.post(`/api/${type.valueOf()}/addTag`, {
+            id: entity.id,
             tags: selectedTags
         })
             .then((response) => {
@@ -71,7 +70,7 @@ const AddComedianTagModal: React.FC<AddComediantagModalProps> = ({
                     setIsLoading(false)
                     toast.success("Successfully updated")
                     router.refresh();
-                    addComedianTagModal.onClose();
+                    addShowTagModal.onClose();
                 }
             })
     }
@@ -116,14 +115,14 @@ const AddComedianTagModal: React.FC<AddComediantagModalProps> = ({
     return (
         <Modal
             disabled={isLoading}
-            isOpen={addComedianTagModal.isOpen}
+            isOpen={addShowTagModal.isOpen}
             title='Add Tags'
             actionLabel='Continue'
-            onClose={addComedianTagModal.onClose}
+            onClose={addShowTagModal.onClose}
             onSubmit={handleSubmit(onSubmit)}
             body={bodyContent}
         />
     )
 }
 
-export default AddComedianTagModal;
+export default TagEntityModal;

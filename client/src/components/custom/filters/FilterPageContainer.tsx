@@ -19,28 +19,14 @@ import { cn, handleUrlParams } from '@/lib/utils'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { TablePaginationComponent } from '../pagination/TablePaginationComponent'
 import { SortOptionInterface } from '@/interfaces/sortOption.interface'
-
-export interface FilterOption {
-    value: string;
-    label: string;
-    selected: boolean;
-}
-
-export interface Filter {
-    id: string,
-    name: string,
-    options: FilterOption[]
-}
+import { Filter } from '@/interfaces/filter.interface'
 
 interface FilterPageContainerProps {
     title?: string;
     child: ReactNode;
     sortOptions: SortOptionInterface[];
-    defaultSort: string;
     filterOptions?: Filter[];
-    query?: string;
     itemCount: number;
-    searchPlaceholder: string
 }
 
 const FilterPageContainer: React.FC<FilterPageContainerProps> = ({
@@ -49,10 +35,9 @@ const FilterPageContainer: React.FC<FilterPageContainerProps> = ({
     child,
     sortOptions,
     filterOptions,
-    defaultSort
 }) => {
 
-    const [selectedSort, setSelectedSort] = useState(defaultSort)
+    const [selectedSort, setSelectedSort] = useState(sortOptions[0].value)
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
 
     const pathname = usePathname();

@@ -13,15 +13,15 @@ import Heading from '../Heading';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import StylizedInput from '../inputs/StylizedInput';
-import { ShowProviderInterface } from '@/interfaces/showProvider.interface';
 import axios from 'axios';
+import { ComedianInterface } from '@/interfaces/comedian.interface';
 
 interface MergeComediansModalParams {
-    entity?: ShowProviderInterface
+    comedian?: ComedianInterface
 }
 
 const MergeComediansModal: React.FC<MergeComediansModalParams> = ({
-    entity
+    comedian
 }) => {
     
     const mergeComediansModal = useMergeComediansModal();
@@ -41,7 +41,7 @@ const MergeComediansModal: React.FC<MergeComediansModalParams> = ({
         setIsLoading(true);
         axios.post('/api/merge', {
             parentId: data.parentId,
-            childId: entity?.id
+            childId: comedian?.id
         })
             .then((response) => {
                 if (response) {

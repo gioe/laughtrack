@@ -1,12 +1,7 @@
+import { ModalState } from '@/interfaces/modalState.interface';
 import { create } from 'zustand'
 
-interface RegisterModalStore {
-    isOpen: boolean;
-    onOpen: ()  => void;
-    onClose: () => void;
-}
-
-const useRegisterModal = create<RegisterModalStore>((set) => ({
+const useRegisterModal = create<ModalState>((set) => ({
     isOpen: false,
     onOpen: () => set({isOpen : true}),
     onClose: () => set({isOpen : false})

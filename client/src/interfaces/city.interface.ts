@@ -1,6 +1,6 @@
-import { ShowProviderInterface } from "./showProvider.interface.js";
+import { ShowProvider } from "./showProvider.interface.js";
 
-export interface CityInterface extends ShowProviderInterface {
+export interface CityInterface extends ShowProvider {
   id: number
   name: string
 }

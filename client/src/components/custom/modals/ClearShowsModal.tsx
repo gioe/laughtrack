@@ -7,13 +7,14 @@ import toast from 'react-hot-toast';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import useClearShowsModal from '@/hooks/useClearShowsModal';
+import { ClubInterface } from '@/interfaces/club.interface';
 
 interface ClearShowsModalParams {
-    clubId: number
+    club: ClubInterface
 }
 
 const ClearShowsModal: React.FC<ClearShowsModalParams> = ({
-    clubId
+    club
 }) => {
     const clearShowsModal = useClearShowsModal();
     const router = useRouter();
@@ -23,7 +24,7 @@ const ClearShowsModal: React.FC<ClearShowsModalParams> = ({
     const handleSubmit = () => {
         setIsLoading(true);
         axios.post('/api/clear', {
-            id: clubId,
+            id: club.id,
         })
             .then((response) => {
                 if (response) {

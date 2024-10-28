@@ -8,3 +8,7 @@ export interface SocialDataInterface {
     website?: string;
     popularityScore: number;
 }
+
+export interface SocialDiscoverable {
+    socialData: SocialDataInterface;
+}

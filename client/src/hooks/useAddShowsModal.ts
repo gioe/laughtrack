@@ -1,12 +1,7 @@
+import { ModalState } from '@/interfaces/modalState.interface';
 import { create } from 'zustand'
 
-interface AddShowsModalState {
-    isOpen: boolean;
-    onOpen: ()  => void;
-    onClose: () => void;
-}
-
-const useAddShowsModal = create<AddShowsModalState>((set) => ({
+const useAddShowsModal = create<ModalState>((set) => ({
     isOpen: false,
     onOpen: () => set({isOpen : true}),
     onClose: () => set({isOpen : false})

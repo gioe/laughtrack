@@ -1,29 +1,29 @@
 'use client';
 
 import React from "react";
-import ComedianInfoCard from "./cards/ComedianInfoCard";
+import ComedianInfoCard from "./cards/FavoritableEntityCard";
 import { ComedianInterface } from "@/interfaces/comedian.interface";
-import { GetComediansResponse } from "@/actions/comedians/getFavoriteComedians";
-import { LineupItem } from "@/interfaces/lineupItem.interface";
+import FavoritableEntityCard from "./cards/FavoritableEntityCard";
 
 interface ComedianTableProps {
-    response: GetComediansResponse
+    comedians: ComedianInterface[]
 }
 
 const ComedianTable: React.FC<ComedianTableProps> = ({
-    response,
+    comedians,
 }) => {
 
     return (
         <main className="flex flex-col pb-5">
             <section className="flex-grow flex-row pt-5 pl-5 pr-5">
                 <div className="grid grid-cols-3 gap-4">
-                    {response.comedians
-                        .map((comedian: ComedianInterface | LineupItem) => {
+                    {comedians
+                        .map((comedian: ComedianInterface) => {
                             return (
-                                <ComedianInfoCard
+                                <FavoritableEntityCard
                                     key={comedian.name}
-                                    comedian={comedian}
+                                    type={Entity.Comedian}
+                                    entity={comedian}
                                 />
                             )
                         })}

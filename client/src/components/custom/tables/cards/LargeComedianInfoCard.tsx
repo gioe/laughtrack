@@ -14,7 +14,7 @@ import SocialMediaBar from "../../social/SocialMediaBar";
 import Image from "next/image";
 
 interface LargeComedianInfoCardProps {
-    comedian: ComedianInterface | LineupItem
+    comedian: ComedianInterface
 }
 
 const LargeComedianInfoCard: React.FC<LargeComedianInfoCardProps> = ({
