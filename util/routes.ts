@@ -1,7 +1,9 @@
 export const PUBLIC_ROUTES = {
     REGISTER: '/auth/register/',
     LOGIN: '/auth/login/',
-    REFRESH_TOKEN: '/auth/refresh',
+
+    // Token
+    REFRESH_TOKEN: '/api/token/refresh',
 
     // Clubs
     GET_CLUB_DETAILS: '/api/club',

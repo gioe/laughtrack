@@ -16,6 +16,7 @@ import useSocialDataModal from "../../../hooks/useSocialDataModal";
 import useMergeComediansModal from "../../../hooks/useMergeComediansModal";
 import useAddComedianTagModal from "../../../hooks/useAddComedianTagModal";
 import TagEntityModal from "../../../components/custom/modals/TagEntityModal";
+import { generateUrl } from "../../../util/urlUtil";
 
 const menuItems = [
   { key: "social", label: "Edit Social Data", store: useSocialDataModal },
@@ -30,8 +31,8 @@ interface ComedianDetailPageInterface extends Paginated {
 
 async function getComedianDetail(id: string, params: SearchParams): Promise<ComedianDetailPageInterface> {
 
-  const comedianDetailsUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.GET_COMEDIAN_DETAILS + `/${id}`
-  const getAllComedianTags = process.env.URL_DOMAIN + PUBLIC_ROUTES.GET_COMEDIAN_TAGS
+  const comedianDetailsUrl = generateUrl(PUBLIC_ROUTES.GET_COMEDIAN_DETAILS + `/${id}`)
+  const getAllComedianTags = generateUrl(PUBLIC_ROUTES.GET_COMEDIAN_TAGS)
 
   return Promise.all([
     executeGet<any>(comedianDetailsUrl, params),

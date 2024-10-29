@@ -5,6 +5,7 @@ import { PUBLIC_ROUTES } from "../util/routes"
 import { executePost } from "../actions/executePost";
 import LargeComedianInfoCard from "../components/custom/tables/cards/LargeComedianInfoCard";
 import LandingPageSearchBar from "../components/custom/filters/LandingPageSearchBar";
+import { generateUrl } from "../util/urlUtil";
 
 interface LandingPageResponseInterface {
   trendingComedians: ComedianInterface[]
@@ -13,8 +14,8 @@ interface LandingPageResponseInterface {
 
 async function getLandingPageData(): Promise<LandingPageResponseInterface> {
 
-  const getCitiesUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.GET_CITIES
-  const trendingComediansUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.GET_TRENDING_COMEDIANS
+  const getCitiesUrl = generateUrl(PUBLIC_ROUTES.GET_CITIES)
+  const trendingComediansUrl =  generateUrl(PUBLIC_ROUTES.GET_TRENDING_COMEDIANS)
 
   return Promise.all([
     executePost<string[]>(getCitiesUrl),

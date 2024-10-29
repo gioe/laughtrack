@@ -6,10 +6,7 @@ export async function POST(
   req: NextRequest) {
 
     const trendingComedians = await comedianController.getTrendingComedians()
-
-    return NextResponse.json({
-      trendingComedians
-    }, {
+    return NextResponse.json(trendingComedians, {
       status: 200,
     })
 

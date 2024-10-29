@@ -1,8 +1,10 @@
 import { JWT } from "next-auth/jwt";
 import { PUBLIC_ROUTES } from "./routes";
+import { generateUrl } from "./urlUtil";
 
 export async function refreshAccessToken(token: JWT) {
-  const url = process.env.URL_DOMAIN + PUBLIC_ROUTES.REFRESH_TOKEN
+  
+  const url = generateUrl(PUBLIC_ROUTES.REFRESH_TOKEN)
 
   return fetch(url, {
     method: "POST",

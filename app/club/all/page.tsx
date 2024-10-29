@@ -7,6 +7,7 @@ import { executePost } from '../../../actions/executePost';
 import { SORT_OPTIONS } from '../../../util/sort';
 import { Suspense } from 'react';
 import { Paginated } from "../../../interfaces/paginated.interface";
+import { generateUrl } from "../../../util/urlUtil";
 
 interface AllClubsPageInteface extends Paginated {
   clubs: ClubInterface[]
@@ -14,7 +15,7 @@ interface AllClubsPageInteface extends Paginated {
 
 async function getClubs(params?: SearchParams) {
 
-  const getClubsUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.GET_ALL_CLUBS
+  const getClubsUrl = generateUrl(PUBLIC_ROUTES.GET_ALL_CLUBS)
 
   return executePost<AllClubsPageInteface>(getClubsUrl, {
     query: params?.query ?? "",

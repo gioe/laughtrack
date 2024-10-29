@@ -26,7 +26,6 @@ export class LineupsRepository {
      * or other namespaces available from the root.
      */
     constructor(private db: IDatabase<any>, private pgp: IMain) {
-        this.createTable();
         columnSets.addAll = new pgp.helpers.ColumnSet(['show_id', 'comedian_id' ], {table: 'lineups'});
         columnSets.updateItems = new pgp.helpers.ColumnSet(['?id', 'comedian_id' ], {table: 'lineups'});
     }

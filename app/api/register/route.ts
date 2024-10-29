@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { PUBLIC_ROUTES } from "../../../util/routes";
+import { generateUrl } from "../../../util/urlUtil";
 
 
 export async function POST(
     request: Request
 ) {
     const data = await request.json();
-    const url = process.env.URL_DOMAIN + PUBLIC_ROUTES.REGISTER
+
+    const url = generateUrl(PUBLIC_ROUTES.REGISTER);
 
     const response = await fetch(url, {
         method: 'POST',

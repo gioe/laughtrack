@@ -11,6 +11,7 @@ import AddComedianModal from "../../../components/custom/modals/AddComedianModal
 import useAddShowTagModal from "../../../hooks/useAddShowTagModal";
 import useAddComedianModal from "../../../hooks/useAddComedianModal";
 import TagEntityModal from "../../../components/custom/modals/TagEntityModal";
+import { generateUrl } from "../../../util/urlUtil";
 
 const menuItems = [
   { key: "tags", label: "Add Tags", store: useAddShowTagModal },
@@ -23,8 +24,8 @@ interface ShowDetailPageInterface {
 }
 
 async function getShowDetail(id: string, params: SearchParams): Promise<ShowDetailPageInterface> {
-  const getShowDetailsUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.GET_SHOW_DETAILS + `/${id}`
-  const getAllShowTags = process.env.URL_DOMAIN + PUBLIC_ROUTES.GET_SHOW_TAGS
+  const getShowDetailsUrl = generateUrl(PUBLIC_ROUTES.GET_SHOW_DETAILS + `/${id}`)
+  const getAllShowTags = generateUrl(PUBLIC_ROUTES.GET_SHOW_TAGS)
 
   return Promise.all([
     executeGet<ShowInterface>(getShowDetailsUrl, params),

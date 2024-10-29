@@ -7,13 +7,15 @@ import { PUBLIC_ROUTES } from "../../../util/routes";
 import { executePost } from '../../../actions/executePost';
 import { SORT_OPTIONS } from '../../../util/sort';
 import { Paginated } from '../../../interfaces/paginated.interface';
+import { generateUrl } from '../../../util/urlUtil';
 
 interface AllComediansPageInterface extends Paginated {
   comedians: ComedianInterface[]
 }
 
 async function getComedians(params?: SearchParams) {
-  const getComediansUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.GET_ALL_COMEDIANS
+  
+  const getComediansUrl = generateUrl(PUBLIC_ROUTES.GET_ALL_COMEDIANS)
 
   return executePost<AllComediansPageInterface>(getComediansUrl, {
     query: params?.query ?? "",

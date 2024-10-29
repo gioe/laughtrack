@@ -1,4 +1,5 @@
 import pgPromise from 'pg-promise';
+import { Diagnostics } from './diagostics'; // optional diagnostics
 import { IInitOptions, IDatabase, IMain } from 'pg-promise';
 import {
   IExtensions,
@@ -46,6 +47,10 @@ const db: ExtendedProtocol = pgp({
   password: process.env.LOCAL_DB_PASSWORD as string,
   max: 5
 });
+
+// Initializing optional diagnostics:
+Diagnostics.init(initOptions);
+
 
 // Alternatively, you can get access to pgp via db.$config.pgp
 // See: https://vitaly-t.github.io/pg-promise/Database.html#$config

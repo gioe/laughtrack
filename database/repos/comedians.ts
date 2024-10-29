@@ -36,7 +36,6 @@ export class ComediansRepository {
      * or other namespaces available from the root.
      */
     constructor(private db: IDatabase<any>, private pgp: IMain) {
-        this.createTable();
         columnSets.updateScores = new pgp.helpers.ColumnSet(['?id', 'popularity_score'], { table: 'comedians' });
         columnSets.updateSocial = new pgp.helpers.ColumnSet(['?id', 'instagram_account',
             'tiktok_account', 'youtube_account', 'youtube_followers',

@@ -17,7 +17,6 @@ export class FavoritesRepository {
      * or other namespaces available from the root.
      */
     constructor(private db: IDatabase<any>, private pgp: IMain) {
-        this.createTable();
     }
 
     // Creates the table;

@@ -11,16 +11,6 @@ import {
 import * as socialDataMapper from '../../util/domainModels/socialData/mapper';
 import * as clubMapper from '../../util/domainModels/club/mapper';
 
-const getAllClubsFromFile = async () => {
-    return readFile(process.env.CLUBS_FILE_NAME as string)
-        .then((clubsJson: any) => clubMapper.clubArrayFromJson(clubsJson))
-}
-
-export const addAll = async (): Promise<null> => {
-    const clubs: CreateClubDTO[] = await getAllClubsFromFile()
-    return db.clubs.addAll(clubs);
-}
-
 export const getAllClubs = async (): Promise<ClubInterface[]> => {
     return db.clubs.all()
         .then((response: GetClubDTO[] | null) => response ? response.map((value: GetClubDTO) => clubMapper.toClub(value)) : [])

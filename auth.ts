@@ -4,6 +4,7 @@ import { PUBLIC_ROUTES } from "./util/routes";
 import { jwtDecode } from "jwt-decode";
 import { signInSchema } from "./util/validations";
 import { refreshAccessToken } from "./util/token";
+import { generateUrl } from "./util/urlUtil";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -20,8 +21,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         try {
           const { email, password } = await signInSchema.parseAsync(credentials)
-          const url = process.env.URL_DOMAIN + PUBLIC_ROUTES.LOGIN
-
+          const url = generateUrl(PUBLIC_ROUTES.LOGIN)
+          
           const response = await fetch(url, {
             method: 'POST',
             headers: {
@@ -59,7 +60,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
 
     async jwt({user, token}) {
-
       if (user) {
         return {
           ...token,
@@ -82,9 +82,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
     async session(value) {
       const { session, token } = value
+      console.log(session)
+      console.log(token)
       if (token) {
         session.accessToken = token.accessToken;
-        session.user = token.user;
+        // session.user = token.user;
       }
       return session;
     },

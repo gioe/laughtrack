@@ -13,11 +13,11 @@ import { useAsyncList } from "@react-stately/data";
 import { Autocomplete, AutocompleteItem } from "@nextui-org/react";
 import { Chip } from "@nextui-org/react";
 import { useRouter } from 'next/navigation';
-import { LineupItem } from '../../../interfaces/lineupItem.interface';
 import { ShowInterface } from '../../../interfaces/show.interface';
 import { ComedianInterface } from '../../../interfaces/comedian.interface';
 import { PUBLIC_ROUTES } from '../../../util/routes';
 import { executePost } from '../../../actions/executePost';
+import { generateUrl } from '../../../util/urlUtil';
 
 interface AddComedianModalProps {
     show: ShowInterface
@@ -25,7 +25,7 @@ interface AddComedianModalProps {
 }
 
 const AddComedianModal: React.FC<AddComedianModalProps> = ({
-    intialComedians, 
+    intialComedians,
     show
 }) => {
 
@@ -33,13 +33,13 @@ const AddComedianModal: React.FC<AddComedianModalProps> = ({
 
     const list = useAsyncList<ComedianInterface>({
         async load({ filterText }) {
-            const getComediansUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.GET_ALL_COMEDIANS
+            const getComediansUrl = generateUrl(PUBLIC_ROUTES.GET_ALL_COMEDIANS)
             const { items } = await executePost<any>(getComediansUrl, {
                 query: filterText,
                 sort: "alphabetical",
                 page: "0",
                 rows: "10"
-              })
+            })
             return items.comedians;
         },
     });
@@ -70,7 +70,7 @@ const AddComedianModal: React.FC<AddComedianModalProps> = ({
         setIsLoading(true);
 
         axios.post('/api/addToLineup', {
-            showId: show.id, 
+            showId: show.id,
             comedians: comedians.map((item: ComedianInterface) => item.id)
         })
             .then((response) => {

@@ -4,6 +4,7 @@ import { SearchParams } from '../../../../interfaces/searchParams.interface';
 import { ComedianInterface } from '../../../../interfaces/comedian.interface';
 import { PUBLIC_ROUTES } from '../../../../util/routes';
 import { executePost } from "../../../../actions/executePost";
+import { generateUrl } from "../../../../util/urlUtil";
 
 interface GetComediansResponse {
   comedians: ComedianInterface[];
@@ -11,7 +12,9 @@ interface GetComediansResponse {
 }
 
 async function getFavoriteComedians(params?: SearchParams) {
-  const favoriteComediansUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.GET_FAVORITE_COMEDIANS
+
+  const favoriteComediansUrl = generateUrl(PUBLIC_ROUTES.GET_FAVORITE_COMEDIANS)
+
   return executePost<GetComediansResponse>(favoriteComediansUrl, {
     query: params?.query ?? "",
     page: params?.page ?? "0",

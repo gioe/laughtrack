@@ -28,10 +28,6 @@ export class TagsRepository {
      * or other namespaces available from the root.
      */
     constructor(private db: IDatabase<any>, private pgp: IMain) {
-          this.create();
-          this.createClubTagsTable();
-          this.createComedianTagsTable();
-          this.createShowTagsTable();
           columnSets.addAllShowTags = new pgp.helpers.ColumnSet(['show_id', 'tag_id' ], {table: 'show_tags'});
           columnSets.addAllComedianTags = new pgp.helpers.ColumnSet(['comedian_id', 'tag_id' ], {table: 'comedian_tags'});
           columnSets.addAllClubTags = new pgp.helpers.ColumnSet(['club_id', 'tag_id' ], {table: 'club_tags'});

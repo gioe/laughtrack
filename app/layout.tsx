@@ -5,7 +5,6 @@ import ToasterProvider from "../components/providers/ToasterProvider";
 import LoginModal from "../components/custom/modals/LoginModal";
 import RegisterModal from "../components/custom/modals/RegisterModal";
 import Footer from "../components/custom/Footer";
-import { UserInterface } from "../interfaces/user.interface";
 import Header from "../components/custom/header/Header";
 import { NextUIProvider } from "@nextui-org/react";
 import { SessionProvider } from "next-auth/react";
@@ -25,7 +24,6 @@ export const getSession = cache(async () => {
 export async function getCurrentUser() {
   try {
       const session = await getSession();
-
       if (!session?.user?.email) {
           return null;
       }
@@ -48,8 +46,8 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
 
-  const user: any = await getCurrentUser();
-  
+  const user = await getCurrentUser();
+
   return (
     <SessionProvider>
         <html lang="en">

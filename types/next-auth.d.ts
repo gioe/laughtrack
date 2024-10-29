@@ -1,12 +1,12 @@
+import { UserInterface } from "../interfaces"
 
-import { UserInterface } from "@/interfaces/user.interface"
 
 declare module "next-auth" {
   /**
    * Returned by `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
    */
   interface Session {
-    user: UserInterface & AdapterUser,
+    user: UserInterface,
     accessToken?: string,
   }
 

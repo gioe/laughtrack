@@ -31,12 +31,6 @@ export const makeDirectory = (path: string) => {
     return fsSync.mkdirSync(path)
 }
 
-export const uploadFileToBucket = async (sourceFile: string): Promise<boolean> => {
-    const filePath = getPath(sourceFile)
-    await storage.bucket(bucket.name).upload(filePath, {destination: process.env.CLUBS_FILE_NAME});
-    return true
-};
-
 export const readFileFromBucket = async (sourceFile: string): Promise<string> => {
     return bucket.file(sourceFile).download()
     .then((response: DownloadResponse) => JSON.parse(response[0].toString('utf8')))

@@ -8,6 +8,7 @@ import { executePost } from '../..//actions/executePost';
 import { SORT_OPTIONS } from '../../util/sort';
 import { ShowProvider } from '../../interfaces/showProvider.interface';
 import { Paginated } from '../../interfaces/paginated.interface';
+import { generateUrl } from '../../util/urlUtil';
 
 interface HomeSearchParams extends SearchParams {
   location: string;
@@ -21,7 +22,7 @@ interface HomeSearchResultResponse extends ShowProvider, Paginated {
 
 async function getSearchResults(params: HomeSearchParams) {
 
-  const upcomingShowsUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.HOME_SEARCH
+  const upcomingShowsUrl = generateUrl(PUBLIC_ROUTES.HOME_SEARCH)
 
   return executePost<HomeSearchResultResponse>(upcomingShowsUrl, {
     location: params.location,

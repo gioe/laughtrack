@@ -19,6 +19,7 @@ export const checkIfUserExists = async (email: string) => {
 
 export const register = async (emailString: string, passwordHash: string) => {
   const adminList = await getAdminList();
+  
   return db.users.add({
     email: emailString,
     password: passwordHash,

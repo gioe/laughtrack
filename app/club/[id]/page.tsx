@@ -16,6 +16,7 @@ import TagEntityModal from "../../../components/custom/modals/TagEntityModal";
 import { PUBLIC_ROUTES } from "../../../util/routes";
 import { SORT_OPTIONS } from "../../../util/sort";
 import { SearchParams } from "../../../interfaces/searchParams.interface";
+import { generateUrl } from "../../../util/urlUtil";
 
 const menuItems = [
   { key: "tags", label: "Add Tags", store: useAddClubTagModal },
@@ -29,8 +30,9 @@ interface ClubDetailPageInterface extends Paginated {
  }
 
 async function getClubDetail(id: string, params: SearchParams): Promise<ClubDetailPageInterface> {
-  const getClubDetailsUrl = process.env.URL_DOMAIN + PUBLIC_ROUTES.GET_CLUB_DETAILS + `/${id}`
-  const getAllClubsTags = process.env.URL_DOMAIN + PUBLIC_ROUTES.GET_CLUB_TAGS
+
+  const getClubDetailsUrl = generateUrl(PUBLIC_ROUTES.GET_CLUB_DETAILS + `/${id}`);
+  const getAllClubsTags = generateUrl(PUBLIC_ROUTES.GET_CLUB_TAGS);
 
   return Promise.all(
     [executeGet<any>(getClubDetailsUrl, params), 
