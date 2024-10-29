@@ -1,0 +1,8 @@
+import { ComedianInterface } from "../../../interfaces";
+
+export const sortComedians = (comedians: ComedianInterface[], sortValue?: string): ComedianInterface[] => {
+    return comedians.sort((a: ComedianInterface, b: ComedianInterface) => {
+        if (sortValue == 'alphabetical') return a.name < b.name ? -1 : 1;
+        else return (b.socialData.popularityScore ?? 0) - (a.socialData.popularityScore ?? 0)
+    })
+}

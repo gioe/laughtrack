@@ -1,0 +1,246 @@
+{
+    "clubs": [{
+            "club_details": [{
+                "name": "Comedy Cellar New York",
+                "base_url": "https://www.comedycellar.com",
+                "schedule_page_url": "https://www.comedycellar.com/new-york-line-up",
+                "city": "New York",
+                "zip_code": "10012",
+                "address": "117 MacDougal St, New York, NY 10012"
+            }],
+            "scraping_config": {
+                "dateSelectSelector": "#cc_lineup_select_dates",
+                "dateOptionsSelector": "div.header > div > select > option",
+                "showContainerSelector": "div.sets > div",
+                "dateTimeSelector": "div.info > h2 > span.bold",
+                "showTicketLinkSelector": "div.make-reservation > a",
+                "comedianNameSelector": "span.name",
+                "showNameSelector": "div.info > h2 > span.title"
+            }
+        },
+        {
+            "club_details": [{
+                    "name": "New York Comedy Club Midtown",
+                    "base_url": "https://newyorkcomedyclub.com",
+                    "schedule_page_url": "https://newyorkcomedyclub.com/calendar/Midtown",
+                    "city": "New York",
+                    "zip_code": "10010",
+                    "address": "241 E 24th St, New York, NY 10010"
+                },
+                {
+                    "name": "New York Comedy Club East Village",
+                    "base_url": "https://newyorkcomedyclub.com",
+                    "schedule_page_url": "https://newyorkcomedyclub.com/calendar/East-Village",
+                    "city": "New York",
+                    "zip_code": "10003",
+                    "address": "85 E 4th St, New York, NY 10003"
+                },
+                {
+                    "name": "New York Comedy Club Upper West Side",
+                    "base_url": "https://newyorkcomedyclub.com",
+                    "schedule_page_url": "https://newyorkcomedyclub.com/calendar/Upper-West-Side",
+                    "city": "New York",
+                    "zip_code": "10024",
+                    "address": "236 W 78th St, New York, NY 10024"
+                }
+            ],
+            "scraping_config": {
+                "moreShowsButtonSelector": "#--load-more-shows",
+                "detailPageButtonSelector": "div.col-xs-12.col-sm-6.col-lg-7.upcoming-list-description.calendar-upcoming-list-description > a.btn.btn-default",
+                "dateTimeSelector": "div.mobile-event-header.header.visible-xs",
+                "comedianNameSelector": "p.comedian-name > a",
+                "showNameSelector": "span.date-div",
+                "dateTimeSeparator": " - ",
+                "priceSelector": "div.event-ticket-type > span.ticket-price.original"
+            }
+        },
+        {
+            "club_details": [{
+                "name": "The Stand",
+                "base_url": "https://thestandnyc.com",
+                "schedule_page_url": "https://thestandnyc.com/shows",
+                "city": "New York",
+                "zip_code": "10003",
+                "address": "116 E 16th St, New York, NY 10003"
+            }],
+            "scraping_config": {
+                "moreShowsButtonSelector": "div.row.moreitems.dark-links.my-5 > div > div > a",
+                "showContainerSelector": "div.row.show_row",
+                "dateTimeSelector": "span.show_date",
+                "comedianNameSelector": "div.col-4.col-md-3.col-xl-2.lineup-item",
+                "showNameSelector": "h2.showtitle",
+                "dateTimeSeparator": ",",
+                "showTicketLinkSelector": "div.d-grid.gap-2 > a",
+                "priceSelector": "div.price"
+            }
+        },
+        {
+            "club_details": [{
+                "name": "The Grisly Pear",
+                "base_url": "https://www.grislypearstandup.com",
+                "schedule_page_url": "https://www.grislypearstandup.com/calendar",
+                "city": "New York",
+                "zip_code": "10012",
+                "address": "107 MacDougal St, New York, NY 10012"
+            }],
+            "scraping_config": {
+                "moreShowsButtonSelector": "#--load-more-shows",
+                "detailPageButtonSelector": "div.col-xs-12.col-sm-6.col-sm-offset-1.upcoming-list-description > a",
+                "dateTimeSelector": "ul > li.featured-event-date",
+                "comedianNameSelector": "p.comedian-name",
+                "showNameSelector": "li.featured-event-title",
+                "priceSelector": "div.event-ticket-type.col-sm-10.col-xs-9 > span.ticket-price.original"
+            }
+
+        },
+        {
+            "club_details": [{
+                "name": "The Tiny Cupboard",
+                "base_url": "https://www.thetinycupboard.com",
+                "schedule_page_url": "https://www.thetinycupboard.com/calendar",
+                "city": "New York",
+                "zip_code": "11207",
+                "address": "10 Cooper St, Brooklyn, NY 11207"
+            }],
+            "scraping_config": {
+                "detailPageButtonSelector": "div.col-xs-12.col-sm-3.upcoming-list-description.--btn-container > a",
+                "dateTimeSelector": "ul > li.featured-event-date",
+                "comedianNameSelector": "p.comedian-name",
+                "showNameSelector": "li.featured-event-title",
+                "priceSelector": "div.event-ticket-type.col-sm-10.col-xs-9 > span.ticket-price.original"
+            }
+        },
+        {
+            "club_details": [{
+                "name": "West Side Comedy Club",
+                "base_url": "https://www.westsidecomedyclub.com",
+                "schedule_page_url": "https://www.westsidecomedyclub.com/calendar",
+                "city": "New York",
+                "zip_code": "10023",
+                "address": "201 W 75th St, New York, NY 10023"
+            }],
+            "scraping_config": {
+                "nextPageLinkSelector": "div.calendar-next-btn > a",
+                "detailPageButtonSelector": "div.popover-event-container > div.event-single > div.event-info.clearfix > div.clearfix > a",
+                "dateTimeSelector": "p.event-page-date",
+                "comedianNameSelector": "p.comedian-name > a",
+                "showNameSelector": "div.col-sm-12.text-center > h1",
+                "dateTimeSeparator": " - ",
+                "priceSelector": "div.ticket-info-container > div.ticket-price"
+            }
+        },
+        {
+            "club_details": [{
+                "name": "Union Hall",
+                "base_url": "https://unionhallny.com",
+                "schedule_page_url": "https://unionhallny.com/calendar",
+                "city": "New York",
+                "zip_code": "11215",
+                "address": "702 Union St, Brooklyn, NY 11215"
+            }],
+            "scraping_config": {
+                "detailPageButtonSelector": "a.button.eventColl-statusBtn.eventColl-statusBtn--buy",
+                "eventbriteComedianNameSelector": "ul.performers__list > li.supporters",
+                "eventbriteShowNameSelector": "h1.event-title.css-0",
+                "eventbriteDateTimeSelector": "span.date-info__full-datetime > div",
+                "dateTimeSeparator": " · ",
+                "priceSelector": "ticket-card-compact-size-display-price"
+            }
+        },
+        {
+            "club_details": [{
+                "name": "Williamsburg Comedy Club",
+                "base_url": "https://www.williamsburgcomedyclub.net/",
+                "schedule_page_url": "https://3common.com/u/williamsburgcomedyclub",
+                "city": "Brooklyn",
+                "zip_code": "11249",
+                "address": "308 Bedford Ave the Rear, Brooklyn, NY 11249"
+            }],
+            "scraping_config": {
+                "linkContainer": "div.container.q-py-lg",
+                "detailPageButtonSelector": "a.event-card-big-new__image",
+                "dateTimeSelector": "div.event-info-cols > div:nth-child(1) > div > span",
+                "showNameSelector": "div.event-info-title",
+                "dateTimeContainer": "div.event-info"
+            }
+        },
+        {
+            "club_details": [{
+                "name": "Rodney’s",
+                "base_url": "https://www.rodneycomedy.com/",
+                "schedule_page_url": "https://tickets.rodneycomedy.com/",
+                "city": "New York",
+                "zip_code": "10065",
+                "address": "1118 1st Ave., New York, NY 10065"
+            }],
+            "scraping_config": {
+                "detailPageButtonSelector": "div.event-cta-button > a",
+                "dateTimeSelector": "div.date > div.datetime-location-content",
+                "showNameSelector": "#event-name > a",
+                "eventbriteDateTimeSelector": "span.date-info__full-datetime > div",
+                "dateTimeSeparator": " · ",
+                "eventbriteShowNameSelector": "h1.event-title.css-0",
+                "priceSelector": ""
+            }
+        },
+        {
+            "club_details": [{
+                "name": "Eastville Comedy Club Brooklyn",
+                "base_url": "https://www.eastvillecomedy.com/",
+                "schedule_page_url": "https://www.eastvillecomedy.com/calendar/",
+                "city": "Brooklyn",
+                "zip_code": "10065",
+                "address": "487 Atlantic Ave Brooklyn, NY 11217"
+            }],
+            "scraping_config": {
+                "nextPageLinkSelector": "li.nav-next > a",
+                "detailPageButtonSelector": "div.col-xs-8.upcoming-list-description > ul > li > a",
+                "dateTimeSelector": "p.event-page-date.hidden-xs",
+                "comedianNameSelector": "p.comedian-name > a",
+                "showNameSelector": "h1.header.set-border-bottom.event-page-title",
+                "dateTimeSeparator": " - ",
+                "priceSelector": ""
+            }
+        },
+        {
+            "club_details": [{
+                "name": "Comedy Village",
+                "base_url": "https://comedyvillage.com/",
+                "schedule_page_url": "https://comedyvillage.com/event/",
+                "city": "New York",
+                "zip_code": "10036",
+                "address": "352 W 44th St, New York, NY 10036"
+            }],
+            "scraping_config": {
+                "nextPageLinkSelector": "li.tribe-events-c-nav__list-item.tribe-events-c-nav__list-item--next > a",
+                "detailPageButtonSelector": "div.tribe-events-c-small-cta.tribe-common-b3.tribe-events-calendar-list__event-cost > a",
+                "dateTimeSelector": "div.tribe-events-schedule.tribe-clearfix > h2 > span.tribe-event-date-start",
+                "showNameSelector": "h1.tribe-events-single-event-title",
+                "dateTimeSeparator": " @ ",
+                "priceSelector": ""
+            }
+        },
+        {
+            "club_details": [{
+                "name": "Caveat",
+                "base_url": "https://caveat.nyc/",
+                "schedule_page_url": "https://caveat.nyc/",
+                "city": "New York",
+                "zip_code": "10002",
+                "address": "21 A Clinton St, New York, NY 10002"
+            }],
+            "scraping_config": {
+                "moreShowsButtonSelector": "div.MuiGrid-root.MuiGrid-item.MuiGrid-grid-xs-12.css-15j76c0 > div.MuiBox-root.css-y3gv0i > button.MuiButton-root.MuiButton-text.MuiButton-textPrimary.MuiButton-sizeMedium.MuiButton-textSizeMedium.MuiButtonBase-root.css-t7zduo > span.MuiTouchRipple-root.css-w0pj6f",
+                "detailPageButtonSelector": "a.MuiTypography-root.MuiTypography-body.MuiLink-root.MuiLink-underlineAlways.css-2p1ku6",
+                "dateTimeSelector": "div.main.MuiBox-root.css-0 > div > div.MuiGrid-root.MuiGrid-item.MuiGrid-grid-xs-12.MuiGrid-grid-md-8.css-efwuvd > div > div.MuiBox-root.css-1i8t0k4 > span.MuiTypography-root.MuiTypography-showdate.css-px2bcw",
+                "showNameSelector": "div.main.MuiBox-root.css-0 > div > div.MuiGrid-root.MuiGrid-item.MuiGrid-grid-xs-12.MuiGrid-grid-md-8.css-efwuvd > div > div.MuiBox-root.css-10dy3fq > span.MuiTypography-root.MuiTypography-showtitle.css-1bsvim0",
+                "dateTimeSeparator": ",",
+                "comedianNameSelector": "div.MuiBox-root.css-svv1h6 > span.MuiTypography-root.MuiTypography-body.css-16ut9zt", 
+                "linkContainer": "#PopupSignupForm_0 > div.mc-modal > button",
+                "priceSelector": ""
+            }
+        }
+
+    ]
+
+}
