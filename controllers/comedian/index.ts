@@ -1,4 +1,4 @@
-import { db } from "../../database";
+import { getDB } from "../../database";
 import {
     toComedian,
     toComedianFilter,
@@ -17,6 +17,8 @@ import {
 } from "../../interfaces";
 import { toPopularityScores } from "../../util/domainModels/socialData/mapper";
 import { generateComedianHash } from "../../util/domainModels/comedian/hash";
+
+const { db } = getDB();
 
 export const addAll = async (
     comedians: CreateComedianDTO[],

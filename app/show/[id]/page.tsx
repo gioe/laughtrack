@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { ShowInterface } from "../../../interfaces/show.interface";
-import { db } from "../../../database";
+import { getDB } from "../../../database";
 import { TagInterface } from "../../../interfaces/tag.interface";
 import { SearchParams } from "../../../interfaces/searchParams.interface";
 import { EntityType } from "../../../util/enum";
@@ -10,6 +10,8 @@ import AddComedianModal from "../../../components/custom/modals/AddComedianModal
 import useAddShowTagModal from "../../../hooks/useAddShowTagModal";
 import useAddComedianModal from "../../../hooks/useAddComedianModal";
 import TagEntityModal from "../../../components/custom/modals/TagEntityModal";
+
+const {db} = getDB();
 
 const menuItems = [
     { key: "tags", label: "Add Tags", store: useAddShowTagModal },

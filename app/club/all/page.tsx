@@ -1,9 +1,11 @@
 import ClubTable from "../../../components/custom/tables/ClubTable";
 import FilterPageContainer from "../../../components/custom/filters/FilterPageContainer";
-import { db } from "../../../database";
+import { getDB } from "../../../database";
 import { SORT_OPTIONS } from "../../../util/sort";
 import { Suspense } from "react";
 import { SearchParams } from "../../../interfaces/searchParams.interface";
+
+const {db} = getDB();
 
 export default async function AllClubsPage(props: {
     searchParams?: Promise<SearchParams>;

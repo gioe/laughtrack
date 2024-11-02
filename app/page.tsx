@@ -1,10 +1,12 @@
 "use server";
 
 import { ComedianInterface } from "../interfaces/comedian.interface";
-import { db } from "../database";
+import { getDB } from "../database";
 import { EntityType } from "../util/enum";
 import EntityCarousel from "../components/custom/carousel/EntityCarousel";
 import LandingPageSearchBar from "../components/custom/filters/LandingPageSearchBar";
+
+const {db} = getDB();
 
 interface LandingPageResponseInterface {
     trendingComedians: ComedianInterface[];

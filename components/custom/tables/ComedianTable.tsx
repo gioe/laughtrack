@@ -3,9 +3,11 @@
 import React from "react";
 import { ComedianInterface } from "../../../interfaces/comedian.interface";
 import { SearchParams } from "../../../interfaces/searchParams.interface";
-import { db } from "../../../database";
+import { getDB } from "../../../database";
 import FavoritableEntityCard from "./cards/FavoritableEntityCard";
 import EntityType from "../icons/MiniEntityIcon";
+
+const {db} = getDB();
 
 export default async function ComedianTable({
     params,

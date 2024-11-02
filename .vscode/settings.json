@@ -33,5 +33,8 @@
     "npm.packageManager": "npm",
     "[javascript]": {
         "editor.defaultFormatter": "vsce-toolroom.vscode-beautify"
+    },
+    "[typescript]": {
+        "editor.defaultFormatter": "vscode.typescript-language-features"
     }
 }

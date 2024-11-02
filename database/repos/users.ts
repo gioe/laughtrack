@@ -1,6 +1,7 @@
 import { IDatabase, IMain } from "pg-promise";
 import { users as sql } from "../sql";
-import { CreateUserDTO } from "../../interfaces";
+import { CreateUserDTO, UserInterface } from "../../interfaces";
+import { toUser } from "../../util/domainModels/user/mapper";
 
 export class UsersRepository {
     /**
@@ -25,12 +26,13 @@ export class UsersRepository {
     }
 
     // Adds a new user, and returns the new object;
-    add(user: CreateUserDTO): Promise<any> {
+    add(user: CreateUserDTO): Promise<UserInterface | null> {
         return this.db.one(sql.add, {
             email: user.email,
             role: user.role,
             password: user.password,
-        });
+        })
+        .then((user: any | null) =>  user ? toUser(user) : null)
     }
 
     // Tries to find a user from id;

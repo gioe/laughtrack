@@ -22,7 +22,9 @@ export class SearchRepository {
     constructor(
         private db: IDatabase<any>,
         private pgp: IMain,
-    ) {}
+    ) {
+
+    }
 
     async getHomeSearchResults(
         request: SearchParams,

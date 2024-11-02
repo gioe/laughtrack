@@ -1,23 +1,10 @@
-import { ColumnSet, IDatabase, IMain } from "pg-promise";
+import { IDatabase, IMain } from "pg-promise";
 import { tags as sql } from "../sql";
 import {
     GetTagResponseDTO,
-    TagClubDTO,
-    TagComedianDTO,
     TagInterface,
-    TagShowDTO,
 } from "../../interfaces";
 import { toTagInterfaceArray } from "../../util/domainModels/tag/mapper";
-
-const columnSets: {
-    addAllShowTags: ColumnSet | null;
-    addAllComedianTags: ColumnSet | null;
-    addAllClubTags: ColumnSet | null;
-} = {
-    addAllShowTags: null,
-    addAllComedianTags: null,
-    addAllClubTags: null,
-};
 
 export class TagsRepository {
     /**
@@ -34,37 +21,7 @@ export class TagsRepository {
     constructor(
         private db: IDatabase<any>,
         private pgp: IMain,
-    ) {
-        columnSets.addAllShowTags = new pgp.helpers.ColumnSet(
-            ["show_id", "tag_id"],
-            { table: "show_tags" },
-        );
-        columnSets.addAllComedianTags = new pgp.helpers.ColumnSet(
-            ["comedian_id", "tag_id"],
-            { table: "comedian_tags" },
-        );
-        columnSets.addAllClubTags = new pgp.helpers.ColumnSet(
-            ["club_id", "tag_id"],
-            { table: "club_tags" },
-        );
-    }
-
-    create(): Promise<null> {
-        return this.db.none(sql.create);
-    }
-
-    // Creates the table;
-    createClubTagsTable(): Promise<null> {
-        return this.db.none(sql.createClubTags);
-    }
-
-    createComedianTagsTable(): Promise<null> {
-        return this.db.none(sql.createComedianTags);
-    }
-
-    createShowTagsTable(): Promise<null> {
-        return this.db.none(sql.createShowTags);
-    }
+    ) { }
 
     async getByType(type: string): Promise<TagInterface[]> {
         return this.db
@@ -76,24 +33,4 @@ export class TagsRepository {
             );
     }
 
-    addAllShowTags(all: TagShowDTO[]): Promise<null> {
-        const batchInsert =
-            this.pgp.helpers.insert(all, columnSets.addAllShowTags) +
-            ` ON CONFLICT DO NOTHING`;
-        return this.db.none(batchInsert);
-    }
-
-    addAllComedianTags(all: TagComedianDTO[]): Promise<null> {
-        const batchInsert =
-            this.pgp.helpers.insert(all, columnSets.addAllComedianTags) +
-            ` ON CONFLICT DO NOTHING`;
-        return this.db.none(batchInsert);
-    }
-
-    addAllClubTags(all: TagClubDTO[]): Promise<null> {
-        const batchInsert =
-            this.pgp.helpers.insert(all, columnSets.addAllClubTags) +
-            ` ON CONFLICT DO NOTHING`;
-        return this.db.none(batchInsert);
-    }
 }

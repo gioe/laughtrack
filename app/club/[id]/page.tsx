@@ -5,7 +5,7 @@ import { Paginated } from "../../..//interfaces/paginated.interface";
 import { SORT_OPTIONS } from "../../../util/sort";
 import { SearchParams } from "../../../interfaces/searchParams.interface";
 import { EntityType } from "../../../util/enum";
-import { db } from "../../../database";
+import { getDB } from "../../../database";
 import EntityBanner from "../../../components/custom/banner/EntityBanner";
 import FilterPageContainer from "../../..//components/custom/filters/FilterPageContainer";
 import ClearShowsModal from "../../..//components/custom/modals/ClearShowsModal";
@@ -15,6 +15,8 @@ import useAddClubTagModal from "../../..//hooks/useAddClubTagModal";
 import useRunScrapeModal from "../../..//hooks/useRunScrapeModal";
 import useClearShowsModal from "../../..//hooks/useClearShowsModal";
 import TagEntityModal from "../../../components/custom/modals/TagEntityModal";
+
+const {db} = getDB();
 
 const menuItems = [
     { key: "tags", label: "Add Tags", store: useAddClubTagModal },

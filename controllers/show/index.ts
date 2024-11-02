@@ -4,7 +4,9 @@ import {
     CreateShowDTO,
 } from "../../interfaces";
 import { toPopularityScores } from "../../util/domainModels/socialData/mapper";
-import { db } from "../../database";
+import { getDB } from "../../database";
+
+const { db } = getDB();
 
 export const add = async (show: CreateShowDTO): Promise<{ id: number }> => {
     return db.shows.add(show);

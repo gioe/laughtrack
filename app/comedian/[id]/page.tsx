@@ -9,12 +9,14 @@ import useAddComedianTagModal from "../../../hooks/useAddComedianTagModal";
 import TagEntityModal from "../../../components/custom/modals/TagEntityModal";
 import { EntityType } from "../../../util/enum";
 import { SearchParams } from "../../../interfaces/searchParams.interface";
-import { db } from "../../../database";
+import { getDB } from "../../../database";
 import { Suspense } from "react";
 import { TagInterface } from "../../../interfaces/tag.interface";
 import { SORT_OPTIONS } from "../../../util/sort";
 import { ComedianInterface } from "../../../interfaces/comedian.interface";
 import { Paginated } from "../../../interfaces/paginated.interface";
+
+const {db} = getDB();
 
 const menuItems = [
     { key: "social", label: "Edit Social Data", store: useSocialDataModal },

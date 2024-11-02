@@ -4,7 +4,9 @@ import {
     CreateLineupItemDTO,
     GetLineupItemDTO,
 } from "../../interfaces";
-import { db } from "../../database";
+import { getDB } from "../../database";
+
+const { db } = getDB();
 
 export const addAll = async (items: CreateLineupItemDTO[]): Promise<null> => {
     return db.lineups.addAll(items);

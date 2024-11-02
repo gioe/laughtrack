@@ -1,8 +1,10 @@
 import { JSON_KEYS } from "../../util/constants/keys";
-import { db } from "../../database/index.js";
+import { getDB } from "../../database/index.js";
 import { readFile } from "../../util/storageUtil";
 import { UserInterface } from "../../interfaces";
 import { toUser } from "../../util/domainModels/user/mapper";
+
+const { db } = getDB();
 
 const getAdminList = async (): Promise<string[]> => {
     return readFile(process.env.USERS_FILE_NAME as string).then((json: any) => {

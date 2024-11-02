@@ -1,8 +1,10 @@
 import React from "react";
 import ShowInfoCard from "./cards/ShowInfoCard";
-import { db } from "../../../database";
+import { getDB } from "../../../database";
 import { ShowInterface } from "../../../interfaces";
 import { SearchParams } from "../../../interfaces/searchParams.interface";
+
+const { db } = getDB();
 
 export default async function ShowTable({ params }: { params: SearchParams }) {
     const shows = await db.search.getHomeSearchResults(params);

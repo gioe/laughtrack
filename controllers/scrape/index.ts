@@ -28,7 +28,7 @@ export const scrapeClubs = async (id: number[], headless?: boolean) => {
     console.log(`Started scraping job for ${id} at ${startDate}`);
 
     await clubController
-        .getAll(id)
+        .getAllClubs(id)
         .then((clubs: ClubInterface[]) => {
             const jobs = clubs.map((club: ClubInterface) =>
                 runScraper(club, headless),
@@ -57,7 +57,7 @@ const runScraper = async (
     headless?: boolean,
 ): Promise<ScrapingOutput[]> => {
     return playwright.chromium
-        .launch({ headless: headless ? headless : false })
+        .launch({ headless: headless ? headless : true })
         .then((browser) => createScrapingFunction(club, browser));
 };
 

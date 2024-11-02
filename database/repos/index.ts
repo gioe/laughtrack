@@ -9,7 +9,7 @@ import { TagsRepository } from "./tags";
 import { GroupsRepository } from "./groups";
 
 // Database Interface Extensions:
-interface IExtensions {
+export interface IExtensions {
     users: UsersRepository;
     clubs: ClubsRepository;
     comedians: ComediansRepository;
@@ -21,7 +21,6 @@ interface IExtensions {
     groups: GroupsRepository;
 }
 
-export type { IExtensions };
 export {
     UsersRepository,
     ClubsRepository,
