@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
 import { FieldErrors, FieldValues, UseFormRegister } from "react-hook-form";
-import {Input} from "@nextui-org/react";
+import { Input } from "@nextui-org/react";
 
 interface StylizedInputProps {
     id: string;
@@ -16,22 +16,22 @@ interface StylizedInputProps {
 const StylizedInput: React.FC<StylizedInputProps> = ({
     id,
     label,
-    type = 'text', 
-    disabled, 
+    type = "text",
+    disabled,
     register,
-    required
+    required,
 }) => {
     return (
-        <div className="w-full relative"> 
-        <Input 
-            id={id} 
-            label={label}
-            disabled={disabled} 
-            {...register(id, { required })}
-            type={type}
-        />
+        <div className="w-full relative">
+            <Input
+                id={id}
+                label={label}
+                disabled={disabled}
+                {...register(id, { required })}
+                type={type}
+            />
         </div>
-    )
-}
+    );
+};
 
 export default StylizedInput;

@@ -1,9 +1,8 @@
-import { IDatabase, IMain } from 'pg-promise';
-import { users as sql } from '../sql';
-import { CreateUserDTO } from '../../interfaces';
+import { IDatabase, IMain } from "pg-promise";
+import { users as sql } from "../sql";
+import { CreateUserDTO } from "../../interfaces";
 
 export class UsersRepository {
-
     /**
      * @param db
      * Automated database connection context/interface.
@@ -15,9 +14,10 @@ export class UsersRepository {
      * Library's root, if ever needed, like to access 'helpers'
      * or other namespaces available from the root.
      */
-    constructor(private db: IDatabase<any>, private pgp: IMain) {
-
-    }
+    constructor(
+        private db: IDatabase<any>,
+        private pgp: IMain,
+    ) {}
 
     // Creates the table;
     createTable(): Promise<null> {
@@ -29,32 +29,36 @@ export class UsersRepository {
         return this.db.one(sql.add, {
             email: user.email,
             role: user.role,
-            password: user.password
+            password: user.password,
         });
     }
 
     // Tries to find a user from id;
     findById(id: number): Promise<any | null> {
-        return this.db.oneOrNone('SELECT * FROM users WHERE id = $1', +id);
+        return this.db.oneOrNone("SELECT * FROM users WHERE id = $1", +id);
     }
 
     // Tries to find a user from name;
     findByEmail(email: string): Promise<any | null> {
-        return this.db.oneOrNone('SELECT * FROM users WHERE email = $1', email);
+        return this.db.oneOrNone("SELECT * FROM users WHERE email = $1", email);
     }
 
     // Tries to find a user from name;
     checkForExistence(email: string): Promise<any | null> {
-        return this.db.oneOrNone('SELECT * FROM users WHERE email = $1', email);
+        return this.db.oneOrNone("SELECT * FROM users WHERE email = $1", email);
     }
 
     // Returns all user records;
     all(): Promise<any[]> {
-        return this.db.any('SELECT * FROM users');
+        return this.db.any("SELECT * FROM users");
     }
 
     // Returns the total number of users;
     total(): Promise<number> {
-        return this.db.one('SELECT count(*) FROM users', [], (a: { count: string }) => +a.count);
+        return this.db.one(
+            "SELECT count(*) FROM users",
+            [],
+            (a: { count: string }) => +a.count,
+        );
     }
 }

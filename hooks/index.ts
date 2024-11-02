@@ -21,5 +21,5 @@ export {
     useMergeComediansModal,
     useRegisterModal,
     useRunScrapeModal,
-    useSocialDataModal
-}
+    useSocialDataModal,
+};

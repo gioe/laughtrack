@@ -1,5 +1,5 @@
-enum Entity {
-    Club = 'club',
-    Show = 'show',
-    Comedian = 'comedian'
+export enum EntityType {
+    Club = "club",
+    Show = "show",
+    Comedian = "comedian",
 }

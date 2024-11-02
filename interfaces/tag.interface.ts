@@ -1,33 +1,32 @@
 // Client
 export interface TagInterface {
-  id: number;
-  name: string;
+    id: number;
+    name: string;
 }
 
 // DB
 export interface GetTagDTO {
-  type: string;
+    type: string;
 }
 
 export interface GetTagResponseDTO {
-  id: number;
-  tag_name: string;
-  type: string;
-  user_facing: boolean;
+    id: number;
+    tag_name: string;
+    type: string;
+    user_facing: boolean;
 }
 
 export interface TagShowDTO {
-  show_id: number;
-  tag_id: number;
+    show_id: number;
+    tag_id: number;
 }
 
 export interface TagComedianDTO {
-  comedian_id: number;
-  tag_id: number;
+    comedian_id: number;
+    tag_id: number;
 }
 
 export interface TagClubDTO {
-  club_id: number;
-  tag_id: number;
+    club_id: number;
+    tag_id: number;
 }
-

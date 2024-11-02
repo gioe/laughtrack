@@ -16,16 +16,13 @@ with comedian_social_data as (
 full_lineup_data as (
     SELECT
         s.id as id,
-        s.club_id,
         s.price,
-        s.name as show_name,
-        cl.name as club_name,
+        s.name,
         cl.city,
-                s.ticket_link as ticket_link,
+        cl.name as club_name,
+        s.ticket_link as ticket_link,
         s.date_time as date_time,
                 jsonb_build_object(
-                'id',
-                s.id,
                 'popularity_score',
                 s.popularity_score
             ) as social_data,
@@ -55,33 +52,8 @@ full_lineup_data as (
         s.date_time ASC
 )
 SELECT
-    city,
-    jsonb_agg(
-        DISTINCT jsonb_build_object(
-            'id',
-            full_lineup_data.id,
-            'club_id',
-            full_lineup_data.club_id,
-            'club_name',
-            full_lineup_data.club_name,
-            'name',
-            full_lineup_data.show_name,
-            'date_time',
-            full_lineup_data.date_time,
-            'ticket_link',
-            full_lineup_data.ticket_link,
-            'social_data',
-            full_lineup_data.social_data,
-            'price',
-            full_lineup_data.price,
-            'lineup',
-            full_lineup_data.lineup
-        )
-    ) as dates,
-    COALESCE(jsonb_agg(distinct full_lineup_data.club_name)) as clubs
+*
 from
     full_lineup_data
 WHERE
     city = ${location}
-GROUP BY
-    city

@@ -1,28 +1,25 @@
-import {
-    GetDateDTO,
-    ShowInterface, GetShowResponseDTO,
-} from "../../../interfaces";
-import { toTagInterfaceArray } from "../tag/mapper";
+import { ShowInterface, GetShowResponseDTO } from "../../../interfaces";
 import { toSocialDataInterface } from "../socialData/mapper";
+import { toLineup } from "../comedian/mapper";
 
-export const toDates = (payload: GetDateDTO[] | GetShowResponseDTO[]): ShowInterface[] => {
-    return payload.map((show: GetDateDTO | GetShowResponseDTO) => toShowInterface(show));
-}
+export const toDates = (
+    payload: GetShowResponseDTO[] | undefined,
+): ShowInterface[] => {
+    return payload == undefined
+        ? []
+        : payload.map((show: GetShowResponseDTO) => toShowInterface(show));
+};
 
-export const toShowInterface = (payload: GetShowResponseDTO | GetDateDTO): ShowInterface => {
+export const toShowInterface = (payload: GetShowResponseDTO): ShowInterface => {
     return {
         id: payload.id,
+        price: parseFloat(payload.price),
         name: payload.name,
-        dateTime: payload.date_time,
-        ticketLink: payload.ticket_link,
-        socialData: toSocialDataInterface(payload.social_data),
-        clubId: payload.club_id,
         clubName: payload.club_name,
-        lineup: [],
-
-        // lineup: toLineup(payload.lineup).filter((comedian: ComedianInterface) => item.id !== null),
-        popularityScore: payload.popularity_score,
-        tags: payload.tags ? toTagInterfaceArray(payload.tags) : [],
-        price: parseFloat(payload.price)
-    }
-}
+        ticketLink: payload.ticket_link,
+        dateTime: payload.date_time,
+        socialData: toSocialDataInterface(payload.social_data),
+        lineup: toLineup(payload.lineup),
+        tags: [],
+    };
+};

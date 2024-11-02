@@ -1,5 +1,9 @@
 import { Show } from "../../../classes/Show";
-import { ClubScrapingData, ClubScraper, ScrapingOutput } from "../../../interfaces";
+import {
+    ClubInterface,
+    ClubScraper,
+    ScrapingOutput,
+} from "../../../interfaces";
 import { PageManager } from "../handlers/PageManager";
 import playwright from "playwright-core";
 import { ShowScraper } from "../scrapers/ShowScraper";
@@ -12,75 +16,93 @@ const DATE_TIME = "p.event-page-date.hidden-xs";
 const COMEDIAN_NAME = "p.comedian-name > a";
 const SHOW_NAME = "h1.header.set-border-bottom.event-page-title";
 const PRICE = "span.--cost";
-const SEPARATOR = ' - '
+const SEPARATOR = " - ";
 
 export class EastvilleComedyClub implements ClubScraper {
+    private clubData: ClubInterface;
+    private browser: playwright.Browser;
+    private pageManager = new PageManager();
+    private scraper = new ShowScraper();
 
-  private clubData: ClubScrapingData;
-  private browser: playwright.Browser;
-  private pageManager = new PageManager();
-  private scraper = new ShowScraper();
-
-  constructor(clubData: ClubScrapingData, browser: playwright.Browser) {
-    this.clubData = clubData;
-    this.browser = browser;
-  }
-
-  scrape = async (): Promise<ScrapingOutput[]> => {
-    return this.browser.newPage()
-      .then((page: playwright.Page) => this.pageManager.navigateToUrl(page, this.clubData.schedulePageUrl))
-      .then((page: playwright.Page) => this.runClubScrapingFunction(page))
-      .catch((error) => {
-        console.log(`Error scraping Eastville Comedy Club: ${error}`)
-        return []
-      })
-  }
-
-  runClubScrapingFunction = async (page: playwright.Page): Promise<ScrapingOutput[]> => {
-    return this.pageManager.getLinksAcrossPages(page, NEXT, ALL_LINKS)
-      .then((links: string[]) => this.runScrapingLoop(page, links))
-  }
-
-  runScrapingLoop = async (page: playwright.Page, links: string[]): Promise<ScrapingOutput[]> => {
-    var scrapingOutput: ScrapingOutput[] = []
-
-    for (let index = 0; index < links.length - 1; index++) {
-      const input = links[index];
-      const show = await this.navigateToUrlAndScrape(page, input)
-      scrapingOutput.push(show)
+    constructor(clubData: ClubInterface, browser: playwright.Browser) {
+        this.clubData = clubData;
+        this.browser = browser;
     }
 
-    await this.browser.close();
-    return scrapingOutput
-  }
+    scrape = async (): Promise<ScrapingOutput[]> => {
+        return this.browser
+            .newPage()
+            .then((page: playwright.Page) =>
+                this.pageManager.navigateToUrl(
+                    page,
+                    this.clubData.scrapingPageUrl,
+                ),
+            )
+            .then((page: playwright.Page) => this.runClubScrapingFunction(page))
+            .catch((error) => {
+                console.log(`Error scraping Eastville Comedy Club: ${error}`);
+                return [];
+            });
+    };
 
-  navigateToUrlAndScrape = async (page: playwright.Page, link: string): Promise<ScrapingOutput> => {
-    return this.pageManager.navigateToUrl(page, link)
-      .then((page) => {
-        return this.scraper.scrape({
-          comedianNameLocator: page.locator(COMEDIAN_NAME),
-          dateTimeLocator: page.locator(DATE_TIME),
-          showNameLocator: page.locator(SHOW_NAME),
-          priceLocator: page.locator(PRICE),
-        })
-      })
-      .then((scrapingOutput: any[]) => this.processOutput(scrapingOutput, link))
-  }
+    runClubScrapingFunction = async (
+        page: playwright.Page,
+    ): Promise<ScrapingOutput[]> => {
+        return this.pageManager
+            .getLinksAcrossPages(page, NEXT, ALL_LINKS)
+            .then((links: string[]) => this.runScrapingLoop(page, links));
+    };
 
-  processOutput = (output: any[], url: string): ScrapingOutput => {
-    const show = new Show({
-      lineup: output[0],
-      dateTime: new DateTimeContainer(output[1], SEPARATOR).asDateObject(),
-      ticketLink: generateValidUrl(this.clubData.baseUrl, url),
-      name: output[3],
-      price: output[4],
-      clubId: this.clubData.id,
-    })
-    return {
-      show: show.asCreateShowDTO(),
-      comedians: show.asCreateComedianDTOArray()
-    } as ScrapingOutput
-  }
+    runScrapingLoop = async (
+        page: playwright.Page,
+        links: string[],
+    ): Promise<ScrapingOutput[]> => {
+        const scrapingOutput: ScrapingOutput[] = [];
 
+        for (let index = 0; index < links.length - 1; index++) {
+            const input = links[index];
+            const show = await this.navigateToUrlAndScrape(page, input);
+            scrapingOutput.push(show);
+        }
 
+        await this.browser.close();
+        return scrapingOutput;
+    };
+
+    navigateToUrlAndScrape = async (
+        page: playwright.Page,
+        link: string,
+    ): Promise<ScrapingOutput> => {
+        return this.pageManager
+            .navigateToUrl(page, link)
+            .then((page) => {
+                return this.scraper.scrape({
+                    comedianNameLocator: page.locator(COMEDIAN_NAME),
+                    dateTimeLocator: page.locator(DATE_TIME),
+                    showNameLocator: page.locator(SHOW_NAME),
+                    priceLocator: page.locator(PRICE),
+                });
+            })
+            .then((scrapingOutput: any[]) =>
+                this.processOutput(scrapingOutput, link),
+            );
+    };
+
+    processOutput = (output: any[], url: string): ScrapingOutput => {
+        const show = new Show({
+            lineup: output[0],
+            dateTime: new DateTimeContainer(
+                output[1],
+                SEPARATOR,
+            ).asDateObject(),
+            ticketLink: generateValidUrl(this.clubData.baseUrl, url),
+            name: output[3],
+            price: output[4],
+            clubId: this.clubData.id,
+        });
+        return {
+            show: show.asCreateShowDTO(),
+            comedians: show.asCreateComedianDTOArray(),
+        } as ScrapingOutput;
+    };
 }

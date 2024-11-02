@@ -1,7 +1,6 @@
 import { SocialDiscoverable } from "./";
+import { ImageRepresentable } from "./imageRepresentable.interface";
 
-export interface BannerProviderInterface extends SocialDiscoverable {
-  id: number;
-  name: string;
-}
-
+export interface BannerProviderInterface
+    extends ImageRepresentable,
+        SocialDiscoverable {}

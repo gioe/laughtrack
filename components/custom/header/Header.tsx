@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { useCallback, useState } from 'react'
-import { signOut } from "next-auth/react"
+import { useCallback, useState } from "react";
+import { signOut } from "next-auth/react";
 import {
     Dialog,
     DialogPanel,
@@ -11,49 +11,60 @@ import {
     PopoverButton,
     PopoverGroup,
     PopoverPanel,
-} from '@headlessui/react'
+} from "@headlessui/react";
 import {
     Bars3Icon,
     FaceSmileIcon,
     XMarkIcon,
-    BuildingStorefrontIcon
-} from '@heroicons/react/24/outline'
-import { ChevronDownIcon } from '@heroicons/react/24/solid'
-import { UserInterface } from '../../../interfaces/user.interface'
-import useLoginModal from '../../../hooks/useLoginModal'
-import useRegisterModal from '../../../hooks/useRegisterModel'
+    BuildingStorefrontIcon,
+} from "@heroicons/react/24/outline";
+import { ChevronDownIcon } from "@heroicons/react/24/solid";
+import { UserInterface } from "../../../interfaces/user.interface";
+import useLoginModal from "../../../hooks/useLoginModal";
+import useRegisterModal from "../../../hooks/useRegisterModel";
 
 const comedianMenuItems = [
-    { name: 'Browse', description: 'Search for your favorite comedians', href: '/comedian/all', icon: FaceSmileIcon },
-]
+    {
+        name: "Browse",
+        description: "Search for your favorite comedians",
+        href: "/comedian/all",
+        icon: FaceSmileIcon,
+    },
+];
 
 const clubMenuItems = [
-    { name: 'Browse', description: 'Search for clubs in your area', href: '/club/all', icon: BuildingStorefrontIcon },
-]
+    {
+        name: "Browse",
+        description: "Search for clubs in your area",
+        href: "/club/all",
+        icon: BuildingStorefrontIcon,
+    },
+];
 
 interface NavbarProps {
     currentUser?: UserInterface | null;
 }
 
-const Header: React.FC<NavbarProps> = ({
-    currentUser,
-}) => {
+const Header: React.FC<NavbarProps> = ({ currentUser }) => {
     const loginModal = useLoginModal();
     const registerModal = useRegisterModal();
 
     const handleLoginClick = useCallback(() => {
-        loginModal.onOpen()
-    }, [loginModal])
+        loginModal.onOpen();
+    }, [loginModal]);
 
     const handleSignupClick = useCallback(() => {
-        registerModal.onOpen()
-    }, [registerModal])
+        registerModal.onOpen();
+    }, [registerModal]);
 
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     return (
         <header className="bg-white">
-            <nav aria-label="Global" className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8">
+            <nav
+                aria-label="Global"
+                className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8"
+            >
                 <div className="flex lg:hidden">
                     <button
                         type="button"
@@ -65,14 +76,20 @@ const Header: React.FC<NavbarProps> = ({
                     </button>
                 </div>
                 <PopoverGroup className="hidden lg:flex lg:gap-x-12">
-                    <a href="/" className="text-sm font-semibold leading-6 text-gray-900">
+                    <a
+                        href="/"
+                        className="text-sm font-semibold leading-6 text-gray-900"
+                    >
                         Home
                     </a>
 
                     <Popover className="relative">
                         <PopoverButton className="flex items-center gap-x-1 text-sm font-semibold leading-6 text-gray-900">
                             Clubs
-                            <ChevronDownIcon aria-hidden="true" className="h-5 w-5 flex-none text-gray-400" />
+                            <ChevronDownIcon
+                                aria-hidden="true"
+                                className="h-5 w-5 flex-none text-gray-400"
+                            />
                         </PopoverButton>
 
                         <PopoverPanel
@@ -86,14 +103,22 @@ const Header: React.FC<NavbarProps> = ({
                                         className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm leading-6 hover:bg-gray-50"
                                     >
                                         <div className="flex h-11 w-11 flex-none items-center justify-center rounded-lg bg-gray-50 group-hover:bg-white">
-                                            <item.icon aria-hidden="true" className="h-6 w-6 text-gray-600 group-hover:text-indigo-600" />
+                                            <item.icon
+                                                aria-hidden="true"
+                                                className="h-6 w-6 text-gray-600 group-hover:text-indigo-600"
+                                            />
                                         </div>
                                         <div className="flex-auto">
-                                            <a href={item.href} className="block font-semibold text-gray-900">
+                                            <a
+                                                href={item.href}
+                                                className="block font-semibold text-gray-900"
+                                            >
                                                 {item.name}
                                                 <span className="absolute inset-0" />
                                             </a>
-                                            <p className="mt-1 text-gray-600">{item.description}</p>
+                                            <p className="mt-1 text-gray-600">
+                                                {item.description}
+                                            </p>
                                         </div>
                                     </div>
                                 ))}
@@ -104,7 +129,10 @@ const Header: React.FC<NavbarProps> = ({
                     <Popover className="relative">
                         <PopoverButton className="flex items-center gap-x-1 text-sm font-semibold leading-6 text-gray-900">
                             Comedians
-                            <ChevronDownIcon aria-hidden="true" className="h-5 w-5 flex-none text-gray-400" />
+                            <ChevronDownIcon
+                                aria-hidden="true"
+                                className="h-5 w-5 flex-none text-gray-400"
+                            />
                         </PopoverButton>
 
                         <PopoverPanel
@@ -118,14 +146,22 @@ const Header: React.FC<NavbarProps> = ({
                                         className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm leading-6 hover:bg-gray-50"
                                     >
                                         <div className="flex h-11 w-11 flex-none items-center justify-center rounded-lg bg-gray-50 group-hover:bg-white">
-                                            <item.icon aria-hidden="true" className="h-6 w-6 text-gray-600 group-hover:text-indigo-600" />
+                                            <item.icon
+                                                aria-hidden="true"
+                                                className="h-6 w-6 text-gray-600 group-hover:text-indigo-600"
+                                            />
                                         </div>
                                         <div className="flex-auto">
-                                            <a href={item.href} className="block font-semibold text-gray-900">
+                                            <a
+                                                href={item.href}
+                                                className="block font-semibold text-gray-900"
+                                            >
                                                 {item.name}
                                                 <span className="absolute inset-0" />
                                             </a>
-                                            <p className="mt-1 text-gray-600">{item.description}</p>
+                                            <p className="mt-1 text-gray-600">
+                                                {item.description}
+                                            </p>
                                         </div>
                                     </div>
                                 ))}
@@ -133,30 +169,41 @@ const Header: React.FC<NavbarProps> = ({
                         </PopoverPanel>
                     </Popover>
 
-                    {currentUser && <a href={`/profile/${currentUser.id}`} className="text-sm font-semibold leading-6 text-gray-900">
-                        My Profile
-                    </a>}
-
+                    {currentUser && (
+                        <a
+                            href={`/profile/${currentUser.id}`}
+                            className="text-sm font-semibold leading-6 text-gray-900"
+                        >
+                            My Profile
+                        </a>
+                    )}
                 </PopoverGroup>
                 <div className="hidden lg:flex lg:flex-1 lg:justify-end">
                     {currentUser ? (
                         <>
-                            <button onClick={() => {
-                                signOut()
-                            }}
-                                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">
+                            <button
+                                onClick={() => {
+                                    signOut();
+                                }}
+                                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full"
+                            >
                                 Log Out
                             </button>
                         </>
                     ) : (
                         <>
                             <div className="hidden lg:flex lg:flex-1 lg:justify-end gap-3">
-                                <button onClick={handleLoginClick}
-                                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">
+                                <button
+                                    onClick={handleLoginClick}
+                                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full"
+                                >
                                     Log In
                                 </button>
 
-                                <button onClick={handleSignupClick} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">
+                                <button
+                                    onClick={handleSignupClick}
+                                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full"
+                                >
                                     Sign Up
                                 </button>
                             </div>
@@ -165,8 +212,11 @@ const Header: React.FC<NavbarProps> = ({
                 </div>
             </nav>
 
-
-            <Dialog open={mobileMenuOpen} onClose={setMobileMenuOpen} className="lg:hidden">
+            <Dialog
+                open={mobileMenuOpen}
+                onClose={setMobileMenuOpen}
+                className="lg:hidden"
+            >
                 <div className="fixed inset-0 z-10" />
                 <DialogPanel className="fixed inset-y-0 right-0 z-10 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
                     <div className="flex items-center justify-between">
@@ -191,35 +241,47 @@ const Header: React.FC<NavbarProps> = ({
                                 <Disclosure as="div" className="-mx-3">
                                     <DisclosureButton className="group flex w-full items-center justify-between rounded-lg py-2 pl-3 pr-3.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50">
                                         Clubs
-                                        <ChevronDownIcon aria-hidden="true" className="h-5 w-5 flex-none group-data-[open]:rotate-180" />
+                                        <ChevronDownIcon
+                                            aria-hidden="true"
+                                            className="h-5 w-5 flex-none group-data-[open]:rotate-180"
+                                        />
                                     </DisclosureButton>
                                 </Disclosure>
                                 <Disclosure as="div" className="-mx-3">
                                     <DisclosureButton className="group flex w-full items-center justify-between rounded-lg py-2 pl-3 pr-3.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50">
                                         Comedians
-                                        <ChevronDownIcon aria-hidden="true" className="h-5 w-5 flex-none group-data-[open]:rotate-180" />
+                                        <ChevronDownIcon
+                                            aria-hidden="true"
+                                            className="h-5 w-5 flex-none group-data-[open]:rotate-180"
+                                        />
                                     </DisclosureButton>
                                 </Disclosure>
                             </div>
                             <div className="flex flex-col py-6 gap-5">
                                 {currentUser ? (
                                     <>
-                                        <button onClick={() => {
-                                            signOut()
-                                        }}
-                                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">
+                                        <button
+                                            onClick={() => {
+                                                signOut();
+                                            }}
+                                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full"
+                                        >
                                             Log Out
                                         </button>
                                     </>
                                 ) : (
                                     <>
-                                        <button onClick={handleLoginClick}
-                                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">
+                                        <button
+                                            onClick={handleLoginClick}
+                                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full"
+                                        >
                                             Log In
                                         </button>
 
-                                        <button onClick={handleSignupClick}
-                                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">
+                                        <button
+                                            onClick={handleSignupClick}
+                                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full"
+                                        >
                                             Sign Up
                                         </button>
                                     </>
@@ -229,8 +291,8 @@ const Header: React.FC<NavbarProps> = ({
                     </div>
                 </DialogPanel>
             </Dialog>
-        </header >
-    )
-}
+        </header>
+    );
+};
 
 export default Header;

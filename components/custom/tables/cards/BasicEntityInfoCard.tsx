@@ -1,57 +1,62 @@
-'use client';
+"use client";
 
-import { ComedianInterface } from "../../../../interfaces/comedian.interface";
 import {
     Card,
     CardHeader,
     CardBody,
     CardFooter,
-    Typography
+    Typography,
 } from "@material-tailwind/react";
 import { useState } from "react";
 import SocialMediaBar from "../../social/SocialMediaBar";
 import Image from "next/image";
+import EntityType from "../../icons/MiniEntityIcon";
+import { SocialDiscoverable } from "../../../../interfaces";
+import { ImageRepresentable } from "../../../../interfaces/imageRepresentable.interface";
 
-interface LargeComedianInfoCardProps {
-    comedian: ComedianInterface
+interface EntityInfoCardProps {
+    type: EntityType;
+    entity: SocialDiscoverable & ImageRepresentable;
 }
 
-const LargeComedianInfoCard: React.FC<LargeComedianInfoCardProps> = ({
-    comedian,
+const BasicEntityInfoCard: React.FC<EntityInfoCardProps> = ({
+    type,
+    entity,
 }) => {
+    const [src, setSrc] = useState<string>(
+        `/images/${type.valueOf()}/square/${entity.name}.png`,
+    );
 
-    const [src, setSrc] = useState<string>(`/images/comedians/square/${comedian.name}.png`);
-    
     const onError = () => {
-      setSrc(`/images/logo.png`);
+        setSrc(`/images/logo.png`);
     };
-
 
     return (
         <div className="cursor-pointer hover:scale-105 transform transition duration-300 ease-out">
             <Card className="w-96">
                 <CardHeader floated={false} className="h-80">
                     <div className="object-fill">
-                        <Image alt="Comedian"
+                        <Image
+                            alt="Comedian"
                             src={src}
                             fill
                             onError={onError}
                             priority={false}
                             style={{ objectFit: "cover" }}
-                             />
+                        />
                     </div>
                 </CardHeader>
                 <CardBody className="text-center">
                     <Typography variant="h4" className="text-blue-gray-600">
-                        {comedian.name}
+                        {entity.name}
                     </Typography>
                 </CardBody>
                 <CardFooter className="flex justify-center gap-7 pt-2">
-                    <SocialMediaBar data={comedian.socialData} />
+                    <SocialMediaBar data={entity.socialData} />
                 </CardFooter>
             </Card>
         </div>
     );
-}
+};
 
-export default LargeComedianInfoCard;
+export default BasicEntityInfoCard;

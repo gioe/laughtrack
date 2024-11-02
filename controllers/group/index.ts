@@ -1,6 +1,8 @@
 import { UpdateComedianRelationshipDTO } from "../../interfaces";
-import { db } from '../../database';
+import { db } from "../../database";
 
-export const establishGroup = async (payload: UpdateComedianRelationshipDTO) => {
+export const establishGroup = async (
+    payload: UpdateComedianRelationshipDTO,
+) => {
     return db.groups.addComedianGroup(payload);
-}
+};

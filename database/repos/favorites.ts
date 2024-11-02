@@ -1,10 +1,9 @@
-import { IDatabase, IMain } from 'pg-promise';
-import { IResult } from 'pg-promise/typescript/pg-subset';
-import { favorites as sql } from '../sql';
-import { CreateFavoriteDTO } from '../../interfaces';
+import { IDatabase, IMain } from "pg-promise";
+import { IResult } from "pg-promise/typescript/pg-subset";
+import { favorites as sql } from "../sql";
+import { CreateFavoriteDTO } from "../../interfaces";
 
 export class FavoritesRepository {
-
     /**
      * @param db
      * Automated database connection context/interface.
@@ -16,8 +15,10 @@ export class FavoritesRepository {
      * Library's root, if ever needed, like to access 'helpers'
      * or other namespaces available from the root.
      */
-    constructor(private db: IDatabase<any>, private pgp: IMain) {
-    }
+    constructor(
+        private db: IDatabase<any>,
+        private pgp: IMain,
+    ) {}
 
     // Creates the table;
     createTable(): Promise<null> {
@@ -26,23 +27,33 @@ export class FavoritesRepository {
 
     // Adds a new user, and returns the new object;
     add(payload: CreateFavoriteDTO): Promise<boolean> {
-        return this.db.one(sql.add, {
-            comedian_id: payload.id,
-            user_id: payload.user_id
-        }, (r: IResult) => true);
+        return this.db.one(
+            sql.add,
+            {
+                comedian_id: payload.id,
+                user_id: payload.user_id,
+            },
+            (r: IResult) => true,
+        );
     }
 
     // Tries to delete a user by id, and returns the number of records deleted;
     remove(payload: CreateFavoriteDTO): Promise<boolean> {
-        return this.db.result(sql.remove, {
-            comedian_id: payload.id,
-            user_id: payload.user_id
-        }, (r: IResult) => false);
+        return this.db.result(
+            sql.remove,
+            {
+                comedian_id: payload.id,
+                user_id: payload.user_id,
+            },
+            (r: IResult) => false,
+        );
     }
 
     // Tries to find a user from id;
     findByUserId(id: number): Promise<any | null> {
-        return this.db.oneOrNone('SELECT * FROM favorite_comedians WHERE user_id = $1', +id);
+        return this.db.oneOrNone(
+            "SELECT * FROM favorite_comedians WHERE user_id = $1",
+            +id,
+        );
     }
-
 }

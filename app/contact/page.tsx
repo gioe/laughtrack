@@ -1,7 +1,5 @@
-const ContactPage  = async () => {
-    return (
-        <div></div>
-    )
-}
+const ContactPage = async () => {
+    return <div></div>;
+};
 
 export default ContactPage;

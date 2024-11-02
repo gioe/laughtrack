@@ -1,7 +1,6 @@
 import { CreateComedianDTO, CreateShowDTO } from "./";
 import { Locator } from "playwright-core";
 
-
 export interface ScrapingOutput {
     show: CreateShowDTO;
     comedians: CreateComedianDTO[];
@@ -17,5 +16,8 @@ export interface ScrapingArgs {
     ticketLinkLocator?: Locator;
     showNameLocator: Locator;
     priceLocator?: Locator;
-  }
-  
+}
+
+export interface Scrapable {
+    scrapingPageUrl: string;
+}

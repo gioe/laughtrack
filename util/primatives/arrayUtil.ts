@@ -1,6 +1,5 @@
 export function flattenArrayList<T>(arrays: T[][]): T[] {
-    return arrays
-      .flatMap((array: T[]) => {
-        return array.map((object: T) => object)
-      })
-  }
+    return arrays.flatMap((array: T[]) => {
+        return array.map((object: T) => object);
+    });
+}

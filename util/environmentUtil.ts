@@ -1,2 +1,1 @@
-
-export const isLocal = process.env.K_REVISION == undefined
+export const isLocal = process.env.K_REVISION == undefined;

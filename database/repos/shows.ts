@@ -1,18 +1,23 @@
-import { ColumnSet, IDatabase, IMain } from 'pg-promise';
-import { shows as sql } from '../sql';
-import { PopularityScoreIODTO, GroupedPopularityScoreDTO, CreateShowDTO, GetShowResponseDTO  } from '../../interfaces';
+import { ColumnSet, IDatabase, IMain } from "pg-promise";
+import { shows as sql } from "../sql";
+import {
+    PopularityScoreIODTO,
+    GroupedPopularityScoreDTO,
+    CreateShowDTO,
+    GetShowResponseDTO,
+    ShowInterface,
+} from "../../interfaces";
+import { toShowInterface } from "../../util/domainModels/show/mapper";
 
-var columnSets: {
+const columnSets: {
     updateScores: ColumnSet | null;
     addAll: ColumnSet | null;
 } = {
     updateScores: null,
-    addAll: null
-}
-
+    addAll: null,
+};
 
 export class ShowsRepository {
-
     /**
      * @param db
      * Automated database connection context/interface.
@@ -24,10 +29,18 @@ export class ShowsRepository {
      * Library's root, if ever needed, like to access 'helpers'
      * or other namespaces available from the root.
      */
-    constructor(private db: IDatabase<any>, private pgp: IMain) {
-        columnSets.updateScores = new pgp.helpers.ColumnSet(['?id', 'popularity_score'], { table: 'shows' });
-        columnSets.addAll = new pgp.helpers.ColumnSet(['club_id', 'date_time', 'ticket_link', 'popularity_score'],
-            { table: 'shows' });
+    constructor(
+        private db: IDatabase<any>,
+        private pgp: IMain,
+    ) {
+        columnSets.updateScores = new pgp.helpers.ColumnSet(
+            ["?id", "popularity_score"],
+            { table: "shows" },
+        );
+        columnSets.addAll = new pgp.helpers.ColumnSet(
+            ["club_id", "date_time", "ticket_link", "popularity_score"],
+            { table: "shows" },
+        );
     }
 
     // Creates the table;
@@ -41,30 +54,35 @@ export class ShowsRepository {
             date_time: instance.date_time,
             ticket_link: instance.ticket_link,
             name: instance.name,
-            price: instance.price
+            price: instance.price,
         });
     }
 
     // Tries to find a show from id;
-    findById(id: number): Promise<GetShowResponseDTO | null> {
-        return this.db.oneOrNone(sql.getWithLineup, {
-            showId: +id,
-        });
+    async getById(id: number): Promise<ShowInterface | null> {
+        return this.db
+            .oneOrNone(sql.getWithLineup, {
+                showId: +id,
+            })
+            .then((show: GetShowResponseDTO | null) =>
+                show ? toShowInterface(show) : null,
+            );
     }
 
     getAllLineupPopularityData(): Promise<GroupedPopularityScoreDTO[] | null> {
-        return this.db.any(sql.getAllLineupPopularityData)
+        return this.db.any(sql.getAllLineupPopularityData);
     }
 
     updateScores(scores: PopularityScoreIODTO[]): Promise<null> {
-        const update = this.pgp.helpers.update(scores, columnSets.updateScores) + ' WHERE v.id = t.id';
-        return this.db.none(update)
+        const update =
+            this.pgp.helpers.update(scores, columnSets.updateScores) +
+            " WHERE v.id = t.id";
+        return this.db.none(update);
     }
 
     deleteForClub(id: number): Promise<null> {
         return this.db.none(sql.deleteByClub, {
-            clubId: id
-        })
+            clubId: id,
+        });
     }
-
 }

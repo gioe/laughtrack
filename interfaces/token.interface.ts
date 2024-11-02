@@ -1,8 +1,6 @@
-export type AuthToken = {
-    id: number
-    email: string
-    iat: number
-    exp: number
-  }
-
-  
+export interface AuthToken {
+    id: number;
+    email: string;
+    iat: number;
+    exp: number;
+}

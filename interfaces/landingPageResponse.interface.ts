@@ -1,7 +1,6 @@
 import { ComedianInterface } from "./";
 
 export interface LandingPageResponseInterface {
-  cities: string[];
-  trendingComedians: ComedianInterface[];
+    cities: string[];
+    trendingComedians: ComedianInterface[];
 }
-

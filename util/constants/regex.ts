@@ -3,6 +3,5 @@ export const REGEX = {
     dateRegex: /\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}/g,
     time: /\d{1,2}[:]\d{1,2}/g,
     meridiem: /([AaPp][Mm])/,
-    price: /\$(\d+(?:\.\d{2})?)/
-  };
-  
+    price: /\$(\d+(?:\.\d{2})?)/,
+};

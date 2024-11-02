@@ -1,9 +1,12 @@
-import { PaginationData } from "../../../interfaces"
+import { PaginationData } from "../../../interfaces";
 
-
-export const toPaginatedData = (input: any[], page?: string, rows?: string): PaginationData => {
+export const toPaginatedData = (
+    input: any[],
+    page?: string,
+    rows?: string,
+): PaginationData => {
     const currentPage = parseInt(page ?? "0") + 1;
-    const rowsInt = parseInt(page ?? "10");
+    const rowsInt = parseInt(rows ?? "10");
     const startIndex = (currentPage - 1) * rowsInt;
     const endIndex = currentPage * rowsInt;
 
@@ -12,6 +15,6 @@ export const toPaginatedData = (input: any[], page?: string, rows?: string): Pag
 
     return {
         data: paginatedData,
-        totalPages: isNaN(totalPages) ? 0 : totalPages
-    }
-}
+        totalPages: isNaN(totalPages) ? 0 : totalPages,
+    };
+};

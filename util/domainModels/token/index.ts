@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import { AuthToken } from "../../../interfaces";
 
-const secret = process.env.SECRET_KEY as string
+const secret = process.env.SECRET_KEY as string;
 
 export const generateToken = (payload: any, type: string) => {
     if (type === "access") {

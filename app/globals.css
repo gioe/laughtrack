@@ -5,7 +5,7 @@
 html,
 body,
 :root {
-  height: 100%
+  height: 100%;
 }
 
 @layer components {
@@ -16,24 +16,24 @@ body,
   }
 }
 
-
 #section_footer {
   width: 100%;
   background: #003366;
 
-  a, span {
+  a,
+  span {
     color: #fff;
-    font-size: .75em;
+    font-size: 0.75em;
     text-decoration: none;
   }
-  
+
   a:hover {
     text-decoration: underline;
   }
 
   p {
     color: #fff;
-    font-size: .5em;
+    font-size: 0.5em;
   }
 }
 
@@ -67,7 +67,7 @@ body,
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    --radius: 0.5rem
+    --radius: 0.5rem;
   }
   .dark {
     --background: 20 14.3% 4.1%;
@@ -93,7 +93,7 @@ body,
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%
+    --chart-5: 340 75% 55%;
   }
 }
 
@@ -135,7 +135,6 @@ body,
   stroke: red;
   fill: aqua;
 }
-
 
 .web-icon {
   stroke: white;

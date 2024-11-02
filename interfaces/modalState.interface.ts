@@ -1,5 +1,5 @@
 export interface ModalState {
-  isOpen: boolean;
-  onOpen: ()  => void;
-  onClose: () => void;
+    isOpen: boolean;
+    onOpen: () => void;
+    onClose: () => void;
 }

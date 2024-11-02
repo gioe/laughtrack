@@ -1,9 +1,8 @@
-import { IDatabase, IMain } from 'pg-promise';
-import { groups as sql } from '../sql';
-import { UpdateComedianRelationshipDTO } from '../../interfaces';
+import { IDatabase, IMain } from "pg-promise";
+import { groups as sql } from "../sql";
+import { UpdateComedianRelationshipDTO } from "../../interfaces";
 
 export class GroupsRepository {
-
     /**
      * @param db
      * Automated database connection context/interface.
@@ -15,8 +14,10 @@ export class GroupsRepository {
      * Library's root, if ever needed, like to access 'helpers'
      * or other namespaces available from the root.
      */
-    constructor(private db: IDatabase<any>, private pgp: IMain) {
-    }
+    constructor(
+        private db: IDatabase<any>,
+        private pgp: IMain,
+    ) {}
 
     // Creates the table;
     createTable(): Promise<null> {
@@ -30,5 +31,4 @@ export class GroupsRepository {
             child_id: payload.child_id,
         });
     }
-
 }

@@ -1,6 +1,6 @@
 import { TagInterface } from "./";
 
 export interface Taggable {
-  id: number;
-  tags: TagInterface[];
+    id: number;
+    tags: TagInterface[];
 }

@@ -12,62 +12,55 @@ import { auth } from "../auth";
 import { cache } from "react";
 
 export const metadata: Metadata = {
-  title: "Laughtrack",
-  description: "Find comics you love",
+    title: "Laughtrack",
+    description: "Find comics you love",
 };
 
 export const getSession = cache(async () => {
-  const session = await auth();
-  return session;
+    const session = await auth();
+    return session;
 });
 
 export async function getCurrentUser() {
-  try {
-      const session = await getSession();
-      if (!session?.user?.email) {
-          return null;
-      }
+    try {
+        const session = await getSession();
+        if (!session?.user?.email) {
+            return null;
+        }
 
-      return {
-          id: session.user.id,
-          email: session.user.email,
-          role: session.user.role
-      }
-  }
-  catch (error) {
-      return null;
-  }
-
+        return {
+            id: session.user.id,
+            email: session.user.email,
+            role: session.user.role,
+        };
+    } catch (error) {
+        return null;
+    }
 }
 
 export default async function RootLayout({
-  children,
+    children,
 }: Readonly<{
-  children: React.ReactNode;
+    children: React.ReactNode;
 }>) {
+    const user = await getCurrentUser();
 
-  const user = await getCurrentUser();
-
-  return (
-    <SessionProvider>
-        <html lang="en">
-          <body className="bg-shark">
-          <NextUIProvider>
-            <Header
-              currentUser={user}
-            />
-            <ClientOnly>
-              <ToasterProvider />
-              <LoginModal />
-              <RegisterModal />
-              {children}
-              <Footer />
-            </ClientOnly>
-            </NextUIProvider>
-
-          </body>
-        </html>
-    </SessionProvider>
-  );
+    return (
+        <SessionProvider>
+            <html lang="en">
+                <body className="bg-shark">
+                    <NextUIProvider>
+                        <Header currentUser={user} />
+                        <ClientOnly>
+                            <ToasterProvider />
+                            <LoginModal />
+                            <RegisterModal />
+                            {children}
+                            <Footer />
+                        </ClientOnly>
+                    </NextUIProvider>
+                </body>
+            </html>
+        </SessionProvider>
+    );
 }
-

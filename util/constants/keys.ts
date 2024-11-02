@@ -1,10 +1,10 @@
 export const SCRAPER_KEYS = {
     dateOptionsSelector: "dateOptionsSelector",
     dateTimeSeparator: "dateTimeSeparator",
-    dateSelectSelector: "dateSelectSelector",  
+    dateSelectSelector: "dateSelectSelector",
     linkContainer: "linkContainer",
-    detailPageButtonSelector: 'detailPageButtonSelector',
-    nextPageLinkSelector: 'nextPageLinkSelector',
+    detailPageButtonSelector: "detailPageButtonSelector",
+    nextPageLinkSelector: "nextPageLinkSelector",
     dateTimeSelector: "dateTimeSelector",
     dateSelector: "dateSelector",
     timeSelector: "timeSelector",
@@ -18,19 +18,19 @@ export const SCRAPER_KEYS = {
     eventbriteComedianNameSelector: "eventbriteComedianNameSelector",
     priceSelector: "priceSelector",
     showContainerSelector: "showContainerSelector",
-    showTicketLinkSelector: "showTicketLinkSelector"
-  };
+    showTicketLinkSelector: "showTicketLinkSelector",
+};
 
-  export const JSON_KEYS = {
-    clubs: 'clubs',
-    admins: 'admins',
-    email: 'email',
-    clubDetails: 'club_details',
-    names: 'names',
-  };
+export const JSON_KEYS = {
+    clubs: "clubs",
+    admins: "admins",
+    email: "email",
+    clubDetails: "club_details",
+    names: "names",
+};
 
-  export const CLUB_KEYS = {
-    name: 'name',
-    baseUrl: 'baseUrl',
-    schedulePageUrl: 'schedulePageUrl',
-  };
+export const CLUB_KEYS = {
+    name: "name",
+    baseUrl: "baseUrl",
+    schedulePageUrl: "schedulePageUrl",
+};

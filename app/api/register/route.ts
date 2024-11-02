@@ -1,19 +1,16 @@
 import { NextResponse } from "next/server";
 import { PUBLIC_ROUTES } from "../../../util/routes";
-import { generateUrl } from "../../../util/urlUtil";
+import { generateUrl } from "../../../util/primatives/urlUtil";
 
-
-export async function POST(
-    request: Request
-) {
+export async function POST(request: Request) {
     const data = await request.json();
 
     const url = generateUrl(PUBLIC_ROUTES.REGISTER);
 
     const response = await fetch(url, {
-        method: 'POST',
+        method: "POST",
         headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
+            "Content-Type": "application/x-www-form-urlencoded",
         },
         body: new URLSearchParams({
             email: data.email,
@@ -21,8 +18,7 @@ export async function POST(
         }),
     })
         .then((response) => response.json())
-        .catch((error) => console.error(error))
+        .catch((error) => console.error(error));
 
-    return NextResponse.json(response)
+    return NextResponse.json(response);
 }
-

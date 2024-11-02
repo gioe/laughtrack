@@ -1,26 +1,24 @@
-'use client';
+"use client";
 
 import Image from "next/image";
 import SocialMediaBar from "../social/SocialMediaBar";
-import {  useState } from "react";
+import { useState } from "react";
 import { BannerProviderInterface } from "../../../interfaces/bannerProvider.interface";
 import { useSession } from "next-auth/react";
 import { Menu, DropdownMenuItem } from "../menu/Menu";
 
 interface EntityBannerProps {
     entity: BannerProviderInterface;
-    menuItems?: DropdownMenuItem[],
+    menuItems?: DropdownMenuItem[];
 }
 
-const EntityBanner: React.FC<EntityBannerProps> = ({
-    entity,
-    menuItems
-}) => {
-
+const EntityBanner: React.FC<EntityBannerProps> = ({ entity, menuItems }) => {
     const session = useSession();
-    const shouldShowMenu = session.data?.user.role == 'admin'
+    const shouldShowMenu = session.data?.user.role == "admin";
 
-    const [src, setSrc] = useState<string>(`/images/banners/${entity.name}.png`);
+    const [src, setSrc] = useState<string>(
+        `/images/banners/${entity.name}.png`,
+    );
 
     const onError = () => {
         setSrc(`/images/logo.png`);
@@ -37,16 +35,20 @@ const EntityBanner: React.FC<EntityBannerProps> = ({
                 sizes="80vw"
                 onError={onError}
                 style={{
-                    objectFit: "cover"
+                    objectFit: "cover",
                 }}
             />
             <div className="absolute top-1/2 w-full text-center">
-                <h2 className="font-bold sm:text-4xl m:text-4xl lg:text-4xl xl:text-4xl 2xl:text-4xl text-white pt-6 pb-6">{entity.name}</h2>
-                {entity.socialData && <SocialMediaBar data={entity.socialData} ></SocialMediaBar>}
+                <h2 className="font-bold sm:text-4xl m:text-4xl lg:text-4xl xl:text-4xl 2xl:text-4xl text-white pt-6 pb-6">
+                    {entity.name}
+                </h2>
+                {entity.socialData && (
+                    <SocialMediaBar data={entity.socialData}></SocialMediaBar>
+                )}
                 {shouldShowMenu && menuItems && <Menu items={menuItems} />}
             </div>
         </div>
-    )
-}
+    );
+};
 
 export default EntityBanner;
