@@ -1,14 +1,14 @@
-import { Show } from "../../../classes/Show";
 import {
-    ClubInterface,
     ClubScraper,
     ScrapingOutput,
-} from "../../../interfaces";
+} from "../../../objects/interfaces";
 import { PageManager } from "../handlers/PageManager";
 import playwright from "playwright-core";
 import { ShowScraper } from "../scrapers/ShowScraper";
 import { generateValidUrl } from "../../../util/primatives/urlUtil";
 import { DateTimeContainer } from "../containers/DateTimeContainer";
+import { ClubInterface } from "../../../objects/classes/club/club.interface";
+import { Show } from "../../../objects/classes/show/Show";
 
 const LINK =
     "div.col-xs-12.col-sm-3.upcoming-list-description.--btn-container > a";
@@ -92,15 +92,15 @@ export class TheTinyCupboard implements ClubScraper {
     processOutput = (output: any[], link: string): ScrapingOutput => {
         const show = new Show({
             lineup: output[0],
-            dateTime: new DateTimeContainer(output[1]).asDateObject(),
-            ticketLink: generateValidUrl(this.clubData.baseUrl, link),
+            date_time: new DateTimeContainer(output[1]).asDateObject(),
+            ticket_link: generateValidUrl(this.clubData.baseUrl, link),
             name: output[3],
             price: output[4],
-            clubId: this.clubData.id,
+            club_id: this.clubData.id,
         });
         return {
-            show: show.asCreateShowDTO(),
-            comedians: show.asCreateComedianDTOArray(),
+            show: show.asShowDTO(),
+            comedians: show.asComedianDTOArray(),
         } as ScrapingOutput;
     };
 }

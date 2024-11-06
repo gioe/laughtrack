@@ -7,10 +7,10 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import useRunScrapeModal from "../../../hooks/useRunScrapeModal";
-import { ClubInterface } from "../../../interfaces/club.interface";
+import { Club } from "../../../objects/classes/club/Club";
 
 interface ScrapeClubModalParams {
-    club: ClubInterface;
+    club: Club;
 }
 
 const ScrapeClubModal: React.FC<ScrapeClubModalParams> = ({ club }) => {

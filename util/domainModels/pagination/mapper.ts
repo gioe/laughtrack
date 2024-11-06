@@ -1,4 +1,4 @@
-import { PaginationData } from "../../../interfaces";
+import { PaginationData } from "../../../objects/interfaces";
 
 export const toPaginatedData = (
     input: any[],

@@ -1,7 +1,9 @@
 import { IDatabase, IMain } from "pg-promise";
-import { IResult } from "pg-promise/typescript/pg-subset";
 import { favorites as sql } from "../sql";
-import { CreateFavoriteDTO } from "../../interfaces";
+import { FavoriteDTO } from "../../objects/interfaces";
+import { IExtensions } from ".";
+import { ComedianDTO } from "../../objects/classes/comedian/comedian.interface";
+import { Comedian } from "../../objects/classes/comedian/Comedian";
 
 export class FavoritesRepository {
     /**
@@ -16,9 +18,9 @@ export class FavoritesRepository {
      * or other namespaces available from the root.
      */
     constructor(
-        private db: IDatabase<any>,
+        private db: IDatabase<IExtensions>,
         private pgp: IMain,
-    ) {}
+    ) { }
 
     // Creates the table;
     createTable(): Promise<null> {
@@ -26,34 +28,34 @@ export class FavoritesRepository {
     }
 
     // Adds a new user, and returns the new object;
-    add(payload: CreateFavoriteDTO): Promise<boolean> {
+    add(payload: FavoriteDTO): Promise<boolean> {
         return this.db.one(
             sql.add,
             {
                 comedian_id: payload.id,
                 user_id: payload.user_id,
             },
-            (r: IResult) => true,
+            () => true,
         );
     }
 
     // Tries to delete a user by id, and returns the number of records deleted;
-    remove(payload: CreateFavoriteDTO): Promise<boolean> {
+    remove(payload: FavoriteDTO): Promise<boolean> {
         return this.db.result(
             sql.remove,
             {
                 comedian_id: payload.id,
                 user_id: payload.user_id,
             },
-            (r: IResult) => false,
+            () => false,
         );
     }
 
-    // Tries to find a user from id;
-    findByUserId(id: number): Promise<any | null> {
-        return this.db.oneOrNone(
+    findByUserId(id: number): Promise<Comedian[] | null> {
+        return this.db.any(
             "SELECT * FROM favorite_comedians WHERE user_id = $1",
             +id,
-        );
+        )
+            .then((response: ComedianDTO[] | null) => response ? response.map((item: ComedianDTO) => new Comedian(item)) : []);
     }
 }

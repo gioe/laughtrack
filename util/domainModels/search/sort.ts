@@ -1,10 +1,10 @@
-import { ShowInterface } from "../../../interfaces";
+import { Show } from "../../../objects/classes/show/Show";
 
 export const sortDates = (
-    shows: ShowInterface[],
+    shows: Show[],
     sortValue: string,
-): ShowInterface[] => {
-    return shows.sort((a: ShowInterface, b: ShowInterface) => {
+): Show[] => {
+    return shows.sort((a: Show, b: Show) => {
         switch (sortValue) {
             case "date":
                 return (

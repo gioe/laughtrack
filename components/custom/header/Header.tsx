@@ -19,9 +19,10 @@ import {
     BuildingStorefrontIcon,
 } from "@heroicons/react/24/outline";
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
-import { UserInterface } from "../../../interfaces/user.interface";
+import { UserInterface } from "../../../objects/interfaces/user.interface";
 import useLoginModal from "../../../hooks/useLoginModal";
 import useRegisterModal from "../../../hooks/useRegisterModel";
+import axios from "axios";
 
 const comedianMenuItems = [
     {
@@ -176,6 +177,19 @@ const Header: React.FC<NavbarProps> = ({ currentUser }) => {
                         >
                             My Profile
                         </a>
+                    )}
+
+                    {currentUser && currentUser.role == "admin" && (
+                        <>
+                            <button
+                                onClick={() => {
+                                    axios.post("api/scrape");
+                                }}
+                                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full"
+                            >
+                                Scrape
+                            </button>
+                        </>
                     )}
                 </PopoverGroup>
                 <div className="hidden lg:flex lg:flex-1 lg:justify-end">

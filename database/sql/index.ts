@@ -12,6 +12,8 @@ export const clubs = {
     getAllShowPopularityData: sql("clubs/getAllShowPopularityData.sql").qf,
     getByName: sql("clubs/getByName.sql").qf,
     getCities: sql("clubs/getCities.sql").qf,
+    getSearchResults: sql("clubs/getSearchResults.sql").qf,
+
 };
 
 export const comedians = {
@@ -28,6 +30,8 @@ export const comedians = {
     getByName: sql("comedians/getByName.sql").qf,
     getTrending: sql("comedians/getTrending.sql").qf,
     getAllIdsByUuids: sql("comedians/getAllIdsByUuids.sql").qf,
+    getSearchResults: sql("comedians/getSearchResults.sql").qf,
+
 };
 
 export const favorites = {
@@ -57,10 +61,6 @@ export const lineups = {
     getByShowId: sql("lineups/getByShowId.sql").qf,
 };
 
-export const search = {
-    getHomeSearchResults: sql("search/getHomeSearchResults.sql").qf,
-};
-
 export const shows = {
     // Create Table
     create: sql("shows/create.sql").qf,
@@ -71,9 +71,10 @@ export const shows = {
     // GETs
     getAllLineupPopularityData: sql("shows/getAllLineupPopularityData.sql").qf,
     getWithLineup: sql("shows/getWithLineup.sql").qf,
+    getSearchResults: sql("shows/getSearchResults.sql").qf,
+
 
     //DELETE
-
     deleteByClub: sql("shows/deleteByClub.sql").qf,
 };
 

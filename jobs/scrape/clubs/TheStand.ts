@@ -1,15 +1,15 @@
-import { Show } from "../../../classes/Show";
 import {
-    ClubInterface,
     ClubScraper,
     ScrapingOutput,
-} from "../../../interfaces";
+} from "../../../objects/interfaces";
 import { PageManager } from "../handlers/PageManager";
 import playwright, { Browser, Locator, Page } from "playwright-core";
 import { ShowScraper } from "../scrapers/ShowScraper";
 import { generateValidUrl } from "../../../util/primatives/urlUtil";
 import { DateTimeContainer } from "../containers/DateTimeContainer";
 import { runTasks } from "../../../util/promiseUtil";
+import { ClubInterface } from "../../../objects/classes/club/club.interface";
+import { Show } from "../../../objects/classes/show/Show";
 
 const MORE = "div.row.moreitems.dark-links.my-5 > div > div > a";
 const SHOW_CONTAINER = "div.row.show_row";
@@ -81,18 +81,18 @@ export class TheStand implements ClubScraper {
     processOutput = async (output: any[]): Promise<ScrapingOutput> => {
         const show = new Show({
             lineup: output[0],
-            dateTime: new DateTimeContainer(
+            date_time: new DateTimeContainer(
                 output[1],
                 SEPARATOR,
             ).asDateObject(),
-            ticketLink: generateValidUrl(this.clubData.baseUrl, output[2]),
+            ticket_link: generateValidUrl(this.clubData.baseUrl, output[2]),
             name: output[3],
             price: output[4],
-            clubId: this.clubData.id,
+            club_id: this.clubData.id,
         });
         return {
-            show: show.asCreateShowDTO(),
-            comedians: show.asCreateComedianDTOArray(),
+            show: show.asShowDTO(),
+            comedians: show.asComedianDTOArray(),
         } as ScrapingOutput;
     };
 }

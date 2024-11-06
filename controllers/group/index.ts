@@ -1,4 +1,4 @@
-import { UpdateComedianRelationshipDTO } from "../../interfaces";
+import { UpdateComedianRelationshipDTO } from "../../objects/interfaces";
 import { getDB } from "../../database";
 
 const { db } = getDB();

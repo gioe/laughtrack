@@ -1,31 +1,20 @@
-import { ClubInterface } from "../../../interfaces/club.interface";
-import { TagInterface } from "../../../interfaces/tag.interface";
-import { Suspense } from "react";
-import { Paginated } from "../../..//interfaces/paginated.interface";
-import { SORT_OPTIONS } from "../../../util/sort";
-import { SearchParams } from "../../../interfaces/searchParams.interface";
+import { TagInterface } from "../../../objects/interfaces/tag.interface";
+import { SearchParams } from "../../../objects/interfaces/searchParams.interface";
 import { EntityType } from "../../../util/enum";
 import { getDB } from "../../../database";
 import EntityBanner from "../../../components/custom/banner/EntityBanner";
 import FilterPageContainer from "../../..//components/custom/filters/FilterPageContainer";
 import ClearShowsModal from "../../..//components/custom/modals/ClearShowsModal";
 import ScrapeClubModal from "../../..//components/custom/modals/ScrapeClubModal";
-import ShowTable from "../../..//components/custom/tables/ShowTable";
-import useAddClubTagModal from "../../..//hooks/useAddClubTagModal";
-import useRunScrapeModal from "../../..//hooks/useRunScrapeModal";
-import useClearShowsModal from "../../..//hooks/useClearShowsModal";
 import TagEntityModal from "../../../components/custom/modals/TagEntityModal";
+import { Club } from "../../../objects/classes/club/Club";
+import { Show } from "../../../objects/classes/show/Show";
+import ShowCard from "../../../components/custom/tables/cards/ShowCard";
 
-const {db} = getDB();
+const { db } = getDB();
 
-const menuItems = [
-    { key: "tags", label: "Add Tags", store: useAddClubTagModal },
-    { key: "scrape", label: "Run Scrape", store: useRunScrapeModal },
-    { key: "clear", label: "Clear SHows", store: useClearShowsModal },
-];
-
-interface ClubDetailPageInterface extends Paginated {
-    club: ClubInterface | null;
+interface ClubDetailPageInterface {
+    club: Club | null;
     tags: TagInterface[];
 }
 
@@ -38,7 +27,6 @@ async function getClubDetail(id: string): Promise<ClubDetailPageInterface> {
         const tags = responses[1];
         return {
             club,
-            totalResults: club?.dates.length ?? 0,
             tags,
         };
     });
@@ -50,7 +38,7 @@ export default async function ClubDetailPage(props: {
 }) {
     const searchParams = await props.searchParams;
     const params = await props.params;
-    const { tags, club, totalResults } = await getClubDetail(params.id);
+    const { tags, club } = await getClubDetail(params.id);
 
     return (
         <div>
@@ -58,29 +46,21 @@ export default async function ClubDetailPage(props: {
                 <main className="flex-grow pt-5 bg-shark">
                     <ScrapeClubModal club={club} />
                     <ClearShowsModal club={club} />
-                    <TagEntityModal
-                        entity={club}
-                        type={EntityType.Club}
-                        tags={tags}
-                    />
+                    <TagEntityModal entity={club} tags={tags} />
                     <section>
-                        <EntityBanner entity={club} menuItems={menuItems} />
+                        <EntityBanner entity={club} />
                     </section>
                     <section>
-                        <FilterPageContainer
-                            itemCount={totalResults}
-                            sortOptions={SORT_OPTIONS.CLUB}
-                            child={
-                                <Suspense
-                                    key={
-                                        (searchParams?.query ?? 1) +
-                                        (searchParams?.page ?? "")
-                                    }
-                                    fallback={<div />}
-                                >
-                                    <ShowTable params={searchParams} />
-                                </Suspense>
+                        <FilterPageContainer<Show>
+                            suspenseKey={
+                                (searchParams?.query ?? "") +
+                                (searchParams?.page ?? 0)
                             }
+                            renderItem={(show) => {
+                                return <ShowCard show={show} />;
+                            }}
+                            results={club.dates}
+                            defaultNode={<div></div>}
                         />
                     </section>
                 </main>

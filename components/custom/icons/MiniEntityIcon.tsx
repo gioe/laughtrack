@@ -3,20 +3,16 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { ImageRepresentable } from "../../../interfaces/imageRepresentable.interface";
 import { EntityType } from "../../../util/enum";
+import { Entity } from "../../../objects/interfaces";
 
-interface MiniComedianIconProps {
-    type: EntityType;
-    entity: ImageRepresentable;
+interface MiniEntityIconProps {
+    entity: Entity;
 }
 
-export const MiniEntityIcon: React.FC<MiniComedianIconProps> = ({
-    entity,
-    type,
-}) => {
+export const MiniEntityIcon: React.FC<MiniEntityIconProps> = ({ entity }) => {
     const [src, setSrc] = useState<string>(
-        `/images/${type.valueOf()}/square/${entity.name}.png`,
+        `/images/${entity.type.valueOf()}/square/${entity.name}.png`,
     );
 
     const onError = () => {
@@ -25,7 +21,7 @@ export const MiniEntityIcon: React.FC<MiniComedianIconProps> = ({
 
     return (
         <div className="flex flex-col w-20">
-            <Link href={`/${type.valueOf()}/${entity.name}`}>
+            <Link href={`/${entity.type.valueOf()}/${entity.name}`}>
                 <div
                     className="cursor-pointer hover:scale-105 t
             ransform transition duration-300 ease-out text-center"

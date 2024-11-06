@@ -9,10 +9,10 @@ import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import StylizedInput from "../inputs/StylizedInput";
 import axios from "axios";
-import { ComedianInterface } from "../../../interfaces/comedian.interface";
+import { Comedian } from "../../../objects/classes/comedian/Comedian";
 
 interface MergeComediansModalParams {
-    comedian: ComedianInterface;
+    comedian: Comedian;
 }
 
 const MergeComediansModal: React.FC<MergeComediansModalParams> = ({

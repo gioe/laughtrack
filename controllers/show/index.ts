@@ -1,21 +1,21 @@
 import {
-    GroupedPopularityScoreDTO,
+    GroupedSocialDataDTO,
     PopularityScoreIODTO,
-    CreateShowDTO,
-} from "../../interfaces";
+} from "../../objects/interfaces";
 import { toPopularityScores } from "../../util/domainModels/socialData/mapper";
 import { getDB } from "../../database";
+import { ShowDTO } from "../../objects/classes/show/show.interface";
 
 const { db } = getDB();
 
-export const add = async (show: CreateShowDTO): Promise<{ id: number }> => {
+export const add = async (show: ShowDTO): Promise<{ id: number }> => {
     return db.shows.add(show);
 };
 
 export const generateScores = async (): Promise<null> => {
     return db.shows
         .getAllLineupPopularityData()
-        .then((response: GroupedPopularityScoreDTO[] | null) =>
+        .then((response: GroupedSocialDataDTO[] | null) =>
             response ? toPopularityScores(response) : [],
         )
         .then((popularityScores: PopularityScoreIODTO[]) =>

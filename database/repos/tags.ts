@@ -1,10 +1,11 @@
 import { IDatabase, IMain } from "pg-promise";
 import { tags as sql } from "../sql";
 import {
-    GetTagResponseDTO,
+    TagDTO,
     TagInterface,
-} from "../../interfaces";
+} from "../../objects/interfaces";
 import { toTagInterfaceArray } from "../../util/domainModels/tag/mapper";
+import { IExtensions } from ".";
 
 export class TagsRepository {
     /**
@@ -19,7 +20,7 @@ export class TagsRepository {
      * or other namespaces available from the root.
      */
     constructor(
-        private db: IDatabase<any>,
+        private db: IDatabase<IExtensions>,
         private pgp: IMain,
     ) { }
 
@@ -28,7 +29,7 @@ export class TagsRepository {
             .any(sql.getAllByType, {
                 type,
             })
-            .then((response: GetTagResponseDTO[] | null) =>
+            .then((response: TagDTO[] | null) =>
                 response ? toTagInterfaceArray(response) : [],
             );
     }

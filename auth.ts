@@ -1,10 +1,12 @@
+
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { PUBLIC_ROUTES } from "./util/routes";
 import { jwtDecode } from "jwt-decode";
 import { signInSchema } from "./util/validations";
-import { refreshAccessToken } from "./util/token";
+import { refreshAccessToken } from "./util/primatives/tokenUtil";
+import { PUBLIC_ROUTES } from "./util/routes";
 import { generateUrl } from "./util/primatives/urlUtil";
+import axios from "axios";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
     providers: [
@@ -21,28 +23,22 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 try {
                     const { email, password } =
                         await signInSchema.parseAsync(credentials);
-                    const url = generateUrl(PUBLIC_ROUTES.LOGIN);
 
-                    const response = await fetch(url, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/x-www-form-urlencoded",
-                        },
-                        body: new URLSearchParams({
-                            email: email,
-                            password: password,
-                        }),
-                    });
+                    const url = generateUrl(PUBLIC_ROUTES.LOGIN)
 
-                    const jsonResponse = await response.json();
+                    const response = await axios.post(url, {
+                        email: email,
+                        password: password,
+                    })
 
                     return {
-                        accessToken: jsonResponse.data.accessToken,
-                        refreshToken: jsonResponse.data.refreshToken,
-                        id: jsonResponse.data.user.id,
-                        role: jsonResponse.data.user.role,
-                        email: jsonResponse.data.user.email,
+                        accessToken: response.data.accessToken,
+                        refreshToken: response.data.refreshToken,
+                        id: response.data.id,
+                        role: response.data.role,
+                        email: response.data.email,
                     };
+
                 } catch (e) {
                     console.error(e);
                     return null;
@@ -83,7 +79,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             const { session, token } = value;
             if (token) {
                 session.accessToken = token.accessToken;
-                // session.user = token.user;
+                session.user = token.user;
             }
             return session;
         },

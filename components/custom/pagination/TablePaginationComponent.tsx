@@ -1,8 +1,10 @@
 "use client";
+
 import { useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import TablePagination from "@mui/material/TablePagination";
-import { handleUrlParams } from "../../../util/utils";
+import { handleUrlParams } from "../../../util/tailwindUtil";
+import { URLParam } from "../../../util/enum";
 
 interface TablePaginationComponentProps {
     itemCount: number;
@@ -12,9 +14,6 @@ export function TablePaginationComponent({
     itemCount,
 }: Readonly<TablePaginationComponentProps>) {
     const searchParams = useSearchParams();
-    const pathname = usePathname();
-    const { replace } = useRouter();
-
     const currentPage = Number(searchParams.get("page")) || 0;
 
     const [page, setPage] = useState(currentPage);
@@ -24,8 +23,7 @@ export function TablePaginationComponent({
         event: React.MouseEvent<HTMLButtonElement> | null,
         newPage: number,
     ) => {
-        const adjustedParams = handleUrlParams(searchParams, "page", newPage);
-        replace(`${pathname}?${adjustedParams.toString()}`);
+        handleUrlParams(URLParam.Page, newPage);
         setPage(newPage);
     };
 
@@ -33,8 +31,7 @@ export function TablePaginationComponent({
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => {
         const rows = parseInt(event.target.value, 10);
-        const adjustedParams = handleUrlParams(searchParams, "rows", rows);
-        replace(`${pathname}?${adjustedParams.toString()}`);
+        handleUrlParams(URLParam.Rows, rows);
         setRowsPerPage(rows);
         setPage(1);
     };

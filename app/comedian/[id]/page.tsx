@@ -2,36 +2,23 @@ import FilterPageContainer from "../../../components/custom/filters/FilterPageCo
 import EditSocialDataModal from "../../../components/custom/modals/EditSocialDataModal";
 import MergeComediansModal from "../../../components/custom/modals/MergeComediansModal";
 import EntityBanner from "../../../components/custom/banner/EntityBanner";
-import ShowTable from "../../../components/custom/tables/ShowTable";
-import useSocialDataModal from "../../../hooks/useSocialDataModal";
-import useMergeComediansModal from "../../../hooks/useMergeComediansModal";
-import useAddComedianTagModal from "../../../hooks/useAddComedianTagModal";
 import TagEntityModal from "../../../components/custom/modals/TagEntityModal";
 import { EntityType } from "../../../util/enum";
-import { SearchParams } from "../../../interfaces/searchParams.interface";
+import { SearchParams } from "../../../objects/interfaces/searchParams.interface";
 import { getDB } from "../../../database";
-import { Suspense } from "react";
-import { TagInterface } from "../../../interfaces/tag.interface";
-import { SORT_OPTIONS } from "../../../util/sort";
-import { ComedianInterface } from "../../../interfaces/comedian.interface";
-import { Paginated } from "../../../interfaces/paginated.interface";
+import { TagInterface } from "../../../objects/interfaces/tag.interface";
+import { Comedian } from "../../../objects/classes/comedian/Comedian";
+import BasicEntityCard from "../../../components/custom/tables/cards/BasicEntityCard";
 
-const {db} = getDB();
+const { db } = getDB();
 
-const menuItems = [
-    { key: "social", label: "Edit Social Data", store: useSocialDataModal },
-    { key: "merge", label: "Merge Comedians", store: useMergeComediansModal },
-    { key: "tags", label: "Add Tags", store: useAddComedianTagModal },
-];
-
-interface ComedianDetailPageInterface extends Paginated {
-    comedian: ComedianInterface | null;
+interface ComedianDetailPageInterface {
+    comedian: Comedian | null;
     tags: TagInterface[];
 }
 
 async function getComedianDetail(
     id: string,
-    params: SearchParams,
 ): Promise<ComedianDetailPageInterface> {
     const comedian = db.comedians.getByName(id);
     const tags = db.tags.getByType(EntityType.Comedian.valueOf());
@@ -54,10 +41,7 @@ export default async function ComedianDetailsPage(props: {
     const searchParams = await props.searchParams;
     const params = await props.params;
 
-    const { totalResults, comedian, tags } = await getComedianDetail(
-        params.id,
-        searchParams,
-    );
+    const { comedian, tags } = await getComedianDetail(params.id);
 
     return (
         <div className="flex flex-col">
@@ -65,34 +49,21 @@ export default async function ComedianDetailsPage(props: {
                 <div>
                     <MergeComediansModal comedian={comedian} />
                     <EditSocialDataModal comedian={comedian} />
-                    <TagEntityModal
-                        entity={comedian}
-                        type={EntityType.Comedian}
-                        tags={tags}
-                    />
+                    <TagEntityModal entity={comedian} tags={tags} />
                 </div>
             )}
 
+            <section>{comedian && <EntityBanner entity={comedian} />}</section>
             <section>
-                {comedian && (
-                    <EntityBanner entity={comedian} menuItems={menuItems} />
-                )}
-            </section>
-            <section>
-                <FilterPageContainer
-                    itemCount={totalResults}
-                    sortOptions={SORT_OPTIONS.SHOW}
-                    child={
-                        <Suspense
-                            key={
-                                (searchParams?.query ?? 1) +
-                                (searchParams?.page ?? "")
-                            }
-                            fallback={<div />}
-                        >
-                            <ShowTable params={searchParams} />
-                        </Suspense>
+                <FilterPageContainer<Comedian>
+                    suspenseKey={
+                        (searchParams?.query ?? "") + (searchParams?.page ?? 0)
                     }
+                    renderItem={(entity) => {
+                        return <BasicEntityCard entity={entity} />;
+                    }}
+                    results={[]}
+                    defaultNode={<div></div>}
                 />
             </section>
         </div>

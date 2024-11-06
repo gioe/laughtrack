@@ -1,17 +1,16 @@
 import {
-    GetSocialDataDTO,
-    GroupedPopularityScoreDTO,
+    GroupedSocialDataDTO,
     PopularityScoreIODTO,
+    SocialDataDTO,
     SocialDataInterface,
-    UpdateSocialDataDTO,
-} from "../../../interfaces";
+} from "../../../objects/interfaces";
 import {
     averagePopularityScore,
     generatePopularityScore,
-} from "../../scoringUtil";
+} from ".";
 
 export const toSocialDataInterface = (
-    payload: GetSocialDataDTO,
+    payload: SocialDataDTO,
 ): SocialDataInterface => {
     return {
         instagramFollowers: payload.instagram_followers,
@@ -24,54 +23,9 @@ export const toSocialDataInterface = (
     };
 };
 
-export const toUpdateSocialDataDTO = (payload: any): UpdateSocialDataDTO => {
-    const {
-        instagramAccount,
-        instagramFollowers,
-        youtubeAccount,
-        youtubeFollowers,
-        tiktokAccount,
-        tiktokFollowers,
-        website,
-        id,
-    } = payload;
-
-    const instagramFollowerInt = parseInt(instagramFollowers as string);
-    const tiktokFollowerInt = parseInt(tiktokFollowers as string);
-    const youtubeFollowerInt = parseInt(youtubeFollowers as string);
-    const instagramFollowerCount = !isNaN(instagramFollowerInt)
-        ? instagramFollowerInt
-        : 0;
-    const tiktokFollowerCount = !isNaN(tiktokFollowerInt)
-        ? tiktokFollowerInt
-        : 0;
-    const youtubeFollowerCount = !isNaN(youtubeFollowerInt)
-        ? youtubeFollowerInt
-        : 0;
-    const idNumber = parseInt(id as string);
-
-    const popularityScore = generatePopularityScore({
-        id: idNumber,
-        instagram_followers: instagramFollowerCount,
-        tiktok_followers: tiktokFollowerCount,
-        youtube_followers: youtubeFollowerCount,
-    });
-
-    return {
-        id: idNumber,
-        instagram_followers: instagramFollowerCount,
-        tiktok_followers: tiktokFollowerCount,
-        youtube_followers: youtubeFollowerCount,
-        popularity_score: popularityScore,
-        instagram_account: instagramAccount,
-        youtube_account: youtubeAccount,
-        tiktok_account: tiktokAccount,
-        website: website,
-    };
-};
 
 export const toPopularityScores = (
-    payload: GroupedPopularityScoreDTO[] | GetSocialDataDTO[],
+    payload: GroupedSocialDataDTO[] | SocialDataDTO[],
 ): PopularityScoreIODTO[] => {
     return payload.map((data: any) => toPopularityScore(data));
 };

@@ -1,9 +1,7 @@
-import { Show } from "../../../classes/Show";
 import {
-    ClubInterface,
     ClubScraper,
     ScrapingOutput,
-} from "../../../interfaces";
+} from "../../../objects/interfaces";
 import { PageManager } from "../handlers/PageManager";
 import playwright from "playwright-core";
 import { ShowScraper } from "../scrapers/ShowScraper";
@@ -12,6 +10,8 @@ import {
     isEventbritePage,
 } from "../../../util/primatives/urlUtil";
 import { DateTimeContainer } from "../containers/DateTimeContainer";
+import { Show } from "../../../objects/classes/show/Show";
+import { ClubInterface } from "../../../objects/classes/club/club.interface";
 
 const LINK = "div.event-cta-button > a";
 const DATE_TIME = "div.date > div.datetime-location-content";
@@ -104,15 +104,15 @@ export class Rodneys implements ClubScraper {
     processOutput = (output: any[], url: string): ScrapingOutput => {
         const show = new Show({
             lineup: output[0],
-            dateTime: new DateTimeContainer(output[1]).asDateObject(),
-            ticketLink: generateValidUrl(this.clubData.baseUrl, url),
+            date_time: new DateTimeContainer(output[1]).asDateObject(),
+            ticket_link: generateValidUrl(this.clubData.baseUrl, url),
             name: output[3],
             price: output[4],
-            clubId: this.clubData.id,
+            club_id: this.clubData.id,
         });
         return {
-            show: show.asCreateShowDTO(),
-            comedians: show.asCreateComedianDTOArray(),
+            show: show.asShowDTO(),
+            comedians: show.asComedianDTOArray(),
         } as ScrapingOutput;
     };
 }

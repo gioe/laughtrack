@@ -4,7 +4,7 @@ import {
     TagInterface,
     TagComedianDTO,
     TagClubDTO,
-} from "../../../interfaces";
+} from "../../../objects/interfaces";
 
 export const toTagInterfaceArray = (
     payload: GetTagResponseDTO[],

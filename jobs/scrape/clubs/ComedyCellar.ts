@@ -1,15 +1,15 @@
-import { Show } from "../../../classes/Show";
 import {
     ClubScraper,
     ScrapingOutput,
-    ClubInterface,
-} from "../../../interfaces";
+} from "../../../objects/interfaces";
 import { PageManager } from "../handlers/PageManager";
 import playwright, { Browser, Locator, Page } from "playwright-core";
 import { ShowScraper } from "../scrapers/ShowScraper";
 import { generateValidUrl } from "../../../util/primatives/urlUtil";
 import { DateTimeContainer } from "../containers/DateTimeContainer";
 import { delay, runTasks } from "../../../util/promiseUtil";
+import { ClubInterface } from "../../../objects/classes/club/club.interface";
+import { Show } from "../../../objects/classes/show/Show";
 
 const DATE_SELECT = "#cc_lineup_select_dates";
 const DATE_OPTIONS = "div.header > div > select > option";
@@ -139,18 +139,18 @@ export class ComedyCellar implements ClubScraper {
     processOutput = (output: any[], date: string): ScrapingOutput => {
         const show = new Show({
             lineup: output[0],
-            dateTime: new DateTimeContainer(output[1]).asDateObject(),
-            ticketLink: generateValidUrl(this.clubData.baseUrl, output[2]),
+            date_time: new DateTimeContainer(output[1]).asDateObject(),
+            ticket_link: generateValidUrl(this.clubData.baseUrl, output[2]),
             name: output[3],
             price: output[4],
-            clubId: this.clubData.id,
+            club_id: this.clubData.id,
         });
 
         show.overrideDate(date);
 
         return {
-            show: show.asCreateShowDTO(),
-            comedians: show.asCreateComedianDTOArray(),
+            show: show.asShowDTO(),
+            comedians: show.asComedianDTOArray(),
         } as ScrapingOutput;
     };
 }

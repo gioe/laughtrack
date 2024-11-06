@@ -1,4 +1,4 @@
-import { SearchParams } from "../interfaces";
+import { SearchParams } from "../objects/interfaces";
 import { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 
 export const extractSearchParams = (headers: ReadonlyHeaders): SearchParams => {

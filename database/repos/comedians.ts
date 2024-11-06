@@ -1,17 +1,11 @@
 import { ColumnSet, IDatabase, IMain } from "pg-promise";
 import { comedians as sql } from "../sql";
 import { providedPromiseResponse } from "../../util/promiseUtil";
-import {
-    CreateComedianDTO,
-    GetComedianResponseDTO,
-    UpdateComedianHashDTO,
-    GetSocialDataDTO,
-    PopularityScoreIODTO,
-    UpdateSocialDataDTO,
-    ComedianInterface,
-} from "../../interfaces";
-import { toComedian, toLineup } from "../../util/domainModels/comedian/mapper";
-import { SearchParams } from "../../interfaces/searchParams.interface";
+import { SearchParams } from "../../objects/interfaces/searchParams.interface";
+import { ComedianDTO, ComedianInterface } from "../../objects/classes/comedian/comedian.interface";
+import { PopularityScoreIODTO, SocialDataDTO } from "../../objects/interfaces";
+import { IExtensions } from ".";
+import { Comedian } from "../../objects/classes/comedian/Comedian";
 
 const columnSets: {
     updateScores: ColumnSet | null;
@@ -38,7 +32,7 @@ export class ComediansRepository {
      * or other namespaces available from the root.
      */
     constructor(
-        private db: IDatabase<any>,
+        private db: IDatabase<IExtensions>,
         private pgp: IMain,
     ) {
         columnSets.updateScores = new pgp.helpers.ColumnSet(
@@ -74,18 +68,18 @@ export class ComediansRepository {
     }
 
     // Tries to find a comedian from name;
-    async getByName(name: string): Promise<ComedianInterface | null> {
+    async getByName(name: string): Promise<Comedian | null> {
         return this.db
             .oneOrNone(sql.getByName, {
                 name,
             })
-            .then((response: GetComedianResponseDTO | null) =>
-                response ? toComedian(response) : null,
+            .then((response: ComedianDTO | null) =>
+                response ? new Comedian(response) : null,
             );
     }
 
     // Returns all comedian records;
-    all(): Promise<GetComedianResponseDTO[] | null> {
+    all(): Promise<ComedianDTO[] | null> {
         return this.db.any(sql.getAllWithSocialData);
     }
 
@@ -97,33 +91,30 @@ export class ComediansRepository {
             .any(sql.getAllFavorites, {
                 user_id: userId,
             })
-            .then((response: GetComedianResponseDTO[] | null) =>
-                response ? toLineup(response) : [],
-            );
+            .then((response: ComedianDTO[] | null) => response ? response.map((item: ComedianDTO) => new Comedian(item)) : []);
     }
 
-    allWithFavorites(userId: number): Promise<GetComedianResponseDTO[] | null> {
+    allWithFavorites(userId: number): Promise<ComedianDTO[] | null> {
         return this.db.any(sql.getAllWithFavoritesAndSocialData, {
             user_id: userId,
         });
     }
 
-    async getTrendingComedians(): Promise<ComedianInterface[]> {
+    async getTrendingComedians(): Promise<Comedian[]> {
         return this.db
             .any(sql.getTrending)
-            .then((response: GetComedianResponseDTO[] | null) =>
-                response ? toLineup(response) : [],
-            );
+            .then((response: ComedianDTO[] | null) => response ? response.map((item: ComedianDTO) => new Comedian(item)) : []);
+
     }
 
-    addAll(all: CreateComedianDTO[]): Promise<null> {
+    addAll(all: ComedianDTO[]): Promise<null> {
         const batchInsert =
             this.pgp.helpers.insert(all, columnSets.addAll) +
             " ON CONFLICT (uuid_id) DO NOTHING";
         return this.db.none(batchInsert);
     }
 
-    getAllSocialData(): Promise<GetSocialDataDTO[] | null> {
+    getAllSocialData(): Promise<SocialDataDTO[] | null> {
         return this.db.any(sql.getAllSocialData);
     }
 
@@ -136,14 +127,14 @@ export class ComediansRepository {
         return this.db.none(update);
     }
 
-    updateSocialData(payload: UpdateSocialDataDTO): Promise<boolean | null> {
+    updateSocialData(payload: SocialDataDTO): Promise<boolean | null> {
         const update =
             this.pgp.helpers.update([payload], columnSets.updateSocial) +
             " WHERE v.id = t.id RETURNING 1";
         return this.db.oneOrNone(update);
     }
 
-    writeHashes(all: UpdateComedianHashDTO[]): Promise<null> {
+    writeHashes(all: ComedianDTO[]): Promise<null> {
         const batchInsert =
             this.pgp.helpers.update(all, columnSets.updateHashes) +
             "WHERE v.id = t.id";

@@ -1,7 +1,7 @@
 import * as comedianController from "../../controllers/comedian";
 
-import { ComedianInterface, UpdateComedianHashDTO } from "../../interfaces";
-import { generateComedianHash } from "../../util/domainModels/comedian/hash";
+import { ComedianInterface, UpdateComedianHashDTO } from "../../objects/interfaces";
+import { generateComedianHash } from "../../objects/classes/comedian/hash";
 
 async function generateHashes() {
     comedianController

@@ -3,8 +3,8 @@ import * as comedianController from "../comedian";
 import * as lineupController from "../lineup";
 import * as clubController from "../club";
 import playwright from "playwright";
+import { ScrapingOutput } from "../../objects/interfaces";
 
-import { ScrapingOutput, ClubInterface } from "../../interfaces";
 import { toCreateLineupItemDTOArray } from "../../util/domainModels/lineupItem/mapper";
 import { providedPromiseResponse, runTasks } from "../../util/promiseUtil";
 import { flattenArrayList } from "../../util/primatives/arrayUtil";
@@ -22,13 +22,15 @@ import {
     WestSideComedyClub,
     ComedyVillage,
 } from "../../jobs/scrape/clubs";
+import { ClubInterface } from "../../objects/classes/club/club.interface";
 
-export const scrapeClubs = async (id: number[], headless?: boolean) => {
+export const scrapeClubs = async (ids: number[], headless?: boolean) => {
+    console.log(ids)
     const startDate = new Date();
-    console.log(`Started scraping job for ${id} at ${startDate}`);
+    console.log(`Started scraping job for ${ids.length == 0 ? "all" : ids} at ${startDate}`);
 
     await clubController
-        .getAllClubs(id)
+        .getAllClubs(ids)
         .then((clubs: ClubInterface[]) => {
             const jobs = clubs.map((club: ClubInterface) =>
                 runScraper(club, headless),

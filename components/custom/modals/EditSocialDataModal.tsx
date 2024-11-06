@@ -3,16 +3,16 @@
 import { useState } from "react";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
-import { ComedianInterface } from "../../../interfaces";
 import useSocialDataModal from "../../../hooks/useSocialDataModal";
 import Modal from "./Modal";
 import Heading from "../Heading";
 import StylizedInput from "../inputs/StylizedInput";
 import toast from "react-hot-toast";
 import axios from "axios";
+import { Comedian } from "../../../objects/classes/comedian/Comedian";
 
 interface EditSocialDataModalProps {
-    comedian: ComedianInterface;
+    comedian: Comedian;
 }
 
 const EditSocialDataModal: React.FC<EditSocialDataModalProps> = ({

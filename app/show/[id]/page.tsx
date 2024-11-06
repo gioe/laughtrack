@@ -1,25 +1,19 @@
-import { Suspense } from "react";
-import { ShowInterface } from "../../../interfaces/show.interface";
 import { getDB } from "../../../database";
-import { TagInterface } from "../../../interfaces/tag.interface";
-import { SearchParams } from "../../../interfaces/searchParams.interface";
+import { TagInterface } from "../../../objects/interfaces/tag.interface";
+import { SearchParams } from "../../../objects/interfaces/searchParams.interface";
 import { EntityType } from "../../../util/enum";
-import ComedianTable from "../../../components/custom/tables/ComedianTable";
 import EntityBanner from "../../../components/custom/banner/EntityBanner";
 import AddComedianModal from "../../../components/custom/modals/AddComedianModal";
-import useAddShowTagModal from "../../../hooks/useAddShowTagModal";
-import useAddComedianModal from "../../../hooks/useAddComedianModal";
 import TagEntityModal from "../../../components/custom/modals/TagEntityModal";
+import FilterPageContainer from "../../../components/custom/filters/FilterPageContainer";
+import { Show } from "../../../objects/classes/show/Show";
+import { Comedian } from "../../../objects/classes/comedian/Comedian";
+import BasicEntityCard from "../../../components/custom/tables/cards/BasicEntityCard";
 
-const {db} = getDB();
-
-const menuItems = [
-    { key: "tags", label: "Add Tags", store: useAddShowTagModal },
-    { key: "comedian", label: "Add Comedian", store: useAddComedianModal },
-];
+const { db } = getDB();
 
 interface ShowDetailPageInterface {
-    show: ShowInterface | null;
+    show: Show | null;
     tags: TagInterface[];
 }
 
@@ -48,28 +42,23 @@ export default async function ShowDetailPage(props: {
         <div>
             {show && (
                 <main className="flex-grow pt-5 bg-shark">
-                    <AddComedianModal
-                        show={show}
-                        intialComedians={show.lineup}
-                    />
-                    <TagEntityModal
-                        entity={show}
-                        type={EntityType.Show}
-                        tags={tags}
-                    />
+                    <AddComedianModal show={show} intialComedians={[]} />
+                    <TagEntityModal entity={show} tags={tags} />
                     <section>
-                        <EntityBanner entity={show} menuItems={menuItems} />
+                        <EntityBanner entity={show} />
                     </section>
                     <section>
-                        <Suspense
-                            key={
-                                (searchParams?.query ?? 1) +
-                                (searchParams?.page ?? "")
+                        <FilterPageContainer<Comedian>
+                            suspenseKey={
+                                (searchParams.query ?? "") +
+                                (searchParams.page ?? 0)
                             }
-                            fallback={<div />}
-                        >
-                            <ComedianTable params={searchParams} />
-                        </Suspense>
+                            renderItem={(entity) => {
+                                return <BasicEntityCard entity={entity} />;
+                            }}
+                            results={show.lineup}
+                            defaultNode={<div></div>}
+                        />
                     </section>
                 </main>
             )}

@@ -1,0 +1,13 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getDB } from "../../../database";
+import { EntityType } from "../../../util/enum";
+const { db } = getDB();
+
+export async function GET(req: NextRequest) {
+    console.log("GETTING SEARCH RESULTS")
+    const data = await req.json();
+
+    const results = await db.search.getSearchResults(EntityType.Club, {});
+
+    return NextResponse.json({}, { status: 200 })
+}

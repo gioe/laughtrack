@@ -2,12 +2,11 @@ import { ColumnSet, IDatabase, IMain } from "pg-promise";
 import { shows as sql } from "../sql";
 import {
     PopularityScoreIODTO,
-    GroupedPopularityScoreDTO,
-    CreateShowDTO,
-    GetShowResponseDTO,
-    ShowInterface,
-} from "../../interfaces";
-import { toShowInterface } from "../../util/domainModels/show/mapper";
+    GroupedSocialDataDTO,
+} from "../../objects/interfaces";
+import { ShowDTO } from "../../objects/classes/show/show.interface";
+import { IExtensions } from ".";
+import { Show } from "../../objects/classes/show/Show";
 
 const columnSets: {
     updateScores: ColumnSet | null;
@@ -30,7 +29,7 @@ export class ShowsRepository {
      * or other namespaces available from the root.
      */
     constructor(
-        private db: IDatabase<any>,
+        private db: IDatabase<IExtensions>,
         private pgp: IMain,
     ) {
         columnSets.updateScores = new pgp.helpers.ColumnSet(
@@ -48,7 +47,7 @@ export class ShowsRepository {
         return this.db.none(sql.create);
     }
 
-    add(instance: CreateShowDTO): Promise<{ id: number }> {
+    add(instance: ShowDTO): Promise<{ id: number }> {
         return this.db.one(sql.add, {
             club_id: instance.club_id,
             date_time: instance.date_time,
@@ -59,17 +58,17 @@ export class ShowsRepository {
     }
 
     // Tries to find a show from id;
-    async getById(id: number): Promise<ShowInterface | null> {
+    async getById(id: number): Promise<Show | null> {
         return this.db
             .oneOrNone(sql.getWithLineup, {
                 showId: +id,
             })
-            .then((show: GetShowResponseDTO | null) =>
-                show ? toShowInterface(show) : null,
+            .then((show: ShowDTO | null) =>
+                show ? new Show(show) : null,
             );
     }
 
-    getAllLineupPopularityData(): Promise<GroupedPopularityScoreDTO[] | null> {
+    getAllLineupPopularityData(): Promise<GroupedSocialDataDTO[] | null> {
         return this.db.any(sql.getAllLineupPopularityData);
     }
 

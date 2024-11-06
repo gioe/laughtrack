@@ -1,15 +1,15 @@
 "use server";
 
-import { ComedianInterface } from "../interfaces/comedian.interface";
 import { getDB } from "../database";
 import { EntityType } from "../util/enum";
 import EntityCarousel from "../components/custom/carousel/EntityCarousel";
 import LandingPageSearchBar from "../components/custom/filters/LandingPageSearchBar";
+import { Comedian } from "../objects/classes/comedian/Comedian";
 
-const {db} = getDB();
+const { db } = getDB();
 
 interface LandingPageResponseInterface {
-    trendingComedians: ComedianInterface[];
+    trendingComedians: Comedian[];
     cities: string[];
 }
 
@@ -44,7 +44,7 @@ export default async function LandingPage() {
             </section>
 
             <section
-                className="flex flex-col mx-auto max-w-7xl 
+                className="flex flex-col mx-auto max-w-7xl
       mt-10 p-6 rounded-lg mb-4 bg-white"
             >
                 <EntityCarousel

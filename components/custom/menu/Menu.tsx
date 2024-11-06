@@ -1,6 +1,6 @@
 "use client";
 
-import { ModalState } from "../../../interfaces/modalState.interface";
+import { ModalState } from "../../../objects/interfaces/modalState.interface";
 import {
     Dropdown,
     DropdownTrigger,

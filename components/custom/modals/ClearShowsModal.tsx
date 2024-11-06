@@ -2,15 +2,15 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ClubInterface } from "../../../interfaces/club.interface";
 import Modal from "./Modal";
 import Heading from "../Heading";
 import toast from "react-hot-toast";
 import axios from "axios";
 import useClearShowsModal from "../../../hooks/useClearShowsModal";
+import { Club } from "../../../objects/classes/club/Club";
 
 interface ClearShowsModalParams {
-    club: ClubInterface;
+    club: Club;
 }
 
 const ClearShowsModal: React.FC<ClearShowsModalParams> = ({ club }) => {

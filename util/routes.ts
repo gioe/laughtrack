@@ -1,6 +1,6 @@
 export const PUBLIC_ROUTES = {
     REGISTER: "/auth/register/",
-    LOGIN: "/auth/login/",
+    LOGIN: "/api/auth/login/",
 
     // Token
     REFRESH_TOKEN: "/api/token/refresh",

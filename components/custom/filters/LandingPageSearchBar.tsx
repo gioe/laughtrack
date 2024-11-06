@@ -27,7 +27,7 @@ import {
 } from "../../../components/ui/popover";
 import { format } from "date-fns";
 import { Calendar } from "../../../components/ui/calendar";
-import { cn } from "../../../util/utils";
+import { cn } from "../../../util/tailwindUtil";
 
 interface LandingPageSearchBarProps {
     cities: string[];

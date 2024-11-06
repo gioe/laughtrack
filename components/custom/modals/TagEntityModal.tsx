@@ -3,28 +3,22 @@
 import { useState } from "react";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
-import { TagInterface } from "../../../interfaces/tag.interface";
+import { TagInterface } from "../../../objects/interfaces/tag.interface";
 import { Disclosure, DisclosurePanel } from "@headlessui/react";
-import { FilterOption } from "../../../interfaces/filter.interface";
-import { Taggable } from "../../../interfaces/taggable.interface";
-import EntityType from "../icons/MiniEntityIcon";
+import { FilterOption } from "../../../objects/interfaces/filter.interface";
 import useAddShowTagModal from "../../..//hooks/useAddShowTagModal";
 import axios from "axios";
 import Modal from "./Modal";
 import Heading from "../Heading";
 import toast from "react-hot-toast";
+import { Entity } from "../../../objects/interfaces";
 
 interface TagEntityModalProps {
-    entity: Taggable;
-    type: EntityType;
+    entity: Entity;
     tags: TagInterface[];
 }
 
-const TagEntityModal: React.FC<TagEntityModalProps> = ({
-    type,
-    entity,
-    tags,
-}) => {
+const TagEntityModal: React.FC<TagEntityModalProps> = ({ entity, tags }) => {
     const router = useRouter();
     const addShowTagModal = useAddShowTagModal();
 
@@ -62,7 +56,7 @@ const TagEntityModal: React.FC<TagEntityModalProps> = ({
         setIsLoading(true);
 
         axios
-            .post(`/api/${type.valueOf()}/addTag`, {
+            .post(`/api/${entity.type.valueOf()}/addTag`, {
                 id: entity.id,
                 tags: selectedTags,
             })

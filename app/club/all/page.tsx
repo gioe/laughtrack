@@ -1,34 +1,28 @@
-import ClubTable from "../../../components/custom/tables/ClubTable";
 import FilterPageContainer from "../../../components/custom/filters/FilterPageContainer";
 import { getDB } from "../../../database";
-import { SORT_OPTIONS } from "../../../util/sort";
-import { Suspense } from "react";
-import { SearchParams } from "../../../interfaces/searchParams.interface";
+import { SearchParams } from "../../../objects/interfaces/searchParams.interface";
+import { Club } from "../../../objects/classes/club/Club";
+import BasicEntityCard from "../../../components/custom/tables/cards/BasicEntityCard";
 
-const {db} = getDB();
+const { db } = getDB();
 
 export default async function AllClubsPage(props: {
     searchParams?: Promise<SearchParams>;
 }) {
     const searchParams = await props.searchParams;
-    const clubs = await db.clubs.getAll(searchParams);
+    const clubs = await db.clubs.getAll();
 
     return (
         <main className="flex-grow pt-5 bg-shark">
-            <FilterPageContainer
-                itemCount={10}
-                sortOptions={SORT_OPTIONS.CLUB}
-                child={
-                    <Suspense
-                        key={
-                            (searchParams?.query ?? 1) +
-                            (searchParams?.page ?? "")
-                        }
-                        fallback={<div />}
-                    >
-                        <ClubTable clubs={clubs} />
-                    </Suspense>
+            <FilterPageContainer<Club>
+                suspenseKey={
+                    (searchParams?.query ?? "") + (searchParams?.page ?? 0)
                 }
+                renderItem={(entity) => {
+                    return <BasicEntityCard entity={entity} />;
+                }}
+                results={clubs}
+                defaultNode={<div></div>}
             />
         </main>
     );

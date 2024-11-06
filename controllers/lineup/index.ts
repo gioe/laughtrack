@@ -3,7 +3,7 @@ import {
     UpdateLineupItemDTO,
     CreateLineupItemDTO,
     GetLineupItemDTO,
-} from "../../interfaces";
+} from "../../objects/interfaces";
 import { getDB } from "../../database";
 
 const { db } = getDB();

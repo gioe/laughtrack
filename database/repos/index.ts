@@ -3,10 +3,8 @@ import { ComediansRepository } from "./comedians";
 import { ShowsRepository } from "./shows";
 import { UsersRepository } from "./users";
 import { SearchRepository } from "./search";
-import { LineupsRepository } from "./lineups";
 import { FavoritesRepository } from "./favorites";
 import { TagsRepository } from "./tags";
-import { GroupsRepository } from "./groups";
 
 // Database Interface Extensions:
 export interface IExtensions {
@@ -16,9 +14,7 @@ export interface IExtensions {
     shows: ShowsRepository;
     search: SearchRepository;
     favorites: FavoritesRepository;
-    lineups: LineupsRepository;
     tags: TagsRepository;
-    groups: GroupsRepository;
 }
 
 export {
@@ -27,8 +23,6 @@ export {
     ComediansRepository,
     ShowsRepository,
     SearchRepository,
-    LineupsRepository,
     FavoritesRepository,
     TagsRepository,
-    GroupsRepository,
 };

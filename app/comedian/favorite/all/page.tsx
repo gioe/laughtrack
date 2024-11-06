@@ -1,6 +1,7 @@
-import ComedianTable from "../../../../components/custom/tables/ComedianTable";
-import { Suspense } from "react";
-import { SearchParams } from "../../../../interfaces/searchParams.interface";
+import { SearchParams } from "../../../../objects/interfaces/searchParams.interface";
+import FilterPageContainer from "../../../../components/custom/filters/FilterPageContainer";
+import { Comedian } from "../../../../objects/classes/comedian/Comedian";
+import BasicEntityCard from "../../../../components/custom/tables/cards/BasicEntityCard";
 
 export default async function FavoriteComediansPage(props: {
     searchParams?: Promise<SearchParams>;
@@ -9,12 +10,16 @@ export default async function FavoriteComediansPage(props: {
 
     return (
         <main className="flex-grow pt-5 bg-shark">
-            <Suspense
-                key={(searchParams?.query ?? 1) + (searchParams?.page ?? "")}
-                fallback={<div />}
-            >
-                <ComedianTable params={searchParams} />
-            </Suspense>
+            <FilterPageContainer<Comedian>
+                suspenseKey={
+                    (searchParams?.query ?? "") + (searchParams?.page ?? 0)
+                }
+                renderItem={(entity) => {
+                    return <BasicEntityCard entity={entity} />;
+                }}
+                results={[]}
+                defaultNode={<div></div>}
+            />
         </main>
     );
 }

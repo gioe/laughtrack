@@ -3,16 +3,17 @@
 import Image from "next/image";
 import SocialMediaBar from "../social/SocialMediaBar";
 import { useState } from "react";
-import { BannerProviderInterface } from "../../../interfaces/bannerProvider.interface";
 import { useSession } from "next-auth/react";
-import { Menu, DropdownMenuItem } from "../menu/Menu";
+import { Menu } from "../menu/Menu";
+import { getMenuItemsForEntityType } from "../../../util/menu";
+import { Entity } from "../../../objects/interfaces";
 
 interface EntityBannerProps {
-    entity: BannerProviderInterface;
-    menuItems?: DropdownMenuItem[];
+    entity: Entity;
 }
 
-const EntityBanner: React.FC<EntityBannerProps> = ({ entity, menuItems }) => {
+const EntityBanner: React.FC<EntityBannerProps> = ({ entity }) => {
+    const menuItems = getMenuItemsForEntityType(entity.type);
     const session = useSession();
     const shouldShowMenu = session.data?.user.role == "admin";
 
@@ -43,7 +44,7 @@ const EntityBanner: React.FC<EntityBannerProps> = ({ entity, menuItems }) => {
                     {entity.name}
                 </h2>
                 {entity.socialData && (
-                    <SocialMediaBar data={entity.socialData}></SocialMediaBar>
+                    <SocialMediaBar data={entity.socialData} />
                 )}
                 {shouldShowMenu && menuItems && <Menu items={menuItems} />}
             </div>

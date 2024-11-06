@@ -3,7 +3,7 @@ import {
     containsTimeValue,
     getMeridiemByRegex,
     getTimeByRegex,
-} from "../../../util/timeUtil";
+} from "../../../util/primatives/timeUtil";
 
 export class TimeContainer {
     timeString: string;

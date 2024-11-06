@@ -1,16 +1,14 @@
 import { ColumnSet, IDatabase, IMain } from "pg-promise";
 import { clubs as sql } from "../sql";
 import {
-    GroupedPopularityScoreDTO,
+    GroupedSocialDataDTO,
     PopularityScoreIODTO,
-    CreateClubDTO,
     GetCitiesResponseDTO,
-    GetClubDTO,
-    ClubInterface,
-} from "../../interfaces";
+} from "../../objects/interfaces";
 import { providedPromiseResponse } from "../../util/promiseUtil";
-import { toClub, toClubs } from "../../util/domainModels/club/mapper";
-import { SearchParams } from "../../interfaces/searchParams.interface";
+import { IExtensions } from ".";
+import { ClubDTO } from "../../objects/classes/club/club.interface";
+import { Club } from "../../objects/classes/club/Club";
 
 const columnSets: {
     updateScores: ColumnSet | null;
@@ -33,7 +31,7 @@ export class ClubsRepository {
      * or other namespaces available from the root.
      */
     constructor(
-        private db: IDatabase<any>,
+        private db: IDatabase<IExtensions>,
         private pgp: IMain,
     ) {
         columnSets.updateScores = new pgp.helpers.ColumnSet(
@@ -47,7 +45,7 @@ export class ClubsRepository {
                 "zip_code",
                 "address",
                 "base_url",
-                "schedule_page_url",
+                "scraping_page_url",
                 "scraping_config",
                 "popularity_score",
             ],
@@ -60,7 +58,7 @@ export class ClubsRepository {
         return this.db.none(sql.create);
     }
 
-    addAll(all: CreateClubDTO[]): Promise<null> {
+    addAll(all: ClubDTO[]): Promise<null> {
         const batchInsert =
             this.pgp.helpers.insert(all, columnSets.addAll) +
             `ON CONFLICT (name) DO UPDATE SET scraping_config = EXCLUDED.scraping_config`;
@@ -68,11 +66,11 @@ export class ClubsRepository {
     }
 
     // Tries to find a club from id;
-    async getByName(name: string): Promise<ClubInterface | null> {
+    async getByName(name: string): Promise<Club | null> {
         return this.db
             .oneOrNone(sql.getByName, { name })
-            .then((response: GetClubDTO | null) =>
-                response ? toClub(response) : null,
+            .then((response: ClubDTO | null) =>
+                response ? new Club(response) : null,
             );
     }
 
@@ -85,15 +83,15 @@ export class ClubsRepository {
     }
 
     // Returns all club records;
-    async getAll(params?: SearchParams): Promise<ClubInterface[]> {
+    async getAll(): Promise<Club[]> {
         return this.db
             .any("SELECT * FROM clubs")
-            .then((response: GetClubDTO[] | null) =>
-                response ? toClubs(response) : [],
+            .then((response: ClubDTO[] | null) =>
+                response ? response.map((dto: ClubDTO) => new Club(dto)) : [],
             );
     }
 
-    getAllPopularityData(): Promise<GroupedPopularityScoreDTO[] | null> {
+    getAllPopularityData(): Promise<GroupedSocialDataDTO[] | null> {
         return this.db.any(sql.getAllShowPopularityData);
     }
 

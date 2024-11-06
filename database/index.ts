@@ -27,7 +27,7 @@ export function getDB(): IDatabaseScope {
         const initOptions: IInitOptions<IExtensions> = {
             // Extending the database protocol with our custom repositories;
             // API: http://vitaly-t.github.io/pg-promise/global.html#event:extend
-            extend(obj: ExtendedProtocol, dc: any) {
+            extend(obj: ExtendedProtocol) {
                 // Database Context (dc) is mainly needed for
                 // extending multiple databases with different access API.
 

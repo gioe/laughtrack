@@ -1,29 +1,17 @@
 import { getDB } from "../../database";
-import {
-    toComedian,
-    toComedianFilter,
-} from "../../util/domainModels/comedian/mapper";
-import {
-    CreateComedianDTO,
-    GetComediansDTO,
-    GetComedianResponseDTO,
-    ComedianInterface,
-    ComedianFilterInterface,
-    UpdateComedianHashDTO,
-    CreateFavoriteDTO,
-    GetSocialDataDTO,
-    PopularityScoreIODTO,
-    UpdateSocialDataDTO,
-} from "../../interfaces";
+import { toComedian } from "../../objects/classes/comedian/mapper";
 import { toPopularityScores } from "../../util/domainModels/socialData/mapper";
-import { generateComedianHash } from "../../util/domainModels/comedian/hash";
+import { generateComedianHash } from "../../objects/classes/comedian/hash";
+import { ComedianDTO, ComedianInterface } from "../../objects/classes/comedian/comedian.interface";
+import { PopularityScoreIODTO, SocialDataDTO } from "../../objects/interfaces";
+import { FavoriteDTO } from "../../objects/interfaces/favoritable.interface";
 
 const { db } = getDB();
 
 export const addAll = async (
-    comedians: CreateComedianDTO[],
+    comedians: ComedianDTO[],
 ): Promise<string[]> => {
-    const hashedComedians = comedians.map((comedian: CreateComedianDTO) => {
+    const hashedComedians = comedians.map((comedian: ComedianDTO) => {
         return {
             name: comedian.name,
             uuid_id: generateComedianHash(comedian.name),
@@ -36,30 +24,26 @@ export const addAll = async (
 };
 
 export const getAllComedians = async (
-    payload?: GetComediansDTO,
+    payload?: ComedianDTO,
 ): Promise<ComedianInterface[]> => {
     const task = payload?.userId
         ? db.comedians.allWithFavorites(payload.userId)
         : db.comedians.all();
 
-    return task.then((response: GetComedianResponseDTO[] | null) =>
-        response ? response.map((item: any) => toComedian(item)) : [],
+    return task.then((response: ComedianDTO[] | null) =>
+        response ? response.map((item: ComedianDTO) => toComedian(item)) : [],
     );
 };
 
 export const generateScores = async (): Promise<null> => {
     return db.comedians
         .getAllSocialData()
-        .then((response: GetSocialDataDTO[] | null) =>
-            response ? toPopularityScores(response) : [],
-        )
-        .then((popularityScores: PopularityScoreIODTO[]) =>
-            db.comedians.updateScores(popularityScores),
-        );
+        .then((response: SocialDataDTO[] | null) => response ? toPopularityScores(response) : [])
+        .then((popularityScores: PopularityScoreIODTO[]) => db.comedians.updateScores(popularityScores));
 };
 
 export const favoriteComedian = async (
-    payload: CreateFavoriteDTO,
+    payload: FavoriteDTO,
     isFavorite: boolean,
 ): Promise<boolean> => {
     return isFavorite
@@ -68,22 +52,12 @@ export const favoriteComedian = async (
 };
 
 export const updateSocialData = async (
-    payload: UpdateSocialDataDTO,
+    payload: SocialDataDTO,
 ): Promise<boolean | null> => {
     return db.comedians.updateSocialData(payload);
 };
 
-export const getAllComedianFilters = async (): Promise<
-    ComedianFilterInterface[]
-> => {
-    return db.comedians
-        .all()
-        .then((response: GetComedianResponseDTO[] | null) =>
-            response ? response.map((item: any) => toComedianFilter(item)) : [],
-        );
-};
-
-export const writeHashes = async (hashedComedians: UpdateComedianHashDTO[]) => {
+export const writeHashes = async (hashedComedians: ComedianDTO[]) => {
     return db.comedians.writeHashes(hashedComedians);
 };
 

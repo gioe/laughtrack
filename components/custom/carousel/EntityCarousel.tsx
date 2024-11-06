@@ -1,7 +1,7 @@
 "use client";
 
-import { SocialDiscoverable } from "../../../interfaces";
-import { ImageRepresentable } from "../../../interfaces/imageRepresentable.interface";
+import { SocialDiscoverable } from "../../../objects/interfaces";
+import { ImageRepresentable } from "../../../objects/interfaces/imageRepresentable.interface";
 import EntityType from "../icons/MiniEntityIcon";
 import BasicEntityInfoCard from "../tables/cards/BasicEntityInfoCard";
 

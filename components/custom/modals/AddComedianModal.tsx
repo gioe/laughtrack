@@ -10,15 +10,16 @@ import { useAsyncList } from "@react-stately/data";
 import { Autocomplete, AutocompleteItem } from "@nextui-org/react";
 import { Chip } from "@nextui-org/react";
 import { useRouter } from "next/navigation";
-import { ShowInterface } from "../../../interfaces/show.interface";
-import { ComedianInterface } from "../../../interfaces/comedian.interface";
 import { PUBLIC_ROUTES } from "../../../util/routes";
 import { executePost } from "../../../util/actions/executePost";
 import { generateUrl } from "../../../util/primatives/urlUtil";
+import { Comedian } from "../../../objects/classes/comedian/Comedian";
+import { Show } from "../../../objects/classes/show/Show";
+import { SortProperty } from "../../../util/enum";
 
 interface AddComedianModalProps {
-    show: ShowInterface;
-    intialComedians: ComedianInterface[];
+    show: Show;
+    intialComedians: Comedian[];
 }
 
 const AddComedianModal: React.FC<AddComedianModalProps> = ({
@@ -27,14 +28,15 @@ const AddComedianModal: React.FC<AddComedianModalProps> = ({
 }) => {
     const router = useRouter();
 
-    const list = useAsyncList<ComedianInterface>({
+    const list = useAsyncList<Comedian>({
         async load({ filterText }) {
             const getComediansUrl = generateUrl(
                 PUBLIC_ROUTES.GET_ALL_COMEDIANS,
             );
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const { items } = await executePost<any>(getComediansUrl, {
                 query: filterText,
-                sort: "alphabetical",
+                sort: SortProperty.Alphabetical,
                 page: "0",
                 rows: "10",
             });
@@ -62,7 +64,7 @@ const AddComedianModal: React.FC<AddComedianModalProps> = ({
         }
     };
 
-    const handleClose = (item: ComedianInterface) => {
+    const handleClose = (item: Comedian) => {
         setComedians(
             comedians.filter((comedian) => comedian.name !== item.name),
         );
@@ -74,7 +76,7 @@ const AddComedianModal: React.FC<AddComedianModalProps> = ({
         axios
             .post("/api/addToLineup", {
                 showId: show.id,
-                comedians: comedians.map((item: ComedianInterface) => item.id),
+                comedians: comedians.map((item: Comedian) => item.id),
             })
             .then((response) => {
                 if (response) {

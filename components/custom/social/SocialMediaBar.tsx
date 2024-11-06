@@ -1,6 +1,6 @@
 "use client";
 
-import { SocialDataInterface } from "../../../interfaces/socialData.interface";
+import { SocialDataInterface } from "../../../objects/interfaces/socialData.interface";
 import Link from "next/link";
 import InstagramIcon from "../icons/InstagramIcon";
 import TikTokIcon from "../icons/TikTokIcon";

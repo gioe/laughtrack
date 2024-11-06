@@ -8,7 +8,7 @@ import Footer from "../components/custom/Footer";
 import Header from "../components/custom/header/Header";
 import { NextUIProvider } from "@nextui-org/react";
 import { SessionProvider } from "next-auth/react";
-// import { auth } from "../auth";
+import { auth } from "../auth";
 import { cache } from "react";
 
 export const metadata: Metadata = {
@@ -16,40 +16,41 @@ export const metadata: Metadata = {
     description: "Find comics you love",
 };
 
-// export const getSession = cache(async () => {
-//     const session = await auth();
-//     return session;
-// });
+export const getSession = cache(async () => {
+    const session = await auth();
+    return session;
+});
 
-// export async function getCurrentUser() {
-//     try {
-//         const session = await getSession();
-//         if (!session?.user?.email) {
-//             return null;
-//         }
-//         return {
-//             id: session.user.id,
-//             email: session.user.email,
-//             role: session.user.role,
-//         };
-//     } catch (error) {
-//         return null;
-//     }
-// }
+export async function getCurrentUser() {
+    try {
+        const session = await getSession();
+        if (!session?.user?.email) {
+            return null;
+        }
+        return {
+            id: session.user.id,
+            email: session.user.email,
+            role: session.user.role,
+        };
+    } catch (error) {
+        console.log(error);
+        return null;
+    }
+}
 
 export default async function RootLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    // const user = await getCurrentUser();
+    const user = await getCurrentUser();
 
     return (
         <SessionProvider>
             <html lang="en">
                 <body className="bg-shark">
                     <NextUIProvider>
-                        <Header currentUser={undefined} />
+                        <Header currentUser={user} />
                         <ClientOnly>
                             <ToasterProvider />
                             <LoginModal />
