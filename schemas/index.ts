@@ -1,5 +1,6 @@
-import { searchSchema } from "./search";
+import { homeSearchSchema } from "./homeSearch";
+import { editSocialDataSchema } from "./editSocialData";
 
 export {
-    searchSchema
+    homeSearchSchema, editSocialDataSchema
 }

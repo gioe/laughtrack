@@ -14,11 +14,17 @@ import toast from "react-hot-toast";
 import { Entity } from "../../../objects/interfaces";
 
 interface TagEntityModalProps {
-    entity: Entity;
-    tags: TagInterface[];
+    entityString: string;
+    tagsString: string;
 }
 
-const TagEntityModal: React.FC<TagEntityModalProps> = ({ entity, tags }) => {
+const TagEntityModal: React.FC<TagEntityModalProps> = ({
+    entityString,
+    tagsString,
+}) => {
+    const entity = JSON.parse(entityString) as Entity;
+    const tags = JSON.parse(tagsString) as TagInterface[];
+
     const router = useRouter();
     const addShowTagModal = useAddShowTagModal();
 
@@ -111,6 +117,7 @@ const TagEntityModal: React.FC<TagEntityModalProps> = ({ entity, tags }) => {
 
     return (
         <Modal
+            form={}
             disabled={isLoading}
             isOpen={addShowTagModal.isOpen}
             title="Add Tags"

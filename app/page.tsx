@@ -1,9 +1,9 @@
 "use server";
 
 import { getDB } from "../database";
-import EntityCarousel from "../components/custom/carousel/EntityCarousel";
+import EntityCarousel from "../components/custom/carousel";
 import { Comedian } from "../objects/classes/comedian/Comedian";
-import SearchForm from "../components/custom/filters/SearchForm";
+import SearchForm from "../components/custom/form/SearchForm";
 
 const { db } = getDB();
 

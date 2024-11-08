@@ -124,6 +124,7 @@ const AddComedianModal: React.FC<AddComedianModalProps> = ({
 
     return (
         <Modal
+            form={}
             disabled={isLoading}
             isOpen={addComedianModal.isOpen}
             title="Add Comedian"

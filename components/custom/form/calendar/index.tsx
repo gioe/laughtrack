@@ -1,28 +1,28 @@
 "use client";
 
-import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "../../../ui/popover";
 import { format } from "date-fns";
-import { Calendar } from "../../ui/calendar";
+import { Calendar } from "../../../ui/calendar";
 import {
     FormControl,
     FormField,
     FormItem,
     FormLabel,
     FormMessage,
-} from "../../ui/form";
-import { Button } from "../../ui/button";
-import { cn } from "../../../util/tailwindUtil";
+} from "../../../ui/form";
+import { Button } from "../../../ui/button";
+import { cn } from "../../../../util/tailwindUtil";
 
-interface CalendarComponentProps {
+interface CalendarFormComponentProps {
     name: string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     form: any;
 }
 
-const CalendarComponent: React.FC<CalendarComponentProps> = ({
+const CalendarFormComponent: React.FC<CalendarFormComponentProps> = ({
     name,
     form,
-}: CalendarComponentProps) => {
+}: CalendarFormComponentProps) => {
     return (
         <div className="grid w-full lg:max-w-sm flex-1 items-center gap-1.5">
             <FormField
@@ -100,4 +100,4 @@ const CalendarComponent: React.FC<CalendarComponentProps> = ({
     );
 };
 
-export default CalendarComponent;
+export default CalendarFormComponent;

@@ -1,27 +1,22 @@
 import FilterPageContainer from "../../../components/custom/filters/FilterPageContainer";
 import { getDB } from "../../../database";
 import { SearchParams } from "../../../objects/interfaces/searchParams.interface";
-import { Club } from "../../../objects/classes/club/Club";
-import BasicEntityCard from "../../../components/custom/cards/BasicEntityCard";
+import { getSortOptionsForEntityType } from "../../../util/sort";
+import { EntityType } from "../../../util/enum";
 
 const { db } = getDB();
 
 export default async function AllClubsPage(props: {
-    searchParams?: Promise<SearchParams>;
+    searchParams: Promise<SearchParams>;
 }) {
     const searchParams = await props.searchParams;
-    const clubs = await db.clubs.getAll();
-
+    const clubs = await db.clubs.getAll(searchParams);
+    const sortOptions = getSortOptionsForEntityType(EntityType.Club);
     return (
         <main className="flex-grow pt-5 bg-shark">
-            <FilterPageContainer<Club>
-                suspenseKey={
-                    (searchParams?.query ?? "") + (searchParams?.page ?? 0)
-                }
-                renderItem={(entity) => {
-                    return <BasicEntityCard entity={entity} />;
-                }}
-                results={clubs}
+            <FilterPageContainer
+                sortOptions={sortOptions}
+                resultString={JSON.stringify(clubs)}
                 defaultNode={<div></div>}
             />
         </main>

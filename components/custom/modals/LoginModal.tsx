@@ -4,7 +4,7 @@ import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
-import StylizedInput from "../inputs/StylizedInput";
+import StylizedInput from "../input";
 import useLoginModal from "../../../hooks/useLoginModal";
 import Modal from "./Modal";
 import Heading from "../Heading";
@@ -71,6 +71,7 @@ const LoginModal = () => {
 
     return (
         <Modal
+            form={}
             disabled={isLoading}
             isOpen={loginModal.isOpen}
             title="Login"

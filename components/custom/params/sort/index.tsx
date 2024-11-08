@@ -3,22 +3,20 @@
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { useState } from "react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
-import { getOptionsForEntityType } from "../../../util/sort";
 import { useSearchParams } from "next/navigation";
-import { adjustUrlParams } from "../../../util/primatives/paramUtil";
-import { EntityType, URLParam } from "../../../util/enum";
-import { replaceRoute } from "../../../util/navigationUtil";
-import { cn } from "../../../util/tailwindUtil";
+import { adjustUrlParams } from "../../../../util/primatives/paramUtil";
+import { URLParam } from "../../../../util/enum";
+import { replaceRoute } from "../../../../util/navigationUtil";
+import { cn } from "../../../../util/tailwindUtil";
+import { SortOptionInterface } from "../../../../objects/interfaces";
 
-interface SortOptionsParams {
-    type: EntityType;
+interface SortParamComponentProps {
+    options: SortOptionInterface[];
 }
 
-export function SortOptionsComponent({ type }: SortOptionsParams) {
-    const sortOptions = getOptionsForEntityType(type);
-
+export function SortParamComponent({ options }: SortParamComponentProps) {
     const [selectedSort, setSelectedSort] = useState(
-        sortOptions[0].value.valueOf(),
+        options[0].value.valueOf(),
     );
 
     const handleSortSelection = (sortValue: string) => {
@@ -55,7 +53,7 @@ export function SortOptionsComponent({ type }: SortOptionsParams) {
       data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
                 >
                     <div className="py-1">
-                        {sortOptions.map((option) => (
+                        {options.map((option) => (
                             <MenuItem key={option.name}>
                                 <h1
                                     onClick={() =>

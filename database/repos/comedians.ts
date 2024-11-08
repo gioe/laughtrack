@@ -2,7 +2,7 @@ import { ColumnSet, IDatabase, IMain } from "pg-promise";
 import { comedians as sql } from "../sql";
 import { providedPromiseResponse } from "../../util/promiseUtil";
 import { ComedianDTO, ComedianInterface } from "../../objects/classes/comedian/comedian.interface";
-import { PopularityScoreIODTO, SocialDataDTO } from "../../objects/interfaces";
+import { PopularityScoreIODTO, SearchParams, SocialDataDTO } from "../../objects/interfaces";
 import { IExtensions } from ".";
 import { Comedian } from "../../objects/classes/comedian/Comedian";
 
@@ -77,6 +77,16 @@ export class ComediansRepository {
             );
     }
 
+    async getById(id: number, searchParams: SearchParams): Promise<Comedian | null> {
+        return this.db
+            .oneOrNone(sql.getById, {
+                id,
+            })
+            .then((response: ComedianDTO | null) =>
+                response ? new Comedian(response) : null,
+            );
+    }
+
     // Returns all comedian records;
     all(): Promise<ComedianDTO[] | null> {
         return this.db.any(sql.getAllWithSocialData);
@@ -84,6 +94,7 @@ export class ComediansRepository {
 
     async getAllFavorites(
         userId: number,
+        searchParams: SearchParams
     ): Promise<ComedianInterface[]> {
         return this.db
             .any(sql.getAllFavorites, {
@@ -144,4 +155,14 @@ export class ComediansRepository {
     getIds(uuids: string[]): Promise<{ id: number }[]> {
         return this.db.any(sql.getAllIdsByUuids, [uuids]);
     }
+
+    // Returns all club records;
+    async getAll(searchParams: SearchParams): Promise<Comedian[]> {
+        return this.db
+            .any("SELECT * FROM comedians")
+            .then((response: ComedianDTO[] | null) =>
+                response ? response.map((dto: ComedianDTO) => new Comedian(dto)) : [],
+            );
+    }
+
 }

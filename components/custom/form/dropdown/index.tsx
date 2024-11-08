@@ -6,15 +6,15 @@ import {
     SelectContent,
     SelectValue,
     SelectItem,
-} from "../../../components/ui/select";
+} from "../../../ui/select";
 import {
     FormControl,
     FormField,
     FormItem,
     FormLabel,
     FormMessage,
-} from "../../../components/ui/form";
-import { cn } from "../../../util/tailwindUtil";
+} from "../../../ui/form";
+import { cn } from "../../../../util/tailwindUtil";
 
 interface DropdownProps {
     name: string;
@@ -25,7 +25,7 @@ interface DropdownProps {
     form: any;
 }
 
-export function Dropdown({
+export function DropdownFormComponent({
     name,
     title,
     placeholder,

@@ -10,7 +10,7 @@ import Heading from "../Heading";
 import toast from "react-hot-toast";
 import useLoginModal from "../../../hooks/useLoginModal";
 import axios from "axios";
-import StylizedInput from "../inputs/StylizedInput";
+import StylizedInput from "../input";
 
 const RegisterModal = () => {
     const registerModal = useRegisterModal();
@@ -106,6 +106,7 @@ const RegisterModal = () => {
 
     return (
         <Modal
+            form={}
             disabled={isLoading}
             isOpen={registerModal.isOpen}
             title="Register"

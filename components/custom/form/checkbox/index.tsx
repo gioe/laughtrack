@@ -1,9 +1,6 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { ControllerRenderProps, useForm } from "react-hook-form";
-import { z } from "zod";
-
+import { ControllerRenderProps, FieldValues } from "react-hook-form";
 import {
     Form,
     FormControl,
@@ -11,61 +8,42 @@ import {
     FormItem,
     FormLabel,
     FormMessage,
-} from "../../ui/form";
-import { Checkbox } from "../../../@/components/ui/checkbox";
+} from "../../../ui/form";
+import { Checkbox } from "../../../../@/components/ui/checkbox";
 
-const FormSchema = z.object({
-    items: z.array(z.string()).refine((value) => value.some((item) => item), {
-        message: "You have to select at least one item.",
-    }),
-});
-
+type TypedFieldValues = ControllerRenderProps<FieldValues, "items">;
 export interface CheckboxComponentItem {
     id: number;
     name: string;
 }
 
-interface CheckboxComponentProps {
+interface CheckboxFormComponentProps {
     inputs: CheckboxComponentItem[];
     handleValueChange: (ids: string[]) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    form: any;
 }
 
-export function CheckboxComponent({
+export function CheckboxFormComponent({
     inputs,
     handleValueChange,
-}: CheckboxComponentProps) {
-    const form = useForm<z.infer<typeof FormSchema>>({
-        resolver: zodResolver(FormSchema),
-        defaultValues: {
-            items: [],
-        },
-    });
-
+    form,
+}: CheckboxFormComponentProps) {
     const handleCheckChange = (
         checked: string | boolean,
         item: CheckboxComponentItem,
-        field: ControllerRenderProps<
-            {
-                items: string[];
-            },
-            "items"
-        >,
+        field: TypedFieldValues,
     ) => {
         const values = checked
             ? [...field.value, item.id.toString()]
             : field.value?.filter((value) => value !== item.id.toString());
         handleValueChange(values);
-        return field.onChange(values);
+        field.onChange(values);
     };
 
     const handleCheckbox = (
         item: CheckboxComponentItem,
-        field: ControllerRenderProps<
-            {
-                items: string[];
-            },
-            "items"
-        >,
+        field: TypedFieldValues,
     ) => {
         return field.value?.includes(item.id.toString());
     };

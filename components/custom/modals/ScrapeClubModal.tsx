@@ -10,10 +10,11 @@ import useRunScrapeModal from "../../../hooks/useRunScrapeModal";
 import { Club } from "../../../objects/classes/club/Club";
 
 interface ScrapeClubModalParams {
-    club: Club;
+    clubString: string;
 }
 
-const ScrapeClubModal: React.FC<ScrapeClubModalParams> = ({ club }) => {
+const ScrapeClubModal: React.FC<ScrapeClubModalParams> = ({ clubString }) => {
+    const club = JSON.parse(clubString) as Club;
     const runScrapeModal = useRunScrapeModal();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
@@ -42,6 +43,7 @@ const ScrapeClubModal: React.FC<ScrapeClubModalParams> = ({ club }) => {
 
     return (
         <Modal
+            form={}
             disabled={isLoading}
             isOpen={runScrapeModal.isOpen}
             title="Scrape"

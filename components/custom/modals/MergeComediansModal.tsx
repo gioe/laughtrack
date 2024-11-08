@@ -7,17 +7,18 @@ import Modal from "./Modal";
 import Heading from "../Heading";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import StylizedInput from "../inputs/StylizedInput";
+import StylizedInput from "../input";
 import axios from "axios";
 import { Comedian } from "../../../objects/classes/comedian/Comedian";
 
 interface MergeComediansModalParams {
-    comedian: Comedian;
+    comedianString: string;
 }
 
 const MergeComediansModal: React.FC<MergeComediansModalParams> = ({
-    comedian,
+    comedianString,
 }) => {
+    const comedian = JSON.parse(comedianString) as Comedian;
     const mergeComediansModal = useMergeComediansModal();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
@@ -67,6 +68,7 @@ const MergeComediansModal: React.FC<MergeComediansModalParams> = ({
 
     return (
         <Modal
+            form={}
             disabled={isLoading}
             isOpen={mergeComediansModal.isOpen}
             title="Merge With Comedian"

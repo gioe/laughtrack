@@ -29,6 +29,7 @@ export const comedians = {
     ).qf,
     getAllFavorites: sql("comedians/getAllFavorites.sql").qf,
     getByName: sql("comedians/getByName.sql").qf,
+    getById: sql("comedians/getById.sql").qf,
     getTrending: sql("comedians/getTrending.sql").qf,
     getAllIdsByUuids: sql("comedians/getAllIdsByUuids.sql").qf,
     getSearchResults: sql("comedians/getSearchResults.sql").qf,

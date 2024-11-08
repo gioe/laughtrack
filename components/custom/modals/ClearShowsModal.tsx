@@ -10,10 +10,12 @@ import useClearShowsModal from "../../../hooks/useClearShowsModal";
 import { Club } from "../../../objects/classes/club/Club";
 
 interface ClearShowsModalParams {
-    club: Club;
+    clubString: string;
 }
 
-const ClearShowsModal: React.FC<ClearShowsModalParams> = ({ club }) => {
+const ClearShowsModal: React.FC<ClearShowsModalParams> = ({ clubString }) => {
+    const club = JSON.parse(clubString) as Club;
+
     const clearShowsModal = useClearShowsModal();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
@@ -42,6 +44,7 @@ const ClearShowsModal: React.FC<ClearShowsModalParams> = ({ club }) => {
 
     return (
         <Modal
+            form={}
             disabled={isLoading}
             isOpen={clearShowsModal.isOpen}
             title="Clear"

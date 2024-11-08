@@ -8,7 +8,6 @@ import { SocialDataInterface, TagInterface } from "../../interfaces";
 import { Show } from "../show/Show";
 import { ShowDTO } from "../show/show.interface";
 import { ComedianDTO, ComedianInterface } from "./comedian.interface";
-
 export class Comedian implements ComedianInterface {
 
     name: string;

@@ -4,15 +4,16 @@ import Image from "next/image";
 import SocialMediaBar from "../social/SocialMediaBar";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
-import { Menu } from "../menu/Menu";
+import { Menu } from "../menu";
 import { getMenuItemsForEntityType } from "../../../util/menu";
 import { Entity } from "../../../objects/interfaces";
 
 interface EntityBannerProps {
-    entity: Entity;
+    entityString: string;
 }
 
-const EntityBanner: React.FC<EntityBannerProps> = ({ entity }) => {
+const EntityBanner: React.FC<EntityBannerProps> = ({ entityString }) => {
+    const entity = JSON.parse(entityString) as Entity;
     const menuItems = getMenuItemsForEntityType(entity.type);
     const session = useSession();
     const shouldShowMenu = session.data?.user.role == "admin";
@@ -44,7 +45,9 @@ const EntityBanner: React.FC<EntityBannerProps> = ({ entity }) => {
                 {entity.socialData && (
                     <SocialMediaBar data={entity.socialData} />
                 )}
-                {shouldShowMenu && menuItems && <Menu items={menuItems} />}
+                {shouldShowMenu && menuItems && (
+                    <Menu providedItems={menuItems} />
+                )}
             </div>
         </div>
     );

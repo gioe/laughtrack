@@ -3,17 +3,17 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import TablePagination from "@mui/material/TablePagination";
-import { URLParam } from "../../../util/enum";
-import { adjustUrlParams } from "../../../util/primatives/paramUtil";
-import { replaceRoute } from "../../../util/navigationUtil";
+import { URLParam } from "../../../../util/enum";
+import { adjustUrlParams } from "../../../../util/primatives/paramUtil";
+import { replaceRoute } from "../../../../util/navigationUtil";
 
-interface TablePaginationComponentProps {
+interface PageParamComponentProps {
     itemCount: number;
 }
 
-export function TablePaginationComponent({
+export function PageParamComponent({
     itemCount,
-}: Readonly<TablePaginationComponentProps>) {
+}: Readonly<PageParamComponentProps>) {
     const searchParams = useSearchParams();
     const currentPage = Number(searchParams.get("page")) || 0;
 

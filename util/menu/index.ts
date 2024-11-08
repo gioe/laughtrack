@@ -15,17 +15,17 @@ export const getMenuItemsForEntityType = (type: EntityType) => {
 
 const MENU_OPTIONS = {
     COMEDIAN: [
-        { key: "social", label: "Edit Social Data", store: hooks.useSocialDataModal },
-        { key: "merge", label: "Merge Comedians", store: hooks.useMergeComediansModal },
-        { key: "tags", label: "Add Tags", store: hooks.useAddComedianModal },
+        { key: "social", label: "Edit Social Data", hook: hooks.useSocialDataModal },
+        { key: "merge", label: "Merge Comedians", hook: hooks.useMergeComediansModal },
+        { key: "tags", label: "Add Tags", hook: hooks.useAddComedianModal },
     ],
     CLUB: [
-        { key: "tags", label: "Add Tags", store: hooks.useAddClubTagModal },
-        { key: "scrape", label: "Run Scrape", store: hooks.useRunScrapeModal },
-        { key: "clear", label: "Clear SHows", store: hooks.useClearShowsModal },
+        { key: "tags", label: "Add Tags", hook: hooks.useAddClubTagModal },
+        { key: "scrape", label: "Run Scrape", hook: hooks.useRunScrapeModal },
+        { key: "clear", label: "Clear SHows", hook: hooks.useClearShowsModal },
     ],
     SHOW: [
-        { key: "tags", label: "Add Tags", store: hooks.useAddShowTagModal },
-        { key: "comedian", label: "Add Comedian", store: hooks.useAddComedianModal },
+        { key: "tags", label: "Add Tags", hook: hooks.useAddShowTagModal },
+        { key: "comedian", label: "Add Comedian", hook: hooks.useAddComedianModal },
     ],
 };

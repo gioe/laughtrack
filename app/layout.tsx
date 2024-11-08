@@ -5,7 +5,7 @@ import ToasterProvider from "../components/providers/ToasterProvider";
 import LoginModal from "../components/custom/modals/LoginModal";
 import RegisterModal from "../components/custom/modals/RegisterModal";
 import Footer from "../components/custom/Footer";
-import Header from "../components/custom/header/Header";
+import Header from "../components/custom/header";
 import { NextUIProvider } from "@nextui-org/react";
 import { SessionProvider } from "next-auth/react";
 import { auth } from "../auth";

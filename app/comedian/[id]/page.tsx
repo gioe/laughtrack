@@ -1,13 +1,14 @@
 import FilterPageContainer from "../../../components/custom/filters/FilterPageContainer";
 import EditSocialDataModal from "../../../components/custom/modals/EditSocialDataModal";
 import MergeComediansModal from "../../../components/custom/modals/MergeComediansModal";
-import EntityBanner from "../../../components/custom/banner/EntityBanner";
+import EntityBanner from "../../../components/custom/banner";
 import TagEntityModal from "../../../components/custom/modals/TagEntityModal";
 import { EntityType } from "../../../util/enum";
 import { SearchParams } from "../../../objects/interfaces/searchParams.interface";
 import { getDB } from "../../../database";
 import { TagInterface } from "../../../objects/interfaces/tag.interface";
 import { Comedian } from "../../../objects/classes/comedian/Comedian";
+import { getSortOptionsForEntityType } from "../../../util/sort";
 
 const { db } = getDB();
 
@@ -18,8 +19,9 @@ interface ComedianDetailPageInterface {
 
 async function getComedianDetail(
     id: string,
+    searchParams: SearchParams,
 ): Promise<ComedianDetailPageInterface> {
-    const comedian = db.comedians.getByName(id);
+    const comedian = db.comedians.getById(Number(id), searchParams);
     const tags = db.tags.getByType(EntityType.Comedian.valueOf());
 
     return Promise.all([comedian, tags]).then((responses) => {
@@ -27,7 +29,6 @@ async function getComedianDetail(
         const tags = responses[1];
         return {
             comedian,
-            totalResults: comedian?.dates.length ?? 0,
             tags,
         };
     });
@@ -40,22 +41,31 @@ export default async function ComedianDetailsPage(props: {
     const searchParams = await props.searchParams;
     const params = await props.params;
 
-    const { comedian, tags } = await getComedianDetail(params.id);
+    const { comedian, tags } = await getComedianDetail(params.id, searchParams);
+    const comedianString = JSON.stringify(comedian);
+    const tagsString = JSON.stringify(tags);
+    const sortOptions = getSortOptionsForEntityType(EntityType.Show);
 
     return (
         <div className="flex flex-col">
             {comedian && (
                 <div>
-                    <MergeComediansModal comedian={comedian} />
-                    <EditSocialDataModal comedian={comedian} />
-                    <TagEntityModal entity={comedian} tags={tags} />
+                    <MergeComediansModal comedianString={comedianString} />
+                    <EditSocialDataModal comedianString={comedianString} />
+                    <TagEntityModal
+                        entityString={comedianString}
+                        tagsString={tagsString}
+                    />
                 </div>
             )}
 
-            <section>{comedian && <EntityBanner entity={comedian} />}</section>
+            <section>
+                {comedian && <EntityBanner entityString={comedianString} />}
+            </section>
             <section>
                 <FilterPageContainer
-                    resultString={JSON.stringify([])}
+                    sortOptions={sortOptions}
+                    resultString={JSON.stringify(comedian?.dates)}
                     defaultNode={<div></div>}
                 />
             </section>

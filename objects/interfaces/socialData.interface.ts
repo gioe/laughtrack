@@ -1,13 +1,17 @@
 // Client
 export interface SocialDataInterface {
-    instagramAccount?: string;
-    tiktokAccount?: string;
-    youtubeAccount?: string;
-    youtubeFollowers?: number;
-    tiktokFollowers?: number;
-    instagramFollowers?: number;
+    instagram?: SocialMediaAccount;
+    tiktok?: SocialMediaAccount;
+    youtube?: SocialMediaAccount;
+    facebook?: SocialMediaAccount;
+    twitter?: SocialMediaAccount;
     website?: string;
     popularityScore?: number;
+}
+
+export interface SocialMediaAccount {
+    account: string,
+    following: number;
 }
 
 export interface SocialDiscoverable {

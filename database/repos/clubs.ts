@@ -4,6 +4,7 @@ import {
     GroupedSocialDataDTO,
     PopularityScoreIODTO,
     GetCitiesResponseDTO,
+    SearchParams,
 } from "../../objects/interfaces";
 import { providedPromiseResponse } from "../../util/promiseUtil";
 import { IExtensions } from ".";
@@ -83,7 +84,7 @@ export class ClubsRepository {
     }
 
     // Returns all club records;
-    async getAll(): Promise<Club[]> {
+    async getAll(searchParams: SearchParams): Promise<Club[]> {
         return this.db
             .any("SELECT * FROM clubs")
             .then((response: ClubDTO[] | null) =>

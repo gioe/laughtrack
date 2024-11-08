@@ -4,7 +4,7 @@ import Modal from "./Modal";
 import { useState } from "react";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import { useScrapeMenuModal } from "../../../hooks";
-import { CheckboxComponent, CheckboxComponentItem } from "../checkbox/Checkbox";
+import { CheckboxComponent, CheckboxComponentItem } from "../form/checkbox";
 import axios from "axios";
 import toast from "react-hot-toast";
 import {
@@ -54,7 +54,6 @@ const ScrapeMenuModal: React.FC<ScrapeMenuModalProps> = ({ cities }) => {
     };
 
     const onSubmit: SubmitHandler<FieldValues> = () => {
-        console.log(headless);
         setIsLoading(true);
         axios
             .post("/api/scrape", {
@@ -112,6 +111,7 @@ const ScrapeMenuModal: React.FC<ScrapeMenuModalProps> = ({ cities }) => {
 
     return (
         <Modal
+            form={}
             disabled={isLoading}
             isOpen={scrapeMenuModal.isOpen}
             title="Select Clubs To Scrape"

@@ -2,6 +2,7 @@ import FilterPageContainer from "../../components/custom/filters/FilterPageConta
 import { SearchParams } from "../../objects/interfaces/searchParams.interface";
 import { getDB } from "../../database";
 import { EntityType } from "../../util/enum";
+import { getSortOptionsForEntityType } from "../../util/sort";
 const { db } = getDB();
 
 export default async function SearchResultsPage(props: {
@@ -13,10 +14,12 @@ export default async function SearchResultsPage(props: {
         EntityType.Show,
         queryParams,
     );
+    const sortOptions = getSortOptionsForEntityType(EntityType.Show);
 
     return (
         <main className="flex-grow pt-5 bg-shark">
             <FilterPageContainer
+                sortOptions={sortOptions}
                 resultString={JSON.stringify(results)}
                 defaultNode={
                     <h2 className="font-bold text-5xl text-white pt-6">

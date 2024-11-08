@@ -2,7 +2,7 @@ import { SortOptionInterface } from "../../objects/interfaces";
 import { EntityType } from "../enum";
 import { SortProperty } from "../enum";
 
-export const getOptionsForEntityType = (type: EntityType): SortOptionInterface[] => {
+export const getSortOptionsForEntityType = (type: EntityType): SortOptionInterface[] => {
     switch (type) {
         case EntityType.Club:
             return SORT_OPTIONS.CLUB

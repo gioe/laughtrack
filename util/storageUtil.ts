@@ -8,10 +8,6 @@ import {
     DownloadResponse,
 } from "@google-cloud/storage";
 
-const storage = new Storage();
-const bucket = storage.bucket(process.env.STORAGE_BUCKET as string);
-bucket.setUserProject(process.env.CLOUD_STORAGE_PROJECT_ID as string);
-
 export async function readFile(fileName: string): Promise<string> {
     return isLocal
         ? readFileFromFileSystem(fileName)
@@ -43,6 +39,11 @@ export const makeDirectory = (path: string) => {
 export const readFileFromBucket = async (
     sourceFile: string,
 ): Promise<string> => {
+
+    const storage = new Storage();
+    const bucket = storage.bucket(process.env.STORAGE_BUCKET as string);
+    bucket.setUserProject(process.env.CLOUD_STORAGE_PROJECT_ID as string);
+
     return bucket
         .file(sourceFile)
         .download()
@@ -53,6 +54,11 @@ export const readFileFromBucket = async (
 };
 
 export async function downloadBucketContents(): Promise<void> {
+
+    const storage = new Storage();
+    const bucket = storage.bucket(process.env.STORAGE_BUCKET as string);
+    bucket.setUserProject(process.env.CLOUD_STORAGE_PROJECT_ID as string);
+
     const transferManager = new TransferManager(bucket);
 
     transferManager
@@ -62,4 +68,9 @@ export async function downloadBucketContents(): Promise<void> {
             },
         })
         .catch((error: Error) => console.log(error));
+}
+
+export function readFileSync(path: string) {
+    if (checkForFileExistence(path)) return fsSync.readFileSync(path)
+    return undefined
 }

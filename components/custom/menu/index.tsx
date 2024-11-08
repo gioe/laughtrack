@@ -11,20 +11,27 @@ import {
 import { StoreApi, UseBoundStore } from "zustand";
 
 interface EditClubDowndownProps {
-    items: DropdownMenuItem[];
+    providedItems: MenuItem[];
 }
 
-export interface DropdownMenuItem {
+export interface MenuItem {
     key: string;
     label: string;
-    store: UseBoundStore<StoreApi<ModalState>>;
+    hook: UseBoundStore<StoreApi<ModalState>>;
 }
 
-export const Menu: React.FC<EditClubDowndownProps> = ({ items }) => {
-    const handleClick = (key: string) => {
-        const item = items.find((item: DropdownMenuItem) => item.key === key);
-        item?.store().onOpen();
-    };
+export function Menu({ providedItems }: EditClubDowndownProps) {
+    const hookMap = providedItems.map((item) => {
+        return {
+            key: item.key,
+            hook: item.hook(),
+        };
+    });
+
+    function handleClick(key: string) {
+        const hookRecord = hookMap.find((record) => record.key == key);
+        hookRecord?.hook.onOpen();
+    }
 
     return (
         <Dropdown>
@@ -33,7 +40,7 @@ export const Menu: React.FC<EditClubDowndownProps> = ({ items }) => {
                     Open Menu
                 </Button>
             </DropdownTrigger>
-            <DropdownMenu aria-label="Dynamic Actions" items={items}>
+            <DropdownMenu aria-label="Dynamic Actions" items={providedItems}>
                 {(item) => (
                     <DropdownItem
                         key={item.key}
@@ -49,4 +56,4 @@ export const Menu: React.FC<EditClubDowndownProps> = ({ items }) => {
             </DropdownMenu>
         </Dropdown>
     );
-};
+}

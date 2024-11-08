@@ -45,3 +45,13 @@ export enum ComedyClub {
     Caveat = "Caveat",
     WestSideComedyClub = "West Side Comedy Club"
 }
+
+export enum SocialMedia {
+    Instagram = "Instagram",
+    Facebook = "Facebook",
+    Twitter = "Twitter",
+    TikTok = "TikTok",
+    YouTube = "Youtube",
+    Website = "Website"
+
+}

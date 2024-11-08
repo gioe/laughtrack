@@ -3,6 +3,7 @@ import { shows as sql } from "../sql";
 import {
     PopularityScoreIODTO,
     GroupedSocialDataDTO,
+    SearchParams,
 } from "../../objects/interfaces";
 import { ShowDTO } from "../../objects/classes/show/show.interface";
 import { IExtensions } from ".";
@@ -58,7 +59,7 @@ export class ShowsRepository {
     }
 
     // Tries to find a show from id;
-    async getById(id: number): Promise<Show | null> {
+    async getById(id: number, searchParams: SearchParams): Promise<Show | null> {
         return this.db
             .oneOrNone(sql.getWithLineup, {
                 showId: +id,
