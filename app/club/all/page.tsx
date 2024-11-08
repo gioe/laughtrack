@@ -2,7 +2,7 @@ import FilterPageContainer from "../../../components/custom/filters/FilterPageCo
 import { getDB } from "../../../database";
 import { SearchParams } from "../../../objects/interfaces/searchParams.interface";
 import { Club } from "../../../objects/classes/club/Club";
-import BasicEntityCard from "../../../components/custom/tables/cards/BasicEntityCard";
+import BasicEntityCard from "../../../components/custom/cards/BasicEntityCard";
 
 const { db } = getDB();
 

@@ -5,22 +5,24 @@ import { SideDrawerComponent } from "../drawer/SideDrawerComponent";
 import { TablePaginationComponent } from "../pagination/TablePaginationComponent";
 import { FunnelButton } from "./FunnelButton";
 import GenericTable from "../tables/GenericTable";
+import { SortOptionsComponent } from "../sort/SortOptionsComponent";
 import { Entity } from "../../../objects/interfaces";
-import { SortOptionsComponent } from "../../sort/SortOptionsComponent";
+import EntityType from "../icons/MiniEntityIcon";
+import ShowCard from "../cards/ShowCard";
+import { Show } from "../../../objects/classes/show/Show";
+import BasicEntityCard from "../cards/BasicEntityCard";
 
-interface FilterPageContainerProps<T extends Entity> {
-    results: T[];
+interface FilterPageContainerProps {
+    resultString: string;
     defaultNode: React.ReactNode;
-    suspenseKey: string;
-    renderItem: (item: T) => React.ReactNode;
 }
 
-export default function FilterPageContainer<T extends Entity>({
-    results,
+export default function FilterPageContainer({
+    resultString,
     defaultNode,
-    suspenseKey,
-    renderItem,
-}: FilterPageContainerProps<T>) {
+}: FilterPageContainerProps) {
+    const results = JSON.parse(resultString) as Entity[];
+
     const [sideDrawerIsOpen, setSideDrawerIsOpen] = useState(false);
 
     const handleButtonClick = (isOpen: boolean) => {
@@ -43,12 +45,28 @@ export default function FilterPageContainer<T extends Entity>({
                     </div>
                     <div className="grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-5">
                         <div className="lg:col-span-4">
-                            <GenericTable<T>
+                            <GenericTable
                                 keyExtractor={(item) => item.id.toString()}
                                 data={results}
                                 defaultNode={defaultNode}
-                                suspenseKey={suspenseKey}
-                                renderItem={renderItem}
+                                renderItem={(entity: Entity) => {
+                                    {
+                                        switch (entity.type) {
+                                            case EntityType.Show:
+                                                return (
+                                                    <ShowCard
+                                                        show={entity as Show}
+                                                    />
+                                                );
+                                            default:
+                                                return (
+                                                    <BasicEntityCard
+                                                        entity={entity}
+                                                    />
+                                                );
+                                        }
+                                    }
+                                }}
                             />
                         </div>
                     </div>

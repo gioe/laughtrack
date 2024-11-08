@@ -10,6 +10,7 @@ import { DateTimeContainer } from "../containers/DateTimeContainer";
 import { delay } from "../../../util/promiseUtil";
 import { Show } from "../../../objects/classes/show/Show";
 import { ClubInterface } from "../../../objects/classes/club/club.interface";
+import { ComedianDTO } from "../../../objects/classes/comedian/comedian.interface";
 
 const LINK =
     "a.MuiTypography-root.MuiTypography-body.MuiLink-root.MuiLink-underlineAlways.css-2p1ku6";
@@ -97,18 +98,18 @@ export class Caveat implements ClubScraper {
                     priceLocator: page.locator(PRICE),
                 });
             })
-            .then((scrapingOutput: any[]) =>
+            .then((scrapingOutput: unknown[]) =>
                 this.processOutput(scrapingOutput, link),
             );
     };
 
-    processOutput = (output: any[], link: string): ScrapingOutput => {
+    processOutput = (output: unknown[], link: string): ScrapingOutput => {
         const show = new Show({
-            lineup: output[0],
-            date_time: new DateTimeContainer(output[1]).asDateObject(),
+            lineup: output[0] as ComedianDTO[],
+            date_time: new DateTimeContainer(output[1] as string[]).asDateObject(),
             ticket_link: generateValidUrl(this.clubData.baseUrl, link),
-            name: output[3],
-            price: output[4],
+            name: output[3] as string,
+            price: output[4] as string,
             club_id: this.clubData.id,
         });
 

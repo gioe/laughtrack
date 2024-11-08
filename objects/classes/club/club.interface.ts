@@ -3,7 +3,6 @@ import {
     SocialDataDTO,
     ShowProvider,
     Favoritable,
-    ImageRepresentable,
     Scrapable,
     TagDTO,
     Entity
@@ -15,7 +14,6 @@ export interface ClubInterface
     extends ShowProvider,
     Taggable,
     Favoritable,
-    ImageRepresentable,
     Scrapable,
     Entity {
     baseUrl: string;

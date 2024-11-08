@@ -4,15 +4,17 @@ import {
     Entity,
 } from "../../interfaces";
 import { SocialDataDTO, SocialDiscoverable } from "../../interfaces/socialData.interface";
-import { ComedianDTO, ComedianInterface } from "../comedian/comedian.interface";
+import { Comedian } from "../comedian/Comedian";
+import { ComedianDTO } from "../comedian/comedian.interface";
 
 // Client
 export interface ShowInterface extends Taggable, Entity, SocialDiscoverable {
     name: string;
     dateTime: Date;
-    lineup: ComedianInterface[];
+    lineup: Comedian[];
     popularityScore?: number;
     clubName?: string;
+    clubId: number;
     price: number;
     ticketLink: string;
 }

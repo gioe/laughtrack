@@ -9,6 +9,7 @@ import { generateValidUrl } from "../../../util/primatives/urlUtil";
 import { DateTimeContainer } from "../containers/DateTimeContainer";
 import { ClubInterface } from "../../../objects/classes/club/club.interface";
 import { Show } from "../../../objects/classes/show/Show";
+import { ComedianDTO } from "../../../objects/classes/comedian/comedian.interface";
 
 const LINK =
     "div.col-xs-12.col-sm-6.col-lg-7.upcoming-list-description.calendar-upcoming-list-description > a.btn.btn-default";
@@ -94,21 +95,21 @@ export class NewYorkComedyClub implements ClubScraper {
                     priceLocator: page.locator(PRICE),
                 });
             })
-            .then((scrapingOutput: any[]) =>
+            .then((scrapingOutput: unknown[]) =>
                 this.processOutput(scrapingOutput, link),
             );
     };
 
-    processOutput = (output: any[], link: string): ScrapingOutput => {
+    processOutput = (output: unknown[], link: string): ScrapingOutput => {
         const show = new Show({
-            lineup: output[0],
+            lineup: output[0] as ComedianDTO[],
             date_time: new DateTimeContainer(
-                output[1],
+                output[1] as string[],
                 SEPARATOR,
             ).asDateObject(),
             ticket_link: generateValidUrl(this.clubData.baseUrl, link),
-            name: output[3],
-            price: output[4],
+            name: output[3] as string,
+            price: output[4] as string,
             club_id: this.clubData.id,
         });
         return {

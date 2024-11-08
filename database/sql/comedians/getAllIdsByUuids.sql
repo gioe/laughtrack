@@ -1,1 +1,1 @@
-SELECT id from comedians where uuid_id IN ($1:csv);
+SELECT id from comedians where uuid IN ($1:csv);

@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import TablePagination from "@mui/material/TablePagination";
-import { handleUrlParams } from "../../../util/tailwindUtil";
 import { URLParam } from "../../../util/enum";
+import { adjustUrlParams } from "../../../util/primatives/paramUtil";
+import { replaceRoute } from "../../../util/navigationUtil";
 
 interface TablePaginationComponentProps {
     itemCount: number;
@@ -23,15 +24,25 @@ export function TablePaginationComponent({
         event: React.MouseEvent<HTMLButtonElement> | null,
         newPage: number,
     ) => {
-        handleUrlParams(URLParam.Page, newPage);
+        const searchParams = new URLSearchParams();
+        adjustUrlParams(searchParams, {
+            value: newPage,
+            key: URLParam.Page,
+        });
+        replaceRoute(searchParams);
         setPage(newPage);
     };
 
     const handleChangeRowsPerPage = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => {
+        const searchParams = new URLSearchParams(useSearchParams());
         const rows = parseInt(event.target.value, 10);
-        handleUrlParams(URLParam.Rows, rows);
+        adjustUrlParams(searchParams, {
+            value: rows,
+            key: URLParam.Rows,
+        });
+        replaceRoute(searchParams);
         setRowsPerPage(rows);
         setPage(1);
     };

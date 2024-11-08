@@ -10,6 +10,7 @@ import { DateTimeContainer } from "../containers/DateTimeContainer";
 import { runTasks } from "../../../util/promiseUtil";
 import { ClubInterface } from "../../../objects/classes/club/club.interface";
 import { Show } from "../../../objects/classes/show/Show";
+import { ComedianDTO } from "../../../objects/classes/comedian/comedian.interface";
 
 const MORE = "div.row.moreitems.dark-links.my-5 > div > div > a";
 const SHOW_CONTAINER = "div.row.show_row";
@@ -19,6 +20,8 @@ const SHOW_NAME = "h2.showtitle";
 const TICKET_LINK = "div.d-grid.gap-2 > a";
 const PRICE = "div.price";
 const SEPARATOR = ",";
+const MODAL = "div.modal-content.pop-up-bg-tan"
+
 
 export class TheStand implements ClubScraper {
     private clubData: ClubInterface;
@@ -40,12 +43,19 @@ export class TheStand implements ClubScraper {
                     this.clubData.scrapingPageUrl,
                 ),
             )
+            .then((page: Page) => this.closeBlockingModal(page))
             .then((page: Page) => this.runClubScrapingFunction(page))
             .catch((error) => {
                 console.log(`Error scraping The Stand: ${error}`);
                 return [];
             });
     };
+
+    closeBlockingModal = async (page: Page): Promise<Page> => {
+        const modalLocator = page.locator(MODAL);
+        const closeButtonLocator = modalLocator.getByRole('button', { name: 'X' })
+        return closeButtonLocator.click().then(() => page)
+    }
 
     runClubScrapingFunction = async (page: Page): Promise<ScrapingOutput[]> => {
         const moreLocator = page.locator(MORE);
@@ -73,21 +83,21 @@ export class TheStand implements ClubScraper {
                 showNameLocator: container.locator(SHOW_NAME),
                 priceLocator: container.locator(PRICE),
             })
-            .then((scrapingOutput: any[]) =>
+            .then((scrapingOutput: unknown[]) =>
                 this.processOutput(scrapingOutput),
             );
     };
 
-    processOutput = async (output: any[]): Promise<ScrapingOutput> => {
+    processOutput = async (output: unknown[]): Promise<ScrapingOutput> => {
         const show = new Show({
-            lineup: output[0],
+            lineup: output[0] as ComedianDTO[],
             date_time: new DateTimeContainer(
-                output[1],
+                output[1] as string[],
                 SEPARATOR,
             ).asDateObject(),
-            ticket_link: generateValidUrl(this.clubData.baseUrl, output[2]),
-            name: output[3],
-            price: output[4],
+            ticket_link: generateValidUrl(this.clubData.baseUrl, output[2] as string),
+            name: output[3] as string,
+            price: output[4] as string,
             club_id: this.clubData.id,
         });
         return {

@@ -18,6 +18,8 @@ export class Club implements ClubInterface {
     id: number;
     scrapingPageUrl: string;
     type: EntityType = EntityType.Club;
+    bannerImageUrl: string;
+    cardImageUrl: string;
 
     constructor(input: ClubDTO) {
         this.baseUrl = input.base_url;
@@ -31,6 +33,8 @@ export class Club implements ClubInterface {
         this.isFavorite = input.is_Favorite ?? false;
         this.id = input.id
         this.scrapingPageUrl = input.scraping_page_url
+        this.bannerImageUrl = `/images/banners/${input.name}.png`
+        this.cardImageUrl = `/images/${EntityType.Comedian.valueOf()}/square/${input.name}.png`;
     }
 
 

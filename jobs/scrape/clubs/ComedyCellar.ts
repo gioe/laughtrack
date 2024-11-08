@@ -10,6 +10,7 @@ import { DateTimeContainer } from "../containers/DateTimeContainer";
 import { delay, runTasks } from "../../../util/promiseUtil";
 import { ClubInterface } from "../../../objects/classes/club/club.interface";
 import { Show } from "../../../objects/classes/show/Show";
+import { ComedianDTO } from "../../../objects/classes/comedian/comedian.interface";
 
 const DATE_SELECT = "#cc_lineup_select_dates";
 const DATE_OPTIONS = "div.header > div > select > option";
@@ -136,13 +137,13 @@ export class ComedyCellar implements ClubScraper {
         });
     };
 
-    processOutput = (output: any[], date: string): ScrapingOutput => {
+    processOutput = (output: unknown[], date: string): ScrapingOutput => {
         const show = new Show({
-            lineup: output[0],
-            date_time: new DateTimeContainer(output[1]).asDateObject(),
-            ticket_link: generateValidUrl(this.clubData.baseUrl, output[2]),
-            name: output[3],
-            price: output[4],
+            lineup: output[0] as ComedianDTO[],
+            date_time: new DateTimeContainer(output[1] as string[]).asDateObject(),
+            ticket_link: generateValidUrl(this.clubData.baseUrl, output[2] as string),
+            name: output[3] as string,
+            price: output[4] as string,
             club_id: this.clubData.id,
         });
 

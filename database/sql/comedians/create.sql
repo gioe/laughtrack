@@ -12,5 +12,5 @@ CREATE TABLE IF NOT EXISTS comedians (
     youtube_followers INTEGER,
     website TEXT,
     popularity_score double precision DEFAULT '0'::double precision,
-    uuid_id uuid UNIQUE
+    uuid text UNIQUE
 );

@@ -1,10 +1,13 @@
 "use client";
 
 import { Input } from "@nextui-org/react";
-import { useSearchParams, usePathname, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import SearchIcon from "../icons/SearchIcon";
 import React, { useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
+import { adjustUrlParams } from "../../../util/primatives/paramUtil";
+import { URLParam } from "../../../util/enum";
+import { replaceRoute } from "../../../util/navigationUtil";
 
 interface TextSearchBarProps {
     query?: string;
@@ -15,10 +18,6 @@ const TextSearchBar: React.FC<TextSearchBarProps> = ({
     query,
     inputPlaceholder,
 }) => {
-    const searchParams = useSearchParams();
-    const pathname = usePathname();
-    const { replace } = useRouter();
-
     const [value, setValue] = useState(query ?? "");
 
     const handleInputChange = (value: string) => {
@@ -27,13 +26,12 @@ const TextSearchBar: React.FC<TextSearchBarProps> = ({
     };
 
     const handleSearch = useDebouncedCallback((term) => {
-        const params = new URLSearchParams(searchParams);
-        if (term) {
-            params.set("query", term);
-        } else {
-            params.delete("query");
-        }
-        replace(`${pathname}?${params.toString()}`);
+        const searchParams = new URLSearchParams(useSearchParams());
+        adjustUrlParams(searchParams, {
+            value: term,
+            key: URLParam.Query,
+        });
+        replaceRoute(searchParams);
     }, 300);
 
     return (

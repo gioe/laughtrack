@@ -10,6 +10,15 @@ import { NextUIProvider } from "@nextui-org/react";
 import { SessionProvider } from "next-auth/react";
 import { auth } from "../auth";
 import { cache } from "react";
+import { getDB } from "../database";
+import { UserInterface } from "../objects/interfaces";
+import ScrapeMenuModal from "../components/custom/modals/ScrapeMenuModal";
+const { db } = getDB();
+
+interface RootProps {
+    user: UserInterface | null;
+    cities: string[];
+}
 
 export const metadata: Metadata = {
     title: "Laughtrack",
@@ -38,12 +47,24 @@ export async function getCurrentUser() {
     }
 }
 
+async function getRootProps(): Promise<RootProps> {
+    const user = getCurrentUser();
+    const cities = db.clubs.getAllCities();
+
+    return Promise.all([user, cities]).then((responses) => {
+        return {
+            user: responses[0],
+            cities: responses[1],
+        };
+    });
+}
+
 export default async function RootLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    const user = await getCurrentUser();
+    const { user, cities } = await getRootProps();
 
     return (
         <SessionProvider>
@@ -55,6 +76,7 @@ export default async function RootLayout({
                             <ToasterProvider />
                             <LoginModal />
                             <RegisterModal />
+                            <ScrapeMenuModal cities={cities} />
                             {children}
                             <Footer />
                         </ClientOnly>

@@ -17,9 +17,7 @@ const EntityBanner: React.FC<EntityBannerProps> = ({ entity }) => {
     const session = useSession();
     const shouldShowMenu = session.data?.user.role == "admin";
 
-    const [src, setSrc] = useState<string>(
-        `/images/banners/${entity.name}.png`,
-    );
+    const [src, setSrc] = useState<string>(entity.bannerImageUrl);
 
     const onError = () => {
         setSrc(`/images/logo.png`);

@@ -153,4 +153,8 @@ export class PageManager {
                 text ? removeBadWhiteSpace(text) : "",
             );
     };
+
+    dismissModal = async (locator: playwright.Locator) => {
+        return locator.click()
+    }
 }

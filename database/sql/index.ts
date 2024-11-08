@@ -13,6 +13,7 @@ export const clubs = {
     getByName: sql("clubs/getByName.sql").qf,
     getCities: sql("clubs/getCities.sql").qf,
     getSearchResults: sql("clubs/getSearchResults.sql").qf,
+    getAllInCity: sql("clubs/getAllInCity.sql").qf,
 
 };
 
@@ -34,6 +35,14 @@ export const comedians = {
 
 };
 
+export const lineups = {
+    // Create Table
+    create: sql("lineups/create.sql").qf,
+
+    getByComedianId: sql("lineups/getByComedianId.sql").qf,
+    getByShowId: sql("lineups/getByShowId.sql").qf,
+};
+
 export const favorites = {
     // Create Table
     create: sql("favorites/create.sql").qf,
@@ -43,22 +52,6 @@ export const favorites = {
 
     // DELETE
     remove: sql("favorites/remove.sql").qf,
-};
-
-export const groups = {
-    // Create Table
-    create: sql("groups/comedianGroupCreate.sql").qf,
-
-    // POST
-    add: sql("groups/add.sql").qf,
-};
-
-export const lineups = {
-    // Create Table
-    create: sql("lineups/create.sql").qf,
-
-    getByComedianId: sql("lineups/getByComedianId.sql").qf,
-    getByShowId: sql("lineups/getByShowId.sql").qf,
 };
 
 export const shows = {

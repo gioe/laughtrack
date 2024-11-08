@@ -9,9 +9,8 @@ import {
     ShowsRepository,
     SearchRepository,
     FavoritesRepository,
-    LineupsRepository,
     TagsRepository,
-    GroupsRepository,
+    LineupsRepository,
 } from "./repos";
 import { createSingleton } from "../util/singletonUtil";
 
@@ -40,9 +39,8 @@ export function getDB(): IDatabaseScope {
                 obj.shows = new ShowsRepository(obj, pgp);
                 obj.search = new SearchRepository(obj, pgp);
                 obj.favorites = new FavoritesRepository(obj, pgp);
-                obj.lineups = new LineupsRepository(obj, pgp);
                 obj.tags = new TagsRepository(obj, pgp);
-                obj.groups = new GroupsRepository(obj, pgp);
+                obj.lineups = new LineupsRepository(obj, pgp);
             },
         };
 

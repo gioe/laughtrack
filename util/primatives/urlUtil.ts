@@ -1,5 +1,3 @@
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { URLParam } from "../enum";
 import { stringIsAValidUrl } from "./stringUtil";
 import playwright from "playwright-core";
 
@@ -23,8 +21,7 @@ export const toUrl = (url: string, href: string): string => {
 
 export const pathIsCompleteUrl = (href: string) => {
     try {
-        const url = new URL(href);
-        return true;
+        return new URL(href);
     } catch {
         return false;
     }
@@ -39,60 +36,3 @@ export const generateUrl = (path: string): string => {
     return process.env.URL_DOMAIN + path;
 };
 
-export function handleUrlParams(
-    param: URLParam,
-    value: string | number,
-) {
-
-    const stringParam = value.toString();
-    const searchParams = new URLSearchParams(useSearchParams());
-
-    switch (param) {
-        case URLParam.Sort, URLParam.Query, URLParam.Rows, URLParam.Page: addOrRemoveSingleValue(searchParams, param, stringParam);
-        default: addOrRemoveCommaSeparatedValue(searchParams, param, stringParam);
-    }
-}
-
-const addOrRemoveSingleValue = (
-    params: URLSearchParams,
-    param: string,
-    value: string,
-) => {
-    const { replace } = useRouter();
-    const pathname = usePathname();
-
-    if (value) params.set(param, value);
-    else params.delete(param);
-
-    replace(`${pathname}?${params.toString()}`);
-
-};
-
-const addOrRemoveCommaSeparatedValue = (
-    params: URLSearchParams,
-    param: string,
-    value: string,
-) => {
-
-    const { replace } = useRouter();
-    const pathname = usePathname();
-    const filters = params.get(param);
-    let allValues = filters?.split(",") ?? [];
-    const valueIncluded = allValues.includes(value);
-
-    if (!valueIncluded) {
-        allValues.push(value);
-    } else {
-        allValues = allValues.filter(
-            (paramValues: string) => paramValues !== value,
-        );
-    }
-
-    if (allValues.length > 0) {
-        params.set(param, allValues.join(","));
-    } else {
-        params.delete(param);
-    }
-
-    replace(`${pathname}?${params.toString()}`);
-};

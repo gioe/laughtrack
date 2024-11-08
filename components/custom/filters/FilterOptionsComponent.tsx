@@ -6,9 +6,12 @@ import {
     DisclosureButton,
     DisclosurePanel,
 } from "@headlessui/react";
-import { handleUrlParams } from "../../../util/tailwindUtil";
+
 import { URLParam } from "../../../util/enum";
 import { FilterSection } from "../../../objects/interfaces/filter.interface";
+import { replaceRoute } from "../../../util/navigationUtil";
+import { adjustUrlParams } from "../../../util/primatives/paramUtil";
+import { useSearchParams } from "next/navigation";
 
 interface FilterOptionsComponentProps {
     sections: FilterSection[];
@@ -18,7 +21,12 @@ export function FilterOptionsComponent({
     sections,
 }: FilterOptionsComponentProps) {
     const appendFilterParams = (type: string, filter: string) => {
-        handleUrlParams(URLParam.Filter, filter);
+        const params = new URLSearchParams(useSearchParams());
+        adjustUrlParams(params, {
+            value: filter,
+            key: URLParam.Filter,
+        });
+        replaceRoute(params);
     };
 
     return (

@@ -8,7 +8,6 @@ import { SearchParams } from "../../../objects/interfaces/searchParams.interface
 import { getDB } from "../../../database";
 import { TagInterface } from "../../../objects/interfaces/tag.interface";
 import { Comedian } from "../../../objects/classes/comedian/Comedian";
-import BasicEntityCard from "../../../components/custom/tables/cards/BasicEntityCard";
 
 const { db } = getDB();
 
@@ -55,14 +54,8 @@ export default async function ComedianDetailsPage(props: {
 
             <section>{comedian && <EntityBanner entity={comedian} />}</section>
             <section>
-                <FilterPageContainer<Comedian>
-                    suspenseKey={
-                        (searchParams?.query ?? "") + (searchParams?.page ?? 0)
-                    }
-                    renderItem={(entity) => {
-                        return <BasicEntityCard entity={entity} />;
-                    }}
-                    results={[]}
+                <FilterPageContainer
+                    resultString={JSON.stringify([])}
                     defaultNode={<div></div>}
                 />
             </section>

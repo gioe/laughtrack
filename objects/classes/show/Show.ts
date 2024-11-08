@@ -5,7 +5,6 @@ import { Comedian } from "../comedian/Comedian";
 import { ComedianDTO } from "../comedian/comedian.interface";
 import { ShowDTO, ShowInterface } from "./show.interface";
 
-
 export class Show implements ShowInterface {
     // Properties
     name: string;
@@ -20,7 +19,8 @@ export class Show implements ShowInterface {
     tags: TagInterface[];
     id: number;
     type: EntityType = EntityType.Show;
-    isFavorite?: boolean | undefined;
+    bannerImageUrl: string;
+    cardImageUrl: string;
 
     // Constructor
     constructor(input: ShowDTO) {
@@ -33,7 +33,11 @@ export class Show implements ShowInterface {
         this.ticketLink = input.ticket_link;
         this.tags = input.tags ?? []
         this.id = input.id ?? 0
+        this.bannerImageUrl = `/images/banners/${input.name}.png`
+        this.cardImageUrl = `/images/${EntityType.Show.valueOf()}/square/${input.name}.png`;
+        this.clubId = input.club_id
     }
+    isFavorite: boolean;
 
 
     overrideDate = (date: string): void => {

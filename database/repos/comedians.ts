@@ -1,7 +1,6 @@
 import { ColumnSet, IDatabase, IMain } from "pg-promise";
 import { comedians as sql } from "../sql";
 import { providedPromiseResponse } from "../../util/promiseUtil";
-import { SearchParams } from "../../objects/interfaces/searchParams.interface";
 import { ComedianDTO, ComedianInterface } from "../../objects/classes/comedian/comedian.interface";
 import { PopularityScoreIODTO, SocialDataDTO } from "../../objects/interfaces";
 import { IExtensions } from ".";
@@ -53,11 +52,11 @@ export class ComediansRepository {
             ],
             { table: "comedians" },
         );
-        columnSets.addAll = new pgp.helpers.ColumnSet(["name", "uuid_id"], {
+        columnSets.addAll = new pgp.helpers.ColumnSet(["name", "uuid"], {
             table: "comedians",
         });
         columnSets.updateHashes = new pgp.helpers.ColumnSet(
-            ["?id", "uuid_id"],
+            ["?id", "uuid"],
             { table: "comedians" },
         );
     }
@@ -85,7 +84,6 @@ export class ComediansRepository {
 
     async getAllFavorites(
         userId: number,
-        searchParams?: SearchParams,
     ): Promise<ComedianInterface[]> {
         return this.db
             .any(sql.getAllFavorites, {
@@ -100,9 +98,11 @@ export class ComediansRepository {
         });
     }
 
-    async getTrendingComedians(): Promise<Comedian[]> {
+    async getTrendingComedians(total: number): Promise<Comedian[]> {
         return this.db
-            .any(sql.getTrending)
+            .any(sql.getTrending, {
+                total
+            })
             .then((response: ComedianDTO[] | null) => response ? response.map((item: ComedianDTO) => new Comedian(item)) : []);
 
     }
@@ -110,7 +110,7 @@ export class ComediansRepository {
     addAll(all: ComedianDTO[]): Promise<null> {
         const batchInsert =
             this.pgp.helpers.insert(all, columnSets.addAll) +
-            " ON CONFLICT (uuid_id) DO NOTHING";
+            " ON CONFLICT (uuid) DO NOTHING";
         return this.db.none(batchInsert);
     }
 

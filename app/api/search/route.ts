@@ -4,7 +4,6 @@ import { EntityType } from "../../../util/enum";
 const { db } = getDB();
 
 export async function GET(req: NextRequest) {
-    console.log("GETTING SEARCH RESULTS")
     const data = await req.json();
 
     const results = await db.search.getSearchResults(EntityType.Club, {});

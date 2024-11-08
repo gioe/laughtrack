@@ -1,7 +1,7 @@
 import FilterPageContainer from "../../../components/custom/filters/FilterPageContainer";
 import { SearchParams } from "../../../objects/interfaces/searchParams.interface";
 import { Comedian } from "../../../objects/classes/comedian/Comedian";
-import BasicEntityCard from "../../../components/custom/tables/cards/BasicEntityCard";
+import BasicEntityCard from "../../../components/custom/cards/BasicEntityCard";
 
 export default async function AllComediansPage(props: {
     searchParams?: Promise<SearchParams>;

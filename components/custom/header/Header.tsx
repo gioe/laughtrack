@@ -19,10 +19,10 @@ import {
     BuildingStorefrontIcon,
 } from "@heroicons/react/24/outline";
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
-import { UserInterface } from "../../../objects/interfaces/user.interface";
 import useLoginModal from "../../../hooks/useLoginModal";
 import useRegisterModal from "../../../hooks/useRegisterModel";
-import axios from "axios";
+import { UserInterface } from "../../../objects/interfaces";
+import { useScrapeMenuModal } from "../../../hooks";
 
 const comedianMenuItems = [
     {
@@ -49,6 +49,7 @@ interface NavbarProps {
 const Header: React.FC<NavbarProps> = ({ currentUser }) => {
     const loginModal = useLoginModal();
     const registerModal = useRegisterModal();
+    const scrapeMenuModal = useScrapeMenuModal();
 
     const handleLoginClick = useCallback(() => {
         loginModal.onOpen();
@@ -183,9 +184,9 @@ const Header: React.FC<NavbarProps> = ({ currentUser }) => {
                         <>
                             <button
                                 onClick={() => {
-                                    axios.post("api/scrape");
+                                    scrapeMenuModal.onOpen();
                                 }}
-                                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full"
+                                className="text-sm font-semibold leading-6 text-gray-900"
                             >
                                 Scrape
                             </button>

@@ -17,4 +17,4 @@ SELECT id, name, jsonb_build_object(
             popularity_score
         ) AS social_data
 FROM comedians 
-ORDER BY popularity_score DESC LIMIT 5;
+ORDER BY RANDOM() LIMIT ${total};

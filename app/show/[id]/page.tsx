@@ -7,8 +7,6 @@ import AddComedianModal from "../../../components/custom/modals/AddComedianModal
 import TagEntityModal from "../../../components/custom/modals/TagEntityModal";
 import FilterPageContainer from "../../../components/custom/filters/FilterPageContainer";
 import { Show } from "../../../objects/classes/show/Show";
-import { Comedian } from "../../../objects/classes/comedian/Comedian";
-import BasicEntityCard from "../../../components/custom/tables/cards/BasicEntityCard";
 
 const { db } = getDB();
 
@@ -48,15 +46,8 @@ export default async function ShowDetailPage(props: {
                         <EntityBanner entity={show} />
                     </section>
                     <section>
-                        <FilterPageContainer<Comedian>
-                            suspenseKey={
-                                (searchParams.query ?? "") +
-                                (searchParams.page ?? 0)
-                            }
-                            renderItem={(entity) => {
-                                return <BasicEntityCard entity={entity} />;
-                            }}
-                            results={show.lineup}
+                        <FilterPageContainer
+                            resultString={JSON.stringify(show.lineup)}
                             defaultNode={<div></div>}
                         />
                     </section>

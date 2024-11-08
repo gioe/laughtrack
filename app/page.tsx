@@ -1,12 +1,13 @@
 "use server";
 
 import { getDB } from "../database";
-import { EntityType } from "../util/enum";
 import EntityCarousel from "../components/custom/carousel/EntityCarousel";
-import LandingPageSearchBar from "../components/custom/filters/LandingPageSearchBar";
 import { Comedian } from "../objects/classes/comedian/Comedian";
+import SearchForm from "../components/custom/filters/SearchForm";
 
 const { db } = getDB();
+
+const TRENDING_COUNT = 5;
 
 interface LandingPageResponseInterface {
     trendingComedians: Comedian[];
@@ -15,7 +16,7 @@ interface LandingPageResponseInterface {
 
 async function getLandingPageData(): Promise<LandingPageResponseInterface> {
     const cities = db.clubs.getAllCities();
-    const trendingComedians = db.comedians.getTrendingComedians();
+    const trendingComedians = db.comedians.getTrendingComedians(TRENDING_COUNT);
 
     return Promise.all([cities, trendingComedians]).then((responses) => {
         return {
@@ -40,7 +41,7 @@ export default async function LandingPage() {
             </section>
 
             <section className="m-4 mt-0 -mb-14 px-2 lg:px-4">
-                <LandingPageSearchBar cities={cities} />
+                <SearchForm cities={cities} />
             </section>
 
             <section
@@ -48,8 +49,7 @@ export default async function LandingPage() {
       mt-10 p-6 rounded-lg mb-4 bg-white"
             >
                 <EntityCarousel
-                    entities={trendingComedians}
-                    type={EntityType.Comedian}
+                    entityString={JSON.stringify(trendingComedians)}
                 />
             </section>
         </main>

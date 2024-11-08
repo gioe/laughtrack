@@ -104,4 +104,16 @@ export class ClubsRepository {
 
         return this.db.none(update);
     }
+
+    async getAllInCity(city: string): Promise<Club[]> {
+        return this.db
+            .manyOrNone(sql.getAllInCity, {
+                city,
+            })
+            .then((response: ClubDTO[] | null) =>
+                response ? response.map((dto: ClubDTO) => new Club(dto)) : [],
+            );
+    }
+
+
 }

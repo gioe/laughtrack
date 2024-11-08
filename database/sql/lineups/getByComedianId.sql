@@ -1,0 +1,1 @@
+SELECT * from lineups where comedian_id = ${comedianId}

@@ -1,29 +1,22 @@
 "use client";
 
-import { SocialDiscoverable } from "../../../objects/interfaces";
-import { ImageRepresentable } from "../../../objects/interfaces/imageRepresentable.interface";
-import EntityType from "../icons/MiniEntityIcon";
-import BasicEntityInfoCard from "../tables/cards/BasicEntityInfoCard";
+import { Entity } from "../../../objects/interfaces";
+import CarouselCard from "../cards/CarouselCard";
 
 interface EntityCarouselProps {
-    type: EntityType;
-    entities: (ImageRepresentable & SocialDiscoverable)[];
+    entityString: string;
 }
 
-const EntityCarousel: React.FC<EntityCarouselProps> = ({ entities, type }) => {
+const EntityCarousel: React.FC<EntityCarouselProps> = ({ entityString }) => {
+    const entities = JSON.parse(entityString) as Entity[];
+
     return (
         <div
             className="flex space-x-3 overflow-scroll
          scrollbar-hide p-3 -ml-3"
         >
             {entities.map((entity) => {
-                return (
-                    <BasicEntityInfoCard
-                        key={entity.name}
-                        type={type}
-                        entity={entity}
-                    />
-                );
+                return <CarouselCard key={entity.name} entity={entity} />;
             })}
         </div>
     );

@@ -8,9 +8,6 @@ import ClearShowsModal from "../../..//components/custom/modals/ClearShowsModal"
 import ScrapeClubModal from "../../..//components/custom/modals/ScrapeClubModal";
 import TagEntityModal from "../../../components/custom/modals/TagEntityModal";
 import { Club } from "../../../objects/classes/club/Club";
-import { Show } from "../../../objects/classes/show/Show";
-import ShowCard from "../../../components/custom/tables/cards/ShowCard";
-
 const { db } = getDB();
 
 interface ClubDetailPageInterface {
@@ -51,15 +48,8 @@ export default async function ClubDetailPage(props: {
                         <EntityBanner entity={club} />
                     </section>
                     <section>
-                        <FilterPageContainer<Show>
-                            suspenseKey={
-                                (searchParams?.query ?? "") +
-                                (searchParams?.page ?? 0)
-                            }
-                            renderItem={(show) => {
-                                return <ShowCard show={show} />;
-                            }}
-                            results={club.dates}
+                        <FilterPageContainer
+                            resultString={JSON.stringify(club.dates)}
                             defaultNode={<div></div>}
                         />
                     </section>

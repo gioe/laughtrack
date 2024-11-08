@@ -1,6 +1,6 @@
 export interface Favoritable {
     name: string;
-    isFavorite?: boolean;
+    isFavorite: boolean;
 }
 
 // DB

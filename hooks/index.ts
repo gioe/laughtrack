@@ -9,6 +9,7 @@ import useMergeComediansModal from "./useMergeComediansModal";
 import useRegisterModal from "./useRegisterModel";
 import useRunScrapeModal from "./useRunScrapeModal";
 import useSocialDataModal from "./useSocialDataModal";
+import useScrapeMenuModal from "./useScrapeMenuModal";
 
 export {
     useAddClubTagModal,
@@ -21,5 +22,6 @@ export {
     useMergeComediansModal,
     useRegisterModal,
     useRunScrapeModal,
+    useScrapeMenuModal,
     useSocialDataModal,
 };
