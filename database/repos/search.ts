@@ -61,9 +61,8 @@ export class SearchRepository {
     async getComedians(request: SearchParams): Promise<Comedian[]> {
         return this.db
             .any(comedians.getSearchResults, {
-                location: request.location,
-                start_date: request.startDate,
-                end_date: request.endDate,
+                query: `%${request.query}%`,
+                total: request.rows ?? 10,
             })
             .then((result: ComedianDTO[] | null) =>
                 result ? result.map((dto: ComedianDTO) => new Comedian(dto)) : [],

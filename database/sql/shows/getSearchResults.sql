@@ -38,7 +38,7 @@ full_lineup_data as (
         ) as lineup
     FROM
         shows s
-        INNER JOIN lineups l ON s.id = l.show_id
+        INNER JOIN lineup_items l ON s.id = l.show_id
         INNER JOIN comedian_social_data c ON c.id = l.comedian_id
         INNER JOIN clubs cl ON cl.id = s.club_id
     WHERE

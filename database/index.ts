@@ -10,7 +10,7 @@ import {
     SearchRepository,
     FavoritesRepository,
     TagsRepository,
-    LineupsRepository,
+    LineupItemRepository,
 } from "./repos";
 import { createSingleton } from "../util/singletonUtil";
 
@@ -40,7 +40,7 @@ export function getDB(): IDatabaseScope {
                 obj.search = new SearchRepository(obj, pgp);
                 obj.favorites = new FavoritesRepository(obj, pgp);
                 obj.tags = new TagsRepository(obj, pgp);
-                obj.lineups = new LineupsRepository(obj, pgp);
+                obj.lineupItems = new LineupItemRepository(obj, pgp);
             },
         };
 

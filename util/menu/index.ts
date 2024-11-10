@@ -17,15 +17,14 @@ const MENU_OPTIONS = {
     COMEDIAN: [
         { key: "social", label: "Edit Social Data", hook: hooks.useSocialDataModal },
         { key: "merge", label: "Merge Comedians", hook: hooks.useMergeComediansModal },
-        { key: "tags", label: "Add Tags", hook: hooks.useAddComedianModal },
+        { key: "tags", label: "Add Tags", hook: hooks.useAddEntityTagModal },
     ],
     CLUB: [
-        { key: "tags", label: "Add Tags", hook: hooks.useAddClubTagModal },
         { key: "scrape", label: "Run Scrape", hook: hooks.useRunScrapeModal },
-        { key: "clear", label: "Clear SHows", hook: hooks.useClearShowsModal },
+        { key: "clear", label: "Clear Shows", hook: hooks.useClearShowsModal },
     ],
     SHOW: [
         { key: "tags", label: "Add Tags", hook: hooks.useAddShowTagModal },
-        { key: "comedian", label: "Add Comedian", hook: hooks.useAddComedianModal },
+        { key: "comedian", label: "Add Comedian", hook: hooks.useModifyLineupModal },
     ],
 };

@@ -1,4 +1,4 @@
-import FilterPageContainer from "../../components/custom/filters/FilterPageContainer";
+import QueryableTableContainer from "../../components/container";
 import { SearchParams } from "../../objects/interfaces/searchParams.interface";
 import { getDB } from "../../database";
 import { EntityType } from "../../util/enum";
@@ -18,7 +18,7 @@ export default async function SearchResultsPage(props: {
 
     return (
         <main className="flex-grow pt-5 bg-shark">
-            <FilterPageContainer
+            <QueryableTableContainer
                 sortOptions={sortOptions}
                 resultString={JSON.stringify(results)}
                 defaultNode={

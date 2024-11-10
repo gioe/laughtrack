@@ -59,7 +59,7 @@ export class ShowsRepository {
     }
 
     // Tries to find a show from id;
-    async getById(id: number, searchParams: SearchParams): Promise<Show | null> {
+    async getById(id: number, searchParams?: SearchParams): Promise<Show | null> {
         return this.db
             .oneOrNone(sql.getWithLineup, {
                 showId: +id,

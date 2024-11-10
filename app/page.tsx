@@ -1,9 +1,9 @@
 "use server";
 
+import EntityCarousel from "../components/carousel";
+import HomeSearchForm from "../components/search/form";
 import { getDB } from "../database";
-import EntityCarousel from "../components/custom/carousel";
 import { Comedian } from "../objects/classes/comedian/Comedian";
-import SearchForm from "../components/custom/form/SearchForm";
 
 const { db } = getDB();
 
@@ -41,7 +41,7 @@ export default async function LandingPage() {
             </section>
 
             <section className="m-4 mt-0 -mb-14 px-2 lg:px-4">
-                <SearchForm cities={cities} />
+                <HomeSearchForm cities={cities} />
             </section>
 
             <section

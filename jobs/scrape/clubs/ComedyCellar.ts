@@ -53,6 +53,10 @@ export class ComedyCellar implements ClubScraper {
             });
     };
 
+    scrapeShow = async (): Promise<ScrapingOutput> => {
+        throw new Error("Shouldn't be possible from this club")
+    }
+
     runClubScrapingFunction = async (page: Page): Promise<ScrapingOutput[]> => {
         return this.getAllDateOptions(page).then((links: string[]) =>
             this.runDateLoop(page, links),

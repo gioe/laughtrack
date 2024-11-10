@@ -51,6 +51,11 @@ export class TheStand implements ClubScraper {
             });
     };
 
+
+    scrapeShow = async (): Promise<ScrapingOutput> => {
+        throw new Error("Can't scrape pages from this club")
+    }
+
     closeBlockingModal = async (page: Page): Promise<Page> => {
         const modalLocator = page.locator(MODAL);
         const closeButtonLocator = modalLocator.getByRole('button', { name: 'X' })

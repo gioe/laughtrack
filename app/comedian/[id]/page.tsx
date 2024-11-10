@@ -1,14 +1,14 @@
-import FilterPageContainer from "../../../components/custom/filters/FilterPageContainer";
-import EditSocialDataModal from "../../../components/custom/modals/EditSocialDataModal";
-import MergeComediansModal from "../../../components/custom/modals/MergeComediansModal";
-import EntityBanner from "../../../components/custom/banner";
-import TagEntityModal from "../../../components/custom/modals/TagEntityModal";
+import EntityBanner from "../../../components/banner";
+import TagEntityModal from "../../../components/modals/tagEntity";
 import { EntityType } from "../../../util/enum";
 import { SearchParams } from "../../../objects/interfaces/searchParams.interface";
 import { getDB } from "../../../database";
 import { TagInterface } from "../../../objects/interfaces/tag.interface";
 import { Comedian } from "../../../objects/classes/comedian/Comedian";
 import { getSortOptionsForEntityType } from "../../../util/sort";
+import QueryableTableContainer from "../../../components/container";
+import MergeComediansModal from "../../../components/modals/comedian/merge";
+import EditSocialDataModal from "../../../components/modals/comedian/editSocialData";
 
 const { db } = getDB();
 
@@ -53,7 +53,8 @@ export default async function ComedianDetailsPage(props: {
                     <MergeComediansModal comedianString={comedianString} />
                     <EditSocialDataModal comedianString={comedianString} />
                     <TagEntityModal
-                        entityString={comedianString}
+                        type={EntityType.Comedian}
+                        entityId={comedian.id}
                         tagsString={tagsString}
                     />
                 </div>
@@ -63,7 +64,7 @@ export default async function ComedianDetailsPage(props: {
                 {comedian && <EntityBanner entityString={comedianString} />}
             </section>
             <section>
-                <FilterPageContainer
+                <QueryableTableContainer
                     sortOptions={sortOptions}
                     resultString={JSON.stringify(comedian?.dates)}
                     defaultNode={<div></div>}

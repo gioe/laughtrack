@@ -33,6 +33,7 @@ export class Rodneys implements ClubScraper {
     }
 
     scrape = async (): Promise<ScrapingOutput[]> => {
+        console.log("Started scraping Rodney's")
         return this.browser
             .newPage()
             .then((page: playwright.Page) =>
@@ -47,6 +48,15 @@ export class Rodneys implements ClubScraper {
                 return [];
             });
     };
+
+
+    scrapeShow = async (url: string): Promise<ScrapingOutput> => {
+        return this.browser
+            .newPage()
+            .then((page: playwright.Page) =>
+                this.navigateToUrlAndScrape(page, url)
+            )
+    }
 
     runClubScrapingFunction = async (
         page: playwright.Page,

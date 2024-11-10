@@ -112,7 +112,7 @@ export class ComediansRepository {
     async getTrendingComedians(total: number): Promise<Comedian[]> {
         return this.db
             .any(sql.getTrending, {
-                total
+                total,
             })
             .then((response: ComedianDTO[] | null) => response ? response.map((item: ComedianDTO) => new Comedian(item)) : []);
 

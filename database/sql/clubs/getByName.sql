@@ -40,7 +40,7 @@ full_lineup_data as (
         ) as lineup
     FROM
         shows s
-        LEFT JOIN lineups l ON s.id = l.show_id
+        LEFT JOIN lineup_items l ON s.id = l.show_id
         LEFT JOIN comedian_social_data c ON c.id = l.comedian_id
     WHERE s.date_time > NOW()
     GROUP BY

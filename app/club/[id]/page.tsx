@@ -1,36 +1,19 @@
-import { TagInterface } from "../../../objects/interfaces/tag.interface";
 import { SearchParams } from "../../../objects/interfaces/searchParams.interface";
 import { EntityType } from "../../../util/enum";
 import { getDB } from "../../../database";
-import EntityBanner from "../../../components/custom/banner";
-import FilterPageContainer from "../../..//components/custom/filters/FilterPageContainer";
-import ClearShowsModal from "../../..//components/custom/modals/ClearShowsModal";
-import ScrapeClubModal from "../../..//components/custom/modals/ScrapeClubModal";
-import TagEntityModal from "../../../components/custom/modals/TagEntityModal";
+import EntityBanner from "../../../components/banner";
 import { Club } from "../../../objects/classes/club/Club";
 import { getSortOptionsForEntityType } from "../../../util/sort";
+import QueryableTableContainer from "../../../components/container";
+import ClearShowsModal from "../../../components/modals/club/clear";
+import ScrapeEntityModal from "../../../components/modals/club/scrape";
 const { db } = getDB();
-
-interface ClubDetailPageInterface {
-    club: Club | null;
-    tags: TagInterface[];
-}
 
 async function getClubDetail(
     id: string,
     searchParams: SearchParams,
-): Promise<ClubDetailPageInterface> {
-    const club = db.clubs.getByName(id);
-    const tags = db.tags.getByType(EntityType.Club.valueOf());
-
-    return Promise.all([club, tags]).then((responses) => {
-        const club = responses[0];
-        const tags = responses[1];
-        return {
-            club,
-            tags,
-        };
-    });
+): Promise<Club | null> {
+    return db.clubs.getById(Number(id), searchParams);
 }
 
 export default async function ClubDetailPage(props: {
@@ -39,29 +22,31 @@ export default async function ClubDetailPage(props: {
 }) {
     const searchParams = await props.searchParams;
     const params = await props.params;
-    const { tags, club } = await getClubDetail(params.id, searchParams);
+    const club = await getClubDetail(params.id, searchParams);
     const clubString = JSON.stringify(club);
-    const tagsString = JSON.stringify(tags);
     const sortOptions = getSortOptionsForEntityType(EntityType.Show);
 
     return (
         <div>
             {club && (
                 <main className="flex-grow pt-5 bg-shark">
-                    <ScrapeClubModal clubString={clubString} />
-                    <ClearShowsModal clubString={clubString} />
-                    <TagEntityModal
-                        entityString={clubString}
-                        tagsString={tagsString}
+                    <ScrapeEntityModal
+                        entityId={club.id}
+                        type={EntityType.Club}
                     />
+                    <ClearShowsModal clubId={club.id} />
                     <section>
                         <EntityBanner entityString={clubString} />
                     </section>
                     <section>
-                        <FilterPageContainer
+                        <QueryableTableContainer
                             sortOptions={sortOptions}
                             resultString={JSON.stringify(club.dates)}
-                            defaultNode={<div></div>}
+                            defaultNode={
+                                <h2 className="font-bold text-5xl text-white pt-6">
+                                    No shows for this club
+                                </h2>
+                            }
                         />
                     </section>
                 </main>

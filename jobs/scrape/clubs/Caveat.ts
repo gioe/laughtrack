@@ -34,7 +34,6 @@ export class Caveat implements ClubScraper {
         this.clubData = clubData;
         this.browser = browser;
     }
-
     scrape = async (): Promise<ScrapingOutput[]> => {
         return this.browser
             .newPage()
@@ -50,6 +49,16 @@ export class Caveat implements ClubScraper {
                 return [];
             });
     };
+
+
+    scrapeShow = async (url: string): Promise<ScrapingOutput> => {
+        return this.browser
+            .newPage()
+            .then((page: playwright.Page) =>
+                this.navigateToUrlAndScrape(page, url)
+            )
+    }
+
 
     runClubScrapingFunction = async (
         page: playwright.Page,

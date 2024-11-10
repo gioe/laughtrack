@@ -6,11 +6,12 @@ import { createSingleton } from "../../util/singletonUtil";
 
 export const clubs = {
     // Create Table
-    create: sql("clubs/create.sql").qf,
+    createTabe: sql("clubs/create.sql").qf,
 
     // GETs
     getAllShowPopularityData: sql("clubs/getAllShowPopularityData.sql").qf,
     getByName: sql("clubs/getByName.sql").qf,
+    getById: sql("clubs/getById.sql").qf,
     getCities: sql("clubs/getCities.sql").qf,
     getSearchResults: sql("clubs/getSearchResults.sql").qf,
     getAllInCity: sql("clubs/getAllInCity.sql").qf,
@@ -19,7 +20,7 @@ export const clubs = {
 
 export const comedians = {
     // Create Table
-    create: sql("comedians/create.sql").qf,
+    createTabe: sql("comedians/create.sql").qf,
 
     // GETs
     getAllWithSocialData: sql("comedians/getAllWithSocialData.sql").qf,
@@ -36,17 +37,16 @@ export const comedians = {
 
 };
 
-export const lineups = {
+export const lineupItems = {
     // Create Table
-    create: sql("lineups/create.sql").qf,
-
-    getByComedianId: sql("lineups/getByComedianId.sql").qf,
-    getByShowId: sql("lineups/getByShowId.sql").qf,
+    createTabe: sql("lineupItems/create.sql").qf,
+    getByComedianId: sql("lineupItems/getByComedianId.sql").qf,
+    getByShowId: sql("lineupItems/getByShowId.sql").qf,
 };
 
 export const favorites = {
     // Create Table
-    create: sql("favorites/create.sql").qf,
+    createTabe: sql("favorites/create.sql").qf,
 
     // POST
     add: sql("favorites/add.sql").qf,
@@ -57,7 +57,7 @@ export const favorites = {
 
 export const shows = {
     // Create Table
-    create: sql("shows/create.sql").qf,
+    createTabe: sql("shows/create.sql").qf,
 
     //POST
     add: sql("shows/add.sql").qf,
@@ -66,6 +66,7 @@ export const shows = {
     getAllLineupPopularityData: sql("shows/getAllLineupPopularityData.sql").qf,
     getWithLineup: sql("shows/getWithLineup.sql").qf,
     getSearchResults: sql("shows/getSearchResults.sql").qf,
+    getByTicketLink: sql("shows/geByTicketLink.sql").qf,
 
 
     //DELETE
@@ -74,10 +75,10 @@ export const shows = {
 
 export const tags = {
     // Create Tables
-    create: sql("tags/create.sql").qf,
-    createClubTags: sql("tags/createClubTags.sql").qf,
-    createComedianTags: sql("tags/createComedianTags.sql").qf,
-    createShowTags: sql("tags/createShowTags.sql").qf,
+    createTabe: sql("tags/create.sql").qf,
+    createTaggedClubsTable: sql("tags/createTaggedClubs.sql").qf,
+    createTaggedComediansTable: sql("tags/createTaggedComedians.sql").qf,
+    createTaggedShowsTable: sql("tags/createTaggedShows.sql").qf,
 
     // GET
     getAllByType: sql("tags/getAllByType.sql").qf,

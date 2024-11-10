@@ -5,7 +5,7 @@ import { UsersRepository } from "./users";
 import { SearchRepository } from "./search";
 import { FavoritesRepository } from "./favorites";
 import { TagsRepository } from "./tags";
-import { LineupsRepository } from "./lineups";
+import { LineupItemRepository } from "./lineupItems";
 
 // Database Interface Extensions:
 export interface IExtensions {
@@ -16,7 +16,7 @@ export interface IExtensions {
     search: SearchRepository;
     favorites: FavoritesRepository;
     tags: TagsRepository;
-    lineups: LineupsRepository;
+    lineupItems: LineupItemRepository;
 }
 
 export {
@@ -27,5 +27,5 @@ export {
     SearchRepository,
     FavoritesRepository,
     TagsRepository,
-    LineupsRepository
+    LineupItemRepository
 };

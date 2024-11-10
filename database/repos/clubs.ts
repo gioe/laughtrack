@@ -56,7 +56,7 @@ export class ClubsRepository {
 
     // Creates the table;
     createTable(): Promise<null> {
-        return this.db.none(sql.create);
+        return this.db.none(sql.createTabe);
     }
 
     addAll(all: ClubDTO[]): Promise<null> {
@@ -67,13 +67,25 @@ export class ClubsRepository {
     }
 
     // Tries to find a club from id;
-    async getByName(name: string): Promise<Club | null> {
+    async getByName(name: string, searchParams: SearchParams): Promise<Club | null> {
         return this.db
             .oneOrNone(sql.getByName, { name })
             .then((response: ClubDTO | null) =>
                 response ? new Club(response) : null,
             );
     }
+
+    async getById(id: number, searchParams?: SearchParams): Promise<Club> {
+        return this.db
+            .oneOrNone(sql.getById, { id })
+            .then((response: ClubDTO | null) => {
+                if (response) {
+                    return new Club(response)
+                }
+                throw new Error(`No club found for id: ${id}`)
+            });
+    }
+
 
     async getAllCities(): Promise<string[]> {
         return this.db
@@ -84,7 +96,7 @@ export class ClubsRepository {
     }
 
     // Returns all club records;
-    async getAll(searchParams: SearchParams): Promise<Club[]> {
+    async getAll(searchParams?: SearchParams): Promise<Club[]> {
         return this.db
             .any("SELECT * FROM clubs")
             .then((response: ClubDTO[] | null) =>

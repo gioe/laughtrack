@@ -39,7 +39,7 @@ export enum ComedyClub {
     TheTinyCupboard = "The Tiny Cupboard",
     UnionHall = "Union Hall",
     WilliamsburgComedyClub = "Williamsburg Comedy Club",
-    Rodneys = "Rodney's",
+    Rodneys = "Rodney’s",
     EastvilleComedyClubBrooklyn = "Eastville Comedy Club Brooklyn",
     ComedyVillage = "Comedy Village",
     Caveat = "Caveat",
@@ -51,7 +51,5 @@ export enum SocialMedia {
     Facebook = "Facebook",
     Twitter = "Twitter",
     TikTok = "TikTok",
-    YouTube = "Youtube",
-    Website = "Website"
-
+    YouTube = "Youtube"
 }

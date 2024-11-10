@@ -1,4 +1,4 @@
-export interface FilterOption {
+export interface CheckboxOption {
     value: string;
     label: string;
     selected: boolean;
@@ -7,5 +7,5 @@ export interface FilterOption {
 export interface FilterSection {
     id: string;
     name: string;
-    options: FilterOption[];
+    options: CheckboxOption[];
 }

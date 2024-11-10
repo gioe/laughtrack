@@ -1,8 +1,7 @@
-import useAddClubTagModal from "./useAddClubTagModal";
-import useAddComedianModal from "./useAddComedianModal";
-import useAddComedianTagModal from "./useAddComedianTagModal";
+import useModifyLineupModal from "./useModifyLineupModal";
+import useAddEntityTagModal from "./useAddEntityTagModal";
 import useAddShowsModal from "./useAddShowsModal";
-import useAddShowTagModal from "./useAddShowTagModal";
+import useAddShowTagModal from "./useAddEntityTagModal";
 import useClearShowsModal from "./useClearShowsModal";
 import useLoginModal from "./useLoginModal";
 import useMergeComediansModal from "./useMergeComediansModal";
@@ -12,9 +11,8 @@ import useSocialDataModal from "./useSocialDataModal";
 import useScrapeMenuModal from "./useScrapeMenuModal";
 
 export {
-    useAddClubTagModal,
-    useAddComedianModal,
-    useAddComedianTagModal,
+    useModifyLineupModal,
+    useAddEntityTagModal,
     useAddShowsModal,
     useAddShowTagModal,
     useClearShowsModal,

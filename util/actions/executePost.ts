@@ -1,8 +1,8 @@
-import { auth } from "../auth";
+import { auth } from "../../auth";
 
 export const executePost = async <T>(
     endpoint: string,
-    body?: any,
+    body?: URLSearchParams,
 ): Promise<T> => {
     const session = await auth();
 
@@ -12,7 +12,7 @@ export const executePost = async <T>(
             "Content-Type": "application/x-www-form-urlencoded",
             "x-auth-token": session?.accessToken ?? "",
         },
-        body: new URLSearchParams(body),
+        body,
     });
 
     if (!response.ok) throw new Error("Fetch Error");

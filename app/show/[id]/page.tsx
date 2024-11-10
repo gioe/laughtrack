@@ -2,12 +2,14 @@ import { getDB } from "../../../database";
 import { TagInterface } from "../../../objects/interfaces/tag.interface";
 import { SearchParams } from "../../../objects/interfaces/searchParams.interface";
 import { EntityType } from "../../../util/enum";
-import EntityBanner from "../../../components/custom/banner";
-import AddComedianModal from "../../../components/custom/modals/AddComedianModal";
-import TagEntityModal from "../../../components/custom/modals/TagEntityModal";
-import FilterPageContainer from "../../../components/custom/filters/FilterPageContainer";
+import EntityBanner from "../../../components/banner";
+
+import TagEntityModal from "../../../components/modals/tagEntity";
 import { Show } from "../../../objects/classes/show/Show";
 import { getSortOptionsForEntityType } from "../../../util/sort";
+import QueryableTableContainer from "../../../components/container";
+import ModifyLineupModal from "../../../components/modals/show/modifyLineup";
+import ScrapeEntityModal from "../../../components/modals/club/scrape";
 
 const { db } = getDB();
 
@@ -46,19 +48,28 @@ export default async function ShowDetailPage(props: {
         <div>
             {show && (
                 <main className="flex-grow pt-5 bg-shark">
-                    <AddComedianModal show={show} intialComedians={[]} />
+                    <ScrapeEntityModal
+                        entityId={show.id}
+                        type={EntityType.Show}
+                    />
+                    <ModifyLineupModal showString={showString} />
                     <TagEntityModal
-                        entityString={showString}
+                        type={EntityType.Show}
+                        entityId={show.id}
                         tagsString={tagsString}
                     />
                     <section>
                         <EntityBanner entityString={showString} />
                     </section>
                     <section>
-                        <FilterPageContainer
+                        <QueryableTableContainer
                             sortOptions={sortOptions}
                             resultString={JSON.stringify(show.lineup)}
-                            defaultNode={<div></div>}
+                            defaultNode={
+                                <h2 className="font-bold text-5xl text-white pt-6">
+                                    No comedians on this show
+                                </h2>
+                            }
                         />
                     </section>
                 </main>

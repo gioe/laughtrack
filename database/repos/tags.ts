@@ -4,8 +4,8 @@ import {
     TagDTO,
     TagInterface,
 } from "../../objects/interfaces";
-import { toTagInterfaceArray } from "../../util/domainModels/tag/mapper";
 import { IExtensions } from ".";
+import { Tag } from "../../objects/classes/tag/Tag";
 
 export class TagsRepository {
     /**
@@ -30,7 +30,7 @@ export class TagsRepository {
                 type,
             })
             .then((response: TagDTO[] | null) =>
-                response ? toTagInterfaceArray(response) : [],
+                response ? response.map((dto: TagDTO) => new Tag(dto)) : [],
             );
     }
 

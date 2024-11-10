@@ -47,6 +47,16 @@ export class ComedyVillage implements ClubScraper {
             });
     };
 
+
+    scrapeShow = async (url: string): Promise<ScrapingOutput> => {
+        return this.browser
+            .newPage()
+            .then((page: playwright.Page) =>
+                this.navigateToUrlAndScrape(page, url)
+            )
+    }
+
+
     runClubScrapingFunction = async (
         page: playwright.Page,
     ): Promise<ScrapingOutput[]> => {

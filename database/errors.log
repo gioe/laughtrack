@@ -135,3 +135,101 @@
 
 08:52:54 error: Invalid query format.
          query: {}
+
+11:10:23 error: Property 'rows' doesn't exist.
+         query: SELECT * from comedians ORDER BY name DESC LIMIT ${rows};
+         params: {}
+
+11:10:31 error: Property 'rows' doesn't exist.
+         query: SELECT * from comedians ORDER BY name DESC LIMIT ${rows};
+         params: {}
+
+11:10:34 error: Property 'rows' doesn't exist.
+         query: SELECT * from comedians ORDER BY name DESC LIMIT ${rows};
+         params: {}
+
+11:10:34 error: Property 'rows' doesn't exist.
+         query: SELECT * from comedians ORDER BY name DESC LIMIT ${rows};
+         params: {}
+
+11:10:34 error: Property 'rows' doesn't exist.
+         query: SELECT * from comedians ORDER BY name DESC LIMIT ${rows};
+         params: {}
+
+11:10:36 error: Property 'rows' doesn't exist.
+         query: SELECT * from comedians ORDER BY name DESC LIMIT ${rows};
+         params: {}
+
+11:30:13 error: Property 'query' doesn't exist.
+         query: SELECT * from comedians WHERE name LIKE ${query} ORDER BY name ASC LIMIT ${total};
+         params: {"total":10}
+
+11:30:14 error: Property 'query' doesn't exist.
+         query: SELECT * from comedians WHERE name LIKE ${query} ORDER BY name ASC LIMIT ${total};
+         params: {"total":10}
+
+11:35:50 error: Property 'total' doesn't exist.
+         query: SELECT * from comedians WHERE name LIKE ${query} ORDER BY name ASC LIMIT ${total};
+         params: {"query":"%%"}
+
+11:36:33 error: Property 'total' doesn't exist.
+         query: SELECT * from comedians WHERE name LIKE ${query} ORDER BY name ASC LIMIT ${total};
+         params: {"query":"%a%"}
+
+11:36:35 error: Property 'total' doesn't exist.
+         query: SELECT * from comedians WHERE name LIKE ${query} ORDER BY name ASC LIMIT ${total};
+         params: {"query":"%%"}
+
+11:37:36 error: Property 'total' doesn't exist.
+         query: SELECT * from comedians WHERE name LIKE ${query} ORDER BY name ASC LIMIT ${total};
+         params: {"query":"%%"}
+
+11:37:38 error: Property 'total' doesn't exist.
+         query: SELECT * from comedians WHERE name LIKE ${query} ORDER BY name ASC LIMIT ${total};
+         params: {"query":"%a%"}
+
+11:37:51 error: Property 'total' doesn't exist.
+         query: SELECT * from comedians WHERE name LIKE ${query} ORDER BY name ASC LIMIT ${total};
+         params: {"query":"%%"}
+
+15:20:09 error: invalid input syntax for type integer: "NaN"
+         query: SELECT s.id, s.date_time, jsonb_build_object( 'id', s.id, 'website', s.ticket_link ) as social_data, s.name as name, cl.name as club_name, cl.base_url, s.popularity_score, jsonb_agg( jsonb_build_object( 'id', c.id, 'name', c.name, 'popularity_score', c.popularity_score ) ) AS lineup, COALESCE(jsonb_agg( json_build_object( 'id', st.tag_id )) FILTER (WHERE st.tag_id IS NOT NULL), '[]') as tags from shows s left join show_tags st on st.show_id = s.id left join lineups l on s.id = l.show_id left join comedians c on c.id = l.comedian_id inner join clubs cl on cl.id = s.club_id WHERE s.id = 'NaN' AND s.date_time > NOW() GROUP BY s.id, s.date_time, cl.name, cl.base_url ORDER BY s.date_time ASC
+
+15:20:59 error: invalid input syntax for type integer: "NaN"
+         query: SELECT s.id, s.date_time, jsonb_build_object( 'id', s.id, 'website', s.ticket_link ) as social_data, s.name as name, cl.name as club_name, cl.base_url, s.popularity_score, jsonb_agg( jsonb_build_object( 'id', c.id, 'name', c.name, 'popularity_score', c.popularity_score ) ) AS lineup, COALESCE(jsonb_agg( json_build_object( 'id', st.tag_id )) FILTER (WHERE st.tag_id IS NOT NULL), '[]') as tags from shows s left join show_tags st on st.show_id = s.id left join lineups l on s.id = l.show_id left join comedians c on c.id = l.comedian_id inner join clubs cl on cl.id = s.club_id WHERE s.id = 'NaN' AND s.date_time > NOW() GROUP BY s.id, s.date_time, cl.name, cl.base_url ORDER BY s.date_time ASC
+
+16:49:33 error: relation "lineups" does not exist
+         query: with comedian_social_data as ( SELECT id, name, jsonb_agg( DISTINCT jsonb_build_object( 'popularity_score', popularity_score ) ) as social_data FROM comedians c GROUP BY id ), full_lineup_data as ( SELECT s.id as id, s.name, s.price, s.club_id, s.date_time as date_time, s.ticket_link as ticket_link, jsonb_agg( DISTINCT jsonb_build_object( 'id', s.id, 'popularity_score', s.popularity_score )) as social_data, COALESCE(jsonb_agg( DISTINCT jsonb_build_object( 'id', c.id, 'name', c.name, 'social_data', c.social_data ) )FILTER (WHERE c.id IS NOT NULL), '[]') as lineup FROM shows s LEFT JOIN lineups l ON s.id = l.show_id LEFT JOIN comedian_social_data c ON c.id = l.comedian_id WHERE s.date_time > NOW() GROUP BY s.id ORDER BY s.date_time ASC ) SELECT c.id, c.name, jsonb_build_object( 'id', c.id, 'website', c.base_url ) as social_data, COALESCE(jsonb_agg( DISTINCT jsonb_build_object( 'id', fld.id, 'date_time', fld.date_time, 'name', fld.name, 'social_data', fld.social_data, 'price', fld.price, 'ticket_link', fld.ticket_link, 'lineup', fld.lineup )) FILTER (WHERE fld.id IS NOT NULL), '[]') as dates from clubs c LEFT JOIN full_lineup_data fld ON c.id = fld.club_id WHERE c.id = 12 GROUP BY c.id, c.name
+
+16:49:57 error: relation "lineups" does not exist
+         query: with comedian_social_data as ( SELECT id, name, jsonb_agg( DISTINCT jsonb_build_object( 'popularity_score', popularity_score ) ) as social_data FROM comedians c GROUP BY id ), full_lineup_data as ( SELECT s.id as id, s.name, s.price, s.club_id, s.date_time as date_time, s.ticket_link as ticket_link, jsonb_agg( DISTINCT jsonb_build_object( 'id', s.id, 'popularity_score', s.popularity_score )) as social_data, COALESCE(jsonb_agg( DISTINCT jsonb_build_object( 'id', c.id, 'name', c.name, 'social_data', c.social_data ) )FILTER (WHERE c.id IS NOT NULL), '[]') as lineup FROM shows s LEFT JOIN lineups l ON s.id = l.show_id LEFT JOIN comedian_social_data c ON c.id = l.comedian_id WHERE s.date_time > NOW() GROUP BY s.id ORDER BY s.date_time ASC ) SELECT c.id, c.name, jsonb_build_object( 'id', c.id, 'website', c.base_url ) as social_data, COALESCE(jsonb_agg( DISTINCT jsonb_build_object( 'id', fld.id, 'date_time', fld.date_time, 'name', fld.name, 'social_data', fld.social_data, 'price', fld.price, 'ticket_link', fld.ticket_link, 'lineup', fld.lineup )) FILTER (WHERE fld.id IS NOT NULL), '[]') as dates from clubs c LEFT JOIN full_lineup_data fld ON c.id = fld.club_id WHERE c.id = 12 GROUP BY c.id, c.name
+
+16:55:59 error: syntax error at or near "FILTER"
+         query: SELECT s.id, s.date_time, jsonb_build_object( 'id', s.id, 'website', s.ticket_link ) as social_data, s.name as name, cl.name as club_name, cl.base_url, s.popularity_score, COALESCE(jsonb_agg( jsonb_build_object( 'id', c.id, 'name', c.name, 'popularity_score', c.popularity_score ) )) FILTER (WHERE c.id IS NOT NULL), '[]') as lineup COALESCE(jsonb_agg( json_build_object( 'id', st.tag_id )) FILTER (WHERE st.tag_id IS NOT NULL), '[]') as tags from shows s left join show_tags st on st.show_id = s.id left join lineup_items l on s.id = l.show_id left join comedians c on c.id = l.comedian_id inner join clubs cl on cl.id = s.club_id WHERE s.id = 1427 AND s.date_time > NOW() GROUP BY s.id, s.date_time, cl.name, cl.base_url ORDER BY s.date_time ASC
+
+16:56:05 error: syntax error at or near "FILTER"
+         query: SELECT s.id, s.date_time, jsonb_build_object( 'id', s.id, 'website', s.ticket_link ) as social_data, s.name as name, cl.name as club_name, cl.base_url, s.popularity_score, COALESCE(jsonb_agg( jsonb_build_object( 'id', c.id, 'name', c.name, 'popularity_score', c.popularity_score ) )) FILTER (WHERE c.id IS NOT NULL), '[]') as lineup COALESCE(jsonb_agg( json_build_object( 'id', st.tag_id )) FILTER (WHERE st.tag_id IS NOT NULL), '[]') as tags from shows s left join show_tags st on st.show_id = s.id left join lineup_items l on s.id = l.show_id left join comedians c on c.id = l.comedian_id inner join clubs cl on cl.id = s.club_id WHERE s.id = 1427 AND s.date_time > NOW() GROUP BY s.id, s.date_time, cl.name, cl.base_url ORDER BY s.date_time ASC
+
+16:56:18 error: syntax error at or near "FILTER"
+         query: SELECT s.id, s.date_time, jsonb_build_object( 'id', s.id, 'website', s.ticket_link ) as social_data, s.name as name, cl.name as club_name, cl.base_url, s.popularity_score, COALESCE(jsonb_agg( jsonb_build_object( 'id', c.id, 'name', c.name, 'popularity_score', c.popularity_score ) )) FILTER (WHERE c.id IS NOT NULL), '[]') as lineup COALESCE(jsonb_agg( json_build_object( 'id', st.tag_id )) FILTER (WHERE st.tag_id IS NOT NULL), '[]') as tags from shows s left join show_tags st on st.show_id = s.id left join lineup_items l on s.id = l.show_id left join comedians c on c.id = l.comedian_id inner join clubs cl on cl.id = s.club_id WHERE s.id = 1427 AND s.date_time > NOW() GROUP BY s.id, s.date_time, cl.name, cl.base_url ORDER BY s.date_time ASC
+
+16:56:21 error: syntax error at or near "FILTER"
+         query: SELECT s.id, s.date_time, jsonb_build_object( 'id', s.id, 'website', s.ticket_link ) as social_data, s.name as name, cl.name as club_name, cl.base_url, s.popularity_score, COALESCE(jsonb_agg( jsonb_build_object( 'id', c.id, 'name', c.name, 'popularity_score', c.popularity_score ) )) FILTER (WHERE c.id IS NOT NULL), '[]') as lineup COALESCE(jsonb_agg( json_build_object( 'id', st.tag_id )) FILTER (WHERE st.tag_id IS NOT NULL), '[]') as tags from shows s left join show_tags st on st.show_id = s.id left join lineup_items l on s.id = l.show_id left join comedians c on c.id = l.comedian_id inner join clubs cl on cl.id = s.club_id WHERE s.id = 1427 AND s.date_time > NOW() GROUP BY s.id, s.date_time, cl.name, cl.base_url ORDER BY s.date_time ASC
+
+16:57:11 error: syntax error at or near "FILTER"
+         query: SELECT s.id, s.date_time, jsonb_build_object( 'id', s.id, 'website', s.ticket_link ) as social_data, s.name as name, cl.name as club_name, cl.base_url, s.popularity_score, COALESCE(jsonb_agg( jsonb_build_object( 'id', c.id, 'name', c.name, 'popularity_score', c.popularity_score ) )) FILTER (WHERE c.id IS NOT NULL), '[]') as lineup, COALESCE(jsonb_agg( json_build_object( 'id', st.tag_id )) FILTER (WHERE st.tag_id IS NOT NULL), '[]') as tags from shows s left join show_tags st on st.show_id = s.id left join lineup_items l on s.id = l.show_id left join comedians c on c.id = l.comedian_id inner join clubs cl on cl.id = s.club_id WHERE s.id = 1427 AND s.date_time > NOW() GROUP BY s.id, s.date_time, cl.name, cl.base_url ORDER BY s.date_time ASC
+
+16:57:14 error: syntax error at or near "FILTER"
+         query: SELECT s.id, s.date_time, jsonb_build_object( 'id', s.id, 'website', s.ticket_link ) as social_data, s.name as name, cl.name as club_name, cl.base_url, s.popularity_score, COALESCE(jsonb_agg( jsonb_build_object( 'id', c.id, 'name', c.name, 'popularity_score', c.popularity_score ) )) FILTER (WHERE c.id IS NOT NULL), '[]') as lineup, COALESCE(jsonb_agg( json_build_object( 'id', st.tag_id )) FILTER (WHERE st.tag_id IS NOT NULL), '[]') as tags from shows s left join show_tags st on st.show_id = s.id left join lineup_items l on s.id = l.show_id left join comedians c on c.id = l.comedian_id inner join clubs cl on cl.id = s.club_id WHERE s.id = 1427 AND s.date_time > NOW() GROUP BY s.id, s.date_time, cl.name, cl.base_url ORDER BY s.date_time ASC
+
+16:58:53 error: column c.social_data does not exist
+         query: SELECT s.id, s.date_time, jsonb_build_object( 'id', s.id, 'website', s.ticket_link ) as social_data, s.name as name, cl.name as club_name, cl.base_url, s.popularity_score, COALESCE(jsonb_agg( json_build_object( 'id', st.tag_id )) FILTER (WHERE st.tag_id IS NOT NULL), '[]') as tags, COALESCE(jsonb_agg( DISTINCT jsonb_build_object( 'id', c.id, 'name', c.name, 'social_data', c.social_data ))FILTER (WHERE c.id IS NOT NULL), '[]') as lineup from shows s left join show_tags st on st.show_id = s.id left join lineup_items l on s.id = l.show_id left join comedians c on c.id = l.comedian_id inner join clubs cl on cl.id = s.club_id WHERE s.id = 1427 AND s.date_time > NOW() GROUP BY s.id, s.date_time, cl.name, cl.base_url ORDER BY s.date_time ASC
+
+16:58:57 error: column c.social_data does not exist
+         query: SELECT s.id, s.date_time, jsonb_build_object( 'id', s.id, 'website', s.ticket_link ) as social_data, s.name as name, cl.name as club_name, cl.base_url, s.popularity_score, COALESCE(jsonb_agg( json_build_object( 'id', st.tag_id )) FILTER (WHERE st.tag_id IS NOT NULL), '[]') as tags, COALESCE(jsonb_agg( DISTINCT jsonb_build_object( 'id', c.id, 'name', c.name, 'social_data', c.social_data ))FILTER (WHERE c.id IS NOT NULL), '[]') as lineup from shows s left join show_tags st on st.show_id = s.id left join lineup_items l on s.id = l.show_id left join comedians c on c.id = l.comedian_id inner join clubs cl on cl.id = s.club_id WHERE s.id = 1427 AND s.date_time > NOW() GROUP BY s.id, s.date_time, cl.name, cl.base_url ORDER BY s.date_time ASC
+
+19:45:37 error: ENOENT: no such file or directory, open '/Users/mattgioe/Desktop/projects/laughtrack/database/sql/tags/createdTaggedComedians.sql'
+         query: /Users/mattgioe/Desktop/projects/laughtrack/database/sql/tags/createdTaggedComedians.sql
+
+19:45:39 error: ENOENT: no such file or directory, open '/Users/mattgioe/Desktop/projects/laughtrack/database/sql/tags/createdTaggedComedians.sql'
+         query: /Users/mattgioe/Desktop/projects/laughtrack/database/sql/tags/createdTaggedComedians.sql

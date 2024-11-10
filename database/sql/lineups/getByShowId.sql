@@ -1,1 +1,0 @@
-SELECT * from lineups where show_id = ${showId}

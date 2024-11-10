@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import ClientOnly from "../components/custom/ClientOnly";
-import ToasterProvider from "../components/providers/ToasterProvider";
-import LoginModal from "../components/custom/modals/LoginModal";
-import RegisterModal from "../components/custom/modals/RegisterModal";
-import Footer from "../components/custom/Footer";
-import Header from "../components/custom/header";
+import ClientOnly from "../components/ClientOnly";
+import ToasterProvider from "../components/providers/toaster";
+import LoginModal from "../components/modals/auth/login";
+import RegisterModal from "../components/modals/auth/register";
+import Header from "../components/header";
 import { NextUIProvider } from "@nextui-org/react";
 import { SessionProvider } from "next-auth/react";
 import { auth } from "../auth";
 import { cache } from "react";
 import { getDB } from "../database";
 import { UserInterface } from "../objects/interfaces";
-import ScrapeMenuModal from "../components/custom/modals/ScrapeMenuModal";
+import Footer from "../components/footer";
+import ScrapeClubSelectionMenuModal from "../components/modals/club/scrapeIds";
 const { db } = getDB();
 
 interface RootProps {
@@ -76,7 +76,7 @@ export default async function RootLayout({
                             <ToasterProvider />
                             <LoginModal />
                             <RegisterModal />
-                            <ScrapeMenuModal cities={cities} />
+                            <ScrapeClubSelectionMenuModal cities={cities} />
                             {children}
                             <Footer />
                         </ClientOnly>

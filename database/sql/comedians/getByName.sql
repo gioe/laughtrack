@@ -20,7 +20,7 @@ WITH future_shows_with_lineup_details as (
         ) as lineup_details
     FROM
         shows s
-        INNER JOIN lineups l ON s.id = l.show_id
+        INNER JOIN lineup_items l ON s.id = l.show_id
         INNER JOIN comedians c ON c.id = l.comedian_id
     WHERE s.date_time > NOW()
     GROUP BY
@@ -48,7 +48,7 @@ full_data as (
         )) as social_data
     FROM
         future_shows_with_lineup_details fs
-        INNER JOIN lineups l ON fs.id = l.show_id
+        INNER JOIN lineup_items l ON fs.id = l.show_id
         INNER JOIN clubs cl ON cl.id = fs.club_id
         WHERE ${name} = ANY(fs.lineup_names)
         GROUP BY l.comedian_id, cl.name, cl.id, fs.id, fs.lineup_details, fs.date_time, fs.name, fs.price, fs.ticket_link

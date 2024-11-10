@@ -1,7 +1,7 @@
 'use server';
 
 import { NextResponse } from "next/server";
-import { runScrapingJob } from "../../../jobs/scrape";
+import { runScrapingJob } from "../../../jobs/scrape/show";
 
 export async function POST(request: Request) {
 
