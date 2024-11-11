@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDB } from '../../../../../database'
 const { db } = getDB();
 
-
 export async function PUT(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }

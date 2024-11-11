@@ -1,41 +1,8 @@
 import { URLParam } from "../enum";
 
-interface URLParamKeyValue {
-    key: URLParam,
-    value: string | number;
-}
+type ParamValue = string | number | Date;
 
-export function updateMultipleParams(searchParams: URLSearchParams, values: URLParamKeyValue[]): URLSearchParams {
-    values.forEach((val: URLParamKeyValue) => adjustUrlParams(searchParams, val))
-    return searchParams
-}
-
-export function adjustUrlParams(
-    searchParams: URLSearchParams,
-    keyValue: URLParamKeyValue,
-): URLSearchParams {
-
-    switch (keyValue.key) {
-        case URLParam.Sort, URLParam.Query, URLParam.Rows, URLParam.Page:
-            return addOrRemoveSingleValue(searchParams, keyValue.key, keyValue.value.toString());
-        default:
-            return addOrRemoveCommaSeparatedValue(searchParams, keyValue.key, keyValue.value.toString());
-    }
-}
-
-const addOrRemoveSingleValue = (
-    searchParams: URLSearchParams,
-    param: string,
-    value: string,
-): URLSearchParams => {
-
-    if (value) searchParams.set(param, value);
-    else searchParams.delete(param);
-
-    return searchParams
-};
-
-const addOrRemoveCommaSeparatedValue = (
+export const addOrRemoveCommaSeparatedValue = (
     searchParams: URLSearchParams,
     param: string,
     value: string,
@@ -68,3 +35,34 @@ export const formattedDateParam = (value: Date) => {
     const year = value.getFullYear().toString();
     return `${year}-${month}-${monthDay}`;
 };
+
+export const formatParamValue = (value: ParamValue) => {
+    if (isDate(value)) {
+        return formattedDateParam(value as Date)
+    }
+    return value.toString()
+}
+
+const isDate = (value: ParamValue) => {
+    console.log(new Date(value))
+    return new Date(value);
+}
+
+export const getDefaultValueForKey = (key: URLParam) => {
+    switch (key) {
+        case URLParam.Sort:
+            return undefined
+        case URLParam.Query:
+            return ""
+        case URLParam.Page:
+            return 1
+        case URLParam.Rows:
+            return 10;
+        case URLParam.City:
+            return ""
+        case URLParam.StartDate:
+            return 0
+        case URLParam.EndDate:
+            return 0
+    }
+}

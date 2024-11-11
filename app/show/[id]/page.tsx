@@ -4,12 +4,12 @@ import { SearchParams } from "../../../objects/interfaces/searchParams.interface
 import { EntityType } from "../../../util/enum";
 import EntityBanner from "../../../components/banner";
 
-import TagEntityModal from "../../../components/modals/tagEntity";
+import TagEntityModal from "../../../components/modals/entity/tag";
 import { Show } from "../../../objects/classes/show/Show";
 import { getSortOptionsForEntityType } from "../../../util/sort";
 import QueryableTableContainer from "../../../components/container";
 import ModifyLineupModal from "../../../components/modals/show/modifyLineup";
-import ScrapeEntityModal from "../../../components/modals/club/scrape";
+import ScrapeEntityModal from "../../../components/modals/entity/scrape";
 
 const { db } = getDB();
 

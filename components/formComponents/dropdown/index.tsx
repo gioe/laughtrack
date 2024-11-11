@@ -33,6 +33,7 @@ export function DropdownFormComponent({
     items,
     form,
 }: DropdownProps) {
+    console.log(items);
     return (
         <div className="grid w-full lg:max-w-sm flex-1 items-center gap-1.5">
             <FormField
@@ -44,7 +45,7 @@ export function DropdownFormComponent({
                             <FormLabel>{title}</FormLabel>
                             <Select
                                 onValueChange={field.onChange}
-                                defaultValue={field.value}
+                                defaultValue={field.value.toString()}
                             >
                                 <FormControl className="bg-white rounded-lg">
                                     <SelectTrigger>
@@ -58,14 +59,17 @@ export function DropdownFormComponent({
                                         />
                                     </SelectTrigger>
                                 </FormControl>
-                                <SelectContent className="rounded-lg">
+                                <SelectContent
+                                    key={title}
+                                    className="rounded-lg"
+                                >
                                     {items.map((item) => (
                                         <SelectItem
                                             className="bg-white rounded-lg"
-                                            key={item.label}
-                                            value={item.value}
+                                            key={item.id.toString()}
+                                            value={item.id.toString()}
                                         >
-                                            {item.label}
+                                            {item.name}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>

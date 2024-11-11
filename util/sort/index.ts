@@ -1,6 +1,6 @@
 import { SortOptionInterface } from "../../objects/interfaces";
 import { EntityType } from "../enum";
-import { SortProperty } from "../enum";
+import { SortParamValue } from "../enum";
 
 export const getSortOptionsForEntityType = (type: EntityType): SortOptionInterface[] => {
     switch (type) {
@@ -15,17 +15,25 @@ export const getSortOptionsForEntityType = (type: EntityType): SortOptionInterfa
 
 const SORT_OPTIONS = {
     COMEDIAN: [
-        { name: "Most Popular", value: SortProperty.Popularity },
-        { name: "A-Z", value: SortProperty.Alphabetical },
+        { name: "Most Popular", value: SortParamValue.PopularityDescending },
+        { name: "Least Popular", value: SortParamValue.PopularityAscending },
+        { name: "A-Z", value: SortParamValue.AlphabeticalAscending },
+        { name: "Z-A", value: SortParamValue.AlphabeticalDescending },
     ],
     CLUB: [
-        { name: "Most Popular", value: SortProperty.Popularity },
-        { name: "A-Z", value: SortProperty.Alphabetical },
+        { name: "Most Popular", value: SortParamValue.PopularityDescending },
+        { name: "Least Popular", value: SortParamValue.PopularityAscending },
+        { name: "A-Z", value: SortParamValue.AlphabeticalAscending },
+        { name: "Z-A", value: SortParamValue.AlphabeticalDescending },
     ],
     SHOW: [
-        { name: "Date", value: SortProperty.Date },
-        { name: "Most Popular", value: SortProperty.Popularity },
-        { name: "Price: Low to High", value: SortProperty.LowToHigh },
-        { name: "Price: High to Low", value: SortProperty.HighToLow },
+        { name: "Date: Most Recent", value: SortParamValue.DateAscending },
+        { name: "Date: Oldest", value: SortParamValue.DateDescending },
+        { name: "Most Popular", value: SortParamValue.PopularityDescending },
+        { name: "Least Popular", value: SortParamValue.PopularityAscending },
+        { name: "Price: Low to High", value: SortParamValue.PriceAscending },
+        { name: "Price: High to Low", value: SortParamValue.PriceDescending },
+        { name: "Scrape Date: Most Recent", value: SortParamValue.DateAscending },
+        { name: "Scrape Date: Oldest", value: SortParamValue.DateDescending },
     ],
 };

@@ -4,18 +4,19 @@ import EntityCarousel from "../components/carousel";
 import HomeSearchForm from "../components/search/form";
 import { getDB } from "../database";
 import { Comedian } from "../objects/classes/comedian/Comedian";
+import { FormSelectable } from "../objects/interfaces";
 
 const { db } = getDB();
 
 const TRENDING_COUNT = 5;
 
 interface LandingPageResponseInterface {
+    cities: FormSelectable[];
     trendingComedians: Comedian[];
-    cities: string[];
 }
 
 async function getLandingPageData(): Promise<LandingPageResponseInterface> {
-    const cities = db.clubs.getAllCities();
+    const cities = db.cities.getAll();
     const trendingComedians = db.comedians.getTrendingComedians(TRENDING_COUNT);
 
     return Promise.all([cities, trendingComedians]).then((responses) => {
@@ -28,6 +29,7 @@ async function getLandingPageData(): Promise<LandingPageResponseInterface> {
 
 export default async function LandingPage() {
     const { cities, trendingComedians } = await getLandingPageData();
+    const citiesString = JSON.stringify(cities);
 
     return (
         <main>
@@ -41,7 +43,7 @@ export default async function LandingPage() {
             </section>
 
             <section className="m-4 mt-0 -mb-14 px-2 lg:px-4">
-                <HomeSearchForm cities={cities} />
+                <HomeSearchForm citiesString={citiesString} />
             </section>
 
             <section

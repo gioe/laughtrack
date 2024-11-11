@@ -1,4 +1,4 @@
 export interface FormSelectable {
-    value: string;
-    label: string;
+    id: number | string;
+    name: string;
 }

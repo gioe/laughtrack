@@ -16,8 +16,8 @@ export const getMenuItemsForEntityType = (type: EntityType) => {
 const MENU_OPTIONS = {
     COMEDIAN: [
         { key: "social", label: "Edit Social Data", hook: hooks.useSocialDataModal },
-        { key: "merge", label: "Merge Comedians", hook: hooks.useMergeComediansModal },
         { key: "tags", label: "Add Tags", hook: hooks.useAddEntityTagModal },
+        // { key: "merge", label: "Merge Comedians", hook: hooks.useMergeComediansModal },
     ],
     CLUB: [
         { key: "scrape", label: "Run Scrape", hook: hooks.useRunScrapeModal },
@@ -26,5 +26,6 @@ const MENU_OPTIONS = {
     SHOW: [
         { key: "tags", label: "Add Tags", hook: hooks.useAddShowTagModal },
         { key: "comedian", label: "Add Comedian", hook: hooks.useModifyLineupModal },
+        { key: "scrape", label: "Run Scrape", hook: hooks.useRunScrapeModal },
     ],
 };

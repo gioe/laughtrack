@@ -1,9 +1,10 @@
-import { toSocialDataInterface } from "../../../util/domainModels/socialData/mapper";
+import { toSocialDataInterface } from "../../../util/socialData/mapper";
 import { EntityType } from "../../../util/enum";
 import { SocialDataInterface, TagInterface } from "../../interfaces";
 import { Comedian } from "../comedian/Comedian";
 import { ComedianDTO } from "../comedian/comedian.interface";
 import { ShowDTO, ShowInterface } from "./show.interface";
+import { Ticket } from "../ticket/Ticket";
 
 export class Show implements ShowInterface {
     // Properties
@@ -14,13 +15,13 @@ export class Show implements ShowInterface {
     popularityScore?: number | undefined;
     clubName?: string | undefined;
     clubId: number;
-    price: number;
-    ticketLink: string;
+    ticket: Ticket;
     tags: TagInterface[];
     id: number;
     type: EntityType = EntityType.Show;
     bannerImageUrl: string;
     cardImageUrl: string;
+    lastScrapeTime?: Date;
 
     // Constructor
     constructor(input: ShowDTO) {
@@ -29,14 +30,16 @@ export class Show implements ShowInterface {
         this.socialData = input.social_data !== undefined ? toSocialDataInterface(input.social_data) : {};
         this.lineup = input.lineup !== undefined ? input.lineup.map((item: ComedianDTO) => new Comedian(item)) : []
         this.clubName = input.club_name;
-        this.price = Number(input.price);
-        this.ticketLink = input.ticket_link;
+        this.ticket = new Ticket(input.ticket)
         this.tags = input.tags ?? []
         this.id = input.id ?? 0
         this.bannerImageUrl = `/images/banners/${input.name}.png`
         this.cardImageUrl = `/images/${EntityType.Show.valueOf()}/square/${input.name}.png`;
         this.clubId = input.club_id
+        this.lastScrapeTime = input.last_scrape_time
     }
+    price: number;
+    ticketLink: string;
     isFavorite: boolean;
 
 
@@ -56,9 +59,9 @@ export class Show implements ShowInterface {
         return {
             club_id: this.clubId,
             date_time: this.dateTime,
-            ticket_link: this.ticketLink,
+            ticket: this.ticket.asTicketDTO(),
             name: this.name,
-            price: this.price.toString(),
+            last_scrape_time: new Date()
         };
     };
 

@@ -116,9 +116,11 @@ export class NewYorkComedyClub implements ClubScraper {
                 output[1] as string[],
                 SEPARATOR,
             ).asDateObject(),
-            ticket_link: generateValidUrl(this.clubData.baseUrl, link),
+            ticket: {
+                link: generateValidUrl(this.clubData.baseUrl, link),
+                price: output[4] as number
+            },
             name: output[3] as string,
-            price: output[4] as string,
             club_id: this.clubData.id,
         });
         return {

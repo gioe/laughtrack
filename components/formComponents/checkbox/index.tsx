@@ -12,17 +12,19 @@ import {
 import { Checkbox } from "../../../@/components/ui/checkbox";
 import { FormSelectable } from "../../../objects/interfaces";
 
-type TypedFieldValues = ControllerRenderProps<FieldValues, "items">;
+type TypedFieldValues = ControllerRenderProps<FieldValues, string>;
 
 interface CheckboxFormComponentProps {
-    inputs: FormSelectable[];
+    items: FormSelectable[];
+    name: string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     form: any;
 }
 
 export function CheckboxFormComponent({
-    inputs,
+    items,
     form,
+    name,
 }: CheckboxFormComponentProps) {
     const handleCheckChange = (
         checked: string | boolean,
@@ -43,14 +45,14 @@ export function CheckboxFormComponent({
         <Form {...form}>
             <FormField
                 control={form.control}
-                name="items"
+                name={name}
                 render={() => (
                     <FormItem>
-                        {inputs.map((item) => (
+                        {items.map((item) => (
                             <FormField
                                 key={item.value}
                                 control={form.control}
-                                name="items"
+                                name={name}
                                 render={({ field }) => {
                                     return (
                                         <FormItem

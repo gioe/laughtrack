@@ -1,11 +1,11 @@
-import { ClubsRepository } from "./clubs";
-import { ComediansRepository } from "./comedians";
-import { ShowsRepository } from "./shows";
-import { UsersRepository } from "./users";
-import { SearchRepository } from "./search";
-import { FavoritesRepository } from "./favorites";
-import { TagsRepository } from "./tags";
-import { LineupItemRepository } from "./lineupItems";
+import { ClubsRepository } from "./club";
+import { ComediansRepository } from "./comedian";
+import { ShowsRepository } from "./show";
+import { UsersRepository } from "./user";
+import { FavoritesRepository } from "./favorite";
+import { TagsRepository } from "./tag";
+import { LineupItemRepository } from "./lineupItem";
+import { CityRepository } from "./city";
 
 // Database Interface Extensions:
 export interface IExtensions {
@@ -13,10 +13,10 @@ export interface IExtensions {
     clubs: ClubsRepository;
     comedians: ComediansRepository;
     shows: ShowsRepository;
-    search: SearchRepository;
     favorites: FavoritesRepository;
     tags: TagsRepository;
     lineupItems: LineupItemRepository;
+    cities: CityRepository
 }
 
 export {
@@ -24,8 +24,8 @@ export {
     ClubsRepository,
     ComediansRepository,
     ShowsRepository,
-    SearchRepository,
     FavoritesRepository,
     TagsRepository,
-    LineupItemRepository
+    LineupItemRepository,
+    CityRepository
 };

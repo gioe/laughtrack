@@ -15,18 +15,22 @@ export enum URLParam {
     Query = "query",
     Page = "page",
     Rows = "rows",
-    Filter = "filter",
-    Location = "location",
-    StartDate = 'startDate',
-    EndDate = 'endDate'
+    City = "city",
+    StartDate = "startDate",
+    EndDate = "endDate"
 }
 
-export enum SortProperty {
-    Alphabetical = 'alphabetical',
-    Date = 'date',
-    Popularity = 'popularity',
-    LowToHigh = 'low_to_high',
-    HighToLow = 'high_to_low'
+export enum SortParamValue {
+    AlphabeticalAscending = 'alphabetical_asc',
+    AlphabeticalDescending = 'alphabetical_desc',
+    DateAscending = 'date_ascending',
+    DateDescending = 'date_descending',
+    PopularityAscending = 'popularity_asc',
+    PopularityDescending = 'popularity_desc',
+    PriceAscending = 'price_asc',
+    PriceDescending = 'price_desc',
+    ScrapeDateAscending = 'scrapedate_asc',
+    ScrapeDateDescending = 'scrapedate_desc'
 }
 
 export enum ComedyClub {

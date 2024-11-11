@@ -2,7 +2,7 @@
 
 import { NextResponse } from "next/server";
 import { getDB } from '../../../../database'
-import { generateToken } from "../../../../util/domainModels/token";
+import { generateToken } from "../../../../util/token";
 import bcrypt from "bcryptjs";
 
 const { db } = getDB();

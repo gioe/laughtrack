@@ -52,10 +52,10 @@ const ShowCard: React.FC<ShowCardProps> = ({ show }) => {
                     <p className="text-m ml-2 text-center">
                         {dateObject.format("LL")}
                     </p>
-                    <h1 className="text-center mt-8 text-sm">{`$${show.price.toString()}`}</h1>
+                    <h1 className="text-center mt-8 text-sm">{`$${show.ticket.price.toString()}`}</h1>
                     <Link
                         className="text-center text-sm underline"
-                        href={show.ticketLink}
+                        href={show.ticket.link}
                     >
                         <p className="text-m ml-2 text-center">Get tickets</p>
                     </Link>

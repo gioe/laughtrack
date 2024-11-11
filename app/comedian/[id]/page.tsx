@@ -1,5 +1,5 @@
 import EntityBanner from "../../../components/banner";
-import TagEntityModal from "../../../components/modals/tagEntity";
+import TagEntityModal from "../../../components/modals/entity/tag";
 import { EntityType } from "../../../util/enum";
 import { SearchParams } from "../../../objects/interfaces/searchParams.interface";
 import { getDB } from "../../../database";

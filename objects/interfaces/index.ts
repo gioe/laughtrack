@@ -1,5 +1,4 @@
 import { BannerRepresentable } from "./bannerRepresentable.interface";
-import { CityInterface, GetCitiesResponseDTO } from "./city.interface";
 import { Favoritable, FavoriteDTO } from "./favoritable.interface";
 import { CheckboxOption } from "./filter.interface";
 import { Scrapable } from "./scrape.interface";
@@ -36,7 +35,6 @@ export type {
     Paginated,
     ScrapingArgs,
     ScrapingOutput,
-    CityInterface,
     SearchParams,
     ShowProvider,
     SocialDataInterface,
@@ -52,7 +50,6 @@ export type {
     CheckboxOption,
     GroupedSocialDataDTO,
     SocialDataDTO,
-    GetCitiesResponseDTO,
     FavoriteDTO,
     PaginationData,
     ClubScraper,

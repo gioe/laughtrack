@@ -100,9 +100,11 @@ export class TheStand implements ClubScraper {
                 output[1] as string[],
                 SEPARATOR,
             ).asDateObject(),
-            ticket_link: generateValidUrl(this.clubData.baseUrl, output[2] as string),
+            ticket: {
+                link: generateValidUrl(this.clubData.baseUrl, output[2] as string),
+                price: output[4] as number
+            },
             name: output[3] as string,
-            price: output[4] as string,
             club_id: this.clubData.id,
         });
         return {

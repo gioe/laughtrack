@@ -25,7 +25,7 @@ import { ComedyClub } from "../../../util/enum";
 import { ComedianDTO } from "../../../objects/classes/comedian/comedian.interface";
 const { db } = getDB()
 
-export async function scapeClubs(clubIds?: string[], headless?: boolean): Promise<string> {
+export async function scrapeClubs(clubIds?: string[], headless?: boolean): Promise<string> {
 
     const ids = clubIds ?? [];
     const idNumbers = ids.map((id: string) => Number(id));

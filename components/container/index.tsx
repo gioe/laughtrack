@@ -10,7 +10,7 @@ import ShowCard from "../cards/ShowCard";
 import { Entity, SortOptionInterface } from "../../objects/interfaces";
 import { Show } from "../../objects/classes/show/Show";
 import Table from "../tables";
-import { FilterParamCompnent } from "../params/filter";
+import { FilterParamComponent } from "../params/filter";
 import CarouselCard from "../cards/CarouselCard";
 
 interface QueryableTableContainerProps {
@@ -44,7 +44,7 @@ export default function QueryableTableContainer({
         <div className="bg-shark">
             <DrawerComponent
                 isOpen={sideDrawerIsOpen}
-                child={<FilterParamCompnent sections={[]} />}
+                child={<FilterParamComponent sections={[]} />}
                 handleOpen={handleButtonClick}
             />
 

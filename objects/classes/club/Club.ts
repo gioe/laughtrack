@@ -1,4 +1,4 @@
-import { toSocialDataInterface } from "../../../util/domainModels/socialData/mapper";
+import { toSocialDataInterface } from "../../../util/socialData/mapper";
 import { EntityType } from "../../../util/enum";
 import { SocialDataInterface, TagInterface } from "../../interfaces";
 import { Show } from "../show/Show";

@@ -4,28 +4,30 @@ import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { useState } from "react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { useSearchParams } from "next/navigation";
-import { adjustUrlParams } from "../../../util/primatives/paramUtil";
 import { URLParam } from "../../../util/enum";
-import { replaceRoute } from "../../../util/navigationUtil";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "../../../util/tailwindUtil";
 import { SortOptionInterface } from "../../../objects/interfaces";
+import { LaughtrackSearchParams } from "../../../objects/classes/searchParams/LaughtrackSearchParams";
 
 interface SortParamComponentProps {
     options: SortOptionInterface[];
 }
 
 export function SortParamComponent({ options }: SortParamComponentProps) {
-    const [selectedSort, setSelectedSort] = useState(
-        options[0].value.valueOf(),
+    const params = LaughtrackSearchParams.asClientSideParams(
+        useSearchParams(),
+        usePathname(),
+        useRouter(),
     );
 
-    const handleSortSelection = (sortValue: string) => {
-        const searchParams = new URLSearchParams(useSearchParams());
-        adjustUrlParams(searchParams, {
-            value: sortValue,
-            key: URLParam.Sort,
-        });
-        replaceRoute(searchParams);
+    const [selectedSort, setSelectedSort] = useState(
+        params.getParamValue(URLParam.Sort),
+    );
+
+    const modifySortParam = (sortValue: string) => {
+        params.setParamValue(URLParam.Sort, sortValue);
+        params.replaceRoute();
         setSelectedSort(sortValue);
     };
 
@@ -57,7 +59,7 @@ export function SortParamComponent({ options }: SortParamComponentProps) {
                             <MenuItem key={option.name}>
                                 <h1
                                     onClick={() =>
-                                        handleSortSelection(option.value)
+                                        modifySortParam(option.value)
                                     }
                                     className={cn(
                                         option.value == selectedSort

@@ -5,28 +5,30 @@ import { Button } from "../../ui/button";
 import { Form } from "../../ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import {
-    formattedDateParam,
-    updateMultipleParams,
-} from "../../../util/primatives/paramUtil";
 import { URLParam } from "../../../util/enum";
-import { pushNewPage } from "../../../util/navigationUtil";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { DropdownFormComponent } from "../../formComponents/dropdown";
 import CalendarFormComponent from "../../formComponents/calendar";
 import { homeSearchSchema } from "./schema";
+import { FormSelectable } from "../../../objects/interfaces";
+import { LaughtrackSearchParams } from "../../../objects/classes/searchParams/LaughtrackSearchParams";
 
 interface HomeSearchFormProps {
-    cities: string[];
+    citiesString: string;
 }
 
-export default function HomeSearchForm({ cities }: HomeSearchFormProps) {
-    const router = useRouter();
+export default function HomeSearchForm({ citiesString }: HomeSearchFormProps) {
+    const params = LaughtrackSearchParams.asClientSideParams(
+        useSearchParams(),
+        usePathname(),
+        useRouter(),
+    );
+    const cities = JSON.parse(citiesString) as FormSelectable[];
 
     const form = useForm<z.infer<typeof homeSearchSchema>>({
         resolver: zodResolver(homeSearchSchema),
         defaultValues: {
-            location: "",
+            cityId: "",
             dates: {
                 from: undefined,
                 to: undefined,
@@ -35,22 +37,10 @@ export default function HomeSearchForm({ cities }: HomeSearchFormProps) {
     });
 
     function onSubmit(values: z.infer<typeof homeSearchSchema>) {
-        const params = new URLSearchParams();
-        updateMultipleParams(params, [
-            {
-                value: values.location,
-                key: URLParam.Location,
-            },
-            {
-                value: formattedDateParam(values.dates.from),
-                key: URLParam.StartDate,
-            },
-            {
-                value: formattedDateParam(values.dates.to),
-                key: URLParam.EndDate,
-            },
-        ]);
-        pushNewPage(params, router, "search");
+        params.setParamValue(URLParam.City, values.cityId);
+        params.setParamValue(URLParam.StartDate, values.dates.from);
+        params.setParamValue(URLParam.EndDate, values.dates.to);
+        params.pushPageFromParams();
     }
 
     return (
@@ -62,9 +52,9 @@ export default function HomeSearchForm({ cities }: HomeSearchFormProps) {
                 space-y-4 lg:space-y-0 rounded-lg"
             >
                 <DropdownFormComponent
-                    name="location"
-                    title="Location"
-                    placeholder="Select your location"
+                    name="cityId"
+                    title="City"
+                    placeholder="Select your city"
                     items={cities}
                     form={form}
                 />

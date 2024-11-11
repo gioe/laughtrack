@@ -6,7 +6,7 @@ import { Club } from "../../../objects/classes/club/Club";
 import { getSortOptionsForEntityType } from "../../../util/sort";
 import QueryableTableContainer from "../../../components/container";
 import ClearShowsModal from "../../../components/modals/club/clear";
-import ScrapeEntityModal from "../../../components/modals/club/scrape";
+import ScrapeEntityModal from "../../../components/modals/entity/scrape";
 const { db } = getDB();
 
 async function getClubDetail(

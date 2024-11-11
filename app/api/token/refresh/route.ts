@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import {
     generateToken,
     verifyToken,
-} from "../../../../util/domainModels/token";
+} from "../../../../util/token";
 import { headers } from "next/headers";
 
 export async function POST() {

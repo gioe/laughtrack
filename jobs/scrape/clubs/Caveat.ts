@@ -116,9 +116,11 @@ export class Caveat implements ClubScraper {
         const show = new Show({
             lineup: output[0] as ComedianDTO[],
             date_time: new DateTimeContainer(output[1] as string[]).asDateObject(),
-            ticket_link: generateValidUrl(this.clubData.baseUrl, link),
+            ticket: {
+                link: generateValidUrl(this.clubData.baseUrl, link),
+                price: output[4] as number
+            },
             name: output[3] as string,
-            price: output[4] as string,
             club_id: this.clubData.id,
         });
 

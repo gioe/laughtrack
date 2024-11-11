@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import TablePagination from "@mui/material/TablePagination";
-import { adjustUrlParams } from "../../../util/primatives/paramUtil";
 import { URLParam } from "../../../util/enum";
-import { replaceRoute } from "../../../util/navigationUtil";
+import { usePathname, useRouter } from "next/navigation";
+import { LaughtrackSearchParams } from "../../../objects/classes/searchParams/LaughtrackSearchParams";
 
 interface PageParamComponentProps {
     itemCount: number;
@@ -14,36 +14,35 @@ interface PageParamComponentProps {
 export function PageParamComponent({
     itemCount,
 }: Readonly<PageParamComponentProps>) {
-    const searchParams = useSearchParams();
-    const currentPage = Number(searchParams.get("page")) || 0;
+    const params = LaughtrackSearchParams.asClientSideParams(
+        useSearchParams(),
+        usePathname(),
+        useRouter(),
+    );
+    const [page, setPage] = useState(
+        params.getParamValue(URLParam.Page) as number,
+    );
 
-    const [page, setPage] = useState(currentPage);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [rowsPerPage, setRowsPerPage] = useState(
+        params.getParamValue(URLParam.Rows) as number,
+    );
 
-    const handleChangePage = (
+    const handleChangeOffset = (
         event: React.MouseEvent<HTMLButtonElement> | null,
         newPage: number,
     ) => {
-        const searchParams = new URLSearchParams();
-        adjustUrlParams(searchParams, {
-            value: newPage,
-            key: URLParam.Page,
-        });
-        replaceRoute(searchParams);
+        params.setParamValue(URLParam.Page, newPage);
+        params.replaceRoute();
         setPage(newPage);
     };
 
-    const handleChangeRowsPerPage = (
+    const handleChangeRows = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => {
-        const searchParams = new URLSearchParams(useSearchParams());
-        const rows = parseInt(event.target.value, 10);
-        adjustUrlParams(searchParams, {
-            value: rows,
-            key: URLParam.Rows,
-        });
-        replaceRoute(searchParams);
-        setRowsPerPage(rows);
+        const rowValue = parseInt(event.target.value, 10);
+        params.setParamValue(URLParam.Rows, rowValue);
+        params.replaceRoute();
+        setRowsPerPage(rowValue);
         setPage(1);
     };
 
@@ -72,9 +71,9 @@ export function PageParamComponent({
             component="div"
             count={itemCount}
             page={page}
-            onPageChange={handleChangePage}
+            onPageChange={handleChangeOffset}
             rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
+            onRowsPerPageChange={handleChangeRows}
         />
     );
 }

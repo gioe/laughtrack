@@ -110,9 +110,11 @@ export class TheGrislyPear implements ClubScraper {
         const show = new Show({
             lineup: output[0],
             date_time: new DateTimeContainer(output[1]).asDateObject(),
-            ticket_link: generateValidUrl(this.clubData.baseUrl, link),
+            ticket: {
+                link: generateValidUrl(this.clubData.baseUrl, link),
+                price: output[4] as number
+            },
             name: output[3],
-            price: output[4],
             club_id: this.clubData.id,
         });
         return {

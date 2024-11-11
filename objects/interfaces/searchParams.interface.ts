@@ -1,12 +1,11 @@
 export interface SearchParams {
-    id?: string;
-    location?: string;
-    startDate?: string;
-    endDate?: string;
-    club?: string;
-    comedian?: string;
+    // Common
     page?: string;
     query?: string;
     sort?: string;
     rows?: string;
+
+    city?: string;
+    startDate?: string;
+    endDate?: string;
 }

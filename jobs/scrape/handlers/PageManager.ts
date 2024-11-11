@@ -74,7 +74,7 @@ export class PageManager {
                 throw new Error(
                     "Button not visible. No reason to try to click.",
                 );
-            })
+            },)
             .then(() => delay(1000))
             .then(() => this.expandPage(page, locator))
             .catch((error) => {
@@ -101,7 +101,11 @@ export class PageManager {
                 );
             })
             .then(() => delay(1000))
-            .then(() => page);
+            .then(() => page)
+            .catch((error) => {
+                console.warn(error);
+                return page;
+            });
     };
 
     getText = async (locator: Locator): Promise<string[]> => {

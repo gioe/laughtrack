@@ -1,1 +1,0 @@
-SELECT id, instagram_followers, tiktok_followers, youtube_followers FROM comedians;

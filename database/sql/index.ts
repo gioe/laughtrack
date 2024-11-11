@@ -4,92 +4,93 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { createSingleton } from "../../util/singletonUtil";
 
-export const clubs = {
+
+export const city = {
     // Create Table
-    createTabe: sql("clubs/create.sql").qf,
+    createTable: sql("city/createTable.sql").qf,
 
     // GETs
-    getAllShowPopularityData: sql("clubs/getAllShowPopularityData.sql").qf,
-    getByName: sql("clubs/getByName.sql").qf,
-    getById: sql("clubs/getById.sql").qf,
-    getCities: sql("clubs/getCities.sql").qf,
-    getSearchResults: sql("clubs/getSearchResults.sql").qf,
-    getAllInCity: sql("clubs/getAllInCity.sql").qf,
+    getAll: sql("city/get/all.sql").qf
+
 
 };
 
-export const comedians = {
+export const club = {
     // Create Table
-    createTabe: sql("comedians/create.sql").qf,
+    createTable: sql("club/createTable.sql").qf,
 
     // GETs
-    getAllWithSocialData: sql("comedians/getAllWithSocialData.sql").qf,
-    getAllSocialData: sql("comedians/getAllSocialData.sql").qf,
-    getAllWithFavoritesAndSocialData: sql(
-        "comedians/getAllWithFavoritesAndSocialData.sql",
-    ).qf,
-    getAllFavorites: sql("comedians/getAllFavorites.sql").qf,
-    getByName: sql("comedians/getByName.sql").qf,
-    getById: sql("comedians/getById.sql").qf,
-    getTrending: sql("comedians/getTrending.sql").qf,
-    getAllIdsByUuids: sql("comedians/getAllIdsByUuids.sql").qf,
-    getSearchResults: sql("comedians/getSearchResults.sql").qf,
+    getByName: sql("club/get/name.sql").qf,
+    getById: sql("club/get/id.sql").qf,
+    getAll: sql("club/get/all.sql").qf,
+    getByCity: sql("club/get/city.sql").qf
 
 };
 
-export const lineupItems = {
+export const comedian = {
     // Create Table
-    createTabe: sql("lineupItems/create.sql").qf,
-    getByComedianId: sql("lineupItems/getByComedianId.sql").qf,
-    getByShowId: sql("lineupItems/getByShowId.sql").qf,
+    createTable: sql("comedian/createTable.sql").qf,
+
+    // GETs
+    getAll: sql("comedian/get/all.sql").qf,
+    getByName: sql("comedian/get/name.sql").qf,
+    getById: sql("comedian/get/id.sql").qf,
+    getTrending: sql("comedian/get/trending.sql").qf,
 };
 
-export const favorites = {
+
+export const favorite = {
     // Create Table
-    createTabe: sql("favorites/create.sql").qf,
+    createTable: sql("favorite/createTable.sql").qf,
 
     // POST
-    add: sql("favorites/add.sql").qf,
+    add: sql("favorite/add.sql").qf,
 
     // DELETE
-    remove: sql("favorites/remove.sql").qf,
+    remove: sql("favorite/remove.sql").qf,
 };
 
-export const shows = {
+
+export const lineupItem = {
     // Create Table
-    createTabe: sql("shows/create.sql").qf,
+    createTable: sql("lineupItem/createTable.sql").qf,
+    getByComedianId: sql("lineupItem/get/comedianId.sql").qf,
+    getByShowId: sql("lineupItem/get/showId.sql").qf,
+};
+
+export const show = {
+    // Create Table
+    createTable: sql("show/createTable.sql").qf,
 
     //POST
-    add: sql("shows/add.sql").qf,
+    add: sql("show/add.sql").qf,
 
     // GETs
-    getAllLineupPopularityData: sql("shows/getAllLineupPopularityData.sql").qf,
-    getWithLineup: sql("shows/getWithLineup.sql").qf,
-    getSearchResults: sql("shows/getSearchResults.sql").qf,
-    getByTicketLink: sql("shows/geByTicketLink.sql").qf,
-
+    getAll: sql("show/get/all.sql").qf,
+    getById: sql("show/get/id.sql").qf,
+    getByName: sql("show/get/name.sql").qf,
 
     //DELETE
-    deleteByClub: sql("shows/deleteByClub.sql").qf,
+    deleteByClub: sql("show/delete/club.sql").qf,
 };
 
-export const tags = {
+export const tag = {
     // Create Tables
-    createTabe: sql("tags/create.sql").qf,
-    createTaggedClubsTable: sql("tags/createTaggedClubs.sql").qf,
-    createTaggedComediansTable: sql("tags/createTaggedComedians.sql").qf,
-    createTaggedShowsTable: sql("tags/createTaggedShows.sql").qf,
+    createTable: sql("tag/createTable.sql").qf,
+    createTaggedClubsTable: sql("tag/createTaggedClubsTable.sql").qf,
+    createTaggedComediansTable: sql("tag/createTaggedComediansTable.sql").qf,
+    createTaggedShowsTable: sql("tag/createTaggedShowsTable.sql").qf,
 
     // GET
-    getAllByType: sql("tags/getAllByType.sql").qf,
+    getByType: sql("tag/get/type.sql").qf,
 };
 
-export const users = {
+export const user = {
     // Create Table
-    create: sql("users/create.sql").qf,
+    createTable: sql("user/createTable.sql").qf,
 
     //POST
-    add: sql("users/add.sql").qf,
+    add: sql("user/add.sql").qf,
 };
 
 interface IQueryFileScope {

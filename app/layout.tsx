@@ -12,12 +12,14 @@ import { cache } from "react";
 import { getDB } from "../database";
 import { UserInterface } from "../objects/interfaces";
 import Footer from "../components/footer";
-import ScrapeClubSelectionMenuModal from "../components/modals/club/scrapeIds";
+import ScrapeEntitySelectionMenuModal from "../components/modals/entity/scrapeIds";
+import { EntityType } from "../util/enum";
+import { City } from "../objects/classes/city/City";
 const { db } = getDB();
 
 interface RootProps {
     user: UserInterface | null;
-    cities: string[];
+    cities: City[];
 }
 
 export const metadata: Metadata = {
@@ -49,7 +51,7 @@ export async function getCurrentUser() {
 
 async function getRootProps(): Promise<RootProps> {
     const user = getCurrentUser();
-    const cities = db.clubs.getAllCities();
+    const cities = db.cities.getAll();
 
     return Promise.all([user, cities]).then((responses) => {
         return {
@@ -65,6 +67,7 @@ export default async function RootLayout({
     children: React.ReactNode;
 }>) {
     const { user, cities } = await getRootProps();
+    const citiesString = JSON.stringify(cities);
 
     return (
         <SessionProvider>
@@ -76,7 +79,10 @@ export default async function RootLayout({
                             <ToasterProvider />
                             <LoginModal />
                             <RegisterModal />
-                            <ScrapeClubSelectionMenuModal cities={cities} />
+                            <ScrapeEntitySelectionMenuModal
+                                type={EntityType.Club}
+                                citiesString={citiesString}
+                            />
                             {children}
                             <Footer />
                         </ClientOnly>

@@ -9,22 +9,24 @@ import {
 
 import { URLParam } from "../../../util/enum";
 import { FilterSection } from "../../../objects/interfaces/filter.interface";
-import { replaceRoute } from "../../../util/navigationUtil";
-import { adjustUrlParams } from "../../../util/primatives/paramUtil";
 import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { LaughtrackSearchParams } from "../../../objects/classes/searchParams/LaughtrackSearchParams";
 
 interface FilterOptionsComponentProps {
     sections: FilterSection[];
 }
 
-export function FilterParamCompnent({ sections }: FilterOptionsComponentProps) {
-    const appendFilterParams = (type: string, filter: string) => {
-        const params = new URLSearchParams(useSearchParams());
-        adjustUrlParams(params, {
-            value: filter,
-            key: URLParam.Filter,
-        });
-        replaceRoute(params);
+export function FilterParamComponent({
+    sections,
+}: FilterOptionsComponentProps) {
+    const params = LaughtrackSearchParams.asClientSideParams(
+        useSearchParams(),
+        usePathname(),
+        useRouter(),
+    );
+    const appendParam = (type: string, filter: string) => {
+        params.setParamValue(URLParam.City, "");
     };
 
     return (
@@ -66,7 +68,7 @@ export function FilterParamCompnent({ sections }: FilterOptionsComponentProps) {
                                     >
                                         <input
                                             onClick={() =>
-                                                appendFilterParams(
+                                                appendParam(
                                                     section.id,
                                                     option.value,
                                                 )

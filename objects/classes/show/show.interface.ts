@@ -6,6 +6,8 @@ import {
 import { SocialDataDTO, SocialDiscoverable } from "../../interfaces/socialData.interface";
 import { Comedian } from "../comedian/Comedian";
 import { ComedianDTO } from "../comedian/comedian.interface";
+import { Ticket } from "../ticket/Ticket";
+import { TicketDTO } from "../ticket/ticket.interface";
 
 // Client
 export interface ShowInterface extends Taggable, Entity, SocialDiscoverable {
@@ -15,8 +17,8 @@ export interface ShowInterface extends Taggable, Entity, SocialDiscoverable {
     popularityScore?: number;
     clubName?: string;
     clubId: number;
-    price: number;
-    ticketLink: string;
+    ticket: Ticket;
+    lastScrapeTime?: Date
 }
 
 // DB
@@ -24,11 +26,11 @@ export interface ShowDTO {
     club_name?: string;
     club_id: number;
     date_time: Date;
-    ticket_link: string;
+    ticket: TicketDTO;
     name: string;
-    price: string;
     social_data?: SocialDataDTO;
     tags?: TagInterface[]
     lineup?: ComedianDTO[]
     id?: number;
+    last_scrape_time?: Date
 }

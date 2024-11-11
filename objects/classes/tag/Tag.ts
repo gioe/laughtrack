@@ -7,7 +7,6 @@ export class Tag implements TagInterface {
 
     // Constructor
     constructor(input: TagDTO) {
-        console.log(input)
         this.id = input.id
         this.name = input.tag_name
     }

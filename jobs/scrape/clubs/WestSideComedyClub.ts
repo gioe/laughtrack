@@ -105,9 +105,11 @@ export class WestSideComedyClub implements ClubScraper {
                 output[1],
                 SEPARATOR,
             ).asDateObject(),
-            ticket_link: generateValidUrl(this.clubData.baseUrl, url),
+            ticket: {
+                link: generateValidUrl(this.clubData.scrapingPageUrl, url),
+                price: output[4] as number
+            },
             name: output[3],
-            price: output[4],
             club_id: this.clubData.id,
         });
         return {

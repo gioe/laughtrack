@@ -5,20 +5,26 @@ import { useSearchParams } from "next/navigation";
 import SearchIcon from "../../icons/SearchIcon";
 import React, { useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
-import { adjustUrlParams } from "../../../util/primatives/paramUtil";
 import { URLParam } from "../../../util/enum";
-import { replaceRoute } from "../../../util/navigationUtil";
+import { usePathname, useRouter } from "next/navigation";
+import { LaughtrackSearchParams } from "../../../objects/classes/searchParams/LaughtrackSearchParams";
 
 interface QueryParamComponentProps {
-    query?: string;
     inputPlaceholder: string;
 }
 
 const QueryParamComponent: React.FC<QueryParamComponentProps> = ({
-    query,
     inputPlaceholder,
 }) => {
-    const [value, setValue] = useState(query ?? "");
+    const params = LaughtrackSearchParams.asClientSideParams(
+        useSearchParams(),
+        usePathname(),
+        useRouter(),
+    );
+
+    const [value, setValue] = useState(
+        params.getParamValue(URLParam.Query) as string,
+    );
 
     const handleInputChange = (value: string) => {
         handleSearch(value);
@@ -26,12 +32,8 @@ const QueryParamComponent: React.FC<QueryParamComponentProps> = ({
     };
 
     const handleSearch = useDebouncedCallback((term) => {
-        const searchParams = new URLSearchParams(useSearchParams());
-        adjustUrlParams(searchParams, {
-            value: term,
-            key: URLParam.Query,
-        });
-        replaceRoute(searchParams);
+        params.setParamValue(URLParam.Query, term);
+        params.replaceRoute();
     }, 300);
 
     return (
