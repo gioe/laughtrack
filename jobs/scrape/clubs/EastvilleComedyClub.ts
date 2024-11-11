@@ -99,12 +99,12 @@ export class EastvilleComedyClub implements ClubScraper {
     processOutput = (output: any[], url: string): ScrapingOutput => {
         const show = new Show({
             lineup: output[0],
-            date_time: new DateTimeContainer(
+            date: new DateTimeContainer(
                 output[1],
                 SEPARATOR,
             ).asDateObject(),
             ticket: {
-                link: generateValidUrl(this.clubData.baseUrl, url),
+                link: generateValidUrl(this.clubData.website, url),
                 price: output[4] as number
             },
             name: output[3],

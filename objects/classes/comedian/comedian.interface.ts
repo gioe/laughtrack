@@ -25,3 +25,10 @@ export interface ComedianDTO {
     is_favorite?: boolean;
     tags?: TagDTO[]
 }
+
+export interface PaginatedResponseDTO<T> {
+    response: {
+        data: T[],
+        total: number
+    }
+}

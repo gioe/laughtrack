@@ -3,10 +3,12 @@ import { show as sql } from "../sql";
 import {
     PopularityScoreIODTO,
 } from "../../objects/interfaces";
-import { ShowDTO } from "../../objects/classes/show/show.interface";
+import { PaginatedShowResponseDTO, ShowDTO } from "../../objects/classes/show/show.interface";
 import { IExtensions } from ".";
 import { Show } from "../../objects/classes/show/Show";
 import { LaughtrackSearchParams } from "../../objects/classes/searchParams/LaughtrackSearchParams";
+import { PaginatedEntityResponse } from "../../objects/interfaces/entity.interface";
+import { EntityType } from "../../util/enum";
 
 const columnSets: {
     updateScores: ColumnSet | null;
@@ -47,22 +49,27 @@ export class ShowsRepository {
         return this.db.none(sql.createTable);
     }
 
-    async getAll(params: LaughtrackSearchParams): Promise<Show[]> {
+    async getAll(params: LaughtrackSearchParams): Promise<PaginatedEntityResponse> {
+        const queryFile = params.getQuery(sql, EntityType.Show)
+        const filters = params.asShowQueryFilters();
         return this.db
-            .any(sql.getAll, params.asShowQueryFilters())
-            .then((results: ShowDTO[] | null) => {
-                return results ? results.map((result: ShowDTO) => new Show(result)) : []
+            .oneOrNone(queryFile, filters)
+            .then((result: PaginatedShowResponseDTO | null) => {
+                return {
+                    entities: result ? result.response.data.map((result: ShowDTO) => new Show(result)) : [],
+                    total: result ? result.response.total : 0
+                }
             });
     }
 
     async add(instance: ShowDTO): Promise<{ id: number }> {
         return this.db.one(sql.add, {
             club_id: instance.club_id,
-            date_time: instance.date_time,
+            date: instance.date,
             ticket_link: instance.ticket.link,
             price: instance.ticket.price,
             name: instance.name,
-            last_scrape_time: instance.last_scrape_time
+            scraped: instance.scraped
         });
     }
 

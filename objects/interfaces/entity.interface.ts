@@ -9,3 +9,9 @@ import { Taggable } from "./taggable.interface";
 export interface Entity extends Identifiable, Favoritable, SocialDiscoverable, Taggable, BannerRepresentable, CardRepresentable {
     type: EntityType;
 }
+
+
+export interface PaginatedEntityResponse {
+    entities: Entity[]
+    total: number
+}

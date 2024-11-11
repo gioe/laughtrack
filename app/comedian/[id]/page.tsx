@@ -1,14 +1,15 @@
 import EntityBanner from "../../../components/banner";
 import TagEntityModal from "../../../components/modals/entity/tag";
 import { EntityType } from "../../../util/enum";
-import { SearchParams } from "../../../objects/interfaces/searchParams.interface";
 import { getDB } from "../../../database";
 import { TagInterface } from "../../../objects/interfaces/tag.interface";
 import { Comedian } from "../../../objects/classes/comedian/Comedian";
 import { getSortOptionsForEntityType } from "../../../util/sort";
-import QueryableTableContainer from "../../../components/container";
+import QueryableEntityTableContainer from "../../../components/container";
 import MergeComediansModal from "../../../components/modals/comedian/merge";
 import EditSocialDataModal from "../../../components/modals/comedian/editSocialData";
+import { SearchParams } from "../../../objects/types/searchParams";
+import { LaughtrackSearchParams } from "../../../objects/classes/searchParams/LaughtrackSearchParams";
 
 const { db } = getDB();
 
@@ -21,7 +22,10 @@ async function getComedianDetail(
     id: string,
     searchParams: SearchParams,
 ): Promise<ComedianDetailPageInterface> {
-    const comedian = db.comedians.getById(Number(id), searchParams);
+    const paramsWrapper =
+        LaughtrackSearchParams.asServerSideParams(searchParams);
+
+    const comedian = db.comedians.getById(Number(id), paramsWrapper);
     const tags = db.tags.getByType(EntityType.Comedian.valueOf());
 
     return Promise.all([comedian, tags]).then((responses) => {
@@ -44,7 +48,7 @@ export default async function ComedianDetailsPage(props: {
     const { comedian, tags } = await getComedianDetail(params.id, searchParams);
     const comedianString = JSON.stringify(comedian);
     const tagsString = JSON.stringify(tags);
-    const sortOptions = getSortOptionsForEntityType(EntityType.Show);
+    const responseString = JSON.stringify(comedian?.dates ?? []);
 
     return (
         <div className="flex flex-col">
@@ -64,9 +68,9 @@ export default async function ComedianDetailsPage(props: {
                 {comedian && <EntityBanner entityString={comedianString} />}
             </section>
             <section>
-                <QueryableTableContainer
-                    sortOptions={sortOptions}
-                    resultString={JSON.stringify(comedian?.dates)}
+                <QueryableEntityTableContainer
+                    sortOptions={getSortOptionsForEntityType(EntityType.Show)}
+                    responseString={responseString}
                     defaultNode={<div></div>}
                 />
             </section>

@@ -15,7 +15,7 @@ export function PageParamComponent({
     itemCount,
 }: Readonly<PageParamComponentProps>) {
     const params = LaughtrackSearchParams.asClientSideParams(
-        useSearchParams(),
+        new URLSearchParams(useSearchParams()),
         usePathname(),
         useRouter(),
     );
@@ -25,6 +25,10 @@ export function PageParamComponent({
 
     const [rowsPerPage, setRowsPerPage] = useState(
         params.getParamValue(URLParam.Rows) as number,
+    );
+
+    console.log(
+        `There are ${itemCount} results and you are currently on page ${page} with ${rowsPerPage} rows per page`,
     );
 
     const handleChangeOffset = (
@@ -43,7 +47,6 @@ export function PageParamComponent({
         params.setParamValue(URLParam.Rows, rowValue);
         params.replaceRoute();
         setRowsPerPage(rowValue);
-        setPage(1);
     };
 
     return (
@@ -71,8 +74,8 @@ export function PageParamComponent({
             component="div"
             count={itemCount}
             page={page}
-            onPageChange={handleChangeOffset}
             rowsPerPage={rowsPerPage}
+            onPageChange={handleChangeOffset}
             onRowsPerPageChange={handleChangeRows}
         />
     );

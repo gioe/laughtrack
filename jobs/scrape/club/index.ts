@@ -32,7 +32,7 @@ export async function scrapeClubs(clubIds?: string[], headless?: boolean): Promi
     const startDate = new Date();
     console.log(`Started scraping job for ${idNumbers.length == 0 ? "all" : ids} at ${startDate}`);
 
-    return db.clubs.getAll()
+    return db.clubs.getAllForScraping()
         .then((clubs: ClubInterface[]) => {
             const jobs = clubs.filter((club: ClubInterface) => {
                 if (ids.length > 0) return idNumbers.includes(club.id)

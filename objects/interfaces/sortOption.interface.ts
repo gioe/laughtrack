@@ -1,6 +1,7 @@
-import { SortProperty } from "../../util/enum";
+import { SortParamValue } from "../../util/enum";
 
 export interface SortOptionInterface {
     name: string;
-    value: SortProperty;
+    value: SortParamValue;
+    default?: boolean
 }

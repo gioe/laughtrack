@@ -37,16 +37,12 @@ export const formattedDateParam = (value: Date) => {
 };
 
 export const formatParamValue = (value: ParamValue) => {
-    if (isDate(value)) {
+    if (value instanceof Date) {
         return formattedDateParam(value as Date)
     }
     return value.toString()
 }
 
-const isDate = (value: ParamValue) => {
-    console.log(new Date(value))
-    return new Date(value);
-}
 
 export const getDefaultValueForKey = (key: URLParam) => {
     switch (key) {
@@ -55,7 +51,7 @@ export const getDefaultValueForKey = (key: URLParam) => {
         case URLParam.Query:
             return ""
         case URLParam.Page:
-            return 1
+            return 0
         case URLParam.Rows:
             return 10;
         case URLParam.City:

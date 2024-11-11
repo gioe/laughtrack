@@ -9,22 +9,23 @@ import EntityType from "../icons/MiniEntityIcon";
 import ShowCard from "../cards/ShowCard";
 import { Entity, SortOptionInterface } from "../../objects/interfaces";
 import { Show } from "../../objects/classes/show/Show";
-import Table from "../tables";
 import { FilterParamComponent } from "../params/filter";
 import CarouselCard from "../cards/CarouselCard";
+import { PaginatedEntityResponse } from "../../objects/interfaces/entity.interface";
+import Table from "../table";
 
-interface QueryableTableContainerProps {
-    resultString: string;
+interface QueryableEntityTableContainerProps {
+    responseString: string;
     defaultNode: React.ReactNode;
     sortOptions: SortOptionInterface[];
 }
 
-export default function QueryableTableContainer({
-    resultString,
+export default function QueryableEntityTableContainer({
+    responseString,
     defaultNode,
     sortOptions,
-}: QueryableTableContainerProps) {
-    const results = JSON.parse(resultString) as Entity[];
+}: QueryableEntityTableContainerProps) {
+    const results = JSON.parse(responseString) as PaginatedEntityResponse;
     const [sideDrawerIsOpen, setSideDrawerIsOpen] = useState(false);
 
     const handleButtonClick = (isOpen: boolean) => {
@@ -50,18 +51,18 @@ export default function QueryableTableContainer({
 
             <main className="mx-auto px-10 flex-item tems-end justify-end">
                 <section aria-labelledby="search-parameter-options-section">
-                    {results.length > 0 && (
+                    {results.total > 0 && (
                         <div className="flex flex-row-reverse gap-4 items-center">
                             <FunnelButton handleClick={handleButtonClick} />
                             <SortParamComponent options={sortOptions} />
-                            <PageParamComponent itemCount={results.length} />
+                            <PageParamComponent itemCount={results.total} />
                         </div>
                     )}
                     <div className="grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-5">
                         <div className="lg:col-span-4">
                             <Table
                                 keyExtractor={(item) => item.id.toString()}
-                                data={results}
+                                data={results.entities}
                                 defaultNode={defaultNode}
                                 renderItem={renderFunction}
                             />

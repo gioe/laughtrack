@@ -5,12 +5,11 @@ import { Scrapable } from "./scrape.interface";
 import { ModalState } from "./modalState.interface";
 import { Paginated, PaginationData } from "./paginated.interface";
 import { ScrapingArgs, ScrapingOutput, ClubScraper } from "./scrape.interface";
-import { SearchParams } from "./searchParams.interface";
 import { ShowProvider } from "./showProvider.interface";
 import { LineupItemDTO } from "./lineup.interface";
 import { Identifiable } from "./identifable.interface"
 import { FormSelectable } from "./formSelectable.interface"
-
+import { PaginatedResponseDTO } from "./paginatedResponseDto.interface";
 import {
     SocialDataInterface,
     SocialDiscoverable,
@@ -35,7 +34,6 @@ export type {
     Paginated,
     ScrapingArgs,
     ScrapingOutput,
-    SearchParams,
     ShowProvider,
     SocialDataInterface,
     SortOptionInterface,
@@ -57,5 +55,5 @@ export type {
     Identifiable,
     Scrapable,
     Entity,
-    LineupItemDTO
+    LineupItemDTO, PaginatedResponseDTO
 };

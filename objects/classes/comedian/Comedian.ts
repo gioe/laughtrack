@@ -3,6 +3,7 @@ import { EntityType } from "../../../util/enum";
 import {
     removeBadWhiteSpace,
     capitalized,
+    removeNonAlphanumeric,
 } from "../../../util/primatives/stringUtil";
 import { SocialDataInterface, TagInterface } from "../../interfaces";
 import { Show } from "../show/Show";
@@ -18,7 +19,7 @@ export class Comedian implements ComedianInterface {
     isFavorite: boolean;
     id: number;
     type: EntityType = EntityType.Comedian;
-    bannerImageUrl: string;
+    bannerImageUrl;
     cardImageUrl: string;
 
     constructor(input: ComedianDTO) {
@@ -30,14 +31,19 @@ export class Comedian implements ComedianInterface {
         this.isFavorite = input.is_favorite ?? false
         this.id = input.id ?? 0
         this.bannerImageUrl = `/images/banners/${input.name}.png`
-        this.cardImageUrl = `/images/${EntityType.Comedian.valueOf()}/square/${input.name}.png`;
+        this.cardImageUrl = `/images/comedian/square/${input.name}.png`;
         this.uuid = input.uuid
     }
 
     asComedianDTO = (): ComedianDTO => {
         return {
             name: this.name,
-            uuid: this.uuid,
+            uuid: this.hashName()
         };
     };
+
+    hashName = () => {
+        return removeNonAlphanumeric(this.name).toLocaleLowerCase()
+    }
+
 }

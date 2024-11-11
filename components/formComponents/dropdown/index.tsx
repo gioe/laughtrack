@@ -33,7 +33,6 @@ export function DropdownFormComponent({
     items,
     form,
 }: DropdownProps) {
-    console.log(items);
     return (
         <div className="grid w-full lg:max-w-sm flex-1 items-center gap-1.5">
             <FormField
@@ -42,7 +41,9 @@ export function DropdownFormComponent({
                 render={({ field }) => {
                     return (
                         <FormItem className="flex flex-col">
-                            <FormLabel>{title}</FormLabel>
+                            <FormLabel className="text-white">
+                                {title}
+                            </FormLabel>
                             <Select
                                 onValueChange={field.onChange}
                                 defaultValue={field.value.toString()}

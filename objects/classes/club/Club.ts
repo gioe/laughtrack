@@ -6,7 +6,7 @@ import { ShowDTO } from "../show/show.interface";
 import { ClubDTO, ClubInterface } from "./club.interface";
 
 export class Club implements ClubInterface {
-    baseUrl: string;
+    website: string;
     city: string;
     address: string;
     zipCode: string;
@@ -22,7 +22,7 @@ export class Club implements ClubInterface {
     cardImageUrl: string;
 
     constructor(input: ClubDTO) {
-        this.baseUrl = input.base_url;
+        this.website = input.website;
         this.city = input.city;
         this.address = input.address;
         this.zipCode = input.zip_code;
@@ -34,7 +34,7 @@ export class Club implements ClubInterface {
         this.id = input.id
         this.scrapingPageUrl = input.scraping_page_url
         this.bannerImageUrl = `/images/banners/${input.name}.png`
-        this.cardImageUrl = `/images/${EntityType.Comedian.valueOf()}/square/${input.name}.png`;
+        this.cardImageUrl = `/images/club/square/${input.name}.png`;
     }
 
 

@@ -115,9 +115,9 @@ export class Caveat implements ClubScraper {
     processOutput = (output: unknown[], link: string): ScrapingOutput => {
         const show = new Show({
             lineup: output[0] as ComedianDTO[],
-            date_time: new DateTimeContainer(output[1] as string[]).asDateObject(),
+            date: new DateTimeContainer(output[1] as string[]).asDateObject(),
             ticket: {
-                link: generateValidUrl(this.clubData.baseUrl, link),
+                link: generateValidUrl(this.clubData.website, link),
                 price: output[4] as number
             },
             name: output[3] as string,

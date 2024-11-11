@@ -10,6 +10,6 @@ CREATE TABLE shows (
     price text,
     currency text DEFAULT 'USD'::text CHECK (currency = 'USD'::text),
     popularity_score double precision DEFAULT '0'::double precision,
-    last_scrape_time timestamp without time zone,
+    last_scrape_date timestamp without time zone,
     CONSTRAINT shows_club_id_date_time_key UNIQUE (club_id, date_time)
 );

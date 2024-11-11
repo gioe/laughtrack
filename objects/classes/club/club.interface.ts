@@ -16,7 +16,7 @@ export interface ClubInterface
     Favoritable,
     Scrapable,
     Entity {
-    baseUrl: string;
+    website: string;
     city: string;
     address: string;
     zipCode: string;
@@ -28,11 +28,20 @@ export interface ClubDTO {
     name: string;
     city: string;
     address: string;
-    base_url: string;
+    website: string;
     scraping_page_url: string;
     zip_code: string;
     social_data?: SocialDataDTO;
     dates?: ShowDTO[];
     tags?: TagDTO[];
     is_Favorite?: boolean
+}
+
+
+
+export interface PaginatedClubResponseDTO {
+    response: {
+        data: ClubDTO[],
+        total: number
+    }
 }

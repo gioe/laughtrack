@@ -112,12 +112,12 @@ export class NewYorkComedyClub implements ClubScraper {
     processOutput = (output: unknown[], link: string): ScrapingOutput => {
         const show = new Show({
             lineup: output[0] as ComedianDTO[],
-            date_time: new DateTimeContainer(
+            date: new DateTimeContainer(
                 output[1] as string[],
                 SEPARATOR,
             ).asDateObject(),
             ticket: {
-                link: generateValidUrl(this.clubData.baseUrl, link),
+                link: generateValidUrl(this.clubData.website, link),
                 price: output[4] as number
             },
             name: output[3] as string,

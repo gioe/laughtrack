@@ -17,7 +17,7 @@ const QueryParamComponent: React.FC<QueryParamComponentProps> = ({
     inputPlaceholder,
 }) => {
     const params = LaughtrackSearchParams.asClientSideParams(
-        useSearchParams(),
+        new URLSearchParams(useSearchParams()),
         usePathname(),
         useRouter(),
     );

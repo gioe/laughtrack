@@ -21,16 +21,16 @@ export enum URLParam {
 }
 
 export enum SortParamValue {
-    AlphabeticalAscending = 'alphabetical_asc',
-    AlphabeticalDescending = 'alphabetical_desc',
-    DateAscending = 'date_ascending',
-    DateDescending = 'date_descending',
-    PopularityAscending = 'popularity_asc',
-    PopularityDescending = 'popularity_desc',
-    PriceAscending = 'price_asc',
-    PriceDescending = 'price_desc',
-    ScrapeDateAscending = 'scrapedate_asc',
-    ScrapeDateDescending = 'scrapedate_desc'
+    AlphabeticalAscending = 'Name_Asc',
+    AlphabeticalDescending = 'Name_Desc',
+    DateAscending = 'Date_Asc',
+    DateDescending = 'Date_Desc',
+    PopularityAscending = 'Popularity_Asc',
+    PopularityDescending = 'Popularity_Desc',
+    PriceAscending = 'Price_Asc',
+    PriceDescending = 'Price_Desc',
+    ScrapeDateAscending = 'ScrapeDate_Asc',
+    ScrapeDateDescending = 'ScrapeDate_Desc'
 }
 
 export enum ComedyClub {

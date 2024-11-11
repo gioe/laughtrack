@@ -415,3 +415,135 @@
 
 22:12:34 error: invalid input syntax for type integer: ""
          query: with complete_shows as ( SELECT s.id as id, jsonb_build_object( 'price', s.price, 'link', s.ticket_link ) as ticket, s.name, cl.name as club_name, s.date_time as date_time, jsonb_agg( DISTINCT jsonb_build_object( 'id', c.id, 'name', c.name ) ) as lineup FROM shows s INNER JOIN lineup_items l ON s.id = l.show_id INNER JOIN comedians c ON c.id = l.comedian_id INNER JOIN clubs cl ON cl.id = s.club_id INNER JOIN cities ci on cl.city_id = ci.id WHERE ci.id = '' AND s.date_time < 0 AND s.date_time > 0 GROUP BY s.id, club_name ORDER BY s.date_time ASC ) SELECT * from complete_shows cs LIMIT 10 OFFSET 9
+
+08:34:26 error: Property 'name' doesn't exist.
+         query: WITH future_shows_with_lineup_details as ( SELECT s.id, s.popularity_score, s.date_time, s.ticket_link, s.price, s.name, club_id, array_agg(c.name) as lineup_names, jsonb_agg( DISTINCT jsonb_build_object( 'id', c.id, 'name', c.name, 'popularity_score', c.popularity_score ) ) as lineup_details FROM shows s INNER JOIN lineup_items l ON s.id = l.show_id INNER JOIN comedians c ON c.id = l.comedian_id WHERE s.date_time > NOW() GROUP BY s.id ORDER BY s.date_time ASC ), full_data as ( SELECT l.comedian_id as comedian_id, cl.name as club_name, cl.id as club_id, cl.city as city, fs.id as show_id, fs.lineup_details, fs.date_time, fs.name, fs.price, fs.ticket_link, jsonb_agg( DISTINCT jsonb_build_object( 'id', fs.id, 'popularity_score', fs.popularity_score )) as social_data FROM future_shows_with_lineup_details fs INNER JOIN lineup_items l ON fs.id = l.show_id INNER JOIN clubs cl ON cl.id = fs.club_id WHERE ${name} = ANY(fs.lineup_names) GROUP BY l.comedian_id, cl.name, cl.id, fs.id, fs.lineup_details, fs.date_time, fs.name, fs.price, fs.ticket_link ) SELECT c.id, c.name, jsonb_build_object( 'instagram_account', c.instagram_account, 'instagram_followers', c.instagram_followers, 'tiktok_account', c.tiktok_account, 'tiktok_followers', c.tiktok_followers, 'youtube_account', c.youtube_account, 'youtube_followers', c.youtube_followers, 'website', c.website ) AS social_data, c.popularity_score, COALESCE(jsonb_agg( DISTINCT jsonb_build_object( 'id', fd.show_id, 'city', fd.city, 'club_id', fd.club_id, 'club_name', fd.club_name, 'lineup', fd.lineup_details, 'date_time', fd.date_time, 'ticket_link', fd.ticket_link, 'social_data', fd.social_data, 'price', fd.price, 'name', fd.name ) )FILTER (WHERE fd.show_id IS NOT NULL), '[]') as dates FROM full_data fd RIGHT JOIN comedians c on c.id = fd.comedian_id where c.name = ${name} GROUP BY c.id, c.name
+         params: {"id":1347}
+
+08:54:55 error: non-integer constant in ORDER BY
+         query: with shows_with_lineups as ( SELECT s.id, club_id, s.name, jsonb_build_object( 'price', s.price, 'link', s.ticket_link ) as ticket, s.date_time, COALESCE(jsonb_agg( DISTINCT jsonb_build_object( 'id', c.id, 'name', c.name ))FILTER (WHERE c.id IS NOT NULL), '[]') as lineup FROM shows s LEFT JOIN lineup_items l ON s.id = l.show_id LEFT JOIN comedians c ON c.id = l.comedian_id LEFT JOIN clubs cl ON cl.id = s.club_id WHERE date_time > NOW() GROUP BY s.id ORDER BY 'date_time ASC' LIMIT 10 ) SELECT c.id, c.name, jsonb_build_object( 'id', c.id, 'website', c.base_url ) as social_data, COALESCE(jsonb_agg( DISTINCT jsonb_build_object( 'id', swl.id, 'date_time', swl.date_time, 'name', swl.name, 'ticket', swl.ticket, 'lineup', swl.lineup )) FILTER (WHERE swl.id IS NOT NULL), '[]') as dates from clubs c LEFT JOIN shows_with_lineups swl ON c.id = swl.club_id WHERE c.id = 'NaN' GROUP BY c.id, c.name
+
+09:49:16 error: syntax error at or near "$"
+         query: with filtered_data as ( SELECT s.id as id, jsonb_build_object( 'price', s.price, 'link', s.ticket_link ) as ticket, s.name, cl.name as club_name, s.date_time as date_time, jsonb_agg( DISTINCT jsonb_build_object( 'id', c.id, 'name', c.name ) ) as lineup FROM shows s INNER JOIN lineup_items l ON s.id = l.show_id INNER JOIN comedians c ON c.id = l.comedian_id INNER JOIN clubs cl ON cl.id = s.club_id INNER JOIN cities ci on cl.city_id = ci.id WHERE ci.id = '2' AND s.date_time < $ {end_date} AND s.date_time > $ {start_date} LIMIT 10 OFFSET 0 GROUP BY s.id, club_name ORDER BY s.date_time ASC ), total_count as ( SELECT COUNT(s.id) AS total FROM shows s INNER JOIN clubs cl ON cl.id = s.club_id INNER JOIN cities ci on cl.city_id = ci.id WHERE ci.id = '2' AND s.date_time < $ {end_date} AND s.date_time > $ {start_date} ) SELECT JSONB_BUILD_OBJECT( 'data', JSONB_AGG( JSONB_BUILD_OBJECT( 'id', id, 'ticket', ticket, 'name', name, 'club_name', club_name, 'date_time', date_time, 'lineup', lineup ) ), 'total', ( SELECT total FROM total_count ) ) as response FROM filtered_data
+
+09:50:10 error: syntax error at or near "GROUP"
+         query: with filtered_data as ( SELECT s.id as id, jsonb_build_object( 'price', s.price, 'link', s.ticket_link ) as ticket, s.name, cl.name as club_name, s.date_time as date_time, jsonb_agg( DISTINCT jsonb_build_object( 'id', c.id, 'name', c.name ) ) as lineup FROM shows s INNER JOIN lineup_items l ON s.id = l.show_id INNER JOIN comedians c ON c.id = l.comedian_id INNER JOIN clubs cl ON cl.id = s.club_id INNER JOIN cities ci on cl.city_id = ci.id WHERE ci.id = '2' AND s.date_time < '2024-11-30' AND s.date_time > '2024-11-11' LIMIT 10 OFFSET 0 GROUP BY s.id, club_name ORDER BY s.date_time ASC ), total_count as ( SELECT COUNT(s.id) AS total FROM shows s INNER JOIN clubs cl ON cl.id = s.club_id INNER JOIN cities ci on cl.city_id = ci.id WHERE ci.id = '2' AND s.date_time < '2024-11-30' AND s.date_time > '2024-11-11' ) SELECT JSONB_BUILD_OBJECT( 'data', JSONB_AGG( JSONB_BUILD_OBJECT( 'id', id, 'ticket', ticket, 'name', name, 'club_name', club_name, 'date_time', date_time, 'lineup', lineup ) ), 'total', ( SELECT total FROM total_count ) ) as response FROM filtered_data
+
+09:50:20 error: syntax error at or near "GROUP"
+         query: with filtered_data as ( SELECT s.id as id, jsonb_build_object( 'price', s.price, 'link', s.ticket_link ) as ticket, s.name, cl.name as club_name, s.date_time as date_time, jsonb_agg( DISTINCT jsonb_build_object( 'id', c.id, 'name', c.name ) ) as lineup FROM shows s INNER JOIN lineup_items l ON s.id = l.show_id INNER JOIN comedians c ON c.id = l.comedian_id INNER JOIN clubs cl ON cl.id = s.club_id INNER JOIN cities ci on cl.city_id = ci.id WHERE ci.id = '2' AND s.date_time < '2024-11-30' AND s.date_time > '2024-11-11' LIMIT 10 OFFSET 0 GROUP BY s.id, club_name ORDER BY s.date_time ASC ), total_count as ( SELECT COUNT(s.id) AS total FROM shows s INNER JOIN clubs cl ON cl.id = s.club_id INNER JOIN cities ci on cl.city_id = ci.id WHERE ci.id = '2' AND s.date_time < '2024-11-30' AND s.date_time > '2024-11-11' ) SELECT JSONB_BUILD_OBJECT( 'data', JSONB_AGG( JSONB_BUILD_OBJECT( 'id', id, 'ticket', ticket, 'name', name, 'club_name', club_name, 'date_time', date_time, 'lineup', lineup ) ), 'total', ( SELECT total FROM total_count ) ) as response FROM filtered_data
+
+10:11:32 error: ENOENT: no such file or directory, stat '/Users/mattgioe/Desktop/projects/laughtrack/database/sql/show/get/all.sql'
+         query: /Users/mattgioe/Desktop/projects/laughtrack/database/sql/show/get/all.sql
+
+10:11:50 error: ENOENT: no such file or directory, open '/Users/mattgioe/Desktop/projects/laughtrack/database/sql/show/get/all.sql'
+         query: /Users/mattgioe/Desktop/projects/laughtrack/database/sql/show/get/all.sql
+
+10:12:15 error: ENOENT: no such file or directory, open '/Users/mattgioe/Desktop/projects/laughtrack/database/sql/show/get/all.sql'
+         query: /Users/mattgioe/Desktop/projects/laughtrack/database/sql/show/get/all.sql
+
+10:13:08 error: ENOENT: no such file or directory, open '/Users/mattgioe/Desktop/projects/laughtrack/database/sql/show/get/all.sql'
+         query: /Users/mattgioe/Desktop/projects/laughtrack/database/sql/show/get/all.sql
+
+10:14:10 error: ENOENT: no such file or directory, open '/Users/mattgioe/Desktop/projects/laughtrack/database/sql/show/get/all.sql'
+         query: /Users/mattgioe/Desktop/projects/laughtrack/database/sql/show/get/all.sql
+
+10:14:22 error: ENOENT: no such file or directory, open '/Users/mattgioe/Desktop/projects/laughtrack/database/sql/show/get/all.sql'
+         query: /Users/mattgioe/Desktop/projects/laughtrack/database/sql/show/get/all.sql
+
+10:14:56 error: ENOENT: no such file or directory, open '/Users/mattgioe/Desktop/projects/laughtrack/database/sql/show/get/all.sql'
+         query: /Users/mattgioe/Desktop/projects/laughtrack/database/sql/show/get/all.sql
+
+10:15:08 error: ENOENT: no such file or directory, open '/Users/mattgioe/Desktop/projects/laughtrack/database/sql/show/get/all.sql'
+         query: /Users/mattgioe/Desktop/projects/laughtrack/database/sql/show/get/all.sql
+
+10:15:17 error: ENOENT: no such file or directory, open '/Users/mattgioe/Desktop/projects/laughtrack/database/sql/show/get/all.sql'
+         query: /Users/mattgioe/Desktop/projects/laughtrack/database/sql/show/get/all.sql
+
+10:16:35 error: ENOENT: no such file or directory, open '/Users/mattgioe/Desktop/projects/laughtrack/database/sql/show/get/all.sql'
+         query: /Users/mattgioe/Desktop/projects/laughtrack/database/sql/show/get/all.sql
+
+10:40:10 error: column s.last_scrape_date does not exist
+         query: with filtered_data as ( SELECT s.id as id, jsonb_build_object( 'price', s.price, 'link', s.ticket_link ) as ticket, s.name, s.last_scrape_date as scrapedate, cl.name as club_name, s.date_time as date, jsonb_agg( DISTINCT jsonb_build_object( 'id', c.id, 'name', c.name ) ) as lineup FROM shows s INNER JOIN lineup_items l ON s.id = l.show_id INNER JOIN comedians c ON c.id = l.comedian_id INNER JOIN clubs cl ON cl.id = s.club_id INNER JOIN cities ci on cl.city_id = ci.id WHERE ci.id = '2' AND s.date < '2024-11-30' AND s.date > '2024-11-11' GROUP BY s.id, club_name ORDER BY 'date' ASC LIMIT '25' OFFSET 0 ), total_count as ( SELECT COUNT(s.id) AS total FROM shows s INNER JOIN clubs cl ON cl.id = s.club_id INNER JOIN cities ci on cl.city_id = ci.id WHERE ci.id = '2' AND s.date < '2024-11-30' AND s.date > '2024-11-11' ) SELECT JSONB_BUILD_OBJECT( 'data', JSONB_AGG( JSONB_BUILD_OBJECT( 'id', id, 'ticket', ticket, 'name', name, 'club_name', club_name, 'date', date, 'lineup', lineup ) ), 'total', ( SELECT total FROM total_count ) ) as response FROM filtered_data
+
+10:56:35 error: column s.last_scrape_date does not exist
+         query: with filtered_data as ( SELECT s.id as id, jsonb_build_object( 'price', s.price, 'link', s.ticket_link ) as ticket, s.name, s.last_scrape_date as scrapedate, cl.name as club_name, s.date_time as date, jsonb_agg( DISTINCT jsonb_build_object( 'id', c.id, 'name', c.name ) ) as lineup FROM shows s INNER JOIN lineup_items l ON s.id = l.show_id INNER JOIN comedians c ON c.id = l.comedian_id INNER JOIN clubs cl ON cl.id = s.club_id INNER JOIN cities ci on cl.city_id = ci.id WHERE ci.id = '2' AND s.date < '2024-11-30' AND s.date > '2024-11-11' GROUP BY s.id, club_name ORDER BY 'date' ASC LIMIT '25' OFFSET 0 ), total_count as ( SELECT COUNT(s.id) AS total FROM shows s INNER JOIN clubs cl ON cl.id = s.club_id INNER JOIN cities ci on cl.city_id = ci.id WHERE ci.id = '2' AND s.date < '2024-11-30' AND s.date > '2024-11-11' ) SELECT JSONB_BUILD_OBJECT( 'data', JSONB_AGG( JSONB_BUILD_OBJECT( 'id', id, 'ticket', ticket, 'name', name, 'club_name', club_name, 'date', date, 'lineup', lineup ) ), 'total', ( SELECT total FROM total_count ) ) as response FROM filtered_data
+
+10:57:08 error: column s.last_scrape_date does not exist
+         query: with filtered_data as ( SELECT s.id as id, jsonb_build_object( 'price', s.price, 'link', s.ticket_link ) as ticket, s.name, s.last_scrape_date as scrapedate, cl.name as club_name, s.date_time as date, jsonb_agg( DISTINCT jsonb_build_object( 'id', c.id, 'name', c.name ) ) as lineup FROM shows s INNER JOIN lineup_items l ON s.id = l.show_id INNER JOIN comedians c ON c.id = l.comedian_id INNER JOIN clubs cl ON cl.id = s.club_id INNER JOIN cities ci on cl.city_id = ci.id WHERE ci.id = '2' AND s.date < '2024-11-30' AND s.date > '2024-11-11' GROUP BY s.id, club_name ORDER BY 'date' ASC LIMIT '25' OFFSET 0 ), total_count as ( SELECT COUNT(s.id) AS total FROM shows s INNER JOIN clubs cl ON cl.id = s.club_id INNER JOIN cities ci on cl.city_id = ci.id WHERE ci.id = '2' AND s.date < '2024-11-30' AND s.date > '2024-11-11' ) SELECT JSONB_BUILD_OBJECT( 'data', JSONB_AGG( JSONB_BUILD_OBJECT( 'id', id, 'ticket', ticket, 'name', name, 'club_name', club_name, 'date', date, 'lineup', lineup ) ), 'total', ( SELECT total FROM total_count ) ) as response FROM filtered_data
+
+10:57:17 error: column s.last_scrape_date does not exist
+         query: with filtered_data as ( SELECT s.id as id, jsonb_build_object( 'price', s.price, 'link', s.ticket_link ) as ticket, s.name, s.last_scrape_date as scrapedate, cl.name as club_name, s.date_time as date, jsonb_agg( DISTINCT jsonb_build_object( 'id', c.id, 'name', c.name ) ) as lineup FROM shows s INNER JOIN lineup_items l ON s.id = l.show_id INNER JOIN comedians c ON c.id = l.comedian_id INNER JOIN clubs cl ON cl.id = s.club_id INNER JOIN cities ci on cl.city_id = ci.id WHERE ci.id = '2' AND s.date < '2024-11-30' AND s.date > '2024-11-11' GROUP BY s.id, club_name ORDER BY 'date' ASC LIMIT '25' OFFSET 0 ), total_count as ( SELECT COUNT(s.id) AS total FROM shows s INNER JOIN clubs cl ON cl.id = s.club_id INNER JOIN cities ci on cl.city_id = ci.id WHERE ci.id = '2' AND s.date < '2024-11-30' AND s.date > '2024-11-11' ) SELECT JSONB_BUILD_OBJECT( 'data', JSONB_AGG( JSONB_BUILD_OBJECT( 'id', id, 'ticket', ticket, 'name', name, 'club_name', club_name, 'date', date, 'lineup', lineup ) ), 'total', ( SELECT total FROM total_count ) ) as response FROM filtered_data
+
+10:58:41 error: column s.date_time does not exist
+         query: with filtered_data as ( SELECT s.id as id, jsonb_build_object( 'price', s.price, 'link', s.ticket_link ) as ticket, s.name, s.last_scrape_date as scrapedate, cl.name as club_name, s.date_time as date, jsonb_agg( DISTINCT jsonb_build_object( 'id', c.id, 'name', c.name ) ) as lineup FROM shows s INNER JOIN lineup_items l ON s.id = l.show_id INNER JOIN comedians c ON c.id = l.comedian_id INNER JOIN clubs cl ON cl.id = s.club_id INNER JOIN cities ci on cl.city_id = ci.id WHERE ci.id = '2' AND s.date < '2024-11-30' AND s.date > '2024-11-11' GROUP BY s.id, club_name ORDER BY 'date' ASC LIMIT '25' OFFSET 0 ), total_count as ( SELECT COUNT(s.id) AS total FROM shows s INNER JOIN clubs cl ON cl.id = s.club_id INNER JOIN cities ci on cl.city_id = ci.id WHERE ci.id = '2' AND s.date < '2024-11-30' AND s.date > '2024-11-11' ) SELECT JSONB_BUILD_OBJECT( 'data', JSONB_AGG( JSONB_BUILD_OBJECT( 'id', id, 'ticket', ticket, 'name', name, 'club_name', club_name, 'date', date, 'lineup', lineup ) ), 'total', ( SELECT total FROM total_count ) ) as response FROM filtered_data
+
+10:58:48 error: column s.date_time does not exist
+         query: with filtered_data as ( SELECT s.id as id, jsonb_build_object( 'price', s.price, 'link', s.ticket_link ) as ticket, s.name, s.last_scrape_date as scrapedate, cl.name as club_name, s.date_time as date, jsonb_agg( DISTINCT jsonb_build_object( 'id', c.id, 'name', c.name ) ) as lineup FROM shows s INNER JOIN lineup_items l ON s.id = l.show_id INNER JOIN comedians c ON c.id = l.comedian_id INNER JOIN clubs cl ON cl.id = s.club_id INNER JOIN cities ci on cl.city_id = ci.id WHERE ci.id = '2' AND s.date < '2024-11-30' AND s.date > '2024-11-11' GROUP BY s.id, club_name ORDER BY 'date' ASC LIMIT '25' OFFSET 0 ), total_count as ( SELECT COUNT(s.id) AS total FROM shows s INNER JOIN clubs cl ON cl.id = s.club_id INNER JOIN cities ci on cl.city_id = ci.id WHERE ci.id = '2' AND s.date < '2024-11-30' AND s.date > '2024-11-11' ) SELECT JSONB_BUILD_OBJECT( 'data', JSONB_AGG( JSONB_BUILD_OBJECT( 'id', id, 'ticket', ticket, 'name', name, 'club_name', club_name, 'date', date, 'lineup', lineup ) ), 'total', ( SELECT total FROM total_count ) ) as response FROM filtered_data
+
+11:01:49 error: non-integer constant in ORDER BY
+         query: with filtered_data as ( SELECT s.id as id, jsonb_build_object( 'price', s.price, 'link', s.ticket_link ) as ticket, s.name, s.last_scrape_date as scrapedate, cl.name as club_name, s.date, jsonb_agg( DISTINCT jsonb_build_object( 'id', c.id, 'name', c.name ) ) as lineup FROM shows s INNER JOIN lineup_items l ON s.id = l.show_id INNER JOIN comedians c ON c.id = l.comedian_id INNER JOIN clubs cl ON cl.id = s.club_id INNER JOIN cities ci on cl.city_id = ci.id WHERE ci.id = '2' AND s.date < '2024-11-30' AND s.date > '2024-11-11' GROUP BY s.id, club_name ORDER BY 'date' ASC LIMIT '25' OFFSET 0 ), total_count as ( SELECT COUNT(s.id) AS total FROM shows s INNER JOIN clubs cl ON cl.id = s.club_id INNER JOIN cities ci on cl.city_id = ci.id WHERE ci.id = '2' AND s.date < '2024-11-30' AND s.date > '2024-11-11' ) SELECT JSONB_BUILD_OBJECT( 'data', JSONB_AGG( JSONB_BUILD_OBJECT( 'id', id, 'ticket', ticket, 'name', name, 'club_name', club_name, 'date', date, 'lineup', lineup ) ), 'total', ( SELECT total FROM total_count ) ) as response FROM filtered_data
+
+11:01:53 error: non-integer constant in ORDER BY
+         query: with filtered_data as ( SELECT s.id as id, jsonb_build_object( 'price', s.price, 'link', s.ticket_link ) as ticket, s.name, s.last_scrape_date as scrapedate, cl.name as club_name, s.date, jsonb_agg( DISTINCT jsonb_build_object( 'id', c.id, 'name', c.name ) ) as lineup FROM shows s INNER JOIN lineup_items l ON s.id = l.show_id INNER JOIN comedians c ON c.id = l.comedian_id INNER JOIN clubs cl ON cl.id = s.club_id INNER JOIN cities ci on cl.city_id = ci.id WHERE ci.id = '2' AND s.date < '2024-11-30' AND s.date > '2024-11-11' GROUP BY s.id, club_name ORDER BY 'date' ASC LIMIT '25' OFFSET 0 ), total_count as ( SELECT COUNT(s.id) AS total FROM shows s INNER JOIN clubs cl ON cl.id = s.club_id INNER JOIN cities ci on cl.city_id = ci.id WHERE ci.id = '2' AND s.date < '2024-11-30' AND s.date > '2024-11-11' ) SELECT JSONB_BUILD_OBJECT( 'data', JSONB_AGG( JSONB_BUILD_OBJECT( 'id', id, 'ticket', ticket, 'name', name, 'club_name', club_name, 'date', date, 'lineup', lineup ) ), 'total', ( SELECT total FROM total_count ) ) as response FROM filtered_data
+
+11:02:09 error: non-integer constant in ORDER BY
+         query: with filtered_data as ( SELECT s.id as id, jsonb_build_object( 'price', s.price, 'link', s.ticket_link ) as ticket, s.name, s.last_scrape_date as scrapedate, cl.name as club_name, s.date, jsonb_agg( DISTINCT jsonb_build_object( 'id', c.id, 'name', c.name ) ) as lineup FROM shows s INNER JOIN lineup_items l ON s.id = l.show_id INNER JOIN comedians c ON c.id = l.comedian_id INNER JOIN clubs cl ON cl.id = s.club_id INNER JOIN cities ci on cl.city_id = ci.id WHERE ci.id = '2' AND s.date < '2024-11-30' AND s.date > '2024-11-11' GROUP BY s.id, club_name ORDER BY 'date' ASC LIMIT '25' OFFSET 0 ), total_count as ( SELECT COUNT(s.id) AS total FROM shows s INNER JOIN clubs cl ON cl.id = s.club_id INNER JOIN cities ci on cl.city_id = ci.id WHERE ci.id = '2' AND s.date < '2024-11-30' AND s.date > '2024-11-11' ) SELECT JSONB_BUILD_OBJECT( 'data', JSONB_AGG( JSONB_BUILD_OBJECT( 'id', id, 'ticket', ticket, 'name', name, 'club_name', club_name, 'date', date, 'lineup', lineup ) ), 'total', ( SELECT total FROM total_count ) ) as response FROM filtered_data
+
+11:53:15 error: Invalid query format.
+
+14:32:32 error: Property 'location' doesn't exist.
+         query: SELECT * from clubs WHERE city = ${location} ORDER BY ${order_clause} LIMIT ${size}
+         params: {}
+
+14:33:08 error: Property 'location' doesn't exist.
+         query: SELECT * from clubs WHERE city = ${location} ORDER BY ${order_clause} LIMIT ${size}
+         params: {}
+
+14:33:46 error: Property 'location' doesn't exist.
+         query: SELECT * from clubs WHERE city = ${location} ORDER BY ${order_clause} LIMIT ${size}
+         params: {}
+
+14:34:18 error: Property 'location' doesn't exist.
+         query: SELECT * from clubs WHERE city = ${location} ORDER BY ${order_clause} LIMIT ${size}
+         params: {}
+
+14:39:25 error: ENOENT: no such file or directory, stat '/Users/mattgioe/Desktop/projects/laughtrack/database/sql/club/get/all.sql'
+         query: /Users/mattgioe/Desktop/projects/laughtrack/database/sql/club/get/all.sql
+
+14:39:58 error: ENOENT: no such file or directory, open '/Users/mattgioe/Desktop/projects/laughtrack/database/sql/club/get/all.sql'
+         query: /Users/mattgioe/Desktop/projects/laughtrack/database/sql/club/get/all.sql
+
+14:40:30 error: ENOENT: no such file or directory, open '/Users/mattgioe/Desktop/projects/laughtrack/database/sql/club/get/all.sql'
+         query: /Users/mattgioe/Desktop/projects/laughtrack/database/sql/club/get/all.sql
+
+14:42:38 error: Invalid query format.
+
+14:42:47 error: Invalid query format.
+
+14:43:20 error: Invalid query format.
+
+14:43:24 error: Invalid query format.
+
+14:43:47 error: Invalid query format.
+
+14:43:58 error: Invalid query format.
+
+14:44:01 error: Invalid query format.
+
+14:57:31 error: type "address" does not exist
+         query: with filtered_data as ( SELECT * from clubs ORDER BY name DESC LIMIT 10 OFFSET 0 ), total_count as ( SELECT COUNT(c.id) AS total FROM clubs c ) SELECT JSONB_BUILD_OBJECT( 'data', JSONB_AGG( JSONB_BUILD_OBJECT( 'id', id, 'name', name, 'address', address 'website', website ) ), 'total', ( SELECT total FROM total_count ) ) as response FROM filtered_data
+
+14:57:36 error: type "address" does not exist
+         query: with filtered_data as ( SELECT * from clubs ORDER BY name DESC LIMIT 10 OFFSET 0 ), total_count as ( SELECT COUNT(c.id) AS total FROM clubs c ) SELECT JSONB_BUILD_OBJECT( 'data', JSONB_AGG( JSONB_BUILD_OBJECT( 'id', id, 'name', name, 'address', address 'website', website ) ), 'total', ( SELECT total FROM total_count ) ) as response FROM filtered_data
+
+15:40:09 error: OFFSET must not be negative
+         query: with filtered_data as ( SELECT * from clubs ORDER BY name ASC LIMIT 10 OFFSET (-10) ), total_count as ( SELECT COUNT(c.id) AS total FROM clubs c ) SELECT JSONB_BUILD_OBJECT( 'data', JSONB_AGG( JSONB_BUILD_OBJECT( 'id', id, 'name', name, 'address', address, 'website', website ) ), 'total', ( SELECT total FROM total_count ) ) as response FROM filtered_data
+
+15:40:09 error: OFFSET must not be negative
+         query: with filtered_data as ( SELECT * from clubs ORDER BY name ASC LIMIT 10 OFFSET (-10) ), total_count as ( SELECT COUNT(c.id) AS total FROM clubs c ) SELECT JSONB_BUILD_OBJECT( 'data', JSONB_AGG( JSONB_BUILD_OBJECT( 'id', id, 'name', name, 'address', address, 'website', website ) ), 'total', ( SELECT total FROM total_count ) ) as response FROM filtered_data
+
+16:04:04 error: syntax error at or near "AS"
+         query: with filtered_data as ( SELECT * from comedians ORDER BY name ASC LIMIT 10 OFFSET 0 ), total_count as ( SELECT COUNT(c.id) AS total FROM comedians c ) SELECT JSONB_BUILD_OBJECT( 'data', JSONB_AGG( JSONB_BUILD_OBJECT( 'id', id, 'name', name, jsonb_build_object( 'instagram_account', c.instagram_account, 'instagram_followers', c.instagram_followers, 'tiktok_account', c.tiktok_account, 'tiktok_followers', c.tiktok_followers, 'youtube_account', c.youtube_account, 'youtube_followers', c.youtube_followers, 'website', c.website, 'popularity_score', c.popularity_score ) AS social_data )), 'total', ( SELECT total FROM total_count ) ) as response FROM filtered_data
+
+16:04:13 error: syntax error at or near "AS"
+         query: with filtered_data as ( SELECT * from comedians ORDER BY name ASC LIMIT 10 OFFSET 0 ), total_count as ( SELECT COUNT(c.id) AS total FROM comedians c ) SELECT JSONB_BUILD_OBJECT( 'data', JSONB_AGG( JSONB_BUILD_OBJECT( 'id', id, 'name', name, jsonb_build_object( 'instagram_account', c.instagram_account, 'instagram_followers', c.instagram_followers, 'tiktok_account', c.tiktok_account, 'tiktok_followers', c.tiktok_followers, 'youtube_account', c.youtube_account, 'youtube_followers', c.youtube_followers, 'website', c.website, 'popularity_score', c.popularity_score ) AS social_data )), 'total', ( SELECT total FROM total_count ) ) as response FROM filtered_data

@@ -36,7 +36,7 @@ SELECT
                         'id',
             c.id,
             'website',
-            c.base_url
+            c.website
         ) as social_data,
             COALESCE(jsonb_agg(
                 DISTINCT jsonb_build_object(

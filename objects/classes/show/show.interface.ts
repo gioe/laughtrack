@@ -12,25 +12,33 @@ import { TicketDTO } from "../ticket/ticket.interface";
 // Client
 export interface ShowInterface extends Taggable, Entity, SocialDiscoverable {
     name: string;
-    dateTime: Date;
+    date: Date;
     lineup: Comedian[];
     popularityScore?: number;
     clubName?: string;
     clubId: number;
     ticket: Ticket;
-    lastScrapeTime?: Date
+    scraped?: Date
 }
+
 
 // DB
 export interface ShowDTO {
     club_name?: string;
     club_id: number;
-    date_time: Date;
+    date: Date;
     ticket: TicketDTO;
     name: string;
     social_data?: SocialDataDTO;
     tags?: TagInterface[]
     lineup?: ComedianDTO[]
     id?: number;
-    last_scrape_time?: Date
+    scraped?: Date
+}
+
+export interface PaginatedShowResponseDTO {
+    response: {
+        data: ShowDTO[],
+        total: number
+    }
 }

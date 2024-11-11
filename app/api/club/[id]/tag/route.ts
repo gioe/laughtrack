@@ -9,8 +9,8 @@ export async function POST(
     const clubId = (await params).id
     const { tagIds } = await req.json()
     const ids = JSON.parse(tagIds) as string[]
-
-    return db.clubs.tag(Number(clubId), ids)
-        .then(() => NextResponse.json({}, { status: 200 }))
-        .catch((error: Error) => NextResponse.json({ message: error.message }, { status: 500 }));
+    return NextResponse.json({}, { status: 200 });
+    // return db.clubs.tag(Number(clubId), ids)
+    //     .then(() => NextResponse.json({}, { status: 200 }))
+    //     .catch((error: Error) => NextResponse.json({ message: error.message }, { status: 500 }));
 }

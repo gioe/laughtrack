@@ -1,10 +1,13 @@
 import { ColumnSet, IDatabase, IMain } from "pg-promise";
 import { comedian as sql } from "../sql";
 import { providedPromiseResponse } from "../../util/promiseUtil";
-import { ComedianDTO, ComedianInterface } from "../../objects/classes/comedian/comedian.interface";
-import { PopularityScoreIODTO, SearchParams, SocialDataDTO } from "../../objects/interfaces";
+import { ComedianDTO, ComedianInterface, PaginatedResponseDTO } from "../../objects/classes/comedian/comedian.interface";
+import { PopularityScoreIODTO, SocialDataDTO } from "../../objects/interfaces";
 import { IExtensions } from ".";
 import { Comedian } from "../../objects/classes/comedian/Comedian";
+import { LaughtrackSearchParams } from "../../objects/classes/searchParams/LaughtrackSearchParams";
+import { EntityType } from "../../util/enum";
+import { PaginatedEntityResponse } from "../../objects/interfaces/entity.interface";
 
 const columnSets: {
     updateScores: ColumnSet | null;
@@ -66,6 +69,21 @@ export class ComediansRepository {
         return this.db.none(sql.createTable);
     }
 
+    // Returns all club records;
+    async getAll(params: LaughtrackSearchParams): Promise<PaginatedEntityResponse> {
+        const queryFile = params.getQuery(sql, EntityType.Comedian)
+        const filters = params.asComedianQueryFilters();
+        return this.db
+            .oneOrNone(queryFile, filters)
+            .then((result: PaginatedResponseDTO<ComedianDTO> | null) => {
+                return {
+                    entities: result ? result.response.data.map((result: ComedianDTO) => new Comedian(result)) : [],
+                    total: result ? result.response.total : 0
+                }
+            });
+    }
+
+
     // Tries to find a comedian from name;
     async getByName(name: string): Promise<Comedian | null> {
         return this.db
@@ -77,14 +95,7 @@ export class ComediansRepository {
             );
     }
 
-    async tag(id: number, tagIds: string[]): Promise<null> {
-        return this.db
-            .none("", {
-                showId: +id,
-            })
-    }
-
-    async getById(id: number, searchParams: SearchParams): Promise<Comedian | null> {
+    async getById(id: number, searchParams: LaughtrackSearchParams): Promise<Comedian | null> {
         return this.db
             .oneOrNone(sql.getById, {
                 id,
@@ -94,14 +105,9 @@ export class ComediansRepository {
             );
     }
 
-    // Returns all comedian records;
-    all(): Promise<ComedianDTO[] | null> {
-        return this.db.any(sql.getAll);
-    }
-
     async getAllFavorites(
         userId: number,
-        searchParams: SearchParams
+        searchParams: LaughtrackSearchParams
     ): Promise<ComedianInterface[]> {
         return this.db
             .any(sql.getAll, {
@@ -109,7 +115,6 @@ export class ComediansRepository {
             })
             .then((response: ComedianDTO[] | null) => response ? response.map((item: ComedianDTO) => new Comedian(item)) : []);
     }
-
 
     async getTrendingComedians(total: number): Promise<Comedian[]> {
         return this.db
@@ -141,21 +146,6 @@ export class ComediansRepository {
             this.pgp.helpers.update([payload], columnSets.updateSocial) +
             " WHERE v.id = t.id RETURNING 1";
         return this.db.oneOrNone(update);
-    }
-
-    writeHashes(all: ComedianDTO[]): Promise<null> {
-        const batchInsert =
-            this.pgp.helpers.update(all, columnSets.updateHashes) +
-            "WHERE v.id = t.id";
-        return this.db.none(batchInsert);
-    }
-    // Returns all club records;
-    async getAll(searchParams: SearchParams): Promise<Comedian[]> {
-        return this.db
-            .any("SELECT * FROM comedians")
-            .then((response: ComedianDTO[] | null) =>
-                response ? response.map((dto: ComedianDTO) => new Comedian(dto)) : [],
-            );
     }
 
 }

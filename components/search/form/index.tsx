@@ -19,7 +19,7 @@ interface HomeSearchFormProps {
 
 export default function HomeSearchForm({ citiesString }: HomeSearchFormProps) {
     const params = LaughtrackSearchParams.asClientSideParams(
-        useSearchParams(),
+        new URLSearchParams(useSearchParams()),
         usePathname(),
         useRouter(),
     );
@@ -40,7 +40,7 @@ export default function HomeSearchForm({ citiesString }: HomeSearchFormProps) {
         params.setParamValue(URLParam.City, values.cityId);
         params.setParamValue(URLParam.StartDate, values.dates.from);
         params.setParamValue(URLParam.EndDate, values.dates.to);
-        params.pushPageFromParams();
+        params.pushPageFromParams(`search`);
     }
 
     return (

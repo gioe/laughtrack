@@ -16,13 +16,13 @@ interface SortParamComponentProps {
 
 export function SortParamComponent({ options }: SortParamComponentProps) {
     const params = LaughtrackSearchParams.asClientSideParams(
-        useSearchParams(),
+        new URLSearchParams(useSearchParams()),
         usePathname(),
         useRouter(),
     );
 
     const [selectedSort, setSelectedSort] = useState(
-        params.getParamValue(URLParam.Sort),
+        params.getParamValue(URLParam.Sort) ?? options[0].value,
     );
 
     const modifySortParam = (sortValue: string) => {

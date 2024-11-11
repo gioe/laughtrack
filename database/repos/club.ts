@@ -2,13 +2,14 @@ import { ColumnSet, IDatabase, IMain } from "pg-promise";
 import { club as sql } from "../sql";
 import {
     PopularityScoreIODTO,
-    SearchParams,
 } from "../../objects/interfaces";
 import { providedPromiseResponse } from "../../util/promiseUtil";
 import { IExtensions } from ".";
-import { ClubDTO } from "../../objects/classes/club/club.interface";
+import { ClubDTO, PaginatedClubResponseDTO } from "../../objects/classes/club/club.interface";
 import { Club } from "../../objects/classes/club/Club";
-import { getOrderClauseFromParams } from "../../util/params";
+import { LaughtrackSearchParams } from "../../objects/classes/searchParams/LaughtrackSearchParams";
+import { EntityType } from "../../util/enum";
+import { PaginatedEntityResponse } from "../../objects/interfaces/entity.interface";
 
 const columnSets: {
     updateScores: ColumnSet | null;
@@ -44,7 +45,7 @@ export class ClubsRepository {
                 "city",
                 "zip_code",
                 "address",
-                "base_url",
+                "website",
                 "scraping_page_url",
                 "scraping_config",
                 "popularity_score",
@@ -66,25 +67,17 @@ export class ClubsRepository {
     }
 
     // Tries to find a club from id;
-    async getByName(name: string, searchParams?: SearchParams): Promise<Club | null> {
+    async getByName(name: string, searchParams: LaughtrackSearchParams): Promise<Club | null> {
         return this.db
-            .oneOrNone(sql.getByName, {
-                name,
-                size: searchParams?.rows ?? 10,
-                order_clause: getOrderClauseFromParams(searchParams)
-            })
+            .oneOrNone(sql.getByName, {})
             .then((response: ClubDTO | null) =>
                 response ? new Club(response) : null,
             );
     }
 
-    async getById(id: number, searchParams?: SearchParams): Promise<Club> {
+    async getById(id: number, searchParams: LaughtrackSearchParams): Promise<Club> {
         return this.db
-            .oneOrNone(sql.getById, {
-                id,
-                size: searchParams?.rows ?? 10,
-                order_clause: getOrderClauseFromParams(searchParams)
-            })
+            .oneOrNone(sql.getById, {})
             .then((response: ClubDTO | null) => {
                 if (response) {
                     return new Club(response)
@@ -93,25 +86,28 @@ export class ClubsRepository {
             });
     }
 
-    async tag(id: number, tagIds: string[]): Promise<null> {
-        return this.db
-            .none("", {
-                showId: +id,
-            })
-    }
-
     // Returns all club records;
-    async getAll(searchParams?: SearchParams): Promise<Club[]> {
+    async getAll(params: LaughtrackSearchParams): Promise<PaginatedEntityResponse> {
+        const queryFile = params.getQuery(sql, EntityType.Club)
+        const filters = params.asClubQueryFilters();
         return this.db
-            .any(sql.getAll, {
-                size: searchParams?.rows ?? 10,
-                order_clause: getOrderClauseFromParams(searchParams)
-            })
-            .then((response: ClubDTO[] | null) =>
-                response ? response.map((dto: ClubDTO) => new Club(dto)) : [],
-            );
+            .oneOrNone(queryFile, filters)
+            .then((result: PaginatedClubResponseDTO | null) => {
+                return {
+                    entities: result ? result.response.data.map((result: ClubDTO) => new Club(result)) : [],
+                    total: result ? result.response.total : 0
+                }
+            });
     }
 
+
+    async getAllForScraping(): Promise<Club[]> {
+        return this.db
+            .any('SELECT * from clubs')
+            .then((result: ClubDTO[] | null) => {
+                return result ? result.map((result: ClubDTO) => new Club(result)) : []
+            });
+    }
 
     updateScores(scores: PopularityScoreIODTO[] | null): Promise<null> {
         if (scores == null) return providedPromiseResponse(null);

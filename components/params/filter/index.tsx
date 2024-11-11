@@ -21,7 +21,7 @@ export function FilterParamComponent({
     sections,
 }: FilterOptionsComponentProps) {
     const params = LaughtrackSearchParams.asClientSideParams(
-        useSearchParams(),
+        new URLSearchParams(useSearchParams()),
         usePathname(),
         useRouter(),
     );

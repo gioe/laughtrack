@@ -96,12 +96,12 @@ export class TheStand implements ClubScraper {
     processOutput = async (output: unknown[]): Promise<ScrapingOutput> => {
         const show = new Show({
             lineup: output[0] as ComedianDTO[],
-            date_time: new DateTimeContainer(
+            date: new DateTimeContainer(
                 output[1] as string[],
                 SEPARATOR,
             ).asDateObject(),
             ticket: {
-                link: generateValidUrl(this.clubData.baseUrl, output[2] as string),
+                link: generateValidUrl(this.clubData.website, output[2] as string),
                 price: output[4] as number
             },
             name: output[3] as string,

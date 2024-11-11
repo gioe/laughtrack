@@ -9,7 +9,7 @@ import { Ticket } from "../ticket/Ticket";
 export class Show implements ShowInterface {
     // Properties
     name: string;
-    dateTime: Date;
+    date: Date;
     socialData: SocialDataInterface;
     lineup: Comedian[];
     popularityScore?: number | undefined;
@@ -21,12 +21,12 @@ export class Show implements ShowInterface {
     type: EntityType = EntityType.Show;
     bannerImageUrl: string;
     cardImageUrl: string;
-    lastScrapeTime?: Date;
+    scraped?: Date;
 
     // Constructor
     constructor(input: ShowDTO) {
         this.name = input.name;
-        this.dateTime = input.date_time;
+        this.date = input.date;
         this.socialData = input.social_data !== undefined ? toSocialDataInterface(input.social_data) : {};
         this.lineup = input.lineup !== undefined ? input.lineup.map((item: ComedianDTO) => new Comedian(item)) : []
         this.clubName = input.club_name;
@@ -34,9 +34,9 @@ export class Show implements ShowInterface {
         this.tags = input.tags ?? []
         this.id = input.id ?? 0
         this.bannerImageUrl = `/images/banners/${input.name}.png`
-        this.cardImageUrl = `/images/${EntityType.Show.valueOf()}/square/${input.name}.png`;
+        this.cardImageUrl = `/images/show}/square/${input.name}.png`;
         this.clubId = input.club_id
-        this.lastScrapeTime = input.last_scrape_time
+        this.scraped = input.scraped
     }
     price: number;
     ticketLink: string;
@@ -45,23 +45,23 @@ export class Show implements ShowInterface {
 
     overrideDate = (date: string): void => {
         const providedDate = new Date(date);
-        this.dateTime = new Date(
+        this.date = new Date(
             providedDate.getUTCFullYear(),
             providedDate.getUTCMonth(),
             providedDate.getUTCDate(),
-            this.dateTime.getHours(),
-            this.dateTime.getMinutes(),
-            this.dateTime.getSeconds(),
+            this.date.getHours(),
+            this.date.getMinutes(),
+            this.date.getSeconds(),
         );
     };
 
     asShowDTO = (): ShowDTO => {
         return {
             club_id: this.clubId,
-            date_time: this.dateTime,
+            date: this.date,
             ticket: this.ticket.asTicketDTO(),
             name: this.name,
-            last_scrape_time: new Date()
+            scraped: new Date()
         };
     };
 

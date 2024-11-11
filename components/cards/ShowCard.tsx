@@ -21,7 +21,7 @@ const ShowCard: React.FC<ShowCardProps> = ({ show }) => {
         setSrc(`/images/logo.png`);
     };
 
-    const dateObject = moment(new Date(show.dateTime));
+    const dateObject = moment(new Date(show.date));
 
     return (
         <div

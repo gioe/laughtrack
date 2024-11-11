@@ -123,7 +123,7 @@ export class ComedyCellar implements ClubScraper {
 
         for (let index = 0; index < output.length - 1; index++) {
             const show = output[index];
-            const link = generateValidUrl(this.clubData.baseUrl, show[2]);
+            const link = generateValidUrl(this.clubData.website, show[2]);
             show[4] = await this.navToTicketAndScrape(newPage, link);
             scrapedShows.push(show);
         }
@@ -144,9 +144,9 @@ export class ComedyCellar implements ClubScraper {
     processOutput = (output: unknown[], date: string): ScrapingOutput => {
         const show = new Show({
             lineup: output[0] as ComedianDTO[],
-            date_time: new DateTimeContainer(output[1] as string[]).asDateObject(),
+            date: new DateTimeContainer(output[1] as string[]).asDateObject(),
             ticket: {
-                link: generateValidUrl(this.clubData.baseUrl, output[2] as string),
+                link: generateValidUrl(this.clubData.website, output[2] as string),
                 price: output[4] as number
             },
             name: output[3] as string,

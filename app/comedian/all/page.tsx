@@ -1,22 +1,25 @@
-import { SearchParams } from "../../../objects/interfaces/searchParams.interface";
 import { getSortOptionsForEntityType } from "../../../util/sort";
 import { EntityType } from "../../../util/enum";
 import { getDB } from "../../../database";
-import QueryableTableContainer from "../../../components/container";
+import QueryableEntityTableContainer from "../../../components/container";
+import { LaughtrackSearchParams } from "../../../objects/classes/searchParams/LaughtrackSearchParams";
+import { SearchParams } from "../../../objects/types/searchParams";
 const { db } = getDB();
 
 export default async function AllComediansPage(props: {
     searchParams: Promise<SearchParams>;
 }) {
     const searchParams = await props.searchParams;
-    const comedians = await db.comedians.getAll(searchParams);
+    const paramsWrapper =
+        LaughtrackSearchParams.asServerSideParams(searchParams);
+    const comedians = await db.comedians.getAll(paramsWrapper);
     const sortOptions = getSortOptionsForEntityType(EntityType.Comedian);
 
     return (
         <main className="flex-grow pt-5 bg-shark">
-            <QueryableTableContainer
+            <QueryableEntityTableContainer
                 sortOptions={sortOptions}
-                resultString={JSON.stringify(comedians)}
+                responseString={JSON.stringify(comedians)}
                 defaultNode={<div></div>}
             />
         </main>

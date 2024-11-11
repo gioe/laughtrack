@@ -19,9 +19,7 @@ export class CityRepository {
     constructor(
         private db: IDatabase<IExtensions>,
         private pgp: IMain,
-    ) {
-        this.createTable()
-    }
+    ) { }
 
     // Creates the table;
     createTable(): Promise<null> {

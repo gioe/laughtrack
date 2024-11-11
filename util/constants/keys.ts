@@ -31,6 +31,6 @@ export const JSON_KEYS = {
 
 export const CLUB_KEYS = {
     name: "name",
-    baseUrl: "baseUrl",
+    website: "website",
     schedulePageUrl: "schedulePageUrl",
 };

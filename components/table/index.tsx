@@ -1,20 +1,32 @@
 import React from "react";
+import { Entity } from "../../objects/interfaces";
+import { cn } from "../../util/tailwindUtil";
+import EntityType from "../icons/MiniEntityIcon";
 
-interface TableProps<T> {
+interface TableProps<T extends Entity> {
     data: T[];
     keyExtractor: (item: T) => string;
     renderItem: (item: T) => React.ReactNode;
     defaultNode: React.ReactNode;
 }
 
-export default function Table<T extends object>({
+export default function Table<T extends Entity>({
     data,
     keyExtractor,
     renderItem,
     defaultNode,
 }: TableProps<T>) {
+    const determineLayout = () => {
+        switch (data[0].type) {
+            case EntityType.Show:
+                return "grid grid-cols-1 gap-4";
+            default:
+                return "grid grid-cols-3 gap-x-20 gap-y-10";
+        }
+    };
+
     return (
-        <main className={"grid grid-cols-1 gap-4"}>
+        <main className={cn(determineLayout())}>
             {data.length > 0 ? (
                 data.map((item) => {
                     return (
@@ -24,7 +36,6 @@ export default function Table<T extends object>({
             ) : (
                 <div>{defaultNode}</div>
             )}
-            a
         </main>
     );
 }
