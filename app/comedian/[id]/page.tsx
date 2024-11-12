@@ -51,29 +51,32 @@ export default async function ComedianDetailsPage(props: {
     const responseString = JSON.stringify(comedian?.dates ?? []);
 
     return (
-        <div className="flex flex-col">
-            {comedian && (
-                <div>
-                    <MergeComediansModal comedianString={comedianString} />
-                    <EditSocialDataModal comedianString={comedianString} />
-                    <TagEntityModal
-                        type={EntityType.Comedian}
-                        entityId={comedian.id}
-                        tagsString={tagsString}
+        <main className="flex-grow pt-5 bg-shark">
+            <MergeComediansModal comedianString={comedianString} />
+            <EditSocialDataModal comedianString={comedianString} />
+            <TagEntityModal
+                type={EntityType.Comedian}
+                entityId={comedian.id}
+                tagsString={tagsString}
+            />
+            <section>
+                <EntityBanner entityString={responseString} />
+            </section>
+            <section>
+                <section>
+                    <QueryableEntityTableContainer
+                        sortOptions={getSortOptionsForEntityType(
+                            EntityType.Show,
+                        )}
+                        responseString={responseString}
+                        defaultNode={
+                            <h2 className="font-bold text-5xl text-white pt-6">
+                                No upcoming shows for this club
+                            </h2>
+                        }
                     />
-                </div>
-            )}
-
-            <section>
-                {comedian && <EntityBanner entityString={comedianString} />}
+                </section>
             </section>
-            <section>
-                <QueryableEntityTableContainer
-                    sortOptions={getSortOptionsForEntityType(EntityType.Show)}
-                    responseString={responseString}
-                    defaultNode={<div></div>}
-                />
-            </section>
-        </div>
+        </main>
     );
 }

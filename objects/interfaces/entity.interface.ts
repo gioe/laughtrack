@@ -11,7 +11,12 @@ export interface Entity extends Identifiable, Favoritable, SocialDiscoverable, T
 }
 
 
-export interface PaginatedEntityResponse {
+export interface PaginatedEntityCollectionResponse {
     entities: Entity[]
+    total: number
+}
+
+export interface PaginatedEntityResponse {
+    entity: Entity
     total: number
 }

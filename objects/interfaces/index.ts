@@ -10,6 +10,8 @@ import { LineupItemDTO } from "./lineup.interface";
 import { Identifiable } from "./identifable.interface"
 import { FormSelectable } from "./formSelectable.interface"
 import { PaginatedResponseDTO } from "./paginatedResponseDto.interface";
+import { PaginatedEntityCollectionResponse, PaginatedEntityResponse } from "./paginatedEntity.interface";
+
 import {
     SocialDataInterface,
     SocialDiscoverable,
@@ -28,6 +30,8 @@ import { UserInterface, UserDTO } from "./user.interface";
 import { Entity } from "./entity.interface"
 
 export type {
+    PaginatedEntityCollectionResponse,
+    PaginatedEntityResponse,
     FormSelectable,
     BannerRepresentable,
     ModalState,

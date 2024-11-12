@@ -57,14 +57,16 @@ export class LaughtrackSearchParams {
     asClubQueryFilters() {
         return {
             rows: this.getParamValue(URLParam.Rows),
-            offset: this.determineOffset()
+            offset: this.determineOffset(),
+            query: this.determineQuery()
         }
     }
 
     asComedianQueryFilters() {
         return {
             rows: this.getParamValue(URLParam.Rows),
-            offset: this.determineOffset()
+            offset: this.determineOffset(),
+            query: this.determineQuery()
         }
     }
 
@@ -86,8 +88,13 @@ export class LaughtrackSearchParams {
 
     getQuery(map: QueryFileMap, entityType: EntityType) {
         const sortParamValues = this.determineOrderProperites(entityType)
-        const fileKey = `allBy${sortParamValues.property}${sortParamValues.direction}`
+        const fileKey = `getAllBy${sortParamValues.property}${sortParamValues.direction}`
         return map[fileKey]
+    }
+
+    determineQuery() {
+        const queryValue = this.getParamValue(URLParam.Query)
+        return `%${queryValue}%`
     }
 
 }

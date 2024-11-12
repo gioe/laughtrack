@@ -27,7 +27,7 @@ const CarouselCard: React.FC<CarouselCardProps> = ({ entity }) => {
                     />
                 </CardHeader>
                 <CardBody className="text-center">
-                    <Typography variant="h4" className="text-blue-gray-600">
+                    <Typography variant="h4" color="blue-gray" className="mb-2">
                         {entity.name}
                     </Typography>
                 </CardBody>

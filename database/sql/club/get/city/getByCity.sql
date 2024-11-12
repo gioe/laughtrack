@@ -1,0 +1,1 @@
+SELECT cl.id, cl.name, address, website from clubs cl JOIN cities ci on cl.city_id = ci.id where ci.name = ${city}

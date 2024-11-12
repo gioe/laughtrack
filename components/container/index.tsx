@@ -13,6 +13,7 @@ import { FilterParamComponent } from "../params/filter";
 import CarouselCard from "../cards/CarouselCard";
 import { PaginatedEntityResponse } from "../../objects/interfaces/entity.interface";
 import Table from "../table";
+import QueryParamComponent from "../params/query";
 
 interface QueryableEntityTableContainerProps {
     responseString: string;
@@ -52,10 +53,19 @@ export default function QueryableEntityTableContainer({
             <main className="mx-auto px-10 flex-item tems-end justify-end">
                 <section aria-labelledby="search-parameter-options-section">
                     {results.total > 0 && (
-                        <div className="flex flex-row-reverse gap-4 items-center">
-                            <FunnelButton handleClick={handleButtonClick} />
-                            <SortParamComponent options={sortOptions} />
-                            <PageParamComponent itemCount={results.total} />
+                        <div className="flex-row">
+                            {results.entities[0].type !== EntityType.Show && (
+                                <div className="flex-item">
+                                    <QueryParamComponent
+                                        inputPlaceholder={`Search by ${results.entities[0].type.valueOf()} name`}
+                                    />
+                                </div>
+                            )}
+                            <div className="flex flex-row-reverse gap-4 items-center">
+                                <FunnelButton handleClick={handleButtonClick} />
+                                <SortParamComponent options={sortOptions} />
+                                <PageParamComponent itemCount={results.total} />
+                            </div>
                         </div>
                     )}
                     <div className="grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-5">

@@ -67,20 +67,35 @@ export class ClubsRepository {
     }
 
     // Tries to find a club from id;
-    async getByName(name: string, searchParams: LaughtrackSearchParams): Promise<Club | null> {
+    async getByName(name: string, params: LaughtrackSearchParams): Promise<PaginatedEntityResponse> {
+        const queryFile = params.getQuery(sql, EntityType.Club)
+        const filters = params.asClubQueryFilters()
+
         return this.db
             .oneOrNone(sql.getByName, {})
-            .then((response: ClubDTO | null) =>
-                response ? new Club(response) : null,
-            );
+            .then((result: PaginatedClubResponseDTO | null) => {
+                if (result) {
+                    return {
+                        entity: new Club(result.response),
+                        total: result ? result.response.total : 0
+                    }
+                }
+                throw new Error(`No club found for name: ${name}`)
+            });
     }
 
-    async getById(id: number, searchParams: LaughtrackSearchParams): Promise<Club> {
+    async getById(id: number, params: LaughtrackSearchParams): Promise<PaginatedEntityResponse> {
+        const queryFile = params.getQuery(sql, EntityType.Club)
+        const filters = params.asClubQueryFilters()
+
         return this.db
-            .oneOrNone(sql.getById, {})
-            .then((response: ClubDTO | null) => {
-                if (response) {
-                    return new Club(response)
+            .oneOrNone(queryFile, filters)
+            .then((result: PaginatedClubResponseDTO | null) => {
+                if (result) {
+                    return {
+                        entities: result.response.data.map((result: ClubDTO) => new Club(result)),
+                        total: result.response.total
+                    }
                 }
                 throw new Error(`No club found for id: ${id}`)
             });
@@ -93,10 +108,13 @@ export class ClubsRepository {
         return this.db
             .oneOrNone(queryFile, filters)
             .then((result: PaginatedClubResponseDTO | null) => {
-                return {
-                    entities: result ? result.response.data.map((result: ClubDTO) => new Club(result)) : [],
-                    total: result ? result.response.total : 0
+                if (result) {
+                    return {
+                        entities: result.response.data.map((result: ClubDTO) => new Club(result)),
+                        total: result.response.total
+                    }
                 }
+                throw new Error(`Error querying for clubs`)
             });
     }
 
