@@ -1,4 +1,4 @@
-import { URLParam } from "../enum";
+import { URLParam } from "../../objects/enum";
 
 type ParamValue = string | number | Date;
 

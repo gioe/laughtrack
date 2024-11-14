@@ -1,4 +1,4 @@
-import { SocialDataDTO, PopularityScoreIODTO } from "../../objects/interfaces";
+import { SocialDataDTO, PopularityScoreIODTO } from "../../objects/interface";
 
 export const averagePopularityScore = (
     scores: PopularityScoreIODTO[],

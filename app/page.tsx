@@ -1,11 +1,10 @@
 "use server";
 
 import EntityCarousel from "../components/carousel";
-import HomeSearchForm from "../components/search/form";
+import ShowSearchForm from "../components/form/forms/showSearch";
 import { getDB } from "../database";
-import { Comedian } from "../objects/classes/comedian/Comedian";
-import { FormSelectable } from "../objects/interfaces";
-
+import { Comedian } from "../objects/class/comedian/Comedian";
+import { FormSelectable } from "../objects/interface";
 const { db } = getDB();
 
 const TRENDING_COUNT = 5;
@@ -43,7 +42,7 @@ export default async function LandingPage() {
             </section>
 
             <section className="m-4 mt-0 -mb-14 px-2 lg:px-4">
-                <HomeSearchForm citiesString={citiesString} />
+                <ShowSearchForm citiesString={citiesString} />
             </section>
 
             <section

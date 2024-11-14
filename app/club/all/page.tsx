@@ -1,9 +1,8 @@
 import { getDB } from "../../../database";
-import { getSortOptionsForEntityType } from "../../../util/sort";
-import { EntityType } from "../../../util/enum";
 import QueryableEntityTableContainer from "../../../components/container";
-import { LaughtrackSearchParams } from "../../../objects/classes/searchParams/LaughtrackSearchParams";
-import { SearchParams } from "../../../objects/types/searchParams";
+import { SearchParams } from "../../../objects/type/searchParams";
+import { QueryHelper } from "../../../objects/class/query/QueryHelper";
+import { EntityType } from "../../../objects/enum";
 
 const { db } = getDB();
 
@@ -11,17 +10,21 @@ export default async function AllClubsPage(props: {
     searchParams: Promise<SearchParams>;
 }) {
     const searchParams = await props.searchParams;
-    const paramsWrapper =
-        LaughtrackSearchParams.asServerSideParams(searchParams);
+    const paramsWrapper = QueryHelper.asServerSideParams(searchParams);
     const response = await db.clubs.getAll(paramsWrapper);
-    const responseString = JSON.stringify(response);
+    const entityCollectionString = JSON.stringify(response.entities);
 
     return (
         <main className="flex-grow pt-5 bg-shark">
             <QueryableEntityTableContainer
-                sortOptions={getSortOptionsForEntityType(EntityType.Club)}
-                responseString={responseString}
-                defaultNode={<div></div>}
+                entityType={EntityType.Club}
+                totalEntities={response.total}
+                entityCollectionString={entityCollectionString}
+                defaultNode={
+                    <h2 className="font-bold text-5xl text-white pt-6">
+                        No clubs found. Who knows why.
+                    </h2>
+                }
             />
         </main>
     );

@@ -1,14 +1,14 @@
 import {
     ClubScraper,
     ScrapingOutput,
-} from "../../../objects/interfaces";
+} from "../../../objects/interface";
 import { PageManager } from "../handlers/PageManager";
 import playwright from "playwright-core";
 import { ShowScraper } from "../scrapers/ShowScraper";
 import { generateValidUrl } from "../../../util/primatives/urlUtil";
 import { DateTimeContainer } from "../containers/DateTimeContainer";
-import { ClubInterface } from "../../../objects/classes/club/club.interface";
-import { Show } from "../../../objects/classes/show/Show";
+import { ClubInterface } from "../../../objects/class/club/club.interface";
+import { Show } from "../../../objects/class/show/Show";
 
 const LINK =
     "div.col-xs-12.col-sm-3.upcoming-list-description.--btn-container > a";

@@ -1,14 +1,14 @@
 import {
     ClubScraper,
     ScrapingOutput,
-} from "../../../objects/interfaces";
+} from "../../../objects/interface";
 import { PageManager } from "../handlers/PageManager";
 import playwright from "playwright-core";
 import { ShowScraper } from "../scrapers/ShowScraper";
 import { generateValidUrl } from "../../../util/primatives/urlUtil";
 import { DateTimeContainer } from "../containers/DateTimeContainer";
-import { ClubInterface } from "../../../objects/classes/club/club.interface";
-import { Show } from "../../../objects/classes/show/Show";
+import { ClubInterface } from "../../../objects/class/club/club.interface";
+import { Show } from "../../../objects/class/show/Show";
 
 const ALL_LINKS =
     "div.tribe-events-c-small-cta.tribe-common-b3.tribe-events-calendar-list__event-cost > a";

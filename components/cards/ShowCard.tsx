@@ -5,8 +5,8 @@ import { MiniEntityIcon } from "../icons/MiniEntityIcon";
 import moment from "moment";
 import Image from "next/image";
 import Link from "next/link";
-import { Show } from "../../objects/classes/show/Show";
-import { Comedian } from "../../objects/classes/comedian/Comedian";
+import { Show } from "../../objects/class/show/Show";
+import { Comedian } from "../../objects/class/comedian/Comedian";
 
 interface ShowCardProps {
     show: Show;

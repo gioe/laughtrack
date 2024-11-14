@@ -3,7 +3,7 @@ import { IResult } from "pg-promise/typescript/pg-subset.js";
 import { lineupItem as sql } from "../sql/index";
 import {
     LineupItemDTO,
-} from "../../objects/interfaces";
+} from "../../objects/interface";
 import { IExtensions } from ".";
 
 const columnSets: {

@@ -1,8 +1,8 @@
 import { IDatabase, IMain } from "pg-promise";
 import { city as sql } from "../sql";
 import { IExtensions } from ".";
-import { CityDTO } from "../../objects/classes/city/city.interface";
-import { City } from "../../objects/classes/city/City";
+import { CityDTO } from "../../objects/class/city/city.interface";
+import { City } from "../../objects/class/city/City";
 
 export class CityRepository {
     /**

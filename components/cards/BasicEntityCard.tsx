@@ -10,7 +10,7 @@ import useRegisterModal from "../../hooks/useRegisterModel";
 import { useSession } from "next-auth/react";
 import SocialMediaBar from "../social/SocialMediaBar";
 import axios from "axios";
-import { Entity } from "../../objects/interfaces";
+import { Entity } from "../../objects/interface";
 
 interface BasicEntityCardProps {
     entity: Entity;

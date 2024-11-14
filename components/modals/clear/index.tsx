@@ -1,0 +1,32 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useClearShowsModal } from "../../../hooks";
+import Modal from "..";
+import ClearShowsFromClubForm from "../../form/forms/clearClub";
+
+interface ClearShowsModalParams {
+    clubId: number;
+}
+
+const ClearShowsModal: React.FC<ClearShowsModalParams> = ({ clubId }) => {
+    const clearShowsModal = useClearShowsModal();
+    const router = useRouter();
+
+    const onSubmit = () => {
+        router.refresh();
+        clearShowsModal.onClose();
+    };
+
+    return (
+        <Modal
+            isOpen={clearShowsModal.isOpen}
+            onClose={clearShowsModal.onClose}
+            body={
+                <ClearShowsFromClubForm clubId={clubId} onSubmit={onSubmit} />
+            }
+        />
+    );
+};
+
+export default ClearShowsModal;

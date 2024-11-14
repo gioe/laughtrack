@@ -1,16 +1,16 @@
 import {
     ClubScraper,
     ScrapingOutput,
-} from "../../../objects/interfaces";
+} from "../../../objects/interface";
 import { PageManager } from "../handlers/PageManager";
 import playwright from "playwright-core";
 import { ShowScraper } from "../scrapers/ShowScraper";
 import { generateValidUrl } from "../../../util/primatives/urlUtil";
 import { DateTimeContainer } from "../containers/DateTimeContainer";
 import { delay } from "../../../util/promiseUtil";
-import { Show } from "../../../objects/classes/show/Show";
-import { ClubInterface } from "../../../objects/classes/club/club.interface";
-import { ComedianDTO } from "../../../objects/classes/comedian/comedian.interface";
+import { Show } from "../../../objects/class/show/Show";
+import { ClubInterface } from "../../../objects/class/club/club.interface";
+import { ComedianDTO } from "../../../objects/class/comedian/comedian.interface";
 
 const LINK =
     "a.MuiTypography-root.MuiTypography-body.MuiLink-root.MuiLink-underlineAlways.css-2p1ku6";

@@ -1,7 +1,7 @@
 import React from "react";
-import { Entity } from "../../objects/interfaces";
+import { Entity } from "../../objects/interface";
 import { cn } from "../../util/tailwindUtil";
-import EntityType from "../icons/MiniEntityIcon";
+import { EntityType } from "../../objects/enum";
 
 interface TableProps<T extends Entity> {
     data: T[];

@@ -1,14 +1,17 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ColumnSet, IDatabase, IMain } from "pg-promise";
 import { show as sql } from "../sql";
 import {
     PopularityScoreIODTO,
-} from "../../objects/interfaces";
-import { PaginatedShowResponseDTO, ShowDTO } from "../../objects/classes/show/show.interface";
+    PaginatedEntityCollectionResponse,
+    PaginatedEntityCollectionResponseDTO,
+    PaginatedEntityResponse,
+    PaginatedEntityResponseDTO,
+    RepositoryInterface
+} from "../../objects/interface";
+import { ShowDTO } from "../../objects/class/show/show.interface";
 import { IExtensions } from ".";
-import { Show } from "../../objects/classes/show/Show";
-import { LaughtrackSearchParams } from "../../objects/classes/searchParams/LaughtrackSearchParams";
-import { PaginatedEntityResponse } from "../../objects/interfaces/entity.interface";
-import { EntityType } from "../../util/enum";
+import { Show } from "../../objects/class/show/Show";
 
 const columnSets: {
     updateScores: ColumnSet | null;
@@ -18,7 +21,7 @@ const columnSets: {
     addAll: null,
 };
 
-export class ShowsRepository {
+export class ShowsRepository implements RepositoryInterface<Show> {
     /**
      * @param db
      * Automated database connection context/interface.
@@ -49,16 +52,28 @@ export class ShowsRepository {
         return this.db.none(sql.createTable);
     }
 
-    async getAll(params: LaughtrackSearchParams): Promise<PaginatedEntityResponse> {
-        const queryFile = params.getQuery(sql, EntityType.Show)
-        const filters = params.asShowQueryFilters();
+    async getAll(filters: any): Promise<PaginatedEntityCollectionResponse<Show>> {
         return this.db
-            .oneOrNone(queryFile, filters)
-            .then((result: PaginatedShowResponseDTO | null) => {
+            .oneOrNone(sql.getAll, filters)
+            .then((result: PaginatedEntityCollectionResponseDTO<ShowDTO> | null) => {
                 return {
                     entities: result ? result.response.data.map((result: ShowDTO) => new Show(result)) : [],
                     total: result ? result.response.total : 0
                 }
+            });
+    }
+
+    async getByProperty(filters: any): Promise<PaginatedEntityResponse<Show>> {
+        return this.db
+            .oneOrNone(sql.getAll, filters)
+            .then((result: PaginatedEntityResponseDTO<ShowDTO> | null) => {
+                if (result) {
+                    return {
+                        entity: new Show(result.response.data),
+                        total: result.response.total
+                    }
+                }
+                throw new Error(`No show found`)
             });
     }
 
@@ -71,17 +86,6 @@ export class ShowsRepository {
             name: instance.name,
             scraped: instance.scraped
         });
-    }
-
-    // Tries to find a show from id;
-    async getById(id: number): Promise<Show | null> {
-        return this.db
-            .oneOrNone(sql.getById, {
-                showId: +id,
-            })
-            .then((show: ShowDTO | null) =>
-                show ? new Show(show) : null,
-            );
     }
 
     async updateScores(scores: PopularityScoreIODTO[]): Promise<null> {

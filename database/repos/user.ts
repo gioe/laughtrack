@@ -1,6 +1,6 @@
 import { IDatabase, IMain } from "pg-promise";
 import { user as sql } from "../sql";
-import { UserDTO, UserInterface } from "../../objects/interfaces";
+import { UserDTO, UserInterface } from "../../objects/interface";
 import { IExtensions } from ".";
 
 export class UsersRepository {
@@ -25,7 +25,6 @@ export class UsersRepository {
         return this.db.none(sql.createTable);
     }
 
-    // Adds a new user, and returns the new object;
     async add(user: UserDTO): Promise<UserInterface | null> {
         return this.db.one(sql.add, {
             email: user.email,
@@ -38,34 +37,34 @@ export class UsersRepository {
             });
     }
 
-    // Tries to find a user from id;
-    async findById(id: number): Promise<UserInterface> {
-        return this.db.oneOrNone("SELECT * FROM users WHERE id = $1", +id)
-            .then((response: UserInterface | null) => {
-                if (response) return response
-                throw new Error(`No user found with id ${id}`)
-            });
+    async getById(id: number): Promise<UserInterface> {
+        return this.db.oneOrNone(sql.getById, {
+            id
+        }).then((response: UserInterface | null) => {
+            if (response) return response
+            throw new Error(`No user found with id ${id}`)
+        });
     }
 
-    // Tries to find a user from name;
-    async getUserByEmail(email: string): Promise<UserInterface> {
-        return this.db.oneOrNone("SELECT * FROM users WHERE email = $1", email)
-            .then((response: UserInterface | null) => {
-                if (response) return response
-                throw new Error(`No user found with email ${email}`)
-            });
+    async getByEmail(email: string): Promise<UserInterface> {
+        return this.db.oneOrNone(sql.getByEmail, {
+            email
+        }).then((response: UserInterface | null) => {
+            if (response) return response
+            throw new Error(`No user found with email ${email}`)
+        });
     }
 
-    // Tries to find a user from name;
     async checkForExistence(email: string): Promise<boolean> {
-        return this.db.oneOrNone("SELECT * FROM users WHERE email = $1", email)
+        return this.db.oneOrNone(sql.getByEmail, {
+            email
+        })
             .then((response: UserInterface | null) => {
                 if (response) return true
                 return false
             });
     }
 
-    // Returns all user records;
     all(): Promise<UserInterface[]> {
         return this.db.any("SELECT * FROM users");
     }

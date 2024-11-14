@@ -4,30 +4,32 @@ import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { useState } from "react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { useSearchParams } from "next/navigation";
-import { URLParam } from "../../../util/enum";
+import { URLParam } from "../../../objects/enum";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "../../../util/tailwindUtil";
-import { SortOptionInterface } from "../../../objects/interfaces";
-import { LaughtrackSearchParams } from "../../../objects/classes/searchParams/LaughtrackSearchParams";
+import { SortOptionInterface } from "../../../objects/interface";
+import { ParamsWrapper } from "../../../objects/class/params/ParamsWrapper";
+import { Navigator } from "../../../objects/class/navigate/Navigator";
 
 interface SortParamComponentProps {
     options: SortOptionInterface[];
 }
 
 export function SortParamComponent({ options }: SortParamComponentProps) {
-    const params = LaughtrackSearchParams.asClientSideParams(
-        new URLSearchParams(useSearchParams()),
+    const paramsWrapper = ParamsWrapper.fromClientSideParams(
         usePathname(),
-        useRouter(),
+        new URLSearchParams(useSearchParams()),
     );
 
+    const navigator = new Navigator(usePathname(), useRouter());
+
     const [selectedSort, setSelectedSort] = useState(
-        params.getParamValue(URLParam.Sort) ?? options[0].value,
+        paramsWrapper.getParamValue(URLParam.Sort) ?? options[0].value,
     );
 
     const modifySortParam = (sortValue: string) => {
-        params.setParamValue(URLParam.Sort, sortValue);
-        params.replaceRoute();
+        paramsWrapper.setParamValue(URLParam.Sort, sortValue);
+        navigator.replaceRoute(paramsWrapper.asParamsString());
         setSelectedSort(sortValue);
     };
 

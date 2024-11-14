@@ -1,4 +1,4 @@
-import { Filter } from "../../objects/types/filter";
+import { Filter } from "../../objects/type/filter";
 
 
 export const equals = <A, K extends keyof A>(

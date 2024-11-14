@@ -8,7 +8,7 @@ import {
     Typography,
 } from "@material-tailwind/react";
 import SocialMediaBar from "../social/SocialMediaBar";
-import { Entity } from "../../objects/interfaces";
+import { Entity } from "../../objects/interface";
 import LinkedImage from "../image/link";
 
 interface CarouselCardProps {
@@ -21,7 +21,7 @@ const CarouselCard: React.FC<CarouselCardProps> = ({ entity }) => {
             <Card className="w-96">
                 <CardHeader floated={false} className="h-80">
                     <LinkedImage
-                        destination={`/${entity.type.valueOf()}/${entity.id}`}
+                        destination={`/${entity.type.valueOf()}/${entity.name}`}
                         imageUrl={entity.cardImageUrl}
                         alt={entity.type.valueOf()}
                     />

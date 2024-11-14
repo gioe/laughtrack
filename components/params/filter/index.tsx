@@ -7,11 +7,12 @@ import {
     DisclosurePanel,
 } from "@headlessui/react";
 
-import { URLParam } from "../../../util/enum";
-import { FilterSection } from "../../../objects/interfaces/filter.interface";
+import { URLParam } from "../../../objects/enum";
+import { FilterSection } from "../../../objects/interface/filter.interface";
 import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "next/navigation";
-import { LaughtrackSearchParams } from "../../../objects/classes/searchParams/LaughtrackSearchParams";
+import { ParamsWrapper } from "../../../objects/class/params/ParamsWrapper";
+import { Navigator } from "../../../objects/class/navigate/Navigator";
 
 interface FilterOptionsComponentProps {
     sections: FilterSection[];
@@ -20,13 +21,15 @@ interface FilterOptionsComponentProps {
 export function FilterParamComponent({
     sections,
 }: FilterOptionsComponentProps) {
-    const params = LaughtrackSearchParams.asClientSideParams(
-        new URLSearchParams(useSearchParams()),
+    const paramsWrapper = ParamsWrapper.fromClientSideParams(
         usePathname(),
-        useRouter(),
+        new URLSearchParams(useSearchParams()),
     );
+    const navigator = new Navigator(usePathname(), useRouter());
+
     const appendParam = (type: string, filter: string) => {
-        params.setParamValue(URLParam.City, "");
+        paramsWrapper.setParamValue(URLParam.City, "");
+        navigator.replaceRoute(paramsWrapper.asParamsString());
     };
 
     return (

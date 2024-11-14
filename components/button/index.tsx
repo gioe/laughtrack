@@ -2,43 +2,31 @@
 
 import { IconType } from "react-icons";
 import { Button } from "../ui/button";
+import { ButtonData } from "../../objects/interface";
 
 interface ButtonProps {
-    label?: string;
+    data: ButtonData;
     onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
     disabled?: boolean;
-    outline?: boolean;
-    small?: boolean;
     icon?: IconType;
-    type?: "submit" | "reset" | "button" | undefined;
 }
 
 const ButtonComponent: React.FC<ButtonProps> = ({
-    type = "button",
-    label,
-    onClick,
+    data,
     disabled,
-    outline,
-    small,
     icon: Icon,
+    onClick,
 }) => {
     return (
         <Button
-            type={type}
+            type={data.type}
             onClick={onClick}
             disabled={disabled}
-            className={`relative disabled:opacity-70 disabled:cursor-not-allowed rounded-lg hover:opacity-80 transition w-full
-                 ${outline ? "bg-white" : "bg-red-500"}
-                 ${outline ? "border-black" : "bg-red-500"}
-                ${outline ? "text-black" : "text-white"}
-                ${small ? "py-1" : "py-3"}
-                 ${small ? "text-sm" : "text-md"}
-                 ${small ? "font-light" : "font-semibold"}
-                 ${small ? "border-[1px]" : "border-2"}
-                `}
+            className={`relative disabled:opacity-70 disabled:cursor-not-allowed rounded-lg hover:opacity-80
+                 transition w-full bg-${data.styling?.backgroundColor ?? "red-500"} text-white py-3 text-md font-semibold border-2`}
         >
             {Icon && <Icon size={24} className="absolute left-4 top-3"></Icon>}
-            {label}
+            {data.label}
         </Button>
     );
 };

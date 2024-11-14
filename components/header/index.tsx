@@ -21,7 +21,7 @@ import {
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
 import useLoginModal from "../../hooks/useLoginModal";
 import useRegisterModal from "../../hooks/useRegisterModel";
-import { UserInterface } from "../../objects/interfaces";
+import { UserInterface } from "../../objects/interface";
 import { useScrapeMenuModal } from "../../hooks";
 
 const comedianMenuItems = [

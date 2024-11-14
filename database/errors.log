@@ -574,3 +574,34 @@
 
 21:49:25 error: ENOENT: no such file or directory, open '/Users/mattgioe/Desktop/projects/laughtrack/database/sql/club/get/id.sql'
          query: /Users/mattgioe/Desktop/projects/laughtrack/database/sql/club/get/id.sql
+
+21:17:57 error: ENOENT: no such file or directory, open '/Users/mattgioe/Desktop/projects/laughtrack/database/sql/comedian/get/trending.sql'
+         query: /Users/mattgioe/Desktop/projects/laughtrack/database/sql/comedian/get/trending.sql
+
+21:18:02 error: ENOENT: no such file or directory, open '/Users/mattgioe/Desktop/projects/laughtrack/database/sql/comedian/get/trending.sql'
+         query: /Users/mattgioe/Desktop/projects/laughtrack/database/sql/comedian/get/trending.sql
+
+07:56:26 error: ENOENT: no such file or directory, open '/Users/mattgioe/Desktop/projects/laughtrack/database/sql/comedian/get/trending.sql'
+         query: /Users/mattgioe/Desktop/projects/laughtrack/database/sql/comedian/get/trending.sql
+
+07:56:33 error: ENOENT: no such file or directory, open '/Users/mattgioe/Desktop/projects/laughtrack/database/sql/comedian/get/trending.sql'
+         query: /Users/mattgioe/Desktop/projects/laughtrack/database/sql/comedian/get/trending.sql
+
+07:56:39 error: ENOENT: no such file or directory, open '/Users/mattgioe/Desktop/projects/laughtrack/database/sql/comedian/get/trending.sql'
+         query: /Users/mattgioe/Desktop/projects/laughtrack/database/sql/comedian/get/trending.sql
+
+15:44:02 error: Invalid query format.
+
+15:44:35 error: Invalid query format.
+
+17:48:50 error: Invalid query format.
+
+17:49:37 error: Invalid query format.
+
+17:49:41 error: Invalid query format.
+
+17:51:41 error: Invalid query format.
+
+17:51:44 error: Invalid query format.
+
+17:53:42 error: Invalid query format.

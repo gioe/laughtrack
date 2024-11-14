@@ -5,7 +5,7 @@ import InstagramIcon from "../icons/InstagramIcon";
 import TikTokIcon from "../icons/TikTokIcon";
 import WebIcon from "../icons/WebIcon";
 import YouTubeIcon from "../icons/YoutubeIcon";
-import { SocialDataInterface } from "../../objects/interfaces";
+import { SocialDataInterface } from "../../objects/interface";
 
 interface SocialMediaBarProps {
     data: SocialDataInterface;

@@ -1,6 +1,6 @@
 "use client";
 
-import { FormSelectable } from "../../objects/interfaces";
+import { FormSelectable } from "../../objects/interface";
 import {
     Select,
     SelectTrigger,
@@ -21,7 +21,10 @@ export function SelectComponent({
     handleValueChange,
 }: DropdownProps) {
     return (
-        <Select onValueChange={handleValueChange} defaultValue={items[0].value}>
+        <Select
+            onValueChange={handleValueChange}
+            defaultValue={items[0].id.toString()}
+        >
             <SelectTrigger>
                 <SelectValue
                     className="text-blue-500"
@@ -32,10 +35,10 @@ export function SelectComponent({
                 {items.map((item) => (
                     <SelectItem
                         className="bg-white rounded-lg"
-                        key={item.label}
-                        value={item.value}
+                        key={item.id.toString()}
+                        value={item.id.toString()}
                     >
-                        {item.label}
+                        {item.name}
                     </SelectItem>
                 ))}
             </SelectContent>

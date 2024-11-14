@@ -1,16 +1,16 @@
 import {
     ClubScraper,
     ScrapingOutput,
-} from "../../../objects/interfaces";
+} from "../../../objects/interface";
 import { PageManager } from "../handlers/PageManager";
 import playwright, { Browser, Locator, Page } from "playwright-core";
 import { ShowScraper } from "../scrapers/ShowScraper";
 import { generateValidUrl } from "../../../util/primatives/urlUtil";
 import { DateTimeContainer } from "../containers/DateTimeContainer";
 import { runTasks } from "../../../util/promiseUtil";
-import { ClubInterface } from "../../../objects/classes/club/club.interface";
-import { Show } from "../../../objects/classes/show/Show";
-import { ComedianDTO } from "../../../objects/classes/comedian/comedian.interface";
+import { ClubInterface } from "../../../objects/class/club/club.interface";
+import { Show } from "../../../objects/class/show/Show";
+import { ComedianDTO } from "../../../objects/class/comedian/comedian.interface";
 
 const MORE = "div.row.moreitems.dark-links.my-5 > div > div > a";
 const SHOW_CONTAINER = "div.row.show_row";

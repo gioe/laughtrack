@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import TablePagination from "@mui/material/TablePagination";
-import { URLParam } from "../../../util/enum";
+import { URLParam } from "../../../objects/enum";
 import { usePathname, useRouter } from "next/navigation";
-import { LaughtrackSearchParams } from "../../../objects/classes/searchParams/LaughtrackSearchParams";
+import { ParamsWrapper } from "../../../objects/class/params/ParamsWrapper";
+import { Navigator } from "../../../objects/class/navigate/Navigator";
 
 interface PageParamComponentProps {
     itemCount: number;
@@ -14,29 +15,26 @@ interface PageParamComponentProps {
 export function PageParamComponent({
     itemCount,
 }: Readonly<PageParamComponentProps>) {
-    const params = LaughtrackSearchParams.asClientSideParams(
-        new URLSearchParams(useSearchParams()),
+    const paramsWrapper = ParamsWrapper.fromClientSideParams(
         usePathname(),
-        useRouter(),
+        new URLSearchParams(useSearchParams()),
     );
+    const navigator = new Navigator(usePathname(), useRouter());
+
     const [page, setPage] = useState(
-        params.getParamValue(URLParam.Page) as number,
+        paramsWrapper.getParamValue(URLParam.Page) as number,
     );
 
     const [rowsPerPage, setRowsPerPage] = useState(
-        params.getParamValue(URLParam.Rows) as number,
-    );
-
-    console.log(
-        `There are ${itemCount} results and you are currently on page ${page} with ${rowsPerPage} rows per page`,
+        paramsWrapper.getParamValue(URLParam.Rows) as number,
     );
 
     const handleChangeOffset = (
         event: React.MouseEvent<HTMLButtonElement> | null,
         newPage: number,
     ) => {
-        params.setParamValue(URLParam.Page, newPage);
-        params.replaceRoute();
+        paramsWrapper.setParamValue(URLParam.Page, newPage);
+        navigator.replaceRoute(paramsWrapper.asParamsString());
         setPage(newPage);
     };
 
@@ -44,8 +42,8 @@ export function PageParamComponent({
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => {
         const rowValue = parseInt(event.target.value, 10);
-        params.setParamValue(URLParam.Rows, rowValue);
-        params.replaceRoute();
+        paramsWrapper.setParamValue(URLParam.Rows, rowValue);
+        navigator.replaceRoute(paramsWrapper.asParamsString());
         setRowsPerPage(rowValue);
     };
 

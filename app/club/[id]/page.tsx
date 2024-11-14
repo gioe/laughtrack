@@ -1,22 +1,20 @@
-import { EntityType } from "../../../util/enum";
+import { EntityType } from "../../../objects/enum";
 import { getDB } from "../../../database";
 import EntityBanner from "../../../components/banner";
-import { getSortOptionsForEntityType } from "../../../util/sort";
 import QueryableEntityTableContainer from "../../../components/container";
-import ClearShowsModal from "../../../components/modals/club/clear";
-import ScrapeEntityModal from "../../../components/modals/entity/scrape";
-import { SearchParams } from "../../../objects/types/searchParams";
-import { LaughtrackSearchParams } from "../../../objects/classes/searchParams/LaughtrackSearchParams";
-import { PaginatedEntityResponse } from "../../../objects/interfaces/entity.interface";
+import ClearShowsModal from "../../../components/modals/clear";
+import ScrapeEntityModal from "../../../components/modals/scrape";
+import { SearchParams } from "../../../objects/type/searchParams";
+import { PaginatedEntityResponse } from "../../../objects/interface";
+import { QueryHelper } from "../../../objects/class/query/QueryHelper";
 const { db } = getDB();
 
 async function getClubDetail(
-    id: string,
+    slug: string,
     searchParams: SearchParams,
 ): Promise<PaginatedEntityResponse> {
-    const paramsWrapper =
-        LaughtrackSearchParams.asServerSideParams(searchParams);
-    return db.clubs.getById(Number(id), paramsWrapper);
+    const paramsWrapper = QueryHelper.asServerSideParams(searchParams);
+    return db.clubs.getByName(slug, paramsWrapper);
 }
 
 export default async function ClubDetailPage(props: {
@@ -26,7 +24,11 @@ export default async function ClubDetailPage(props: {
     const searchParams = await props.searchParams;
     const params = await props.params;
     const response = await getClubDetail(params.id, searchParams);
-    const responseString = JSON.stringify(response.entity);
+
+    const entityString = JSON.stringify(response.entity);
+    const entityCollectionString = JSON.stringify(
+        response.entity.containedEntities,
+    );
 
     return (
         <main className="flex-grow pt-5 bg-shark">
@@ -36,12 +38,13 @@ export default async function ClubDetailPage(props: {
             />
             <ClearShowsModal clubId={response.entity.id} />
             <section>
-                <EntityBanner entityString={responseString} />
+                <EntityBanner entityString={entityString} />
             </section>
             <section>
                 <QueryableEntityTableContainer
-                    sortOptions={getSortOptionsForEntityType(EntityType.Show)}
-                    responseString={responseString}
+                    entityType={EntityType.Show}
+                    totalEntities={response.total}
+                    entityCollectionString={entityCollectionString}
                     defaultNode={
                         <h2 className="font-bold text-5xl text-white pt-6">
                             No shows for this club

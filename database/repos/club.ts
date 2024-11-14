@@ -1,15 +1,18 @@
 import { ColumnSet, IDatabase, IMain } from "pg-promise";
 import { club as sql } from "../sql";
 import {
+    PaginatedEntityCollectionResponse,
+    PaginatedEntityResponse,
+    PaginatedEntityResponseDTO,
     PopularityScoreIODTO,
-} from "../../objects/interfaces";
+    PaginatedEntityCollectionResponseDTO
+} from "../../objects/interface";
 import { providedPromiseResponse } from "../../util/promiseUtil";
 import { IExtensions } from ".";
-import { ClubDTO, PaginatedClubResponseDTO } from "../../objects/classes/club/club.interface";
-import { Club } from "../../objects/classes/club/Club";
-import { LaughtrackSearchParams } from "../../objects/classes/searchParams/LaughtrackSearchParams";
-import { EntityType } from "../../util/enum";
-import { PaginatedEntityResponse } from "../../objects/interfaces/entity.interface";
+import { ClubDTO } from "../../objects/class/club/club.interface";
+import { Club } from "../../objects/class/club/Club";
+import { QueryHelper } from "../../objects/class/query/QueryHelper";
+import { EntityType } from "../../objects/enum";
 
 const columnSets: {
     updateScores: ColumnSet | null;
@@ -54,9 +57,62 @@ export class ClubsRepository {
         );
     }
 
-    // Creates the table;
     createTable(): Promise<null> {
         return this.db.none(sql.createTable);
+    }
+
+    async getAll(params: QueryHelper): Promise<PaginatedEntityCollectionResponse> {
+        const queryFile = params.getQuery(sql, EntityType.Club)
+        const filters = params.asClubQueryFilters();
+        return this.db
+            .oneOrNone(queryFile, filters)
+            .then((result: PaginatedEntityCollectionResponseDTO<ClubDTO> | null) => {
+                return {
+                    entities: result ? result.response.data.map((result: ClubDTO) => new Club(result)) : [],
+                    total: result ? result.response.total : 0
+                }
+            });
+    }
+
+    async getByName(name: string, params: QueryHelper): Promise<PaginatedEntityResponse> {
+        const queryFile = params.getQuery(sql, EntityType.Comedian)
+        const filters = params.asCommonFilters()
+        return this.db
+            .oneOrNone(queryFile, filters)
+            .then((result: PaginatedEntityResponseDTO<ClubDTO> | null) => {
+                if (result) {
+                    return {
+                        entity: new Club(result.response.data),
+                        total: result.response.total
+                    }
+                }
+                throw new Error(`No club found with name: ${name}`)
+            });
+    }
+
+
+    async getById(id: number, params: QueryHelper): Promise<PaginatedEntityResponse> {
+        const queryFile = params.getQuery(sql, EntityType.Show)
+        const filters = params.asClubQueryFilters()
+        return this.db
+            .oneOrNone(queryFile, filters)
+            .then((result: PaginatedEntityResponseDTO<ClubDTO> | null) => {
+                if (result) {
+                    return {
+                        entity: new Club(result.response.data),
+                        total: result.response.total
+                    }
+                }
+                throw new Error(`No club found with id: ${name}`)
+            });
+    }
+
+    async getAllForScraping(): Promise<Club[]> {
+        return this.db
+            .any('SELECT * from clubs')
+            .then((result: ClubDTO[] | null) => {
+                return result ? result.map((result: ClubDTO) => new Club(result)) : []
+            });
     }
 
     addAll(all: ClubDTO[]): Promise<null> {
@@ -66,66 +122,6 @@ export class ClubsRepository {
         return this.db.none(batchInsert);
     }
 
-    // Tries to find a club from id;
-    async getByName(name: string, params: LaughtrackSearchParams): Promise<PaginatedEntityResponse> {
-        const queryFile = params.getQuery(sql, EntityType.Club)
-        const filters = params.asClubQueryFilters()
-
-        return this.db
-            .oneOrNone(sql.getByName, {})
-            .then((result: PaginatedClubResponseDTO | null) => {
-                if (result) {
-                    return {
-                        entity: new Club(result.response),
-                        total: result ? result.response.total : 0
-                    }
-                }
-                throw new Error(`No club found for name: ${name}`)
-            });
-    }
-
-    async getById(id: number, params: LaughtrackSearchParams): Promise<PaginatedEntityResponse> {
-        const queryFile = params.getQuery(sql, EntityType.Club)
-        const filters = params.asClubQueryFilters()
-
-        return this.db
-            .oneOrNone(queryFile, filters)
-            .then((result: PaginatedClubResponseDTO | null) => {
-                if (result) {
-                    return {
-                        entities: result.response.data.map((result: ClubDTO) => new Club(result)),
-                        total: result.response.total
-                    }
-                }
-                throw new Error(`No club found for id: ${id}`)
-            });
-    }
-
-    // Returns all club records;
-    async getAll(params: LaughtrackSearchParams): Promise<PaginatedEntityResponse> {
-        const queryFile = params.getQuery(sql, EntityType.Club)
-        const filters = params.asClubQueryFilters();
-        return this.db
-            .oneOrNone(queryFile, filters)
-            .then((result: PaginatedClubResponseDTO | null) => {
-                if (result) {
-                    return {
-                        entities: result.response.data.map((result: ClubDTO) => new Club(result)),
-                        total: result.response.total
-                    }
-                }
-                throw new Error(`Error querying for clubs`)
-            });
-    }
-
-
-    async getAllForScraping(): Promise<Club[]> {
-        return this.db
-            .any('SELECT * from clubs')
-            .then((result: ClubDTO[] | null) => {
-                return result ? result.map((result: ClubDTO) => new Club(result)) : []
-            });
-    }
 
     updateScores(scores: PopularityScoreIODTO[] | null): Promise<null> {
         if (scores == null) return providedPromiseResponse(null);

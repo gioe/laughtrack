@@ -1,6 +1,6 @@
 "use client";
 
-import { Entity } from "../../objects/interfaces";
+import { Entity } from "../../objects/interface";
 import CarouselCard from "../cards/CarouselCard";
 
 interface EntityCarouselProps {

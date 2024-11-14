@@ -1,7 +1,7 @@
 import {
     ClubScraper,
     ScrapingOutput,
-} from "../../../objects/interfaces";
+} from "../../../objects/interface";
 import { PageManager } from "../handlers/PageManager";
 import playwright from "playwright-core";
 import { ShowScraper } from "../scrapers/ShowScraper";
@@ -10,8 +10,8 @@ import {
     isEventbritePage,
 } from "../../../util/primatives/urlUtil";
 import { DateTimeContainer } from "../containers/DateTimeContainer";
-import { Show } from "../../../objects/classes/show/Show";
-import { ClubInterface } from "../../../objects/classes/club/club.interface";
+import { Show } from "../../../objects/class/show/Show";
+import { ClubInterface } from "../../../objects/class/club/club.interface";
 
 const LINK = "div.event-cta-button > a";
 const DATE_TIME = "div.date > div.datetime-location-content";

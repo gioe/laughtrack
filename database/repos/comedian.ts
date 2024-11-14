@@ -1,13 +1,19 @@
 import { ColumnSet, IDatabase, IMain } from "pg-promise";
 import { comedian as sql } from "../sql";
 import { providedPromiseResponse } from "../../util/promiseUtil";
-import { ComedianDTO, ComedianInterface, PaginatedResponseDTO } from "../../objects/classes/comedian/comedian.interface";
-import { PopularityScoreIODTO, SocialDataDTO } from "../../objects/interfaces";
+import { ComedianDTO } from "../../objects/class/comedian/comedian.interface";
+import {
+    PaginatedEntityResponse,
+    PaginatedEntityCollectionResponseDTO,
+    PopularityScoreIODTO,
+    SocialDataDTO,
+    PaginatedEntityCollectionResponse,
+    PaginatedEntityResponseDTO
+} from "../../objects/interface";
 import { IExtensions } from ".";
-import { Comedian } from "../../objects/classes/comedian/Comedian";
-import { LaughtrackSearchParams } from "../../objects/classes/searchParams/LaughtrackSearchParams";
-import { EntityType } from "../../util/enum";
-import { PaginatedEntityResponse } from "../../objects/interfaces/entity.interface";
+import { Comedian } from "../../objects/class/comedian/Comedian";
+import { QueryHelper } from "../../objects/class/query/QueryHelper";
+import { EntityType } from "../../objects/enum";
 
 const columnSets: {
     updateScores: ColumnSet | null;
@@ -64,18 +70,16 @@ export class ComediansRepository {
         );
     }
 
-    // Creates the table;
     createTable(): Promise<null> {
         return this.db.none(sql.createTable);
     }
 
-    // Returns all club records;
-    async getAll(params: LaughtrackSearchParams): Promise<PaginatedEntityResponse> {
+    async getAll(params: QueryHelper): Promise<PaginatedEntityCollectionResponse> {
         const queryFile = params.getQuery(sql, EntityType.Comedian)
         const filters = params.asComedianQueryFilters();
         return this.db
             .oneOrNone(queryFile, filters)
-            .then((result: PaginatedResponseDTO<ComedianDTO> | null) => {
+            .then((result: PaginatedEntityCollectionResponseDTO<ComedianDTO> | null) => {
                 return {
                     entities: result ? result.response.data.map((result: ComedianDTO) => new Comedian(result)) : [],
                     total: result ? result.response.total : 0
@@ -83,37 +87,52 @@ export class ComediansRepository {
             });
     }
 
-
-    // Tries to find a comedian from name;
-    async getByName(name: string): Promise<Comedian | null> {
+    async getByName(name: string, params: QueryHelper): Promise<PaginatedEntityResponse> {
+        const queryFile = params.getQuery(sql, EntityType.Comedian)
+        const filters = params.asComedianQueryFilters();
         return this.db
-            .oneOrNone(sql.getByName, {
-                name,
-            })
-            .then((response: ComedianDTO | null) =>
-                response ? new Comedian(response) : null,
-            );
+            .oneOrNone(queryFile, filters)
+            .then((result: PaginatedEntityResponseDTO<ComedianDTO> | null) => {
+                if (result) {
+                    return {
+                        entity: new Comedian(result.response.data),
+                        total: result.response.total
+                    }
+                }
+                throw new Error(`No comedian found with name: ${name}`)
+            });
     }
 
-    async getById(id: number, searchParams: LaughtrackSearchParams): Promise<Comedian | null> {
+    async getById(id: number, params: QueryHelper): Promise<PaginatedEntityResponse> {
+        const queryFile = params.getQuery(sql, EntityType.Comedian)
+        const filters = params.asComedianQueryFilters();
         return this.db
-            .oneOrNone(sql.getById, {
-                id,
-            })
-            .then((response: ComedianDTO | null) =>
-                response ? new Comedian(response) : null,
-            );
+            .oneOrNone(queryFile, filters)
+            .then((result: PaginatedEntityResponseDTO<ComedianDTO> | null) => {
+                if (result) {
+                    return {
+                        entity: new Comedian(result.response.data),
+                        total: result.response.total
+                    }
+                }
+                throw new Error(`No comedian found with id: ${id}`)
+            });
     }
 
     async getAllFavorites(
         userId: number,
-        searchParams: LaughtrackSearchParams
-    ): Promise<ComedianInterface[]> {
+        params: QueryHelper
+    ): Promise<PaginatedEntityCollectionResponse> {
+        const queryFile = params.getQuery(sql, EntityType.Comedian)
+        const filters = params.asComedianQueryFilters();
         return this.db
-            .any(sql.getAll, {
-                user_id: userId,
-            })
-            .then((response: ComedianDTO[] | null) => response ? response.map((item: ComedianDTO) => new Comedian(item)) : []);
+            .oneOrNone(queryFile, filters)
+            .then((result: PaginatedEntityCollectionResponseDTO<ComedianDTO> | null) => {
+                return {
+                    entities: result ? result.response.data.map((result: ComedianDTO) => new Comedian(result)) : [],
+                    total: result ? result.response.total : 0
+                }
+            });
     }
 
     async getTrendingComedians(total: number): Promise<Comedian[]> {

@@ -3,7 +3,7 @@ import pkg from "pg-promise";
 import path from "path";
 import { fileURLToPath } from "url";
 import { createSingleton } from "../../util/singletonUtil";
-import { QueryFileMap } from "../../objects/types/queryFileMap";
+import { QueryFileMap } from "../../objects/type/queryFileMap";
 
 export const city = {
     // Create Table
@@ -29,16 +29,13 @@ export const club = {
     // DESC GETs
     getAllByNameDesc: sql("club/get/all/desc/getAllByNameDesc.sql").qf,
     getAllByPopularityDesc: sql("club/get/all/desc/getAllByPopularityDesc.sql").qf,
-    getIdByDateDesc: sql("club/get/id/asc/getIdByDateDesc.sql").qf,
-    getIdByPopularityDesc: sql("club/get/id/asc/getIdByPopularityDesc.sql").qf,
-    getNameByDateDesc: sql("club/get/name/asc/getNameByDateDesc.sql").qf,
-    getNameByPopularityDesc: sql("club/get/name/asc/getNameByPopularityDesc.sql").qf,
+    getIdByDateDesc: sql("club/get/id/desc/getIdByDateDesc.sql").qf,
+    getIdByPopularityDesc: sql("club/get/id/desc/getIdByPopularityDesc.sql").qf,
+    getNameByDateDesc: sql("club/get/name/desc/getNameByDateDesc.sql").qf,
+    getNameByPopularityDesc: sql("club/get/name/desc/getNameByPopularityDesc.sql").qf,
 
     // GETs
-    getByName: sql("club/get/name.sql").qf,
-    getById: sql("club/get/id.sql").qf,
-    getByCity: sql("club/get/city.sql").qf
-
+    getByCity: sql("club/get/city/getByCity.sql").qf
 } as QueryFileMap;
 
 export const comedian = {
@@ -54,8 +51,7 @@ export const comedian = {
     getAllByPopularityDesc: sql("comedian/get/all/desc/getAllByPopularityDesc.sql").qf,
 
     // GETs
-    getByName: sql("comedian/get/name.sql").qf,
-    getById: sql("comedian/get/id.sql").qf,
+    getById: sql("comedian/get/id/asc/getAllByDateAsc.sql").qf,
     getTrending: sql("comedian/get/trending.sql").qf,
 
 } as QueryFileMap;
@@ -86,18 +82,18 @@ export const show = {
     add: sql("show/add.sql").qf,
 
     // ASC GETs
-    getAllByScapeDateAsc: sql("show/get/all/asc/allByScapeDateAsc.sql").qf,
-    getAllByDateAsc: sql("show/get/all/asc/allByDateAsc.sql").qf,
-    getAllByNameAsc: sql("show/get/all/asc/allByNameAsc.sql").qf,
-    getAllByPopularityAsc: sql("show/get/all/asc/allByPopularityAsc.sql").qf,
-    getAllByPriceAsc: sql("show/get/all/asc/allByPriceAsc.sql").qf,
+    getAllByScapeDateAsc: sql("show/get/all/asc/getAllByScapeDateAsc.sql").qf,
+    getAllByDateAsc: sql("show/get/all/asc/getAllByDateAsc.sql").qf,
+    getAllByNameAsc: sql("show/get/all/asc/getAllByNameAsc.sql").qf,
+    getAllByPopularityAsc: sql("show/get/all/asc/getAllByPopularityAsc.sql").qf,
+    getAllByPriceAsc: sql("show/get/all/asc/getAllByPriceAsc.sql").qf,
 
     // DESC GETs
-    getAllByScrapeDateDesc: sql("show/get/all/desc/allByScrapeDateDesc.sql").qf,
-    getAllByDateDesc: sql("show/get/all/desc/allByDateDesc.sql").qf,
-    getAllByNameDesc: sql("show/get/all/desc/allByNameDesc.sql").qf,
-    getAllByPopularityDesc: sql("show/get/all/desc/allByPopularityDesc.sql").qf,
-    getAllByPriceDesc: sql("show/get/all/desc/allByPriceDesc.sql").qf,
+    getAllByScrapeDateDesc: sql("show/get/all/desc/getAllByScrapeDateDesc.sql").qf,
+    getAllByDateDesc: sql("show/get/all/desc/getAllByDateDesc.sql").qf,
+    getAllByNameDesc: sql("show/get/all/desc/getAllByNameDesc.sql").qf,
+    getAllByPopularityDesc: sql("show/get/all/desc/getAllByPopularityDesc.sql").qf,
+    getAllByPriceDesc: sql("show/get/all/desc/getAllByPriceDesc.sql").qf,
 
     // Property GETs
     getById: sql("show/get/id.sql").qf,
@@ -121,6 +117,11 @@ export const tag = {
 export const user = {
     // Create Table
     createTable: sql("user/createTable.sql").qf,
+
+    // GET
+    getByEmail: sql("user/get/getByEmail.sql").qf,
+    getById: sql("user/get/getById.sql").qf,
+    getAll: sql("user/get/getAll.sql").qf,
 
     //POST
     add: sql("user/add.sql").qf,

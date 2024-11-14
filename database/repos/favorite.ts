@@ -1,9 +1,9 @@
 import { IDatabase, IMain } from "pg-promise";
 import { favorite as sql } from "../sql";
-import { FavoriteDTO } from "../../objects/interfaces";
+import { FavoriteDTO } from "../../objects/interface";
 import { IExtensions } from ".";
-import { ComedianDTO } from "../../objects/classes/comedian/comedian.interface";
-import { Comedian } from "../../objects/classes/comedian/Comedian";
+import { ComedianDTO } from "../../objects/class/comedian/comedian.interface";
+import { Comedian } from "../../objects/class/comedian/Comedian";
 
 export class FavoritesRepository {
     /**

@@ -1,5 +1,5 @@
 
-import { EntityType } from "../enum";
+import { EntityType } from "../../objects/enum";
 import * as hooks from "../../hooks";
 
 export const getMenuItemsForEntityType = (type: EntityType) => {

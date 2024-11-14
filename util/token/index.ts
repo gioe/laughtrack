@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { AuthToken } from "../../objects/interfaces";
+import { AuthToken } from "../../objects/interface";
 
 const secret = process.env.SECRET_KEY as string;
 

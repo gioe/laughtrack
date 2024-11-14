@@ -1,7 +1,8 @@
-import { auth } from "../auth";
+import { auth } from "../../auth";
 
 export const executeGet = async <T>(
     endpoint: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     additionalHeaders?: any,
 ): Promise<T> => {
     const session = await auth();

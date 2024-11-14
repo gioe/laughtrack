@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Club } from "../../../../../objects/classes/club/Club";
+import { Club } from "../../../../../objects/class/club/Club";
 import { getDB } from "../../../../../database";
 const { db } = getDB()
 

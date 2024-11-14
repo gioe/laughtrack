@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { Menu } from "../menu";
 import { getMenuItemsForEntityType } from "../../util/menu";
-import { Entity } from "../../objects/interfaces";
+import { Entity } from "../../objects/interface";
 
 interface EntityBannerProps {
     entityString: string;

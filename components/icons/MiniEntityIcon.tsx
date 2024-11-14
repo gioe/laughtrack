@@ -3,8 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { EntityType } from "../../util/enum";
-import { Entity } from "../../objects/interfaces";
+import { Entity } from "../../objects/interface";
 
 interface MiniEntityIconProps {
     entity: Entity;
@@ -48,5 +47,3 @@ export const MiniEntityIcon: React.FC<MiniEntityIconProps> = ({ entity }) => {
         </div>
     );
 };
-
-export default EntityType;

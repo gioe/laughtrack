@@ -5,28 +5,32 @@ import { DrawerComponent } from "../drawer";
 import { PageParamComponent } from "../params/page";
 import { FunnelButton } from "../button/FunnelButton";
 import { SortParamComponent } from "../params/sort";
-import EntityType from "../icons/MiniEntityIcon";
 import ShowCard from "../cards/ShowCard";
-import { Entity, SortOptionInterface } from "../../objects/interfaces";
-import { Show } from "../../objects/classes/show/Show";
+import { Entity } from "../../objects/interface";
+import { Show } from "../../objects/class/show/Show";
 import { FilterParamComponent } from "../params/filter";
 import CarouselCard from "../cards/CarouselCard";
-import { PaginatedEntityResponse } from "../../objects/interfaces/entity.interface";
 import Table from "../table";
 import QueryParamComponent from "../params/query";
+import { getSortOptionsForEntityType } from "../../util/sort";
+import { EntityType } from "../../objects/enum";
 
 interface QueryableEntityTableContainerProps {
-    responseString: string;
+    entityType: EntityType;
+    entityCollectionString: string;
     defaultNode: React.ReactNode;
-    sortOptions: SortOptionInterface[];
+    totalEntities: number;
 }
 
 export default function QueryableEntityTableContainer({
-    responseString,
+    entityType,
+    entityCollectionString,
     defaultNode,
-    sortOptions,
+    totalEntities,
 }: QueryableEntityTableContainerProps) {
-    const results = JSON.parse(responseString) as PaginatedEntityResponse;
+    const filteredEntityCollection = JSON.parse(
+        entityCollectionString,
+    ) as Entity[];
     const [sideDrawerIsOpen, setSideDrawerIsOpen] = useState(false);
 
     const handleButtonClick = (isOpen: boolean) => {
@@ -52,19 +56,23 @@ export default function QueryableEntityTableContainer({
 
             <main className="mx-auto px-10 flex-item tems-end justify-end">
                 <section aria-labelledby="search-parameter-options-section">
-                    {results.total > 0 && (
+                    {totalEntities > 0 && (
                         <div className="flex-row">
-                            {results.entities[0].type !== EntityType.Show && (
+                            {entityType !== EntityType.Show && (
                                 <div className="flex-item">
                                     <QueryParamComponent
-                                        inputPlaceholder={`Search by ${results.entities[0].type.valueOf()} name`}
+                                        inputPlaceholder={`Search by ${entityType.valueOf()} name`}
                                     />
                                 </div>
                             )}
                             <div className="flex flex-row-reverse gap-4 items-center">
                                 <FunnelButton handleClick={handleButtonClick} />
-                                <SortParamComponent options={sortOptions} />
-                                <PageParamComponent itemCount={results.total} />
+                                <SortParamComponent
+                                    options={getSortOptionsForEntityType(
+                                        entityType,
+                                    )}
+                                />
+                                <PageParamComponent itemCount={totalEntities} />
                             </div>
                         </div>
                     )}
@@ -72,7 +80,7 @@ export default function QueryableEntityTableContainer({
                         <div className="lg:col-span-4">
                             <Table
                                 keyExtractor={(item) => item.id.toString()}
-                                data={results.entities}
+                                data={filteredEntityCollection}
                                 defaultNode={defaultNode}
                                 renderItem={renderFunction}
                             />

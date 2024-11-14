@@ -1,4 +1,4 @@
-import { ModalState } from "../objects/interfaces/modalState.interface";
+import { ModalState } from "../objects/interface/modalState.interface";
 import { create } from "zustand";
 
 const useAddEntityTagModal = create<ModalState>((set) => ({

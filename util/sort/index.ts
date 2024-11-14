@@ -1,6 +1,6 @@
-import { SortOptionInterface } from "../../objects/interfaces";
-import { EntityType } from "../enum";
-import { SortParamValue } from "../enum";
+import { SortOptionInterface } from "../../objects/interface";
+import { EntityType } from "../../objects/enum";
+import { SortParamValue } from "../../objects/enum";
 
 export const getSortOptionsForEntityType = (type: EntityType): SortOptionInterface[] => {
     switch (type) {

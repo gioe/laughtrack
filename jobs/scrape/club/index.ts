@@ -2,7 +2,7 @@
 'use server';
 import playwright from "playwright";
 import { getDB } from "../../../database";
-import { LineupItemDTO, ScrapingOutput } from "../../../objects/interfaces";
+import { LineupItemDTO, ScrapingOutput } from "../../../objects/interface";
 
 import { providedPromiseResponse, runTasks } from "../../../util/promiseUtil";
 import { flattenArrayList } from "../../../util/primatives/arrayUtil";
@@ -20,9 +20,9 @@ import {
     WestSideComedyClub,
     ComedyVillage,
 } from "../clubs";
-import { ClubInterface } from "../../../objects/classes/club/club.interface";
-import { ComedyClub } from "../../../util/enum";
-import { ComedianDTO } from "../../../objects/classes/comedian/comedian.interface";
+import { ClubInterface } from "../../../objects/class/club/club.interface";
+import { ComedyClub } from "../../../objects/enum";
+import { ComedianDTO } from "../../../objects/class/comedian/comedian.interface";
 const { db } = getDB()
 
 export async function scrapeClubs(clubIds?: string[], headless?: boolean): Promise<string> {

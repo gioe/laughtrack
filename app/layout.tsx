@@ -2,19 +2,19 @@ import type { Metadata } from "next";
 import "./globals.css";
 import ClientOnly from "../components/ClientOnly";
 import ToasterProvider from "../components/providers/toaster";
-import LoginModal from "../components/modals/auth/login";
-import RegisterModal from "../components/modals/auth/register";
+import LoginModal from "../components/modals/login";
+import RegisterModal from "../components/modals/register";
 import Header from "../components/header";
 import { NextUIProvider } from "@nextui-org/react";
 import { SessionProvider } from "next-auth/react";
 import { auth } from "../auth";
 import { cache } from "react";
 import { getDB } from "../database";
-import { UserInterface } from "../objects/interfaces";
+import { UserInterface } from "../objects/interface";
 import Footer from "../components/footer";
-import ScrapeEntitySelectionMenuModal from "../components/modals/entity/scrapeIds";
-import { EntityType } from "../util/enum";
-import { City } from "../objects/classes/city/City";
+import { City } from "../objects/class/city/City";
+import { EntityType } from "../objects/enum";
+import ScrapeEntitySelectionMenuModal from "../components/modals/scrapeIds";
 const { db } = getDB();
 
 interface RootProps {

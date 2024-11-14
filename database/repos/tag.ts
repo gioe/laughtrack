@@ -3,9 +3,9 @@ import { tag as sql } from "../sql";
 import {
     TagDTO,
     TagInterface,
-} from "../../objects/interfaces";
+} from "../../objects/interface";
 import { IExtensions } from ".";
-import { Tag } from "../../objects/classes/tag/Tag";
+import { Tag } from "../../objects/class/tag/Tag";
 
 export class TagsRepository {
     /**
@@ -24,7 +24,6 @@ export class TagsRepository {
         private pgp: IMain,
     ) { }
 
-    // Creates the table;
     createTable(): Promise<null> {
         return this.db.none(sql.createTable);
     }

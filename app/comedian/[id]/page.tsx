@@ -1,74 +1,52 @@
 import EntityBanner from "../../../components/banner";
-import TagEntityModal from "../../../components/modals/entity/tag";
-import { EntityType } from "../../../util/enum";
-import { getDB } from "../../../database";
-import { TagInterface } from "../../../objects/interfaces/tag.interface";
-import { Comedian } from "../../../objects/classes/comedian/Comedian";
-import { getSortOptionsForEntityType } from "../../../util/sort";
+import TagEntityModal from "../../../components/modals/tag";
 import QueryableEntityTableContainer from "../../../components/container";
-import MergeComediansModal from "../../../components/modals/comedian/merge";
-import EditSocialDataModal from "../../../components/modals/comedian/editSocialData";
-import { SearchParams } from "../../../objects/types/searchParams";
-import { LaughtrackSearchParams } from "../../../objects/classes/searchParams/LaughtrackSearchParams";
-
+import MergeComediansModal from "../../../components/modals/merge";
+import EditSocialDataModal from "../../../components/modals/editSocialData";
+import { getDB } from "../../../database";
+import { SearchParams } from "../../../objects/type/searchParams";
+import { PaginatedEntityResponse } from "../../../objects/interface";
+import { QueryHelper } from "../../../objects/class/query/QueryHelper";
+import { EntityType } from "../../../objects/enum";
 const { db } = getDB();
 
-interface ComedianDetailPageInterface {
-    comedian: Comedian | null;
-    tags: TagInterface[];
-}
-
 async function getComedianDetail(
-    id: string,
+    slug: string,
     searchParams: SearchParams,
-): Promise<ComedianDetailPageInterface> {
-    const paramsWrapper =
-        LaughtrackSearchParams.asServerSideParams(searchParams);
-
-    const comedian = db.comedians.getById(Number(id), paramsWrapper);
-    const tags = db.tags.getByType(EntityType.Comedian.valueOf());
-
-    return Promise.all([comedian, tags]).then((responses) => {
-        const comedian = responses[0];
-        const tags = responses[1];
-        return {
-            comedian,
-            tags,
-        };
-    });
+): Promise<PaginatedEntityResponse> {
+    const paramsWrapper = QueryHelper.asServerSideParams(searchParams);
+    return db.comedians.getByName(slug, paramsWrapper);
 }
 
 export default async function ComedianDetailsPage(props: {
-    params: Promise<{ id: string }>;
+    params: Promise<{ slug: string }>;
     searchParams: Promise<SearchParams>;
 }) {
     const searchParams = await props.searchParams;
     const params = await props.params;
-
-    const { comedian, tags } = await getComedianDetail(params.id, searchParams);
-    const comedianString = JSON.stringify(comedian);
-    const tagsString = JSON.stringify(tags);
-    const responseString = JSON.stringify(comedian?.dates ?? []);
-
+    const response = await getComedianDetail(params.slug, searchParams);
+    const entityString = JSON.stringify(response.entity);
+    const entityCollectionString = JSON.stringify(
+        response.entity.containedEntities,
+    );
     return (
         <main className="flex-grow pt-5 bg-shark">
-            <MergeComediansModal comedianString={comedianString} />
-            <EditSocialDataModal comedianString={comedianString} />
+            <MergeComediansModal entityString={entityString} />
+            <EditSocialDataModal entityString={entityString} />
             <TagEntityModal
                 type={EntityType.Comedian}
-                entityId={comedian.id}
-                tagsString={tagsString}
+                entityId={response.entity.id}
+                tagsString={""}
             />
             <section>
-                <EntityBanner entityString={responseString} />
+                <EntityBanner entityString={entityString} />
             </section>
             <section>
                 <section>
                     <QueryableEntityTableContainer
-                        sortOptions={getSortOptionsForEntityType(
-                            EntityType.Show,
-                        )}
-                        responseString={responseString}
+                        entityType={EntityType.Show}
+                        totalEntities={response.total}
+                        entityCollectionString={entityCollectionString}
                         defaultNode={
                             <h2 className="font-bold text-5xl text-white pt-6">
                                 No upcoming shows for this club

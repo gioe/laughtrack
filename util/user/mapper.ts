@@ -1,4 +1,4 @@
-import { UserInterface } from "../../objects/interfaces";
+import { UserInterface } from "../../objects/interface";
 
 export const toUser = (payload: any): UserInterface => {
     return {

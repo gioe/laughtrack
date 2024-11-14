@@ -1,0 +1,63 @@
+"use client";
+
+import { useForm } from "react-hook-form";
+import Heading from "../../../modals/heading";
+import { z } from "zod";
+import { clearShowsFromClubSchema } from "./schema";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import axios from "axios";
+import toast from "react-hot-toast";
+import BaseForm from "..";
+import { ButtonType } from "../../../../objects/enum";
+
+interface ClearShowsFormProps {
+    clubId: number;
+    onSubmit: () => void;
+}
+
+export default function ClearShowsFromClubForm({
+    clubId,
+    onSubmit,
+}: ClearShowsFormProps) {
+    const [isLoading, setIsLoading] = useState(false);
+
+    const submitForm = (data: z.infer<typeof clearShowsFromClubSchema>) => {
+        setIsLoading(true);
+        axios
+            .put(`/api/club/${data.clubId}/clear`)
+            .then((response) => {
+                if (response) {
+                    setIsLoading(false);
+                    toast.success("Successfully updated");
+                }
+            })
+            .catch((error: Error) => {
+                setIsLoading(false);
+                toast.error(`Something went wrong: ${error}`);
+            })
+            .finally(() => {
+                onSubmit();
+            });
+    };
+
+    const form = useForm<z.infer<typeof clearShowsFromClubSchema>>({
+        resolver: zodResolver(clearShowsFromClubSchema),
+        defaultValues: {
+            clubId,
+        },
+    });
+
+    return (
+        <BaseForm
+            isLoading={isLoading}
+            onSubmit={submitForm}
+            form={form}
+            body={<Heading title="Clear Shows" />}
+            primaryButtonData={{
+                type: ButtonType.Submit,
+                label: "OK",
+            }}
+        />
+    );
+}

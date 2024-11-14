@@ -3,9 +3,9 @@ import { capitalized } from "../../../util/primatives/stringUtil";
 import { toPrice } from "../../../util/primatives/priceUtil";
 import { runTasks } from "../../../util/promiseUtil";
 import { PageManager } from "../handlers/PageManager";
-import { ScrapingArgs } from "../../../objects/interfaces";
-import { Comedian } from "../../../objects/classes/comedian/Comedian";
-import { generateComedianHash } from "../../../objects/classes/comedian/hash";
+import { ScrapingArgs } from "../../../objects/interface";
+import { Comedian } from "../../../objects/class/comedian/Comedian";
+import { generateComedianHash } from "../../../objects/class/comedian/hash";
 
 export class ShowScraper {
     private pageManager = new PageManager();
