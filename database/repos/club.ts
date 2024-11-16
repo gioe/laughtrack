@@ -1,5 +1,5 @@
 import { ColumnSet, IDatabase, IMain } from "pg-promise";
-import { club as sql } from "../sql";
+import { map } from "../sql";
 import {
     PaginatedEntityCollectionResponse,
     PaginatedEntityResponse,
@@ -58,14 +58,12 @@ export class ClubsRepository {
     }
 
     createTable(): Promise<null> {
-        return this.db.none(sql.createTable);
+        return this.db.none(map.club.createTable);
     }
 
     async getAll(params: QueryHelper): Promise<PaginatedEntityCollectionResponse> {
-        const queryFile = params.getQuery(sql, EntityType.Club)
-        const filters = params.asClubQueryFilters();
         return this.db
-            .oneOrNone(queryFile, filters)
+            .oneOrNone("", {})
             .then((result: PaginatedEntityCollectionResponseDTO<ClubDTO> | null) => {
                 return {
                     entities: result ? result.response.data.map((result: ClubDTO) => new Club(result)) : [],
@@ -75,10 +73,8 @@ export class ClubsRepository {
     }
 
     async getByName(name: string, params: QueryHelper): Promise<PaginatedEntityResponse> {
-        const queryFile = params.getQuery(sql, EntityType.Comedian)
-        const filters = params.asCommonFilters()
         return this.db
-            .oneOrNone(queryFile, filters)
+            .oneOrNone("", {})
             .then((result: PaginatedEntityResponseDTO<ClubDTO> | null) => {
                 if (result) {
                     return {
@@ -92,10 +88,8 @@ export class ClubsRepository {
 
 
     async getById(id: number, params: QueryHelper): Promise<PaginatedEntityResponse> {
-        const queryFile = params.getQuery(sql, EntityType.Show)
-        const filters = params.asClubQueryFilters()
         return this.db
-            .oneOrNone(queryFile, filters)
+            .oneOrNone("", {})
             .then((result: PaginatedEntityResponseDTO<ClubDTO> | null) => {
                 if (result) {
                     return {

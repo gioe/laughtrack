@@ -1,33 +1,27 @@
 "use server";
 
+import { headers } from "next/headers";
+import { ParamsWrapper } from "../objects/class/params/ParamsWrapper";
+import { URLParams } from "../objects/type/urlParams";
+import { QueryHelper } from "../objects/class/query/QueryHelper";
+import { HeadersWrapper } from "../objects/class/headers/HeadersWrapper";
+import { HomePageData, HomePageDTO } from "./home/interface";
+import { homePageDataMapper as mapper } from "./home/mapper";
 import EntityCarousel from "../components/carousel";
 import ShowSearchForm from "../components/form/forms/showSearch";
-import { getDB } from "../database";
-import { Comedian } from "../objects/class/comedian/Comedian";
-import { FormSelectable } from "../objects/interface";
-const { db } = getDB();
 
-const TRENDING_COUNT = 5;
+export default async function HomePage(props: {
+    searchParams: Promise<URLParams>;
+}) {
+    await HeadersWrapper.updateHeaders(headers());
+    await ParamsWrapper.updateWithServerParams(props.searchParams);
 
-interface LandingPageResponseInterface {
-    cities: FormSelectable[];
-    trendingComedians: Comedian[];
-}
+    const { cities, comedians } = await QueryHelper.getPageData<
+        HomePageDTO,
+        HomePageData
+    >(mapper);
 
-async function getLandingPageData(): Promise<LandingPageResponseInterface> {
-    const cities = db.cities.getAll();
-    const trendingComedians = db.comedians.getTrendingComedians(TRENDING_COUNT);
-
-    return Promise.all([cities, trendingComedians]).then((responses) => {
-        return {
-            cities: responses[0],
-            trendingComedians: responses[1],
-        };
-    });
-}
-
-export default async function LandingPage() {
-    const { cities, trendingComedians } = await getLandingPageData();
+    const comediansString = JSON.stringify(comedians);
     const citiesString = JSON.stringify(cities);
 
     return (
@@ -42,16 +36,14 @@ export default async function LandingPage() {
             </section>
 
             <section className="m-4 mt-0 -mb-14 px-2 lg:px-4">
-                <ShowSearchForm citiesString={citiesString} />
+                <ShowSearchForm cities={citiesString} />
             </section>
 
             <section
                 className="flex flex-col mx-auto max-w-7xl
       mt-10 p-6 rounded-lg mb-4 bg-white"
             >
-                <EntityCarousel
-                    entityString={JSON.stringify(trendingComedians)}
-                />
+                <EntityCarousel entities={comediansString} />
             </section>
         </main>
     );

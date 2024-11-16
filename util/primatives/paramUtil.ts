@@ -1,4 +1,4 @@
-import { URLParam } from "../../objects/enum";
+import { DirectionParamValue, SortParamValue, URLParam } from "../../objects/enum";
 
 type ParamValue = string | number | Date;
 
@@ -44,21 +44,25 @@ export const formatParamValue = (value: ParamValue) => {
 }
 
 
-export const getDefaultValueForKey = (key: URLParam) => {
+export const getDefaultQueryParamValue = (key: URLParam) => {
     switch (key) {
         case URLParam.Sort:
-            return undefined
+            return SortParamValue.Name
         case URLParam.Query:
             return ""
         case URLParam.Page:
             return 0
-        case URLParam.Rows:
+        case URLParam.Size:
             return 10;
         case URLParam.City:
             return ""
         case URLParam.StartDate:
-            return 0
+            return undefined
         case URLParam.EndDate:
-            return 0
+            return undefined
+        case URLParam.Direction:
+            return DirectionParamValue.Ascending
+        case URLParam.Slug:
+            return ""
     }
 }

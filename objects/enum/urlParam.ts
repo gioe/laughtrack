@@ -4,18 +4,22 @@ export enum URLParam {
     Sort = "sort",
     Query = "query",
     Page = "page",
-    Rows = "rows",
+    Size = "size",
     City = "city",
     StartDate = "startDate",
-    EndDate = "endDate"
+    EndDate = "endDate",
+    Direction = "direction",
+    Slug = 'slug'
 }
 
 export const allUrlParams = [
     URLParam.Sort,
     URLParam.Query,
     URLParam.Page,
-    URLParam.Rows,
+    URLParam.Size,
     URLParam.City,
     URLParam.StartDate,
-    URLParam.EndDate
+    URLParam.EndDate,
+    URLParam.Direction,
+    URLParam.Slug
 ]

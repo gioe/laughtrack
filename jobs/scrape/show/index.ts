@@ -56,7 +56,7 @@ const runScraper = async (
 ): Promise<ScrapingOutput> => {
     return playwright.chromium
         .launch({ headless: headless ?? false })
-        .then((browser) => createScrapingFunction(club, show.ticketLink, browser));
+        .then((browser) => createScrapingFunction(club, show.ticket.link, browser));
 };
 
 const createScrapingFunction = (

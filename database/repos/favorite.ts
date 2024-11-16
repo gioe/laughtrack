@@ -1,5 +1,5 @@
 import { IDatabase, IMain } from "pg-promise";
-import { favorite as sql } from "../sql";
+import { map } from "../sql";
 import { FavoriteDTO } from "../../objects/interface";
 import { IExtensions } from ".";
 import { ComedianDTO } from "../../objects/class/comedian/comedian.interface";
@@ -24,13 +24,13 @@ export class FavoritesRepository {
 
     // Creates the table;
     createTable(): Promise<null> {
-        return this.db.none(sql.createTable);
+        return this.db.none(map.favorite.createTable);
     }
 
     // Adds a new user, and returns the new object;
     add(payload: FavoriteDTO): Promise<boolean> {
         return this.db.one(
-            sql.add,
+            map.favorite.add,
             {
                 comedian_id: payload.id,
                 user_id: payload.user_id,
@@ -42,7 +42,7 @@ export class FavoritesRepository {
     // Tries to delete a user by id, and returns the number of records deleted;
     async remove(payload: FavoriteDTO): Promise<boolean> {
         return this.db.result(
-            sql.remove,
+            map.favorite.remove,
             {
                 comedian_id: payload.id,
                 user_id: payload.user_id,

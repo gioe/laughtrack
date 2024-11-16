@@ -1,6 +1,6 @@
 import { ColumnSet, IDatabase, IMain } from "pg-promise";
 import { IResult } from "pg-promise/typescript/pg-subset.js";
-import { lineupItem as sql } from "../sql/index";
+import { map } from "../sql/index";
 import {
     LineupItemDTO,
 } from "../../objects/interface";
@@ -42,7 +42,7 @@ export class LineupItemRepository {
 
     // Creates the table;
     createTable(): Promise<null> {
-        return this.db.none(sql.createTable);
+        return this.db.none(map.lineupItem.createTable);
     }
 
     addAll(all: LineupItemDTO[]): Promise<null> {
@@ -65,14 +65,14 @@ export class LineupItemRepository {
 
     // Tries to find a user from id;
     findByShowId(showId: number): Promise<LineupItemDTO | null> {
-        return this.db.oneOrNone(sql.getByShowId, {
+        return this.db.oneOrNone(map.lineupItem.getByShowId, {
             showId,
         });
     }
 
     // Tries to find a user from name;
     findByComedianId(comedianId: number): Promise<LineupItemDTO[] | null> {
-        return this.db.any(sql.getByComedianId, {
+        return this.db.any(map.lineupItem.getByComedianId, {
             comedianId,
         });
     }

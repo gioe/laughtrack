@@ -1,39 +1,44 @@
-
-
-import { IndexProperty } from "../../enum";
 import { QueryFileMap } from "../../type/queryFileMap";
-import { Entity, RepositoryInterface } from "../../interface";
+import { pageDataMap } from "../../../database/sql";
+import pgPromise from "pg-promise";
+import { getDB } from "../../../database";
 import { ParamsWrapper } from "../params/ParamsWrapper";
-
-export interface SQLIndex {
-    index: IndexProperty,
-    value: string | number;
-}
+import { HeadersWrapper } from "../headers/HeadersWrapper";
+import { EntityType } from "../../enum";
+const { database } = getDB();
 
 export class QueryHelper {
     // Properties
-    paramsWrapper: ParamsWrapper;
     queryFileMap: QueryFileMap
 
-    // Constructor
-    constructor(queryFileMap: QueryFileMap, paramsWrapper: ParamsWrapper) {
-        this.paramsWrapper = paramsWrapper
-        this.queryFileMap = queryFileMap;
+    private static getQueryFile(): pgPromise.QueryFile {
+        const key = HeadersWrapper.getBasePath()
+        const pageQueryMap = pageDataMap[key]
+        return pageQueryMap['index']
     }
 
-    getQueryFile() {
-        const fileName = this.paramsWrapper.asMapKey();
-        return this.queryFileMap[fileName]
+    private static getCurrentQueryParams(): Record<string, string | number | undefined> {
+        const path = HeadersWrapper.getBasePath() as EntityType
+        console.log(`We're currently in a ${path} context`)
+        switch (path) {
+            case EntityType.Club:
+                return ParamsWrapper.asClubQueryFilters()
+            case EntityType.Show:
+                return ParamsWrapper.asShowQueryFilters()
+            case EntityType.Comedian:
+                return ParamsWrapper.asComedianQueryFilters()
+            default:
+                return ParamsWrapper.asCommonFilters()
+        }
     }
 
-    async getAll<T extends Entity>(repository: RepositoryInterface<T>) {
+    static async getPageData<T, K>(completionHandler: (response: T) => K): Promise<K> {
         const file = this.getQueryFile()
-        return repository.getAll(file, this.paramsWrapper.asCommonFilters())
-    }
-
-    async getByProperty<T extends Entity>(repository: RepositoryInterface<T>) {
-        const file = this.getQueryFile()
-        return repository.getByProperty(file, this.paramsWrapper.asCommonFilters())
+        const filters = this.getCurrentQueryParams();
+        return database.oneOrNone(file, filters).then((value: T | null) => {
+            if (value) return completionHandler(value)
+            throw new Error(`Failure getting contents of ${file}`)
+        })
     }
 
 }

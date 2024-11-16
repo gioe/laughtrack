@@ -1,5 +1,5 @@
 import { IDatabase, IMain } from "pg-promise";
-import { tag as sql } from "../sql";
+import { map } from "../sql";
 import {
     TagDTO,
     TagInterface,
@@ -25,12 +25,12 @@ export class TagsRepository {
     ) { }
 
     createTable(): Promise<null> {
-        return this.db.none(sql.createTable);
+        return this.db.none(map.tag.createTable);
     }
 
     async getByType(type: string): Promise<TagInterface[]> {
         return this.db
-            .any(sql.getByType, {
+            .any(map.tag.getByType, {
                 type,
             })
             .then((response: TagDTO[] | null) =>

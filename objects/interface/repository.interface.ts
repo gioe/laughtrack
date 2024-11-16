@@ -1,11 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { PaginatedEntityCollectionResponse, PaginatedEntityResponse } from "./paginatedEntity.interface";
-import { Entity } from "./entity.interface";
 import pgPromise from "pg-promise";
 
-export interface RepositoryInterface<T extends Entity> {
+export interface RepositoryInterface<T> {
     createTable: () => Promise<null>
-    getAll: (file: pgPromise.QueryFile, filters: any) => Promise<PaginatedEntityCollectionResponse<T>>;
-    getByProperty: (file: pgPromise.QueryFile, filters: any) => Promise<PaginatedEntityResponse<T>>;
-
+    get: GenericQueryFunction<T>;
 }
+
+type GenericQueryFunction<T> = (file: pgPromise.QueryFile, filters: any) => Promise<T>;

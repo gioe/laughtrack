@@ -1,5 +1,5 @@
 import { IDatabase, IMain } from "pg-promise";
-import { city as sql } from "../sql";
+import { map } from "../sql";
 import { IExtensions } from ".";
 import { CityDTO } from "../../objects/class/city/city.interface";
 import { City } from "../../objects/class/city/City";
@@ -23,11 +23,11 @@ export class CityRepository {
 
     // Creates the table;
     createTable(): Promise<null> {
-        return this.db.none(sql.createTable);
+        return this.db.none(map.landing.createTable);
     }
     async getAll(): Promise<City[]> {
         return this.db
-            .any(sql.getAll)
+            .any(map.landing.getAll)
             .then((response: CityDTO[] | null) => {
                 return response ? response.map((dto: CityDTO) => new City(dto)) : []
             });

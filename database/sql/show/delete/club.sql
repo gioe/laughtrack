@@ -1,1 +1,0 @@
-DELETE FROM shows WHERE club_id = ${clubId}

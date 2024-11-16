@@ -1,5 +1,5 @@
 import { IDatabase, IMain } from "pg-promise";
-import { user as sql } from "../sql";
+import { map } from "../sql";
 import { UserDTO, UserInterface } from "../../objects/interface";
 import { IExtensions } from ".";
 
@@ -22,11 +22,11 @@ export class UsersRepository {
 
     // Creates the table;
     createTable(): Promise<null> {
-        return this.db.none(sql.createTable);
+        return this.db.none(map.user.createTable);
     }
 
     async add(user: UserDTO): Promise<UserInterface | null> {
-        return this.db.one(sql.add, {
+        return this.db.one(map.user.add, {
             email: user.email,
             role: user.role,
             password: user.password,
@@ -38,7 +38,7 @@ export class UsersRepository {
     }
 
     async getById(id: number): Promise<UserInterface> {
-        return this.db.oneOrNone(sql.getById, {
+        return this.db.oneOrNone(map.user.getById, {
             id
         }).then((response: UserInterface | null) => {
             if (response) return response
@@ -47,7 +47,7 @@ export class UsersRepository {
     }
 
     async getByEmail(email: string): Promise<UserInterface> {
-        return this.db.oneOrNone(sql.getByEmail, {
+        return this.db.oneOrNone(map.user.getByEmail, {
             email
         }).then((response: UserInterface | null) => {
             if (response) return response
@@ -56,7 +56,7 @@ export class UsersRepository {
     }
 
     async checkForExistence(email: string): Promise<boolean> {
-        return this.db.oneOrNone(sql.getByEmail, {
+        return this.db.oneOrNone(map.user.getByEmail, {
             email
         })
             .then((response: UserInterface | null) => {

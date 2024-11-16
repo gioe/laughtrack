@@ -3,26 +3,41 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ButtonType, RoutePath, URLParam } from "../../../../objects/enum";
+import {
+    ButtonType,
+    RoutePath,
+    SortParamValue,
+    URLParam,
+} from "../../../../objects/enum";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { homeSearchSchema } from "./schema";
-import { FormSelectable } from "../../../../objects/interface";
 import { DropdownFormComponent } from "../../components/dropdown";
 import { useState } from "react";
 import { Navigator } from "../../../../objects/class/navigate/Navigator";
 import { ParamsWrapper } from "../../../../objects/class/params/ParamsWrapper";
 import BaseForm from "..";
 import CalendarFormComponent from "../../components/calendar";
+import { CityInterface } from "../../../../objects/interface/city.interface";
 
 interface HomeSearchFormProps {
-    citiesString: string;
+    cities: string;
 }
 
-export default function ShowSearchForm({ citiesString }: HomeSearchFormProps) {
-    const cities = JSON.parse(citiesString) as FormSelectable[];
+export default function ShowSearchForm({ cities }: HomeSearchFormProps) {
+    const selectableCities = (JSON.parse(cities) as CityInterface[]).map(
+        (city: CityInterface) => {
+            return {
+                id: city.id,
+                name: city.name,
+            };
+        },
+    );
+
+    console.log(selectableCities);
+
     const [isLoading /*setIsLoading*/] = useState(false);
 
-    const paramsWrapper = ParamsWrapper.fromClientSideParams(useSearchParams());
+    ParamsWrapper.updateWithClientParams(useSearchParams());
     const navigator = new Navigator(usePathname(), useRouter());
 
     const form = useForm<z.infer<typeof homeSearchSchema>>({
@@ -37,12 +52,13 @@ export default function ShowSearchForm({ citiesString }: HomeSearchFormProps) {
     });
 
     function submitForm(data: z.infer<typeof homeSearchSchema>) {
-        paramsWrapper.setParamValue(URLParam.City, data.cityId);
-        paramsWrapper.setParamValue(URLParam.StartDate, data.dates.from);
-        paramsWrapper.setParamValue(URLParam.EndDate, data.dates.to);
+        ParamsWrapper.setParamValue(URLParam.City, data.cityId);
+        ParamsWrapper.setParamValue(URLParam.StartDate, data.dates.from);
+        ParamsWrapper.setParamValue(URLParam.EndDate, data.dates.to);
+        ParamsWrapper.setParamValue(URLParam.Sort, SortParamValue.Date);
         navigator.pushPageFromParams(
             RoutePath.ShowSearchResults,
-            paramsWrapper.asParamsString(),
+            ParamsWrapper.asParamsString(),
         );
     }
 
@@ -61,7 +77,7 @@ export default function ShowSearchForm({ citiesString }: HomeSearchFormProps) {
                         name="cityId"
                         title="City"
                         placeholder="Select your city"
-                        items={cities}
+                        items={selectableCities}
                         form={form}
                     />
                     <CalendarFormComponent name="dates" form={form} />

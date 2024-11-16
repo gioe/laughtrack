@@ -13,12 +13,13 @@ import { TicketDTO } from "../ticket/ticket.interface";
 export interface ShowInterface extends Taggable, Entity, SocialDiscoverable {
     name: string;
     date: Date;
-    lineup: Comedian[];
     popularityScore?: number;
     clubName?: string;
     clubId: number;
     ticket: Ticket;
     scraped?: Date
+
+    getLineup: () => Comedian[]
 }
 
 // DB

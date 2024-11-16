@@ -1,24 +1,29 @@
-import { getDB } from "../../../database";
 import QueryableEntityTableContainer from "../../../components/container";
-import { SearchParams } from "../../../objects/type/searchParams";
+import { URLParams } from "../../../objects/type/urlParams";
 import { QueryHelper } from "../../../objects/class/query/QueryHelper";
 import { EntityType } from "../../../objects/enum";
-
-const { db } = getDB();
+import { ParamsWrapper } from "../../../objects/class/params/ParamsWrapper";
+import { headers } from "next/headers";
+import { HeadersWrapper } from "../../../objects/class/headers/HeadersWrapper";
+import { AllClubPageData, AllClubPageDTO } from "./interface";
+import { allClubPageMapper as mapper } from "./mapper";
 
 export default async function AllClubsPage(props: {
-    searchParams: Promise<SearchParams>;
+    searchParams: Promise<URLParams>;
 }) {
-    const searchParams = await props.searchParams;
-    const paramsWrapper = QueryHelper.asServerSideParams(searchParams);
-    const response = await db.clubs.getAll(paramsWrapper);
-    const entityCollectionString = JSON.stringify(response.entities);
+    await HeadersWrapper.updateHeaders(headers());
+    await ParamsWrapper.updateWithServerParams(props.searchParams);
+    const { entities, total } = await QueryHelper.getPageData<
+        AllClubPageDTO,
+        AllClubPageData
+    >(mapper);
+    const entityCollectionString = JSON.stringify(entities);
 
     return (
         <main className="flex-grow pt-5 bg-shark">
             <QueryableEntityTableContainer
                 entityType={EntityType.Club}
-                totalEntities={response.total}
+                totalEntities={total}
                 entityCollectionString={entityCollectionString}
                 defaultNode={
                     <h2 className="font-bold text-5xl text-white pt-6">

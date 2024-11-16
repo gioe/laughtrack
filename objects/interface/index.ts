@@ -10,12 +10,11 @@ import { FormSelectable } from "./formSelectable.interface"
 import { EntityContainer } from "./entityContainer.interface";
 import { RepositoryInterface } from "./repository.interface"
 import {
-    PaginatedEntityCollectionResponse,
     PaginatedEntityResponse,
     PaginatedEntityResponseDTO,
-    PaginatedEntityCollectionResponseDTO,
     PaginatedEntityDTO
 } from "./paginatedEntity.interface";
+import { SlugInterface } from "./slug.interface";
 import {
     SocialDataInterface,
     SocialDiscoverable,
@@ -43,6 +42,7 @@ export type {
     Paginated,
     ScrapingArgs,
     ScrapingOutput,
+    SlugInterface,
     SocialDataInterface,
     SortOptionInterface,
     TagInterface,

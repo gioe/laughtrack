@@ -16,21 +16,37 @@ interface SortParamComponentProps {
 }
 
 export function SortParamComponent({ options }: SortParamComponentProps) {
-    const paramsWrapper = ParamsWrapper.fromClientSideParams(
-        usePathname(),
-        new URLSearchParams(useSearchParams()),
-    );
-
+    ParamsWrapper.updateWithClientParams(useSearchParams());
     const navigator = new Navigator(usePathname(), useRouter());
 
-    const [selectedSort, setSelectedSort] = useState(
-        paramsWrapper.getParamValue(URLParam.Sort) ?? options[0].value,
+    const defaultOption = options.find(
+        (value) =>
+            value.value == ParamsWrapper.getParamValue(URLParam.Sort) &&
+            value.direction == ParamsWrapper.getParamValue(URLParam.Direction),
     );
 
-    const modifySortParam = (sortValue: string) => {
-        paramsWrapper.setParamValue(URLParam.Sort, sortValue);
-        navigator.replaceRoute(paramsWrapper.asParamsString());
-        setSelectedSort(sortValue);
+    const [selectedSortingOption, setSelectedSortingOption] = useState(
+        defaultOption ?? options[0],
+    );
+
+    const evaluateEquivalence = (
+        a: SortOptionInterface,
+        b: SortOptionInterface,
+    ) => {
+        return a.value == b.value && a.direction == b.direction;
+    };
+
+    const determineStyling = (option: SortOptionInterface) => {
+        return evaluateEquivalence(option, selectedSortingOption)
+            ? "font-medium text-gray-900 cursor-pointer"
+            : "text-gray-500";
+    };
+
+    const modifySortParam = (sortValue: SortOptionInterface) => {
+        ParamsWrapper.setParamValue(URLParam.Sort, sortValue.value);
+        ParamsWrapper.setParamValue(URLParam.Direction, sortValue.direction);
+        navigator.replaceRoute(ParamsWrapper.asParamsString());
+        setSelectedSortingOption(sortValue);
     };
 
     return (
@@ -60,13 +76,9 @@ export function SortParamComponent({ options }: SortParamComponentProps) {
                         {options.map((option) => (
                             <MenuItem key={option.name}>
                                 <h1
-                                    onClick={() =>
-                                        modifySortParam(option.value)
-                                    }
+                                    onClick={() => modifySortParam(option)}
                                     className={cn(
-                                        option.value == selectedSort
-                                            ? "font-medium text-gray-900 cursor-pointer"
-                                            : "text-gray-500",
+                                        determineStyling(option),
                                         "block px-4 py-2 text-sm data-[focus]:bg-gray-100 cursor-pointer",
                                     )}
                                 >

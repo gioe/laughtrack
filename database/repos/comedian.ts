@@ -1,5 +1,5 @@
 import { ColumnSet, IDatabase, IMain } from "pg-promise";
-import { comedian as sql } from "../sql";
+import { map } from "../sql";
 import { providedPromiseResponse } from "../../util/promiseUtil";
 import { ComedianDTO } from "../../objects/class/comedian/comedian.interface";
 import {

@@ -5,7 +5,7 @@ import { DrawerComponent } from "../drawer";
 import { PageParamComponent } from "../params/page";
 import { FunnelButton } from "../button/FunnelButton";
 import { SortParamComponent } from "../params/sort";
-import ShowCard from "../cards/ShowCard";
+import ShowCard from "../cards/showCard/ShowCard";
 import { Entity } from "../../objects/interface";
 import { Show } from "../../objects/class/show/Show";
 import { FilterParamComponent } from "../params/filter";
@@ -31,6 +31,7 @@ export default function QueryableEntityTableContainer({
     const filteredEntityCollection = JSON.parse(
         entityCollectionString,
     ) as Entity[];
+    console.log(`Returned ${filteredEntityCollection.length} records`);
     const [sideDrawerIsOpen, setSideDrawerIsOpen] = useState(false);
 
     const handleButtonClick = (isOpen: boolean) => {
@@ -40,7 +41,7 @@ export default function QueryableEntityTableContainer({
     const renderFunction = (entity: Entity) => {
         switch (entity.type) {
             case EntityType.Show:
-                return <ShowCard show={entity as Show} />;
+                return <ShowCard key={entity.name} show={entity as Show} />;
             default:
                 return <CarouselCard key={entity.name} entity={entity} />;
         }

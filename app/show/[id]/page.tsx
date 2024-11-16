@@ -1,55 +1,35 @@
 import QueryableEntityTableContainer from "../../../components/container";
-import ModifyLineupModal from "../../../components/modals/modifyLineup";
-import ScrapeEntityModal from "../../../components/modals/scrape";
-import EntityBanner from "../../../components/banner";
-import TagEntityModal from "../../../components/modals/tag";
-import { getDB } from "../../../database";
 import { EntityType } from "../../../objects/enum";
-import { SearchParams } from "../../../objects/type/searchParams";
-import { PaginatedEntityResponse } from "../../../objects/interface";
 import { QueryHelper } from "../../../objects/class/query/QueryHelper";
-const { db } = getDB();
-
-async function getShowDetail(
-    slug: string,
-    searchParams: SearchParams,
-): Promise<PaginatedEntityResponse> {
-    const paramsWrapper = QueryHelper.asServerSideParams(searchParams);
-    return db.shows.getById(Number(slug), paramsWrapper);
-}
+import { ParamsWrapper } from "../../../objects/class/params/ParamsWrapper";
+import { headers } from "next/headers";
+import { HeadersWrapper } from "../../../objects/class/headers/HeadersWrapper";
+import { URLParams } from "../../../objects/type/urlParams";
+import { ShowDetailDTO, ShowDetailPageData } from "./interface";
+import { showDetailPageMapper as mapper } from "./mapper";
+import { SlugWrapper } from "../../../objects/class/slug/SlugWrapper";
 
 export default async function ShowDetailPage(props: {
     params: Promise<{ slug: string }>;
-    searchParams: Promise<SearchParams>;
+    searchParams: Promise<URLParams>;
 }) {
-    const searchParams = await props.searchParams;
-    const params = await props.params;
-    const response = await getShowDetail(params.slug, searchParams);
-    const entityString = JSON.stringify(response.entity);
-    const entityCollectionString = JSON.stringify(
-        response.entity.containedEntities,
-    );
+    await SlugWrapper.updateSlug(props.params);
+    await HeadersWrapper.updateHeaders(headers());
+    await ParamsWrapper.updateWithServerParams(props.searchParams);
+
+    const { entity, total } = await QueryHelper.getPageData<
+        ShowDetailDTO,
+        ShowDetailPageData
+    >(mapper);
+    const containedEntitiesString = JSON.stringify(entity.containedEntities);
 
     return (
         <main className="flex-grow pt-5 bg-shark">
-            <ScrapeEntityModal
-                entityId={response.entity.id}
-                type={EntityType.Show}
-            />
-            <ModifyLineupModal entityString={entityString} />
-            <TagEntityModal
-                type={EntityType.Show}
-                entityId={response.entity.id}
-                tagsString={""}
-            />
-            <section>
-                <EntityBanner entityString={entityString} />
-            </section>
             <section>
                 <QueryableEntityTableContainer
                     entityType={EntityType.Comedian}
-                    totalEntities={response.total}
-                    entityCollectionString={entityCollectionString}
+                    totalEntities={total}
+                    entityCollectionString={containedEntitiesString}
                     defaultNode={
                         <h2 className="font-bold text-5xl text-white pt-6">
                             No comedians on this show

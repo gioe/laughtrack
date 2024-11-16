@@ -9,13 +9,11 @@ import { NextUIProvider } from "@nextui-org/react";
 import { SessionProvider } from "next-auth/react";
 import { auth } from "../auth";
 import { cache } from "react";
-import { getDB } from "../database";
 import { UserInterface } from "../objects/interface";
 import Footer from "../components/footer";
 import { City } from "../objects/class/city/City";
 import { EntityType } from "../objects/enum";
 import ScrapeEntitySelectionMenuModal from "../components/modals/scrapeIds";
-const { db } = getDB();
 
 interface RootProps {
     user: UserInterface | null;
@@ -51,12 +49,11 @@ export async function getCurrentUser() {
 
 async function getRootProps(): Promise<RootProps> {
     const user = getCurrentUser();
-    const cities = db.cities.getAll();
 
-    return Promise.all([user, cities]).then((responses) => {
+    return Promise.all([user]).then((responses) => {
         return {
             user: responses[0],
-            cities: responses[1],
+            cities: [],
         };
     });
 }

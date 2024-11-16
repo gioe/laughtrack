@@ -8,6 +8,7 @@ import { ButtonType } from './buttonType'
 import { IndexProperty } from './indexProperty'
 import { HeaderKey } from './headerKey'
 import { RoutePath } from './routePath'
+import { DirectionParamValue } from './directionParamValue'
 
 export {
     ComedyClub,
@@ -19,5 +20,6 @@ export {
     UserRole,
     ButtonType,
     IndexProperty,
-    HeaderKey
+    HeaderKey,
+    DirectionParamValue
 }

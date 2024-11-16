@@ -15,36 +15,34 @@ interface PageParamComponentProps {
 export function PageParamComponent({
     itemCount,
 }: Readonly<PageParamComponentProps>) {
-    const paramsWrapper = ParamsWrapper.fromClientSideParams(
-        usePathname(),
-        new URLSearchParams(useSearchParams()),
-    );
+    ParamsWrapper.updateWithClientParams(useSearchParams());
+
     const navigator = new Navigator(usePathname(), useRouter());
 
     const [page, setPage] = useState(
-        paramsWrapper.getParamValue(URLParam.Page) as number,
+        ParamsWrapper.getParamValue(URLParam.Page) as number,
     );
 
     const [rowsPerPage, setRowsPerPage] = useState(
-        paramsWrapper.getParamValue(URLParam.Rows) as number,
+        ParamsWrapper.getParamValue(URLParam.Size) as number,
     );
 
     const handleChangeOffset = (
         event: React.MouseEvent<HTMLButtonElement> | null,
         newPage: number,
     ) => {
-        paramsWrapper.setParamValue(URLParam.Page, newPage);
-        navigator.replaceRoute(paramsWrapper.asParamsString());
+        ParamsWrapper.setParamValue(URLParam.Page, newPage);
+        navigator.replaceRoute(ParamsWrapper.asParamsString());
         setPage(newPage);
     };
 
     const handleChangeRows = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => {
-        const rowValue = parseInt(event.target.value, 10);
-        paramsWrapper.setParamValue(URLParam.Rows, rowValue);
-        navigator.replaceRoute(paramsWrapper.asParamsString());
-        setRowsPerPage(rowValue);
+        const rowSizeValue = parseInt(event.target.value, 10);
+        ParamsWrapper.setParamValue(URLParam.Size, rowSizeValue);
+        navigator.replaceRoute(ParamsWrapper.asParamsString());
+        setRowsPerPage(rowSizeValue);
     };
 
     return (

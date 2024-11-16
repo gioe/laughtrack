@@ -1,111 +1,98 @@
 
 
-import { EntityType, URLParam } from "../../enum";
-import { formatParamValue, getDefaultValueForKey } from "../../../util/primatives/paramUtil";
-import { SearchParams } from "../../type/searchParams";
-import { getDefaultSortOptionForEntityType } from "../../../util/sort";
-import { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
-import { runTasks } from "../../../util/promiseUtil";
-import { HeadersWrapper } from "../headers/HeadersWrapper";
-import { values } from "lodash";
+import { URLParam } from "../../enum";
+import { formatParamValue, getDefaultQueryParamValue } from "../../../util/primatives/paramUtil";
+import { URLParams } from "../../type/urlParams";
 import { ReadonlyURLSearchParams } from "next/navigation";
-
+import { SlugWrapper } from "../slug/SlugWrapper";
 
 export class ParamsWrapper {
     // Properties
-    headersWrapper?: HeadersWrapper;
-    params: URLSearchParams
+    params = new URLSearchParams();
+    private static instance: ParamsWrapper;
 
-    // Constructor
-    constructor(params: URLSearchParams, headers?: ReadonlyHeaders) {
-        this.params = params
-        if (headers) {
-            this.headersWrapper = new HeadersWrapper(headers)
+    static getInstance() {
+        if (!ParamsWrapper.instance) {
+            ParamsWrapper.instance = new ParamsWrapper();
         }
+        return ParamsWrapper.instance;
     }
 
-    static fromClientSideParams(readOnlyParams: ReadonlyURLSearchParams): ParamsWrapper {
-        const mutableParams = new URLSearchParams(readOnlyParams)
-        return new ParamsWrapper(mutableParams);
+    static updateWithClientParams(readOnlyParams: ReadonlyURLSearchParams) {
+        this.getInstance().params = new URLSearchParams(readOnlyParams)
     }
 
-    static async fromServerSideParams(headersPromise: Promise<ReadonlyHeaders>, searchParamsPromise: Promise<SearchParams>): Promise<ParamsWrapper> {
-        return runTasks<unknown>([searchParamsPromise, headersPromise])
-            .then((vales: unknown[]) => new ParamsWrapper(new URLSearchParams(values[0] as Record<string, string>), vales[1] as ReadonlyHeaders))
+    static async updateWithServerParams(urlParams: Promise<URLParams>): Promise<void> {
+        return urlParams.then((resolvedParams: URLParams) => {
+            this.getInstance().params = new URLSearchParams(resolvedParams as Record<string, string>);
+        })
     }
 
-    setParamValue(key: URLParam, value: string | number | Date) {
-        this.params.set(key, formatParamValue(value));
+    static setParamValue(key: URLParam, value: string | number | Date) {
+        this.getInstance().params.set(key, formatParamValue(value));
     }
 
-    removeParamValue(key: URLParam,) {
-        this.params.delete(key);
+    static removeParamValue(key: URLParam,) {
+        this.getInstance().params.delete(key);
     }
 
-    getParamValue(key: URLParam): string | number | undefined {
-        return this.params.get(key) ?? getDefaultValueForKey(key)
+    static getParamValue(key: URLParam): string | number | undefined {
+        return this.getInstance().params.get(key) ?? getDefaultQueryParamValue(key)
     }
 
-    asCommonFilters() {
+    static asCommonFilters() {
         return {
-            rows: this.getRows(),
+            size: this.getSize(),
             pattern: this.getPattern(),
-            offset: this.getOffset()
+            offset: this.getOffset(),
+            sort: this.getSort(),
         }
     }
 
-    asShowPropertyFilters() {
+    static asShowQueryFilters() {
         return {
-            city_id: this.getParamValue(URLParam.City),
-            start_date: this.getParamValue(URLParam.StartDate),
-            end_date: this.getParamValue(URLParam.EndDate),
+            ...(ParamsWrapper.getParamValue(URLParam.City) ? { city_id: ParamsWrapper.getParamValue(URLParam.City) } : {}),
+            ...(ParamsWrapper.getParamValue(URLParam.StartDate) ? { start_date: ParamsWrapper.getParamValue(URLParam.StartDate) } : {}),
+            ...(ParamsWrapper.getParamValue(URLParam.EndDate) ? { end_date: ParamsWrapper.getParamValue(URLParam.EndDate) } : {}),
+            ...(SlugWrapper.getSlug() ? { id: SlugWrapper.getSlug() } : {}),
             ...this.asCommonFilters(),
         }
     }
 
-    asClubQueryFilters() {
-        return {
-            ...this.asCommonFilters(),
-        }
-    }
-
-    asComedianQueryFilters() {
+    static asClubQueryFilters() {
         return {
             ...this.asCommonFilters(),
         }
     }
 
-    determineOrderProperties(entityType: EntityType): string {
-        const optionalParamvalue = this.getParamValue(URLParam.Sort) as string
-        const paramValue = optionalParamvalue == undefined ? getDefaultSortOptionForEntityType(entityType) : optionalParamvalue
-        const splitParams = paramValue.split("_")
-        return `${splitParams[0]}${splitParams[1]}}`
+    static asComedianQueryFilters() {
+        return {
+            ...this.asCommonFilters(),
+        }
     }
 
-    getPattern() {
-        const queryValue = this.getParamValue(URLParam.Query)
+    static getPattern() {
+        const queryValue = ParamsWrapper.getParamValue(URLParam.Query)
         return `%${queryValue}%`
     }
 
-    getOffset() {
-        const rows = this.getParamValue(URLParam.Rows) as number
-        const page = this.getParamValue(URLParam.Page) as number
-        return rows * page
+    static getOffset() {
+        const size = ParamsWrapper.getParamValue(URLParam.Size) as number
+        const page = ParamsWrapper.getParamValue(URLParam.Page) as number
+        return size * page
     }
 
-    getRows() {
-        return this.getParamValue(URLParam.Rows)
+    static getSize() {
+        return ParamsWrapper.getParamValue(URLParam.Size)
     }
 
-    asParamsString() {
-        return this.params.toString()
+    static getSort() {
+        return ParamsWrapper.getParamValue(URLParam.Sort)
     }
 
-    asMapKey() {
-        const path = this.headersWrapper?.getPath()
-        console.log(path)
-        console.log(this.params)
-        return `${path}`
+    static asParamsString() {
+        return this.getInstance().params.toString()
     }
+
 
 }

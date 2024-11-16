@@ -54,7 +54,7 @@ export function DropdownFormComponent({
                                             className={cn(
                                                 "w-full lg:w-[300px] justify-start text-left font-normal",
                                                 field.value == "" &&
-                                                    "text-blue-500",
+                                                    "placeholder:text-muted-foreground",
                                             )}
                                             placeholder={placeholder}
                                         />

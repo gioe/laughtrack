@@ -1,23 +1,28 @@
 import QueryableEntityTableContainer from "../../../components/container";
-import { getDB } from "../../../database";
 import { QueryHelper } from "../../../objects/class/query/QueryHelper";
-import { SearchParams } from "../../../objects/type/searchParams";
+import { URLParams } from "../../../objects/type/urlParams";
 import { EntityType } from "../../../objects/enum";
-const { db } = getDB();
-
+import { headers } from "next/headers";
+import { HeadersWrapper } from "../../../objects/class/headers/HeadersWrapper";
+import { ParamsWrapper } from "../../../objects/class/params/ParamsWrapper";
+import { allComedianPaegDataMapper as mapper } from "./mapper";
+import { AllComedianPageData, AllComedianPageDTO } from "./interface";
 export default async function AllComediansPage(props: {
-    searchParams: Promise<SearchParams>;
+    searchParams: Promise<URLParams>;
 }) {
-    const searchParams = await props.searchParams;
-    const paramsWrapper = QueryHelper.asServerSideParams(searchParams);
-    const response = await db.comedians.getAll(paramsWrapper);
-    const entityCollectionString = JSON.stringify(response.entities);
+    await HeadersWrapper.updateHeaders(headers());
+    await ParamsWrapper.updateWithServerParams(props.searchParams);
+    const { entities, total } = await QueryHelper.getPageData<
+        AllComedianPageDTO,
+        AllComedianPageData
+    >(mapper);
+    const entityCollectionString = JSON.stringify(entities);
 
     return (
         <main className="flex-grow pt-5 bg-shark">
             <QueryableEntityTableContainer
                 entityType={EntityType.Comedian}
-                totalEntities={response.total}
+                totalEntities={total}
                 entityCollectionString={entityCollectionString}
                 defaultNode={
                     <h2 className="font-bold text-5xl text-white pt-6">

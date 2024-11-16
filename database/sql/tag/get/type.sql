@@ -1,1 +1,0 @@
-SELECT * from tags where type = ${type}

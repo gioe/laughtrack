@@ -2,33 +2,32 @@
 
 import QueryableEntityTableContainer from "../../../components/container";
 import { headers } from "next/headers";
-import { show as queryMap } from "../../../database/sql";
-import { getDB } from "../../../database";
 import { EntityType } from "../../../objects/enum";
-import { SearchParams } from "../../../objects/type/searchParams";
+import { URLParams } from "../../../objects/type/urlParams";
 import { QueryHelper } from "../../../objects/class/query/QueryHelper";
-import { Show } from "../../../objects/class/show/Show";
 import { ParamsWrapper } from "../../../objects/class/params/ParamsWrapper";
-const { db } = getDB();
+import { HeadersWrapper } from "../../../objects/class/headers/HeadersWrapper";
+import { allShowPageMapper as mapper } from "./mapper";
+import { AllShowPageData, AllShowPageDTO } from "./interface";
 
 export default async function ShowSearchResultsPage(props: {
-    searchParams: Promise<SearchParams>;
+    searchParams: Promise<URLParams>;
 }) {
-    const paramsWrapper = await ParamsWrapper.fromServerSideParams(
-        headers(),
-        props.searchParams,
-    );
+    await HeadersWrapper.updateHeaders(headers());
+    await ParamsWrapper.updateWithServerParams(props.searchParams);
 
-    const queryHelper = new QueryHelper(queryMap, paramsWrapper);
-    const response = await queryHelper.getAll<Show>(db.shows);
+    const { entities, total } = await QueryHelper.getPageData<
+        AllShowPageDTO,
+        AllShowPageData
+    >(mapper);
 
-    const entityCollectionString = JSON.stringify(response.entities);
+    const entityCollectionString = JSON.stringify(entities);
 
     return (
         <main className="flex-grow pt-5 bg-shark">
             <QueryableEntityTableContainer
                 entityType={EntityType.Show}
-                totalEntities={response.total}
+                totalEntities={total}
                 entityCollectionString={entityCollectionString}
                 defaultNode={
                     <h2 className="font-bold text-5xl text-white pt-6">

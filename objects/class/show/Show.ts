@@ -11,7 +11,6 @@ export class Show implements ShowInterface {
     name: string;
     date: Date;
     socialData: SocialDataInterface;
-    lineup: Comedian[];
     popularityScore?: number | undefined;
     clubName?: string | undefined;
     clubId: number;
@@ -23,13 +22,14 @@ export class Show implements ShowInterface {
     cardImageUrl: string;
     scraped?: Date;
     containedEntities: Entity[]
+    isFavorite: boolean;
 
     // Constructor
     constructor(input: ShowDTO) {
         this.name = input.name;
         this.date = input.date;
         this.socialData = input.social_data !== undefined ? toSocialDataInterface(input.social_data) : {};
-        this.containedEntities = input.lineup !== undefined ? input.lineup.map((item: ComedianDTO) => new Comedian(item)) : []
+        this.containedEntities = input.lineup ? input.lineup.map((item: ComedianDTO) => new Comedian(item)) : []
         this.clubName = input.club_name;
         this.ticket = new Ticket(input.ticket)
         this.tags = input.tags ?? []
@@ -39,8 +39,8 @@ export class Show implements ShowInterface {
         this.clubId = input.club_id
         this.scraped = input.scraped
     }
-    isFavorite: boolean;
 
+    getLineup: () => Comedian[];
 
     overrideDate = (date: string): void => {
         const providedDate = new Date(date);
@@ -65,14 +65,9 @@ export class Show implements ShowInterface {
     };
 
     asComedianDTOArray = (): ComedianDTO[] => {
-        return this.lineup.map((comedian: Comedian) =>
+        return this.containedEntities.map((comedian: Comedian) =>
             comedian.asComedianDTO(),
         );
     };
-
-    getLineup(): Comedian[] {
-        return this.containedEntities as Comedian[]
-    }
-
 
 }

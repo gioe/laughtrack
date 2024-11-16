@@ -1,52 +1,37 @@
-import EntityBanner from "../../../components/banner";
-import TagEntityModal from "../../../components/modals/tag";
 import QueryableEntityTableContainer from "../../../components/container";
-import MergeComediansModal from "../../../components/modals/merge";
-import EditSocialDataModal from "../../../components/modals/editSocialData";
-import { getDB } from "../../../database";
-import { SearchParams } from "../../../objects/type/searchParams";
-import { PaginatedEntityResponse } from "../../../objects/interface";
+import { URLParams } from "../../../objects/type/urlParams";
 import { QueryHelper } from "../../../objects/class/query/QueryHelper";
 import { EntityType } from "../../../objects/enum";
-const { db } = getDB();
-
-async function getComedianDetail(
-    slug: string,
-    searchParams: SearchParams,
-): Promise<PaginatedEntityResponse> {
-    const paramsWrapper = QueryHelper.asServerSideParams(searchParams);
-    return db.comedians.getByName(slug, paramsWrapper);
-}
+import { headers } from "next/headers";
+import { HeadersWrapper } from "../../../objects/class/headers/HeadersWrapper";
+import { ParamsWrapper } from "../../../objects/class/params/ParamsWrapper";
+import { SlugInterface } from "../../../objects/interface";
+import { ComedianDetailDTO, ComedianDetailPageData } from "./interface";
+import { comedianDetailPageMapper as mapper } from "./mapper";
+import { SlugWrapper } from "../../../objects/class/slug/SlugWrapper";
 
 export default async function ComedianDetailsPage(props: {
-    params: Promise<{ slug: string }>;
-    searchParams: Promise<SearchParams>;
+    params: Promise<SlugInterface>;
+    searchParams: Promise<URLParams>;
 }) {
-    const searchParams = await props.searchParams;
-    const params = await props.params;
-    const response = await getComedianDetail(params.slug, searchParams);
-    const entityString = JSON.stringify(response.entity);
-    const entityCollectionString = JSON.stringify(
-        response.entity.containedEntities,
-    );
+    await SlugWrapper.updateSlug(props.params);
+    await HeadersWrapper.updateHeaders(headers());
+    await ParamsWrapper.updateWithServerParams(props.searchParams);
+
+    const { entity, total } = await QueryHelper.getPageData<
+        ComedianDetailDTO,
+        ComedianDetailPageData
+    >(mapper);
+    const containedEntitiesString = JSON.stringify(entity.containedEntities);
+
     return (
         <main className="flex-grow pt-5 bg-shark">
-            <MergeComediansModal entityString={entityString} />
-            <EditSocialDataModal entityString={entityString} />
-            <TagEntityModal
-                type={EntityType.Comedian}
-                entityId={response.entity.id}
-                tagsString={""}
-            />
-            <section>
-                <EntityBanner entityString={entityString} />
-            </section>
             <section>
                 <section>
                     <QueryableEntityTableContainer
                         entityType={EntityType.Show}
-                        totalEntities={response.total}
-                        entityCollectionString={entityCollectionString}
+                        totalEntities={total}
+                        entityCollectionString={containedEntitiesString}
                         defaultNode={
                             <h2 className="font-bold text-5xl text-white pt-6">
                                 No upcoming shows for this club

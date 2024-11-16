@@ -21,15 +21,13 @@ interface FilterOptionsComponentProps {
 export function FilterParamComponent({
     sections,
 }: FilterOptionsComponentProps) {
-    const paramsWrapper = ParamsWrapper.fromClientSideParams(
-        usePathname(),
-        new URLSearchParams(useSearchParams()),
-    );
+    ParamsWrapper.updateFromClient(useSearchParams());
+
     const navigator = new Navigator(usePathname(), useRouter());
 
     const appendParam = (type: string, filter: string) => {
-        paramsWrapper.setParamValue(URLParam.City, "");
-        navigator.replaceRoute(paramsWrapper.asParamsString());
+        ParamsWrapper.setParamValue(URLParam.City, "");
+        navigator.replaceRoute(ParamsWrapper.asParamsString());
     };
 
     return (

@@ -1,50 +1,36 @@
 import { EntityType } from "../../../objects/enum";
-import { getDB } from "../../../database";
-import EntityBanner from "../../../components/banner";
 import QueryableEntityTableContainer from "../../../components/container";
-import ClearShowsModal from "../../../components/modals/clear";
-import ScrapeEntityModal from "../../../components/modals/scrape";
-import { SearchParams } from "../../../objects/type/searchParams";
-import { PaginatedEntityResponse } from "../../../objects/interface";
+import { URLParams } from "../../../objects/type/urlParams";
+import { SlugInterface } from "../../../objects/interface";
 import { QueryHelper } from "../../../objects/class/query/QueryHelper";
-const { db } = getDB();
-
-async function getClubDetail(
-    slug: string,
-    searchParams: SearchParams,
-): Promise<PaginatedEntityResponse> {
-    const paramsWrapper = QueryHelper.asServerSideParams(searchParams);
-    return db.clubs.getByName(slug, paramsWrapper);
-}
+import { HeadersWrapper } from "../../../objects/class/headers/HeadersWrapper";
+import { headers } from "next/headers";
+import { ParamsWrapper } from "../../../objects/class/params/ParamsWrapper";
+import { ClubDetailDTO, ClubDetailPageData } from "./interface";
+import { clubDetailPageMapper as mapper } from "./mapper";
+import { SlugWrapper } from "../../../objects/class/slug/SlugWrapper";
 
 export default async function ClubDetailPage(props: {
-    params: Promise<{ id: string }>;
-    searchParams: Promise<SearchParams>;
+    params: Promise<SlugInterface>;
+    searchParams: Promise<URLParams>;
 }) {
-    const searchParams = await props.searchParams;
-    const params = await props.params;
-    const response = await getClubDetail(params.id, searchParams);
+    await SlugWrapper.updateSlug(props.params);
+    await HeadersWrapper.updateHeaders(headers());
+    await ParamsWrapper.updateWithServerParams(props.searchParams);
 
-    const entityString = JSON.stringify(response.entity);
-    const entityCollectionString = JSON.stringify(
-        response.entity.containedEntities,
-    );
+    const { entity, total } = await QueryHelper.getPageData<
+        ClubDetailDTO,
+        ClubDetailPageData
+    >(mapper);
+    const containedEntitiesString = JSON.stringify(entity.containedEntities);
 
     return (
         <main className="flex-grow pt-5 bg-shark">
-            <ScrapeEntityModal
-                entityId={response.entity.id}
-                type={EntityType.Club}
-            />
-            <ClearShowsModal clubId={response.entity.id} />
-            <section>
-                <EntityBanner entityString={entityString} />
-            </section>
             <section>
                 <QueryableEntityTableContainer
                     entityType={EntityType.Show}
-                    totalEntities={response.total}
-                    entityCollectionString={entityCollectionString}
+                    totalEntities={total}
+                    entityCollectionString={containedEntitiesString}
                     defaultNode={
                         <h2 className="font-bold text-5xl text-white pt-6">
                             No shows for this club

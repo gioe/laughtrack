@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // generic singleton creator:
 export function createSingleton<T>(name: string, create: () => T): T {
     const s = Symbol.for(name);

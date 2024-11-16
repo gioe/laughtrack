@@ -17,14 +17,12 @@ interface QueryParamComponentProps {
 const QueryParamComponent: React.FC<QueryParamComponentProps> = ({
     inputPlaceholder,
 }) => {
-    const paramsWrapper = ParamsWrapper.fromClientSideParams(
-        usePathname(),
-        new URLSearchParams(useSearchParams()),
-    );
+    ParamsWrapper.updateWithClientParams(useSearchParams());
+
     const navigator = new Navigator(usePathname(), useRouter());
 
     const [value, setValue] = useState(
-        paramsWrapper.getParamValue(URLParam.Query) as string,
+        ParamsWrapper.getParamValue(URLParam.Query) as string,
     );
 
     const handleInputChange = (value: string) => {
@@ -33,8 +31,8 @@ const QueryParamComponent: React.FC<QueryParamComponentProps> = ({
     };
 
     const handleSearch = useDebouncedCallback((term) => {
-        paramsWrapper.setParamValue(URLParam.Query, term);
-        navigator.replaceRoute(paramsWrapper.asParamsString());
+        ParamsWrapper.setParamValue(URLParam.Query, term);
+        navigator.replaceRoute(ParamsWrapper.asParamsString());
     }, 300);
 
     return (
