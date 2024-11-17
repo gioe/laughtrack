@@ -22,19 +22,26 @@ export class QueryHelper {
     }
 
     private static getCurrentQueryParams(): Record<string, string | number | undefined> {
+
         const path = HeadersWrapper.getBasePath() as EntityType
+        const onDetailRoute = SlugWrapper.getSlug() ? true : false
+
         switch (path) {
-            case EntityType.Club: return ParamsWrapper.asClubQueryFilters()
-            case EntityType.Show: return ParamsWrapper.asShowQueryFilters()
-            case EntityType.Comedian: return ParamsWrapper.asComedianQueryFilters()
-            default: return ParamsWrapper.asCommonFilters()
+            case EntityType.Club:
+                return onDetailRoute ? ParamsWrapper.asShowQueryFilters() : ParamsWrapper.asClubQueryFilters()
+            case EntityType.Show:
+                return ParamsWrapper.asShowQueryFilters()
+            case EntityType.Comedian:
+                return onDetailRoute ? ParamsWrapper.asShowQueryFilters() : ParamsWrapper.asComedianQueryFilters()
+            default:
+                return ParamsWrapper.asCommonFilters()
         }
     }
 
     static async getPageData<T, K>(completionHandler: (response: T) => K): Promise<K> {
         const file = this.getQueryFile()
         const filters = this.getCurrentQueryParams();
-
+        console.log(filters)
         return database.one(file, filters).then((value: T) => {
             if (value) return completionHandler(value)
             throw new Error(`Failure getting contents of ${file}`)

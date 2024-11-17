@@ -17,6 +17,7 @@ const ShowLineupSection: React.FC<ShowCardProps> = ({
     showName,
     lineup,
 }) => {
+    console.log();
     return (
         <section className="flex flex-col px-10">
             <Link href={`/show/${showId}`}>

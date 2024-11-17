@@ -18,7 +18,8 @@ const TagEntityModal: React.FC<TagEntityModalProps> = ({
     entityId,
     tagsString,
 }) => {
-    const tags = JSON.parse(tagsString) as TagInterface[];
+    // const tags = JSON.parse(tagsString) as TagInterface[];
+    const tags = [];
 
     const router = useRouter();
     const addEntityTagModal = useAddEntityTagModal();

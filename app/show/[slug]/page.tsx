@@ -25,21 +25,24 @@ export default async function ShowDetailPage(props: {
         ShowDetailDTO,
         ShowDetailPageData
     >(mapper);
+    const entityString = JSON.stringify(entity);
     const containedEntitiesString = JSON.stringify(entity.containedEntities);
-
     return (
         <main className="flex-grow pt-5 bg-shark">
             <section>
-                <ScrapeEntityModal entityId={1} type={EntityType.Show} />
-                <ModifyLineupModal entityString={""} />
+                <ScrapeEntityModal
+                    entityId={entity.id}
+                    type={EntityType.Show}
+                />
+                <ModifyLineupModal entityString={entityString} />
                 <TagEntityModal
                     type={EntityType.Show}
-                    entityId={1}
-                    tagsString={""}
+                    entityId={entity.id}
+                    tagsString={entityString}
                 />
             </section>
             <section>
-                <EntityBanner entityString={""} />
+                <EntityBanner entityString={entityString} />
             </section>
             <section>
                 <QueryableEntityTableContainer

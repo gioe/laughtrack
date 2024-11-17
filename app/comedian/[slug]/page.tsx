@@ -26,21 +26,21 @@ export default async function ComedianDetailsPage(props: {
         ComedianDetailDTO,
         ComedianDetailPageData
     >(mapper);
+    const entityString = JSON.stringify(entity);
     const containedEntitiesString = JSON.stringify(entity.containedEntities);
-
     return (
         <main className="flex-grow pt-5 bg-shark">
             <section>
-                <MergeComediansModal entityString={""} />
-                <EditSocialDataModal entityString={""} />
+                <MergeComediansModal entityString={entityString} />
+                <EditSocialDataModal entityString={entityString} />
                 <TagEntityModal
                     type={EntityType.Comedian}
-                    entityId={1}
+                    entityId={entity.id}
                     tagsString={""}
                 />
             </section>
             <section>
-                <EntityBanner entityString={""} />
+                <EntityBanner entityString={entityString} />
             </section>
             <section>
                 <QueryableEntityTableContainer
