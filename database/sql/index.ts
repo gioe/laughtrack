@@ -10,26 +10,26 @@ export const pageDataMap = {
     },
     club: {
         all: {
-            index: sql("club/index.sql").qf
+            index: sql("club/all/index.sql").qf
         },
         slug: {
-            index: sql("club/index.sql").qf
+            index: sql("club/slug/index.sql").qf
         }
     },
     comedian: {
         all: {
-            index: sql("comedian/index.sql").qf
+            index: sql("comedian/all/index.sql").qf
         },
         slug: {
-            index: sql("comedian/index.sql").qf
+            index: sql("comedian/slug/index.sql").qf
         }
     },
     show: {
         all: {
-            index: sql("show/index.sql").qf
+            index: sql("show/all/index.sql").qf
         },
         slug: {
-            index: sql("show/index.sql").qf
+            index: sql("show/slug/index.sql").qf
         }
     },
 }

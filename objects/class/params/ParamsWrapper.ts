@@ -18,7 +18,7 @@ export class ParamsWrapper {
         return ParamsWrapper.instance;
     }
 
-    static updateWithClientParams(readOnlyParams: ReadonlyURLSearchParams) {
+    static async updateWithClientParams(readOnlyParams: ReadonlyURLSearchParams) {
         this.getInstance().params = new URLSearchParams(readOnlyParams)
     }
 
@@ -54,19 +54,21 @@ export class ParamsWrapper {
             ...(ParamsWrapper.getParamValue(URLParam.City) ? { city_id: ParamsWrapper.getParamValue(URLParam.City) } : {}),
             ...(ParamsWrapper.getParamValue(URLParam.StartDate) ? { start_date: ParamsWrapper.getParamValue(URLParam.StartDate) } : {}),
             ...(ParamsWrapper.getParamValue(URLParam.EndDate) ? { end_date: ParamsWrapper.getParamValue(URLParam.EndDate) } : {}),
-            ...(SlugWrapper.getSlug() ? { id: SlugWrapper.getSlug() } : {}),
+            ...(SlugWrapper.getSlug() ? { slug: SlugWrapper.getSlug() } : {}),
             ...this.asCommonFilters(),
         }
     }
 
     static asClubQueryFilters() {
         return {
+            ...(SlugWrapper.getSlug() ? { slug: SlugWrapper.getSlug() } : {}),
             ...this.asCommonFilters(),
         }
     }
 
     static asComedianQueryFilters() {
         return {
+            ...(SlugWrapper.getSlug() ? { slug: SlugWrapper.getSlug() } : {}),
             ...this.asCommonFilters(),
         }
     }

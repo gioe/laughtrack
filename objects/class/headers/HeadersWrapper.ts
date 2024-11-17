@@ -33,7 +33,6 @@ export class HeadersWrapper {
     // The "base" path is always the element at index 1 and we use this as our query map key.
     static getBasePath() {
         const fullPath = HeadersWrapper.getValue(HeaderKey.Path)
-        console.log(fullPath)
         const pathElements = fullPath.split('/')
         const basePath = pathElements[1];
 

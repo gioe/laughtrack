@@ -31,7 +31,6 @@ export default function QueryableEntityTableContainer({
     const filteredEntityCollection = JSON.parse(
         entityCollectionString,
     ) as Entity[];
-    console.log(`Returned ${filteredEntityCollection.length} records`);
     const [sideDrawerIsOpen, setSideDrawerIsOpen] = useState(false);
 
     const handleButtonClick = (isOpen: boolean) => {

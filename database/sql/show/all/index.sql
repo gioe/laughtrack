@@ -12,8 +12,8 @@ WITH filtered_data AS (
 		INNER JOIN clubs cl ON cl.id = s.club_id
 		INNER JOIN cities ci ON cl.city_id = ci.id
     WHERE ci.id = ${city_id}
-        AND s.date < ${end_date}
-        AND s.date > ${start_date}
+    AND s.date < ${end_date}
+    AND s.date > ${start_date}
     ORDER BY ${sort:name} ASC
     LIMIT ${size} 
     OFFSET ${offset}

@@ -9,12 +9,15 @@ import { ParamsWrapper } from "../../../objects/class/params/ParamsWrapper";
 import { ClubDetailDTO, ClubDetailPageData } from "./interface";
 import { clubDetailPageMapper as mapper } from "./mapper";
 import { SlugWrapper } from "../../../objects/class/slug/SlugWrapper";
+import ScrapeEntityModal from "../../../components/modals/scrape";
+import ClearShowsModal from "../../../components/modals/clear";
+import EntityBanner from "../../../components/banner";
 
 export default async function ClubDetailPage(props: {
     params: Promise<SlugInterface>;
     searchParams: Promise<URLParams>;
 }) {
-    await SlugWrapper.updateSlug(props.params);
+    await SlugWrapper.updateSlugValue(props.params);
     await HeadersWrapper.updateHeaders(headers());
     await ParamsWrapper.updateWithServerParams(props.searchParams);
 
@@ -22,10 +25,22 @@ export default async function ClubDetailPage(props: {
         ClubDetailDTO,
         ClubDetailPageData
     >(mapper);
+
     const containedEntitiesString = JSON.stringify(entity.containedEntities);
+    const entityString = JSON.stringify(entity);
 
     return (
         <main className="flex-grow pt-5 bg-shark">
+            <section>
+                <ScrapeEntityModal
+                    entityId={entity.id}
+                    type={EntityType.Club}
+                />
+                <ClearShowsModal clubId={entity.id} />
+            </section>
+            <section>
+                <EntityBanner entityString={entityString} />
+            </section>
             <section>
                 <QueryableEntityTableContainer
                     entityType={EntityType.Show}

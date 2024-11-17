@@ -5,6 +5,7 @@ import { getDB } from "../../../database";
 import { ParamsWrapper } from "../params/ParamsWrapper";
 import { HeadersWrapper } from "../headers/HeadersWrapper";
 import { EntityType } from "../../enum";
+import { SlugWrapper } from "../slug/SlugWrapper";
 const { database } = getDB();
 
 export class QueryHelper {
@@ -13,32 +14,32 @@ export class QueryHelper {
 
     private static getQueryFile(): pgPromise.QueryFile {
         const key = HeadersWrapper.getBasePath()
+        if (key == 'home') return pageDataMap[key]['index']
         const pageQueryMap = pageDataMap[key]
-        return pageQueryMap['index']
+        const queryType = SlugWrapper.getSlug() ? 'slug' : 'all'
+        const queryTypeMap = pageQueryMap[queryType]
+        return queryTypeMap['index']
     }
 
     private static getCurrentQueryParams(): Record<string, string | number | undefined> {
         const path = HeadersWrapper.getBasePath() as EntityType
-        console.log(`We're currently in a ${path} context`)
         switch (path) {
-            case EntityType.Club:
-                return ParamsWrapper.asClubQueryFilters()
-            case EntityType.Show:
-                return ParamsWrapper.asShowQueryFilters()
-            case EntityType.Comedian:
-                return ParamsWrapper.asComedianQueryFilters()
-            default:
-                return ParamsWrapper.asCommonFilters()
+            case EntityType.Club: return ParamsWrapper.asClubQueryFilters()
+            case EntityType.Show: return ParamsWrapper.asShowQueryFilters()
+            case EntityType.Comedian: return ParamsWrapper.asComedianQueryFilters()
+            default: return ParamsWrapper.asCommonFilters()
         }
     }
 
     static async getPageData<T, K>(completionHandler: (response: T) => K): Promise<K> {
         const file = this.getQueryFile()
         const filters = this.getCurrentQueryParams();
-        return database.oneOrNone(file, filters).then((value: T | null) => {
+
+        return database.one(file, filters).then((value: T) => {
             if (value) return completionHandler(value)
             throw new Error(`Failure getting contents of ${file}`)
         })
+
     }
 
 }

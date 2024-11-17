@@ -13,10 +13,12 @@ export default async function AllClubsPage(props: {
 }) {
     await HeadersWrapper.updateHeaders(headers());
     await ParamsWrapper.updateWithServerParams(props.searchParams);
+
     const { entities, total } = await QueryHelper.getPageData<
         AllClubPageDTO,
         AllClubPageData
     >(mapper);
+
     const entityCollectionString = JSON.stringify(entities);
 
     return (

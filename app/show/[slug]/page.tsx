@@ -8,12 +8,16 @@ import { URLParams } from "../../../objects/type/urlParams";
 import { ShowDetailDTO, ShowDetailPageData } from "./interface";
 import { showDetailPageMapper as mapper } from "./mapper";
 import { SlugWrapper } from "../../../objects/class/slug/SlugWrapper";
+import ScrapeEntityModal from "../../../components/modals/scrape";
+import ModifyLineupModal from "../../../components/modals/modifyLineup";
+import TagEntityModal from "../../../components/modals/tag";
+import EntityBanner from "../../../components/banner";
 
 export default async function ShowDetailPage(props: {
     params: Promise<{ slug: string }>;
     searchParams: Promise<URLParams>;
 }) {
-    await SlugWrapper.updateSlug(props.params);
+    await SlugWrapper.updateSlugValue(props.params);
     await HeadersWrapper.updateHeaders(headers());
     await ParamsWrapper.updateWithServerParams(props.searchParams);
 
@@ -25,6 +29,18 @@ export default async function ShowDetailPage(props: {
 
     return (
         <main className="flex-grow pt-5 bg-shark">
+            <section>
+                <ScrapeEntityModal entityId={1} type={EntityType.Show} />
+                <ModifyLineupModal entityString={""} />
+                <TagEntityModal
+                    type={EntityType.Show}
+                    entityId={1}
+                    tagsString={""}
+                />
+            </section>
+            <section>
+                <EntityBanner entityString={""} />
+            </section>
             <section>
                 <QueryableEntityTableContainer
                     entityType={EntityType.Comedian}

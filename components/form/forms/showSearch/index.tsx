@@ -33,8 +33,6 @@ export default function ShowSearchForm({ cities }: HomeSearchFormProps) {
         },
     );
 
-    console.log(selectableCities);
-
     const [isLoading /*setIsLoading*/] = useState(false);
 
     ParamsWrapper.updateWithClientParams(useSearchParams());
