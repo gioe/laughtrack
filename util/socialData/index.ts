@@ -6,7 +6,7 @@ export const averagePopularityScore = (
     if (scores.length == 0) return 0;
 
     const total = scores
-        .map((score: PopularityScoreIODTO) => score.popularity_score)
+        .map((score: PopularityScoreIODTO) => score.popularity)
         .reduce((a: number, b: number) => a + b);
     const average = total / scores.length;
 

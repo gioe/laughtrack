@@ -40,7 +40,7 @@ export const toPopularityScores = (
 export const toPopularityScore = (payload: any): PopularityScoreIODTO => {
     return {
         id: payload.id,
-        popularity_score: payload.scores
+        popularity: payload.scores
             ? averagePopularityScore(payload.scores)
             : generatePopularityScore(payload),
     };

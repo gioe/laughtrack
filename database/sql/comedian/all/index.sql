@@ -17,13 +17,13 @@ with filtered_data as (
             youtube_followers,
             'website',
             website,
-            'popularity_score',
-            popularity_score
+            'popularity',
+            popularity
         ) AS social_data
     from
         comedians
     Where name ILIKE ${pattern}
-    ORDER BY ${sort:name} ASC
+    ORDER BY ${sort:name} ${direction:value}
     LIMIT ${size} 
     OFFSET ${offset}
 ),

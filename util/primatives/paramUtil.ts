@@ -51,7 +51,7 @@ export const getDefaultQueryParamValue = (key: URLParam) => {
         case URLParam.Query:
             return ""
         case URLParam.Page:
-            return 0
+            return 1
         case URLParam.Size:
             return 10;
         case URLParam.City:

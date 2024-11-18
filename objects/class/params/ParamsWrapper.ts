@@ -42,10 +42,11 @@ export class ParamsWrapper {
 
     static asCommonFilters() {
         return {
-            size: this.getSize(),
             pattern: this.getPattern(),
-            offset: this.getOffset(),
             sort: this.getSort(),
+            direction: this.getDirection(),
+            size: this.getSize(),
+            offset: this.getOffset(),
         }
     }
 
@@ -80,7 +81,7 @@ export class ParamsWrapper {
 
     static getOffset() {
         const size = ParamsWrapper.getParamValue(URLParam.Size) as number
-        const page = ParamsWrapper.getParamValue(URLParam.Page) as number
+        const page = (ParamsWrapper.getParamValue(URLParam.Page) as number) - 1
         return size * page
     }
 
@@ -90,6 +91,10 @@ export class ParamsWrapper {
 
     static getSort() {
         return ParamsWrapper.getParamValue(URLParam.Sort)
+    }
+
+    static getDirection() {
+        return ParamsWrapper.getParamValue(URLParam.Direction)
     }
 
     static asParamsString() {

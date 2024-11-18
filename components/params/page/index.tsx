@@ -18,10 +18,9 @@ export function PageParamComponent({
     ParamsWrapper.updateWithClientParams(useSearchParams());
 
     const navigator = new Navigator(usePathname(), useRouter());
-
-    const [page, setPage] = useState(
-        ParamsWrapper.getParamValue(URLParam.Page) as number,
-    );
+    const defaultIndex =
+        (ParamsWrapper.getParamValue(URLParam.Page) as number) - 1;
+    const [pageIndex, setPageIndex] = useState(defaultIndex);
 
     const [rowsPerPage, setRowsPerPage] = useState(
         ParamsWrapper.getParamValue(URLParam.Size) as number,
@@ -29,11 +28,13 @@ export function PageParamComponent({
 
     const handleChangeOffset = (
         event: React.MouseEvent<HTMLButtonElement> | null,
-        newPage: number,
+        newPageIndex: number,
     ) => {
-        ParamsWrapper.setParamValue(URLParam.Page, newPage);
+        setPageIndex(newPageIndex);
+
+        const newPageValue = newPageIndex + 1;
+        ParamsWrapper.setParamValue(URLParam.Page, newPageValue);
         navigator.replaceRoute(ParamsWrapper.asParamsString());
-        setPage(newPage);
     };
 
     const handleChangeRows = (
@@ -69,7 +70,7 @@ export function PageParamComponent({
             }}
             component="div"
             count={itemCount}
-            page={page}
+            page={pageIndex}
             rowsPerPage={rowsPerPage}
             onPageChange={handleChangeOffset}
             onRowsPerPageChange={handleChangeRows}

@@ -17,12 +17,16 @@ export default function Table<T extends Entity>({
     defaultNode,
 }: TableProps<T>) {
     const determineLayout = () => {
-        switch (data[0].type) {
-            case EntityType.Show:
-                return "grid grid-cols-1 gap-4";
-            default:
-                return "grid grid-cols-3 gap-x-20 gap-y-10";
+        const firstObject = data[0];
+        if (firstObject !== undefined) {
+            switch (data[0].type) {
+                case EntityType.Show:
+                    return "grid grid-cols-1 gap-4";
+                default:
+                    return "grid grid-cols-3 gap-x-20 gap-y-10";
+            }
         }
+        return "grid grid-cols-3 gap-x-20 gap-y-10";
     };
 
     return (

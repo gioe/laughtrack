@@ -41,6 +41,7 @@ export class QueryHelper {
     static async getPageData<T, K>(completionHandler: (response: T) => K): Promise<K> {
         const file = this.getQueryFile()
         const filters = this.getCurrentQueryParams();
+        console.log(file)
         console.log(filters)
         return database.one(file, filters).then((value: T) => {
             if (value) return completionHandler(value)

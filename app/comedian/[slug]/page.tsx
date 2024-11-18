@@ -49,7 +49,7 @@ export default async function ComedianDetailsPage(props: {
                     entityCollectionString={containedEntitiesString}
                     defaultNode={
                         <h2 className="font-bold text-5xl text-white pt-6">
-                            No upcoming shows for this club
+                            No upcoming shows for this comedian
                         </h2>
                     }
                 />

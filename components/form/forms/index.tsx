@@ -24,11 +24,8 @@ export default function BaseForm({
 }: BaseFormProps) {
     return (
         <Form {...form}>
-            <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="flex flex-row items-center gap-4 w-full"
-            >
-                <div className="relative p-6 flex-auto">{body}</div>
+            <form onSubmit={form.handleSubmit(onSubmit)}>
+                <div>{body}</div>
                 {secondaryButtonData && (
                     <ButtonComponent
                         data={secondaryButtonData}
@@ -38,7 +35,12 @@ export default function BaseForm({
                         }}
                     />
                 )}
-                <ButtonComponent data={primaryButtonData} disabled={false} />
+                <div className="flex justify-center">
+                    <ButtonComponent
+                        data={primaryButtonData}
+                        disabled={false}
+                    />
+                </div>
             </form>
         </Form>
     );

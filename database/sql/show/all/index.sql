@@ -4,7 +4,7 @@ WITH filtered_data AS (
 		s.name AS name,
 		s.last_scrape_date AS scrapedate,
 		s.date AS date,
-		s.popularity_score AS popularity,
+		s.popularity,
 		cl.name AS club_name,
 		jsonb_build_object('price', s.price, 'link', s.ticket_link) AS ticket
 	FROM
@@ -39,7 +39,9 @@ total_count AS (
         AND s.date > ${start_date}
 )
 SELECT
-	jsonb_build_object('data', jsonb_agg(jsonb_build_object('id', fd.id, 'date', date, 'name', fd.name, 'ticket', ticket, 'club_name', club_name, 'scrapedate', scrapedate, 'lineup', l.lineup)), 'total', (
+	jsonb_build_object('data', jsonb_agg(jsonb_build_object('id', fd.id, 'date', date, 'name', fd.name, 'ticket', ticket, 
+	'club_name', club_name, 'scrapedate', scrapedate, 'lineup', l.lineup)), 
+	'total', (
 			SELECT
 				total
 			FROM total_count)) AS response

@@ -36,9 +36,7 @@ export default function ClearShowsFromClubForm({
                 setIsLoading(false);
                 toast.error(`Something went wrong: ${error}`);
             })
-            .finally(() => {
-                onSubmit();
-            });
+            .finally(onSubmit);
     };
 
     const form = useForm<z.infer<typeof clearShowsFromClubSchema>>({

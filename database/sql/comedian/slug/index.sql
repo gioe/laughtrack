@@ -7,7 +7,7 @@ all_relevant_shows as (
 	WHERE
     s.date > now()
 	AND c.name = $(slug)
-    ORDER BY ${sort:name} ASC
+    ORDER BY ${sort:name} ${direction:value}
     LIMIT ${size} 
     OFFSET ${offset}
 ), 
@@ -38,17 +38,9 @@ GROUP BY
 ),
 formatted_query AS (
 	SELECT
-		jsonb_agg(jsonb_build_object(
-        'id', sd.show_id, 
-        'date', sd.show_date, 
-        'name', sd.show_name, 
-        'ticket', sd.ticket, 
-        'club_name', club_name, 
-        'scrapedate', scrapedate, 
-        'lineup', sd.lineup)) 
-    AS shows
-	FROM
-		show_data sd
+		COALESCE(jsonb_agg(jsonb_build_object('id', sd.show_id, 'date', sd.show_date, 'name', sd.show_name, 'ticket', sd.ticket, 'club_name', club_name, 'scrapedate', scrapedate, 'lineup', sd.lineup)) FILTER (WHERE sd.show_id IS NOT NULL), '[]') AS shows
+FROM
+	show_data sd
 ),
 total_count AS (
 SELECT
@@ -72,7 +64,7 @@ SELECT
                 instagram_followers, 'tiktok_account', tiktok_account, 
                 'tiktok_followers', tiktok_followers, 'youtube_account', 
                 youtube_account, 'youtube_followers', youtube_followers,
-                'website', website, 'popularity_score', popularity_score)
+                'website', website, 'popularity', popularity)
 			FROM comedian_data), 
     'dates', fq.shows), 
     'total', (

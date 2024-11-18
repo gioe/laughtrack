@@ -28,7 +28,7 @@ export interface SocialDataDTO {
     tiktok_account?: string;
     youtube_account?: string;
     website?: string;
-    popularity_score?: number;
+    popularity?: number;
 }
 
 export interface GroupedSocialDataDTO {
@@ -38,5 +38,5 @@ export interface GroupedSocialDataDTO {
 
 export interface PopularityScoreIODTO {
     id: number;
-    popularity_score: number;
+    popularity: number;
 }

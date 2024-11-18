@@ -4,7 +4,7 @@ WITH filtered_data AS (
 		s.name AS name,
 		s.last_scrape_date AS scrapedate,
 		s.date AS date,
-		s.popularity_score AS popularity,
+		s.popularity,
 		cl.name AS club_name,
 		cl.website as club_website,
 		jsonb_build_object('price', s.price, 'link', s.ticket_link) AS ticket
