@@ -8,7 +8,6 @@ import { useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import BaseForm from "..";
-import { ButtonType } from "../../../../objects/enum";
 import ClearClubFormBody from "./body";
 
 interface ClearShowsFormProps {
@@ -51,10 +50,6 @@ export default function ClearShowsFromClubForm({
             onSubmit={submitForm}
             form={form}
             body={<ClearClubFormBody />}
-            primaryButtonData={{
-                type: ButtonType.Submit,
-                label: "OK",
-            }}
         />
     );
 }

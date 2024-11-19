@@ -11,7 +11,6 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import Heading from "../../../modals/heading";
 import BaseForm from "..";
-import { ButtonType } from "../../../../objects/enum";
 
 interface MergeComediansFormProps {
     comedian: Comedian;
@@ -68,10 +67,6 @@ export default function MergeComediansForm({
                     />
                 </div>
             }
-            primaryButtonData={{
-                type: ButtonType.Submit,
-                label: "OK",
-            }}
         />
     );
 }

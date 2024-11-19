@@ -31,7 +31,7 @@ export default async function HomePage(props: {
                 </h3>
             </section>
 
-            <section className="m-4 mt-0 -mb-14 px-2 lg:px-4">
+            <section className="m-4 mt-0 -mb-8 px-2 lg:px-4">
                 <ShowSearchForm cities={citiesString} />
             </section>
 

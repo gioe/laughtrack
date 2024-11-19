@@ -8,7 +8,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { useState } from "react";
-import { ButtonType, EntityType } from "../../../../objects/enum";
+import { EntityType } from "../../../../objects/enum";
 import BaseForm from "..";
 import TagEntityFormBody from "./body";
 
@@ -64,10 +64,6 @@ export default function TagEntityForm({
             onSubmit={submitForm}
             form={form}
             body={<TagEntityFormBody form={form} tags={selectableTags} />}
-            primaryButtonData={{
-                type: ButtonType.Submit,
-                label: "OK",
-            }}
         />
     );
 }

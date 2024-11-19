@@ -20,11 +20,11 @@ export const removeBadWhiteSpace = (whiteSpaceString: string) => {
 export const stringIsAValidUrl = (string: string): boolean => {
     const urlPattern = new RegExp(
         "^(https?:\\/\\/)?" + // validate protocol
-            "((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|" + // validate domain name
-            "((\\d{1,3}\\.){3}\\d{1,3}))" + // validate OR ip (v4) address
-            "(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*" + // validate port and path
-            "(\\?[;&a-z\\d%_.~+=-]*)?" + // validate query string
-            "(\\#[-a-z\\d_]*)?$",
+        "((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|" + // validate domain name
+        "((\\d{1,3}\\.){3}\\d{1,3}))" + // validate OR ip (v4) address
+        "(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*" + // validate port and path
+        "(\\?[;&a-z\\d%_.~+=-]*)?" + // validate query string
+        "(\\#[-a-z\\d_]*)?$",
         "i",
     ); // validate fragment locator
     return !!urlPattern.test(string);
@@ -38,7 +38,6 @@ export const stringIsAValidDate = (string: string): boolean => {
 
 export const capitalized = (inputString: string): string => {
     return inputString
-        .toLowerCase()
         .split(" ")
         .filter((word) => word !== "")
         .map((word) => word[0].toUpperCase() + word.substring(1))

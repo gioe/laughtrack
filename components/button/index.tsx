@@ -15,7 +15,6 @@ const ButtonComponent: React.FC<ButtonProps> = ({
     data,
     disabled,
     icon: Icon,
-    onClick,
 }) => {
     return (
         <Button

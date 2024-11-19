@@ -10,8 +10,9 @@ import { HeaderKey } from './headerKey'
 import { RoutePath } from './routePath'
 import { DirectionParamValue } from './directionParamValue'
 import { RestApiAction } from './restApiAction'
-
+import { FormDirection } from './formDirection'
 export {
+    FormDirection,
     RestApiAction,
     ComedyClub,
     RoutePath,

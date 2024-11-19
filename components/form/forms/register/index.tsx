@@ -9,7 +9,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import axios from "axios";
 import BaseForm from "..";
-import { ButtonType } from "../../../../objects/enum";
 import RegisterFormBody from "./body";
 
 interface RegistrationFormProps {
@@ -56,10 +55,6 @@ export default function RegistrationForm({ onSubmit }: RegistrationFormProps) {
             onSubmit={submitForm}
             form={form}
             body={<RegisterFormBody form={form} isLoading={isLoading} />}
-            primaryButtonData={{
-                type: ButtonType.Submit,
-                label: "OK",
-            }}
         />
     );
 }

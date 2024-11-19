@@ -5,7 +5,7 @@ import axios from "axios";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
-import { ButtonType, EntityType } from "../../../../objects/enum";
+import { EntityType } from "../../../../objects/enum";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
 import BaseForm from "..";
@@ -65,10 +65,6 @@ export default function ScrapeEntityForm({
                     headlessOptions={headlessOptions}
                 />
             }
-            primaryButtonData={{
-                type: ButtonType.Submit,
-                label: "OK",
-            }}
         />
     );
 }

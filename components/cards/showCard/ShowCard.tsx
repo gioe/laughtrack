@@ -10,6 +10,7 @@ interface ShowCardProps {
 }
 
 const ShowCard: React.FC<ShowCardProps> = ({ show }) => {
+    console.log(show.containedEntities);
     return (
         <div
             className="flex flex-row mt-3 mb-3 px-2 pr-4 border-b

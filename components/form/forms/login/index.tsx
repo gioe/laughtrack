@@ -9,7 +9,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
 import { signIn } from "next-auth/react";
 import BaseForm from "..";
-import { ButtonType } from "../../../../objects/enum";
 import LoginFormBody from "./body";
 
 interface LoginFormProps {
@@ -52,10 +51,6 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
             onSubmit={submitForm}
             form={form}
             body={<LoginFormBody form={form} isLoading={isLoading} />}
-            primaryButtonData={{
-                type: ButtonType.Submit,
-                label: "OK",
-            }}
         />
     );
 }

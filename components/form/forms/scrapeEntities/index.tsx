@@ -5,7 +5,7 @@ import axios from "axios";
 import { FormSelectable } from "../../../../objects/interface";
 import { Club } from "../../../../objects/class/club/Club";
 import BaseForm from "..";
-import { ButtonType, EntityType } from "../../../../objects/enum";
+import { EntityType } from "../../../../objects/enum";
 import { scrapeEntitySelectionMenuSchema } from "./schema";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -106,10 +106,6 @@ export default function ScrapeEntitySelectionMenuForm({
                     clubOptions={clubs}
                 />
             }
-            primaryButtonData={{
-                type: ButtonType.Submit,
-                label: "OK",
-            }}
         />
     );
 }

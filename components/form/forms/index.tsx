@@ -1,8 +1,10 @@
 "use client";
 
+import { FormDirection } from "../../../objects/enum";
 import { ButtonData } from "../../../objects/interface";
 import ButtonComponent from "../../button";
 import { Form } from "../../ui/form";
+import { DefaultFormButton } from "../components/button";
 
 export interface BaseFormProps {
     isLoading: boolean;
@@ -11,21 +13,26 @@ export interface BaseFormProps {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     form: any;
     body: React.ReactNode;
-    primaryButtonData: ButtonData;
+    primaryButton?: React.ReactNode;
     secondaryButtonData?: ButtonData;
+    direction?: FormDirection;
 }
 
 export default function BaseForm({
+    direction = FormDirection.Vertical,
     form,
     body,
-    primaryButtonData,
+    primaryButton,
     secondaryButtonData,
     onSubmit,
 }: BaseFormProps) {
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
-                <div>{body}</div>
+            <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className={`flex ${direction == FormDirection.Vertical ? "flex-col" : "flex-row"}`}
+            >
+                {body}
                 {secondaryButtonData && (
                     <ButtonComponent
                         data={secondaryButtonData}
@@ -36,10 +43,11 @@ export default function BaseForm({
                     />
                 )}
                 <div className="flex justify-center">
-                    <ButtonComponent
-                        data={primaryButtonData}
-                        disabled={false}
-                    />
+                    {primaryButton ? (
+                        primaryButton
+                    ) : (
+                        <DefaultFormButton label="OK" />
+                    )}
                 </div>
             </form>
         </Form>

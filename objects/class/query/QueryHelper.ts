@@ -3,7 +3,6 @@ import { pageDataMap } from "../../../database/sql";
 import pgPromise from "pg-promise";
 import { SearchParamsHelper } from "../params/SearchParamsHelper";
 import { HeaderKey, RestApiAction, URLParam } from "../../enum";
-import { SlugWrapper } from "../slug/SlugWrapper";
 import { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 import { URLParams } from "../../type/urlParams";
 import { getDB } from "../../../database";
@@ -19,7 +18,7 @@ const indexKey = 'index';
 // It is almost certainly too bloated.
 export class QueryHelper {
 
-    slug?: SlugInterface
+    slug?: string
     headers?: ReadonlyHeaders;
     private static instance: QueryHelper;
 
@@ -77,7 +76,7 @@ export class QueryHelper {
     }
 
     static getSlug() {
-        return QueryHelper.getInstance().slug ? { slug: QueryHelper.getInstance().slug } : {}
+        return QueryHelper.getInstance().slug ? { slug: decodeURI(QueryHelper.getInstance().slug ?? "") } : {}
     }
 
     static getCityId() {
@@ -94,10 +93,9 @@ export class QueryHelper {
 
     static async storePageParams(paramsPromise: Promise<URLParams>, headersPromise: Promise<ReadonlyHeaders>, slugPromise?: Promise<SlugInterface>) {
         const promises = [SearchParamsHelper.storeParams(paramsPromise), headersPromise, slugPromise]
-        console.log(promises)
         return Promise.all(promises).then((values: unknown[]) => {
             QueryHelper.getInstance().headers = values[1] as ReadonlyHeaders
-            QueryHelper.getInstance().slug = values[2] as SlugInterface
+            QueryHelper.getInstance().slug = values[2] ? ((values[2] as SlugInterface).slug) : undefined
         })
     }
 
@@ -111,15 +109,13 @@ export class QueryHelper {
     }
 
     private static getEntityCollectionMap(map: QueryFileMap) {
-        const key = SlugWrapper.getSlug() ? 'slug' : 'all'
+        const key = QueryHelper.getInstance().slug ? 'slug' : 'all'
         return map[key]
     }
 
     private static getPageDataQueryFile(): pgPromise.QueryFile {
         const entityMap = QueryHelper.getEntityMap()
-        console.log(entityMap)
         const collectionMap = QueryHelper.getEntityCollectionMap(entityMap);
-        console.log(collectionMap)
         return collectionMap ? collectionMap[indexKey] : entityMap[indexKey]
     }
 

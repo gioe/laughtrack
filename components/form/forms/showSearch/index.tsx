@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
-    ButtonType,
+    FormDirection,
     RoutePath,
     SortParamValue,
     URLParam,
@@ -18,6 +18,7 @@ import BaseForm from "..";
 import { CityInterface } from "../../../../objects/interface/city.interface";
 import { FormSelectable } from "../../../../objects/interface";
 import ShowSearchFormBody from "./body";
+import { FormButton } from "../../components/button/home";
 
 interface HomeSearchFormProps {
     cities: string;
@@ -65,19 +66,14 @@ export default function ShowSearchForm({ cities }: HomeSearchFormProps) {
             isLoading={isLoading}
             onSubmit={submitForm}
             form={form}
+            direction={FormDirection.Horizontal}
             body={
                 <ShowSearchFormBody
                     selectableCities={selectableCities}
                     form={form}
                 />
             }
-            primaryButtonData={{
-                type: ButtonType.Submit,
-                label: "Search",
-                styling: {
-                    backgroundColor: "bg-silver-gray",
-                },
-            }}
+            primaryButton={<FormButton label="Search" />}
         />
     );
 }

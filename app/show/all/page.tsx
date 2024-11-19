@@ -17,7 +17,6 @@ export default async function ShowSearchResultsPage(props: {
         AllShowPageDTO,
         AllShowPageData
     >(mapper);
-
     const entityCollectionString = JSON.stringify(entities);
 
     return (

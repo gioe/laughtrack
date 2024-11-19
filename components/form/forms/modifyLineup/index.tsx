@@ -2,7 +2,6 @@
 
 import { Comedian } from "../../../../objects/class/comedian/Comedian";
 import { Show } from "../../../../objects/class/show/Show";
-import { ButtonType } from "../../../../objects/enum";
 import { useForm } from "react-hook-form";
 import { addComedianToShowSchema } from "./schema";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -63,10 +62,6 @@ export default function AddComedianToShowForm({
             onSubmit={submitForm}
             form={form}
             body={<ModifyLineupFormBody form={form} />}
-            primaryButtonData={{
-                type: ButtonType.Submit,
-                label: "OK",
-            }}
         />
     );
 }

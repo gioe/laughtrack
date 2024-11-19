@@ -9,7 +9,6 @@ import { useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import BaseForm from "..";
-import { ButtonType } from "../../../../objects/enum";
 import EditSocialDataFormBody from "./body";
 
 interface EditSocialDataInterfaceProps {
@@ -76,10 +75,6 @@ export default function EditSocialDataForm({
             onSubmit={submitForm}
             form={form}
             body={<EditSocialDataFormBody form={form} isLoading={isLoading} />}
-            primaryButtonData={{
-                type: ButtonType.Submit,
-                label: "OK",
-            }}
         />
     );
 }
