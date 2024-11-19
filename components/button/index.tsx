@@ -20,7 +20,6 @@ const ButtonComponent: React.FC<ButtonProps> = ({
     return (
         <Button
             type={data.type}
-            onClick={onClick}
             disabled={disabled}
             className={`disabled:opacity-70
                  disabled:cursor-not-allowed rounded-lg hover:opacity-80

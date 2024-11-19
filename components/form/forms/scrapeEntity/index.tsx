@@ -1,7 +1,5 @@
 "use client";
 
-import Heading from "../../../modals/heading";
-import { DropdownFormComponent } from "../../components/dropdown";
 import { scrapeClubSchema } from "./schema";
 import axios from "axios";
 import { z } from "zod";
@@ -11,6 +9,7 @@ import { ButtonType, EntityType } from "../../../../objects/enum";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
 import BaseForm from "..";
+import ScrapeEntityFormBody from "./body";
 
 interface ScrapeEntityFormProps {
     onSubmit: () => void;
@@ -25,6 +24,10 @@ export default function ScrapeEntityForm({
 }: ScrapeEntityFormProps) {
     const [isLoading, setIsLoading] = useState(false);
 
+    const headlessOptions = [
+        { id: "true", name: "True" },
+        { id: "false", name: "False" },
+    ];
     const form = useForm<z.infer<typeof scrapeClubSchema>>({
         resolver: zodResolver(scrapeClubSchema),
         defaultValues: {
@@ -57,19 +60,10 @@ export default function ScrapeEntityForm({
             onSubmit={submitForm}
             form={form}
             body={
-                <div className="flex flex-col gap-4">
-                    <Heading title="Scrape Club" />
-                    <DropdownFormComponent
-                        name="headless"
-                        title="Headless"
-                        form={form}
-                        placeholder="Open browser window?"
-                        items={[
-                            { id: "true", name: "True" },
-                            { id: "false", name: "False" },
-                        ]}
-                    />
-                </div>
+                <ScrapeEntityFormBody
+                    form={form}
+                    headlessOptions={headlessOptions}
+                />
             }
             primaryButtonData={{
                 type: ButtonType.Submit,

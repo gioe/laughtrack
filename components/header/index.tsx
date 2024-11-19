@@ -19,10 +19,10 @@ import {
     BuildingStorefrontIcon,
 } from "@heroicons/react/24/outline";
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
-import useLoginModal from "../../hooks/useLoginModal";
-import useRegisterModal from "../../hooks/useRegisterModel";
+import useLoginModal from "../../hooks/modalState/useLoginModal";
+import useRegisterModal from "../../hooks/modalState/useRegisterModel";
 import { UserInterface } from "../../objects/interface";
-import { useScrapeMenuModal } from "../../hooks";
+import { useScrapeMenuModal } from "../../hooks/modalState";
 
 const comedianMenuItems = [
     {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import useLoginModal from "../../../hooks/useLoginModal";
+import useLoginModal from "../../../hooks/modalState/useLoginModal";
 import Modal from "..";
 import LoginForm from "../../form/forms/login";
 

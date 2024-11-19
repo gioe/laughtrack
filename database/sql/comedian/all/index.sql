@@ -22,7 +22,7 @@ with filtered_data as (
         ) AS social_data
     from
         comedians
-    Where name ILIKE ${pattern}
+    Where name ILIKE ${query}
     ORDER BY ${sort:name} ${direction:value}
     LIMIT ${size} 
     OFFSET ${offset}

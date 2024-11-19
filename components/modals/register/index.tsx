@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import useRegisterModal from "../../../hooks/useRegisterModel";
-import useLoginModal from "../../../hooks/useLoginModal";
+import useRegisterModal from "../../../hooks/modalState/useRegisterModel";
+import useLoginModal from "../../../hooks/modalState/useLoginModal";
 import Modal from "..";
 import RegistrationForm from "../../form/forms/register";
 import RegistrationFormFooter from "../../form/forms/register/footer";

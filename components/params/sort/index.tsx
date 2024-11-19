@@ -3,12 +3,11 @@
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { useState } from "react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
-import { useSearchParams } from "next/navigation";
 import { URLParam } from "../../../objects/enum";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "../../../util/tailwindUtil";
 import { SortOptionInterface } from "../../../objects/interface";
-import { ParamsWrapper } from "../../../objects/class/params/ParamsWrapper";
+import { SearchParamsHelper } from "../../../objects/class/params/SearchParamsHelper";
 import { Navigator } from "../../../objects/class/navigate/Navigator";
 
 interface SortParamComponentProps {
@@ -16,13 +15,13 @@ interface SortParamComponentProps {
 }
 
 export function SortParamComponent({ options }: SortParamComponentProps) {
-    ParamsWrapper.updateWithClientParams(useSearchParams());
     const navigator = new Navigator(usePathname(), useRouter());
 
     const defaultOption = options.find(
         (value) =>
-            value.value == ParamsWrapper.getParamValue(URLParam.Sort) &&
-            value.direction == ParamsWrapper.getParamValue(URLParam.Direction),
+            value.value == SearchParamsHelper.getParamValue(URLParam.Sort) &&
+            value.direction ==
+                SearchParamsHelper.getParamValue(URLParam.Direction),
     );
 
     const [selectedSortingOption, setSelectedSortingOption] = useState(
@@ -43,9 +42,12 @@ export function SortParamComponent({ options }: SortParamComponentProps) {
     };
 
     const modifySortParam = (sortValue: SortOptionInterface) => {
-        ParamsWrapper.setParamValue(URLParam.Sort, sortValue.value);
-        ParamsWrapper.setParamValue(URLParam.Direction, sortValue.direction);
-        navigator.replaceRoute(ParamsWrapper.asParamsString());
+        SearchParamsHelper.setParamValue(URLParam.Sort, sortValue.value);
+        SearchParamsHelper.setParamValue(
+            URLParam.Direction,
+            sortValue.direction,
+        );
+        navigator.replaceRoute(SearchParamsHelper.asParamsString());
         setSelectedSortingOption(sortValue);
     };
 

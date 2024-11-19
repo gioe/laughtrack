@@ -1,8 +1,8 @@
 export enum RoutePath {
-    ShowSearchResults = "show/all",
+    ShowSearch = "show/all",
 }
 
 export const allPaths = [
-    RoutePath.ShowSearchResults
+    RoutePath.ShowSearch
 ]
 

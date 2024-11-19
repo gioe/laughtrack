@@ -34,8 +34,32 @@ export const pageDataMap = {
     },
 }
 
-export const apiFileMap = {
-
+export const actionActionMap = {
+    club: {
+        slug: {
+            delete: {
+                show: {
+                    index: sql("club/slug/delete/index.sql").qf
+                }
+            }
+        }
+    },
+    comedian: {
+        all: {
+            index: sql("comedian/all/index.sql").qf
+        },
+        slug: {
+            index: sql("comedian/slug/index.sql").qf
+        }
+    },
+    show: {
+        all: {
+            index: sql("show/all/index.sql").qf
+        },
+        slug: {
+            index: sql("show/slug/index.sql").qf
+        }
+    },
 }
 
 interface IQueryFileScope {

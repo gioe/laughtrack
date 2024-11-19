@@ -4,9 +4,6 @@ import { useState } from "react";
 import axios from "axios";
 import { FormSelectable } from "../../../../objects/interface";
 import { Club } from "../../../../objects/class/club/Club";
-import { SelectComponent } from "../../../select";
-import { CheckboxFormComponent } from "../../components/checkbox";
-import { DropdownFormComponent } from "../../components/dropdown";
 import BaseForm from "..";
 import { ButtonType, EntityType } from "../../../../objects/enum";
 import { scrapeEntitySelectionMenuSchema } from "./schema";
@@ -14,6 +11,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
+import ScrapeEntitiesFormBody from "./body";
 
 interface ScrapeEntitySelectionMenuFormProps {
     cities: FormSelectable[];
@@ -100,27 +98,13 @@ export default function ScrapeEntitySelectionMenuForm({
             onSubmit={submitForm}
             form={form}
             body={
-                <div className="flex flex-col gap-4">
-                    <SelectComponent
-                        placeholder="Select city"
-                        items={allCityOptions}
-                        handleValueChange={handleCitySelection}
-                    />
-                    <CheckboxFormComponent
-                        name="clubIds"
-                        form={form}
-                        items={clubs}
-                    />
-                    {clubs && (
-                        <DropdownFormComponent
-                            name="headless"
-                            title="Headless"
-                            form={form}
-                            placeholder="Open browser window?"
-                            items={headlessOptions}
-                        />
-                    )}
-                </div>
+                <ScrapeEntitiesFormBody
+                    form={form}
+                    handleCitySelection={handleCitySelection}
+                    cityOptions={allCityOptions}
+                    headlessOptions={headlessOptions}
+                    clubOptions={clubs}
+                />
             }
             primaryButtonData={{
                 type: ButtonType.Submit,

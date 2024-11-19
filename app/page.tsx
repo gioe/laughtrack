@@ -1,27 +1,17 @@
 "use server";
 
 import { headers } from "next/headers";
-import { ParamsWrapper } from "../objects/class/params/ParamsWrapper";
 import { URLParams } from "../objects/type/urlParams";
 import { QueryHelper } from "../objects/class/query/QueryHelper";
-import { HeadersWrapper } from "../objects/class/headers/HeadersWrapper";
 import { HomePageData, HomePageDTO } from "./home/interface";
 import { homePageDataMapper as mapper } from "./home/mapper";
 import EntityCarousel from "../components/carousel";
 import ShowSearchForm from "../components/form/forms/showSearch";
-import { DirectionParamValue, SortParamValue, URLParam } from "../objects/enum";
 
 export default async function HomePage(props: {
     searchParams: Promise<URLParams>;
 }) {
-    await HeadersWrapper.updateHeaders(headers());
-    await ParamsWrapper.updateWithServerParams(props.searchParams);
-    ParamsWrapper.setParamValue(URLParam.Sort, SortParamValue.Date);
-    ParamsWrapper.setParamValue(
-        URLParam.Direction,
-        DirectionParamValue.Ascending,
-    );
-
+    await QueryHelper.storePageParams(props.searchParams, headers());
     const { cities, comedians } = await QueryHelper.getPageData<
         HomePageDTO,
         HomePageData

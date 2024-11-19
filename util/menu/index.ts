@@ -1,6 +1,6 @@
 
 import { EntityType } from "../../objects/enum";
-import * as hooks from "../../hooks";
+import * as hooks from "../../hooks/modalState";
 
 export const getMenuItemsForEntityType = (type: EntityType) => {
     switch (type) {

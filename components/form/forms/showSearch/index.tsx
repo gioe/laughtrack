@@ -9,15 +9,15 @@ import {
     SortParamValue,
     URLParam,
 } from "../../../../objects/enum";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { homeSearchSchema } from "./schema";
-import { DropdownFormComponent } from "../../components/dropdown";
 import { useState } from "react";
 import { Navigator } from "../../../../objects/class/navigate/Navigator";
-import { ParamsWrapper } from "../../../../objects/class/params/ParamsWrapper";
+import { SearchParamsHelper } from "../../../../objects/class/params/SearchParamsHelper";
 import BaseForm from "..";
-import CalendarFormComponent from "../../components/calendar";
 import { CityInterface } from "../../../../objects/interface/city.interface";
+import { FormSelectable } from "../../../../objects/interface";
+import ShowSearchFormBody from "./body";
 
 interface HomeSearchFormProps {
     cities: string;
@@ -31,11 +31,10 @@ export default function ShowSearchForm({ cities }: HomeSearchFormProps) {
                 name: city.name,
             };
         },
-    );
+    ) as FormSelectable[];
 
-    const [isLoading /*setIsLoading*/] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
-    ParamsWrapper.updateWithClientParams(useSearchParams());
     const navigator = new Navigator(usePathname(), useRouter());
 
     const form = useForm<z.infer<typeof homeSearchSchema>>({
@@ -50,13 +49,14 @@ export default function ShowSearchForm({ cities }: HomeSearchFormProps) {
     });
 
     function submitForm(data: z.infer<typeof homeSearchSchema>) {
-        ParamsWrapper.setParamValue(URLParam.City, data.cityId);
-        ParamsWrapper.setParamValue(URLParam.StartDate, data.dates.from);
-        ParamsWrapper.setParamValue(URLParam.EndDate, data.dates.to);
-        ParamsWrapper.setParamValue(URLParam.Sort, SortParamValue.Date);
+        setIsLoading(true);
+        SearchParamsHelper.setParamValue(URLParam.City, data.cityId);
+        SearchParamsHelper.setParamValue(URLParam.StartDate, data.dates.from);
+        SearchParamsHelper.setParamValue(URLParam.EndDate, data.dates.to);
+        SearchParamsHelper.setParamValue(URLParam.Sort, SortParamValue.Date);
         navigator.pushPageFromParams(
-            RoutePath.ShowSearchResults,
-            ParamsWrapper.asParamsString(),
+            RoutePath.ShowSearch,
+            SearchParamsHelper.asParamsString(),
         );
     }
 
@@ -66,20 +66,10 @@ export default function ShowSearchForm({ cities }: HomeSearchFormProps) {
             onSubmit={submitForm}
             form={form}
             body={
-                <div
-                    className="flex flex-col lg:flex-row lg:max-w-6xl
-        lg:mx-auto items-start justify-center space-x-0 lg:space-x-2
-        space-y-4 lg:space-y-0 rounded-lg"
-                >
-                    <DropdownFormComponent
-                        name="cityId"
-                        title="City"
-                        placeholder="Select your city"
-                        items={selectableCities}
-                        form={form}
-                    />
-                    <CalendarFormComponent name="dates" form={form} />
-                </div>
+                <ShowSearchFormBody
+                    selectableCities={selectableCities}
+                    form={form}
+                />
             }
             primaryButtonData={{
                 type: ButtonType.Submit,

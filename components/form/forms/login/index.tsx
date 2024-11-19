@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import Heading from "../../../modals/heading";
-import { FormInput } from "../../components/input";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -12,6 +10,7 @@ import toast from "react-hot-toast";
 import { signIn } from "next-auth/react";
 import BaseForm from "..";
 import { ButtonType } from "../../../../objects/enum";
+import LoginFormBody from "./body";
 
 interface LoginFormProps {
     onSubmit: () => void;
@@ -52,28 +51,7 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
             isLoading={isLoading}
             onSubmit={submitForm}
             form={form}
-            body={
-                <div className="flex flex-col gap-4">
-                    <Heading
-                        title="Welcome back"
-                        subtitle="Login to your account"
-                    />
-                    <FormInput
-                        isLoading={isLoading}
-                        type={"text"}
-                        name={"email"}
-                        placeholder={"Email"}
-                        form={form}
-                    />
-                    <FormInput
-                        isLoading={isLoading}
-                        name={"password"}
-                        type={"password"}
-                        placeholder={"Password"}
-                        form={form}
-                    />
-                </div>
-            }
+            body={<LoginFormBody form={form} isLoading={isLoading} />}
             primaryButtonData={{
                 type: ButtonType.Submit,
                 label: "OK",

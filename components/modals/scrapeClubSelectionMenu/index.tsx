@@ -1,7 +1,7 @@
 "use client";
 
 import Modal from "..";
-import { useScrapeMenuModal } from "../../../hooks";
+import { useScrapeMenuModal } from "../../../hooks/modalState";
 import { EntityType } from "../../../objects/enum";
 import ScrapeEntitySelectionMenuForm from "../../form/forms/scrapeEntities";
 import { useRouter } from "next/navigation";

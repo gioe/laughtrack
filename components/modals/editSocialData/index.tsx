@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import Modal from "..";
-import { useSocialDataModal } from "../../../hooks";
+import { useSocialDataModal } from "../../../hooks/modalState";
 import { Comedian } from "../../../objects/class/comedian/Comedian";
 import EditSocialDataForm from "../../form/forms/socialData";
 

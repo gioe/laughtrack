@@ -9,8 +9,10 @@ import { IndexProperty } from './indexProperty'
 import { HeaderKey } from './headerKey'
 import { RoutePath } from './routePath'
 import { DirectionParamValue } from './directionParamValue'
+import { RestApiAction } from './restApiAction'
 
 export {
+    RestApiAction,
     ComedyClub,
     RoutePath,
     EntityType,

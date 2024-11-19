@@ -3,7 +3,7 @@ with filtered_data as (
         id, name, address, website
     from
         clubs
-    Where name ILIKE ${pattern}
+    Where name ILIKE ${query}
     ORDER BY ${sort:name} ASC
     LIMIT ${size} 
     OFFSET ${offset}

@@ -5,7 +5,7 @@ import { TagInterface } from "../../../objects/interface/tag.interface";
 import Modal from "..";
 import TagEntityForm from "../../form/forms/tagEntity";
 import { EntityType } from "../../../objects/enum";
-import useAddEntityTagModal from "../../../hooks/useAddEntityTagModal";
+import useAddEntityTagModal from "../../../hooks/modalState/useAddEntityTagModal";
 
 interface TagEntityModalProps {
     type: EntityType;

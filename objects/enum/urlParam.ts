@@ -1,7 +1,7 @@
 
 
 export enum URLParam {
-    Sort = "sort",
+    Sort = "sort_by",
     Query = "query",
     Page = "page",
     Size = "size",

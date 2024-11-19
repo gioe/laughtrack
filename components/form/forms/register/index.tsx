@@ -1,7 +1,5 @@
 "use client";
 
-import Heading from "../../../modals/heading";
-import { FormInput } from "../../components/input";
 import toast from "react-hot-toast";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
@@ -12,6 +10,7 @@ import { z } from "zod";
 import axios from "axios";
 import BaseForm from "..";
 import { ButtonType } from "../../../../objects/enum";
+import RegisterFormBody from "./body";
 
 interface RegistrationFormProps {
     onSubmit: () => void;
@@ -56,28 +55,7 @@ export default function RegistrationForm({ onSubmit }: RegistrationFormProps) {
             isLoading={isLoading}
             onSubmit={submitForm}
             form={form}
-            body={
-                <div className="flex flex-col gap-4">
-                    <Heading
-                        title="Welcome to Laughtrack"
-                        subtitle="Create an account"
-                    />
-                    <FormInput
-                        form={form}
-                        type="text"
-                        name="email"
-                        placeholder="Email"
-                        isLoading={isLoading}
-                    />
-                    <FormInput
-                        form={form}
-                        name="password"
-                        type="password"
-                        placeholder="Password"
-                        isLoading={isLoading}
-                    />
-                </div>
-            }
+            body={<RegisterFormBody form={form} isLoading={isLoading} />}
             primaryButtonData={{
                 type: ButtonType.Submit,
                 label: "OK",

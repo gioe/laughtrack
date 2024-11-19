@@ -1,13 +1,12 @@
 "use client";
 
 import { Input } from "@nextui-org/react";
-import { useSearchParams } from "next/navigation";
 import SearchIcon from "../../icons/SearchIcon";
 import React, { useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { URLParam } from "../../../objects/enum";
 import { usePathname, useRouter } from "next/navigation";
-import { ParamsWrapper } from "../../../objects/class/params/ParamsWrapper";
+import { SearchParamsHelper } from "../../../objects/class/params/SearchParamsHelper";
 import { Navigator } from "../../../objects/class/navigate/Navigator";
 
 interface QueryParamComponentProps {
@@ -17,12 +16,10 @@ interface QueryParamComponentProps {
 const QueryParamComponent: React.FC<QueryParamComponentProps> = ({
     inputPlaceholder,
 }) => {
-    ParamsWrapper.updateWithClientParams(useSearchParams());
-
     const navigator = new Navigator(usePathname(), useRouter());
 
     const [value, setValue] = useState(
-        ParamsWrapper.getParamValue(URLParam.Query) as string,
+        SearchParamsHelper.getParamValue(URLParam.Query) as string,
     );
 
     const handleInputChange = (value: string) => {
@@ -31,8 +28,8 @@ const QueryParamComponent: React.FC<QueryParamComponentProps> = ({
     };
 
     const handleSearch = useDebouncedCallback((term) => {
-        ParamsWrapper.setParamValue(URLParam.Query, term);
-        navigator.replaceRoute(ParamsWrapper.asParamsString());
+        SearchParamsHelper.setParamValue(URLParam.Query, term);
+        navigator.replaceRoute(SearchParamsHelper.asParamsString());
     }, 300);
 
     return (

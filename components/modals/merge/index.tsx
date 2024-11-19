@@ -1,6 +1,6 @@
 "use client";
 
-import useMergeComediansModal from "../../../hooks/useMergeComediansModal";
+import useMergeComediansModal from "../../../hooks/modalState/useMergeComediansModal";
 import Modal from "..";
 import { useRouter } from "next/navigation";
 import { Comedian } from "../../../objects/class/comedian/Comedian";

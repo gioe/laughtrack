@@ -1,7 +1,5 @@
 "use client";
 
-import { FormInput } from "../../components/input";
-import SocialDataFormInput from "../../components/social";
 import { Comedian } from "../../../../objects/class/comedian/Comedian";
 import { editSocialDataSchema } from "./schema";
 import { z } from "zod";
@@ -11,8 +9,8 @@ import { useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import BaseForm from "..";
-import { allSocialMedia } from "../../../../objects/enum/socialMedia";
 import { ButtonType } from "../../../../objects/enum";
+import EditSocialDataFormBody from "./body";
 
 interface EditSocialDataInterfaceProps {
     onSubmit: () => void;
@@ -24,24 +22,6 @@ export default function EditSocialDataForm({
     comedian,
 }: EditSocialDataInterfaceProps) {
     const [isLoading, setIsLoading] = useState(false);
-
-    const additionalInputs = [
-        {
-            type: "text",
-            name: "website",
-            placeholder: "Webite",
-        },
-        {
-            type: "file",
-            name: "bannerImage",
-            placeholder: "Banner Image",
-        },
-        {
-            type: "file",
-            name: "cardImage",
-            placeholder: "Card Image",
-        },
-    ];
 
     const form = useForm<z.infer<typeof editSocialDataSchema>>({
         resolver: zodResolver(editSocialDataSchema),
@@ -95,31 +75,7 @@ export default function EditSocialDataForm({
             isLoading={isLoading}
             onSubmit={submitForm}
             form={form}
-            body={
-                <div className="flex flex-col gap-2">
-                    {allSocialMedia.map((value) => {
-                        return (
-                            <SocialDataFormInput
-                                isLoading={isLoading}
-                                key={value.valueOf()}
-                                form={form}
-                                socialMedia={value}
-                            />
-                        );
-                    })}
-                    {additionalInputs.map((metadata) => {
-                        return (
-                            <FormInput
-                                isLoading={isLoading}
-                                type={metadata.type}
-                                name={metadata.name}
-                                placeholder={metadata.placeholder}
-                                form={form}
-                            />
-                        );
-                    })}
-                </div>
-            }
+            body={<EditSocialDataFormBody form={form} isLoading={isLoading} />}
             primaryButtonData={{
                 type: ButtonType.Submit,
                 label: "OK",

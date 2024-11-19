@@ -1,7 +1,6 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import Heading from "../../../modals/heading";
 import { z } from "zod";
 import { clearShowsFromClubSchema } from "./schema";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,6 +9,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import BaseForm from "..";
 import { ButtonType } from "../../../../objects/enum";
+import ClearClubFormBody from "./body";
 
 interface ClearShowsFormProps {
     clubId: number;
@@ -21,11 +21,10 @@ export default function ClearShowsFromClubForm({
     onSubmit,
 }: ClearShowsFormProps) {
     const [isLoading, setIsLoading] = useState(false);
-
     const submitForm = (data: z.infer<typeof clearShowsFromClubSchema>) => {
         setIsLoading(true);
         axios
-            .put(`/api/club/${data.clubId}/clear`)
+            .delete(`/api/club/${data.clubId}/clear`)
             .then((response) => {
                 if (response) {
                     setIsLoading(false);
@@ -51,7 +50,7 @@ export default function ClearShowsFromClubForm({
             isLoading={isLoading}
             onSubmit={submitForm}
             form={form}
-            body={<Heading title="Clear Shows" />}
+            body={<ClearClubFormBody />}
             primaryButtonData={{
                 type: ButtonType.Submit,
                 label: "OK",

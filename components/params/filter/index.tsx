@@ -9,9 +9,8 @@ import {
 
 import { URLParam } from "../../../objects/enum";
 import { FilterSection } from "../../../objects/interface/filter.interface";
-import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "next/navigation";
-import { ParamsWrapper } from "../../../objects/class/params/ParamsWrapper";
+import { SearchParamsHelper } from "../../../objects/class/params/SearchParamsHelper";
 import { Navigator } from "../../../objects/class/navigate/Navigator";
 
 interface FilterOptionsComponentProps {
@@ -21,13 +20,11 @@ interface FilterOptionsComponentProps {
 export function FilterParamComponent({
     sections,
 }: FilterOptionsComponentProps) {
-    ParamsWrapper.updateFromClient(useSearchParams());
-
     const navigator = new Navigator(usePathname(), useRouter());
 
     const appendParam = (type: string, filter: string) => {
-        ParamsWrapper.setParamValue(URLParam.City, "");
-        navigator.replaceRoute(ParamsWrapper.asParamsString());
+        SearchParamsHelper.setParamValue(URLParam.City, "");
+        navigator.replaceRoute(SearchParamsHelper.asParamsString());
     };
 
     return (

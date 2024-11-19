@@ -1,19 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDB } from '../../../../../database'
+import { getDB } from "../../../../../database";
+import { QueryHelper } from "../../../../../objects/class/query/QueryHelper";
+import { RestApiAction } from "../../../../../objects/enum";
+const { database } = getDB();
 
-const { db } = getDB();
-export async function PUT(
+
+export async function DELETE(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
-    const clubId = (await params).id
-    return db.shows.deleteForClub(Number(clubId))
-        .then(() => {
-            return NextResponse.json({}, { status: 200 })
-        })
-        .catch((error: Error) => {
-            return NextResponse.json({ error }, { status: 500 })
-        });
+
+    QueryHelper.executeAction(RestApiAction.Delete)
+    return NextResponse.json({}, { status: 200 })
+
 
 
 }

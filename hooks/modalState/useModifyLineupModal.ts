@@ -1,4 +1,4 @@
-import { ModalState } from "../objects/interface/modalState.interface";
+import { ModalState } from "../../objects/interface/modalState.interface";
 import { create } from "zustand";
 
 const useModifyLineupModal = create<ModalState>((set) => ({

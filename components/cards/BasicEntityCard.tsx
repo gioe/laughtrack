@@ -6,7 +6,7 @@ import { HeartIcon as OutlineHeart } from "@heroicons/react/24/outline";
 import { HeartIcon as SolidHeart } from "@heroicons/react/24/solid";
 import Image from "next/image";
 import Link from "next/link";
-import useRegisterModal from "../../hooks/useRegisterModel";
+import useRegisterModal from "../../hooks/modalState/useRegisterModel";
 import { useSession } from "next-auth/react";
 import SocialMediaBar from "../social/SocialMediaBar";
 import axios from "axios";
