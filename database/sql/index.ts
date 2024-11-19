@@ -5,59 +5,21 @@ import { fileURLToPath } from "url";
 import { createSingleton } from "../../util/singletonUtil";
 
 export const pageDataMap = {
-    home: {
-        index: sql("home/index.sql").qf
-    },
-    club: {
-        all: {
-            index: sql("club/all/index.sql").qf
-        },
-        slug: {
-            index: sql("club/slug/index.sql").qf
-        }
-    },
-    comedian: {
-        all: {
-            index: sql("comedian/all/index.sql").qf
-        },
-        slug: {
-            index: sql("comedian/slug/index.sql").qf
-        }
-    },
-    show: {
-        all: {
-            index: sql("show/all/index.sql").qf
-        },
-        slug: {
-            index: sql("show/slug/index.sql").qf
-        }
-    },
+    home: sql("page/home.sql").qf,
+    clubSearch: sql("page/clubSearch.sql").qf,
+    clubDetail: sql("page/clubDetail.sql").qf,
+    comedianSearch: sql("page/comedianSearch.sql").qf,
+    comedianDetail: sql("page/comedianDetail.sql").qf,
+    showSearch: sql("page/showSearch.sql").qf,
+    showDetail: sql("page/showDetail.sql").qf,
 }
 
 export const apiActionMap = {
-    club: {
-        slug: {
-            delete: {
-                show: sql("club/slug/delete/index.sql").qf
-            }
-        }
-    },
-    comedian: {
-        all: {
-            index: sql("comedian/all/index.sql").qf
-        },
-        slug: {
-            index: sql("comedian/slug/index.sql").qf
-        }
-    },
-    show: {
-        all: {
-            index: sql("show/all/index.sql").qf
-        },
-        slug: {
-            index: sql("show/slug/index.sql").qf
-        }
-    },
+    deleteShows: sql("actions/deleteShows.sql").qf,
+}
+
+export const queryMap = {
+    getClubsById: sql("queries/getClubsById.sql").qf,
 }
 
 interface IQueryFileScope {

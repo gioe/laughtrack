@@ -12,7 +12,7 @@ import { ComedianDTO, ComedianInterface } from "./comedian.interface";
 export class Comedian implements ComedianInterface {
 
     name: string;
-    uuid: string;
+    uuid?: string;
     socialData: SocialDataInterface;
     tags: TagInterface[];
     isFavorite: boolean;

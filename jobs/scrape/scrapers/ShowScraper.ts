@@ -5,7 +5,6 @@ import { runTasks } from "../../../util/promiseUtil";
 import { PageManager } from "../handlers/PageManager";
 import { ScrapingArgs } from "../../../objects/interface";
 import { Comedian } from "../../../objects/class/comedian/Comedian";
-import { generateComedianHash } from "../../../objects/class/comedian/hash";
 
 export class ShowScraper {
     private pageManager = new PageManager();
@@ -17,8 +16,7 @@ export class ShowScraper {
                 .getText(locator)
                 .then((names: string[]) =>
                     names.map((name: string) => new Comedian({
-                        name,
-                        uuid: generateComedianHash(name)
+                        name
                     })),
                 )
                 .catch((error) => {

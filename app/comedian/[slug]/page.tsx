@@ -4,12 +4,12 @@ import { QueryHelper } from "../../../objects/class/query/QueryHelper";
 import { EntityType } from "../../../objects/enum";
 import { headers } from "next/headers";
 import { SlugInterface } from "../../../objects/interface";
-import { ComedianDetailDTO, ComedianDetailPageData } from "./interface";
-import { comedianDetailPageMapper as mapper } from "./mapper";
 import MergeComediansModal from "../../../components/modals/mergeComedians";
 import EditSocialDataModal from "../../../components/modals/socialData";
 import TagEntityModal from "../../../components/modals/tagEntity";
 import EntityBanner from "../../../components/banner";
+import { getDB } from "../../../database";
+const { database } = getDB();
 
 export default async function ComedianDetailsPage(props: {
     params: Promise<SlugInterface>;
@@ -21,10 +21,8 @@ export default async function ComedianDetailsPage(props: {
         props.params,
     );
 
-    const { entity, total } = await QueryHelper.getPageData<
-        ComedianDetailDTO,
-        ComedianDetailPageData
-    >(mapper);
+    const { entity, total } = await database.page.getComedianDetailPageData();
+
     const entityString = JSON.stringify(entity);
     const containedEntitiesString = JSON.stringify(entity.containedEntities);
     return (

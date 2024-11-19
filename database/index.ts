@@ -1,10 +1,8 @@
 import pgPromise from "pg-promise";
 import { Diagnostics } from "./diagostics"; // optional diagnostics
 import { IInitOptions, IDatabase, IMain } from "pg-promise";
-import {
-    IExtensions,
-} from "./repos";
 import { createSingleton } from "../util/singletonUtil";
+import { IExtensions, PageDataRepository, ScraperRepository } from "./repository";
 
 export type LaughtrackDatabase = IDatabase<IExtensions> & IExtensions;
 
@@ -17,8 +15,9 @@ export function getDB(): DatabaseWrapper {
     return createSingleton<DatabaseWrapper>('laughtrack-db', () => {
 
         const initOptions: IInitOptions<IExtensions> = {
-            // eslint-disable-next-line @typescript-eslint/no-empty-function
             extend(database: LaughtrackDatabase) {
+                database.scrape = new ScraperRepository(database, pgPromiseHelpers)
+                database.page = new PageDataRepository(database, pgPromiseHelpers)
             },
         };
 

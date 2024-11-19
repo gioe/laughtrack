@@ -3,8 +3,8 @@ import { EntityType } from "../../../objects/enum";
 import { QueryHelper } from "../../../objects/class/query/QueryHelper";
 import { headers } from "next/headers";
 import { URLParams } from "../../../objects/type/urlParams";
-import { ShowDetailDTO, ShowDetailPageData } from "./interface";
-import { showDetailPageMapper as mapper } from "./mapper";
+import { getDB } from "../../../database";
+const { database } = getDB();
 import ScrapeEntityModal from "../../../components/modals/scrape";
 import ModifyLineupModal from "../../../components/modals/modifyLineup";
 import TagEntityModal from "../../../components/modals/tagEntity";
@@ -20,10 +20,8 @@ export default async function ShowDetailPage(props: {
         props.params,
     );
 
-    const { entity, total } = await QueryHelper.getPageData<
-        ShowDetailDTO,
-        ShowDetailPageData
-    >(mapper);
+    const { entity, total } = await database.page.getShowDetailPageData();
+
     const entityString = JSON.stringify(entity);
     const containedEntitiesString = JSON.stringify(entity.containedEntities);
     return (

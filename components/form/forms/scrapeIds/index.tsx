@@ -26,11 +26,6 @@ export default function ScrapeEntitySelectionMenuForm({
 }: ScrapeEntitySelectionMenuFormProps) {
     const [isLoading, setIsLoading] = useState(false);
 
-    const headlessOptions = [
-        { id: "true", name: "True" },
-        { id: "false", name: "False" },
-    ] as FormSelectable[];
-
     const allCityOptions = [
         { id: "all", name: "All" } as FormSelectable,
     ].concat(cities);
@@ -102,7 +97,6 @@ export default function ScrapeEntitySelectionMenuForm({
                     form={form}
                     handleCitySelection={handleCitySelection}
                     cityOptions={allCityOptions}
-                    headlessOptions={headlessOptions}
                     clubOptions={clubs}
                 />
             }

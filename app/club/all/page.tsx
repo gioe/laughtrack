@@ -3,18 +3,15 @@ import { URLParams } from "../../../objects/type/urlParams";
 import { QueryHelper } from "../../../objects/class/query/QueryHelper";
 import { EntityType } from "../../../objects/enum";
 import { headers } from "next/headers";
-import { AllClubPageData, AllClubPageDTO } from "./interface";
-import { allClubPageMapper as mapper } from "./mapper";
+import { getDB } from "../../../database";
+const { database } = getDB();
 
-export default async function AllClubsPage(props: {
+export default async function ClubSearchPage(props: {
     searchParams: Promise<URLParams>;
 }) {
     await QueryHelper.storePageParams(props.searchParams, headers());
 
-    const { entities, total } = await QueryHelper.getPageData<
-        AllClubPageDTO,
-        AllClubPageData
-    >(mapper);
+    const { entities, total } = await database.page.getClubSearchPageData();
 
     const entityCollectionString = JSON.stringify(entities);
 

@@ -4,11 +4,11 @@ import { URLParams } from "../../../objects/type/urlParams";
 import { SlugInterface } from "../../../objects/interface";
 import { QueryHelper } from "../../../objects/class/query/QueryHelper";
 import { headers } from "next/headers";
-import { ClubDetailDTO, ClubDetailPageData } from "./interface";
-import { clubDetailPageMapper as mapper } from "./mapper";
 import ScrapeEntityModal from "../../../components/modals/scrape";
 import ClearShowsModal from "../../../components/modals/clearClub";
 import EntityBanner from "../../../components/banner";
+import { getDB } from "../../../database";
+const { database } = getDB();
 
 export default async function ClubDetailPage(props: {
     params: Promise<SlugInterface>;
@@ -20,10 +20,7 @@ export default async function ClubDetailPage(props: {
         props.params,
     );
 
-    const { entity, total } = await QueryHelper.getPageData<
-        ClubDetailDTO,
-        ClubDetailPageData
-    >(mapper);
+    const { entity, total } = await database.page.getClubDetailPageData();
 
     const containedEntitiesString = JSON.stringify(entity.containedEntities);
     const entityString = JSON.stringify(entity);

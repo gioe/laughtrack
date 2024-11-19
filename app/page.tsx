@@ -3,19 +3,16 @@
 import { headers } from "next/headers";
 import { URLParams } from "../objects/type/urlParams";
 import { QueryHelper } from "../objects/class/query/QueryHelper";
-import { HomePageData, HomePageDTO } from "./home/interface";
-import { homePageDataMapper as mapper } from "./home/mapper";
 import EntityCarousel from "../components/carousel";
 import ShowSearchForm from "../components/form/forms/showSearch";
+import { getDB } from "../database";
+const { database } = getDB();
 
 export default async function HomePage(props: {
     searchParams: Promise<URLParams>;
 }) {
     await QueryHelper.storePageParams(props.searchParams, headers());
-    const { cities, comedians } = await QueryHelper.getPageData<
-        HomePageDTO,
-        HomePageData
-    >(mapper);
+    const { cities, comedians } = await database.page.getHomePageData();
 
     const comediansString = JSON.stringify(comedians);
     const citiesString = JSON.stringify(cities);

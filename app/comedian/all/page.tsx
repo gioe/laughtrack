@@ -3,17 +3,16 @@ import { QueryHelper } from "../../../objects/class/query/QueryHelper";
 import { URLParams } from "../../../objects/type/urlParams";
 import { EntityType } from "../../../objects/enum";
 import { headers } from "next/headers";
-import { allComedianPaegDataMapper as mapper } from "./mapper";
-import { AllComedianPageData, AllComedianPageDTO } from "./interface";
-export default async function AllComediansPage(props: {
+import { getDB } from "../../../database";
+const { database } = getDB();
+
+export default async function ComedianSearchPage(props: {
     searchParams: Promise<URLParams>;
 }) {
     await QueryHelper.storePageParams(props.searchParams, headers());
 
-    const { entities, total } = await QueryHelper.getPageData<
-        AllComedianPageDTO,
-        AllComedianPageData
-    >(mapper);
+    const { entities, total } = await database.page.getComedianSearchPageData();
+
     const entityCollectionString = JSON.stringify(entities);
 
     return (

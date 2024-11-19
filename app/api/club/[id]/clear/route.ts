@@ -3,14 +3,13 @@ import { apiActionMap } from "../../../../../database/sql";
 import { getDB } from "../../../../../database";
 const { database } = getDB();
 
-
 export async function DELETE(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
     const slug = await params
-    console.log(slug)
     const file = apiActionMap.club.slug.delete.show;
+
     return database.any(file, slug)
         .then(() => {
             return NextResponse.json({ success: true }, { status: 200 })

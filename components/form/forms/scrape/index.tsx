@@ -24,10 +24,6 @@ export default function ScrapeEntityForm({
 }: ScrapeEntityFormProps) {
     const [isLoading, setIsLoading] = useState(false);
 
-    const headlessOptions = [
-        { id: "true", name: "True" },
-        { id: "false", name: "False" },
-    ];
     const form = useForm<z.infer<typeof scrapeClubSchema>>({
         resolver: zodResolver(scrapeClubSchema),
         defaultValues: {
@@ -59,12 +55,7 @@ export default function ScrapeEntityForm({
             isLoading={isLoading}
             onSubmit={submitForm}
             form={form}
-            body={
-                <ScrapeEntityFormBody
-                    form={form}
-                    headlessOptions={headlessOptions}
-                />
-            }
+            body={<ScrapeEntityFormBody form={form} />}
         />
     );
 }

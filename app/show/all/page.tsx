@@ -5,18 +5,16 @@ import { headers } from "next/headers";
 import { EntityType } from "../../../objects/enum";
 import { URLParams } from "../../../objects/type/urlParams";
 import { QueryHelper } from "../../../objects/class/query/QueryHelper";
-import { allShowPageMapper as mapper } from "./mapper";
-import { AllShowPageData, AllShowPageDTO } from "./interface";
+import { getDB } from "../../../database";
+const { database } = getDB();
 
-export default async function ShowSearchResultsPage(props: {
+export default async function ShowSearchPage(props: {
     searchParams: Promise<URLParams>;
 }) {
     await QueryHelper.storePageParams(props.searchParams, headers());
 
-    const { entities, total } = await QueryHelper.getPageData<
-        AllShowPageDTO,
-        AllShowPageData
-    >(mapper);
+    const { entities, total } = await database.page.getShowSearchPageData();
+
     const entityCollectionString = JSON.stringify(entities);
 
     return (
