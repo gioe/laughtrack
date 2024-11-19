@@ -36,15 +36,21 @@ total_count AS (
     WHERE cl.name = ${slug}
     AND s.date > NOW()
 ), 
-all_values as (
-	SELECT 
-	club_id,
-	club_name,
-		club_website,
-		jsonb_agg(jsonb_build_object('id', fd.id, 'date', date, 'name', fd.name, 'ticket', ticket, 'club_name', club_name, 'scrapedate', scrapedate, 'lineup', l.lineup)) as shows
+all_values AS (
+	SELECT
+		c.id as club_id,
+		c.name as club_name,
+		c.website as club_website,
+		COALESCE(jsonb_agg(jsonb_build_object('id', fd.id, 'date', date, 'name', fd.name, 'ticket', ticket, 'club_name', club_name, 'scrapedate', scrapedate, 'lineup', l.lineup)) FILTER (where fd.id IS NOT NULL), '[]') AS shows
 	FROM
-		filtered_data fd 
-	LEFT JOIN lineups l on fd.id = l.show_id GROUP BY club_name, club_website, club_id
+	    clubs c
+	    LEFT JOIN filtered_data fd ON fd.club_id = c.id
+		LEFT JOIN lineups l ON fd.id = l.show_id
+    WHERE c.name = ${slug}
+	GROUP BY
+		c.name,
+		c.website,
+		c.id
 )
 SELECT
 	jsonb_build_object('data', jsonb_build_object('name', av.club_name, 'id', av.club_id, 'website', av.club_website, 'dates', av.shows), 'total', (
@@ -58,5 +64,4 @@ GROUP BY
 	av.club_website,
 	av.shows,
 	av.club_id
-
 

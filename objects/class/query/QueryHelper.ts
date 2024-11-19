@@ -58,7 +58,7 @@ export class QueryHelper {
 
     static getQueryPattern() {
         const queryValue = SearchParamsHelper.getParamValue(URLParam.Query);
-        return queryValue ? { query: `%${queryValue}%` } : {}
+        return { query: `%${queryValue ?? ""}%` }
     }
 
     static getOffset() {
@@ -145,10 +145,12 @@ export class QueryHelper {
     static async getPageData<T, K>(completionHandler: (response: T) => K): Promise<K> {
         const file = this.getPageDataQueryFile()
         const filters = this.asQueryFilters();
+
         return database.one(file, filters).then((value: T) => {
             if (value) return completionHandler(value)
             throw new Error(`Failure getting contents of ${file}`)
         })
     }
+
 
 }

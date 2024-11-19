@@ -7,7 +7,7 @@ import { headers } from "next/headers";
 import { ClubDetailDTO, ClubDetailPageData } from "./interface";
 import { clubDetailPageMapper as mapper } from "./mapper";
 import ScrapeEntityModal from "../../../components/modals/scrape";
-import ClearShowsModal from "../../../components/modals/clear";
+import ClearShowsModal from "../../../components/modals/clearClub";
 import EntityBanner from "../../../components/banner";
 
 export default async function ClubDetailPage(props: {

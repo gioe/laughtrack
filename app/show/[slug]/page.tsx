@@ -7,7 +7,7 @@ import { ShowDetailDTO, ShowDetailPageData } from "./interface";
 import { showDetailPageMapper as mapper } from "./mapper";
 import ScrapeEntityModal from "../../../components/modals/scrape";
 import ModifyLineupModal from "../../../components/modals/modifyLineup";
-import TagEntityModal from "../../../components/modals/tag";
+import TagEntityModal from "../../../components/modals/tagEntity";
 import EntityBanner from "../../../components/banner";
 
 export default async function ShowDetailPage(props: {

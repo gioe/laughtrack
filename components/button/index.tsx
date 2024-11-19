@@ -15,11 +15,13 @@ const ButtonComponent: React.FC<ButtonProps> = ({
     data,
     disabled,
     icon: Icon,
+    onClick,
 }) => {
     return (
         <Button
             type={data.type}
             disabled={disabled}
+            onClick={onClick}
             className={`disabled:opacity-70
                  disabled:cursor-not-allowed rounded-lg hover:opacity-80
                  transition w-4/5 bg-${data.styling?.backgroundColor ?? "red-500"}

@@ -50,8 +50,10 @@ const Modal: React.FC<ModalProps> = ({ isOpen, body, footer, onClose }) => {
                                             type: ButtonType.Button,
                                             label: "Close",
                                         }}
-                                        disabled={false}
-                                        onClick={onClose}
+                                        onClick={() => {
+                                            console.log("CLOSING");
+                                            onClose();
+                                        }}
                                     />
                                 </div>
                             </div>

@@ -34,13 +34,11 @@ export const pageDataMap = {
     },
 }
 
-export const actionActionMap = {
+export const apiActionMap = {
     club: {
         slug: {
             delete: {
-                show: {
-                    index: sql("club/slug/delete/index.sql").qf
-                }
+                show: sql("club/slug/delete/index.sql").qf
             }
         }
     },

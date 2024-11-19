@@ -14,7 +14,7 @@ const ClearShowsModal: React.FC<ClearShowsModalParams> = ({ clubId }) => {
     const router = useRouter();
 
     const onSubmit = () => {
-        // router.refresh();
+        router.refresh();
         clearShowsModal.onClose();
     };
 

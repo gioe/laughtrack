@@ -2,7 +2,7 @@
 
 import Modal from "..";
 import { useScrapeMenuModal } from "../../../hooks/modalState";
-import ScrapeEntitySelectionMenuForm from "../../form/forms/scrapeEntities";
+import ScrapeEntitySelectionMenuForm from "../../form/forms/scrapeIds";
 import { EntityType } from "../../../objects/enum";
 import { useRouter } from "next/navigation";
 

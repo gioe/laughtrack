@@ -6,9 +6,9 @@ import { headers } from "next/headers";
 import { SlugInterface } from "../../../objects/interface";
 import { ComedianDetailDTO, ComedianDetailPageData } from "./interface";
 import { comedianDetailPageMapper as mapper } from "./mapper";
-import MergeComediansModal from "../../../components/modals/merge";
-import EditSocialDataModal from "../../../components/modals/editSocialData";
-import TagEntityModal from "../../../components/modals/tag";
+import MergeComediansModal from "../../../components/modals/mergeComedians";
+import EditSocialDataModal from "../../../components/modals/socialData";
+import TagEntityModal from "../../../components/modals/tagEntity";
 import EntityBanner from "../../../components/banner";
 
 export default async function ComedianDetailsPage(props: {
