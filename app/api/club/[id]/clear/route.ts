@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { apiActionMap } from "../../../../../database/sql";
 import { getDB } from "../../../../../database";
 const { database } = getDB();
 
@@ -8,9 +7,8 @@ export async function DELETE(
     { params }: { params: Promise<{ id: string }> }
 ) {
     const slug = await params
-    const file = apiActionMap.club.slug.delete.show;
 
-    return database.any(file, slug)
+    return database.actions.deleteShowsForClub(slug)
         .then(() => {
             return NextResponse.json({ success: true }, { status: 200 })
         })

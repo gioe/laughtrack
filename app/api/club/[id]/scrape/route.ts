@@ -15,7 +15,7 @@ export async function POST(
     console.log(file)
     console.log(slug)
 
-    return database.manyOrNone(file, slug)
+    return database.query.getClubById(slug)
         .then((value: ClubDTO[] | null) => {
             if (value) return scrapeClubs(value, headless)
             throw new Error(`No value returned`)
@@ -26,6 +26,5 @@ export async function POST(
         .catch((error: Error) => {
             console.log(error)
             return NextResponse.json({ message: error }, { status: 500 })
-
         })
 }

@@ -39,11 +39,10 @@ total_count AS (
         AND s.date > ${start_date}
 )
 SELECT
-	jsonb_build_object('data', jsonb_agg(jsonb_build_object('id', fd.id, 'date', date, 'name', fd.name, 'ticket', ticket, 
-	'club_name', club_name, 'scrapedate', scrapedate, 'lineup', l.lineup)), 
-	'total', (
+	jsonb_build_object('data', COALESCE(jsonb_agg(jsonb_build_object('id', fd.id, 'date', date, 'name', fd.name, 'ticket', ticket, 'club_name', club_name, 'scrapedate', scrapedate, 'lineup', l.lineup)) FILTER (WHERE fd.id IS NOT NULL), '[]'), 'total', (
 			SELECT
 				total
 			FROM total_count)) AS response
 FROM
-	filtered_data fd LEFT JOIN lineups l on fd.id = l.show_id
+	filtered_data fd
+	LEFT JOIN lineups l ON fd.id = l.show_id
