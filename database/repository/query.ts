@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { IDatabase, IMain } from 'pg-promise';
 import { IExtensions } from '.';
-import { apiActionMap } from '../sql';
+import { queryMap } from '../sql';
 
-export class ActionRepository {
+export class QueryRepository {
 
     /**
      * @param db
@@ -20,8 +20,8 @@ export class ActionRepository {
 
     }
 
-    async deleteShowsForClub(params: any): Promise<any[]> {
-        return this.db.any(apiActionMap.deleteShows, params)
+    async getClubById(params: any): Promise<any[]> {
+        return this.db.any(queryMap.getClubsById, params)
     }
 
 }

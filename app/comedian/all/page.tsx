@@ -9,9 +9,13 @@ const { database } = getDB();
 export default async function ComedianSearchPage(props: {
     searchParams: Promise<URLParams>;
 }) {
-    await QueryHelper.storePageParams(props.searchParams, headers());
+    const filters = await QueryHelper.storePageParams(
+        props.searchParams,
+        headers(),
+    );
 
-    const { entities, total } = await database.page.getComedianSearchPageData();
+    const { entities, total } =
+        await database.page.getComedianSearchPageData(filters);
 
     const entityCollectionString = JSON.stringify(entities);
 

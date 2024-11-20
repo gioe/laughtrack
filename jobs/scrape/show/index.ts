@@ -23,13 +23,13 @@ import { ComedyClub } from "../../../objects/enum";
 import { ComedianDTO } from "../../../objects/class/comedian/comedian.interface";
 import { Show } from "../../../objects/class/show/Show";
 import { Club } from "../../../objects/class/club/Club";
-const { db } = getDB()
+const { database } = getDB()
 
 export async function scrapeShow(showId: number, headless?: boolean): Promise<string> {
     const startDate = new Date();
     console.log(`Started scraping job for ${showId} at ${startDate}`);
 
-    return db.shows.getById(showId)
+    return database.getById(showId)
         .then(async (show: Show) => {
             const club = await db.clubs.getById(show.clubId)
             return runScraper(club, show, headless)

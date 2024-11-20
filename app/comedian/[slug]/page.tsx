@@ -15,13 +15,14 @@ export default async function ComedianDetailsPage(props: {
     params: Promise<SlugInterface>;
     searchParams: Promise<URLParams>;
 }) {
-    await QueryHelper.storePageParams(
+    const filters = await QueryHelper.storePageParams(
         props.searchParams,
         headers(),
         props.params,
     );
 
-    const { entity, total } = await database.page.getComedianDetailPageData();
+    const { entity, total } =
+        await database.page.getComedianDetailPageData(filters);
 
     const entityString = JSON.stringify(entity);
     const containedEntitiesString = JSON.stringify(entity.containedEntities);

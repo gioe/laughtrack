@@ -14,13 +14,14 @@ export default async function ShowDetailPage(props: {
     params: Promise<{ slug: string }>;
     searchParams: Promise<URLParams>;
 }) {
-    await QueryHelper.storePageParams(
+    const filters = await QueryHelper.storePageParams(
         props.searchParams,
         headers(),
         props.params,
     );
 
-    const { entity, total } = await database.page.getShowDetailPageData();
+    const { entity, total } =
+        await database.page.getShowDetailPageData(filters);
 
     const entityString = JSON.stringify(entity);
     const containedEntitiesString = JSON.stringify(entity.containedEntities);

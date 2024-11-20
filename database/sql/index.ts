@@ -16,10 +16,12 @@ export const pageDataMap = {
 
 export const apiActionMap = {
     deleteShows: sql("actions/deleteShows.sql").qf,
+    addShow: sql("actions/addShow.sql").qf,
 }
 
 export const queryMap = {
     getClubsById: sql("queries/getClubsById.sql").qf,
+    getComedianIds: sql("queries/getComedianIds.sql").qf,
 }
 
 interface IQueryFileScope {

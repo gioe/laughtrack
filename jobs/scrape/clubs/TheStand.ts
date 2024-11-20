@@ -22,7 +22,6 @@ const PRICE = "div.price";
 const SEPARATOR = ",";
 const MODAL = "div.modal-content.pop-up-bg-tan"
 
-
 export class TheStand implements ClubScraper {
     private clubData: ClubInterface;
     private browser: Browser;
@@ -41,7 +40,7 @@ export class TheStand implements ClubScraper {
                 this.pageManager.navigateToUrl(
                     page,
                     this.clubData.scrapingPageUrl,
-                ),
+                )
             )
             .then((page: Page) => this.closeBlockingModal(page))
             .then((page: Page) => this.runClubScrapingFunction(page))
@@ -106,6 +105,7 @@ export class TheStand implements ClubScraper {
             },
             name: output[3] as string,
             club_id: this.clubData.id,
+            last_scraped_date: new Date(),
         });
         return {
             show: show.asShowDTO(),

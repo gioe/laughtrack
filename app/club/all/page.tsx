@@ -9,9 +9,13 @@ const { database } = getDB();
 export default async function ClubSearchPage(props: {
     searchParams: Promise<URLParams>;
 }) {
-    await QueryHelper.storePageParams(props.searchParams, headers());
+    const filters = await QueryHelper.storePageParams(
+        props.searchParams,
+        headers(),
+    );
 
-    const { entities, total } = await database.page.getClubSearchPageData();
+    const { entities, total } =
+        await database.page.getClubSearchPageData(filters);
 
     const entityCollectionString = JSON.stringify(entities);
 

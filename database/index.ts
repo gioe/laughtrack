@@ -2,7 +2,7 @@ import pgPromise from "pg-promise";
 import { Diagnostics } from "./diagostics"; // optional diagnostics
 import { IInitOptions, IDatabase, IMain } from "pg-promise";
 import { createSingleton } from "../util/singletonUtil";
-import { IExtensions, PageDataRepository, ScraperRepository } from "./repository";
+import { IExtensions, PageDataRepository, QueryRepository, ScraperRepository } from "./repository";
 import { ActionRepository } from "./repository/actions";
 
 export type LaughtrackDatabase = IDatabase<IExtensions> & IExtensions;
@@ -20,6 +20,7 @@ export function getDB(): DatabaseWrapper {
                 database.scrape = new ScraperRepository(database, pgPromiseHelpers)
                 database.page = new PageDataRepository(database, pgPromiseHelpers)
                 database.actions = new ActionRepository(database, pgPromiseHelpers)
+                database.queries = new QueryRepository(database, pgPromiseHelpers)
             },
         };
 

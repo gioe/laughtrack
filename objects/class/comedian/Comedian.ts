@@ -9,6 +9,7 @@ import { Entity, SocialDataInterface, TagInterface } from "../../interface";
 import { Show } from "../show/Show";
 import { ShowDTO } from "../show/show.interface";
 import { ComedianDTO, ComedianInterface } from "./comedian.interface";
+import { generateHash } from "../../../util/hashUtil";
 export class Comedian implements ComedianInterface {
 
     name: string;
@@ -44,7 +45,8 @@ export class Comedian implements ComedianInterface {
     };
 
     hashName() {
-        return removeNonAlphanumeric(this.name).toLocaleLowerCase()
+        const normalizedName = removeNonAlphanumeric(this.name).toLocaleLowerCase()
+        return generateHash(normalizedName)
     }
 
     getDates() {

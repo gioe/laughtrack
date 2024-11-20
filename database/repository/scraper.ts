@@ -2,8 +2,8 @@ import { ColumnSet, IDatabase, IMain } from 'pg-promise';
 import { IExtensions } from '.';
 import { ShowDTO } from '../../objects/class/show/show.interface';
 import { ComedianDTO } from '../../objects/class/comedian/comedian.interface';
-import { LineupItemDTO } from '../../objects/interface';
-
+import { LineupItemDTO, ScrapingOutput } from '../../objects/interface';
+import { apiActionMap, queryMap } from '../sql';
 
 const columnSets: {
     addAllComedians: ColumnSet | null;
@@ -31,31 +31,57 @@ export class ScraperRepository {
     constructor(private db: IDatabase<IExtensions>, private pgp: IMain) {
         columnSets.addAllShows = new pgp.helpers.ColumnSet(['club_id', 'date_time', 'ticket_link', 'popularity_score'],
             { table: 'shows' });
-        columnSets.addAllComedians = new pgp.helpers.ColumnSet(['name', 'uuid_id'], { table: 'comedians' });
-        columnSets.addAllLineupItems = new pgp.helpers.ColumnSet(['show_id', 'comedian_id'], { table: 'lineups' });
-
+        columnSets.addAllComedians = new pgp.helpers.ColumnSet(['name', 'uuid'], { table: 'comedians' });
+        columnSets.addAllLineupItems = new pgp.helpers.ColumnSet(['show_id', 'comedian_id'], { table: 'lineup_items' });
     }
 
-    addShow(instance: ShowDTO): Promise<{ id: number }> {
-        return this.db.one("", {
+    async storeScrapingOutput(data: ScrapingOutput): Promise<null> {
+        const show = await this.addShow(data.show);
+
+        if (data.comedians.length > 0) {
+            return this.addComedians(data.comedians)
+                .then(() => {
+                    const uuids = data.comedians.map((comedian: ComedianDTO) => comedian.uuid)
+                        .filter((value: string | undefined) => value !== undefined)
+                    console.log(uuids)
+                    return this.getComedianIds(uuids);
+                })
+                .then((comedianIds: { id: number }[]) => {
+                    console.log(comedianIds)
+                    const lineupItems = comedianIds.map((comedianId: { id: number }) => {
+                        return {
+                            show_id: show.id,
+                            comedian_id: comedianId.id
+                        }
+                    }) as LineupItemDTO[]
+                    return this.addLineupItems(lineupItems);
+                })
+        }
+
+        return null
+    }
+
+    private addShow(instance: ShowDTO): Promise<{ id: number }> {
+        return this.db.one(apiActionMap.addShow, {
             club_id: instance.club_id,
-            date_time: instance.date,
+            date: instance.date,
             ticket_link: instance.ticket.link,
             name: instance.name,
-            price: instance.ticket.price
+            price: instance.ticket.price,
+            last_scraped_date: instance.last_scraped_date
         });
     }
 
-    addComedians(all: ComedianDTO[]): Promise<{ id: number }[]> {
-        const batchInsert = this.pgp.helpers.insert(all, columnSets.addAllComedians) + ' ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name, uuid_id = EXCLUDED.uuid_id RETURNING id';
+    private addComedians(all: ComedianDTO[]): Promise<{ id: number }[]> {
+        const batchInsert = this.pgp.helpers.insert(all, columnSets.addAllComedians) + ' ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name, uuid = EXCLUDED.uuid RETURNING id';
         return this.db.any(batchInsert)
     }
 
-    getComedianIds(uuids: string[]): Promise<{ id: number }[]> {
-        return this.db.any("", { uuids })
+    private getComedianIds(uuids: string[]): Promise<{ id: number }[] | null> {
+        return this.db.manyOrNone(queryMap.getComedianIds, [uuids])
     }
 
-    addLineupItems(all: LineupItemDTO[]): Promise<null> {
+    private addLineupItems(all: LineupItemDTO[]): Promise<null> {
         const batchInsert = this.pgp.helpers.insert(all, columnSets.addAllLineupItems) + ` ON CONFLICT DO NOTHING`;
         return this.db.none(batchInsert)
     }

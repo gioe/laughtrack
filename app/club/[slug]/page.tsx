@@ -14,13 +14,14 @@ export default async function ClubDetailPage(props: {
     params: Promise<SlugInterface>;
     searchParams: Promise<URLParams>;
 }) {
-    await QueryHelper.storePageParams(
+    const filters = await QueryHelper.storePageParams(
         props.searchParams,
         headers(),
         props.params,
     );
 
-    const { entity, total } = await database.page.getClubDetailPageData();
+    const { entity, total } =
+        await database.page.getClubDetailPageData(filters);
 
     const containedEntitiesString = JSON.stringify(entity.containedEntities);
     const entityString = JSON.stringify(entity);

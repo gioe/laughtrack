@@ -20,10 +20,9 @@ export class Show implements ShowInterface {
     type: EntityType = EntityType.Show;
     bannerImageUrl: string;
     cardImageUrl: string;
-    scraped?: Date;
     containedEntities: Entity[]
     isFavorite: boolean;
-
+    lastScrapedDate?: Date;
     // Constructor
     constructor(input: ShowDTO) {
         this.name = input.name;
@@ -37,7 +36,7 @@ export class Show implements ShowInterface {
         this.bannerImageUrl = `/images/banners/${input.name}.png`
         this.cardImageUrl = `/images/show}/square/${input.name}.png`;
         this.clubId = input.club_id
-        this.scraped = input.scraped
+        this.lastScrapedDate = input.last_scraped_date
     }
 
     getLineup: () => Comedian[];
@@ -60,7 +59,7 @@ export class Show implements ShowInterface {
             date: this.date,
             ticket: this.ticket.asTicketDTO(),
             name: this.name,
-            scraped: new Date()
+            last_scraped_date: this.lastScrapedDate
         };
     };
 

@@ -122,6 +122,7 @@ export class NewYorkComedyClub implements ClubScraper {
             },
             name: output[3] as string,
             club_id: this.clubData.id,
+            last_scraped_date: new Date(),
         });
         return {
             show: show.asShowDTO(),

@@ -11,8 +11,11 @@ const { database } = getDB();
 export default async function HomePage(props: {
     searchParams: Promise<URLParams>;
 }) {
-    await QueryHelper.storePageParams(props.searchParams, headers());
-    const { cities, comedians } = await database.page.getHomePageData();
+    const filters = await QueryHelper.storePageParams(
+        props.searchParams,
+        headers(),
+    );
+    const { cities, comedians } = await database.page.getHomePageData(filters);
 
     const comediansString = JSON.stringify(comedians);
     const citiesString = JSON.stringify(cities);

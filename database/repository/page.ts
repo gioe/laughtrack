@@ -1,10 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { IDatabase, IMain } from 'pg-promise';
 import { IExtensions } from '.';
 import { HomePageData, HomePageDTO } from '../../app/home/interface';
 import { ComedianDTO } from '../../objects/class/comedian/comedian.interface';
 import { Comedian } from '../../objects/class/comedian/Comedian';
 import { pageDataMap } from '../sql';
-import { QueryHelper } from '../../objects/class/query/QueryHelper';
 import { ClubDetailDTO, ClubDetailPageData } from '../../app/club/[slug]/interface';
 import { Club } from '../../objects/class/club/Club';
 import { AllClubPageData, AllClubPageDTO } from '../../app/club/all/interface';
@@ -32,9 +32,7 @@ export class PageDataRepository {
 
     }
 
-    async getHomePageData(): Promise<HomePageData> {
-        const filters = QueryHelper.asQueryFilters();
-
+    async getHomePageData(filters: any): Promise<HomePageData> {
         return this.db.one(pageDataMap.home, filters).then((data: HomePageDTO) => {
             return {
                 cities: data.response.cities,
@@ -43,9 +41,7 @@ export class PageDataRepository {
         })
     }
 
-    async getComedianSearchPageData(): Promise<AllComedianPageData> {
-        const filters = QueryHelper.asQueryFilters();
-
+    async getComedianSearchPageData(filters: any): Promise<AllComedianPageData> {
         return this.db.one(pageDataMap.comedianSearch, filters).then((data: AllComedianPageDTO) => {
             return {
                 entities: data.response.data.map((result: ComedianDTO) => new Comedian(result)),
@@ -54,9 +50,7 @@ export class PageDataRepository {
         })
     }
 
-    async getComedianDetailPageData(): Promise<ComedianDetailPageData> {
-        const filters = QueryHelper.asQueryFilters();
-
+    async getComedianDetailPageData(filters: any): Promise<ComedianDetailPageData> {
         return this.db.one(pageDataMap.comedianDetail, filters).then((data: ComedianDetailDTO) => {
             return {
                 entity: new Comedian(data.response.data),
@@ -65,9 +59,7 @@ export class PageDataRepository {
         })
     }
 
-    async getClubSearchPageData(): Promise<AllClubPageData> {
-        const filters = QueryHelper.asQueryFilters();
-
+    async getClubSearchPageData(filters: any): Promise<AllClubPageData> {
         return this.db.one(pageDataMap.clubSearch, filters).then((data: AllClubPageDTO) => {
             return {
                 entities: data.response.data.map((result: ClubDTO) => new Club(result)),
@@ -76,9 +68,7 @@ export class PageDataRepository {
         })
     }
 
-    async getClubDetailPageData(): Promise<ClubDetailPageData> {
-        const filters = QueryHelper.asQueryFilters();
-
+    async getClubDetailPageData(filters: any): Promise<ClubDetailPageData> {
         return this.db.one(pageDataMap.clubDetail, filters).then((data: ClubDetailDTO) => {
             return {
                 entity: new Club(data.response.data),
@@ -87,9 +77,7 @@ export class PageDataRepository {
         })
     }
 
-    async getShowSearchPageData(): Promise<AllShowPageData> {
-        const filters = QueryHelper.asQueryFilters();
-
+    async getShowSearchPageData(filters: any): Promise<AllShowPageData> {
         return this.db.one(pageDataMap.showSearch, filters).then((data: AllShowPageDTO) => {
             return {
                 entities: data.response.data.map((result: ShowDTO) => new Show(result)),
@@ -98,9 +86,7 @@ export class PageDataRepository {
         })
     }
 
-    async getShowDetailPageData(): Promise<ShowDetailPageData> {
-        const filters = QueryHelper.asQueryFilters();
-
+    async getShowDetailPageData(filters: any): Promise<ShowDetailPageData> {
         return this.db.one(pageDataMap.showDetail, filters).then((data: ShowDetailDTO) => {
             return {
                 entity: new Show(data.response.data),

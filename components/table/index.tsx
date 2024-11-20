@@ -38,7 +38,7 @@ export default function Table<T extends Entity>({
                     );
                 })
             ) : (
-                <div>{defaultNode}</div>
+                <div className="max-w-7xl">{defaultNode}</div>
             )}
         </main>
     );

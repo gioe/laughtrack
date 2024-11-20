@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
     ClubScraper,
     ScrapingOutput,
@@ -151,6 +152,7 @@ export class ComedyCellar implements ClubScraper {
             },
             name: output[3] as string,
             club_id: this.clubData.id,
+            last_scraped_date: new Date(),
         });
 
         show.overrideDate(date);

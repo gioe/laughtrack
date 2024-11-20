@@ -7,8 +7,7 @@ import { headers } from "next/headers";
 export default async function FavoriteComediansPage(props: {
     searchParams: Promise<URLParams>;
 }) {
-    await QueryHelper.storeSearchParams(props.searchParams);
-    await QueryHelper.storeHeaders(headers());
+    await QueryHelper.storePageParams(props.searchParams, headers());
 
     return (
         <main className="flex-grow pt-5 bg-shark">

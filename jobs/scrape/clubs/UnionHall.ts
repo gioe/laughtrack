@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
     ClubScraper,
     ScrapingOutput,
@@ -102,13 +103,14 @@ export class UnionHall implements ClubScraper {
     processOutput = (output: any[], url: string): ScrapingOutput => {
         const show = new Show({
             lineup: output[0],
-            date_time: new DateTimeContainer(output[1]).asDateObject(),
+            date: new DateTimeContainer(output[1]).asDateObject(),
             ticket: {
                 link: generateValidUrl(this.clubData.scrapingPageUrl, url),
                 price: output[4] as number
             },
             name: output[3],
             club_id: this.clubData.id,
+            last_scraped_date: new Date(),
         });
         return {
             show: show.asShowDTO(),

@@ -11,9 +11,13 @@ const { database } = getDB();
 export default async function ShowSearchPage(props: {
     searchParams: Promise<URLParams>;
 }) {
-    await QueryHelper.storePageParams(props.searchParams, headers());
+    const filters = await QueryHelper.storePageParams(
+        props.searchParams,
+        headers(),
+    );
 
-    const { entities, total } = await database.page.getShowSearchPageData();
+    const { entities, total } =
+        await database.page.getShowSearchPageData(filters);
 
     const entityCollectionString = JSON.stringify(entities);
 
@@ -24,7 +28,7 @@ export default async function ShowSearchPage(props: {
                 totalEntities={total}
                 entityCollectionString={entityCollectionString}
                 defaultNode={
-                    <h2 className="font-bold text-5xl text-white pt-6">
+                    <h2 className="font-bold text-5xl w-maxtext-white pt-6">
                         No upcoming shows. Check back later.
                     </h2>
                 }

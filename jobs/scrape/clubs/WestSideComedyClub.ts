@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
     ClubScraper,
     ScrapingOutput,
@@ -101,7 +102,7 @@ export class WestSideComedyClub implements ClubScraper {
     processOutput = (output: any[], url: string): ScrapingOutput => {
         const show = new Show({
             lineup: output[0],
-            date_time: new DateTimeContainer(
+            date: new DateTimeContainer(
                 output[1],
                 SEPARATOR,
             ).asDateObject(),
@@ -111,6 +112,7 @@ export class WestSideComedyClub implements ClubScraper {
             },
             name: output[3],
             club_id: this.clubData.id,
+            last_scraped_date: new Date(),
         });
         return {
             show: show.asShowDTO(),
