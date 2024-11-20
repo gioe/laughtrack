@@ -37,7 +37,7 @@ export default function ScrapeEntitySelectionMenuForm({
         defaultValues: {
             entityType: type,
             ids: [],
-            headless: true,
+            headless: "true",
         },
     });
 

@@ -25,19 +25,15 @@ export default function ScrapeEntitiesFormBody({
                 items={cityOptions}
                 handleValueChange={handleCitySelection}
             />
-            <CheckboxFormComponent
-                name="clubIds"
+            <DropdownFormComponent
+                name="headless"
+                title="Headless"
                 form={form}
-                items={clubOptions ?? []}
+                placeholder="Open browser window?"
+                items={COMMON_OPTIONS.YesNo}
             />
             {clubOptions && (
-                <DropdownFormComponent
-                    name="headless"
-                    title="Headless"
-                    form={form}
-                    placeholder="Open browser window?"
-                    items={COMMON_OPTIONS.YesNo}
-                />
+                <CheckboxFormComponent form={form} items={clubOptions ?? []} />
             )}
         </div>
     );

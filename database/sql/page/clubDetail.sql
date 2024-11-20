@@ -24,7 +24,7 @@ lineups AS (
 	FROM 
 		filtered_data fd
 	INNER JOIN lineup_items l ON fd.id = l.show_id
-	INNER JOIN comedians c ON c.id = l.comedian_id
+	INNER JOIN comedians c ON c.uuid = l.comedian_id
 	GROUP BY fd.id
 ),
 total_count AS (

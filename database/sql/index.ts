@@ -20,7 +20,9 @@ export const apiActionMap = {
 }
 
 export const queryMap = {
-    getClubsById: sql("queries/getClubsById.sql").qf,
+    getAllClubs: sql("queries/getAllClubs.sql").qf,
+    getClubById: sql("queries/getClubById.sql").qf,
+    getClubsByIds: sql("queries/getClubsByIds.sql").qf,
     getComedianIds: sql("queries/getComedianIds.sql").qf,
     getCities: sql("queries/getCities.sql").qf,
     getClubsInCity: sql("queries/getClubsInCity.sql").qf,

@@ -8,13 +8,15 @@ import { ClubDTO, ClubInterface } from "../../../objects/class/club/club.interfa
 import { clubScrapingFunction } from "../../../util/scrape";
 import { Club } from "../../../objects/class/club/Club";
 import { getDB } from "../../../database";
+import { writeLogToFile } from "../../../util/logUtil";
 const { database } = getDB();
+
 
 export async function scrapeClubs(clubs: ClubDTO[], headless: boolean): Promise<string> {
 
     const ids = clubs.map((club: ClubDTO) => club.id)
     const startDate = new Date();
-    console.log(`Started scraping job for ${ids.length == 0 ? "all" : ids} at ${startDate}`);
+    writeLogToFile(`Started scraping job for ${ids.length == 0 ? "all" : ids} at ${startDate}`);
 
     const tasks = clubs.map((clubDto: ClubDTO) => {
         const club = new Club(clubDto)
@@ -32,7 +34,8 @@ export async function scrapeClubs(clubs: ClubDTO[], headless: boolean): Promise<
             const seconds = Math.floor((diffInMilliseconds % 60000) / 1000);
 
             const message = `Finished scraping ${ids.toString()} in ${minutes} minutes and ${seconds} seconds.`;
-            console.log(message)
+            writeLogToFile(message);
+
             return message
         });
 };

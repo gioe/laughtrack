@@ -24,8 +24,21 @@ export class QueryRepository {
 
     }
 
+    async getAllClubs(): Promise<ClubDTO[]> {
+        return this.db.manyOrNone(queryMap.getAllClubs).then((clubs: ClubDTO[] | null) => {
+            if (clubs) return clubs
+            throw new Error("Error getting clubs")
+        })
+    }
+
+
     async getClubById(params: any): Promise<any[]> {
-        return this.db.any(queryMap.getClubsById, params)
+        return this.db.any(queryMap.getClubById, params)
+    }
+
+
+    async getClubsByIds(ids: string[]): Promise<any[]> {
+        return this.db.any(queryMap.getClubsByIds, [ids])
     }
 
     async getCities(): Promise<City[]> {

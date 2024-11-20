@@ -35,12 +35,15 @@ export default function ScrapeEntityForm({
     const submitForm = (data: z.infer<typeof scrapeClubSchema>) => {
         setIsLoading(true);
         axios
-            .post(`/api/${type.valueOf()}/${data.entityId}/scrape`, {
-                headless: data.headless == "false" ? false : true,
+            .post(`/api/${type.valueOf()}/scrape`, {
+                ids: [entityId],
+                headless: data.headless,
             })
-            .then((response) => {
-                if (response) {
+            .then((response) => response.data)
+            .then((data) => {
+                if (data) {
                     setIsLoading(false);
+                    toast.success(data.message);
                 }
             })
             .catch((error: Error) => {

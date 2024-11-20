@@ -3,7 +3,7 @@ import { IExtensions } from '.';
 import { ShowDTO } from '../../objects/class/show/show.interface';
 import { ComedianDTO } from '../../objects/class/comedian/comedian.interface';
 import { LineupItemDTO, ScrapingOutput } from '../../objects/interface';
-import { apiActionMap, queryMap } from '../sql';
+import { apiActionMap } from '../sql';
 
 const columnSets: {
     addAllComedians: ColumnSet | null;
@@ -40,18 +40,12 @@ export class ScraperRepository {
 
         if (data.comedians.length > 0) {
             return this.addComedians(data.comedians)
-                .then(() => {
-                    const uuids = data.comedians.map((comedian: ComedianDTO) => comedian.uuid)
-                        .filter((value: string | undefined) => value !== undefined)
-                    console.log(uuids)
-                    return this.getComedianIds(uuids);
-                })
                 .then((comedianIds: { id: number }[]) => {
                     console.log(comedianIds)
-                    const lineupItems = comedianIds.map((comedianId: { id: number }) => {
+                    const lineupItems = data.comedians.map((comedian: ComedianDTO) => {
                         return {
                             show_id: show.id,
-                            comedian_id: comedianId.id
+                            comedian_id: comedian.uuid ?? ""
                         }
                     }) as LineupItemDTO[]
                     return this.addLineupItems(lineupItems);
@@ -73,12 +67,8 @@ export class ScraperRepository {
     }
 
     private addComedians(all: ComedianDTO[]): Promise<{ id: number }[]> {
-        const batchInsert = this.pgp.helpers.insert(all, columnSets.addAllComedians) + ' ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name, uuid = EXCLUDED.uuid RETURNING id';
+        const batchInsert = this.pgp.helpers.insert(all, columnSets.addAllComedians) + ' ON CONFLICT (uuid) DO NOTHING';
         return this.db.any(batchInsert)
-    }
-
-    private getComedianIds(uuids: string[]): Promise<{ id: number }[] | null> {
-        return this.db.manyOrNone(queryMap.getComedianIds, [uuids])
     }
 
     private addLineupItems(all: LineupItemDTO[]): Promise<null> {

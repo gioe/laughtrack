@@ -1,8 +1,7 @@
 "use client";
 
-import { ControllerRenderProps, FieldValues } from "react-hook-form";
+import { ControllerRenderProps } from "react-hook-form";
 import {
-    Form,
     FormControl,
     FormField,
     FormItem,
@@ -12,11 +11,15 @@ import {
 import { Checkbox } from "../../../../@/components/ui/checkbox";
 import { FormSelectable } from "../../../../objects/interface";
 
-type TypedFieldValues = ControllerRenderProps<FieldValues, string>;
+type TypedFieldValues = ControllerRenderProps<
+    {
+        ids: number[];
+    },
+    "ids"
+>;
 
 interface CheckboxFormComponentProps {
     items: FormSelectable[];
-    name: string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     form: any;
 }
@@ -24,70 +27,63 @@ interface CheckboxFormComponentProps {
 export function CheckboxFormComponent({
     items,
     form,
-    name,
 }: CheckboxFormComponentProps) {
-    const handleCheckChange = (
+    const handleSelection = (
         checked: string | boolean,
         item: FormSelectable,
         field: TypedFieldValues,
     ) => {
         const values = checked
-            ? [...field.value, item.name.toString()]
-            : field.value?.filter((value: string) => value !== item.name);
+            ? [...field.value, item.id]
+            : field.value.filter((value) => value !== item.id);
         field.onChange(values);
     };
 
-    const handleCheckbox = (item: FormSelectable, field: TypedFieldValues) => {
-        return field.value?.includes(item.name);
+    const isChecked = (item: FormSelectable, field: TypedFieldValues) => {
+        return field.value.includes(Number(item.id));
     };
 
     return (
-        <Form {...form}>
-            <FormField
-                control={form.control}
-                name={name}
-                render={() => (
-                    <FormItem>
-                        {items.map((item) => (
-                            <FormField
-                                key={item.name}
-                                control={form.control}
-                                name={name}
-                                render={({ field }) => {
-                                    return (
-                                        <FormItem
-                                            key={item.name}
-                                            className="flex flex-row items-start space-x-3 space-y-0  bg-white"
-                                        >
-                                            <FormControl>
-                                                <Checkbox
-                                                    checked={handleCheckbox(
+        <FormField
+            control={form.control}
+            name={"ids"}
+            render={() => (
+                <FormItem>
+                    {items.map((item) => (
+                        <FormField
+                            defaultValue={[]}
+                            key={item.id}
+                            control={form.control}
+                            name={"ids"}
+                            render={({ field }) => {
+                                return (
+                                    <FormItem
+                                        key={item.id}
+                                        className="flex flex-row items-start space-x-3 space-y-0  bg-white"
+                                    >
+                                        <FormControl>
+                                            <Checkbox
+                                                checked={isChecked(item, field)}
+                                                onCheckedChange={(checked) => {
+                                                    handleSelection(
+                                                        checked,
                                                         item,
                                                         field,
-                                                    )}
-                                                    onCheckedChange={(
-                                                        checked,
-                                                    ) => {
-                                                        handleCheckChange(
-                                                            checked,
-                                                            item,
-                                                            field,
-                                                        );
-                                                    }}
-                                                />
-                                            </FormControl>
-                                            <FormLabel className="font-normal">
-                                                {item.name}
-                                            </FormLabel>
-                                        </FormItem>
-                                    );
-                                }}
-                            />
-                        ))}
-                        <FormMessage />
-                    </FormItem>
-                )}
-            />
-        </Form>
+                                                    );
+                                                }}
+                                            />
+                                        </FormControl>
+                                        <FormLabel className="font-normal">
+                                            {item.name}
+                                        </FormLabel>
+                                    </FormItem>
+                                );
+                            }}
+                        />
+                    ))}
+                    <FormMessage />
+                </FormItem>
+            )}
+        />
     );
 }

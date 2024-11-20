@@ -9,7 +9,7 @@ WITH final_query AS (
 	FROM
 		shows s
 		LEFT JOIN lineup_items l ON s.id = l.show_id
-		LEFT JOIN comedians c ON c.id = l.comedian_id
+		LEFT JOIN comedians c ON c.uuid = l.comedian_id
 	WHERE s.id = ${slug}
 	GROUP BY
 		s.id
@@ -20,7 +20,7 @@ total_count AS (
 	FROM
 		shows s
 		INNER JOIN lineup_items l ON s.id = l.show_id
-		INNER JOIN comedians c ON c.id = l.comedian_id
+		INNER JOIN comedians c ON c.uuid = l.comedian_id
 	WHERE
 		l.show_id = ${slug}
 )

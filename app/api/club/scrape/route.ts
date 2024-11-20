@@ -1,14 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getDB } from "../../../../database";
+const { database } = getDB();
+import { ClubDTO } from "../../../../objects/class/club/club.interface";
 import { scrapeClubs } from "../../../../jobs/scrape/club";
 
 export async function POST(
     req: NextRequest,
 ) {
-    const data = await req.json()
-    const { clubIds, headless } = data
-    const ids = JSON.parse(clubIds) as string[]
+    const { headless, ids } = await req.json()
+    const headlessBoolean = headless == 'true' ? true : false
 
-    return scrapeClubs(ids, headless)
-        .then(() => NextResponse.json({}, { status: 200 }))
-        .catch((error: Error) => NextResponse.json({ message: error.message }, { status: 500 }));
+    return database.queries.getClubsByIds(ids)
+        .then((values: ClubDTO[] | null) => {
+            if (values) return scrapeClubs(values, headlessBoolean)
+            throw new Error(`No value returned`)
+        })
+        .then((message: string) => {
+            return NextResponse.json({ message }, { status: 200 })
+        })
+        .catch((error: Error) => {
+            console.log(error)
+            return NextResponse.json({ message: error }, { status: 500 })
+        })
 }

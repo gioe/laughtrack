@@ -3,7 +3,7 @@ all_relevant_shows as (
     SELECT s.id as show_id, s.name as name FROM
 		shows s
 		INNER JOIN lineup_items l ON s.id = l.show_id
-		INNER JOIN comedians c ON c.id = l.comedian_id
+		INNER JOIN comedians c ON c.uuid = l.comedian_id
 	WHERE
     s.date > now()
 	AND c.name = $(slug)
@@ -30,7 +30,7 @@ FROM
 	relevant_show_ids rsi
 	JOIN shows s ON rsi.show_id = s.id
 	INNER JOIN lineup_items l ON s.id = l.show_id
-	INNER JOIN comedians c ON c.id = l.comedian_id
+	INNER JOIN comedians c ON c.uuid = l.comedian_id
 	INNER JOIN clubs cl ON s.club_id = cl.id
 GROUP BY
 	s.id,
