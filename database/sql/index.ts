@@ -22,6 +22,8 @@ export const apiActionMap = {
 export const queryMap = {
     getClubsById: sql("queries/getClubsById.sql").qf,
     getComedianIds: sql("queries/getComedianIds.sql").qf,
+    getCities: sql("queries/getCities.sql").qf,
+    getClubsInCity: sql("queries/getClubsInCity.sql").qf,
 }
 
 interface IQueryFileScope {

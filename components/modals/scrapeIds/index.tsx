@@ -5,6 +5,7 @@ import { useScrapeMenuModal } from "../../../hooks/modalState";
 import ScrapeEntitySelectionMenuForm from "../../form/forms/scrapeIds";
 import { EntityType } from "../../../objects/enum";
 import { useRouter } from "next/navigation";
+import { City } from "../../../objects/class/city/City";
 
 interface ScrapeEntitySelectionMenuModalProps {
     type: EntityType;
@@ -16,7 +17,7 @@ const ScrapeEntitySelectionMenuModal: React.FC<
 > = ({ citiesString, type }) => {
     const scrapeMenuModal = useScrapeMenuModal();
     const router = useRouter();
-    const cities = JSON.parse(citiesString);
+    const cities = JSON.parse(citiesString) as City[];
 
     const onSubmit = () => {
         router.refresh();

@@ -176,7 +176,7 @@ const Header: React.FC<NavbarProps> = ({ currentUser }) => {
                             href={`/profile/${currentUser.id}`}
                             className="text-sm font-semibold leading-6 text-gray-900"
                         >
-                            My Profile
+                            Profile
                         </a>
                     )}
 

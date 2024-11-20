@@ -14,6 +14,8 @@ import Footer from "../components/footer";
 import { City } from "../objects/class/city/City";
 import { EntityType } from "../objects/enum";
 import ScrapeEntitySelectionMenuModal from "../components/modals/scrapeIds";
+import { getDB } from "../database";
+const { database } = getDB();
 
 interface RootProps {
     user: UserInterface | null;
@@ -49,11 +51,11 @@ export async function getCurrentUser() {
 
 async function getRootProps(): Promise<RootProps> {
     const user = getCurrentUser();
-
-    return Promise.all([user]).then((responses) => {
+    const cities = database.queries.getCities();
+    return Promise.all([user, cities]).then((responses) => {
         return {
             user: responses[0],
-            cities: [],
+            cities: responses[1],
         };
     });
 }

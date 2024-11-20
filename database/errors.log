@@ -1529,3 +1529,21 @@
 
 21:02:06 error: duplicate key value violates unique constraint "comedians_uuid_id_key"
          query: insert into "comedians"("name","uuid") values('Jeff Lawrence','56464669d8934f595b704e7763fb02f3'),('Kevin Dombrowski','3920e63bac4304382e44150462ada6d8'),('Dave Columbo','af36077a52ca1955b9494ae572b6315e'),('Daryn Passarello','fe208ca304ec6305993f5f404390c5ae'),('Danny Palmer','56742f23c13458468fdc6701dff21deb'),('Dylan O’Keeffe','0a0cae7236b34e75a02f812f1994f671'),('Ariel Evans','80af30e2f089098b5171d860e96cd425'),('Alex Portillo','4844db36f0d554b878f273d517c99853') ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name, uuid = EXCLUDED.uuid RETURNING id
+
+21:47:49 error: deadlock detected
+         query: insert into "comedians"("name","uuid") values('Kyle Dunnigan','2cc280f03d3c8b8c538fb502b803193e'),('Joe List','decced3377efe54df56b0bf0c0b62727'),('Sherrod Small','ad9b066cb909c6d0fa91eed027d75967'),('Onika McLean','1fbae739b745212d486325311d69e13e'),('Mike Vecchione','9bd908a9c070548c6eb45f5dd2403e11'),('Bonnie McFarlane','fb54a6d3e0596c4c9c964bb4aa5c0262') ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name, uuid = EXCLUDED.uuid RETURNING id
+
+21:47:50 error: deadlock detected
+         query: insert into "comedians"("name","uuid") values('Sherrod Small','ad9b066cb909c6d0fa91eed027d75967'),('Mike Vecchione','9bd908a9c070548c6eb45f5dd2403e11'),('Kyle Dunnigan','2cc280f03d3c8b8c538fb502b803193e'),('Aaron Berg','2328607e15f1ab499c98a68e76fbb441'),('Mike Figs','d77be32498d577826bee5543d4e8c66a'),('Bonnie McFarlane','fb54a6d3e0596c4c9c964bb4aa5c0262') ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name, uuid = EXCLUDED.uuid RETURNING id
+
+21:47:51 error: deadlock detected
+         query: insert into "comedians"("name","uuid") values('Joe List','decced3377efe54df56b0bf0c0b62727'),('Mike Vecchione','9bd908a9c070548c6eb45f5dd2403e11'),('Yamaneika Saunders','c877d33a9f9d43ff384dd73d7dcc8b42'),('Adrienne Iapalucci','fe597270aa0442840fca24a76211d78f'),('Mark Normand','e7b44caab5051dae1127e4189f37a5bb'),('Mary Santora','d946233327a27ff90134468f35369a78'),('Ari Shaffir','f613b283d46113bdec8ace721a403914') ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name, uuid = EXCLUDED.uuid RETURNING id
+
+22:09:04 error: column reference "id" is ambiguous
+         query: SELECT id, name from clubs cl JOIN cities ci on cl.city_id = ci.id WHERE ci.name = '1'
+
+22:10:32 error: column reference "id" is ambiguous
+         query: SELECT id, name from clubs cl JOIN cities ci on cl.city_id = ci.id WHERE ci.id = '1'
+
+22:14:34 error: column reference "id" is ambiguous
+         query: SELECT id, name from clubs cl JOIN cities ci on cl.city_id = ci.id WHERE ci.id = '1'

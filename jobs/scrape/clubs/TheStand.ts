@@ -22,6 +22,7 @@ const PRICE = "div.price";
 const SEPARATOR = ",";
 const MODAL = "div.modal-content.pop-up-bg-tan"
 
+
 export class TheStand implements ClubScraper {
     private clubData: ClubInterface;
     private browser: Browser;

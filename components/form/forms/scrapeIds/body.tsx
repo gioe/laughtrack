@@ -19,7 +19,7 @@ export default function ScrapeEntitiesFormBody({
     clubOptions,
 }: ScrapeEntitiesFormBodyProps) {
     return (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 items-center">
             <SelectComponent
                 placeholder="Select city"
                 items={cityOptions}

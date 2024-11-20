@@ -61,24 +61,24 @@ export default function ScrapeEntitySelectionMenuForm({
     };
 
     const handleCitySelection = (selection: string) => {
-        let city = selection;
+        let cityId = selection;
 
         if (selection == "all") {
-            city = "";
+            cityId = "";
             setClubs([]);
         }
 
         setIsLoading(true);
         axios
-            .get(`/api/club/city/${city}`)
+            .get(`/api/club/city/${cityId}`)
             .then((response) => response.data)
             .then((data) => {
                 if (data) {
                     setClubs(
                         data.clubs.map((club: Club) => {
                             return {
-                                value: club.name.toLowerCase(),
-                                label: club.name,
+                                id: club.id,
+                                name: club.name,
                             };
                         }),
                     );

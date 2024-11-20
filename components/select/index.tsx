@@ -25,9 +25,9 @@ export function SelectComponent({
             onValueChange={handleValueChange}
             defaultValue={items[0].id.toString()}
         >
-            <SelectTrigger>
+            <SelectTrigger className="bg-white">
                 <SelectValue
-                    className="text-blue-500"
+                    className="text-blue-500 bg-white"
                     placeholder={placeholder}
                 />
             </SelectTrigger>
