@@ -60,36 +60,37 @@ export const showScrapingFunction = (
     club: ClubInterface,
     url: string,
     browser: playwright.Browser,
+    pause: boolean
 ): Promise<ScrapingOutput> => {
     switch (club.name) {
-        case ComedyClub.ComedyCellarNewYork:
-            return new ComedyCellar(club, browser).scrapeShow();
         case ComedyClub.NewYorkComedyClubUpperWestSide:
-            return new NewYorkComedyClub(club, browser).scrapeShow(url);
+            return new NewYorkComedyClub(club, browser).scrapeShow(url, pause);
         case ComedyClub.NewYorkComedyClubMidtown:
-            return new NewYorkComedyClub(club, browser).scrapeShow(url);
+            return new NewYorkComedyClub(club, browser).scrapeShow(url, pause);
         case ComedyClub.NewYorkComedyClubEastVillage:
-            return new NewYorkComedyClub(club, browser).scrapeShow(url);
-        case ComedyClub.TheStand:
-            return new TheStand(club, browser).scrapeShow();
+            return new NewYorkComedyClub(club, browser).scrapeShow(url, pause);
         case ComedyClub.TheGrislyPear:
-            return new TheGrislyPear(club, browser).scrapeShow(url);
+            return new TheGrislyPear(club, browser).scrapeShow(url, pause);
         case ComedyClub.TheTinyCupboard:
-            return new TheTinyCupboard(club, browser).scrapeShow(url);
+            return new TheTinyCupboard(club, browser).scrapeShow(url, pause);
         case ComedyClub.UnionHall:
-            return new UnionHall(club, browser).scrapeShow(url);
+            return new UnionHall(club, browser).scrapeShow(url, pause);
         case ComedyClub.WilliamsburgComedyClub:
-            return new WilliamsburgComedyClub(club, browser).scrapeShow(url);
+            return new WilliamsburgComedyClub(club, browser).scrapeShow(url, pause);
         case ComedyClub.Rodneys:
-            return new Rodneys(club, browser).scrapeShow(url);
+            return new Rodneys(club, browser).scrapeShow(url, pause);
         case ComedyClub.EastvilleComedyClubBrooklyn:
-            return new EastvilleComedyClub(club, browser).scrapeShow(url);
+            return new EastvilleComedyClub(club, browser).scrapeShow(url, pause);
         case ComedyClub.ComedyVillage:
-            return new ComedyVillage(club, browser).scrapeShow(url);
+            return new ComedyVillage(club, browser).scrapeShow(url, pause);
         case ComedyClub.Caveat:
-            return new Caveat(club, browser).scrapeShow(url);
+            return new Caveat(club, browser).scrapeShow(url, pause);
         case ComedyClub.WestSideComedyClub:
-            return new WestSideComedyClub(club, browser).scrapeShow(url);
+            return new WestSideComedyClub(club, browser).scrapeShow(url, pause);
+        case ComedyClub.ComedyCellarNewYork:
+            throw new Error(`Not possible to scape page urls individually on this club`)
+        case ComedyClub.TheStand:
+            throw new Error(`Not possible to scape page urls individually on this club`)
         default:
             throw new Error("No club name found");
     }

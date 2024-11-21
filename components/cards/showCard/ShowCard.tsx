@@ -18,7 +18,7 @@ const ShowCard: React.FC<ShowCardProps> = ({ show }) => {
             <ShowDetailsSection
                 clubName={show.clubName}
                 showDate={show.date}
-                scrapedDate={show.scraped}
+                scrapedDate={show.lastScrapedDate}
                 ticket={show.ticket}
             />
 

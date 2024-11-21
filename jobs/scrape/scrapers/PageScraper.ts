@@ -6,7 +6,7 @@ import { PageManager } from "../handlers/PageManager";
 import { ScrapingArgs } from "../../../objects/interface";
 import { Comedian } from "../../../objects/class/comedian/Comedian";
 
-export class ShowScraper {
+export class PageScraper {
     private pageManager = new PageManager();
 
     getShowLineup = async (locator?: Locator): Promise<Comedian[]> => {

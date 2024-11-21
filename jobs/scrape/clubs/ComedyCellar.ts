@@ -5,7 +5,7 @@ import {
 } from "../../../objects/interface";
 import { PageManager } from "../handlers/PageManager";
 import playwright, { Browser, Locator, Page } from "playwright-core";
-import { ShowScraper } from "../scrapers/ShowScraper";
+import { PageScraper } from "../scrapers/PageScraper";
 import { generateValidUrl } from "../../../util/primatives/urlUtil";
 import { DateTimeContainer } from "../containers/DateTimeContainer";
 import { delay, runTasks } from "../../../util/promiseUtil";
@@ -26,7 +26,7 @@ export class ComedyCellar implements ClubScraper {
     private clubData: ClubInterface;
     private browser: Browser;
     private pageManager = new PageManager();
-    private scraper = new ShowScraper();
+    private scraper = new PageScraper();
 
     constructor(clubData: ClubInterface, browser: playwright.Browser) {
         this.clubData = clubData;
@@ -53,10 +53,6 @@ export class ComedyCellar implements ClubScraper {
                 return [];
             });
     };
-
-    scrapeShow = async (): Promise<ScrapingOutput> => {
-        throw new Error("Shouldn't be possible from this club")
-    }
 
     runClubScrapingFunction = async (page: Page): Promise<ScrapingOutput[]> => {
         return this.getAllDateOptions(page).then((links: string[]) =>

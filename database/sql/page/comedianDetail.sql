@@ -35,6 +35,7 @@ FROM
 GROUP BY
 	s.id,
 	cl.name
+ORDER BY ${sort:name} ${direction:value}
 ),
 formatted_query AS (
 	SELECT

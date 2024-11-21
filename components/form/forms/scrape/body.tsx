@@ -5,8 +5,8 @@ import Heading from "../../../modals/heading";
 import { DropdownFormComponent } from "../../components/dropdown";
 
 interface ScrapeEntityFormBodyProps {
-    type: EntityType;
     form: any;
+    type: EntityType;
 }
 
 export default function ScrapeEntityFormBody({
@@ -15,7 +15,7 @@ export default function ScrapeEntityFormBody({
 }: ScrapeEntityFormBodyProps) {
     return (
         <div className="flex flex-col items-center gap-4">
-            <Heading title={`Scrape ${type.valueOf()}`} />
+            <Heading title="Scrape Club" />
             <DropdownFormComponent
                 name="headless"
                 title="Headless"
@@ -23,6 +23,15 @@ export default function ScrapeEntityFormBody({
                 placeholder="Open browser window?"
                 items={COMMON_OPTIONS.YesNo}
             />
+            {type == EntityType.Show && (
+                <DropdownFormComponent
+                    name="pause"
+                    title="Pause"
+                    form={form}
+                    placeholder="Pause browser window?"
+                    items={COMMON_OPTIONS.YesNo}
+                />
+            )}
         </div>
     );
 }

@@ -8,11 +8,11 @@ import { Show } from "../../../objects/class/show/Show";
 import { Club } from "../../../objects/class/club/Club";
 import { showScrapingFunction } from "../../../util/scrape";
 
-export async function scrapeShow(show: Show, club: Club, headless: boolean): Promise<string> {
+export async function scrapeShow(show: Show, club: Club, headless: boolean, pause: boolean): Promise<string> {
     const startDate = new Date();
     console.log(`Started scraping job for ${show.id} at ${startDate}`);
 
-    return runScraper(club, show, headless)
+    return runScraper(club, show, headless, pause)
         .then((scrapingOutput: ScrapingOutput) => storeOutput(scrapingOutput))
         .then(() => {
 
@@ -31,11 +31,12 @@ export async function scrapeShow(show: Show, club: Club, headless: boolean): Pro
 const runScraper = async (
     club: Club,
     show: Show,
-    headless?: boolean,
+    headless: boolean,
+    pause: boolean
 ): Promise<ScrapingOutput> => {
     return playwright.chromium
         .launch({ headless: headless ?? false })
-        .then((browser) => showScrapingFunction(club, show.ticket.link, browser));
+        .then((browser) => showScrapingFunction(club, show.ticket.link, browser, pause));
 };
 
 const storeOutput = async (output: ScrapingOutput): Promise<void> => {

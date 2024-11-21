@@ -4,13 +4,14 @@ import {
 } from "../../../objects/interface";
 import { PageManager } from "../handlers/PageManager";
 import playwright from "playwright-core";
-import { ShowScraper } from "../scrapers/ShowScraper";
+import { PageScraper } from "../scrapers/PageScraper";
 import { generateValidUrl } from "../../../util/primatives/urlUtil";
 import { DateTimeContainer } from "../containers/DateTimeContainer";
 import { delay } from "../../../util/promiseUtil";
 import { Show } from "../../../objects/class/show/Show";
 import { ClubInterface } from "../../../objects/class/club/club.interface";
 import { ComedianDTO } from "../../../objects/class/comedian/comedian.interface";
+import { ShowScraper } from "../../../objects/interface/scrape.interface";
 
 const LINK =
     "a.MuiTypography-root.MuiTypography-body.MuiLink-root.MuiLink-underlineAlways.css-2p1ku6";
@@ -24,11 +25,11 @@ const SHOW_NAME =
     "#root > div > div.main.MuiBox-root.css-0 > div > div.MuiGrid-root.MuiGrid-item.MuiGrid-grid-xs-12.MuiGrid-grid-md-8.css-efwuvd > div > div.MuiBox-root.css-10dy3fq > span";
 const PRICE = "div.event-ticket-type > span.ticket-price.original";
 
-export class Caveat implements ClubScraper {
+export class Caveat implements ClubScraper, ShowScraper {
     private clubData: ClubInterface;
     private browser: playwright.Browser;
     private pageManager = new PageManager();
-    private scraper = new ShowScraper();
+    private scraper = new PageScraper();
 
     constructor(clubData: ClubInterface, browser: playwright.Browser) {
         this.clubData = clubData;
@@ -51,12 +52,14 @@ export class Caveat implements ClubScraper {
     };
 
 
-    scrapeShow = async (url: string): Promise<ScrapingOutput> => {
+    scrapeShow = async (url: string, pause: boolean): Promise<ScrapingOutput> => {
         return this.browser
             .newPage()
-            .then((page: playwright.Page) =>
-                this.navigateToUrlAndScrape(page, url)
-            )
+            .then((page: playwright.Page) => this.navigateToUrlAndScrape(page, url, pause))
+            .then((output: ScrapingOutput) => {
+                this.browser.close();
+                return output
+            })
     }
 
 
@@ -84,7 +87,7 @@ export class Caveat implements ClubScraper {
 
         for (let index = 0; index < links.length - 1; index++) {
             const input = links[index];
-            const output = await this.navigateToUrlAndScrape(page, input);
+            const output = await this.navigateToUrlAndScrape(page, input, false);
             scrapingOutput.push(output);
         }
 
@@ -95,11 +98,13 @@ export class Caveat implements ClubScraper {
     navigateToUrlAndScrape = async (
         page: playwright.Page,
         link: string,
+        pause: boolean
     ): Promise<ScrapingOutput> => {
         return this.pageManager
             .navigateToUrl(page, link)
             .then(() => delay(2000))
             .then(() => {
+                if (pause) { page.pause() }
                 return this.scraper.scrape({
                     comedianNameLocator: page.locator(COMEDIAN_NAME),
                     dateTimeLocator: page.locator(DATE_TIME),

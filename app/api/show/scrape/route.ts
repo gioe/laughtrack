@@ -8,14 +8,16 @@ const { database } = getDB();
 export async function POST(
     req: NextRequest
 ) {
-    const { headless, ids } = await req.json()
+    const { headless, ids, pause } = await req.json()
     const headlessBoolean = headless == 'true' ? true : false
+    const pauseBoolean = pause == 'true' ? true : false
+
     return database.queries.getShowById(ids[0])
         .then((data: any | null) => {
             if (data) {
                 const show = new Show(data.response.show)
                 const club = new Club(data.response.club)
-                return scrapeShow(show, club, headlessBoolean)
+                return scrapeShow(show, club, headlessBoolean, pauseBoolean)
             }
             throw new Error(`No value returned`)
         })

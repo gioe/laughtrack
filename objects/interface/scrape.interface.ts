@@ -9,7 +9,10 @@ export interface ScrapingOutput {
 
 export interface ClubScraper {
     scrape: () => Promise<ScrapingOutput[]>;
-    scrapeShow: (url?: string) => Promise<ScrapingOutput>;
+}
+
+export interface ShowScraper {
+    scrapeShow: (url?: string, pause?: boolean) => Promise<ScrapingOutput>;
 }
 
 export interface ScrapingArgs {

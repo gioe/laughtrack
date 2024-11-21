@@ -5,7 +5,7 @@ import {
 } from "../../../objects/interface";
 import { PageManager } from "../handlers/PageManager";
 import playwright from "playwright-core";
-import { ShowScraper } from "../scrapers/ShowScraper";
+import { PageScraper } from "../scrapers/PageScraper";
 import { generateValidUrl } from "../../../util/primatives/urlUtil";
 import { DateTimeContainer } from "../containers/DateTimeContainer";
 import { ClubInterface } from "../../../objects/class/club/club.interface";
@@ -23,7 +23,7 @@ export class TheTinyCupboard implements ClubScraper {
     private clubData: ClubInterface;
     private browser: playwright.Browser;
     private pageManager = new PageManager();
-    private scraper = new ShowScraper();
+    private scraper = new PageScraper();
 
     constructor(clubData: ClubInterface, browser: playwright.Browser) {
         this.clubData = clubData;
@@ -47,11 +47,11 @@ export class TheTinyCupboard implements ClubScraper {
     };
 
 
-    scrapeShow = async (url: string): Promise<ScrapingOutput> => {
+    scrapeShow = async (url: string, pause: boolean): Promise<ScrapingOutput> => {
         return this.browser
             .newPage()
             .then((page: playwright.Page) =>
-                this.navigateToUrlAndScrape(page, url)
+                this.navigateToUrlAndScrape(page, url, pause)
             )
     }
 
@@ -72,7 +72,7 @@ export class TheTinyCupboard implements ClubScraper {
 
         for (let index = 0; index < links.length - 1; index++) {
             const input = links[index];
-            const output = await this.navigateToUrlAndScrape(page, input);
+            const output = await this.navigateToUrlAndScrape(page, input, false);
             scrapedOutput.push(output);
         }
 
@@ -83,10 +83,12 @@ export class TheTinyCupboard implements ClubScraper {
     navigateToUrlAndScrape = async (
         page: playwright.Page,
         link: string,
+        pause: boolean
     ): Promise<ScrapingOutput> => {
         return this.pageManager
             .navigateToUrl(page, link)
             .then((page) => {
+                if (pause) { page.pause() }
                 return this.scraper.scrape({
                     comedianNameLocator: page.locator(COMEDIAN_NAME),
                     dateTimeLocator: page.locator(DATE_TIME),

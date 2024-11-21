@@ -4,7 +4,7 @@ import {
 } from "../../../objects/interface";
 import { PageManager } from "../handlers/PageManager";
 import playwright, { Browser, Locator, Page } from "playwright-core";
-import { ShowScraper } from "../scrapers/ShowScraper";
+import { PageScraper } from "../scrapers/PageScraper";
 import { generateValidUrl } from "../../../util/primatives/urlUtil";
 import { DateTimeContainer } from "../containers/DateTimeContainer";
 import { runTasks } from "../../../util/promiseUtil";
@@ -27,7 +27,7 @@ export class TheStand implements ClubScraper {
     private clubData: ClubInterface;
     private browser: Browser;
     private pageManager = new PageManager();
-    private scraper = new ShowScraper();
+    private scraper = new PageScraper();
 
     constructor(clubData: ClubInterface, browser: playwright.Browser) {
         this.clubData = clubData;

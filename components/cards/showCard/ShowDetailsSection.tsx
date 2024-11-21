@@ -29,13 +29,13 @@ const ShowDetailsSection: React.FC<ShowCardProps> = ({
     return (
         <div className="grid grid-cols-2 divide-x">
             <div className="flex flex-col items-center ml-5 mr-4 mb-5 mt-1">
-                {showShowScrapeDate && (
+                {/* {showShowScrapeDate && (
                     <h1 className="text-m ml-2 text-center">
                         {scrapeDateObject.format(
                             "dddd, MMMM Do YYYY, h:mm:ss a",
                         )}
                     </h1>
-                )}
+                )} */}
                 <h4 className="text-xl ml-2 text-center">
                     {dateObject.format("LT")}
                 </h4>

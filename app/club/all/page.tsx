@@ -13,7 +13,6 @@ export default async function ClubSearchPage(props: {
         props.searchParams,
         headers(),
     );
-
     const { entities, total } =
         await database.page.getClubSearchPageData(filters);
 

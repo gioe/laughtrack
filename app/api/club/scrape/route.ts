@@ -10,7 +10,9 @@ export async function POST(
     const { headless, ids } = await req.json()
     const headlessBoolean = headless == 'true' ? true : false
 
-    return database.queries.getClubsByIds(ids)
+    const task = ids.length > 0 ? database.queries.getClubsByIds(ids) : database.queries.getAllClubs()
+
+    return task
         .then((values: ClubDTO[] | null) => {
             if (values) return scrapeClubs(values, headlessBoolean)
             throw new Error(`No value returned`)

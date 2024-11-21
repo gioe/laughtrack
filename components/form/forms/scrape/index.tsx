@@ -29,6 +29,7 @@ export default function ScrapeEntityForm({
         defaultValues: {
             entityId,
             headless: "true",
+            pause: "true",
         },
     });
 
@@ -38,6 +39,7 @@ export default function ScrapeEntityForm({
             .post(`/api/${type.valueOf()}/scrape`, {
                 ids: [entityId],
                 headless: data.headless,
+                pause: data.pause,
             })
             .then((response) => response.data)
             .then((data) => {
