@@ -2,6 +2,7 @@
 import { IDatabase, IMain } from 'pg-promise';
 import { IExtensions } from '.';
 import { apiActionMap } from '../sql';
+import { UserDTO } from '../../objects/interface';
 
 export class ActionRepository {
 
@@ -24,4 +25,11 @@ export class ActionRepository {
         return this.db.any(apiActionMap.deleteShows, params)
     }
 
+    async addUser(user: UserDTO): Promise<any> {
+        return this.db.one(apiActionMap.addUser, {
+            email: user.email,
+            role: user.role,
+            password: user.password
+        });
+    }
 }

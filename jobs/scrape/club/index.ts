@@ -11,7 +11,6 @@ import { getDB } from "../../../database";
 import { writeLogToFile } from "../../../util/logUtil";
 const { database } = getDB();
 
-
 export async function scrapeClubs(clubs: ClubDTO[], headless: boolean): Promise<string> {
 
     const ids = clubs.map((club: ClubDTO) => club.id)

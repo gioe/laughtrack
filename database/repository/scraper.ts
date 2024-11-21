@@ -37,11 +37,9 @@ export class ScraperRepository {
 
     async storeScrapingOutput(data: ScrapingOutput): Promise<null> {
         const show = await this.addShow(data.show);
-
         if (data.comedians.length > 0) {
             return this.addComedians(data.comedians)
-                .then((comedianIds: { id: number }[]) => {
-                    console.log(comedianIds)
+                .then(() => {
                     const lineupItems = data.comedians.map((comedian: ComedianDTO) => {
                         return {
                             show_id: show.id,

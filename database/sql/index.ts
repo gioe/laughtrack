@@ -17,6 +17,7 @@ export const pageDataMap = {
 export const apiActionMap = {
     deleteShows: sql("actions/deleteShows.sql").qf,
     addShow: sql("actions/addShow.sql").qf,
+    addUser: sql("actions/addUser.sql").qf
 }
 
 export const queryMap = {
@@ -26,6 +27,7 @@ export const queryMap = {
     getComedianIds: sql("queries/getComedianIds.sql").qf,
     getCities: sql("queries/getCities.sql").qf,
     getClubsInCity: sql("queries/getClubsInCity.sql").qf,
+    getShowById: sql("queries/getShowById.sql").qf,
 }
 
 interface IQueryFileScope {

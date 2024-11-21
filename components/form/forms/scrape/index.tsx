@@ -58,7 +58,7 @@ export default function ScrapeEntityForm({
             isLoading={isLoading}
             onSubmit={submitForm}
             form={form}
-            body={<ScrapeEntityFormBody form={form} />}
+            body={<ScrapeEntityFormBody form={form} type={type} />}
         />
     );
 }

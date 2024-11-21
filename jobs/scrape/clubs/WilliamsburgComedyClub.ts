@@ -53,7 +53,10 @@ export class WilliamsburgComedyClub implements ClubScraper {
             .newPage()
             .then((page: playwright.Page) =>
                 this.navigateToUrlAndScrape(page, url)
-            )
+            ).then((output: ScrapingOutput) => {
+                this.browser.close();
+                return output
+            })
     }
 
     runClubScrapingFunction = async (

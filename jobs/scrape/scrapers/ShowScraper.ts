@@ -14,11 +14,11 @@ export class ShowScraper {
             ? []
             : this.pageManager
                 .getText(locator)
-                .then((names: string[]) =>
-                    names.map((name: string) => new Comedian({
+                .then((names: string[]) => {
+                    return names.map((name: string) => new Comedian({
                         name
-                    })),
-                )
+                    }))
+                })
                 .catch((error) => {
                     console.error(`Error getting show names: ${error}`);
                     return [];

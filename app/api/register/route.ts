@@ -6,7 +6,7 @@ import { getDB } from '../../../database'
 import bcrypt from "bcryptjs";
 import { signInSchema } from "../../../util/validations";
 
-const { db } = getDB();
+const { database } = getDB();
 
 export async function POST(request: Request) {
 
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     const emailString = email as string;
     const passwordString = password as string;
 
-    const userExists = await db.users.checkForExistence(emailString)
+    const userExists = await database.queries.userExists(emailString)
 
     if (userExists && emailString !== "" && passwordString !== "") {
         return NextResponse.json({
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
 
     return bcrypt.hash(passwordString, 10)
         .then((hash: string) => {
-            return db.users.add({
+            return database.actions.addUser({
                 email: emailString,
                 password: hash,
                 role: 'admin'

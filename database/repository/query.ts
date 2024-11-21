@@ -20,25 +20,28 @@ export class QueryRepository {
      * Library's root, if ever needed, like to access 'helpers'
      * or other namespaces available from the root.
      */
-    constructor(private db: IDatabase<IExtensions>, private pgp: IMain) {
-
-    }
+    constructor(private db: IDatabase<IExtensions>, private pgp: IMain) { }
 
     async getAllClubs(): Promise<ClubDTO[]> {
-        return this.db.manyOrNone(queryMap.getAllClubs).then((clubs: ClubDTO[] | null) => {
-            if (clubs) return clubs
-            throw new Error("Error getting clubs")
-        })
+        return this.db.manyOrNone(queryMap.getAllClubs)
+            .then((clubs: ClubDTO[] | null) => {
+                if (clubs) return clubs
+                throw new Error("Error getting clubs")
+            })
     }
-
 
     async getClubById(params: any): Promise<any[]> {
         return this.db.any(queryMap.getClubById, params)
     }
 
-
     async getClubsByIds(ids: string[]): Promise<any[]> {
         return this.db.any(queryMap.getClubsByIds, [ids])
+    }
+
+    async getShowById(id: number): Promise<any> {
+        return this.db.oneOrNone(queryMap.getShowById, {
+            id
+        });
     }
 
     async getCities(): Promise<City[]> {
@@ -55,6 +58,10 @@ export class QueryRepository {
             if (clubs) return clubs.map((dto: ClubDTO) => new Club(dto))
             throw new Error("Error getting clubs")
         })
+    }
+
+    async userExists(email: string): Promise<any | null> {
+        return this.db.oneOrNone('SELECT * FROM users WHERE email = $1', email);
     }
 
 }
