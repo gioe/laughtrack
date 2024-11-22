@@ -1,6 +1,5 @@
-import { DirectionParamValue, SortParamValue, URLParam } from "../../objects/enum";
-
-type ParamValue = string | number | Date;
+import { ParamValue } from "../../objects/class/params/SearchParamsHelper";
+import { DirectionParamValue, URLParam } from "../../objects/enum";
 
 export const addOrRemoveCommaSeparatedValue = (
     searchParams: URLSearchParams,
@@ -40,14 +39,14 @@ export const formatParamValue = (value: ParamValue) => {
     if (value instanceof Date) {
         return formattedDateParam(value as Date)
     }
-    return value.toString()
+    return value?.toString()
 }
 
 
 export const getDefaultQueryParamValue = (key: URLParam) => {
     switch (key) {
         case URLParam.Sort:
-            return SortParamValue.Name
+            return undefined
         case URLParam.Query:
             return ""
         case URLParam.Page:

@@ -1,61 +1,45 @@
 export { auth } from "./auth";
 
-
 // middleware.js
 
 import { NextRequest, NextResponse } from "next/server";
-import { DirectionParamValue, SortParamValue } from "./objects/enum";
+import { SortParamValue, URLParam } from "./objects/enum";
+import { SearchParamsHelper } from "./objects/class/params/SearchParamsHelper";
 
 export function middleware(request: NextRequest) {
-    const requestHeaders = new Headers(request.headers);
-    requestHeaders.set("x-pathname", request.nextUrl.pathname);
-
-    const newUrl = createNewUrl(request)
+    const searchParams = new URLSearchParams(request.nextUrl.search)
+    const paramsHelper = new SearchParamsHelper(searchParams)
 
     if (request.nextUrl.pathname.startsWith('/club')) {
         if (request.nextUrl.pathname.includes('/all')) {
-            newUrl.searchParams.set('sort_by', SortParamValue.Name)
-            newUrl.searchParams.set('direction', DirectionParamValue.Ascending)
+            paramsHelper.setDefaultValue(URLParam.Sort, SortParamValue.Name)
         } else {
-            newUrl.searchParams.set('sort_by', SortParamValue.Date)
-            newUrl.searchParams.set('direction', DirectionParamValue.Ascending)
+            paramsHelper.setDefaultValue(URLParam.Sort, SortParamValue.Date)
         }
     } else if (request.nextUrl.pathname.startsWith('/show')) {
         if (request.nextUrl.pathname.includes('/all')) {
-            newUrl.searchParams.set('sort_by', SortParamValue.Name)
-            newUrl.searchParams.set('direction', DirectionParamValue.Ascending)
+            paramsHelper.setDefaultValue(URLParam.Sort, SortParamValue.Date)
         } else {
-            newUrl.searchParams.set('sort_by', SortParamValue.Name)
-            newUrl.searchParams.set('direction', DirectionParamValue.Ascending)
+            paramsHelper.setDefaultValue(URLParam.Sort, SortParamValue.Name)
         }
     } else if (request.nextUrl.pathname.startsWith('/comedian')) {
         if (request.nextUrl.pathname.includes('/all')) {
-            newUrl.searchParams.set('sort_by', SortParamValue.Name)
-            newUrl.searchParams.set('direction', DirectionParamValue.Ascending)
+            paramsHelper.setDefaultValue(URLParam.Sort, SortParamValue.Name)
         } else {
-            newUrl.searchParams.set('sort_by', SortParamValue.Date)
-            newUrl.searchParams.set('direction', DirectionParamValue.Ascending)
+            paramsHelper.setDefaultValue(URLParam.Sort, SortParamValue.Date)
         }
     }
 
-    console.log(`Returned params: ${newUrl.searchParams}`)
+    const newUrl = createNewUrl(request, paramsHelper)
     return NextResponse.rewrite(newUrl)
 }
 
-const createNewUrl = (request: NextRequest): URL => {
+const createNewUrl = (request: NextRequest, paramsHelper: SearchParamsHelper): URL => {
     const url = new URL(request.nextUrl.pathname, request.url);
-    const splitSearch = request.nextUrl.search.split('?')
-    if (splitSearch.length > 1) {
-        const params = splitSearch[1].split("&")
-        const dict = new Map<string, string>();
-        params.forEach((param: string) => {
-            const splitParam = param.split("=")
-            dict.set(splitParam[0], splitParam[1])
-        })
-        for (const [key, value] of dict) {
-            url.searchParams.set(key, value);
-        }
+    for (const [key, value] of paramsHelper.params) {
+        url.searchParams.set(key, value);
     }
+
     return url
 }
 

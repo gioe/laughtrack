@@ -1,19 +1,15 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
-
-import { headers } from "next/headers";
-import { URLParams } from "../objects/type/urlParams";
 import { QueryHelper } from "../objects/class/query/QueryHelper";
 import EntityCarousel from "../components/carousel";
 import ShowSearchForm from "../components/form/forms/showSearch";
 import { getDB } from "../database";
 const { database } = getDB();
 
-export default async function HomePage(props: {
-    searchParams: Promise<URLParams>;
-}) {
+export default async function HomePage(props: any) {
     const filters = await QueryHelper.storePageParams(
         props.searchParams,
-        headers(),
+        props.params,
     );
     const { cities, comedians } = await database.page.getHomePageData(filters);
 

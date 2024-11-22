@@ -12,6 +12,7 @@ import {
     WestSideComedyClub,
     ComedyVillage
 } from "../../jobs/scrape/clubs";
+import { StMarksComedyClub } from "../../jobs/scrape/clubs/St. Marks Comedy Club";
 import { ClubInterface } from "../../objects/class/club/club.interface";
 import { ComedyClub } from "../../objects/enum";
 import { ScrapingOutput } from "../../objects/interface";
@@ -51,6 +52,8 @@ export const clubScrapingFunction = (
             return new Caveat(club, browser).scrape();
         case ComedyClub.WestSideComedyClub:
             return new WestSideComedyClub(club, browser).scrape();
+        case ComedyClub.StMarksComedyClub:
+            return new StMarksComedyClub(club, browser).scrape();
         default:
             throw new Error("No club name found");
     }

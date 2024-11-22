@@ -14,7 +14,7 @@ WITH filtered_data AS (
     WHERE ci.id = ${city_id}
     AND s.date < ${end_date}
     AND s.date > ${start_date}
-    ORDER BY ${sort:name} ASC
+    ORDER BY ${sort:name} ${direction:value}
     LIMIT ${size} 
     OFFSET ${offset}
 ),

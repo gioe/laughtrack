@@ -4,7 +4,7 @@ import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { useState } from "react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { URLParam } from "../../../objects/enum";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { cn } from "../../../util/tailwindUtil";
 import { SortOptionInterface } from "../../../objects/interface";
 import { SearchParamsHelper } from "../../../objects/class/params/SearchParamsHelper";
@@ -15,13 +15,16 @@ interface SortParamComponentProps {
 }
 
 export function SortParamComponent({ options }: SortParamComponentProps) {
+    const readOnlySearchParams = useSearchParams();
+    const searchParams = new URLSearchParams(readOnlySearchParams);
+    const paramsHelper = new SearchParamsHelper(searchParams);
+
     const navigator = new Navigator(usePathname(), useRouter());
 
     const defaultOption = options.find(
         (value) =>
-            value.value == SearchParamsHelper.getParamValue(URLParam.Sort) &&
-            value.direction ==
-                SearchParamsHelper.getParamValue(URLParam.Direction),
+            value.value == paramsHelper.getParamValue(URLParam.Sort) &&
+            value.direction == paramsHelper.getParamValue(URLParam.Direction),
     );
 
     const [selectedSortingOption, setSelectedSortingOption] = useState(
@@ -42,12 +45,9 @@ export function SortParamComponent({ options }: SortParamComponentProps) {
     };
 
     const modifySortParam = (sortValue: SortOptionInterface) => {
-        SearchParamsHelper.setParamValue(URLParam.Sort, sortValue.value);
-        SearchParamsHelper.setParamValue(
-            URLParam.Direction,
-            sortValue.direction,
-        );
-        navigator.replaceRoute(SearchParamsHelper.asParamsString());
+        paramsHelper.setParamValue(URLParam.Sort, sortValue.value);
+        paramsHelper.setParamValue(URLParam.Direction, sortValue.direction);
+        navigator.replaceRoute(paramsHelper.asParamsString());
         setSelectedSortingOption(sortValue);
     };
 

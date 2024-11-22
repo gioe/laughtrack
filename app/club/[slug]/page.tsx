@@ -1,22 +1,15 @@
 import { EntityType } from "../../../objects/enum";
 import QueryableEntityTableContainer from "../../../components/container";
-import { URLParams } from "../../../objects/type/urlParams";
-import { SlugInterface } from "../../../objects/interface";
 import { QueryHelper } from "../../../objects/class/query/QueryHelper";
-import { headers } from "next/headers";
 import ScrapeEntityModal from "../../../components/modals/scrape";
 import ClearShowsModal from "../../../components/modals/clearClub";
 import EntityBanner from "../../../components/banner";
 import { getDB } from "../../../database";
 const { database } = getDB();
 
-export default async function ClubDetailPage(props: {
-    params: Promise<SlugInterface>;
-    searchParams: Promise<URLParams>;
-}) {
+export default async function ClubDetailPage(props) {
     const filters = await QueryHelper.storePageParams(
         props.searchParams,
-        headers(),
         props.params,
     );
 

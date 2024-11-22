@@ -14,7 +14,8 @@ export enum ComedyClub {
     EastvilleComedyClubBrooklyn = "Eastville Comedy Club Brooklyn",
     ComedyVillage = "Comedy Village",
     Caveat = "Caveat",
-    WestSideComedyClub = "West Side Comedy Club"
+    WestSideComedyClub = "West Side Comedy Club",
+    StMarksComedyClub = "St. Marks Comedy Club"
 }
 
 export const allComedyClubs = [
@@ -32,4 +33,5 @@ export const allComedyClubs = [
     ComedyClub.ComedyVillage,
     ComedyClub.Caveat,
     ComedyClub.WestSideComedyClub,
+    ComedyClub.StMarksComedyClub,
 ]

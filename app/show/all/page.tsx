@@ -1,20 +1,18 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 import QueryableEntityTableContainer from "../../../components/container";
-import { headers } from "next/headers";
 import { EntityType } from "../../../objects/enum";
-import { URLParams } from "../../../objects/type/urlParams";
 import { QueryHelper } from "../../../objects/class/query/QueryHelper";
 import { getDB } from "../../../database";
 const { database } = getDB();
 
-export default async function ShowSearchPage(props: {
-    searchParams: Promise<URLParams>;
-}) {
+export default async function ShowSearchPage(props: any) {
     const filters = await QueryHelper.storePageParams(
         props.searchParams,
-        headers(),
+        props.params,
     );
+    console.log(`Current query filters: ${JSON.stringify(filters)}`);
 
     const { entities, total } =
         await database.page.getShowSearchPageData(filters);

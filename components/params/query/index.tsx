@@ -5,7 +5,7 @@ import SearchIcon from "../../icons/SearchIcon";
 import React, { useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { URLParam } from "../../../objects/enum";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { SearchParamsHelper } from "../../../objects/class/params/SearchParamsHelper";
 import { Navigator } from "../../../objects/class/navigate/Navigator";
 
@@ -16,10 +16,14 @@ interface QueryParamComponentProps {
 const QueryParamComponent: React.FC<QueryParamComponentProps> = ({
     inputPlaceholder,
 }) => {
+    const readOnlySearchParams = useSearchParams();
+    const searchParams = new URLSearchParams(readOnlySearchParams);
+    const paramsHelper = new SearchParamsHelper(searchParams);
+
     const navigator = new Navigator(usePathname(), useRouter());
 
     const [value, setValue] = useState(
-        SearchParamsHelper.getParamValue(URLParam.Query) as string,
+        paramsHelper.getParamValue(URLParam.Query) as string,
     );
 
     const handleInputChange = (value: string) => {
@@ -28,8 +32,8 @@ const QueryParamComponent: React.FC<QueryParamComponentProps> = ({
     };
 
     const handleSearch = useDebouncedCallback((term) => {
-        SearchParamsHelper.setParamValue(URLParam.Query, term);
-        navigator.replaceRoute(SearchParamsHelper.asParamsString());
+        paramsHelper.setParamValue(URLParam.Query, term);
+        navigator.replaceRoute(paramsHelper.asParamsString());
     }, 300);
 
     return (

@@ -3,7 +3,7 @@ import { IExtensions } from '.';
 import { ShowDTO } from '../../objects/class/show/show.interface';
 import { ComedianDTO } from '../../objects/class/comedian/comedian.interface';
 import { LineupItemDTO, ScrapingOutput } from '../../objects/interface';
-import { apiActionMap } from '../sql';
+import { apiActionMap, queryMap } from '../sql';
 
 const columnSets: {
     addAllComedians: ColumnSet | null;
@@ -36,21 +36,36 @@ export class ScraperRepository {
     }
 
     async storeScrapingOutput(data: ScrapingOutput): Promise<null> {
-        const show = await this.addShow(data.show);
-        if (data.comedians.length > 0) {
-            return this.addComedians(data.comedians)
-                .then(() => {
-                    const lineupItems = data.comedians.map((comedian: ComedianDTO) => {
-                        return {
-                            show_id: show.id,
-                            comedian_id: comedian.uuid ?? ""
-                        }
-                    }) as LineupItemDTO[]
-                    return this.addLineupItems(lineupItems);
-                })
-        }
+        const showId = (await this.addShow(data.show)).id;
 
-        return null
+        if (data.comedians.length == 0) {
+            return this.queryShowNameForComedians(data.show.name)
+                .then((comedians: ComedianDTO[]) => {
+                    if (comedians.length === 0) return null
+                    return this.addComediansAndLineupItems(comedians, showId)
+                })
+        } else {
+            return this.addComediansAndLineupItems(data.comedians, showId)
+        }
+    }
+
+    private async queryShowNameForComedians(showName: string): Promise<ComedianDTO[]> {
+        return this.db.manyOrNone(queryMap.getComediansFromShowName, {
+            showName
+        })
+    }
+
+    private async addComediansAndLineupItems(comedians: ComedianDTO[], showId: number): Promise<null> {
+        return this.addComedians(comedians)
+            .then(() => {
+                const lineupItems = comedians.map((comedian: ComedianDTO) => {
+                    return {
+                        show_id: showId,
+                        comedian_id: comedian.uuid ?? ""
+                    }
+                }) as LineupItemDTO[]
+                return this.addLineupItems(lineupItems);
+            })
     }
 
     private addShow(instance: ShowDTO): Promise<{ id: number }> {

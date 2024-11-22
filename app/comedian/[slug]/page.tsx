@@ -1,9 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import QueryableEntityTableContainer from "../../../components/container";
-import { URLParams } from "../../../objects/type/urlParams";
 import { QueryHelper } from "../../../objects/class/query/QueryHelper";
 import { EntityType } from "../../../objects/enum";
-import { headers } from "next/headers";
-import { SlugInterface } from "../../../objects/interface";
 import MergeComediansModal from "../../../components/modals/mergeComedians";
 import EditSocialDataModal from "../../../components/modals/socialData";
 import TagEntityModal from "../../../components/modals/tagEntity";
@@ -11,13 +9,9 @@ import EntityBanner from "../../../components/banner";
 import { getDB } from "../../../database";
 const { database } = getDB();
 
-export default async function ComedianDetailsPage(props: {
-    params: Promise<SlugInterface>;
-    searchParams: Promise<URLParams>;
-}) {
+export default async function ComedianDetailsPage(props: any) {
     const filters = await QueryHelper.storePageParams(
         props.searchParams,
-        headers(),
         props.params,
     );
 

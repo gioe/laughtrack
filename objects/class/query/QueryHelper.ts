@@ -1,8 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { SearchParamsHelper } from "../params/SearchParamsHelper";
 import { URLParam } from "../../enum";
-import { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
-import { URLParams } from "../../type/urlParams";
 import { SlugInterface } from "../../interface";
 
 // This class is meant to capture all of the page parameters that Next provides us with.
@@ -12,17 +11,15 @@ import { SlugInterface } from "../../interface";
 export class QueryHelper {
 
     slug?: string
-    headers?: ReadonlyHeaders;
+    searchParamsHelper: SearchParamsHelper;
     private static instance: QueryHelper;
 
-    static getInstance() {
-        if (!QueryHelper.instance) {
-            QueryHelper.instance = new QueryHelper();
-        }
-        return QueryHelper.instance;
+    constructor(searchParamsHelper: SearchParamsHelper, slug?: string) {
+        this.slug = slug
+        this.searchParamsHelper = searchParamsHelper
     }
 
-    static asQueryFilters() {
+    asQueryFilters() {
         return {
             // Sort
             ...this.getSortValue(),
@@ -45,53 +42,52 @@ export class QueryHelper {
         }
     }
 
-    static getSortValue() {
-        return { sort: SearchParamsHelper.getParamValue(URLParam.Sort) }
+    getSortValue() {
+        return { sort: this.searchParamsHelper.getParamValue(URLParam.Sort) }
     }
 
-    static getQueryPattern() {
-        const queryValue = SearchParamsHelper.getParamValue(URLParam.Query);
+    getQueryPattern() {
+        const queryValue = this.searchParamsHelper.getParamValue(URLParam.Query);
         return { query: `%${queryValue ?? ""}%` }
     }
 
-    static getOffset() {
-        const size = SearchParamsHelper.getParamValue(URLParam.Size) as number
-        const page = (SearchParamsHelper.getParamValue(URLParam.Page) as number) - 1
+    getOffset() {
+        const size = this.searchParamsHelper.getParamValue(URLParam.Size) as number
+        const page = (this.searchParamsHelper.getParamValue(URLParam.Page) as number) - 1
         return { offset: size * page }
     }
 
-    static getSize() {
-        return { size: SearchParamsHelper.getParamValue(URLParam.Size) }
+    getSize() {
+        return { size: this.searchParamsHelper.getParamValue(URLParam.Size) }
     }
 
-    static getDirection() {
-        return { direction: SearchParamsHelper.getParamValue(URLParam.Direction) }
+    getDirection() {
+        return { direction: this.searchParamsHelper.getParamValue(URLParam.Direction) }
     }
 
-    static getSlug() {
-        return QueryHelper.getInstance().slug ? { slug: decodeURI(QueryHelper.getInstance().slug ?? "") } : {}
+    getSlug() {
+        return this.slug ? { slug: decodeURI(this.slug ?? "") } : {}
     }
 
-    static getCityId() {
-        return SearchParamsHelper.getParamValue(URLParam.City) ? { city_id: SearchParamsHelper.getParamValue(URLParam.City) } : {}
+    getCityId() {
+        return this.searchParamsHelper.getParamValue(URLParam.City) ? { city_id: this.searchParamsHelper.getParamValue(URLParam.City) } : {}
     }
 
-    static getStartDate() {
-        return SearchParamsHelper.getParamValue(URLParam.StartDate) ? { start_date: SearchParamsHelper.getParamValue(URLParam.StartDate) } : {}
+    getStartDate() {
+        return this.searchParamsHelper.getParamValue(URLParam.StartDate) ? { start_date: this.searchParamsHelper.getParamValue(URLParam.StartDate) } : {}
     }
 
-    static getEndDate() {
-        return SearchParamsHelper.getParamValue(URLParam.EndDate) ? { end_date: SearchParamsHelper.getParamValue(URLParam.EndDate) } : {}
+    getEndDate() {
+        return this.searchParamsHelper.getParamValue(URLParam.EndDate) ? { end_date: this.searchParamsHelper.getParamValue(URLParam.EndDate) } : {}
     }
 
-    static async storePageParams(paramsPromise: Promise<URLParams>, headersPromise: Promise<ReadonlyHeaders>,
-        slugPromise?: Promise<SlugInterface>) {
-        const promises = [SearchParamsHelper.storeParams(paramsPromise), headersPromise, slugPromise]
+    static async storePageParams(paramsPromise: Promise<any>, slugPromise?: Promise<SlugInterface>) {
+        const promises = [paramsPromise, slugPromise]
         return Promise.all(promises).then((values: unknown[]) => {
-            QueryHelper.getInstance().headers = values[1] as ReadonlyHeaders
-            QueryHelper.getInstance().slug = values[2] ? ((values[2] as SlugInterface).slug) : undefined
-        }).then(() => {
-            return QueryHelper.asQueryFilters()
+            const searchParams = new URLSearchParams(values[0] as string)
+            const searchParamsHelper = new SearchParamsHelper(searchParams)
+            const helper = new QueryHelper(searchParamsHelper, (values[1] as SlugInterface).slug)
+            return helper.asQueryFilters()
         })
     }
 

@@ -104,13 +104,19 @@ export class Caveat implements ClubScraper, ShowScraper {
             .navigateToUrl(page, link)
             .then(() => delay(2000))
             .then(() => {
+                if (pause) { return page.pause() }
+                return
+            })
+            .then(() => {
                 if (pause) { page.pause() }
-                return this.scraper.scrape({
+
+                const output = this.scraper.scrape({
                     comedianNameLocator: page.locator(COMEDIAN_NAME),
                     dateTimeLocator: page.locator(DATE_TIME),
                     showNameLocator: page.locator(SHOW_NAME),
                     priceLocator: page.locator(PRICE),
                 });
+                return output
             })
             .then((scrapingOutput: unknown[]) =>
                 this.processOutput(scrapingOutput, link),

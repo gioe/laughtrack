@@ -1,18 +1,16 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import QueryableEntityTableContainer from "../../../components/container";
-import { URLParams } from "../../../objects/type/urlParams";
 import { QueryHelper } from "../../../objects/class/query/QueryHelper";
 import { EntityType } from "../../../objects/enum";
-import { headers } from "next/headers";
 import { getDB } from "../../../database";
 const { database } = getDB();
 
-export default async function ClubSearchPage(props: {
-    searchParams: Promise<URLParams>;
-}) {
+export default async function ClubSearchPage(props: any) {
     const filters = await QueryHelper.storePageParams(
         props.searchParams,
-        headers(),
+        props.params,
     );
+
     const { entities, total } =
         await database.page.getClubSearchPageData(filters);
 

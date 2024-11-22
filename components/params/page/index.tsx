@@ -3,7 +3,7 @@
 import { useState } from "react";
 import TablePagination from "@mui/material/TablePagination";
 import { URLParam } from "../../../objects/enum";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { SearchParamsHelper } from "../../../objects/class/params/SearchParamsHelper";
 import { Navigator } from "../../../objects/class/navigate/Navigator";
 
@@ -14,13 +14,17 @@ interface PageParamComponentProps {
 export function PageParamComponent({
     itemCount,
 }: Readonly<PageParamComponentProps>) {
+    const readOnlySearchParams = useSearchParams();
+    const searchParams = new URLSearchParams(readOnlySearchParams);
+    const paramsHelper = new SearchParamsHelper(searchParams);
+
     const navigator = new Navigator(usePathname(), useRouter());
     const defaultIndex =
-        (SearchParamsHelper.getParamValue(URLParam.Page) as number) - 1;
+        (paramsHelper.getParamValue(URLParam.Page) as number) - 1;
     const [pageIndex, setPageIndex] = useState(defaultIndex);
 
     const [rowsPerPage, setRowsPerPage] = useState(
-        SearchParamsHelper.getParamValue(URLParam.Size) as number,
+        paramsHelper.getParamValue(URLParam.Size) as number,
     );
 
     const handleChangeOffset = (
@@ -30,16 +34,16 @@ export function PageParamComponent({
         setPageIndex(newPageIndex);
 
         const newPageValue = newPageIndex + 1;
-        SearchParamsHelper.setParamValue(URLParam.Page, newPageValue);
-        navigator.replaceRoute(SearchParamsHelper.asParamsString());
+        paramsHelper.setParamValue(URLParam.Page, newPageValue);
+        navigator.replaceRoute(paramsHelper.asParamsString());
     };
 
     const handleChangeRows = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => {
         const rowSizeValue = parseInt(event.target.value, 10);
-        SearchParamsHelper.setParamValue(URLParam.Size, rowSizeValue);
-        navigator.replaceRoute(SearchParamsHelper.asParamsString());
+        paramsHelper.setParamValue(URLParam.Size, rowSizeValue);
+        navigator.replaceRoute(paramsHelper.asParamsString());
         setRowsPerPage(rowSizeValue);
     };
 

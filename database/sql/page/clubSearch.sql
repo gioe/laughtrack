@@ -4,7 +4,7 @@ with filtered_data as (
     from
         clubs
     Where name ILIKE ${query}
-    ORDER BY ${sort:name} ASC
+    ORDER BY ${sort:name} ${direction:value}
     LIMIT ${size} 
     OFFSET ${offset}
 ),

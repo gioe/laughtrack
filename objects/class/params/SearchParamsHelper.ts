@@ -1,42 +1,44 @@
 
 
+
 import { URLParam } from "../../enum";
 import { formatParamValue, getDefaultQueryParamValue } from "../../../util/primatives/paramUtil";
-import { URLParams } from "../../type/urlParams";
+
+export type ParamValue = string | number | Date | undefined | null;
 
 export class SearchParamsHelper {
     // Properties
-    params = new URLSearchParams();
+    params: URLSearchParams;
+    uuid: string;
     private static instance: SearchParamsHelper;
 
-    static getInstance() {
-        if (!SearchParamsHelper.instance) {
-            SearchParamsHelper.instance = new SearchParamsHelper();
+    constructor(params: URLSearchParams) {
+        this.params = params;
+        this.uuid = crypto.randomUUID()
+    }
+
+    setParamValue(key: URLParam, value: ParamValue) {
+        this.params.set(key, formatParamValue(value) ?? "");
+    }
+
+    removeParamValue(key: URLParam) {
+        this.params.delete(key);
+    }
+
+    getParamValue(key: URLParam): ParamValue {
+        return this.params.get(key) ?? getDefaultQueryParamValue(key)
+    }
+
+    asParamsString() {
+        return this.params.toString()
+    }
+
+    setDefaultValue(key: URLParam, value: ParamValue): void {
+        const currentValue = this.getParamValue(key)
+        if (currentValue == undefined) {
+            this.setParamValue(key, value)
         }
-        return SearchParamsHelper.instance;
-    }
 
-    static async storeParams(urlParams: Promise<URLParams>): Promise<void> {
-        return urlParams.then((resolvedParams: URLParams) => {
-            this.getInstance().params = new URLSearchParams(resolvedParams as Record<string, string>);
-        })
     }
-
-    static setParamValue(key: URLParam, value: string | number | Date) {
-        this.getInstance().params.set(key, formatParamValue(value));
-    }
-
-    static removeParamValue(key: URLParam,) {
-        this.getInstance().params.delete(key);
-    }
-
-    static getParamValue(key: URLParam): string | number | undefined {
-        return this.getInstance().params.get(key) ?? getDefaultQueryParamValue(key)
-    }
-
-    static asParamsString() {
-        return this.getInstance().params.toString()
-    }
-
 
 }

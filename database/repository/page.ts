@@ -60,6 +60,7 @@ export class PageDataRepository {
     }
 
     async getClubSearchPageData(filters: any): Promise<AllClubPageData> {
+        console.log(`Current query filters: ${JSON.stringify(filters)}`);
         return this.db.one(pageDataMap.clubSearch, filters).then((data: AllClubPageDTO) => {
             return {
                 entities: data.response.data.map((result: ClubDTO) => new Club(result)),
@@ -69,6 +70,7 @@ export class PageDataRepository {
     }
 
     async getClubDetailPageData(filters: any): Promise<ClubDetailPageData> {
+        console.log(`Current query filters: ${JSON.stringify(filters)}`);
         return this.db.one(pageDataMap.clubDetail, filters).then((data: ClubDetailDTO) => {
             return {
                 entity: new Club(data.response.data),
@@ -78,6 +80,7 @@ export class PageDataRepository {
     }
 
     async getShowSearchPageData(filters: any): Promise<AllShowPageData> {
+        console.log(`Current query filters: ${JSON.stringify(filters)}`);
         return this.db.one(pageDataMap.showSearch, filters).then((data: AllShowPageDTO) => {
             return {
                 entities: data.response.data.map((result: ShowDTO) => new Show(result)),

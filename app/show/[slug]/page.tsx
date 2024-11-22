@@ -1,8 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import QueryableEntityTableContainer from "../../../components/container";
 import { EntityType } from "../../../objects/enum";
 import { QueryHelper } from "../../../objects/class/query/QueryHelper";
-import { headers } from "next/headers";
-import { URLParams } from "../../../objects/type/urlParams";
 import { getDB } from "../../../database";
 const { database } = getDB();
 import ScrapeEntityModal from "../../../components/modals/scrape";
@@ -10,13 +9,9 @@ import ModifyLineupModal from "../../../components/modals/modifyLineup";
 import TagEntityModal from "../../../components/modals/tagEntity";
 import EntityBanner from "../../../components/banner";
 
-export default async function ShowDetailPage(props: {
-    params: Promise<{ slug: string }>;
-    searchParams: Promise<URLParams>;
-}) {
+export default async function ShowDetailPage(props: any) {
     const filters = await QueryHelper.storePageParams(
         props.searchParams,
-        headers(),
         props.params,
     );
 
