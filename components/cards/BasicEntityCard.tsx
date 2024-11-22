@@ -11,6 +11,7 @@ import { useSession } from "next-auth/react";
 import SocialMediaBar from "../social/SocialMediaBar";
 import axios from "axios";
 import { Entity } from "../../objects/interface";
+import { SocialData } from "../../objects/class/socialData/SocialData";
 
 interface BasicEntityCardProps {
     entity: Entity;
@@ -61,6 +62,7 @@ const BasicEntityCard: React.FC<BasicEntityCardProps> = ({ entity }) => {
                             alt="Comedian"
                             src={src}
                             fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                             onError={onError}
                             priority={false}
                             style={{ objectFit: "cover" }}
@@ -89,7 +91,9 @@ const BasicEntityCard: React.FC<BasicEntityCardProps> = ({ entity }) => {
                         {entity.name}
                     </h4>
                     {entity.socialData && (
-                        <SocialMediaBar data={entity.socialData} />
+                        <SocialMediaBar
+                            data={entity.socialData as SocialData}
+                        />
                     )}
                 </div>
             </div>

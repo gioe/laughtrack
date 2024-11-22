@@ -29,7 +29,6 @@ export class Comedian implements ComedianInterface {
         this.name = capitalized(cleanString);
         this.containedEntities = input.dates !== undefined ? input.dates.map((dto: ShowDTO) => new Show(dto)) : []
         this.socialData = input.social_data !== undefined ? new SocialData(input.social_data) : undefined;
-        console.log(`Comedian social data: ${JSON.stringify(input.social_data)}`)
         this.tags = []
         this.isFavorite = input.is_favorite ?? false
         this.id = input.id ?? 0

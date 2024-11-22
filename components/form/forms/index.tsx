@@ -27,29 +27,31 @@ export default function BaseForm({
     onSubmit,
 }: BaseFormProps) {
     return (
-        <Form {...form}>
-            <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className={`flex ${direction == FormDirection.Vertical ? "flex-col" : "flex-row"}`}
-            >
-                {body}
-                {secondaryButtonData && (
-                    <ButtonComponent
-                        data={secondaryButtonData}
-                        disabled={false}
-                        onClick={() => {
-                            console.log("FOOOOO");
-                        }}
-                    />
-                )}
-                <div className="flex justify-center">
-                    {primaryButton ? (
-                        primaryButton
-                    ) : (
-                        <DefaultFormButton label="OK" />
+        <div className="flex justify-center">
+            <Form {...form}>
+                <form
+                    onSubmit={form.handleSubmit(onSubmit)}
+                    className={`flex ${direction == FormDirection.Vertical ? "flex-col" : "flex-row"}`}
+                >
+                    {body}
+                    {secondaryButtonData && (
+                        <ButtonComponent
+                            data={secondaryButtonData}
+                            disabled={false}
+                            onClick={() => {
+                                console.log("FOOOOO");
+                            }}
+                        />
                     )}
-                </div>
-            </form>
-        </Form>
+                    <div className="flex justify-center">
+                        {primaryButton ? (
+                            primaryButton
+                        ) : (
+                            <DefaultFormButton label="OK" />
+                        )}
+                    </div>
+                </form>
+            </Form>
+        </div>
     );
 }

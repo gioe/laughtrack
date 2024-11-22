@@ -22,12 +22,10 @@ export default async function HomePage(props: any) {
                 <h2 className="font-bold text-5xl text-white p-5">
                     Laughtrack
                 </h2>
-                <h3 className="text-white pt-1 p-5 text-xl">
-                    Find your next show
-                </h3>
+                <h3 className="text-white pt-1 p-5 text-xl">Find some funny</h3>
             </section>
 
-            <section className="m-4 mt-0 -mb-8 px-2 lg:px-4">
+            <section>
                 <ShowSearchForm cities={citiesString} />
             </section>
 

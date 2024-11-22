@@ -9,7 +9,7 @@ import {
     SortParamValue,
     URLParam,
 } from "../../../../objects/enum";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { homeSearchSchema } from "./schema";
 import { useState } from "react";
 import { Navigator } from "../../../../objects/class/navigate/Navigator";
@@ -25,6 +25,10 @@ interface HomeSearchFormProps {
 }
 
 export default function ShowSearchForm({ cities }: HomeSearchFormProps) {
+    const readOnlySearchParams = useSearchParams();
+    const searchParams = new URLSearchParams(readOnlySearchParams);
+    const paramsHelper = new SearchParamsHelper(searchParams);
+
     const selectableCities = (JSON.parse(cities) as CityInterface[]).map(
         (city: CityInterface) => {
             return {
@@ -51,13 +55,13 @@ export default function ShowSearchForm({ cities }: HomeSearchFormProps) {
 
     function submitForm(data: z.infer<typeof homeSearchSchema>) {
         setIsLoading(true);
-        SearchParamsHelper.setParamValue(URLParam.City, data.cityId);
-        SearchParamsHelper.setParamValue(URLParam.StartDate, data.dates.from);
-        SearchParamsHelper.setParamValue(URLParam.EndDate, data.dates.to);
-        SearchParamsHelper.setParamValue(URLParam.Sort, SortParamValue.Date);
+        paramsHelper.setParamValue(URLParam.City, data.cityId);
+        paramsHelper.setParamValue(URLParam.StartDate, data.dates.from);
+        paramsHelper.setParamValue(URLParam.EndDate, data.dates.to);
+        paramsHelper.setParamValue(URLParam.Sort, SortParamValue.Date);
         navigator.pushPageFromParams(
             RoutePath.ShowSearch,
-            SearchParamsHelper.asParamsString(),
+            paramsHelper.asParamsString(),
         );
     }
 

@@ -1,14 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import {
-    GroupedSocialDataDTO,
-    PopularityScoreIODTO,
-    SocialDataDTO,
-    SocialDataInterface,
-} from "../../objects/interface";
-import {
-    averagePopularityScore,
-    generatePopularityScore,
-} from ".";
+
+import { SocialDataDTO, SocialDataInterface } from "../../objects/class/socialData/socialData.interface";
 
 export const toSocialDataInterface = (
     payload: SocialDataDTO,
@@ -27,21 +18,5 @@ export const toSocialDataInterface = (
             account: payload.youtube_account ?? ""
         },
         website: payload.website,
-    };
-};
-
-
-export const toPopularityScores = (
-    payload: GroupedSocialDataDTO[] | SocialDataDTO[],
-): PopularityScoreIODTO[] => {
-    return payload.map((data: any) => toPopularityScore(data));
-};
-
-export const toPopularityScore = (payload: any): PopularityScoreIODTO => {
-    return {
-        id: payload.id,
-        popularity: payload.scores
-            ? averagePopularityScore(payload.scores)
-            : generatePopularityScore(payload),
     };
 };
