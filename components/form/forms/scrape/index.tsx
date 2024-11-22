@@ -29,7 +29,7 @@ export default function ScrapeEntityForm({
         defaultValues: {
             entityId,
             headless: "true",
-            pause: "true",
+            pause: "false",
         },
     });
 

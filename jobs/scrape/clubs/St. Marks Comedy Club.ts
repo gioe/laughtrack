@@ -78,7 +78,6 @@ export class StMarksComedyClub implements ClubScraper, ShowScraper {
     };
 
     processOutput = async (output: unknown[]): Promise<ScrapingOutput> => {
-        console.log(output)
         const show = new Show({
             date: new DateTimeContainer(
                 output[1] as string[],

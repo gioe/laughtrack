@@ -21,6 +21,7 @@ export interface ScrapingArgs {
     ticketLinkLocator?: Locator;
     showNameLocator: Locator;
     priceLocator?: Locator;
+    descriptionLocator?: Locator
 }
 
 export interface Scrapable {

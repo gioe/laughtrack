@@ -19,6 +19,7 @@ const DATE_TIME =
     "div.tribe-events-schedule.tribe-clearfix > h2 > span.tribe-event-date-start";
 const SHOW_NAME = "h1.tribe-events-single-event-title";
 const PRICE = "span.tribe-amount";
+const DESCRIPTION = "div.tribe-events-single-event-description.tribe-events-content > p";
 const SEPARATOR = " @ ";
 
 export class ComedyVillage implements ClubScraper {
@@ -99,6 +100,7 @@ export class ComedyVillage implements ClubScraper {
                     dateTimeLocator: page.locator(DATE_TIME),
                     showNameLocator: page.locator(SHOW_NAME),
                     priceLocator: page.locator(PRICE),
+                    descriptionLocator: page.locator(DESCRIPTION)
                 });
             })
             .then((scrapingOutput: any[]) =>
@@ -120,6 +122,7 @@ export class ComedyVillage implements ClubScraper {
             name: output[3],
             club_id: this.clubData.id,
             last_scraped_date: new Date(),
+            description: output[5] as string
         });
         return {
             show: show.asShowDTO(),

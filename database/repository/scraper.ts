@@ -39,7 +39,7 @@ export class ScraperRepository {
         const showId = (await this.addShow(data.show)).id;
 
         if (data.comedians.length == 0) {
-            return this.queryShowNameForComedians(data.show.name)
+            return this.queryShowMetadataForComedians(data.show)
                 .then((comedians: ComedianDTO[]) => {
                     if (comedians.length === 0) return null
                     return this.addComediansAndLineupItems(comedians, showId)
@@ -49,9 +49,10 @@ export class ScraperRepository {
         }
     }
 
-    private async queryShowNameForComedians(showName: string): Promise<ComedianDTO[]> {
-        return this.db.manyOrNone(queryMap.getComediansFromShowName, {
-            showName
+    private async queryShowMetadataForComedians(show: ShowDTO): Promise<ComedianDTO[]> {
+        return this.db.manyOrNone(queryMap.getComediansFromShowMetadata, {
+            showName: show.name,
+            showDescription: show.description
         })
     }
 
@@ -75,7 +76,8 @@ export class ScraperRepository {
             ticket_link: instance.ticket.link,
             name: instance.name,
             price: instance.ticket.price,
-            last_scraped_date: instance.last_scraped_date
+            last_scraped_date: instance.last_scraped_date,
+            description: instance.description
         });
     }
 

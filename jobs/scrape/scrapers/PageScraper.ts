@@ -67,6 +67,29 @@ export class PageScraper {
                 });
     };
 
+
+    getDescription = async (locator?: Locator): Promise<string> => {
+        return locator == undefined
+            ? ""
+            : locator.all()
+                .then(async (locators: Locator[]) => {
+                    let joinedString = ""
+                    locators.forEach(async (value: Locator) => {
+                        const content = await this.pageManager
+                            .getTextContent(value)
+                        console.log(`This is the text content: ${content}`)
+                        joinedString = joinedString + " " + content
+                    })
+                    console.log(`This is the finalized description string: ${joinedString}`)
+                    return joinedString
+                })
+                .catch((error) => {
+                    console.error(`Error getting description: ${error}`);
+                    return "";
+                })
+    };
+
+
     scrape = async (args: ScrapingArgs): Promise<unknown[]> => {
         return runTasks<unknown>([
             this.getShowLineup(args.comedianNameLocator),
@@ -74,6 +97,7 @@ export class PageScraper {
             this.getTicketLink(args.ticketLinkLocator),
             this.getName(args.showNameLocator),
             this.getPrice(args.priceLocator),
+            this.getDescription(args.descriptionLocator)
         ]);
     };
 }

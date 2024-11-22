@@ -19,6 +19,7 @@ const DATE_TIME =
 const SHOW_NAME = "div.event-info-title";
 const PRICE =
     "#event-info-right-sticky > div.event-info-right-container > div > div > div";
+const DESCRIPTION = "b";
 
 export class WilliamsburgComedyClub implements ClubScraper {
     private clubData: ClubInterface;
@@ -75,6 +76,8 @@ export class WilliamsburgComedyClub implements ClubScraper {
         page: playwright.Page,
         links: string[],
     ): Promise<ScrapingOutput[]> => {
+
+
         const scrapedOutput: ScrapingOutput[] = [];
 
         for (let index = 0; index < links.length - 1; index++) {
@@ -101,6 +104,7 @@ export class WilliamsburgComedyClub implements ClubScraper {
                     dateTimeLocator: page.locator(DATE_TIME),
                     showNameLocator: page.locator(SHOW_NAME),
                     priceLocator: page.locator(PRICE),
+                    descriptionLocator: page.locator(DESCRIPTION),
                 });
             })
             .then((scrapingOutput: unknown[]) =>

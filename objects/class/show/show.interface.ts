@@ -18,6 +18,7 @@ export interface ShowInterface extends Taggable, Entity, SocialDiscoverable {
     clubId: number;
     ticket: Ticket;
     lastScrapedDate?: Date
+    description?: string
 
     getLineup: () => Comedian[]
 }
@@ -34,6 +35,7 @@ export interface ShowDTO {
     lineup?: ComedianDTO[]
     id?: number;
     last_scraped_date?: Date
+    description?: string;
 }
 
 export interface PaginatedShowResponseDTO {

@@ -9,7 +9,6 @@ export class DateTimeContainer {
 
     constructor(scrapedValues: string[], dateTimeSeparator?: string) {
         let fullString = scrapedValues.join();
-        console.log(fullString)
 
         if (dateTimeSeparator) {
             fullString = fullString.replaceAll(dateTimeSeparator, " ");
