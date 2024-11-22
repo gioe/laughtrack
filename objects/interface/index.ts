@@ -15,13 +15,6 @@ import {
     PaginatedEntityDTO
 } from "./paginatedEntity.interface";
 import { SlugInterface } from "./slug.interface";
-import {
-    SocialDataInterface,
-    SocialDiscoverable,
-    SocialDataDTO,
-    GroupedSocialDataDTO,
-    PopularityScoreIODTO,
-} from "./socialData.interface";
 import { SortOptionInterface } from "./sortOption.interface";
 import {
     TagInterface,
@@ -43,19 +36,14 @@ export type {
     ScrapingArgs,
     ScrapingOutput,
     SlugInterface,
-    SocialDataInterface,
     SortOptionInterface,
     TagInterface,
     Taggable,
     AuthToken,
     UserInterface,
     UserDTO,
-    SocialDiscoverable,
-    PopularityScoreIODTO,
     Favoritable,
     CheckboxOption,
-    GroupedSocialDataDTO,
-    SocialDataDTO,
     FavoriteDTO,
     PaginationData,
     ClubScraper,

@@ -5,30 +5,31 @@ import InstagramIcon from "../icons/InstagramIcon";
 import TikTokIcon from "../icons/TikTokIcon";
 import WebIcon from "../icons/WebIcon";
 import YouTubeIcon from "../icons/YoutubeIcon";
-import { SocialDataInterface } from "../../objects/interface";
+import { SocialData } from "../../objects/class/socialData/SocialData";
 
 interface SocialMediaBarProps {
-    data: SocialDataInterface;
+    data: SocialData;
 }
 
 const SocialMediaBar: React.FC<SocialMediaBarProps> = ({ data }) => {
-    console.log(data);
     return (
         <div className="flex flex-row gap-4 justify-center items-center pb-6">
-            {data.instagram && (
-                <Link href={`https://instagram.com/${data.instagram.account}`}>
+            {data.hasInstagramAccount() && (
+                <Link href={`https://instagram.com/${data.instagram?.account}`}>
                     <InstagramIcon className="instagram-icon" />
                 </Link>
             )}
 
-            {data.tiktok && (
-                <Link href={`https://tiktok.com/@${data.tiktok.account}`}>
+            {data.hasTiktokAccount() && (
+                <Link href={`https://tiktok.com/@${data.tiktok?.account}`}>
                     <TikTokIcon className="tiktok-icon" />
                 </Link>
             )}
 
-            {data.youtube && (
-                <Link href={`https://www.youtube.com/@${data.youtube.account}`}>
+            {data.hasYoutubeAccount() && (
+                <Link
+                    href={`https://www.youtube.com/@${data.youtube?.account}`}
+                >
                     <YouTubeIcon className="youtube-icon" />
                 </Link>
             )}

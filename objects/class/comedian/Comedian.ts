@@ -1,19 +1,21 @@
-import { toSocialDataInterface } from "../../../util/socialData/mapper";
 import { EntityType } from "../../enum";
 import {
     removeBadWhiteSpace,
     capitalized
 } from "../../../util/primatives/stringUtil";
-import { Entity, SocialDataInterface, TagInterface } from "../../interface";
+import { Entity, TagInterface } from "../../interface";
 import { Show } from "../show/Show";
 import { ShowDTO } from "../show/show.interface";
 import { ComedianDTO, ComedianInterface } from "./comedian.interface";
 import { generateHash } from "../../../util/hashUtil";
+import { SocialData } from "../socialData/SocialData";
+
+
 export class Comedian implements ComedianInterface {
 
     name: string;
     uuid?: string;
-    socialData: SocialDataInterface;
+    socialData?: SocialData;
     tags: TagInterface[];
     isFavorite: boolean;
     id: number;
@@ -26,7 +28,8 @@ export class Comedian implements ComedianInterface {
         const cleanString = removeBadWhiteSpace(input.name);
         this.name = capitalized(cleanString);
         this.containedEntities = input.dates !== undefined ? input.dates.map((dto: ShowDTO) => new Show(dto)) : []
-        this.socialData = input.social_data !== undefined ? toSocialDataInterface(input.social_data) : {};
+        this.socialData = input.social_data !== undefined ? new SocialData(input.social_data) : undefined;
+        console.log(`Comedian social data: ${JSON.stringify(input.social_data)}`)
         this.tags = []
         this.isFavorite = input.is_favorite ?? false
         this.id = input.id ?? 0

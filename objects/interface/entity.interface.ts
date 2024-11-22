@@ -4,7 +4,7 @@ import { CardRepresentable } from "./cardRepresentable.interface";
 import { EntityContainer } from "./entityContainer.interface";
 import { Favoritable } from "./favoritable.interface";
 import { Identifiable } from "./identifable.interface";
-import { SocialDiscoverable } from "./socialData.interface";
+import { SocialDiscoverable } from "../class/socialData/socialData.interface";
 import { Taggable } from "./taggable.interface";
 
 export interface Entity extends Identifiable, Favoritable, SocialDiscoverable, Taggable, BannerRepresentable, CardRepresentable, EntityContainer {

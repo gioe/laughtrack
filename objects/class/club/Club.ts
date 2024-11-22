@@ -1,8 +1,8 @@
-import { toSocialDataInterface } from "../../../util/socialData/mapper";
 import { EntityType } from "../../enum";
-import { Entity, SocialDataInterface, TagInterface } from "../../interface";
+import { Entity, TagInterface } from "../../interface";
 import { Show } from "../show/Show";
 import { ShowDTO } from "../show/show.interface";
+import { SocialData } from "../socialData/SocialData";
 import { ClubDTO, ClubInterface } from "./club.interface";
 
 export class Club implements ClubInterface {
@@ -10,7 +10,7 @@ export class Club implements ClubInterface {
     city: string;
     address: string;
     zipCode: string;
-    socialData: SocialDataInterface;
+    socialData?: SocialData;
     tags: TagInterface[];
     name: string;
     isFavorite: boolean;
@@ -27,7 +27,7 @@ export class Club implements ClubInterface {
         this.address = input.address;
         this.zipCode = input.zip_code;
         this.containedEntities = input.dates !== undefined ? input.dates.map((date: ShowDTO) => new Show(date)) : [];
-        this.socialData = input.social_data !== undefined ? toSocialDataInterface(input.social_data) : {};
+        this.socialData = input.social_data !== undefined ? new SocialData(input.social_data) : undefined;
         this.tags = [];
         this.name = input.name
         this.isFavorite = input.is_Favorite ?? false;

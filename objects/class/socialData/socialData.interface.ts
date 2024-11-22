@@ -1,21 +1,23 @@
+import { SocialData } from "./SocialData";
+
 // Client
 export interface SocialDataInterface {
-    instagram?: SocialMediaAccount;
-    tiktok?: SocialMediaAccount;
-    youtube?: SocialMediaAccount;
-    facebook?: SocialMediaAccount;
-    twitter?: SocialMediaAccount;
+    instagram?: SocialMediaAccountInterface;
+    tiktok?: SocialMediaAccountInterface;
+    youtube?: SocialMediaAccountInterface;
+    facebook?: SocialMediaAccountInterface;
+    twitter?: SocialMediaAccountInterface;
     website?: string;
     popularityScore?: number;
 }
 
-export interface SocialMediaAccount {
-    account: string,
+export interface SocialMediaAccountInterface {
+    account?: string,
     following: number;
 }
 
 export interface SocialDiscoverable {
-    socialData?: SocialDataInterface;
+    socialData?: SocialData;
 }
 
 // DTO
@@ -29,6 +31,11 @@ export interface SocialDataDTO {
     youtube_account?: string;
     website?: string;
     popularity?: number;
+}
+
+export interface SocialMediaAccountDTO {
+    account: string,
+    following: number;
 }
 
 export interface GroupedSocialDataDTO {

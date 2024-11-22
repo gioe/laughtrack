@@ -7,7 +7,6 @@ export async function POST(
     req: NextRequest,
 ) {
     const { name } = await req.json()
-    console.log(name)
     return database.actions.addComedian({
         name,
         uuid: generateHash(name)

@@ -3,7 +3,7 @@ import {
     TagDTO,
     Entity,
 } from "../../interface";
-import { SocialDataDTO } from "../../interface/socialData.interface";
+import { SocialDataDTO } from "../socialData/socialData.interface";
 import { ShowDTO } from "../show/show.interface";
 
 // Client

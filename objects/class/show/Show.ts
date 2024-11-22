@@ -1,16 +1,16 @@
-import { toSocialDataInterface } from "../../../util/socialData/mapper";
 import { EntityType } from "../../enum";
-import { Entity, SocialDataInterface, TagInterface } from "../../interface";
+import { Entity, TagInterface } from "../../interface";
 import { Comedian } from "../comedian/Comedian";
 import { ComedianDTO } from "../comedian/comedian.interface";
 import { ShowDTO, ShowInterface } from "./show.interface";
 import { Ticket } from "../ticket/Ticket";
+import { SocialData } from "../socialData/SocialData";
 
 export class Show implements ShowInterface {
     // Properties
     name: string;
     date: Date;
-    socialData: SocialDataInterface;
+    socialData?: SocialData;
     popularityScore?: number | undefined;
     clubName?: string | undefined;
     clubId: number;
@@ -29,7 +29,7 @@ export class Show implements ShowInterface {
     constructor(input: ShowDTO) {
         this.name = input.name;
         this.date = input.date;
-        this.socialData = input.social_data !== undefined ? toSocialDataInterface(input.social_data) : {};
+        this.socialData = input.social_data !== undefined ? new SocialData(input.social_data) : undefined;
         this.containedEntities = input.lineup ? input.lineup.map((item: ComedianDTO) => new Comedian(item)) : []
         this.clubName = input.club_name;
         this.ticket = new Ticket(input.ticket)

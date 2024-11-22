@@ -3,7 +3,7 @@ import {
     TagInterface,
     Entity,
 } from "../../interface";
-import { SocialDataDTO, SocialDiscoverable } from "../../interface/socialData.interface";
+import { SocialDataDTO, SocialDiscoverable } from "../socialData/socialData.interface";
 import { Comedian } from "../comedian/Comedian";
 import { ComedianDTO } from "../comedian/comedian.interface";
 import { Ticket } from "../ticket/Ticket";
