@@ -10,7 +10,8 @@ import {
     EastvilleComedyClub,
     Caveat,
     WestSideComedyClub,
-    ComedyVillage
+    ComedyVillage,
+    Grove34
 } from "../../jobs/scrape/clubs";
 import { StMarksComedyClub } from "../../jobs/scrape/clubs/St. Marks Comedy Club";
 import { ClubInterface } from "../../objects/class/club/club.interface";
@@ -54,6 +55,8 @@ export const clubScrapingFunction = (
             return new WestSideComedyClub(club, browser).scrape();
         case ComedyClub.StMarksComedyClub:
             return new StMarksComedyClub(club, browser).scrape();
+        case ComedyClub.Grove34:
+            return new Grove34(club, browser).scrape();
         default:
             throw new Error("No club name found");
     }
@@ -90,6 +93,8 @@ export const showScrapingFunction = (
             return new Caveat(club, browser).scrapeShow(url, pause);
         case ComedyClub.WestSideComedyClub:
             return new WestSideComedyClub(club, browser).scrapeShow(url, pause);
+        case ComedyClub.Grove34:
+            throw new Error(`Not possible to scape page urls individually on this club`)
         case ComedyClub.ComedyCellarNewYork:
             throw new Error(`Not possible to scape page urls individually on this club`)
         case ComedyClub.TheStand:

@@ -2,7 +2,6 @@
 import QueryableEntityTableContainer from "../../../components/container";
 import { QueryHelper } from "../../../objects/class/query/QueryHelper";
 import { EntityType } from "../../../objects/enum";
-import MergeComediansModal from "../../../components/modals/mergeComedians";
 import EditSocialDataModal from "../../../components/modals/socialData";
 import TagEntityModal from "../../../components/modals/tagEntity";
 import EntityBanner from "../../../components/banner";
@@ -23,7 +22,6 @@ export default async function ComedianDetailsPage(props: any) {
     return (
         <main className="flex-grow pt-5 bg-shark">
             <section>
-                <MergeComediansModal entityString={entityString} />
                 <EditSocialDataModal entityString={entityString} />
                 <TagEntityModal
                     type={EntityType.Comedian}

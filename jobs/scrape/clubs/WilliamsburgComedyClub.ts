@@ -123,6 +123,7 @@ export class WilliamsburgComedyClub implements ClubScraper {
             name: output[3],
             club_id: this.clubData.id,
             last_scraped_date: new Date(),
+            description: output[5] as string
         });
         return {
             show: show.asShowDTO(),

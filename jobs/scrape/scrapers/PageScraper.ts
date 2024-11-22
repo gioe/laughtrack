@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/prefer-for-of */
 import { Locator } from "playwright-core";
 import { capitalized } from "../../../util/primatives/stringUtil";
 import { toPrice } from "../../../util/primatives/priceUtil";
@@ -74,13 +75,11 @@ export class PageScraper {
             : locator.all()
                 .then(async (locators: Locator[]) => {
                     let joinedString = ""
-                    locators.forEach(async (value: Locator) => {
+                    for (let index = 0; index < locators.length; index++) {
                         const content = await this.pageManager
-                            .getTextContent(value)
-                        console.log(`This is the text content: ${content}`)
+                            .getTextContent(locators[index])
                         joinedString = joinedString + " " + content
-                    })
-                    console.log(`This is the finalized description string: ${joinedString}`)
+                    }
                     return joinedString
                 })
                 .catch((error) => {

@@ -2,26 +2,23 @@
 import Heading from "../../../modals/heading";
 import { FormInput } from "../../components/input";
 
-interface MergeComediansFormBodyProps {
+interface AddNewComedianFormBodyProps {
     isLoading: boolean;
     form: any;
 }
 
-export default function MergeComediansFormBody({
+export default function AddNewComedianFormBody({
     isLoading,
     form,
-}: MergeComediansFormBodyProps) {
+}: AddNewComedianFormBodyProps) {
     return (
         <div className="flex flex-col gap-4">
-            <Heading
-                title="Merge Comedians"
-                subtitle="Merge comedian with a parent entity"
-            />
+            <Heading title="Add New Comedian" />
             <FormInput
-                type={"number"}
+                type={"text"}
                 isLoading={isLoading}
-                name="parentId"
-                placeholder="Parent Id"
+                name="name"
+                placeholder="Comedian name"
                 form={form}
             />
         </div>

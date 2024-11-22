@@ -2,8 +2,7 @@ import { toSocialDataInterface } from "../../../util/socialData/mapper";
 import { EntityType } from "../../enum";
 import {
     removeBadWhiteSpace,
-    capitalized,
-    removeNonAlphanumeric,
+    capitalized
 } from "../../../util/primatives/stringUtil";
 import { Entity, SocialDataInterface, TagInterface } from "../../interface";
 import { Show } from "../show/Show";
@@ -45,8 +44,7 @@ export class Comedian implements ComedianInterface {
     };
 
     hashName() {
-        const normalizedName = removeNonAlphanumeric(this.name).toLocaleLowerCase()
-        return generateHash(normalizedName)
+        return generateHash(this.name)
     }
 
     getDates() {

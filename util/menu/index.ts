@@ -19,7 +19,6 @@ export const getMenuItemsForEntityType = (type: EntityType) => {
             return [
                 { key: "social", label: "Edit Social Data", hook: hooks.useSocialDataModal },
                 { key: "tags", label: "Add Tags", hook: hooks.useAddEntityTagModal },
-                // { key: "merge", label: "Merge Comedians", hook: hooks.useMergeComediansModal },
             ]
     }
 }

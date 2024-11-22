@@ -10,7 +10,7 @@ import { EastvilleComedyClub } from "./EastvilleComedyClub";
 import { Caveat } from "./Caveat";
 import { ComedyVillage } from "./ComedyVillage";
 import { WestSideComedyClub } from "./WestSideComedyClub";
-
+import { Grove34 } from "./Grove34"
 export {
     ComedyCellar,
     NewYorkComedyClub,
@@ -24,4 +24,5 @@ export {
     Caveat,
     ComedyVillage,
     WestSideComedyClub,
+    Grove34
 };

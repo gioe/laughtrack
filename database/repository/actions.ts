@@ -3,6 +3,7 @@ import { IDatabase, IMain } from 'pg-promise';
 import { IExtensions } from '.';
 import { apiActionMap } from '../sql';
 import { UserDTO } from '../../objects/interface';
+import { ComedianDTO } from '../../objects/class/comedian/comedian.interface';
 
 export class ActionRepository {
 
@@ -30,6 +31,13 @@ export class ActionRepository {
             email: user.email,
             role: user.role,
             password: user.password
+        });
+    }
+
+    async addComedian(comedian: ComedianDTO): Promise<any> {
+        return this.db.one(apiActionMap.addComedian, {
+            name: comedian.name,
+            uuid: comedian.uuid,
         });
     }
 }

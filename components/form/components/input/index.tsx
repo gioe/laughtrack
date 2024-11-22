@@ -31,7 +31,7 @@ export function FormInput({
             render={({ field }) => {
                 return (
                     <FormItem>
-                        <FormControl>
+                        <FormControl className="bg-white">
                             <Input
                                 disabled={isLoading}
                                 type={type ?? "text"}

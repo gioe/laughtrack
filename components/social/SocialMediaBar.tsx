@@ -12,6 +12,7 @@ interface SocialMediaBarProps {
 }
 
 const SocialMediaBar: React.FC<SocialMediaBarProps> = ({ data }) => {
+    console.log(data);
     return (
         <div className="flex flex-row gap-4 justify-center items-center pb-6">
             {data.instagram && (

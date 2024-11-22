@@ -15,6 +15,7 @@ import { City } from "../objects/class/city/City";
 import { EntityType } from "../objects/enum";
 import ScrapeEntitySelectionMenuModal from "../components/modals/scrapeIds";
 import { getDB } from "../database";
+import AddComedianModal from "../components/modals/addComedian";
 const { database } = getDB();
 
 interface RootProps {
@@ -82,6 +83,7 @@ export default async function RootLayout({
                                 type={EntityType.Club}
                                 citiesString={citiesString}
                             />
+                            <AddComedianModal />
                             {children}
                             <Footer />
                         </ClientOnly>

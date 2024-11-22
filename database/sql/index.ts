@@ -17,7 +17,8 @@ export const pageDataMap = {
 export const apiActionMap = {
     deleteShows: sql("actions/deleteShows.sql").qf,
     addShow: sql("actions/addShow.sql").qf,
-    addUser: sql("actions/addUser.sql").qf
+    addUser: sql("actions/addUser.sql").qf,
+    addComedian: sql("actions/addComedian.sql").qf
 }
 
 export const queryMap = {

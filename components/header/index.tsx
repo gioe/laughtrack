@@ -23,6 +23,7 @@ import useLoginModal from "../../hooks/modalState/useLoginModal";
 import useRegisterModal from "../../hooks/modalState/useRegisterModel";
 import { UserInterface } from "../../objects/interface";
 import { useScrapeMenuModal } from "../../hooks/modalState";
+import useAddNewComedianModal from "../../hooks/modalState/useAddNewComedianModal";
 
 const comedianMenuItems = [
     {
@@ -50,6 +51,7 @@ const Header: React.FC<NavbarProps> = ({ currentUser }) => {
     const loginModal = useLoginModal();
     const registerModal = useRegisterModal();
     const scrapeMenuModal = useScrapeMenuModal();
+    const newComedianModal = useAddNewComedianModal();
 
     const handleLoginClick = useCallback(() => {
         loginModal.onOpen();
@@ -189,6 +191,19 @@ const Header: React.FC<NavbarProps> = ({ currentUser }) => {
                                 className="text-sm font-semibold leading-6 text-gray-900"
                             >
                                 Scrape
+                            </button>
+                        </>
+                    )}
+
+                    {currentUser && currentUser.role == "admin" && (
+                        <>
+                            <button
+                                onClick={() => {
+                                    newComedianModal.onOpen();
+                                }}
+                                className="text-sm font-semibold leading-6 text-gray-900"
+                            >
+                                Add Comedian
                             </button>
                         </>
                     )}

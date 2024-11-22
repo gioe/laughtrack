@@ -1631,3 +1631,9 @@
 09:22:40 error: Property 'description' doesn't exist.
          query: INSERT INTO shows(club_id, date, ticket_link, name, price, last_scraped_date, description) VALUES(${club_id}, ${date}, ${ticket_link}, ${name}, ${price}, ${last_scraped_date}, ${description}) ON CONFLICT (club_id, date) DO UPDATE SET club_id = EXCLUDED.club_id, ticket_link = EXCLUDED.ticket_link, last_scraped_date = EXCLUDED.last_scraped_date, name = EXCLUDED.name, price = EXCLUDED.price, description = EXCLUDED.description RETURNING id;
          params: {"club_id":14,"date":"2024-11-23T01:00:00.000Z","ticket_link":"https://comedyvillage.com/event/friday-22nd-nov-8pm-comedy-village-in-times-square-special/#tribe-tickets__tickets-form","name":"Friday 22nd Nov @8pm – Comedy Village Times Square Presents","price":"28.00","last_scraped_date":"2024-11-22T14:22:40.098Z"}
+
+12:50:26 error: No data returned from the query.
+         query: INSERT INTO comedians(name, uuid) VALUES('Sue Costello', '27dd20f90f25325ac2f42bd2c250cd82') ON CONFLICT DO NOTHING;
+
+12:52:20 error: No data returned from the query.
+         query: INSERT INTO comedians(name, uuid) VALUES('Sue Costello', '27dd20f90f25325ac2f42bd2c250cd82') ON CONFLICT DO NOTHING;

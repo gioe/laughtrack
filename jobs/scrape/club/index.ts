@@ -1,15 +1,16 @@
 
 'use server';
-import playwright from "playwright";
 import { ScrapingOutput } from "../../../objects/interface";
 import { runTasks } from "../../../util/promiseUtil";
 import { flattenArrayList } from "../../../util/primatives/arrayUtil";
 import { ClubDTO, ClubInterface } from "../../../objects/class/club/club.interface";
 import { clubScrapingFunction } from "../../../util/scrape";
 import { Club } from "../../../objects/class/club/Club";
-import { getDB } from "../../../database";
 import { writeLogToFile } from "../../../util/logUtil";
+import { chromium } from "playwright-extra"
+import StealthPlugin from "puppeteer-extra-plugin-stealth"
 const { database } = getDB();
+import { getDB } from "../../../database";
 
 export async function scrapeClubs(clubs: ClubDTO[], headless: boolean): Promise<string> {
 
@@ -44,7 +45,9 @@ const runScraper = async (
     club: ClubInterface,
     headless?: boolean,
 ): Promise<ScrapingOutput[]> => {
-    return playwright.chromium
+    chromium.use(StealthPlugin())
+
+    return chromium
         .launch({ headless: headless ?? false })
         .then((browser) => clubScrapingFunction(club, browser));
 };
