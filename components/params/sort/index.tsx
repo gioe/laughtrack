@@ -45,8 +45,8 @@ export function SortParamComponent({ options }: SortParamComponentProps) {
     };
 
     const modifySortParam = (sortValue: SortOptionInterface) => {
-        paramsHelper.setParamValue(URLParam.Sort, sortValue.value);
-        paramsHelper.setParamValue(URLParam.Direction, sortValue.direction);
+        paramsHelper.updateParamValue(URLParam.Sort, sortValue.value);
+        paramsHelper.updateParamValue(URLParam.Direction, sortValue.direction);
         navigator.replaceRoute(paramsHelper.asParamsString());
         setSelectedSortingOption(sortValue);
     };

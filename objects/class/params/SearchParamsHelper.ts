@@ -17,34 +17,40 @@ export class SearchParamsHelper {
         this.uuid = crypto.randomUUID()
     }
 
-    addOrRemoveParamValue(key: URLParam, value: ParamValue) {
-        if (this.params.getAll(key).includes(value as string)) {
-            this.params.delete(key)
+
+    updateParamValue(key: URLParam, value: ParamValue, isArrayValue = false) {
+        const currentKeyValue = this.params.get(key)
+        const paramValue = formatParamValue(value) ?? "";
+        if (isArrayValue) {
+            this.handleArrayParam(key, paramValue, currentKeyValue)
+        } else {
+            this.setParamValue(key, paramValue);
         }
-        this.params.append(key, formatParamValue(value) ?? "");
-        console.log(this.params.getAll(key))
     }
 
-    setParamValue(key: URLParam, value: ParamValue, isArrayValue = false) {
-        const values = this.params.getAll(key)
-        const paramValue = formatParamValue(value) ?? "";
+    handleArrayParam(key: URLParam, newValue: string, currentValue: string | null) {
+        let newValues = currentValue?.split(',')
+        if (newValues !== undefined) {
 
-        if (isArrayValue) {
-            if (values.includes(paramValue)) {
-                const newValues = values.filter((value: string) => value !== paramValue)
-                if (newValues.length == 0) {
-                    this.removeParam(key)
-                } else {
-                    this.params.set(key, newValues.join(','));
-                }
+            if (newValues.includes(newValue)) {
+                newValues = newValues.filter((value: string) => value !== newValue)
             } else {
-                const newValues = [...values, paramValue]
-                this.params.set(key, newValues.join(','));
+                newValues.push(newValue)
             }
-        } else {
-            this.params.set(key, paramValue);
-        }
 
+            if (newValues.length == 0) {
+                this.removeParam(key)
+            } else {
+                this.setParamValue(key, newValues.join(','));
+            }
+
+        } else {
+            this.setParamValue(key, newValue);
+        }
+    }
+
+    private setParamValue(key: URLParam, value: string) {
+        this.params.set(key, value);
     }
 
     removeParam(key: URLParam) {
@@ -62,7 +68,8 @@ export class SearchParamsHelper {
     setDefaultValue(key: URLParam, value: ParamValue): void {
         const currentValue = this.getParamValue(key)
         if (currentValue == undefined) {
-            this.setParamValue(key, value)
+            const paramValue = formatParamValue(value) ?? "";
+            this.setParamValue(key, paramValue)
         }
 
     }

@@ -32,7 +32,7 @@ const QueryParamComponent: React.FC<QueryParamComponentProps> = ({
     };
 
     const handleSearch = useDebouncedCallback((term) => {
-        paramsHelper.setParamValue(URLParam.Query, term);
+        paramsHelper.updateParamValue(URLParam.Query, term);
         navigator.replaceRoute(paramsHelper.asParamsString());
     }, 300);
 

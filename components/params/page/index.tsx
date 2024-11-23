@@ -34,7 +34,7 @@ export function PageParamComponent({
         setPageIndex(newPageIndex);
 
         const newPageValue = newPageIndex + 1;
-        paramsHelper.setParamValue(URLParam.Page, newPageValue);
+        paramsHelper.updateParamValue(URLParam.Page, newPageValue);
         navigator.replaceRoute(paramsHelper.asParamsString());
     };
 
@@ -42,7 +42,7 @@ export function PageParamComponent({
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => {
         const rowSizeValue = parseInt(event.target.value, 10);
-        paramsHelper.setParamValue(URLParam.Size, rowSizeValue);
+        paramsHelper.updateParamValue(URLParam.Size, rowSizeValue);
         navigator.replaceRoute(paramsHelper.asParamsString());
         setRowsPerPage(rowSizeValue);
     };
