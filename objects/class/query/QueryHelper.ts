@@ -39,6 +39,8 @@ export class QueryHelper {
             ...this.getStartDate(),
             // End Date
             ...this.getEndDate(),
+            // Tags
+            ...this.getTags()
         }
     }
 
@@ -79,6 +81,10 @@ export class QueryHelper {
 
     getEndDate() {
         return this.searchParamsHelper.getParamValue(URLParam.EndDate) ? { end_date: this.searchParamsHelper.getParamValue(URLParam.EndDate) } : {}
+    }
+
+    getTags() {
+        return this.searchParamsHelper.getParamValue(URLParam.EndDate) ? { tags: this.searchParamsHelper.getParamValue(URLParam.EndDate) } : {}
     }
 
     static async storePageParams(paramsPromise: Promise<any>, slugPromise?: Promise<SlugInterface>) {

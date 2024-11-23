@@ -1,4 +1,15 @@
-WITH filtered_data AS (
+WITH tagged_shows AS (
+	SELECT
+		s.id AS show_id,
+	FROM
+		shows s
+		JOIN tagged_shows ts ON s.id = ts.show_id
+		JOIN tags t ON ts.tag_id = t.id
+		JOIN tag_category tc ON t.category = tc.id
+	WHERE
+		tc.param_value IN (${params}:csv) AND t.id IN (${tags}:csv)
+),
+filtered_data AS (
 	SELECT
 		s.id AS id,
 		s.name AS name,
@@ -9,6 +20,7 @@ WITH filtered_data AS (
 		jsonb_build_object('price', s.price, 'link', s.ticket_link) AS ticket
 	FROM
 		shows s
+		LEFT JOIN tagged_shows ts ON ts.show_id = s.id
 		INNER JOIN clubs cl ON cl.id = s.club_id
 		INNER JOIN cities ci ON cl.city_id = ci.id
     WHERE ci.id = ${city_id}
@@ -37,7 +49,7 @@ total_count AS (
     WHERE ci.id = ${city_id}
         AND s.date < ${end_date}
         AND s.date > ${start_date}
-)
+)4
 SELECT
 	jsonb_build_object('data', COALESCE(jsonb_agg(jsonb_build_object('id', fd.id, 'date', date, 'name', fd.name, 'ticket', ticket, 'club_name', club_name, 'scrapedate', scrapedate, 'lineup', l.lineup)) FILTER (WHERE fd.id IS NOT NULL), '[]'), 'total', (
 			SELECT
