@@ -1,24 +1,41 @@
 
 
 
-import { URLParam } from "../../enum";
 import { formatParamValue, getDefaultQueryParamValue } from "../../../util/primatives/paramUtil";
 
-export type ParamValue = string | number | Date | undefined | null;
+enum ParamType {
+    Array,
+    String
+}
+
+interface URLParam {
+    type: ParamType
+}
+
+type ClientParamValue = string | number | Date;
+type ParamsDictValue = string | string[]
+type ParamsDict = Map<URLParam, ParamsDictValue>
 
 export class SearchParamsHelper {
     // Properties
-    params: URLSearchParams;
-    uuid: string;
-    private static instance: SearchParamsHelper;
+    paramsDict: ParamsDict;
 
+    // Our helper will always be initialized with server values, or the values you see in the URL.
+    // We will convert this to something more domain specific to align more closely with our
+    // business logic.
     constructor(params: URLSearchParams) {
-        this.params = params;
-        this.uuid = crypto.randomUUID()
+        this.paramsDict = this.initializeParamsDict(params)
     }
 
+    initializeParamsDict(searchParams: URLSearchParams) {
+        const newDict = new Map<URLParam, ParamsDictValue>()
+        for (const [key, value] of searchParams.entries()) {
+            newDict[key] = value
+        }
+        return newDict;
+    }
 
-    updateParamValue(key: URLParam, value: ParamValue, isArrayValue = false) {
+    updateParamValue(key: URLParam, value: ClientParamValue, isArrayValue = false) {
         const currentKeyValue = this.params.get(key)
         const paramValue = formatParamValue(value) ?? "";
         if (isArrayValue) {

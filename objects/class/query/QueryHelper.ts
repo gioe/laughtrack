@@ -39,8 +39,10 @@ export class QueryHelper {
             ...this.getStartDate(),
             // End Date
             ...this.getEndDate(),
+            // Params,
+            ...this.getParams(),
             // Tags
-            ...this.getTags()
+            ...this.getTags(),
         }
     }
 
@@ -81,6 +83,10 @@ export class QueryHelper {
 
     getEndDate() {
         return this.searchParamsHelper.getParamValue(URLParam.EndDate) ? { end_date: this.searchParamsHelper.getParamValue(URLParam.EndDate) } : {}
+    }
+
+    getParams() {
+        return this.searchParamsHelper.getParamValue(URLParam.EndDate) ? { tags: this.searchParamsHelper.getParamValue(URLParam.EndDate) } : {}
     }
 
     getTags() {
