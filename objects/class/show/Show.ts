@@ -5,6 +5,7 @@ import { ComedianDTO } from "../comedian/comedian.interface";
 import { ShowDTO, ShowInterface } from "./show.interface";
 import { Ticket } from "../ticket/Ticket";
 import { SocialData } from "../socialData/SocialData";
+import { capitalized, isLowerCase, isUpperCase, removeBadWhiteSpace } from "../../../util/primatives/stringUtil";
 
 export class Show implements ShowInterface {
     // Properties
@@ -27,7 +28,7 @@ export class Show implements ShowInterface {
 
     // Constructor
     constructor(input: ShowDTO) {
-        this.name = input.name;
+        this.name = this.normalizeName(input.name);
         this.date = input.date;
         this.socialData = input.social_data !== undefined ? new SocialData(input.social_data) : undefined;
         this.containedEntities = input.lineup ? input.lineup.map((item: ComedianDTO) => new Comedian(item)) : []
@@ -42,7 +43,15 @@ export class Show implements ShowInterface {
         this.description = input.description
     }
 
-    getLineup: () => Comedian[];
+
+    normalizeName = (name: string): string => {
+        const cleanString = removeBadWhiteSpace(name);
+
+        if (isUpperCase(cleanString) || isLowerCase(cleanString)) {
+            return capitalized(cleanString)
+        }
+        return cleanString
+    };
 
     overrideDate = (date: string): void => {
         const providedDate = new Date(date);

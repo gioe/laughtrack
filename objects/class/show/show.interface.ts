@@ -4,7 +4,6 @@ import {
     Entity,
 } from "../../interface";
 import { SocialDataDTO, SocialDiscoverable } from "../socialData/socialData.interface";
-import { Comedian } from "../comedian/Comedian";
 import { ComedianDTO } from "../comedian/comedian.interface";
 import { Ticket } from "../ticket/Ticket";
 import { TicketDTO } from "../ticket/ticket.interface";
@@ -19,8 +18,6 @@ export interface ShowInterface extends Taggable, Entity, SocialDiscoverable {
     ticket: Ticket;
     lastScrapedDate?: Date
     description?: string
-
-    getLineup: () => Comedian[]
 }
 
 // DB

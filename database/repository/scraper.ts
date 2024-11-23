@@ -2,8 +2,9 @@ import { ColumnSet, IDatabase, IMain } from 'pg-promise';
 import { IExtensions } from '.';
 import { ShowDTO } from '../../objects/class/show/show.interface';
 import { ComedianDTO } from '../../objects/class/comedian/comedian.interface';
-import { LineupItemDTO, ScrapingOutput, TagDTO } from '../../objects/interface';
+import { LineupItemDTO, ScrapingOutput } from '../../objects/interface';
 import { apiActionMap, queryMap } from '../sql';
+import { TagDataDTO } from '../../objects/interface/tag.interface';
 
 const columnSets: {
     addAllComedians: ColumnSet | null;
@@ -53,12 +54,13 @@ export class ScraperRepository {
 
     async storeShow(show: ShowDTO): Promise<number> {
         const id = (await this.addShow(show)).id;
+        await this.deleteLineup(id)
+
         const tags = await this.db.manyOrNone(queryMap.getTagsFromShowMetadata, {
             showName: show.name.toLocaleLowerCase()
-        }) as TagDTO[]
+        }) as TagDataDTO[]
         if (tags.length > 0) {
-            console.log(tags)
-            const allTags = tags.map((tag: TagDTO) => {
+            const allTags = tags.map((tag: TagDataDTO) => {
                 return {
                     show_id: id,
                     tag_id: tag.id
@@ -68,6 +70,12 @@ export class ScraperRepository {
             await this.db.any(batchInsert)
         }
         return id
+    }
+
+    async deleteLineup(showId: number): Promise<void> {
+        await this.db.any(apiActionMap.deleteLineup, {
+            showId
+        })
     }
 
     private async queryShowMetadataForComedians(show: ShowDTO): Promise<ComedianDTO[]> {

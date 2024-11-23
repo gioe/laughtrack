@@ -25,11 +25,29 @@ export class SearchParamsHelper {
         console.log(this.params.getAll(key))
     }
 
-    setParamValue(key: URLParam, value: ParamValue) {
-        this.params.set(key, formatParamValue(value) ?? "");
+    setParamValue(key: URLParam, value: ParamValue, isArrayValue = false) {
+        const values = this.params.getAll(key)
+        const paramValue = formatParamValue(value) ?? "";
+
+        if (isArrayValue) {
+            if (values.includes(paramValue)) {
+                const newValues = values.filter((value: string) => value !== paramValue)
+                if (newValues.length == 0) {
+                    this.removeParam(key)
+                } else {
+                    this.params.set(key, newValues.join(','));
+                }
+            } else {
+                const newValues = [...values, paramValue]
+                this.params.set(key, newValues.join(','));
+            }
+        } else {
+            this.params.set(key, paramValue);
+        }
+
     }
 
-    removeParamValue(key: URLParam) {
+    removeParam(key: URLParam) {
         this.params.delete(key);
     }
 

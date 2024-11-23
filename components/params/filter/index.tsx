@@ -25,8 +25,8 @@ export function FilterParamComponent({
     const navigator = new Navigator(usePathname(), useRouter());
 
     const appendParam = (name: string, id: number) => {
-        paramsHelper.addOrRemoveParamValue(name as URLParam, id);
-        navigator.replaceRoute(paramsHelper.asParamsString());
+        paramsHelper.setParamValue(name as URLParam, id, true);
+        // navigator.replaceRoute(paramsHelper.asParamsString());
     };
 
     return (

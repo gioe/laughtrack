@@ -47,3 +47,11 @@ export const capitalized = (inputString: string): string => {
 export const removeNonAlphanumeric = (str: string): string => {
     return str.replace(/[^a-zA-Z0-9]/g, "");
 };
+
+export const isUpperCase = (inputString: string): boolean => {
+    return inputString === inputString.toUpperCase();
+}
+
+export const isLowerCase = (inputString: string): boolean => {
+    return inputString === inputString.toLowerCase();
+}
