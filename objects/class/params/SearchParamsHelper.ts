@@ -17,6 +17,14 @@ export class SearchParamsHelper {
         this.uuid = crypto.randomUUID()
     }
 
+    addOrRemoveParamValue(key: URLParam, value: ParamValue) {
+        if (this.params.getAll(key).includes(value as string)) {
+            this.params.delete(key)
+        }
+        this.params.append(key, formatParamValue(value) ?? "");
+        console.log(this.params.getAll(key))
+    }
+
     setParamValue(key: URLParam, value: ParamValue) {
         this.params.set(key, formatParamValue(value) ?? "");
     }

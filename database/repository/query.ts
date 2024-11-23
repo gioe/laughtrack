@@ -6,6 +6,9 @@ import { City } from '../../objects/class/city/City';
 import { CityDTO } from '../../objects/interface/city.interface';
 import { Club } from '../../objects/class/club/Club';
 import { ClubDTO } from '../../objects/class/club/club.interface';
+import { TagData } from '../../objects/class/tag/Tag';
+import { EntityType } from '../../objects/enum';
+import { TagDataDTO } from '../../objects/interface/tag.interface';
 
 export class QueryRepository {
 
@@ -62,6 +65,15 @@ export class QueryRepository {
 
     async userExists(email: string): Promise<any | null> {
         return this.db.oneOrNone('SELECT * FROM users WHERE email = $1', email);
+    }
+
+    async getTags(entityType: EntityType): Promise<TagData[]> {
+        return this.db.manyOrNone(queryMap.getTagsByType, {
+            type: entityType.valueOf()
+        }).then((tags: TagDataDTO[] | null) => {
+            if (tags) return tags.map((dto: TagDataDTO) => new TagData(dto))
+            throw new Error("Error getting clubs")
+        })
     }
 
 }

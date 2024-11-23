@@ -2,17 +2,19 @@ import { ColumnSet, IDatabase, IMain } from 'pg-promise';
 import { IExtensions } from '.';
 import { ShowDTO } from '../../objects/class/show/show.interface';
 import { ComedianDTO } from '../../objects/class/comedian/comedian.interface';
-import { LineupItemDTO, ScrapingOutput } from '../../objects/interface';
+import { LineupItemDTO, ScrapingOutput, TagDTO } from '../../objects/interface';
 import { apiActionMap, queryMap } from '../sql';
 
 const columnSets: {
     addAllComedians: ColumnSet | null;
     addAllShows: ColumnSet | null;
     addAllLineupItems: ColumnSet | null;
+    addAllShowTags: ColumnSet | null;
 } = {
     addAllComedians: null,
     addAllShows: null,
-    addAllLineupItems: null
+    addAllLineupItems: null,
+    addAllShowTags: null
 }
 
 export class ScraperRepository {
@@ -33,10 +35,11 @@ export class ScraperRepository {
             { table: 'shows' });
         columnSets.addAllComedians = new pgp.helpers.ColumnSet(['name', 'uuid'], { table: 'comedians' });
         columnSets.addAllLineupItems = new pgp.helpers.ColumnSet(['show_id', 'comedian_id'], { table: 'lineup_items' });
+        columnSets.addAllShowTags = new pgp.helpers.ColumnSet(['show_id', 'tag_id'], { table: 'tagged_shows' });
     }
 
     async storeScrapingOutput(data: ScrapingOutput): Promise<null> {
-        const showId = (await this.addShow(data.show)).id;
+        const showId = await this.storeShow(data.show)
 
         if (data.comedians.length == 0) {
             return this.queryShowMetadataForComedians(data.show)
@@ -44,9 +47,27 @@ export class ScraperRepository {
                     if (comedians.length === 0) return null
                     return this.addComediansAndLineupItems(comedians, showId)
                 })
-        } else {
-            return this.addComediansAndLineupItems(data.comedians, showId)
         }
+        return this.addComediansAndLineupItems(data.comedians, showId)
+    }
+
+    async storeShow(show: ShowDTO): Promise<number> {
+        const id = (await this.addShow(show)).id;
+        const tags = await this.db.manyOrNone(queryMap.getTagsFromShowMetadata, {
+            showName: show.name.toLocaleLowerCase()
+        }) as TagDTO[]
+        if (tags.length > 0) {
+            console.log(tags)
+            const allTags = tags.map((tag: TagDTO) => {
+                return {
+                    show_id: id,
+                    tag_id: tag.id
+                }
+            })
+            const batchInsert = this.pgp.helpers.insert(allTags, columnSets.addAllShowTags) + ' ON CONFLICT DO NOTHING';
+            await this.db.any(batchInsert)
+        }
+        return id
     }
 
     private async queryShowMetadataForComedians(show: ShowDTO): Promise<ComedianDTO[]> {

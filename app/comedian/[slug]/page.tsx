@@ -16,7 +16,8 @@ export default async function ComedianDetailsPage(props: any) {
 
     const { entity, total } =
         await database.page.getComedianDetailPageData(filters);
-
+    const tags = await database.queries.getTags(EntityType.Show);
+    const tagsString = JSON.stringify(tags);
     const entityString = JSON.stringify(entity);
     const containedEntitiesString = JSON.stringify(entity.containedEntities);
     return (
@@ -36,6 +37,7 @@ export default async function ComedianDetailsPage(props: any) {
                 <QueryableEntityTableContainer
                     entityType={EntityType.Show}
                     totalEntities={total}
+                    tagsString={tagsString}
                     entityCollectionString={containedEntitiesString}
                     defaultNode={
                         <h2 className="font-bold text-5xl text-white pt-6">

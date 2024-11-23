@@ -6,12 +6,11 @@ import {
     DisclosureButton,
     DisclosurePanel,
 } from "@headlessui/react";
-
-import { URLParam } from "../../../objects/enum";
 import { FilterSection } from "../../../objects/interface/filter.interface";
-import { usePathname, useRouter } from "next/navigation";
-import { SearchParamsHelper } from "../../../objects/class/params/SearchParamsHelper";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Navigator } from "../../../objects/class/navigate/Navigator";
+import { SearchParamsHelper } from "../../../objects/class/params/SearchParamsHelper";
+import { URLParam } from "../../../objects/enum";
 
 interface FilterOptionsComponentProps {
     sections: FilterSection[];
@@ -20,11 +19,14 @@ interface FilterOptionsComponentProps {
 export function FilterParamComponent({
     sections,
 }: FilterOptionsComponentProps) {
+    const readOnlySearchParams = useSearchParams();
+    const searchParams = new URLSearchParams(readOnlySearchParams);
+    const paramsHelper = new SearchParamsHelper(searchParams);
     const navigator = new Navigator(usePathname(), useRouter());
 
-    const appendParam = (type: string, filter: string) => {
-        SearchParamsHelper.setParamValue(URLParam.City, "");
-        navigator.replaceRoute(SearchParamsHelper.asParamsString());
+    const appendParam = (name: string, id: number) => {
+        paramsHelper.addOrRemoveParamValue(name as URLParam, id);
+        navigator.replaceRoute(paramsHelper.asParamsString());
     };
 
     return (
@@ -61,17 +63,17 @@ export function FilterParamComponent({
                             <div className="space-y-2">
                                 {section.options.map((option, optionIdx) => (
                                     <div
-                                        key={option.value}
+                                        key={option.id.toString()}
                                         className="flex items-center"
                                     >
                                         <input
                                             onClick={() =>
                                                 appendParam(
-                                                    section.id,
-                                                    option.value,
+                                                    section.value,
+                                                    option.id,
                                                 )
                                             }
-                                            defaultValue={option.value}
+                                            defaultValue={option.id}
                                             defaultChecked={option.selected}
                                             id={`filter-mobile-${section.id}-${optionIdx}`}
                                             name={`${section.id}[]`}
@@ -82,7 +84,7 @@ export function FilterParamComponent({
                                             htmlFor={`filter-mobile-${section.id}-${optionIdx}`}
                                             className="ml-3 min-w-0 flex-1 text-silver-gray"
                                         >
-                                            {option.label}
+                                            {option.name}
                                         </label>
                                     </div>
                                 ))}

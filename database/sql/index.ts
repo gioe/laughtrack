@@ -29,7 +29,9 @@ export const queryMap = {
     getCities: sql("queries/getCities.sql").qf,
     getClubsInCity: sql("queries/getClubsInCity.sql").qf,
     getShowById: sql("queries/getShowById.sql").qf,
-    getComediansFromShowMetadata: sql("queries/getComediansFromShowMetadata.sql").qf
+    getComediansFromShowMetadata: sql("queries/getComediansFromShowMetadata.sql").qf,
+    getTagsFromShowMetadata: sql("queries/getTagsFromShowMetadata.sql").qf,
+    getTagsByType: sql("queries/getTagsByType.sql").qf
 }
 
 interface IQueryFileScope {

@@ -1637,3 +1637,60 @@
 
 12:52:20 error: No data returned from the query.
          query: INSERT INTO comedians(name, uuid) VALUES('Sue Costello', '27dd20f90f25325ac2f42bd2c250cd82') ON CONFLICT DO NOTHING;
+
+18:24:18 error: AggregateError
+         connection: {"user":"postgres","database":"laughtrack","password":"####","max":5}
+
+18:24:18 error: AggregateError
+         connection: {"user":"postgres","database":"laughtrack","password":"####","max":5}
+
+19:12:15 error: column "description" of relation "shows" does not exist
+         query: INSERT INTO shows(club_id, date, ticket_link, name, price, last_scraped_date, description) VALUES(1104, '2024-11-22T18:30:00.000-05:00', 'https://www.tixr.com/groups/stmarkscomedyclub/events/max-manticof-jfl-alexis-carabano-max-macy-kwok-nycf-more--122846', 'Max Manticof (JFL), Alexis Carabano (MAX), Macy Kwok (NYCF) & More!', 0, '2024-11-22T19:12:15.059-05:00', null) ON CONFLICT (club_id, date) DO UPDATE SET club_id = EXCLUDED.club_id, ticket_link = EXCLUDED.ticket_link, last_scraped_date = EXCLUDED.last_scraped_date, name = EXCLUDED.name, price = EXCLUDED.price, description = EXCLUDED.description RETURNING id;
+
+19:14:27 error: relation "tagged_show" does not exist
+         query: insert into "tagged_show"("show_id","tag_id") values(12567,1) ON CONFLICT DO NOTHING
+
+20:16:54 error: syntax error at or near "where"
+         query: with all_data as ( SELECT tc.id, tc.name, tc.type, jsonb_agg(json_build_object('id', t.id, 'name', t.display_name)) as tags FROm tags t JOIN tag_category tc ON t.category = tc.id GROUP BY tc.id ) SELECT * from all_data GROUP BY all_data.name, all_data.id, all_data.tags, all_data.type where all_data.type = 'show'
+
+20:16:58 error: syntax error at or near "where"
+         query: with all_data as ( SELECT tc.id, tc.name, tc.type, jsonb_agg(json_build_object('id', t.id, 'name', t.display_name)) as tags FROm tags t JOIN tag_category tc ON t.category = tc.id GROUP BY tc.id ) SELECT * from all_data GROUP BY all_data.name, all_data.id, all_data.tags, all_data.type where all_data.type = 'show'
+
+20:17:01 error: syntax error at or near "where"
+         query: with all_data as ( SELECT tc.id, tc.name, tc.type, jsonb_agg(json_build_object('id', t.id, 'name', t.display_name)) as tags FROm tags t JOIN tag_category tc ON t.category = tc.id GROUP BY tc.id ) SELECT * from all_data GROUP BY all_data.name, all_data.id, all_data.tags, all_data.type where all_data.type = 'show'
+
+20:17:06 error: syntax error at or near "where"
+         query: with all_data as ( SELECT tc.id, tc.name, tc.type, jsonb_agg(json_build_object('id', t.id, 'name', t.display_name)) as tags FROm tags t JOIN tag_category tc ON t.category = tc.id GROUP BY tc.id ) SELECT * from all_data GROUP BY all_data.name, all_data.id, all_data.tags, all_data.type where all_data.type = 'show'
+
+20:18:36 error: syntax error at or near "where"
+         query: with all_data as ( SELECT tc.id, tc.name, tc.type, jsonb_agg(json_build_object('id', t.id, 'name', t.display_name)) as tags FROm tags t JOIN tag_category tc ON t.category = tc.id GROUP BY tc.id ) SELECT * from all_data GROUP BY all_data.name, all_data.id, all_data.tags, all_data.type where all_data.type = 'show'
+
+20:22:16 error: syntax error at or near "where"
+         query: with all_data as ( SELECT tc.id, tc.name, tc.type, jsonb_agg(json_build_object('id', t.id, 'name', t.display_name)) as tags FROm tags t JOIN tag_category tc ON t.category = tc.id GROUP BY tc.id ) SELECT * from all_data GROUP BY all_data.name, all_data.id, all_data.tags, all_data.type where all_data.type = 'show'
+
+20:22:31 error: syntax error at or near "where"
+         query: with all_data as ( SELECT tc.id, tc.name, tc.type, jsonb_agg(json_build_object('id', t.id, 'name', t.display_name)) as tags FROm tags t JOIN tag_category tc ON t.category = tc.id GROUP BY tc.id ) SELECT * from all_data GROUP BY all_data.name, all_data.id, all_data.tags, all_data.type where all_data.type = 'show'
+
+20:22:37 error: syntax error at or near "where"
+         query: with all_data as ( SELECT tc.id, tc.name, tc.type, jsonb_agg(json_build_object('id', t.id, 'name', t.display_name)) as tags FROm tags t JOIN tag_category tc ON t.category = tc.id GROUP BY tc.id ) SELECT * from all_data GROUP BY all_data.name, all_data.id, all_data.tags, all_data.type where all_data.type = 'show'
+
+20:22:57 error: syntax error at or near "where"
+         query: with all_data as ( SELECT tc.id, tc.name, tc.type, jsonb_agg(json_build_object('id', t.id, 'name', t.display_name)) as tags FROm tags t JOIN tag_category tc ON t.category = tc.id GROUP BY tc.id ) SELECT * from all_data GROUP BY all_data.name, all_data.id, all_data.tags, all_data.type where all_data.type = 'show'
+
+20:23:11 error: syntax error at or near "where"
+         query: with all_data as ( SELECT tc.id, tc.name, tc.type, jsonb_agg(json_build_object('id', t.id, 'name', t.display_name)) as tags FROm tags t JOIN tag_category tc ON t.category = tc.id GROUP BY tc.id ) SELECT * from all_data GROUP BY all_data.name, all_data.id, all_data.tags, all_data.type where all_data.type = 'show'
+
+20:26:00 error: syntax error at or near "where"
+         query: with all_data as ( SELECT tc.id, tc.name, tc.type, jsonb_agg(json_build_object('id', t.id, 'name', t.display_name)) as tags FROm tags t JOIN tag_category tc ON t.category = tc.id GROUP BY tc.id ) SELECT * from all_data GROUP BY all_data.name, all_data.id, all_data.tags, all_data.type where all_data.type = 'show'
+
+20:26:10 error: syntax error at or near "where"
+         query: with all_data as ( SELECT tc.id, tc.name, tc.type, jsonb_agg(json_build_object('id', t.id, 'name', t.display_name)) as tags FROm tags t JOIN tag_category tc ON t.category = tc.id GROUP BY tc.id ) SELECT * from all_data GROUP BY all_data.name, all_data.id, all_data.tags, all_data.type where all_data.type = 'show'
+
+21:19:38 error: column all_data.param_value does not exist
+         query: with all_data as ( SELECT tc.id, tc.name, tc.type, jsonb_agg(json_build_object('id', t.id, 'name', t.display_name)) as tag_options FROm tags t JOIN tag_category tc ON t.category = tc.id GROUP BY tc.id ) SELECT * from all_data where all_data.type = 'show' GROUP BY all_data.name, all_data.id, all_data.tag_options, all_data.type, all_data.param_value
+
+21:20:37 error: column all_data.param_value does not exist
+         query: with all_data as ( SELECT tc.id, tc.name, tc.type, jsonb_agg(json_build_object('id', t.id, 'name', t.display_name)) as tag_options FROm tags t JOIN tag_category tc ON t.category = tc.id GROUP BY tc.id ) SELECT * from all_data where all_data.type = 'show' GROUP BY all_data.name, all_data.id, all_data.tag_options, all_data.type, all_data.param_value
+
+21:20:42 error: column all_data.param_value does not exist
+         query: with all_data as ( SELECT tc.id, tc.name, tc.type, jsonb_agg(json_build_object('id', t.id, 'name', t.display_name)) as tag_options FROm tags t JOIN tag_category tc ON t.category = tc.id GROUP BY tc.id ) SELECT * from all_data where all_data.type = 'show' GROUP BY all_data.name, all_data.id, all_data.tag_options, all_data.type, all_data.param_value

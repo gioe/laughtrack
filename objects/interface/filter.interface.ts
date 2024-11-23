@@ -1,11 +1,12 @@
-export interface CheckboxOption {
-    value: string;
-    label: string;
+export interface Selectable {
+    id: number;
+    name: string;
     selected: boolean;
 }
 
 export interface FilterSection {
-    id: string;
+    id: number;
+    value: string;
     name: string;
-    options: CheckboxOption[];
+    options: Selectable[];
 }

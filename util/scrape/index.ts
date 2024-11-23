@@ -68,6 +68,7 @@ export const showScrapingFunction = (
     browser: playwright.Browser,
     pause: boolean
 ): Promise<ScrapingOutput> => {
+    console.log(club)
     switch (club.name) {
         case ComedyClub.NewYorkComedyClubUpperWestSide:
             return new NewYorkComedyClub(club, browser).scrapeShow(url, pause);

@@ -1,5 +1,4 @@
 import { Favoritable, FavoriteDTO } from "./favoritable.interface";
-import { CheckboxOption } from "./filter.interface";
 import { Scrapable } from "./scrape.interface";
 import { ModalState } from "./modalState.interface";
 import { Paginated, PaginationData } from "./paginated.interface";
@@ -18,7 +17,6 @@ import { SlugInterface } from "./slug.interface";
 import { SortOptionInterface } from "./sortOption.interface";
 import {
     TagInterface,
-    TagDTO
 } from "./tag.interface";
 import { Taggable } from "./taggable.interface";
 import { AuthToken } from "./token.interface";
@@ -43,11 +41,9 @@ export type {
     UserInterface,
     UserDTO,
     Favoritable,
-    CheckboxOption,
     FavoriteDTO,
     PaginationData,
     ClubScraper,
-    TagDTO,
     Identifiable,
     Scrapable,
     Entity,

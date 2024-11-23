@@ -14,12 +14,14 @@ import Table from "../table";
 import QueryParamComponent from "../params/query";
 import { getSortOptionsForEntityType } from "../../util/sort";
 import { EntityType } from "../../objects/enum";
+import { TagData } from "../../objects/class/tag/Tag";
 
 interface QueryableEntityTableContainerProps {
     entityType: EntityType;
     entityCollectionString: string;
     defaultNode: React.ReactNode;
     totalEntities: number;
+    tagsString: string;
 }
 
 export default function QueryableEntityTableContainer({
@@ -27,10 +29,12 @@ export default function QueryableEntityTableContainer({
     entityCollectionString,
     defaultNode,
     totalEntities,
+    tagsString,
 }: QueryableEntityTableContainerProps) {
     const filteredEntityCollection = JSON.parse(
         entityCollectionString,
     ) as Entity[];
+    const tags = JSON.parse(tagsString) as TagData[];
     const [sideDrawerIsOpen, setSideDrawerIsOpen] = useState(false);
 
     const handleButtonClick = (isOpen: boolean) => {
@@ -50,7 +54,7 @@ export default function QueryableEntityTableContainer({
         <div className="bg-shark">
             <DrawerComponent
                 isOpen={sideDrawerIsOpen}
-                child={<FilterParamComponent sections={[]} />}
+                child={<FilterParamComponent sections={tags} />}
                 handleOpen={handleButtonClick}
             />
 

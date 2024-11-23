@@ -9,7 +9,9 @@ export enum URLParam {
     StartDate = "startDate",
     EndDate = "endDate",
     Direction = "direction",
-    Slug = 'slug'
+    Slug = 'slug',
+    Type = 'type',
+    PriceRange = 'price_range'
 }
 
 export const allUrlParams = [
@@ -21,5 +23,7 @@ export const allUrlParams = [
     URLParam.StartDate,
     URLParam.EndDate,
     URLParam.Direction,
-    URLParam.Slug
+    URLParam.Slug,
+    URLParam.Type,
+    URLParam.PriceRange
 ]

@@ -5,9 +5,15 @@ export interface TagInterface {
 }
 
 // DB
-export interface TagDTO {
+export interface TagDataDTO {
     id: number;
-    tag_name: string;
-    type: string;
-    user_facing: boolean;
+    name: string;
+    param_value: string;
+    tag_options: TagOptionDTO[];
+}
+
+export interface TagOptionDTO {
+    id: number;
+    name: string;
+    selected?: boolean;
 }

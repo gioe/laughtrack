@@ -13,7 +13,8 @@ export default async function ClubSearchPage(props: any) {
 
     const { entities, total } =
         await database.page.getClubSearchPageData(filters);
-
+    const tags = await database.queries.getTags(EntityType.Show);
+    const tagsString = JSON.stringify(tags);
     const entityCollectionString = JSON.stringify(entities);
 
     return (
@@ -21,6 +22,7 @@ export default async function ClubSearchPage(props: any) {
             <QueryableEntityTableContainer
                 entityType={EntityType.Club}
                 totalEntities={total}
+                tagsString={tagsString}
                 entityCollectionString={entityCollectionString}
                 defaultNode={
                     <h2 className="font-bold text-5xl text-white pt-6">
