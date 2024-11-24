@@ -2,13 +2,12 @@
 import { IDatabase, IMain } from 'pg-promise';
 import { IExtensions } from '.';
 import { queryMap } from '../sql';
-import { City } from '../../objects/class/city/City';
-import { CityDTO } from '../../objects/interface/city.interface';
 import { Club } from '../../objects/class/club/Club';
 import { ClubDTO } from '../../objects/class/club/club.interface';
 import { TagData } from '../../objects/class/tag/Tag';
 import { EntityType } from '../../objects/enum';
 import { TagDataDTO } from '../../objects/interface/tag.interface';
+import { CityDTO } from '../../objects/class/city/city.interface';
 
 export class QueryRepository {
 
@@ -47,11 +46,8 @@ export class QueryRepository {
         });
     }
 
-    async getCities(): Promise<City[]> {
-        return this.db.manyOrNone(queryMap.getCities).then((cities: CityDTO[] | null) => {
-            if (cities) return cities.map((dto: CityDTO) => new City(dto))
-            throw new Error("Error getting cities")
-        })
+    async getCities(): Promise<CityDTO[]> {
+        return this.db.manyOrNone(queryMap.getCities)
     }
 
     async getClubsInCity(city: {

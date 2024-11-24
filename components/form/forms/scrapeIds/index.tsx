@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import axios from "axios";
-import { FormSelectable } from "../../../../objects/interface";
 import { Club } from "../../../../objects/class/club/Club";
 import BaseForm from "..";
 import { EntityType } from "../../../../objects/enum";
@@ -12,25 +11,27 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
 import ScrapeEntitiesFormBody from "./body";
+import { useCityContext } from "../../../../contexts/CityContext";
+import { SelectableItem } from "../../../../objects/interface";
 
 interface ScrapeEntitySelectionMenuFormProps {
-    cities: FormSelectable[];
     type: EntityType;
     onSubmit: () => void;
 }
 
 export default function ScrapeEntitySelectionMenuForm({
     onSubmit,
-    cities,
     type,
 }: ScrapeEntitySelectionMenuFormProps) {
+    const cities = useCityContext();
+    console.log(cities);
     const [isLoading, setIsLoading] = useState(false);
 
-    const allCityOptions = [
-        { id: "all", name: "All" } as FormSelectable,
-    ].concat(cities);
+    const allCityOptions = [{ id: 0, name: "All" } as SelectableItem].concat(
+        [],
+    );
 
-    const [clubs, setClubs] = useState<FormSelectable[]>([]);
+    const [clubs, setClubs] = useState<SelectableItem[]>([]);
 
     const form = useForm<z.infer<typeof scrapeEntitySelectionMenuSchema>>({
         resolver: zodResolver(scrapeEntitySelectionMenuSchema),

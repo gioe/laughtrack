@@ -9,19 +9,11 @@ import { NextUIProvider } from "@nextui-org/react";
 import { SessionProvider } from "next-auth/react";
 import { auth } from "../auth";
 import { cache } from "react";
-import { UserInterface } from "../objects/interface";
 import Footer from "../components/footer";
-import { City } from "../objects/class/city/City";
 import { EntityType } from "../objects/enum";
 import ScrapeEntitySelectionMenuModal from "../components/modals/scrapeIds";
-import { getDB } from "../database";
 import AddComedianModal from "../components/modals/addComedian";
-const { database } = getDB();
-
-interface RootProps {
-    user: UserInterface | null;
-    cities: City[];
-}
+import { CityProvider } from "../contexts/CityContext";
 
 export const metadata: Metadata = {
     title: "Laughtrack",
@@ -50,24 +42,12 @@ export async function getCurrentUser() {
     }
 }
 
-async function getRootProps(): Promise<RootProps> {
-    const user = getCurrentUser();
-    const cities = database.queries.getCities();
-    return Promise.all([user, cities]).then((responses) => {
-        return {
-            user: responses[0],
-            cities: responses[1],
-        };
-    });
-}
-
 export default async function RootLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    const { user, cities } = await getRootProps();
-    const citiesString = JSON.stringify(cities);
+    const user = await getCurrentUser();
 
     return (
         <SessionProvider>
@@ -75,18 +55,19 @@ export default async function RootLayout({
                 <body className="bg-shark">
                     <NextUIProvider>
                         <Header currentUser={user} />
-                        <ClientOnly>
-                            <ToasterProvider />
-                            <LoginModal />
-                            <RegisterModal />
-                            <ScrapeEntitySelectionMenuModal
-                                type={EntityType.Club}
-                                citiesString={citiesString}
-                            />
-                            <AddComedianModal />
-                            {children}
-                            <Footer />
-                        </ClientOnly>
+                        <CityProvider>
+                            <ClientOnly>
+                                <ToasterProvider />
+                                <LoginModal />
+                                <RegisterModal />
+                                <ScrapeEntitySelectionMenuModal
+                                    type={EntityType.Club}
+                                />
+                                <AddComedianModal />
+                                {children}
+                                <Footer />
+                            </ClientOnly>
+                        </CityProvider>
                     </NextUIProvider>
                 </body>
             </html>

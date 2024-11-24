@@ -1,5 +1,4 @@
-import { ClientParamValue } from "../../objects/class/params/SearchParamsHelper";
-import { DirectionParamValue, URLParam } from "../../objects/enum";
+import { ClientParamValue, ParamsDictValue } from "../../objects/class/params/SearchParamsHelper";
 
 export const addOrRemoveCommaSeparatedValue = (
     searchParams: URLSearchParams,
@@ -35,33 +34,16 @@ export const formattedDateParam = (value: Date) => {
     return `${year}-${month}-${monthDay}`;
 };
 
-export const formatParamValue = (value: ClientParamValue) => {
+export const formatValueFromClient = (value: ClientParamValue) => {
     if (value instanceof Date) {
         return formattedDateParam(value as Date)
     }
     return value.toString()
 }
 
-
-export const getDefaultQueryParamValue = (key: URLParam) => {
-    switch (key) {
-        case URLParam.Sort:
-            return undefined
-        case URLParam.Query:
-            return ""
-        case URLParam.Page:
-            return 1
-        case URLParam.Size:
-            return 10;
-        case URLParam.City:
-            return ""
-        case URLParam.StartDate:
-            return undefined
-        case URLParam.EndDate:
-            return undefined
-        case URLParam.Direction:
-            return DirectionParamValue.Ascending
-        case URLParam.Slug:
-            return ""
+export const formatStoredValues = (value: ParamsDictValue) => {
+    if (Array.isArray(value)) {
+        return value.join(',')
     }
+    return value.toString()
 }

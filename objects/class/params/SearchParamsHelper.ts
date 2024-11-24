@@ -1,10 +1,12 @@
-import { formatParamValue } from "../../../util/primatives/paramUtil";
+import { formatValueFromClient, formatStoredValues } from "../../../util/primatives/paramUtil";
 import { allQueryProperties, QueryProperty } from "../query/queryProperties";
 
-export type ClientParamValue = string | number | Date | boolean;
-type URLParam = QueryProperty | string;
-type ParamsDictValue = string | string[]
 type ParamsDict = Map<URLParam, ParamsDictValue>
+type ClientParamsDict = Map<URLParam, ClientParamValue>
+
+export type URLParam = QueryProperty | string;
+export type ParamsDictValue = string | string[]
+export type ClientParamValue = string | number | Date | boolean;
 
 export class SearchParamsHelper {
     // Properties
@@ -22,16 +24,20 @@ export class SearchParamsHelper {
         for (const [key, value] of searchParams.entries()) {
             // If the key is in the Query Properties list, it means it is a clause to be used on the Postgres Query
             if (allQueryProperties.includes(key)) {
-                newDict[key] = value
+                this.paramsDict.set(key, value)
             }
         }
-        console.log(newDict)
         return newDict;
     }
 
+    updateParamsFromMap(map: ClientParamsDict) {
+        for (const [key, value] of map.entries()) {
+            this.paramsDict.set(key, formatValueFromClient(value))
+        }
+    }
+
     setParamValue(key: URLParam, value: ClientParamValue) {
-        const paramValue = formatParamValue(value);
-        this.paramsDict[key] = paramValue
+        this.paramsDict.set(key, formatValueFromClient(value))
     }
 
     handleArrayParam(key: URLParam, newValue: string, currentValue: string | null) {
@@ -69,14 +75,17 @@ export class SearchParamsHelper {
     }
 
     asParamsString() {
-        return this.paramsDict.toString()
+        const seachParams = new URLSearchParams()
+        for (const [key, value] of this.paramsDict.entries()) {
+            seachParams.set(key, formatStoredValues(value))
+        }
+        return seachParams.toString()
     }
 
     setDefaultValue(key: URLParam, value: string): void {
         const currentValue = this.getParamValue(key)
         if (currentValue == undefined) {
-            const paramValue = formatParamValue(value) ?? "";
-            this.setParamValue(key, paramValue)
+            this.setParamValue(key, value)
         }
 
     }

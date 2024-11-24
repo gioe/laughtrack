@@ -23,9 +23,9 @@ filtered_data AS (
 		LEFT JOIN tagged_shows ts ON ts.show_id = s.id
 		INNER JOIN clubs cl ON cl.id = s.club_id
 		INNER JOIN cities ci ON cl.city_id = ci.id
-    WHERE ci.id = ${city_id}
-    AND s.date < ${end_date}
-    AND s.date > ${start_date}
+    WHERE ci.name = ${city}
+    AND s.date < ${to_date}
+    AND s.date > ${from_date}
     ORDER BY ${sort:name} ${direction:value}
     LIMIT ${size} 
     OFFSET ${offset}
@@ -46,9 +46,9 @@ total_count AS (
 		shows s
 		INNER JOIN clubs cl ON cl.id = s.club_id
 		INNER JOIN cities ci ON cl.city_id = ci.id
-    WHERE ci.id = ${city_id}
-        AND s.date < ${end_date}
-        AND s.date > ${start_date}
+    WHERE ci.name = ${city}
+        AND s.date < ${to_date}
+        AND s.date > ${from_date}
 )4
 SELECT
 	jsonb_build_object('data', COALESCE(jsonb_agg(jsonb_build_object('id', fd.id, 'date', date, 'name', fd.name, 'ticket', ticket, 'club_name', club_name, 'scrapedate', scrapedate, 'lineup', l.lineup)) FILTER (WHERE fd.id IS NOT NULL), '[]'), 'total', (

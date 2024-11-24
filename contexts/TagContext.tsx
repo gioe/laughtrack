@@ -29,7 +29,6 @@ export function TagListProvider({
                 type: `${type.valueOf()}`,
             })
             .then((response) => {
-                console.log(response);
                 return response.data;
             })
             .then((data) => {
@@ -46,7 +45,7 @@ export function TagListProvider({
         getAffiliates();
     }, []);
 
-    return <TagContext.Provider value={state}>{children}</TagContext.Provider>;
+    return <TagContext.Provider value={tags}>{children}</TagContext.Provider>;
 }
 
 export function useTagContext() {

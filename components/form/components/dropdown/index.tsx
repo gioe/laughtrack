@@ -15,13 +15,13 @@ import {
     FormMessage,
 } from "../../../ui/form";
 import { cn } from "../../../../util/tailwindUtil";
-import { FormSelectable } from "../../../../objects/interface";
+import { SelectableItem } from "../../../../objects/interface";
 
 interface DropdownProps {
     name: string;
     title: string;
     placeholder: string;
-    items: FormSelectable[];
+    items: SelectableItem[];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     form: any;
 }
@@ -46,7 +46,7 @@ export function DropdownFormComponent({
                             </FormLabel>
                             <Select
                                 onValueChange={field.onChange}
-                                defaultValue={field.value.toString()}
+                                defaultValue={field.value}
                             >
                                 <FormControl className="bg-white rounded-lg">
                                     <SelectTrigger>
@@ -68,7 +68,7 @@ export function DropdownFormComponent({
                                         <SelectItem
                                             className="bg-white rounded-lg"
                                             key={item.id.toString()}
-                                            value={item.id.toString()}
+                                            value={item.name}
                                         >
                                             {item.name}
                                         </SelectItem>

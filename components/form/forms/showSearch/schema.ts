@@ -1,7 +1,7 @@
 import * as z from "zod";
 
-export const homeSearchSchema = z.object({
-    cityId: z.string({
+export const showSearchFormSchema = z.object({
+    city: z.string({
         required_error: "Please select a location.",
     }),
     dates: z.object({

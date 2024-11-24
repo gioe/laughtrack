@@ -11,10 +11,9 @@ export default async function HomePage(props: any) {
         props.searchParams,
         props.params,
     );
-    const { cities, comedians } = await database.page.getHomePageData(filters);
+    const { comedians } = await database.page.getHomePageData(filters);
 
     const comediansString = JSON.stringify(comedians);
-    const citiesString = JSON.stringify(cities);
 
     return (
         <main>
@@ -26,7 +25,7 @@ export default async function HomePage(props: any) {
             </section>
 
             <section>
-                <ShowSearchForm cities={citiesString} />
+                <ShowSearchForm />
             </section>
 
             <section

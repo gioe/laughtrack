@@ -1,9 +1,9 @@
 import {
-    Identifiable
+    DatabaseIdentifiable
 } from "../../interface";
 
 // Client
-export interface CityInterface extends Identifiable {
+export interface CityInterface extends DatabaseIdentifiable {
     name: string;
 }
 

@@ -1,3 +1,4 @@
-export interface Identifiable {
+export interface DatabaseIdentifiable {
     id: number;
+    name: string;
 }

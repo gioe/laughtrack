@@ -4,8 +4,8 @@ import { ModalState } from "./modalState.interface";
 import { Paginated, PaginationData } from "./paginated.interface";
 import { ScrapingArgs, ScrapingOutput, ClubScraper } from "./scrape.interface";
 import { LineupItemDTO } from "./lineup.interface";
-import { Identifiable } from "./identifable.interface"
-import { FormSelectable } from "./formSelectable.interface"
+import { DatabaseIdentifiable } from "./identifable.interface"
+import { SelectableItem } from "./selectableItem"
 import { EntityContainer } from "./entityContainer.interface";
 import { RepositoryInterface } from "./repository.interface"
 import {
@@ -26,7 +26,8 @@ import { ButtonData } from "./buttonData.interface"
 import { BannerRepresentable } from "./bannerRepresentable.interface"
 
 export type {
-    FormSelectable,
+    SelectableItem,
+    DatabaseIdentifiable,
     ButtonData,
     BannerRepresentable,
     ModalState,
@@ -44,7 +45,6 @@ export type {
     FavoriteDTO,
     PaginationData,
     ClubScraper,
-    Identifiable,
     Scrapable,
     Entity,
     LineupItemDTO,
