@@ -1,6 +1,9 @@
+"use client";
+
 import { useState, useEffect, useContext, createContext } from "react";
 import { TagDataDTO } from "../objects/interface/tag.interface";
 import axios from "axios";
+import { EntityType } from "../objects/enum";
 
 interface TagList {
     tags: TagDataDTO[];
@@ -11,18 +14,27 @@ const defaultList: TagList = {
 
 const TagContext = createContext<TagList>(defaultList);
 
-export function TagListProvider({ children }: { children: React.ReactNode }) {
-    const [state, setState] = useState(defaultList);
+export function TagListProvider({
+    type,
+    children,
+}: {
+    type: EntityType;
+    children: React.ReactNode;
+}) {
+    const [tags, setTags] = useState(defaultList);
 
     const getAffiliates = async () => {
         axios
             .post(`/api/tag`, {
-                type: "show",
+                type: `${type.valueOf()}`,
             })
-            .then((response) => response.data)
+            .then((response) => {
+                console.log(response);
+                return response.data;
+            })
             .then((data) => {
                 if (data) {
-                    console.log(data);
+                    setTags(data);
                 }
             })
             .catch((error: Error) => {

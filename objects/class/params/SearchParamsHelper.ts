@@ -61,7 +61,11 @@ export class SearchParamsHelper {
     }
 
     getParamValue(key: URLParam): string | undefined {
-        return this.paramsDict.get(key)
+        const paramValue = this.paramsDict.get(key)
+
+        if (paramValue == undefined) { return undefined }
+        else if (Array.isArray(paramValue)) { return paramValue.join(',') }
+        else return paramValue
     }
 
     asParamsString() {

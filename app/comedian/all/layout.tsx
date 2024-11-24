@@ -6,5 +6,7 @@ export default function AllShowsLayout({
 }: {
     children: React.ReactNode;
 }) {
-    return <TagListProvider type={EntityType.Show}>{children}</TagListProvider>;
+    return (
+        <TagListProvider type={EntityType.Comedian}>{children}</TagListProvider>
+    );
 }
