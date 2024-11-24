@@ -1,18 +1,8 @@
+import { formatParamValue } from "../../../util/primatives/paramUtil";
+import { allQueryProperties, QueryProperty } from "../query/queryProperties";
 
-
-
-import { formatParamValue, getDefaultQueryParamValue } from "../../../util/primatives/paramUtil";
-
-enum ParamType {
-    Array,
-    String
-}
-
-interface URLParam {
-    type: ParamType
-}
-
-type ClientParamValue = string | number | Date;
+export type ClientParamValue = string | number | Date | boolean;
+type URLParam = QueryProperty | string;
 type ParamsDictValue = string | string[]
 type ParamsDict = Map<URLParam, ParamsDictValue>
 
@@ -30,19 +20,18 @@ export class SearchParamsHelper {
     initializeParamsDict(searchParams: URLSearchParams) {
         const newDict = new Map<URLParam, ParamsDictValue>()
         for (const [key, value] of searchParams.entries()) {
-            newDict[key] = value
+            // If the key is in the Query Properties list, it means it is a clause to be used on the Postgres Query
+            if (allQueryProperties.includes(key)) {
+                newDict[key] = value
+            }
         }
+        console.log(newDict)
         return newDict;
     }
 
-    updateParamValue(key: URLParam, value: ClientParamValue, isArrayValue = false) {
-        const currentKeyValue = this.params.get(key)
-        const paramValue = formatParamValue(value) ?? "";
-        if (isArrayValue) {
-            this.handleArrayParam(key, paramValue, currentKeyValue)
-        } else {
-            this.setParamValue(key, paramValue);
-        }
+    setParamValue(key: URLParam, value: ClientParamValue) {
+        const paramValue = formatParamValue(value);
+        this.paramsDict[key] = paramValue
     }
 
     handleArrayParam(key: URLParam, newValue: string, currentValue: string | null) {
@@ -66,23 +55,20 @@ export class SearchParamsHelper {
         }
     }
 
-    private setParamValue(key: URLParam, value: string) {
-        this.params.set(key, value);
-    }
 
     removeParam(key: URLParam) {
-        this.params.delete(key);
+        this.paramsDict.delete(key);
     }
 
-    getParamValue(key: URLParam): ParamValue {
-        return this.params.get(key) ?? getDefaultQueryParamValue(key)
+    getParamValue(key: URLParam): string | undefined {
+        return this.paramsDict.get(key)
     }
 
     asParamsString() {
-        return this.params.toString()
+        return this.paramsDict.toString()
     }
 
-    setDefaultValue(key: URLParam, value: ParamValue): void {
+    setDefaultValue(key: URLParam, value: string): void {
         const currentValue = this.getParamValue(key)
         if (currentValue == undefined) {
             const paramValue = formatParamValue(value) ?? "";

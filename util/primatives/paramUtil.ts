@@ -1,4 +1,4 @@
-import { ParamValue } from "../../objects/class/params/SearchParamsHelper";
+import { ClientParamValue } from "../../objects/class/params/SearchParamsHelper";
 import { DirectionParamValue, URLParam } from "../../objects/enum";
 
 export const addOrRemoveCommaSeparatedValue = (
@@ -35,11 +35,11 @@ export const formattedDateParam = (value: Date) => {
     return `${year}-${month}-${monthDay}`;
 };
 
-export const formatParamValue = (value: ParamValue) => {
+export const formatParamValue = (value: ClientParamValue) => {
     if (value instanceof Date) {
         return formattedDateParam(value as Date)
     }
-    return value?.toString()
+    return value.toString()
 }
 
 

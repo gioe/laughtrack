@@ -55,10 +55,10 @@ export default function ShowSearchForm({ cities }: HomeSearchFormProps) {
 
     function submitForm(data: z.infer<typeof homeSearchSchema>) {
         setIsLoading(true);
-        paramsHelper.updateParamValue(URLParam.City, data.cityId);
-        paramsHelper.updateParamValue(URLParam.StartDate, data.dates.from);
-        paramsHelper.updateParamValue(URLParam.EndDate, data.dates.to);
-        paramsHelper.updateParamValue(URLParam.Sort, SortParamValue.Date);
+        // paramsHelper.updateParamValue(URLParam.City, data.cityId);
+        // paramsHelper.updateParamValue(URLParam.StartDate, data.dates.from);
+        // paramsHelper.updateParamValue(URLParam.EndDate, data.dates.to);
+        // paramsHelper.updateParamValue(URLParam.Sort, SortParamValue.Date);
         navigator.pushPageFromParams(
             RoutePath.ShowSearch,
             paramsHelper.asParamsString(),

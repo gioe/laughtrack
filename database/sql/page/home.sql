@@ -13,7 +13,7 @@ FROM
 	comedians
 ORDER BY
 	random()
-LIMIT ${size}
+LIMIT 10
 )
 SELECT
 	jsonb_build_object('comedians', jsonb_agg(jsonb_build_object('id', tc.id, 'name', tc.name, 'social_data', social_data)), 'cities', (
