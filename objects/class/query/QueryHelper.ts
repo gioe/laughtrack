@@ -2,7 +2,8 @@
 
 import { SearchParamsHelper } from "../params/SearchParamsHelper";
 import { SlugInterface } from "../../interface";
-import { QueryProperty } from "./queryProperties";
+import { allQueryProperties, QueryProperty } from "../../enum/queryProperty";
+import { formatStoredValues } from "../../../util/primatives/paramUtil";
 
 // This class is meant to capture all of the page parameters that Next provides us with.
 // These are relevant for DB querying and their existence persists across all pages so we capture it
@@ -10,12 +11,11 @@ import { QueryProperty } from "./queryProperties";
 // It is almost certainly too bloated.
 export class QueryHelper {
 
-    slug?: string
+    id?: string
     searchParamsHelper: SearchParamsHelper;
-    private static instance: QueryHelper;
 
-    constructor(searchParamsHelper: SearchParamsHelper, slug?: string) {
-        this.slug = slug
+    constructor(searchParamsHelper: SearchParamsHelper, id?: string) {
+        this.id = id
         this.searchParamsHelper = searchParamsHelper
     }
 
@@ -31,23 +31,32 @@ export class QueryHelper {
             ...this.getSize(),
             // Direction
             ...this.getDirection(),
-            // Slug
-            ...this.getSlug(),
-            // // City
-            // ...this.getCityId(),
-            // // Start Date
-            // ...this.getStartDate(),
-            // // End Date
-            // ...this.getEndDate(),
-            // // Params,
-            // ...this.getParams(),
-            // // Tags
-            // ...this.getTags(),
+            // Identifier
+            ...this.getIdentifier(),
+            // Params,
+            ...this.getParams(),
+            // Tags
+            ...this.getTags(),
+            // Domain Values,
+            ...this.getDomainParams()
         }
     }
 
+    getDomainParams() {
+        console.log("GETTING DOMAIN PARAMS")
+        const paramsMap = new Map<string, string>()
+        console.log(this.searchParamsHelper.paramsDict)
+        for (const [key, value] of this.searchParamsHelper.paramsDict.entries()) {
+            console.log(`The key is ${key} and the value is ${value}`)
+            if (!allQueryProperties.includes(key)) {
+                paramsMap.set(key, formatStoredValues(value))
+            }
+        }
+        return paramsMap
+    }
+
     getSortValue() {
-        return { sort: this.searchParamsHelper.getParamValue(QueryProperty.Sort) ?? 10 }
+        return { sort: this.searchParamsHelper.getParamValue(QueryProperty.Sort) }
     }
 
     getQueryPattern() {
@@ -56,49 +65,41 @@ export class QueryHelper {
     }
 
     getOffset() {
-        const size = this.searchParamsHelper.getParamValue(QueryProperty.Size) as number
-        const page = (this.searchParamsHelper.getParamValue(QueryProperty.Page) as number) - 1
-        return { offset: size * page }
+        const size = Number(this.searchParamsHelper.getParamValue(QueryProperty.Size))
+        const page = Number(this.searchParamsHelper.getParamValue(QueryProperty.Page)) - 1
+        const offset = size * page
+        return { offset: (offset == null ? 0 : offset) }
     }
 
     getSize() {
-        return { size: this.searchParamsHelper.getParamValue(QueryProperty.Size) }
+        return { size: this.searchParamsHelper.getParamValue(QueryProperty.Size) ?? 10 }
     }
 
     getDirection() {
         return { direction: this.searchParamsHelper.getParamValue(QueryProperty.Direction) }
     }
 
-    getSlug() {
-        return this.slug ? { slug: decodeURI(this.slug ?? "") } : {}
+    getIdentifier() {
+        return this.id ? { id: decodeURI(this.id ?? "") } : {}
     }
 
-    // getCityId() {
-    //     return this.searchParamsHelper.getParamValue(URLParam.City) ? { city_id: this.searchParamsHelper.getParamValue(URLParam.City) } : {}
-    // }
 
-    // getStartDate() {
-    //     return this.searchParamsHelper.getParamValue(URLParam.StartDate) ? { start_date: this.searchParamsHelper.getParamValue(URLParam.StartDate) } : {}
-    // }
+    getParams() {
+        return { params: [] }
+    }
 
-    // getEndDate() {
-    //     return this.searchParamsHelper.getParamValue(URLParam.EndDate) ? { end_date: this.searchParamsHelper.getParamValue(URLParam.EndDate) } : {}
-    // }
+    getTags() {
+        return { tags: [] }
+    }
 
-    // getParams() {
-    //     return this.searchParamsHelper.getParamValue(URLParam.EndDate) ? { tags: this.searchParamsHelper.getParamValue(URLParam.EndDate) } : {}
-    // }
-
-    // getTags() {
-    //     return this.searchParamsHelper.getParamValue(URLParam.EndDate) ? { tags: this.searchParamsHelper.getParamValue(URLParam.EndDate) } : {}
-    // }
 
     static async storePageParams(paramsPromise: Promise<any>, slugPromise?: Promise<SlugInterface>) {
         const promises = [paramsPromise, slugPromise]
         return Promise.all(promises).then((values: unknown[]) => {
+            console.log(values)
             const searchParams = new URLSearchParams(values[0] as string)
             const searchParamsHelper = new SearchParamsHelper(searchParams)
-            const helper = new QueryHelper(searchParamsHelper, (values[1] as SlugInterface).slug)
+            const helper = new QueryHelper(searchParamsHelper, (values[1] as SlugInterface)?.slug)
             return helper.asQueryFilters()
         })
     }

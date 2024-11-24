@@ -1,12 +1,12 @@
 import {
     Taggable,
-    SocialDataDTO,
     Favoritable,
     Scrapable,
-    TagDTO,
     Entity
 } from "../../interface";
+import { TagDataDTO } from "../../interface/tag.interface";
 import { ShowDTO } from "../show/show.interface";
+import { SocialDataDTO } from "../socialData/socialData.interface";
 
 // Client
 export interface ClubInterface
@@ -32,7 +32,7 @@ export interface ClubDTO {
     zip_code: string;
     social_data?: SocialDataDTO;
     dates?: ShowDTO[];
-    tags?: TagDTO[];
+    tags?: TagDataDTO[];
     is_Favorite?: boolean
 }
 

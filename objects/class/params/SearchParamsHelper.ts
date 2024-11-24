@@ -1,5 +1,5 @@
 import { formatValueFromClient, formatStoredValues } from "../../../util/primatives/paramUtil";
-import { allQueryProperties, QueryProperty } from "../query/queryProperties";
+import { QueryProperty } from "../../enum/queryProperty";
 
 type ParamsDict = Map<URLParam, ParamsDictValue>
 type ClientParamsDict = Map<URLParam, ClientParamValue>
@@ -22,45 +22,22 @@ export class SearchParamsHelper {
     initializeParamsDict(searchParams: URLSearchParams) {
         const newDict = new Map<URLParam, ParamsDictValue>()
         for (const [key, value] of searchParams.entries()) {
-            // If the key is in the Query Properties list, it means it is a clause to be used on the Postgres Query
-            if (allQueryProperties.includes(key)) {
-                this.paramsDict.set(key, value)
-            }
+            console.log(`The key is ${key} and the value is ${value}`)
+            newDict.set(key, value)
         }
+        console.log(newDict)
         return newDict;
     }
 
     updateParamsFromMap(map: ClientParamsDict) {
         for (const [key, value] of map.entries()) {
-            this.paramsDict.set(key, formatValueFromClient(value))
+            this.setParamValue(key, formatValueFromClient(value))
         }
     }
 
     setParamValue(key: URLParam, value: ClientParamValue) {
         this.paramsDict.set(key, formatValueFromClient(value))
     }
-
-    handleArrayParam(key: URLParam, newValue: string, currentValue: string | null) {
-        let newValues = currentValue?.split(',')
-        if (newValues !== undefined) {
-
-            if (newValues.includes(newValue)) {
-                newValues = newValues.filter((value: string) => value !== newValue)
-            } else {
-                newValues.push(newValue)
-            }
-
-            if (newValues.length == 0) {
-                this.removeParam(key)
-            } else {
-                this.setParamValue(key, newValues.join(','));
-            }
-
-        } else {
-            this.setParamValue(key, newValue);
-        }
-    }
-
 
     removeParam(key: URLParam) {
         this.paramsDict.delete(key);

@@ -4,7 +4,7 @@ import { Input } from "@nextui-org/react";
 import SearchIcon from "../../icons/SearchIcon";
 import React, { useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
-import { URLParam } from "../../../objects/enum";
+import { QueryProperty } from "../../../objects/enum";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { SearchParamsHelper } from "../../../objects/class/params/SearchParamsHelper";
 import { Navigator } from "../../../objects/class/navigate/Navigator";
@@ -23,7 +23,7 @@ const QueryParamComponent: React.FC<QueryParamComponentProps> = ({
     const navigator = new Navigator(usePathname(), useRouter());
 
     const [value, setValue] = useState(
-        paramsHelper.getParamValue(URLParam.Query) as string,
+        paramsHelper.getParamValue(QueryProperty.Query),
     );
 
     const handleInputChange = (value: string) => {
@@ -32,7 +32,7 @@ const QueryParamComponent: React.FC<QueryParamComponentProps> = ({
     };
 
     const handleSearch = useDebouncedCallback((term) => {
-        paramsHelper.updateParamValue(URLParam.Query, term);
+        paramsHelper.setParamValue(QueryProperty.Query, term);
         navigator.replaceRoute(paramsHelper.asParamsString());
     }, 300);
 

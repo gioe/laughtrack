@@ -11,7 +11,6 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
 import ScrapeEntitiesFormBody from "./body";
-import { useCityContext } from "../../../../contexts/CityContext";
 import { SelectableItem } from "../../../../objects/interface";
 
 interface ScrapeEntitySelectionMenuFormProps {
@@ -23,8 +22,6 @@ export default function ScrapeEntitySelectionMenuForm({
     onSubmit,
     type,
 }: ScrapeEntitySelectionMenuFormProps) {
-    const cities = useCityContext();
-    console.log(cities);
     const [isLoading, setIsLoading] = useState(false);
 
     const allCityOptions = [{ id: 0, name: "All" } as SelectableItem].concat(

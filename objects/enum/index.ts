@@ -10,10 +10,12 @@ import { RoutePath } from './routePath'
 import { DirectionParamValue } from './directionParamValue'
 import { RestApiAction } from './restApiAction'
 import { FormDirection } from './formDirection'
+import { QueryProperty } from './queryProperty'
 export {
     FormDirection,
     RestApiAction,
     ComedyClub,
+    QueryProperty,
     RoutePath,
     EntityType,
     SocialMedia,

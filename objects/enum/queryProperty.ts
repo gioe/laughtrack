@@ -2,7 +2,8 @@ export enum QueryProperty {
     Direction = 'direction',
     Size = 'size',
     Page = 'page',
-    Sort = 'sort_by'
+    Sort = 'sort_by',
+    Query = 'query',
 }
 
 export const allQueryProperties = [

@@ -13,7 +13,7 @@ export class TagData implements FilterSection {
         this.id = input.id
         this.name = input.name
         this.value = input.param_value
-        this.options = input.tag_options.map((option: TagOptionDTO) => {
+        this.options = input.options.map((option: TagOptionDTO) => {
             return {
                 id: option.id,
                 name: option.name,

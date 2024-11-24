@@ -3,7 +3,7 @@
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { useState } from "react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
-import { URLParam } from "../../../objects/enum";
+import { QueryProperty } from "../../../objects/enum";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { cn } from "../../../util/tailwindUtil";
 import { SortOptionInterface } from "../../../objects/interface";
@@ -23,8 +23,9 @@ export function SortParamComponent({ options }: SortParamComponentProps) {
 
     const defaultOption = options.find(
         (value) =>
-            value.value == paramsHelper.getParamValue(URLParam.Sort) &&
-            value.direction == paramsHelper.getParamValue(URLParam.Direction),
+            value.value == paramsHelper.getParamValue(QueryProperty.Sort) &&
+            value.direction ==
+                paramsHelper.getParamValue(QueryProperty.Direction),
     );
 
     const [selectedSortingOption, setSelectedSortingOption] = useState(
@@ -45,8 +46,11 @@ export function SortParamComponent({ options }: SortParamComponentProps) {
     };
 
     const modifySortParam = (sortValue: SortOptionInterface) => {
-        paramsHelper.updateParamValue(URLParam.Sort, sortValue.value);
-        paramsHelper.updateParamValue(URLParam.Direction, sortValue.direction);
+        paramsHelper.setParamValue(QueryProperty.Sort, sortValue.value);
+        paramsHelper.setParamValue(
+            QueryProperty.Direction,
+            sortValue.direction,
+        );
         navigator.replaceRoute(paramsHelper.asParamsString());
         setSelectedSortingOption(sortValue);
     };

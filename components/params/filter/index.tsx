@@ -6,33 +6,26 @@ import {
     DisclosureButton,
     DisclosurePanel,
 } from "@headlessui/react";
-import { FilterSection } from "../../../objects/interface/filter.interface";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Navigator } from "../../../objects/class/navigate/Navigator";
 import { SearchParamsHelper } from "../../../objects/class/params/SearchParamsHelper";
-import { URLParam } from "../../../objects/enum";
+import { useTagContext } from "../../../contexts/TagContext";
 
-interface FilterOptionsComponentProps {
-    sections: FilterSection[];
-}
-
-export function FilterParamComponent({
-    sections,
-}: FilterOptionsComponentProps) {
+export function FilterParamComponent() {
+    const { tags } = useTagContext();
     const readOnlySearchParams = useSearchParams();
     const searchParams = new URLSearchParams(readOnlySearchParams);
     const paramsHelper = new SearchParamsHelper(searchParams);
     const navigator = new Navigator(usePathname(), useRouter());
 
     const appendParam = (name: string, id: number) => {
-        paramsHelper.updateParamValue(name as URLParam, id, true);
         navigator.replaceRoute(paramsHelper.asParamsString());
     };
 
     return (
         <form className="mt-4 border-t border-gray-200">
-            {sections.length > 0 &&
-                sections.map((section) => (
+            {tags.length > 0 &&
+                tags.map((section) => (
                     <Disclosure
                         key={section.id}
                         as="div"
@@ -69,7 +62,7 @@ export function FilterParamComponent({
                                         <input
                                             onClick={() =>
                                                 appendParam(
-                                                    section.value,
+                                                    section.param_value,
                                                     option.id,
                                                 )
                                             }

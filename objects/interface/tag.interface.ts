@@ -9,7 +9,7 @@ export interface TagDataDTO {
     id: number;
     name: string;
     param_value: string;
-    tag_options: TagOptionDTO[];
+    options: TagOptionDTO[];
 }
 
 export interface TagOptionDTO {

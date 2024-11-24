@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import TablePagination from "@mui/material/TablePagination";
-import { URLParam } from "../../../objects/enum";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { SearchParamsHelper } from "../../../objects/class/params/SearchParamsHelper";
 import { Navigator } from "../../../objects/class/navigate/Navigator";
+import { QueryProperty } from "../../../objects/enum/queryProperty";
 
 interface PageParamComponentProps {
     itemCount: number;
@@ -20,11 +20,11 @@ export function PageParamComponent({
 
     const navigator = new Navigator(usePathname(), useRouter());
     const defaultIndex =
-        (paramsHelper.getParamValue(URLParam.Page) as number) - 1;
+        Number(paramsHelper.getParamValue(QueryProperty.Page)) - 1;
     const [pageIndex, setPageIndex] = useState(defaultIndex);
 
     const [rowsPerPage, setRowsPerPage] = useState(
-        paramsHelper.getParamValue(URLParam.Size) as number,
+        Number(paramsHelper.getParamValue(QueryProperty.Size)),
     );
 
     const handleChangeOffset = (
@@ -34,7 +34,7 @@ export function PageParamComponent({
         setPageIndex(newPageIndex);
 
         const newPageValue = newPageIndex + 1;
-        paramsHelper.updateParamValue(URLParam.Page, newPageValue);
+        paramsHelper.setParamValue(QueryProperty.Page, newPageValue.toString());
         navigator.replaceRoute(paramsHelper.asParamsString());
     };
 
@@ -42,7 +42,7 @@ export function PageParamComponent({
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => {
         const rowSizeValue = parseInt(event.target.value, 10);
-        paramsHelper.updateParamValue(URLParam.Size, rowSizeValue);
+        paramsHelper.setParamValue(QueryProperty.Size, rowSizeValue);
         navigator.replaceRoute(paramsHelper.asParamsString());
         setRowsPerPage(rowSizeValue);
     };
