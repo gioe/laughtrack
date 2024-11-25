@@ -4,9 +4,9 @@ with filtered_data as (
     from
         clubs
     Where name ILIKE ${query}
-    ORDER BY ${sort:name} ${direction:value}
+    ORDER BY ${sort_by:name} ${direction:value}
     LIMIT ${size} 
-    OFFSET ${offset}
+    OFFSET ${page}
 ),
 total_count as (
     SELECT

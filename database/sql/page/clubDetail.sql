@@ -13,9 +13,9 @@ WITH filtered_data AS (
 	INNER JOIN clubs cl ON cl.id = s.club_id
     WHERE cl.name = ${slug}
     AND s.date > NOW()
-    ORDER BY ${sort:name} ${direction:value}
+    ORDER BY ${sort_by:name} ${direction:value}
     LIMIT ${size} 
-    OFFSET ${offset}
+    OFFSET ${page}
 ),
 lineups AS (
 	SELECT

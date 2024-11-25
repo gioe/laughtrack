@@ -1,60 +1,49 @@
-import { formatValueFromClient, formatStoredValues } from "../../../util/primatives/paramUtil";
-import { QueryProperty } from "../../enum/queryProperty";
+import { formatValue } from "../../../util/primatives/paramUtil";
+import { QueryProperty, queryPropertyDefaultMap } from "../../enum/queryProperty";
 
 type ParamsDict = Map<URLParam, ParamsDictValue>
-type ClientParamsDict = Map<URLParam, ClientParamValue>
 
 export type URLParam = QueryProperty | string;
-export type ParamsDictValue = string | string[]
-export type ClientParamValue = string | number | Date | boolean;
+export type ParamsDictValue = string | string[] | number | Date | boolean;
 
 export class SearchParamsHelper {
     // Properties
-    paramsDict: ParamsDict;
+    paramsDict: ParamsDict = new Map<URLParam, ParamsDictValue>()
 
     // Our helper will always be initialized with server values, or the values you see in the URL.
     // We will convert this to something more domain specific to align more closely with our
     // business logic.
     constructor(params: URLSearchParams) {
-        this.paramsDict = this.initializeParamsDict(params)
-    }
-
-    initializeParamsDict(searchParams: URLSearchParams) {
-        const newDict = new Map<URLParam, ParamsDictValue>()
-        for (const [key, value] of searchParams.entries()) {
-            console.log(`The key is ${key} and the value is ${value}`)
-            newDict.set(key, value)
+        for (const [key, value] of params.entries()) {
+            this.setParamValue(key, formatValue(value))
         }
-        console.log(newDict)
-        return newDict;
     }
 
-    updateParamsFromMap(map: ClientParamsDict) {
+    updateParamsFromMap(map: ParamsDict) {
         for (const [key, value] of map.entries()) {
-            this.setParamValue(key, formatValueFromClient(value))
+            this.setParamValue(key, formatValue(value))
         }
     }
 
-    setParamValue(key: URLParam, value: ClientParamValue) {
-        this.paramsDict.set(key, formatValueFromClient(value))
+    setParamValue(key: URLParam, value: ParamsDictValue) {
+        this.paramsDict.set(key, formatValue(value))
     }
 
     removeParam(key: URLParam) {
         this.paramsDict.delete(key);
     }
 
-    getParamValue(key: URLParam): string | undefined {
+    getParamValue(key: URLParam): string {
         const paramValue = this.paramsDict.get(key)
-
-        if (paramValue == undefined) { return undefined }
+        if (paramValue == undefined) { return queryPropertyDefaultMap.get(key) }
         else if (Array.isArray(paramValue)) { return paramValue.join(',') }
-        else return paramValue
+        else return paramValue.toString()
     }
 
     asParamsString() {
         const seachParams = new URLSearchParams()
         for (const [key, value] of this.paramsDict.entries()) {
-            seachParams.set(key, formatStoredValues(value))
+            seachParams.set(key, formatValue(value))
         }
         return seachParams.toString()
     }

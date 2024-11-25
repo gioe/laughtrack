@@ -1,31 +1,6 @@
-import { ClientParamValue, ParamsDictValue } from "../../objects/class/params/SearchParamsHelper";
+import { ParamsDictValue } from "../../objects/class/params/SearchParamsHelper";
+import { QueryProperty, SortParamValue } from "../../objects/enum";
 
-export const addOrRemoveCommaSeparatedValue = (
-    searchParams: URLSearchParams,
-    param: string,
-    value: string,
-): URLSearchParams => {
-
-    const filters = searchParams.get(param);
-    let allValues = filters?.split(",") ?? [];
-    const valueIncluded = allValues.includes(value);
-
-    if (!valueIncluded) {
-        allValues.push(value);
-    } else {
-        allValues = allValues.filter(
-            (paramValues: string) => paramValues !== value,
-        );
-    }
-
-    if (allValues.length > 0) {
-        searchParams.set(param, allValues.join(","));
-    } else {
-        searchParams.delete(param);
-    }
-
-    return searchParams
-};
 
 export const formattedDateParam = (value: Date) => {
     const monthDay = value.getDate().toString();
@@ -34,16 +9,40 @@ export const formattedDateParam = (value: Date) => {
     return `${year}-${month}-${monthDay}`;
 };
 
-export const formatValueFromClient = (value: ClientParamValue) => {
+export const formatValue = (value: ParamsDictValue) => {
     if (value instanceof Date) {
         return formattedDateParam(value as Date)
+    } else if (Array.isArray(value)) {
+        return value.join(',')
     }
     return value.toString()
 }
 
-export const formatStoredValues = (value: ParamsDictValue) => {
-    if (Array.isArray(value)) {
-        return value.join(',')
+export function setParamDefaults(params: URLSearchParams, path: string): URLSearchParams {
+    if (path.startsWith('/club')) {
+        if (path.includes('/all')) {
+            params.set(QueryProperty.Sort, SortParamValue.Name)
+        } else {
+            params.set(QueryProperty.Sort, SortParamValue.Date)
+        }
+    } else if (path.startsWith('/show')) {
+        if (path.includes('/all')) {
+            params.set(QueryProperty.Sort, SortParamValue.Date)
+        } else {
+            params.set(QueryProperty.Sort, SortParamValue.Name)
+        }
+    } else if (path.startsWith('/comedian')) {
+        if (path.includes('/all')) {
+            params.set(QueryProperty.Sort, SortParamValue.Name)
+        } else {
+            params.set(QueryProperty.Sort, SortParamValue.Date)
+        }
     }
-    return value.toString()
+
+    if (!params.has(QueryProperty.Page)) { params.set(QueryProperty.Page, "1") }
+    if (!params.has(QueryProperty.Size)) { params.set(QueryProperty.Size, "10") }
+    if (!params.has(QueryProperty.Query)) { params.set(QueryProperty.Query, "") }
+    if (!params.has(QueryProperty.Direction)) { params.set(QueryProperty.Direction, "asc") }
+
+    return params
 }

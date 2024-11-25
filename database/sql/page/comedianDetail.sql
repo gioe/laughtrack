@@ -7,9 +7,9 @@ all_relevant_shows as (
 	WHERE
     s.date > now()
 	AND c.name = $(slug)
-    ORDER BY ${sort:name} ${direction:value}
+    ORDER BY ${sort_by:name} ${direction:value}
     LIMIT ${size} 
-    OFFSET ${offset}
+    OFFSET ${page}
 ), 
 relevant_show_ids AS (
 	SELECT
@@ -35,7 +35,7 @@ FROM
 GROUP BY
 	s.id,
 	cl.name
-ORDER BY ${sort:name} ${direction:value}
+ORDER BY ${sort_by:name} ${direction:value}
 ),
 formatted_query AS (
 	SELECT

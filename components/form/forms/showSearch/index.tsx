@@ -9,7 +9,7 @@ import { showSearchFormSchema } from "./schema";
 import { useState } from "react";
 import { Navigator } from "../../../../objects/class/navigate/Navigator";
 import {
-    ClientParamValue,
+    ParamsDictValue,
     SearchParamsHelper,
     URLParam,
 } from "../../../../objects/class/params/SearchParamsHelper";
@@ -41,7 +41,7 @@ export default function ShowSearchForm() {
 
     function submitForm(data: z.infer<typeof showSearchFormSchema>) {
         setIsLoading(true);
-        const map = new Map<URLParam, ClientParamValue>();
+        const map = new Map<URLParam, ParamsDictValue>();
 
         map.set("city", data.city);
         map.set("from_date", data.dates.from);

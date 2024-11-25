@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import TablePagination from "@mui/material/TablePagination";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { SearchParamsHelper } from "../../../objects/class/params/SearchParamsHelper";
 import { Navigator } from "../../../objects/class/navigate/Navigator";
 import { QueryProperty } from "../../../objects/enum/queryProperty";
+import TablePagination from "@mui/material/TablePagination";
 
 interface PageParamComponentProps {
     itemCount: number;
@@ -17,15 +17,15 @@ export function PageParamComponent({
     const readOnlySearchParams = useSearchParams();
     const searchParams = new URLSearchParams(readOnlySearchParams);
     const paramsHelper = new SearchParamsHelper(searchParams);
-
     const navigator = new Navigator(usePathname(), useRouter());
-    const defaultIndex =
-        Number(paramsHelper.getParamValue(QueryProperty.Page)) - 1;
-    const [pageIndex, setPageIndex] = useState(defaultIndex);
 
-    const [rowsPerPage, setRowsPerPage] = useState(
-        Number(paramsHelper.getParamValue(QueryProperty.Size)),
+    const defaultIndex = Number(paramsHelper.getParamValue(QueryProperty.Page));
+    const defaultPageSize = Number(
+        paramsHelper.getParamValue(QueryProperty.Size),
     );
+
+    const [pageIndex, setPageIndex] = useState(defaultIndex);
+    const [pageSize, setPageSize] = useState(defaultPageSize);
 
     const handleChangeOffset = (
         event: React.MouseEvent<HTMLButtonElement> | null,
@@ -44,7 +44,7 @@ export function PageParamComponent({
         const rowSizeValue = parseInt(event.target.value, 10);
         paramsHelper.setParamValue(QueryProperty.Size, rowSizeValue);
         navigator.replaceRoute(paramsHelper.asParamsString());
-        setRowsPerPage(rowSizeValue);
+        setPageSize(rowSizeValue);
     };
 
     return (
@@ -72,7 +72,7 @@ export function PageParamComponent({
             component="div"
             count={itemCount}
             page={pageIndex}
-            rowsPerPage={rowsPerPage}
+            rowsPerPage={pageSize}
             onPageChange={handleChangeOffset}
             onRowsPerPageChange={handleChangeRows}
         />
