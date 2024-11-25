@@ -23,5 +23,6 @@ export const queryPropertyDefaultMap = new MapWithDefault<string, string>([
     [QueryProperty.Size, "10"],
     [QueryProperty.Query, ""],
     [QueryProperty.Direction, "asc"],
+    [QueryProperty.Sort, "name"],
     [DEFAULT, 'Unknown error']
 ]);

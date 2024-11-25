@@ -25,7 +25,7 @@ with filtered_data as (
     Where name ILIKE ${query}
     ORDER BY ${sort_by:name} ${direction:value}
     LIMIT ${size} 
-    OFFSET ${page}
+    OFFSET ${offset}
 ),
 total_count as (
     SELECT

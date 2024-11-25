@@ -7,8 +7,10 @@ import { getDB } from "../database";
 const { database } = getDB();
 
 export default async function HomePage(props: any) {
-    const filters = await QueryHelper.storePageParams(props.searchParams);
-    const { comedians } = await database.page.getHomePageData(filters);
+    const helper = await QueryHelper.storePageParams(props.searchParams);
+    const { comedians } = await database.page.getHomePageData(
+        helper.asQueryFilters(),
+    );
     const comediansString = JSON.stringify(comedians);
 
     return (

@@ -28,7 +28,7 @@ filtered_data AS (
     AND s.date > ${from_date}
     ORDER BY ${sort_by:name} ${direction:value}
     LIMIT ${size} 
-    OFFSET ${page}
+    OFFSET ${offset}
 ),
 lineups AS (
 	SELECT

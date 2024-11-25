@@ -10,13 +10,13 @@ import TagEntityModal from "../../../components/modals/tagEntity";
 import EntityBanner from "../../../components/banner";
 
 export default async function ShowDetailPage(props: any) {
-    const filters = await QueryHelper.storePageParams(
+    const helper = await QueryHelper.storePageParams(
         props.searchParams,
         props.params,
     );
-
-    const { entity, total } =
-        await database.page.getShowDetailPageData(filters);
+    const { entity, total } = await database.page.getShowDetailPageData(
+        helper.asQueryFilters(),
+    );
 
     const entityString = JSON.stringify(entity);
     const containedEntitiesString = JSON.stringify(entity.containedEntities);

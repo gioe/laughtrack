@@ -13,6 +13,7 @@ export function middleware(request: NextRequest) {
     setParamDefaults(searchParams, request.nextUrl.pathname)
 
     for (const [key, value] of searchParams.entries()) {
+        console.log(`The key is ${key} and the value is ${value}`)
         url.searchParams.set(key, value);
     }
 

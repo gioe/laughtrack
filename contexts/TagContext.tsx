@@ -6,10 +6,10 @@ import axios from "axios";
 import { EntityType } from "../objects/enum";
 
 interface TagList {
-    tags: TagDataDTO[];
+    tagData: TagDataDTO[];
 }
 const defaultList: TagList = {
-    tags: [],
+    tagData: [],
 };
 
 const TagContext = createContext<TagList>(defaultList);
@@ -33,6 +33,7 @@ export function TagListProvider({
             })
             .then((data) => {
                 if (data) {
+                    console.log(data);
                     setTags(data);
                 }
             })

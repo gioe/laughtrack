@@ -11,11 +11,11 @@ WITH filtered_data AS (
 		jsonb_build_object('price', s.price, 'link', s.ticket_link) AS ticket
 	FROM shows s
 	INNER JOIN clubs cl ON cl.id = s.club_id
-    WHERE cl.name = ${slug}
+    WHERE cl.name = ${name}
     AND s.date > NOW()
     ORDER BY ${sort_by:name} ${direction:value}
     LIMIT ${size} 
-    OFFSET ${page}
+    OFFSET ${offset}
 ),
 lineups AS (
 	SELECT
@@ -33,7 +33,7 @@ total_count AS (
 	FROM 
 		shows s
 	INNER JOIN clubs cl ON cl.id = s.club_id
-    WHERE cl.name = ${slug}
+    WHERE cl.name = ${name}
     AND s.date > NOW()
 ), 
 all_values AS (
@@ -46,7 +46,7 @@ all_values AS (
 	    clubs c
 	    LEFT JOIN filtered_data fd ON fd.club_id = c.id
 		LEFT JOIN lineups l ON fd.id = l.show_id
-    WHERE c.name = ${slug}
+    WHERE c.name = ${name}
 	GROUP BY
 		c.name,
 		c.website,

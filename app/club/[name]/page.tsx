@@ -1,34 +1,32 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import { EntityType } from "../../../objects/enum";
 import QueryableEntityTableContainer from "../../../components/container";
 import { QueryHelper } from "../../../objects/class/query/QueryHelper";
-import { EntityType } from "../../../objects/enum";
-import EditSocialDataModal from "../../../components/modals/socialData";
-import TagEntityModal from "../../../components/modals/tagEntity";
+import ScrapeEntityModal from "../../../components/modals/scrape";
+import ClearShowsModal from "../../../components/modals/clearClub";
 import EntityBanner from "../../../components/banner";
 import { getDB } from "../../../database";
 const { database } = getDB();
 
-export default async function ComedianDetailsPage(props: any) {
-    const filters = await QueryHelper.storePageParams(
+export default async function ClubDetailPage(props) {
+    const helper = await QueryHelper.storePageParams(
         props.searchParams,
         props.params,
     );
 
-    const { entity, total } =
-        await database.page.getComedianDetailPageData(filters);
-    const tags = await database.queries.getTags(EntityType.Show);
-    const tagsString = JSON.stringify(tags);
-    const entityString = JSON.stringify(entity);
+    const { entity, total } = await database.page.getClubDetailPageData(
+        helper.asQueryFilters(),
+    );
     const containedEntitiesString = JSON.stringify(entity.containedEntities);
+    const entityString = JSON.stringify(entity);
+
     return (
         <main className="flex-grow pt-5 bg-shark">
             <section>
-                <EditSocialDataModal entityString={entityString} />
-                <TagEntityModal
-                    type={EntityType.Comedian}
+                <ScrapeEntityModal
                     entityId={entity.id}
-                    tagsString={""}
+                    type={EntityType.Club}
                 />
+                <ClearShowsModal clubId={entity.id} />
             </section>
             <section>
                 <EntityBanner entityString={entityString} />
@@ -37,11 +35,10 @@ export default async function ComedianDetailsPage(props: any) {
                 <QueryableEntityTableContainer
                     entityType={EntityType.Show}
                     totalEntities={total}
-                    tagsString={tagsString}
                     entityCollectionString={containedEntitiesString}
                     defaultNode={
                         <h2 className="font-bold text-5xl text-white pt-6">
-                            No upcoming shows for this comedian
+                            No shows for this club
                         </h2>
                     }
                 />

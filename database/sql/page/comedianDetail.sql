@@ -6,10 +6,10 @@ all_relevant_shows as (
 		INNER JOIN comedians c ON c.uuid = l.comedian_id
 	WHERE
     s.date > now()
-	AND c.name = $(slug)
+	AND c.name = $(name)
     ORDER BY ${sort_by:name} ${direction:value}
     LIMIT ${size} 
-    OFFSET ${page}
+    OFFSET ${offset}
 ), 
 relevant_show_ids AS (
 	SELECT
@@ -54,7 +54,7 @@ comedian_data AS (
 	FROM
 		comedians
 	WHERE
-		name = $(slug))
+		name = $(name))
 SELECT
 	jsonb_build_object(
         'data', jsonb_build_object('name', (SELECT name FROM comedian_data),

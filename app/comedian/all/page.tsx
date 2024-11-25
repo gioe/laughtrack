@@ -6,15 +6,14 @@ import { getDB } from "../../../database";
 const { database } = getDB();
 
 export default async function ComedianSearchPage(props: any) {
-    const filters = await QueryHelper.storePageParams(
+    const helper = await QueryHelper.storePageParams(
         props.searchParams,
         props.params,
     );
 
-    const { entities, total } =
-        await database.page.getComedianSearchPageData(filters);
-    const tags = await database.queries.getTags(EntityType.Comedian);
-    const tagsString = JSON.stringify(tags);
+    const { entities, total } = await database.page.getComedianSearchPageData(
+        helper.asQueryFilters(),
+    );
     const entityCollectionString = JSON.stringify(entities);
 
     return (
@@ -22,7 +21,6 @@ export default async function ComedianSearchPage(props: any) {
             <QueryableEntityTableContainer
                 entityType={EntityType.Comedian}
                 totalEntities={total}
-                tagsString={tagsString}
                 entityCollectionString={entityCollectionString}
                 defaultNode={
                     <h2 className="font-bold text-5xl text-white pt-6">

@@ -13,7 +13,6 @@ import {
     PaginatedEntityResponseDTO,
     PaginatedEntityDTO
 } from "./paginatedEntity.interface";
-import { SlugInterface } from "./slug.interface";
 import { SortOptionInterface } from "./sortOption.interface";
 import {
     TagInterface,
@@ -34,7 +33,6 @@ export type {
     Paginated,
     ScrapingArgs,
     ScrapingOutput,
-    SlugInterface,
     SortOptionInterface,
     TagInterface,
     Taggable,

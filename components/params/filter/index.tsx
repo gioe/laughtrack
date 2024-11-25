@@ -12,7 +12,7 @@ import { SearchParamsHelper } from "../../../objects/class/params/SearchParamsHe
 import { useTagContext } from "../../../contexts/TagContext";
 
 export function FilterParamComponent() {
-    const { tags } = useTagContext();
+    const { tagData } = useTagContext();
     const readOnlySearchParams = useSearchParams();
     const searchParams = new URLSearchParams(readOnlySearchParams);
     const paramsHelper = new SearchParamsHelper(searchParams);
@@ -24,8 +24,8 @@ export function FilterParamComponent() {
 
     return (
         <form className="mt-4 border-t border-gray-200">
-            {tags.length > 0 &&
-                tags.map((section) => (
+            {tagData.length > 0 &&
+                tagData.map((section) => (
                     <Disclosure
                         key={section.id}
                         as="div"

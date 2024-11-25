@@ -19,6 +19,17 @@ export const formatValue = (value: ParamsDictValue) => {
 }
 
 export function setParamDefaults(params: URLSearchParams, path: string): URLSearchParams {
+
+    if (!params.has(QueryProperty.Sort)) { getSortParamDefaultFromPath(params, path) }
+    if (!params.has(QueryProperty.Page)) { params.set(QueryProperty.Page, "1") }
+    if (!params.has(QueryProperty.Size)) { params.set(QueryProperty.Size, "10") }
+    if (!params.has(QueryProperty.Query)) { params.set(QueryProperty.Query, "") }
+    if (!params.has(QueryProperty.Direction)) { params.set(QueryProperty.Direction, "asc") }
+
+    return params
+}
+
+function getSortParamDefaultFromPath(params: URLSearchParams, path: string): URLSearchParams {
     if (path.startsWith('/club')) {
         if (path.includes('/all')) {
             params.set(QueryProperty.Sort, SortParamValue.Name)
@@ -38,11 +49,5 @@ export function setParamDefaults(params: URLSearchParams, path: string): URLSear
             params.set(QueryProperty.Sort, SortParamValue.Date)
         }
     }
-
-    if (!params.has(QueryProperty.Page)) { params.set(QueryProperty.Page, "1") }
-    if (!params.has(QueryProperty.Size)) { params.set(QueryProperty.Size, "10") }
-    if (!params.has(QueryProperty.Query)) { params.set(QueryProperty.Query, "") }
-    if (!params.has(QueryProperty.Direction)) { params.set(QueryProperty.Direction, "asc") }
-
     return params
 }

@@ -8,10 +8,10 @@ import { getDB } from "../../../database";
 const { database } = getDB();
 
 export default async function ShowSearchPage(props: any) {
-    const filters = await QueryHelper.storePageParams(props.searchParams);
-
-    const { entities, total } =
-        await database.page.getShowSearchPageData(filters);
+    const helper = await QueryHelper.storePageParams(props.searchParams);
+    const { entities, total } = await database.page.getShowSearchPageData(
+        helper.asQueryFilters(),
+    );
     const entityCollectionString = JSON.stringify(entities);
 
     return (
