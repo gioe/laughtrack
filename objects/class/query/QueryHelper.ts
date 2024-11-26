@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { SearchParamsHelper } from "../params/SearchParamsHelper";
-import { allQueryProperties, QueryProperty } from "../../enum/queryProperty";
-import { formatValue } from "../../../util/primatives/paramUtil";
+import { ParamsDictValue, SearchParamsHelper } from "../params/SearchParamsHelper";
+import { allQueryProperties, DEFAULT_ERROR, QueryProperty } from "../../enum/queryProperty";
 import { DynamicRoute } from "../../interface/identifable.interface";
+import { ReadonlyURLSearchParams } from "next/navigation";
+import { TagDataDTO } from "../../interface/tag.interface";
+import { DEFAULT } from "../map/MapWithDefault";
 
 // This class is meant to capture all of the page parameters that Next provides us with.
 // These are relevant for DB querying and their existence persists across all pages so we capture it
@@ -13,9 +15,13 @@ export class QueryHelper {
 
     identifier?: DynamicRoute
     searchParamsHelper: SearchParamsHelper;
+    filterValues: string[]
 
-    constructor(searchParamsHelper: SearchParamsHelper, identifier?: DynamicRoute) {
+    constructor(searchParamsHelper: SearchParamsHelper,
+        filterValues: string[],
+        identifier?: DynamicRoute) {
         this.identifier = identifier
+        this.filterValues = filterValues
         this.searchParamsHelper = searchParamsHelper
     }
 
@@ -33,20 +39,27 @@ export class QueryHelper {
             ...this.getDirection(),
             // Identifier
             ...this.getIdentifier(),
-            // Params,
-            ...this.getParams(),
-            // Tags
-            ...this.getTags(),
             // Domain Values,
-            ...this.getDomainParams()
+            ...this.getDomainParams(),
+            // Tags.
+            ...this.getTags()
         }
     }
 
+
+    getTags() {
+        const tagValues = this.filterValues.flatMap((value: string) => {
+            return this.searchParamsHelper.getParamValue(value)
+        }).filter((value: string) => value !== DEFAULT_ERROR)
+
+        return { tags: tagValues.length == 0 ? [''] : tagValues }
+    }
+
     getDomainParams() {
-        const paramsMap = new Map<string, string>()
+        const paramsMap = new Map<string, ParamsDictValue>()
         for (const [key, value] of this.searchParamsHelper.paramsDict.entries()) {
             if (!allQueryProperties.includes(key)) {
-                paramsMap.set(key, formatValue(value))
+                paramsMap.set(key, value)
             }
         }
         return Object.fromEntries(paramsMap.entries())
@@ -84,22 +97,13 @@ export class QueryHelper {
         return {}
     }
 
-
-    getParams() {
-        return { params: [''] }
-    }
-
-    getTags() {
-        return { tags: [''] }
-    }
-
-
-    static async storePageParams(paramsPromise: Promise<any>, slugPromise?: Promise<QueryHelper>) {
-        const promises = [paramsPromise, slugPromise]
-        return Promise.all(promises).then((values: unknown[]) => {
+    static async storePageParams(paramsPromise: Promise<any>, tagsPromise?: Promise<TagDataDTO[]>, slugPromise?: Promise<QueryHelper>) {
+        const promises = [paramsPromise, tagsPromise, slugPromise]
+        return Promise.all(promises).then((values: any[]) => {
             const searchParams = new URLSearchParams(values[0] as string)
-            const searchParamsHelper = new SearchParamsHelper(searchParams)
-            return new QueryHelper(searchParamsHelper, (values[1] as DynamicRoute))
+            const filterValues = values[1].map((dto: TagDataDTO) => dto.value);
+            const searchParamsHelper = new SearchParamsHelper(searchParams as ReadonlyURLSearchParams)
+            return new QueryHelper(searchParamsHelper, filterValues, (values[1] as DynamicRoute))
         })
     }
 

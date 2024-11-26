@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDB } from '../../../database'
 import { EntityType } from "../../../objects/enum";
-import { TagData } from "../../../objects/class/tag/Tag";
+import { TagDataDTO } from "../../../objects/interface/tag.interface";
 const { database } = getDB();
 
 export async function POST(
@@ -10,6 +10,6 @@ export async function POST(
     const { type } = await req.json()
 
     return database.queries.getTags(type as EntityType)
-        .then((tagData: TagData[]) => NextResponse.json({ tagData }, { status: 200 }))
+        .then((containers: TagDataDTO[]) => NextResponse.json({ containers }, { status: 200 }))
         .catch((error: Error) => NextResponse.json({ message: error.message }, { status: 500 }));
 }

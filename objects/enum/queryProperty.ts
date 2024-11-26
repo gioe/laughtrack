@@ -17,6 +17,7 @@ export const allQueryProperties = [
     QueryProperty.Query.valueOf(),
     QueryProperty.Page.valueOf(),
 ];
+export const DEFAULT_ERROR = 'Unknown error'
 
 export const queryPropertyDefaultMap = new MapWithDefault<string, string>([
     [QueryProperty.Page, "0"],
@@ -24,5 +25,6 @@ export const queryPropertyDefaultMap = new MapWithDefault<string, string>([
     [QueryProperty.Query, ""],
     [QueryProperty.Direction, "asc"],
     [QueryProperty.Sort, "name"],
-    [DEFAULT, 'Unknown error']
+    [DEFAULT, DEFAULT_ERROR]
 ]);
+

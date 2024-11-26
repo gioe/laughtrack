@@ -1,4 +1,4 @@
-import { TagListProvider } from "../../../contexts/TagContext";
+import { FilterContextProvider } from "../../../contexts/FilterContext";
 import { EntityType } from "../../../objects/enum";
 
 export default function AllShowsLayout({
@@ -6,5 +6,9 @@ export default function AllShowsLayout({
 }: {
     children: React.ReactNode;
 }) {
-    return <TagListProvider type={EntityType.Show}>{children}</TagListProvider>;
+    return (
+        <FilterContextProvider type={EntityType.Show}>
+            {children}
+        </FilterContextProvider>
+    );
 }

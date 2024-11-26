@@ -1,12 +1,16 @@
 with 
 all_relevant_shows as (
-    SELECT s.id as show_id, s.name as name FROM
+    SELECT s.id as show_id, s.name as name 
+	FROM
 		shows s
+		LEFT JOIN tagged_shows ts ON s.id = ts.show_id
+		LEFT JOIN tags t ON ts.tag_id = t.id
 		INNER JOIN lineup_items l ON s.id = l.show_id
 		INNER JOIN comedians c ON c.uuid = l.comedian_id
 	WHERE
     s.date > now()
 	AND c.name = $(name)
+	AND t.name IN (${tags:csv})
     ORDER BY ${sort_by:name} ${direction:value}
     LIMIT ${size} 
     OFFSET ${offset}

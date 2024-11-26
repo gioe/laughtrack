@@ -15,9 +15,7 @@ interface SortParamComponentProps {
 }
 
 export function SortParamComponent({ options }: SortParamComponentProps) {
-    const readOnlySearchParams = useSearchParams();
-    const searchParams = new URLSearchParams(readOnlySearchParams);
-    const paramsHelper = new SearchParamsHelper(searchParams);
+    const paramsHelper = new SearchParamsHelper(useSearchParams());
 
     const navigator = new Navigator(usePathname(), useRouter());
 

@@ -9,10 +9,15 @@ WITH filtered_data AS (
 		cl.name AS club_name,
 		cl.website as club_website,
 		jsonb_build_object('price', s.price, 'link', s.ticket_link) AS ticket
-	FROM shows s
-	INNER JOIN clubs cl ON cl.id = s.club_id
-    WHERE cl.name = ${name}
-    AND s.date > NOW()
+	FROM
+		shows s
+		LEFT JOIN tagged_shows ts ON s.id = ts.show_id
+		LEFT JOIN tags t ON ts.tag_id = t.id
+		INNER JOIN clubs cl ON cl.id = s.club_id
+	WHERE
+		cl.name = ${name}
+		AND s.date > now()
+		AND t.name IN (${tags:csv})
     ORDER BY ${sort_by:name} ${direction:value}
     LIMIT ${size} 
     OFFSET ${offset}
@@ -30,9 +35,15 @@ lineups AS (
 total_count AS (
 	SELECT
 		count(DISTINCT s.id) AS total
-	FROM 
+	FROM
 		shows s
-	INNER JOIN clubs cl ON cl.id = s.club_id
+		LEFT JOIN tagged_shows ts ON s.id = ts.show_id
+		LEFT JOIN tags t ON ts.tag_id = t.id
+		INNER JOIN clubs cl ON cl.id = s.club_id
+	WHERE
+		cl.name = ${name}
+		AND s.date > now()
+		AND t.id IN (${tags:csv})
     WHERE cl.name = ${name}
     AND s.date > NOW()
 ), 

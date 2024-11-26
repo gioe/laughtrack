@@ -1,12 +1,13 @@
 export interface Selectable {
     id: number;
-    name: string;
+    displayName: string;
     selected: boolean;
+    select: () => void;
 }
 
 export interface FilterSection {
     id: number;
     value: string;
-    name: string;
+    displayName: string;
     options: Selectable[];
 }

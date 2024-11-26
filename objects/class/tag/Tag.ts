@@ -1,25 +1,23 @@
-import { FilterSection, Selectable } from "../../interface/filter.interface";
-import { TagDataDTO, TagOptionDTO } from "../../interface/tag.interface";
+import { Selectable } from "../../interface/filter.interface";
+import { TagOptionDTO } from "../../interface/tag.interface";
 
-export class TagData implements FilterSection {
+export class Tag implements Selectable {
     // Properties
     id: number;
-    name: string;
+    displayName: string;
+    selected: boolean;
     value: string;
-    options: Selectable[];
 
     // Constructor
-    constructor(input: TagDataDTO) {
+    constructor(input: TagOptionDTO, selected?: boolean) {
         this.id = input.id
-        this.name = input.name
-        this.value = input.param_value
-        this.options = input.options.map((option: TagOptionDTO) => {
-            return {
-                id: option.id,
-                name: option.name,
-                selected: option.selected ?? false
-            }
-        })
+        this.displayName = input.display_name
+        this.value = input.value
+        this.selected = input.selected ?? (selected ?? false)
+    }
+
+    select() {
+        this.selected = !this.selected
     }
 
 }

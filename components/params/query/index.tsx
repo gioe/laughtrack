@@ -16,9 +16,7 @@ interface QueryParamComponentProps {
 const QueryParamComponent: React.FC<QueryParamComponentProps> = ({
     inputPlaceholder,
 }) => {
-    const readOnlySearchParams = useSearchParams();
-    const searchParams = new URLSearchParams(readOnlySearchParams);
-    const paramsHelper = new SearchParamsHelper(searchParams);
+    const paramsHelper = new SearchParamsHelper(useSearchParams());
 
     const navigator = new Navigator(usePathname(), useRouter());
 

@@ -7,8 +7,14 @@ import { QueryHelper } from "../../../objects/class/query/QueryHelper";
 import { getDB } from "../../../database";
 const { database } = getDB();
 
+const getFilters = database.queries.getTags(EntityType.Show);
+
 export default async function ShowSearchPage(props: any) {
-    const helper = await QueryHelper.storePageParams(props.searchParams);
+    const helper = await QueryHelper.storePageParams(
+        props.searchParams,
+        getFilters,
+    );
+
     const { entities, total } = await database.page.getShowSearchPageData(
         helper.asQueryFilters(),
     );

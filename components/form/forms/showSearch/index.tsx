@@ -20,12 +20,10 @@ import { useForm } from "react-hook-form";
 
 export default function ShowSearchForm() {
     const { cities } = useCityContext();
-    const readOnlySearchParams = useSearchParams();
+    const paramsHelper = new SearchParamsHelper(useSearchParams());
 
     const [isLoading, setIsLoading] = useState(false);
 
-    const searchParams = new URLSearchParams(readOnlySearchParams);
-    const paramsHelper = new SearchParamsHelper(searchParams);
     const navigator = new Navigator(usePathname(), useRouter());
 
     const form = useForm<z.infer<typeof showSearchFormSchema>>({

@@ -1,1 +1,1 @@
-SELECT t.name, t.id from tags t WHERE t.type = 'show' AND position(t.pattern in ${showName}) > 0;
+SELECT t.id from tags t WHERE t.type = 'show' AND position(t.pattern in ${showName}) > 0;

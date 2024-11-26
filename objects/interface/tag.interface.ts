@@ -1,19 +1,20 @@
 // Client
 export interface TagInterface {
     id: number;
-    name: string;
+    value: string;
 }
 
 // DB
 export interface TagDataDTO {
     id: number;
-    name: string;
-    param_value: string;
+    value: string;
+    display_name: string;
     options: TagOptionDTO[];
 }
 
 export interface TagOptionDTO {
     id: number;
-    name: string;
+    value: string;
+    display_name: string;
     selected?: boolean;
 }

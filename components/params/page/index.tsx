@@ -14,9 +14,7 @@ interface PageParamComponentProps {
 export function PageParamComponent({
     itemCount,
 }: Readonly<PageParamComponentProps>) {
-    const readOnlySearchParams = useSearchParams();
-    const searchParams = new URLSearchParams(readOnlySearchParams);
-    const paramsHelper = new SearchParamsHelper(searchParams);
+    const paramsHelper = new SearchParamsHelper(useSearchParams());
     const navigator = new Navigator(usePathname(), useRouter());
 
     const defaultIndex = Number(paramsHelper.getParamValue(QueryProperty.Page));

@@ -9,25 +9,35 @@ import {
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Navigator } from "../../../objects/class/navigate/Navigator";
 import { SearchParamsHelper } from "../../../objects/class/params/SearchParamsHelper";
-import { useTagContext } from "../../../contexts/TagContext";
+import { TagContainer } from "../../../objects/class/tag/TagContainer";
+import { useFilterContext } from "../../../contexts/FilterContext";
 
 export function FilterParamComponent() {
-    const { tagData } = useTagContext();
-    const readOnlySearchParams = useSearchParams();
-    const searchParams = new URLSearchParams(readOnlySearchParams);
-    const paramsHelper = new SearchParamsHelper(searchParams);
+    const { containers } = useFilterContext();
+    const paramsHelper = new SearchParamsHelper(useSearchParams());
     const navigator = new Navigator(usePathname(), useRouter());
 
-    const appendParam = (name: string, id: number) => {
-        navigator.replaceRoute(paramsHelper.asParamsString());
+    const appendParam = (param: string, value: number) => {
+        const container = containers.find(
+            (container: TagContainer) => container.value == param,
+        );
+        if (container) {
+            container.setSelected(value);
+            paramsHelper.setParamValue(param, container.asParamValue());
+            navigator.replaceRoute(paramsHelper.asParamsString());
+        } else {
+            throw new Error(
+                "User selected a param value that shouldnt be there",
+            );
+        }
     };
 
     return (
         <form className="mt-4 border-t border-gray-200">
-            {tagData.length > 0 &&
-                tagData.map((section) => (
+            {containers.length > 0 &&
+                containers.map((container) => (
                     <Disclosure
-                        key={section.id}
+                        key={container.id}
                         as="div"
                         className="border-t border-gray-200 px-4 py-6"
                     >
@@ -38,7 +48,7 @@ export function FilterParamComponent() {
               text-white hover:text-gray-500"
                             >
                                 <span className="font-medium text-white">
-                                    {section.name}
+                                    {container.displayName}
                                 </span>
                                 <span className="ml-6 flex items-center">
                                     <PlusIcon
@@ -54,7 +64,7 @@ export function FilterParamComponent() {
                         </h3>
                         <DisclosurePanel className="pt-6">
                             <div className="space-y-2">
-                                {section.options.map((option, optionIdx) => (
+                                {container.options.map((option, optionIdx) => (
                                     <div
                                         key={option.id.toString()}
                                         className="flex items-center"
@@ -62,22 +72,22 @@ export function FilterParamComponent() {
                                         <input
                                             onClick={() =>
                                                 appendParam(
-                                                    section.param_value,
+                                                    container.value,
                                                     option.id,
                                                 )
                                             }
                                             defaultValue={option.id}
                                             defaultChecked={option.selected}
-                                            id={`filter-mobile-${section.id}-${optionIdx}`}
-                                            name={`${section.id}[]`}
+                                            id={`filter-mobile-${container.id}-${optionIdx}`}
+                                            name={`${container.id}[]`}
                                             type="checkbox"
                                             className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                                         />
                                         <label
-                                            htmlFor={`filter-mobile-${section.id}-${optionIdx}`}
+                                            htmlFor={`filter-mobile-${container.id}-${optionIdx}`}
                                             className="ml-3 min-w-0 flex-1 text-silver-gray"
                                         >
-                                            {option.name}
+                                            {option.displayName}
                                         </label>
                                     </div>
                                 ))}
