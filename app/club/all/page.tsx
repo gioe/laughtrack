@@ -5,8 +5,13 @@ import { EntityType } from "../../../objects/enum";
 import { getDB } from "../../../database";
 const { database } = getDB();
 
+const getFilters = database.queries.getTags([EntityType.Club]);
+
 export default async function ClubSearchPage(props: any) {
-    const helper = await QueryHelper.storePageParams(props.searchParams);
+    const helper = await QueryHelper.storePageParams(
+        props.searchParams,
+        getFilters,
+    );
 
     const { entities, total } = await database.page.getClubSearchPageData(
         helper.asQueryFilters(),
@@ -17,7 +22,6 @@ export default async function ClubSearchPage(props: any) {
     return (
         <main className="flex-grow pt-5 bg-shark">
             <QueryableEntityTableContainer
-                entityType={EntityType.Club}
                 totalEntities={total}
                 entityCollectionString={entityCollectionString}
                 defaultNode={

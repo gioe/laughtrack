@@ -15,7 +15,6 @@ SELECT
 	*
 FROM
 	all_data
-WHERE all_data.type = ${type}
 GROUP BY
 	all_data.display_name,
 	all_data.id,

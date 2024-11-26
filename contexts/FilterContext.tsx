@@ -3,50 +3,49 @@
 import { useState, useEffect, useContext, createContext } from "react";
 import axios from "axios";
 import { EntityType } from "../objects/enum";
-import { TagContainer } from "../objects/class/tag/TagContainer";
+import { FilterContainer } from "../objects/class/tag/FilterContainer";
 import { TagDataDTO } from "../objects/interface/tag.interface";
 import { useSearchParams } from "next/navigation";
 
-interface FilterList {
-    containers: TagContainer[];
+interface FilterContextState {
+    type: EntityType;
+    filters: FilterContainer[];
 }
 
-const defaultList: FilterList = {
-    containers: [],
+const defaultState: FilterContextState = {
+    type: EntityType.Show,
+    filters: [],
 };
 
-const FilterContext = createContext<FilterList>(defaultList);
+const FilterContext = createContext<FilterContextState>(defaultState);
 
 export function FilterContextProvider({
-    type,
     children,
+    type,
 }: {
     type: EntityType;
     children: React.ReactNode;
 }) {
     const searchParams = useSearchParams();
-    const [containers, setTagContainers] = useState(defaultList);
+    const [state, setState] = useState<FilterContextState>(defaultState);
 
     const getFilters = async () => {
         axios
-            .post(`/api/tag`, {
-                type: `${type.valueOf()}`,
-            })
+            .get(`/api/tag`)
             .then((response) => {
                 return response.data;
             })
             .then((data) => {
                 if (data) {
-                    const containers = data.containers.map(
-                        (dto: TagDataDTO) => {
-                            return new TagContainer(
-                                dto,
-                                searchParams.get(dto.value),
-                            );
-                        },
-                    );
-                    setTagContainers({
-                        containers,
+                    const filters = data.containers.map((dto: TagDataDTO) => {
+                        return new FilterContainer(
+                            dto,
+                            searchParams.get(dto.value),
+                        );
+                    });
+                    setState({
+                        type: type,
+                        filters: filters,
                     });
                 }
             })
@@ -60,7 +59,7 @@ export function FilterContextProvider({
     }, []);
 
     return (
-        <FilterContext.Provider value={containers}>
+        <FilterContext.Provider value={state}>
             {children}
         </FilterContext.Provider>
     );

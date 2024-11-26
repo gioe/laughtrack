@@ -5,12 +5,13 @@ import { EntityType } from "../../../objects/enum";
 import { getDB } from "../../../database";
 const { database } = getDB();
 
+const getFilters = database.queries.getTags([EntityType.Comedian]);
+
 export default async function ComedianSearchPage(props: any) {
     const helper = await QueryHelper.storePageParams(
         props.searchParams,
-        props.params,
+        getFilters,
     );
-
     const { entities, total } = await database.page.getComedianSearchPageData(
         helper.asQueryFilters(),
     );
@@ -19,7 +20,6 @@ export default async function ComedianSearchPage(props: any) {
     return (
         <main className="flex-grow pt-5 bg-shark">
             <QueryableEntityTableContainer
-                entityType={EntityType.Comedian}
                 totalEntities={total}
                 entityCollectionString={entityCollectionString}
                 defaultNode={

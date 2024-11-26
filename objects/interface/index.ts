@@ -5,9 +5,9 @@ import { Paginated, PaginationData } from "./paginated.interface";
 import { ScrapingArgs, ScrapingOutput, ClubScraper } from "./scrape.interface";
 import { LineupItemDTO } from "./lineup.interface";
 import { DatabaseIdentifiable } from "./identifable.interface"
-import { SelectableItem } from "./selectableItem"
 import { EntityContainer } from "./entityContainer.interface";
 import { RepositoryInterface } from "./repository.interface"
+import { Selectable } from "./selectable.interface";
 import {
     PaginatedEntityResponse,
     PaginatedEntityResponseDTO,
@@ -25,7 +25,7 @@ import { ButtonData } from "./buttonData.interface"
 import { BannerRepresentable } from "./bannerRepresentable.interface"
 
 export type {
-    SelectableItem,
+    Selectable,
     DatabaseIdentifiable,
     ButtonData,
     BannerRepresentable,

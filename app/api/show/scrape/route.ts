@@ -9,12 +9,17 @@ export async function POST(
     req: NextRequest
 ) {
     const { headless, ids, pause } = await req.json()
+    console.log(headless)
+    console.log(pause)
+    console.log(ids)
+
     const headlessBoolean = headless == 'true' ? true : false
     const pauseBoolean = pause == 'true' ? true : false
 
     return database.queries.getShowById(ids[0])
         .then((data: any | null) => {
             if (data) {
+                console.log(data)
                 const show = new Show(data.response.show)
                 const club = new Club(data.response.club)
                 return scrapeShow(show, club, headlessBoolean, pauseBoolean)

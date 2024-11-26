@@ -32,7 +32,7 @@ export const queryMap = {
     getShowById: sql("queries/getShowById.sql").qf,
     getComediansFromShowMetadata: sql("queries/getComediansFromShowMetadata.sql").qf,
     getTagsFromShowMetadata: sql("queries/getTagsFromShowMetadata.sql").qf,
-    getTagsByType: sql("queries/getTagsByType.sql").qf
+    getTagsAsFilters: sql("queries/getTagsAsFilters.sql").qf
 }
 
 interface IQueryFileScope {

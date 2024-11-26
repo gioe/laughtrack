@@ -10,7 +10,6 @@ import {
 import SocialMediaBar from "../social/SocialMediaBar";
 import { Entity } from "../../objects/interface";
 import LinkedImage from "../image/link";
-import { SocialData } from "../../objects/class/socialData/SocialData";
 
 interface CarouselCardProps {
     entity: Entity;

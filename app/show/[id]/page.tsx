@@ -9,9 +9,12 @@ import ModifyLineupModal from "../../../components/modals/modifyLineup";
 import TagEntityModal from "../../../components/modals/tagEntity";
 import EntityBanner from "../../../components/banner";
 
+const getFilters = database.queries.getTags([EntityType.Comedian]);
+
 export default async function ShowDetailPage(props: any) {
     const helper = await QueryHelper.storePageParams(
         props.searchParams,
+        getFilters,
         props.params,
     );
     const { entity, total } = await database.page.getShowDetailPageData(
@@ -28,18 +31,13 @@ export default async function ShowDetailPage(props: any) {
                     type={EntityType.Show}
                 />
                 <ModifyLineupModal entityString={entityString} />
-                <TagEntityModal
-                    type={EntityType.Show}
-                    entityId={entity.id}
-                    tagsString={entityString}
-                />
+                <TagEntityModal type={EntityType.Show} entityId={entity.id} />
             </section>
             <section>
                 <EntityBanner entityString={entityString} />
             </section>
             <section>
                 <QueryableEntityTableContainer
-                    entityType={EntityType.Comedian}
                     totalEntities={total}
                     entityCollectionString={containedEntitiesString}
                     defaultNode={

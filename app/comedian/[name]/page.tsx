@@ -8,11 +8,15 @@ import EntityBanner from "../../../components/banner";
 import { getDB } from "../../../database";
 const { database } = getDB();
 
+const getFilters = database.queries.getTags([EntityType.Show]);
+
 export default async function ComedianDetailsPage(props: any) {
     const helper = await QueryHelper.storePageParams(
         props.searchParams,
+        getFilters,
         props.params,
     );
+
     const { entity, total } = await database.page.getComedianDetailPageData(
         helper.asQueryFilters(),
     );
@@ -25,7 +29,6 @@ export default async function ComedianDetailsPage(props: any) {
                 <TagEntityModal
                     type={EntityType.Comedian}
                     entityId={entity.id}
-                    tagsString={""}
                 />
             </section>
             <section>
@@ -33,7 +36,6 @@ export default async function ComedianDetailsPage(props: any) {
             </section>
             <section>
                 <QueryableEntityTableContainer
-                    entityType={EntityType.Show}
                     totalEntities={total}
                     entityCollectionString={containedEntitiesString}
                     defaultNode={

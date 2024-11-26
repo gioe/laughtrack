@@ -1,6 +1,5 @@
 "use client";
 
-import { FormSelectable, TagInterface } from "../../../../objects/interface";
 import toast from "react-hot-toast";
 import { tagEntitySchema } from "./schema";
 import { useForm } from "react-hook-form";
@@ -11,28 +10,22 @@ import { useState } from "react";
 import { EntityType } from "../../../../objects/enum";
 import BaseForm from "..";
 import TagEntityFormBody from "./body";
+import { FilterContainer } from "../../../../objects/class/tag/FilterContainer";
 
 interface TagEntityFormProps {
-    tags: TagInterface[];
+    containers: FilterContainer[];
     onSubmit: () => void;
     entityId: number;
     type: EntityType;
 }
 
 export default function TagEntityForm({
-    tags,
+    containers,
     entityId,
     type,
     onSubmit,
 }: TagEntityFormProps) {
     const [isLoading, setIsLoading] = useState(false);
-
-    const selectableTags = tags.map((tag: TagInterface) => {
-        return {
-            id: tag.id.toString(),
-            name: tag.name,
-        };
-    }) as FormSelectable[];
 
     const form = useForm<z.infer<typeof tagEntitySchema>>({
         resolver: zodResolver(tagEntitySchema),
@@ -63,7 +56,7 @@ export default function TagEntityForm({
             isLoading={isLoading}
             onSubmit={submitForm}
             form={form}
-            body={<TagEntityFormBody form={form} tags={selectableTags} />}
+            body={<TagEntityFormBody form={form} tagContainers={containers} />}
         />
     );
 }

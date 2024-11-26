@@ -46,7 +46,6 @@ export class Show implements ShowInterface {
 
     normalizeName = (name: string): string => {
         const cleanString = removeBadWhiteSpace(name);
-
         if (isUpperCase(cleanString) || isLowerCase(cleanString)) {
             return capitalized(cleanString)
         }

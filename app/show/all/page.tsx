@@ -7,7 +7,7 @@ import { QueryHelper } from "../../../objects/class/query/QueryHelper";
 import { getDB } from "../../../database";
 const { database } = getDB();
 
-const getFilters = database.queries.getTags(EntityType.Show);
+const getFilters = database.queries.getTags([EntityType.Show]);
 
 export default async function ShowSearchPage(props: any) {
     const helper = await QueryHelper.storePageParams(
@@ -23,7 +23,6 @@ export default async function ShowSearchPage(props: any) {
     return (
         <main className="flex-grow pt-5 bg-shark">
             <QueryableEntityTableContainer
-                entityType={EntityType.Show}
                 totalEntities={total}
                 entityCollectionString={entityCollectionString}
                 defaultNode={

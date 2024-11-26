@@ -1,20 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { FormSelectable } from "../../../../objects/interface";
-import { CheckboxFormComponent } from "../../components/checkbox";
+import { FilterContainer } from "../../../../objects/class/tag/FilterContainer";
+import { MultiSelectComponent } from "../../../select/multiSelect";
 
 interface TagEntityFormBodyProps {
-    tags: FormSelectable[];
+    tagContainers: FilterContainer[];
     form: any;
 }
 
 export default function TagEntityFormBody({
     form,
-    tags,
+    tagContainers,
 }: TagEntityFormBodyProps) {
     return (
         <div className="flex flex-col gap-4">
-            <CheckboxFormComponent items={tags} form={form} name={"tagIds"} />
+            <MultiSelectComponent form={form} containers={tagContainers} />
         </div>
     );
 }

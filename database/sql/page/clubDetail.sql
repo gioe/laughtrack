@@ -17,7 +17,7 @@ WITH filtered_data AS (
 	WHERE
 		cl.name = ${name}
 		AND s.date > now()
-		AND t.name IN (${tags:csv})
+		AND (${tagsEmpty} = TRUE) OR (t.value IN (${tags:csv}))
     ORDER BY ${sort_by:name} ${direction:value}
     LIMIT ${size} 
     OFFSET ${offset}
@@ -43,9 +43,7 @@ total_count AS (
 	WHERE
 		cl.name = ${name}
 		AND s.date > now()
-		AND t.id IN (${tags:csv})
-    WHERE cl.name = ${name}
-    AND s.date > NOW()
+		AND (${tagsEmpty} = TRUE) OR (t.value IN (${tags:csv}))
 ), 
 all_values AS (
 	SELECT

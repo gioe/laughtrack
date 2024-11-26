@@ -10,7 +10,7 @@ all_relevant_shows as (
 	WHERE
     s.date > now()
 	AND c.name = $(name)
-	AND t.name IN (${tags:csv})
+    AND (${tagsEmpty} = TRUE) OR (t.value IN (${tags:csv}))
     ORDER BY ${sort_by:name} ${direction:value}
     LIMIT ${size} 
     OFFSET ${offset}

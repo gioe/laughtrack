@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { SelectableItem } from "../../../../objects/interface";
+import { Selectable } from "../../../../objects/interface";
 import CalendarFormComponent from "../../components/calendar";
 import { DropdownFormComponent } from "../../components/dropdown";
 
 interface ShowSearchFormBodyProps {
-    items: SelectableItem[];
+    items: Selectable[];
     form: any;
 }
 

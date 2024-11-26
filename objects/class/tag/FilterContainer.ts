@@ -1,17 +1,21 @@
-import { FilterSection, Selectable } from "../../interface/filter.interface";
+import { EntityType } from "../../enum";
+import { Selectable } from "../../interface";
+import { FilterSection } from "../../interface/filter.interface";
 import { TagDataDTO, TagOptionDTO } from "../../interface/tag.interface";
 import { Tag } from "./Tag";
 
-export class TagContainer implements FilterSection {
+export class FilterContainer implements FilterSection {
     // Properties
     id: number;
     displayName: string;
+    type: EntityType;
     value: string;
     options: Tag[];
 
     // Constructor
     constructor(input: TagDataDTO, param: string | null) {
         this.id = input.id
+        this.type = input.type
         this.displayName = input.display_name
         this.value = input.value
         this.options = input.options.map((option: TagOptionDTO) => {

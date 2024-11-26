@@ -11,7 +11,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
 import ScrapeEntitiesFormBody from "./body";
-import { SelectableItem } from "../../../../objects/interface";
+import { Selectable } from "../../../../objects/interface";
 
 interface ScrapeEntitySelectionMenuFormProps {
     type: EntityType;
@@ -24,11 +24,11 @@ export default function ScrapeEntitySelectionMenuForm({
 }: ScrapeEntitySelectionMenuFormProps) {
     const [isLoading, setIsLoading] = useState(false);
 
-    const allCityOptions = [{ id: 0, name: "All" } as SelectableItem].concat(
+    const allCityOptions = [{ id: 0, value: "all", displayName: "All" }].concat(
         [],
     );
 
-    const [clubs, setClubs] = useState<SelectableItem[]>([]);
+    const [clubs, setClubs] = useState<Selectable[]>([]);
 
     const form = useForm<z.infer<typeof scrapeEntitySelectionMenuSchema>>({
         resolver: zodResolver(scrapeEntitySelectionMenuSchema),

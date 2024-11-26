@@ -1,9 +1,4 @@
-export interface Selectable {
-    id: number;
-    displayName: string;
-    selected: boolean;
-    select: () => void;
-}
+import { Selectable } from "./selectable.interface";
 
 export interface FilterSection {
     id: number;

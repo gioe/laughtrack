@@ -72,8 +72,8 @@ export class QueryHelper {
     }
 
     getQueryPattern() {
-        // const queryValue = this.searchParamsHelper.getParamValue(URLParam.Query);
-        return { query: `%${""}%` }
+        const queryValue = this.searchParamsHelper.getParamValue(QueryProperty.Query);
+        return { query: `%${queryValue}%` }
     }
 
     getOffset() {
@@ -105,7 +105,7 @@ export class QueryHelper {
             const searchParams = new URLSearchParams(values[0] as string)
             const filterValues = values[1] !== undefined ? values[1].map((dto: TagDataDTO) => dto.value) : [];
             const searchParamsHelper = new SearchParamsHelper(searchParams as ReadonlyURLSearchParams)
-            return new QueryHelper(searchParamsHelper, filterValues, (values[1] as DynamicRoute))
+            return new QueryHelper(searchParamsHelper, filterValues, (values[2] as DynamicRoute))
         })
     }
 

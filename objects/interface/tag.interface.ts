@@ -1,3 +1,5 @@
+import { EntityType } from "../enum";
+
 // Client
 export interface TagInterface {
     id: number;
@@ -7,8 +9,9 @@ export interface TagInterface {
 // DB
 export interface TagDataDTO {
     id: number;
-    value: string;
     display_name: string;
+    value: string;
+    type: EntityType,
     options: TagOptionDTO[];
 }
 

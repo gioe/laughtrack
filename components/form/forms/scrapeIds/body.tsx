@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { FormSelectable } from "../../../../objects/interface";
+import { Selectable } from "../../../../objects/interface";
 import { COMMON_OPTIONS } from "../../../../util/form";
 import { SelectComponent } from "../../../select";
 import { CheckboxFormComponent } from "../../components/checkbox";
@@ -8,8 +8,8 @@ import { DropdownFormComponent } from "../../components/dropdown";
 interface ScrapeEntitiesFormBodyProps {
     form: any;
     handleCitySelection: (city: string) => void;
-    cityOptions: FormSelectable[];
-    clubOptions?: FormSelectable[];
+    cityOptions: Selectable[];
+    clubOptions?: Selectable[];
 }
 
 export default function ScrapeEntitiesFormBody({

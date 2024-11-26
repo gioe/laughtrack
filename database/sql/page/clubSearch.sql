@@ -1,9 +1,12 @@
 with filtered_data as (
     SELECT
-        id, name, address, website
+        c.id, name, address, website
     from
-        clubs
-    Where name ILIKE ${query}
+        clubs c
+    LEFT JOIN tagged_clubs tcl ON c.id = tcl.club_id
+	LEFT JOIN tags t ON tcl.tag_id = t.id
+    WHERE name ILIKE ${query}
+    AND (${tagsEmpty} = TRUE) OR (t.value IN (${tags:csv}))
     ORDER BY ${sort_by:name} ${direction:value}
     LIMIT ${size} 
     OFFSET ${offset}
@@ -11,21 +14,17 @@ with filtered_data as (
 total_count as (
     SELECT
         COUNT(c.id) AS total
-    FROM
+    from
         clubs c
+    LEFT JOIN tagged_clubs tcl ON c.id = tcl.club_id
+	LEFT JOIN tags t ON tcl.tag_id = t.id
+    WHERE name ILIKE ${query}
+    AND (${tagsEmpty} = TRUE) OR (t.value IN (${tags:csv}))
 )
 SELECT
     JSONB_BUILD_OBJECT(
         'data',
-        JSONB_AGG(
-            JSONB_BUILD_OBJECT(
-                'id',
-                id, 
-                'name', name,
-                'address', address,
-                'website', website
-            )
-        ),
+        COALESCE(jsonb_agg(jsonb_build_object('id', id, 'name', name, 'address', address, 'website', website)) FILTER (where id IS NOT NULL), '[]'),
         'total',
         (
             SELECT

@@ -10,11 +10,5 @@ export class City implements CityInterface {
         this.name = input.name;
     }
 
-    toSelectableItem() {
-        return {
-            id: this.id,
-            name: this.name,
-        };
-    }
 
 }

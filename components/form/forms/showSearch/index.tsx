@@ -17,13 +17,22 @@ import { FormButton } from "../../components/button/home";
 import { useCityContext } from "../../../../contexts/CityContext";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { CityDTO } from "../../../../objects/class/city/city.interface";
+import { Selectable } from "../../../../objects/interface";
 
 export default function ShowSearchForm() {
-    const { cities } = useCityContext();
-    const paramsHelper = new SearchParamsHelper(useSearchParams());
-
     const [isLoading, setIsLoading] = useState(false);
 
+    const { cities } = useCityContext();
+    const selectableCities = cities.map((city: CityDTO) => {
+        return {
+            id: city.id,
+            value: city.name,
+            displayName: city.name,
+        };
+    }) as Selectable[];
+
+    const paramsHelper = new SearchParamsHelper(useSearchParams());
     const navigator = new Navigator(usePathname(), useRouter());
 
     const form = useForm<z.infer<typeof showSearchFormSchema>>({
@@ -58,7 +67,7 @@ export default function ShowSearchForm() {
             onSubmit={submitForm}
             form={form}
             direction={FormDirection.Horizontal}
-            body={<ShowSearchFormBody items={cities} form={form} />}
+            body={<ShowSearchFormBody items={selectableCities} form={form} />}
             primaryButton={<FormButton label="Search" />}
         />
     );

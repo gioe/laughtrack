@@ -20,7 +20,7 @@ export default function ScrapeEntityFormBody({
                 name="headless"
                 title="Headless"
                 form={form}
-                placeholder="Open browser window?"
+                placeholder="Keep browser window closed?"
                 items={COMMON_OPTIONS.YesNo}
             />
             {type == EntityType.Show && (

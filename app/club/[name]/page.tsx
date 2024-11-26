@@ -7,12 +7,14 @@ import EntityBanner from "../../../components/banner";
 import { getDB } from "../../../database";
 const { database } = getDB();
 
+const getFilters = database.queries.getTags([EntityType.Show]);
+
 export default async function ClubDetailPage(props) {
     const helper = await QueryHelper.storePageParams(
         props.searchParams,
+        getFilters,
         props.params,
     );
-
     const { entity, total } = await database.page.getClubDetailPageData(
         helper.asQueryFilters(),
     );
@@ -33,7 +35,6 @@ export default async function ClubDetailPage(props) {
             </section>
             <section>
                 <QueryableEntityTableContainer
-                    entityType={EntityType.Show}
                     totalEntities={total}
                     entityCollectionString={containedEntitiesString}
                     defaultNode={

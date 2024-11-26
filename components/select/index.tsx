@@ -1,6 +1,6 @@
 "use client";
 
-import { FormSelectable } from "../../objects/interface";
+import { Selectable } from "../../objects/interface";
 import {
     Select,
     SelectTrigger,
@@ -12,7 +12,7 @@ import {
 interface DropdownProps {
     placeholder: string;
     handleValueChange: (value: string) => void;
-    items: FormSelectable[];
+    items: Selectable[];
 }
 
 export function SelectComponent({
@@ -38,7 +38,7 @@ export function SelectComponent({
                         key={item.id.toString()}
                         value={item.id.toString()}
                     >
-                        {item.name}
+                        {item.displayName}
                     </SelectItem>
                 ))}
             </SelectContent>

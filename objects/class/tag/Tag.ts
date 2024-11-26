@@ -1,4 +1,4 @@
-import { Selectable } from "../../interface/filter.interface";
+import { Selectable } from "../../interface";
 import { TagOptionDTO } from "../../interface/tag.interface";
 
 export class Tag implements Selectable {
