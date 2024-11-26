@@ -10,7 +10,6 @@ import { SessionProvider } from "next-auth/react";
 import { auth } from "../auth";
 import { cache } from "react";
 import Footer from "../components/footer";
-import { EntityType } from "../objects/enum";
 import ScrapeEntitySelectionMenuModal from "../components/modals/scrapeIds";
 import AddComedianModal from "../components/modals/addComedian";
 import { CityProvider } from "../contexts/CityContext";
@@ -60,9 +59,7 @@ export default async function RootLayout({
                                 <ToasterProvider />
                                 <LoginModal />
                                 <RegisterModal />
-                                <ScrapeEntitySelectionMenuModal
-                                    type={EntityType.Club}
-                                />
+                                <ScrapeEntitySelectionMenuModal />
                                 <AddComedianModal />
                                 {children}
                                 <Footer />

@@ -3,23 +3,16 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Navigator } from "../../../objects/class/navigate/Navigator";
 import { SearchParamsHelper } from "../../../objects/class/params/SearchParamsHelper";
-import { FilterContainer } from "../../../objects/class/tag/FilterContainer";
 import { MultiSelectComponent } from "../../select/multiSelect";
+import { useDataProvider } from "../../../contexts/EntityDataContext";
 
-interface FilterContainerProps {
-    containers: FilterContainer[];
-}
-
-export const FilterParamComponent: React.FC<FilterContainerProps> = ({
-    containers,
-}) => {
+export const FilterParamComponent = () => {
+    const { filters } = useDataProvider();
     const paramsHelper = new SearchParamsHelper(useSearchParams());
     const navigator = new Navigator(usePathname(), useRouter());
 
     const appendParam = (param: string, value: number) => {
-        const container = containers.find(
-            (container: FilterContainer) => container.value == param,
-        );
+        const container = filters.find((container) => container.value == param);
         if (container) {
             container.setSelected(value);
             paramsHelper.setParamValue(param, container.asParamValue());
@@ -34,7 +27,7 @@ export const FilterParamComponent: React.FC<FilterContainerProps> = ({
     return (
         <div className="mt-4 border-t border-gray-200">
             <MultiSelectComponent
-                containers={containers}
+                sections={filters}
                 handleValueChange={appendParam}
             />
         </div>

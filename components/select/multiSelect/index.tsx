@@ -6,16 +6,16 @@ import {
     DisclosureButton,
     DisclosurePanel,
 } from "@headlessui/react";
-import { FilterContainer } from "../../../objects/class/tag/FilterContainer";
+import { SelectionSection } from "../../../objects/interface/selectionSection.interface";
 
 interface MultiSelectComponentProps {
     form?: any;
     handleValueChange?: (value: string, id: number) => void;
-    containers: FilterContainer[];
+    sections: SelectionSection[];
 }
 
 export const MultiSelectComponent: React.FC<MultiSelectComponentProps> = ({
-    containers,
+    sections,
     handleValueChange,
 }) => {
     const handleSelect = (value: string, id: number) => {
@@ -26,10 +26,10 @@ export const MultiSelectComponent: React.FC<MultiSelectComponentProps> = ({
 
     return (
         <div>
-            {containers.length > 0 &&
-                containers.map((container) => (
+            {sections.length > 0 &&
+                sections.map((section) => (
                     <Disclosure
-                        key={container.id}
+                        key={section.id}
                         as="div"
                         className="border-t border-gray-200 px-4 py-6"
                     >
@@ -40,7 +40,7 @@ export const MultiSelectComponent: React.FC<MultiSelectComponentProps> = ({
           text-white hover:text-gray-500"
                             >
                                 <span className="font-medium text-white">
-                                    {container.displayName}
+                                    {section.displayName}
                                 </span>
                                 <span className="ml-6 flex items-center">
                                     <PlusIcon
@@ -56,7 +56,7 @@ export const MultiSelectComponent: React.FC<MultiSelectComponentProps> = ({
                         </h3>
                         <DisclosurePanel className="pt-6">
                             <div className="space-y-2">
-                                {container.options.map((option, optionIdx) => (
+                                {section.options.map((option, optionIdx) => (
                                     <div
                                         key={option.id.toString()}
                                         className="flex items-center"
@@ -64,19 +64,19 @@ export const MultiSelectComponent: React.FC<MultiSelectComponentProps> = ({
                                         <input
                                             onClick={() =>
                                                 handleSelect(
-                                                    container.value,
+                                                    section.value,
                                                     option.id,
                                                 )
                                             }
                                             defaultValue={option.id}
                                             defaultChecked={option.selected}
-                                            id={`filter-mobile-${container.id}-${optionIdx}`}
-                                            name={`${container.id}[]`}
+                                            id={`filter-mobile-${section.id}-${optionIdx}`}
+                                            name={`${section.id}[]`}
                                             type="checkbox"
                                             className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                                         />
                                         <label
-                                            htmlFor={`filter-mobile-${container.id}-${optionIdx}`}
+                                            htmlFor={`filter-mobile-${section.id}-${optionIdx}`}
                                             className="ml-3 min-w-0 flex-1 text-silver-gray"
                                         >
                                             {option.displayName}

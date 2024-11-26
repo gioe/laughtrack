@@ -2,7 +2,8 @@ import { SortOptionInterface } from "../../objects/interface";
 import { EntityType, DirectionParamValue } from "../../objects/enum";
 import { SortParamValue } from "../../objects/enum";
 
-export const getSortOptionsForEntityType = (type: EntityType): SortOptionInterface[] => {
+export const getSortOptionsForEntityType = (type: EntityType | undefined): SortOptionInterface[] => {
+    if (type == undefined) return [];
     switch (type) {
         case EntityType.Club:
             return [

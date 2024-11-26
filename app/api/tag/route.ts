@@ -6,12 +6,6 @@ const { database } = getDB();
 export async function GET() {
     console.log(`GETTING TAGS`)
     return database.queries.getTags()
-        .then((containers: TagDataDTO[]) => {
-            console.log(containers)
-            return NextResponse.json({ containers }, { status: 200 })
-        })
-        .catch((error: Error) => {
-            console.log(error)
-            return NextResponse.json({ message: error.message }, { status: 500 })
-        });
+        .then((containers: TagDataDTO[]) => NextResponse.json({ containers }, { status: 200 }))
+        .catch((error: Error) => NextResponse.json({ message: error.message }, { status: 500 }));
 }

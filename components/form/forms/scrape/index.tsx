@@ -5,23 +5,22 @@ import axios from "axios";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
-import { EntityType } from "../../../../objects/enum";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
 import BaseForm from "..";
 import ScrapeEntityFormBody from "./body";
+import { useEntityTypeContext } from "../../../../contexts/EntityContext";
 
 interface ScrapeEntityFormProps {
-    onSubmit: () => void;
     entityId: number;
-    type: EntityType;
+    onSubmit: () => void;
 }
 
 export default function ScrapeEntityForm({
-    onSubmit,
     entityId,
-    type,
+    onSubmit,
 }: ScrapeEntityFormProps) {
+    const { currentEntityContext } = useEntityTypeContext();
     const [isLoading, setIsLoading] = useState(false);
 
     const form = useForm<z.infer<typeof scrapeClubSchema>>({
@@ -36,7 +35,7 @@ export default function ScrapeEntityForm({
     const submitForm = (data: z.infer<typeof scrapeClubSchema>) => {
         setIsLoading(true);
         axios
-            .post(`/api/${type.valueOf()}/scrape`, {
+            .post(`/api/${currentEntityContext?.valueOf()}/scrape`, {
                 ids: [entityId],
                 headless: data.headless,
                 pause: data.pause,

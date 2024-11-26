@@ -7,24 +7,23 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { useState } from "react";
-import { EntityType } from "../../../../objects/enum";
 import BaseForm from "..";
 import TagEntityFormBody from "./body";
-import { FilterContainer } from "../../../../objects/class/tag/FilterContainer";
+import { Filter } from "../../../../objects/class/tag/Filter";
+import { useEntityTypeContext } from "../../../../contexts/EntityContext";
 
 interface TagEntityFormProps {
-    containers: FilterContainer[];
+    filters: Filter[];
     onSubmit: () => void;
     entityId: number;
-    type: EntityType;
 }
 
 export default function TagEntityForm({
-    containers,
+    filters,
     entityId,
-    type,
     onSubmit,
 }: TagEntityFormProps) {
+    const { currentEntityContext } = useEntityTypeContext();
     const [isLoading, setIsLoading] = useState(false);
 
     const form = useForm<z.infer<typeof tagEntitySchema>>({
@@ -39,9 +38,12 @@ export default function TagEntityForm({
         setIsLoading(true);
 
         axios
-            .post(`/api/${type.valueOf()}/${data.entityId}/tag`, {
-                tags: data.tagIds,
-            })
+            .post(
+                `/api/${currentEntityContext?.valueOf()}/${data.entityId}/tag`,
+                {
+                    tags: data.tagIds,
+                },
+            )
             .then((response) => {
                 if (response) {
                     setIsLoading(false);
@@ -56,7 +58,7 @@ export default function TagEntityForm({
             isLoading={isLoading}
             onSubmit={submitForm}
             form={form}
-            body={<TagEntityFormBody form={form} tagContainers={containers} />}
+            body={<TagEntityFormBody form={form} filterSections={filters} />}
         />
     );
 }

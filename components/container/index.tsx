@@ -11,10 +11,10 @@ import { Show } from "../../objects/class/show/Show";
 import CarouselCard from "../cards/CarouselCard";
 import Table from "../table";
 import QueryParamComponent from "../params/query";
-import { getSortOptionsForEntityType } from "../../util/sort";
 import { EntityType } from "../../objects/enum";
-import { useFilterContext } from "../../contexts/FilterContext";
 import { FilterParamComponent } from "../params/filter";
+import { useDataProvider } from "../../contexts/EntityDataContext";
+import { useEntityTypeContext } from "../../contexts/EntityContext";
 
 interface QueryableEntityTableContainerProps {
     entityCollectionString: string;
@@ -27,7 +27,8 @@ export default function QueryableEntityTableContainer({
     defaultNode,
     totalEntities,
 }: QueryableEntityTableContainerProps) {
-    const { type, filters } = useFilterContext();
+    const { currentEntityContext } = useEntityTypeContext();
+    const { filters } = useDataProvider();
 
     const filteredEntityCollection = JSON.parse(
         entityCollectionString,
@@ -39,7 +40,7 @@ export default function QueryableEntityTableContainer({
     };
 
     const renderFunction = (entity: Entity) => {
-        switch (type) {
+        switch (currentEntityContext) {
             case EntityType.Show:
                 return <ShowCard key={entity.name} show={entity as Show} />;
             default:
@@ -51,21 +52,17 @@ export default function QueryableEntityTableContainer({
         <div className="bg-shark">
             <DrawerComponent
                 isOpen={sideDrawerIsOpen}
-                child={
-                    filters.length > 0 && (
-                        <FilterParamComponent containers={filters} />
-                    )
-                }
+                child={<FilterParamComponent />}
                 handleOpen={handleButtonClick}
             />
 
             <main className="mx-auto px-10 flex-item tems-end justify-end">
                 <section aria-labelledby="search-parameter-options-section">
                     <div className="flex-row">
-                        {type !== EntityType.Show && (
+                        {currentEntityContext !== EntityType.Show && (
                             <div className="flex-item">
                                 <QueryParamComponent
-                                    inputPlaceholder={`Search by ${type.valueOf()} name`}
+                                    inputPlaceholder={`Search by ${currentEntityContext?.valueOf()} name`}
                                 />
                             </div>
                         )}
@@ -73,9 +70,7 @@ export default function QueryableEntityTableContainer({
                             {filters.length > 0 && (
                                 <FunnelButton handleClick={handleButtonClick} />
                             )}
-                            <SortParamComponent
-                                options={getSortOptionsForEntityType(type)}
-                            />
+                            <SortParamComponent />
                             <PageParamComponent itemCount={totalEntities} />
                         </div>
                     </div>

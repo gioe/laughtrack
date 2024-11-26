@@ -8,11 +8,7 @@ import { Menu } from "../menu";
 import { getMenuItemsForEntityType } from "../../util/menu";
 import { Entity } from "../../objects/interface";
 
-interface EntityBannerProps {
-    entityString: string;
-}
-
-const EntityBanner: React.FC<EntityBannerProps> = ({ entityString }) => {
+const EntityBanner = () => {
     const entity = JSON.parse(entityString) as Entity;
     const menuItems = getMenuItemsForEntityType(entity.type);
     const session = useSession();

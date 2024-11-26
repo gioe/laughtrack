@@ -3,21 +3,11 @@
 import { useRouter } from "next/navigation";
 import Modal from "..";
 import TagEntityForm from "../../form/forms/tagEntity";
-import { EntityType } from "../../../objects/enum";
 import useAddEntityTagModal from "../../../hooks/modalState/useAddEntityTagModal";
-import { useFilterContext } from "../../../contexts/FilterContext";
-import { FilterContainer } from "../../../objects/class/tag/FilterContainer";
+import { useDataProvider } from "../../../contexts/EntityDataContext";
 
-interface TagEntityModalProps {
-    type: EntityType;
-    entityId: number;
-}
-
-const TagEntityModal: React.FC<TagEntityModalProps> = ({ type, entityId }) => {
-    const { filters } = useFilterContext();
-    const containers = filters.filter(
-        (container: FilterContainer) => container.type == EntityType.Comedian,
-    );
+const TagEntityModal = () => {
+    const { filters } = useDataProvider();
 
     const router = useRouter();
     const addEntityTagModal = useAddEntityTagModal();
@@ -33,9 +23,8 @@ const TagEntityModal: React.FC<TagEntityModalProps> = ({ type, entityId }) => {
             onClose={addEntityTagModal.onClose}
             body={
                 <TagEntityForm
-                    containers={containers}
+                    filters={filters}
                     entityId={entityId}
-                    type={type}
                     onSubmit={onSubmit}
                 />
             }

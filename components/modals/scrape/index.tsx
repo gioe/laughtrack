@@ -2,18 +2,9 @@
 import { useRouter } from "next/navigation";
 import { useRunScrapeModal } from "../../../hooks/modalState";
 import Modal from "..";
-import { EntityType } from "../../../objects/enum";
 import ScrapeEntityForm from "../../form/forms/scrape";
 
-interface ScrapeEntityModalProps {
-    entityId: number;
-    type: EntityType;
-}
-
-const ScrapeEntityModal: React.FC<ScrapeEntityModalProps> = ({
-    entityId,
-    type,
-}) => {
+const ScrapeEntityModal = () => {
     const runScrapeModal = useRunScrapeModal();
     const router = useRouter();
 
@@ -26,13 +17,7 @@ const ScrapeEntityModal: React.FC<ScrapeEntityModalProps> = ({
         <Modal
             isOpen={runScrapeModal.isOpen}
             onClose={runScrapeModal.onClose}
-            body={
-                <ScrapeEntityForm
-                    entityId={entityId}
-                    type={type}
-                    onSubmit={onSubmit}
-                />
-            }
+            body={<ScrapeEntityForm entityId={entityId} onSubmit={onSubmit} />}
         />
     );
 };

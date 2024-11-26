@@ -9,17 +9,15 @@ import { cn } from "../../../util/tailwindUtil";
 import { SortOptionInterface } from "../../../objects/interface";
 import { SearchParamsHelper } from "../../../objects/class/params/SearchParamsHelper";
 import { Navigator } from "../../../objects/class/navigate/Navigator";
+import { useDataProvider } from "../../../contexts/EntityDataContext";
 
-interface SortParamComponentProps {
-    options: SortOptionInterface[];
-}
-
-export function SortParamComponent({ options }: SortParamComponentProps) {
+export function SortParamComponent() {
+    const { sortOptions } = useDataProvider();
     const paramsHelper = new SearchParamsHelper(useSearchParams());
 
     const navigator = new Navigator(usePathname(), useRouter());
 
-    const defaultOption = options.find(
+    const defaultOption = sortOptions.find(
         (value) =>
             value.value == paramsHelper.getParamValue(QueryProperty.Sort) &&
             value.direction ==
@@ -27,7 +25,7 @@ export function SortParamComponent({ options }: SortParamComponentProps) {
     );
 
     const [selectedSortingOption, setSelectedSortingOption] = useState(
-        defaultOption ?? options[0],
+        defaultOption ?? sortOptions[0],
     );
 
     const evaluateEquivalence = (
@@ -77,7 +75,7 @@ export function SortParamComponent({ options }: SortParamComponentProps) {
       data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
                 >
                     <div className="py-1">
-                        {options.map((option) => (
+                        {sortOptions.map((option) => (
                             <MenuItem key={option.name}>
                                 <h1
                                     onClick={() => modifySortParam(option)}

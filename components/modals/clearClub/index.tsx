@@ -5,11 +5,7 @@ import { useClearShowsModal } from "../../../hooks/modalState";
 import Modal from "..";
 import ClearShowsFromClubForm from "../../form/forms/clearClub";
 
-interface ClearShowsModalParams {
-    clubId: number;
-}
-
-const ClearShowsModal: React.FC<ClearShowsModalParams> = ({ clubId }) => {
+const ClearShowsModal = () => {
     const clearShowsModal = useClearShowsModal();
     const router = useRouter();
 

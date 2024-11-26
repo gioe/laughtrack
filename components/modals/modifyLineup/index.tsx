@@ -6,13 +6,7 @@ import { Show } from "../../../objects/class/show/Show";
 import AddComedianToShowForm from "../../form/forms/modifyLineup";
 import { useModifyLineupModal } from "../../../hooks/modalState";
 
-interface ModifyLineupModalProps {
-    entityString: string;
-}
-
-const ModifyLineupModal: React.FC<ModifyLineupModalProps> = ({
-    entityString,
-}) => {
+const ModifyLineupModal = () => {
     const show = JSON.parse(entityString) as Show;
     const addComedianModal = useModifyLineupModal();
     const router = useRouter();

@@ -4,7 +4,6 @@ import { useState } from "react";
 import axios from "axios";
 import { Club } from "../../../../objects/class/club/Club";
 import BaseForm from "..";
-import { EntityType } from "../../../../objects/enum";
 import { scrapeEntitySelectionMenuSchema } from "./schema";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -12,16 +11,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
 import ScrapeEntitiesFormBody from "./body";
 import { Selectable } from "../../../../objects/interface";
+import { useDataProvider } from "../../../../contexts/EntityDataContext";
 
 interface ScrapeEntitySelectionMenuFormProps {
-    type: EntityType;
     onSubmit: () => void;
 }
 
 export default function ScrapeEntitySelectionMenuForm({
     onSubmit,
-    type,
 }: ScrapeEntitySelectionMenuFormProps) {
+    const { currentEntityType } = useDataProvider();
     const [isLoading, setIsLoading] = useState(false);
 
     const allCityOptions = [{ id: 0, value: "all", displayName: "All" }].concat(
@@ -33,7 +32,7 @@ export default function ScrapeEntitySelectionMenuForm({
     const form = useForm<z.infer<typeof scrapeEntitySelectionMenuSchema>>({
         resolver: zodResolver(scrapeEntitySelectionMenuSchema),
         defaultValues: {
-            entityType: type,
+            entityType: currentEntityType,
             ids: [],
             headless: "true",
         },
@@ -44,7 +43,7 @@ export default function ScrapeEntitySelectionMenuForm({
     ) => {
         setIsLoading(true);
         axios
-            .post(`/api/${type.valueOf()}/scrape`, {
+            .post(`/api/${currentEntityType.valueOf()}/scrape`, {
                 ids: data.ids,
                 headless: data.headless,
             })

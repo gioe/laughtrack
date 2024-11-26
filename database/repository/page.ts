@@ -5,16 +5,16 @@ import { HomePageData, HomePageDTO } from '../../app/home/interface';
 import { ComedianDTO } from '../../objects/class/comedian/comedian.interface';
 import { Comedian } from '../../objects/class/comedian/Comedian';
 import { pageDataMap } from '../sql';
-import { ClubDetailDTO, ClubDetailPageData } from '../../app/club/[name]/interface';
 import { Club } from '../../objects/class/club/Club';
-import { AllClubPageData, AllClubPageDTO } from '../../app/club/all/interface';
 import { ClubDTO } from '../../objects/class/club/club.interface';
-import { ComedianDetailDTO, ComedianDetailPageData } from '../../app/comedian/[name]/interface';
-import { AllComedianPageData, AllComedianPageDTO } from '../../app/comedian/all/interface';
-import { AllShowPageData, AllShowPageDTO } from '../../app/show/all/interface';
+import { AllShowPageData, AllShowPageDTO } from '../../app/(entities)/(collection)/show/all/interface';
 import { ShowDTO } from '../../objects/class/show/show.interface';
 import { Show } from '../../objects/class/show/Show';
-import { ShowDetailDTO, ShowDetailPageData } from '../../app/show/[id]/interface';
+import { ShowDetailDTO, ShowDetailPageData } from '../../app/(entities)/(detail)/show/[id]/interface';
+import { AllComedianPageData, AllComedianPageDTO } from '../../app/(entities)/(collection)/comedian/all/interface';
+import { ComedianDetailDTO, ComedianDetailPageData } from '../../app/(entities)/(detail)/comedian/[name]/interface';
+import { AllClubPageData, AllClubPageDTO } from '../../app/(entities)/(collection)/club/all/interface';
+import { ClubDetailDTO, ClubDetailPageData } from '../../app/(entities)/(detail)/club/[name]/interface';
 export class PageDataRepository {
 
     /**

@@ -1,20 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { FilterContainer } from "../../../../objects/class/tag/FilterContainer";
+import { Filter } from "../../../../objects/class/tag/Filter";
 import { MultiSelectComponent } from "../../../select/multiSelect";
 
 interface TagEntityFormBodyProps {
-    tagContainers: FilterContainer[];
+    filterSections: Filter[];
     form: any;
 }
 
 export default function TagEntityFormBody({
     form,
-    tagContainers,
+    filterSections,
 }: TagEntityFormBodyProps) {
     return (
         <div className="flex flex-col gap-4">
-            <MultiSelectComponent form={form} containers={tagContainers} />
+            <MultiSelectComponent form={form} sections={filterSections} />
         </div>
     );
 }
