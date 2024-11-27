@@ -1,3 +1,5 @@
+import withPlaiceholder from "@plaiceholder/next";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Works, but need to replace with serverExternalPackages later
@@ -10,10 +12,14 @@ const nextConfig = {
       "playwright-extra",
       "puppeteer-extra-plugin-stealth"
     );
+    config.resolve.fallback = {
+      fs: false,
+      path: false
+    };
 
 
     return config;
   }
 };
 
-export default nextConfig;
+export default withPlaiceholder(nextConfig);
