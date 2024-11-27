@@ -24,12 +24,12 @@ interface LinkedImageProps {
     destination: string;
     imageUrl: string;
     alt: string;
+    priority: boolean;
 }
 
 async function LinkedImage({ destination, imageUrl, alt }: LinkedImageProps) {
     const getImage = async (imageUrl: string) => {
         const { base64, img } = await getImage(imageUrl);
-        set;
     };
 
     useEffect(() => {
@@ -60,7 +60,7 @@ async function LinkedImage({ destination, imageUrl, alt }: LinkedImageProps) {
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     onError={onError}
-                    priority={false}
+                    priority
                     style={{ objectFit: "cover" }}
                     blurDataURL={base64}
                     placeholder="blur"

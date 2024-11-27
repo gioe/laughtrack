@@ -22,7 +22,9 @@ export default async function HomePage() {
                 <h2 className="font-bold text-5xl text-white p-5">
                     Laughtrack
                 </h2>
-                <h3 className="text-white pt-1 p-5 text-xl">Find some funny</h3>
+                <h3 className="text-white pt-1 p-5 text-xl">
+                    Find funny stuff
+                </h3>
             </section>
 
             <section>

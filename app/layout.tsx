@@ -14,7 +14,7 @@ import AddComedianModal from "../components/modals/addComedian";
 
 export const metadata: Metadata = {
     title: "Laughtrack",
-    description: "Find comics you love",
+    description: "Find funny stuff",
 };
 
 export const getSession = cache(async () => {
