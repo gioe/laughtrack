@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { usePageContext } from "../../../../contexts/EntityContext";
 import { EntityType } from "../../../../objects/enum";
 import { COMMON_OPTIONS } from "../../../../util/form";
 import Heading from "../../../modals/heading";
@@ -6,13 +7,12 @@ import { DropdownFormComponent } from "../../components/dropdown";
 
 interface ScrapeEntityFormBodyProps {
     form: any;
-    type: EntityType;
 }
 
 export default function ScrapeEntityFormBody({
     form,
-    type,
 }: ScrapeEntityFormBodyProps) {
+    const { primaryEntity } = usePageContext();
     return (
         <div className="flex flex-col items-center gap-4">
             <Heading title="Scrape Club" />
@@ -23,7 +23,7 @@ export default function ScrapeEntityFormBody({
                 placeholder="Keep browser window closed?"
                 items={COMMON_OPTIONS.YesNo}
             />
-            {type == EntityType.Show && (
+            {primaryEntity == EntityType.Show && (
                 <DropdownFormComponent
                     name="pause"
                     title="Pause"

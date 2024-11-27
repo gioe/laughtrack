@@ -1,7 +1,5 @@
 "use client";
 
-import { Comedian } from "../../../../objects/class/comedian/Comedian";
-import { Show } from "../../../../objects/class/show/Show";
 import { useForm } from "react-hook-form";
 import { addComedianToShowSchema } from "./schema";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,30 +11,21 @@ import BaseForm from "..";
 import ModifyLineupFormBody from "./body";
 
 interface AddComedianToShowFormProps {
-    show: Show;
+    id: string;
     onSubmit: () => void;
 }
 
 export default function AddComedianToShowForm({
-    show,
+    id,
     onSubmit,
 }: AddComedianToShowFormProps) {
     const [isLoading, setIsLoading] = useState(false);
 
-    const comedianChips = (show.containedEntities as Comedian[]).map(
-        (comedian: Comedian) => {
-            return {
-                id: comedian.id,
-                name: comedian.name,
-            };
-        },
-    );
-
     const form = useForm<z.infer<typeof addComedianToShowSchema>>({
         resolver: zodResolver(addComedianToShowSchema),
         defaultValues: {
-            showId: show.id,
-            comedians: comedianChips,
+            showId: Number(id),
+            comedians: [],
         },
     });
 

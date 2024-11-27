@@ -1,6 +1,6 @@
 import * as z from "zod";
 
 export const tagEntitySchema = z.object({
-    entityId: z.number(),
+    entityName: z.string(),
     tagIds: z.number().array(),
 });

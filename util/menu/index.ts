@@ -2,7 +2,8 @@
 import { EntityType } from "../../objects/enum";
 import * as hooks from "../../hooks/modalState";
 
-export const getMenuItemsForEntityType = (type: EntityType) => {
+export const getMenuItemsForEntityType = (type: EntityType | undefined) => {
+    if (type == undefined) return []
     switch (type) {
         case EntityType.Club:
             return [

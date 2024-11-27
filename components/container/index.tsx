@@ -5,16 +5,16 @@ import { DrawerComponent } from "../drawer";
 import { PageParamComponent } from "../params/page";
 import { FunnelButton } from "../button/FunnelButton";
 import { SortParamComponent } from "../params/sort";
-import ShowCard from "../cards/showCard/ShowCard";
+import ShowCard from "../cards/show/ShowCard";
 import { Entity } from "../../objects/interface";
 import { Show } from "../../objects/class/show/Show";
-import CarouselCard from "../cards/CarouselCard";
+import CarouselCard from "../cards/carousel";
 import Table from "../table";
 import QueryParamComponent from "../params/query";
 import { EntityType } from "../../objects/enum";
 import { FilterParamComponent } from "../params/filter";
 import { useDataProvider } from "../../contexts/EntityDataContext";
-import { useEntityTypeContext } from "../../contexts/EntityContext";
+import { usePageContext } from "../../contexts/EntityContext";
 
 interface QueryableEntityTableContainerProps {
     entityCollectionString: string;
@@ -27,12 +27,13 @@ export default function QueryableEntityTableContainer({
     defaultNode,
     totalEntities,
 }: QueryableEntityTableContainerProps) {
-    const { currentEntityContext } = useEntityTypeContext();
+    const { primaryEntity, secondaryEntity } = usePageContext();
     const { filters } = useDataProvider();
 
     const filteredEntityCollection = JSON.parse(
         entityCollectionString,
     ) as Entity[];
+
     const [sideDrawerIsOpen, setSideDrawerIsOpen] = useState(false);
 
     const handleButtonClick = (isOpen: boolean) => {
@@ -40,11 +41,16 @@ export default function QueryableEntityTableContainer({
     };
 
     const renderFunction = (entity: Entity) => {
-        switch (currentEntityContext) {
+        switch (secondaryEntity) {
             case EntityType.Show:
                 return <ShowCard key={entity.name} show={entity as Show} />;
             default:
-                return <CarouselCard key={entity.name} entity={entity} />;
+                return (
+                    <CarouselCard
+                        key={entity.name}
+                        entity={JSON.stringify(entity)}
+                    />
+                );
         }
     };
 
@@ -59,10 +65,10 @@ export default function QueryableEntityTableContainer({
             <main className="mx-auto px-10 flex-item tems-end justify-end">
                 <section aria-labelledby="search-parameter-options-section">
                     <div className="flex-row">
-                        {currentEntityContext !== EntityType.Show && (
+                        {secondaryEntity !== EntityType.Show && (
                             <div className="flex-item">
                                 <QueryParamComponent
-                                    inputPlaceholder={`Search by ${currentEntityContext?.valueOf()} name`}
+                                    inputPlaceholder={`Search by ${primaryEntity?.valueOf()} name`}
                                 />
                             </div>
                         )}

@@ -1,17 +1,20 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
-import { QueryHelper } from "../objects/class/query/QueryHelper";
-import EntityCarousel from "../components/carousel";
+import { unstable_cache } from "next/cache";
+import TrendingComedianCarousel from "../components/carousel";
 import ShowSearchForm from "../components/form/forms/showSearch";
 import { getDB } from "../database";
 const { database } = getDB();
 
-export default async function HomePage(props: any) {
-    const helper = await QueryHelper.storePageParams(props.searchParams);
-    const { comedians } = await database.page.getHomePageData(
-        helper.asQueryFilters(),
-    );
-    const comediansString = JSON.stringify(comedians);
+const getPageData = unstable_cache(
+    async () => {
+        return await database.page.getHomePageData();
+    },
+    ["homePage"],
+    { revalidate: 3600, tags: ["homePage"] },
+);
+
+export default async function HomePage() {
+    const { response } = await getPageData();
 
     return (
         <main>
@@ -23,14 +26,10 @@ export default async function HomePage(props: any) {
             </section>
 
             <section>
-                <ShowSearchForm />
+                <ShowSearchForm cities={JSON.stringify(response.cities)} />
             </section>
-
-            <section
-                className="flex flex-col mx-auto max-w-7xl
-      mt-10 p-6 rounded-lg mb-4 bg-white"
-            >
-                <EntityCarousel entities={comediansString} />
+            <section className="flex flex-col mx-auto max-w-7xl mt-10 p-6 rounded-lg mb-4 bg-white">
+                <TrendingComedianCarousel comedians={response.comedians} />
             </section>
         </main>
     );

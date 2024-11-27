@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { IDatabase, IMain } from 'pg-promise';
 import { IExtensions } from '.';
-import { HomePageData, HomePageDTO } from '../../app/home/interface';
+import { HomePageDTO } from '../../app/home/interface';
 import { ComedianDTO } from '../../objects/class/comedian/comedian.interface';
 import { Comedian } from '../../objects/class/comedian/Comedian';
 import { pageDataMap } from '../sql';
@@ -32,13 +32,8 @@ export class PageDataRepository {
 
     }
 
-    async getHomePageData(filters: any): Promise<HomePageData> {
-        return this.db.one(pageDataMap.home, filters).then((data: HomePageDTO) => {
-            return {
-                cities: data.response.cities,
-                comedians: data.response.comedians.map((dto: ComedianDTO) => new Comedian(dto))
-            }
-        })
+    async getHomePageData(): Promise<HomePageDTO> {
+        return this.db.one(pageDataMap.home)
     }
 
     async getComedianSearchPageData(filters: any): Promise<AllComedianPageData> {

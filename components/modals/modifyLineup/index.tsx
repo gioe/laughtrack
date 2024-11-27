@@ -2,12 +2,14 @@
 
 import Modal from "..";
 import { useRouter } from "next/navigation";
-import { Show } from "../../../objects/class/show/Show";
 import AddComedianToShowForm from "../../form/forms/modifyLineup";
 import { useModifyLineupModal } from "../../../hooks/modalState";
 
-const ModifyLineupModal = () => {
-    const show = JSON.parse(entityString) as Show;
+interface ModifyLineupModalProps {
+    identifier: string;
+}
+
+const ModifyLineupModal = ({ identifier }: ModifyLineupModalProps) => {
     const addComedianModal = useModifyLineupModal();
     const router = useRouter();
 
@@ -20,7 +22,7 @@ const ModifyLineupModal = () => {
         <Modal
             isOpen={addComedianModal.isOpen}
             onClose={onClose}
-            body={<AddComedianToShowForm show={show} onSubmit={onClose} />}
+            body={<AddComedianToShowForm id={identifier} onSubmit={onClose} />}
         />
     );
 };

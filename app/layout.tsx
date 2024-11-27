@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import ClientOnly from "../components/ClientOnly";
 import ToasterProvider from "../components/providers/toaster";
 import LoginModal from "../components/modals/login";
 import RegisterModal from "../components/modals/register";
@@ -12,7 +11,6 @@ import { cache } from "react";
 import Footer from "../components/footer";
 import ScrapeEntitySelectionMenuModal from "../components/modals/scrapeIds";
 import AddComedianModal from "../components/modals/addComedian";
-import { CityProvider } from "../contexts/CityContext";
 
 export const metadata: Metadata = {
     title: "Laughtrack",
@@ -54,17 +52,13 @@ export default async function RootLayout({
                 <body className="bg-shark">
                     <NextUIProvider>
                         <Header currentUser={user} />
-                        <CityProvider>
-                            <ClientOnly>
-                                <ToasterProvider />
-                                <LoginModal />
-                                <RegisterModal />
-                                <ScrapeEntitySelectionMenuModal />
-                                <AddComedianModal />
-                                {children}
-                                <Footer />
-                            </ClientOnly>
-                        </CityProvider>
+                        <ToasterProvider />
+                        <LoginModal />
+                        <RegisterModal />
+                        <ScrapeEntitySelectionMenuModal />
+                        <AddComedianModal />
+                        {children}
+                        <Footer />
                     </NextUIProvider>
                 </body>
             </html>

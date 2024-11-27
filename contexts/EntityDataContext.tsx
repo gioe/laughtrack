@@ -7,7 +7,7 @@ import { TagDataDTO } from "../objects/interface/tag.interface";
 import { useSearchParams } from "next/navigation";
 import { SortOptionInterface } from "../objects/interface";
 import { getSortOptionsForEntityType } from "../util/sort";
-import { useEntityTypeContext } from "./EntityContext";
+import { usePageContext } from "./EntityContext";
 
 interface EntityDataState {
     filters: Filter[];
@@ -26,11 +26,11 @@ export function EntityDataProvider({
 }: {
     children: React.ReactNode;
 }) {
-    const { currentEntityContext } = useEntityTypeContext();
+    const { primaryEntity } = usePageContext();
     const searchParams = useSearchParams();
     const [state, setState] = useState<EntityDataState>({
         filters: [],
-        sortOptions: getSortOptionsForEntityType(currentEntityContext),
+        sortOptions: getSortOptionsForEntityType(primaryEntity),
     });
 
     const getFilters = async () => {

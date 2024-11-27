@@ -1,25 +1,31 @@
-"use client";
+"use server";
 
-import { Entity } from "../../objects/interface";
-import CarouselCard from "../cards/CarouselCard";
+import CarouselCard from "../cards/carousel";
+import { ComedianDTO } from "../../objects/class/comedian/comedian.interface";
+import { Comedian } from "../../objects/class/comedian/Comedian";
 
-interface EntityCarouselProps {
-    entities: string;
+interface TrendingComedianCarouselProps {
+    comedians: ComedianDTO[];
 }
-
-const EntityCarousel: React.FC<EntityCarouselProps> = ({ entities }) => {
-    const entityObjects = JSON.parse(entities) as Entity[];
-
+const TrendingComedianCarousel = ({
+    comedians,
+}: TrendingComedianCarouselProps) => {
     return (
         <div
             className="flex space-x-3 overflow-scroll
          scrollbar-hide p-3 -ml-3"
         >
-            {entityObjects.map((entity) => {
-                return <CarouselCard key={entity.name} entity={entity} />;
+            {comedians.map((dto) => {
+                const comedian = new Comedian(dto);
+                return (
+                    <CarouselCard
+                        key={dto.name}
+                        entity={JSON.stringify(comedian)}
+                    />
+                );
             })}
         </div>
     );
 };
 
-export default EntityCarousel;
+export default TrendingComedianCarousel;

@@ -10,5 +10,8 @@ export interface CityInterface extends DatabaseIdentifiable {
 // DB
 export interface CityDTO {
     id: number;
-    name: string
+    name: string;
+    value: string;
+    displayName: string;
+
 }

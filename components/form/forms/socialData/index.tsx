@@ -12,16 +12,18 @@ import BaseForm from "..";
 import EditSocialDataFormBody from "./body";
 
 interface EditSocialDataInterfaceProps {
+    name: string;
     onSubmit: () => void;
-    comedian: Comedian;
 }
 
 export default function EditSocialDataForm({
     onSubmit,
-    comedian,
+    name,
 }: EditSocialDataInterfaceProps) {
     const [isLoading, setIsLoading] = useState(false);
-
+    const comedian = new Comedian({
+        name,
+    });
     const form = useForm<z.infer<typeof editSocialDataSchema>>({
         resolver: zodResolver(editSocialDataSchema),
         defaultValues: {
@@ -32,14 +34,6 @@ export default function EditSocialDataForm({
             tikTok: {
                 account: comedian?.socialData?.tiktok?.account ?? "",
                 following: comedian?.socialData?.tiktok?.following ?? 0,
-            },
-            facebook: {
-                account: comedian?.socialData?.facebook?.account ?? "",
-                following: comedian?.socialData?.facebook?.following ?? 0,
-            },
-            twitter: {
-                account: comedian?.socialData?.twitter?.account ?? "",
-                following: comedian?.socialData?.twitter?.following ?? 0,
             },
             youtube: {
                 account: comedian?.socialData?.youtube?.account ?? "",

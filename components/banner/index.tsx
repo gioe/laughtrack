@@ -1,20 +1,23 @@
 "use client";
 
 import Image from "next/image";
-import SocialMediaBar from "../social/SocialMediaBar";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { Menu } from "../menu";
 import { getMenuItemsForEntityType } from "../../util/menu";
-import { Entity } from "../../objects/interface";
+import { usePageContext } from "../../contexts/EntityContext";
 
-const EntityBanner = () => {
-    const entity = JSON.parse(entityString) as Entity;
-    const menuItems = getMenuItemsForEntityType(entity.type);
+interface EntityBannerProps {
+    identifier: string;
+}
+const EntityBanner = ({ identifier }: EntityBannerProps) => {
+    const { primaryEntity } = usePageContext();
+    const menuItems = getMenuItemsForEntityType(primaryEntity);
+
     const session = useSession();
     const shouldShowMenu = session.data?.user.role == "admin";
 
-    const [src, setSrc] = useState<string>(entity.bannerImageUrl);
+    const [src, setSrc] = useState<string>(`/images/banners/${identifier}.png`);
 
     const onError = () => {
         setSrc(`/images/logo.png`);
@@ -36,11 +39,11 @@ const EntityBanner = () => {
             />
             <div className="absolute top-1/2 w-full text-center">
                 <h2 className="font-bold sm:text-4xl m:text-4xl lg:text-4xl xl:text-4xl 2xl:text-4xl text-white pt-6 pb-6">
-                    {entity.name}
+                    {decodeURI(identifier)}
                 </h2>
-                {entity.socialData && (
+                {/* {entity.socialData && (
                     <SocialMediaBar data={entity.socialData} />
-                )}
+                )} */}
                 {shouldShowMenu && menuItems && (
                     <Menu providedItems={menuItems} />
                 )}

@@ -4,7 +4,10 @@ import { useRunScrapeModal } from "../../../hooks/modalState";
 import Modal from "..";
 import ScrapeEntityForm from "../../form/forms/scrape";
 
-const ScrapeEntityModal = () => {
+interface ScrapeEntityModalProps {
+    identifier: string;
+}
+const ScrapeEntityModal = ({ identifier }: ScrapeEntityModalProps) => {
     const runScrapeModal = useRunScrapeModal();
     const router = useRouter();
 
@@ -17,7 +20,9 @@ const ScrapeEntityModal = () => {
         <Modal
             isOpen={runScrapeModal.isOpen}
             onClose={runScrapeModal.onClose}
-            body={<ScrapeEntityForm entityId={entityId} onSubmit={onSubmit} />}
+            body={
+                <ScrapeEntityForm identifier={identifier} onSubmit={onSubmit} />
+            }
         />
     );
 };

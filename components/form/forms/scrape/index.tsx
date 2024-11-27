@@ -9,24 +9,24 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
 import BaseForm from "..";
 import ScrapeEntityFormBody from "./body";
-import { useEntityTypeContext } from "../../../../contexts/EntityContext";
+import { usePageContext } from "../../../../contexts/EntityContext";
 
 interface ScrapeEntityFormProps {
-    entityId: number;
+    identifier: string;
     onSubmit: () => void;
 }
 
 export default function ScrapeEntityForm({
-    entityId,
+    identifier,
     onSubmit,
 }: ScrapeEntityFormProps) {
-    const { currentEntityContext } = useEntityTypeContext();
+    const { primaryEntity } = usePageContext();
     const [isLoading, setIsLoading] = useState(false);
 
     const form = useForm<z.infer<typeof scrapeClubSchema>>({
         resolver: zodResolver(scrapeClubSchema),
         defaultValues: {
-            entityId,
+            entityIdentifier: identifier.toString(),
             headless: "true",
             pause: "false",
         },
@@ -35,8 +35,8 @@ export default function ScrapeEntityForm({
     const submitForm = (data: z.infer<typeof scrapeClubSchema>) => {
         setIsLoading(true);
         axios
-            .post(`/api/${currentEntityContext?.valueOf()}/scrape`, {
-                ids: [entityId],
+            .post(`/api/${primaryEntity?.valueOf()}/scrape`, {
+                ids: [identifier],
                 headless: data.headless,
                 pause: data.pause,
             })
@@ -59,7 +59,7 @@ export default function ScrapeEntityForm({
             isLoading={isLoading}
             onSubmit={submitForm}
             form={form}
-            body={<ScrapeEntityFormBody form={form} type={type} />}
+            body={<ScrapeEntityFormBody form={form} />}
         />
     );
 }

@@ -10,26 +10,26 @@ import { useState } from "react";
 import BaseForm from "..";
 import TagEntityFormBody from "./body";
 import { Filter } from "../../../../objects/class/tag/Filter";
-import { useEntityTypeContext } from "../../../../contexts/EntityContext";
+import { usePageContext } from "../../../../contexts/EntityContext";
 
 interface TagEntityFormProps {
+    name: string;
     filters: Filter[];
     onSubmit: () => void;
-    entityId: number;
 }
 
 export default function TagEntityForm({
     filters,
-    entityId,
+    name,
     onSubmit,
 }: TagEntityFormProps) {
-    const { currentEntityContext } = useEntityTypeContext();
+    const { primaryEntity } = usePageContext();
     const [isLoading, setIsLoading] = useState(false);
 
     const form = useForm<z.infer<typeof tagEntitySchema>>({
         resolver: zodResolver(tagEntitySchema),
         defaultValues: {
-            entityId,
+            entityName: name,
             tagIds: [],
         },
     });
@@ -38,12 +38,9 @@ export default function TagEntityForm({
         setIsLoading(true);
 
         axios
-            .post(
-                `/api/${currentEntityContext?.valueOf()}/${data.entityId}/tag`,
-                {
-                    tags: data.tagIds,
-                },
-            )
+            .post(`/api/${primaryEntity?.valueOf()}/${data.entityName}/tag`, {
+                tags: data.tagIds,
+            })
             .then((response) => {
                 if (response) {
                     setIsLoading(false);

@@ -6,7 +6,11 @@ import TagEntityForm from "../../form/forms/tagEntity";
 import useAddEntityTagModal from "../../../hooks/modalState/useAddEntityTagModal";
 import { useDataProvider } from "../../../contexts/EntityDataContext";
 
-const TagEntityModal = () => {
+interface TagEntityModalProps {
+    identifier: string;
+}
+
+const TagEntityModal = ({ identifier }: TagEntityModalProps) => {
     const { filters } = useDataProvider();
 
     const router = useRouter();
@@ -24,7 +28,7 @@ const TagEntityModal = () => {
             body={
                 <TagEntityForm
                     filters={filters}
-                    entityId={entityId}
+                    name={identifier}
                     onSubmit={onSubmit}
                 />
             }

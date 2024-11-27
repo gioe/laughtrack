@@ -14,17 +14,20 @@ import {
     URLParam,
 } from "../../../../objects/class/params/SearchParamsHelper";
 import { FormButton } from "../../components/button/home";
-import { useCityContext } from "../../../../contexts/CityContext";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { CityDTO } from "../../../../objects/class/city/city.interface";
 import { Selectable } from "../../../../objects/interface";
 
-export default function ShowSearchForm() {
+interface ShowSearchFormProps {
+    cities: string;
+}
+export default function ShowSearchForm({ cities }: ShowSearchFormProps) {
+    const parsedCities = JSON.parse(cities) as CityDTO[];
+
     const [isLoading, setIsLoading] = useState(false);
 
-    const { cities } = useCityContext();
-    const selectableCities = cities.map((city: CityDTO) => {
+    const selectableCities = parsedCities.map((city: CityDTO) => {
         return {
             id: city.id,
             value: city.name,

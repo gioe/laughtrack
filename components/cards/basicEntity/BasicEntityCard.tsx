@@ -1,17 +1,17 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import React from "react";
 import { HeartIcon as OutlineHeart } from "@heroicons/react/24/outline";
 import { HeartIcon as SolidHeart } from "@heroicons/react/24/solid";
+import { useSession } from "next-auth/react";
+import { Entity } from "../../../objects/interface";
+import { SocialData } from "../../../objects/class/socialData/SocialData";
+import SocialMediaBar from "../../social/SocialMediaBar";
+import useRegisterModal from "../../../hooks/modalState/useRegisterModel";
+import axios from "axios";
 import Image from "next/image";
 import Link from "next/link";
-import useRegisterModal from "../../hooks/modalState/useRegisterModel";
-import { useSession } from "next-auth/react";
-import SocialMediaBar from "../social/SocialMediaBar";
-import axios from "axios";
-import { Entity } from "../../objects/interface";
-import { SocialData } from "../../objects/class/socialData/SocialData";
+import React from "react";
 
 interface BasicEntityCardProps {
     entity: Entity;

@@ -11,19 +11,27 @@ import BaseForm from "..";
 import ClearClubFormBody from "./body";
 
 interface ClearShowsFormProps {
-    clubId: number;
+    name: string;
     onSubmit: () => void;
 }
 
 export default function ClearShowsFromClubForm({
-    clubId,
+    name,
     onSubmit,
 }: ClearShowsFormProps) {
     const [isLoading, setIsLoading] = useState(false);
+
+    const form = useForm<z.infer<typeof clearShowsFromClubSchema>>({
+        resolver: zodResolver(clearShowsFromClubSchema),
+        defaultValues: {
+            clubName: name,
+        },
+    });
+
     const submitForm = (data: z.infer<typeof clearShowsFromClubSchema>) => {
         setIsLoading(true);
         axios
-            .delete(`/api/club/${data.clubId}/clear`)
+            .delete(`/api/club/${data.clubName}/clear`)
             .then((response) => {
                 if (response) {
                     setIsLoading(false);
@@ -36,13 +44,6 @@ export default function ClearShowsFromClubForm({
             })
             .finally(onSubmit);
     };
-
-    const form = useForm<z.infer<typeof clearShowsFromClubSchema>>({
-        resolver: zodResolver(clearShowsFromClubSchema),
-        defaultValues: {
-            clubId,
-        },
-    });
 
     return (
         <BaseForm

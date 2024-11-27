@@ -7,6 +7,7 @@ import { ClubDTO } from '../../objects/class/club/club.interface';
 import { CityDTO } from '../../objects/class/city/city.interface';
 import { TagDataDTO } from '../../objects/interface/tag.interface';
 import { EntityType } from '../../objects/enum';
+import { ComedianDTO } from '../../objects/class/comedian/comedian.interface';
 
 export class QueryRepository {
 
@@ -68,6 +69,13 @@ export class QueryRepository {
                 if (entityTypes == undefined) return true
                 return entityTypes.includes(value.type)
             })
+        })
+    }
+
+    async getTrendingComedians(): Promise<ComedianDTO[]> {
+        return this.db.manyOrNone(queryMap.getTrendingComedians).then((response: any) => {
+            if (response) return response
+            throw new Error(`Error getting trending comedian`)
         })
     }
 

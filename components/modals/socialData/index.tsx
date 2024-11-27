@@ -3,11 +3,13 @@
 import { useRouter } from "next/navigation";
 import Modal from "..";
 import { useSocialDataModal } from "../../../hooks/modalState";
-import { Comedian } from "../../../objects/class/comedian/Comedian";
 import EditSocialDataForm from "../../form/forms/socialData";
 
-const EditSocialDataModal = () => {
-    const comedian = JSON.parse(entityString) as Comedian;
+interface EditSocialDataModalProps {
+    identifier: string;
+}
+
+const EditSocialDataModal = ({ identifier }: EditSocialDataModalProps) => {
     const socialDataModal = useSocialDataModal();
     const router = useRouter();
 
@@ -20,9 +22,7 @@ const EditSocialDataModal = () => {
         <Modal
             isOpen={socialDataModal.isOpen}
             onClose={socialDataModal.onClose}
-            body={
-                <EditSocialDataForm comedian={comedian} onSubmit={onSubmit} />
-            }
+            body={<EditSocialDataForm name={identifier} onSubmit={onSubmit} />}
         />
     );
 };

@@ -37,7 +37,7 @@ export const stringIsAValidDate = (string: string): boolean => {
 };
 
 export const capitalized = (inputString: string): string => {
-    const newString = inputString
+    return inputString
         .split(" ")
         .filter((word) => word !== "")
         .map((word) => {
@@ -45,13 +45,12 @@ export const capitalized = (inputString: string): string => {
             return word[0].toUpperCase() + word.substring(1).toLowerCase()
         })
         .join(" ");
-    console.log(`${inputString} in, ${newString} out`)
-    return newString
 };
 
-const isAcronym = (word: string): boolean => {
-    return word.includes('.')
+export const isAcronym = (inputString: string) => {
+    return inputString.includes('.')
 }
+
 
 export const removeNonAlphanumeric = (str: string): string => {
     return str.replace(/[^a-zA-Z0-9]/g, "");

@@ -4,42 +4,61 @@ import { useState, useContext, createContext } from "react";
 import { EntityType } from "../objects/enum";
 import { usePathname } from "next/navigation";
 
-interface EntityTypeContext {
-    currentEntityContext: EntityType | undefined;
+interface PageEntityContext {
+    primaryEntity: EntityType | undefined;
+    secondaryEntity: EntityType | undefined;
 }
 
-const defaultState: EntityTypeContext = {
-    currentEntityContext: undefined,
+const defaultState: PageEntityContext = {
+    primaryEntity: undefined,
+    secondaryEntity: undefined,
 };
 
-const EntityTypeContext = createContext<EntityTypeContext>(defaultState);
+const PageContextProvider = createContext<PageEntityContext>(defaultState);
 
-export function EntityContext({ children }: { children: React.ReactNode }) {
+export function PageEntityContextProvider({
+    children,
+}: {
+    children: React.ReactNode;
+}) {
     const pathName = usePathname();
 
-    const [state /* setEntityType */] = useState({
-        currentEntityContext: getTypeFromPath(pathName),
-    });
+    const [state /* setEntityType */] = useState(getStateFromPath(pathName));
 
     return (
-        <EntityTypeContext.Provider value={state}>
+        <PageContextProvider.Provider value={state}>
             {children}
-        </EntityTypeContext.Provider>
+        </PageContextProvider.Provider>
     );
 }
 
-const getTypeFromPath = (path: string): EntityType | undefined => {
+const getStateFromPath = (path: string): PageEntityContext => {
+    let primaryEntity: EntityType | undefined;
+    let secondaryEntity: EntityType | undefined;
+
     if (path.startsWith("/club")) {
-        return EntityType.Club;
+        primaryEntity = EntityType.Club;
+        secondaryEntity = path.includes("/all")
+            ? EntityType.Club
+            : EntityType.Show;
     } else if (path.startsWith("/show")) {
-        return EntityType.Show;
+        primaryEntity = EntityType.Show;
+        secondaryEntity = path.includes("/all")
+            ? EntityType.Show
+            : EntityType.Comedian;
     } else if (path.startsWith("/comedian")) {
-        return EntityType.Comedian;
-    } else {
-        return undefined;
+        primaryEntity = EntityType.Comedian;
+        secondaryEntity = path.includes("/all")
+            ? EntityType.Comedian
+            : EntityType.Show;
     }
+
+    return {
+        primaryEntity,
+        secondaryEntity,
+    };
 };
 
-export function useEntityTypeContext() {
-    return useContext(EntityTypeContext);
+export function usePageContext() {
+    return useContext(PageContextProvider);
 }

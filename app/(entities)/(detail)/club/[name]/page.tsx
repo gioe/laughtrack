@@ -16,7 +16,6 @@ export default async function ClubDetailPage(props) {
         helper.asQueryFilters(),
     );
     const containedEntitiesString = JSON.stringify(entity.containedEntities);
-    const entityString = JSON.stringify(entity);
 
     return (
         <section>

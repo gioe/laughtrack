@@ -5,7 +5,11 @@ import { useClearShowsModal } from "../../../hooks/modalState";
 import Modal from "..";
 import ClearShowsFromClubForm from "../../form/forms/clearClub";
 
-const ClearShowsModal = () => {
+interface ClearShowModalProps {
+    identifier: string;
+}
+
+const ClearShowsModal = ({ identifier }: ClearShowModalProps) => {
     const clearShowsModal = useClearShowsModal();
     const router = useRouter();
 
@@ -19,7 +23,7 @@ const ClearShowsModal = () => {
             isOpen={clearShowsModal.isOpen}
             onClose={clearShowsModal.onClose}
             body={
-                <ClearShowsFromClubForm clubId={clubId} onSubmit={onSubmit} />
+                <ClearShowsFromClubForm name={identifier} onSubmit={onSubmit} />
             }
         />
     );
