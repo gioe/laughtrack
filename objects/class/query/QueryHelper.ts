@@ -99,11 +99,11 @@ export class QueryHelper {
         return {}
     }
 
-    static async storePageParams(paramsPromise: Promise<any>, tagsPromise?: Promise<TagDataDTO[]>, slugPromise?: Promise<QueryHelper>) {
-        const promises = [paramsPromise, tagsPromise, slugPromise]
+    static async storePageParams(paramsPromise: Promise<any>, slugPromise?: Promise<QueryHelper>, tags?: TagDataDTO[]) {
+        const promises = [paramsPromise, slugPromise]
         return Promise.all(promises).then((values: any[]) => {
             const searchParams = new URLSearchParams(values[0] as string)
-            const filterValues = values[1] !== undefined ? values[1].map((dto: TagDataDTO) => dto.value) : [];
+            const filterValues = tags ? tags.map((dto: TagDataDTO) => dto.value) : [];
             const searchParamsHelper = new SearchParamsHelper(searchParams as ReadonlyURLSearchParams)
             return new QueryHelper(searchParamsHelper, filterValues, (values[2] as DynamicRoute))
         })

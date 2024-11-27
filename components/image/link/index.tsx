@@ -8,9 +8,15 @@ interface LinkedImageProps {
     destination: string;
     imageUrl: string;
     alt: string;
+    priority: boolean;
 }
 
-const LinkedImage = ({ destination, imageUrl, alt }: LinkedImageProps) => {
+const LinkedImage = ({
+    destination,
+    imageUrl,
+    alt,
+    priority = false,
+}: LinkedImageProps) => {
     const [src, setSrc] = useState<string>(imageUrl);
     const onError = () => {
         setSrc(`/images/logo.png`);
@@ -24,7 +30,7 @@ const LinkedImage = ({ destination, imageUrl, alt }: LinkedImageProps) => {
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     onError={onError}
-                    priority={false}
+                    priority
                     style={{ objectFit: "cover" }}
                 />
             </Link>

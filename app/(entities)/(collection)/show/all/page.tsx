@@ -5,19 +5,26 @@ import QueryableEntityTableContainer from "../../../../../components/container";
 import { EntityType } from "../../../../../objects/enum";
 import { QueryHelper } from "../../../../../objects/class/query/QueryHelper";
 import { getDB } from "../../../../../database";
+import { unstable_cache } from "next/cache";
 const { database } = getDB();
 
-const getFilters = database.queries.getTags([EntityType.Show]);
+const getFilters = unstable_cache(
+    async () => {
+        return await database.queries.getTags([EntityType.Show]);
+    },
+    ["showSearchFilters"],
+    { revalidate: 86400, tags: ["showSearchFilters"] },
+);
 
 export default async function ShowSearchPage(props: any) {
+    const { filters } = await getFilters();
+
     const helper = await QueryHelper.storePageParams(
         props.searchParams,
-        getFilters,
+        filters,
     );
 
-    const { entities, total } = await database.page.getShowSearchPageData(
-        helper.asQueryFilters(),
-    );
+    const { entities, total } = getPageData(helper.asQueryFilters());
     const entityCollectionString = JSON.stringify(entities);
 
     return (
