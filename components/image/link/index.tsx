@@ -2,23 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { getPlaiceholder } from "plaiceholder";
-import * as fsPromises from "fs/promises";
-import path from "path";
-
-const getImage = async (src: string) => {
-    const buffer = await fsPromises.readFile(path.join("./public", src));
-    const {
-        metadata: { height, width },
-        ...plaiceholder
-    } = await getPlaiceholder(buffer, { size: 10 });
-
-    return {
-        ...plaiceholder,
-        img: { src, height, width },
-    };
-};
+import { useState } from "react";
 
 interface LinkedImageProps {
     destination: string;
@@ -27,26 +11,11 @@ interface LinkedImageProps {
     priority: boolean;
 }
 
-async function LinkedImage({ destination, imageUrl, alt }: LinkedImageProps) {
-    const getImage = async (imageUrl: string) => {
-        const { base64, img } = await getImage(imageUrl);
-    };
-
-    useEffect(() => {
-        getImage(imageUrl);
-    }, [imageUrl]);
-
-    const [img, setImage] = useState({
-        src: imageUrl,
-        height: 0,
-        with: 0,
-    });
+const LinkedImage = ({ destination, imageUrl, alt }: LinkedImageProps) => {
+    const [src, setSrc] = useState(imageUrl);
 
     const onError = () => {
-        setImage({
-            ...img,
-            src: `/images/logo.png`,
-        });
+        setSrc(`/images/logo.png`);
     };
 
     return (
@@ -54,20 +23,16 @@ async function LinkedImage({ destination, imageUrl, alt }: LinkedImageProps) {
             <Link href={destination}>
                 <Image
                     src={src}
-                    height={height}
-                    width={width}
                     alt={alt}
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     onError={onError}
                     priority
                     style={{ objectFit: "cover" }}
-                    blurDataURL={base64}
-                    placeholder="blur"
                 />
             </Link>
         </div>
     );
-}
+};
 
 export default LinkedImage;

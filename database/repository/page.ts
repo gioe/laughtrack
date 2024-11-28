@@ -7,15 +7,18 @@ import { Comedian } from '../../objects/class/comedian/Comedian';
 import { pageDataMap } from '../sql';
 import { Club } from '../../objects/class/club/Club';
 import { ClubDTO } from '../../objects/class/club/club.interface';
-import { AllShowPageData, AllShowPageDTO } from '../../app/(entities)/(collection)/show/all/interface';
 import { ShowDTO } from '../../objects/class/show/show.interface';
 import { Show } from '../../objects/class/show/Show';
 import { ShowDetailDTO, ShowDetailPageData } from '../../app/(entities)/(detail)/show/[id]/interface';
-import { AllComedianPageData, AllComedianPageDTO } from '../../app/(entities)/(collection)/comedian/all/interface';
 import { ComedianDetailDTO, ComedianDetailPageData } from '../../app/(entities)/(detail)/comedian/[name]/interface';
-import { AllClubPageData, AllClubPageDTO } from '../../app/(entities)/(collection)/club/all/interface';
+import { ClubSearchData, ClubSearchDTO } from '../../app/(entities)/(collection)/club/all/interface';
+import { ComedianSearchData, ComedianSearchDTO } from '../../app/(entities)/(collection)/comedian/all/interface';
+import { ShowSearchData, ShowSearchDTO } from '../../app/(entities)/(collection)/show/all/interface';
 import { ClubDetailDTO, ClubDetailPageData } from '../../app/(entities)/(detail)/club/[name]/interface';
+
+
 export class PageDataRepository {
+
 
     /**
      * @param db
@@ -36,8 +39,8 @@ export class PageDataRepository {
         return this.db.one(pageDataMap.home)
     }
 
-    async getComedianSearchPageData(filters: any): Promise<AllComedianPageData> {
-        return this.db.one(pageDataMap.comedianSearch, filters).then((data: AllComedianPageDTO) => {
+    async getComedianSearchPageData(filters: any): Promise<ComedianSearchData> {
+        return this.db.one(pageDataMap.comedianSearch, filters).then((data: ComedianSearchDTO) => {
             return {
                 entities: data.response.data.map((result: ComedianDTO) => new Comedian(result)),
                 total: data.response.total
@@ -54,8 +57,8 @@ export class PageDataRepository {
         })
     }
 
-    async getClubSearchPageData(filters: any): Promise<AllClubPageData> {
-        return this.db.one(pageDataMap.clubSearch, filters).then((data: AllClubPageDTO) => {
+    async getClubSearchPageData(filters: any): Promise<ClubSearchData> {
+        return this.db.one(pageDataMap.clubSearch, filters).then((data: ClubSearchDTO) => {
             return {
                 entities: data.response.data.map((result: ClubDTO) => new Club(result)),
                 total: data.response.total
@@ -72,8 +75,8 @@ export class PageDataRepository {
         })
     }
 
-    async getShowSearchPageData(filters: any): Promise<AllShowPageData> {
-        return this.db.one(pageDataMap.showSearch, filters).then((data: AllShowPageDTO) => {
+    async getShowSearchPageData(filters: any): Promise<ShowSearchData> {
+        return this.db.one(pageDataMap.showSearch, filters).then((data: ShowSearchDTO) => {
             return {
                 entities: data.response.data.map((result: ShowDTO) => new Show(result)),
                 total: data.response.total

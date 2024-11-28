@@ -1,28 +1,28 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import QueryableEntityTableContainer from "../../../../../components/container";
-import { EntityType } from "../../../../../objects/enum";
-import { QueryHelper } from "../../../../../objects/class/query/QueryHelper";
-import { getDB } from "../../../../../database";
-const { database } = getDB();
-
-const getFilters = database.queries.getTags([EntityType.Comedian]);
+import { SearchParamsHelper } from "../../../../../objects/class/params/SearchParamsHelper";
+import { PUBLIC_ROUTES } from "../../../../../util/routes";
+import { executeGet } from "../../../../../util/actions/executeGet";
+import { ShowDetailPageResponse } from "./interface";
 
 export default async function ShowDetailPage(props: any) {
-    const helper = await QueryHelper.storePageParams(
+    const paramsHelper = await SearchParamsHelper.storePageParams(
         props.searchParams,
-        getFilters,
         props.params,
     );
-    const { entity, total } = await database.page.getShowDetailPageData(
-        helper.asQueryFilters(),
-    );
 
-    const containedEntitiesString = JSON.stringify(entity.containedEntities);
+    const { data } = (await executeGet(
+        PUBLIC_ROUTES.SHOW_DETAIL + `/${paramsHelper.asSlug()}`,
+        paramsHelper.asUrlSearchParams(),
+    )) as ShowDetailPageResponse;
+
     return (
         <section>
             <QueryableEntityTableContainer
-                totalEntities={total}
-                entityCollectionString={containedEntitiesString}
+                totalEntities={data.total}
+                entityCollectionString={JSON.stringify(
+                    data.entity.containedEntities,
+                )}
                 defaultNode={
                     <h2 className="font-bold text-5xl text-white pt-6">
                         No comedians on this show

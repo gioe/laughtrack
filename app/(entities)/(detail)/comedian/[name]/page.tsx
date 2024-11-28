@@ -1,30 +1,26 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import QueryableEntityTableContainer from "../../../../../components/container";
-import { QueryHelper } from "../../../../../objects/class/query/QueryHelper";
-import { EntityType } from "../../../../../objects/enum";
-import { getDB } from "../../../../../database";
-const { database } = getDB();
-
-const getFilters = database.queries.getTags([EntityType.Show]);
+import { SearchParamsHelper } from "../../../../../objects/class/params/SearchParamsHelper";
+import { executeGet } from "../../../../../util/actions/executeGet";
+import { PUBLIC_ROUTES } from "../../../../../util/routes";
+import { ComedianDetailPageResponse } from "./interface";
 
 export default async function ComedianDetailsPage(props: any) {
-    const helper = await QueryHelper.storePageParams(
+    const paramsHelper = await SearchParamsHelper.storePageParams(
         props.searchParams,
-        getFilters,
         props.params,
     );
 
-    const { entity, total } = await database.page.getComedianDetailPageData(
-        helper.asQueryFilters(),
-    );
-    const entityString = JSON.stringify(entity);
-    const containedEntitiesString = JSON.stringify(entity.containedEntities);
+    const { data } = (await executeGet(
+        PUBLIC_ROUTES.COMEDIAN_DETAIL + `/${paramsHelper.asSlug()}`,
+        paramsHelper.asUrlSearchParams(),
+    )) as ComedianDetailPageResponse;
 
     return (
         <section>
             <QueryableEntityTableContainer
-                totalEntities={total}
-                entityCollectionString={containedEntitiesString}
+                totalEntities={data.total}
+                entityCollectionString={JSON.stringify(data)}
                 defaultNode={
                     <h2 className="font-bold text-5xl text-white pt-6">
                         No upcoming shows for this comedian

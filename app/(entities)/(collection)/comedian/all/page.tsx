@@ -1,26 +1,26 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import QueryableEntityTableContainer from "../../../../../components/container";
-import { QueryHelper } from "../../../../../objects/class/query/QueryHelper";
-import { EntityType } from "../../../../../objects/enum";
-import { getDB } from "../../../../../database";
-const { database } = getDB();
-
-const getFilters = database.queries.getTags([EntityType.Comedian]);
+import { SearchParamsHelper } from "../../../../../objects/class/params/SearchParamsHelper";
+import { executeGet } from "../../../../../util/actions/executeGet";
+import { PUBLIC_ROUTES } from "../../../../../util/routes";
+import { ComedianSearchResponse } from "./interface";
 
 export default async function ComedianSearchPage(props: any) {
-    const helper = await QueryHelper.storePageParams(
+    const paramsWrapper = await SearchParamsHelper.storePageParams(
         props.searchParams,
-        getFilters,
     );
-    const { entities, total } = await database.page.getComedianSearchPageData(
-        helper.asQueryFilters(),
-    );
-    const entityCollectionString = JSON.stringify(entities);
+
+    const { data } = (await executeGet(
+        PUBLIC_ROUTES.COMEDIAN_SEARCH,
+        paramsWrapper.asUrlSearchParams(),
+    )) as ComedianSearchResponse;
+
+    const entityCollectionString = JSON.stringify(data.entities);
 
     return (
         <main className="flex-grow pt-5 bg-shark">
             <QueryableEntityTableContainer
-                totalEntities={total}
+                totalEntities={data.total}
                 entityCollectionString={entityCollectionString}
                 defaultNode={
                     <h2 className="font-bold text-5xl text-white pt-6">

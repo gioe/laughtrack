@@ -2,35 +2,29 @@
 "use server";
 
 import QueryableEntityTableContainer from "../../../../../components/container";
-import { EntityType } from "../../../../../objects/enum";
-import { QueryHelper } from "../../../../../objects/class/query/QueryHelper";
-import { getDB } from "../../../../../database";
-import { unstable_cache } from "next/cache";
-const { database } = getDB();
-
-const getFilters = unstable_cache(
-    async () => {
-        return await database.queries.getTags([EntityType.Show]);
-    },
-    ["showSearchFilters"],
-    { revalidate: 86400, tags: ["showSearchFilters"] },
-);
+import { SearchParamsHelper } from "../../../../../objects/class/params/SearchParamsHelper";
+import { executeGet } from "../../../../../util/actions/executeGet";
+import { PUBLIC_ROUTES } from "../../../../../util/routes";
+import { ShowSearchResponse } from "./interface";
 
 export default async function ShowSearchPage(props: any) {
-    const { filters } = await getFilters();
-
-    const helper = await QueryHelper.storePageParams(
+    const paramsWrapper = await SearchParamsHelper.storePageParams(
         props.searchParams,
-        filters,
     );
 
-    const { entities, total } = getPageData(helper.asQueryFilters());
-    const entityCollectionString = JSON.stringify(entities);
+    const { data } = (await executeGet(
+        PUBLIC_ROUTES.SHOW_SEARCH,
+        paramsWrapper.asUrlSearchParams(),
+        undefined,
+        3600,
+    )) as ShowSearchResponse;
+
+    const entityCollectionString = JSON.stringify(data.entities);
 
     return (
         <main className="flex-grow pt-5 bg-shark">
             <QueryableEntityTableContainer
-                totalEntities={total}
+                totalEntities={data.total}
                 entityCollectionString={entityCollectionString}
                 defaultNode={
                     <h2 className="font-bold text-5xl w-maxtext-white pt-6">

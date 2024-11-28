@@ -4,3 +4,4 @@ import { EntityResponse, EntityResponseDTO } from "../../../../../objects/interf
 
 export type ClubDetailDTO = EntityResponseDTO<ClubDTO>
 export type ClubDetailPageData = EntityResponse<Club>
+export interface ClubDetailPageResponse { data: ClubDetailPageData }

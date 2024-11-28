@@ -2,6 +2,11 @@ import withPlaiceholder from "@plaiceholder/next";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  logging: {
+    fetches: {
+      fullUrl: true,
+    },
+  },
   // Works, but need to replace with serverExternalPackages later
   webpack: (
     config, {},

@@ -1,9 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { ParamsDictValue, SearchParamsHelper } from "../params/SearchParamsHelper";
 import { allQueryProperties, DEFAULT_ERROR, QueryProperty } from "../../enum/queryProperty";
 import { DynamicRoute } from "../../interface/identifable.interface";
-import { ReadonlyURLSearchParams } from "next/navigation";
 import { TagDataDTO } from "../../interface/tag.interface";
 
 // This class is meant to capture all of the page parameters that Next provides us with.
@@ -99,14 +96,10 @@ export class QueryHelper {
         return {}
     }
 
-    static async storePageParams(paramsPromise: Promise<any>, slugPromise?: Promise<QueryHelper>, tags?: TagDataDTO[]) {
-        const promises = [paramsPromise, slugPromise]
-        return Promise.all(promises).then((values: any[]) => {
-            const searchParams = new URLSearchParams(values[0] as string)
-            const filterValues = tags ? tags.map((dto: TagDataDTO) => dto.value) : [];
-            const searchParamsHelper = new SearchParamsHelper(searchParams as ReadonlyURLSearchParams)
-            return new QueryHelper(searchParamsHelper, filterValues, (values[2] as DynamicRoute))
-        })
+    static async storePageParams(searchParams: URLSearchParams, tags?: TagDataDTO[], identifier?: DynamicRoute) {
+        const filterValues = tags ? tags.map((dto: TagDataDTO) => dto.value) : [];
+        const searchParamsHelper = new SearchParamsHelper(searchParams)
+        return new QueryHelper(searchParamsHelper, filterValues, identifier)
     }
 
 }

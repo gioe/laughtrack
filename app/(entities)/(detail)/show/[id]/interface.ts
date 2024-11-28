@@ -4,3 +4,4 @@ import { EntityResponse, EntityResponseDTO } from "../../../../../objects/interf
 
 export type ShowDetailDTO = EntityResponseDTO<ShowDTO>
 export type ShowDetailPageData = EntityResponse<Show>
+export interface ShowDetailPageResponse { data: ShowDetailPageData }
