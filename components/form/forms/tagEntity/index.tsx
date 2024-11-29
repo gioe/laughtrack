@@ -9,20 +9,14 @@ import axios from "axios";
 import { useState } from "react";
 import BaseForm from "..";
 import TagEntityFormBody from "./body";
-import { Filter } from "../../../../objects/class/tag/Filter";
 import { usePageContext } from "../../../../contexts/EntityContext";
 
 interface TagEntityFormProps {
     name: string;
-    filters: Filter[];
     onSubmit: () => void;
 }
 
-export default function TagEntityForm({
-    filters,
-    name,
-    onSubmit,
-}: TagEntityFormProps) {
+export default function TagEntityForm({ name, onSubmit }: TagEntityFormProps) {
     const { primaryEntity } = usePageContext();
     const [isLoading, setIsLoading] = useState(false);
 
@@ -55,7 +49,7 @@ export default function TagEntityForm({
             isLoading={isLoading}
             onSubmit={submitForm}
             form={form}
-            body={<TagEntityFormBody form={form} filterSections={filters} />}
+            body={<TagEntityFormBody form={form} />}
         />
     );
 }

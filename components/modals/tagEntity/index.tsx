@@ -4,17 +4,15 @@ import { useRouter } from "next/navigation";
 import Modal from "..";
 import TagEntityForm from "../../form/forms/tagEntity";
 import useAddEntityTagModal from "../../../hooks/modalState/useAddEntityTagModal";
-import { useDataProvider } from "../../../contexts/EntityDataContext";
 
 interface TagEntityModalProps {
     identifier: string;
 }
 
 const TagEntityModal = ({ identifier }: TagEntityModalProps) => {
-    const { filters } = useDataProvider();
+    const addEntityTagModal = useAddEntityTagModal();
 
     const router = useRouter();
-    const addEntityTagModal = useAddEntityTagModal();
 
     const onSubmit = () => {
         router.refresh();
@@ -25,13 +23,7 @@ const TagEntityModal = ({ identifier }: TagEntityModalProps) => {
         <Modal
             isOpen={addEntityTagModal.isOpen}
             onClose={addEntityTagModal.onClose}
-            body={
-                <TagEntityForm
-                    filters={filters}
-                    name={identifier}
-                    onSubmit={onSubmit}
-                />
-            }
+            body={<TagEntityForm name={identifier} onSubmit={onSubmit} />}
         />
     );
 };
