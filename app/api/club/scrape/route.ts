@@ -15,7 +15,8 @@ export async function POST(
     if (ids.length == 0) {
         task = database.queries.getAllClubs()
     } else if (ids.length == 1) {
-        task = database.queries.getClubByName(ids[0])
+        const name = decodeURI(ids[0])
+        task = database.queries.getClubByName(name)
     } else {
         task = database.queries.getClubsByIds(ids)
     }
