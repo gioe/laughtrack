@@ -24,6 +24,17 @@ export class QueryRepository {
      */
     constructor(private db: IDatabase<IExtensions>, private pgp: IMain) { }
 
+    async getClubByName(name: string): Promise<ClubDTO[]> {
+        return this.db.manyOrNone(queryMap.getClubByName, {
+            name
+        })
+            .then((club: ClubDTO[] | null) => {
+                if (club) return club
+                throw new Error("Error getting club")
+            })
+    }
+
+
     async getAllClubs(): Promise<ClubDTO[]> {
         return this.db.manyOrNone(queryMap.getAllClubs)
             .then((clubs: ClubDTO[] | null) => {

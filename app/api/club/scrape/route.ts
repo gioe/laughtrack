@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from "next/server";
 import { getDB } from "../../../../database";
 const { database } = getDB();
@@ -9,8 +10,15 @@ export async function POST(
 ) {
     const { headless, ids } = await req.json()
     const headlessBoolean = headless == 'true' ? true : false
+    let task: Promise<any>;
 
-    const task = ids.length > 0 ? database.queries.getClubsByIds(ids) : database.queries.getAllClubs()
+    if (ids.length == 0) {
+        task = database.queries.getAllClubs()
+    } else if (ids.length == 1) {
+        task = database.queries.getClubByName(ids[0])
+    } else {
+        task = database.queries.getClubsByIds(ids)
+    }
 
     return task
         .then((values: ClubDTO[] | null) => {

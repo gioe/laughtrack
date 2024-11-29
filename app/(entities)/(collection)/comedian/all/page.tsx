@@ -2,6 +2,7 @@
 import QueryableEntityTableContainer from "../../../../../components/container";
 import { SearchParamsHelper } from "../../../../../objects/class/params/SearchParamsHelper";
 import { executeGet } from "../../../../../util/actions/executeGet";
+import { CACHE } from "../../../../../util/constants/cacheConstants";
 import { PUBLIC_ROUTES } from "../../../../../util/routes";
 import { ComedianSearchResponse } from "./interface";
 
@@ -13,6 +14,7 @@ export default async function ComedianSearchPage(props: any) {
     const { data } = (await executeGet(
         PUBLIC_ROUTES.COMEDIAN_SEARCH,
         paramsWrapper.asUrlSearchParams(),
+        CACHE.search,
     )) as ComedianSearchResponse;
 
     const entityCollectionString = JSON.stringify(data.entities);

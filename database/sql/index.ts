@@ -25,6 +25,7 @@ export const apiActionMap = {
 export const queryMap = {
     getAllClubs: sql("queries/getAllClubs.sql").qf,
     getClubById: sql("queries/getClubById.sql").qf,
+    getClubByName: sql("queries/getClubByName.sql").qf,
     getClubsByIds: sql("queries/getClubsByIds.sql").qf,
     getComedianIds: sql("queries/getComedianIds.sql").qf,
     getCities: sql("queries/getCities.sql").qf,

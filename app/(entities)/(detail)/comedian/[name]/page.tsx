@@ -2,6 +2,7 @@
 import QueryableEntityTableContainer from "../../../../../components/container";
 import { SearchParamsHelper } from "../../../../../objects/class/params/SearchParamsHelper";
 import { executeGet } from "../../../../../util/actions/executeGet";
+import { CACHE } from "../../../../../util/constants/cacheConstants";
 import { PUBLIC_ROUTES } from "../../../../../util/routes";
 import { ComedianDetailPageResponse } from "./interface";
 
@@ -14,6 +15,7 @@ export default async function ComedianDetailsPage(props: any) {
     const { data } = (await executeGet(
         PUBLIC_ROUTES.COMEDIAN_DETAIL + `/${paramsHelper.asSlug()}`,
         paramsHelper.asUrlSearchParams(),
+        CACHE.detailPage,
     )) as ComedianDetailPageResponse;
 
     return (

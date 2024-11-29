@@ -1,1 +1,1 @@
-DELETE FROM shows s WHERE s.club_id = ${id};
+DELETE FROM shows s USING clubs c WHERE s.club_id = c.id AND c.name = ${name};

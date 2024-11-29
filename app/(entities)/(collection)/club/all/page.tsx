@@ -2,6 +2,7 @@
 import QueryableEntityTableContainer from "../../../../../components/container";
 import { SearchParamsHelper } from "../../../../../objects/class/params/SearchParamsHelper";
 import { executeGet } from "../../../../../util/actions/executeGet";
+import { CACHE } from "../../../../../util/constants/cacheConstants";
 import { PUBLIC_ROUTES } from "../../../../../util/routes";
 import { ClubSearchResponse } from "./interface";
 
@@ -13,6 +14,7 @@ export default async function ClubSearchPage(props: any) {
     const { data } = (await executeGet(
         PUBLIC_ROUTES.CLUB_SEARCH,
         paramsWrapper.asUrlSearchParams(),
+        CACHE.search,
     )) as ClubSearchResponse;
 
     const entityCollectionString = JSON.stringify(data.entities);
