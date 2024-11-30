@@ -1,29 +1,28 @@
 "use client";
 
-import { Input } from "../../../ui/input";
+import { Input } from "../../../../ui/input";
 import {
     FormControl,
     FormField,
     FormItem,
+    FormLabel,
     FormMessage,
-} from "../../../ui/form";
+} from "../../../../ui/form";
 
-interface FormInputProps {
+interface FormTextInputProps {
     isLoading: boolean;
     name: string;
     placeholder: string;
-    type?: string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     form: any;
 }
 
-export function FormInput({
+export function FormTextInput({
     isLoading,
     form,
     name,
-    type,
     placeholder,
-}: FormInputProps) {
+}: FormTextInputProps) {
     return (
         <FormField
             control={form.control}
@@ -31,10 +30,13 @@ export function FormInput({
             render={({ field }) => {
                 return (
                     <FormItem>
-                        <FormControl className="bg-white">
+                        <FormLabel className="text-white">
+                            {placeholder}
+                        </FormLabel>
+                        <FormControl className="bg-white rounded-lg">
                             <Input
                                 disabled={isLoading}
-                                type={type ?? "text"}
+                                type={"text"}
                                 placeholder={placeholder}
                                 {...field}
                             />

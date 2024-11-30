@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Heading from "../../../modals/heading";
-import { FormInput } from "../../components/input";
+import { FormTextInput } from "../../components/input/text";
 
 interface AddNewComedianFormBodyProps {
     isLoading: boolean;
@@ -14,8 +14,7 @@ export default function AddNewComedianFormBody({
     return (
         <div className="flex flex-col gap-4">
             <Heading title="Add New Comedian" />
-            <FormInput
-                type={"text"}
+            <FormTextInput
                 isLoading={isLoading}
                 name="name"
                 placeholder="Comedian name"

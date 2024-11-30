@@ -94,4 +94,14 @@ export class PageDataRepository {
     }
 
 
+    async getEditComedianDetailPageDatay(): Promise<ComedianDetailPageData> {
+        return this.db.one(pageDataMap.editComedian).then((data: ComedianDetailDTO) => {
+            return {
+                entity: new Comedian(data.response.data),
+                total: data.response.total
+            }
+        })
+    }
+
+
 }

@@ -16,6 +16,7 @@ export const PUBLIC_ROUTES = {
 
     // Comedians
     COMEDIAN_DETAIL: `/api/comedian/`,
+    EDIT_COMEDIAN: `/api/comedian/`,
     GET_ALL_COMEDIANS: "/api/comedian/all",
     GET_ALL_COMEDIAN_FILTERS: "/api/comedian/filters/all",
     GET_TRENDING_COMEDIANS: "/api/comedian/trending",

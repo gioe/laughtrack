@@ -7,10 +7,6 @@ import { setParamDefaults } from "./util/primatives/paramUtil";
 
 export function middleware(request: NextRequest) {
 
-    if (request.nextUrl.pathname.includes('admin')) {
-        console.log("EVALUATING AN ADMIN PATH")
-    }
-
     const url = new URL(request.nextUrl.pathname, request.url);
     const searchParams = new URLSearchParams(request.nextUrl.search);
 
@@ -19,12 +15,9 @@ export function middleware(request: NextRequest) {
     for (const [key, value] of searchParams.entries()) {
         url.searchParams.set(key, value);
     }
-    console.log(url)
 
     return NextResponse.rewrite(url)
 }
-
-
 
 export const config = {
     matcher: [

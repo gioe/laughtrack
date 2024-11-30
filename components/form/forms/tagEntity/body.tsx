@@ -11,7 +11,6 @@ interface TagEntityFormBodyProps {
 export default function TagEntityFormBody({ form }: TagEntityFormBodyProps) {
     const { filters } = useDataProvider();
     const { primaryEntity } = usePageContext();
-    console.log(filters);
     return (
         <div className="flex flex-col gap-4">
             <MultiSelectComponent

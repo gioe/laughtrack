@@ -58,10 +58,7 @@ export default function ShowSearchForm({ cities }: ShowSearchFormProps) {
         map.set("to_date", data.dates.to);
 
         paramsHelper.updateParamsFromMap(map);
-        navigator.pushPageFromParams(
-            RoutePath.ShowSearch,
-            paramsHelper.asParamsString(),
-        );
+        navigator.pushPage(RoutePath.ShowSearch, paramsHelper.asParamsString());
     }
 
     return (

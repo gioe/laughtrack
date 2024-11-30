@@ -9,7 +9,6 @@ export const executeGet = async <T>(
     if (searchParams) {
         endpoint = endpoint + `?${searchParams.toString()}`
     }
-    console.log(endpoint)
     const session = await auth();
 
     const headers = {

@@ -4,22 +4,24 @@ import Image from "next/image";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { usePageContext } from "../../contexts/PageEntityProvider";
-import { BasicButton, LinkedButton } from "../button/basic";
+import { BasicButton } from "../button/basic";
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { Navigator } from "../../objects/class/navigate/Navigator";
 
 interface EntityBannerProps {
+    editable?: boolean;
     identifier: string;
 }
-const EntityBanner = ({ identifier }: EntityBannerProps) => {
+const EntityBanner = ({ identifier, editable = true }: EntityBannerProps) => {
     const { primaryEntity } = usePageContext();
     const navigator = new Navigator(usePathname(), useRouter());
 
-    const handleAdminClick = () => [];
+    const handleAdminClick = () => {
+        navigator.pushPage(`/${primaryEntity?.valueOf()}/admin/${identifier}`);
+    };
     const session = useSession();
-    const shouldShowMenu = session.data?.user.role == "admin";
-
+    const shouldShowMenu = editable && session.data?.user.role == "admin";
     const [src, setSrc] = useState<string>(`/images/banners/${identifier}.png`);
 
     const onError = () => {

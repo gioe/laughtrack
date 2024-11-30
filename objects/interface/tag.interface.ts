@@ -9,10 +9,10 @@ export interface TagInterface {
 // DB
 export interface TagDataDTO {
     id: number;
-    display_name: string;
-    value: string;
-    type: EntityType,
-    options: TagOptionDTO[];
+    display_name?: string;
+    value?: string;
+    type?: EntityType,
+    options?: TagOptionDTO[];
 }
 
 export interface TagOptionDTO {

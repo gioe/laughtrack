@@ -14,7 +14,9 @@ export class Navigator {
         this.router?.replace(`${this.path}?${params}`);
     }
 
-    pushPageFromParams(providedPath: string, params: string) {
-        this.router?.push(`/${providedPath}?${params}`);
+    pushPage(providedPath: string, params?: string) {
+        let route = providedPath
+        if (params) { route = `/${providedPath}?${params}` }
+        this.router?.push(route);
     }
 }

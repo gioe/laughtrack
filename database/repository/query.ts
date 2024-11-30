@@ -90,4 +90,11 @@ export class QueryRepository {
         })
     }
 
+    async updateComedian(): Promise<ComedianDTO[]> {
+        return this.db.manyOrNone(queryMap.getTrendingComedians).then((response: any) => {
+            if (response) return response
+            throw new Error(`Error getting trending comedian`)
+        })
+    }
+
 }

@@ -1,7 +1,8 @@
 "use client";
 
 import { SocialMedia } from "../../../../objects/enum";
-import { FormInput } from "../input";
+import { FormNumberInput } from "../input/number";
+import { FormTextInput } from "../input/text";
 
 interface SocialDataFormInputProps {
     isLoading: boolean;
@@ -17,18 +18,15 @@ const SocialDataFormInput: React.FC<SocialDataFormInputProps> = ({
 }) => {
     return (
         <div className="gap-2 w-full relative flex flex-col">
-            {socialMedia.valueOf()}
             <div className="w-full relative flex flew-row gap-2">
-                <FormInput
+                <FormTextInput
                     isLoading={isLoading}
-                    type={"text"}
                     name={`${socialMedia.valueOf().toLowerCase()}.account`}
                     placeholder={`${socialMedia.valueOf()} Account`}
                     form={form}
                 />
-                <FormInput
+                <FormNumberInput
                     isLoading={isLoading}
-                    type={"number"}
                     name={`${socialMedia.valueOf().toLowerCase()}.following`}
                     placeholder={`${socialMedia.valueOf()} Followers`}
                     form={form}

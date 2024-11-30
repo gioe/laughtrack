@@ -10,6 +10,7 @@ export const pageDataMap = {
     clubDetail: sql("page/clubDetail.sql").qf,
     comedianSearch: sql("page/comedianSearch.sql").qf,
     comedianDetail: sql("page/comedianDetail.sql").qf,
+    editComedian: sql("page/editComedian.sql").qf,
     showSearch: sql("page/showSearch.sql").qf,
     showDetail: sql("page/showDetail.sql").qf,
 }
@@ -19,6 +20,7 @@ export const apiActionMap = {
     addShow: sql("actions/addShow.sql").qf,
     addUser: sql("actions/addUser.sql").qf,
     addComedian: sql("actions/addComedian.sql").qf,
+    updateComedian: sql("actions/updateComedian.sql").qf,
     deleteLineup: sql("actions/deleteLineup.sql").qf
 }
 

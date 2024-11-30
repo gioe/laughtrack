@@ -9,7 +9,7 @@ import {
     FormMessage,
 } from "../../../ui/form";
 import { Checkbox } from "../../../../@/components/ui/checkbox";
-import { FormSelectable } from "../../../../objects/interface";
+import { Selectable } from "../../../../objects/interface";
 
 type TypedFieldValues = ControllerRenderProps<
     {
@@ -19,7 +19,7 @@ type TypedFieldValues = ControllerRenderProps<
 >;
 
 interface CheckboxFormComponentProps {
-    items: FormSelectable[];
+    items: Selectable[];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     form: any;
 }
@@ -30,7 +30,7 @@ export function CheckboxFormComponent({
 }: CheckboxFormComponentProps) {
     const handleSelection = (
         checked: string | boolean,
-        item: FormSelectable,
+        item: Selectable,
         field: TypedFieldValues,
     ) => {
         const values = checked
@@ -39,7 +39,7 @@ export function CheckboxFormComponent({
         field.onChange(values);
     };
 
-    const isChecked = (item: FormSelectable, field: TypedFieldValues) => {
+    const isChecked = (item: Selectable, field: TypedFieldValues) => {
         return field.value.includes(Number(item.id));
     };
 
@@ -74,7 +74,7 @@ export function CheckboxFormComponent({
                                             />
                                         </FormControl>
                                         <FormLabel className="font-normal">
-                                            {item.name}
+                                            {item.displayName}
                                         </FormLabel>
                                     </FormItem>
                                 );

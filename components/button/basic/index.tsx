@@ -5,9 +5,5 @@ interface BasicButtonInterface {
     text: string;
 }
 export function BasicButton({ clickHandle, text }: BasicButtonInterface) {
-    return (
-        <Button asChild onClick={clickHandle}>
-            {text}
-        </Button>
-    );
+    return <Button onClick={clickHandle}>{text}</Button>;
 }

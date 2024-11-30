@@ -1,10 +1,10 @@
 
 import { NextResponse } from "next/server";
 import { getDB } from '../../../../database'
+const { database } = getDB();
 import { EntityType } from "../../../../objects/enum";
 import { QueryHelper } from "../../../../objects/class/query/QueryHelper";
 import { ComedianDetailPageData } from "../../../(entities)/(detail)/comedian/[name]/interface";
-const { database } = getDB();
 
 export async function GET(request: Request, { params }) {
     const slug = await params

@@ -1,7 +1,3 @@
-import { Comedian } from "../../../../../objects/class/comedian/Comedian"
-import { ComedianDTO } from "../../../../../objects/class/comedian/comedian.interface"
-import { EntityResponse, EntityResponseDTO } from "../../../../../objects/interface/paginatedEntity.interface"
+import { Comedian } from "../../../../../../objects/class/comedian/Comedian";
 
-export type ComedianDetailDTO = EntityResponseDTO<ComedianDTO>
-export type ComedianDetailPageData = EntityResponse<Comedian>
-export interface ComedianDetailPageResponse { data: ComedianDetailPageData }
+export interface ComedianDetailPageResponse { data: Comedian }

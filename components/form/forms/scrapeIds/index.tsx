@@ -24,7 +24,7 @@ export default function ScrapeEntitySelectionMenuForm({
 }: ScrapeEntitySelectionMenuFormProps) {
     const { cities } = useCityContext();
     const [isLoading, setIsLoading] = useState(false);
-    console.log(cities);
+
     const allCityOptions = [{ id: 0, value: "all", displayName: "All" }].concat(
         cities.map((city: CityDTO) => {
             return {

@@ -27,3 +27,13 @@ export interface ComedianDTO {
     show_count?: number
 }
 
+export interface UpdateComedianDTO {
+    name: string;
+    instagram_account: string,
+    instagram_followers: number,
+    tiktok_account: string,
+    tiktok_followers: number,
+    youtube_account: string,
+    youtube_followers: number,
+    website: string
+}

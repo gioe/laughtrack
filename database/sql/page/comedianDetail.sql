@@ -62,6 +62,7 @@ comedian_data AS (
 SELECT
 	jsonb_build_object(
         'data', jsonb_build_object('name', (SELECT name FROM comedian_data),
+		'id', (SELECT id FROM comedian_data),
         'social_data', (
 			SELECT
 				jsonb_build_object(

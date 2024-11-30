@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import Modal from "..";
 import { useSocialDataModal } from "../../../hooks/modalState";
-import EditSocialDataForm from "../../form/forms/socialData";
+import EditSocialDataForm from "../../form/forms/comedian";
 
 interface EditSocialDataModalProps {
     identifier: string;
