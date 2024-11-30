@@ -3,17 +3,20 @@
 import Image from "next/image";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
-import { Menu } from "../menu";
-import { getMenuItemsForEntityType } from "../../util/menu";
-import { usePageContext } from "../../contexts/EntityContext";
+import { usePageContext } from "../../contexts/PageEntityProvider";
+import { BasicButton, LinkedButton } from "../button/basic";
+import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { Navigator } from "../../objects/class/navigate/Navigator";
 
 interface EntityBannerProps {
     identifier: string;
 }
 const EntityBanner = ({ identifier }: EntityBannerProps) => {
     const { primaryEntity } = usePageContext();
-    const menuItems = getMenuItemsForEntityType(primaryEntity);
+    const navigator = new Navigator(usePathname(), useRouter());
 
+    const handleAdminClick = () => [];
     const session = useSession();
     const shouldShowMenu = session.data?.user.role == "admin";
 
@@ -44,8 +47,8 @@ const EntityBanner = ({ identifier }: EntityBannerProps) => {
                 {/* {entity.socialData && (
                     <SocialMediaBar data={entity.socialData} />
                 )} */}
-                {shouldShowMenu && menuItems && (
-                    <Menu providedItems={menuItems} />
+                {shouldShowMenu && (
+                    <BasicButton clickHandle={handleAdminClick} text="Edit" />
                 )}
             </div>
         </div>

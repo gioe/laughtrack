@@ -4,7 +4,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Navigator } from "../../../objects/class/navigate/Navigator";
 import { SearchParamsHelper } from "../../../objects/class/params/SearchParamsHelper";
 import { MultiSelectComponent } from "../../select/multiSelect";
-import { useDataProvider } from "../../../contexts/EntityDataContext";
+import { useDataProvider } from "../../../contexts/EntityPageDataProvider";
 
 export const FilterParamComponent = () => {
     const { filters } = useDataProvider();

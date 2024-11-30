@@ -9,7 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
 import BaseForm from "..";
 import ScrapeEntityFormBody from "./body";
-import { usePageContext } from "../../../../contexts/EntityContext";
+import { usePageContext } from "../../../../contexts/PageEntityProvider";
 
 interface ScrapeEntityFormProps {
     identifier: string;

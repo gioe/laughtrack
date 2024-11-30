@@ -23,8 +23,9 @@ import { UserInterface, UserDTO } from "./user.interface";
 import { Entity } from "./entity.interface"
 import { ButtonData } from "./buttonData.interface"
 import { BannerRepresentable } from "./bannerRepresentable.interface"
-
+import { CarouselEntity } from "./carouselEntity.interface";
 export type {
+    CarouselEntity,
     Selectable,
     DatabaseIdentifiable,
     ButtonData,

@@ -10,7 +10,7 @@ WITH final_query AS (
 		shows s
 		LEFT JOIN lineup_items l ON s.id = l.show_id
 		LEFT JOIN comedians c ON c.uuid = l.comedian_id
-	WHERE s.id = ${id}
+	WHERE s.name = ${name}
 	GROUP BY
 		s.id
 ),
@@ -22,7 +22,7 @@ total_count AS (
 		INNER JOIN lineup_items l ON s.id = l.show_id
 		INNER JOIN comedians c ON c.uuid = l.comedian_id
 	WHERE
-		l.show_id = ${id}
+		s.name = ${name}
 )
 SELECT
 	jsonb_build_object('data', jsonb_build_object('id', fq.show_id, 'date', date, 'name', fq.show_name, 'ticket', fq.ticket, 'scrapedate', fq.scrapedate, 'lineup', fq.lineup), 'total', (

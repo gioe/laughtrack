@@ -41,6 +41,7 @@ const ShowDetailsSection: React.FC<ShowCardProps> = ({
                 </h4>
                 <div className="relative h-20 w-20 align-middle">
                     <LinkedImage
+                        priority
                         destination={`/club/${clubName ?? ""}`}
                         imageUrl={`/images/club/square/${clubName ?? ""}.png`}
                         alt={clubName ?? "" + dateObject}

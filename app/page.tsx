@@ -10,7 +10,7 @@ const getPageData = unstable_cache(
         return await database.page.getHomePageData();
     },
     ["homePage"],
-    { revalidate: 3600, tags: ["homePage"] },
+    { revalidate: 1, tags: ["homePage"] },
 );
 
 export default async function HomePage() {

@@ -1,8 +1,8 @@
 "use client";
 
 import { IconType } from "react-icons";
-import { Button } from "../ui/button";
-import { ButtonData } from "../../objects/interface";
+import { Button } from "../../ui/button";
+import { ButtonData } from "../../../objects/interface";
 
 interface ButtonProps {
     data: ButtonData;

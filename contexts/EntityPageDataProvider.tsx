@@ -7,7 +7,7 @@ import { TagDataDTO } from "../objects/interface/tag.interface";
 import { useSearchParams } from "next/navigation";
 import { SortOptionInterface } from "../objects/interface";
 import { getSortOptionsForEntityType } from "../util/sort";
-import { usePageContext } from "./EntityContext";
+import { usePageContext } from "./PageEntityProvider";
 
 interface EntityDataState {
     filters: Filter[];
@@ -19,9 +19,9 @@ const defaultState: EntityDataState = {
     sortOptions: [],
 };
 
-const EntityDataContext = createContext<EntityDataState>(defaultState);
+const EntityPageDataContext = createContext<EntityDataState>(defaultState);
 
-export function EntityDataProvider({
+export function EntityPageDataProvider({
     children,
 }: {
     children: React.ReactNode;
@@ -58,12 +58,12 @@ export function EntityDataProvider({
     }, []);
 
     return (
-        <EntityDataContext.Provider value={state}>
+        <EntityPageDataContext.Provider value={state}>
             {children}
-        </EntityDataContext.Provider>
+        </EntityPageDataContext.Provider>
     );
 }
 
 export function useDataProvider() {
-    return useContext(EntityDataContext);
+    return useContext(EntityPageDataContext);
 }

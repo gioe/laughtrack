@@ -9,7 +9,7 @@ import axios from "axios";
 import { useState } from "react";
 import BaseForm from "..";
 import TagEntityFormBody from "./body";
-import { usePageContext } from "../../../../contexts/EntityContext";
+import { usePageContext } from "../../../../contexts/PageEntityProvider";
 
 interface TagEntityFormProps {
     name: string;

@@ -23,7 +23,6 @@ const ShowCard: React.FC<ShowCardProps> = ({ show }) => {
             />
 
             <ShowLineupSection
-                showId={show.id}
                 showName={show.name}
                 lineup={show.containedEntities}
             />

@@ -14,9 +14,9 @@ const defaultState: PageEntityContext = {
     secondaryEntity: undefined,
 };
 
-const PageContextProvider = createContext<PageEntityContext>(defaultState);
+const PageEntityContext = createContext<PageEntityContext>(defaultState);
 
-export function PageEntityContextProvider({
+export function PageEntityProvider({
     children,
 }: {
     children: React.ReactNode;
@@ -26,9 +26,9 @@ export function PageEntityContextProvider({
     const [state /* setEntityType */] = useState(getStateFromPath(pathName));
 
     return (
-        <PageContextProvider.Provider value={state}>
+        <PageEntityContext.Provider value={state}>
             {children}
-        </PageContextProvider.Provider>
+        </PageEntityContext.Provider>
     );
 }
 
@@ -60,5 +60,5 @@ const getStateFromPath = (path: string): PageEntityContext => {
 };
 
 export function usePageContext() {
-    return useContext(PageContextProvider);
+    return useContext(PageEntityContext);
 }

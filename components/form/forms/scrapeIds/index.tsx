@@ -11,7 +11,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
 import ScrapeEntitiesFormBody from "./body";
 import { Selectable } from "../../../../objects/interface";
-import { useDataProvider } from "../../../../contexts/EntityDataContext";
+import { EntityType } from "../../../../objects/enum";
+import { useCityContext } from "../../../../contexts/CityProvider";
+import { CityDTO } from "../../../../objects/class/city/city.interface";
 
 interface ScrapeEntitySelectionMenuFormProps {
     onSubmit: () => void;
@@ -20,11 +22,17 @@ interface ScrapeEntitySelectionMenuFormProps {
 export default function ScrapeEntitySelectionMenuForm({
     onSubmit,
 }: ScrapeEntitySelectionMenuFormProps) {
-    const { currentEntityType } = useDataProvider();
+    const { cities } = useCityContext();
     const [isLoading, setIsLoading] = useState(false);
-
+    console.log(cities);
     const allCityOptions = [{ id: 0, value: "all", displayName: "All" }].concat(
-        [],
+        cities.map((city: CityDTO) => {
+            return {
+                id: city.id,
+                value: city.name.toLowerCase(),
+                displayName: city.name,
+            };
+        }),
     );
 
     const [clubs, setClubs] = useState<Selectable[]>([]);
@@ -32,7 +40,7 @@ export default function ScrapeEntitySelectionMenuForm({
     const form = useForm<z.infer<typeof scrapeEntitySelectionMenuSchema>>({
         resolver: zodResolver(scrapeEntitySelectionMenuSchema),
         defaultValues: {
-            entityType: currentEntityType,
+            entityType: EntityType.Club,
             ids: [],
             headless: "true",
         },
@@ -43,7 +51,7 @@ export default function ScrapeEntitySelectionMenuForm({
     ) => {
         setIsLoading(true);
         axios
-            .post(`/api/${currentEntityType.valueOf()}/scrape`, {
+            .post(`/api/${data.entityType.valueOf()}/scrape`, {
                 ids: data.ids,
                 headless: data.headless,
             })

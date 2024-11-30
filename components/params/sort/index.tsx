@@ -9,7 +9,7 @@ import { cn } from "../../../util/tailwindUtil";
 import { SortOptionInterface } from "../../../objects/interface";
 import { SearchParamsHelper } from "../../../objects/class/params/SearchParamsHelper";
 import { Navigator } from "../../../objects/class/navigate/Navigator";
-import { useDataProvider } from "../../../contexts/EntityDataContext";
+import { useDataProvider } from "../../../contexts/EntityPageDataProvider";
 
 export function SortParamComponent() {
     const { sortOptions } = useDataProvider();

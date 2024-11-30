@@ -1,6 +1,6 @@
 "use client";
 
-import ButtonComponent from "../../../button";
+import ButtonComponent from "../../../button/form";
 import { ButtonType } from "../../../../objects/enum";
 
 interface DefaultFormButtonProps {

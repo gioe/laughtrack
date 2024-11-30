@@ -25,6 +25,7 @@ export class Comedian implements ComedianInterface {
     bannerImageUrl: string;
     cardImageUrl: string;
     containedEntities: Entity[]
+    showCount?: number;
 
     constructor(input: ComedianDTO) {
         this.name = this.normalizeName(input.name);
@@ -33,6 +34,7 @@ export class Comedian implements ComedianInterface {
         this.tags = []
         this.isFavorite = input.is_favorite ?? false
         this.id = input.id ?? 0
+        this.showCount = input.show_count
         this.bannerImageUrl = `/images/banners/${input.name}.png`
         this.cardImageUrl = `/images/comedian/square/${input.name}.png`;
         this.uuid = input.uuid

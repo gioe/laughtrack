@@ -58,9 +58,7 @@ export default function EditSocialDataForm({
                     toast.success("Successfully updated");
                 }
             })
-            .finally(() => {
-                onSubmit();
-            });
+            .finally(onSubmit);
     };
 
     return (

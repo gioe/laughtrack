@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { usePageContext } from "../../../../contexts/EntityContext";
+import { usePageContext } from "../../../../contexts/PageEntityProvider";
 import { EntityType } from "../../../../objects/enum";
 import { COMMON_OPTIONS } from "../../../../util/form";
 import Heading from "../../../modals/heading";

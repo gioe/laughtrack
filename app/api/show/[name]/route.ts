@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { getDB } from '../../../../database'
 import { EntityType } from "../../../../objects/enum";
 import { QueryHelper } from "../../../../objects/class/query/QueryHelper";
-import { ShowDetailPageData } from "../../../(entities)/(detail)/show/[id]/interface";
+import { ShowDetailPageData } from "../../../(entities)/(detail)/show/[name]/interface";
 const { database } = getDB();
 
 export async function GET(request: Request, { params }) {

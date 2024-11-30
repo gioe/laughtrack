@@ -9,6 +9,7 @@ import { TagDataDTO } from "../../interface/tag.interface";
 // Client
 export interface ComedianInterface
     extends
+
     Favoritable,
     Entity { }
 
@@ -23,5 +24,6 @@ export interface ComedianDTO {
     dates?: ShowDTO[];
     is_favorite?: boolean;
     tags?: TagDataDTO[]
+    show_count?: number
 }
 

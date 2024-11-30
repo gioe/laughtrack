@@ -2,7 +2,7 @@
 
 import { FormDirection } from "../../../objects/enum";
 import { ButtonData } from "../../../objects/interface";
-import ButtonComponent from "../../button";
+import ButtonComponent from "../../button/form";
 import { Form } from "../../ui/form";
 import { DefaultFormButton } from "../components/button";
 

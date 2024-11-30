@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { DrawerComponent } from "../drawer";
 import { PageParamComponent } from "../params/page";
-import { FunnelButton } from "../button/FunnelButton";
 import { SortParamComponent } from "../params/sort";
 import ShowCard from "../cards/show/ShowCard";
 import { Entity } from "../../objects/interface";
@@ -13,8 +12,9 @@ import Table from "../table";
 import QueryParamComponent from "../params/query";
 import { EntityType } from "../../objects/enum";
 import { FilterParamComponent } from "../params/filter";
-import { useDataProvider } from "../../contexts/EntityDataContext";
-import { usePageContext } from "../../contexts/EntityContext";
+import { useDataProvider } from "../../contexts/EntityPageDataProvider";
+import { usePageContext } from "../../contexts/PageEntityProvider";
+import { FunnelButton } from "../button/funnel";
 
 interface QueryableEntityTableContainerProps {
     entityCollectionString: string;

@@ -11,6 +11,7 @@ import { cache } from "react";
 import Footer from "../components/footer";
 import ScrapeEntitySelectionMenuModal from "../components/modals/scrapeIds";
 import AddComedianModal from "../components/modals/addComedian";
+import { CityProvider } from "../contexts/CityProvider";
 
 export const metadata: Metadata = {
     title: "Laughtrack",
@@ -55,7 +56,9 @@ export default async function RootLayout({
                         <ToasterProvider />
                         <LoginModal />
                         <RegisterModal />
-                        <ScrapeEntitySelectionMenuModal />
+                        <CityProvider>
+                            <ScrapeEntitySelectionMenuModal />
+                        </CityProvider>
                         <AddComedianModal />
                         {children}
                         <Footer />

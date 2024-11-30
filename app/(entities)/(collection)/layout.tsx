@@ -1,5 +1,5 @@
-import { PageEntityContextProvider } from "../../../contexts/EntityContext";
-import { EntityDataProvider } from "../../../contexts/EntityDataContext";
+import { EntityPageDataProvider } from "../../../contexts/EntityPageDataProvider";
+import { PageEntityProvider } from "../../../contexts/PageEntityProvider";
 
 export default function EntityDetailLayout({
     children,
@@ -7,8 +7,8 @@ export default function EntityDetailLayout({
     children: React.ReactNode;
 }) {
     return (
-        <PageEntityContextProvider>
-            <EntityDataProvider>{children}</EntityDataProvider>
-        </PageEntityContextProvider>
+        <PageEntityProvider>
+            <EntityPageDataProvider>{children}</EntityPageDataProvider>
+        </PageEntityProvider>
     );
 }

@@ -29,7 +29,7 @@ export default function ScrapeEntitiesFormBody({
                 name="headless"
                 title="Headless"
                 form={form}
-                placeholder="Open browser window?"
+                placeholder="Leave browser closed?"
                 items={COMMON_OPTIONS.YesNo}
             />
             {clubOptions && (

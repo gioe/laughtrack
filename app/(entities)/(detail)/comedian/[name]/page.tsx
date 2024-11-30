@@ -17,12 +17,13 @@ export default async function ComedianDetailsPage(props: any) {
         paramsHelper.asUrlSearchParams(),
         CACHE.detailPage,
     )) as ComedianDetailPageResponse;
-
     return (
         <section>
             <QueryableEntityTableContainer
                 totalEntities={data.total}
-                entityCollectionString={JSON.stringify(data)}
+                entityCollectionString={JSON.stringify(
+                    data.entity.containedEntities,
+                )}
                 defaultNode={
                     <h2 className="font-bold text-5xl text-white pt-6">
                         No upcoming shows for this comedian
