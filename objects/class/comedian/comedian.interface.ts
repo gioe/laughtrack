@@ -8,7 +8,6 @@ import { ShowDTO } from "../show/show.interface";
 // Client
 export interface ComedianInterface
     extends
-
     Favoritable,
     Entity { }
 

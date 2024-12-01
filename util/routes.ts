@@ -10,7 +10,7 @@ export const PUBLIC_ROUTES = {
     GET_TRENDING_CLUBS: "/api/club/trending",
     CLEAR_CLUB: "/api/club/clear",
     CLUB_SEARCH: "/api/club/search",
-
+    EDIT_CLUB: `/api/club/admin`,
     // Cities
     GET_CITIES: "/api/club/cities",
 

@@ -7,6 +7,12 @@ import { DatabaseIdentifiable } from "./identifable.interface";
 import { SocialDiscoverable } from "../class/socialData/socialData.interface";
 import { Taggable } from "./taggable.interface";
 
-export interface Entity extends DatabaseIdentifiable, Favoritable, SocialDiscoverable, Taggable, BannerRepresentable, CardRepresentable, EntityContainer {
+export interface Entity extends DatabaseIdentifiable,
+    Favoritable,
+    SocialDiscoverable,
+    Taggable,
+    BannerRepresentable,
+    CardRepresentable,
+    EntityContainer {
     type: EntityType;
 }

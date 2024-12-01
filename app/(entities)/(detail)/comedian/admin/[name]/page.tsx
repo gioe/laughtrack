@@ -15,7 +15,7 @@ export default async function EditComedianPage(props: any) {
         PUBLIC_ROUTES.EDIT_COMEDIAN + `/${paramsHelper.asSlug()}`,
         paramsHelper.asUrlSearchParams(),
     )) as EditComedianPageResponse;
-    console.log(data);
+
     return (
         <section>
             <EditComedianForm comedianString={JSON.stringify(data)} />

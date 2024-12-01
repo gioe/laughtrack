@@ -55,10 +55,11 @@ export function CheckboxFormComponent({
                                         <FormItem
                                             defaultChecked={item.selected}
                                             key={item.id}
-                                            className="flex flex-row items-start space-x-3 space-y-0  bg-white"
+                                            className="flex flex-row items-start space-x-3 space-y-0 bg-shark text-white"
                                         >
                                             <FormControl>
                                                 <Checkbox
+                                                    className="border-white"
                                                     checked={isChecked(
                                                         item,
                                                         parentField.field,
@@ -74,7 +75,7 @@ export function CheckboxFormComponent({
                                                     }}
                                                 />
                                             </FormControl>
-                                            <FormLabel className="font-normal">
+                                            <FormLabel className="font-normal ">
                                                 {item.displayName}
                                             </FormLabel>
                                         </FormItem>

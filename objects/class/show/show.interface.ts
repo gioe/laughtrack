@@ -1,6 +1,5 @@
 import {
     Taggable,
-    TagInterface,
     Entity,
 } from "../../interface";
 import { SocialDataDTO, SocialDiscoverable } from "../socialData/socialData.interface";
@@ -28,7 +27,7 @@ export interface ShowDTO {
     ticket: TicketDTO;
     name: string;
     social_data?: SocialDataDTO;
-    tags?: TagInterface[]
+    tags?: number[]
     lineup?: ComedianDTO[]
     id?: number;
     last_scraped_date?: Date

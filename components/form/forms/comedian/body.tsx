@@ -11,6 +11,7 @@ import { FormFileInput } from "../../components/input/file";
 import { Comedian } from "../../../../objects/class/comedian/Comedian";
 import { EntityType } from "../../../../objects/enum";
 import { Selectable } from "../../../../objects/interface";
+import WebView from "../../../webview";
 
 interface EditComedianFormBodyProps {
     comedian: Comedian;
@@ -36,10 +37,10 @@ export default function EditComedianFormBody({
                 selected: comedian.tagIds.includes(tag.id),
             };
         }) as Selectable[];
-    console.log(selectables);
+
     return (
-        <div className="flex flex-row gap-2">
-            <div className="flex flex-col gap-2">
+        <div className="flex flex-row gap-2 mt-10">
+            <div className="flex flex-col gap-2 mx-4">
                 {allSocialMedia.map((value) => {
                     return (
                         <SocialDataFormInput
@@ -78,9 +79,17 @@ export default function EditComedianFormBody({
                     placeholder={"Card Image"}
                     form={form}
                 />
+                <div className="mt-5">
+                    <CheckboxFormComponent
+                        form={form}
+                        selectables={selectables}
+                    />
+                </div>
             </div>
-            <div className="flex flex-col gap-2">
-                <CheckboxFormComponent form={form} selectables={selectables} />
+            <div className="flex flex-col gap-2 mx-4">
+                {comedian.socialData?.website && (
+                    <WebView url={comedian.socialData.website} />
+                )}
             </div>
         </div>
     );

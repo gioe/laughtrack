@@ -1,5 +1,5 @@
 import { EntityType } from "../../enum";
-import { Entity, TagInterface } from "../../interface";
+import { Entity } from "../../interface";
 import { Show } from "../show/Show";
 import { ShowDTO } from "../show/show.interface";
 import { SocialData } from "../socialData/SocialData";
@@ -11,7 +11,7 @@ export class Club implements ClubInterface {
     address: string;
     zipCode: string;
     socialData?: SocialData;
-    tags: TagInterface[];
+    tagIds: number[];
     name: string;
     isFavorite: boolean;
     id: number;
@@ -28,7 +28,7 @@ export class Club implements ClubInterface {
         this.zipCode = input.zip_code;
         this.containedEntities = input.dates !== undefined ? input.dates.map((date: ShowDTO) => new Show(date)) : [];
         this.socialData = input.social_data !== undefined ? new SocialData(input.social_data) : undefined;
-        this.tags = [];
+        this.tagIds = input.tags ? input.tags : [];
         this.name = input.name
         this.isFavorite = input.is_Favorite ?? false;
         this.id = input.id

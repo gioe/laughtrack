@@ -1,5 +1,5 @@
 import { EntityType } from "../../enum";
-import { Entity, TagInterface } from "../../interface";
+import { Entity } from "../../interface";
 import { Comedian } from "../comedian/Comedian";
 import { ComedianDTO } from "../comedian/comedian.interface";
 import { ShowDTO, ShowInterface } from "./show.interface";
@@ -16,7 +16,7 @@ export class Show implements ShowInterface {
     clubName?: string | undefined;
     clubId: number;
     ticket: Ticket;
-    tags: TagInterface[];
+    tagIds: number[];
     id: number;
     type: EntityType = EntityType.Show;
     bannerImageUrl: string;
@@ -34,7 +34,7 @@ export class Show implements ShowInterface {
         this.containedEntities = input.lineup ? input.lineup.map((item: ComedianDTO) => new Comedian(item)) : []
         this.clubName = input.club_name;
         this.ticket = new Ticket(input.ticket)
-        this.tags = input.tags ?? []
+        this.tagIds = input.tags ? input.tags : [];
         this.id = input.id ?? 0
         this.bannerImageUrl = `/images/banners/${input.name}.png`
         this.cardImageUrl = `/images/show}/square/${input.name}.png`;
