@@ -3,6 +3,7 @@ with filtered_data as (
         c.id, 
 		name, 
 		jsonb_build_object(
+            'linktree', linktree,
             'instagram_account',
             instagram_account,
             'instagram_followers',

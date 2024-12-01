@@ -5,7 +5,10 @@ WITH final_query AS (
 		s.date,
 		jsonb_build_object('price', s.price, 'link', s.ticket_link) AS ticket,
 		s.last_scraped_date AS scrapedate,
-		COALESCE(jsonb_agg(DISTINCT jsonb_build_object('id', c.id, 'name', c.name, 'social_data', jsonb_build_object('instagram_account', instagram_account, 'instagram_followers', instagram_followers, 'tiktok_account', tiktok_account, 'tiktok_followers', tiktok_followers, 'youtube_account', youtube_account, 'youtube_followers', youtube_followers, 'website', website, 'popularity', c.popularity))) FILTER (WHERE c.id IS NOT NULL), '[]') AS lineup
+		COALESCE(jsonb_agg(DISTINCT jsonb_build_object('id', c.id, 'name', c.name, 'social_data', jsonb_build_object('instagram_account', instagram_account, 'instagram_followers', instagram_followers, 'tiktok_account', tiktok_account, 
+		'tiktok_followers', tiktok_followers, 'youtube_account', youtube_account, 
+		'youtube_followers', youtube_followers, 'linktree', linktree, 'website', website, 
+		'popularity', c.popularity))) FILTER (WHERE c.id IS NOT NULL), '[]') AS lineup
 	FROM
 		shows s
 		LEFT JOIN lineup_items l ON s.id = l.show_id

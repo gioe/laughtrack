@@ -10,7 +10,7 @@ SELECT
 	c.name, 
 	jsonb_build_object('instagram_account', c.instagram_account, 'instagram_followers', c.instagram_followers, 'tiktok_account', c.tiktok_account, 'tiktok_followers',
 	c.tiktok_followers, 'youtube_account', c.youtube_account, 'youtube_followers', c.youtube_followers, 
-	'website', c.website, 'popularity', c.popularity) AS social_data,
+	'website', c.website, 'popularity', c.popularity, 'linktree', c.linktree) AS social_data,
 	count (distinct li.id) as show_count 
 	FROM comedians c
 	JOIN lineup_items li ON li.comedian_id = c.uuid

@@ -35,4 +35,5 @@ export interface UpdateComedianDTO {
     youtube_account: string,
     youtube_followers: number,
     website: string
+    linktree: string,
 }

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { IDatabase, IMain } from 'pg-promise';
 import { IExtensions } from '.';
-import { HomePageDTO } from '../../app/home/interface';
+import { HomePageDataResponse } from '../../app/home/interface';
 import { ComedianDTO } from '../../objects/class/comedian/comedian.interface';
 import { Comedian } from '../../objects/class/comedian/Comedian';
 import { pageDataMap } from '../sql';
@@ -37,7 +37,7 @@ export class PageDataRepository {
 
     }
 
-    async getHomePageData(): Promise<HomePageDTO> {
+    async getHomePageData(): Promise<HomePageDataResponse> {
         return this.db.one(pageDataMap.home)
     }
 

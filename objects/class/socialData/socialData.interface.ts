@@ -9,6 +9,7 @@ export interface SocialDataInterface {
     twitter?: SocialMediaAccountInterface;
     website?: string;
     popularityScore?: number;
+    linktree?: string
 }
 
 export interface SocialMediaAccountInterface {
@@ -31,6 +32,7 @@ export interface SocialDataDTO {
     youtube_account?: string;
     website?: string;
     popularity?: number;
+    linktree?: string
 }
 
 export interface SocialMediaAccountDTO {

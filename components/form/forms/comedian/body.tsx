@@ -57,6 +57,13 @@ export default function EditComedianFormBody({
                     placeholder={"Website"}
                     form={form}
                 />
+                <FormTextInput
+                    key={"linktree"}
+                    isLoading={isLoading}
+                    name={"linktree"}
+                    placeholder={"Linktree"}
+                    form={form}
+                />
                 <FormFileInput
                     key={"bannerImage"}
                     isLoading={isLoading}

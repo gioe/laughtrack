@@ -61,6 +61,7 @@ export class ActionRepository {
         }
 
         return this.db.none(apiActionMap.updateComedian, {
+            linktree: args.linktree.account,
             instagram_account: args.instagram.account,
             instagram_followers: args.instagram.following == '' ? 0 : Number(args.instagram.following),
             tiktok_account: args.tiktok.account,

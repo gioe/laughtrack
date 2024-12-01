@@ -22,7 +22,6 @@ export default function EditComedianForm({
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const comedian = JSON.parse(comedianString) as Comedian;
-    console.log(comedian);
     const form = useForm<z.infer<typeof editComedianSchema>>({
         resolver: zodResolver(editComedianSchema),
         defaultValues: {
@@ -42,6 +41,7 @@ export default function EditComedianForm({
                 following:
                     comedian?.socialData?.youtube?.following.toString() ?? "",
             },
+            linktree: comedian?.socialData?.linktree ?? "",
             website: comedian?.socialData?.website ?? "",
             cardImage: undefined,
             bannerImage: undefined,

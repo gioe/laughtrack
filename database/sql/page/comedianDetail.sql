@@ -66,11 +66,10 @@ SELECT
         'social_data', (
 			SELECT
 				jsonb_build_object(
-                'instagram_account', instagram_account, 'instagram_followers', 
-                instagram_followers, 'tiktok_account', tiktok_account, 
-                'tiktok_followers', tiktok_followers, 'youtube_account', 
-                youtube_account, 'youtube_followers', youtube_followers,
-                'website', website, 'popularity', popularity)
+				'linktree', linktree, 'instagram_account', instagram_account, 
+				'instagram_followers', instagram_followers, 'tiktok_account', tiktok_account, 
+                'tiktok_followers', tiktok_followers, 'youtube_account',  youtube_account, 
+				'youtube_followers', youtube_followers, 'website', website, 'popularity', popularity)
 			FROM comedian_data), 
     'dates', fq.shows), 
     'total', (
