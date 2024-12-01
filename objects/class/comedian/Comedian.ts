@@ -18,7 +18,7 @@ export class Comedian implements ComedianInterface {
     name: string;
     uuid?: string;
     socialData?: SocialData;
-    tags: TagInterface[];
+    tagIds: number[];
     isFavorite: boolean;
     id: number;
     type: EntityType = EntityType.Comedian;
@@ -31,7 +31,7 @@ export class Comedian implements ComedianInterface {
         this.name = this.normalizeName(input.name);
         this.containedEntities = input.dates !== undefined ? input.dates.map((dto: ShowDTO) => new Show(dto)) : []
         this.socialData = input.social_data !== undefined ? new SocialData(input.social_data) : undefined;
-        this.tags = []
+        this.tagIds = input.tags ? input.tags : [];
         this.isFavorite = input.is_favorite ?? false
         this.id = input.id ?? 0
         this.showCount = input.show_count
@@ -39,6 +39,7 @@ export class Comedian implements ComedianInterface {
         this.cardImageUrl = `/images/comedian/square/${input.name}.png`;
         this.uuid = input.uuid
     }
+    tags: TagInterface[];
 
     // Sometimes we receive names from websites that are entirely uppercase or lowercase. These are the only times when we want to insure
     // proper capitalization. Otherwise leave it alone.

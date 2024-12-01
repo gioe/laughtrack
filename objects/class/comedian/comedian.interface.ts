@@ -4,7 +4,6 @@ import {
 } from "../../interface";
 import { SocialDataDTO } from "../socialData/socialData.interface";
 import { ShowDTO } from "../show/show.interface";
-import { TagDataDTO } from "../../interface/tag.interface";
 
 // Client
 export interface ComedianInterface
@@ -23,7 +22,7 @@ export interface ComedianDTO {
     social_data?: SocialDataDTO;
     dates?: ShowDTO[];
     is_favorite?: boolean;
-    tags?: TagDataDTO[]
+    tags?: number[]
     show_count?: number
 }
 

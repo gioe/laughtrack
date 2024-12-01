@@ -9,7 +9,6 @@ import { useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import BaseForm from "..";
-import { TagInterface } from "../../../../objects/interface";
 import EditComedianFormBody from "./body";
 import { useRouter } from "next/navigation";
 
@@ -23,7 +22,7 @@ export default function EditComedianForm({
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const comedian = JSON.parse(comedianString) as Comedian;
-
+    console.log(comedian);
     const form = useForm<z.infer<typeof editComedianSchema>>({
         resolver: zodResolver(editComedianSchema),
         defaultValues: {
@@ -46,14 +45,14 @@ export default function EditComedianForm({
             website: comedian?.socialData?.website ?? "",
             cardImage: undefined,
             bannerImage: undefined,
-            ids: comedian?.tags.map((tag: TagInterface) => tag.id),
+            ids: comedian?.tagIds,
         },
     });
 
     const submitForm = (data: z.infer<typeof editComedianSchema>) => {
         setIsLoading(true);
         axios
-            .put(`/api/comedian/${comedian.name}/edit`, {
+            .put(`/api/comedian/admin/${comedian.name}`, {
                 ...data,
                 id: comedian.id,
             })
@@ -73,7 +72,13 @@ export default function EditComedianForm({
             isLoading={isLoading}
             onSubmit={submitForm}
             form={form}
-            body={<EditComedianFormBody form={form} isLoading={isLoading} />}
+            body={
+                <EditComedianFormBody
+                    comedian={comedian}
+                    form={form}
+                    isLoading={isLoading}
+                />
+            }
         />
     );
 }

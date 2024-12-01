@@ -3,25 +3,40 @@
 import SocialDataFormInput from "../../components/social";
 import { allSocialMedia } from "../../../../objects/enum/socialMedia";
 import { useDataProvider } from "../../../../contexts/EntityPageDataProvider";
-import { usePageContext } from "../../../../contexts/PageEntityProvider";
 import { Filter } from "../../../../objects/class/tag/Filter";
 import { CheckboxFormComponent } from "../../components/checkbox";
 import { Tag } from "../../../../objects/class/tag/Tag";
 import { FormTextInput } from "../../components/input/text";
 import { FormFileInput } from "../../components/input/file";
+import { Comedian } from "../../../../objects/class/comedian/Comedian";
+import { EntityType } from "../../../../objects/enum";
+import { Selectable } from "../../../../objects/interface";
 
 interface EditComedianFormBodyProps {
+    comedian: Comedian;
     isLoading: boolean;
     form: any;
 }
 
 export default function EditComedianFormBody({
+    comedian,
     isLoading,
     form,
 }: EditComedianFormBodyProps) {
     const { filters } = useDataProvider();
-    const { primaryEntity } = usePageContext();
 
+    const selectables = filters
+        .filter((filter: Filter) => filter.type === EntityType.Comedian)
+        .flatMap((filter: Filter) => filter.options)
+        .map((tag: Tag) => {
+            return {
+                id: tag.id,
+                displayName: tag.displayName,
+                value: tag.value,
+                selected: comedian.tagIds.includes(tag.id),
+            };
+        }) as Selectable[];
+    console.log(selectables);
     return (
         <div className="flex flex-row gap-2">
             <div className="flex flex-col gap-2">
@@ -58,21 +73,7 @@ export default function EditComedianFormBody({
                 />
             </div>
             <div className="flex flex-col gap-2">
-                <CheckboxFormComponent
-                    form={form}
-                    items={filters
-                        .filter(
-                            (filter: Filter) => filter.type === primaryEntity,
-                        )
-                        .flatMap((filter: Filter) => filter.options)
-                        .map((tag: Tag) => {
-                            return {
-                                id: tag.id,
-                                displayName: tag.displayName,
-                                value: tag.value,
-                            };
-                        })}
-                />
+                <CheckboxFormComponent form={form} selectables={selectables} />
             </div>
         </div>
     );

@@ -3,18 +3,20 @@ import { unstable_cache } from "next/cache";
 import TrendingComedianCarousel from "../components/carousel";
 import ShowSearchForm from "../components/form/forms/showSearch";
 import { getDB } from "../database";
+import { HomePageDataResponse } from "./home/interface";
 const { database } = getDB();
 
 const getPageData = unstable_cache(
     async () => {
-        return await database.page.getHomePageData();
+        const data = await database.page.getHomePageData();
+        return { response: data };
     },
     ["homePage"],
     { revalidate: 1, tags: ["homePage"] },
 );
 
 export default async function HomePage() {
-    const { response } = await getPageData();
+    const { response } = (await getPageData()) as HomePageDataResponse;
 
     return (
         <main>

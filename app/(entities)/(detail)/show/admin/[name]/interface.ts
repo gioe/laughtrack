@@ -1,7 +1,3 @@
-import { Show } from "../../../../../objects/class/show/Show"
-import { ShowDTO } from "../../../../../objects/class/show/show.interface"
-import { EntityResponse, EntityResponseDTO } from "../../../../../objects/interface/paginatedEntity.interface"
+import { Show } from "../../../../../../objects/class/show/Show";
 
-export type ShowDetailDTO = EntityResponseDTO<ShowDTO>
-export type ShowDetailPageData = EntityResponse<Show>
-export interface ShowDetailPageResponse { data: ShowDetailPageData }
+export interface EditShowPageResponse { data: Show }

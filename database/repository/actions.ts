@@ -56,7 +56,6 @@ export class ActionRepository {
                     'comedian_id': args.id
                 }
             })
-            console.log(allTags)
             const batchInsert = this.pgp.helpers.insert(allTags, columnSets.addTags) + ' ON CONFLICT DO NOTHING';
             await this.db.any(batchInsert)
         }

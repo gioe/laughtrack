@@ -1,7 +1,3 @@
-import { Club } from "../../../../../objects/class/club/Club"
-import { ClubDTO } from "../../../../../objects/class/club/club.interface"
-import { EntityResponse, EntityResponseDTO } from "../../../../../objects/interface/paginatedEntity.interface"
+import { Club } from "../../../../../../objects/class/club/Club";
 
-export type ClubDetailDTO = EntityResponseDTO<ClubDTO>
-export type ClubDetailPageData = EntityResponse<Club>
-export interface ClubDetailPageResponse { data: ClubDetailPageData }
+export interface EditClubPageResponse { data: Club }

@@ -3,7 +3,7 @@ import EditComedianForm from "../../../../../../components/form/forms/comedian";
 import { SearchParamsHelper } from "../../../../../../objects/class/params/SearchParamsHelper";
 import { executeGet } from "../../../../../../util/actions/executeGet";
 import { PUBLIC_ROUTES } from "../../../../../../util/routes";
-import { ComedianDetailPageResponse } from "../../[name]/interface";
+import { EditComedianPageResponse } from "./interface";
 
 export default async function EditComedianPage(props: any) {
     const paramsHelper = await SearchParamsHelper.storePageParams(
@@ -12,13 +12,13 @@ export default async function EditComedianPage(props: any) {
     );
 
     const { data } = (await executeGet(
-        PUBLIC_ROUTES.COMEDIAN_DETAIL + `/${paramsHelper.asSlug()}`,
+        PUBLIC_ROUTES.EDIT_COMEDIAN + `/${paramsHelper.asSlug()}`,
         paramsHelper.asUrlSearchParams(),
-    )) as ComedianDetailPageResponse;
-
+    )) as EditComedianPageResponse;
+    console.log(data);
     return (
         <section>
-            <EditComedianForm comedianString={JSON.stringify(data.entity)} />
+            <EditComedianForm comedianString={JSON.stringify(data)} />
         </section>
     );
 }
