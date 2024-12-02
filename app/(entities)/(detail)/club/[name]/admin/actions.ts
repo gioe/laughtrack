@@ -1,5 +1,6 @@
 'use server';
-
+import { getDB } from "../../.././../../../database";
+const { database } = getDB();
 import axios from "axios";
 
 export async function scrape(id: number) {
@@ -8,7 +9,9 @@ export async function scrape(id: number) {
 }
 
 export async function clear(id: number) {
-    console.log(`Clearing ${id}`)
-    return axios
-        .post(`/api/${id}/clear`)
+    database.actions.deleteShowsForClub(id)
+        .catch((error: Error) => {
+            console.log(error)
+            throw new Error(error.message)
+        })
 }

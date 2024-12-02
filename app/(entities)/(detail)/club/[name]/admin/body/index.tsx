@@ -1,19 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import {
-    clear,
-    scrape,
-} from "../../../../app/(entities)/(detail)/club/admin/[name]/actions";
-import { Club } from "../../../../objects/class/club/Club";
-import { BasicButton } from "../../../button/basic";
-import WebView from "../../../webview";
+import { BasicButton } from "../../../../../../../components/button/basic";
+import WebView from "../../../../../../../components/webview";
+import { scrape } from "../actions";
+import { clear } from "../actions";
+import { Club } from "../../../../../../../objects/class/club/Club";
 
 interface EditClubFormProps {
     clubString: string;
 }
 
-export default function EditClubForm({ clubString }: EditClubFormProps) {
+export default function EditClubPageBody({ clubString }: EditClubFormProps) {
     const [isLoading, setIsLoading] = useState(false);
 
     const club = JSON.parse(clubString) as Club;
@@ -21,7 +19,7 @@ export default function EditClubForm({ clubString }: EditClubFormProps) {
     const clearWithId = clear.bind(null, club.id);
 
     return (
-        <div className="flex flex-row gap-2 pt-10 pb-10">
+        <div className="flex w-full flex-row pt-7 justify-center">
             <div className="flex flex-col gap-2 mx-4">
                 <BasicButton
                     clickHandle={async () => {

@@ -1,7 +1,7 @@
 import { SearchParamsHelper } from "../../../../../../objects/class/params/SearchParamsHelper";
 import { RoutePath } from "../../../../../../objects/enum";
 import { executeGet } from "../../../../../../util/actions/executeGet";
-import EditClubForm from "./form";
+import EditClubPageBody from "./body";
 import { EditClubPageResponse } from "./interface";
 
 export default async function EditClubPage(props) {
@@ -17,7 +17,7 @@ export default async function EditClubPage(props) {
 
     return (
         <section>
-            <EditClubForm clubString={JSON.stringify(data)} />
+            <EditClubPageBody clubString={JSON.stringify(data)} />
         </section>
     );
 }
