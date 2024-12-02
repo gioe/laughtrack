@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import useLoginModal from "../../../hooks/modalState/useLoginModal";
 import Modal from "..";
-import LoginForm from "../../form/forms/login";
+import LoginForm from "../../form/login";
 
 const LoginModal = () => {
     const router = useRouter();

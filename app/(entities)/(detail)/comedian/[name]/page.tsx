@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import QueryableEntityTableContainer from "../../../../../components/container";
 import { SearchParamsHelper } from "../../../../../objects/class/params/SearchParamsHelper";
+import { RoutePath } from "../../../../../objects/enum";
 import { executeGet } from "../../../../../util/actions/executeGet";
 import { CACHE } from "../../../../../util/constants/cacheConstants";
-import { PUBLIC_ROUTES } from "../../../../../util/routes";
 import { ComedianDetailPageResponse } from "./interface";
 
 export default async function ComedianDetailsPage(props: any) {
@@ -13,10 +13,11 @@ export default async function ComedianDetailsPage(props: any) {
     );
 
     const { data } = (await executeGet(
-        PUBLIC_ROUTES.COMEDIAN_DETAIL + `/${paramsHelper.asSlug()}`,
+        RoutePath.ComedianDetail + `/${paramsHelper.asSlug()}`,
         paramsHelper.asUrlSearchParams(),
         CACHE.detailPage,
     )) as ComedianDetailPageResponse;
+
     return (
         <section>
             <QueryableEntityTableContainer

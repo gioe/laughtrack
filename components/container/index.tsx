@@ -4,7 +4,7 @@ import { useState } from "react";
 import { DrawerComponent } from "../drawer";
 import { PageParamComponent } from "../params/page";
 import { SortParamComponent } from "../params/sort";
-import ShowCard from "../cards/show/ShowCard";
+import ShowCard from "../cards/show";
 import { Entity } from "../../objects/interface";
 import { Show } from "../../objects/class/show/Show";
 import CarouselCard from "../cards/carousel";

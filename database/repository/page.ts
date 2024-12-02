@@ -15,8 +15,9 @@ import { ClubSearchData, ClubSearchDTO } from '../../app/(entities)/(collection)
 import { ComedianSearchData, ComedianSearchDTO } from '../../app/(entities)/(collection)/comedian/all/interface';
 import { ShowSearchData, ShowSearchDTO } from '../../app/(entities)/(collection)/show/all/interface';
 import { ClubDetailDTO, ClubDetailPageData } from '../../app/(entities)/(detail)/club/[name]/interface';
-import { EditComedianPageData } from '../../app/(entities)/(detail)/comedian/admin/[name]/interface';
 import { DynamicRoute } from '../../objects/interface/identifable.interface';
+import { EditComedianPageData } from '../../app/(entities)/(detail)/comedian/[name]/admin/interface';
+import { EditClubPageData } from '../../app/(entities)/(detail)/club/[name]/admin/interface';
 
 
 export class PageDataRepository {
@@ -102,5 +103,10 @@ export class PageDataRepository {
         }).then((value: any) => new Comedian(value))
     }
 
+    async getEditClubDetailPageData(route: DynamicRoute): Promise<EditClubPageData> {
+        return this.db.one(pageDataMap.editClub, {
+            name: route.name
+        }).then((value: any) => new Club(value))
+    }
 
 }

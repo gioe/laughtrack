@@ -2,7 +2,7 @@
 
 import Modal from "..";
 import { useRouter } from "next/navigation";
-import AddComedianToShowForm from "../../form/forms/modifyLineup";
+import AddComedianToShowForm from "../../form/modifyLineup";
 import { useModifyLineupModal } from "../../../hooks/modalState";
 
 interface ModifyLineupModalProps {

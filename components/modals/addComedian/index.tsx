@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import Modal from "..";
 import useAddNewComedianModal from "../../../hooks/modalState/useAddNewComedianModal";
-import AddNewComedianForm from "../../form/forms/addComedian";
+import AddNewComedianForm from "../../form/addComedian";
 
 const AddComedianModal = () => {
     const addNewComedianModal = useAddNewComedianModal();

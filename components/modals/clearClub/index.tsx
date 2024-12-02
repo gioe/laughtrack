@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useClearShowsModal } from "../../../hooks/modalState";
 import Modal from "..";
-import ClearShowsFromClubForm from "../../form/forms/clearClub";
+import ClearShowsFromClubForm from "../../form/clearClub";
 
 interface ClearShowModalProps {
     identifier: string;

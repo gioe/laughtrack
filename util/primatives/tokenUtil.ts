@@ -1,9 +1,9 @@
 import { JWT } from "next-auth/jwt";
-import { PUBLIC_ROUTES } from "../routes";
 import { generateUrl } from "./urlUtil";
+import { RoutePath } from "../../objects/enum";
 
 export async function refreshAccessToken(token: JWT) {
-    const url = generateUrl(PUBLIC_ROUTES.REFRESH_TOKEN);
+    const url = generateUrl(RoutePath.RefreshToken);
 
     return fetch(url, {
         method: "POST",

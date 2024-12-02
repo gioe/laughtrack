@@ -4,9 +4,9 @@ import Credentials from "next-auth/providers/credentials";
 import { jwtDecode } from "jwt-decode";
 import { signInSchema } from "./util/validations";
 import { refreshAccessToken } from "./util/primatives/tokenUtil";
-import { PUBLIC_ROUTES } from "./util/routes";
 import { generateUrl } from "./util/primatives/urlUtil";
 import axios from "axios";
+import { RoutePath } from "./objects/enum";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
     providers: [
@@ -24,7 +24,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     const { email, password } =
                         await signInSchema.parseAsync(credentials);
 
-                    const url = generateUrl(PUBLIC_ROUTES.LOGIN)
+                    const url = generateUrl(RoutePath.Login)
 
                     const response = await axios.post(url, {
                         email: email,

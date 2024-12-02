@@ -3,9 +3,9 @@
 
 import QueryableEntityTableContainer from "../../../../../components/container";
 import { SearchParamsHelper } from "../../../../../objects/class/params/SearchParamsHelper";
+import { RoutePath } from "../../../../../objects/enum";
 import { executeGet } from "../../../../../util/actions/executeGet";
 import { CACHE } from "../../../../../util/constants/cacheConstants";
-import { PUBLIC_ROUTES } from "../../../../../util/routes";
 import { ShowSearchResponse } from "./interface";
 
 export default async function ShowSearchPage(props: any) {
@@ -14,7 +14,7 @@ export default async function ShowSearchPage(props: any) {
     );
 
     const { data } = (await executeGet(
-        PUBLIC_ROUTES.SHOW_SEARCH,
+        RoutePath.ShowSearch,
         paramsWrapper.asUrlSearchParams(),
         CACHE.search,
     )) as ShowSearchResponse;

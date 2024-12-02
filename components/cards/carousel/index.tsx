@@ -7,7 +7,7 @@ import {
     CardFooter,
     Typography,
 } from "@material-tailwind/react";
-import SocialMediaBar from "../../social/SocialMediaBar";
+import SocialMediaBar from "../../social/bar";
 import LinkedImage from "../../image/link";
 import { CarouselEntity } from "../../../objects/interface";
 

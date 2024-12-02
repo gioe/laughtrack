@@ -1,9 +1,9 @@
 import QueryableEntityTableContainer from "../../../../../components/container";
 import { executeGet } from "../../../../../util/actions/executeGet";
-import { PUBLIC_ROUTES } from "../../../../../util/routes";
 import { ClubDetailPageResponse } from "./interface";
 import { SearchParamsHelper } from "../../../../../objects/class/params/SearchParamsHelper";
 import { CACHE } from "../../../../../util/constants/cacheConstants";
+import { RoutePath } from "../../../../../objects/enum";
 
 export default async function ClubDetailPage(props) {
     const paramsHelper = await SearchParamsHelper.storePageParams(
@@ -12,7 +12,7 @@ export default async function ClubDetailPage(props) {
     );
 
     const { data } = (await executeGet(
-        PUBLIC_ROUTES.CLUB_DETAIL + `/${paramsHelper.asSlug()}`,
+        RoutePath.ClubDetail + `/${paramsHelper.asSlug()}`,
         paramsHelper.asUrlSearchParams(),
         CACHE.detailPage,
     )) as ClubDetailPageResponse;

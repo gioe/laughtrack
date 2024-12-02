@@ -3,6 +3,7 @@
 import { useState, useEffect, useContext, createContext } from "react";
 import axios from "axios";
 import { CityDTO } from "../objects/class/city/city.interface";
+import { RoutePath } from "../objects/enum";
 
 interface CityList {
     cities: CityDTO[];
@@ -19,7 +20,7 @@ export function CityProvider({ children }: { children: React.ReactNode }) {
 
     const getAffiliates = async () => {
         axios
-            .get(`/api/cities`)
+            .get(RoutePath.GetCities)
             .then((response) => {
                 return response.data;
             })

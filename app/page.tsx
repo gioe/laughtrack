@@ -1,7 +1,7 @@
 "use server";
 import { unstable_cache } from "next/cache";
 import TrendingComedianCarousel from "../components/carousel";
-import ShowSearchForm from "../components/form/forms/showSearch";
+import ShowSearchForm from "../components/form/showSearch";
 import { getDB } from "../database";
 const { database } = getDB();
 

@@ -8,6 +8,7 @@ export const pageDataMap = {
     home: sql("page/home.sql").qf,
     clubSearch: sql("page/clubSearch.sql").qf,
     clubDetail: sql("page/clubDetail.sql").qf,
+    editClub: sql("page/editClub.sql").qf,
     comedianSearch: sql("page/comedianSearch.sql").qf,
     comedianDetail: sql("page/comedianDetail.sql").qf,
     editComedian: sql("page/editComedian.sql").qf,

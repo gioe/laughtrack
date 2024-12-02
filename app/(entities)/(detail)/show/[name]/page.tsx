@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import QueryableEntityTableContainer from "../../../../../components/container";
 import { SearchParamsHelper } from "../../../../../objects/class/params/SearchParamsHelper";
-import { PUBLIC_ROUTES } from "../../../../../util/routes";
 import { executeGet } from "../../../../../util/actions/executeGet";
 import { ShowDetailPageResponse } from "./interface";
 import { CACHE } from "../../../../../util/constants/cacheConstants";
+import { RoutePath } from "../../../../../objects/enum";
 
 export default async function ShowDetailPage(props: any) {
     const paramsHelper = await SearchParamsHelper.storePageParams(
@@ -13,7 +13,7 @@ export default async function ShowDetailPage(props: any) {
     );
 
     const { data } = (await executeGet(
-        PUBLIC_ROUTES.SHOW_DETAIL + `/${paramsHelper.asSlug()}`,
+        RoutePath.ShowDetail + `/${paramsHelper.asSlug()}`,
         paramsHelper.asUrlSearchParams(),
         CACHE.detailPage,
     )) as ShowDetailPageResponse;

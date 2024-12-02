@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useRunScrapeModal } from "../../../hooks/modalState";
 import Modal from "..";
-import ScrapeEntityForm from "../../form/forms/scrape";
+import ScrapeEntityForm from "../../form/scrape";
 
 interface ScrapeEntityModalProps {
     identifier: string;

@@ -40,7 +40,10 @@ export function EntityPageDataProvider({
             .then((data) => {
                 if (data) {
                     const filters = data.containers.map((dto: TagDataDTO) => {
-                        return new Filter(dto, searchParams.get(dto.value));
+                        return new Filter(
+                            dto,
+                            searchParams.get(dto.value ?? ""),
+                        );
                     });
                     setState({
                         ...state,
