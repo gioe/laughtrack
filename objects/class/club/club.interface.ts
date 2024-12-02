@@ -16,6 +16,7 @@ export interface ClubInterface
     city: string;
     address: string;
     zipCode: string;
+    showCount?: number;
 }
 
 // DB
@@ -31,6 +32,7 @@ export interface ClubDTO {
     dates?: ShowDTO[];
     tags?: number[];
     is_Favorite?: boolean
+    show_count?: number
 }
 
 

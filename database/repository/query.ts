@@ -43,8 +43,13 @@ export class QueryRepository {
             })
     }
 
-    async getClubById(params: any): Promise<any[]> {
-        return this.db.any(queryMap.getClubById, params)
+    async getClubById(id: number): Promise<ClubDTO> {
+        return this.db.oneOrNone(queryMap.getClubById, {
+            id
+        }).then((club: ClubDTO | null) => {
+            if (club) return club
+            throw new Error("Error getting club")
+        })
     }
 
     async getClubsByIds(ids: string[]): Promise<any[]> {
@@ -78,7 +83,7 @@ export class QueryRepository {
         return this.db.manyOrNone(queryMap.getTagsAsFilters).then((values: TagDataDTO[]) => {
             return values.filter((value: TagDataDTO) => {
                 if (entityTypes == undefined) return true
-                return entityTypes.includes(value.type)
+                return value.type ? entityTypes.includes(value.type) : false
             })
         })
     }

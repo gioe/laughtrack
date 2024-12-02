@@ -20,6 +20,7 @@ export class Club implements ClubInterface {
     bannerImageUrl: string;
     cardImageUrl: string;
     containedEntities: Entity[]
+    showCount?: number;
 
     constructor(input: ClubDTO) {
         this.website = input.website;
@@ -35,6 +36,7 @@ export class Club implements ClubInterface {
         this.scrapingPageUrl = input.scraping_page_url
         this.bannerImageUrl = `/images/banners/${input.name}.png`
         this.cardImageUrl = `/images/club/square/${input.name}.png`;
+        this.showCount = input.show_count
     }
 
     getShows(): Show[] {

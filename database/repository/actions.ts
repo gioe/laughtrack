@@ -29,8 +29,10 @@ export class ActionRepository {
         columnSets.addComedianTags = new pgp.helpers.ColumnSet(['comedian_id', 'tag_id'], { table: 'tagged_comedians' });
     }
 
-    async deleteShowsForClub(params: any): Promise<any[]> {
-        return this.db.any(apiActionMap.deleteShows, params)
+    async deleteShowsForClub(id: any): Promise<any[]> {
+        return this.db.any(apiActionMap.deleteShows, {
+            id
+        })
     }
 
     async addUser(user: UserDTO): Promise<any> {

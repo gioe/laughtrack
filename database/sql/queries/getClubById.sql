@@ -1,1 +1,1 @@
-SELECT * FROM clubs where clubs.id = ${id}
+SELECT * FROM clubs where id = ${id}
