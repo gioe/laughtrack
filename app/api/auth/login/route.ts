@@ -5,13 +5,13 @@ import { getDB } from '../../../../database'
 import { generateToken } from "../../../../util/token";
 import bcrypt from "bcryptjs";
 
-const { db } = getDB();
+const { database } = getDB();
 
 export async function POST(request: Request) {
     const data = await request.json();
     const { email, password } = data
 
-    const user = await db.users.getByEmail(email)
+    const user = await database.queries.userExists(email)
     if (!user) {
         return NextResponse.json({ error: "User doesn't exist." }, { status: 400 });
     }
