@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { FormEmailInput } from "../../input/email";
-import { FormPasswordInput } from "../../input/password";
+import { FormInput } from "../../input/index";
 import Heading from "../../modals/heading";
 
 interface RegisterFormBodyProps {
@@ -13,17 +12,21 @@ export default function RegisterFormBody({
 }: RegisterFormBodyProps) {
     return (
         <div className="flex flex-col gap-4">
-            <Heading title="Welcome back" subtitle="Login to your account" />
-            <FormEmailInput
+            <Heading title="Register" />
+            <FormInput
                 isLoading={isLoading}
                 name={"email"}
-                placeholder={"Email"}
+                label={"Email"}
+                type={"email"}
+                placeholder={"Enter email"}
                 form={form}
             />
-            <FormPasswordInput
+            <FormInput
                 isLoading={isLoading}
                 name={"password"}
-                placeholder={"Password"}
+                label={"Password"}
+                type={"password"}
+                placeholder={"Enter password"}
                 form={form}
             />
         </div>

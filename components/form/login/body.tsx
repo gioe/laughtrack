@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { FormEmailInput } from "../../input/email";
-import { FormPasswordInput } from "../../input/password";
+import { FormInput } from "../../input/index";
 import Heading from "../../modals/heading";
 
 interface LoginFormBodyProps {
@@ -10,18 +9,21 @@ interface LoginFormBodyProps {
 export default function LoginFormBody({ isLoading, form }: LoginFormBodyProps) {
     return (
         <div className="flex flex-col gap-4">
-            <Heading title="Welcome back" subtitle="Login to your account" />
-            <FormEmailInput
+            <Heading title="Log in" />
+            <FormInput
                 isLoading={isLoading}
                 name={"email"}
-                placeholder={"Email"}
+                label={"Email"}
+                type={"email"}
+                placeholder={"Enter email"}
                 form={form}
             />
-            <FormPasswordInput
+            <FormInput
                 isLoading={isLoading}
                 name={"password"}
+                label={"Password"}
                 type={"password"}
-                placeholder={"Password"}
+                placeholder={"Enter password"}
                 form={form}
             />
         </div>

@@ -1,29 +1,32 @@
 "use client";
 
-import { Input } from "../../ui/input";
+import { Input } from "../ui/input";
 import {
     FormControl,
     FormField,
     FormItem,
     FormLabel,
     FormMessage,
-} from "../../ui/form";
+} from "../ui/form";
 
-interface FormFileInputProps {
+interface FormInputProps {
     isLoading: boolean;
     name: string;
     placeholder: string;
     type?: string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     form: any;
+    label: string;
 }
 
-export function FormPasswordInput({
+export function FormInput({
     isLoading,
     form,
     name,
     placeholder,
-}: FormFileInputProps) {
+    label,
+    type,
+}: FormInputProps) {
     return (
         <FormField
             control={form.control}
@@ -31,13 +34,11 @@ export function FormPasswordInput({
             render={({ field }) => {
                 return (
                     <FormItem>
-                        <FormLabel className="text-white">
-                            {placeholder}
-                        </FormLabel>
+                        <FormLabel className="text-shark">{label}</FormLabel>
                         <FormControl className="bg-white rounded-lg">
                             <Input
                                 disabled={isLoading}
-                                type={"password"}
+                                type={type}
                                 placeholder={placeholder}
                                 {...field}
                             />
