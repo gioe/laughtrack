@@ -22,7 +22,6 @@ import { ChevronDownIcon } from "@heroicons/react/24/solid";
 import useLoginModal from "../../hooks/modalState/useLoginModal";
 import useRegisterModal from "../../hooks/modalState/useRegisterModel";
 import { UserInterface } from "../../objects/interface";
-import { useScrapeMenuModal } from "../../hooks/modalState";
 import useAddNewComedianModal from "../../hooks/modalState/useAddNewComedianModal";
 
 const comedianMenuItems = [
@@ -50,7 +49,6 @@ interface NavbarProps {
 const Header: React.FC<NavbarProps> = ({ currentUser }) => {
     const loginModal = useLoginModal();
     const registerModal = useRegisterModal();
-    const scrapeMenuModal = useScrapeMenuModal();
     const newComedianModal = useAddNewComedianModal();
 
     const handleLoginClick = useCallback(() => {
@@ -180,19 +178,6 @@ const Header: React.FC<NavbarProps> = ({ currentUser }) => {
                         >
                             Profile
                         </a>
-                    )}
-
-                    {currentUser && currentUser.role == "admin" && (
-                        <>
-                            <button
-                                onClick={() => {
-                                    scrapeMenuModal.onOpen();
-                                }}
-                                className="text-sm font-semibold leading-6 text-gray-900"
-                            >
-                                Scrape
-                            </button>
-                        </>
                     )}
 
                     {currentUser && currentUser.role == "admin" && (

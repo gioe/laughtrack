@@ -1,8 +1,6 @@
 import { Favoritable, FavoriteDTO } from "./favoritable.interface";
-import { Scrapable } from "./scrape.interface";
 import { ModalState } from "./modalState.interface";
 import { Paginated, PaginationData } from "./paginated.interface";
-import { ScrapingArgs, ScrapingOutput, ClubScraper } from "./scrape.interface";
 import { LineupItemDTO } from "./lineup.interface";
 import { DatabaseIdentifiable } from "./identifable.interface"
 import { EntityContainer } from "./entityContainer.interface";
@@ -32,8 +30,6 @@ export type {
     BannerRepresentable,
     ModalState,
     Paginated,
-    ScrapingArgs,
-    ScrapingOutput,
     SortOptionInterface,
     TagInterface,
     Taggable,
@@ -43,8 +39,6 @@ export type {
     Favoritable,
     FavoriteDTO,
     PaginationData,
-    ClubScraper,
-    Scrapable,
     Entity,
     LineupItemDTO,
     PaginatedEntityResponse,

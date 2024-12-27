@@ -12,7 +12,6 @@
         "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx}\"",
         "serve": "node --env-file=.env dist/server.js",
         "hash": "node --env-file=.env dist/jobs/generateHashes/index.ts",
-        "scrape": "node --env-file=.env jobs/scrape/index.ts",
         "score": "node --env-file=.env dist/jobs/generateScores/index.ts",
         "gcp-build": "tsc -p .",
         "type-check": "tsc -b"

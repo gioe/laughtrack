@@ -7,14 +7,12 @@ export const getMenuItemsForEntityType = (type: EntityType | undefined) => {
     switch (type) {
         case EntityType.Club:
             return [
-                { key: "scrape", label: "Run Scrape", hook: hooks.useRunScrapeModal },
                 { key: "clear", label: "Clear Shows", hook: hooks.useClearShowsModal },
             ]
         case EntityType.Show:
             return [
                 { key: "tags", label: "Add Tags", hook: hooks.useAddShowTagModal },
                 { key: "comedian", label: "Add Comedian", hook: hooks.useModifyLineupModal },
-                { key: "scrape", label: "Run Scrape", hook: hooks.useRunScrapeModal },
             ]
         case EntityType.Comedian:
             return [

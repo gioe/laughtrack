@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { BasicButton } from "../../../../../../../components/button/basic";
 import WebView from "../../../../../../../components/webview";
-import { scrape } from "../actions";
 import { clear } from "../actions";
 import { Club } from "../../../../../../../objects/class/club/Club";
 import { useRouter } from "next/navigation";
@@ -17,7 +16,6 @@ export default function EditClubPageBody({ clubString }: EditClubFormProps) {
     const [isLoading, setIsLoading] = useState(false);
 
     const club = JSON.parse(clubString) as Club;
-    const scrapeWithId = scrape.bind(null, club.id);
     const clearWithId = clear.bind(null, club.id);
 
     return (
@@ -26,16 +24,6 @@ export default function EditClubPageBody({ clubString }: EditClubFormProps) {
                 <h1 className="text-white">
                     {`${club.showCount ?? 0} upcoming shows`}
                 </h1>
-                <BasicButton
-                    clickHandle={async () => {
-                        setIsLoading(true);
-                        await scrapeWithId();
-                        setIsLoading(false);
-                        router.refresh();
-                    }}
-                    text="Scrape"
-                    isLoading={isLoading}
-                />
                 <BasicButton
                     clickHandle={async () => {
                         setIsLoading(true);
