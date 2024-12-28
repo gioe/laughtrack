@@ -11,7 +11,7 @@ import useRegisterModal from "../../hooks/modalState/useRegisterModel";
 import { useCallback } from "react";
 import { HeaderItem } from "../navbar/headerItem";
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
-import { RoundedButton } from "../button/rounded";
+import { FullRoundedButton } from "../button/rounded/full";
 import { signOut } from "next-auth/react";
 import { UserInterface } from "../../objects/interface";
 
@@ -46,8 +46,8 @@ export function SideDrawer({ open, onClose, currentUser }: SideDrawerProps) {
 
                             <Disclosure as="div" className="-mx-3">
                                 <DisclosureButton
-                                    className="group flex w-full 
-                                items-center justify-between 
+                                    className="group flex w-full
+                                items-center justify-between
                                 rounded-lg py-2 pl-3 pr-3.5 text-base leading-7
                                  text-gray-900 hover:bg-gray-50"
                                 >
@@ -60,8 +60,8 @@ export function SideDrawer({ open, onClose, currentUser }: SideDrawerProps) {
                             </Disclosure>
                             <Disclosure as="div" className="-mx-3">
                                 <DisclosureButton
-                                    className="group flex w-full 
-                                items-center justify-between 
+                                    className="group flex w-full
+                                items-center justify-between
                                 rounded-lg py-2 pl-3 pr-3.5 text-base leading-7
                                  text-gray-900 hover:bg-gray-50"
                                 >
@@ -75,20 +75,20 @@ export function SideDrawer({ open, onClose, currentUser }: SideDrawerProps) {
                         </div>
                         <div className="flex flex-col py-6 gap-5">
                             {currentUser ? (
-                                <RoundedButton
+                                <FullRoundedButton
                                     handleClick={signOut}
-                                    title="Log Out"
+                                    label="Log Out"
                                 />
                             ) : (
                                 <>
-                                    <RoundedButton
+                                    <FullRoundedButton
                                         handleClick={handleLoginClick}
-                                        title="Log In"
+                                        label="Log In"
                                     />
 
-                                    <RoundedButton
+                                    <FullRoundedButton
                                         handleClick={handleSignupClick}
-                                        title="Sign Up"
+                                        label="Sign Up"
                                     />
                                 </>
                             )}

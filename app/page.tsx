@@ -26,10 +26,10 @@ export default async function HomePage() {
                     Laugh a little
                 </h3>
             </section>
-            <section className=" bg-red-800">
+            <section>
                 <ShowSearchForm cities={JSON.stringify(response.cities)} />
             </section>
-            <section className="bg-black mx-auto max-w-7xl mt-10 rounded-lg">
+            <section className="bg-black mx-auto max-w-5xl">
                 <TrendingComedianCarousel comedians={response.comedians} />
             </section>
         </main>

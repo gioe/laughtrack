@@ -1,10 +1,8 @@
 "use client";
 
-import BaseForm from "..";
 import { Form } from "../../ui/form";
 import ShowSearchFormBody from "./body";
 import { z } from "zod";
-import { FormDirection } from "../../../objects/enum";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { showSearchFormSchema } from "./schema";
 import { useState } from "react";
@@ -18,7 +16,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { CityDTO } from "../../../objects/class/city/city.interface";
 import { Selectable } from "../../../objects/interface";
-import { FormButton } from "../../button/form/home";
 
 interface ShowSearchFormProps {
     cities: string;
@@ -64,11 +61,12 @@ export default function ShowSearchForm({ cities }: ShowSearchFormProps) {
 
     return (
         <Form {...form}>
-            <form
-                onSubmit={form.handleSubmit(submitForm)}
-                className={"flex flex-row"}
-            >
-                <ShowSearchFormBody items={selectableCities} form={form} />
+            <form onSubmit={form.handleSubmit(submitForm)}>
+                <ShowSearchFormBody
+                    items={selectableCities}
+                    form={form}
+                    isLoading={isLoading}
+                />
             </form>
         </Form>
     );

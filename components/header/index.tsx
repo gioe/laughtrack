@@ -5,7 +5,7 @@ import useRegisterModal from "../../hooks/modalState/useRegisterModel";
 import { useCallback } from "react";
 import { HeaderItem } from "../navbar/headerItem";
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
-import { RoundedButton } from "../button/rounded";
+import { FullRoundedButton } from "../button/rounded/full";
 import { signOut } from "next-auth/react";
 import { UserInterface } from "../../objects/interface";
 import { HamburgerMenuButton } from "../button/hamburger";
@@ -89,16 +89,19 @@ export function Header({ onClick, currentUser }: HeaderProps) {
 
                 <div className="hidden lg:flex lg:flex-1 lg:justify-end">
                     {currentUser ? (
-                        <RoundedButton handleClick={signOut} title="Log Out" />
+                        <FullRoundedButton
+                            handleClick={signOut}
+                            label="Log Out"
+                        />
                     ) : (
                         <div className="hidden lg:flex lg:flex-1 lg:justify-end gap-3">
-                            <RoundedButton
+                            <FullRoundedButton
                                 handleClick={handleLoginClick}
-                                title="Log In"
+                                label="Log In"
                             />
-                            <RoundedButton
+                            <FullRoundedButton
                                 handleClick={handleSignupClick}
-                                title="Sign Up"
+                                label="Sign Up"
                             />
                         </div>
                     )}
