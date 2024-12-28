@@ -35,7 +35,7 @@ export function FormInput({
                 return (
                     <FormItem>
                         <FormLabel className="text-shark">{label}</FormLabel>
-                        <FormControl className="bg-white rounded-lg">
+                        <FormControl className="rounded-lg">
                             <Input
                                 disabled={isLoading}
                                 type={type}

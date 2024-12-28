@@ -25,7 +25,7 @@ export default async function ClubSearchPage(props: any) {
                 totalEntities={data.total}
                 entityCollectionString={entityCollectionString}
                 defaultNode={
-                    <h2 className="font-bold text-5xl text-white pt-6 bg-white">
+                    <h2 className="font-bold text-5xl text-white pt-6">
                         No clubs found. Who knows why.
                     </h2>
                 }

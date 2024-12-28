@@ -1,6 +1,7 @@
 "use client";
 
 import BaseForm from "..";
+import { Form } from "../../ui/form";
 import ShowSearchFormBody from "./body";
 import { z } from "zod";
 import { FormDirection } from "../../../objects/enum";
@@ -62,13 +63,13 @@ export default function ShowSearchForm({ cities }: ShowSearchFormProps) {
     }
 
     return (
-        <BaseForm
-            isLoading={isLoading}
-            onSubmit={submitForm}
-            form={form}
-            direction={FormDirection.Horizontal}
-            body={<ShowSearchFormBody items={selectableCities} form={form} />}
-            primaryButton={<FormButton label="Search" />}
-        />
+        <Form {...form}>
+            <form
+                onSubmit={form.handleSubmit(submitForm)}
+                className={"flex flex-row"}
+            >
+                <ShowSearchFormBody items={selectableCities} form={form} />
+            </form>
+        </Form>
     );
 }

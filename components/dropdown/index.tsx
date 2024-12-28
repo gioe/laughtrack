@@ -34,18 +34,18 @@ export function DropdownFormComponent({
     form,
 }: DropdownProps) {
     return (
-        <div className="grid w-full lg:max-w-sm flex-1 items-center gap-1.5">
+        <div className="bg-green-700 w-full flex-1 items-center lg:max-w-sm gap-1.5">
             <FormField
                 control={form.control}
                 name={name}
                 render={({ field }) => {
                     return (
                         <FormItem className="flex flex-col">
-                            <FormLabel className="text-white">
+                            <FormLabel className="text-white h-9 font-medium">
                                 {title}
                             </FormLabel>
                             <Select onValueChange={field.onChange}>
-                                <FormControl className="bg-white rounded-lg">
+                                <FormControl className="rounded-lg">
                                     <SelectTrigger>
                                         <SelectValue
                                             className={cn(
@@ -63,7 +63,7 @@ export function DropdownFormComponent({
                                 >
                                     {items.map((item) => (
                                         <SelectItem
-                                            className="bg-white rounded-lg"
+                                            className="rounded-lg"
                                             key={item.id.toString()}
                                             value={item.value}
                                         >

@@ -24,7 +24,7 @@ const CalendarFormComponent: React.FC<CalendarFormComponentProps> = ({
     form,
 }: CalendarFormComponentProps) => {
     return (
-        <div className="grid w-full lg:max-w-sm flex-1 items-center gap-1.5">
+        <div className="grid w-full flex-1 items-center gap-1.5 lg:max-w-sm">
             <FormField
                 control={form.control}
                 name={name}

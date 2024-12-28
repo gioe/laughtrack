@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Selectable } from "../../../objects/interface";
+import { FormButton } from "../../button/form/home";
 import CalendarFormComponent from "../../calendar";
 import { DropdownFormComponent } from "../../dropdown";
 
@@ -13,7 +14,10 @@ export default function ShowSearchFormBody({
     form,
 }: ShowSearchFormBodyProps) {
     return (
-        <div className="flex flex-col lg:flex-row lg:max-w-6xl lg:mx-auto items-start justify-center lg:space-x-2 space-y-4 lg:space-y-0 rounded-lg">
+        <div
+            className="flex flex-col space-y-4 
+            lg:flex-row lg:max-w-6xl lg:mx-auto lg:space-x-2"
+        >
             <DropdownFormComponent
                 name="city"
                 title="City"
@@ -22,6 +26,7 @@ export default function ShowSearchFormBody({
                 form={form}
             />
             <CalendarFormComponent name="dates" form={form} />
+            <FormButton label="Search" />
         </div>
     );
 }

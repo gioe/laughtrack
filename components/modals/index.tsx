@@ -39,7 +39,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, body, footer, onClose }) => {
                         <div
                             className="translate h-full lg:h-auto
                              md:h-auto border-0
-                        flex flex-col w-full bg-white rounded-xl
+                        flex flex-col w-full rounded-xl
                         outline-none focus:outline-none"
                         >
                             <div className="relative p-6 flex flex-col justify-center align-center rounded-lg">

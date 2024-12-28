@@ -3,13 +3,24 @@ import "./globals.css";
 import ToasterProvider from "../components/providers/toaster";
 import LoginModal from "../components/modals/login";
 import RegisterModal from "../components/modals/register";
-import Header from "../components/header";
 import { NextUIProvider } from "@nextui-org/react";
 import { SessionProvider } from "next-auth/react";
 import { auth } from "../auth";
 import { cache } from "react";
 import Footer from "../components/footer";
-import { Bebas_Neue, Oswald } from "next/font/google";
+import { Bebas_Neue, Oswald, Inter, Fjalla_One } from "next/font/google";
+import Navbar from "../components/navbar";
+
+const fjalla = Fjalla_One({
+    weight: "400",
+    subsets: ["latin"],
+    variable: "--font-fjalla",
+});
+
+const inter = Inter({
+    subsets: ["latin"],
+    variable: "--font-inter",
+});
 
 const bebas = Bebas_Neue({
     weight: "400",
@@ -60,10 +71,13 @@ export default async function RootLayout({
 
     return (
         <SessionProvider>
-            <html lang="en" className={`${bebas.variable} ${oswald.variable}`}>
+            <html
+                lang="en"
+                className={`${bebas.variable} ${oswald.variable} ${inter.variable} ${fjalla.variable}`}
+            >
                 <body className="bg-ivory">
                     <NextUIProvider>
-                        <Header currentUser={user} />
+                        <Navbar currentUser={user} />
                         <ToasterProvider />
                         <LoginModal />
                         <RegisterModal />

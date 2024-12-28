@@ -9,7 +9,7 @@ import { XButton } from "../button/x";
 import useLoginModal from "../../hooks/modalState/useLoginModal";
 import useRegisterModal from "../../hooks/modalState/useRegisterModel";
 import { useCallback } from "react";
-import { HeaderItem } from "../header/headerItem";
+import { HeaderItem } from "../navbar/headerItem";
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
 import { RoundedButton } from "../button/rounded";
 import { signOut } from "next-auth/react";
@@ -45,7 +45,12 @@ export function SideDrawer({ open, onClose, currentUser }: SideDrawerProps) {
                             <HeaderItem href="/" title="Home" />
 
                             <Disclosure as="div" className="-mx-3">
-                                <DisclosureButton className="group flex w-full items-center justify-between rounded-lg py-2 pl-3 pr-3.5 text-base leading-7 text-gray-900 hover:bg-gray-50">
+                                <DisclosureButton
+                                    className="group flex w-full 
+                                items-center justify-between 
+                                rounded-lg py-2 pl-3 pr-3.5 text-base leading-7
+                                 text-gray-900 hover:bg-gray-50"
+                                >
                                     <HeaderItem title="Clubs" />
                                     <ChevronDownIcon
                                         aria-hidden="true"
@@ -54,7 +59,12 @@ export function SideDrawer({ open, onClose, currentUser }: SideDrawerProps) {
                                 </DisclosureButton>
                             </Disclosure>
                             <Disclosure as="div" className="-mx-3">
-                                <DisclosureButton className="group flex w-full items-center justify-between rounded-lg py-2 pl-3 pr-3.5 text-base leading-7 text-gray-900 hover:bg-gray-50">
+                                <DisclosureButton
+                                    className="group flex w-full 
+                                items-center justify-between 
+                                rounded-lg py-2 pl-3 pr-3.5 text-base leading-7
+                                 text-gray-900 hover:bg-gray-50"
+                                >
                                     <HeaderItem title="Comedians" />
                                     <ChevronDownIcon
                                         aria-hidden="true"

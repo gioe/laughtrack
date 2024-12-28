@@ -7,7 +7,7 @@ interface HeaderItemProps {
 
 export function HeaderItem({ href, title }: HeaderItemProps) {
     return (
-        <a href={href} className="text-copper">
+        <a href={href} className="text-copper font-oswald">
             {title}
         </a>
     );

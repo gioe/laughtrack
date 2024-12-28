@@ -34,7 +34,7 @@ export function FormNumberInput({
                         <FormLabel className="text-white">
                             {placeholder}
                         </FormLabel>
-                        <FormControl className="bg-white rounded-lg">
+                        <FormControl className="rounded-lg">
                             <Input
                                 disabled={isLoading}
                                 type={"number"}

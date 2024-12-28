@@ -13,12 +13,12 @@ const config: Config = {
     ],
     theme: {
         extend: {
-            theme: {
-                fontFamily: {
-                    sans: ['"PT Sans"', "sans-serif"],
-                    bebas: ["var(--font-bebas)"],
-                    oswald: ["var(--font-oswald)"],
-                },
+            fontFamily: {
+                sans: ['"PT Sans"', "sans-serif"],
+                bebas: "var(--font-bebas)",
+                oswald: "var(--font-oswald)",
+                fjalla: "var(--font-fjalla)",
+                inter: "var(--font-inter)"
             },
             colors: {
                 transparent: "transparent",

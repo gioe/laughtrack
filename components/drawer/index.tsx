@@ -18,7 +18,8 @@ export function DrawerComponent({
         <Dialog open={isOpen} onClose={handleOpen} className="relative z-40">
             <DialogBackdrop
                 transition
-                className="fixed inset-0 bg-white bg-opacity-25 transition-opacity duration-300 ease-linear data-[closed]:opacity-0"
+                className="fixed inset-0 bg-opacity-25 transition-opacity
+                duration-300 ease-linear data-[closed]:opacity-0"
             />
 
             <div className="fixed inset-0 z-40 flex">

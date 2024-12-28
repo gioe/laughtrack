@@ -19,17 +19,17 @@ export default async function HomePage() {
     return (
         <main>
             <section className="max-w-7xl mx-auto p-18 text-center">
-                <h2 className="font-sans font-bold text-5xl text-copper p-5">
+                <h2 className="font-fjalla text-5xl text-copper p-5">
                     Laughtrack
                 </h2>
-                <h3 className="font-sans font-semibold text-copper pt-1 p-5 text-l">
-                    Get out and laugh a little
+                <h3 className="font-fjalla font-semibold text-copper pt-1 p-5 text-xl">
+                    Laugh a little
                 </h3>
             </section>
-            <section>
+            <section className=" bg-red-800">
                 <ShowSearchForm cities={JSON.stringify(response.cities)} />
             </section>
-            <section className="flex flex-col mx-auto max-w-7xl mt-10 p-6 rounded-lg mb-4 bg-white">
+            <section className="bg-black mx-auto max-w-7xl mt-10 rounded-lg">
                 <TrendingComedianCarousel comedians={response.comedians} />
             </section>
         </main>
