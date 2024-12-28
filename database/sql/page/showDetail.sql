@@ -3,7 +3,7 @@ WITH final_query AS (
 		s.id AS show_id,
 		s.name AS show_name,
 		s.date,
-		jsonb_build_object('price', s.price, 'link', s.ticket_link) AS ticket,
+		jsonb_build_object('price', s.ticket_price, 'link', s.ticket_purchase_url) AS ticket,
 		s.last_scraped_date AS scrapedate,
 		COALESCE(jsonb_agg(DISTINCT jsonb_build_object('id', c.id, 'name', c.name, 'social_data', jsonb_build_object('instagram_account', instagram_account, 'instagram_followers', instagram_followers, 'tiktok_account', tiktok_account, 
 		'tiktok_followers', tiktok_followers, 'youtube_account', youtube_account, 

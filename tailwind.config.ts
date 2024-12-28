@@ -16,6 +16,8 @@ const config: Config = {
             theme: {
                 fontFamily: {
                     sans: ['"PT Sans"', "sans-serif"],
+                    bebas: ["var(--font-bebas)"],
+                    oswald: ["var(--font-oswald)"],
                 },
             },
             colors: {

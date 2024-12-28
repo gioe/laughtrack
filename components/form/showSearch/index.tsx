@@ -3,7 +3,7 @@
 import BaseForm from "..";
 import ShowSearchFormBody from "./body";
 import { z } from "zod";
-import { FormDirection, RoutePath } from "../../../objects/enum";
+import { FormDirection } from "../../../objects/enum";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { showSearchFormSchema } from "./schema";
 import { useState } from "react";
@@ -58,7 +58,7 @@ export default function ShowSearchForm({ cities }: ShowSearchFormProps) {
         map.set("to_date", data.dates.to);
 
         paramsHelper.updateParamsFromMap(map);
-        navigator.pushPage(RoutePath.ShowSearch, paramsHelper.asParamsString());
+        navigator.pushPage("show/all", paramsHelper.asParamsString());
     }
 
     return (

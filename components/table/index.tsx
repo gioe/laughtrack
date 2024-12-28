@@ -20,7 +20,7 @@ export default function Table<T extends Entity>({
         const firstObject = data[0];
         if (firstObject !== undefined) {
             switch (data[0].type) {
-                case EntityType.Show:
+                case EntityType.Club:
                     return "grid grid-cols-1 gap-4";
                 default:
                     return "grid grid-cols-3 gap-x-20 gap-y-10";

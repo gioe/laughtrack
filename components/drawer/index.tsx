@@ -25,7 +25,7 @@ export function DrawerComponent({
                 <DialogPanel
                     transition
                     className="relative ml-auto flex h-full w-full max-w-xs
-                             transform flex-col overflow-y-auto bg-shark py-4 pb-12
+                             transform flex-col overflow-y-auto bg-ivory py-4 pb-12
                               shadow-xl transition duration-300 ease-in-out
                               data-[closed]:translate-x-full"
                 >
@@ -38,9 +38,9 @@ export function DrawerComponent({
                             onClick={() => handleOpen(false)}
                             className="-mr-2 flex h-10 w-10 items-center
                                      justify-center rounded-md
-                                     bg-shark
+                                     bg-ivory
                                      p-2
-                                      text-white"
+                                      text-champagne"
                         >
                             <span className="sr-only">Close menu</span>
                             <XMarkIcon aria-hidden="true" className="h-6 w-6" />

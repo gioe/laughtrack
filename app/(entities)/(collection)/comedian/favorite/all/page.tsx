@@ -9,7 +9,7 @@ export default async function FavoriteComediansPage(props: any) {
     // );
 
     return (
-        <main className="flex-grow pt-5 bg-shark">
+        <main className="flex-grow pt-5 bg-ivory">
             <QueryableEntityTableContainer
                 totalEntities={1}
                 entityCollectionString={""}

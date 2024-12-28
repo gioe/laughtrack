@@ -19,7 +19,7 @@ const CarouselCard: React.FC<CarouselCardProps> = ({ entity }) => {
     const parsedEntity = JSON.parse(entity) as CarouselEntity;
 
     return (
-        <div className="cursor-pointer hover:scale-105 transform transition duration-300 ease-out">
+        <div className="bg-ivory cursor-pointer hover:scale-105 transform transition duration-300 ease-out">
             <Card className="w-96">
                 <CardHeader floated={false} className="h-80">
                     <LinkedImage

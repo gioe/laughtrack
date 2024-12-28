@@ -36,8 +36,8 @@ export const MultiSelectComponent: React.FC<MultiSelectComponentProps> = ({
                         <h3 className="-mx-2 -my-3 flow-root">
                             <DisclosureButton
                                 className="group flex w-full items-center
-         justify-between bg-shark px-2 py-3
-          text-white hover:text-gray-500"
+         justify-between bg-ivory px-2 py-3
+          text-champagne hover:text-gray-500"
                             >
                                 <span className="font-medium text-white">
                                     {section.displayName}

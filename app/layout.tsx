@@ -9,7 +9,20 @@ import { SessionProvider } from "next-auth/react";
 import { auth } from "../auth";
 import { cache } from "react";
 import Footer from "../components/footer";
-import AddComedianModal from "../components/modals/addComedian";
+import { Bebas_Neue, Oswald } from "next/font/google";
+
+const bebas = Bebas_Neue({
+    weight: "400",
+    subsets: ["latin"],
+    display: "swap",
+    variable: "--font-bebas",
+});
+
+const oswald = Oswald({
+    subsets: ["latin"],
+    display: "swap",
+    variable: "--font-oswald",
+});
 
 export const metadata: Metadata = {
     title: "Laughtrack",
@@ -47,14 +60,13 @@ export default async function RootLayout({
 
     return (
         <SessionProvider>
-            <html lang="en">
-                <body className="bg-shark">
+            <html lang="en" className={`${bebas.variable} ${oswald.variable}`}>
+                <body className="bg-ivory">
                     <NextUIProvider>
                         <Header currentUser={user} />
                         <ToasterProvider />
                         <LoginModal />
                         <RegisterModal />
-                        <AddComedianModal />
                         {children}
                         <Footer />
                     </NextUIProvider>

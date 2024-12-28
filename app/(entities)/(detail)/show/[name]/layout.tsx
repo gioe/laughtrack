@@ -14,7 +14,7 @@ export default async function EntityDetailLayout({
     return (
         <PageEntityProvider>
             <EntityPageDataProvider>
-                <main className="flex-grow pt-5 bg-shark">
+                <main className="flex-grow pt-5 bg-ivory">
                     <section>
                         <EntityBanner identifier={identifier} />
                     </section>

@@ -18,15 +18,14 @@ export default async function HomePage() {
 
     return (
         <main>
-            <section className="max-w-7xl mx-auto p-18">
-                <h2 className="font-bold text-5xl text-white p-5">
+            <section className="max-w-7xl mx-auto p-18 text-center">
+                <h2 className="font-sans font-bold text-5xl text-copper p-5">
                     Laughtrack
                 </h2>
-                <h3 className="text-white pt-1 p-5 text-xl">
-                    Find funny stuff
+                <h3 className="font-sans font-semibold text-copper pt-1 p-5 text-l">
+                    Get out and laugh a little
                 </h3>
             </section>
-
             <section>
                 <ShowSearchForm cities={JSON.stringify(response.cities)} />
             </section>

@@ -11,10 +11,7 @@ const TrendingComedianCarousel = ({
     comedians,
 }: TrendingComedianCarouselProps) => {
     return (
-        <div
-            className="flex space-x-3 overflow-scroll
-         scrollbar-hide p-3 -ml-3"
-        >
+        <div className="flex space-x-3 overflow-scroll bg-ivory scrollbar-hide p-3 -ml-3">
             {comedians.map((dto) => {
                 const comedian = new Comedian(dto);
                 return (

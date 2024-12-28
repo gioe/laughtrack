@@ -27,7 +27,7 @@ show_data AS (
 		s.name AS show_name,
 		s.date AS show_date,
 		s.last_scraped_date AS scrapedate,
-		jsonb_build_object('price', s.price, 'link', s.ticket_link) AS ticket,
+		jsonb_build_object('price', s.ticket_price, 'link', s.ticket_purchase_url) AS ticket,
 	    jsonb_agg(DISTINCT jsonb_build_object('id', c.id, 'name', c.name)) AS lineup,
 	    cl.name AS club_name
 FROM

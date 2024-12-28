@@ -55,7 +55,7 @@ export default function QueryableEntityTableContainer({
     };
 
     return (
-        <div className="bg-shark">
+        <div className="bg-ivory">
             <DrawerComponent
                 isOpen={sideDrawerIsOpen}
                 child={<FilterParamComponent />}
@@ -66,7 +66,7 @@ export default function QueryableEntityTableContainer({
                 <section aria-labelledby="search-parameter-options-section">
                     <div className="flex-row">
                         {secondaryEntity !== EntityType.Show && (
-                            <div className="flex-item">
+                            <div className="flex-item flex-row">
                                 <QueryParamComponent
                                     inputPlaceholder={`Search by ${primaryEntity?.valueOf()} name`}
                                 />

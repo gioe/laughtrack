@@ -8,7 +8,7 @@ WITH filtered_data AS (
 		cl.id as club_id,
 		cl.name AS club_name,
 		cl.website as club_website,
-		jsonb_build_object('price', s.price, 'link', s.ticket_link) AS ticket
+		jsonb_build_object('price', s.ticket_price, 'link', s.ticket_purchase_url) AS ticket
 	FROM
 		shows s
 		LEFT JOIN tagged_shows ts ON s.id = ts.show_id

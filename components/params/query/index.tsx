@@ -35,7 +35,7 @@ const QueryParamComponent: React.FC<QueryParamComponentProps> = ({
     }, 300);
 
     return (
-        <div className="w-full flex flex-col gap-2 max-w-[240px] m-5">
+        <div className="w-full flex flex-item gap-2 max-w-[240px] m-5 bg-red-900">
             <Input
                 placeholder={inputPlaceholder}
                 value={value}

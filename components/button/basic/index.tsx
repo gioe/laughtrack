@@ -3,7 +3,7 @@ import { Button } from "../../ui/button";
 interface BasicButtonInterface {
     clickHandle: () => void;
     text: string;
-    isLoading: boolean;
+    isLoading?: boolean;
 }
 export function BasicButton({
     clickHandle,

@@ -20,7 +20,7 @@ export default async function ClubSearchPage(props: any) {
     const entityCollectionString = JSON.stringify(data.entities);
 
     return (
-        <main className="flex-grow pt-5 bg-shark">
+        <main className="flex-grow pt-5 bg-ivory">
             <QueryableEntityTableContainer
                 totalEntities={data.total}
                 entityCollectionString={entityCollectionString}
