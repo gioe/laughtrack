@@ -19,19 +19,17 @@ const LinkedImage = ({ destination, imageUrl, alt }: LinkedImageProps) => {
     };
 
     return (
-        <div className="object-fill">
-            <Link href={destination}>
-                <Image
-                    src={src}
-                    alt={alt}
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    onError={onError}
-                    priority
-                    style={{ objectFit: "cover" }}
-                />
-            </Link>
-        </div>
+        <Link className={"size-32"} href={destination}>
+            <Image
+                width={208}
+                height={208}
+                src={src}
+                alt={alt}
+                onError={onError}
+                priority
+                style={{ objectFit: "cover" }}
+            />
+        </Link>
     );
 };
 

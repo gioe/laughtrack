@@ -22,11 +22,14 @@ trending_comedians AS (
 	SELECT id, name, show_count, social_data from comedian_dict where show_count > 3 ORDER BY
 	random()
 LIMIT 10
+),
+trending_clubs tcl AS (
+	SELECT c.name, count (distinct comedian_id) from lineup_items ls JOIN shows s ON ls.show_id = s.id JOIN clubs c on s.club_id = c.id where s.date BETWEEN CURRENT_DATE AND (CURRENT_DATE + INTERVAL '30' DAY) GROUP BY c.name ORDER BY 2 DESC LIMIT 5
 )
 SELECT
 	jsonb_build_object('comedians', jsonb_agg(jsonb_build_object('id', tc.id, 'name', tc.name, 'social_data', tc.social_data, 'show_count', tc.show_count)), 'cities', (
 			SELECT
 				jsonb_agg(json_build_object('id', id, 'name', name))
-			FROM all_cities)) AS response
+			FROM all_cities), 'clubs', jsonb_agg(jsonb_build_object('name', tcl.name, 'count', tcl.count)) AS response
 FROM
 	trending_comedians tc

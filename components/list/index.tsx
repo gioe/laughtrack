@@ -4,14 +4,12 @@ import CarouselCard from "../cards/carousel";
 import { ComedianDTO } from "../../objects/class/comedian/comedian.interface";
 import { Comedian } from "../../objects/class/comedian/Comedian";
 
-interface TrendingComedianCarouselProps {
+interface TrendingComedianListProps {
     comedians: ComedianDTO[];
 }
-const TrendingComedianCarousel = ({
-    comedians,
-}: TrendingComedianCarouselProps) => {
+const TrendingComedianList = ({ comedians }: TrendingComedianListProps) => {
     return (
-        <div className="max-w-full flex overflow-scroll gap-10 p-4">
+        <div className="bg-green-500 max-h-96 flex flex-col overflow-scroll  gap-10 p-4">
             {comedians.map((dto) => {
                 const comedian = new Comedian(dto);
                 return (
@@ -25,4 +23,4 @@ const TrendingComedianCarousel = ({
     );
 };
 
-export default TrendingComedianCarousel;
+export default TrendingComedianList;
