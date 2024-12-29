@@ -1,12 +1,13 @@
 "use client";
 
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { format } from "date-fns";
+import { format, isSameDay, isToday, isTomorrow } from "date-fns";
 import { Calendar } from "../ui/calendar";
 import { FormControl, FormField, FormItem, FormMessage } from "../ui/form";
 import { ChevronUpDownIcon } from "@heroicons/react/24/solid";
 import { CalendarDateRangeIcon } from "@heroicons/react/24/outline";
 import { ControllerRenderProps, FieldValues } from "react-hook-form";
+import { datesAreToday, datesAreTomorrow } from "../../util/dateUtil";
 
 type TypedFieldValues = ControllerRenderProps<FieldValues, string>;
 
@@ -21,13 +22,27 @@ const CalendarFormComponent: React.FC<CalendarFormComponentProps> = ({
     form,
 }: CalendarFormComponentProps) => {
     const determineDateString = (field: TypedFieldValues) => {
-        return field.value?.from
-            ? field.value?.to
-                ? format(field.value?.from, "LLL dd, yyyy") +
-                  " - " +
-                  format(field.value?.to, "LLL dd, yyyy")
-                : format(field.value?.from, "LLL dd, yyyy")
-            : "Date(s)";
+        const fromDate = field.value?.from;
+        const toDate = field.value?.to;
+
+        if (fromDate && toDate == undefined) {
+            return format(fromDate, "LLL dd, yyyy");
+        } else if (datesAreToday(fromDate, toDate)) {
+            return "Today";
+        } else if (datesAreTomorrow(fromDate, toDate)) {
+            return "Tomorrow";
+        } else {
+            let startDate = fromDate;
+
+            if (isToday(fromDate)) {
+                startDate = "Today";
+            } else if (isTomorrow(fromDate)) {
+                startDate = "Tomorrow";
+            } else {
+                startDate = format(fromDate, "LLL d, yyyy");
+            }
+            return startDate + " - " + format(toDate, "LLL d, yyyy");
+        }
     };
 
     return (
@@ -61,13 +76,12 @@ const CalendarFormComponent: React.FC<CalendarFormComponentProps> = ({
                                     className="rounded-lg"
                                     initialFocus
                                     mode="range"
-                                    selected={{
-                                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                                        from: field.value.from!,
-                                        to: field.value.to,
-                                    }}
+                                    selected={field.value}
                                     defaultMonth={field.value.from}
-                                    onSelect={field.onChange}
+                                    onSelect={(e) => {
+                                        console.log(e);
+                                        field.onChange(e);
+                                    }}
                                     numberOfMonths={2}
                                     disabled={(date) =>
                                         date <

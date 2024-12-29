@@ -7,7 +7,5 @@ export const showSearchFormSchema = z.object({
     dates: z.object({
         from: z.date(),
         to: z.date()
-    }, {
-        required_error: "Please select a date range",
     })
 });

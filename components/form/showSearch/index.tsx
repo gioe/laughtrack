@@ -41,8 +41,8 @@ export default function ShowSearchForm({ cities }: ShowSearchFormProps) {
         defaultValues: {
             city: undefined,
             dates: {
-                from: undefined,
-                to: undefined,
+                from: new Date(),
+                to: new Date(),
             },
         },
     });
