@@ -29,8 +29,13 @@ export default async function HomePage() {
             <section>
                 <ShowSearchForm cities={JSON.stringify(response.cities)} />
             </section>
-            <section className="bg-black mx-auto max-w-5xl">
-                <TrendingComedianCarousel comedians={response.comedians} />
+            <section>
+                <div className="flex flex-col bg-ivory px-8">
+                    <h3 className="font-bebas font-semibold text-copper pt-1 p-5 text-xl">
+                        Featuring
+                    </h3>
+                    <TrendingComedianCarousel comedians={response.comedians} />
+                </div>
             </section>
         </main>
     );

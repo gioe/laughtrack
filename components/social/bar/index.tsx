@@ -15,28 +15,28 @@ const SocialMediaBar: React.FC<SocialMediaBarProps> = ({ data }) => {
     const hasTikTok = data.tiktok.account !== null;
     const hasYouTube = data.youtube.account !== null;
     return (
-        <div className="flex flex-row gap-4 justify-center items-center pb-6">
+        <div className="flex flex-col lg:flex-row gap-4 justify-center items-center bg-black lg:h-5">
             {hasInstagram && (
                 <Link href={`https://instagram.com/${data.instagram.account}`}>
-                    <InstagramIcon className="instagram-icon" />
+                    <InstagramIcon className="social-icon" />
                 </Link>
             )}
 
             {hasTikTok && (
                 <Link href={`https://tiktok.com/@${data.tiktok.account}`}>
-                    <TikTokIcon className="tiktok-icon" />
+                    <TikTokIcon className="social-icon" />
                 </Link>
             )}
 
             {hasYouTube && (
                 <Link href={`https://www.youtube.com/@${data.youtube.account}`}>
-                    <YouTubeIcon className="youtube-icon" />
+                    <YouTubeIcon className="social-icon" />
                 </Link>
             )}
 
             {data.website && (
                 <Link href={data.website}>
-                    <WebIcon className="web-icon" />
+                    <WebIcon className="social-icon" />
                 </Link>
             )}
         </div>

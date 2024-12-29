@@ -5,8 +5,8 @@ const InstagramIcon = (
     <svg
         className="hover:fill-current"
         xmlns="http://www.w3.org/2000/svg"
-        width={30}
-        height={30}
+        width={20}
+        height={20}
         viewBox="0 0 14 14"
         {...props}
     >

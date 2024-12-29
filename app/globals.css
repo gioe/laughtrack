@@ -37,10 +37,6 @@ body,
   }
 }
 
-.social-icon svg:hover {
-  color: #cee1d8;
-}
-
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -106,44 +102,14 @@ body,
   }
 }
 
-.instagram-icon {
-  stroke: white;
-  fill: black;
+.social-icon {
+  stroke: #b87333;
+  fill: #fffff0;
 }
 
-.instagram-icon:hover {
-  stroke: red;
-  fill: aqua;
-}
-
-.tiktok-icon {
-  stroke: white;
-  fill: black;
-}
-
-.tiktok-icon:hover {
-  stroke: red;
-  fill: aqua;
-}
-
-.youtube-icon {
-  stroke: white;
-  fill: black;
-}
-
-.youtube-icon:hover {
-  stroke: red;
-  fill: aqua;
-}
-
-.web-icon {
-  stroke: white;
-  fill: black;
-}
-
-.web-icon:hover {
-  stroke: red;
-  fill: aqua;
+.social-icon:hover {
+  stroke: #fffff0;
+  fill: #b87333;
 }
 
 .drawer {

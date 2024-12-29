@@ -36,6 +36,12 @@ const config: Config = {
                 "silver-gray": "#C0C0C0",
                 shark: "#1C232A",
                 ivory: "#FFFFF0",
+                skeptic: "#9eb4aa",
+                juniper: "#72908e",
+                "tax-break": "##4c6b73",
+                madison: "#2f4858",
+                "american-silver": "#ced9cb",
+
                 "midnight-blue": "#003366",
                 copper: "#B87333",
                 "soft-charcoal": "#4A4A4A",
