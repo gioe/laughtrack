@@ -18,8 +18,8 @@ export default async function HomePage() {
     const { response } = await getPageData();
 
     return (
-        <main>
-            <section className="max-w-7xl mx-auto p-18 text-center">
+        <main className="pt-36">
+            <section className="max-w-7xl mx-auto text-center">
                 <h2 className="font-fjalla text-5xl text-copper p-5">
                     Laughtrack
                 </h2>

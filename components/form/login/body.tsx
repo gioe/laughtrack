@@ -8,7 +8,7 @@ interface LoginFormBodyProps {
 }
 export default function LoginFormBody({ isLoading, form }: LoginFormBodyProps) {
     return (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 bg-ivory">
             <Heading title="Log in" />
             <FormInput
                 isLoading={isLoading}

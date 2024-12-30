@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useState } from "react";
 import { Tooltip } from "@material-tailwind/react";
 import { Comedian } from "../../../objects/class/comedian/Comedian";
-import { config } from "process";
 
 const avatarConfig = {
     // Colors
@@ -22,8 +21,6 @@ const avatarConfig = {
     m: "size-24",
     l: "size-40",
     xl: "size-52",
-
-    isSpecial: "border-2 bg-rose-500",
 };
 
 interface ComedianHeadshotProps {
@@ -38,7 +35,6 @@ const ComedianHeadshot = ({
     comedian,
     type = "rounded",
     size = "l",
-    quality = "isSpecial",
 }: ComedianHeadshotProps) => {
     const destination = `/comedian/${comedian.name}`;
     const imageUrl = comedian.cardImageUrl;
@@ -53,7 +49,7 @@ const ComedianHeadshot = ({
         <Tooltip key={comedian.name} content={comedian.name}>
             <div
                 className={`
-                     relative inline-block hover:cursor-pointer object-cover object-center ${avatarConfig[size]} ${avatarConfig[quality]}`}
+                     relative inline-block hover:cursor-pointer object-cover object-center ${avatarConfig[size]}`}
             >
                 <Link href={destination}>
                     <Image
