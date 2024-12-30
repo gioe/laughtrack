@@ -8,7 +8,7 @@ interface TrendingClubsCarouselProps {
 }
 const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
     return (
-        <div className="max-w-full grid grid-rows-2 grid-cols-3 overflow-scroll gap-x-3 gap-y-3 p-4">
+        <div className="max-w-full flex flex-col lg:grid lg:grid-rows-2 lg:grid-cols-3 overflow-scroll gap-x-3 gap-y-3 p-4">
             {clubs.map((club) => {
                 return <ClubCarouselCard key={club.name} club={club} />;
             })}

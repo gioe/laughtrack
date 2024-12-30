@@ -4,10 +4,9 @@ import { Show } from "../../../objects/class/show/Show";
 import React from "react";
 import moment from "moment";
 import Link from "next/link";
-import LinkedImage from "../../image/link";
 import { Comedian } from "../../../objects/class/comedian/Comedian";
-import { Avatar, Tooltip } from "@material-tailwind/react";
 import ClubMarquee from "../../image/club";
+import ComedianHeadshot from "../../image/comedian";
 interface ShowCardProps {
     show: Show;
 }
@@ -36,16 +35,13 @@ const ShowCard: React.FC<ShowCardProps> = ({ show }) => {
             <section className="flex flex-col px-10">
                 <div className="flex items-center -space-x-3">
                     {lineup.map((comedian: Comedian) => (
-                        <Tooltip key={comedian.name} content={comedian.name}>
-                            <Avatar
-                                key={comedian.name}
-                                size="xl"
-                                variant="circular"
-                                alt={comedian.name}
-                                src={`/images/comedian/square/${comedian.name}.png`}
-                                className="border-2 border-locust hover:z-10"
-                            />
-                        </Tooltip>
+                        <ComedianHeadshot
+                            key={comedian.name}
+                            priority={false}
+                            comedian={comedian}
+                            size="s"
+                            type="circle"
+                        />
                     ))}
                 </div>
             </section>

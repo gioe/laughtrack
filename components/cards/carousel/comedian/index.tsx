@@ -16,10 +16,9 @@ const ComedianCarouselCard: React.FC<ComedianCarouselCardProps> = ({
     return (
         <div
             className="flex flex-col 
-        items-center p-5 gap-8 bg-locust
-         flex-none w-64 h-96 rounded-2xl"
+        items-center p-5 gap-8 bg-locust rounded-2x rounded-3xl"
         >
-            <ComedianHeadshot priority entity={parsedEntity} />
+            <ComedianHeadshot priority comedian={parsedEntity} />
             <div className="flex flex-col gap-1 w-full">
                 <h1 className="font-fjalla text-pine-tree w-full text-center text-2xl">
                     {parsedEntity.name}
@@ -29,7 +28,7 @@ const ComedianCarouselCard: React.FC<ComedianCarouselCardProps> = ({
                     <h1 className="text-pine-tree font-fjalla w-full text-center text-s">{`${parsedEntity.showCount ?? 0} upcoming shows`}</h1>
                 )}
             </div>
-            <div className="w-full flex-none">
+            <div className="w-full">
                 {parsedEntity.socialData && (
                     <SocialMediaBar data={parsedEntity.socialData} />
                 )}

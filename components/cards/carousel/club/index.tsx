@@ -12,24 +12,21 @@ const ClubCarouselCard: React.FC<ClubCarouselCardProps> = ({ club }) => {
     const destination = `/club/${club.name}`;
 
     return (
-        <Link href={destination}>
-            <div
-                className="flex
-        items-center p-5 gap-8 bg-locust
-         flex-none rounded-3xl"
-            >
-                <ClubMarquee priority club={club} />
-                <div className="flex flex-col gap-3 w-full">
-                    <h1 className="font-fjalla text-pine-tree w-full text-center text-2xl">
-                        {club.name}
-                    </h1>
+        <div
+            className="flex
+        items-center p-5 gap-8 bg-locust rounded-3xl"
+        >
+            <ClubMarquee priority club={club} />
+            <div className="flex flex-col gap-3 w-full">
+                <h1 className="font-fjalla text-pine-tree w-full text-center text-2xl">
+                    {club.name}
+                </h1>
 
-                    {club.count && (
-                        <h1 className="text-pine-tree font-fjalla w-full text-center text-m">{`${club.count ?? 0} active comedians`}</h1>
-                    )}
-                </div>
+                {club.count && (
+                    <h1 className="text-pine-tree font-fjalla w-full text-center text-m">{`${club.count ?? 0} active comedians`}</h1>
+                )}
             </div>
-        </Link>
+        </div>
     );
 };
 
