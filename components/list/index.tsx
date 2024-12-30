@@ -1,6 +1,6 @@
 "use server";
 
-import CarouselCard from "../cards/carousel";
+import CarouselCard from "../cards/carousel/comedian";
 import { ComedianDTO } from "../../objects/class/comedian/comedian.interface";
 import { Comedian } from "../../objects/class/comedian/Comedian";
 

@@ -1,6 +1,7 @@
 "use server";
 import { unstable_cache } from "next/cache";
-import TrendingComedianCarousel from "../components/carousel";
+import TrendingComedianCarousel from "../components/carousel/comedians";
+import TrendingClubsCarousel from "../components/carousel/clubs";
 import ShowSearchForm from "../components/form/showSearch";
 import { getDB } from "../database";
 const { database } = getDB();
@@ -29,16 +30,20 @@ export default async function HomePage() {
             <section className="p-8">
                 <ShowSearchForm cities={JSON.stringify(response.cities)} />
             </section>
-            <section>
-                <div className="bg-ivory px-8">
-                    <h3 className="font-bebas font-semibold text-copper pt-1 pb-5 text-xl">
-                        Featuring
-                    </h3>
-                    <div>
-                        <TrendingComedianCarousel
-                            comedians={response.comedians}
-                        />
-                    </div>
+            <section className="bg-ivory px-4">
+                <h3 className="font-bebas font-semibold text-copper pb-3 text-2xl">
+                    Featuring
+                </h3>
+                <div>
+                    <TrendingComedianCarousel comedians={response.comedians} />
+                </div>
+            </section>
+            <section className="bg-ivory px-4">
+                <h3 className="font-bebas font-semibold text-copper pb-1 text-2xl">
+                    Trending
+                </h3>
+                <div>
+                    <TrendingClubsCarousel clubs={response.clubs} />
                 </div>
             </section>
         </main>

@@ -103,13 +103,13 @@ body,
 }
 
 .social-icon {
-  stroke: #b87333;
-  fill: #fffff0;
+  stroke: #232604;
+  fill: #fafaf0;
 }
 
 .social-icon:hover {
-  stroke: #fffff0;
-  fill: #b87333;
+  stroke: #fafaf0;
+  fill: #232604;
 }
 
 .drawer {

@@ -1,6 +1,6 @@
 "use client";
 
-import { Input } from "@nextui-org/react";
+import { Input } from "../../ui/input";
 import SearchIcon from "../../icons/SearchIcon";
 import React, { useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
@@ -35,14 +35,16 @@ const QueryParamComponent: React.FC<QueryParamComponentProps> = ({
     }, 300);
 
     return (
-        <div className="w-full flex flex-item gap-2 max-w-[240px] m-5 bg-red-900">
+        <div className="flex items-center gap-2">
+            <SearchIcon className="text-black/50 mb-0.5 dark:text-white/90 text-slate-400 pointer-events-none flex-shrink-0" />
             <Input
+                className="font-inter text-copper rounded-lg 
+                placeholder:text-copper placeholder:font-inter placeholder:text-sm"
                 placeholder={inputPlaceholder}
                 value={value}
-                onValueChange={handleInputChange}
-                startContent={
-                    <SearchIcon className="text-black/50 mb-0.5 dark:text-white/90 text-slate-400 pointer-events-none flex-shrink-0 mr-3" />
-                }
+                onChange={(e) => {
+                    handleInputChange(e.target.value);
+                }}
             />
         </div>
     );

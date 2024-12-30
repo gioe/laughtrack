@@ -23,10 +23,10 @@ export default function Table<T extends Entity>({
                 case EntityType.Club:
                     return "grid grid-cols-1 gap-4";
                 default:
-                    return "grid grid-cols-3 gap-x-20 gap-y-10";
+                    return "grid grid-cols-1 gap-x-20 gap-y-10";
             }
         }
-        return "grid grid-cols-3 gap-x-20 gap-y-10";
+        return "grid grid-cols-1 gap-x-20 gap-y-10";
     };
 
     return (
@@ -34,7 +34,9 @@ export default function Table<T extends Entity>({
             {data.length > 0 ? (
                 data.map((item) => {
                     return (
-                        <div key={keyExtractor(item)}>{renderItem(item)}</div>
+                        <div className="w-3/4" key={keyExtractor(item)}>
+                            {renderItem(item)}
+                        </div>
                     );
                 })
             ) : (

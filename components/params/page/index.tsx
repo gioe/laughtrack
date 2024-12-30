@@ -49,22 +49,28 @@ export function PageParamComponent({
         <TablePagination
             sx={{
                 ".MuiTablePagination-displayedRows": {
-                    color: "#C0C0C0",
+                    color: "#B87333",
+                    font: "inter",
                 },
                 ".MuiTablePagination-input": {
-                    color: "#C0C0C0",
+                    color: "#B87333",
+                    font: "inter",
                 },
                 ".MuiTablePagination-selectLabel": {
-                    color: "#C0C0C0",
+                    color: "#B87333",
+                    font: "inter",
                 },
                 ".MuiTablePagination-selectIcon": {
-                    color: "#C0C0C0",
+                    color: "#B87333",
+                    font: "inter",
                 },
                 ".MuiTablePagination-actions": {
-                    color: "#C0C0C0",
+                    color: "#B87333",
+                    font: "inter",
                 },
                 ".MuiButtonBase-root": {
-                    color: "#C0C0C0",
+                    color: "#B87333",
+                    font: "inter",
                 },
             }}
             component="div"

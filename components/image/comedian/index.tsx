@@ -3,10 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { CarouselEntity } from "../../../objects/interface";
+import { Entity } from "../../../objects/interface";
 
 interface ComedianHeadshotProps {
-    entity: CarouselEntity;
+    entity: Entity;
     priority: boolean;
 }
 
@@ -22,7 +22,7 @@ const ComedianHeadshot = ({ entity }: ComedianHeadshotProps) => {
     };
 
     return (
-        <div className="size-32 flex-none rounded-xl relative">
+        <div className="size-40 flex-none rounded-xl relative">
             <Link href={destination}>
                 <Image
                     fill

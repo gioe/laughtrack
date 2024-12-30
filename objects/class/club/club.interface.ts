@@ -1,6 +1,5 @@
 import {
     Favoritable,
-    Scrapable,
     Entity
 } from "../../interface";
 import { ShowDTO } from "../show/show.interface";
@@ -10,7 +9,6 @@ import { SocialDataDTO } from "../socialData/socialData.interface";
 export interface ClubInterface
     extends
     Favoritable,
-    Scrapable,
     Entity {
     website: string;
     city: string;
@@ -33,6 +31,11 @@ export interface ClubDTO {
     tags?: number[];
     is_Favorite?: boolean
     show_count?: number
+}
+
+export interface ClubActivityDTO {
+    name: string,
+    count: number
 }
 
 

@@ -13,13 +13,13 @@ export const Footer = () => {
                             <div className="flex flex-wrap items-center justify-center gap-5 lg:gap-12 gap-y-3 lg:flex-nowrap text-dark-grey-900">
                                 <Link
                                     href="/about"
-                                    className="text-gray-600 hover:text-gray-900"
+                                    className="text-copper font-fjalla"
                                 >
                                     About
                                 </Link>
                                 <Link
                                     href="/contact"
-                                    className="text-gray-600 hover:text-gray-900"
+                                    className="text-copper font-fjalla"
                                 >
                                     Contact
                                 </Link>
@@ -81,7 +81,7 @@ export const Footer = () => {
                             </div>
                         </div>
                         <div className="flex items-center">
-                            <p className="text-base font-normal leading-7 text-center text-grey-700">
+                            <p className="text-base font-fjalla leading-7 text-center text-copper">
                                 {`© ${currentYear}. All Rights Reserved`}
                             </p>
                         </div>
