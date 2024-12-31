@@ -9,7 +9,7 @@ import { Comedian } from "../../../objects/class/comedian/Comedian";
 const avatarConfig = {
     // Colors
     rounded: {
-        borderRadius: "10%",
+        borderRadius: "20%",
     },
     circle: {
         borderRadius: "50%",

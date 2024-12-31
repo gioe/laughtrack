@@ -23,27 +23,18 @@ const ShowCard: React.FC<ShowCardProps> = ({ show }) => {
             className="flex flex-col items-center mt-3 mb-3 px-2 pr-4 border-b
         transition duration-200 rounded-3xl ease-out first:border-t bg-locust"
         >
-            <section className="flex flex-col items-center ml-5 mr-4 mb-5 mt-1">
-                <ClubMarquee
-                    priority
-                    club={{
-                        name: clubName,
-                        count: 0,
-                    }}
-                />
-            </section>
-            <section className="flex flex-col px-10">
-                <div className="flex items-center -space-x-3">
-                    {lineup.map((comedian: Comedian) => (
+            <section className="grid bg-green-500 grid-cols-5 -gap-x-5 gap-y-3">
+                {lineup.map((comedian: Comedian) => (
+                    <div className="hover:z-10">
                         <ComedianHeadshot
                             key={comedian.name}
                             priority={false}
                             comedian={comedian}
-                            size="s"
-                            type="circle"
+                            size="m"
+                            type="rounded"
                         />
-                    ))}
-                </div>
+                    </div>
+                ))}
             </section>
             {lineup.length > 0 && (
                 <section className="flex flex-col bg-red-800 items-center align-middle w-full">

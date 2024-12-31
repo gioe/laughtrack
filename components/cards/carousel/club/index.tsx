@@ -14,7 +14,7 @@ const ClubCarouselCard: React.FC<ClubCarouselCardProps> = ({ club }) => {
     return (
         <div
             className="flex
-        items-center p-5 gap-8 bg-locust rounded-3xl"
+        items-center p-5 gap-8 bg-locust rounded-3xl hover:scale-105 transform transition duration-300 ease-out"
         >
             <ClubMarquee priority club={club} />
             <div className="flex flex-col gap-3 w-full">
