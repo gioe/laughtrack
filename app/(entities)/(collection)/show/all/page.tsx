@@ -22,7 +22,7 @@ export default async function ShowSearchPage(props: any) {
     const entityCollectionString = JSON.stringify(data.entities);
 
     return (
-        <main className="flex-grow pt-5 bg-ivory">
+        <main className="flex-grow pt-24 bg-ivory">
             <QueryableEntityTableContainer
                 totalEntities={data.total}
                 entityCollectionString={entityCollectionString}

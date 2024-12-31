@@ -8,7 +8,7 @@ interface FunnelButtonProps {
 export function FunnelButton({ handleClick }: FunnelButtonProps) {
     return (
         <button type="button" onClick={() => handleClick(true)}>
-            <FunnelIcon className="size-7" />
+            <FunnelIcon className="size-7" color="#B87333" />
         </button>
     );
 }

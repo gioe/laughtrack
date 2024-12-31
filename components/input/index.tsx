@@ -13,7 +13,6 @@ interface FormInputProps {
     isLoading: boolean;
     name: string;
     placeholder: string;
-    type?: string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     form: any;
     label: string;
@@ -25,7 +24,6 @@ export function FormInput({
     name,
     placeholder,
     label,
-    type,
 }: FormInputProps) {
     return (
         <FormField
@@ -34,11 +32,16 @@ export function FormInput({
             render={({ field }) => {
                 return (
                     <FormItem>
-                        <FormLabel className="text-shark">{label}</FormLabel>
+                        <FormLabel
+                            className="text-copper font-fjalla
+                         placeholder:text-copper placeholder:font-fjalla"
+                        >
+                            {label}
+                        </FormLabel>
                         <FormControl className="rounded-lg">
                             <Input
                                 disabled={isLoading}
-                                type={type}
+                                type={name}
                                 placeholder={placeholder}
                                 {...field}
                             />

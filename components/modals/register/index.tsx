@@ -5,7 +5,6 @@ import useRegisterModal from "../../../hooks/modalState/useRegisterModel";
 import useLoginModal from "../../../hooks/modalState/useLoginModal";
 import Modal from "..";
 import RegistrationForm from "../../form/register";
-import RegistrationFormFooter from "../../form/register/footer";
 
 const RegisterModal = () => {
     const registerModal = useRegisterModal();
@@ -17,7 +16,7 @@ const RegisterModal = () => {
         registerModal.onClose();
     };
 
-    const handleLoginClick = () => {
+    const loginLinkClicked = () => {
         registerModal.onClose();
         loginModal.onOpen();
     };
@@ -25,10 +24,12 @@ const RegisterModal = () => {
     return (
         <Modal
             isOpen={registerModal.isOpen}
-            onClose={registerModal.onClose}
-            body={<RegistrationForm onSubmit={onSubmit} />}
-            footer={
-                <RegistrationFormFooter handleLoginClick={handleLoginClick} />
+            body={
+                <RegistrationForm
+                    onSubmit={onSubmit}
+                    onClose={registerModal.onClose}
+                    handleLoginClick={loginLinkClicked}
+                />
             }
         />
     );

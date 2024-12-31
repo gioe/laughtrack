@@ -19,12 +19,10 @@ import { Taggable } from "./taggable.interface";
 import { AuthToken } from "./token.interface";
 import { UserInterface, UserDTO } from "./user.interface";
 import { Entity } from "./entity.interface"
-import { ButtonData } from "./buttonData.interface"
 import { BannerRepresentable } from "./bannerRepresentable.interface"
 export type {
     Selectable,
     DatabaseIdentifiable,
-    ButtonData,
     BannerRepresentable,
     ModalState,
     Paginated,

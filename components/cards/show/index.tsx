@@ -20,8 +20,8 @@ const ShowCard: React.FC<ShowCardProps> = ({ show }) => {
 
     return (
         <main
-            className="flex items-center mt-3 mb-3 px-2 pr-4 border-b
-        transition duration-200 rounded-lg ease-out first:border-t bg-locust"
+            className="flex flex-col items-center mt-3 mb-3 px-2 pr-4 border-b
+        transition duration-200 rounded-3xl ease-out first:border-t bg-locust"
         >
             <section className="flex flex-col items-center ml-5 mr-4 mb-5 mt-1">
                 <ClubMarquee
@@ -46,11 +46,11 @@ const ShowCard: React.FC<ShowCardProps> = ({ show }) => {
                 </div>
             </section>
             {lineup.length > 0 && (
-                <section className="flex flex-col bg-red-800 items-center align-middle">
+                <section className="flex flex-col bg-red-800 items-center align-middle w-full">
                     <h3 className="font-bebas font-semibold text-copper pb-3 text-xl">
                         Featuring:
                     </h3>
-                    <div className="grid grid-cols-2 grid-rows-7 space-1 bg-blue-800">
+                    <div className="grid grid-cols-2 grid-rows-7 space-1 bg-blue-800 w-full">
                         {lineup.map((comedian: Comedian) => {
                             return (
                                 <h1 key={comedian.name} className="font-fjalla">

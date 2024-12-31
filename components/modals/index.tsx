@@ -1,17 +1,14 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import ButtonComponent from "../button/form";
-import { ButtonType } from "../../objects/enum";
 
 interface ModalProps {
     isOpen?: boolean;
     body?: React.ReactElement;
     footer?: React.ReactElement;
-    onClose: () => void;
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, body, footer, onClose }) => {
+const Modal: React.FC<ModalProps> = ({ isOpen, body, footer }) => {
     const [showModal, setShowModal] = useState(isOpen);
 
     useEffect(() => {
@@ -39,24 +36,10 @@ const Modal: React.FC<ModalProps> = ({ isOpen, body, footer, onClose }) => {
                         <div
                             className="translate h-full lg:h-auto
                              md:h-auto border-0
-                        flex flex-col w-full rounded-xl
-                        outline-none focus:outline-none"
+                        flex w-full rounded-xl
+                        outline-none focus:outline-none bg-ivory"
                         >
-                            <div className="relative p-6 flex flex-col justify-center align-center rounded-lg">
-                                {body}
-                                <div className="flex justify-center">
-                                    <ButtonComponent
-                                        data={{
-                                            type: ButtonType.Button,
-                                            label: "Close",
-                                        }}
-                                        onClick={() => {
-                                            console.log("CLOSING");
-                                            onClose();
-                                        }}
-                                    />
-                                </div>
-                            </div>
+                            {body}
                             {footer}
                         </div>
                     </div>
