@@ -15,6 +15,7 @@ interface ShowCardProps {
 const ShowCard: React.FC<ShowCardProps> = ({ show }) => {
     const dateObject = moment(new Date(show.date ?? new Date()));
     const clubName = show.clubName ?? "";
+    console.log(show.ticket);
     const ticket = show.ticket;
     const showName = show.name;
     const lineup = show.containedEntities;
@@ -28,11 +29,11 @@ const ShowCard: React.FC<ShowCardProps> = ({ show }) => {
     };
     return (
         <main
-            className="flex w-full
+            className="flex
         transition duration-200 ease-out bg-locust"
         >
-            <div className="flex-1 basis-1/4 bg-red-500 relative">
-                <div className="top-0 left-0  translate-x-2.5 translate-y-2.5 rounded-3xl">
+            <div className="bg-red-500 relative">
+                <div className="top-0 left-0 translate-x-2.5 translate-y-2.5 rounded-3xl">
                     <ClubMarquee
                         priority
                         club={{
@@ -42,12 +43,12 @@ const ShowCard: React.FC<ShowCardProps> = ({ show }) => {
                     />
                 </div>
             </div>
-            <div className="flex-1 basis-1/2 bg-green-500">
-                <div
-                    className="flex flex-col items-center
-transition duration-200 rounded-3xl ease-out bg-green-500 basis-3/4"
-                >
-                    {lineup.length > 0 && (
+            {lineup.length > 0 && (
+                <div className="flex-1 bg-green-500">
+                    <div
+                        className="flex flex-col items-center
+transition duration-200 rounded-3xl ease-out bg-green-500"
+                    >
                         <section className="flex flex-col items-center p-10">
                             <div className="flex flex-row gap-6 pb-5">
                                 <h3 className="font-bebas font-semibold text-copper text-3xl">
@@ -86,29 +87,27 @@ duration-300 ease-out bg-blue-800 flex flex-col items-center"
                                 ))}
                             </div>
                         </section>
-                    )}
-
-                    <section>
-                        <h1 className="text-m ml-2 text-center">{`${showName}`}</h1>
-                        {show.description && (
-                            <h1 className="text-m ml-2 text-center">{`${show.description}`}</h1>
-                        )}
-                        <h1 className="text-m ml-2 text-center">
-                            {`${dateObject.format("LT LL")}`}
-                        </h1>
-                        <h1 className="text-center mt-8 text-sm">{`$${ticket.price.toString()}`}</h1>
-                        <Link
-                            className="text-center text-sm underline"
-                            href={ticket.link}
-                        >
-                            <p className="text-m ml-2 text-center">
-                                Get tickets
-                            </p>
-                        </Link>
-                    </section>
+                    </div>
                 </div>
+            )}
+            <div className="flex-1 bg-blue-500">
+                <section className=" p-10">
+                    <h1 className="text-m ml-2 text-center">{`${showName}`}</h1>
+                    {show.description && (
+                        <h1 className="text-m ml-2 text-center">{`${show.description}`}</h1>
+                    )}
+                    <h1 className="text-m ml-2 text-center">
+                        {`${dateObject.format("LT LL")}`}
+                    </h1>
+                    <h1 className="text-center mt-8 text-sm">{`$${ticket.price.toString()}`}</h1>
+                    <Link
+                        className="text-center text-sm underline"
+                        href={ticket.link}
+                    >
+                        <p className="text-m ml-2 text-center">Get tickets</p>
+                    </Link>
+                </section>
             </div>
-            <div className="flex-1 basis-1/4 bg-blue-500"></div>
         </main>
     );
 };

@@ -28,6 +28,7 @@ export class Show implements ShowInterface {
 
     // Constructor
     constructor(input: ShowDTO) {
+        console.log(input)
         this.name = this.normalizeName(input.name);
         this.date = input.date;
         this.socialData = input.social_data !== undefined ? new SocialData(input.social_data) : undefined;
