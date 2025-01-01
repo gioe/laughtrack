@@ -43,7 +43,12 @@ export default function QueryableEntityTableContainer({
     const renderFunction = (entity: Entity) => {
         switch (secondaryEntity) {
             case EntityType.Show:
-                return <ShowCard key={entity.name} show={entity as Show} />;
+                return (
+                    <ShowCard
+                        key={`${entity.name}-${entity.id}`}
+                        show={entity as Show}
+                    />
+                );
             default:
                 return (
                     <CarouselCard

@@ -5,8 +5,9 @@ import React from "react";
 import moment from "moment";
 import Link from "next/link";
 import { Comedian } from "../../../objects/class/comedian/Comedian";
-import ClubMarquee from "../../image/club";
 import ComedianHeadshot from "../../image/comedian";
+import ClubMarquee from "../../image/club";
+
 interface ShowCardProps {
     show: Show;
 }
@@ -18,53 +19,96 @@ const ShowCard: React.FC<ShowCardProps> = ({ show }) => {
     const showName = show.name;
     const lineup = show.containedEntities;
 
+    const getFirstName = (comedian: Comedian) => {
+        return comedian.name.split(" ")[0];
+    };
+
+    const getLastName = (comedian: Comedian) => {
+        return comedian.name.split(" ")[1];
+    };
     return (
         <main
-            className="flex flex-col items-center mt-3 mb-3 px-2 pr-4 border-b
-        transition duration-200 rounded-3xl ease-out first:border-t bg-locust"
+            className="flex w-full
+        transition duration-200 ease-out bg-locust"
         >
-            <section className="grid bg-green-500 grid-cols-5 -gap-x-5 gap-y-3">
-                {lineup.map((comedian: Comedian) => (
-                    <div className="hover:z-10">
-                        <ComedianHeadshot
-                            key={comedian.name}
-                            priority={false}
-                            comedian={comedian}
-                            size="m"
-                            type="rounded"
-                        />
-                    </div>
-                ))}
-            </section>
-            {lineup.length > 0 && (
-                <section className="flex flex-col bg-red-800 items-center align-middle w-full">
-                    <h3 className="font-bebas font-semibold text-copper pb-3 text-xl">
-                        Featuring:
-                    </h3>
-                    <div className="grid grid-cols-2 grid-rows-7 space-1 bg-blue-800 w-full">
-                        {lineup.map((comedian: Comedian) => {
-                            return (
-                                <h1 key={comedian.name} className="font-fjalla">
-                                    {comedian.name}
-                                </h1>
-                            );
-                        })}
-                    </div>
-                </section>
-            )}
-
-            <section>
-                <h1 className="text-m ml-2 text-center">
-                    {`${dateObject.format("LT LL")}`}
-                </h1>
-                <h1 className="text-center mt-8 text-sm">{`$${ticket.price.toString()}`}</h1>
-                <Link
-                    className="text-center text-sm underline"
-                    href={ticket.link}
+            <div className="flex-1 basis-1/4 bg-red-500 relative">
+                <div className="top-0 left-0  translate-x-2.5 translate-y-2.5 rounded-3xl">
+                    <ClubMarquee
+                        priority
+                        club={{
+                            name: clubName,
+                            count: 0,
+                        }}
+                    />
+                </div>
+            </div>
+            <div className="flex-1 basis-1/2 bg-green-500">
+                <div
+                    className="flex flex-col items-center
+transition duration-200 rounded-3xl ease-out bg-green-500 basis-3/4"
                 >
-                    <p className="text-m ml-2 text-center">Get tickets</p>
-                </Link>
-            </section>
+                    {lineup.length > 0 && (
+                        <section className="flex flex-col items-center p-10">
+                            <div className="flex flex-row gap-6 pb-5">
+                                <h3 className="font-bebas font-semibold text-copper text-3xl">
+                                    {`${clubName}`}
+                                </h3>
+                                <h3 className="font-bebas font-semibold text-pine-tree text-3xl">
+                                    Presents:
+                                </h3>
+                            </div>
+                            <div className="flex flex-row gap-4 bg-black">
+                                {lineup.map((comedian: Comedian) => (
+                                    <div
+                                        key={comedian.id.toString()}
+                                        className="hover:z-9 hover:scale-105 transform transition
+duration-300 ease-out bg-blue-800 flex flex-col items-center"
+                                    >
+                                        <ComedianHeadshot
+                                            priority={false}
+                                            comedian={comedian}
+                                            size="m"
+                                            type="rounded"
+                                        />
+                                        {comedian.name
+                                            .split(" ")
+                                            .map((nameString) => {
+                                                return (
+                                                    <h1
+                                                        key={nameString}
+                                                        className="font-fjalla text-center bg-red-500 w-full"
+                                                    >
+                                                        {`${nameString}`}
+                                                    </h1>
+                                                );
+                                            })}
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
+                    <section>
+                        <h1 className="text-m ml-2 text-center">{`${showName}`}</h1>
+                        {show.description && (
+                            <h1 className="text-m ml-2 text-center">{`${show.description}`}</h1>
+                        )}
+                        <h1 className="text-m ml-2 text-center">
+                            {`${dateObject.format("LT LL")}`}
+                        </h1>
+                        <h1 className="text-center mt-8 text-sm">{`$${ticket.price.toString()}`}</h1>
+                        <Link
+                            className="text-center text-sm underline"
+                            href={ticket.link}
+                        >
+                            <p className="text-m ml-2 text-center">
+                                Get tickets
+                            </p>
+                        </Link>
+                    </section>
+                </div>
+            </div>
+            <div className="flex-1 basis-1/4 bg-blue-500"></div>
         </main>
     );
 };

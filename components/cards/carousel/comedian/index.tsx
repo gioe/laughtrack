@@ -16,7 +16,9 @@ const ComedianCarouselCard: React.FC<ComedianCarouselCardProps> = ({
     return (
         <div
             className="flex flex-col 
-        items-center p-5 gap-8 bg-locust rounded-3xl hover:scale-105 transform transition duration-300 ease-out"
+        items-center p-5 gap-8 bg-locust rounded-3xl
+        hover:scale-105 transform transition 
+        duration-300 ease-out"
         >
             <ComedianHeadshot priority comedian={parsedEntity} />
             <div className="flex flex-col gap-1 w-full">
