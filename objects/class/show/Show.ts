@@ -22,17 +22,18 @@ export class Show implements ShowInterface {
     bannerImageUrl: string;
     cardImageUrl: string;
     containedEntities: Entity[]
+    lineup: Comedian[]
     isFavorite: boolean;
     lastScrapedDate?: Date;
     description?: string;
 
     // Constructor
     constructor(input: ShowDTO) {
-        console.log(input)
         this.name = this.normalizeName(input.name);
         this.date = input.date;
         this.socialData = input.social_data !== undefined ? new SocialData(input.social_data) : undefined;
         this.containedEntities = input.lineup ? input.lineup.map((item: ComedianDTO) => new Comedian(item)) : []
+        this.lineup = input.lineup ? input.lineup.map((item: ComedianDTO) => new Comedian(item)) : []
         this.clubName = input.club_name;
         this.ticket = new Ticket(input.ticket)
         this.tagIds = input.tags ? input.tags : [];

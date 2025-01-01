@@ -1,3 +1,5 @@
+import moment from "moment";
+
 export function isToday(date: Date) {
     const today = new Date();
     return date.getDate() === today.getDate() &&
@@ -26,6 +28,16 @@ export function datesAreToday(date1: Date, date2: Date) {
 
 export function datesAreTomorrow(date1: Date, date2: Date) {
     return datesAreSame(date1, date2) && isTomorrow(date1)
-
 }
 
+export function dateWithOrdinalFromMoment(moment: moment.Moment) {
+    return moment.format('Do');
+}
+
+export function monthFromMoment(moment: moment.Moment) {
+    return moment.format('MMM');
+}
+
+export function timeFromMoment(moment: moment.Moment) {
+    return moment.format('h:mm A');
+}

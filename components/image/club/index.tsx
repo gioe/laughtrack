@@ -17,7 +17,7 @@ const marqueeConfig = {
 
     // Sizes
     s: "size-12",
-    m: "size-24",
+    m: "size-20",
     l: "size-40",
     xl: "size-52",
 };
