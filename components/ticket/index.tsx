@@ -1,21 +1,29 @@
 "use client";
 
-import Link from "next/link";
 import { Ticket } from "../../objects/class/ticket/Ticket";
+import { FullRoundedButton } from "../button/rounded/full";
+import { useRouter } from "next/navigation";
 
 interface TicketDetailProps {
     ticket: Ticket;
 }
 
 const TicketDetail = ({ ticket }: TicketDetailProps) => {
+    const router = useRouter();
+
+    const linkToTicketPurchase = (url: string) => {
+        router.push(url);
+    };
+
     return (
-        <div>
-            <h1 className="text-center text-m text-pine-tree font-fjalla">{`$${ticket.price.toString()}`}</h1>
-            <Link className="text-sm text-center underline" href={ticket.link}>
-                <p className="font-fjalla text-copper text-center">
-                    Get tickets
-                </p>
-            </Link>
+        <div className="flex flex-col items-center gap-3">
+            <h1 className="text-center text-xl text-pine-tree font-fjalla">{`$${ticket.price.toString()}`}</h1>
+            <FullRoundedButton
+                label="Buy tickets"
+                handleClick={() => {
+                    linkToTicketPurchase(ticket.link);
+                }}
+            />
         </div>
     );
 };

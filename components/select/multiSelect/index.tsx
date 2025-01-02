@@ -37,9 +37,9 @@ export const MultiSelectComponent: React.FC<MultiSelectComponentProps> = ({
                             <DisclosureButton
                                 className="group flex w-full items-center
          justify-between bg-ivory px-2 py-3
-          text-champagne hover:text-gray-500"
+          text-copper hover:text-gray-500"
                             >
-                                <span className="font-medium text-white">
+                                <span className="font-medium text-copper">
                                     {section.displayName}
                                 </span>
                                 <span className="ml-6 flex items-center">
@@ -73,11 +73,11 @@ export const MultiSelectComponent: React.FC<MultiSelectComponentProps> = ({
                                             id={`filter-mobile-${section.id}-${optionIdx}`}
                                             name={`${section.id}[]`}
                                             type="checkbox"
-                                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                            className="h-4 w-4 rounded border-gray-300 text-copper focus:ring-copper"
                                         />
                                         <label
                                             htmlFor={`filter-mobile-${section.id}-${optionIdx}`}
-                                            className="ml-3 min-w-0 flex-1 text-silver-gray"
+                                            className="ml-3 min-w-0 flex-1 text-copper"
                                         >
                                             {option.displayName}
                                         </label>

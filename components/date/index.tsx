@@ -12,10 +12,10 @@ interface DateMarqueeProps {
 const DateMarquee = ({ date }: DateMarqueeProps) => {
     return (
         <div className="flex flex-col">
-            <h1 className="font-fjalla text-copper text-3xl text-center">
+            <h1 className="font-fjalla text-copper text-2xl text-center">
                 {`${monthFromMoment(date)}`}
             </h1>
-            <h1 className="font-fjalla text-copper text-3xl text-center">
+            <h1 className="font-fjalla text-copper text-2xl text-center">
                 {`${dateWithOrdinalFromMoment(date)}`}
             </h1>
         </div>

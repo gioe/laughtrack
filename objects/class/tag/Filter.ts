@@ -15,12 +15,12 @@ export class Filter implements SelectionSection {
     // Constructor
     constructor(input: TagDataDTO, param: string | null) {
         this.id = input.id
-        this.type = input.type
-        this.displayName = input.display_name
-        this.value = input.value
-        this.options = input.options.map((option: TagOptionDTO) => {
+        this.type = input.type ?? EntityType.Show
+        this.displayName = input.display_name ?? ""
+        this.value = input.value ?? ""
+        this.options = input.options?.map((option: TagOptionDTO) => {
             return new Tag(option, param?.includes(option.value))
-        }).sort((a, b) => a.id > b.id ? 1 : -1)
+        }).sort((a, b) => a.id > b.id ? 1 : -1) ?? []
     }
 
     setSelected(optionId: number) {

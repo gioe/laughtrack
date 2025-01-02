@@ -6,7 +6,6 @@ import moment from "moment";
 import ClubMarquee from "../../image/club";
 import { timeFromMoment } from "../../../util/dateUtil";
 import LineupGrid from "../../grid/lineup";
-import MarqueeTitle from "../../marquee/title";
 import TicketDetail from "../../ticket";
 import DateMarquee from "../../date";
 
@@ -22,34 +21,55 @@ const ShowCard: React.FC<ShowCardProps> = ({ show }) => {
     const lineup = show.lineup;
 
     return (
-        <main className="flex flex-col lg:flex-row bg-locust rounded-3xl m-2">
+        <main
+            className="flex flex-col md:flex-row md:items-stretch bg-locust 
+        rounded-3xl"
+        >
             <div
-                className="flex flex-row lg:flex-col gap-4 relative top-0 left-0
-             translate-x-2 translate-y-2 rounded-3x lg:w-20"
+                className="flex flex-row md:flex-col m-2 gap-2 top-0 left-0
+             translate-x-1 translate-y-1 rounded-3x basis-1/6"
             >
-                <ClubMarquee priority size="s" name={clubName} />
-                <DateMarquee date={dateObject} />
-            </div>
-            {lineup.length > 0 && (
-                <section
-                    className="flex flex-col items-center p-6
-                gap-4 bg-red-100"
+                <div
+                    className="hover:z-9 hover:scale-105 rounded-2xl transform 
+                    transition duration-300 ease-outsize-16"
                 >
-                    <MarqueeTitle name={clubName} />
-                    <LineupGrid lineup={lineup} />
-                </section>
-            )}
-            <section className="p-6 flex flex-col bg-brown-400 gap-2">
-                <h1 className="text-m text-center text-copper font-fjalla">{`${showName}`}</h1>
-
-                {show.description && (
-                    <h1 className="text-m text-center">{`${show.description}`}</h1>
+                    <ClubMarquee priority size="s" name={clubName} />
+                </div>
+                <div className="size-16 rounded-2xl mb-2">
+                    <DateMarquee date={dateObject} />
+                </div>
+            </div>
+            <div className="flex flex-col gap-2 m-3 basis-1/2">
+                {lineup.length > 0 && (
+                    <div
+                        className="flex flex-col items-center m-3
+                gap-4"
+                    >
+                        <h3
+                            className="font-bebas font-semibold
+        text-pine-tree text-3xl"
+                        >
+                            Featuring:
+                        </h3>
+                        <div>
+                            <LineupGrid lineup={lineup} />
+                        </div>
+                    </div>
                 )}
-                <h1 className="font-fjalla text-copper text-2xl text-center">
-                    {`${timeFromMoment(dateObject)}`}
-                </h1>
-                <TicketDetail ticket={ticket} />
-            </section>
+                <div className="flex flex-col gap-2 m-3">
+                    <h1 className="text-2xl text-center text-copper font-fjalla">{`${showName}`}</h1>
+
+                    {show.description && (
+                        <h1 className="text-m text-center">{`${show.description}`}</h1>
+                    )}
+                    <h1 className="font-fjalla text-copper text-2xl text-center">
+                        {`${timeFromMoment(dateObject)}`}
+                    </h1>
+                    <div>
+                        <TicketDetail ticket={ticket} />
+                    </div>
+                </div>
+            </div>
         </main>
     );
 };
