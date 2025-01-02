@@ -32,7 +32,7 @@ export default async function HomePage() {
             </section>
             <section className="bg-ivory px-4">
                 <h3 className="font-bebas font-semibold text-copper pb-3 text-2xl">
-                    Featuring
+                    Trending
                 </h3>
                 <div>
                     <TrendingComedianCarousel comedians={response.comedians} />
@@ -40,7 +40,7 @@ export default async function HomePage() {
             </section>
             <section className="bg-ivory px-4">
                 <h3 className="font-bebas font-semibold text-copper pb-1 text-2xl">
-                    Trending
+                    Popular Clubs
                 </h3>
                 <div>
                     <TrendingClubsCarousel clubs={response.clubs} />

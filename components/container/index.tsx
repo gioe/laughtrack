@@ -4,30 +4,26 @@ import { useState } from "react";
 import { DrawerComponent } from "../drawer";
 import { PageParamComponent } from "../params/page";
 import { SortParamComponent } from "../params/sort";
-import ShowCard from "../cards/show";
 import { Entity } from "../../objects/interface";
-import { Show } from "../../objects/class/show/Show";
-import CarouselCard from "../cards/carousel/comedian";
 import Table from "../table";
 import QueryParamComponent from "../params/query";
-import { EntityType } from "../../objects/enum";
 import { FilterParamComponent } from "../params/filter";
 import { useDataProvider } from "../../contexts/EntityPageDataProvider";
-import { usePageContext } from "../../contexts/PageEntityProvider";
 import { FunnelButton } from "../button/funnel";
 
 interface QueryableEntityTableContainerProps {
     entityCollectionString: string;
     defaultNode: React.ReactNode;
     totalEntities: number;
+    cardRenderFunction: (entity: Entity) => JSX.Element;
 }
 
 export default function QueryableEntityTableContainer({
     entityCollectionString,
     defaultNode,
     totalEntities,
+    cardRenderFunction,
 }: QueryableEntityTableContainerProps) {
-    const { primaryEntity, secondaryEntity } = usePageContext();
     const { filters } = useDataProvider();
 
     const filteredEntityCollection = JSON.parse(
@@ -38,25 +34,6 @@ export default function QueryableEntityTableContainer({
 
     const handleButtonClick = (isOpen: boolean) => {
         setSideDrawerIsOpen(isOpen);
-    };
-
-    const renderFunction = (entity: Entity) => {
-        switch (secondaryEntity) {
-            case EntityType.Show:
-                return (
-                    <ShowCard
-                        key={`${entity.name}-${entity.id}`}
-                        show={entity as Show}
-                    />
-                );
-            default:
-                return (
-                    <CarouselCard
-                        key={entity.name}
-                        entity={JSON.stringify(entity)}
-                    />
-                );
-        }
     };
 
     return (
@@ -83,7 +60,7 @@ export default function QueryableEntityTableContainer({
                     keyExtractor={(item) => item.id.toString()}
                     data={filteredEntityCollection}
                     defaultNode={defaultNode}
-                    renderItem={renderFunction}
+                    renderItem={cardRenderFunction}
                 />
             </section>
         </main>

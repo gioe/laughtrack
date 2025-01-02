@@ -1,4 +1,4 @@
-"use server";
+"use client";
 
 import { Comedian } from "../../../objects/class/comedian/Comedian";
 import ComedianHeadshot from "../../image/comedian";
@@ -8,12 +8,12 @@ interface LineupGridProps {
 }
 const LineupGrid = ({ lineup }: LineupGridProps) => {
     return (
-        <div className="flex flex-row gap-4 bg-black">
+        <div className="grid grid-cols-5 gap-x-2 gap-y-2">
             {lineup.map((comedian: Comedian) => (
                 <div
                     key={comedian.id.toString()}
                     className="hover:z-9 hover:scale-105 transform transition
-duration-300 ease-out bg-blue-800 grid grid-cols-5 space-x-10"
+duration-300 ease-out"
                 >
                     <div className="flex flex-col items-center">
                         <ComedianHeadshot

@@ -1,9 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
+import ShowCard from "../../../../../components/cards/show";
 import QueryableEntityTableContainer from "../../../../../components/container";
 import { SearchParamsHelper } from "../../../../../objects/class/params/SearchParamsHelper";
+import { Show } from "../../../../../objects/class/show/Show";
 import { RoutePath } from "../../../../../objects/enum";
+import { Entity } from "../../../../../objects/interface";
 import { executeGet } from "../../../../../util/actions/executeGet";
 import { CACHE } from "../../../../../util/constants/cacheConstants";
 import { ShowSearchResponse } from "./interface";
@@ -20,11 +23,22 @@ export default async function ShowSearchPage(props: any) {
     )) as ShowSearchResponse;
 
     const entityCollectionString = JSON.stringify(data.entities);
+
+    const renderFunction = (entity: Entity) => {
+        return (
+            <ShowCard
+                key={`${entity.name}-${entity.id}`}
+                show={entity as Show}
+            />
+        );
+    };
+
     return (
         <main className="flex-grow pt-24 bg-ivory">
             <QueryableEntityTableContainer
                 totalEntities={data.total}
                 entityCollectionString={entityCollectionString}
+                cardRenderFunction={renderFunction}
                 defaultNode={
                     <h2 className="font-bold text-5xl w-maxtext-white pt-6">
                         No upcoming shows. Check back later.

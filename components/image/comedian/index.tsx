@@ -18,7 +18,7 @@ const avatarConfig = {
     // Sizes
     xs: "size-12",
     s: "size-16",
-    m: "size-24",
+    m: "size-20",
     l: "size-40",
     xl: "size-52",
 };
@@ -26,6 +26,7 @@ const avatarConfig = {
 interface ComedianHeadshotProps {
     comedian: Comedian;
     priority: boolean;
+    tooltip?: boolean;
     type?: string;
     size?: string;
     quality?: string;
@@ -33,6 +34,7 @@ interface ComedianHeadshotProps {
 
 const ComedianHeadshot = ({
     comedian,
+    tooltip = true,
     type = "rounded",
     size = "l",
 }: ComedianHeadshotProps) => {
@@ -45,7 +47,7 @@ const ComedianHeadshot = ({
         setSrc(`/images/logo.png`);
     };
 
-    return (
+    return tooltip ? (
         <Tooltip key={comedian.name} content={comedian.name}>
             <div
                 className={`
@@ -64,6 +66,23 @@ const ComedianHeadshot = ({
                 </Link>
             </div>
         </Tooltip>
+    ) : (
+        <div
+            className={`
+                 relative inline-block hover:cursor-pointer object-cover object-center ${avatarConfig[size]}`}
+        >
+            <Link href={destination}>
+                <Image
+                    fill
+                    src={src}
+                    alt={comedian.name}
+                    onError={onError}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    priority
+                    style={avatarConfig[type]}
+                />
+            </Link>
+        </div>
     );
 };
 

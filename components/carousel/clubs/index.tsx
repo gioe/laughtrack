@@ -6,6 +6,7 @@ import { ClubActivityDTO } from "../../../objects/class/club/club.interface";
 interface TrendingClubsCarouselProps {
     clubs: ClubActivityDTO[];
 }
+
 const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
     return (
         <div className="max-w-full flex flex-col lg:grid lg:grid-rows-2 lg:grid-cols-3 overflow-scroll gap-x-6 gap-y-6 p-4">

@@ -38,8 +38,6 @@ export interface ClubActivityDTO {
     count: number
 }
 
-
-
 export interface PaginatedClubResponseDTO {
     response: {
         data: ClubDTO[],

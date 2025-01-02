@@ -29,7 +29,7 @@ export default function ShowSearchFormBody({
                 />
             </div>
 
-            <div className="h-20">
+            <div className="h-20 hover:cursor-pointer">
                 <CalendarFormComponent name="dates" form={form} />
             </div>
             <div className="h-10 mt-1">
