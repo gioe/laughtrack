@@ -22,17 +22,12 @@ const ShowCard: React.FC<ShowCardProps> = ({ show }) => {
     const lineup = show.lineup;
 
     return (
-        <main className="flex flex-col lg:flex-row bg-locust rounded-3xl">
+        <main className="flex flex-col lg:flex-row bg-locust rounded-3xl m-2">
             <div
-                className="relative top-0 left-0
+                className="flex flex-row lg:flex-col gap-4 relative top-0 left-0
              translate-x-2 translate-y-2 rounded-3x lg:w-20"
             >
                 <ClubMarquee priority size="s" name={clubName} />
-            </div>
-            <div
-                className="flex flex-col items-center 
-            justify-center bg-blue-gray-700"
-            >
                 <DateMarquee date={dateObject} />
             </div>
             {lineup.length > 0 && (
