@@ -1,10 +1,10 @@
 WITH all_data AS (
 	SELECT
 		tc.id,
-		tc.display_name,
+		tc.display,
 		tc.value,
 		tc.type,
-		jsonb_agg(json_build_object('id', t.id, 'display_name', t.display_name, 'value', t.value)) AS options
+		jsonb_agg(json_build_object('id', t.id, 'display', t.display, 'value', t.value)) AS options
 	FROM
 		tags t
 		JOIN tag_category tc ON t.category = tc.id
@@ -16,7 +16,7 @@ SELECT
 FROM
 	all_data
 GROUP BY
-	all_data.display_name,
+	all_data.display,
 	all_data.id,
 	all_data.options,
 	all_data.type,

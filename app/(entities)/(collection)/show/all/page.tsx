@@ -2,14 +2,13 @@
 "use server";
 
 import { SearchParamsHelper } from "../../../../../objects/class/params/SearchParamsHelper";
-import { EntityType, RoutePath } from "../../../../../objects/enum";
+import { RoutePath } from "../../../../../objects/enum";
 import { executeGet } from "../../../../../util/actions/executeGet";
 import { ShowSearchResponse } from "./interface";
 import TableFilterBar from "../../../../../components/filter";
 import ShowCard from "../../../../../components/cards/show";
 import { Show } from "../../../../../objects/class/show/Show";
-import { Filter } from "../../../../../objects/class/tag/Filter";
-import { TagDataDTO } from "../../../../../objects/interface/tag.interface";
+import { GetTagsResponse } from "../../../../api/tag/route";
 
 export default async function ShowSearchPage(props: any) {
     const paramsWrapper = await SearchParamsHelper.storePageParams(
@@ -20,15 +19,11 @@ export default async function ShowSearchPage(props: any) {
         RoutePath.ShowSearch,
         paramsWrapper.asUrlSearchParams(),
     )) as ShowSearchResponse;
-    const filterResponse = await executeGet<any>(`/api/tag`).then(
+
+    const filterResponse = await executeGet<GetTagsResponse>(`/api/tag`).then(
         (response) => {
-            if (data) {
-                console.log(response);
-                return response.containers
-                    .map((dto: TagDataDTO) => {
-                        return new Filter(dto, null);
-                    })
-                    .filter((filter: Filter) => filter.type == EntityType.Show);
+            if (response) {
+                return response.containers;
             }
         },
     );
@@ -37,7 +32,7 @@ export default async function ShowSearchPage(props: any) {
         <main className="flex-grow pt-24 bg-ivory">
             <section>
                 <TableFilterBar
-                    totalItems={data.entities.length}
+                    totalItems={data.total}
                     filtersString={JSON.stringify(filterResponse)}
                 />
             </section>

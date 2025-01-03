@@ -24,7 +24,7 @@ export default function QueryableEntityTableContainer({
     return (
         <main className="mx-auto px-10 flex-item items-end justify-end">
             <section>
-                <TableFilterBar totalItems={totalEntities} />
+                <TableFilterBar totalItems={totalEntities} filtersString="" />
             </section>
             <section>
                 <Table

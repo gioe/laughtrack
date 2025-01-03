@@ -40,7 +40,7 @@ export const MultiSelectComponent: React.FC<MultiSelectComponentProps> = ({
           text-copper hover:text-gray-500"
                             >
                                 <span className="font-medium text-copper">
-                                    {section.displayName}
+                                    {section.display}
                                 </span>
                                 <span className="ml-6 flex items-center">
                                     <PlusIcon
@@ -79,7 +79,7 @@ export const MultiSelectComponent: React.FC<MultiSelectComponentProps> = ({
                                             htmlFor={`filter-mobile-${section.id}-${optionIdx}`}
                                             className="ml-3 min-w-0 flex-1 text-copper"
                                         >
-                                            {option.displayName}
+                                            {option.display}
                                         </label>
                                     </div>
                                 ))}

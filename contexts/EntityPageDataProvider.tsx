@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useContext, createContext } from "react";
 import axios from "axios";
-import { Filter } from "../objects/class/tag/Filter";
-import { TagDataDTO } from "../objects/interface/tag.interface";
+import { Filter } from "../objects/class/filter/Filter";
+import { TagDataDTO } from "../objects/interface/filter.interface";
 import { useSearchParams } from "next/navigation";
 import { SortOptionInterface } from "../objects/interface";
 import { getSortOptionsForEntityType } from "../util/sort";

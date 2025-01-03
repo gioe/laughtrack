@@ -21,7 +21,7 @@ const ClubCarouselCard: React.FC<ClubCarouselCardProps> = ({ club }) => {
                     {club.name}
                 </h1>
 
-                {club.count && (
+                {club.count > 0 && (
                     <h1 className="text-pine-tree font-fjalla w-full text-center text-m">{`${club.count ?? 0} active comedians`}</h1>
                 )}
             </div>

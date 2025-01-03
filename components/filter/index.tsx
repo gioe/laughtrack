@@ -8,8 +8,6 @@ import { FunnelButton } from "../button/funnel";
 import QueryParamComponent from "../params/query";
 import { DrawerComponent } from "../drawer";
 import { FilterParamComponent } from "../params/filter";
-import { Filter } from "../../objects/class/tag/Filter";
-
 interface TableFilterBarProps {
     totalItems: number;
     filtersString: string;
@@ -19,7 +17,8 @@ const TableFilterBar: React.FC<TableFilterBarProps> = ({
     totalItems,
     filtersString,
 }) => {
-    const filters = JSON.parse(filtersString) as Filter[];
+    const filterCount = JSON.parse(filtersString).length;
+
     const [sideDrawerIsOpen, setSideDrawerIsOpen] = useState(false);
 
     const handleButtonClick = (isOpen: boolean) => {
@@ -30,7 +29,7 @@ const TableFilterBar: React.FC<TableFilterBarProps> = ({
         <div>
             <DrawerComponent
                 isOpen={sideDrawerIsOpen}
-                child={<FilterParamComponent filters={filters} />}
+                child={<FilterParamComponent filtersString={filtersString} />}
                 handleOpen={handleButtonClick}
             />
             <div className="flex items-center gap-2 flex-row-reverse">
@@ -40,7 +39,7 @@ const TableFilterBar: React.FC<TableFilterBarProps> = ({
                     />
                     <SortParamComponent />
                     <PageParamComponent itemCount={totalItems} />
-                    {filters.length > 0 && (
+                    {filterCount > 0 && (
                         <FunnelButton handleClick={handleButtonClick} />
                     )}
                 </div>

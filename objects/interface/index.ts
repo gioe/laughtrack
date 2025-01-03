@@ -13,8 +13,10 @@ import {
 } from "./paginatedEntity.interface";
 import { SortOptionInterface } from "./sortOption.interface";
 import {
-    TagInterface,
-} from "./tag.interface";
+    FilterInterface,
+    FilterDataDTO,
+    FilterOptionDTO
+} from "./filter.interface";
 import { Taggable } from "./taggable.interface";
 import { AuthToken } from "./token.interface";
 import { UserInterface, UserDTO } from "./user.interface";
@@ -27,7 +29,9 @@ export type {
     ModalState,
     Paginated,
     SortOptionInterface,
-    TagInterface,
+    FilterInterface,
+    FilterDataDTO,
+    FilterOptionDTO,
     Taggable,
     AuthToken,
     UserInterface,

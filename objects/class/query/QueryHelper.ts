@@ -1,7 +1,7 @@
 import { ParamsDictValue, SearchParamsHelper } from "../params/SearchParamsHelper";
 import { allQueryProperties, DEFAULT_ERROR, QueryProperty } from "../../enum/queryProperty";
 import { DynamicRoute } from "../../interface/identifable.interface";
-import { TagDataDTO } from "../../interface/tag.interface";
+import { TagDataDTO } from "../../interface/filter.interface";
 
 // This class is meant to capture all of the page parameters that Next provides us with.
 // These are relevant for DB querying and their existence persists across all pages so we capture it

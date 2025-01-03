@@ -1,6 +1,6 @@
 export interface Selectable {
     id: number;
-    displayName: string;
+    display: string;
     value: string;
     selected?: boolean;
     select?: () => void;

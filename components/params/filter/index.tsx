@@ -4,22 +4,30 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Navigator } from "../../../objects/class/navigate/Navigator";
 import { SearchParamsHelper } from "../../../objects/class/params/SearchParamsHelper";
 import { MultiSelectComponent } from "../../select/multiSelect";
-import { Filter } from "../../../objects/class/tag/Filter";
+import { Filter } from "../../../objects/class/filter/Filter";
+import { EntityType } from "../../../objects/enum";
+import { FilterDataDTO } from "../../../objects/interface";
 
 interface FilterParamComponentProps {
-    filters: Filter[];
+    filtersString: string;
 }
 export const FilterParamComponent: React.FC<FilterParamComponentProps> = ({
-    filters,
+    filtersString,
 }) => {
     const paramsHelper = new SearchParamsHelper(useSearchParams());
     const navigator = new Navigator(usePathname(), useRouter());
+    console.log(paramsHelper);
+    const filters = JSON.parse(filtersString)
+        .map((dto: FilterDataDTO) => new Filter(dto, paramsHelper))
+        .filter((filter: Filter) => filter.type == EntityType.Show);
 
     const appendParam = (param: string, value: number) => {
-        const container = filters.find((container) => container.value == param);
+        const container = filters.find(
+            (container: Filter) => container.value == param,
+        );
 
         if (container) {
-            container.setSelected(value);
+            container.handleSelection(value);
             paramsHelper.setParamValue(param, container.asParamValue());
             navigator.replaceRoute(paramsHelper.asParamsString());
         } else {

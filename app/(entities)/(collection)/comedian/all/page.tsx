@@ -5,6 +5,7 @@ import { SearchParamsHelper } from "../../../../../objects/class/params/SearchPa
 import { RoutePath } from "../../../../../objects/enum";
 import { executeGet } from "../../../../../util/actions/executeGet";
 import { CACHE } from "../../../../../util/constants/cacheConstants";
+import { GetTagsResponse } from "../../../../api/tag/route";
 import { ComedianSearchResponse } from "./interface";
 
 export default async function ComedianSearchPage(props: any) {
@@ -18,10 +19,21 @@ export default async function ComedianSearchPage(props: any) {
         CACHE.search,
     )) as ComedianSearchResponse;
 
+    const filterResponse = await executeGet<GetTagsResponse>(`/api/tag`).then(
+        (response) => {
+            if (response) {
+                return response.containers;
+            }
+        },
+    );
+
     return (
         <main className="flex-grow pt-24 bg-ivory">
             <section>
-                <TableFilterBar totalItems={data.entities.length} />
+                <TableFilterBar
+                    totalItems={data.total}
+                    filtersString={JSON.stringify(filterResponse)}
+                />
             </section>
             <section className="grid grid-cols-1 gap-y-10">
                 {data.entities.length > 0 ? (

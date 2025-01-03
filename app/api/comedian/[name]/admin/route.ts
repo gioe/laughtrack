@@ -17,8 +17,6 @@ export async function PUT(request: NextRequest, { params }) {
     const slug = await params
     const body = await request.json()
 
-    console.log(body)
-
     return database.actions.updateComedian(slug, body)
         .then((data: any) => NextResponse.json({ data }, { status: 200 }))
         .catch((error: Error) => {

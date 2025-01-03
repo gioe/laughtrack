@@ -40,7 +40,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     };
 
                 } catch (e) {
-                    console.log(`THE ERROR LOOkS LIKE ${e}`);
                     console.error(e);
                     return null;
                 }

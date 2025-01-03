@@ -48,7 +48,6 @@ export default function EditComedianForm({ comedian }: EditComedianFormProps) {
     });
 
     const submitForm = (data: z.infer<typeof editComedianSchema>) => {
-        console.log(data);
         setIsLoading(true);
         axios
             .put(`/api/comedian/${comedian.name}/admin`, {

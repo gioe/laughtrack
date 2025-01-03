@@ -9,7 +9,7 @@ export default async function FavoriteComediansPage() {
     return (
         <main className="flex-grow pt-24 bg-ivory">
             <section>
-                <TableFilterBar totalItems={0} />
+                <TableFilterBar totalItems={0} filtersString="" />
             </section>
             <section className="grid grid-cols-1 gap-y-10">
                 {/* {data.entities.length > 0 ? (

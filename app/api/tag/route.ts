@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { getDB } from '../../../database'
-import { TagDataDTO } from "../../../objects/interface/tag.interface";
+import { TagDataDTO } from "../../../objects/interface/filter.interface";
 const { database } = getDB();
+
+export interface GetTagsResponse {
+    containers: TagDataDTO[]
+}
 
 export async function GET() {
     return database.queries.getTags()

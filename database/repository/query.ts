@@ -5,7 +5,7 @@ import { queryMap } from '../sql';
 import { Club } from '../../objects/class/club/Club';
 import { ClubDTO } from '../../objects/class/club/club.interface';
 import { CityDTO } from '../../objects/class/city/city.interface';
-import { TagDataDTO } from '../../objects/interface/tag.interface';
+import { TagDataDTO } from '../../objects/interface/filter.interface';
 import { EntityType } from '../../objects/enum';
 import { ComedianDTO } from '../../objects/class/comedian/comedian.interface';
 
