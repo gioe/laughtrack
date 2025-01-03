@@ -9,7 +9,6 @@ import { Club } from '../../objects/class/club/Club';
 import { ClubDTO } from '../../objects/class/club/club.interface';
 import { ShowDTO } from '../../objects/class/show/show.interface';
 import { Show } from '../../objects/class/show/Show';
-import { ShowDetailDTO, ShowDetailPageData } from '../../app/(entities)/(detail)/show/[name]/interface';
 import { ComedianDetailDTO, ComedianDetailPageData } from '../../app/(entities)/(detail)/comedian/[name]/interface';
 import { ClubSearchData, ClubSearchDTO } from '../../app/(entities)/(collection)/club/all/interface';
 import { ComedianSearchData, ComedianSearchDTO } from '../../app/(entities)/(collection)/comedian/all/interface';
@@ -86,16 +85,6 @@ export class PageDataRepository {
             }
         })
     }
-
-    async getShowDetailPageData(filters: any): Promise<ShowDetailPageData> {
-        return this.db.one(pageDataMap.showDetail, filters).then((data: ShowDetailDTO) => {
-            return {
-                entity: new Show(data.response.data),
-                total: data.response.total
-            }
-        })
-    }
-
 
     async getEditComedianDetailPageData(route: DynamicRoute): Promise<EditComedianPageData> {
         return this.db.one(pageDataMap.editComedian, {

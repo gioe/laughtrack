@@ -23,6 +23,14 @@ export class SearchParamsHelper {
         }
     }
 
+    setParamValue(key: URLParam, value: ParamsDictValue) {
+        if (paramValueIsEmpty(value)) {
+            this.paramsDict.delete(key)
+        } else {
+            this.paramsDict.set(key, value)
+        }
+    }
+
     asUrlSearchParams() {
         return new URLSearchParams(this.asParamsString())
     }
@@ -30,14 +38,6 @@ export class SearchParamsHelper {
     updateParamsFromMap(map: ParamsDict) {
         for (const [key, value] of map.entries()) {
             this.setParamValue(key, value)
-        }
-    }
-
-    setParamValue(key: URLParam, value: ParamsDictValue) {
-        if (paramValueIsEmpty(value)) {
-            this.paramsDict.delete(key)
-        } else {
-            this.paramsDict.set(key, value)
         }
     }
 

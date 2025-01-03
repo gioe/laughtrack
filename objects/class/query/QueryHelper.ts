@@ -1,7 +1,7 @@
 import { ParamsDictValue, SearchParamsHelper } from "../params/SearchParamsHelper";
 import { allQueryProperties, DEFAULT_ERROR, QueryProperty } from "../../enum/queryProperty";
 import { DynamicRoute } from "../../interface/identifable.interface";
-import { TagDataDTO } from "../../interface/filter.interface";
+import { FilterDataDTO } from "../../interface/filter.interface";
 
 // This class is meant to capture all of the page parameters that Next provides us with.
 // These are relevant for DB querying and their existence persists across all pages so we capture it
@@ -44,9 +44,15 @@ export class QueryHelper {
 
 
     getTags() {
+
         const tagValues = this.filterValues.flatMap((value: string) => {
+            const paramVal = this.searchParamsHelper.getParamValue(value)
+            if (typeof paramVal === 'string') {
+                return paramVal.split(",")
+            }
             return this.searchParamsHelper.getParamValue(value)
         }).filter((value: string) => value !== DEFAULT_ERROR)
+
         const tagsEmpty = tagValues.length == 0
         return {
             tagsEmpty,
@@ -96,8 +102,8 @@ export class QueryHelper {
         return {}
     }
 
-    static async storePageParams(searchParams: URLSearchParams, tags?: TagDataDTO[], identifier?: DynamicRoute) {
-        const filterValues = tags ? tags.map((dto: TagDataDTO) => dto.value) : [];
+    static async storePageParams(searchParams: URLSearchParams, tags?: FilterDataDTO[], identifier?: DynamicRoute) {
+        const filterValues = tags ? tags.map((dto: FilterDataDTO) => dto.value) : [];
         const searchParamsHelper = new SearchParamsHelper(searchParams)
         return new QueryHelper(searchParamsHelper, filterValues, identifier)
     }

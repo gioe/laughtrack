@@ -1,6 +1,6 @@
 WITH filtered_data AS (
 	SELECT
-		s.id AS id,
+		distinct s.id AS id,
 		s.name AS name,
 		s.last_scraped_date AS scrapedate,
 		s.date AS date,

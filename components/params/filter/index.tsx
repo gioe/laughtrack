@@ -16,12 +16,12 @@ export const FilterParamComponent: React.FC<FilterParamComponentProps> = ({
 }) => {
     const paramsHelper = new SearchParamsHelper(useSearchParams());
     const navigator = new Navigator(usePathname(), useRouter());
-    console.log(paramsHelper);
+
     const filters = JSON.parse(filtersString)
         .map((dto: FilterDataDTO) => new Filter(dto, paramsHelper))
         .filter((filter: Filter) => filter.type == EntityType.Show);
 
-    const appendParam = (param: string, value: number) => {
+    const adjustParam = (param: string, value: number) => {
         const container = filters.find(
             (container: Filter) => container.value == param,
         );
@@ -41,7 +41,7 @@ export const FilterParamComponent: React.FC<FilterParamComponentProps> = ({
         <div className="mt-4 border-t border-gray-200">
             <MultiSelectComponent
                 sections={filters}
-                handleValueChange={appendParam}
+                handleValueChange={adjustParam}
             />
         </div>
     );

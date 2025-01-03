@@ -5,7 +5,7 @@ import { queryMap } from '../sql';
 import { Club } from '../../objects/class/club/Club';
 import { ClubDTO } from '../../objects/class/club/club.interface';
 import { CityDTO } from '../../objects/class/city/city.interface';
-import { TagDataDTO } from '../../objects/interface/filter.interface';
+import { FilterDataDTO } from '../../objects/interface/filter.interface';
 import { EntityType } from '../../objects/enum';
 import { ComedianDTO } from '../../objects/class/comedian/comedian.interface';
 
@@ -79,11 +79,11 @@ export class QueryRepository {
         return this.db.oneOrNone('SELECT * FROM users WHERE email = $1', email);
     }
 
-    async getTags(entityTypes?: EntityType[]): Promise<TagDataDTO[]> {
-        return this.db.manyOrNone(queryMap.getTagsAsFilters).then((values: TagDataDTO[]) => {
-            return values.filter((value: TagDataDTO) => {
-                if (entityTypes == undefined) return true
-                return value.type ? entityTypes.includes(value.type) : false
+    async getTags(entityType?: EntityType): Promise<FilterDataDTO[]> {
+        return this.db.manyOrNone(queryMap.getTagsAsFilters).then((values: FilterDataDTO[]) => {
+            return values.filter((value: FilterDataDTO) => {
+                if (entityType == undefined) return true
+                return value.type == entityType
             })
         })
     }

@@ -6,5 +6,5 @@ export interface SelectionSection {
     display: string;
     options: Selectable[];
     handleSelection: (option: number) => void
-    asParamValue: () => string[]
+    asParamValue: () => string
 }

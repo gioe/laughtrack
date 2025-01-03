@@ -11,7 +11,7 @@ export async function GET(request: Request, { params }) {
 
     const newURL = new URL(request.url);
     const searchParams = newURL.searchParams
-    const filters = await database.queries.getTags([EntityType.Comedian]);
+    const filters = await database.queries.getTags(EntityType.Comedian);
 
     const helper = await QueryHelper.storePageParams(searchParams, filters, slug);
 

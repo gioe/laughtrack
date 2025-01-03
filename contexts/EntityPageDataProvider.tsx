@@ -3,11 +3,12 @@
 import { useState, useEffect, useContext, createContext } from "react";
 import axios from "axios";
 import { Filter } from "../objects/class/filter/Filter";
-import { TagDataDTO } from "../objects/interface/filter.interface";
+import { FilterDataDTO } from "../objects/interface/filter.interface";
 import { useSearchParams } from "next/navigation";
 import { SortOptionInterface } from "../objects/interface";
 import { getSortOptionsForEntityType } from "../util/sort";
 import { usePageContext } from "./PageEntityProvider";
+import { SearchParamsHelper } from "../objects/class/params/SearchParamsHelper";
 
 interface EntityDataState {
     filters: Filter[];
@@ -27,7 +28,7 @@ export function EntityPageDataProvider({
     children: React.ReactNode;
 }) {
     const { primaryEntity } = usePageContext();
-    const searchParams = useSearchParams();
+    const paramsHelper = new SearchParamsHelper(useSearchParams());
     const [state, setState] = useState<EntityDataState>({
         filters: [],
         sortOptions: getSortOptionsForEntityType(primaryEntity),
@@ -39,12 +40,11 @@ export function EntityPageDataProvider({
             .then((response) => response.data)
             .then((data) => {
                 if (data) {
-                    const filters = data.containers.map((dto: TagDataDTO) => {
-                        return new Filter(
-                            dto,
-                            searchParams.get(dto.value ?? ""),
-                        );
-                    });
+                    const filters = data.containers.map(
+                        (dto: FilterDataDTO) => {
+                            return new Filter(dto, paramsHelper);
+                        },
+                    );
                     setState({
                         ...state,
                         filters: filters,

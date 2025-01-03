@@ -31,13 +31,12 @@ export const MultiSelectComponent: React.FC<MultiSelectComponentProps> = ({
                     <Disclosure
                         key={section.id}
                         as="div"
-                        className="border-t border-gray-200 px-4 py-6"
+                        className="border-t border-copper px-4 py-6"
                     >
                         <h3 className="-mx-2 -my-3 flow-root">
                             <DisclosureButton
-                                className="group flex w-full items-center
-         justify-between bg-ivory px-2 py-3
-          text-copper hover:text-gray-500"
+                                className="group flex w-full items-center justify-between bg-ivory px-2 py-3
+          text-copper hover:text-copper"
                             >
                                 <span className="font-medium text-copper">
                                     {section.display}
@@ -56,33 +55,35 @@ export const MultiSelectComponent: React.FC<MultiSelectComponentProps> = ({
                         </h3>
                         <DisclosurePanel className="pt-6">
                             <div className="space-y-2">
-                                {section.options.map((option, optionIdx) => (
-                                    <div
-                                        key={option.id.toString()}
-                                        className="flex items-center"
-                                    >
-                                        <input
-                                            onClick={() =>
-                                                handleSelect(
-                                                    section.value,
-                                                    option.id,
-                                                )
-                                            }
-                                            defaultValue={option.id}
-                                            defaultChecked={option.selected}
-                                            id={`filter-mobile-${section.id}-${optionIdx}`}
-                                            name={`${section.id}[]`}
-                                            type="checkbox"
-                                            className="h-4 w-4 rounded border-gray-300 text-copper focus:ring-copper"
-                                        />
-                                        <label
-                                            htmlFor={`filter-mobile-${section.id}-${optionIdx}`}
-                                            className="ml-3 min-w-0 flex-1 text-copper"
+                                {section.options
+                                    .sort((a, b) => (a.id > b.id ? 1 : -1))
+                                    .map((option, optionIdx) => (
+                                        <div
+                                            key={option.id.toString()}
+                                            className="flex items-center"
                                         >
-                                            {option.display}
-                                        </label>
-                                    </div>
-                                ))}
+                                            <input
+                                                onClick={() =>
+                                                    handleSelect(
+                                                        section.value,
+                                                        option.id,
+                                                    )
+                                                }
+                                                defaultValue={option.id}
+                                                defaultChecked={option.selected}
+                                                id={`filter-mobile-${section.id}-${optionIdx}`}
+                                                name={`${section.id}[]`}
+                                                type="checkbox"
+                                                className="h-4 w-4 rounded border-gray-300 text-copper focus:ring-copper"
+                                            />
+                                            <label
+                                                htmlFor={`filter-mobile-${section.id}-${optionIdx}`}
+                                                className="ml-3 min-w-0 flex-1 text-copper"
+                                            >
+                                                {option.display}
+                                            </label>
+                                        </div>
+                                    ))}
                             </div>
                         </DisclosurePanel>
                     </Disclosure>

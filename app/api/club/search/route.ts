@@ -8,7 +8,7 @@ const { database } = getDB();
 
 export async function GET(request: Request) {
     const searchParams = new URL(request.url).searchParams
-    const filters = await database.queries.getTags([EntityType.Club]);
+    const filters = await database.queries.getTags(EntityType.Club);
 
     const helper = await QueryHelper.storePageParams(searchParams, filters);
 

@@ -2,7 +2,7 @@ import { EntityType } from "../../enum";
 import { SelectionSection } from "../../interface/selectionSection.interface";
 import { FilterDataDTO, FilterOptionDTO } from "../../interface/filter.interface";
 import { SearchParamsHelper } from "../params/SearchParamsHelper";
-import { FilterOption } from "./FilterOption";
+import { Selectable } from "../../interface";
 
 export class Filter implements SelectionSection {
     // Properties
@@ -10,7 +10,7 @@ export class Filter implements SelectionSection {
     display: string;
     type: EntityType;
     value: string;
-    options: FilterOption[];
+    options: Selectable[];
 
     // Constructor
     constructor(input: FilterDataDTO, helper: SearchParamsHelper) {
@@ -18,20 +18,28 @@ export class Filter implements SelectionSection {
         this.type = input.type
         this.display = input.display
         this.value = input.value
+        const commaSeparatedValue = helper.getParamValue(input.value)
+        this.options = input.options.map((option: FilterOptionDTO) => {
+            return {
+                id: option.id,
+                display: option.display,
+                value: option.value,
+                selected: commaSeparatedValue.includes(option.value)
 
-        this.options = input.options.map((option: FilterOptionDTO) => new FilterOption(option, helper))
-            .sort((a, b) => a.id > b.id ? 1 : -1) ?? []
-
+            } as Selectable
+        })
     }
-    displayName: string;
 
     handleSelection(optionId: number) {
-        this.options = this.options.map(option => option.id == optionId ? { ...option, selected: !option.selected } : option);
+        this.options = this.options.map(option => ({
+            ...option,
+            selected: option.id === optionId ? !option.selected : option.selected
+        }));
     }
 
     asParamValue() {
-        return this.options.filter((value: FilterOption) => value.selected)
-            .map((option: FilterOption) => option.value);
+        return this.options.filter((value: Selectable) => value.selected)
+            .map((option: Selectable) => option.value).join(",");
     }
 
 }

@@ -8,7 +8,7 @@ const { database } = getDB();
 
 export async function GET(request: Request) {
     const searchParams = new URL(request.url).searchParams
-    const filters = await database.queries.getTags([EntityType.Comedian]);
+    const filters = await database.queries.getTags(EntityType.Comedian);
     const helper = await QueryHelper.storePageParams(searchParams, filters);
 
 
