@@ -13,6 +13,15 @@ const config: Config = {
     ],
     theme: {
         extend: {
+            keyframes: {
+                pulse: {
+                    '0%, 100%': { opacity: "1" },
+                    '50%': { opacity: "0.5" },
+                },
+            },
+            animation: {
+                pulse: 'pulse 2s ease-in-out infinite',
+            },
             fontFamily: {
                 sans: ['"PT Sans"', "sans-serif"],
                 bebas: "var(--font-bebas)",

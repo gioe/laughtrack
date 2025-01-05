@@ -36,23 +36,19 @@ active_comedians AS (
                 AND fc.user_id = ${userId}
             )
         END AS is_favorite,
-		        CASE 
-            WHEN ${userId} IS NULL THEN false
-            ELSE EXISTS (
-                SELECT 1 
-                FROM favorite_comedians fc 
-                WHERE fc.comedian_id = c.uuid 
-                AND fc.user_id = ${userId}
-            )
-        END AS is_favorite
+        EXISTS (
+            SELECT 1
+            FROM tagged_comedians tc
+            JOIN tags t ON t.id = tc.tag_id
+            WHERE tc.comedian_id = c.uuid
+            AND t.value = 'alias'
+        ) AS is_alias
     FROM comedians c
     JOIN lineup_items li ON li.comedian_id = c.uuid
     JOIN shows s ON li.show_id = s.id
     WHERE s.date > NOW()
     GROUP BY c.id, c.uuid, c.name
     HAVING COUNT(DISTINCT li.id) > 3
-    ORDER BY RANDOM()
-    LIMIT 10
 )
 SELECT jsonb_build_object(
     'comedians', (
@@ -63,10 +59,14 @@ SELECT jsonb_build_object(
                 'name', name,
                 'social_data', social_data,
                 'is_favorite', is_favorite,
+                'is_alias', is_alias,
                 'show_count', show_count
             )
         )
         FROM active_comedians
+        WHERE NOT is_alias
+        ORDER BY RANDOM()
+        LIMIT 10
     ),
     'cities', (
         SELECT jsonb_agg(

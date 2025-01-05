@@ -14,6 +14,7 @@ export const executeGet = async <T>(
     const headers = {
         "Content-Type": "application/x-www-form-urlencoded",
         "x-auth-token": session?.accessToken ?? "",
+        "user_id": session?.user.id
     };
     const response = await fetch(endpoint, {
         method: "GET",

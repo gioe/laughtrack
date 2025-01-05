@@ -12,10 +12,13 @@ export class QueryHelper {
     identifier?: DynamicRoute
     searchParamsHelper: SearchParamsHelper;
     filterValues: string[]
+    userId?: string | null;
 
     constructor(searchParamsHelper: SearchParamsHelper,
         filterValues: string[],
-        identifier?: DynamicRoute) {
+        identifier?: DynamicRoute,
+        userId?: string | null) {
+        this.userId = userId
         this.identifier = identifier
         this.filterValues = filterValues
         this.searchParamsHelper = searchParamsHelper
@@ -38,10 +41,15 @@ export class QueryHelper {
             // Domain Values,
             ...this.getDomainParams(),
             // Tags.
-            ...this.getTags()
+            ...this.getTags(),
+            // UserId
+            ...this.getUserId()
         }
     }
 
+    getUserId() {
+        return { userId: this.userId }
+    }
 
     getTags() {
 
@@ -102,10 +110,10 @@ export class QueryHelper {
         return {}
     }
 
-    static async storePageParams(searchParams: URLSearchParams, tags?: FilterDataDTO[], identifier?: DynamicRoute) {
+    static async storePageParams(searchParams: URLSearchParams, tags?: FilterDataDTO[], identifier?: DynamicRoute, userId?: string | null) {
         const filterValues = tags ? tags.map((dto: FilterDataDTO) => dto.value) : [];
         const searchParamsHelper = new SearchParamsHelper(searchParams)
-        return new QueryHelper(searchParamsHelper, filterValues, identifier)
+        return new QueryHelper(searchParamsHelper, filterValues, identifier, userId)
     }
 
 }

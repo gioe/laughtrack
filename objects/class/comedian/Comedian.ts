@@ -5,13 +5,12 @@ import {
     isUpperCase,
     isLowerCase
 } from "../../../util/primatives/stringUtil";
-import { Entity, TagInterface } from "../../interface";
+import { Entity } from "../../interface";
 import { Show } from "../show/Show";
 import { ShowDTO } from "../show/show.interface";
 import { ComedianDTO, ComedianInterface } from "./comedian.interface";
 import { generateHash } from "../../../util/hashUtil";
 import { SocialData } from "../socialData/SocialData";
-
 
 export class Comedian implements ComedianInterface {
 
@@ -26,6 +25,7 @@ export class Comedian implements ComedianInterface {
     cardImageUrl: string;
     containedEntities: Entity[]
     showCount?: number;
+    isAlias?: boolean
 
     constructor(input: ComedianDTO) {
         this.name = this.normalizeName(input.name);
@@ -38,8 +38,8 @@ export class Comedian implements ComedianInterface {
         this.bannerImageUrl = `/images/banners/${input.name}.png`
         this.cardImageUrl = `/images/comedian/square/${input.name}.png`;
         this.uuid = input.uuid
+        this.isAlias = input.is_alias ?? false
     }
-    tags: TagInterface[];
 
     // Sometimes we receive names from websites that are entirely uppercase or lowercase. These are the only times when we want to insure
     // proper capitalization. Otherwise leave it alone.

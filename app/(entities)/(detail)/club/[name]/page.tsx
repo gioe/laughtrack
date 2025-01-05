@@ -7,8 +7,12 @@ import ShowCard from "../../../../../components/cards/show";
 import { Show } from "../../../../../objects/class/show/Show";
 import TableFilterBar from "../../../../../components/filter";
 import { GetTagsResponse } from "../../../../api/tag/route";
+import { DynamicRoute } from "../../../../../objects/interface/identifable.interface";
 
-export default async function ClubDetailPage(props) {
+export default async function ClubDetailPage(props: {
+    searchParams: Promise<URLSearchParams>;
+    params: Promise<DynamicRoute> | undefined;
+}) {
     const paramsHelper = await SearchParamsHelper.storePageParams(
         props.searchParams,
         props.params,
