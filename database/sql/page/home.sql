@@ -63,10 +63,13 @@ SELECT jsonb_build_object(
                 'show_count', show_count
             )
         )
-        FROM active_comedians
-        WHERE NOT is_alias
-        ORDER BY RANDOM()
-        LIMIT 10
+        FROM (
+            SELECT * 
+            FROM active_comedians
+            WHERE NOT is_alias
+            ORDER BY RANDOM()
+            LIMIT 10
+        ) AS limited_comedians
     ),
     'cities', (
         SELECT jsonb_agg(

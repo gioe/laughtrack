@@ -17,6 +17,7 @@ interface ComedianHeadshotProps {
     size?: AvatarSize;
     priority?: boolean;
     quality?: number;
+    shouldAnimate?: boolean;
 }
 
 // Configuration
@@ -42,6 +43,7 @@ const ComedianHeadshot = ({
     type = "rounded",
     size = "l",
     priority = true,
+    shouldAnimate = true,
 }: ComedianHeadshotProps) => {
     console.log(comedian);
     const [imageSource, setImageSource] = useState(comedian.cardImageUrl);
@@ -51,7 +53,8 @@ const ComedianHeadshot = ({
     };
 
     // Determine if we need the pulsating border
-    const shouldPulsate = comedian.isAlias || comedian.isFavorite;
+    const shouldPulsate =
+        (comedian.isAlias || comedian.isFavorite) && shouldAnimate;
 
     const getPulsateStyles = () => {
         if (!shouldPulsate) return "";

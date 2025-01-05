@@ -54,6 +54,7 @@ const ComedianCarouselCard: React.FC<ComedianCarouselCardProps> = ({
         >
             <div className="relative inline-block">
                 <ComedianHeadshot
+                    shouldAnimate={false}
                     priority
                     comedian={parsedEntity}
                     tooltip={false}

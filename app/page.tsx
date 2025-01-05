@@ -6,6 +6,7 @@ import ShowSearchForm from "../components/form/showSearch";
 import { getDB } from "../database";
 import { auth } from "../auth";
 const { database } = getDB();
+
 const getPageData = unstable_cache(
     async (userId?: string) => {
         return await database.page.getHomePageData(userId);
