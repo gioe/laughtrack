@@ -89,10 +89,16 @@ export function Header({ onClick, currentUser }: HeaderProps) {
 
                 <div className="hidden lg:flex lg:flex-1 lg:justify-end">
                     {currentUser ? (
-                        <FullRoundedButton
-                            handleClick={signOut}
-                            label="Log Out"
-                        />
+                        <div className="hidden lg:flex lg:gap-x-12 items-center">
+                            <HeaderItem
+                                href={`profile/${currentUser.id}`}
+                                title="Profile"
+                            />
+                            <FullRoundedButton
+                                handleClick={signOut}
+                                label="Log Out"
+                            />
+                        </div>
                     ) : (
                         <div className="hidden lg:flex lg:flex-1 lg:justify-end gap-3">
                             <FullRoundedButton

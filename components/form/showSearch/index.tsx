@@ -32,7 +32,6 @@ export default function ShowSearchForm({ cities }: ShowSearchFormProps) {
             display: city.name,
         };
     }) as Selectable[];
-
     const paramsHelper = new SearchParamsHelper(useSearchParams());
     const navigator = new Navigator(usePathname(), useRouter());
 

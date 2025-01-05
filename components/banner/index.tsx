@@ -20,6 +20,7 @@ const EntityBanner = ({ identifier }: EntityBannerProps) => {
     const handleAdminClick = () => {
         navigator.pushPage(`/${primaryEntity?.valueOf()}/${identifier}/admin`);
     };
+
     const session = useSession();
     const shouldShowMenu =
         !pathName.includes("admin") && session.data?.user.role == "admin";
