@@ -29,7 +29,7 @@ export default function ShowSearchForm({ cities }: ShowSearchFormProps) {
         return {
             id: city.id,
             value: city.name,
-            displayName: city.name,
+            display: city.name,
         };
     }) as Selectable[];
 

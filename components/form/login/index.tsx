@@ -85,7 +85,7 @@ export default function LoginForm({ onSubmit, onClose }: LoginFormProps) {
             </div>
             <div className="flex flex-col basis-1/2 gap-10 justify-start m-10">
                 <h1 className="text-copper font-fjalla text-m text-center">
-                    Laughtrack exists to get you out of the house.
+                    Laughtrack wants to get you out of the house.
                     <br />
                     Find funny shows.
                     <br />

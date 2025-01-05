@@ -17,8 +17,8 @@ const getPageData = unstable_cache(
 
 export default async function HomePage() {
     const session = await auth();
-
     const { response } = await getPageData(session?.user.id);
+
     return (
         <main className="pt-36">
             <section className="max-w-7xl mx-auto text-center">

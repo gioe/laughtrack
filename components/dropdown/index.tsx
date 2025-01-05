@@ -52,7 +52,7 @@ export function DropdownFormComponent({
                                         key={item.id.toString()}
                                         value={item.value}
                                     >
-                                        {item.displayName}
+                                        {item.display}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
