@@ -3556,3 +3556,15 @@
 
 22:05:18 error: column tc.display does not exist
          query: WITH all_data AS ( SELECT tc.id, tc.display, tc.value, tc.type, jsonb_agg(json_build_object('id', t.id, 'display', t.display, 'value', t.value)) AS options FROM tags t JOIN tag_category tc ON t.category = tc.id GROUP BY tc.id ) SELECT * FROM all_data GROUP BY all_data.display, all_data.id, all_data.options, all_data.type, all_data.value
+
+11:06:07 error: No data returned from the query.
+         query: DELETE FROM favorite_comedians fc WHERE fc.comedian_id = null AND fc.user_id = 16
+
+11:07:52 error: No data returned from the query.
+         query: DELETE FROM favorite_comedians fc WHERE fc.comedian_id = null AND fc.user_id = 16
+
+11:08:53 error: No data returned from the query.
+         query: DELETE FROM favorite_comedians fc WHERE fc.comedian_id = null AND fc.user_id = 16
+
+11:11:16 error: null value in column "comedian_id" of relation "favorite_comedians" violates not-null constraint
+         query: INSERT INTO favorite_comedians(comedian_id, user_id) VALUES(null, 16) RETURNING id;

@@ -16,7 +16,7 @@ const getPageData = unstable_cache(
 
 export default async function HomePage() {
     const { response } = await getPageData();
-
+    console.log(response.comedians);
     return (
         <main className="pt-36">
             <section className="max-w-7xl mx-auto text-center">

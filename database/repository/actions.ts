@@ -5,6 +5,7 @@ import { apiActionMap } from '../sql';
 import { UserDTO } from '../../objects/interface';
 import { ComedianDTO } from '../../objects/class/comedian/comedian.interface';
 import { DynamicRoute } from '../../objects/interface/identifable.interface';
+import { AddFavoriteDTO } from '../../objects/interface/favoritable.interface';
 
 const columnSets: {
     addComedianTags: ColumnSet | null;
@@ -49,6 +50,21 @@ export class ActionRepository {
             uuid: comedian.uuid,
         });
     }
+
+    async addFavorite(favoriteDto: AddFavoriteDTO): Promise<any> {
+        if (!favoriteDto.is_favorite) {
+            return this.db.one(apiActionMap.addFavorite, {
+                comedianId: favoriteDto.comedian_id,
+                userId: favoriteDto.user_id,
+            });
+        } else {
+            return this.db.one(apiActionMap.deleteFavorite, {
+                comedianId: favoriteDto.comedian_id,
+                userId: favoriteDto.user_id,
+            });
+        }
+    }
+
 
     async updateComedian(slug: DynamicRoute, args: any): Promise<any> {
         if (args.ids.length > 0) {

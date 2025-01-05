@@ -10,7 +10,6 @@ export async function GET(request: Request) {
     const searchParams = new URL(request.url).searchParams
     const filters = await database.queries.getTags(EntityType.Show);
     const helper = await QueryHelper.storePageParams(searchParams, filters);
-    console.log(helper.asQueryFilters())
 
     return database.page.getShowSearchPageData(helper.asQueryFilters())
         .then((data: ShowSearchData) => NextResponse.json({ data }, { status: 200 }))
