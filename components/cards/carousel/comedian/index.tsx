@@ -6,9 +6,9 @@ import { Comedian } from "../../../../objects/class/comedian/Comedian";
 import { useSession } from "next-auth/react";
 import { useState, useCallback } from "react";
 import { useRegisterModal } from "../../../../hooks/modalState";
-import axios from "axios";
 import { HeartIcon as OutlineHeart } from "@heroicons/react/24/outline";
 import { HeartIcon as SolidHeart } from "@heroicons/react/24/solid";
+import { executePut } from "../../../../util/actions/executePut";
 
 interface ComedianCarouselCardProps {
     entity: string;
@@ -20,23 +20,21 @@ const ComedianCarouselCard: React.FC<ComedianCarouselCardProps> = ({
     const registerModal = useRegisterModal();
     const session = useSession();
     const parsedEntity = JSON.parse(entity) as Comedian;
-
+    console.log(parsedEntity);
     const [, /*isOpen */ setIsOpen] = useState(false);
     const [isFavorite, setIsFavorite] = useState(
         parsedEntity.isFavorite ? true : false,
     );
 
-    const handleFavoriteClick = () => {
+    const handleFavoriteClick = async () => {
         if (session.status == "authenticated") {
-            axios
-                .put(`/api/comedian/favorite`, {
-                    comedianId: parsedEntity.uuid,
-                    isFavorite,
-                })
-                .then((response) => response.data)
-                .then((data: { state: boolean }) => {
-                    setIsFavorite(data.state);
-                });
+            await executePut(`/api/comedian/favorite`, session, {
+                comedianId: parsedEntity.uuid,
+                isFavorite,
+            }).then((data: { state: boolean }) => {
+                console.log(data);
+                setIsFavorite(data.state);
+            });
         } else {
             requireLogin();
         }
@@ -54,24 +52,23 @@ const ComedianCarouselCard: React.FC<ComedianCarouselCardProps> = ({
         hover:scale-105 transform transition 
         duration-300 ease-out hover:cursor-pointer"
         >
-            <div className="flex flex-row-reverse items-end">
-                {isFavorite ? (
-                    <SolidHeart
-                        onClick={handleFavoriteClick}
-                        className="h-7 cursor-pointer"
-                    ></SolidHeart>
-                ) : (
-                    <OutlineHeart
-                        onClick={handleFavoriteClick}
-                        className="h-7 cursor-pointer"
-                    />
-                )}
+            <div className="relative inline-block">
+                <ComedianHeadshot
+                    priority
+                    comedian={parsedEntity}
+                    tooltip={false}
+                />
+                <button
+                    onClick={handleFavoriteClick}
+                    className="absolute top-2 right-2 p-1 hover:bg-black/10 rounded-full transition-colors"
+                >
+                    {isFavorite ? (
+                        <SolidHeart className="w-6 h-6 text-red-500" />
+                    ) : (
+                        <OutlineHeart className="w-6 h-6 text-ivory" />
+                    )}
+                </button>
             </div>
-            <ComedianHeadshot
-                priority
-                comedian={parsedEntity}
-                tooltip={false}
-            />
             <div className="flex flex-col gap-1 w-full">
                 <h1 className="font-fjalla text-pine-tree w-full text-center text-2xl">
                     {parsedEntity.name}

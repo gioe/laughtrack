@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import "./globals.css";
 import ToasterProvider from "../components/providers/toaster";
 import LoginModal from "../components/modals/login";
@@ -10,6 +9,7 @@ import { cache } from "react";
 import Footer from "../components/footer";
 import { Bebas_Neue, Oswald, Inter, Fjalla_One } from "next/font/google";
 import Navbar from "../components/navbar";
+import type { Metadata } from "next";
 
 const fjalla = Fjalla_One({
     weight: "400",

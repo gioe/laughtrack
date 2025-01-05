@@ -18,7 +18,7 @@ import NavbarPopoverItem from "../popover/panel";
 const comedianMenuItems = [
     {
         name: "Search",
-        description: "Search for your favorite comedians",
+        description: "Search for comedians you're interested in",
         href: "/comedian/all",
         icon: FaceSmileIcon,
     },
@@ -27,7 +27,7 @@ const comedianMenuItems = [
 const clubMenuItems = [
     {
         name: "Search",
-        description: "Search for clubs in your area",
+        description: "Search for clubs you're interested in",
         href: "/club/all",
         icon: BuildingStorefrontIcon,
     },

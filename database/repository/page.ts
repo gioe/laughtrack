@@ -37,8 +37,10 @@ export class PageDataRepository {
 
     }
 
-    async getHomePageData(): Promise<HomePageDataResponse> {
-        return this.db.one(pageDataMap.home)
+    async getHomePageData(userId?: string): Promise<HomePageDataResponse> {
+        return this.db.one(pageDataMap.home, {
+            userId: userId ? Number(userId) : null
+        })
     }
 
     async getComedianSearchPageData(filters: any): Promise<ComedianSearchData> {

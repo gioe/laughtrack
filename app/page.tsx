@@ -4,19 +4,20 @@ import TrendingComedianCarousel from "../components/carousel/comedians";
 import TrendingClubsCarousel from "../components/carousel/clubs";
 import ShowSearchForm from "../components/form/showSearch";
 import { getDB } from "../database";
+import { auth } from "../auth";
 const { database } = getDB();
-
 const getPageData = unstable_cache(
-    async () => {
-        return await database.page.getHomePageData();
+    async (userId?: string) => {
+        return await database.page.getHomePageData(userId);
     },
     ["homePage"],
     { revalidate: 1, tags: ["homePage"] },
 );
 
 export default async function HomePage() {
-    const { response } = await getPageData();
-    console.log(response.comedians);
+    const session = await auth();
+
+    const { response } = await getPageData(session?.user.id);
     return (
         <main className="pt-36">
             <section className="max-w-7xl mx-auto text-center">
