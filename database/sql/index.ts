@@ -14,6 +14,7 @@ export const pageDataMap = {
     editComedian: sql("page/editComedian.sql").qf,
     showSearch: sql("page/showSearch.sql").qf,
     showDetail: sql("page/showDetail.sql").qf,
+    profile: sql("profile/profile.sql").qf
 }
 
 export const apiActionMap = {

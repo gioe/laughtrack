@@ -17,6 +17,8 @@ import { ClubDetailDTO, ClubDetailPageData } from '../../app/(entities)/(detail)
 import { DynamicRoute } from '../../objects/interface/identifable.interface';
 import { EditComedianPageData } from '../../app/(entities)/(detail)/comedian/[name]/admin/interface';
 import { EditClubPageData } from '../../app/(entities)/(detail)/club/[name]/admin/interface';
+import { User } from '../../objects/class/user/User';
+import { ProfilePageData, ProfilePageResponse } from '../../app/profile/[id]/interface';
 
 
 export class PageDataRepository {
@@ -98,6 +100,12 @@ export class PageDataRepository {
         return this.db.one(pageDataMap.editClub, {
             name: route.name
         }).then((value: any) => new Club(value))
+    }
+
+    async getProfileData(userId: number): Promise<ProfilePageResponse> {
+        return this.db.one(pageDataMap.profile, {
+            userId
+        }).then((value: any) => new User(value))
     }
 
 }

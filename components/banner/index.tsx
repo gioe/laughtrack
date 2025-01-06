@@ -12,6 +12,7 @@ import { BasicButton } from "../button/basic";
 interface EntityBannerProps {
     identifier: string;
 }
+
 const EntityBanner = ({ identifier }: EntityBannerProps) => {
     const pathName = usePathname();
     const { primaryEntity } = usePageContext();
