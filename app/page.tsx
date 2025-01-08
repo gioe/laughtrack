@@ -156,9 +156,6 @@ const getPageData = unstable_cache(
 export default async function HomePage() {
     const session = await auth();
     const { comedians, cities, clubs } = await getPageData(session?.user.id);
-    console.log(comedians);
-    console.log(cities);
-    console.log(clubs);
 
     return (
         <main className="pt-36">

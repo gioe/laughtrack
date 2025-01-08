@@ -14,10 +14,14 @@ export async function PUT(
 
     const { isFavorite, comedianId } = await req.json()
 
-    return database.actions.addFavorite({
-        comedian_id: comedianId,
-        is_favorite: isFavorite,
-        user_id: Number(userId)
+    return db.favoriteComedian.create({
+        data: {
+            comedianId: comedianId,
+            userId: Number(userId)
+        },
+        select: {
+            id: true
+        }
     })
         .then(() => NextResponse.json({
             state: !isFavorite

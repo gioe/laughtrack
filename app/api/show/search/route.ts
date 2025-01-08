@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
 import { db } from "../../../lib/db";
 import { EntityType } from "../../../../objects/enum";
@@ -5,19 +6,10 @@ import { QueryHelper } from "../../../../objects/class/query/QueryHelper";
 import { ShowSearchData, ShowSearchDTO } from "../../../(entities)/(collection)/show/all/interface";
 import { Prisma } from "@prisma/client";
 import { FilterDataDTO } from "../../../../objects/interface";
+import { ShowDTO } from "../../../../objects/class/show/show.interface";
+import { Show } from "../../../../objects/class/show/Show";
 
-interface QueryParams {
-    city: string
-    fromDate: Date
-    toDate: Date
-    tags: string[]
-    userId?: string
-    sortBy: string
-    direction: 'asc' | 'desc'
-    size: number
-    offset: number
-}
-async function getTags(type?: string): Promise<FilterDataDTO[]> {
+export async function getTags(type?: string): Promise<FilterDataDTO[]> {
     try {
         const tagCategories = await db.tagCategory.findMany({
             where: type ? {
@@ -60,35 +52,25 @@ async function getTags(type?: string): Promise<FilterDataDTO[]> {
     }
 }
 
-async function getFilteredShows({
-    city,
-    fromDate,
-    toDate,
-    tags,
-    userId,
-    sortBy,
-    direction,
-    size,
-    offset
-}: QueryParams) {
+async function getFilteredShows(params: any) {
     // Get total count first
     const totalCount = await db.show.count({
         where: {
             club: {
                 city: {
-                    name: city
+                    name: params.city
                 }
             },
             date: {
-                gte: fromDate,
-                lte: toDate
+                gte: new Date(params.from_date).toISOString(),
+                lte: new Date(params.to_date).toISOString(),
             },
-            ...(tags.length > 0 ? {
+            ...(!params.tagsEmpty ? {
                 taggedShows: {
                     some: {
                         tag: {
                             value: {
-                                in: tags
+                                in: params.tags
                             }
                         }
                     }
@@ -129,10 +111,10 @@ async function getFilteredShows({
                                     id: true
                                 }
                             },
-                            ...(userId ? {
+                            ...(params.userId ? {
                                 favoriteComedians: {
                                     where: {
-                                        userId: userId
+                                        userId: Number(params.userId)
                                     },
                                     select: {
                                         id: true
@@ -147,19 +129,19 @@ async function getFilteredShows({
         where: {
             club: {
                 city: {
-                    name: city
+                    name: params.city
                 }
             },
             date: {
-                gte: fromDate,
-                lte: toDate
+                gte: new Date(params.from_date).toISOString(),
+                lte: new Date(params.to_date).toISOString(),
             },
-            ...(tags.length > 0 ? {
+            ...(!params.tagsEmpty ? {
                 taggedShows: {
                     some: {
                         tag: {
                             value: {
-                                in: tags
+                                in: params.tags
                             }
                         }
                     }
@@ -167,10 +149,10 @@ async function getFilteredShows({
             } : {})
         },
         orderBy: {
-            [sortBy]: direction
+            [params.sortBy]: params.direction
         },
-        take: size,
-        skip: offset
+        take: Number(params.size),
+        skip: params.offset
     })
 
     // Transform the data to match the original SQL output structure
@@ -187,7 +169,7 @@ async function getFilteredShows({
         lineup: show.lineupItems.map(item => ({
             id: item.comedian.id,
             name: item.comedian.name,
-            is_favorite: userId ? item.comedian.favoriteComedians.length > 0 : false,
+            is_favorite: params.userId ? item.comedian.favoriteComedians.length > 0 : false,
             is_alias: item.comedian.taggedComedians.length > 0
         }))
     }))
@@ -207,6 +189,12 @@ export async function GET(request: Request) {
     const helper = await QueryHelper.storePageParams(searchParams, filters);
 
     return getFilteredShows(helper.asQueryFilters())
-        .then((data: ShowSearchDTO) => NextResponse.json({ data }, { status: 200 }))
+        .then((response: ShowSearchDTO) => {
+            const data = {
+                entities: response.response.data.map((result: ShowDTO) => new Show(result)),
+                total: response.response.total
+            } as ShowSearchData
+            return NextResponse.json({ data }, { status: 200 })
+        })
         .catch((error: Error) => NextResponse.json({ message: error.message }, { status: 500 }));
 }
