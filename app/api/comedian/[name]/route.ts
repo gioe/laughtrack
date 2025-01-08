@@ -1,7 +1,6 @@
 
 import { NextResponse } from "next/server";
-import { getDB } from '../../../../database'
-const { database } = getDB();
+import { db } from "../../../lib/db";
 import { EntityType } from "../../../../objects/enum";
 import { QueryHelper } from "../../../../objects/class/query/QueryHelper";
 import { ComedianDetailPageData } from "../../../(entities)/(detail)/comedian/[name]/interface";

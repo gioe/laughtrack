@@ -1,10 +1,9 @@
 
 import { NextResponse } from "next/server";
-import { getDB } from '../../../../database'
+import { db } from "../../../lib/db";
 import { EntityType } from "../../../../objects/enum";
 import { QueryHelper } from "../../../../objects/class/query/QueryHelper";
 import { ClubSearchData } from "../../../(entities)/(collection)/club/all/interface";
-const { database } = getDB();
 
 export async function GET(request: Request) {
     const searchParams = new URL(request.url).searchParams

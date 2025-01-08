@@ -1,11 +1,10 @@
 
 import { NextResponse } from "next/server";
-import { getDB } from '../../../../database'
+import { db } from "../../../lib/db";
 import { EntityType } from "../../../../objects/enum";
 import { QueryHelper } from "../../../../objects/class/query/QueryHelper";
 import { ClubDetailPageData } from "../../../(entities)/(detail)/club/[name]/interface";
 import { headers } from "next/headers";
-const { database } = getDB();
 
 export async function GET(request: Request, { params }) {
     const headersList = await headers();

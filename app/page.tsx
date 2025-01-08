@@ -4,7 +4,7 @@ import TrendingComedianCarousel from "../components/carousel/comedians";
 import TrendingClubsCarousel from "../components/carousel/clubs";
 import ShowSearchForm from "../components/form/showSearch";
 import { auth } from "../auth";
-import { db } from "../lib/db";
+import { db } from "./lib/db";
 
 async function getHomeData(userId?: string) {
     // Get venues/clubs data

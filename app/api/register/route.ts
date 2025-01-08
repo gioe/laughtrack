@@ -1,7 +1,7 @@
 'use server';
 
 import { NextResponse } from "next/server";
-import { db } from "../../../lib/db";
+import { db } from "../../lib/db";
 import bcrypt from "bcryptjs";
 import { signInSchema } from "../../../util/validations";
 import { User } from "@prisma/client";

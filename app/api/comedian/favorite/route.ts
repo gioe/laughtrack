@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDB } from '../../../../database'
-const { database } = getDB();
+import { db } from "../../../lib/db";
 import { headers } from "next/headers";
 
 export async function PUT(
