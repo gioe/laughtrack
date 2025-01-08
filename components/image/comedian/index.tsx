@@ -45,7 +45,6 @@ const ComedianHeadshot = ({
     priority = true,
     shouldAnimate = true,
 }: ComedianHeadshotProps) => {
-    console.log(comedian);
     const [imageSource, setImageSource] = useState(comedian.cardImageUrl);
 
     const handleImageError = () => {

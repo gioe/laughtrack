@@ -10,6 +10,7 @@ import Footer from "../components/footer";
 import { Bebas_Neue, Oswald, Inter, Fjalla_One } from "next/font/google";
 import Navbar from "../components/navbar";
 import type { Metadata } from "next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const fjalla = Fjalla_One({
     weight: "400",
@@ -82,6 +83,7 @@ export default async function RootLayout({
                         <LoginModal />
                         <RegisterModal />
                         {children}
+                        <SpeedInsights />
                         <Footer />
                     </NextUIProvider>
                 </body>

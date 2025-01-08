@@ -20,7 +20,6 @@ const ComedianCarouselCard: React.FC<ComedianCarouselCardProps> = ({
     const registerModal = useRegisterModal();
     const session = useSession();
     const parsedEntity = JSON.parse(entity) as Comedian;
-    console.log(parsedEntity);
     const [, /*isOpen */ setIsOpen] = useState(false);
     const [isFavorite, setIsFavorite] = useState(
         parsedEntity.isFavorite ? true : false,
@@ -32,7 +31,6 @@ const ComedianCarouselCard: React.FC<ComedianCarouselCardProps> = ({
                 comedianId: parsedEntity.uuid,
                 isFavorite,
             }).then((data: { state: boolean }) => {
-                console.log(data);
                 setIsFavorite(data.state);
             });
         } else {

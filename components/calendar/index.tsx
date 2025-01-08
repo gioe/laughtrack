@@ -79,7 +79,6 @@ const CalendarFormComponent: React.FC<CalendarFormComponentProps> = ({
                                     selected={field.value}
                                     defaultMonth={field.value.from}
                                     onSelect={(e) => {
-                                        console.log(e);
                                         field.onChange(e);
                                     }}
                                     numberOfMonths={2}

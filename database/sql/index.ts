@@ -3,6 +3,7 @@ import pkg from "pg-promise";
 import path from "path";
 import { fileURLToPath } from "url";
 import { createSingleton } from "../../util/singletonUtil";
+import { promises as fs } from 'fs';
 
 export const pageDataMap = {
     home: sql("page/home.sql").qf,
@@ -55,7 +56,6 @@ function sql(file: string): IQueryFileScope {
         const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
         const __dirname = path.dirname(__filename);
         const fullPath: string = join(__dirname, file); // generating full path;
-
         const qf = new pkg.QueryFile(fullPath, {
             minify: true,
         });
