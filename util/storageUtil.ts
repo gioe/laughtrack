@@ -1,17 +1,9 @@
 import * as fsPromises from "fs/promises";
 import * as fsSync from "fs";
 import path from "path";
-import { isLocal } from "./environmentUtil";
-import {
-    Storage,
-    TransferManager,
-    DownloadResponse,
-} from "@google-cloud/storage";
 
 export async function readFile(fileName: string): Promise<string> {
-    return isLocal
-        ? readFileFromFileSystem(fileName)
-        : readFileFromBucket(fileName);
+    return readFileFromFileSystem(fileName)
 }
 
 export const readFileFromFileSystem = async (
@@ -35,40 +27,6 @@ export const checkForFileExistence = (path: string) => {
 export const makeDirectory = (path: string) => {
     return fsSync.mkdirSync(path);
 };
-
-export const readFileFromBucket = async (
-    sourceFile: string,
-): Promise<string> => {
-
-    const storage = new Storage();
-    const bucket = storage.bucket(process.env.STORAGE_BUCKET as string);
-    bucket.setUserProject(process.env.CLOUD_STORAGE_PROJECT_ID as string);
-
-    return bucket
-        .file(sourceFile)
-        .download()
-        .then((response: DownloadResponse) =>
-            JSON.parse(response[0].toString("utf8")),
-        )
-        .catch((error: Error) => console.log(error));
-};
-
-export async function downloadBucketContents(): Promise<void> {
-
-    const storage = new Storage();
-    const bucket = storage.bucket(process.env.STORAGE_BUCKET as string);
-    bucket.setUserProject(process.env.CLOUD_STORAGE_PROJECT_ID as string);
-
-    const transferManager = new TransferManager(bucket);
-
-    transferManager
-        .downloadManyFiles(process.env.CLOUD_STORAGE_FOLDER_NAME as string, {
-            passthroughOptions: {
-                destination: process.env.DIRECTORY_PATH as string,
-            },
-        })
-        .catch((error: Error) => console.log(error));
-}
 
 export function readFileSync(path: string) {
     if (checkForFileExistence(path)) return fsSync.readFileSync(path)
