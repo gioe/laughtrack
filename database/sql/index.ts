@@ -3,7 +3,6 @@ import pkg from "pg-promise";
 import path from "path";
 import { fileURLToPath } from "url";
 import { createSingleton } from "../../util/singletonUtil";
-import { promises as fs } from 'fs';
 
 export const pageDataMap = {
     home: sql("page/home.sql").qf,
