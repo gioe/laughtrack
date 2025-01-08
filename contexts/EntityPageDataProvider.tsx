@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useContext, createContext } from "react";
-import axios from "axios";
 import { Filter } from "../objects/class/filter/Filter";
 import { FilterDataDTO } from "../objects/interface/filter.interface";
 import { useSearchParams } from "next/navigation";
@@ -33,27 +32,28 @@ export function EntityPageDataProvider({
         filters: [],
         sortOptions: getSortOptionsForEntityType(primaryEntity),
     });
-
     const getFilters = async () => {
-        axios
-            .get(`/api/tag`)
-            .then((response) => response.data)
-            .then((data) => {
-                if (data) {
-                    const filters = data.containers.map(
-                        (dto: FilterDataDTO) => {
-                            return new Filter(dto, paramsHelper);
-                        },
-                    );
-                    setState({
-                        ...state,
-                        filters: filters,
-                    });
-                }
-            })
-            .catch((error: Error) => {
-                console.log(error);
-            });
+        try {
+            const response = await fetch("/api/tag");
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch filters");
+            }
+
+            const data = await response.json();
+
+            if (data) {
+                const filters = data.containers.map((dto: FilterDataDTO) => {
+                    return new Filter(dto, paramsHelper);
+                });
+                setState({
+                    ...state,
+                    filters: filters,
+                });
+            }
+        } catch (error) {
+            console.log(error);
+        }
     };
 
     useEffect(() => {

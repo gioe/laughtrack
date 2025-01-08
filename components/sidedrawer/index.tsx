@@ -13,7 +13,7 @@ import { HeaderItem } from "../navbar/headerItem";
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
 import { FullRoundedButton } from "../button/rounded/full";
 import { signOut } from "next-auth/react";
-import { UserInterface } from "../../objects/interface";
+import { UserInterface } from "../../objects/class/user/user.interface";
 
 interface SideDrawerProps {
     onClose: (open: boolean) => void;

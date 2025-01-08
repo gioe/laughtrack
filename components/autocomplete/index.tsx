@@ -6,7 +6,6 @@ import { ControllerRenderProps, FieldValues } from "react-hook-form";
 
 import { Autocomplete, AutocompleteItem } from "@nextui-org/react";
 import { useAsyncList } from "@react-stately/data";
-import axios from "axios";
 import { useDebouncedCallback } from "use-debounce";
 import { EntityType } from "../../objects/enum";
 import { Entity } from "../../objects/interface";
@@ -41,12 +40,24 @@ export function AutocompleteFormComponent<T extends Entity>({
     };
 
     const handleSearch = useDebouncedCallback(async (term) => {
-        const response = await axios.post(`/api/search/${type.valueOf()}`, {
-            body: {
-                query: term,
+        const response = await fetch(`/api/search/${type.valueOf()}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
             },
+            body: JSON.stringify({
+                body: {
+                    query: term,
+                },
+            }),
         });
-        return { items: response.data.results };
+
+        if (!response.ok) {
+            throw new Error("Search request failed");
+        }
+
+        const data = await response.json();
+        return { items: data.results };
     }, 300);
 
     const list = useAsyncList<T>({

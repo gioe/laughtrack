@@ -17,7 +17,6 @@ const AddComedianModal = () => {
     return (
         <Modal
             isOpen={addNewComedianModal.isOpen}
-            onClose={addNewComedianModal.onClose}
             body={<AddNewComedianForm onSubmit={onSubmit} />}
         />
     );

@@ -1,10 +1,10 @@
 'use server';
 
 import { NextResponse } from "next/server";
-import { UserInterface } from "../../../objects/interface";
 import { getDB } from '../../../database'
 import bcrypt from "bcryptjs";
 import { signInSchema } from "../../../util/validations";
+import { UserInterface } from "../../../objects/class/user/user.interface";
 
 const { database } = getDB();
 

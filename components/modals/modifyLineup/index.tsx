@@ -21,7 +21,6 @@ const ModifyLineupModal = ({ identifier }: ModifyLineupModalProps) => {
     return (
         <Modal
             isOpen={addComedianModal.isOpen}
-            onClose={onClose}
             body={<AddComedianToShowForm id={identifier} onSubmit={onClose} />}
         />
     );

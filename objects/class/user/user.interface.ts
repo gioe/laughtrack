@@ -4,14 +4,14 @@ export interface UserInterface {
     email: string;
     password?: string;
     role: string;
-    zipCode: string
+    zipCode?: string
 }
 
 // DB
 export interface UserDTO {
-    id: number;
+    id?: number;
     email: string;
     password?: string;
     role: string;
-    zip_code: string
+    zip_code?: string
 }

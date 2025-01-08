@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
@@ -5,7 +6,6 @@ import { jwtDecode } from "jwt-decode";
 import { signInSchema } from "./util/validations";
 import { refreshAccessToken } from "./util/primatives/tokenUtil";
 import { generateUrl } from "./util/primatives/urlUtil";
-import axios from "axios";
 import { RoutePath } from "./objects/enum";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -26,17 +26,24 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                     const url = generateUrl(RoutePath.Login)
 
-                    const response = await axios.post(url, {
-                        email: email,
-                        password: password,
-                    })
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            email: email,
+                            password: password,
+                        })
+                    }).then((response: any) => response.json())
+
 
                     return {
-                        accessToken: response.data.accessToken,
-                        refreshToken: response.data.refreshToken,
-                        id: response.data.id,
-                        role: response.data.role,
-                        email: response.data.email,
+                        accessToken: response.accessToken,
+                        refreshToken: response.refreshToken,
+                        id: response.id,
+                        role: response.role,
+                        email: response.email,
                     };
 
                 } catch (e) {

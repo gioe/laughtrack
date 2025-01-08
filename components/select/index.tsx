@@ -38,7 +38,7 @@ export function SelectComponent({
                         key={item.id.toString()}
                         value={item.id.toString()}
                     >
-                        {item.displayName}
+                        {item.display}
                     </SelectItem>
                 ))}
             </SelectContent>

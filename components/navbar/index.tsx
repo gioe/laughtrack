@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 
-import { UserInterface } from "../../objects/interface";
 import { SideDrawer } from "../sidedrawer";
 import { Header } from "../header";
+import { UserInterface } from "../../objects/class/user/user.interface";
 
 interface NavbarProps {
     currentUser?: UserInterface | null;

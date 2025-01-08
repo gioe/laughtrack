@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useContext, createContext } from "react";
-import axios from "axios";
 import { CityDTO } from "../objects/class/city/city.interface";
 import { RoutePath } from "../objects/enum";
 
@@ -19,19 +18,21 @@ export function CityProvider({ children }: { children: React.ReactNode }) {
     const [cityList, setCityList] = useState(defaultList);
 
     const getAffiliates = async () => {
-        axios
-            .get(RoutePath.GetCities)
-            .then((response) => {
-                return response.data;
-            })
-            .then((data) => {
-                if (data) {
-                    setCityList(data);
-                }
-            })
-            .catch((error: Error) => {
-                console.log(error);
-            });
+        try {
+            const response = await fetch(RoutePath.GetCities);
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch cities");
+            }
+
+            const data = await response.json();
+
+            if (data) {
+                setCityList(data);
+            }
+        } catch (error) {
+            console.log(error);
+        }
     };
 
     useEffect(() => {

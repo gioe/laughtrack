@@ -5,7 +5,6 @@ import { z } from "zod";
 import { addComedianFormSchema } from "./schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import axios from "axios";
 import toast from "react-hot-toast";
 import BaseForm from "..";
 import AddNewComedianFormBody from "./body";
@@ -19,19 +18,31 @@ export default function AddNewComedianForm({
 }: AddNewComedianFormProps) {
     const [isLoading, setIsLoading] = useState(false);
 
-    const submitForm = (data: z.infer<typeof addComedianFormSchema>) => {
-        setIsLoading(true);
-        axios
-            .post("/api/comedian/add", {
-                name: data.name,
-            })
-            .then((response) => {
-                if (response) {
-                    setIsLoading(false);
-                    toast.success("Successfully updated");
-                }
-            })
-            .finally(onSubmit);
+    const submitForm = async (data: z.infer<typeof addComedianFormSchema>) => {
+        try {
+            setIsLoading(true);
+            const response = await fetch("/api/comedian/add", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    name: data.name,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to add comedian");
+            }
+
+            setIsLoading(false);
+            toast.success("Successfully updated");
+        } catch (error) {
+            // Handle error appropriately
+            console.error("Error adding comedian:", error);
+        } finally {
+            onSubmit();
+        }
     };
 
     const form = useForm<z.infer<typeof addComedianFormSchema>>({

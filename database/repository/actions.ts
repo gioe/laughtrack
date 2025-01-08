@@ -2,10 +2,10 @@
 import { ColumnSet, IDatabase, IMain } from 'pg-promise';
 import { IExtensions } from '.';
 import { apiActionMap } from '../sql';
-import { UserDTO } from '../../objects/interface';
 import { ComedianDTO } from '../../objects/class/comedian/comedian.interface';
 import { DynamicRoute } from '../../objects/interface/identifable.interface';
 import { AddFavoriteDTO } from '../../objects/interface/favoritable.interface';
+import { UserDTO } from '../../objects/class/user/user.interface';
 
 const columnSets: {
     addComedianTags: ColumnSet | null;

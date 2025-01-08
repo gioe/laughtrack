@@ -5,7 +5,6 @@ import { z } from "zod";
 import { clearShowsFromClubSchema } from "./schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import axios from "axios";
 import toast from "react-hot-toast";
 import BaseForm from "..";
 import ClearClubFormBody from "./body";
@@ -28,21 +27,30 @@ export default function ClearShowsFromClubForm({
         },
     });
 
-    const submitForm = (data: z.infer<typeof clearShowsFromClubSchema>) => {
-        setIsLoading(true);
-        axios
-            .delete(`/api/club/${data.clubName}/clear`)
-            .then((response) => {
-                if (response) {
-                    setIsLoading(false);
-                    toast.success("Successfully updated");
-                }
-            })
-            .catch((error: Error) => {
-                setIsLoading(false);
-                toast.error(`Something went wrong: ${error}`);
-            })
-            .finally(onSubmit);
+    const submitForm = async (
+        data: z.infer<typeof clearShowsFromClubSchema>,
+    ) => {
+        try {
+            setIsLoading(true);
+            const response = await fetch(`/api/club/${data.clubName}/clear`, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to clear shows");
+            }
+
+            setIsLoading(false);
+            toast.success("Successfully updated");
+        } catch (error) {
+            setIsLoading(false);
+            toast.error(`Something went wrong: ${error}`);
+        } finally {
+            onSubmit();
+        }
     };
 
     return (

@@ -7,13 +7,13 @@ import { HeaderItem } from "../navbar/headerItem";
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
 import { FullRoundedButton } from "../button/rounded/full";
 import { signOut } from "next-auth/react";
-import { UserInterface } from "../../objects/interface";
 import { HamburgerMenuButton } from "../button/hamburger";
 import {
     FaceSmileIcon,
     BuildingStorefrontIcon,
 } from "@heroicons/react/24/outline";
 import NavbarPopoverItem from "../popover/panel";
+import { UserInterface } from "../../objects/class/user/user.interface";
 
 const comedianMenuItems = [
     {

@@ -76,7 +76,7 @@ export function CheckboxFormComponent({
                                                 />
                                             </FormControl>
                                             <FormLabel className="font-normal ">
-                                                {item.displayName}
+                                                {item.display}
                                             </FormLabel>
                                         </FormItem>
                                     );

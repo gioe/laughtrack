@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import toast from "react-hot-toast";
@@ -6,7 +7,6 @@ import { useState } from "react";
 import { registerSchema } from "./schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import axios from "axios";
 import { FormInput } from "../../input/index";
 import Heading from "../../modals/heading";
 import { FormProvider, useForm } from "react-hook-form";
@@ -33,24 +33,37 @@ export default function RegistrationForm({
         },
     });
 
-    const submitForm = (data: z.infer<typeof registerSchema>) => {
-        setIsLoading(true);
-        axios
-            .post("/api/register", data)
-            .then(() => {
-                return signIn("credentials", {
-                    ...data,
-                    redirect: false,
-                });
-            })
-            .then((callback) => {
-                if (callback?.error) {
-                    toast.error("Something went wrong");
-                } else {
-                    toast.success("Logged in");
-                    onSubmit();
-                }
+    const submitForm = async (data: z.infer<typeof registerSchema>) => {
+        try {
+            setIsLoading(true);
+            const response = await fetch("/api/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
             });
+
+            if (!response.ok) {
+                throw new Error("Registration failed");
+            }
+
+            const callback = await signIn("credentials", {
+                ...data,
+                redirect: false,
+            });
+
+            if (callback?.error) {
+                toast.error("Something went wrong");
+            } else {
+                toast.success("Logged in");
+                onSubmit();
+            }
+        } catch (error) {
+            toast.error("Something went wrong");
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (

@@ -21,7 +21,6 @@ const ClearShowsModal = ({ identifier }: ClearShowModalProps) => {
     return (
         <Modal
             isOpen={clearShowsModal.isOpen}
-            onClose={clearShowsModal.onClose}
             body={
                 <ClearShowsFromClubForm name={identifier} onSubmit={onSubmit} />
             }

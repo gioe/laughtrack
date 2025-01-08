@@ -6,7 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import axios from "axios";
 import BaseForm from "..";
 import ModifyLineupFormBody from "./body";
 
@@ -29,20 +28,34 @@ export default function AddComedianToShowForm({
         },
     });
 
-    const submitForm = (data: z.infer<typeof addComedianToShowSchema>) => {
-        setIsLoading(true);
-        axios
-            .post("/api/merge", {
-                showId: data.showId,
-                comedians: data.comedians,
-            })
-            .then((response) => {
-                if (response) {
-                    setIsLoading(false);
-                    toast.success("Successfully updated");
-                }
-            })
-            .finally(onSubmit);
+    const submitForm = async (
+        data: z.infer<typeof addComedianToShowSchema>,
+    ) => {
+        try {
+            setIsLoading(true);
+            const response = await fetch("/api/merge", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    showId: data.showId,
+                    comedians: data.comedians,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to add comedian to show");
+            }
+
+            setIsLoading(false);
+            toast.success("Successfully updated");
+        } catch (error) {
+            // Handle error appropriately
+            console.error("Error adding comedian to show:", error);
+        } finally {
+            onSubmit();
+        }
     };
 
     return (

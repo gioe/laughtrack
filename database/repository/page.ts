@@ -15,10 +15,9 @@ import { ComedianSearchData, ComedianSearchDTO } from '../../app/(entities)/(col
 import { ShowSearchData, ShowSearchDTO } from '../../app/(entities)/(collection)/show/all/interface';
 import { ClubDetailDTO, ClubDetailPageData } from '../../app/(entities)/(detail)/club/[name]/interface';
 import { DynamicRoute } from '../../objects/interface/identifable.interface';
-import { EditComedianPageData } from '../../app/(entities)/(detail)/comedian/[name]/admin/interface';
 import { EditClubPageData } from '../../app/(entities)/(detail)/club/[name]/admin/interface';
 import { User } from '../../objects/class/user/User';
-import { ProfilePageData, ProfilePageResponse } from '../../app/profile/[id]/interface';
+import { ProfilePageData } from '../../app/profile/[id]/interface';
 
 
 export class PageDataRepository {
@@ -90,19 +89,13 @@ export class PageDataRepository {
         })
     }
 
-    async getEditComedianDetailPageData(route: DynamicRoute): Promise<EditComedianPageData> {
-        return this.db.one(pageDataMap.editComedian, {
-            name: route.name
-        }).then((value: any) => new Comedian(value))
-    }
-
     async getEditClubDetailPageData(route: DynamicRoute): Promise<EditClubPageData> {
         return this.db.one(pageDataMap.editClub, {
             name: route.name
         }).then((value: any) => new Club(value))
     }
 
-    async getProfileData(userId: number): Promise<ProfilePageResponse> {
+    async getProfileData(userId: number): Promise<ProfilePageData> {
         return this.db.one(pageDataMap.profile, {
             userId
         }).then((value: any) => new User(value))
