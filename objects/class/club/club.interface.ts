@@ -21,11 +21,10 @@ export interface ClubInterface
 export interface ClubDTO {
     id: number;
     name: string;
-    city: string;
-    address: string;
     website: string;
-    scraping_page_url: string;
-    zip_code: string;
+    address?: string;
+    city?: string;
+    zipCode?: string;
     social_data?: SocialDataDTO;
     dates?: ShowDTO[];
     tags?: number[];

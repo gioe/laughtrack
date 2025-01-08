@@ -98,14 +98,6 @@ async function getFilteredComedians(params: any): Promise<ComedianSearchDTO> {
 
 
 export async function GET(request: Request) {
-    // const searchParams = new URL(request.url).searchParams
-    // const filters = await database.queries.getTags(EntityType.Comedian);
-    // const helper = await QueryHelper.storePageParams(searchParams, filters);
-
-
-    // return database.page.getComedianSearchPageData(helper.asQueryFilters())
-    //     .then((data: ComedianSearchData) => NextResponse.json({ data }, { status: 200 }))
-    //     .catch((error: Error) => NextResponse.json({ message: error.message }, { status: 500 }));
 
     const searchParams = new URL(request.url).searchParams
     const filters = await getTags(EntityType.Comedian);
@@ -117,7 +109,6 @@ export async function GET(request: Request) {
                 entities: response.response.data.map((result: ComedianDTO) => new Comedian(result)),
                 total: response.response.total
             } as ComedianSearchData
-            console.log(data)
             return NextResponse.json({ data }, { status: 200 })
         })
         .catch((error: Error) => NextResponse.json({ message: error.message }, { status: 500 }));
