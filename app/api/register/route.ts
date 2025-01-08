@@ -1,12 +1,11 @@
 'use server';
 
 import { NextResponse } from "next/server";
-import { getDB } from '../../../database'
+import { db } from "../../../lib/db";
 import bcrypt from "bcryptjs";
 import { signInSchema } from "../../../util/validations";
-import { UserInterface } from "../../../objects/class/user/user.interface";
+import { User } from "@prisma/client";
 
-const { database } = getDB();
 
 export async function POST(request: Request) {
 
@@ -16,9 +15,11 @@ export async function POST(request: Request) {
     const emailString = email as string;
     const passwordString = password as string;
 
-    const userExists = await database.queries.userExists(emailString)
+    const user = await db.user.findUnique(({
+        where: { email: email }
+    }))
 
-    if (userExists && emailString !== "" && passwordString !== "") {
+    if (user && emailString !== "" && passwordString !== "") {
         return NextResponse.json({
             messsage: "The user already exists"
         }, { status: 401 })
@@ -26,13 +27,15 @@ export async function POST(request: Request) {
 
     return bcrypt.hash(passwordString, 10)
         .then((hash: string) => {
-            return database.actions.addUser({
-                email: emailString,
-                password: hash,
-                role: 'admin'
+            return db.user.create({
+                data: {
+                    email: emailString,
+                    password: hash,
+                    role: 'admin'
+                }
             });
         })
-        .then((user: UserInterface | null) => {
+        .then((user: User) => {
             if (user) {
                 return NextResponse.json({
                     id: user.id

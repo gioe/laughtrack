@@ -1,17 +1,18 @@
 'use server';
 
 import { NextResponse } from "next/server";
-import { getDB } from '../../../../database'
 import { generateToken } from "../../../../util/token";
 import bcrypt from "bcryptjs";
-
-const { database } = getDB();
+import { db } from "../../../../lib/db";
 
 export async function POST(request: Request) {
     const data = await request.json();
     const { email, password } = data
 
-    const user = await database.queries.userExists(email)
+    const user = await db.user.findUnique(({
+        where: { email: email }
+    }))
+
     if (!user) {
         return NextResponse.json({ error: "User doesn't exist." }, { status: 400 });
     }
