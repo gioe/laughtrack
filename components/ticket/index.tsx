@@ -11,8 +11,10 @@ interface TicketDetailProps {
 const TicketDetail = ({ ticket }: TicketDetailProps) => {
     const router = useRouter();
 
-    const linkToTicketPurchase = (url: string) => {
-        router.push(url);
+    const linkToTicketPurchase = (url: string | null) => {
+        if (url) {
+            router.push(url);
+        }
     };
 
     return (

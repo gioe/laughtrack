@@ -7,7 +7,7 @@ export class SocialData implements SocialDataInterface {
     youtube: SocialMediaAccount;
     website: string;
     linktree: string;
-    popularityScore?: number;
+    popularityScore: number | null;
 
     constructor(input: SocialDataDTO) {
         this.instagram = new SocialMediaAccount(input.instagram_account, input.instagram_followers);

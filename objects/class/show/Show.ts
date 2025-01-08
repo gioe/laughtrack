@@ -29,7 +29,7 @@ export class Show implements ShowInterface {
 
     // Constructor
     constructor(input: ShowDTO) {
-        this.name = this.normalizeName(input.name);
+        this.name = this.normalizeName(input.name ?? "");
         this.date = input.date;
         this.socialData = input.social_data !== undefined ? new SocialData(input.social_data) : undefined;
         this.containedEntities = input.lineup ? input.lineup.map((item: ComedianDTO) => new Comedian(item)) : []
@@ -40,7 +40,7 @@ export class Show implements ShowInterface {
         this.id = input.id ?? 0
         this.bannerImageUrl = `/images/banners/${input.name}.png`
         this.cardImageUrl = `/images/show}/square/${input.name}.png`;
-        this.clubId = input.club_id
+        this.clubId = input.club_id ? Number(input.club_id) : 0
         this.lastScrapedDate = input.last_scraped_date
         this.description = input.description
     }

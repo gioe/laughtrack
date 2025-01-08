@@ -8,12 +8,12 @@ export interface SocialDataInterface {
     facebook?: SocialMediaAccountInterface;
     twitter?: SocialMediaAccountInterface;
     website?: string;
-    popularityScore?: number;
+    popularityScore: number | null;
     linktree?: string
 }
 
 export interface SocialMediaAccountInterface {
-    account?: string,
+    account: string | null,
     following: number;
 }
 
@@ -24,15 +24,15 @@ export interface SocialDiscoverable {
 // DTO
 export interface SocialDataDTO {
     id: number;
-    instagram_followers?: number | null;
-    tiktok_followers?: number | null;
-    youtube_followers?: number | null;
-    instagram_account?: string | null;
-    tiktok_account?: string | null;
-    youtube_account?: string | null;
-    website?: string | null;
-    popularity?: number | null;
-    linktree?: string | null;
+    instagram_followers: number | null;
+    tiktok_followers: number | null;
+    youtube_followers: number | null;
+    instagram_account: string | null;
+    tiktok_account: string | null;
+    youtube_account: string | null;
+    website: string | null;
+    popularity: number | null;
+    linktree: string | null;
 }
 
 export interface SocialMediaAccountDTO {

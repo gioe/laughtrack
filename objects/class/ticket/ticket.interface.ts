@@ -3,7 +3,7 @@ import { Decimal } from "@prisma/client/runtime/library";
 // Client
 export interface TicketInterface {
     price: number;
-    link: string;
+    link: string | null;
 }
 
 // DB
