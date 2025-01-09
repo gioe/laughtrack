@@ -19,8 +19,8 @@ export interface ClubInterface
 
 // DB
 export interface ClubDTO {
-    id: number;
-    name: string;
+    id?: number;
+    name?: string;
     website?: string;
     address?: string;
     city?: string;

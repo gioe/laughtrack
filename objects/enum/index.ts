@@ -1,4 +1,3 @@
-import { ComedyClub } from './comedyClub'
 import { EntityType } from './entityType'
 import { SocialMedia } from './socialMedia'
 import { SortParamValue } from './sortParamValue'
@@ -12,7 +11,6 @@ import { RestApiAction } from './restApiAction'
 import { QueryProperty } from './queryProperty'
 export {
     RestApiAction,
-    ComedyClub,
     QueryProperty,
     RoutePath,
     EntityType,

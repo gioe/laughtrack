@@ -80,7 +80,8 @@ export async function GET(request: Request) {
         .then((response: ClubSearchDTO) => {
             const data = {
                 entities: response.response.data.map((result: ClubDTO) => new Club(result)),
-                total: response.response.total
+                total: response.response.total,
+                filters: filters
             } as ClubSearchData
             return NextResponse.json({ data }, { status: 200 })
         })

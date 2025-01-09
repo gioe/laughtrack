@@ -2,29 +2,12 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { useSession } from "next-auth/react";
-import { usePageContext } from "../../contexts/PageEntityProvider";
-import { usePathname } from "next/navigation";
-import { useRouter } from "next/navigation";
-import { Navigator } from "../../objects/class/navigate/Navigator";
-import { BasicButton } from "../button/basic";
 
 interface EntityBannerProps {
     identifier: string;
 }
 
 const EntityBanner = ({ identifier }: EntityBannerProps) => {
-    const pathName = usePathname();
-    const { primaryEntity } = usePageContext();
-    const navigator = new Navigator(usePathname(), useRouter());
-
-    const handleAdminClick = () => {
-        navigator.pushPage(`/${primaryEntity?.valueOf()}/${identifier}/admin`);
-    };
-
-    const session = useSession();
-    const shouldShowMenu =
-        !pathName.includes("admin") && session.data?.user.role == "admin";
     const [src, setSrc] = useState<string>(`/images/banners/${identifier}.png`);
 
     const onError = () => {
@@ -49,13 +32,6 @@ const EntityBanner = ({ identifier }: EntityBannerProps) => {
                 <h2 className="font-bold sm:text-4xl m:text-4xl lg:text-4xl xl:text-4xl 2xl:text-4xl text-white pt-6 pb-6">
                     {decodeURI(identifier)}
                 </h2>
-                {shouldShowMenu && (
-                    <BasicButton
-                        clickHandle={handleAdminClick}
-                        text="Edit"
-                        isLoading={false}
-                    />
-                )}
             </div>
         </div>
     );

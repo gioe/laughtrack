@@ -8,6 +8,7 @@ import { timeFromMoment } from "../../../util/dateUtil";
 import LineupGrid from "../../grid/lineup";
 import TicketDetail from "../../ticket";
 import DateMarquee from "../../date";
+import { Club } from "../../../objects/class/club/Club";
 
 interface ShowCardProps {
     show: Show;
@@ -15,7 +16,7 @@ interface ShowCardProps {
 
 const ShowCard: React.FC<ShowCardProps> = ({ show }) => {
     const dateObject = moment(new Date(show.date ?? new Date()));
-    const clubName = show.clubName ?? "";
+    const club = new Club({ name: show.clubName });
     const ticket = show.ticket;
     const showName = show.name;
     const lineup = show.lineup;
@@ -33,7 +34,7 @@ const ShowCard: React.FC<ShowCardProps> = ({ show }) => {
                     className="hover:z-9 hover:scale-105 rounded-2xl transform 
                     transition duration-300 ease-outsize-16"
                 >
-                    <ClubMarquee priority size="s" name={clubName} />
+                    <ClubMarquee priority size="s" club={club} />
                 </div>
                 <div className="size-16 rounded-2xl mb-2">
                     <DateMarquee date={dateObject} />

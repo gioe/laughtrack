@@ -5,7 +5,6 @@ import { ComedianDTO } from "../comedian/comedian.interface";
 import { ShowDTO, ShowInterface } from "./show.interface";
 import { Ticket } from "../ticket/Ticket";
 import { SocialData } from "../socialData/SocialData";
-import { capitalized, isLowerCase, isUpperCase, removeBadWhiteSpace } from "../../../util/primatives/stringUtil";
 
 export class Show implements ShowInterface {
     // Properties
@@ -30,7 +29,7 @@ export class Show implements ShowInterface {
 
     // Constructor
     constructor(input: ShowDTO) {
-        this.name = this.normalizeName(input.name ?? "");
+        this.name = input.name ?? "";
         this.date = input.date;
         this.socialData = input.social_data !== undefined ? new SocialData(input.social_data) : undefined;
         this.containedEntities = input.lineup ? input.lineup.map((item: ComedianDTO) => new Comedian(item)) : []
@@ -45,14 +44,6 @@ export class Show implements ShowInterface {
     }
 
 
-    normalizeName = (name: string): string => {
-        const cleanString = removeBadWhiteSpace(name);
-        if (isUpperCase(cleanString) || isLowerCase(cleanString)) {
-            return capitalized(cleanString)
-        }
-        return cleanString
-    };
-
     overrideDate = (date: string): void => {
         const providedDate = new Date(date);
         this.date = new Date(
@@ -62,23 +53,6 @@ export class Show implements ShowInterface {
             this.date.getHours(),
             this.date.getMinutes(),
             this.date.getSeconds(),
-        );
-    };
-
-    asShowDTO = (): ShowDTO => {
-        return {
-            club_id: this.clubId,
-            date: this.date,
-            ticket: this.ticket.asTicketDTO(),
-            name: this.name,
-            last_scraped_date: this.lastScrapedDate,
-            description: this.description
-        };
-    };
-
-    asComedianDTOArray = (): ComedianDTO[] => {
-        return this.containedEntities.map((comedian: Comedian) =>
-            comedian.asComedianDTO(),
         );
     };
 

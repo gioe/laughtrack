@@ -165,23 +165,27 @@ async function getClubDetailPageData(params: any) {
 }
 
 export async function GET(request: Request, { params }) {
-    const headersList = await headers();
-    const userId = headersList.get("user_id");
+    try {
+        const headersList = await headers();
+        const userId = headersList.get("user_id");
 
-    const slug = await params
-    const newURL = new URL(request.url);
-    const searchParams = newURL.searchParams
-    const filters = await getTags(EntityType.Comedian);
+        const slug = await params
+        const newURL = new URL(request.url);
+        const searchParams = newURL.searchParams
+        const filters = await getTags(EntityType.Comedian);
 
-    const helper = await QueryHelper.storePageParams(searchParams, filters, slug, userId);
+        const helper = await QueryHelper.storePageParams(searchParams, filters, slug, userId);
 
-    return getClubDetailPageData(helper.asQueryFilters())
-        .then((response: any) => {
-            const data = {
-                entity: new Club(response.response.data),
-                total: response.response.total
-            } as ClubDetailPageData
-            return NextResponse.json({ data }, { status: 200 })
-        })
-        .catch((error: Error) => NextResponse.json({ message: error.message }, { status: 500 }));
+        return getClubDetailPageData(helper.asQueryFilters())
+            .then((response: any) => {
+                const data = {
+                    entity: new Club(response.response.data),
+                    total: response.response.total
+                } as ClubDetailPageData
+                return NextResponse.json({ data }, { status: 200 })
+            })
+            .catch((error: Error) => NextResponse.json({ message: error.message }, { status: 500 }));
+    } catch (e) {
+        console.log(e)
+    }
 }

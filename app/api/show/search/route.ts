@@ -192,7 +192,8 @@ export async function GET(request: Request) {
         .then((response: ShowSearchDTO) => {
             const data = {
                 entities: response.response.data.map((result: ShowDTO) => new Show(result)),
-                total: response.response.total
+                total: response.response.total,
+                filtes: filters
             } as ShowSearchData
             return NextResponse.json({ data }, { status: 200 })
         })

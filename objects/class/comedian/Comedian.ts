@@ -1,15 +1,8 @@
 import { EntityType } from "../../enum";
-import {
-    removeBadWhiteSpace,
-    capitalized,
-    isUpperCase,
-    isLowerCase
-} from "../../../util/primatives/stringUtil";
 import { Entity } from "../../interface";
 import { Show } from "../show/Show";
 import { ShowDTO } from "../show/show.interface";
 import { ComedianDTO, ComedianInterface } from "./comedian.interface";
-import { generateHash } from "../../../util/hashUtil";
 import { SocialData } from "../socialData/SocialData";
 
 export class Comedian implements ComedianInterface {
@@ -29,7 +22,7 @@ export class Comedian implements ComedianInterface {
     fallbackImageUrl = new URL(`logo.png`, `https://${process.env.BUNNYCDN_CDN_HOST}/`);
 
     constructor(input: ComedianDTO) {
-        this.name = this.normalizeName(input.name);
+        this.name = input.name
         this.containedEntities = input.dates !== undefined ? input.dates.map((dto: ShowDTO) => new Show(dto)) : []
         this.socialData = input.social_data !== undefined ? new SocialData(input.social_data) : undefined;
         this.tagIds = input.tags ? input.tags : [];
@@ -39,28 +32,6 @@ export class Comedian implements ComedianInterface {
         this.cardImageUrl = new URL(`/comedians/${input.name}.png`, `https://${process.env.BUNNYCDN_CDN_HOST}/`);
         this.uuid = input.uuid
         this.isAlias = input.is_alias ?? false
-    }
-
-    // Sometimes we receive names from websites that are entirely uppercase or lowercase. These are the only times when we want to insure
-    // proper capitalization. Otherwise leave it alone.
-    normalizeName = (name: string): string => {
-        const cleanString = removeBadWhiteSpace(name);
-
-        if (isUpperCase(cleanString) || isLowerCase(cleanString)) {
-            return capitalized(cleanString)
-        }
-        return cleanString
-    };
-
-    asComedianDTO = (): ComedianDTO => {
-        return {
-            name: this.name,
-            uuid: this.hashName()
-        };
-    };
-
-    hashName() {
-        return generateHash(this.name)
     }
 
     getDates() {

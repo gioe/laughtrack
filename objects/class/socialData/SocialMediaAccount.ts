@@ -9,6 +9,4 @@ export class SocialMediaAccount implements SocialMediaAccountInterface {
         this.following = following ?? 0
     }
 
-
-
 }

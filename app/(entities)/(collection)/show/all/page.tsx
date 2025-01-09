@@ -8,24 +8,15 @@ import { ShowSearchResponse } from "./interface";
 import TableFilterBar from "../../../../../components/filter";
 import ShowCard from "../../../../../components/cards/show";
 import { Show } from "../../../../../objects/class/show/Show";
-import { GetTagsResponse } from "../../../../api/tag/route";
 
 export default async function ShowSearchPage(props: any) {
     const paramsWrapper = await SearchParamsHelper.storePageParams(
         props.searchParams,
     );
 
-    const { data } = (await executeGet(
+    const { data, filters } = await executeGet<ShowSearchResponse>(
         RoutePath.ShowSearch,
         paramsWrapper.asUrlSearchParams(),
-    )) as ShowSearchResponse;
-
-    const filterResponse = await executeGet<GetTagsResponse>(`/api/tag`).then(
-        (response) => {
-            if (response) {
-                return response.containers;
-            }
-        },
     );
 
     return (
@@ -33,7 +24,7 @@ export default async function ShowSearchPage(props: any) {
             <section>
                 <TableFilterBar
                     totalItems={data.total}
-                    filtersString={JSON.stringify(filterResponse)}
+                    filtersString={JSON.stringify(filters)}
                 />
             </section>
             <section className="grid grid-cols-1 gap-y-10">

@@ -5,7 +5,6 @@ import Credentials from "next-auth/providers/credentials";
 import { jwtDecode } from "jwt-decode";
 import { signInSchema } from "./util/validations";
 import { refreshAccessToken } from "./util/primatives/tokenUtil";
-import { generateUrl } from "./util/primatives/urlUtil";
 import { RoutePath } from "./objects/enum";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -24,9 +23,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     const { email, password } =
                         await signInSchema.parseAsync(credentials);
 
-                    const url = generateUrl(RoutePath.Login)
-
-                    const response = await fetch(url, {
+                    const response = await fetch(RoutePath.Login, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'

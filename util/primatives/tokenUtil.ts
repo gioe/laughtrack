@@ -1,11 +1,8 @@
 import { JWT } from "next-auth/jwt";
-import { generateUrl } from "./urlUtil";
 import { RoutePath } from "../../objects/enum";
 
 export async function refreshAccessToken(token: JWT) {
-    const url = generateUrl(RoutePath.RefreshToken);
-
-    return fetch(url, {
+    return fetch(RoutePath.RefreshToken, {
         method: "POST",
         headers: {
             "Content-Type": "application/x-www-form-urlencoded",
