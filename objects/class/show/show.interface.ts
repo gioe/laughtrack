@@ -22,10 +22,10 @@ export interface ShowInterface extends Taggable, Entity, SocialDiscoverable {
 // DB
 export interface ShowDTO {
     club_name?: string;
-    club_id: number;
+    club_id?: number;
     date: Date;
     ticket: TicketDTO;
-    name: string;
+    name: string | null;
     social_data?: SocialDataDTO;
     tags?: number[]
     lineup?: ComedianDTO[]

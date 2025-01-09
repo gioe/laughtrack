@@ -79,7 +79,7 @@ export class QueryHelper {
     }
 
     getSortValue() {
-        return { sort_by: this.searchParamsHelper.getParamValue(QueryProperty.Sort) }
+        return { sortBy: this.searchParamsHelper.getParamValue(QueryProperty.Sort) }
     }
 
     getQueryPattern() {

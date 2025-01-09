@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { Tooltip } from "@material-tailwind/react";
 import Link from "next/link";
+import { Club } from "../../../objects/class/club/Club";
 
 const marqueeConfig = {
     // Colors
@@ -22,7 +23,7 @@ const marqueeConfig = {
 };
 
 interface ClubMarqueeProps {
-    name: string;
+    club: Club;
     priority: boolean;
     tooltip?: boolean;
     type?: string;
@@ -30,58 +31,49 @@ interface ClubMarqueeProps {
 }
 
 const ClubMarquee = ({
-    name,
+    club,
     tooltip = true,
     type = "rounded",
     size = "m",
 }: ClubMarqueeProps) => {
-    const destination = `/club/${name}`;
-    const imageUrl = `/images/club/square/${name}.png`;
+    const [src, setSrc] = useState(
+        club.cardImageUrl ? club.cardImageUrl : club.fallbackImageUrl,
+    );
 
-    const [src, setSrc] = useState(imageUrl);
-
-    const onError = () => {
-        setSrc(`/images/logo.png`);
+    const handleImageError = () => {
+        setSrc(club.fallbackImageUrl);
     };
 
-    return tooltip ? (
-        <Tooltip placement={"top"} key={name} content={name}>
-            <div
-                className={`flex-none
-                     relative inline-block hover:cursor-pointer 
-                     object-cover object-center ${marqueeConfig[size]}`}
-            >
-                <Link href={destination}>
-                    <Image
-                        fill
-                        src={src}
-                        alt={name}
-                        onError={onError}
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        priority
-                        style={marqueeConfig[type]}
-                    />
-                </Link>
-            </div>
-        </Tooltip>
-    ) : (
+    const ImageComponent = () => (
         <div
-            className={`flex-none
-             relative inline-block hover:cursor-pointer 
-             object-cover object-center ${marqueeConfig[size]}`}
+            className={`flex-none relative inline-block hover:cursor-pointer 
+         object-cover object-center ${marqueeConfig[size]}`}
         >
-            <Link href={destination}>
+            <Link
+                href={`/club/${club.name}`}
+                className="relative block h-full w-full"
+            >
                 <Image
                     fill
-                    src={src}
-                    alt={name}
-                    onError={onError}
+                    src={src.toString()}
+                    alt={club.name}
+                    onError={handleImageError}
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     priority
                     style={marqueeConfig[type]}
                 />
             </Link>
         </div>
+    );
+
+    if (!tooltip) {
+        return <ImageComponent />;
+    }
+
+    return (
+        <Tooltip key={club.name} content={club.name}>
+            <ImageComponent />
+        </Tooltip>
     );
 };
 

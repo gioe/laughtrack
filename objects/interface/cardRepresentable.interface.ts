@@ -1,3 +1,4 @@
 export interface CardRepresentable {
-    cardImageUrl: string;
+    cardImageUrl: URL | null;
+    fallbackImageUrl: URL
 }

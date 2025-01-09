@@ -5,7 +5,6 @@ import { SearchParamsHelper } from "../../../../../objects/class/params/SearchPa
 import { RoutePath } from "../../../../../objects/enum";
 import { executeGet } from "../../../../../util/actions/executeGet";
 import { CACHE } from "../../../../../util/constants/cacheConstants";
-import { GetTagsResponse } from "../../../../api/tag/route";
 import { ClubSearchResponse } from "./interface";
 
 export default async function ClubSearchPage(props: any) {
@@ -13,18 +12,10 @@ export default async function ClubSearchPage(props: any) {
         props.searchParams,
     );
 
-    const { data } = (await executeGet(
+    const { data, filters } = await executeGet<ClubSearchResponse>(
         RoutePath.ClubSearch,
         paramsWrapper.asUrlSearchParams(),
         CACHE.search,
-    )) as ClubSearchResponse;
-
-    const filterResponse = await executeGet<GetTagsResponse>(`/api/tag`).then(
-        (response) => {
-            if (response) {
-                return response.containers;
-            }
-        },
     );
 
     return (
@@ -32,7 +23,7 @@ export default async function ClubSearchPage(props: any) {
             <section>
                 <TableFilterBar
                     totalItems={data.total}
-                    filtersString={JSON.stringify(filterResponse)}
+                    filtersString={JSON.stringify(filters)}
                 />
             </section>
             <section className="grid grid-cols-1 gap-y-10">
@@ -41,10 +32,7 @@ export default async function ClubSearchPage(props: any) {
                         return (
                             <ClubCarouselCard
                                 key={entity.name}
-                                club={{
-                                    name: entity.name,
-                                    count: 0,
-                                }}
+                                entity={JSON.stringify(entity)}
                             />
                         );
                     })

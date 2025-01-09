@@ -1,17 +1,24 @@
 "use server";
 
 import ClubCarouselCard from "../../cards/carousel/club";
-import { ClubActivityDTO } from "../../../objects/class/club/club.interface";
+import { ClubDTO } from "../../../objects/class/club/club.interface";
+import { Club } from "../../../objects/class/club/Club";
 
 interface TrendingClubsCarouselProps {
-    clubs: ClubActivityDTO[];
+    clubs: ClubDTO[];
 }
 
 const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
     return (
         <div className="max-w-full flex flex-col lg:grid lg:grid-rows-2 lg:grid-cols-3 overflow-scroll gap-x-6 gap-y-6 p-4">
-            {clubs.map((club) => {
-                return <ClubCarouselCard key={club.name} club={club} />;
+            {clubs.map((dto) => {
+                const club = new Club(dto);
+                return (
+                    <ClubCarouselCard
+                        key={club.name}
+                        entity={JSON.stringify(club)}
+                    />
+                );
             })}
         </div>
     );

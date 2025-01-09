@@ -19,23 +19,18 @@ export interface ClubInterface
 
 // DB
 export interface ClubDTO {
-    id: number;
-    name: string;
-    city: string;
-    address: string;
-    website: string;
-    scraping_page_url: string;
-    zip_code: string;
+    id?: number;
+    name?: string;
+    website?: string;
+    address?: string;
+    city?: string;
+    zipCode?: string;
     social_data?: SocialDataDTO;
     dates?: ShowDTO[];
     tags?: number[];
     is_Favorite?: boolean
     show_count?: number
-}
-
-export interface ClubActivityDTO {
-    name: string,
-    count: number
+    count?: number
 }
 
 export interface PaginatedClubResponseDTO {

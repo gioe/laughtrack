@@ -17,7 +17,8 @@ export const toSocialDataInterface = (
             following: Number(payload.youtube_followers ?? "0"),
             account: payload.youtube_account ?? ""
         },
-        linktree: payload.linktree,
-        website: payload.website,
+        linktree: payload.linktree ?? "",
+        website: payload.website ?? "",
+        popularityScore: 0
     };
 };
