@@ -21,7 +21,7 @@ export interface ClubInterface
 export interface ClubDTO {
     id: number;
     name: string;
-    website: string;
+    website?: string;
     address?: string;
     city?: string;
     zipCode?: string;
@@ -30,11 +30,7 @@ export interface ClubDTO {
     tags?: number[];
     is_Favorite?: boolean
     show_count?: number
-}
-
-export interface ClubActivityDTO {
-    name: string,
-    count: number
+    count?: number
 }
 
 export interface PaginatedClubResponseDTO {

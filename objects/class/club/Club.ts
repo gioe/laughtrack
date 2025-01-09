@@ -16,10 +16,12 @@ export class Club implements ClubInterface {
     isFavorite: boolean;
     id: number;
     type: EntityType = EntityType.Club;
-    bannerImageUrl: string;
-    cardImageUrl: string;
+    bannerImageUrl: URL | null;
+    cardImageUrl: URL | null;;
     containedEntities: Entity[]
     showCount?: number;
+    count?: number
+    fallbackImageUrl = new URL(`logo.png`, `https://${process.env.BUNNYCDN_CDN_HOST}/`);
 
     constructor(input: ClubDTO) {
         this.website = input.website;
@@ -32,8 +34,7 @@ export class Club implements ClubInterface {
         this.name = input.name
         this.isFavorite = input.is_Favorite ?? false;
         this.id = input.id
-        this.bannerImageUrl = `/images/banners/${input.name}.png`
-        this.cardImageUrl = `/images/club/square/${input.name}.png`;
+        this.cardImageUrl = new URL(`/clubs/${input.name}.png`, `https://${process.env.BUNNYCDN_CDN_HOST}/`);
         this.showCount = input.show_count
     }
 

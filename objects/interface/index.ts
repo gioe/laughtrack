@@ -4,7 +4,6 @@ import { Paginated, PaginationData } from "./paginated.interface";
 import { LineupItemDTO } from "./lineup.interface";
 import { DatabaseIdentifiable } from "./identifable.interface"
 import { EntityContainer } from "./entityContainer.interface";
-import { RepositoryInterface } from "./repository.interface"
 import { Selectable } from "./selectable.interface";
 import {
     PaginatedEntityResponse,
@@ -41,7 +40,6 @@ export type {
     PaginatedEntityResponse,
     PaginatedEntityResponseDTO,
     PaginatedEntityDTO,
-    RepositoryInterface,
     EntityContainer,
 };
 

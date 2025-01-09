@@ -35,8 +35,6 @@ const AVATAR_STYLES = {
     },
 } as const;
 
-const DEFAULT_FALLBACK_IMAGE = "/images/logo.png";
-
 const ComedianHeadshot = ({
     comedian,
     tooltip = true,
@@ -45,10 +43,14 @@ const ComedianHeadshot = ({
     priority = true,
     shouldAnimate = true,
 }: ComedianHeadshotProps) => {
-    const [imageSource, setImageSource] = useState(comedian.cardImageUrl);
+    const [src, setSrc] = useState(
+        comedian.cardImageUrl
+            ? comedian.cardImageUrl
+            : comedian.fallbackImageUrl,
+    );
 
     const handleImageError = () => {
-        setImageSource(DEFAULT_FALLBACK_IMAGE);
+        setSrc(comedian.fallbackImageUrl);
     };
 
     // Determine if we need the pulsating border
@@ -74,19 +76,22 @@ const ComedianHeadshot = ({
     const ImageComponent = () => (
         <div
             className={`
-            relative 
-            inline-block 
-            hover:cursor-pointer 
-            object-cover 
-            object-center 
-            ${AVATAR_STYLES.size[size]}
-            ${getPulsateStyles()}
-        `}
+        relative 
+        inline-block 
+        hover:cursor-pointer 
+        object-cover 
+        object-center 
+        ${AVATAR_STYLES.size[size]}
+        ${getPulsateStyles()}
+    `}
         >
-            <Link href={`/comedian/${comedian.name}`}>
+            <Link
+                href={`/comedian/${comedian.name}`}
+                className="relative block h-full w-full"
+            >
                 <Image
                     fill
-                    src={imageSource}
+                    src={src.toString()}
                     alt={comedian.name}
                     onError={handleImageError}
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

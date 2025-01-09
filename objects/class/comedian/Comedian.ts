@@ -26,6 +26,7 @@ export class Comedian implements ComedianInterface {
     showCount?: number;
     isAlias?: boolean
     bannerImageUrl: URL | null;
+    fallbackImageUrl = new URL(`logo.png`, `https://${process.env.BUNNYCDN_CDN_HOST}/`);
 
     constructor(input: ComedianDTO) {
         this.name = this.normalizeName(input.name);
@@ -35,7 +36,7 @@ export class Comedian implements ComedianInterface {
         this.isFavorite = input.is_favorite ?? false
         this.id = input.id ?? 0
         this.showCount = input.show_count
-        this.cardImageUrl = new URL(`/comedian/${input.name}.png`, `https://${process.env.BUNNYCDN_CDN_HOST}/`);
+        this.cardImageUrl = new URL(`/comedians/${input.name}.png`, `https://${process.env.BUNNYCDN_CDN_HOST}/`);
         this.uuid = input.uuid
         this.isAlias = input.is_alias ?? false
     }

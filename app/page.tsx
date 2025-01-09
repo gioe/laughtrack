@@ -11,6 +11,7 @@ async function getHomeData(userId?: string) {
     const venues = await db.club
         .findMany({
             select: {
+                id: true,
                 name: true,
                 shows: {
                     where: {
@@ -34,6 +35,7 @@ async function getHomeData(userId?: string) {
         })
         .then((clubs) =>
             clubs.map((club) => ({
+                id: club.id,
                 name: club.name,
                 count: new Set(
                     club.shows.flatMap((show) =>
