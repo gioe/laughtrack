@@ -2,7 +2,7 @@
 "use server";
 
 import { SearchParamsHelper } from "../../../../../objects/class/params/SearchParamsHelper";
-import { RoutePath } from "../../../../../objects/enum";
+import { APIRoutePath } from "../../../../../objects/enum";
 import { executeGet } from "../../../../../util/actions/executeGet";
 import { ShowSearchResponse } from "./interface";
 import TableFilterBar from "../../../../../components/filter";
@@ -15,7 +15,7 @@ export default async function ShowSearchPage(props: any) {
     );
 
     const { data, filters } = await executeGet<ShowSearchResponse>(
-        RoutePath.ShowSearch,
+        APIRoutePath.ShowSearch,
         paramsWrapper.asUrlSearchParams(),
     );
 

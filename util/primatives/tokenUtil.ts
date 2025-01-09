@@ -1,14 +1,9 @@
 import { JWT } from "next-auth/jwt";
-import { RoutePath } from "../../objects/enum";
+import { APIRoutePath } from "../../objects/enum";
+import { executePost } from "../actions/executePost";
 
 export async function refreshAccessToken(token: JWT) {
-    return fetch(RoutePath.RefreshToken, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            Authorization: `Bearer ${token.refreshToken}`,
-        },
-    })
+    return executePost<Response>(APIRoutePath.TokenRefresh, undefined, token)
         .then((response) => {
             if (response.ok) return response.json();
             throw new Error("Response not ok");

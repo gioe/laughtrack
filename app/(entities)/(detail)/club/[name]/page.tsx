@@ -2,11 +2,10 @@ import { executeGet } from "../../../../../util/actions/executeGet";
 import { ClubDetailPageResponse } from "./interface";
 import { SearchParamsHelper } from "../../../../../objects/class/params/SearchParamsHelper";
 import { CACHE } from "../../../../../util/constants/cacheConstants";
-import { RoutePath } from "../../../../../objects/enum";
+import { APIRoutePath } from "../../../../../objects/enum";
+import TableFilterBar from "../../../../../components/filter";
 import ShowCard from "../../../../../components/cards/show";
 import { Show } from "../../../../../objects/class/show/Show";
-import TableFilterBar from "../../../../../components/filter";
-import { GetTagsResponse } from "../../../../api/tag/route";
 import { DynamicRoute } from "../../../../../objects/interface/identifable.interface";
 
 export default async function ClubDetailPage(props: {
@@ -18,18 +17,10 @@ export default async function ClubDetailPage(props: {
         props.params,
     );
 
-    const { data } = (await executeGet(
-        RoutePath.ClubDetail + `/${paramsHelper.asSlug()}`,
+    const { data, filters } = await executeGet<ClubDetailPageResponse>(
+        APIRoutePath.Club + `/${paramsHelper.asSlug()}`,
         paramsHelper.asUrlSearchParams(),
         CACHE.detailPage,
-    )) as ClubDetailPageResponse;
-
-    const filterResponse = await executeGet<GetTagsResponse>(`/api/tag`).then(
-        (response) => {
-            if (response) {
-                return response.containers;
-            }
-        },
     );
 
     return (
@@ -37,7 +28,7 @@ export default async function ClubDetailPage(props: {
             <section>
                 <TableFilterBar
                     totalItems={data.total}
-                    filtersString={JSON.stringify(filterResponse)}
+                    filtersString={JSON.stringify(filters)}
                 />
             </section>
             <section className="grid grid-cols-1 gap-y-10">

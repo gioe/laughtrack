@@ -3,7 +3,7 @@ import ShowCard from "../../../../../components/cards/show";
 import TableFilterBar from "../../../../../components/filter";
 import { SearchParamsHelper } from "../../../../../objects/class/params/SearchParamsHelper";
 import { Show } from "../../../../../objects/class/show/Show";
-import { RoutePath } from "../../../../../objects/enum";
+import { APIRoutePath } from "../../../../../objects/enum";
 import { executeGet } from "../../../../../util/actions/executeGet";
 import { CACHE } from "../../../../../util/constants/cacheConstants";
 import { GetTagsResponse } from "../../../../api/tag/route";
@@ -15,18 +15,10 @@ export default async function ComedianDetailsPage(props: any) {
         props.params,
     );
 
-    const { data } = (await executeGet(
-        RoutePath.ComedianDetail + `/${paramsHelper.asSlug()}`,
+    const { data, filters } = await executeGet<ComedianDetailPageResponse>(
+        APIRoutePath.Comedian + `/${paramsHelper.asSlug()}`,
         paramsHelper.asUrlSearchParams(),
         CACHE.detailPage,
-    )) as ComedianDetailPageResponse;
-
-    const filterResponse = await executeGet<GetTagsResponse>(`/api/tag`).then(
-        (response) => {
-            if (response) {
-                return response.containers;
-            }
-        },
     );
 
     return (
@@ -34,7 +26,7 @@ export default async function ComedianDetailsPage(props: any) {
             <section>
                 <TableFilterBar
                     totalItems={data.total}
-                    filtersString={JSON.stringify(filterResponse)}
+                    filtersString={JSON.stringify(filters)}
                 />
             </section>
             <section className="grid grid-cols-1 gap-y-10">

@@ -1,16 +1,17 @@
-export enum RoutePath {
-    Login = "/api/auth/login/",
-    RefreshToken = "/api/token/refresh",
-    ClubDetail = "/api/club/",
+export enum APIRoutePath {
+    AuthLogin = "/api/auth/login/",
+    TokenRefresh = "/api/token/refresh",
+    Club = "/api/club/",
     ClubSearch = "/api/club/search",
-    GetCities = "/api/city",
-    ComedianDetail = "/api/comedian/",
+    City = "/api/city",
+    Comedian = "/api/comedian/",
     ComedianSearch = "/api/comedian/search",
-    ShowDetail = "/api/show",
     ShowSearch = "/api/show/search",
+    Home = "/api/home",
+    Tag = "/api/tag"
 }
 
 export const allPaths = [
-    RoutePath.ShowSearch
+    APIRoutePath.ShowSearch
 ]
 

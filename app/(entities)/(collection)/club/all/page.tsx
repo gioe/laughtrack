@@ -2,7 +2,7 @@
 import ClubCarouselCard from "../../../../../components/cards/carousel/club";
 import TableFilterBar from "../../../../../components/filter";
 import { SearchParamsHelper } from "../../../../../objects/class/params/SearchParamsHelper";
-import { RoutePath } from "../../../../../objects/enum";
+import { APIRoutePath } from "../../../../../objects/enum";
 import { executeGet } from "../../../../../util/actions/executeGet";
 import { CACHE } from "../../../../../util/constants/cacheConstants";
 import { ClubSearchResponse } from "./interface";
@@ -13,7 +13,7 @@ export default async function ClubSearchPage(props: any) {
     );
 
     const { data, filters } = await executeGet<ClubSearchResponse>(
-        RoutePath.ClubSearch,
+        APIRoutePath.ClubSearch,
         paramsWrapper.asUrlSearchParams(),
         CACHE.search,
     );

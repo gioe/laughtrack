@@ -108,9 +108,8 @@ export async function GET(request: Request) {
             const data = {
                 entities: response.response.data.map((result: ComedianDTO) => new Comedian(result)),
                 total: response.response.total,
-                filters: filters
             } as ComedianSearchData
-            return NextResponse.json({ data }, { status: 200 })
+            return NextResponse.json({ data, filters }, { status: 200 })
         })
         .catch((error: Error) => NextResponse.json({ message: error.message }, { status: 500 }));
 }

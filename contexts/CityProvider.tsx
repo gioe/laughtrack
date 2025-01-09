@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useContext, createContext } from "react";
 import { CityDTO } from "../objects/class/city/city.interface";
-import { RoutePath } from "../objects/enum";
+import { APIRoutePath } from "../objects/enum";
+import { executeGet } from "../util/actions/executeGet";
 
 interface CityList {
     cities: CityDTO[];
@@ -19,10 +20,10 @@ export function CityProvider({ children }: { children: React.ReactNode }) {
 
     const getAffiliates = async () => {
         try {
-            const response = await fetch(RoutePath.GetCities);
+            const response = await executeGet<Response>(APIRoutePath.City);
 
             if (!response.ok) {
-                throw new Error("Failed to fetch cities");
+                throw new Error("Failed to get cities");
             }
 
             const data = await response.json();

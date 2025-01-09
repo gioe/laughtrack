@@ -192,10 +192,9 @@ export async function GET(request: Request) {
         .then((response: ShowSearchDTO) => {
             const data = {
                 entities: response.response.data.map((result: ShowDTO) => new Show(result)),
-                total: response.response.total,
-                filtes: filters
+                total: response.response.total
             } as ShowSearchData
-            return NextResponse.json({ data }, { status: 200 })
+            return NextResponse.json({ data, filters }, { status: 200 })
         })
         .catch((error: Error) => NextResponse.json({ message: error.message }, { status: 500 }));
 }

@@ -5,14 +5,14 @@ import { UserRole } from './userRole'
 import { ButtonType } from './buttonType'
 import { IndexProperty } from './indexProperty'
 import { HeaderKey } from './headerKey'
-import { RoutePath } from './routePath'
+import { APIRoutePath } from './routePath'
 import { DirectionParamValue } from './directionParamValue'
 import { RestApiAction } from './restApiAction'
 import { QueryProperty } from './queryProperty'
 export {
     RestApiAction,
     QueryProperty,
-    RoutePath,
+    APIRoutePath,
     EntityType,
     SocialMedia,
     SortParamValue,

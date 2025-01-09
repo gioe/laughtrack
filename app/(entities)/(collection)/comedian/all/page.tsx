@@ -2,7 +2,7 @@
 import ComedianCarouselCard from "../../../../../components/cards/carousel/comedian";
 import TableFilterBar from "../../../../../components/filter";
 import { SearchParamsHelper } from "../../../../../objects/class/params/SearchParamsHelper";
-import { RoutePath } from "../../../../../objects/enum";
+import { APIRoutePath } from "../../../../../objects/enum";
 import { executeGet } from "../../../../../util/actions/executeGet";
 import { CACHE } from "../../../../../util/constants/cacheConstants";
 import { ComedianSearchResponse } from "./interface";
@@ -13,7 +13,7 @@ export default async function ComedianSearchPage(props: any) {
     );
 
     const { data, filters } = await executeGet<ComedianSearchResponse>(
-        RoutePath.ComedianSearch,
+        APIRoutePath.ComedianSearch,
         paramsWrapper.asUrlSearchParams(),
         CACHE.search,
     );

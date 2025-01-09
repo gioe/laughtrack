@@ -6,7 +6,6 @@ import bcrypt from "bcryptjs";
 import { signInSchema } from "../../../util/validations";
 import { User } from "@prisma/client";
 
-
 export async function POST(request: Request) {
 
     const data = await request.json();

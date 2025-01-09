@@ -5,7 +5,8 @@ import Credentials from "next-auth/providers/credentials";
 import { jwtDecode } from "jwt-decode";
 import { signInSchema } from "./util/validations";
 import { refreshAccessToken } from "./util/primatives/tokenUtil";
-import { RoutePath } from "./objects/enum";
+import { APIRoutePath } from "./objects/enum";
+import { executePost } from "./util/actions/executePost";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
     providers: [
@@ -23,17 +24,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     const { email, password } =
                         await signInSchema.parseAsync(credentials);
 
-                    const response = await fetch(RoutePath.Login, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            email: email,
-                            password: password,
-                        })
-                    }).then((response: any) => response.json())
-
+                    const response = await executePost<Response>(APIRoutePath.AuthLogin, new URLSearchParams({
+                        email: email,
+                        password: password,
+                    }))
+                        .then((response: any) => response.json())
 
                     return {
                         accessToken: response.accessToken,

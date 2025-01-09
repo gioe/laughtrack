@@ -182,7 +182,7 @@ export async function GET(request: Request, { params }) {
                     entity: new Club(response.response.data),
                     total: response.response.total
                 } as ClubDetailPageData
-                return NextResponse.json({ data }, { status: 200 })
+                return NextResponse.json({ data, filters }, { status: 200 })
             })
             .catch((error: Error) => NextResponse.json({ message: error.message }, { status: 500 }));
     } catch (e) {
