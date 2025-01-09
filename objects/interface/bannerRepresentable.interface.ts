@@ -1,3 +1,3 @@
 export interface BannerRepresentable {
-    bannerImageUrl: string;
+    bannerImageUrl: URL | null;
 }

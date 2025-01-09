@@ -1,3 +1,3 @@
 export interface CardRepresentable {
-    cardImageUrl: string;
+    cardImageUrl: URL | null;
 }

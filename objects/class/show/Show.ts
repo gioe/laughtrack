@@ -19,14 +19,13 @@ export class Show implements ShowInterface {
     tagIds: number[];
     id: number;
     type: EntityType = EntityType.Show;
-    bannerImageUrl: string;
-    cardImageUrl: string;
     containedEntities: Entity[]
     lineup: Comedian[]
     isFavorite: boolean;
     lastScrapedDate?: Date;
     description?: string;
-
+    bannerImageUrl: URL | null;
+    cardImageUrl: URL;
     // Constructor
     constructor(input: ShowDTO) {
         this.name = this.normalizeName(input.name ?? "");
@@ -38,8 +37,6 @@ export class Show implements ShowInterface {
         this.ticket = new Ticket(input.ticket)
         this.tagIds = input.tags ? input.tags : [];
         this.id = input.id ?? 0
-        this.bannerImageUrl = `/images/banners/${input.name}.png`
-        this.cardImageUrl = `/images/show}/square/${input.name}.png`;
         this.clubId = input.club_id ? Number(input.club_id) : 0
         this.lastScrapedDate = input.last_scraped_date
         this.description = input.description
