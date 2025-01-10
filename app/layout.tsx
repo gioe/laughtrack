@@ -5,7 +5,6 @@ import RegisterModal from "../components/modals/register";
 import { NextUIProvider } from "@nextui-org/react";
 import { SessionProvider } from "next-auth/react";
 import { auth } from "../auth";
-import { cache } from "react";
 import Footer from "../components/footer";
 import { Bebas_Neue, Oswald, Inter, Fjalla_One } from "next/font/google";
 import Navbar from "../components/navbar";
