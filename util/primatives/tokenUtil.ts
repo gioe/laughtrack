@@ -1,9 +1,11 @@
 import { JWT } from "next-auth/jwt";
 import { APIRoutePath } from "../../objects/enum";
-import { executePost } from "../actions/executePost";
+import { makeRequest } from "../actions/makeRequest";
 
 export async function refreshAccessToken(token: JWT) {
-    return executePost<Response>(APIRoutePath.TokenRefresh, undefined, token)
+    return makeRequest<Response>(APIRoutePath.TokenRefresh, {
+        token
+    })
         .then((response) => {
             if (response.ok) return response.json();
             throw new Error("Response not ok");

@@ -1,26 +1,28 @@
-import { executeGet } from "../../../../../util/actions/executeGet";
 import { ClubDetailPageResponse } from "./interface";
 import { SearchParamsHelper } from "../../../../../objects/class/params/SearchParamsHelper";
 import { CACHE } from "../../../../../util/constants/cacheConstants";
 import { APIRoutePath } from "../../../../../objects/enum";
-import TableFilterBar from "../../../../../components/filter";
-import ShowCard from "../../../../../components/cards/show";
 import { Show } from "../../../../../objects/class/show/Show";
 import { DynamicRoute } from "../../../../../objects/interface/identifable.interface";
+import { makeRequest } from "../../../../../util/actions/makeRequest";
+import TableFilterBar from "../../../../../components/filter";
+import ShowCard from "../../../../../components/cards/show";
 
 export default async function ClubDetailPage(props: {
     searchParams: Promise<URLSearchParams>;
     params: Promise<DynamicRoute> | undefined;
 }) {
-    const paramsHelper = await SearchParamsHelper.storePageParams(
+    const paramsWrapper = await SearchParamsHelper.storePageParams(
         props.searchParams,
         props.params,
     );
 
-    const { data, filters } = await executeGet<ClubDetailPageResponse>(
-        APIRoutePath.Club + `/${paramsHelper.asSlug()}`,
-        paramsHelper.asUrlSearchParams(),
-        CACHE.detailPage,
+    const { data, filters } = await makeRequest<ClubDetailPageResponse>(
+        APIRoutePath.Club + `/${paramsWrapper.asSlug()}`,
+        {
+            searchParams: paramsWrapper.asUrlSearchParams(),
+            revalidate: CACHE.detailPage,
+        },
     );
 
     return (

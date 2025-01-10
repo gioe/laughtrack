@@ -3,12 +3,12 @@
 import TrendingComedianCarousel from "../components/carousel/comedians";
 import TrendingClubsCarousel from "../components/carousel/clubs";
 import ShowSearchForm from "../components/form/showSearch";
-import { executeGet } from "../util/actions/executeGet";
 import { APIRoutePath } from "../objects/enum";
 import { HomePageDataResponse } from "./home/interface";
+import { makeRequest } from "../util/actions/makeRequest";
 
 export default async function HomePage() {
-    const { response } = await executeGet<HomePageDataResponse>(
+    const { response } = await makeRequest<HomePageDataResponse>(
         APIRoutePath.Home,
     );
 

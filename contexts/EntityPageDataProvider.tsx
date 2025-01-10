@@ -9,7 +9,7 @@ import { getSortOptionsForEntityType } from "../util/sort";
 import { usePageContext } from "./PageEntityProvider";
 import { SearchParamsHelper } from "../objects/class/params/SearchParamsHelper";
 import { APIRoutePath } from "../objects/enum";
-import { executeGet } from "../util/actions/executeGet";
+import { makeRequest } from "../util/actions/makeRequest";
 
 interface EntityDataState {
     filters: Filter[];
@@ -36,7 +36,7 @@ export function EntityPageDataProvider({
     });
     const getFilters = async () => {
         try {
-            const response = await executeGet<Response>(APIRoutePath.Tag);
+            const response = await makeRequest<Response>(APIRoutePath.Tag);
 
             if (!response.ok) {
                 throw new Error("Failed to fetch filters");

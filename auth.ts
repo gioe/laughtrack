@@ -6,7 +6,7 @@ import { jwtDecode } from "jwt-decode";
 import { signInSchema } from "./util/validations";
 import { refreshAccessToken } from "./util/primatives/tokenUtil";
 import { APIRoutePath } from "./objects/enum";
-import { executePost } from "./util/actions/executePost";
+import { makeRequest } from "./util/actions/makeRequest";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
     providers: [
@@ -24,10 +24,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     const { email, password } =
                         await signInSchema.parseAsync(credentials);
                     console.log("Attempting to authorize")
-                    const response = await executePost<Response>(APIRoutePath.AuthLogin, new URLSearchParams({
-                        email: email,
-                        password: password,
-                    }))
+                    const response = await makeRequest<Response>(APIRoutePath.AuthLogin, {
+                        searchParams: new URLSearchParams({
+                            email: email,
+                            password: password,
+                        })
+                    })
                         .then((response: any) => response.json())
 
                     return {

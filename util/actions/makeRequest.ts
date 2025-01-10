@@ -1,0 +1,77 @@
+import { JWT } from "next-auth/jwt";
+import { auth } from "../../auth";
+import { getBaseUrl } from "../urlUtil";
+
+type HttpMethod = "GET" | "POST" | "PUT";
+
+interface ExecuteOptions {
+    method?: HttpMethod;
+    token?: JWT;
+    body?: any;
+    searchParams?: URLSearchParams;
+    revalidate?: false | 0 | number;
+}
+
+export const makeRequest = async <T>(
+    endpoint: string,
+    options: ExecuteOptions = {}
+): Promise<T> => {
+    const {
+        method = "GET",
+        token,
+        body,
+        searchParams,
+        revalidate = 0
+    } = options;
+
+    // Create base URL
+    const url = new URL(endpoint, getBaseUrl());
+
+    // Add search parameters if provided (mainly for GET requests)
+    if (searchParams) {
+        searchParams.forEach((value, key) => {
+            url.searchParams.append(key, value);
+        });
+    }
+
+    // Get auth session
+    const session = await auth();
+
+    // Construct headers
+    const headers: Record<string, string> = {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "x-auth-token": session?.accessToken ?? "",
+        "user_id": session?.user.id
+    };
+
+    // Add authorization header if token provided
+    if (token) {
+        headers["Authorization"] = `Bearer ${token.refreshToken}`;
+    }
+
+    // Construct request options
+    const requestOptions: RequestInit = {
+        method,
+        headers,
+        ...(method === "GET" ? { next: { revalidate } } : {}),
+    };
+
+    // Add body for non-GET requests
+    if (method !== "GET" && body) {
+        requestOptions.body = body instanceof URLSearchParams
+            ? body
+            : JSON.stringify(body);
+    }
+
+    // Make request
+    console.log(url.toString())
+    const response = await fetch(url.toString(), requestOptions);
+    console.log(response)
+
+    if (!response.ok) {
+        throw new Error("Fetch Error");
+    }
+
+    const data = await response.json();
+    return data;
+};

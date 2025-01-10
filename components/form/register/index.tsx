@@ -11,7 +11,8 @@ import { FormInput } from "../../input/index";
 import Heading from "../../modals/heading";
 import { FormProvider, useForm } from "react-hook-form";
 import { FullRoundedButton } from "../../button/rounded/full";
-import { executePost } from "../../../util/actions/executePost";
+import { makeRequest } from "../../../util/actions/makeRequest";
+import { APIRoutePath } from "../../../objects/enum";
 
 interface RegistrationFormProps {
     onSubmit: () => void;
@@ -37,9 +38,11 @@ export default function RegistrationForm({
     const submitForm = async (data: z.infer<typeof registerSchema>) => {
         try {
             setIsLoading(true);
-            const response = await executePost<Response>(
-                "/api/register",
-                new URLSearchParams(data),
+            const response = await makeRequest<Response>(
+                APIRoutePath.AuthRegister,
+                {
+                    searchParams: new URLSearchParams(data),
+                },
             );
 
             if (!response.ok) {

@@ -4,21 +4,22 @@ import TableFilterBar from "../../../../../components/filter";
 import { SearchParamsHelper } from "../../../../../objects/class/params/SearchParamsHelper";
 import { Show } from "../../../../../objects/class/show/Show";
 import { APIRoutePath } from "../../../../../objects/enum";
-import { executeGet } from "../../../../../util/actions/executeGet";
+import { makeRequest } from "../../../../../util/actions/makeRequest";
 import { CACHE } from "../../../../../util/constants/cacheConstants";
-import { GetTagsResponse } from "../../../../api/tag/route";
 import { ComedianDetailPageResponse } from "./interface";
 
 export default async function ComedianDetailsPage(props: any) {
-    const paramsHelper = await SearchParamsHelper.storePageParams(
+    const paramsWrapper = await SearchParamsHelper.storePageParams(
         props.searchParams,
         props.params,
     );
 
-    const { data, filters } = await executeGet<ComedianDetailPageResponse>(
-        APIRoutePath.Comedian + `/${paramsHelper.asSlug()}`,
-        paramsHelper.asUrlSearchParams(),
-        CACHE.detailPage,
+    const { data, filters } = await makeRequest<ComedianDetailPageResponse>(
+        APIRoutePath.Comedian + `/${paramsWrapper.asSlug()}`,
+        {
+            searchParams: paramsWrapper.asUrlSearchParams(),
+            revalidate: CACHE.detailPage,
+        },
     );
 
     return (

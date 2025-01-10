@@ -3,7 +3,7 @@
 import { useState, useEffect, useContext, createContext } from "react";
 import { CityDTO } from "../objects/class/city/city.interface";
 import { APIRoutePath } from "../objects/enum";
-import { executeGet } from "../util/actions/executeGet";
+import { makeRequest } from "../util/actions/makeRequest";
 
 interface CityList {
     cities: CityDTO[];
@@ -20,7 +20,7 @@ export function CityProvider({ children }: { children: React.ReactNode }) {
 
     const getAffiliates = async () => {
         try {
-            const response = await executeGet<Response>(APIRoutePath.City);
+            const response = await makeRequest<Response>(APIRoutePath.City);
 
             if (!response.ok) {
                 throw new Error("Failed to get cities");

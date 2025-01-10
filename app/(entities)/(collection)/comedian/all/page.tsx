@@ -3,7 +3,7 @@ import ComedianCarouselCard from "../../../../../components/cards/carousel/comed
 import TableFilterBar from "../../../../../components/filter";
 import { SearchParamsHelper } from "../../../../../objects/class/params/SearchParamsHelper";
 import { APIRoutePath } from "../../../../../objects/enum";
-import { executeGet } from "../../../../../util/actions/executeGet";
+import { makeRequest } from "../../../../../util/actions/makeRequest";
 import { CACHE } from "../../../../../util/constants/cacheConstants";
 import { ComedianSearchResponse } from "./interface";
 
@@ -12,10 +12,12 @@ export default async function ComedianSearchPage(props: any) {
         props.searchParams,
     );
 
-    const { data, filters } = await executeGet<ComedianSearchResponse>(
+    const { data, filters } = await makeRequest<ComedianSearchResponse>(
         APIRoutePath.ComedianSearch,
-        paramsWrapper.asUrlSearchParams(),
-        CACHE.search,
+        {
+            searchParams: paramsWrapper.asUrlSearchParams(),
+            revalidate: CACHE.search,
+        },
     );
 
     return (

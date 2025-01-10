@@ -3,20 +3,22 @@
 
 import { SearchParamsHelper } from "../../../../../objects/class/params/SearchParamsHelper";
 import { APIRoutePath } from "../../../../../objects/enum";
-import { executeGet } from "../../../../../util/actions/executeGet";
 import { ShowSearchResponse } from "./interface";
 import TableFilterBar from "../../../../../components/filter";
 import ShowCard from "../../../../../components/cards/show";
 import { Show } from "../../../../../objects/class/show/Show";
+import { makeRequest } from "../../../../../util/actions/makeRequest";
 
 export default async function ShowSearchPage(props: any) {
     const paramsWrapper = await SearchParamsHelper.storePageParams(
         props.searchParams,
     );
 
-    const { data, filters } = await executeGet<ShowSearchResponse>(
+    const { data, filters } = await makeRequest<ShowSearchResponse>(
         APIRoutePath.ShowSearch,
-        paramsWrapper.asUrlSearchParams(),
+        {
+            searchParams: paramsWrapper.asUrlSearchParams(),
+        },
     );
 
     return (

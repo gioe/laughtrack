@@ -8,7 +8,9 @@ import { useState, useCallback } from "react";
 import { useRegisterModal } from "../../../../hooks/modalState";
 import { HeartIcon as OutlineHeart } from "@heroicons/react/24/outline";
 import { HeartIcon as SolidHeart } from "@heroicons/react/24/solid";
-import { executePut } from "../../../../util/actions/executePut";
+import { APIRoutePath } from "../../../../objects/enum";
+import { RestAPIAction } from "../../../../objects/enum/restApiAction";
+import { makeRequest } from "../../../../util/actions/makeRequest";
 
 interface ComedianCarouselCardProps {
     entity: string;
@@ -27,9 +29,12 @@ const ComedianCarouselCard: React.FC<ComedianCarouselCardProps> = ({
 
     const handleFavoriteClick = async () => {
         if (session.status == "authenticated") {
-            await executePut(`/api/comedian/favorite`, session, {
-                comedianId: parsedEntity.uuid,
-                isFavorite,
+            await makeRequest(APIRoutePath.ComedianFavorite, {
+                method: RestAPIAction.POST,
+                body: {
+                    comedianId: parsedEntity.uuid,
+                    isFavorite,
+                },
             }).then((data: { state: boolean }) => {
                 setIsFavorite(data.state);
             });

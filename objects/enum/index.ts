@@ -7,10 +7,10 @@ import { IndexProperty } from './indexProperty'
 import { HeaderKey } from './headerKey'
 import { APIRoutePath } from './routePath'
 import { DirectionParamValue } from './directionParamValue'
-import { RestApiAction } from './restApiAction'
+import { RestAPIAction } from './restApiAction'
 import { QueryProperty } from './queryProperty'
 export {
-    RestApiAction,
+    RestAPIAction,
     QueryProperty,
     APIRoutePath,
     EntityType,
