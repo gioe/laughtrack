@@ -1,10 +1,13 @@
+import { getBaseUrl } from "../urlUtil";
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export const executePut = async <T>(
-    endpoint: string,
+    url: string,
     session: any,
     body?: any,
 ): Promise<T> => {
-    const response = await fetch(endpoint, {
+
+    const response = await fetch(getBaseUrl() + url, {
         method: "PUT",
         headers: {
             "Content-Type": "application/x-www-form-urlencoded",

@@ -41,14 +41,9 @@ export const metadata: Metadata = {
     description: "Find funny stuff",
 };
 
-export const getSession = cache(async () => {
-    const session = await auth();
-    return session;
-});
-
 export async function getCurrentUser() {
     try {
-        const session = await getSession();
+        const session = await auth();
         if (!session?.user?.email) {
             return null;
         }
@@ -69,7 +64,6 @@ export default async function RootLayout({
     children: React.ReactNode;
 }>) {
     const user = await getCurrentUser();
-
     return (
         <SessionProvider>
             <html

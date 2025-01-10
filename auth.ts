@@ -23,7 +23,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 try {
                     const { email, password } =
                         await signInSchema.parseAsync(credentials);
-
+                    console.log("Attempting to authorize")
                     const response = await executePost<Response>(APIRoutePath.AuthLogin, new URLSearchParams({
                         email: email,
                         password: password,
@@ -84,7 +84,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         },
     },
 
-    debug: process.env.NODE_ENV === "development",
+    debug: process.env.NODE_ENV !== "production",
 
     session: {
         strategy: "jwt",

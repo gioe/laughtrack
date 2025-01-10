@@ -1,14 +1,16 @@
 import { JWT } from "next-auth/jwt";
 import { auth } from "../../auth";
+import { getBaseUrl } from "../urlUtil";
 
 export const executePost = async <T>(
-    endpoint: string,
+    url: string,
     body?: URLSearchParams,
     token?: JWT
 ): Promise<T> => {
+    console.log(url)
     const session = await auth();
 
-    const response = await fetch(endpoint, {
+    const response = await fetch(getBaseUrl() + url, {
         method: "POST",
         headers: {
             "Content-Type": "application/x-www-form-urlencoded",
