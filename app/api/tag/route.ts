@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db } from "../../lib/db";
+import { db } from "../../../lib/db";
 import { FilterDataDTO } from "../../../objects/interface/filter.interface";
 import { Prisma } from "@prisma/client";
 import { EntityType } from "../../../objects/enum";

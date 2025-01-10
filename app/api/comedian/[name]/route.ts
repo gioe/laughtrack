@@ -2,7 +2,7 @@
 
 
 import { NextResponse } from "next/server";
-import { db } from "../../../lib/db";
+import { db } from "../../../../lib/db";
 import { EntityType } from "../../../../objects/enum";
 import { QueryHelper } from "../../../../objects/class/query/QueryHelper";
 import { ComedianDetailDTO, ComedianDetailPageData } from "../../../(entities)/(detail)/comedian/[name]/interface";

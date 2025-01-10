@@ -1,6 +1,6 @@
 import { JWT } from "next-auth/jwt";
-import { auth } from "../../auth";
 import { getBaseUrl } from "../urlUtil";
+import { Session } from "next-auth";
 
 type HttpMethod = "GET" | "POST" | "PUT";
 
@@ -10,6 +10,7 @@ interface ExecuteOptions {
     body?: any;
     searchParams?: URLSearchParams;
     revalidate?: false | 0 | number;
+    session?: Session | null;
 }
 
 export const makeRequest = async <T>(
@@ -21,7 +22,8 @@ export const makeRequest = async <T>(
         token,
         body,
         searchParams,
-        revalidate = 0
+        revalidate = 0,
+        session
     } = options;
 
     // Create base URL
@@ -33,9 +35,6 @@ export const makeRequest = async <T>(
             url.searchParams.append(key, value);
         });
     }
-
-    // Get auth session
-    const session = await auth();
 
     // Construct headers
     const headers: Record<string, string> = {
@@ -64,10 +63,7 @@ export const makeRequest = async <T>(
     }
 
     // Make request
-    console.log(url.toString())
     const response = await fetch(url.toString(), requestOptions);
-    console.log(response)
-
     if (!response.ok) {
         throw new Error("Fetch Error");
     }

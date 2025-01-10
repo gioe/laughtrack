@@ -1,11 +1,10 @@
 'use server';
 
 import { NextResponse } from "next/server";
-import { db } from "../../lib/db";
 import bcrypt from "bcryptjs";
-import { signInSchema } from "../../../util/validations";
 import { User } from "@prisma/client";
-
+import { signInSchema } from "../../../../util/validations";
+import { db } from "../../../../lib/db";
 export async function POST(request: Request) {
 
     const data = await request.json();

@@ -23,7 +23,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 try {
                     const { email, password } =
                         await signInSchema.parseAsync(credentials);
-                    console.log("Attempting to authorize")
                     const response = await makeRequest<Response>(APIRoutePath.AuthLogin, {
                         searchParams: new URLSearchParams({
                             email: email,

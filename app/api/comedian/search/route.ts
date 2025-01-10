@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { NextResponse } from "next/server";
-import { db } from "../../../lib/db";
+import { db } from "../../../../lib/db";
 import { EntityType } from "../../../../objects/enum";
 import { QueryHelper } from "../../../../objects/class/query/QueryHelper";
 import { ComedianSearchData, ComedianSearchDTO } from "../../../(entities)/(collection)/comedian/all/interface";

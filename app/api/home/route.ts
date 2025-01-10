@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
-import { db } from "../../lib/db";
+import { db } from "../../../lib/db";
 import { headers } from "next/headers";
 import { HomePageDTO } from "../../home/interface";
 
@@ -151,6 +151,15 @@ export async function GET(request: Request) {
     const userId = headersList.get("user_id");
 
     return getHomeData(userId)
-        .then((response: HomePageDTO) => NextResponse.json({ response }, { status: 200 }))
-        .catch((error: Error) => NextResponse.json({ message: error.message }, { status: 500 }));
+        .then((response: HomePageDTO) => {
+            console.log("GOT A RESPONSE BACK")
+            console.log(response)
+            return NextResponse.json({ response }, { status: 200 })
+        })
+        .catch((error: Error) => {
+            console.log("GOT AN ERROR BACK")
+            console.log(error)
+
+            return NextResponse.json({ message: error.message }, { status: 500 })
+        });
 }
