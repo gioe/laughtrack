@@ -27,6 +27,8 @@ const config: Config = {
                 bebas: "var(--font-bebas)",
                 oswald: "var(--font-oswald)",
                 fjalla: "var(--font-fjalla)",
+                dmSans: "var(--font-dmSans)",
+                chivo: "var(--font-chivo)",
                 inter: "var(--font-inter)"
             },
             colors: {

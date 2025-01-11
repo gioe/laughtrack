@@ -6,10 +6,29 @@ import { NextUIProvider } from "@nextui-org/react";
 import { SessionProvider } from "next-auth/react";
 import { auth } from "../auth";
 import Footer from "../components/footer";
-import { Bebas_Neue, Oswald, Inter, Fjalla_One } from "next/font/google";
+import {
+    Bebas_Neue,
+    Oswald,
+    Inter,
+    Fjalla_One,
+    DM_Sans,
+    Chivo,
+} from "next/font/google";
 import Navbar from "../components/navbar";
 import type { Metadata } from "next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+
+const chivo = Chivo({
+    weight: "400",
+    subsets: ["latin"],
+    variable: "--font-chivo",
+});
+
+const dmSams = DM_Sans({
+    weight: "400",
+    subsets: ["latin"],
+    variable: "--font-fjalla",
+});
 
 const fjalla = Fjalla_One({
     weight: "400",
@@ -40,38 +59,19 @@ export const metadata: Metadata = {
     description: "Find funny stuff",
 };
 
-export async function getCurrentUser() {
-    try {
-        const session = await auth();
-        if (!session?.user?.email) {
-            return null;
-        }
-        return {
-            id: session.user.id,
-            email: session.user.email,
-            role: session.user.role,
-        };
-    } catch (error) {
-        console.log(error);
-        return null;
-    }
-}
-
 export default async function RootLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    const user = await getCurrentUser();
     return (
         <SessionProvider>
             <html
                 lang="en"
-                className={`${bebas.variable} ${oswald.variable} ${inter.variable} ${fjalla.variable}`}
+                className={`${bebas.variable} ${oswald.variable} ${inter.variable} ${fjalla.variable} ${dmSams.variable}`}
             >
-                <body className="bg-ivory">
+                <body>
                     <NextUIProvider>
-                        <Navbar currentUser={user} />
                         <ToasterProvider />
                         <LoginModal />
                         <RegisterModal />

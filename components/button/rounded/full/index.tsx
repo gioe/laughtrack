@@ -22,7 +22,7 @@ export function FullRoundedButton({
                     handleClick();
                 }
             }}
-            className="bg-champagne text-copper font-bold py-2 px-4 rounded-full hover:bg-pine-tree"
+            className="px-6 py-2 text-white bg-copper rounded-full transition-colors duration-200 font-medium font-dmSans"
         >
             {label}
         </button>

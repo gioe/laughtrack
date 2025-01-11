@@ -6,41 +6,66 @@ import { SocialData } from "../socialData/SocialData";
 import { ClubDTO, ClubInterface } from "./club.interface";
 
 export class Club implements ClubInterface {
-    id: number;
-    website: string;
-    city: string;
-    address: string;
-    zipCode: string;
-    socialData?: SocialData;
-    tagIds: number[];
-    name: string;
-    isFavorite: boolean;
-    type: EntityType = EntityType.Club;
-    bannerImageUrl: URL | null;
-    cardImageUrl: URL | null;;
-    containedEntities: Entity[]
-    showCount?: number;
-    count?: number
-    fallbackImageUrl = new URL(`logo.png`, `https://${process.env.BUNNYCDN_CDN_HOST}/`);
+    // Required properties
+    readonly id: number;
+    readonly type: EntityType = EntityType.Club;
+    readonly name: string;
+    readonly containedEntities: Entity[];
+
+    // Optional properties with default values
+    readonly website: string;
+    readonly city: string;
+    readonly address: string;
+    readonly zipCode: string;
+    readonly isFavorite: boolean;
+    readonly tagIds: number[];
+    readonly showCount?: number;
+    readonly count?: number;
+
+    // Media-related properties
+    readonly bannerImageUrl: URL | null;
+    readonly cardImageUrl: URL | null;
+    readonly fallbackImageUrl: URL;
+
+    // Complex objects
+    readonly socialData?: SocialData;
 
     constructor(input: ClubDTO) {
-        this.website = input.website ?? ""
-        this.city = input.city ?? ""
-        this.address = input.address ?? ""
-        this.zipCode = input.zipCode ?? ""
-        this.containedEntities = input.dates !== undefined ? input.dates.map((date: ShowDTO) => new Show(date)) : [];
-        this.socialData = input.social_data !== undefined ? new SocialData(input.social_data) : undefined;
-        this.tagIds = input.tags ? input.tags : [];
-        this.name = input.name ?? ""
+        // Initialize required properties
+        this.id = input.id ?? 0;
+        this.name = input.name ?? "";
+
+        // Initialize location-related properties
+        this.website = input.website ?? "";
+        this.city = input.city ?? "";
+        this.address = input.address ?? "";
+        this.zipCode = input.zipCode ?? "";
+
+        // Initialize media URLs
+        const cdnHost = process.env.NEXT_PUBLIC_BUNNYCDN_CDN_HOST;
+        if (!cdnHost) {
+            throw new Error('NEXT_PUBLIC_BUNNYCDN_CDN_HOST environment variable is not set');
+        }
+
+        this.fallbackImageUrl = new URL(`logo.png`, `https://${cdnHost}/`);
+        this.cardImageUrl = new URL(`/clubs/${input.name}.png`, `https://${cdnHost}/`);
+        this.bannerImageUrl = null; // Add logic if needed
+
+        // Initialize arrays and complex objects
+        this.tagIds = input.tags ?? [];
+        this.containedEntities = this.initializeContainedEntities(input.dates);
+        this.socialData = input.social_data ? new SocialData(input.social_data) : undefined;
+
+        // Initialize flags and counts
         this.isFavorite = input.is_Favorite ?? false;
-        this.id = input.id ?? 0
-        this.cardImageUrl = new URL(`/clubs/${input.name}.png`, `https://${process.env.BUNNYCDN_CDN_HOST}/`);
-        this.showCount = input.show_count
+        this.showCount = input.show_count;
+    }
+
+    private initializeContainedEntities(dates?: ShowDTO[]): Show[] {
+        return dates?.map(date => new Show(date)) ?? [];
     }
 
     getShows(): Show[] {
-        return this.containedEntities as Show[]
+        return this.containedEntities as Show[];
     }
-
-
 }

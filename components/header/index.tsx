@@ -8,12 +8,15 @@ import { ChevronDownIcon } from "@heroicons/react/24/solid";
 import { FullRoundedButton } from "../button/rounded/full";
 import { signOut } from "next-auth/react";
 import { HamburgerMenuButton } from "../button/hamburger";
+
 import {
     FaceSmileIcon,
     BuildingStorefrontIcon,
 } from "@heroicons/react/24/outline";
 import NavbarPopoverItem from "../popover/panel";
 import { UserInterface } from "../../objects/class/user/user.interface";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const comedianMenuItems = [
     {
@@ -39,6 +42,8 @@ interface HeaderProps {
 }
 
 export function Header({ onClick, currentUser }: HeaderProps) {
+    const pathname = usePathname();
+
     const loginModal = useLoginModal();
     const registerModal = useRegisterModal();
     const handleLoginClick = useCallback(() => {
@@ -50,69 +55,84 @@ export function Header({ onClick, currentUser }: HeaderProps) {
     }, [registerModal]);
 
     return (
-        <header className="bg-ivory">
-            <nav
-                aria-label="Global"
-                className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8"
-            >
-                <div className="flex lg:hidden">
-                    <HamburgerMenuButton handleClick={() => onClick(true)} />
-                </div>
-                <div className="hidden lg:flex lg:gap-x-12">
-                    <HeaderItem href="/" title="Home" />
-                    <PopoverGroup className="hidden lg:flex lg:gap-x-12">
-                        <Popover className="relative">
-                            <PopoverButton className="flex items-center gap-x-1 leading-6">
-                                <HeaderItem title="Clubs" />
-                                <ChevronDownIcon
-                                    aria-hidden="true"
-                                    className="h-5 w-5 flex-none text-soft-charcoal"
-                                />
-                            </PopoverButton>
+        <nav className="bg-transparent px-4 py-4 flex items-center justify-between">
+            {/* Logo/Brand */}
+            <div className="flex items-center">
+                <span className="text-white text-2xl font-bold">
+                    Laughtrack
+                </span>
+            </div>
 
-                            <NavbarPopoverItem items={clubMenuItems} />
-                        </Popover>
+            {/* Navigation Links */}
+            <div className="flex items-center space-x-8">
+                <HeaderItem
+                    highlighted={pathname == "/"}
+                    href="/"
+                    title="Home"
+                />
+                <div className="flex items-center space-x-8"></div>
 
-                        <Popover className="relative">
-                            <PopoverButton className="flex items-center gap-x-1 leading-6">
-                                <HeaderItem title="Comedians" />
-                                <ChevronDownIcon
-                                    aria-hidden="true"
-                                    className="h-5 w-5 flex-none text-soft-charcoal"
-                                />
-                            </PopoverButton>
-
-                            <NavbarPopoverItem items={comedianMenuItems} />
-                        </Popover>
-                    </PopoverGroup>
-                </div>
-
-                <div className="hidden lg:flex lg:flex-1 lg:justify-end">
-                    {currentUser ? (
-                        <div className="hidden lg:flex lg:gap-x-12 items-center">
+                {/* Clubs Dropdown */}
+                <PopoverGroup className="flex lg;items-center space-x-8">
+                    <Popover className="relative">
+                        <PopoverButton className="flex items-center gap-x-1 leading-6">
                             <HeaderItem
-                                href={`profile/${currentUser.id}`}
-                                title="Profile"
+                                highlighted={pathname.includes("/club")}
+                                title="Clubs"
                             />
-                            <FullRoundedButton
-                                handleClick={signOut}
-                                label="Log Out"
+                            <ChevronDownIcon
+                                aria-hidden="true"
+                                className="h-5 w-5 flex-none text-soft-charcoal"
                             />
-                        </div>
-                    ) : (
-                        <div className="hidden lg:flex lg:flex-1 lg:justify-end gap-3">
-                            <FullRoundedButton
-                                handleClick={handleLoginClick}
-                                label="Log In"
+                        </PopoverButton>
+
+                        <NavbarPopoverItem items={clubMenuItems} />
+                    </Popover>
+
+                    <Popover className="relative">
+                        <PopoverButton className="flex items-center gap-x-1 leading-6">
+                            <HeaderItem
+                                highlighted={pathname.includes("/comedian")}
+                                title="Comedians"
                             />
-                            <FullRoundedButton
-                                handleClick={handleSignupClick}
-                                label="Sign Up"
+                            <ChevronDownIcon
+                                aria-hidden="true"
+                                className="h-5 w-5 flex-none text-soft-charcoal"
                             />
-                        </div>
-                    )}
-                </div>
-            </nav>
-        </header>
+                        </PopoverButton>
+
+                        <NavbarPopoverItem items={comedianMenuItems} />
+                    </Popover>
+                </PopoverGroup>
+            </div>
+
+            {/* Log Out Button */}
+            <div className="flex items-center space-x-4">
+                {currentUser ? (
+                    <div className="hidden lg:flex lg:gap-x-12 items-center">
+                        <HeaderItem
+                            highlighted={pathname.includes("/profile")}
+                            href={`profile/${currentUser.id}`}
+                            title="Profile"
+                        />
+                        <FullRoundedButton
+                            handleClick={signOut}
+                            label="Log Out"
+                        />
+                    </div>
+                ) : (
+                    <div className="hidden lg:flex lg:flex-1 lg:justify-end gap-3">
+                        <FullRoundedButton
+                            handleClick={handleLoginClick}
+                            label="Log In"
+                        />
+                        <FullRoundedButton
+                            handleClick={handleSignupClick}
+                            label="Sign Up"
+                        />
+                    </div>
+                )}
+            </div>
+        </nav>
     );
 }

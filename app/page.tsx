@@ -6,25 +6,36 @@ import ShowSearchForm from "../components/form/showSearch";
 import { APIRoutePath } from "../objects/enum";
 import { HomePageDataResponse } from "./home/interface";
 import { makeRequest } from "../util/actions/makeRequest";
+import HeroSection from "@/components/hero";
+import { auth } from "../auth";
+
+export async function getCurrentUser() {
+    try {
+        const session = await auth();
+        if (!session?.user?.email) {
+            return null;
+        }
+        return {
+            id: session.user.id,
+            email: session.user.email,
+            role: session.user.role,
+        };
+    } catch (error) {
+        console.log(error);
+        return null;
+    }
+}
 
 export default async function HomePage() {
+    const user = await getCurrentUser();
+
     const { response } = await makeRequest<HomePageDataResponse>(
         APIRoutePath.Home,
     );
 
     return (
-        <main className="pt-36">
-            <section className="max-w-7xl mx-auto text-center">
-                <h2 className="font-fjalla text-5xl text-copper p-5">
-                    Laughtrack
-                </h2>
-                <h3 className="font-fjalla font-semibold text-copper pt-1 p-5 text-xl">
-                    Laugh a little
-                </h3>
-            </section>
-            <section className="p-8">
-                <ShowSearchForm cities={JSON.stringify(response.cities)} />
-            </section>
+        <main className="min-h-screen w-full">
+            <HeroSection user={user} />
             <section className="bg-ivory px-4">
                 <h3 className="font-bebas font-semibold text-copper pb-3 text-2xl">
                     Trending

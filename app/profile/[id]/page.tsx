@@ -1,7 +1,7 @@
 "use server";
 
 import { FullRoundedButton } from "../../../components/button/rounded/full";
-import { db } from "../../lib/db";
+import { db } from "../../../lib/db";
 
 const getPageData = (id: number) => {
     return db.user.findUnique({
