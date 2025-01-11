@@ -1,11 +1,10 @@
 import { JWT } from "next-auth/jwt";
 import { getBaseUrl } from "../urlUtil";
 import { Session } from "next-auth";
-
-type HttpMethod = "GET" | "POST" | "PUT";
+import { RestAPIAction } from "../../objects/enum";
 
 interface ExecuteOptions {
-    method?: HttpMethod;
+    method?: RestAPIAction;
     token?: JWT;
     body?: any;
     searchParams?: URLSearchParams;

@@ -4,8 +4,7 @@ import { db } from "../../../lib/db";
 import { headers } from "next/headers";
 import { HomePageDTO } from "../../home/interface";
 
-async function getHomeData(userId: string | null) {
-    // Get venues/clubs data
+export async function getHomePageData(userId: string | null) {
     const venues = await db.club
         .findMany({
             select: {
@@ -43,6 +42,7 @@ async function getHomeData(userId: string | null) {
             })),
         );
 
+    console.log(venues)
     // Get active comedians
     const activeComedians = await db.comedian.findMany({
         where: {
@@ -89,14 +89,7 @@ async function getHomeData(userId: string | null) {
                         },
                     },
                 },
-            },
-            favoriteComedians: userId
-                ? {
-                    where: {
-                        userId: Number(userId),
-                    },
-                }
-                : false,
+            }
         },
     });
 
@@ -133,7 +126,6 @@ async function getHomeData(userId: string | null) {
                 popularity: comedian.popularity,
                 linktree: comedian.linktree,
             },
-            is_favorite: userId ? comedian.favoriteComedians.length > 0 : false,
             show_count: comedian.lineupItems.length,
         }));
 
@@ -143,6 +135,7 @@ async function getHomeData(userId: string | null) {
         cities: cities,
         clubs: venues,
     };
+
 }
 
 
@@ -150,16 +143,7 @@ export async function GET(request: Request) {
     const headersList = await headers();
     const userId = headersList.get("user_id");
 
-    return getHomeData(userId)
-        .then((response: HomePageDTO) => {
-            console.log("GOT A RESPONSE BACK")
-            console.log(response)
-            return NextResponse.json({ response }, { status: 200 })
-        })
-        .catch((error: Error) => {
-            console.log("GOT AN ERROR BACK")
-            console.log(error)
-
-            return NextResponse.json({ message: error.message }, { status: 500 })
-        });
+    return getHomePageData(userId)
+        .then((response: HomePageDTO) => NextResponse.json({ response }, { status: 200 }))
+        .catch((error: Error) => NextResponse.json({ message: error.message }, { status: 500 }));
 }

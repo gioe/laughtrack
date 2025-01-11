@@ -9,7 +9,7 @@ export async function POST() {
     try {
         const headersList = await headers();
         const authHeader = headersList.get("authorization");
-
+        console.log(headersList)
         const refreshToken = authHeader && authHeader.split(" ")[1]; // Bear
 
         if (!refreshToken) {

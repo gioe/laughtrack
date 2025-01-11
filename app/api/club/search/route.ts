@@ -10,7 +10,7 @@ import { ClubDTO } from "../../../../objects/class/club/club.interface";
 import { Club } from "../../../../objects/class/club/Club";
 
 async function getFilteredClubs(params: any): Promise<ClubSearchDTO> {
-    // Get total count
+    console.log(db)
     const totalCount = await db.club.count({
         where: {
             name: {

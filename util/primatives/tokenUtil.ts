@@ -1,9 +1,10 @@
 import { JWT } from "next-auth/jwt";
-import { APIRoutePath } from "../../objects/enum";
+import { APIRoutePath, RestAPIAction } from "../../objects/enum";
 import { makeRequest } from "../actions/makeRequest";
 
 export async function refreshAccessToken(token: JWT) {
     return makeRequest<Response>(APIRoutePath.TokenRefresh, {
+        method: RestAPIAction.POST,
         token
     })
         .then((response) => {
