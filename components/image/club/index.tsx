@@ -45,23 +45,20 @@ const ClubMarquee = ({
     };
 
     const ImageComponent = () => (
-        <div
-            className={`flex-none relative inline-block hover:cursor-pointer 
-         object-cover object-center ${marqueeConfig[size]}`}
-        >
+        <div>
             <Link
                 href={`/club/${club.name}`}
                 className="relative block h-full w-full"
             >
-                <Image
-                    fill
-                    src={src.toString()}
-                    alt={club.name}
-                    onError={handleImageError}
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    priority
-                    style={marqueeConfig[type]}
-                />
+                <div className="bg-black rounded-lg overflow-hidden aspect-square mb-4 relative">
+                    <Image
+                        src={src.toString()}
+                        alt={club.name}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    />
+                </div>
             </Link>
         </div>
     );

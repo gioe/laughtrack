@@ -4,8 +4,6 @@ import LoginModal from "../components/modals/login";
 import RegisterModal from "../components/modals/register";
 import { NextUIProvider } from "@nextui-org/react";
 import { SessionProvider } from "next-auth/react";
-import { auth } from "../auth";
-import Footer from "../components/footer";
 import {
     Bebas_Neue,
     Oswald,
@@ -77,7 +75,6 @@ export default async function RootLayout({
                         <RegisterModal />
                         {children}
                         <SpeedInsights />
-                        <Footer />
                     </NextUIProvider>
                 </body>
             </html>

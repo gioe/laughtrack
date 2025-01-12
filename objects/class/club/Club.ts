@@ -20,7 +20,7 @@ export class Club implements ClubInterface {
     readonly isFavorite: boolean;
     readonly tagIds: number[];
     readonly showCount?: number;
-    readonly count?: number;
+    readonly activeComedianCount?: number;
 
     // Media-related properties
     readonly bannerImageUrl: URL | null;
@@ -42,7 +42,7 @@ export class Club implements ClubInterface {
         this.zipCode = input.zipCode ?? "";
 
         // Initialize media URLs
-        const cdnHost = process.env.NEXT_PUBLIC_BUNNYCDN_CDN_HOST;
+        const cdnHost = "laughtrack.b-cdn.net";
         if (!cdnHost) {
             throw new Error('NEXT_PUBLIC_BUNNYCDN_CDN_HOST environment variable is not set');
         }
@@ -59,6 +59,7 @@ export class Club implements ClubInterface {
         // Initialize flags and counts
         this.isFavorite = input.is_Favorite ?? false;
         this.showCount = input.show_count;
+        this.activeComedianCount = input.active_comedian_count
     }
 
     private initializeContainedEntities(dates?: ShowDTO[]): Show[] {

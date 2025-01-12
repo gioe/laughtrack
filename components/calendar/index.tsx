@@ -5,9 +5,9 @@ import { format, isToday, isTomorrow } from "date-fns";
 import { Calendar } from "../ui/calendar";
 import { FormControl, FormField, FormItem, FormMessage } from "../ui/form";
 import { ChevronUpDownIcon } from "@heroicons/react/24/solid";
-import { CalendarDateRangeIcon } from "@heroicons/react/24/outline";
 import { ControllerRenderProps, FieldValues } from "react-hook-form";
 import { datesAreToday, datesAreTomorrow } from "../../util/dateUtil";
+import { Calendar as CalIcon } from "lucide-react";
 
 type TypedFieldValues = ControllerRenderProps<FieldValues, string>;
 
@@ -17,34 +17,34 @@ interface CalendarFormComponentProps {
     form: any;
 }
 
+const determineDateString = (field: TypedFieldValues) => {
+    const fromDate = field.value?.from;
+    const toDate = field.value?.to;
+
+    if (fromDate && toDate == undefined) {
+        return format(fromDate, "LLL dd, yyyy");
+    } else if (datesAreToday(fromDate, toDate)) {
+        return "Today";
+    } else if (datesAreTomorrow(fromDate, toDate)) {
+        return "Tomorrow";
+    } else {
+        let startDate = fromDate;
+
+        if (isToday(fromDate)) {
+            startDate = "Today";
+        } else if (isTomorrow(fromDate)) {
+            startDate = "Tomorrow";
+        } else {
+            startDate = format(fromDate, "LLL d, yyyy");
+        }
+        return startDate + " - " + format(toDate, "LLL d, yyyy");
+    }
+};
+
 const CalendarFormComponent: React.FC<CalendarFormComponentProps> = ({
     name,
     form,
 }: CalendarFormComponentProps) => {
-    const determineDateString = (field: TypedFieldValues) => {
-        const fromDate = field.value?.from;
-        const toDate = field.value?.to;
-
-        if (fromDate && toDate == undefined) {
-            return format(fromDate, "LLL dd, yyyy");
-        } else if (datesAreToday(fromDate, toDate)) {
-            return "Today";
-        } else if (datesAreTomorrow(fromDate, toDate)) {
-            return "Tomorrow";
-        } else {
-            let startDate = fromDate;
-
-            if (isToday(fromDate)) {
-                startDate = "Today";
-            } else if (isTomorrow(fromDate)) {
-                startDate = "Tomorrow";
-            } else {
-                startDate = format(fromDate, "LLL d, yyyy");
-            }
-            return startDate + " - " + format(toDate, "LLL d, yyyy");
-        }
-    };
-
     return (
         <FormField
             control={form.control}
@@ -54,14 +54,14 @@ const CalendarFormComponent: React.FC<CalendarFormComponentProps> = ({
                     <FormItem className="flex flex-col">
                         <Popover>
                             <PopoverTrigger asChild>
-                                <FormControl className="rounded-lg lg:w-80 lg:h-12">
+                                <FormControl className="rounded-lg lg:w-80 lg:h-12 text-gray-400">
                                     <div
-                                        className="flex h-9 w-full items-center justify-between whitespace-nowrap border border-input 
+                                        className="flex h-9 w-full items-center justify-between whitespace-nowrap 
                                     bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none 
                                     focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1"
                                     >
-                                        <CalendarDateRangeIcon className="h-5 w-5" />
-                                        <span>
+                                        <CalIcon className="w-5 h-5 text-gray-400 mr-3" />
+                                        <span className="text-xl">
                                             {determineDateString(field)}
                                         </span>
                                         <ChevronUpDownIcon className="h-4 w-4 opacity-50" />

@@ -1,13 +1,14 @@
-import { Search } from "lucide-react";
 import Image from "next/image";
-import Navbar from "../navbar";
 import { UserInterface } from "@/objects/class/user/user.interface";
-import SearchBar from "../searchbar";
+import Navbar from "@/components/navbar";
+import ShowSearchForm from "@/components/form/showSearch";
+
 interface HeroComponentProps {
     user: UserInterface | null;
+    cities: string;
 }
 
-const HeroComponent = ({ user }) => {
+const HeroComponent = ({ user, cities }) => {
     const imageUrl = new URL(
         `laughtrack-hero.png`,
         `https://${process.env.BUNNYCDN_CDN_HOST}/`,
@@ -45,8 +46,7 @@ const HeroComponent = ({ user }) => {
                         <p className="text-gray-200 text-xl mb-12 max-w-3xl">
                             Laugh a little
                         </p>
-
-                        <SearchBar />
+                        <ShowSearchForm cities={JSON.stringify(cities)} />
                     </div>
                 </div>
             </div>

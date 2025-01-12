@@ -1,18 +1,21 @@
 "use client";
 
-interface FullRoundedButtonProps {
+import { Search } from "lucide-react";
+import { ReactNode } from "react";
+
+interface CircleIconButtonProps {
     handleClick?: () => void;
-    label: string;
     isLoading?: boolean;
     type?: "submit" | "reset" | "button";
+    children: ReactNode;
 }
 
-export function FullRoundedButton({
+export function CircleIconButton({
     handleClick,
-    label,
     isLoading,
     type = "submit",
-}: FullRoundedButtonProps) {
+    children,
+}: CircleIconButtonProps) {
     return (
         <button
             type={type}
@@ -22,9 +25,9 @@ export function FullRoundedButton({
                     handleClick();
                 }
             }}
-            className="px-6 py-2 text-white bg-copper rounded-lg transition-colors duration-200 font-medium font-dmSans"
+            className="p-4 bg-amber-700 hover:bg-amber-800 rounded-full flex items-center justify-center transition-colors mx-2"
         >
-            {label}
+            {children}
         </button>
     );
 }

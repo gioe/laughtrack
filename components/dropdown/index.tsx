@@ -9,7 +9,7 @@ import {
 } from "../ui/select";
 import { FormControl, FormField, FormItem, FormMessage } from "../ui/form";
 import { Selectable } from "../../objects/interface";
-import { MapIcon } from "@heroicons/react/24/outline";
+import { MapPin } from "lucide-react";
 
 interface DropdownProps {
     name: string;
@@ -33,11 +33,14 @@ export function DropdownFormComponent({
                 return (
                     <FormItem className="flex flex-col">
                         <Select onValueChange={field.onChange}>
-                            <FormControl className="rounded-lg lg:w-40 lg:h-12">
+                            <FormControl
+                                className="text-xl rounded-lg lg:w-40 lg:h-12 text-gray-400 ring-transparent focus:ring-transparent
+                             border-transparent focus:outline-none outline-none"
+                            >
                                 <SelectTrigger>
-                                    <MapIcon className="h-5 w-5" />
+                                    <MapPin className="w-5 h-5 text-gray-400" />
                                     <SelectValue
-                                        className="text-left"
+                                        className="text-left pr-2"
                                         placeholder={placeholder}
                                     />
                                 </SelectTrigger>

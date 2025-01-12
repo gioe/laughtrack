@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { CircleIconButton } from "@/components/button/circleIcon";
 import { Selectable } from "../../../objects/interface";
-import { FullRoundedButton } from "../../button/rounded/full";
 import CalendarFormComponent from "../../calendar";
 import { DropdownFormComponent } from "../../dropdown";
+import { Search } from "lucide-react";
 
 interface ShowSearchFormBodyProps {
     items: Selectable[];
@@ -16,11 +17,8 @@ export default function ShowSearchFormBody({
     isLoading,
 }: ShowSearchFormBodyProps) {
     return (
-        <div
-            className="flex flex-col justify-center
-            lg:flex-row lg:max-w-5xl lg:mx-auto lg:space-x-5 lg:h-40"
-        >
-            <div className="h-20">
+        <div className="flex items-center w-full max-w-3xl bg-white/20 backdrop-blur rounded-full">
+            <div className="flex-1 flex items-center px-6 border-r border-gray-600/50 m-4">
                 <DropdownFormComponent
                     name="city"
                     placeholder="City"
@@ -29,12 +27,12 @@ export default function ShowSearchFormBody({
                 />
             </div>
 
-            <div className="h-20 hover:cursor-pointer">
+            <div className="flex-1 flex items-center px-6">
                 <CalendarFormComponent name="dates" form={form} />
             </div>
-            <div className="h-10 mt-1">
-                <FullRoundedButton label="Search" isLoading={isLoading} />
-            </div>
+            <CircleIconButton>
+                <Search className="w-5 h-5 text-white" />
+            </CircleIconButton>
         </div>
     );
 }

@@ -30,7 +30,7 @@ export interface ClubDTO {
     tags?: number[];
     is_Favorite?: boolean
     show_count?: number
-    count?: number
+    active_comedian_count?: number
 }
 
 export interface PaginatedClubResponseDTO {

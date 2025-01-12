@@ -50,6 +50,7 @@ const config: Config = {
                 "sandy-brown": "#F6916C",
                 "kelp": "#474838",
                 ivory: "#FFFFF0",
+                "coconut-cream": "#FAF6E0",
                 locust: "#acae89",
                 "pine-tree": "#232604",
                 skeptic: "#9eb4aa",

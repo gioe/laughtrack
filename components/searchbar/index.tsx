@@ -1,5 +1,6 @@
 import React from "react";
 import { MapPin, Calendar, Search } from "lucide-react";
+import { CircleIconButton } from "../button/circleIcon";
 
 const SearchBar = () => {
     return (
@@ -23,11 +24,9 @@ const SearchBar = () => {
                     className="w-full bg-transparent text-white placeholder-gray-400 focus:outline-none outline-none py-4"
                 />
             </div>
-
-            {/* Search Button */}
-            <button className="p-4 bg-amber-700 hover:bg-amber-800 rounded-full flex items-center justify-center transition-colors mx-2">
+            <CircleIconButton>
                 <Search className="w-5 h-5 text-white" />
-            </button>
+            </CircleIconButton>
         </div>
     );
 };

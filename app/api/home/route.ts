@@ -5,10 +5,13 @@ import { headers } from "next/headers";
 import { HomePageDTO } from "../../home/interface";
 
 export async function getHomePageData(userId: string | null) {
+    const clubCount = await db.club.count()
+
     const venues = await db.club
         .findMany({
             select: {
                 id: true,
+                address: true,
                 name: true,
                 shows: {
                     where: {
@@ -28,13 +31,14 @@ export async function getHomePageData(userId: string | null) {
                     },
                 },
             },
-            take: 6,
+            take: 8,
         })
         .then((clubs) =>
             clubs.map((club) => ({
                 id: club.id,
+                address: club.address,
                 name: club.name,
-                count: new Set(
+                active_comedian_count: new Set(
                     club.shows.flatMap((show) =>
                         show.lineupItems.map((item) => item.comedianId),
                     ),
@@ -109,7 +113,7 @@ export async function getHomePageData(userId: string | null) {
     // Transform comedian data
     const transformedComedians = filteredComedians
         .sort(() => Math.random() - 0.5)
-        .slice(0, 10)
+        .slice(0, 8)
         .map((comedian) => ({
             id: comedian.id,
             uuid: comedian.uuid,
