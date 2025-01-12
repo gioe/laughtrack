@@ -1,7 +1,10 @@
 "use client";
 
+import Link from "next/link";
+
 interface FullRoundedButtonProps {
     handleClick?: () => void;
+    href?: string | null | undefined;
     label: string;
     isLoading?: boolean;
     type?: "submit" | "reset" | "button";
@@ -12,8 +15,9 @@ export function FullRoundedButton({
     label,
     isLoading,
     type = "submit",
+    href = undefined,
 }: FullRoundedButtonProps) {
-    return (
+    const ButtonComponent = () => (
         <button
             type={type}
             disabled={isLoading}
@@ -26,5 +30,15 @@ export function FullRoundedButton({
         >
             {label}
         </button>
+    );
+
+    if (!href) {
+        return <ButtonComponent />;
+    }
+
+    return (
+        <Link href={href}>
+            <ButtonComponent />
+        </Link>
     );
 }

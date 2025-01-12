@@ -14,6 +14,8 @@
         "type-check": "tsc -b"
     },
     "dependencies": {
+        "@emotion/react": "^11.14.0",
+        "@emotion/styled": "^11.14.0",
         "@headlessui/react": "^2.1.9",
         "@heroicons/react": "^2.1.5",
         "@hookform/resolvers": "^3.9.0",

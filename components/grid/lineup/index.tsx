@@ -1,40 +1,32 @@
 "use client";
 
+import Image from "next/image";
 import { Comedian } from "../../../objects/class/comedian/Comedian";
-import ComedianHeadshot from "../../image/comedian";
 
 interface LineupGridProps {
     lineup: Comedian[];
 }
 const LineupGrid = ({ lineup }: LineupGridProps) => {
     return (
-        <div className="grid grid-rows-2 grid-flow-col gap-x-8 gap-y-8 grid-auto-rows">
-            {lineup.map((comedian: Comedian) => (
-                <div
-                    key={comedian.id.toString()}
-                    className="flex flex-col items-center"
-                >
-                    <div
-                        className="hover:z-9 hover:scale-105 transform transition
-duration-300 ease-out"
-                    >
-                        <ComedianHeadshot
-                            priority={false}
-                            tooltip={false}
-                            comedian={comedian}
-                            size="m"
-                            type="rounded"
+        <div className="flex gap-4 overflow-x-auto pb-4 snap-x">
+            {lineup.map((comedian, index) => (
+                <div key={index} className="flex-shrink-0 snap-start">
+                    <div className="relative w-32 h-32 rounded-lg overflow-hidden mb-2">
+                        <Image
+                            src={comedian.cardImageUrl?.toString() ?? ""}
+                            alt={comedian.name}
+                            fill
+                            className="object-cover"
                         />
                     </div>
-
                     {comedian.name.split(" ").map((nameString) => {
                         return (
-                            <h1
+                            <p
                                 key={nameString}
-                                className="font-fjalla text-center"
+                                className="text-sm text-[#2D1810] font-medium text-center"
                             >
                                 {`${nameString}`}
-                            </h1>
+                            </p>
                         );
                     })}
                 </div>

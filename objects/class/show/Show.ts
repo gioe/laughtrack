@@ -13,6 +13,7 @@ export class Show implements ShowInterface {
     socialData?: SocialData;
     popularityScore?: number | undefined;
     clubName?: string | undefined;
+    clubAddress?: string | undefined;
     clubId: number;
     ticket: Ticket;
     tagIds: number[];
@@ -41,6 +42,7 @@ export class Show implements ShowInterface {
         this.clubId = input.club_id ? Number(input.club_id) : 0
         this.lastScrapedDate = input.last_scraped_date
         this.description = input.description
+        this.clubAddress = input.club_address
     }
 
 

@@ -21,7 +21,7 @@ interface ShowSearchFormProps {
     cities: string;
 }
 export default function ShowSearchForm({ cities }: ShowSearchFormProps) {
-    const parsedCities = JSON.parse(cities) as CityDTO[];
+    const parsedCities = [];
 
     const [isLoading, setIsLoading] = useState(false);
 

@@ -91,7 +91,8 @@ async function getFilteredShows(params: any) {
             ticketPurchaseUrl: true,
             club: {
                 select: {
-                    name: true
+                    name: true,
+                    address: true
                 }
             },
             lineupItems: {
@@ -164,6 +165,7 @@ async function getFilteredShows(params: any) {
             price: show.ticketPrice,
             link: show.ticketPurchaseUrl
         },
+        club_address: show.club.address,
         club_name: show.club.name,
         scrapedate: show.lastScrapedDate,
         lineup: show.lineupItems.map(item => ({

@@ -41,3 +41,42 @@ export function monthFromMoment(moment: moment.Moment) {
 export function timeFromMoment(moment: moment.Moment) {
     return moment.format('h:mm A');
 }
+
+export function formatShowDate(dateString: string): string {
+    const date = new Date(dateString)
+    // Month formatting
+    const months = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    console.log(typeof date)
+    const month = months[date.getMonth()];
+
+    // Day formatting with suffix
+    const day = date.getDate();
+    const suffix = getDaySuffix(day);
+
+    // Time formatting
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const period = hours >= 12 ? 'pm' : 'am';
+
+    // Convert to 12-hour format
+    const displayHours = hours % 12 || 12;
+    const displayMinutes = minutes.toString().padStart(2, '0');
+
+    return `${month} ${day}${suffix} at ${displayHours}:${displayMinutes} ${period}`;
+}
+
+function getDaySuffix(day: number): string {
+    if (day >= 11 && day <= 13) {
+        return 'th';
+    }
+
+    switch (day % 10) {
+        case 1: return 'st';
+        case 2: return 'nd';
+        case 3: return 'rd';
+        default: return 'th';
+    }
+}

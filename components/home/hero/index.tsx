@@ -8,7 +8,7 @@ interface HeroComponentProps {
     cities: string;
 }
 
-const HeroComponent = ({ user, cities }) => {
+const HeroComponent = ({ user, cities }: HeroComponentProps) => {
     const imageUrl = new URL(
         `laughtrack-hero.png`,
         `https://${process.env.BUNNYCDN_CDN_HOST}/`,

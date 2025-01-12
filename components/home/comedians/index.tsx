@@ -3,6 +3,7 @@
 import ComedianCarouselCard from "../../cards/carousel/comedian";
 import { ComedianDTO } from "../../../objects/class/comedian/comedian.interface";
 import { Comedian } from "../../../objects/class/comedian/Comedian";
+import Link from "next/link";
 
 interface TrendingComedianCarouselProps {
     comedians: ComedianDTO[];
@@ -32,9 +33,12 @@ const TrendingComedianCarousel = ({
             </div>
 
             <div className="text-center mt-8">
-                <button className="bg-[#2D1810] text-white px-6 py-3 rounded-full hover:opacity-90">
+                <Link
+                    href={`/comedian/all`}
+                    className="bg-[#2D1810] text-white px-6 py-3 rounded-full hover:opacity-90"
+                >
                     See All Comedians
-                </button>
+                </Link>
             </div>
         </div>
     );
