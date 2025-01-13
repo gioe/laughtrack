@@ -4,10 +4,16 @@ import { APIRoutePath } from "@/objects/enum";
 import { CACHE } from "@/util/constants/cacheConstants";
 import { makeRequest } from "@/util/actions/makeRequest";
 import { ComedianDetailPageResponse } from "@/app/api/comedian/[name]/interface";
-import ShowCard from "@/ui/components/cards/show";
-import { Show } from "@/objects/class/show/Show";
+import Navbar from "@/ui/components/navbar";
+import { auth } from "@/auth";
+import ComedianDetailHeader from "@/ui/pages/entity/comedian/detailHeader";
+import FooterComponent from "@/ui/pages/home/footer";
+import TableWithHeader from "@/ui/pages/entity/comedian/table";
+import SocialMediaColumn from "@/ui/pages/entity/comedian/socialColumn";
 
 export default async function ComedianDetailsPage(props: any) {
+    const session = await auth();
+
     const paramsWrapper = await SearchParamsHelper.storePageParams(
         props.searchParams,
         props.params,
@@ -22,31 +28,21 @@ export default async function ComedianDetailsPage(props: any) {
     );
 
     return (
-        <main className="flex-grow pt-24 bg-ivory">
-            <section>
-                <TableFilterBar
-                    totalItems={data.total}
-                    filtersString={JSON.stringify(filters)}
+        <main className="min-h-screen w-full bg-ivory">
+            <Navbar currentUser={session?.user} />
+            <ComedianDetailHeader
+                favorite={data.entity.isFavorite}
+                comedianId={data.entity.id}
+                name={data.entity.name}
+                images={[]}
+            />
+            <div className="max-w-6xl mx-auto p-6 flex">
+                <TableWithHeader
+                    entityString={JSON.stringify(data.entity.containedEntities)}
                 />
-            </section>
-            <section className="grid grid-cols-1 gap-y-10">
-                {data.entity.containedEntities.length > 0 ? (
-                    data.entity.containedEntities.map((entity) => {
-                        return (
-                            <ShowCard
-                                key={`${entity.name}-${entity.id}`}
-                                show={entity as Show}
-                            />
-                        );
-                    })
-                ) : (
-                    <div className="max-w-7xl">
-                        <h2 className="font-bold text-5xl w-maxtext-white pt-6">
-                            No upcoming shows for this comedian
-                        </h2>
-                    </div>
-                )}
-            </section>
+                <SocialMediaColumn socialData={data.entity.socialData} />
+            </div>
+            <FooterComponent />
         </main>
     );
 }

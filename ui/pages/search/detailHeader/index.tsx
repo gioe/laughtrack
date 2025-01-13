@@ -1,9 +1,9 @@
-interface DetailHeaderProps {
+interface SearchDetailHeaderProps {
     title: string;
     subTitle: string;
 }
 
-const DetailHeader = ({ title, subTitle }: DetailHeaderProps) => {
+const SearchDetailHeader = ({ title, subTitle }: SearchDetailHeaderProps) => {
     return (
         <div className="text-center py-8 bg-ivory">
             <h1 className="text-3xl font-bold text-[#2D1810] mb-2">{title}</h1>
@@ -12,4 +12,4 @@ const DetailHeader = ({ title, subTitle }: DetailHeaderProps) => {
     );
 };
 
-export default DetailHeader;
+export default SearchDetailHeader;

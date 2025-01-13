@@ -13,14 +13,7 @@ export default async function EntityDetailLayout({
 
     return (
         <PageEntityProvider>
-            <EntityPageDataProvider>
-                <main className="flex-grow pt-5 bg-ivory">
-                    <section>
-                        <EntityBanner identifier={identifier} />
-                    </section>
-                    {children}
-                </main>
-            </EntityPageDataProvider>
+            <EntityPageDataProvider>{children}</EntityPageDataProvider>
         </PageEntityProvider>
     );
 }
