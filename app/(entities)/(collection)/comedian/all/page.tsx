@@ -1,19 +1,24 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import TableFilterBar from "@/ui/components/filter";
 import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
 import { APIRoutePath } from "@/objects/enum";
 import { CACHE } from "@/util/constants/cacheConstants";
 import { makeRequest } from "@/util/actions/makeRequest";
 import { ComedianSearchResponse } from "@/app/api/comedian/search/interface";
-import ComedianCarouselCard from "@/ui/components/cards/carousel/comedian";
-import { Key } from "react";
+import Navbar from "@/ui/components/navbar";
+import DetailHeader from "@/ui/pages/search/detailHeader";
+import FilterBar from "@/ui/pages/search/filterBar";
+import { auth } from "@/auth";
+import FooterComponent from "@/ui/pages/home/footer";
+import ComedianGrid from "@/ui/components/grid/comedian";
 
 export default async function ComedianSearchPage(props: any) {
+    const session = await auth();
+
     const paramsWrapper = await SearchParamsHelper.storePageParams(
         props.searchParams,
     );
 
-    const { data, filters } = await makeRequest<ComedianSearchResponse>(
+    const { data } = await makeRequest<ComedianSearchResponse>(
         APIRoutePath.ComedianSearch,
         {
             searchParams: paramsWrapper.asUrlSearchParams(),
@@ -22,33 +27,15 @@ export default async function ComedianSearchPage(props: any) {
     );
 
     return (
-        <main className="flex-grow pt-24 bg-ivory">
-            <section>
-                <TableFilterBar
-                    totalItems={data.total}
-                    filtersString={JSON.stringify(filters)}
-                />
-            </section>
-            <section className="grid grid-cols-1 gap-y-10">
-                {data.entities.length > 0 ? (
-                    data.entities.map(
-                        (entity: { name: Key | null | undefined }) => {
-                            return (
-                                <ComedianCarouselCard
-                                    key={entity.name}
-                                    entity={JSON.stringify(entity)}
-                                />
-                            );
-                        },
-                    )
-                ) : (
-                    <div className="max-w-7xl">
-                        <h2 className="font-bold text-5xl w-maxtext-white pt-6">
-                            No comedians found. Who knows why.
-                        </h2>
-                    </div>
-                )}
-            </section>
+        <main className="min-h-screen w-full bg-ivory">
+            <Navbar currentUser={session?.user} />
+            <DetailHeader
+                title={`Search comedians`}
+                subTitle={`${data.total} results`}
+            />
+            <FilterBar />
+            <ComedianGrid contentString={JSON.stringify(data.entities)} />
+            <FooterComponent />
         </main>
     );
 }

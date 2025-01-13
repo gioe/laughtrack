@@ -2,7 +2,8 @@
 
 import { Comedian } from "@/objects/class/comedian/Comedian";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
-import ComedianCarouselCard from "@/ui/components/cards/carousel/comedian";
+import ComedianCarouselCard from "@/ui/components/grid/comedian/card";
+import ComedianGrid from "@/ui/components/grid/comedian";
 import Link from "next/link";
 
 interface TrendingComedianGridProps {
@@ -18,17 +19,7 @@ const TrendingComedianGrid = ({ comedians }: TrendingComedianGridProps) => {
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 grid-rows-2 gap-6">
-                {comedians.map((dto) => {
-                    const comedian = new Comedian(dto);
-                    return (
-                        <ComedianCarouselCard
-                            key={dto.name}
-                            entity={JSON.stringify(comedian)}
-                        />
-                    );
-                })}
-            </div>
+            <ComedianGrid comedians={comedians} />
 
             <div className="text-center mt-8">
                 <Link

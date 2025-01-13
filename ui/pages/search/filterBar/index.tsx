@@ -1,6 +1,6 @@
 import { SortParamComponent } from "@/ui/components/params/sort";
 import ShowSearchBar from "@/ui/components/searchbar";
-import { ChevronDown, Filter, Menu } from "lucide-react";
+import { Filter } from "lucide-react";
 
 const FilterBar = () => {
     return (

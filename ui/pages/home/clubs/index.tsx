@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { ClubDTO } from "@/objects/class/club/club.interface";
 import { Club } from "@/objects/class/club/Club";
-import ClubCarouselCard from "@/ui/components/cards/carousel/club";
+import ClubCarouselCard from "@/ui/components/grid/club/card";
 
 interface TrendingClubsCarouselProps {
     clubs: ClubDTO[];

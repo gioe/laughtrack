@@ -8,15 +8,14 @@ import { styleContexts } from "../header/styles";
 
 interface NavbarProps {
     currentUser?: UserInterface | null;
-    context?: keyof typeof styleContexts;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ currentUser, context = "home" }) => {
+const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     return (
         <div className="w-full">
-            <Header currentUser={currentUser} styleContext={context} />
+            <Header currentUser={currentUser} />
             <div className="lg:hidden">
                 <SideDrawer
                     open={mobileMenuOpen}
