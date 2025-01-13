@@ -10,23 +10,20 @@ import { Navigator } from "@/objects/class/navigate/Navigator";
 import { QueryProperty } from "@/objects/enum";
 import { SortOptionInterface } from "@/objects/interface";
 import { cn } from "@/util/tailwindUtil";
+import { Menu as MenuIcon } from "lucide-react";
+import { getDefaultSortingOption } from "@/util/filter/util";
 
 export function SortParamComponent() {
     const { sortOptions } = useDataProvider();
+
     const paramsHelper = new SearchParamsHelper(useSearchParams());
 
     const navigator = new Navigator(usePathname(), useRouter());
 
-    const defaultOption = sortOptions.find(
-        (value) =>
-            value.value == paramsHelper.getParamValue(QueryProperty.Sort) &&
-            value.direction ==
-                paramsHelper.getParamValue(QueryProperty.Direction),
-    );
+    const defaultOption = getDefaultSortingOption(sortOptions, paramsHelper);
 
-    const [selectedSortingOption, setSelectedSortingOption] = useState(
-        defaultOption ?? sortOptions[0],
-    );
+    const [selectedSortingOption, setSelectedSortingOption] =
+        useState(defaultOption);
 
     const evaluateEquivalence = (
         a: SortOptionInterface,
@@ -62,7 +59,11 @@ export function SortParamComponent() {
                         className="group flex w-full items-center justify-between rounded-lg py-2 pl-3 pr-3.5 leading-7
                     text-copper font-inter hover:bg-gray-50"
                     >
-                        Sort
+                        <MenuIcon size={20} />
+                        <span className="hidden sm:inline pr-3">Sort by:</span>
+                        <span className="hidden sm:inline">
+                            {selectedSortingOption.name}
+                        </span>
                         <ChevronDownIcon
                             aria-hidden="true"
                             className="h-5 w-5 flex-none text-soft-charcoal"
