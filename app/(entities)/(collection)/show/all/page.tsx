@@ -10,6 +10,7 @@ import Navbar from "@/ui/components/navbar";
 import DetailHeader from "@/ui/pages/search/detailHeader";
 import FilterBar from "@/ui/pages/search/filterBar";
 import ShowTable from "@/ui/pages/search/showTable";
+import FooterComponent from "@/ui/pages/home/footer";
 
 export default async function ShowSearchPage(props: any) {
     const session = await auth();
@@ -18,7 +19,7 @@ export default async function ShowSearchPage(props: any) {
         props.searchParams,
     );
 
-    const { data, filters } = await makeRequest<ShowSearchResponse>(
+    const { data } = await makeRequest<ShowSearchResponse>(
         APIRoutePath.ShowSearch,
         {
             searchParams: paramsWrapper.asUrlSearchParams(),
@@ -27,13 +28,14 @@ export default async function ShowSearchPage(props: any) {
 
     return (
         <main className="min-h-screen w-full bg-ivory">
-            <Navbar currentUser={session?.user} />
+            <Navbar currentUser={session?.user} context="search" />
             <DetailHeader
                 title={`Search shows in ${paramsWrapper.getParamValue("city")}`}
                 subTitle={`${data.total} results`}
             />
             <FilterBar />
             <ShowTable shows={JSON.stringify(data.entities)} />
+            <FooterComponent />
         </main>
     );
 }

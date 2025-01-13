@@ -1,5 +1,6 @@
 "use client";
 
+import { useStyleContext } from "@/contexts/StyleProvider";
 import { Search } from "lucide-react";
 import { ReactNode } from "react";
 
@@ -16,6 +17,8 @@ export function CircleIconButton({
     type = "submit",
     children,
 }: CircleIconButtonProps) {
+    const { getCurrentStyles } = useStyleContext();
+    const styleConfig = getCurrentStyles();
     return (
         <button
             type={type}
@@ -25,7 +28,7 @@ export function CircleIconButton({
                     handleClick();
                 }
             }}
-            className="p-4 bg-amber-700 hover:bg-amber-800 rounded-full flex items-center justify-center transition-colors mx-2"
+            className={`p-4 ${styleConfig.iconBgColor} hover:${styleConfig.iconBgColor} rounded-full flex items-center justify-center transition-colors mx-2`}
         >
             {children}
         </button>

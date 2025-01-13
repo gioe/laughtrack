@@ -1,5 +1,7 @@
 import { EntityPageDataProvider } from "@/contexts/EntityPageDataProvider";
 import { PageEntityProvider } from "@/contexts/PageEntityProvider";
+import { StyleContextProvider } from "@/contexts/StyleProvider";
+import { StyleContextKey } from "@/objects/enum";
 import { Suspense } from "react";
 
 export default function EntityDetailLayout({
@@ -9,9 +11,11 @@ export default function EntityDetailLayout({
 }) {
     return (
         <Suspense>
-            <PageEntityProvider>
-                <EntityPageDataProvider>{children}</EntityPageDataProvider>
-            </PageEntityProvider>
+            <StyleContextProvider initialContext={StyleContextKey.Search}>
+                <PageEntityProvider>
+                    <EntityPageDataProvider>{children}</EntityPageDataProvider>
+                </PageEntityProvider>
+            </StyleContextProvider>
         </Suspense>
     );
 }

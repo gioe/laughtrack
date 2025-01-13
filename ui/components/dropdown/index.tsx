@@ -10,6 +10,7 @@ import {
 import { FormControl, FormField, FormItem, FormMessage } from "../ui/form";
 import { MapPin } from "lucide-react";
 import { Selectable } from "@/objects/interface";
+import { useStyleContext } from "@/contexts/StyleProvider";
 
 interface DropdownProps {
     name: string;
@@ -25,6 +26,9 @@ export function DropdownFormComponent({
     items,
     form,
 }: DropdownProps) {
+    const { getCurrentStyles } = useStyleContext();
+    const styleConfig = getCurrentStyles();
+
     return (
         <FormField
             control={form.control}
@@ -34,11 +38,13 @@ export function DropdownFormComponent({
                     <FormItem className="flex flex-col">
                         <Select onValueChange={field.onChange}>
                             <FormControl
-                                className="text-xl rounded-lg lg:w-40 lg:h-12 text-gray-400 ring-transparent focus:ring-transparent
-                             border-transparent focus:outline-none outline-none"
+                                className={`text-xl rounded-lg lg:w-40 lg:h-12 ${styleConfig.iconTextColor} ring-transparent focus:ring-transparent
+                             border-transparent focus:outline-none outline-none`}
                             >
                                 <SelectTrigger>
-                                    <MapPin className="w-5 h-5 text-gray-400" />
+                                    <MapPin
+                                        className={`w-5 h-5 ${styleConfig.iconTextColor}`}
+                                    />
                                     <SelectValue
                                         className="text-left pr-2"
                                         placeholder={placeholder}

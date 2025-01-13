@@ -1,5 +1,7 @@
 "use client";
 
+import { useStyleContext } from "@/contexts/StyleProvider";
+import { styleContexts } from "@/ui/components/header/styles";
 import Link from "next/link";
 
 interface FullRoundedButtonProps {
@@ -17,6 +19,9 @@ export function FullRoundedButton({
     type = "submit",
     href = undefined,
 }: FullRoundedButtonProps) {
+    const { getCurrentStyles } = useStyleContext();
+    const styleConfig = getCurrentStyles();
+
     const ButtonComponent = () => (
         <button
             type={type}
@@ -26,7 +31,7 @@ export function FullRoundedButton({
                     handleClick();
                 }
             }}
-            className="px-6 py-2 text-white bg-copper rounded-lg transition-colors duration-200 font-medium font-dmSans"
+            className={`px-6 py-2 text-white ${styleConfig?.buttonColor} rounded-lg transition-colors duration-200 font-medium font-dmSans`}
         >
             {label}
         </button>

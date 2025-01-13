@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { UserInterface } from "@/objects/class/user/user.interface";
 import Navbar from "@/ui/components/navbar";
-import ShowSearchBar from "@/ui/components/searchbar";
+import ShowSearchForm from "@/ui/components/searchbar";
 
 interface HeroComponentProps {
     user: UserInterface | null;
@@ -45,7 +45,7 @@ const HeroComponent = ({ user }: HeroComponentProps) => {
                         <p className="text-gray-200 text-xl mb-12 max-w-3xl">
                             Laugh a little
                         </p>
-                        <ShowSearchBar />
+                        <ShowSearchForm />
                     </div>
                 </div>
             </div>

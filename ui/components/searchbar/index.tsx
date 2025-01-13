@@ -19,8 +19,11 @@ import { DropdownFormComponent } from "@/ui/components/dropdown";
 import CalendarFormComponent from "@/ui/components/calendar";
 import { CircleIconButton } from "@/ui/components/button/circleIcon";
 import { Search } from "lucide-react";
+import { useStyleContext } from "@/contexts/StyleProvider";
 
-export default function ShowSearchBarProps() {
+export default function ShowSearchBar() {
+    const { getCurrentStyles } = useStyleContext();
+    const styleConfig = getCurrentStyles();
     const cityList = useCityContext();
 
     const paramsHelper = new SearchParamsHelper(useSearchParams());
@@ -46,27 +49,21 @@ export default function ShowSearchBarProps() {
     });
 
     async function submitForm(data: z.infer<typeof showSearchFormSchema>) {
-        try {
-            setIsLoading(true);
-            const map = new Map<URLParam, ParamsDictValue>();
-            map.set("city", data.city);
-            map.set("from_date", data.dates.from);
-            map.set("to_date", data.dates.to);
-
-            navigator.pushPage("show/all", paramsHelper.asParamsString());
-        } catch (error) {
-            // Handle error appropriately
-            console.error("Form submission failed:", error);
-        } finally {
-            setIsLoading(false);
-        }
+        setIsLoading(true);
+        const map = new Map<URLParam, ParamsDictValue>();
+        map.set("city", data.city);
+        map.set("from_date", data.dates.from);
+        map.set("to_date", data.dates.to);
+        paramsHelper.updateParamsFromMap(map);
+        navigator.pushPage("show/all", paramsHelper.asParamsString());
+        setIsLoading(false);
     }
 
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(submitForm)}>
-                <div className="flex items-center w-full max-w-3xl bg-white/20 backdrop-blur rounded-full">
-                    <div className="flex-1 flex items-center px-6 border-r border-gray-600/50 m-4">
+                <div className="flex items-center w-full max-w-3xl bg-ivory/20 backdrop-blur rounded-full border-1">
+                    <div className="flex-1 flex items-center px-2 border-r border-gray-600/50 m-4">
                         <DropdownFormComponent
                             name="city"
                             placeholder="City"
@@ -75,7 +72,7 @@ export default function ShowSearchBarProps() {
                         />
                     </div>
 
-                    <div className="flex-1 flex items-center px-6">
+                    <div className="flex-1 flex items-center px-2">
                         <CalendarFormComponent name="dates" form={form} />
                     </div>
                     <CircleIconButton>

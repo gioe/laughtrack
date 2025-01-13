@@ -9,6 +9,7 @@ import { APIRoutePath } from './routePath'
 import { DirectionParamValue } from './directionParamValue'
 import { RestAPIAction } from './restApiAction'
 import { QueryProperty } from './queryProperty'
+import { StyleContextKey } from './styleContextKey'
 export {
     RestAPIAction,
     QueryProperty,
@@ -20,5 +21,6 @@ export {
     ButtonType,
     IndexProperty,
     HeaderKey,
-    DirectionParamValue
+    DirectionParamValue,
+    StyleContextKey
 }

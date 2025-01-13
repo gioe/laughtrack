@@ -49,7 +49,6 @@ export function formatShowDate(dateString: string): string {
         'January', 'February', 'March', 'April', 'May', 'June',
         'July', 'August', 'September', 'October', 'November', 'December'
     ];
-    console.log(typeof date)
     const month = months[date.getMonth()];
 
     // Day formatting with suffix

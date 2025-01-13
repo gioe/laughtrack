@@ -13,6 +13,8 @@ import { usePathname } from "next/navigation";
 import { useLoginModal, useRegisterModal } from "@/hooks/modalState";
 import { UserInterface } from "@/objects/class/user/user.interface";
 import { HeaderItem } from "../navbar/headerItem";
+import { styleContexts } from "./styles";
+import { useStyleContext } from "@/contexts/StyleProvider";
 
 const comedianMenuItems = [
     {
@@ -33,15 +35,19 @@ const clubMenuItems = [
 ];
 
 interface HeaderProps {
-    onClick: (open: boolean) => void;
     currentUser?: UserInterface | null;
+    styleContext?: keyof typeof styleContexts;
 }
 
-export function Header({ onClick, currentUser }: HeaderProps) {
+export function Header({ currentUser }: HeaderProps) {
     const pathname = usePathname();
+
+    const { getCurrentStyles } = useStyleContext();
+    const styleConfig = getCurrentStyles();
 
     const loginModal = useLoginModal();
     const registerModal = useRegisterModal();
+
     const handleLoginClick = useCallback(() => {
         loginModal.onOpen();
     }, [loginModal]);
@@ -54,7 +60,9 @@ export function Header({ onClick, currentUser }: HeaderProps) {
         <nav className="bg-transparent px-4 py-4 flex items-center justify-between">
             {/* Logo/Brand */}
             <div className="flex items-center">
-                <span className="text-white text-2xl font-bold">
+                <span
+                    className={`${styleConfig.logoTextColor} text-2xl font-bold`}
+                >
                     Laughtrack
                 </span>
             </div>

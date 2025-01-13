@@ -19,9 +19,9 @@ export default async function HomePage() {
     return (
         <main className="min-h-screen w-full bg-ivory">
             <HeroComponent user={session?.user} />
-            {/* <TrendingComedianGrid comedians={response.comedians} />
+            <TrendingComedianGrid comedians={response.comedians} />
             <TrendingClubsCarousel clubs={response.clubs} />
-            <FooterComponent /> */}
+            <FooterComponent />
         </main>
     );
 }

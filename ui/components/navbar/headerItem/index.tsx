@@ -1,5 +1,7 @@
 "use client";
 
+import { useStyleContext } from "@/contexts/StyleProvider";
+
 interface HeaderItemProps {
     href?: string;
     title: string;
@@ -7,11 +9,16 @@ interface HeaderItemProps {
 }
 
 export function HeaderItem({ href, title, highlighted }: HeaderItemProps) {
+    const { getCurrentStyles } = useStyleContext();
+    const styleConfig = getCurrentStyles();
+
     return (
         <a
             href={href}
             className={`transition-colors font-dmSans ${
-                highlighted ? "text-white" : "text-gray-400 hover:text-white"
+                highlighted
+                    ? `${styleConfig.headerItemColorHighlighted}`
+                    : `${styleConfig.baseHeaderItemColor} hover:${styleConfig.baseHeaderItemHoverColor}`
             }`}
         >
             {title}

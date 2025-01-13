@@ -8,6 +8,7 @@ import { ChevronUpDownIcon } from "@heroicons/react/24/solid";
 import { ControllerRenderProps, FieldValues } from "react-hook-form";
 import { Calendar as CalIcon } from "lucide-react";
 import { datesAreToday, datesAreTomorrow } from "@/util/dateUtil";
+import { useStyleContext } from "@/contexts/StyleProvider";
 
 type TypedFieldValues = ControllerRenderProps<FieldValues, string>;
 
@@ -45,6 +46,8 @@ const CalendarFormComponent: React.FC<CalendarFormComponentProps> = ({
     name,
     form,
 }: CalendarFormComponentProps) => {
+    const { getCurrentStyles } = useStyleContext();
+    const styleConfig = getCurrentStyles();
     return (
         <FormField
             control={form.control}
@@ -54,14 +57,18 @@ const CalendarFormComponent: React.FC<CalendarFormComponentProps> = ({
                     <FormItem className="flex flex-col">
                         <Popover>
                             <PopoverTrigger asChild>
-                                <FormControl className="rounded-lg lg:w-80 lg:h-12 text-gray-400">
+                                <FormControl className="rounded-lg lg:w-80 lg:h-12">
                                     <div
-                                        className="flex h-9 w-full items-center justify-between whitespace-nowrap 
+                                        className={`flex h-9 w-full items-center justify-between whitespace-nowrap $
                                     bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none 
-                                    focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1"
+                                    focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1`}
                                     >
-                                        <CalIcon className="w-5 h-5 text-gray-400 mr-3" />
-                                        <span className="text-xl">
+                                        <CalIcon
+                                            className={`w-5 h-5 ${styleConfig.iconTextColor}`}
+                                        />
+                                        <span
+                                            className={`text-xl ${styleConfig.iconTextColor}`}
+                                        >
                                             {determineDateString(field)}
                                         </span>
                                         <ChevronUpDownIcon className="h-4 w-4 opacity-50" />

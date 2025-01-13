@@ -7,7 +7,8 @@ const config: Config = {
     darkMode: ["class"],
     relative: true,
     content: [
-        './components/**/*.{js,ts,jsx,tsx}"',
+        './ui/components/**/*.{js,ts,jsx,tsx}"',
+        './ui/pages/**/*.{js,ts,jsx,tsx}"',
         './app/**/*.{js,ts,jsx,tsx}"',
         "./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}",
     ],
@@ -50,6 +51,7 @@ const config: Config = {
                 "sandy-brown": "#F6916C",
                 "kelp": "#474838",
                 ivory: "#FFFFF0",
+                cedar: "361E14",
                 "coconut-cream": "#FAF6E0",
                 locust: "#acae89",
                 "pine-tree": "#232604",

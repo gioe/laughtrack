@@ -4,7 +4,7 @@ import React from "react";
 import { FullRoundedButton } from "@/ui/components/button/rounded/full";
 import { Show } from "@/objects/class/show/Show";
 import ShowCardHeader from "@/ui/components/cards/show/header";
-import LineupGrid from "@/ui/components/grid/lineup";
+import LineupGrid from "@/ui/components/lineup";
 
 interface ShowCardProps {
     show: Show;

@@ -141,7 +141,6 @@ async function getFilteredShows(params: any) {
 }
 
 export async function GET(request: Request) {
-
     const searchParams = new URL(request.url).searchParams
     const filters = await getTags(EntityType.Show);
     const helper = await QueryHelper.storePageParams(searchParams, filters);
@@ -154,5 +153,8 @@ export async function GET(request: Request) {
             } as ShowSearchData
             return NextResponse.json({ data, filters }, { status: 200 })
         })
-        .catch((error: Error) => NextResponse.json({ message: error.message }, { status: 500 }));
+        .catch((error: Error) => {
+            console.log(error)
+            return NextResponse.json({ message: error.message }, { status: 500 })
+        });
 }
