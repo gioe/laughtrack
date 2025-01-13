@@ -1,12 +1,11 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import ShowCard from "../../../../../components/cards/show";
-import TableFilterBar from "../../../../../components/filter";
-import { SearchParamsHelper } from "../../../../../objects/class/params/SearchParamsHelper";
-import { Show } from "../../../../../objects/class/show/Show";
-import { APIRoutePath } from "../../../../../objects/enum";
-import { makeRequest } from "../../../../../util/actions/makeRequest";
-import { CACHE } from "../../../../../util/constants/cacheConstants";
-import { ComedianDetailPageResponse } from "./interface";
+import TableFilterBar from "@/ui/components/filter";
+import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
+import { APIRoutePath } from "@/objects/enum";
+import { CACHE } from "@/util/constants/cacheConstants";
+import { makeRequest } from "@/util/actions/makeRequest";
+import { ComedianDetailPageResponse } from "@/app/api/comedian/[name]/interface";
+import ShowCard from "@/ui/components/cards/show";
+import { Show } from "@/objects/class/show/Show";
 
 export default async function ComedianDetailsPage(props: any) {
     const paramsWrapper = await SearchParamsHelper.storePageParams(

@@ -1,0 +1,50 @@
+"use client";
+
+import {
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "../../ui/form";
+import { Input } from "../../ui/input";
+
+interface FormFileInputProps {
+    isLoading: boolean;
+    name: string;
+    placeholder: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    form: any;
+}
+
+export function FormFileInput({
+    isLoading,
+    form,
+    name,
+    placeholder,
+}: FormFileInputProps) {
+    return (
+        <FormField
+            control={form.control}
+            name={name}
+            render={({ field }) => {
+                return (
+                    <FormItem>
+                        <FormLabel className="text-white">
+                            {placeholder}
+                        </FormLabel>
+                        <FormControl className="rounded-lg">
+                            <Input
+                                disabled={isLoading}
+                                type={"file"}
+                                placeholder={placeholder}
+                                {...field}
+                            />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                );
+            }}
+        />
+    );
+}

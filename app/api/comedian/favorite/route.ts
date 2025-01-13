@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
-import { db } from "../../../../lib/db";
+import { db } from "@/lib/db";
 import { headers } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
+
 
 export async function PUT(
     req: NextRequest,

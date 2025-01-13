@@ -1,15 +1,12 @@
 import { NextResponse } from "next/server";
-import {
-    generateToken,
-    verifyToken,
-} from "../../../../util/token";
+
 import { headers } from "next/headers";
+import { generateToken, verifyToken } from "@/util/token";
 
 export async function POST() {
     try {
         const headersList = await headers();
         const authHeader = headersList.get("authorization");
-        console.log(headersList)
         const refreshToken = authHeader && authHeader.split(" ")[1]; // Bear
 
         if (!refreshToken) {

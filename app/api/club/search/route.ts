@@ -1,16 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { db } from "@/lib/db";
+import { ClubSearchData, ClubSearchDTO } from "./interface";
+import { getTags } from "@/lib/data/tags/get";
+import { EntityType } from "@/objects/enum";
+import { QueryHelper } from "@/objects/class/query/QueryHelper";
+import { ClubDTO } from "@/objects/class/club/club.interface";
+import { Club } from "@/objects/class/club/Club";
 import { NextResponse } from "next/server";
-import { db } from "../../../../lib/db";
-import { EntityType } from "../../../../objects/enum";
-import { QueryHelper } from "../../../../objects/class/query/QueryHelper";
-import { ClubSearchData, ClubSearchDTO } from "../../../(entities)/(collection)/club/all/interface";
-import { getTags } from "../../show/search/route";
-import { ClubDTO } from "../../../../objects/class/club/club.interface";
-import { Club } from "../../../../objects/class/club/Club";
 
 async function getFilteredClubs(params: any): Promise<ClubSearchDTO> {
-    console.log(db)
     const totalCount = await db.club.count({
         where: {
             name: {

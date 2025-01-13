@@ -1,12 +1,12 @@
-import { ClubDetailPageResponse } from "./interface";
-import { SearchParamsHelper } from "../../../../../objects/class/params/SearchParamsHelper";
-import { CACHE } from "../../../../../util/constants/cacheConstants";
-import { APIRoutePath } from "../../../../../objects/enum";
-import { Show } from "../../../../../objects/class/show/Show";
-import { DynamicRoute } from "../../../../../objects/interface/identifable.interface";
-import { makeRequest } from "../../../../../util/actions/makeRequest";
-import TableFilterBar from "../../../../../components/filter";
-import ShowCard from "../../../../../components/cards/show";
+import TableFilterBar from "@/ui/components/filter";
+import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
+import { APIRoutePath } from "@/objects/enum";
+import { CACHE } from "@/util/constants/cacheConstants";
+import { makeRequest } from "@/util/actions/makeRequest";
+import { DynamicRoute } from "@/objects/interface/identifable.interface";
+import { ClubDetailPageResponse } from "@/app/api/club/[name]/interface";
+import ShowCard from "@/ui/components/cards/show";
+import { Show } from "@/objects/class/show/Show";
 
 export default async function ClubDetailPage(props: {
     searchParams: Promise<URLSearchParams>;

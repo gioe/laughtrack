@@ -1,7 +1,4 @@
 import "./globals.css";
-import ToasterProvider from "../components/providers/toaster";
-import LoginModal from "../components/modals/login";
-import RegisterModal from "../components/modals/register";
 import { NextUIProvider } from "@nextui-org/react";
 import { SessionProvider } from "next-auth/react";
 import {
@@ -12,9 +9,13 @@ import {
     DM_Sans,
     Chivo,
 } from "next/font/google";
-import Navbar from "../components/navbar";
 import type { Metadata } from "next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { CityProvider } from "@/contexts/CityProvider";
+import { getCities } from "@/lib/data/cities/get";
+import ToasterProvider from "@/ui/components/providers/toaster";
+import LoginModal from "@/ui/components/modals/login";
+import RegisterModal from "@/ui/components/modals/register";
 
 const chivo = Chivo({
     weight: "400",
@@ -62,6 +63,7 @@ export default async function RootLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
+    const cities = await getCities();
     return (
         <SessionProvider>
             <html
@@ -73,7 +75,9 @@ export default async function RootLayout({
                         <ToasterProvider />
                         <LoginModal />
                         <RegisterModal />
-                        {children}
+                        <CityProvider initialCities={cities}>
+                            {children}
+                        </CityProvider>
                         <SpeedInsights />
                     </NextUIProvider>
                 </body>

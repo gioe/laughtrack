@@ -24,10 +24,8 @@ export const makeRequest = async <T>(
         revalidate = 0,
         session
     } = options;
-
     // Create base URL
     const url = new URL(endpoint, getBaseUrl());
-
     // Add search parameters if provided (mainly for GET requests)
     if (searchParams) {
         searchParams.forEach((value, key) => {

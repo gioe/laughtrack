@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { getTags } from "@/lib/data/tags/get";
+import { db } from "@/lib/db";
+import { Comedian } from "@/objects/class/comedian/Comedian";
+import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
+import { QueryHelper } from "@/objects/class/query/QueryHelper";
+import { EntityType } from "@/objects/enum";
 import { NextResponse } from "next/server";
-import { db } from "../../../../lib/db";
-import { EntityType } from "../../../../objects/enum";
-import { QueryHelper } from "../../../../objects/class/query/QueryHelper";
-import { ComedianSearchData, ComedianSearchDTO } from "../../../(entities)/(collection)/comedian/all/interface";
-import { getTags } from "../../show/search/route";
-import { ComedianDTO } from "../../../../objects/class/comedian/comedian.interface";
-import { Comedian } from "../../../../objects/class/comedian/Comedian";
+import { ComedianSearchData, ComedianSearchDTO } from "./interface";
+
 
 async function getFilteredComedians(params: any): Promise<ComedianSearchDTO> {
     // First get total count
@@ -95,7 +96,6 @@ async function getFilteredComedians(params: any): Promise<ComedianSearchDTO> {
         }
     }
 }
-
 
 export async function GET(request: Request) {
 

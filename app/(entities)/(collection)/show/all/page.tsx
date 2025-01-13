@@ -1,18 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
-import { SearchParamsHelper } from "../../../../../objects/class/params/SearchParamsHelper";
-import { APIRoutePath } from "../../../../../objects/enum";
-import { ShowSearchResponse } from "./interface";
-import TableFilterBar from "../../../../../components/filter";
-import ShowCard from "../../../../../components/cards/show";
-import { Show } from "../../../../../objects/class/show/Show";
-import { makeRequest } from "../../../../../util/actions/makeRequest";
-import Navbar from "@/components/navbar";
+import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
+import { APIRoutePath } from "@/objects/enum";
+import { makeRequest } from "@/util/actions/makeRequest";
 import { auth } from "@/auth";
-import DetailHeader from "@/components/search/detailHeader";
-import FilterBar from "@/components/search/filterBar";
-import ShowTable from "@/components/search/showTable";
+import { ShowSearchResponse } from "@/app/api/show/search/interface";
+import Navbar from "@/ui/components/navbar";
+import DetailHeader from "@/ui/pages/search/detailHeader";
+import FilterBar from "@/ui/pages/search/filterBar";
+import ShowTable from "@/ui/pages/search/showTable";
+
 export default async function ShowSearchPage(props: any) {
     const session = await auth();
 

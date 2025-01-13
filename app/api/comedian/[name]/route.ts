@@ -1,13 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-
+import { getTags } from "@/lib/data/tags/get";
+import { db } from "@/lib/db";
+import { QueryHelper } from "@/objects/class/query/QueryHelper";
+import { EntityType } from "@/objects/enum";
+import { ComedianDetailDTO, ComedianDetailPageData } from "./interface";
+import { Comedian } from "@/objects/class/comedian/Comedian";
 import { NextResponse } from "next/server";
-import { db } from "../../../../lib/db";
-import { EntityType } from "../../../../objects/enum";
-import { QueryHelper } from "../../../../objects/class/query/QueryHelper";
-import { ComedianDetailDTO, ComedianDetailPageData } from "../../../(entities)/(detail)/comedian/[name]/interface";
-import { getTags } from "../../show/search/route";
-import { Comedian } from "../../../../objects/class/comedian/Comedian";
+
+
+
 
 async function getComedianDetailPageData(params: any) {
 

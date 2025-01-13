@@ -1,50 +1,46 @@
 "use client";
 
-import { useState, useEffect, useContext, createContext } from "react";
+import { useState, useContext, createContext } from "react";
 import { CityDTO } from "../objects/class/city/city.interface";
-import { APIRoutePath } from "../objects/enum";
-import { makeRequest } from "../util/actions/makeRequest";
 
-interface CityList {
+export interface CityList {
     cities: CityDTO[];
 }
 
-const defaultList: CityList = {
+interface CityContextType {
+    cities: CityDTO[];
+}
+
+const defaultList: CityContextType = {
     cities: [],
 };
 
-const CityContext = createContext<CityList>(defaultList);
+// Export the context
+export const CityContext = createContext<CityContextType>(defaultList);
 
-export function CityProvider({ children }: { children: React.ReactNode }) {
-    const [cityList, setCityList] = useState(defaultList);
-
-    const getAffiliates = async () => {
-        try {
-            const response = await makeRequest<Response>(APIRoutePath.City);
-
-            if (!response.ok) {
-                throw new Error("Failed to get cities");
-            }
-
-            const data = await response.json();
-
-            if (data) {
-                setCityList(data);
-            }
-        } catch (error) {
-            console.log(error);
-        }
+export function CityProvider({
+    children,
+    initialCities,
+}: {
+    children: React.ReactNode;
+    initialCities: CityDTO[];
+}) {
+    const [cities, setCityList] = useState<CityDTO[]>(initialCities);
+    const contextValue: CityContextType = {
+        cities,
     };
 
-    useEffect(() => {
-        getAffiliates();
-    }, []);
-
     return (
-        <CityContext.Provider value={cityList}>{children}</CityContext.Provider>
+        <CityContext.Provider value={contextValue}>
+            {children}
+        </CityContext.Provider>
     );
 }
 
 export function useCityContext() {
-    return useContext(CityContext);
+    const context = useContext(CityContext);
+    if (!context) {
+        throw new Error("useCityContext must be used within a CityProvider");
+    }
+    return context;
 }

@@ -1,6 +1,6 @@
+import { EntityPageDataProvider } from "@/contexts/EntityPageDataProvider";
+import { PageEntityProvider } from "@/contexts/PageEntityProvider";
 import { Suspense } from "react";
-import { EntityPageDataProvider } from "../../../contexts/EntityPageDataProvider";
-import { PageEntityProvider } from "../../../contexts/PageEntityProvider";
 
 export default function EntityDetailLayout({
     children,

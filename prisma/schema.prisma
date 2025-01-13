@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = "postgresql://postgres:test@127.0.0.1:5432/laughtrack"
+  url       = "postgresql://postgres.dsnrazgpfobfspwammxm:qyDh5kVms2uIteqS@aws-0-us-east-1.pooler.supabase.com:5432/postgres"
 }
 
 model City {

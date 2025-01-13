@@ -3,8 +3,8 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { User } from "@prisma/client";
-import { signInSchema } from "../../../../util/validations";
-import { db } from "../../../../lib/db";
+import { signInSchema } from "@/util/validations";
+import { db } from "@/lib/db";
 
 export async function POST(request: Request) {
 

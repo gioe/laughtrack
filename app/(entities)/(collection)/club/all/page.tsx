@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import ClubCarouselCard from "../../../../../components/cards/carousel/club";
-import TableFilterBar from "../../../../../components/filter";
-import { SearchParamsHelper } from "../../../../../objects/class/params/SearchParamsHelper";
-import { APIRoutePath } from "../../../../../objects/enum";
-import { makeRequest } from "../../../../../util/actions/makeRequest";
-import { CACHE } from "../../../../../util/constants/cacheConstants";
-import { ClubSearchResponse } from "./interface";
+import TableFilterBar from "@/ui/components/filter";
+import ClubCarouselCard from "@/ui/components/cards/carousel/club";
+import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
+import { APIRoutePath } from "@/objects/enum";
+import { ClubSearchResponse } from "@/app/api/club/search/interface";
+import { CACHE } from "@/util/constants/cacheConstants";
+import { makeRequest } from "@/util/actions/makeRequest";
 
 export default async function ClubSearchPage(props: any) {
     const paramsWrapper = await SearchParamsHelper.storePageParams(

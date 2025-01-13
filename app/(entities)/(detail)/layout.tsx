@@ -1,6 +1,6 @@
-import EntityBanner from "../../../components/banner";
-import { EntityPageDataProvider } from "../../../contexts/EntityPageDataProvider";
-import { PageEntityProvider } from "../../../contexts/PageEntityProvider";
+import { EntityPageDataProvider } from "@/contexts/EntityPageDataProvider";
+import { PageEntityProvider } from "@/contexts/PageEntityProvider";
+import EntityBanner from "@/ui/components/banner";
 
 export default async function EntityDetailLayout({
     children,
