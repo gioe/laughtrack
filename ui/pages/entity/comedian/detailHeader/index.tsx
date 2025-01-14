@@ -64,14 +64,14 @@ const ComedianDetailHeader: React.FC<ClubDetailHeaderProps> = ({
                     disabled={isLoading}
                     className={`flex items-center gap-2 ${
                         isFavorite
-                            ? "text-amber-700 hover:text-amber-800"
-                            : "text-gray-500 hover:text-gray-600"
+                            ? "text-red-700 hover:text-red-800"
+                            : "text-copper hover:text-copper"
                     } transition-colors duration-200 disabled:opacity-50`}
                 >
                     <Heart
                         className={`w-4 h-4 ${isFavorite ? "fill-current" : ""}`}
                     />
-                    <span>
+                    <span className="text-copper">
                         {isFavorite
                             ? "Remove from Favorites"
                             : "Add to Favorites"}

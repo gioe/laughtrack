@@ -1,6 +1,6 @@
 import { Show } from "@/objects/class/show/Show";
 import ShowCard from "@/ui/components/cards/show";
-import ShowTable from "@/ui/pages/search/table/showTable";
+import ShowTable from "@/ui/pages/search/table";
 
 interface TableWithHeaderProps {
     entityString: string;

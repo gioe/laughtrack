@@ -1,5 +1,7 @@
 import { EntityPageDataProvider } from "@/contexts/EntityPageDataProvider";
 import { PageEntityProvider } from "@/contexts/PageEntityProvider";
+import { StyleContextProvider } from "@/contexts/StyleProvider";
+import { StyleContextKey } from "@/objects/enum";
 import EntityBanner from "@/ui/components/banner";
 
 export default async function EntityDetailLayout({
@@ -12,8 +14,10 @@ export default async function EntityDetailLayout({
     const identifier = (await params).name;
 
     return (
-        <PageEntityProvider>
-            <EntityPageDataProvider>{children}</EntityPageDataProvider>
-        </PageEntityProvider>
+        <StyleContextProvider initialContext={StyleContextKey.Search}>
+            <PageEntityProvider>
+                <EntityPageDataProvider>{children}</EntityPageDataProvider>
+            </PageEntityProvider>
+        </StyleContextProvider>
     );
 }

@@ -11,6 +11,7 @@ export enum APIRoutePath {
     ShowSearch = "/api/show/search",
     Home = "/api/home",
     Tag = "/api/tag",
+    About = "/api/about"
 }
 
 export const allPaths = [

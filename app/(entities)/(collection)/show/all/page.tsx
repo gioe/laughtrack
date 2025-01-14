@@ -8,7 +8,7 @@ import { auth } from "@/auth";
 import { ShowSearchResponse } from "@/app/api/show/search/interface";
 import Navbar from "@/ui/components/navbar";
 import FilterBar from "@/ui/pages/search/filterBar";
-import ShowTable from "@/ui/pages/search/table/showTable";
+import ShowTable from "@/ui/pages/search/table";
 import FooterComponent from "@/ui/pages/home/footer";
 import SearchDetailHeader from "@/ui/pages/search/detailHeader";
 

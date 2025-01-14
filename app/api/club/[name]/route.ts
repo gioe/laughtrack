@@ -140,9 +140,7 @@ async function getClubDetailPageData(params: any) {
             lineup: show.lineupItems.map((item) => {
                 return {
                     id: item.comedian.id,
-                    name: item.comedian.name,
-                    is_favorite: params.userId ? item.comedian.favoriteComedians.length > 0 : false,
-                    is_alias: item.comedian.taggedComedians.length > 0
+                    name: item.comedian.name
                 }
             })
         }
@@ -166,15 +164,13 @@ async function getClubDetailPageData(params: any) {
 
 export async function GET(request: Request, { params }) {
     try {
-        const headersList = await headers();
-        const userId = headersList.get("user_id");
 
         const slug = await params
         const newURL = new URL(request.url);
         const searchParams = newURL.searchParams
         const filters = await getTags(EntityType.Comedian);
 
-        const helper = await QueryHelper.storePageParams(searchParams, filters, slug, userId);
+        const helper = await QueryHelper.storePageParams(searchParams, filters, slug);
 
         return getClubDetailPageData(helper.asQueryFilters())
             .then((response: any) => {

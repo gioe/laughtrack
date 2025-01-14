@@ -56,7 +56,7 @@ export function SortParamComponent() {
             >
                 <div>
                     <MenuButton
-                        className="group flex w-full items-center justify-between rounded-lg py-2 pl-3 pr-3.5 leading-7
+                        className="group flex items-center justify-between rounded-lg gap-2
                     text-copper font-inter hover:bg-gray-50"
                     >
                         <MenuIcon size={20} />
@@ -66,7 +66,7 @@ export function SortParamComponent() {
                         </span>
                         <ChevronDownIcon
                             aria-hidden="true"
-                            className="h-5 w-5 flex-none text-soft-charcoal"
+                            className="h-5 w-5 flex-none text-copper"
                         />
                     </MenuButton>
                 </div>

@@ -8,5 +8,4 @@ export type ComedianDetailPageData = EntityResponse<Comedian>
 export interface ComedianDetailPageResponse {
     data: ComedianDetailPageData
     filters: FilterDataDTO[] | undefined
-
 }

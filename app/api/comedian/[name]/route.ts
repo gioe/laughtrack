@@ -8,9 +8,6 @@ import { ComedianDetailDTO, ComedianDetailPageData } from "./interface";
 import { Comedian } from "@/objects/class/comedian/Comedian";
 import { NextResponse } from "next/server";
 
-
-
-
 async function getComedianDetailPageData(params: any) {
 
     // First get all relevant shows

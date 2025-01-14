@@ -19,7 +19,7 @@ export default async function ComedianDetailsPage(props: any) {
         props.params,
     );
 
-    const { data, filters } = await makeRequest<ComedianDetailPageResponse>(
+    const { data } = await makeRequest<ComedianDetailPageResponse>(
         APIRoutePath.Comedian + `/${paramsWrapper.asSlug()}`,
         {
             searchParams: paramsWrapper.asUrlSearchParams(),
