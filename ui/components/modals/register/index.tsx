@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import Modal from "..";
 import RegistrationForm from "../../form/register";
 import { useLoginModal, useRegisterModal } from "@/hooks/modalState";
+import LaughtrackSignup from "@/ui/pages/register";
+import FullScreenModal from "../fullscreen";
 
 const RegisterModal = () => {
     const registerModal = useRegisterModal();
@@ -21,16 +23,12 @@ const RegisterModal = () => {
     };
 
     return (
-        <Modal
+        <FullScreenModal
             isOpen={registerModal.isOpen}
-            body={
-                <RegistrationForm
-                    onSubmit={onSubmit}
-                    onClose={registerModal.onClose}
-                    handleLoginClick={loginLinkClicked}
-                />
-            }
-        />
+            onClose={() => registerModal.onClose()}
+        >
+            <LaughtrackSignup />
+        </FullScreenModal>
     );
 };
 

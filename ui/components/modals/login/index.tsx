@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import Modal from "..";
 import LoginForm from "../../form/login";
 import { useLoginModal } from "@/hooks/modalState";
+import LaughtrackLogin from "@/ui/pages/login";
+import FullScreenModal from "../fullscreen";
 
 const LoginModal = () => {
     const router = useRouter();
@@ -15,12 +17,12 @@ const LoginModal = () => {
     };
 
     return (
-        <Modal
+        <FullScreenModal
             isOpen={loginModal.isOpen}
-            body={
-                <LoginForm onSubmit={onSubmit} onClose={loginModal.onClose} />
-            }
-        />
+            onClose={() => loginModal.onClose()}
+        >
+            <LaughtrackLogin />
+        </FullScreenModal>
     );
 };
 

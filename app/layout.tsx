@@ -74,9 +74,9 @@ export default async function RootLayout({
                 <body>
                     <NextUIProvider>
                         <ToasterProvider />
-                        <LoginModal />
-                        <RegisterModal />
                         <StyleContextProvider>
+                            <LoginModal />
+                            <RegisterModal />
                             <CityProvider initialCities={cities}>
                                 {children}
                             </CityProvider>
