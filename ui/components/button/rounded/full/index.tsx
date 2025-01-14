@@ -1,8 +1,8 @@
 "use client";
 
 import { useStyleContext } from "@/contexts/StyleProvider";
-import { styleContexts } from "@/ui/components/header/styles";
 import Link from "next/link";
+import { twMerge } from "tailwind-merge";
 
 interface FullRoundedButtonProps {
     handleClick?: () => void;
@@ -22,6 +22,9 @@ export function FullRoundedButton({
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
 
+    const baseClasses =
+        "px-6 py-2 text-white rounded-lg transition-colors duration-200 font-medium font-dmSans";
+
     const ButtonComponent = () => (
         <button
             type={type}
@@ -31,7 +34,7 @@ export function FullRoundedButton({
                     handleClick();
                 }
             }}
-            className={`px-6 py-2 text-white ${styleConfig?.buttonColor} rounded-lg transition-colors duration-200 font-medium font-dmSans`}
+            className={twMerge(baseClasses, styleConfig.buttonColor)}
         >
             {label}
         </button>

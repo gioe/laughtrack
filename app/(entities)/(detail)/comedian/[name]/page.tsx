@@ -1,6 +1,6 @@
 import TableFilterBar from "@/ui/components/filter";
 import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
-import { APIRoutePath } from "@/objects/enum";
+import { APIRoutePath, StyleContextKey } from "@/objects/enum";
 import { CACHE } from "@/util/constants/cacheConstants";
 import { makeRequest } from "@/util/actions/makeRequest";
 import { ComedianDetailPageResponse } from "@/app/api/comedian/[name]/interface";
@@ -10,6 +10,7 @@ import ComedianDetailHeader from "@/ui/pages/entity/comedian/detailHeader";
 import FooterComponent from "@/ui/pages/home/footer";
 import TableWithHeader from "@/ui/pages/entity/comedian/table";
 import SocialMediaColumn from "@/ui/pages/entity/comedian/socialColumn";
+import { StyleContextProvider } from "@/contexts/StyleProvider";
 
 export default async function ComedianDetailsPage(props: any) {
     const session = await auth();
@@ -29,7 +30,9 @@ export default async function ComedianDetailsPage(props: any) {
 
     return (
         <main className="min-h-screen w-full bg-ivory">
-            <Navbar currentUser={session?.user} />
+            <StyleContextProvider initialContext={StyleContextKey.Search}>
+                <Navbar currentUser={session?.user} />
+            </StyleContextProvider>
             <ComedianDetailHeader
                 favorite={data.entity.isFavorite}
                 comedianId={data.entity.id}

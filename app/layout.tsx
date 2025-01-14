@@ -16,7 +16,6 @@ import { getCities } from "@/lib/data/cities/get";
 import ToasterProvider from "@/ui/components/providers/toaster";
 import LoginModal from "@/ui/components/modals/login";
 import RegisterModal from "@/ui/components/modals/register";
-import { StyleContextProvider } from "@/contexts/StyleProvider";
 
 const chivo = Chivo({
     weight: "400",
@@ -27,7 +26,7 @@ const chivo = Chivo({
 const dmSams = DM_Sans({
     weight: "400",
     subsets: ["latin"],
-    variable: "--font-fjalla",
+    variable: "--font-dmSans",
 });
 
 const fjalla = Fjalla_One({
@@ -74,13 +73,11 @@ export default async function RootLayout({
                 <body>
                     <NextUIProvider>
                         <ToasterProvider />
-                        <StyleContextProvider>
-                            <LoginModal />
-                            <RegisterModal />
-                            <CityProvider initialCities={cities}>
-                                {children}
-                            </CityProvider>
-                        </StyleContextProvider>
+                        <LoginModal />
+                        <RegisterModal />
+                        <CityProvider initialCities={cities}>
+                            {children}
+                        </CityProvider>
                         <SpeedInsights />
                     </NextUIProvider>
                 </body>

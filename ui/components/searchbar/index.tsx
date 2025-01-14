@@ -62,7 +62,9 @@ export default function ShowSearchBar() {
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(submitForm)}>
-                <div className="flex items-center w-full max-w-3xl bg-ivory/20 backdrop-blur rounded-full border-1">
+                <div
+                    className={`flex items-center w-full max-w-3xl bg-ivory/20 backdrop-blur rounded-full ${styleConfig.searchBorder}`}
+                >
                     <div className="flex-1 flex items-center px-2 border-r border-gray-600/50 m-4">
                         <DropdownFormComponent
                             name="city"
@@ -76,7 +78,9 @@ export default function ShowSearchBar() {
                         <CalendarFormComponent name="dates" form={form} />
                     </div>
                     <CircleIconButton>
-                        <Search className="w-5 h-5 text-white" />
+                        <Search
+                            className={`w-5 h-5 ${styleConfig.iconTextColor}`}
+                        />
                     </CircleIconButton>
                 </div>
             </form>

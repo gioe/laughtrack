@@ -3,7 +3,6 @@ import { useCallback } from "react";
 import { usePathname } from "next/navigation";
 import { useLoginModal, useRegisterModal } from "@/hooks/modalState";
 import { UserInterface } from "@/objects/class/user/user.interface";
-import { useStyleContext } from "@/contexts/StyleProvider";
 import Logo from "../logo";
 import NavigationMenu from "../navbar/menu";
 import AuthButtons from "../auth";
@@ -14,9 +13,6 @@ interface HeaderProps {
 
 export function Header({ currentUser }: HeaderProps) {
     const pathname = usePathname();
-
-    const { getCurrentStyles } = useStyleContext();
-    const styleConfig = getCurrentStyles();
 
     const loginModal = useLoginModal();
     const registerModal = useRegisterModal();

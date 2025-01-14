@@ -6,7 +6,7 @@ export const toPaginatedData = (
     rows?: string,
 ): PaginationData => {
     const currentPage = parseInt(page ?? "0") + 1;
-    const rowsInt = parseInt(rows ?? "10");
+    const rowsInt = parseInt(rows ?? "8");
     const startIndex = (currentPage - 1) * rowsInt;
     const endIndex = currentPage * rowsInt;
 

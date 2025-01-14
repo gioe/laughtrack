@@ -1,5 +1,5 @@
 import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
-import { APIRoutePath } from "@/objects/enum";
+import { APIRoutePath, StyleContextKey } from "@/objects/enum";
 import { CACHE } from "@/util/constants/cacheConstants";
 import { makeRequest } from "@/util/actions/makeRequest";
 import { DynamicRoute } from "@/objects/interface/identifable.interface";
@@ -11,6 +11,7 @@ import SocialMediaColumn from "@/ui/pages/entity/comedian/socialColumn";
 import FooterComponent from "@/ui/pages/home/footer";
 import ClubDetailHeader from "@/ui/pages/entity/club/detailHeader";
 import ClubDataColumn from "@/ui/pages/entity/club/socialColumn";
+import { StyleContextProvider } from "@/contexts/StyleProvider";
 
 export default async function ClubDetailPage(props: {
     searchParams: Promise<URLSearchParams>;
@@ -32,7 +33,9 @@ export default async function ClubDetailPage(props: {
     );
     return (
         <main className="min-h-screen w-full bg-ivory">
-            <Navbar currentUser={session?.user} />
+            <StyleContextProvider initialContext={StyleContextKey.Search}>
+                <Navbar currentUser={session?.user} />
+            </StyleContextProvider>
             <ClubDetailHeader clubString={JSON.stringify(data.entity)} />
             <div className="max-w-6xl mx-auto p-6 flex">
                 <TableWithHeader

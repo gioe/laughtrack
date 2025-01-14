@@ -1,6 +1,7 @@
 "use client";
 
 import { useStyleContext } from "@/contexts/StyleProvider";
+import { twMerge } from "tailwind-merge";
 
 interface HeaderItemProps {
     href?: string;
@@ -11,18 +12,12 @@ interface HeaderItemProps {
 export function HeaderItem({ href, title, highlighted }: HeaderItemProps) {
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
+    const baseClasses = `text-xl font-semibold font-fjalla ${highlighted ? "opacity-100" : "opacity-50 hover:opacity-75"}`;
 
     return (
         <a
             href={href}
-            className={`
-                font-semibold 
-                font-dmSans 
-                transition-opacity 
-                duration-200 
-                ${styleConfig.baseHeaderItemColor}
-                ${highlighted ? "opacity-100" : "opacity-50 hover:opacity-75"}
-            `}
+            className={twMerge(baseClasses, styleConfig.baseHeaderItemColor)}
         >
             {title}
         </a>

@@ -26,15 +26,6 @@ const MENU_ITEMS = {
     ],
 };
 
-const clubMenuItems = [
-    {
-        name: "Search",
-        description: "Search for clubs you're interested in",
-        href: "/club/all",
-        icon: BuildingStorefrontIcon,
-    },
-];
-
 export default function NavigationMenu({ pathname }) {
     return (
         <div className="flex items-center space-x-24">

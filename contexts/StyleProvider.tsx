@@ -3,22 +3,15 @@
 import { StyleContextKey } from "@/objects/enum";
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
-type TailwindTextColor =
-    | "text-white"
-    | "text-black"
-    | "text-cedar"
-    | "text-gray-400"
-    | "text-copper";
-type TailwindBgColor = "bg-copper" | "bg-black";
-
 export interface StyleValues {
-    iconTextColor: TailwindTextColor;
-    logoTextColor: TailwindTextColor;
-    buttonColor: TailwindBgColor;
-    headerItemColorHighlighted: TailwindTextColor;
-    baseHeaderItemColor: TailwindTextColor;
-    baseHeaderItemHoverColor: TailwindTextColor;
-    iconBgColor: TailwindBgColor;
+    iconTextColor: string;
+    logoTextColor: string;
+    buttonColor: string;
+    headerItemColorHighlighted: string;
+    baseHeaderItemColor: string;
+    baseHeaderItemHoverColor: string;
+    iconBgColor: string;
+    searchBorder: string;
 }
 
 export interface StyleContext {
@@ -33,24 +26,27 @@ export const styleContexts: StyleContexts = [
     {
         key: StyleContextKey.Home,
         values: {
-            iconTextColor: "text-copper",
             logoTextColor: "text-white",
             buttonColor: "bg-copper",
+            headerItemColorHighlighted: "text-white",
             baseHeaderItemColor: "text-white",
             baseHeaderItemHoverColor: "text-gray-400",
-            iconBgColor: "bg-copper",
+            iconBgColor: "bg=copper",
+            iconTextColor: "text-white",
+            searchBorder: "",
         },
     },
     {
         key: StyleContextKey.Search,
         values: {
-            iconTextColor: "text-copper",
             logoTextColor: "text-black",
             buttonColor: "bg-black",
             headerItemColorHighlighted: "text-cedar",
             baseHeaderItemColor: "text-cedar",
             baseHeaderItemHoverColor: "text-cedar",
             iconBgColor: "bg-copper",
+            iconTextColor: "text-copper",
+            searchBorder: "border-1",
         },
     },
 ];

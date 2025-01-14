@@ -1,54 +1,36 @@
-import Image from "next/image";
 import { UserInterface } from "@/objects/class/user/user.interface";
 import Navbar from "@/ui/components/navbar";
-import ShowSearchForm from "@/ui/components/searchbar";
+import BackgroundImage from "@/ui/components/background";
+import ContentWrapper from "@/ui/components/wrapper";
+import HeroContent from "@/ui/components/hero";
+import { StyleContextProvider } from "@/contexts/StyleProvider";
+import { StyleContextKey } from "@/objects/enum";
+
+export const getCdnImageUrl = (imagePath: string) => {
+    return new URL(
+        imagePath,
+        `https://${process.env.BUNNYCDN_CDN_HOST}/`,
+    ).toString();
+};
 
 interface HeroComponentProps {
     user: UserInterface | null;
 }
 
 const HeroComponent = ({ user }: HeroComponentProps) => {
-    const imageUrl = new URL(
-        `laughtrack-hero.png`,
-        `https://${process.env.BUNNYCDN_CDN_HOST}/`,
-    );
     return (
         <section className="relative w-full h-[776px]">
             {/* Background Image Container */}
-            <div className="absolute inset-0">
-                {/* Remove max-width constraint for full-width background */}
-                <div className="relative w-full h-full">
-                    {/* Black overlay */}
-                    <div className="absolute inset-0 bg-black/30 z-10" />
-                    {/* Gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-black/50 to-black/70 z-10" />
-                    <Image
-                        src={imageUrl.toString()}
-                        alt="Comedy club background"
-                        width={2880}
-                        height={1772}
-                        className="object-cover object-center w-full h-full"
-                        priority
-                        quality={90}
-                    />
-                </div>
-            </div>
-            {/* Content Container - centered with max-width */}
-            <div className="relative h-full z-20">
-                <Navbar currentUser={user} />
-                <div className="max-w-7xl mx-auto h-full">
-                    {/* Hero Content */}
-                    <div className="flex flex-col items-center justify-center h-full text-center w-full">
-                        <h1 className="text-white text-6xl font-bold mb-4">
-                            Laughtrack
-                        </h1>
-                        <p className="text-gray-200 text-xl mb-12 max-w-3xl">
-                            Have a laugh
-                        </p>
-                        <ShowSearchForm />
-                    </div>
-                </div>
-            </div>
+            <BackgroundImage
+                imageUrl={getCdnImageUrl(`laughtrack-hero.png`)}
+                alt={"Header background image"}
+            />
+            <ContentWrapper>
+                <StyleContextProvider initialContext={StyleContextKey.Home}>
+                    <Navbar currentUser={user} />
+                    <HeroContent title="Laughtrack" subtitle="Have a laugh" />
+                </StyleContextProvider>
+            </ContentWrapper>
         </section>
     );
 };

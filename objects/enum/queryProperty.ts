@@ -21,7 +21,7 @@ export const DEFAULT_ERROR = 'Unknown error'
 
 export const queryPropertyDefaultMap = new MapWithDefault<string, string>([
     [QueryProperty.Page, "0"],
-    [QueryProperty.Size, "10"],
+    [QueryProperty.Size, "8"],
     [QueryProperty.Query, ""],
     [QueryProperty.Direction, "asc"],
     [QueryProperty.Sort, "name"],
