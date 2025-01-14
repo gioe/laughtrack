@@ -43,7 +43,7 @@ const HeroComponent = ({ user }: HeroComponentProps) => {
                             Laughtrack
                         </h1>
                         <p className="text-gray-200 text-xl mb-12 max-w-3xl">
-                            Laugh a little
+                            Have a laugh
                         </p>
                         <ShowSearchForm />
                     </div>

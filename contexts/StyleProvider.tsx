@@ -36,7 +36,6 @@ export const styleContexts: StyleContexts = [
             iconTextColor: "text-copper",
             logoTextColor: "text-white",
             buttonColor: "bg-copper",
-            headerItemColorHighlighted: "text-white",
             baseHeaderItemColor: "text-white",
             baseHeaderItemHoverColor: "text-gray-400",
             iconBgColor: "bg-copper",

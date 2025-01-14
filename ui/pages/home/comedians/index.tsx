@@ -15,7 +15,7 @@ const TrendingComedianGrid = ({ comedians }: TrendingComedianGridProps) => {
             <div className="text-center mb-8">
                 <h1 className="text-3xl font-bold mb-2">Trending</h1>
                 <p className="text-gray-600">
-                    Catch the comedians everyone's talking about – on stage now!
+                    Catch the comedians everyone's talking about.
                 </p>
             </div>
 

@@ -15,11 +15,14 @@ export function HeaderItem({ href, title, highlighted }: HeaderItemProps) {
     return (
         <a
             href={href}
-            className={`transition-colors font-dmSans ${
-                highlighted
-                    ? `${styleConfig.headerItemColorHighlighted}`
-                    : `${styleConfig.baseHeaderItemColor} hover:${styleConfig.baseHeaderItemHoverColor}`
-            }`}
+            className={`
+                font-semibold 
+                font-dmSans 
+                transition-opacity 
+                duration-200 
+                ${styleConfig.baseHeaderItemColor}
+                ${highlighted ? "opacity-100" : "opacity-50 hover:opacity-75"}
+            `}
         >
             {title}
         </a>

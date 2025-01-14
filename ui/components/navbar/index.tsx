@@ -4,7 +4,6 @@ import { useState } from "react";
 import { SideDrawer } from "../sidedrawer";
 import { UserInterface } from "@/objects/class/user/user.interface";
 import { Header } from "../header";
-import { styleContexts } from "../header/styles";
 
 interface NavbarProps {
     currentUser?: UserInterface | null;
