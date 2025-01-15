@@ -76,13 +76,13 @@ export default function ShowSearchBar() {
                     </div>
 
                     {/* Date Selection Calendar */}
-                    <div className="w-5/12 px-6 py-4">
+                    <div className="w-5/12 pl-6 py-4">
                         <CalendarFormComponent name="dates" form={form} />
                     </div>
 
                     {/* Search Button */}
                     <div className="w-2/12 flex justify-center">
-                        <CircleIconButton>
+                        <CircleIconButton type="submit">
                             <Search
                                 className={`w-5 h-5 ${styleConfig.iconTextColor}`}
                             />

@@ -11,13 +11,13 @@ import { FormControl, FormField, FormItem, FormMessage } from "../ui/form";
 import { MapPin } from "lucide-react";
 import { Selectable } from "@/objects/interface";
 import { useStyleContext } from "@/contexts/StyleProvider";
+import { UseFormReturn } from "react-hook-form";
 
 interface DropdownProps {
     name: string;
     placeholder: string;
     items: Selectable[];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    form: any;
+    form: UseFormReturn<any>; // Still using 'any' but now properly typed as form return
 }
 
 export function DropdownFormComponent({
@@ -29,21 +29,25 @@ export function DropdownFormComponent({
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
 
+    const baseClasses = "text-xl rounded-lg";
+    const formControlClasses = `${baseClasses}  lg:h-12 ${styleConfig.iconTextColor} ring-transparent focus:ring-transparent 
+    shadow-none border-transparent focus:outline-none outline-none`;
+
     return (
         <FormField
             control={form.control}
             name={name}
-            render={({ field }) => {
-                return (
-                    <FormItem className="flex flex-col">
-                        <Select onValueChange={field.onChange}>
-                            <FormControl
-                                className={`text-xl rounded-lg lg:w-40 lg:h-12 ${styleConfig.iconTextColor} ring-transparent focus:ring-transparent
-                             border-transparent focus:outline-none outline-none`}
-                            >
-                                <MapPin
-                                    className={`w-5 h-5 ${styleConfig.iconTextColor}`}
-                                />
+            render={({ field }) => (
+                <FormItem className="flex flex-col">
+                    <div className="flex items-center gap-2">
+                        <MapPin
+                            className={`w-5 h-5 ${styleConfig.iconTextColor}`}
+                        />
+                        <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                        >
+                            <FormControl className={formControlClasses}>
                                 <SelectTrigger>
                                     <SelectValue
                                         className="text-left pr-2"
@@ -51,10 +55,7 @@ export function DropdownFormComponent({
                                     />
                                 </SelectTrigger>
                             </FormControl>
-                            <SelectContent
-                                key={name}
-                                className="rounded-lg bg-white"
-                            >
+                            <SelectContent className="rounded-lg bg-white">
                                 {items.map((item) => (
                                     <SelectItem
                                         className="rounded-lg"
@@ -66,10 +67,10 @@ export function DropdownFormComponent({
                                 ))}
                             </SelectContent>
                         </Select>
-                        <FormMessage />
-                    </FormItem>
-                );
-            }}
+                    </div>
+                    <FormMessage />
+                </FormItem>
+            )}
         />
     );
 }
