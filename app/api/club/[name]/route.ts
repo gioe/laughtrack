@@ -107,10 +107,12 @@ async function getClubDetailPageData(params: any) {
         }
     });
 
+    console.log(params.name)
+
     // Get club data
     const clubData = await db.club.findFirst({
         where: {
-            name: params.clubName
+            name: params.name
         },
         select: {
             id: true,
@@ -136,7 +138,7 @@ async function getClubDetailPageData(params: any) {
                 link: show.ticketPurchaseUrl
             },
             club_name: show.club.name,
-            scrapedate: show.lastScrapedDate,
+            club_address: show.club.address,
             lineup: show.lineupItems.map((item) => {
                 return {
                     id: item.comedian.id,
@@ -171,9 +173,9 @@ export async function GET(request: Request, { params }) {
         const filters = await getTags(EntityType.Comedian);
 
         const helper = await QueryHelper.storePageParams(searchParams, filters, slug);
-
         return getClubDetailPageData(helper.asQueryFilters())
             .then((response: any) => {
+                console.log(response.response.data)
                 const data = {
                     entity: new Club(response.response.data),
                     total: response.response.total

@@ -2,7 +2,7 @@
 
 import { Comedian } from "@/objects/class/comedian/Comedian";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
-import ComedianGridCard from "@/ui/components/cards/comedian/card";
+import ComedianGridCard from "../../cards/comedian";
 
 interface ComedianGridProps {
     contentString?: string;
@@ -14,7 +14,7 @@ const ComedianGrid = ({ comedians = [], contentString }: ComedianGridProps) => {
         : comedians;
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-[50px]">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 mx-28 gap-x-20">
             {gridComedians.map((dto) => {
                 const comedian = new Comedian(dto);
                 return (

@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ClubDTO } from "@/objects/class/club/club.interface";
 import { Club } from "@/objects/class/club/Club";
-import PopularClubCard from "@/ui/components/cards/club/card/popular";
+import PopularClubCard from "@/ui/components/cards/club/popular";
 import ScrollButtons from "@/ui/components/scroll";
 
 interface TrendingClubsCarouselProps {

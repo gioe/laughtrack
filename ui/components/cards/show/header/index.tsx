@@ -25,7 +25,7 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
             <div className="relative w-16 h-16 rounded-full overflow-hidden">
                 <Image
                     src={club.cardImageUrl?.toString() ?? ""}
-                    alt="Comedy Cellar"
+                    alt={club.name}
                     fill
                     className="object-cover"
                 />
@@ -37,8 +37,7 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
                     {club.name}
                 </h2>
                 <p className="text-gray-600">
-                    {formatShowDate(show.date.toString())} ·{" "}
-                    {`${show.clubAddress}`}
+                    {formatShowDate(show.date.toString())} · {`${show.address}`}
                 </p>
                 <p className="text-[#CD7F32] font-semibold mt-1">{`$${ticket.price.toString()}`}</p>
             </div>

@@ -1,5 +1,3 @@
-import { SocialData } from "@/objects/class/socialData/SocialData";
-import { Phone, Globe, Clock } from "lucide-react";
 import NavButton from "./button";
 
 interface ClubDataColumnProps {

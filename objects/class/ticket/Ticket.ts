@@ -6,7 +6,7 @@ export class Ticket implements TicketInterface {
 
     // Constructor
     constructor(input: TicketDTO) {
-        this.price = input.price ? input.price.toNumber() : 0;
+        this.price = input.price ? Number(input.price) : 0;
         this.link = input.link;
     }
 }

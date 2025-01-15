@@ -2,20 +2,21 @@
 
 import { ClubDTO } from "@/objects/class/club/club.interface";
 import { Club } from "@/objects/class/club/Club";
-import ClubSearchCard from "../../cards/club/card/search";
+import ClubSearchCard from "../../cards/club/search";
 
 interface ClubGridProps {
     contentString: string;
 }
 const ClubGrid = ({ contentString }: ClubGridProps) => {
     const clubs = JSON.parse(contentString) as ClubDTO[];
+
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-[50px] ml-20 mr-20 mb-10 mt-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 mx-28 gap-x-20">
             {clubs.map((dto) => {
                 const club = new Club(dto);
                 return (
                     <ClubSearchCard
-                        key={dto.name}
+                        key={club.name}
                         entity={JSON.stringify(club)}
                     />
                 );

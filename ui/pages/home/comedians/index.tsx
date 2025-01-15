@@ -1,8 +1,6 @@
 "use server";
 
-import { Comedian } from "@/objects/class/comedian/Comedian";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
-import ComedianCarouselCard from "@/ui/components/cards/comedian/card";
 import ComedianGrid from "@/ui/components/grid/comedian";
 import Link from "next/link";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { MapPin, Edit, Heart } from "lucide-react";
+import { MapPin } from "lucide-react";
 import ImageGrid from "@/ui/components/grid/image";
 import { Club } from "@/objects/class/club/Club";
 

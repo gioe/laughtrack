@@ -7,11 +7,9 @@ import { ClubDetailPageResponse } from "@/app/api/club/[name]/interface";
 import Navbar from "@/ui/components/navbar";
 import { auth } from "@/auth";
 import TableWithHeader from "@/ui/pages/entity/comedian/table";
-import SocialMediaColumn from "@/ui/pages/entity/comedian/socialColumn";
 import FooterComponent from "@/ui/pages/home/footer";
 import ClubDetailHeader from "@/ui/pages/entity/club/detailHeader";
 import ClubDataColumn from "@/ui/pages/entity/club/socialColumn";
-import { StyleContextProvider } from "@/contexts/StyleProvider";
 
 export default async function ClubDetailPage(props: {
     searchParams: Promise<URLSearchParams>;
@@ -31,11 +29,10 @@ export default async function ClubDetailPage(props: {
             revalidate: CACHE.detailPage,
         },
     );
+
     return (
         <main className="min-h-screen w-full bg-ivory">
-            <StyleContextProvider initialContext={StyleContextKey.Search}>
-                <Navbar currentUser={session?.user} />
-            </StyleContextProvider>
+            <Navbar currentUser={session?.user} />
             <ClubDetailHeader clubString={JSON.stringify(data.entity)} />
             <div className="max-w-6xl mx-auto p-6 flex">
                 <TableWithHeader
