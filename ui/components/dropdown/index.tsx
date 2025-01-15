@@ -41,10 +41,10 @@ export function DropdownFormComponent({
                                 className={`text-xl rounded-lg lg:w-40 lg:h-12 ${styleConfig.iconTextColor} ring-transparent focus:ring-transparent
                              border-transparent focus:outline-none outline-none`}
                             >
+                                <MapPin
+                                    className={`w-5 h-5 ${styleConfig.iconTextColor}`}
+                                />
                                 <SelectTrigger>
-                                    <MapPin
-                                        className={`w-5 h-5 ${styleConfig.iconTextColor}`}
-                                    />
                                     <SelectValue
                                         className="text-left pr-2"
                                         placeholder={placeholder}

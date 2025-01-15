@@ -51,6 +51,7 @@ export function CircleIconButton({
         ${styleConfig.iconBgColor}
         rounded-full
         flex
+        mx-2
         items-center
         justify-center
         transition-all

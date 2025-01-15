@@ -6,7 +6,7 @@ import React, { createContext, useContext, useState, ReactNode } from "react";
 export interface StyleValues {
     iconTextColor: string;
     logoTextColor: string;
-    buttonColor: string;
+    buttonBgColor: string;
     headerItemColorHighlighted: string;
     baseHeaderItemColor: string;
     baseHeaderItemHoverColor: string;
@@ -27,11 +27,11 @@ export const styleContexts: StyleContexts = [
         key: StyleContextKey.Home,
         values: {
             logoTextColor: "text-white",
-            buttonColor: "bg-copper",
+            buttonBgColor: "bg-copper",
             headerItemColorHighlighted: "text-white",
             baseHeaderItemColor: "text-white",
             baseHeaderItemHoverColor: "text-gray-400",
-            iconBgColor: "bg=copper",
+            iconBgColor: "bg-copper",
             iconTextColor: "text-white",
             searchBorder: "",
         },
@@ -40,7 +40,7 @@ export const styleContexts: StyleContexts = [
         key: StyleContextKey.Search,
         values: {
             logoTextColor: "text-black",
-            buttonColor: "bg-black",
+            buttonBgColor: "bg-black",
             headerItemColorHighlighted: "text-cedar",
             baseHeaderItemColor: "text-cedar",
             baseHeaderItemHoverColor: "text-cedar",

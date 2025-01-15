@@ -34,7 +34,7 @@ export function FullRoundedButton({
                     handleClick();
                 }
             }}
-            className={twMerge(baseClasses, styleConfig.buttonColor)}
+            className={twMerge(baseClasses, styleConfig.buttonBgColor)}
         >
             {label}
         </button>

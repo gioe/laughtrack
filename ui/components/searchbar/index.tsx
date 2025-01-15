@@ -22,9 +22,9 @@ import { Search } from "lucide-react";
 import { useStyleContext } from "@/contexts/StyleProvider";
 
 export default function ShowSearchBar() {
+    const cityList = useCityContext();
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
-    const cityList = useCityContext();
 
     const paramsHelper = new SearchParamsHelper(useSearchParams());
     const navigator = new Navigator(usePathname(), useRouter());
@@ -63,9 +63,10 @@ export default function ShowSearchBar() {
         <Form {...form}>
             <form onSubmit={form.handleSubmit(submitForm)}>
                 <div
-                    className={`flex items-center w-full max-w-3xl bg-ivory/20 backdrop-blur rounded-full ${styleConfig.searchBorder}`}
+                    className={`flex items-center justify-between w-full max-w-3xl bg-ivory/20 backdrop-blur rounded-full ${styleConfig.searchBorder}`}
                 >
-                    <div className="flex-1 flex items-center px-2 border-r border-gray-600/50 m-4">
+                    {/* City Selection Dropdown */}
+                    <div className="w-5/12 px-6 py-4 border-r border-gray-600/50">
                         <DropdownFormComponent
                             name="city"
                             placeholder="City"
@@ -74,14 +75,19 @@ export default function ShowSearchBar() {
                         />
                     </div>
 
-                    <div className="flex-1 flex items-center px-2">
+                    {/* Date Selection Calendar */}
+                    <div className="w-5/12 px-6 py-4">
                         <CalendarFormComponent name="dates" form={form} />
                     </div>
-                    <CircleIconButton>
-                        <Search
-                            className={`w-5 h-5 ${styleConfig.iconTextColor}`}
-                        />
-                    </CircleIconButton>
+
+                    {/* Search Button */}
+                    <div className="w-2/12 flex justify-center">
+                        <CircleIconButton>
+                            <Search
+                                className={`w-5 h-5 ${styleConfig.iconTextColor}`}
+                            />
+                        </CircleIconButton>
+                    </div>
                 </div>
             </form>
         </Form>
