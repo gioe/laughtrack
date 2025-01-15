@@ -25,7 +25,6 @@ export class Club implements ClubInterface {
     // Media-related properties
     readonly bannerImageUrl: URL | null;
     readonly cardImageUrl: URL | null;
-    readonly fallbackImageUrl: URL;
 
     // Complex objects
     readonly socialData?: SocialData;
@@ -47,8 +46,7 @@ export class Club implements ClubInterface {
             throw new Error('NEXT_PUBLIC_BUNNYCDN_CDN_HOST environment variable is not set');
         }
 
-        this.fallbackImageUrl = new URL(`logo.png`, `https://${cdnHost}/`);
-        this.cardImageUrl = new URL(`/clubs/${input.name}.png`, `https://${cdnHost}/`);
+        this.cardImageUrl = new URL(`/clubs/${input.name}.png`, `https://${cdnHost}/`) ?? new URL(`logo.png`, `https://${cdnHost}/`);
         this.bannerImageUrl = null; // Add logic if needed
 
         // Initialize arrays and complex objects
@@ -61,6 +59,7 @@ export class Club implements ClubInterface {
         this.showCount = input.show_count;
         this.activeComedianCount = input.active_comedian_count
     }
+    fallbackImageUrl: URL;
 
     private initializeContainedEntities(dates?: ShowDTO[]): Show[] {
         return dates?.map(date => new Show(date)) ?? [];

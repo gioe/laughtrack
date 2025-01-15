@@ -10,10 +10,10 @@ const FooterComponent = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 mb-12">
                     {/* Brand and description */}
                     <div className="lg:col-span-8">
-                        <h2 className="text-2xl font-bold text-[#2D1810] mb-4">
+                        <h2 className="text-[30px] font-bold text-[#2D1810] mb-4 font-chivo">
                             Laughtrack
                         </h2>
-                        <p className="text-gray-600 max-w-2xl">
+                        <p className="text-[17px] text-gray-600 max-w-2xl font-dmSans">
                             Laughtrack is the easiest way to explore and enjoy
                             comedy in New York City! Whether you're searching
                             for a show tonight, following your favorite
@@ -26,7 +26,7 @@ const FooterComponent = () => {
                 {/* Bottom bar */}
                 <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-gray-200">
                     {/* Copyright */}
-                    <div className="text-gray-600 mb-4 md:mb-0">
+                    <div className="text-gray-600 mb-4 md:mb-0 text-[17px]">
                         Copyright © 2025 Laughtrack
                     </div>
 
@@ -36,20 +36,20 @@ const FooterComponent = () => {
                         <nav className="flex space-x-6">
                             <a
                                 href="/about"
-                                className="text-gray-600 hover:text-[#CD7F32] transition-colors"
+                                className="text-gray-600 hover:text-[#CD7F32] transition-colors text-[17px] font-dmSans font-semibold"
                             >
                                 About
                             </a>
                             <a
                                 href="/contact"
-                                className="text-gray-600 hover:text-[#CD7F32] transition-colors"
+                                className="text-gray-600 hover:text-[#CD7F32] transition-colors text-[17px] font-dmSans font-semibold"
                             >
                                 Contact
                             </a>
                         </nav>
 
                         {/* Social icons */}
-                        <div className="flex space-x-4">
+                        {/* <div className="flex space-x-4">
                             <a
                                 href="https://instagram.com/laughtrack"
                                 className="text-gray-600 hover:text-[#CD7F32] transition-colors"
@@ -64,7 +64,7 @@ const FooterComponent = () => {
                             >
                                 <Linkedin size={20} />
                             </a>
-                        </div>
+                        </div> */}
                     </div>
                 </div>
             </div>

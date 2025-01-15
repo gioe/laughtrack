@@ -93,6 +93,7 @@ const fonts = {
     dmSans: "var(--font-dmSans)",
     chivo: "var(--font-chivo)",
     inter: "var(--font-inter)",
+    outfit: "var(--font-outfit)",
 };
 
 const config: Config = {

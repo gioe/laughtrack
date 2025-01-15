@@ -2,6 +2,7 @@
 
 import { Club } from "@/objects/class/club/Club";
 import ClubMarquee from "../../../image/club";
+import Image from "next/image";
 
 interface ClubCarouselCardProps {
     entity: string;
@@ -11,19 +12,28 @@ const ClubCarouselCard: React.FC<ClubCarouselCardProps> = ({ entity }) => {
     const club = JSON.parse(entity) as Club;
 
     return (
-        <div className="min-w-[300px] flex-shrink-0 snap-start">
-            <div className="bg-black rounded-lg overflow-hidden aspect-square mb-4 relative">
-                <ClubMarquee priority club={club} tooltip={false} />
+        <div className="w-[218px]">
+            {/* Image Container */}
+            <div className="relative w-[218px] h-[218px] rounded-2xl overflow-hidden mb-4">
+                <Image
+                    src={club.cardImageUrl?.toString() ?? ""}
+                    alt={club.name}
+                    width={218}
+                    height={218}
+                    className="object-cover"
+                    priority
+                />
             </div>
-            <h3 className="text-xl font-bold text-[#2D1810]">
-                {club.name}
-                {club.address && (
-                    <span className="block text-lg font-normal">
-                        {club.address}
-                    </span>
-                )}
-            </h3>
-            <p className="text-gray-600 mt-1">{`${club.activeComedianCount} active comedians`}</p>
+
+            {/* Text Content */}
+            <div className="space-y-1">
+                <h2 className="text-[21px] font-bold leading-tight font-outfit">
+                    {club.name}
+                </h2>
+                <p className="text-[16px] text-gray-600 font-dmSans">
+                    {club.activeComedianCount} active comedians
+                </p>
+            </div>
         </div>
     );
 };

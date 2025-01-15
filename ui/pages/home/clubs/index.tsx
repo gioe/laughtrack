@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { ClubDTO } from "@/objects/class/club/club.interface";
 import { Club } from "@/objects/class/club/Club";
 import ClubCarouselCard from "@/ui/components/grid/club/card";
+import ScrollButtons from "@/ui/components/scroll";
 
 interface TrendingClubsCarouselProps {
     clubs: ClubDTO[];
@@ -36,40 +37,18 @@ const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
         }
     };
 
-    const NavButton = ({ direction, onClick }) => (
-        <button
-            onClick={onClick}
-            className="bg-[#CD7F32] rounded-full p-2 text-white hover:opacity-90 transition-opacity"
-            aria-label={`Scroll ${direction}`}
-        >
-            {direction === "left" ? (
-                <ChevronLeft size={24} />
-            ) : (
-                <ChevronRight size={24} />
-            )}
-        </button>
-    );
-
     return (
-        <div className="max-w-full mx-auto px-8 py-12 bg-coconut-cream">
+        <div className="max-w-full mx-auto px-8 py-12 bg-coconut-cream m-12">
             <div className="flex justify-between items-center mb-4">
                 <div>
                     <h2 className="text-3xl font-bold text-[#2D1810] mb-2">
                         Popular Clubs
                     </h2>
-                    <p className="text-gray-600">
-                        Stages where comedy comes alive - discover the best
-                        spots in town!
-                    </p>
                 </div>
                 <div className="flex gap-2">
-                    <NavButton
-                        direction="left"
-                        onClick={() => scroll("left")}
-                    />
-                    <NavButton
-                        direction="right"
-                        onClick={() => scroll("right")}
+                    <ScrollButtons
+                        leftOnClick={() => scroll("left")}
+                        rightOnClick={() => scroll("right")}
                     />
                 </div>
             </div>

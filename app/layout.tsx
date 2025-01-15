@@ -8,6 +8,7 @@ import {
     Fjalla_One,
     DM_Sans,
     Chivo,
+    Outfit,
 } from "next/font/google";
 import type { Metadata } from "next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -16,6 +17,12 @@ import { getCities } from "@/lib/data/cities/get";
 import ToasterProvider from "@/ui/components/providers/toaster";
 import LoginModal from "@/ui/components/modals/login";
 import RegisterModal from "@/ui/components/modals/register";
+
+const outfit = Outfit({
+    weight: "400",
+    subsets: ["latin"],
+    variable: "--font-outfit",
+});
 
 const chivo = Chivo({
     weight: "400",
@@ -68,7 +75,7 @@ export default async function RootLayout({
         <SessionProvider>
             <html
                 lang="en"
-                className={`${bebas.variable} ${oswald.variable} ${inter.variable} ${fjalla.variable} ${dmSams.variable}`}
+                className={`${bebas.variable} ${oswald.variable} ${inter.variable} ${fjalla.variable} ${chivo.variable} ${dmSams.variable} ${outfit.variable}`}
             >
                 <body>
                     <NextUIProvider>

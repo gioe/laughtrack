@@ -21,7 +21,7 @@ const TrendingComedianGrid = ({ comedians }: TrendingComedianGridProps) => {
 
             <ComedianGrid comedians={comedians} />
 
-            <div className="text-center mt-8">
+            <div className="text-center pt-8 mt-8">
                 <Link
                     href={`/comedian/all`}
                     className="bg-[#2D1810] text-white px-6 py-3 rounded-full hover:opacity-90"

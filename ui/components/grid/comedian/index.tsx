@@ -2,8 +2,7 @@
 
 import { Comedian } from "@/objects/class/comedian/Comedian";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
-import ComedianCarouselCard from "@/ui/components/grid/comedian/card";
-import Link from "next/link";
+import ComedianGridCard from "@/ui/components/grid/comedian/card";
 
 interface ComedianGridProps {
     contentString?: string;
@@ -15,11 +14,11 @@ const ComedianGrid = ({ comedians = [], contentString }: ComedianGridProps) => {
         : comedians;
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 lg:grid-rows-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-[50px]">
             {gridComedians.map((dto) => {
                 const comedian = new Comedian(dto);
                 return (
-                    <ComedianCarouselCard
+                    <ComedianGridCard
                         key={dto.name}
                         entity={JSON.stringify(comedian)}
                     />

@@ -26,7 +26,6 @@ export class Show implements ShowInterface {
     description?: string;
     bannerImageUrl: URL | null;
     cardImageUrl: URL;
-    fallbackImageUrl = new URL(`logo.png`, `https://${process.env.BUNNYCDN_CDN_HOST}/`);
 
     // Constructor
     constructor(input: ShowDTO) {
@@ -44,6 +43,7 @@ export class Show implements ShowInterface {
         this.description = input.description
         this.clubAddress = input.club_address
     }
+    fallbackImageUrl: URL;
 
 
     overrideDate = (date: string): void => {

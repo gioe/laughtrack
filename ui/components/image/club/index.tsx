@@ -36,12 +36,14 @@ const ClubMarquee = ({
     type = "rounded",
     size = "m",
 }: ClubMarqueeProps) => {
-    const [src, setSrc] = useState(
-        club.cardImageUrl ? club.cardImageUrl : club.fallbackImageUrl,
-    );
+    const [src, setSrc] = useState(club.cardImageUrl);
 
     const handleImageError = () => {
-        setSrc(club.fallbackImageUrl);
+        const defaultImageUrl = new URL(
+            `logo.png`,
+            `https://${process.env.BUNNYCDN_CDN_HOST}/`,
+        );
+        setSrc(defaultImageUrl);
     };
 
     const ImageComponent = () => (
@@ -52,8 +54,9 @@ const ClubMarquee = ({
             >
                 <div className="bg-black rounded-lg overflow-hidden aspect-square mb-4 relative">
                     <Image
-                        src={src.toString()}
+                        src={src?.toString() ?? ""}
                         alt={club.name}
+                        onError={handleImageError}
                         fill
                         className="object-cover"
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

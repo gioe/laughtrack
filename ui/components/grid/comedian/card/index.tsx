@@ -1,43 +1,44 @@
 "use client";
 
 import SocialMediaBar from "../../../social/bar";
-import ComedianHeadshot from "../../../image/comedian";
 import { useSession } from "next-auth/react";
 import { useState, useCallback } from "react";
 import { HeartIcon as OutlineHeart } from "@heroicons/react/24/outline";
 import { HeartIcon as SolidHeart } from "@heroicons/react/24/solid";
 import { useRegisterModal } from "@/hooks/modalState";
 import { Comedian } from "@/objects/class/comedian/Comedian";
+import { Heart, Instagram } from "lucide-react";
+import Image from "next/image";
+import { makeRequest } from "@/util/actions/makeRequest";
+import { APIRoutePath, RestAPIAction } from "@/objects/enum";
 
-interface ComedianCarouselCardProps {
+interface ComedianGridCardProps {
     entity: string;
 }
 
-const ComedianCarouselCard: React.FC<ComedianCarouselCardProps> = ({
-    entity,
-}) => {
+const ComedianGridCard: React.FC<ComedianGridCardProps> = ({ entity }) => {
     const registerModal = useRegisterModal();
     const session = useSession();
-    const parsedEntity = JSON.parse(entity) as Comedian;
+    const comedian = JSON.parse(entity) as Comedian;
     const [, /*isOpen */ setIsOpen] = useState(false);
     const [isFavorite, setIsFavorite] = useState(
-        parsedEntity.isFavorite ? true : false,
+        comedian.isFavorite ? true : false,
     );
 
-    const handleFavoriteClick = () => {
-        // if (session.status == "authenticated") {
-        //     await makeRequest(APIRoutePath.ComedianFavorite, {
-        //         method: RestAPIAction.POST,
-        //         body: {
-        //             comedianId: parsedEntity.uuid,
-        //             isFavorite,
-        //         },
-        //     }).then((data: { state: boolean }) => {
-        //         setIsFavorite(data.state);
-        //     });
-        // } else {
-        //     requireLogin();
-        // }
+    const handleFavoriteClick = async () => {
+        if (session.status == "authenticated") {
+            await makeRequest(APIRoutePath.ComedianFavorite, {
+                method: RestAPIAction.POST,
+                body: {
+                    comedianId: comedian.uuid,
+                    isFavorite,
+                },
+            }).then((data: { state: boolean }) => {
+                setIsFavorite(data.state);
+            });
+        } else {
+            requireLogin();
+        }
     };
 
     const requireLogin = useCallback(() => {
@@ -46,18 +47,16 @@ const ComedianCarouselCard: React.FC<ComedianCarouselCardProps> = ({
     }, [registerModal]);
 
     return (
-        <div
-            className="flex flex-col 
-        items-center p-5 gap-8 bg-ivory rounded-3xl
-        hover:scale-105 transform transition 
-        duration-300 ease-out hover:cursor-pointer"
-        >
-            <div className="relative inline-block">
-                <ComedianHeadshot
-                    shouldAnimate={false}
+        <div className="w-[280px] flex flex-col items-center text-center">
+            {/* Image Container with Heart */}
+            <div className="relative w-[280px] h-[280px] rounded-2xl overflow-hidden mb-6">
+                <Image
+                    src={comedian.cardImageUrl.toString()}
+                    alt={`${comedian.name}`}
+                    fill
+                    className="object-cover"
+                    sizes="280px"
                     priority
-                    comedian={parsedEntity}
-                    tooltip={false}
                 />
                 <button
                     onClick={handleFavoriteClick}
@@ -66,26 +65,27 @@ const ComedianCarouselCard: React.FC<ComedianCarouselCardProps> = ({
                     {isFavorite ? (
                         <SolidHeart className="w-6 h-6 text-red-500" />
                     ) : (
-                        <OutlineHeart className="w-6 h-6 text-ivory" />
+                        <OutlineHeart className="w-6 h-6 text-red-500" />
                     )}
                 </button>
             </div>
-            <div className="flex flex-col gap-1 w-full">
-                <h1 className="font-fjalla text-pine-tree w-full text-center text-2xl">
-                    {parsedEntity.name}
-                </h1>
 
-                {parsedEntity.showCount && (
-                    <h1 className="text-pine-tree font-fjalla w-full text-center text-s">{`${parsedEntity.showCount ?? 0} upcoming shows`}</h1>
-                )}
-            </div>
+            {/* Artist Name */}
+            <h2 className="text-[22px] font-bold mb-2 font-outfit">
+                {comedian.name}
+            </h2>
+
+            {/* Shows Count */}
+            <p className="text-[18px] text-gray-600 mb-6">{`${comedian.showCount ?? 0} upcoming shows`}</p>
+
+            {/* Social Icons */}
             <div className="w-full">
-                {parsedEntity.socialData && (
-                    <SocialMediaBar data={parsedEntity.socialData} />
+                {comedian.socialData && (
+                    <SocialMediaBar data={comedian.socialData} />
                 )}
             </div>
         </div>
     );
 };
 
-export default ComedianCarouselCard;
+export default ComedianGridCard;
