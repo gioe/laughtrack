@@ -2,7 +2,7 @@
 
 import { Comedian } from "@/objects/class/comedian/Comedian";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
-import ComedianGridCard from "@/ui/components/grid/comedian/card";
+import ComedianGridCard from "@/ui/components/cards/comedian/card";
 
 interface ComedianGridProps {
     contentString?: string;

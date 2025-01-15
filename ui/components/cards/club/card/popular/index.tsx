@@ -11,7 +11,7 @@ const PopularClubCard: React.FC<PopularClubCardProps> = ({ entity }) => {
     const club = JSON.parse(entity) as Club;
 
     return (
-        <div className="w-[218px]">
+        <div className="w-[218px] transition-transform duration-300 hover:scale-105">
             {/* Image Container */}
             <div className="relative w-[218px] h-[218px] rounded-2xl overflow-hidden mb-4">
                 <Image

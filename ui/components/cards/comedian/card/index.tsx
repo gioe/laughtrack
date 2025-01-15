@@ -47,7 +47,7 @@ const ComedianGridCard: React.FC<ComedianGridCardProps> = ({ entity }) => {
     }, [registerModal]);
 
     return (
-        <div className="w-[280px] flex flex-col items-center text-center">
+        <div className="w-[280px] flex flex-col items-center text-center transition-transform duration-300 hover:scale-105">
             {/* Image Container with Heart */}
             <div className="relative w-[280px] h-[280px] rounded-2xl overflow-hidden mb-6">
                 <Image

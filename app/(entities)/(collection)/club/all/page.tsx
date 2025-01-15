@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import TableFilterBar from "@/ui/components/filter";
-import ClubCarouselCard from "@/ui/components/grid/club/card/popular";
+import ClubCarouselCard from "@/ui/components/cards/club/card/popular";
 import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
 import { APIRoutePath, StyleContextKey } from "@/objects/enum";
 import { ClubSearchResponse } from "@/app/api/club/search/interface";
