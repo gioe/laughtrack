@@ -1,14 +1,13 @@
 "use client";
 
 import { Club } from "@/objects/class/club/Club";
-import ClubMarquee from "../../../image/club";
 import Image from "next/image";
 
-interface ClubCarouselCardProps {
+interface PopularClubCardProps {
     entity: string;
 }
 
-const ClubCarouselCard: React.FC<ClubCarouselCardProps> = ({ entity }) => {
+const PopularClubCard: React.FC<PopularClubCardProps> = ({ entity }) => {
     const club = JSON.parse(entity) as Club;
 
     return (
@@ -38,4 +37,4 @@ const ClubCarouselCard: React.FC<ClubCarouselCardProps> = ({ entity }) => {
     );
 };
 
-export default ClubCarouselCard;
+export default PopularClubCard;
