@@ -1,168 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { getTags } from "@/lib/data/tags/get";
-import { db } from "@/lib/db";
 import { Club } from "@/objects/class/club/Club";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { EntityType } from "@/objects/enum";
-import { headers } from "next/headers";
-import { ClubDetailPageData } from "./interface";
+import { ClubDetailDTO, ClubDetailPageData } from "./interface";
 import { NextResponse } from "next/server";
+import { getClubDetailPageData } from "@/lib/data/club/detail/get";
 
-async function getClubDetailPageData(params: any) {
-    // Get filtered shows with basic info
-    const filteredShows = await db.show.findMany({
-        where: {
-            club: {
-                name: params.name
-            },
-            date: {
-                gt: new Date()
-            },
-            ...(!params.tagsEmpty ? {
-                taggedShows: {
-                    some: {
-                        tag: {
-                            value: {
-                                in: params.tags
-                            }
-                        }
-                    }
-                }
-            } : {})
-        },
-        select: {
-            id: true,
-            name: true,
-            lastScrapedDate: true,
-            date: true,
-            popularity: true,
-            ticketPrice: true,
-            ticketPurchaseUrl: true,
-            club: {
-                select: {
-                    id: true,
-                    name: true,
-                    website: true,
-                    city: true,
-                    address: true,
-                    zipCode: true
-                }
-            },
-            lineupItems: {
-                select: {
-                    comedian: {
-                        select: {
-                            id: true,
-                            uuid: true,
-                            name: true,
-                            taggedComedians: {
-                                where: {
-                                    tag: {
-                                        value: 'alias'
-                                    }
-                                },
-                                take: 1
-                            },
-                            ...(params.userId && {
-                                favoriteComedians: {
-                                    where: {
-                                        userId: Number(params.userId)
-                                    },
-                                    take: 1
-                                }
-                            })
-                        }
-                    }
-                }
-            }
-        },
-        orderBy: {
-            [params.sortBy]: params.direction.toLowerCase()
-        },
-        take: Number(params.size),
-        skip: params.offset
-    });
-
-    // Get total count
-    const totalCount = await db.show.count({
-        where: {
-            club: {
-                name: params.name
-            },
-            date: {
-                gt: new Date()
-            },
-            ...(!params.tagsEmpty ? {
-                taggedShows: {
-                    some: {
-                        tag: {
-                            value: {
-                                in: params.tags
-                            }
-                        }
-                    }
-                }
-            } : {})
-        }
-    });
-
-    console.log(params.name)
-
-    // Get club data
-    const clubData = await db.club.findFirst({
-        where: {
-            name: params.name
-        },
-        select: {
-            id: true,
-            name: true,
-            website: true,
-            city: true,
-            address: true,
-            zipCode: true
-        }
-    });
-
-    if (!clubData) {
-        throw new Error(`Club with name ${params.clubName} not found`);
-    }
-    // Format the shows data
-    const formattedShows = filteredShows.map((show) => {
-        return {
-            id: show.id,
-            date: show.date,
-            name: show.name,
-            ticket: {
-                price: show.ticketPrice,
-                link: show.ticketPurchaseUrl
-            },
-            club_name: show.club.name,
-            club_address: show.club.address,
-            lineup: show.lineupItems.map((item) => {
-                return {
-                    id: item.comedian.id,
-                    name: item.comedian.name
-                }
-            })
-        }
-    })
-
-    return {
-        response: {
-            data: {
-                name: clubData.name,
-                id: clubData.id,
-                website: clubData.website,
-                city: clubData.city,
-                address: clubData.address,
-                zipCode: clubData.zipCode,
-                dates: formattedShows
-            },
-            total: totalCount
-        }
-    };
-}
 
 export async function GET(request: Request, { params }) {
     try {
@@ -173,9 +18,10 @@ export async function GET(request: Request, { params }) {
         const filters = await getTags(EntityType.Comedian);
 
         const helper = await QueryHelper.storePageParams(searchParams, filters, slug);
+
         return getClubDetailPageData(helper.asQueryFilters())
-            .then((response: any) => {
-                console.log(response.response.data)
+            .then((response: ClubDetailDTO) => {
+                console.log(response)
                 const data = {
                     entity: new Club(response.response.data),
                     total: response.response.total

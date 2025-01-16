@@ -5,7 +5,7 @@ import { useLoginModal, useRegisterModal } from "@/hooks/modalState";
 import { UserInterface } from "@/objects/class/user/user.interface";
 import Logo from "../logo";
 import NavigationMenu from "../navbar/menu";
-import AuthButtons from "../auth";
+import AuthButtons from "../auth/header";
 
 interface HeaderProps {
     currentUser?: UserInterface | null;

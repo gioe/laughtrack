@@ -8,7 +8,6 @@ interface ShowTableProps {
 
 const ShowTable = ({ shows }: ShowTableProps) => {
     const parsedShows = JSON.parse(shows) as ShowDTO[];
-
     return (
         <section className="grid grid-cols-1 gap-y-10 m-8">
             {parsedShows.length > 0 ? (

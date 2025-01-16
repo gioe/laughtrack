@@ -1,5 +1,5 @@
-import { FullRoundedButton } from "../button/rounded/full";
-import { HeaderItem } from "../navbar/headerItem";
+import { FullRoundedButton } from "../../button/rounded/full";
+import { HeaderItem } from "../../navbar/headerItem";
 import { signOut } from "next-auth/react";
 
 export default function AuthButtons({

@@ -26,7 +26,6 @@ export default async function ShowSearchPage(props: any) {
             searchParams: paramsWrapper.asUrlSearchParams(),
         },
     );
-
     return (
         <main className="min-h-screen w-full bg-ivory">
             <StyleContextProvider initialContext={StyleContextKey.Search}>

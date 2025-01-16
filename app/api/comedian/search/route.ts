@@ -1,101 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { getTags } from "@/lib/data/tags/get";
-import { db } from "@/lib/db";
 import { Comedian } from "@/objects/class/comedian/Comedian";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { EntityType } from "@/objects/enum";
 import { NextResponse } from "next/server";
 import { ComedianSearchData, ComedianSearchDTO } from "./interface";
-
-
-async function getFilteredComedians(params: any): Promise<ComedianSearchDTO> {
-    // First get total count
-    const totalCount = await db.comedian.count({
-        where: {
-            name: {
-                contains: params.query,
-                mode: 'insensitive'
-            },
-            ...(!params.tagsEmpty ? {
-                taggedComedians: {
-                    some: {
-                        tag: {
-                            value: {
-                                in: params.tags
-                            }
-                        }
-                    }
-                }
-            } : {})
-        }
-    })
-
-    // Then get filtered data
-    const comedians = await db.comedian.findMany({
-        select: {
-            id: true,
-            name: true,
-            linktree: true,
-            instagramAccount: true,
-            instagramFollowers: true,
-            tiktokAccount: true,
-            tiktokFollowers: true,
-            youtubeAccount: true,
-            youtubeFollowers: true,
-            website: true,
-            popularity: true
-        },
-        where: {
-            name: {
-                contains: params.query,
-                mode: 'insensitive'
-            },
-            ...(!params.tagsEmpty ? {
-                taggedComedians: {
-                    some: {
-                        tag: {
-                            value: {
-                                in: params.tags
-                            }
-                        }
-                    }
-                }
-            } : {})
-        },
-        orderBy: {
-            [params.sortBy]: params.direction
-        },
-        take: Number(params.size),
-        skip: params.offset
-    })
-
-    // Transform the data to match the original SQL output structure
-    const formattedData = comedians.map(comedian => ({
-        id: comedian.id,
-        name: comedian.name,
-        social_data: {
-            id: comedian.id,
-            linktree: comedian.linktree,
-            instagram_account: comedian.instagramAccount,
-            instagram_followers: comedian.instagramFollowers,
-            tiktok_account: comedian.tiktokAccount,
-            tiktok_followers: comedian.tiktokFollowers,
-            youtube_account: comedian.youtubeAccount,
-            youtube_followers: comedian.youtubeFollowers,
-            website: comedian.website,
-            popularity: comedian.popularity
-        }
-    }))
-
-    return {
-        response: {
-            data: formattedData,
-            total: totalCount
-        }
-    }
-}
+import { getSearchedComedians } from "@/lib/data/comedian/search/get";
 
 export async function GET(request: Request) {
 
@@ -103,7 +15,7 @@ export async function GET(request: Request) {
     const filters = await getTags(EntityType.Comedian);
     const helper = await QueryHelper.storePageParams(searchParams, filters);
 
-    return getFilteredComedians(helper.asQueryFilters())
+    return getSearchedComedians(helper.asQueryFilters())
         .then((response: ComedianSearchDTO) => {
             const data = {
                 entities: response.response.data.map((result: ComedianDTO) => new Comedian(result)),

@@ -26,6 +26,7 @@ const brandColors = {
     "sandy-brown": "#F6916C",
     kelp: "#474838",
     ivory: "#FFFFF0",
+    paarl: "#A96030",
     cedar: "#361E14",
     "coconut-cream": "#FAF6E0",
     locust: "#acae89",

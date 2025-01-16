@@ -12,8 +12,8 @@ interface ShowCardProps {
 }
 
 const ShowCard: React.FC<ShowCardProps> = ({ show }: ShowCardProps) => {
-    const parsedShow = new Show(JSON.parse(show) as ShowDTO);
-    console.log(parsedShow);
+    const showDto = JSON.parse(show) as ShowDTO;
+    const parsedShow = new Show(showDto);
     return (
         <div className="p-6 bg-[#FDF8EF] overflow-hidden transition-transform duration-300 hover:scale-105 hover:cursor-pointer rounded-xl">
             <div className="flex items-center justify-between mb-8">
