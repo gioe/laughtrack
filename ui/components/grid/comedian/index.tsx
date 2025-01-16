@@ -14,7 +14,7 @@ const ComedianGrid = ({ comedians = [], contentString }: ComedianGridProps) => {
         : comedians;
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 mx-28 gap-x-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-20 gap-y-20">
             {gridComedians.map((dto) => {
                 const comedian = new Comedian(dto);
                 return (

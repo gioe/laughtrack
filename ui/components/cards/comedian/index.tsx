@@ -51,7 +51,6 @@ const ComedianGridCard: React.FC<ComedianGridCardProps> = ({ entity }) => {
 
     return (
         <div className="w-full rounded-xl items-center text-center overflow-hidden transition-transform duration-300 hover:scale-105 hover:cursor-pointer">
-            {/* Image Container with Heart */}
             <div className="relative rounded-xl aspect-square">
                 <Link
                     href={`/comedian/${comedian.name}`}

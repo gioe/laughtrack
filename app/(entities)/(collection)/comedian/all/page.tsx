@@ -38,7 +38,9 @@ export default async function ComedianSearchPage(props: any) {
                 subTitle={`${data.total} results`}
             />
             <FilterBar />
-            <ComedianGrid contentString={JSON.stringify(data.entities)} />
+            <div className="mx-28 gap-x-20">
+                <ComedianGrid contentString={JSON.stringify(data.entities)} />
+            </div>
             <FooterComponent />
         </main>
     );
