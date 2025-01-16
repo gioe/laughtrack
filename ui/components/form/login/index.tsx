@@ -1,136 +1,101 @@
-import React, { useState } from "react";
-import PasswordInput from "../../input/password";
-import ZipCodeInput from "../../input/zipcode/input";
-import FormSubmissionButton from "../../button/form";
-import EmailInput from "../../input/email";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 
-const SignupForm = ({ onSubmit, SocialAuthButtons }) => {
-    const [formData, setFormData] = useState({
-        email: "",
-        password: "",
-        zipCode: "",
+import { useState } from "react";
+import { FormProvider, useForm } from "react-hook-form";
+import { z } from "zod";
+import { loginSchema } from "./schema";
+import { zodResolver } from "@hookform/resolvers/zod";
+import toast from "react-hot-toast";
+import { signIn } from "next-auth/react";
+import Heading from "../../modals/heading";
+import { FormInput } from "../../input";
+import { FullRoundedButton } from "../../button/rounded/full";
+
+interface LoginFormProps {
+    onSubmit: () => void;
+    onClose: () => void;
+}
+export default function LoginForm({ onSubmit, onClose }: LoginFormProps) {
+    const [isLoading, setIsLoading] = useState(false);
+
+    const form = useForm<z.infer<typeof loginSchema>>({
+        resolver: zodResolver(loginSchema),
+        defaultValues: {
+            email: "",
+            password: "",
+        },
     });
-    const [errors, setErrors] = useState({});
-    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Basic validation functions (these would be replaced by zod schemas)
-    const validateEmail = (email) => {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
-    };
+    const submitForm = (data: z.infer<typeof loginSchema>) => {
+        setIsLoading(true);
 
-    const validatePassword = (password) => {
-        return password.length >= 8;
-    };
-
-    const validateZipCode = (zipCode) => {
-        const zipRegex = /^\d{5}$/;
-        return zipRegex.test(zipCode);
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-
-        // Validate all fields
-        const newErrors = {};
-        if (!validateEmail(formData.email)) {
-            newErrors.email = "Please enter a valid email address";
-        }
-        if (!validatePassword(formData.password)) {
-            newErrors.password = "Password must be at least 8 characters";
-        }
-        if (!validateZipCode(formData.zipCode)) {
-            newErrors.zipCode = "Please enter a valid 5-digit zip code";
-        }
-
-        setErrors(newErrors);
-
-        // If no errors, submit the form
-        if (Object.keys(newErrors).length === 0) {
-            setIsSubmitting(true);
-            try {
-                await onSubmit(formData);
-            } catch (error) {
-                console.error("Form submission error:", error);
-            } finally {
-                setIsSubmitting(false);
-            }
-        }
-    };
-
-    const handleChange = (field) => (e) => {
-        setFormData((prev) => ({
-            ...prev,
-            [field]: e.target.value,
-        }));
-        // Clear error when user starts typing
-        if (errors[field]) {
-            setErrors((prev) => ({
-                ...prev,
-                [field]: "",
-            }));
-        }
+        signIn("credentials", {
+            ...data,
+            redirect: false,
+        })
+            .then((callback: any) => {
+                setIsLoading(false);
+                if (callback?.error) {
+                    toast.error(`Error logging in`);
+                } else {
+                    toast.success("Logged in");
+                    onSubmit();
+                }
+            })
+            .catch((e) => {
+                console.log(`THE ERROR LOOkS LIKE ${e}`);
+            });
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6">
-            <EmailInput
-                value={formData.email}
-                onChange={handleChange("email")}
-                label="Email"
-                placeholder="Enter your email..."
-                className={errors.email ? "border-red-500" : ""}
-            />
-            {errors.email && (
-                <p className="mt-1 text-xs text-red-500">{errors.email}</p>
-            )}
-
-            <PasswordInput
-                value={formData.password}
-                onChange={handleChange("password")}
-                label="Password"
-                placeholder="Enter your password..."
-                className={errors.password ? "border-red-500" : ""}
-            />
-            {errors.password && (
-                <p className="mt-1 text-xs text-red-500">{errors.password}</p>
-            )}
-
-            <ZipCodeInput
-                value={formData.zipCode}
-                onChange={handleChange("zipCode")}
-                label="Zip Code"
-                placeholder="Enter your zip code..."
-                className={errors.zipCode ? "border-red-500" : ""}
-            />
-            {errors.zipCode && (
-                <p className="mt-1 text-xs text-red-500">{errors.zipCode}</p>
-            )}
-
-            {/* Divider */}
-            <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-300"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-white text-gray-500">or</span>
-                </div>
+        <div className="flex items-center w-full justify-evenly">
+            <div className="flex flex-col justify-center m-12 basis-1/2">
+                <Heading title="Log in" />
+                <FormProvider {...form}>
+                    <form onSubmit={form.handleSubmit(submitForm)}>
+                        <div className="pt-5">
+                            <FormInput
+                                isLoading={isLoading}
+                                name={"email"}
+                                label={"Email"}
+                                placeholder={"Enter email"}
+                                form={form}
+                            />
+                        </div>
+                        <div className="pt-5">
+                            <FormInput
+                                isLoading={isLoading}
+                                name={"password"}
+                                label={"Password"}
+                                placeholder={"Enter password"}
+                                form={form}
+                            />
+                        </div>
+                        <div className="flex flex-col gap-2 pt-5">
+                            <FullRoundedButton label="OK" />
+                            <FullRoundedButton
+                                type="button"
+                                handleClick={onClose}
+                                label="Close"
+                            />
+                        </div>
+                    </form>
+                </FormProvider>
             </div>
-
-            {/* Social Login Buttons */}
-            {SocialAuthButtons && (
-                <SocialAuthButtons
-                    onAppleClick={() => {}}
-                    onGoogleClick={() => {}}
-                />
-            )}
-
-            {/* Submit Button */}
-            <FormSubmissionButton isLoading={isSubmitting}>
-                Sign Up
-            </FormSubmissionButton>
-        </form>
+            <div className="flex flex-col basis-1/2 gap-10 justify-start m-10">
+                <h1 className="text-copper font-fjalla text-m text-center">
+                    Laughtrack wants to get you out of the house.
+                    <br />
+                    Find funny shows.
+                    <br />
+                    Follow funny comedians.
+                    <br />
+                    Get informed when funny comedians put on funny shows.
+                    <br />
+                    Turn off that podcast and go see the real thing.
+                </h1>
+            </div>
+        </div>
     );
-};
-
-export default SignupForm;
+}
