@@ -37,7 +37,6 @@ export function FormInput({
             placeholder,
             disabled: isLoading,
         };
-
         switch (type) {
             case "password":
                 return <PasswordInput {...commonProps} />;

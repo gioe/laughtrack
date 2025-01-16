@@ -29,7 +29,6 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
     });
 
     const submitForm = (data: z.infer<typeof loginSchema>) => {
-        console.log(data);
         setIsLoading(true);
 
         signIn("credentials", {

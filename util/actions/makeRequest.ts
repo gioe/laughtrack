@@ -1,5 +1,5 @@
 import { JWT } from "next-auth/jwt";
-import { getBaseUrl } from "../urlUtil";
+import { getUrl } from "../urlUtil";
 import { Session } from "next-auth";
 import { RestAPIAction } from "../../objects/enum";
 
@@ -25,13 +25,7 @@ export const makeRequest = async <T>(
         session
     } = options;
     // Create base URL
-    const url = new URL(endpoint, getBaseUrl());
-    // Add search parameters if provided (mainly for GET requests)
-    if (searchParams) {
-        searchParams.forEach((value, key) => {
-            url.searchParams.append(key, value);
-        });
-    }
+    const url = getUrl(endpoint, searchParams)
 
     // Construct headers
     const headers: Record<string, string> = {
@@ -60,7 +54,7 @@ export const makeRequest = async <T>(
     }
 
     // Make request
-    const response = await fetch(url.toString(), requestOptions);
+    const response = await fetch(url, requestOptions);
     if (!response.ok) {
         throw new Error("Fetch Error");
     }

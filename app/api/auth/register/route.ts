@@ -4,15 +4,11 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { User } from "@prisma/client";
 import { db } from "@/lib/db";
-import { registerSchema } from "@/ui/components/form/register/schema";
 
 export async function POST(request: Request) {
-
     const data = await request.json();
-    const { email, password, zipCode } = await registerSchema.parseAsync(data);
-    console.log(email)
-    console.log(password)
-    console.log(zipCode)
+    const { email, password, zipCode } = data
+
 
     const user = await db.user.findUnique(({
         where: { email: email }

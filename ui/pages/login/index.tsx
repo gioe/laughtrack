@@ -42,7 +42,7 @@ function LaughtrackLogin({
 
                         <LoginForm onSubmit={handleSubmit} />
                         {/* Sign Up Link */}
-                        <p className="text-center text-gray-600 font-dmSans text-[16px]">
+                        <p className="text-center text-gray-600 font-dmSans text-[16px] pt-10">
                             Don't have an account yet?{" "}
                             <a
                                 className="text-brown-600 hover:text-brown-500 pt-20 hover:cursor-pointer"

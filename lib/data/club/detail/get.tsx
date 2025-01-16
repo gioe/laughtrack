@@ -140,7 +140,6 @@ export async function getClubDetailPageData(params: any) {
             }),
         };
     });
-    console.log(formattedShows);
 
     return {
         response: {

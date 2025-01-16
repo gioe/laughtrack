@@ -14,6 +14,7 @@ import SocialAuthButtons from "../../auth/social";
 import FormSubmissionButton from "../../button/form";
 import { makeRequest } from "@/util/actions/makeRequest";
 import { APIRoutePath, RestAPIAction } from "@/objects/enum";
+import { RegisterResponse } from "@/app/api/auth/register/interface";
 
 interface RegistrationFormProps {
     onSubmit: () => void;
@@ -33,20 +34,15 @@ export default function RegistrationForm({ onSubmit }: RegistrationFormProps) {
 
     const submitForm = async (data: z.infer<typeof registerSchema>) => {
         setIsLoading(true);
-
         try {
             // Register the user
-            const registerResponse = await makeRequest<Response>(
+            const registerResponse = await makeRequest<RegisterResponse>(
                 APIRoutePath.AuthRegister,
                 {
                     method: RestAPIAction.POST,
-                    body: JSON.stringify(data),
+                    body: data,
                 },
             );
-
-            if (!registerResponse.ok) {
-                throw new Error();
-            }
 
             // Sign in the user
             const signInResponse = await signIn("credentials", {
