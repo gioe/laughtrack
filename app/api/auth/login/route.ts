@@ -6,9 +6,9 @@ import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 
 export async function POST(request: Request) {
+    console.log(request)
     const data = await request.json();
     const { email, password } = data
-
     const user = await db.user.findUnique(({
         where: { email: email }
     }))
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
         accessToken,
         refreshToken,
-        id: user.id,
+        id: user.id.toString(),
         email: user.email,
         role: user.role
     }, { status: 200 });

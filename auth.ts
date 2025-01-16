@@ -5,8 +5,9 @@ import Credentials from "next-auth/providers/credentials";
 import { jwtDecode } from "jwt-decode";
 import { signInSchema } from "./util/validations";
 import { refreshAccessToken } from "./util/primatives/tokenUtil";
-import { APIRoutePath } from "./objects/enum";
+import { APIRoutePath, RestAPIAction } from "./objects/enum";
 import { makeRequest } from "./util/actions/makeRequest";
+import { LoginResponse } from "./app/api/auth/login/interface";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
     providers: [
@@ -23,14 +24,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 try {
                     const { email, password } =
                         await signInSchema.parseAsync(credentials);
-                    const response = await makeRequest<Response>(APIRoutePath.AuthLogin, {
-                        searchParams: new URLSearchParams({
+
+                    const response = await makeRequest<LoginResponse>(APIRoutePath.AuthLogin, {
+                        method: RestAPIAction.POST,
+                        body: {
                             email: email,
                             password: password,
-                        })
+                        }
                     })
-                        .then((response: any) => response.json())
-
                     return {
                         accessToken: response.accessToken,
                         refreshToken: response.refreshToken,

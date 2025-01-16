@@ -1,17 +1,18 @@
 "use client";
-import React, { useState } from "react";
-import SocialAuthButtons from "@/ui/components/auth/social";
-import PasswordInput from "@/ui/components/input/password";
-import EmailInput from "@/ui/components/input/email";
-import FormSubmissionButton from "@/ui/components/button/form";
-import { Divider } from "@/ui/components/divider";
+import React from "react";
 import { Copyright } from "@/ui/components/copyright";
 import AuthImageContent from "@/ui/components/auth/image";
+import LoginForm from "@/ui/components/form/login";
 
 interface LaughtrackLoginProps {
     handleRegisterClick: () => void;
+    handleSubmit: () => void;
 }
-function LaughtrackLogin({ handleRegisterClick }: LaughtrackLoginProps) {
+
+function LaughtrackLogin({
+    handleSubmit,
+    handleRegisterClick,
+}: LaughtrackLoginProps) {
     const clickRegisterButton = () => {
         handleRegisterClick();
     };
@@ -39,45 +40,7 @@ function LaughtrackLogin({ handleRegisterClick }: LaughtrackLoginProps) {
                             </p>
                         </div>
 
-                        <form className="space-y-6">
-                            {/* Email Input */}
-                            <EmailInput
-                                value={""}
-                                onChange={(e) => {}}
-                                label="Email"
-                                placeholder="Enter your email..."
-                            />
-
-                            {/* Password Input */}
-                            <PasswordInput
-                                value={"password"}
-                                onChange={(e) => {}}
-                                label="Password"
-                                placeholder="Enter your password..."
-                            />
-
-                            {/* Remember Me and Forgot Password */}
-                            <div className="flex items-center justify-between">
-                                <a
-                                    href="#"
-                                    className="text-sm text-brown-600 hover:text-brown-500"
-                                >
-                                    Forgot password?
-                                </a>
-                            </div>
-
-                            {/* Divider */}
-                            <Divider text="or" />
-
-                            {/* Social Login Buttons */}
-                            <SocialAuthButtons
-                                onAppleClick={() => {}}
-                                onGoogleClick={() => {}}
-                            />
-
-                            <FormSubmissionButton>Log In</FormSubmissionButton>
-                        </form>
-
+                        <LoginForm onSubmit={handleSubmit} />
                         {/* Sign Up Link */}
                         <p className="text-center text-gray-600 font-dmSans text-[16px]">
                             Don't have an account yet?{" "}

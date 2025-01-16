@@ -25,7 +25,10 @@ const RegisterModal = () => {
             isOpen={registerModal.isOpen}
             onClose={() => registerModal.onClose()}
         >
-            <LaughtrackSignup handleLoginPick={showLoginPage} />
+            <LaughtrackSignup
+                handleLoginPick={showLoginPage}
+                handleSubmit={onSubmit}
+            />
         </FullScreenModal>
     );
 };

@@ -8,21 +8,16 @@ import { registerSchema } from "./schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { FormInput } from "../../input/index";
-import Heading from "../../modals/heading";
 import { FormProvider, useForm } from "react-hook-form";
-import { FullRoundedButton } from "../../button/rounded/full";
+import { Divider } from "../../divider";
+import SocialAuthButtons from "../../auth/social";
+import FormSubmissionButton from "../../button/form";
 
 interface RegistrationFormProps {
     onSubmit: () => void;
-    onClose: () => void;
-    handleLoginClick: () => void;
 }
 
-export default function RegistrationForm({
-    onSubmit,
-    onClose,
-    handleLoginClick,
-}: RegistrationFormProps) {
+export default function RegistrationForm({ onSubmit }: RegistrationFormProps) {
     const [isLoading, setIsLoading] = useState(false);
 
     const form = useForm<z.infer<typeof registerSchema>>({
@@ -67,49 +62,48 @@ export default function RegistrationForm({
     };
 
     return (
-        <div className="flex items-center w-full justify-evenly m-12">
-            <div className="flex flex-col justify-center m-3 basis-1/2">
-                <FormProvider {...form}>
-                    <form onSubmit={form.handleSubmit(submitForm)}>
-                        <div className="pt-5">
-                            <FormInput
-                                isLoading={isLoading}
-                                name={"email"}
-                                label={"Email"}
-                                placeholder={"Enter email"}
-                                form={form}
-                            />
-                        </div>
-                        <div className="pt-5">
-                            <FormInput
-                                isLoading={isLoading}
-                                name={"password"}
-                                label={"Password"}
-                                placeholder={"Enter password"}
-                                form={form}
-                            />
-                        </div>
-                        <div className="flex flex-col gap-2 pt-5">
-                            <FullRoundedButton label="OK" />
-                            <FullRoundedButton
-                                type="button"
-                                handleClick={onClose}
-                                label="Close"
-                            />
-                        </div>
-                    </form>
-                </FormProvider>
-            </div>
-            <div className="flex flex-col basis-1/2 gap-10 justify-center p-5">
-                <h1 className="text-copper font-fjalla text-l text-center">
-                    Already have an account?
-                </h1>
-                <FullRoundedButton
-                    type="button"
-                    handleClick={handleLoginClick}
-                    label="Log In"
+        <FormProvider {...form}>
+            <form
+                onSubmit={form.handleSubmit(submitForm)}
+                className="space-y-6"
+            >
+                <FormInput
+                    type="email"
+                    isLoading={false}
+                    name={"email"}
+                    label={"Email"}
+                    placeholder={"Enter your email..."}
+                    form={form}
                 />
-            </div>
-        </div>
+                <FormInput
+                    type="password"
+                    isLoading={false}
+                    name={"password"}
+                    label={"Password"}
+                    placeholder={"Enter password"}
+                    form={form}
+                />
+                <FormInput
+                    type="zipCode"
+                    isLoading={false}
+                    name={"zipCode"}
+                    label={"Zip Code"}
+                    placeholder={
+                        "Enter your zip code. We use this to find shows around you."
+                    }
+                    form={form}
+                />
+
+                <Divider text="or" />
+
+                <SocialAuthButtons
+                    onAppleClick={() => {}}
+                    onGoogleClick={() => {}}
+                />
+
+                {/* Login Button */}
+                <FormSubmissionButton>Sign Up</FormSubmissionButton>
+            </form>
+        </FormProvider>
     );
 }

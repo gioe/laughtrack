@@ -1,6 +1,5 @@
 "use client";
 
-import { Input } from "../ui/input";
 import {
     FormControl,
     FormField,
@@ -8,14 +7,18 @@ import {
     FormLabel,
     FormMessage,
 } from "../ui/form";
+import PasswordInput from "./password";
+import EmailInput from "./email";
+import ZipCodeInput from "./zipcode/input";
 
 interface FormInputProps {
     isLoading: boolean;
     name: string;
     placeholder: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     form: any;
     label: string;
+    className?: string;
+    type: "password" | "email" | "zipCode"; // Add type prop
 }
 
 export function FormInput({
@@ -24,7 +27,31 @@ export function FormInput({
     name,
     placeholder,
     label,
+    type,
+    className = "",
 }: FormInputProps) {
+    // Helper function to render the appropriate input component
+    const renderInput = (field: any) => {
+        const commonProps = {
+            ...field,
+            id: name,
+            placeholder,
+            className,
+            disabled: isLoading,
+        };
+
+        switch (type) {
+            case "password":
+                return <PasswordInput {...commonProps} />;
+            case "email":
+                return <EmailInput {...commonProps} />;
+            case "zipCode":
+                return <ZipCodeInput {...commonProps} />;
+            default:
+                return null;
+        }
+    };
+
     return (
         <FormField
             control={form.control}
@@ -33,18 +60,13 @@ export function FormInput({
                 return (
                     <FormItem>
                         <FormLabel
-                            className="text-copper font-fjalla
-                         placeholder:text-copper placeholder:font-fjalla"
+                            className="text-black font-fjalla
+                         placeholder:text-black placeholder:font-fjalla"
                         >
                             {label}
                         </FormLabel>
                         <FormControl className="rounded-lg">
-                            <Input
-                                disabled={isLoading}
-                                type={name}
-                                placeholder={placeholder}
-                                {...field}
-                            />
+                            {renderInput(field)}
                         </FormControl>
                         <FormMessage />
                     </FormItem>

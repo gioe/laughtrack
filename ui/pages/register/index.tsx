@@ -1,23 +1,32 @@
 "use client";
 
-import React, { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
-import SocialAuthButtons from "@/ui/components/auth/social";
-import PasswordInput from "@/ui/components/input/password";
-import EmailInput from "@/ui/components/input/email";
-import ZipCodeInput from "@/ui/components/input/zipcode/input";
-import FormSubmissionButton from "@/ui/components/button/form";
-import { Divider } from "@/ui/components/divider";
+import React from "react";
 import { Copyright } from "@/ui/components/copyright";
 import AuthImageContent from "@/ui/components/auth/image";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { registerSchema } from "@/ui/components/form/register/schema";
+import { zodResolver } from "@hookform/resolvers/zod";
+import RegistrationForm from "@/ui/components/form/register";
 
 interface LaughtrackSignupProps {
     handleLoginPick: () => void;
+    handleSubmit: () => void;
 }
 
 export default function LaughtrackSignup({
     handleLoginPick,
+    handleSubmit,
 }: LaughtrackSignupProps) {
+    const form = useForm<z.infer<typeof registerSchema>>({
+        resolver: zodResolver(registerSchema),
+        defaultValues: {
+            email: "",
+            password: "",
+            zipCode: "",
+        },
+    });
+
     const clickLoginButton = () => {
         handleLoginPick();
     };
@@ -44,38 +53,7 @@ export default function LaughtrackSignup({
                                 Fill in the fields to create your account.
                             </p>
                         </div>
-
-                        <form className="space-y-6">
-                            <EmailInput
-                                value={""}
-                                onChange={(e) => {}}
-                                label="Email"
-                                placeholder="Enter your email..."
-                            />
-                            <PasswordInput
-                                value={""}
-                                onChange={(e) => {}}
-                                label="Password"
-                                placeholder="Enter your password..."
-                            />
-                            <ZipCodeInput
-                                value={""}
-                                onChange={(e) => {}}
-                                label="Zip Code"
-                                placeholder="Enter your zip code..."
-                            />
-
-                            <Divider text="or" />
-
-                            {/* Social Login Buttons */}
-                            <SocialAuthButtons
-                                onAppleClick={() => {}}
-                                onGoogleClick={() => {}}
-                            />
-
-                            {/* Login Button */}
-                            <FormSubmissionButton>Sign Up</FormSubmissionButton>
-                        </form>
+                        <RegistrationForm onSubmit={handleSubmit} />
 
                         {/* Sign Up Link */}
                         <p className="text-center text-gray-600 font-dmSans text-[16px] pt-10">

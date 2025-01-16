@@ -10,12 +10,6 @@ const EmailInput = ({
 }) => {
     return (
         <div className="space-y-2">
-            <label
-                htmlFor={id}
-                className="block text-sm font-bold text-gray-900"
-            >
-                {label}
-            </label>
             <input
                 type="email"
                 id={id}

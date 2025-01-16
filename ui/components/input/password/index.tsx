@@ -13,12 +13,6 @@ const PasswordInput = ({
 
     return (
         <div className="space-y-2">
-            <label
-                htmlFor={id}
-                className="block text-sm font-bold text-gray-900"
-            >
-                {label}
-            </label>
             <div className="relative">
                 <input
                     type={showPassword ? "text" : "password"}
