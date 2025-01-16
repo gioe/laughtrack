@@ -20,6 +20,7 @@ export interface ClubInterface
 // DB
 export interface ClubDTO {
     id?: number;
+    imageUrl: URL;
     name?: string;
     website?: string;
     address?: string;

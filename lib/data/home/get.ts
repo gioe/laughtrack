@@ -34,6 +34,15 @@ export async function getHomePageData(userId: string | null) {
                 id: club.id,
                 address: club.address,
                 name: club.name,
+                imageUrl:
+                    new URL(
+                        `/clubs/${club.name}.png`,
+                        `https://${process.env.BUNNYCDN_CDN_HOST}/`,
+                    ) ??
+                    new URL(
+                        `logo.png`,
+                        `https://${process.env.BUNNYCDN_CDN_HOST}/`,
+                    ),
                 active_comedian_count: new Set(
                     club.shows.flatMap((show) =>
                         show.lineupItems.map((item) => item.comedianId),
@@ -113,6 +122,15 @@ export async function getHomePageData(userId: string | null) {
             id: comedian.id,
             uuid: comedian.uuid,
             name: comedian.name,
+            imageUrl:
+                new URL(
+                    `/comedians/${comedian.name}.png`,
+                    `https://${process.env.BUNNYCDN_CDN_HOST}/`,
+                ) ??
+                new URL(
+                    `logo.png`,
+                    `https://${process.env.BUNNYCDN_CDN_HOST}/`,
+                ),
             social_data: {
                 id: comedian.id,
                 instagram_account: comedian.instagramAccount,

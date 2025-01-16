@@ -1,5 +1,23 @@
 import { db } from "@/lib/db";
 
+const buildClubImageUrl = (clubName: string) => {
+    return (
+        new URL(
+            `/clubs/${clubName}.png`,
+            `https://${process.env.BUNNYCDN_CDN_HOST}/`,
+        ) ?? new URL(`logo.png`, `https://${process.env.BUNNYCDN_CDN_HOST}/`)
+    );
+};
+
+const buildComedianImageUrl = (name: string) => {
+    return (
+        new URL(
+            `/comedians/${name}.png`,
+            `https://${process.env.BUNNYCDN_CDN_HOST}/`,
+        ) ?? new URL(`logo.png`, `https://${process.env.BUNNYCDN_CDN_HOST}/`)
+    );
+};
+
 export async function getClubDetailPageData(params: any) {
     // Get filtered shows with basic info
     const filteredShows = await db.show.findMany({
@@ -122,6 +140,7 @@ export async function getClubDetailPageData(params: any) {
     }
     // Format the shows data
     const formattedShows = filteredShows.map((show) => {
+        console.log(show);
         return {
             id: show.id,
             date: show.date,
@@ -136,6 +155,7 @@ export async function getClubDetailPageData(params: any) {
                 return {
                     id: item.comedian.id,
                     name: item.comedian.name,
+                    imageUr: buildComedianImageUrl(""),
                 };
             }),
         };
@@ -146,6 +166,7 @@ export async function getClubDetailPageData(params: any) {
             data: {
                 name: clubData.name,
                 id: clubData.id,
+                imageUrl: buildClubImageUrl(clubData.name),
                 website: clubData.website,
                 city: clubData.city.name,
                 address: clubData.address,

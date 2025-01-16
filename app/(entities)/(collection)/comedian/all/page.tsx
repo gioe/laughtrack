@@ -28,7 +28,7 @@ export default async function ComedianSearchPage(props: any) {
     );
 
     return (
-        <main className="min-h-screen w-full bg-ivory">
+        <main className="min-h-screen w-full mx-auto bg-ivory">
             <StyleContextProvider initialContext={StyleContextKey.Search}>
                 <Navbar currentUser={session?.user} />
             </StyleContextProvider>
@@ -38,7 +38,7 @@ export default async function ComedianSearchPage(props: any) {
                 subTitle={`${data.total} results`}
             />
             <FilterBar />
-            <div className="mx-28 gap-x-20">
+            <div className="max-w-7xl mx-auto py-8">
                 <ComedianGrid contentString={JSON.stringify(data.entities)} />
             </div>
             <FooterComponent />

@@ -1,4 +1,14 @@
 import { db } from "@/lib/db";
+
+const buildComedianImageUrl = (name: string) => {
+    return (
+        new URL(
+            `/comedians/${name}.png`,
+            `https://${process.env.BUNNYCDN_CDN_HOST}/`,
+        ) ?? new URL(`logo.png`, `https://${process.env.BUNNYCDN_CDN_HOST}/`)
+    );
+};
+
 export async function getComedianDetailPageData(params: any) {
     // First get all relevant shows
     const relevantShows = await db.show.findMany({
@@ -141,6 +151,7 @@ export async function getComedianDetailPageData(params: any) {
         lineup: show.lineupItems.map((item) => ({
             id: item.comedian.id,
             name: item.comedian.name,
+            imageUrl: buildComedianImageUrl(item.comedian.name),
         })),
     }));
 
@@ -149,6 +160,7 @@ export async function getComedianDetailPageData(params: any) {
             data: {
                 name: comedianData.name,
                 id: comedianData.id,
+                imageUrl: buildComedianImageUrl(comedianData.name),
                 social_data: {
                     id: comedianData.id,
                     linktree: comedianData.linktree,

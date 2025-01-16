@@ -50,8 +50,9 @@ const ComedianGridCard: React.FC<ComedianGridCardProps> = ({ entity }) => {
     }, [registerModal]);
 
     return (
-        <div className="w-full rounded-xl items-center text-center overflow-hidden transition-transform duration-300 hover:scale-105 hover:cursor-pointer">
-            <div className="relative rounded-xl aspect-square">
+        <div className="w-full rounded-xl items-center text-center transition-transform duration-300 hover:scale-105 hover:cursor-pointer">
+            {/* Image Container */}
+            <div className="relative rounded-xl aspect-square overflow-hidden">
                 <Link
                     href={`/comedian/${comedian.name}`}
                     className="block w-full h-full"
@@ -77,19 +78,21 @@ const ComedianGridCard: React.FC<ComedianGridCardProps> = ({ entity }) => {
                 </button>
             </div>
 
-            {/* Artist Name */}
-            <h2 className="text-[22px] font-bold mb-2 font-outfit">
-                {comedian.name}
-            </h2>
+            {/* Content Container */}
+            <div className="mt-4">
+                <h2 className="text-[22px] font-bold mb-2 font-outfit">
+                    {comedian.name}
+                </h2>
 
-            {/* Shows Count */}
-            <p className="text-[18px] text-gray-600 mb-6">{`${comedian.showCount ?? 0} upcoming shows`}</p>
+                <p className="text-[18px] text-gray-600 mb-6">
+                    {`${comedian.showCount ?? 0} upcoming shows`}
+                </p>
 
-            {/* Social Icons */}
-            <div className="w-full">
-                {comedian.socialData && (
-                    <SocialMediaBar data={comedian.socialData} />
-                )}
+                <div className="w-full">
+                    {comedian.socialData && (
+                        <SocialMediaBar data={comedian.socialData} />
+                    )}
+                </div>
             </div>
         </div>
     );

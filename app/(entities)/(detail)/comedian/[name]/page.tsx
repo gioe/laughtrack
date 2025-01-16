@@ -1,4 +1,3 @@
-import TableFilterBar from "@/ui/components/filter";
 import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
 import { APIRoutePath, StyleContextKey } from "@/objects/enum";
 import { CACHE } from "@/util/constants/cacheConstants";

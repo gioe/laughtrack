@@ -1,5 +1,14 @@
 import { db } from "@/lib/db"
 
+const buildComedianImageUrl = (name: string) => {
+    return (
+        new URL(
+            `/comedians/${name}.png`,
+            `https://${process.env.BUNNYCDN_CDN_HOST}/`,
+        ) ?? new URL(`logo.png`, `https://${process.env.BUNNYCDN_CDN_HOST}/`)
+    );
+};
+
 export async function getSearchedShows(params: any) {
     // Get total count first
     const totalCount = await db.show.count({
@@ -119,6 +128,7 @@ export async function getSearchedShows(params: any) {
         lineup: show.lineupItems.map(item => ({
             id: item.comedian.id,
             name: item.comedian.name,
+            imageUrl: buildComedianImageUrl(item.comedian.name),
             is_favorite: params.userId ? item.comedian.favoriteComedians.length > 0 : false,
             is_alias: item.comedian.taggedComedians.length > 0
         }))

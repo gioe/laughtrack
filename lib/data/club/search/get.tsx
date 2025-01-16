@@ -1,6 +1,15 @@
 import { ClubSearchDTO } from "@/app/api/club/search/interface";
 import { db } from "@/lib/db";
 
+const buildClubImageUrl = (clubName: string) => {
+    return (
+        new URL(
+            `/clubs/${clubName}.png`,
+            `https://${process.env.BUNNYCDN_CDN_HOST}/`,
+        ) ?? new URL(`logo.png`, `https://${process.env.BUNNYCDN_CDN_HOST}/`)
+    );
+};
+
 export async function getSearchedClubs(params: any): Promise<ClubSearchDTO> {
     const totalCount = await db.club.count({
         where: {
@@ -25,12 +34,13 @@ export async function getSearchedClubs(params: any): Promise<ClubSearchDTO> {
     });
 
     // Get filtered data
-    const clubs = await db.club.findMany({
+    const clubData = await db.club.findMany({
         select: {
             id: true,
             name: true,
             address: true,
             website: true,
+            zipCode: true,
         },
         where: {
             name: {
@@ -56,6 +66,16 @@ export async function getSearchedClubs(params: any): Promise<ClubSearchDTO> {
         },
         take: Number(params.size),
         skip: params.offset,
+    });
+
+    const clubs = clubData.map((club) => {
+        return {
+            id: club.id,
+            name: club.name,
+            address: club.address,
+            zipCode: club.zipCode,
+            imageUrl: buildClubImageUrl(club.name),
+        };
     });
 
     return {

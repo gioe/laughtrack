@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+
 const getProfileData = (id: number) => {
     return db.user.findUnique({
         where: {

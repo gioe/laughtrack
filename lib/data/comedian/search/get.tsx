@@ -1,6 +1,15 @@
 import { ComedianSearchDTO } from "@/app/api/comedian/search/interface";
 import { db } from "@/lib/db";
 
+const buildComedianImageUrl = (name: string) => {
+    return (
+        new URL(
+            `/comedians/${name}.png`,
+            `https://${process.env.BUNNYCDN_CDN_HOST}/`,
+        ) ?? new URL(`logo.png`, `https://${process.env.BUNNYCDN_CDN_HOST}/`)
+    );
+};
+
 export async function getSearchedComedians(
     params: any,
 ): Promise<ComedianSearchDTO> {
@@ -72,6 +81,7 @@ export async function getSearchedComedians(
     const formattedData = comedians.map((comedian) => ({
         id: comedian.id,
         name: comedian.name,
+        imageUrl: buildComedianImageUrl(comedian.name),
         social_data: {
             id: comedian.id,
             linktree: comedian.linktree,

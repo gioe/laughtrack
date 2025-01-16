@@ -23,8 +23,6 @@ const SocialMediaBar: React.FC<SocialMediaBarProps> = ({
     data,
     className = "",
 }) => {
-    const baseClasses = `cursor-pointer rounded-full p-3 text-gray-900 transition-colors inline-flex items-center`;
-
     const socialLinks: SocialLink[] = [
         {
             platform: "Instagram",

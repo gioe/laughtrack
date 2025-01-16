@@ -40,13 +40,7 @@ export class Club implements ClubInterface {
         this.address = input.address ?? "";
         this.zipCode = input.zipCode ?? "";
 
-        // Initialize media URLs
-        const cdnHost = "laughtrack.b-cdn.net";
-        if (!cdnHost) {
-            throw new Error('NEXT_PUBLIC_BUNNYCDN_CDN_HOST environment variable is not set');
-        }
-
-        this.cardImageUrl = new URL(`/clubs/${input.name}.png`, `https://${cdnHost}/`) ?? new URL(`logo.png`, `https://${cdnHost}/`);
+        this.cardImageUrl = input.imageUrl
         this.bannerImageUrl = null; // Add logic if needed
 
         // Initialize arrays and complex objects

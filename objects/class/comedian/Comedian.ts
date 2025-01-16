@@ -28,7 +28,7 @@ export class Comedian implements ComedianInterface {
         this.isFavorite = input.is_favorite ?? false
         this.id = input.id ?? 0
         this.showCount = input.show_count
-        this.cardImageUrl = new URL(`/comedians/${input.name}.png`, `https://${process.env.BUNNYCDN_CDN_HOST}/`) ?? new URL(`logo.png`, `https://${process.env.BUNNYCDN_CDN_HOST}/`);
+        this.cardImageUrl = input.imageUrl
         this.uuid = input.uuid
         this.isAlias = input.is_alias ?? false
     }

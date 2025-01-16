@@ -2,6 +2,7 @@ import { FilterDataDTO } from "@/objects/interface";
 import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { EntityType } from "@/objects/enum";
+
 export async function getTags(type?: string): Promise<FilterDataDTO[]> {
     try {
         const tagCategories = await db.tagCategory.findMany({
