@@ -12,6 +12,8 @@ import { FormProvider, useForm } from "react-hook-form";
 import { Divider } from "../../divider";
 import SocialAuthButtons from "../../auth/social";
 import FormSubmissionButton from "../../button/form";
+import { makeRequest } from "@/util/actions/makeRequest";
+import { APIRoutePath, RestAPIAction } from "@/objects/enum";
 
 interface RegistrationFormProps {
     onSubmit: () => void;
@@ -25,36 +27,40 @@ export default function RegistrationForm({ onSubmit }: RegistrationFormProps) {
         defaultValues: {
             email: "",
             password: "",
+            zipCode: "",
         },
     });
 
     const submitForm = async (data: z.infer<typeof registerSchema>) => {
-        try {
-            setIsLoading(true);
-            const response = await fetch("/api/register", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(data),
-            });
+        setIsLoading(true);
 
-            if (!response.ok) {
-                throw new Error("Registration failed");
+        try {
+            // Register the user
+            const registerResponse = await makeRequest<Response>(
+                APIRoutePath.AuthRegister,
+                {
+                    method: RestAPIAction.POST,
+                    body: JSON.stringify(data),
+                },
+            );
+
+            if (!registerResponse.ok) {
+                throw new Error();
             }
 
-            const callback = await signIn("credentials", {
+            // Sign in the user
+            const signInResponse = await signIn("credentials", {
                 ...data,
                 redirect: false,
             });
 
-            if (callback?.error) {
-                toast.error("Something went wrong");
-            } else {
-                toast.success("Logged in");
-                onSubmit();
+            if (signInResponse?.error) {
+                throw new Error();
             }
-        } catch (error) {
+
+            toast.success("Logged in");
+            onSubmit();
+        } catch {
             toast.error("Something went wrong");
         } finally {
             setIsLoading(false);

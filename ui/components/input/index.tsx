@@ -28,7 +28,6 @@ export function FormInput({
     placeholder,
     label,
     type,
-    className = "",
 }: FormInputProps) {
     // Helper function to render the appropriate input component
     const renderInput = (field: any) => {
@@ -36,7 +35,6 @@ export function FormInput({
             ...field,
             id: name,
             placeholder,
-            className,
             disabled: isLoading,
         };
 

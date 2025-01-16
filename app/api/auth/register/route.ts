@@ -3,33 +3,34 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { User } from "@prisma/client";
-import { signInSchema } from "@/util/validations";
 import { db } from "@/lib/db";
+import { registerSchema } from "@/ui/components/form/register/schema";
 
 export async function POST(request: Request) {
 
     const data = await request.json();
-    const { email, password } = await signInSchema.parseAsync(data);
-
-    const emailString = email as string;
-    const passwordString = password as string;
+    const { email, password, zipCode } = await registerSchema.parseAsync(data);
+    console.log(email)
+    console.log(password)
+    console.log(zipCode)
 
     const user = await db.user.findUnique(({
         where: { email: email }
     }))
 
-    if (user && emailString !== "" && passwordString !== "") {
+    if (user && email !== "" && password !== "") {
         return NextResponse.json({
             messsage: "The user already exists"
         }, { status: 401 })
     }
 
-    return bcrypt.hash(passwordString, 10)
+    return bcrypt.hash(password, 10)
         .then((hash: string) => {
             return db.user.create({
                 data: {
-                    email: emailString,
+                    email,
                     password: hash,
+                    zipCode,
                     role: 'admin'
                 }
             });
