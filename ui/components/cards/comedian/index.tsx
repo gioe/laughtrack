@@ -21,6 +21,8 @@ const ComedianGridCard: React.FC<ComedianGridCardProps> = ({ entity }) => {
     const registerModal = useFavoriteRegisterModal();
     const session = useSession();
     const comedian = new Comedian(JSON.parse(entity) as ComedianDTO);
+    console.log(comedian);
+
     const [, setIsOpen] = useState(false);
     const [isFavorite, setIsFavorite] = useState(
         comedian.isFavorite ? true : false,

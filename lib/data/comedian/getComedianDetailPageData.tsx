@@ -1,14 +1,12 @@
-import { db } from "@/lib/db";
-import { buildComedianImageUrl } from "@/util/imageUtil";
 import { findShows } from "../show/findShows";
 import { findComedianByName } from "./findComedianByName";
 import { getShowCount } from "../show/getCount";
-import { ComedianDetailDTO } from "@/app/api/comedian/[name]/interface";
 import { Prisma } from "@prisma/client";
+import { ComedianDetailResponse } from "@/app/api/comedian/[name]/interface";
 
 export async function getComedianDetailPageData(
     params: any,
-): Promise<ComedianDetailDTO> {
+): Promise<ComedianDetailResponse> {
     try {
         const { name } = params;
         // Get comedian data
@@ -27,13 +25,11 @@ export async function getComedianDetailPageData(
         const dates = await findShows({ ...params, showIds });
 
         return {
-            response: {
-                data: {
-                    ...comedianData,
-                    dates,
-                },
-                total: totalCount,
+            data: {
+                ...comedianData,
+                dates,
             },
+            total: totalCount,
         };
     } catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {

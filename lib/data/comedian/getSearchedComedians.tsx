@@ -1,21 +1,19 @@
-import { ComedianSearchDTO } from "@/app/api/comedian/search/interface";
 import { getComedianCount } from "./getComedianCount";
 import { findComedians } from "./findComedians";
 import { Prisma } from "@prisma/client";
+import { ComedianSearchResponse } from "@/app/api/comedian/search/interface";
 
 export async function getSearchedComedians(
     params: any,
-): Promise<ComedianSearchDTO> {
+): Promise<ComedianSearchResponse> {
     try {
         const [total, data] = await Promise.all([
             getComedianCount(params),
             findComedians(params),
         ]);
         return {
-            response: {
-                data,
-                total,
-            },
+            data,
+            total,
         };
     } catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {

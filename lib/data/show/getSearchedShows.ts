@@ -7,10 +7,8 @@ export async function getSearchedShows(params: any) {
         const [total, data] = await Promise.all([getShowCount(params), findShows(params)])
 
         return {
-            response: {
-                total,
-                data
-            }
+            total,
+            data
         }
     }
     catch (error) {

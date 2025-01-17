@@ -1,13 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { getTags } from "@/lib/data/tags/getTags";
-import { Comedian } from "@/objects/class/comedian/Comedian";
-import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { EntityType } from "@/objects/enum";
 import { NextResponse } from "next/server";
-import { ComedianSearchData, ComedianSearchDTO } from "./interface";
 import { getSearchedComedians } from "@/lib/data/comedian/getSearchedComedians";
+import { ComedianSearchResponse } from "./interface";
 
 export async function GET(request: Request) {
 
@@ -16,12 +14,8 @@ export async function GET(request: Request) {
     const helper = await QueryHelper.storePageParams(searchParams, filters);
 
     return getSearchedComedians(helper.asQueryFilters())
-        .then((response: ComedianSearchDTO) => {
-            const data = {
-                entities: response.response.data.map((result: ComedianDTO) => new Comedian(result)),
-                total: response.response.total,
-            } as ComedianSearchData
-            return NextResponse.json({ data, filters }, { status: 200 })
+        .then((response: ComedianSearchResponse) => {
+            return NextResponse.json({ response }, { status: 200 })
         })
         .catch((error: Error) => NextResponse.json({ message: error.message }, { status: 500 }));
 }

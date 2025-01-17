@@ -1,15 +1,12 @@
-import { buildClubImageUrl } from "@/util/imageUtil";
 import { getShowCount } from "../show/getCount";
 import { findShows } from "../show/findShows";
 import { findClubByName } from "./findClubByName";
-import { ClubDetailDTO } from "@/app/api/club/[name]/interface";
-import { ClubDTO } from "@/objects/class/club/club.interface";
-import { ShowDTO } from "@/objects/class/show/show.interface";
 import { Prisma } from "@prisma/client";
+import { ClubDetailResponse } from "@/app/api/club/[name]/interface";
 
 export async function getClubDetailPageData(
     params: any,
-): Promise<ClubDetailDTO> {
+): Promise<ClubDetailResponse> {
     try {
         const { name } = params;
 
@@ -20,13 +17,11 @@ export async function getClubDetailPageData(
         ]);
 
         return {
-            response: {
-                data: {
-                    ...club,
-                    dates,
-                },
-                total,
+            data: {
+                ...club,
+                dates,
             },
+            total,
         };
     } catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {

@@ -21,7 +21,7 @@ export default async function ComedianSearchPage(props: any) {
         props.searchParams,
     );
 
-    const { data } = await makeRequest<ComedianSearchResponse>(
+    const { data, total } = await makeRequest<ComedianSearchResponse>(
         APIRoutePath.ComedianSearch,
         {
             searchParams: paramsWrapper.asUrlSearchParams(),
@@ -36,13 +36,13 @@ export default async function ComedianSearchPage(props: any) {
 
             <SearchDetailHeader
                 title={`Search comedians`}
-                subTitle={`${data.total} results`}
+                subTitle={`${total} results`}
             />
             <FilterBar>
                 <ComedianSearchBar />
             </FilterBar>
             <div className="max-w-7xl mx-auto py-8">
-                <ComedianGrid contentString={JSON.stringify(data.entities)} />
+                <ComedianGrid contentString={JSON.stringify(data)} />
             </div>
             <FooterComponent />
         </main>
