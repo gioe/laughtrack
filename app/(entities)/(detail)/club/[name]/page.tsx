@@ -3,13 +3,13 @@ import { APIRoutePath, StyleContextKey } from "@/objects/enum";
 import { CACHE } from "@/util/constants/cacheConstants";
 import { makeRequest } from "@/util/actions/makeRequest";
 import { DynamicRoute } from "@/objects/interface/identifable.interface";
-import { ClubDetailPageResponse } from "@/app/api/club/[name]/interface";
 import Navbar from "@/ui/components/navbar";
 import { auth } from "@/auth";
 import TableWithHeader from "@/ui/pages/entity/comedian/table";
 import FooterComponent from "@/ui/pages/home/footer";
 import ClubDetailHeader from "@/ui/pages/entity/club/detailHeader";
 import ClubDataColumn from "@/ui/pages/entity/club/socialColumn";
+import { ClubDetailResponse } from "@/app/api/club/[name]/interface";
 
 export default async function ClubDetailPage(props: {
     searchParams: Promise<URLSearchParams>;
@@ -22,7 +22,7 @@ export default async function ClubDetailPage(props: {
         props.params,
     );
 
-    const { data } = await makeRequest<ClubDetailPageResponse>(
+    const { data } = await makeRequest<ClubDetailResponse>(
         APIRoutePath.Club + `/${paramsWrapper.asSlug()}`,
         {
             searchParams: paramsWrapper.asUrlSearchParams(),
@@ -33,15 +33,10 @@ export default async function ClubDetailPage(props: {
     return (
         <main className="min-h-screen w-full bg-ivory">
             <Navbar currentUser={session?.user} />
-            <ClubDetailHeader clubString={JSON.stringify(data.entity)} />
+            <ClubDetailHeader clubString={JSON.stringify(data)} />
             <div className="max-w-6xl mx-auto p-6 flex">
-                <TableWithHeader
-                    entityString={JSON.stringify(data.entity.containedEntities)}
-                />
-                <ClubDataColumn
-                    telephoneNumber={"12122543480"}
-                    website={data.entity.website}
-                />
+                <TableWithHeader entityString={JSON.stringify([])} />
+                <ClubDataColumn telephoneNumber={"12122543480"} website={""} />
             </div>
             <FooterComponent />
         </main>

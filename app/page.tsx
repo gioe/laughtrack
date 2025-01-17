@@ -12,17 +12,16 @@ import FooterComponent from "@/ui/pages/home/footer";
 export default async function HomePage() {
     const session = await auth();
 
-    const { response } = await makeRequest<HomePageDataResponse>(
+    const { comedians, clubs } = await makeRequest<HomePageDataResponse>(
         APIRoutePath.Home,
     );
-
+    console.log(comedians);
+    console.log(clubs);
     return (
         <main className="min-h-screen w-full bg-ivory">
             <HeroComponent user={session?.user} />
-            <TrendingComedianGrid
-                comedianString={JSON.stringify(response.comedians)}
-            />
-            <TrendingClubsCarousel clubs={response.clubs} />
+            <TrendingComedianGrid comedians={comedians} />
+            <TrendingClubsCarousel clubs={clubs} />
             <FooterComponent />
         </main>
     );

@@ -12,11 +12,6 @@ export async function GET(request: Request) {
     const helper = await QueryHelper.storePageParams(searchParams, filters);
 
     return getSearchedShows(helper.asQueryFilters())
-        .then((response: ShowSearchResponse) => {
-            return NextResponse.json({ response }, { status: 200 })
-        })
-        .catch((error: Error) => {
-            console.log(error)
-            return NextResponse.json({ message: error.message }, { status: 500 })
-        });
+        .then((response: ShowSearchResponse) => NextResponse.json({ data: response.data, total: response.total }, { status: 200 }))
+        .catch((error: Error) => NextResponse.json({ message: error.message }, { status: 500 }));
 }

@@ -18,8 +18,6 @@ export async function GET(request: Request, { params }) {
     const helper = await QueryHelper.storePageParams(searchParams, filters, slug);
 
     return getComedianDetailPageData(helper.asQueryFilters())
-        .then((response: ComedianDetailResponse) => {
-            return NextResponse.json({ response }, { status: 200 })
-        })
+        .then((response: ComedianDetailResponse) => NextResponse.json({ response }, { status: 200 }))
         .catch((error: Error) => NextResponse.json({ message: error.message }, { status: 500 }));
 }

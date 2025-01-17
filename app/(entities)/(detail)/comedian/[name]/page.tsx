@@ -2,7 +2,6 @@ import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
 import { APIRoutePath, StyleContextKey } from "@/objects/enum";
 import { CACHE } from "@/util/constants/cacheConstants";
 import { makeRequest } from "@/util/actions/makeRequest";
-import { ComedianDetailPageResponse } from "@/app/api/comedian/[name]/interface";
 import Navbar from "@/ui/components/navbar";
 import { auth } from "@/auth";
 import ComedianDetailHeader from "@/ui/pages/entity/comedian/detailHeader";
@@ -10,6 +9,7 @@ import FooterComponent from "@/ui/pages/home/footer";
 import TableWithHeader from "@/ui/pages/entity/comedian/table";
 import SocialMediaColumn from "@/ui/pages/entity/comedian/socialColumn";
 import { StyleContextProvider } from "@/contexts/StyleProvider";
+import { ComedianDetailResponse } from "@/app/api/comedian/[name]/interface";
 
 export default async function ComedianDetailsPage(props: any) {
     const session = await auth();
@@ -19,7 +19,7 @@ export default async function ComedianDetailsPage(props: any) {
         props.params,
     );
 
-    const { data } = await makeRequest<ComedianDetailPageResponse>(
+    const { data } = await makeRequest<ComedianDetailResponse>(
         APIRoutePath.Comedian + `/${paramsWrapper.asSlug()}`,
         {
             searchParams: paramsWrapper.asUrlSearchParams(),
@@ -39,10 +39,8 @@ export default async function ComedianDetailsPage(props: any) {
                 images={[]}
             />
             <div className="max-w-6xl mx-auto p-6 flex">
-                <TableWithHeader
-                    entityString={JSON.stringify(data.entity.containedEntities)}
-                />
-                <SocialMediaColumn socialData={data.entity.socialData} />
+                <TableWithHeader entityString={JSON.stringify(data.entity)} />
+                <SocialMediaColumn socialData={data.socialData} />
             </div>
             <FooterComponent />
         </main>

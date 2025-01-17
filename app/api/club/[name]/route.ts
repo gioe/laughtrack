@@ -20,9 +20,7 @@ export async function GET(request: Request, { params }) {
         const helper = await QueryHelper.storePageParams(searchParams, filters, slug);
 
         return getClubDetailPageData(helper.asQueryFilters())
-            .then((response: ClubDetailResponse) => {
-                return NextResponse.json({ response }, { status: 200 })
-            })
+            .then((response: ClubDetailResponse) => NextResponse.json({ response }, { status: 200 }))
             .catch((error: Error) => NextResponse.json({ message: error.message }, { status: 500 }));
     } catch (e) {
         console.log(e)

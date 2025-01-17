@@ -20,7 +20,7 @@ export default async function ClubSearchPage(props: any) {
         props.searchParams,
     );
 
-    const { data } = await makeRequest<ClubSearchResponse>(
+    const { data, total } = await makeRequest<ClubSearchResponse>(
         APIRoutePath.ClubSearch,
         {
             searchParams: paramsWrapper.asUrlSearchParams(),
@@ -36,12 +36,12 @@ export default async function ClubSearchPage(props: any) {
 
             <SearchDetailHeader
                 title={`Search clubs`}
-                subTitle={`${data.total} results`}
+                subTitle={`${total} results`}
             />
             <FilterBar>
                 <ClubSearchBar />
             </FilterBar>
-            <ClubGrid contentString={JSON.stringify(data.entities)} />
+            <ClubGrid clubs={data} />
             <FooterComponent />
         </main>
     );

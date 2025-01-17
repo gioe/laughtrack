@@ -37,6 +37,18 @@ export async function findComedians(params: any): Promise<ComedianDTO[]> {
             youtubeFollowers: true,
             website: true,
             popularity: true,
+            lineupItems: {
+                select: {
+                    id: true,
+                },
+                where: {
+                    show: {
+                        date: {
+                            gt: new Date(),
+                        },
+                    },
+                },
+            },
         },
         orderBy: {
             [sortBy]: direction,
@@ -61,5 +73,6 @@ export async function findComedians(params: any): Promise<ComedianDTO[]> {
             website: comedian.website,
             popularity: comedian.popularity,
         },
+        show_count: comedian.lineupItems.length,
     }));
 }

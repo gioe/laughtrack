@@ -20,24 +20,25 @@ export default async function ShowSearchPage(props: any) {
         props.searchParams,
     );
 
-    const { data } = await makeRequest<ShowSearchResponse>(
+    const { data, total } = await makeRequest<ShowSearchResponse>(
         APIRoutePath.ShowSearch,
         {
             searchParams: paramsWrapper.asUrlSearchParams(),
         },
     );
+
     return (
         <main className="min-h-screen w-full bg-ivory">
             <Navbar currentUser={session?.user} />
 
             <SearchDetailHeader
                 title={`Search shows in ${paramsWrapper.getParamValue("city")}`}
-                subTitle={`${data.total} results`}
+                subTitle={`${total} results`}
             />
             <FilterBar>
                 <ShowSearchBar />
             </FilterBar>
-            <ShowTable shows={JSON.stringify(data.entities)} />
+            <ShowTable shows={JSON.stringify(data)} />
             <FooterComponent />
         </main>
     );

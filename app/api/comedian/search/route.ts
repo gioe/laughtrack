@@ -14,8 +14,6 @@ export async function GET(request: Request) {
     const helper = await QueryHelper.storePageParams(searchParams, filters);
 
     return getSearchedComedians(helper.asQueryFilters())
-        .then((response: ComedianSearchResponse) => {
-            return NextResponse.json({ response }, { status: 200 })
-        })
+        .then((response: ComedianSearchResponse) => NextResponse.json({ data: response.data, total: response.total }, { status: 200 }))
         .catch((error: Error) => NextResponse.json({ message: error.message }, { status: 500 }));
 }

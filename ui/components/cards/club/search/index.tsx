@@ -1,34 +1,44 @@
 "use client";
 
 import { Club } from "@/objects/class/club/Club";
+import { ClubDTO } from "@/objects/class/club/club.interface";
 import Image from "next/image";
 import Link from "next/link";
 
 interface ClubSearchCardProps {
-    entity: string;
+    club: ClubDTO;
 }
 
-const ClubSearchCard: React.FC<ClubSearchCardProps> = ({ entity }) => {
-    const club = JSON.parse(entity) as Club;
+const ClubSearchCard: React.FC<ClubSearchCardProps> = ({ club }) => {
+    const parsedClub = new Club(club);
 
     return (
-        <div className="w-full rounded-xl overflow-hidden transition-transform duration-300 hover:scale-105">
-            <div className="relative rounded-xl aspect-square">
+        <div className="bg-ivory rounded-xl overflow-hidden pb-4 px-4">
+            <div className="relative h-64">
                 <Link
-                    href={`/club/${club.name}`}
+                    href={`/club/${parsedClub.name}`}
                     className="block w-full h-full"
                 >
                     <Image
-                        src={club.imageUrl}
-                        alt={club.name}
+                        src={parsedClub.imageUrl}
+                        alt={`${parsedClub.name}`}
                         fill
                         className="object-cover rounded-xl"
+                        sizes="(max-width: 768px) 100vw,
+                               (max-width: 1200px) 50vw,
+                               25vw"
+                        priority={false}
                     />
                 </Link>
             </div>
-            <div className="p-4">
-                <h2 className="text-xl font-bold mb-1">{club.name}</h2>
-                <p className="text-gray-600">{club.address}</p>
+            <div className="mt-4">
+                <h2 className="text-[22px] font-bold mb-1 font-outfit text-center">
+                    {parsedClub.name}
+                </h2>
+
+                <p className="text-[18px] text-gray-600 mb-4 text-center font-dmSans">
+                    {`${parsedClub.address}`}
+                </p>
             </div>
         </div>
     );

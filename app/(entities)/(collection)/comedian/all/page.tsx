@@ -28,6 +28,7 @@ export default async function ComedianSearchPage(props: any) {
             revalidate: CACHE.search,
         },
     );
+
     return (
         <main className="min-h-screen w-full bg-ivory">
             <StyleContextProvider initialContext={StyleContextKey.Search}>
@@ -38,11 +39,12 @@ export default async function ComedianSearchPage(props: any) {
                 title={`Search comedians`}
                 subTitle={`${total} results`}
             />
+
             <FilterBar>
                 <ComedianSearchBar />
             </FilterBar>
             <div className="max-w-7xl mx-auto py-8">
-                <ComedianGrid contentString={JSON.stringify(data)} />
+                <ComedianGrid comedians={data} />
             </div>
             <FooterComponent />
         </main>

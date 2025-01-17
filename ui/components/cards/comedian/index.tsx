@@ -21,7 +21,6 @@ const ComedianGridCard: React.FC<ComedianGridCardProps> = ({ entity }) => {
     const registerModal = useFavoriteRegisterModal();
     const session = useSession();
     const comedian = new Comedian(JSON.parse(entity) as ComedianDTO);
-    console.log(comedian);
 
     const [, setIsOpen] = useState(false);
     const [isFavorite, setIsFavorite] = useState(
@@ -52,7 +51,7 @@ const ComedianGridCard: React.FC<ComedianGridCardProps> = ({ entity }) => {
     }, [registerModal]);
 
     return (
-        <div className="bg-white rounded-xl overflow-hidden">
+        <div className="bg-ivory rounded-xl overflow-hidden pb-4 px-4">
             {/* Image Container */}
             <div className="relative h-64">
                 <Link
@@ -63,7 +62,7 @@ const ComedianGridCard: React.FC<ComedianGridCardProps> = ({ entity }) => {
                         src={comedian.imageUrl}
                         alt={`${comedian.name}`}
                         fill
-                        className="object-cover"
+                        className="object-cover rounded-xl"
                         sizes="(max-width: 768px) 100vw,
                                (max-width: 1200px) 50vw,
                                25vw"
@@ -84,11 +83,11 @@ const ComedianGridCard: React.FC<ComedianGridCardProps> = ({ entity }) => {
 
             {/* Content Container */}
             <div className="mt-4">
-                <h2 className="text-[22px] font-bold mb-1 font-outfit">
+                <h2 className="text-[22px] font-bold mb-1 font-outfit text-center">
                     {comedian.name}
                 </h2>
 
-                <p className="text-[18px] text-gray-600 mb-4">
+                <p className="text-[18px] text-gray-600 mb-4 text-center font-dmSans">
                     {`${comedian.showCount ?? 0} upcoming shows`}
                 </p>
 

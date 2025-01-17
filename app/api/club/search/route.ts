@@ -13,8 +13,6 @@ export async function GET(request: Request) {
     const helper = await QueryHelper.storePageParams(searchParams, filters);
 
     return getSearchedClubs(helper.asQueryFilters())
-        .then((response: ClubSearchResponse) => {
-            return NextResponse.json({ response }, { status: 200 })
-        })
+        .then((response: ClubSearchResponse) => NextResponse.json({ data: response.data, total: response.total }, { status: 200 }))
         .catch((error: Error) => NextResponse.json({ message: error.message }, { status: 500 }));
 }

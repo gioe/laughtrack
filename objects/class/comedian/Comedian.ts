@@ -22,9 +22,7 @@ export class Comedian implements ComedianInterface {
     constructor(input: ComedianDTO) {
         this.name = input.name
         this.containedEntities = input.dates !== undefined ? input.dates.map((dto: ShowDTO) => new Show(dto)) : []
-        console.log(`${JSON.stringify(input.social_data)} is the DTO`)
         this.socialData = input.social_data !== undefined ? new SocialData(input.social_data) : undefined;
-        console.log(`${JSON.stringify(this.socialData)} is the resolved`)
         this.tagIds = input.tags ? input.tags : [];
         this.isFavorite = input.is_favorite ?? false
         this.id = input.id ?? 0

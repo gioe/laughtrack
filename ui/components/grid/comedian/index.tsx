@@ -5,17 +5,15 @@ import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import ComedianGridCard from "../../cards/comedian";
 
 interface ComedianGridProps {
-    contentString: string;
+    comedians: ComedianDTO[];
 }
-const ComedianGrid = ({ contentString }: ComedianGridProps) => {
-    const gridComedians = JSON.parse(contentString) as ComedianDTO[];
-
+const ComedianGrid = ({ comedians }: ComedianGridProps) => {
     return (
         <div className="mx-24 my-12">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {gridComedians.map((comedian, index) => (
+                {comedians.map((comedian, index) => (
                     <ComedianGridCard
-                        key={comedian.name}
+                        key={index.toString()}
                         entity={JSON.stringify(comedian)}
                     />
                 ))}

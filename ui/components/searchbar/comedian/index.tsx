@@ -64,7 +64,7 @@ export default function ComedianSearchBar() {
                     placeholder="Search for comedian"
                     value={clubQuery}
                     onChange={handleSearch}
-                    className="border-gray-200 pr-4 bg-ivory ring-transparent focus:ring-transparent 
+                    className="border-gray-200 bg-ivory ring-transparent focus:ring-transparent 
     shadow-none border-transparent focus:outline-none outline-none"
                 />
             </div>
