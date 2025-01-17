@@ -11,6 +11,8 @@ import FooterComponent from "@/ui/pages/home/footer";
 import ComedianGrid from "@/ui/components/grid/comedian";
 import SearchDetailHeader from "@/ui/pages/search/detailHeader";
 import { StyleContextProvider } from "@/contexts/StyleProvider";
+import ShowSearchBar from "@/ui/components/searchbar/show/home";
+import ComedianSearchBar from "@/ui/components/searchbar/comedian";
 
 export default async function ComedianSearchPage(props: any) {
     const session = await auth();
@@ -37,7 +39,9 @@ export default async function ComedianSearchPage(props: any) {
                 title={`Search comedians`}
                 subTitle={`${data.total} results`}
             />
-            <FilterBar />
+            <FilterBar>
+                <ComedianSearchBar />
+            </FilterBar>
             <div className="max-w-7xl mx-auto py-8">
                 <ComedianGrid contentString={JSON.stringify(data.entities)} />
             </div>

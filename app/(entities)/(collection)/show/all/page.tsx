@@ -11,6 +11,7 @@ import FilterBar from "@/ui/pages/search/filterBar";
 import ShowTable from "@/ui/pages/search/table";
 import FooterComponent from "@/ui/pages/home/footer";
 import SearchDetailHeader from "@/ui/pages/search/detailHeader";
+import ShowSearchBar from "@/ui/components/searchbar/show/search";
 
 export default async function ShowSearchPage(props: any) {
     const session = await auth();
@@ -33,7 +34,9 @@ export default async function ShowSearchPage(props: any) {
                 title={`Search shows in ${paramsWrapper.getParamValue("city")}`}
                 subTitle={`${data.total} results`}
             />
-            <FilterBar />
+            <FilterBar>
+                <ShowSearchBar />
+            </FilterBar>
             <ShowTable shows={JSON.stringify(data.entities)} />
             <FooterComponent />
         </main>

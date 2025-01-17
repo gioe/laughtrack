@@ -11,6 +11,7 @@ import { auth } from "@/auth";
 import ClubGrid from "@/ui/components/grid/club";
 import SearchDetailHeader from "@/ui/pages/search/detailHeader";
 import { StyleContextProvider } from "@/contexts/StyleProvider";
+import ClubSearchBar from "@/ui/components/searchbar/club";
 
 export default async function ClubSearchPage(props: any) {
     const session = await auth();
@@ -37,7 +38,9 @@ export default async function ClubSearchPage(props: any) {
                 title={`Search clubs`}
                 subTitle={`${data.total} results`}
             />
-            <FilterBar />
+            <FilterBar>
+                <ClubSearchBar />
+            </FilterBar>
             <ClubGrid contentString={JSON.stringify(data.entities)} />
             <FooterComponent />
         </main>

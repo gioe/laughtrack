@@ -1,0 +1,116 @@
+"use client";
+
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { useCityContext } from "@/contexts/CityProvider";
+import { MapPin, Theater, Users } from "lucide-react";
+import { CityDTO } from "@/lib/data/cities/getCities";
+import { useStyleContext } from "@/contexts/StyleProvider";
+import {
+    ParamsDictValue,
+    SearchParamsHelper,
+    URLParam,
+} from "@/objects/class/params/SearchParamsHelper";
+import { Navigator } from "@/objects/class/navigate/Navigator";
+import DropdownComponent from "@/ui/components/dropdown";
+import TextInputComponent from "@/ui/components/input/search/text/input";
+import CalendarFormComponent, { DateRange } from "@/ui/components/calendar";
+
+export default function ShowSearchBar() {
+    const { getCurrentStyles } = useStyleContext();
+    const styleConfig = getCurrentStyles();
+
+    const cityList = useCityContext();
+
+    const paramsHelper = new SearchParamsHelper(useSearchParams());
+    const navigator = new Navigator(usePathname(), useRouter());
+    const currentSelection = paramsHelper.getParamValue("city") as string;
+    const currentQuery = paramsHelper.getParamValue("query") as string;
+
+    const currentDateRange = {
+        from: new Date(paramsHelper.getParamValue("from_date") as string),
+        to: new Date(paramsHelper.getParamValue("to_date") as string),
+    };
+
+    const [selectedValue, setSelectedValue] = useState(currentSelection);
+    const [dateRange, setSelectedDateRange] = useState(currentDateRange);
+    const [comedianQuery, setComedianQuery] = useState(currentQuery);
+
+    const selectableCities = cityList.cities.map((city: CityDTO) => ({
+        id: city.id,
+        value: city.name,
+        display: city.name,
+    }));
+
+    function handleSearch(value: string) {
+        const map = new Map<URLParam, ParamsDictValue>();
+        map.set("query", value);
+        setComedianQuery(value);
+        paramsHelper.updateParamsFromMap(map);
+        navigator.replaceRoute(paramsHelper.asParamsString());
+    }
+
+    function setDateRange(value?: DateRange) {
+        const map = new Map<URLParam, ParamsDictValue>();
+        map.set("from_date", value?.from ?? "");
+        map.set("to_date", value?.to ?? "");
+        setSelectedDateRange({
+            from: value?.from ?? new Date(),
+            to: value?.to ?? new Date(),
+        });
+        paramsHelper.updateParamsFromMap(map);
+        navigator.replaceRoute(paramsHelper.asParamsString());
+    }
+
+    function handleSelection(value: string) {
+        const map = new Map<URLParam, ParamsDictValue>();
+        map.set("city", value);
+        setSelectedValue(value);
+        paramsHelper.updateParamsFromMap(map);
+        navigator.replaceRoute(paramsHelper.asParamsString());
+    }
+
+    return (
+        <div className="flex items-center bg-ivory rounded-full border border-gray-200 px-4 py-2 shadow-sm max-w-xl w-full">
+            {/* Location input */}
+            <div className="flex items-center flex-1 border-r border-gray-200 pr-4">
+                <DropdownComponent
+                    icon={
+                        <MapPin
+                            className={`w-5 h-5 ${styleConfig.iconTextColor}`}
+                        />
+                    }
+                    name="city"
+                    placeholder="City"
+                    items={selectableCities}
+                    onChange={handleSelection}
+                    value={selectedValue}
+                />
+            </div>
+
+            <div className="w-5/12 pl-6 py-4">
+                <CalendarFormComponent
+                    name="dates"
+                    value={dateRange}
+                    onValueChange={(newRange) => setDateRange(newRange)}
+                />
+            </div>
+
+            {/* Date input */}
+            <div className="flex items-center flex-1 px-4">
+                <TextInputComponent
+                    icon={
+                        <Users
+                            className={`w-5 h-5 ${styleConfig.iconTextColor}`}
+                        />
+                    }
+                    placeholder="Search for club"
+                    value={comedianQuery}
+                    onChange={handleSearch}
+                    className="border-gray-200 pr-4 bg-ivory ring-transparent focus:ring-transparent 
+    shadow-none border-transparent focus:outline-none outline-none"
+                />
+            </div>
+        </div>
+    );
+}

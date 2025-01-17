@@ -10,7 +10,8 @@ export const determineDate = (dateString: string): number => {
     return Number(numberString);
 };
 
-export const formatDateRange = (range: DateRange): string => {
+export const formatDateRange = (range?: DateRange): string => {
+    if (!range) { throw new Error() }
     const { from, to } = range;
 
     if (!to) {

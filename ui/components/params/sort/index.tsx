@@ -57,7 +57,7 @@ export function SortParamComponent() {
                 <div>
                     <MenuButton
                         className="group flex items-center justify-between rounded-lg gap-2
-                    text-copper font-inter hover:bg-gray-50"
+                    text-copper font-dmSans hover:bg-gray-50"
                     >
                         <MenuIcon size={20} />
                         <span className="hidden sm:inline pr-3">Sort by:</span>

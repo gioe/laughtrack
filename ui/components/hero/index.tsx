@@ -1,4 +1,4 @@
-import ShowSearchBar from "@/ui/components/searchbar";
+import ShowSearchForm from "@/ui/components/searchbar/show/home";
 
 interface HeroContentProps {
     title: string;
@@ -14,7 +14,7 @@ export default function HeroContent({ title, subtitle }: HeroContentProps) {
             <p className="text-gray-200 text-xl mb-12 max-w-3xl font-chivo">
                 {subtitle}
             </p>
-            <ShowSearchBar />
+            <ShowSearchForm />
         </div>
     );
 }

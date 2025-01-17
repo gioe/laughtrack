@@ -2,26 +2,26 @@
 
 import { z } from "zod";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { showSearchFormSchema } from "./schema";
 import { useState } from "react";
-import { Navigator } from "../../../objects/class/navigate/Navigator";
+import { Navigator } from "../../../../../objects/class/navigate/Navigator";
 import {
     ParamsDictValue,
     SearchParamsHelper,
     URLParam,
-} from "../../../objects/class/params/SearchParamsHelper";
+} from "../../../../../objects/class/params/SearchParamsHelper";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useCityContext } from "@/contexts/CityProvider";
-import { Form } from "../ui/form";
-import { DropdownFormComponent } from "@/ui/components/dropdown";
+import { Form } from "../../../ui/form";
+import { DropdownComponent } from "@/ui/components/dropdown";
 import CalendarFormComponent from "@/ui/components/calendar";
 import { CircleIconButton } from "@/ui/components/button/circleIcon";
-import { Search } from "lucide-react";
+import { MapPin, Search } from "lucide-react";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import { CityDTO } from "@/lib/data/cities/getCities";
+import { showSearchFormSchema } from "./schema";
 
-export default function ShowSearchBar() {
+export default function ShowSearchForm() {
     const cityList = useCityContext();
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
@@ -67,7 +67,12 @@ export default function ShowSearchBar() {
                 >
                     {/* City Selection Dropdown */}
                     <div className="w-5/12 px-6 py-4 border-r border-gray-600/50">
-                        <DropdownFormComponent
+                        <DropdownComponent
+                            icon={
+                                <MapPin
+                                    className={`w-5 h-5 ${styleConfig.iconTextColor}`}
+                                />
+                            }
                             name="city"
                             placeholder="City"
                             items={selectableCities}
