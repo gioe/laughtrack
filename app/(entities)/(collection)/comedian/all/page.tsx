@@ -28,9 +28,8 @@ export default async function ComedianSearchPage(props: any) {
             revalidate: CACHE.search,
         },
     );
-
     return (
-        <main className="min-h-screen w-full mx-auto bg-ivory">
+        <main className="min-h-screen w-full bg-ivory">
             <StyleContextProvider initialContext={StyleContextKey.Search}>
                 <Navbar currentUser={session?.user} />
             </StyleContextProvider>

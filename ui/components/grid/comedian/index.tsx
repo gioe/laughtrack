@@ -11,15 +11,15 @@ const ComedianGrid = ({ contentString }: ComedianGridProps) => {
     const gridComedians = JSON.parse(contentString) as ComedianDTO[];
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-20 gap-y-20">
-            {gridComedians.map((dto) => {
-                return (
+        <div className="mx-24 my-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {gridComedians.map((comedian, index) => (
                     <ComedianGridCard
-                        key={dto.name}
-                        entity={JSON.stringify(dto)}
+                        key={comedian.name}
+                        entity={JSON.stringify(comedian)}
                     />
-                );
-            })}
+                ))}
+            </div>
         </div>
     );
 };

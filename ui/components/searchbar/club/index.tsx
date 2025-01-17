@@ -80,8 +80,7 @@ export default function ClubSearchBar() {
                     placeholder="Search for club"
                     value={clubQuery}
                     onChange={handleSearch}
-                    className="border-gray-200 pr-4 bg-ivory ring-transparent focus:ring-transparent 
-    shadow-none border-transparent focus:outline-none outline-none"
+                    className="border-gray-200 pr-4 bg-ivory ring-transparent focus:ring-transparent shadow-none border-transparent"
                 />
             </div>
         </div>

@@ -11,7 +11,7 @@ const ClubGrid = ({ contentString }: ClubGridProps) => {
     const clubs = JSON.parse(contentString) as ClubDTO[];
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 mx-28 gap-x-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 mx-28 gap-x-20 bg-red-800">
             {clubs.map((dto) => {
                 const club = new Club(dto);
                 return (

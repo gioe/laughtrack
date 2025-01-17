@@ -25,7 +25,6 @@ const ComedianGridCard: React.FC<ComedianGridCardProps> = ({ entity }) => {
     const [isFavorite, setIsFavorite] = useState(
         comedian.isFavorite ? true : false,
     );
-
     const handleFavoriteClick = async (e: React.MouseEvent) => {
         // Prevent the link navigation when clicking the heart
         e.stopPropagation();
@@ -51,9 +50,9 @@ const ComedianGridCard: React.FC<ComedianGridCardProps> = ({ entity }) => {
     }, [registerModal]);
 
     return (
-        <div className="w-full rounded-xl items-center text-center transition-transform duration-300 hover:scale-105 hover:cursor-pointer">
+        <div className="bg-white rounded-xl overflow-hidden">
             {/* Image Container */}
-            <div className="relative rounded-xl aspect-square overflow-hidden">
+            <div className="relative h-64">
                 <Link
                     href={`/comedian/${comedian.name}`}
                     className="block w-full h-full"
@@ -62,9 +61,11 @@ const ComedianGridCard: React.FC<ComedianGridCardProps> = ({ entity }) => {
                         src={comedian.imageUrl}
                         alt={`${comedian.name}`}
                         fill
-                        className="object-cover rounded-xl"
-                        sizes="280px"
-                        priority
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw,
+                               (max-width: 1200px) 50vw,
+                               25vw"
+                        priority={false}
                     />
                 </Link>
                 <button
@@ -81,11 +82,11 @@ const ComedianGridCard: React.FC<ComedianGridCardProps> = ({ entity }) => {
 
             {/* Content Container */}
             <div className="mt-4">
-                <h2 className="text-[22px] font-bold mb-2 font-outfit">
+                <h2 className="text-[22px] font-bold mb-1 font-outfit">
                     {comedian.name}
                 </h2>
 
-                <p className="text-[18px] text-gray-600 mb-6">
+                <p className="text-[18px] text-gray-600 mb-4">
                     {`${comedian.showCount ?? 0} upcoming shows`}
                 </p>
 

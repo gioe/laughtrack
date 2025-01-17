@@ -40,8 +40,7 @@ export function DropdownComponent(props: DropdownProps) {
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
 
-    const baseClasses = "text-xl rounded-lg";
-    const formControlClasses = `${baseClasses} lg:h-12 ${styleConfig.iconTextColor} ring-transparent focus:ring-transparent 
+    const formControlClasses = `text-xl rounded-lg lg:h-12 font-dmSams  text-[16px] ${styleConfig.iconTextColor} ring-transparent focus:ring-transparent 
     shadow-none border-transparent focus:outline-none outline-none`;
 
     // Common wrapper for the select content

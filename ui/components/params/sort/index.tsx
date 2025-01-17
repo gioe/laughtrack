@@ -34,8 +34,8 @@ export function SortParamComponent() {
 
     const determineStyling = (option: SortOptionInterface) => {
         return evaluateEquivalence(option, selectedSortingOption)
-            ? "font-inter text-gray-900 cursor-pointer"
-            : "font-inter text-gray-500";
+            ? "font-dmSans text-gray-900 cursor-pointer"
+            : "font-dmSans text-gray-500";
     };
 
     const modifySortParam = (sortValue: SortOptionInterface) => {
@@ -57,7 +57,7 @@ export function SortParamComponent() {
                 <div>
                     <MenuButton
                         className="group flex items-center justify-between rounded-lg gap-2
-                    text-copper font-dmSans hover:bg-gray-50"
+                    text-copper font-dmSans text-[16px] hover:bg-gray-50"
                     >
                         <MenuIcon size={20} />
                         <span className="hidden sm:inline pr-3">Sort by:</span>
