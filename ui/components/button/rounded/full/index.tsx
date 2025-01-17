@@ -1,6 +1,5 @@
 "use client";
 
-import { useStyleContext } from "@/contexts/StyleProvider";
 import Link from "next/link";
 import { twMerge } from "tailwind-merge";
 
@@ -10,6 +9,7 @@ interface FullRoundedButtonProps {
     label: string;
     isLoading?: boolean;
     type?: "submit" | "reset" | "button";
+    color?: string;
 }
 
 export function FullRoundedButton({
@@ -18,10 +18,8 @@ export function FullRoundedButton({
     isLoading,
     type = "submit",
     href = undefined,
+    color = "bg-copper",
 }: FullRoundedButtonProps) {
-    const { getCurrentStyles } = useStyleContext();
-    const styleConfig = getCurrentStyles();
-
     const baseClasses =
         "px-6 py-2 text-white rounded-lg transition-colors duration-200 font-medium font-dmSans";
 
@@ -34,7 +32,7 @@ export function FullRoundedButton({
                     handleClick();
                 }
             }}
-            className={twMerge(baseClasses, styleConfig.buttonBgColor)}
+            className={twMerge(baseClasses, color)}
         >
             {label}
         </button>
