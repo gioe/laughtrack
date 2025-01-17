@@ -1,16 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import {
-    useFavoriteRegisterModal,
-    useLoginModal,
-    useRegisterModal,
-} from "@/hooks/modalState";
+import { useLoginModal, useRegisterModal } from "@/hooks/modalState";
 import LaughtrackSignup from "@/ui/pages/register";
 import FullScreenModal from "../fullscreen";
 
-const FavoriteRegisterModal = () => {
-    const registerModal = useFavoriteRegisterModal();
+const RegisterModal = () => {
+    const registerModal = useRegisterModal();
     const loginModal = useLoginModal();
     const router = useRouter();
 
@@ -32,10 +28,10 @@ const FavoriteRegisterModal = () => {
             <LaughtrackSignup
                 handleLoginPick={showLoginPage}
                 handleSubmit={onSubmit}
-                subtitle="Create an account to save Favorites"
+                subtitle="Fill in the fields to create your account."
             />
         </FullScreenModal>
     );
 };
 
-export default FavoriteRegisterModal;
+export default RegisterModal;

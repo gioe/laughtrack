@@ -12,11 +12,13 @@ import RegistrationForm from "@/ui/components/form/register";
 interface LaughtrackSignupProps {
     handleLoginPick: () => void;
     handleSubmit: () => void;
+    subtitle: string;
 }
 
 export default function LaughtrackSignup({
     handleLoginPick,
     handleSubmit,
+    subtitle,
 }: LaughtrackSignupProps) {
     const form = useForm<z.infer<typeof registerSchema>>({
         resolver: zodResolver(registerSchema),
@@ -50,7 +52,7 @@ export default function LaughtrackSignup({
                                 Welcome
                             </h2>
                             <p className="text-gray-600 font-dmSans text-[16px]">
-                                Fill in the fields to create your account.
+                                {subtitle}
                             </p>
                         </div>
                         <RegistrationForm onSubmit={handleSubmit} />

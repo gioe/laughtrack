@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { getTags } from "@/lib/data/tags/getTags";
-import { db } from "@/lib/db";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { EntityType } from "@/objects/enum";
 import { NextResponse } from "next/server";

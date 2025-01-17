@@ -1,4 +1,3 @@
-import { Show } from "@/objects/class/show/Show";
 import { ShowDTO } from "@/objects/class/show/show.interface";
 import ShowCard from "@/ui/components/cards/show";
 

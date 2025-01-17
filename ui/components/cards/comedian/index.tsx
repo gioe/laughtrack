@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import { useState, useCallback } from "react";
 import { HeartIcon as OutlineHeart } from "@heroicons/react/24/outline";
 import { HeartIcon as SolidHeart } from "@heroicons/react/24/solid";
-import { useRegisterModal } from "@/hooks/modalState";
+import { useFavoriteRegisterModal } from "@/hooks/modalState";
 import { Comedian } from "@/objects/class/comedian/Comedian";
 import Image from "next/image";
 import Link from "next/link";
@@ -18,7 +18,7 @@ interface ComedianGridCardProps {
 }
 
 const ComedianGridCard: React.FC<ComedianGridCardProps> = ({ entity }) => {
-    const registerModal = useRegisterModal();
+    const registerModal = useFavoriteRegisterModal();
     const session = useSession();
     const comedian = new Comedian(JSON.parse(entity) as ComedianDTO);
     const [, setIsOpen] = useState(false);

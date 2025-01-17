@@ -2,9 +2,7 @@
 
 import React from "react";
 import moment from "moment";
-
 import Image from "next/image";
-import { Club } from "@/objects/class/club/Club";
 import { Show } from "@/objects/class/show/Show";
 import { formatShowDate } from "@/util/dateUtil";
 
