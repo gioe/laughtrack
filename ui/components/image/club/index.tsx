@@ -36,14 +36,10 @@ const ClubMarquee = ({
     type = "rounded",
     size = "m",
 }: ClubMarqueeProps) => {
-    const [src, setSrc] = useState(club.cardImageUrl);
+    const [src, setSrc] = useState(club.imageUrl);
 
     const handleImageError = () => {
-        const defaultImageUrl = new URL(
-            `logo.png`,
-            `https://${process.env.BUNNYCDN_CDN_HOST}/`,
-        );
-        setSrc(defaultImageUrl);
+        setSrc("");
     };
 
     const ImageComponent = () => (

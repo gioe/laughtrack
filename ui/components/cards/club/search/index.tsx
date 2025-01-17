@@ -19,7 +19,7 @@ const ClubSearchCard: React.FC<ClubSearchCardProps> = ({ entity }) => {
                     className="block w-full h-full"
                 >
                     <Image
-                        src={club.cardImageUrl?.toString() ?? ""}
+                        src={club.imageUrl}
                         alt={club.name}
                         fill
                         className="object-cover rounded-xl"

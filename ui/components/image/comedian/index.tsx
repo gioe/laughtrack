@@ -43,14 +43,10 @@ const ComedianHeadshot = ({
     priority = true,
     shouldAnimate = true,
 }: ComedianHeadshotProps) => {
-    const [src, setSrc] = useState(comedian.cardImageUrl);
+    const [src, setSrc] = useState(comedian.imageUrl);
 
     const handleImageError = () => {
-        const defaultImageUrl = new URL(
-            `logo.png`,
-            `https://${process.env.BUNNYCDN_CDN_HOST}/`,
-        );
-        setSrc(defaultImageUrl);
+        setSrc("");
     };
 
     // Determine if we need the pulsating border

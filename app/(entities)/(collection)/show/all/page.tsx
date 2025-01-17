@@ -28,9 +28,8 @@ export default async function ShowSearchPage(props: any) {
     );
     return (
         <main className="min-h-screen w-full bg-ivory">
-            <StyleContextProvider initialContext={StyleContextKey.Search}>
-                <Navbar currentUser={session?.user} />
-            </StyleContextProvider>
+            <Navbar currentUser={session?.user} />
+
             <SearchDetailHeader
                 title={`Search shows in ${paramsWrapper.getParamValue("city")}`}
                 subTitle={`${data.total} results`}

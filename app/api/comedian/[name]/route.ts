@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { getTags } from "@/lib/data/tags/get";
+import { getTags } from "@/lib/data/tags/getTags";
 import { db } from "@/lib/db";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { EntityType } from "@/objects/enum";
 import { ComedianDetailDTO, ComedianDetailPageData } from "./interface";
 import { Comedian } from "@/objects/class/comedian/Comedian";
 import { NextResponse } from "next/server";
-import { getComedianDetailPageData } from "@/lib/data/comedian/detail/get";
+import { getComedianDetailPageData } from "@/lib/data/comedian/getComedianDetailPageData";
 
 
 export async function GET(request: Request, { params }) {

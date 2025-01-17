@@ -1,0 +1,65 @@
+import { db } from "@/lib/db";
+import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
+import { buildComedianImageUrl } from "@/util/imageUtil";
+
+export async function findComedians(params: any): Promise<ComedianDTO[]> {
+    const { query, tagsEmpty, tags, sortBy, direction, size, offset } = params;
+
+    const filteredComedians = await db.comedian.findMany({
+        where: {
+            name: {
+                contains: query,
+                mode: "insensitive",
+            },
+            ...(!tagsEmpty
+                ? {
+                      taggedComedians: {
+                          some: {
+                              tag: {
+                                  value: {
+                                      in: tags,
+                                  },
+                              },
+                          },
+                      },
+                  }
+                : {}),
+        },
+        select: {
+            id: true,
+            name: true,
+            linktree: true,
+            instagramAccount: true,
+            instagramFollowers: true,
+            tiktokAccount: true,
+            tiktokFollowers: true,
+            youtubeAccount: true,
+            youtubeFollowers: true,
+            website: true,
+            popularity: true,
+        },
+        orderBy: {
+            [sortBy]: direction,
+        },
+        take: Number(size),
+        skip: offset,
+    });
+
+    return filteredComedians.map((comedian) => ({
+        id: comedian.id,
+        name: comedian.name,
+        imageUrl: buildComedianImageUrl(comedian.name),
+        social_data: {
+            id: comedian.id,
+            linktree: comedian.linktree,
+            instagram_account: comedian.instagramAccount,
+            instagram_followers: comedian.instagramFollowers,
+            tiktok_account: comedian.tiktokAccount,
+            tiktok_followers: comedian.tiktokFollowers,
+            youtube_account: comedian.youtubeAccount,
+            youtube_followers: comedian.youtubeFollowers,
+            website: comedian.website,
+            popularity: comedian.popularity,
+        },
+    }));
+}

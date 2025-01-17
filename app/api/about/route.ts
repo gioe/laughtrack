@@ -1,4 +1,4 @@
-import { getStats } from "@/lib/data/stats/get";
+import { getStats } from "@/lib/data/stats/getStats";
 import { StatsDTO } from "@/app/api/about/interface";
 import { NextResponse } from "next/server";
 

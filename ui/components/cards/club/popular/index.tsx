@@ -15,7 +15,7 @@ const PopularClubCard: React.FC<PopularClubCardProps> = ({ entity }) => {
             {/* Image Container */}
             <div className="relative w-[218px] h-[218px] rounded-2xl overflow-hidden mb-4">
                 <Image
-                    src={club.cardImageUrl?.toString() ?? ""}
+                    src={club.imageUrl}
                     alt={club.name}
                     width={218}
                     height={218}

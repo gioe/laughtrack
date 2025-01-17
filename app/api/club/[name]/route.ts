@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { getTags } from "@/lib/data/tags/get";
+import { getTags } from "@/lib/data/tags/getTags";
 import { Club } from "@/objects/class/club/Club";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { EntityType } from "@/objects/enum";
 import { ClubDetailDTO, ClubDetailPageData } from "./interface";
 import { NextResponse } from "next/server";
-import { getClubDetailPageData } from "@/lib/data/club/detail/get";
+import { getClubDetailPageData } from "@/lib/data/club/getClubDetailPageData";
 
 
 export async function GET(request: Request, { params }) {
@@ -21,7 +21,6 @@ export async function GET(request: Request, { params }) {
 
         return getClubDetailPageData(helper.asQueryFilters())
             .then((response: ClubDetailDTO) => {
-                console.log(response)
                 const data = {
                     entity: new Club(response.response.data),
                     total: response.response.total

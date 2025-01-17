@@ -20,7 +20,7 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({ clubString }) => {
                 <div className="flex items-center justify-between max-w-6xl mx-auto">
                     <div className="flex items-center gap-4">
                         <img
-                            src={club.cardImageUrl?.toString()}
+                            src={club.imageUrl}
                             alt={`${club.name} logo`}
                             className="w-16 h-16 rounded-full"
                         />

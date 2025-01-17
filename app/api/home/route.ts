@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { HomePageDTO } from "./interface";
-import { getHomePageData } from "@/lib/data/home/get";
+import { getHomePageData } from "@/lib/data/home/getHomePageData";
 
 export async function GET(request: Request) {
     const headersList = await headers();

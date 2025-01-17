@@ -16,7 +16,6 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
     show,
 }: ShowCardHeaderProps) => {
     const dateObject = moment(new Date(show.date ?? new Date()));
-    const club = new Club({ name: show.clubName });
     const ticket = show.ticket;
 
     return (
@@ -24,8 +23,8 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
             {/* Venue Logo */}
             <div className="relative w-16 h-16 rounded-full overflow-hidden">
                 <Image
-                    src={club.cardImageUrl?.toString() ?? ""}
-                    alt={club.name}
+                    src={show.imageUrl}
+                    alt={show.clubName ?? "Club logo"}
                     fill
                     className="object-cover"
                 />
@@ -34,7 +33,7 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
             {/* Venue Details */}
             <div>
                 <h2 className="text-xl font-bold text-[#2D1810] mb-1">
-                    {club.name}
+                    {show.clubName ?? ""}
                 </h2>
                 <p className="text-gray-600">
                     {formatShowDate(show.date.toString())} · {`${show.address}`}

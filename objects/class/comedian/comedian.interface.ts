@@ -15,7 +15,7 @@ export interface ComedianInterface
 // DB
 export interface ComedianDTO {
     name: string;
-    imageUrl: URL
+    imageUrl: string
     uuid?: string;
     id?: number
     userId?: number;

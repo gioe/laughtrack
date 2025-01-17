@@ -13,7 +13,7 @@ import {
 import type { Metadata } from "next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { CityProvider } from "@/contexts/CityProvider";
-import { getCities } from "@/lib/data/cities/get";
+import { getCities } from "@/lib/data/cities/getCities";
 import ToasterProvider from "@/ui/components/providers/toaster";
 import LoginModal from "@/ui/components/modals/login";
 import RegisterModal from "@/ui/components/modals/register";
@@ -71,6 +71,7 @@ export default async function RootLayout({
     children: React.ReactNode;
 }>) {
     const cities = await getCities();
+
     return (
         <SessionProvider>
             <html

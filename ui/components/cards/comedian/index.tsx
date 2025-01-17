@@ -11,6 +11,7 @@ import Link from "next/link";
 import { makeRequest } from "@/util/actions/makeRequest";
 import { APIRoutePath, RestAPIAction } from "@/objects/enum";
 import SocialMediaBar from "../../social/bar";
+import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 
 interface ComedianGridCardProps {
     entity: string;
@@ -19,7 +20,7 @@ interface ComedianGridCardProps {
 const ComedianGridCard: React.FC<ComedianGridCardProps> = ({ entity }) => {
     const registerModal = useRegisterModal();
     const session = useSession();
-    const comedian = JSON.parse(entity) as Comedian;
+    const comedian = new Comedian(JSON.parse(entity) as ComedianDTO);
     const [, setIsOpen] = useState(false);
     const [isFavorite, setIsFavorite] = useState(
         comedian.isFavorite ? true : false,
@@ -58,7 +59,7 @@ const ComedianGridCard: React.FC<ComedianGridCardProps> = ({ entity }) => {
                     className="block w-full h-full"
                 >
                     <Image
-                        src={comedian.cardImageUrl.toString()}
+                        src={comedian.imageUrl}
                         alt={`${comedian.name}`}
                         fill
                         className="object-cover rounded-xl"

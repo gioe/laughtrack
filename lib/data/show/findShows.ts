@@ -1,43 +1,55 @@
+
 import { db } from "@/lib/db"
+import { ShowDTO } from "@/objects/class/show/show.interface"
+import { buildClubImageUrl, buildComedianImageUrl } from "@/util/imageUtil"
 
-const buildComedianImageUrl = (name: string) => {
-    return (
-        new URL(
-            `/comedians/${name}.png`,
-            `https://${process.env.BUNNYCDN_CDN_HOST}/`,
-        ) ?? new URL(`logo.png`, `https://${process.env.BUNNYCDN_CDN_HOST}/`)
-    );
-};
+export async function findShows(params: any): Promise<ShowDTO[]> {
 
-export async function getSearchedShows(params: any) {
-    // Get total count first
-    const totalCount = await db.show.count({
+    const { userId, from_date, clubName, comedianName,
+        to_date, city, tags, tagsEmpty, direction,
+        size, offset, sortBy, showIds } = params
+
+    const filteredShows = await db.show.findMany({
         where: {
             club: {
+                ...(clubName ? {
+                    name: clubName,
+                } : {}),
                 city: {
-                    name: params.city
+                    name: city
                 }
             },
+            ...(showIds ? {
+                id: {
+                    in: showIds,
+                },
+            } : {}),
+            ...(comedianName ?
+                {
+                    lineupItems: {
+                        some: {
+                            comedian: {
+                                name: comedianName,
+                            },
+                        },
+                    },
+                } : {}),
             date: {
-                gte: new Date(params.from_date).toISOString(),
-                lte: new Date(params.to_date).toISOString(),
+                gte: from_date ? new Date(from_date).toISOString() : new Date().toISOString(),
+                ...(to_date ? { lte: new Date(to_date).toISOString() } : {})
             },
-            ...(!params.tagsEmpty ? {
+            ...(!tagsEmpty ? {
                 taggedShows: {
                     some: {
                         tag: {
                             value: {
-                                in: params.tags
+                                in: tags
                             }
                         }
                     }
                 }
             } : {})
-        }
-    })
-
-    // Get filtered shows with related data
-    const shows = await db.show.findMany({
+        },
         select: {
             id: true,
             name: true,
@@ -69,10 +81,10 @@ export async function getSearchedShows(params: any) {
                                     id: true
                                 }
                             },
-                            ...(params.userId ? {
+                            ...(userId ? {
                                 favoriteComedians: {
                                     where: {
-                                        userId: Number(params.userId)
+                                        userId: Number(userId)
                                     },
                                     select: {
                                         id: true
@@ -84,37 +96,14 @@ export async function getSearchedShows(params: any) {
                 }
             }
         },
-        where: {
-            club: {
-                city: {
-                    name: params.city
-                }
-            },
-            date: {
-                gte: new Date(params.from_date).toISOString(),
-                lte: new Date(params.to_date).toISOString(),
-            },
-            ...(!params.tagsEmpty ? {
-                taggedShows: {
-                    some: {
-                        tag: {
-                            value: {
-                                in: params.tags
-                            }
-                        }
-                    }
-                }
-            } : {})
-        },
         orderBy: {
-            [params.sortBy]: params.direction
+            [sortBy]: direction
         },
-        take: Number(params.size),
-        skip: params.offset
+        take: Number(size),
+        skip: offset,
     })
 
-    // Transform the data to match the original SQL output structure
-    const formattedShows = shows.map(show => ({
+    return filteredShows.map(show => ({
         id: show.id,
         date: show.date,
         name: show.name,
@@ -122,22 +111,16 @@ export async function getSearchedShows(params: any) {
             price: show.ticketPrice,
             link: show.ticketPurchaseUrl
         },
-        club_address: show.club.address,
-        club_name: show.club.name,
+        address: show.club.address,
+        clubName: show.club.name,
+        imageUrl: buildClubImageUrl(show.club.name),
         scrapedate: show.lastScrapedDate,
         lineup: show.lineupItems.map(item => ({
             id: item.comedian.id,
             name: item.comedian.name,
             imageUrl: buildComedianImageUrl(item.comedian.name),
-            is_favorite: params.userId ? item.comedian.favoriteComedians.length > 0 : false,
+            is_favorite: userId ? item.comedian.favoriteComedians.length > 0 : false,
             is_alias: item.comedian.taggedComedians.length > 0
         }))
     }))
-
-    return {
-        response: {
-            data: formattedShows,
-            total: totalCount
-        }
-    }
 }

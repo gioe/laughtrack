@@ -12,7 +12,6 @@ import {
 } from "../../../objects/class/params/SearchParamsHelper";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { CityDTO } from "../../../objects/class/city/city.interface";
 import { useCityContext } from "@/contexts/CityProvider";
 import { Form } from "../ui/form";
 import { DropdownFormComponent } from "@/ui/components/dropdown";
@@ -20,6 +19,7 @@ import CalendarFormComponent from "@/ui/components/calendar";
 import { CircleIconButton } from "@/ui/components/button/circleIcon";
 import { Search } from "lucide-react";
 import { useStyleContext } from "@/contexts/StyleProvider";
+import { CityDTO } from "@/lib/data/cities/getCities";
 
 export default function ShowSearchBar() {
     const cityList = useCityContext();

@@ -5,9 +5,11 @@ import ComedianGrid from "@/ui/components/grid/comedian";
 import Link from "next/link";
 
 interface TrendingComedianGridProps {
-    comedians: ComedianDTO[];
+    comedianString: string;
 }
-const TrendingComedianGrid = ({ comedians }: TrendingComedianGridProps) => {
+const TrendingComedianGrid = ({
+    comedianString,
+}: TrendingComedianGridProps) => {
     return (
         <div className="max-w-7xl mx-auto py-8">
             <div className="text-center mb-8">
@@ -17,7 +19,7 @@ const TrendingComedianGrid = ({ comedians }: TrendingComedianGridProps) => {
                 </p>
             </div>
 
-            <ComedianGrid comedians={comedians} />
+            <ComedianGrid contentString={comedianString} />
 
             <div className="text-center pt-8 mt-8">
                 <Link

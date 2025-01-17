@@ -13,7 +13,7 @@ const LineupGrid = ({ lineup }: LineupGridProps) => {
                 <div key={index} className="flex-shrink-0 snap-start">
                     <div className="relative w-32 h-32 rounded-lg overflow-hidden mb-2">
                         <Image
-                            src={comedian.cardImageUrl?.toString() ?? ""}
+                            src={comedian.imageUrl}
                             alt={comedian.name}
                             fill
                             className="object-cover"

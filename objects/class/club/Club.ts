@@ -21,10 +21,7 @@ export class Club implements ClubInterface {
     readonly tagIds: number[];
     readonly showCount?: number;
     readonly activeComedianCount?: number;
-
-    // Media-related properties
-    readonly bannerImageUrl: URL | null;
-    readonly cardImageUrl: URL | null;
+    readonly imageUrl: string;
 
     // Complex objects
     readonly socialData?: SocialData;
@@ -40,8 +37,7 @@ export class Club implements ClubInterface {
         this.address = input.address ?? "";
         this.zipCode = input.zipCode ?? "";
 
-        this.cardImageUrl = input.imageUrl
-        this.bannerImageUrl = null; // Add logic if needed
+        this.imageUrl = input.imageUrl
 
         // Initialize arrays and complex objects
         this.tagIds = input.tags ?? [];

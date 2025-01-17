@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { getTags } from "@/lib/data/tags/get";
+import { getTags } from "@/lib/data/tags/getTags";
 import { db } from "@/lib/db";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { EntityType } from "@/objects/enum";
@@ -7,7 +7,7 @@ import { NextResponse } from "next/server";
 import { ShowSearchData, ShowSearchDTO } from "./interface";
 import { ShowDTO } from "@/objects/class/show/show.interface";
 import { Show } from "@/objects/class/show/Show";
-import { getSearchedShows } from "@/lib/data/show/search/get";
+import { getSearchedShows } from "@/lib/data/show/getSearchedShows";
 
 export async function GET(request: Request) {
     const searchParams = new URL(request.url).searchParams

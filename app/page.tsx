@@ -19,7 +19,9 @@ export default async function HomePage() {
     return (
         <main className="min-h-screen w-full bg-ivory">
             <HeroComponent user={session?.user} />
-            <TrendingComedianGrid comedians={response.comedians} />
+            <TrendingComedianGrid
+                comedianString={JSON.stringify(response.comedians)}
+            />
             <TrendingClubsCarousel clubs={response.clubs} />
             <FooterComponent />
         </main>

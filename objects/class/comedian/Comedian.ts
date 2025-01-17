@@ -14,11 +14,10 @@ export class Comedian implements ComedianInterface {
     isFavorite: boolean;
     id: number;
     type: EntityType = EntityType.Comedian;
-    cardImageUrl: URL;
+    imageUrl: string;
     containedEntities: Entity[]
     showCount?: number;
     isAlias?: boolean
-    bannerImageUrl: URL | null;
 
     constructor(input: ComedianDTO) {
         this.name = input.name
@@ -28,11 +27,10 @@ export class Comedian implements ComedianInterface {
         this.isFavorite = input.is_favorite ?? false
         this.id = input.id ?? 0
         this.showCount = input.show_count
-        this.cardImageUrl = input.imageUrl
+        this.imageUrl = input.imageUrl
         this.uuid = input.uuid
         this.isAlias = input.is_alias ?? false
     }
-    fallbackImageUrl: URL;
 
 
     getDates() {

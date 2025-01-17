@@ -24,8 +24,7 @@ export async function getTags(type?: string): Promise<FilterDataDTO[]> {
             }
         });
 
-        // Transform the data to match the expected FilterDataDTO format
-        const transformedData: FilterDataDTO[] = tagCategories.map(category => ({
+        return tagCategories.map(category => ({
             id: category.id,
             display: category.display || '',
             value: category.value || '',
@@ -36,8 +35,6 @@ export async function getTags(type?: string): Promise<FilterDataDTO[]> {
                 value: tag.value || ''
             }))
         }));
-
-        return transformedData;
     } catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             throw new Error(`Database error: ${error.message}`);

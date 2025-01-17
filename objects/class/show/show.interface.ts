@@ -14,7 +14,6 @@ export interface ShowInterface extends Taggable, Entity, SocialDiscoverable {
     popularityScore?: number;
     clubName?: string;
     clubAddress?: string,
-    clubId: number;
     ticket: Ticket;
     lastScrapedDate?: Date
     description?: string
@@ -22,18 +21,17 @@ export interface ShowInterface extends Taggable, Entity, SocialDiscoverable {
 
 // DB
 export interface ShowDTO {
-    club_name?: string;
-    club_id?: number;
+    id: number;
+    clubName?: string;
     date: Date;
     ticket: TicketDTO;
     name: string | null;
     social_data?: SocialDataDTO;
     tags?: number[]
     lineup?: ComedianDTO[]
-    id?: number;
-    last_scraped_date?: Date
     description?: string;
-    club_address?: string
+    address?: string;
+    imageUrl: string;
 }
 
 export interface PaginatedShowResponseDTO {

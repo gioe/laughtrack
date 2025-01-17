@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCities } from "@/lib/data/cities/get";
-import { CityDTO } from "@/objects/class/city/city.interface";
+import { CityDTO, getCities } from "@/lib/data/cities/getCities";
 
 export async function GET() {
     return getCities()

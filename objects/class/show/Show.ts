@@ -14,7 +14,6 @@ export class Show implements ShowInterface {
     popularityScore?: number | undefined;
     clubName?: string | undefined;
     address?: string | undefined;
-    clubId: number;
     ticket: Ticket;
     tagIds: number[];
     id: number;
@@ -24,8 +23,7 @@ export class Show implements ShowInterface {
     isFavorite: boolean;
     lastScrapedDate?: Date;
     description?: string;
-    bannerImageUrl: URL | null;
-    cardImageUrl: URL;
+    imageUrl: string;
 
     // Constructor
     constructor(input: ShowDTO) {
@@ -34,16 +32,14 @@ export class Show implements ShowInterface {
         this.socialData = input.social_data !== undefined ? new SocialData(input.social_data) : undefined;
         this.containedEntities = input.lineup ? input.lineup.map((item: ComedianDTO) => new Comedian(item)) : []
         this.lineup = input.lineup ? input.lineup.map((item: ComedianDTO) => new Comedian(item)) : []
-        this.clubName = input.club_name;
+        this.clubName = input.clubName;
         this.ticket = new Ticket(input.ticket)
         this.tagIds = input.tags ? input.tags : [];
         this.id = input.id ?? 0
-        this.clubId = input.club_id ? Number(input.club_id) : 0
-        this.lastScrapedDate = input.last_scraped_date
         this.description = input.description
-        this.address = input.club_address
+        this.address = input.address
+        this.imageUrl = input.imageUrl
     }
-    fallbackImageUrl: URL;
 
 
     overrideDate = (date: string): void => {

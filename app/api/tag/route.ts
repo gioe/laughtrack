@@ -1,4 +1,4 @@
-import { getTags } from "@/lib/data/tags/get";
+import { getTags } from "@/lib/data/tags/getTags";
 import { FilterDataDTO } from "@/objects/interface";
 import { NextResponse } from "next/server";
 

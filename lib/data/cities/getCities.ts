@@ -1,6 +1,9 @@
-import { CityList } from "@/contexts/CityProvider";
 import { db } from "@/lib/db";
-import { CityDTO } from "@/objects/class/city/city.interface";
+
+export interface CityDTO {
+    id: number;
+    name: string;
+}
 
 export async function getCities(): Promise<CityDTO[]> {
     return db.city.findMany({
