@@ -38,8 +38,7 @@ const CalendarComponent = (props: CalendarComponentProps) => {
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
 
-    const baseClasses = "text-xl rounded-lg";
-    const controlClasses = `${baseClasses} px-3 lg:w-80 lg:h-12 ${styleConfig.iconTextColor} ring-transparent focus:ring-transparent border-transparent focus:outline-none outline-none`;
+    const controlClasses = `text-xl rounded-lg px-3 lg:w-80 lg:h-12 ${styleConfig.iconTextColor} ring-transparent focus:ring-transparent border-transparent focus:outline-none outline-none`;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -53,14 +52,14 @@ const CalendarComponent = (props: CalendarComponentProps) => {
         onSelect: (value: DateRange | undefined) => void;
     }) => (
         <div className="flex items-center gap-2">
-            <CalIcon className={cn("w-7 h-7", styleConfig.iconTextColor)} />
+            <CalIcon className={cn("w-5 h-5", styleConfig.iconTextColor)} />
             <Popover>
                 <PopoverTrigger asChild>
                     <div className={controlClasses}>
                         <div className="flex items-center justify-between w-full">
                             <span
                                 className={cn(
-                                    "text-xl",
+                                    "text-[16px]",
                                     styleConfig.iconTextColor,
                                 )}
                             >

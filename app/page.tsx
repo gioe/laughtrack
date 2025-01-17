@@ -15,8 +15,6 @@ export default async function HomePage() {
     const { comedians, clubs } = await makeRequest<HomePageDataResponse>(
         APIRoutePath.Home,
     );
-    console.log(comedians);
-    console.log(clubs);
     return (
         <main className="min-h-screen w-full bg-ivory">
             <HeroComponent user={session?.user} />

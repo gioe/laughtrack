@@ -23,7 +23,7 @@ const LineupGrid = ({ lineup }: LineupGridProps) => {
                         return (
                             <p
                                 key={nameString}
-                                className="text-sm text-[#2D1810] font-medium text-center"
+                                className="text-sm text-cedar font-semibold text-center font-dmSans text-[16px]"
                             >
                                 {`${nameString}`}
                             </p>

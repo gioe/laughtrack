@@ -38,7 +38,9 @@ export default async function ShowSearchPage(props: any) {
             <FilterBar>
                 <ShowSearchBar />
             </FilterBar>
-            <ShowTable shows={JSON.stringify(data)} />
+            <div className="mx-10">
+                <ShowTable shows={data} />
+            </div>
             <FooterComponent />
         </main>
     );

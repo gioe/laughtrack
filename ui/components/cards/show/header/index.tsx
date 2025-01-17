@@ -30,13 +30,18 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
 
             {/* Venue Details */}
             <div>
-                <h2 className="text-xl font-bold text-[#2D1810] mb-1">
+                <h2 className="text-[24px] font-inter font-bold text-[#2D1810] mb-1">
                     {show.clubName ?? ""}
                 </h2>
-                <p className="text-gray-600">
+                {show.name && (
+                    <p className="text-gray-600 font-dmSans text-[18px]  mb-1">
+                        {`${show.name}`}
+                    </p>
+                )}
+                <p className="text-gray-600 font-dmSans text-[18px]">
                     {formatShowDate(show.date.toString())} · {`${show.address}`}
                 </p>
-                <p className="text-[#CD7F32] font-semibold mt-1">{`$${ticket.price.toString()}`}</p>
+                <p className="text-[#CD7F32] font-semibold mt-1 font-inter text-[20px]">{`$${ticket.price.toString()}`}</p>
             </div>
         </div>
     );

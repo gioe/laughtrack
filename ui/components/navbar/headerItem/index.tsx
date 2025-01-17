@@ -12,7 +12,7 @@ interface HeaderItemProps {
 export function HeaderItem({ href, title, highlighted }: HeaderItemProps) {
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
-    const baseClasses = `text-xl font-semibold font-dmSans ${highlighted ? "opacity-100" : "opacity-50 hover:opacity-75"}`;
+    const baseClasses = `text-[16px] font-semibold font-dmSans ${highlighted ? "opacity-100" : "opacity-50 hover:opacity-75"}`;
 
     return (
         <a

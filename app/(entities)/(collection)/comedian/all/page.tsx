@@ -43,9 +43,8 @@ export default async function ComedianSearchPage(props: any) {
             <FilterBar>
                 <ComedianSearchBar />
             </FilterBar>
-            <div className="max-w-7xl mx-auto py-8">
-                <ComedianGrid comedians={data} />
-            </div>
+            <ComedianGrid comedians={data} />
+
             <FooterComponent />
         </main>
     );

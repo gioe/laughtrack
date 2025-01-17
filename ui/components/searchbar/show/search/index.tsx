@@ -3,7 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useCityContext } from "@/contexts/CityProvider";
-import { MapPin, Theater, Users } from "lucide-react";
+import { MapPin, Users } from "lucide-react";
 import { CityDTO } from "@/lib/data/cities/getCities";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import {
@@ -71,7 +71,7 @@ export default function ShowSearchBar() {
     }
 
     return (
-        <div className="flex items-center bg-ivory rounded-full border border-gray-200 px-4 py-2 shadow-sm max-w-xl w-full">
+        <div className="flex items-center bg-ivory rounded-full border border-gray-200 px-4 py-2 shadow-sm max-w-4xl w-full">
             {/* Location input */}
             <div className="flex items-center flex-1 border-r border-gray-200 pr-4">
                 <DropdownComponent
@@ -104,7 +104,7 @@ export default function ShowSearchBar() {
                             className={`w-5 h-5 ${styleConfig.iconTextColor}`}
                         />
                     }
-                    placeholder="Search for club"
+                    placeholder="Search by comedian"
                     value={comedianQuery}
                     onChange={handleSearch}
                     className="border-gray-200 pr-4 bg-ivory ring-transparent focus:ring-transparent 

@@ -2,20 +2,16 @@ import { ShowDTO } from "@/objects/class/show/show.interface";
 import ShowCard from "@/ui/components/cards/show";
 
 interface ShowTableProps {
-    shows: string;
+    shows: ShowDTO[];
 }
 
 const ShowTable = ({ shows }: ShowTableProps) => {
-    const parsedShows = JSON.parse(shows) as ShowDTO[];
     return (
         <section className="grid grid-cols-1 gap-y-10 m-8">
-            {parsedShows.length > 0 ? (
-                parsedShows.map((show) => {
+            {shows.length > 0 ? (
+                shows.map((show) => {
                     return (
-                        <ShowCard
-                            key={`${show.name}-${show.id}`}
-                            show={JSON.stringify(show)}
-                        />
+                        <ShowCard key={`${show.name}-${show.id}`} show={show} />
                     );
                 })
             ) : (

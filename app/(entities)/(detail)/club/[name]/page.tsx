@@ -22,7 +22,7 @@ export default async function ClubDetailPage(props: {
         props.params,
     );
 
-    const { data } = await makeRequest<ClubDetailResponse>(
+    const { data, shows, total } = await makeRequest<ClubDetailResponse>(
         APIRoutePath.Club + `/${paramsWrapper.asSlug()}`,
         {
             searchParams: paramsWrapper.asUrlSearchParams(),
@@ -33,7 +33,7 @@ export default async function ClubDetailPage(props: {
     return (
         <main className="min-h-screen w-full bg-ivory">
             <Navbar currentUser={session?.user} />
-            <ClubDetailHeader clubString={JSON.stringify(data)} />
+            <ClubDetailHeader club={data} />
             <div className="max-w-6xl mx-auto p-6 flex">
                 <TableWithHeader entityString={JSON.stringify([])} />
                 <ClubDataColumn telephoneNumber={"12122543480"} website={""} />
