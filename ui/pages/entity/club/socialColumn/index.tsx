@@ -1,33 +1,36 @@
+import { Club } from "@/objects/class/club/Club";
+import { ClubDTO } from "@/objects/class/club/club.interface";
 import { SocialData } from "@/objects/class/socialData/SocialData";
 import { Phone, Globe, Clock } from "lucide-react";
 
 interface ClubDataColumnProps {
-    telephoneNumber: string;
-    website: string;
+    club: ClubDTO;
 }
 
-const ClubDataColumn = ({ telephoneNumber, website }: ClubDataColumnProps) => {
+const ClubDataColumn = ({ club }: ClubDataColumnProps) => {
+    const parsedClub = new Club(club);
     return (
-        <div className="max-w-2xl p-6 bg-cream-50">
+        <div className="max-w-2xl bg-cream-50">
             <section>
                 <h2 className="text-xl font-bold mb-4">Contact</h2>
                 <div className="space-y-3">
+                    {parsedClub.phoneNumber !== "" && (
+                        <a
+                            href={`tel:${parsedClub.phoneNumber}`}
+                            className="flex items-center gap-2 text-brown-600 hover:text-brown-700"
+                        >
+                            <Phone className="w-5 h-5" />
+                            <span>{parsedClub.phoneNumber}</span>
+                        </a>
+                    )}
                     <a
-                        href={`tel:${telephoneNumber}`}
-                        className="flex items-center gap-2 text-brown-600 hover:text-brown-700"
-                    >
-                        <Phone className="w-5 h-5" />
-                        <span>{telephoneNumber}</span>
-                    </a>
-
-                    <a
-                        href={website}
+                        href={parsedClub.website}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-2 text-brown-600 hover:text-brown-700"
                     >
                         <Globe className="w-5 h-5" />
-                        <span>{website}</span>
+                        <span>{parsedClub.website}</span>
                     </a>
                 </div>
             </section>

@@ -6,7 +6,6 @@ import {
     SelectItem,
 } from "../ui/select";
 import { FormControl, FormField, FormItem, FormMessage } from "../ui/form";
-import { MapPin } from "lucide-react";
 import { Selectable } from "@/objects/interface";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import { UseFormReturn } from "react-hook-form";
@@ -16,6 +15,7 @@ interface BaseDropdownProps {
     name: string;
     placeholder: string;
     items: Selectable[];
+    className: string;
 }
 
 // Props for the form variant
@@ -37,12 +37,6 @@ interface StandaloneDropdownProps extends BaseDropdownProps {
 type DropdownProps = FormDropdownProps | StandaloneDropdownProps;
 
 export function DropdownComponent(props: DropdownProps) {
-    const { getCurrentStyles } = useStyleContext();
-    const styleConfig = getCurrentStyles();
-
-    const formControlClasses = `text-xl rounded-lg lg:h-12 font-dmSams  text-[16px] ${styleConfig.iconTextColor} ring-transparent focus:ring-transparent 
-    shadow-none border-transparent focus:outline-none outline-none`;
-
     // Common wrapper for the select content
     const SelectWrapper = ({ children }: { children: React.ReactNode }) => (
         <div className="flex items-center gap-2">
@@ -64,7 +58,7 @@ export function DropdownComponent(props: DropdownProps) {
                                 onValueChange={field.onChange}
                                 value={field.value}
                             >
-                                <FormControl className={formControlClasses}>
+                                <FormControl className={props.className}>
                                     <SelectTrigger>
                                         <SelectValue
                                             className="text-left pr-2"
@@ -96,7 +90,7 @@ export function DropdownComponent(props: DropdownProps) {
     return (
         <SelectWrapper>
             <Select onValueChange={props.onChange} value={props.value}>
-                <SelectTrigger className={formControlClasses}>
+                <SelectTrigger className={props.className}>
                     <SelectValue
                         className="text-left pr-2"
                         placeholder={props.placeholder}

@@ -34,9 +34,9 @@ export default async function ClubDetailPage(props: {
         <main className="min-h-screen w-full bg-ivory">
             <Navbar currentUser={session?.user} />
             <ClubDetailHeader club={data} />
-            <div className="max-w-6xl mx-auto p-6 flex">
-                <TableWithHeader entityString={JSON.stringify([])} />
-                <ClubDataColumn telephoneNumber={"12122543480"} website={""} />
+            <div className="max-w-7xl mx-auto p-6 flex flex-row">
+                <TableWithHeader shows={shows} total={total} />
+                <ClubDataColumn club={data} />
             </div>
             <FooterComponent />
         </main>

@@ -1,5 +1,6 @@
 "use client";
 
+import CalendarFormComponent from "@/ui/components/calendar";
 import { z } from "zod";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -14,9 +15,8 @@ import { useForm } from "react-hook-form";
 import { useCityContext } from "@/contexts/CityProvider";
 import { Form } from "../../../ui/form";
 import { DropdownComponent } from "@/ui/components/dropdown";
-import CalendarFormComponent from "@/ui/components/calendar";
 import { CircleIconButton } from "@/ui/components/button/circleIcon";
-import { MapPin, Search } from "lucide-react";
+import { Calendar, ChevronsUpDown, MapPin, Search } from "lucide-react";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import { CityDTO } from "@/lib/data/cities/getCities";
 import { showSearchFormSchema } from "./schema";
@@ -63,7 +63,7 @@ export default function ShowSearchForm() {
         <Form {...form}>
             <form onSubmit={form.handleSubmit(submitForm)}>
                 <div
-                    className={`flex items-center justify-between w-full max-w-3xl bg-ivory/20 backdrop-blur rounded-full ${styleConfig.searchBorder}`}
+                    className={`flex items-center justify-between w-full max-w-3xl bg-ivory/20 backdrop-blur rounded-full`}
                 >
                     {/* City Selection Dropdown */}
                     <div className="w-5/12 px-6 py-4 border-r border-gray-600/50">
@@ -77,12 +77,31 @@ export default function ShowSearchForm() {
                             placeholder="City"
                             items={selectableCities}
                             form={form}
+                            className={`text-[20px] text-white rounded-lg font-dmSams ring-transparent focus:ring-transparent 
+                                shadow-none border-transparent focus:outline-none outline-none`}
                         />
                     </div>
 
                     {/* Date Selection Calendar */}
                     <div className="w-5/12 pl-6 py-4">
-                        <CalendarFormComponent name="dates" form={form} />
+                        <CalendarFormComponent
+                            name="dates"
+                            form={form}
+                            className={`text-[20px] text-white rounded-lg px-3 ring-transparent 
+                                focus:ring-transparent border-transparent focus:outline-none outline-none`}
+                            icon={
+                                <Calendar
+                                    className={`w-5 h-5 ${styleConfig.iconTextColor}`}
+                                />
+                            }
+                            chevrons={
+                                <ChevronsUpDown
+                                    className={`w-5 h-5 ${styleConfig.iconTextColor} pl-2`}
+                                    style={{ opacity: 0.5 }}
+                                />
+                            }
+                            textSize="text-[20px]"
+                        />
                     </div>
 
                     {/* Search Button */}

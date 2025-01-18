@@ -3,7 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useCityContext } from "@/contexts/CityProvider";
-import { MapPin, Users } from "lucide-react";
+import { Calendar, ChevronsUpDownIcon, MapPin, Users } from "lucide-react";
 import { CityDTO } from "@/lib/data/cities/getCities";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import {
@@ -77,7 +77,7 @@ export default function ShowSearchBar() {
                 <DropdownComponent
                     icon={
                         <MapPin
-                            className={`w-5 h-5 ${styleConfig.iconTextColor}`}
+                            className={`size-5 ${styleConfig.iconTextColor}`}
                         />
                     }
                     name="city"
@@ -85,6 +85,8 @@ export default function ShowSearchBar() {
                     items={selectableCities}
                     onChange={handleSelection}
                     value={selectedValue}
+                    className={`text-[16px] text-cedar rounded-lg font-dmSams ring-transparent focus:ring-transparent 
+                        shadow-none border-transparent focus:outline-none outline-none`}
                 />
             </div>
 
@@ -93,6 +95,20 @@ export default function ShowSearchBar() {
                     name="dates"
                     value={dateRange}
                     onValueChange={(newRange) => setDateRange(newRange)}
+                    className={`text-[16px] text-cedar rounded-lg px-3 ring-transparent 
+                        focus:ring-transparent border-transparent focus:outline-none outline-none`}
+                    icon={
+                        <Calendar
+                            className={`size-5 ${styleConfig.iconTextColor}`}
+                        />
+                    }
+                    chevrons={
+                        <ChevronsUpDownIcon
+                            className={"w-3 h-3 pl-3"}
+                            style={{ opacity: 0.5 }}
+                        />
+                    }
+                    textSize="text-[16px]"
                 />
             </div>
 

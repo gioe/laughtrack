@@ -17,6 +17,8 @@ import { getCities } from "@/lib/data/cities/getCities";
 import ToasterProvider from "@/ui/components/providers/toaster";
 import LoginModal from "@/ui/components/modals/login";
 import RegisterModal from "@/ui/components/modals/register";
+import { StyleContextProvider } from "@/contexts/StyleProvider";
+import { StyleContextKey } from "@/objects/enum";
 
 const outfit = Outfit({
     weight: "400",
@@ -83,9 +85,13 @@ export default async function RootLayout({
                         <ToasterProvider />
                         <LoginModal />
                         <RegisterModal />
-                        <CityProvider initialCities={cities}>
-                            {children}
-                        </CityProvider>
+                        <StyleContextProvider
+                            initialContext={StyleContextKey.Home}
+                        >
+                            <CityProvider initialCities={cities}>
+                                {children}
+                            </CityProvider>
+                        </StyleContextProvider>
                         <SpeedInsights />
                     </NextUIProvider>
                 </body>

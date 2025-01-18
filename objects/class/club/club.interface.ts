@@ -32,6 +32,7 @@ export interface ClubDTO {
     is_Favorite?: boolean
     show_count?: number
     active_comedian_count?: number
+    phone_number?: string
 }
 
 export interface PaginatedClubResponseDTO {

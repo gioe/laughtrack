@@ -22,6 +22,7 @@ export class Club implements ClubInterface {
     readonly showCount?: number;
     readonly activeComedianCount?: number;
     readonly imageUrl: string;
+    readonly phoneNumber: string;
 
     // Complex objects
     readonly socialData?: SocialData;
@@ -36,6 +37,7 @@ export class Club implements ClubInterface {
         this.city = input.city ?? "";
         this.address = input.address ?? "";
         this.zipCode = input.zipCode ?? "";
+        this.phoneNumber = input.phone_number ?? "";
 
         this.imageUrl = input.imageUrl
 

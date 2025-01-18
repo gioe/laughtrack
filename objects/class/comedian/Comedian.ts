@@ -33,16 +33,4 @@ export class Comedian implements ComedianInterface {
     }
 
 
-    getDates() {
-        return this.containedEntities as Comedian[]
-    }
-
-    getFirstName() {
-        return this.name.split(" ")[0]
-    }
-
-    getLastName() {
-        return this.name.split(" ")[1]
-    }
-
 }

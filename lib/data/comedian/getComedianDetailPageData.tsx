@@ -9,26 +9,22 @@ export async function getComedianDetailPageData(
 ): Promise<ComedianDetailResponse> {
     try {
         const { name } = params;
-        // Get comedian data
-        const comedianData = await findComedianByName(params.name);
-        const totalCount = await getShowCount({
-            ...params,
-            comedianName: name,
-        });
 
-        // First get all relevant shows
-        const relevantShows = await findShows(params);
-
-        const showIds = relevantShows.map((show) => show.id);
-
-        // Get detailed show data
-        const dates = await findShows({ ...params, showIds });
+        const [comedianData, totalCount, shows] = await Promise.all([
+            findComedianByName(params.name),
+            getShowCount({
+                ...params,
+                comedianName: name,
+            }),
+            findShows({
+                ...params,
+                comedianName: name,
+            }),
+        ]);
 
         return {
-            data: {
-                ...comedianData,
-                dates,
-            },
+            data: comedianData,
+            shows,
             total: totalCount,
         };
     } catch (error) {

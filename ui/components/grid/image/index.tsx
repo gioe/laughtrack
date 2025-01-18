@@ -14,7 +14,7 @@ interface ImageGridProps {
 
 const ImageGrid: React.FC<ImageGridProps> = ({ images, className = "" }) => {
     // Validate that exactly 3 images are provided
-    if (images.length !== 3) {
+    if (images.length !== 1) {
         console.warn("ImageGrid component expects exactly 3 images");
         return null;
     }

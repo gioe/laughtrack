@@ -21,7 +21,7 @@ export function FullRoundedButton({
     color = "bg-copper",
 }: FullRoundedButtonProps) {
     const baseClasses =
-        "px-6 py-2 text-white rounded-lg transition-colors duration-200 font-medium font-dmSans";
+        "px-6 py-2 text-white rounded-lg transition-colors duration-200 font-bold text-[16px] font-dmSans";
 
     const ButtonComponent = () => (
         <button

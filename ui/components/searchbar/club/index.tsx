@@ -66,6 +66,8 @@ export default function ClubSearchBar() {
                     items={selectableCities}
                     onChange={handleSelection}
                     value={selectedValue}
+                    className={`text-[16px] text-cedar rounded-lg font-dmSams ring-transparent focus:ring-transparent 
+                        shadow-none border-transparent focus:outline-none outline-none`}
                 />
             </div>
 

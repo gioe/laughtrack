@@ -3,8 +3,6 @@ import Navbar from "@/ui/components/navbar";
 import BackgroundImage from "@/ui/components/background";
 import ContentWrapper from "@/ui/components/wrapper";
 import HeroContent from "@/ui/components/hero";
-import { StyleContextProvider } from "@/contexts/StyleProvider";
-import { StyleContextKey } from "@/objects/enum";
 
 export const getCdnImageUrl = (imagePath: string) => {
     return new URL(
@@ -25,10 +23,8 @@ const HeroComponent = ({ user }: HeroComponentProps) => {
                 alt={"Header background image"}
             />
             <ContentWrapper>
-                <StyleContextProvider initialContext={StyleContextKey.Home}>
-                    <Navbar currentUser={user} />
-                    <HeroContent title="Laughtrack" subtitle="Have a laugh" />
-                </StyleContextProvider>
+                <Navbar currentUser={user} />
+                <HeroContent title="Laughtrack" subtitle="Have a laugh" />
             </ContentWrapper>
         </section>
     );

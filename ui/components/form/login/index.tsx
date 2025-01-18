@@ -80,7 +80,7 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
                 />
 
                 {/* Login Button */}
-                <FormSubmissionButton>Sign Up</FormSubmissionButton>
+                <FormSubmissionButton>Log In</FormSubmissionButton>
             </form>
         </FormProvider>
     );

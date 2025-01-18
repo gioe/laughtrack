@@ -1,5 +1,5 @@
 import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
-import { APIRoutePath, StyleContextKey } from "@/objects/enum";
+import { APIRoutePath } from "@/objects/enum";
 import { CACHE } from "@/util/constants/cacheConstants";
 import { makeRequest } from "@/util/actions/makeRequest";
 import Navbar from "@/ui/components/navbar";
@@ -8,7 +8,6 @@ import ComedianDetailHeader from "@/ui/pages/entity/comedian/detailHeader";
 import FooterComponent from "@/ui/pages/home/footer";
 import TableWithHeader from "@/ui/pages/entity/comedian/table";
 import SocialMediaColumn from "@/ui/pages/entity/comedian/socialColumn";
-import { StyleContextProvider } from "@/contexts/StyleProvider";
 import { ComedianDetailResponse } from "@/app/api/comedian/[name]/interface";
 
 export default async function ComedianDetailsPage(props: any) {
@@ -19,7 +18,7 @@ export default async function ComedianDetailsPage(props: any) {
         props.params,
     );
 
-    const { data } = await makeRequest<ComedianDetailResponse>(
+    const { data, shows, total } = await makeRequest<ComedianDetailResponse>(
         APIRoutePath.Comedian + `/${paramsWrapper.asSlug()}`,
         {
             searchParams: paramsWrapper.asUrlSearchParams(),
@@ -29,18 +28,12 @@ export default async function ComedianDetailsPage(props: any) {
 
     return (
         <main className="min-h-screen w-full bg-ivory">
-            <StyleContextProvider initialContext={StyleContextKey.Search}>
-                <Navbar currentUser={session?.user} />
-            </StyleContextProvider>
-            <ComedianDetailHeader
-                favorite={data.entity.isFavorite}
-                comedianId={data.entity.id}
-                name={data.entity.name}
-                images={[]}
-            />
-            <div className="max-w-6xl mx-auto p-6 flex">
-                <TableWithHeader entityString={JSON.stringify(data.entity)} />
-                <SocialMediaColumn socialData={data.socialData} />
+            <Navbar currentUser={session?.user} />
+
+            <ComedianDetailHeader comedian={data} />
+            <div className="max-w-7xl mx-auto p-6">
+                <TableWithHeader shows={shows} total={total} />
+                <SocialMediaColumn comedian={data} />
             </div>
             <FooterComponent />
         </main>

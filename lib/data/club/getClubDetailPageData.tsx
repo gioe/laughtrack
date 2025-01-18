@@ -15,12 +15,9 @@ export async function getClubDetailPageData(
             getShowCount({ ...params, clubName: name }),
             findShows({ ...params, clubName: name }),
         ]);
-
         return {
-            data: {
-                ...club,
-                dates,
-            },
+            data: club,
+            shows: dates,
             total,
         };
     } catch (error) {

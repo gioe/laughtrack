@@ -1,47 +1,54 @@
-import { SocialData } from "@/objects/class/socialData/SocialData";
+import { Comedian } from "@/objects/class/comedian/Comedian";
+import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 
 interface SocialMediaColumnProps {
-    socialData?: SocialData;
+    comedian: ComedianDTO;
 }
 
-const SocialMediaColumn = ({ socialData }: SocialMediaColumnProps) => {
+const SocialMediaColumn = ({ comedian }: SocialMediaColumnProps) => {
+    const parsedComedian = new Comedian(comedian);
+    const className =
+        "text-copper text-[16px] font-dmSans hover:underline block";
+
     return (
         <div className="w-64">
-            <h2 className="text-xl font-bold mb-4">Social Media</h2>
+            <h2 className="text-[22px] font-inter font-bold mb-4">
+                Social Media
+            </h2>
             <div className="space-y-2">
-                {socialData?.instagram.account && (
+                {parsedComedian.socialData?.instagram.account && (
                     <a
-                        href="#"
-                        className="text-brown-600 hover:underline block"
+                        href={`instagram.com/${parsedComedian.socialData.instagram.account}`}
+                        className={className}
                     >
-                        {`instagram.com/${socialData.instagram.account}`}
+                        {`instagram.com/${parsedComedian.socialData.instagram.account}`}
                     </a>
                 )}
 
-                {socialData?.tiktok.account && (
+                {parsedComedian.socialData?.tiktok.account && (
                     <a
-                        href="#"
-                        className="text-brown-600 hover:underline block"
+                        href={`tiktok.com/${parsedComedian.socialData.tiktok.account}`}
+                        className={className}
                     >
-                        {`tiktok.com/${socialData.tiktok.account}`}
+                        {`tiktok.com/${parsedComedian.socialData.tiktok.account}`}
                     </a>
                 )}
 
-                {socialData?.youtube.account && (
+                {parsedComedian.socialData?.youtube.account && (
                     <a
-                        href="#"
-                        className="text-brown-600 hover:underline block"
+                        href={`youtube.com/${parsedComedian.socialData.youtube.account}`}
+                        className={className}
                     >
-                        {`youtube.com/${socialData.youtube.account}`}
+                        {`youtube.com/${parsedComedian.socialData.youtube.account}`}
                     </a>
                 )}
 
-                {socialData?.website && (
+                {parsedComedian.socialData?.website && (
                     <a
-                        href="#"
-                        className="text-brown-600 hover:underline block"
+                        href={`${parsedComedian.socialData.website}`}
+                        className={className}
                     >
-                        {`${socialData.website}`}
+                        {`${parsedComedian.socialData.website}`}
                     </a>
                 )}
             </div>

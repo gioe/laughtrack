@@ -20,11 +20,12 @@ model Club {
   name        String       @unique
   address     String
   website     String
-  scrapingUrl String      @map("scraping_url")
+  phoneNumber String       @map("phone_number") @default("")
+  scrapingUrl String       @map("scraping_url")
   popularity  Float        @default(0.0)
   zipCode     String?      @map("zip_code") @db.VarChar(10)
-  cityId      Int         @map("city_id")
-  scraperType String?     @map("scraper_type")
+  cityId      Int          @map("city_id")
+  scraperType String?      @map("scraper_type")
   city        City         @relation(fields: [cityId], references: [id], onDelete: Cascade)
   shows       Show[]
   taggedClubs TaggedClub[]
@@ -35,15 +36,15 @@ model Club {
 model Comedian {
   id                Int                @id @default(autoincrement())
   name              String             @unique
-  instagramAccount  String?           @map("instagram_account")
-  instagramFollowers Int?             @map("instagram_followers")
-  tiktokAccount    String?           @map("tiktok_account")
-  tiktokFollowers  Int?              @map("tiktok_followers")
+  instagramAccount  String?            @map("instagram_account")
+  instagramFollowers Int?              @map("instagram_followers")
+  tiktokAccount    String?             @map("tiktok_account")
+  tiktokFollowers  Int?                @map("tiktok_followers")
   website          String?
-  popularity       Float              @default(0.0)
-  youtubeAccount   String?           @map("youtube_account")
-  youtubeFollowers Int?              @map("youtube_followers")
-  uuid             String             @unique
+  popularity       Float               @default(0.0)
+  youtubeAccount   String?             @map("youtube_account")
+  youtubeFollowers Int?                @map("youtube_followers")
+  uuid             String              @unique
   linktree         String?
   favoriteComedians FavoriteComedian[]
   lineupItems      LineupItem[]
