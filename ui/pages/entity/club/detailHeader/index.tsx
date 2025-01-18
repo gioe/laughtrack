@@ -17,7 +17,7 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({ club }) => {
     return (
         <div className="max-w-7xl mx-auto p-6">
             {/* Header Section */}
-            <div className="w-full bg-red-900 p-4">
+            <div className="w-full  p-4">
                 <div className="flex items-center justify-between max-w-6xl mx-auto">
                     <div className="flex items-center gap-4">
                         <img
