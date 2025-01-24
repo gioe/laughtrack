@@ -9,7 +9,7 @@ export async function getClubDetailPageData(
 ): Promise<ClubDetailResponse> {
     try {
         const { name } = params;
-
+        console.log(`GETTING STUFF FOR ${name}`);
         const [club, total, dates] = await Promise.all([
             findClubByName(name),
             getShowCount({ ...params, clubName: name }),
@@ -21,6 +21,7 @@ export async function getClubDetailPageData(
             total,
         };
     } catch (error) {
+        console.log(error);
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             throw new Error(`Database error: ${error.message}`);
         }

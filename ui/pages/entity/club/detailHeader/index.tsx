@@ -39,14 +39,14 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({ club }) => {
             </div>
 
             {/* Image Grid */}
-            <ImageGrid
+            {/* <ImageGrid
                 images={[
                     {
                         url: parsedClub.imageUrl,
                         alt: parsedClub.name,
                     },
                 ]}
-            />
+            /> */}
         </div>
     );
 };

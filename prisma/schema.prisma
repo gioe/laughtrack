@@ -4,7 +4,8 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = "postgresql://postgres.dsnrazgpfobfspwammxm:qyDh5kVms2uIteqS@aws-0-us-east-1.pooler.supabase.com:5432/postgres"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model City {
@@ -20,12 +21,12 @@ model Club {
   name        String       @unique
   address     String
   website     String
-  phoneNumber String       @map("phone_number") @default("")
   scrapingUrl String       @map("scraping_url")
   popularity  Float        @default(0.0)
   zipCode     String?      @map("zip_code") @db.VarChar(10)
   cityId      Int          @map("city_id")
-  scraperType String?      @map("scraper_type")
+  phoneNumber String?      @default("") @map("phone_number")
+  timezone    String       @default("") @map("timezone")
   city        City         @relation(fields: [cityId], references: [id], onDelete: Cascade)
   shows       Show[]
   taggedClubs TaggedClub[]
@@ -34,21 +35,21 @@ model Club {
 }
 
 model Comedian {
-  id                Int                @id @default(autoincrement())
-  name              String             @unique
-  instagramAccount  String?            @map("instagram_account")
-  instagramFollowers Int?              @map("instagram_followers")
-  tiktokAccount    String?             @map("tiktok_account")
-  tiktokFollowers  Int?                @map("tiktok_followers")
-  website          String?
-  popularity       Float               @default(0.0)
-  youtubeAccount   String?             @map("youtube_account")
-  youtubeFollowers Int?                @map("youtube_followers")
-  uuid             String              @unique
-  linktree         String?
-  favoriteComedians FavoriteComedian[]
-  lineupItems      LineupItem[]
-  taggedComedians  TaggedComedian[]
+  id                 Int                @id @default(autoincrement())
+  name               String             @unique
+  instagramAccount   String?            @map("instagram_account")
+  instagramFollowers Int?               @map("instagram_followers")
+  tiktokAccount      String?            @map("tiktok_account")
+  tiktokFollowers    Int?               @map("tiktok_followers")
+  website            String?
+  popularity         Float              @default(0.0)
+  youtubeAccount     String?            @map("youtube_account")
+  youtubeFollowers   Int?               @map("youtube_followers")
+  uuid               String             @unique
+  linktree           String?
+  favoriteComedians  FavoriteComedian[]
+  lineupItems        LineupItem[]
+  taggedComedians    TaggedComedian[]
 
   @@map("comedians")
 }
@@ -60,7 +61,7 @@ model User {
   role              String             @default("user")
   zipCode           String?            @map("zip_code") @db.VarChar(10)
   createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt @default(now()) @map("update_at")
+  updatedAt         DateTime           @default(now()) @updatedAt @map("update_at")
   favoriteComedians FavoriteComedian[]
 
   @@map("users")
@@ -78,21 +79,22 @@ model FavoriteComedian {
 }
 
 model Show {
-  id                   Int         @id @default(autoincrement())
-  name                 String?
-  date                 DateTime
-  showPageUrl          String      @map("show_page_url")
-  clubId               Int         @map("club_id")
-  ticketPriceCurrency  String      @default("USD") @map("ticket_price_currency")
-  popularity           Float       @default(0.0)
-  lastScrapedDate      DateTime?   @map("last_scraped_date")
-  description          String?
-  ticketPurchaseUrl    String?     @map("ticket_purchase_url")
-  ticketPrice          Decimal?    @map("ticket_price") @db.Decimal(5,2)
-  suppliedTags         String[]    @map("supplied_tags")
-  club                 Club        @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  lineupItems          LineupItem[]
-  taggedShows          TaggedShow[]
+  id                  Int          @id @default(autoincrement())
+  name                String?
+  date                DateTime
+  showPageUrl         String       @map("show_page_url")
+  clubId              Int          @map("club_id")
+  ticketPriceCurrency String       @default("USD") @map("ticket_price_currency")
+  popularity          Float        @default(0.0)
+  lastScrapedDate     DateTime?    @map("last_scraped_date")
+  description         String?
+  ticketPurchaseUrl   String?      @map("ticket_purchase_url")
+  ticketPrice         Decimal?     @map("ticket_price") @db.Decimal(5, 2)
+  suppliedTags        String[]     @default([]) @map("supplied_tags")
+  soldOut             Boolean      @default(false) @map("sold_out")
+  lineupItems         LineupItem[]
+  club                Club         @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  taggedShows         TaggedShow[]
 
   @@unique([clubId, date])
   @@map("shows")
@@ -102,15 +104,15 @@ model LineupItem {
   id         Int      @default(autoincrement())
   showId     Int      @map("show_id")
   comedianId String   @map("comedian_id")
-  show       Show     @relation(fields: [showId], references: [id], onDelete: Cascade)
   comedian   Comedian @relation(fields: [comedianId], references: [uuid], onDelete: Cascade)
+  show       Show     @relation(fields: [showId], references: [id], onDelete: Cascade)
 
   @@id([showId, comedianId])
   @@map("lineup_items")
 }
 
 model TagCategory {
-  id      Int      @id @default(autoincrement())
+  id      Int     @id @default(autoincrement())
   display String?
   type    String?
   value   String?
@@ -120,28 +122,28 @@ model TagCategory {
 }
 
 model Tag {
-  id             Int             @id @default(autoincrement())
-  display        String?
-  type           String?
-  userFacing     Boolean         @default(false) @map("user_facing")
-  pattern        String?
-  category       Int?
-  value          String?
-  keyWords       String[]        @map("key_words")
-  tagCategory    TagCategory?    @relation(fields: [category], references: [id], onDelete: Cascade)
-  taggedClubs    TaggedClub[]
+  id              Int              @id @default(autoincrement())
+  display         String?
+  type            String?
+  userFacing      Boolean          @default(false) @map("user_facing")
+  pattern         String?
+  category        Int?
+  value           String?
+  keyWords        String[]         @map("key_words")
+  taggedClubs     TaggedClub[]
   taggedComedians TaggedComedian[]
-  taggedShows    TaggedShow[]
+  taggedShows     TaggedShow[]
+  tagCategory     TagCategory?     @relation(fields: [category], references: [id], onDelete: Cascade)
 
   @@map("tags")
 }
 
 model TaggedClub {
-  id      Int   @default(autoincrement())
-  clubId  Int   @map("club_id")
-  tagId   Int   @map("tag_id")
-  club    Club  @relation(fields: [clubId], references: [id])
-  tag     Tag   @relation(fields: [tagId], references: [id])
+  id     Int  @default(autoincrement())
+  clubId Int  @map("club_id")
+  tagId  Int  @map("tag_id")
+  club   Club @relation(fields: [clubId], references: [id])
+  tag    Tag  @relation(fields: [tagId], references: [id])
 
   @@id([clubId, tagId])
   @@map("tagged_clubs")
@@ -159,11 +161,11 @@ model TaggedComedian {
 }
 
 model TaggedShow {
-  id      Int   @default(autoincrement())
-  showId  Int   @map("show_id")
-  tagId   Int   @map("tag_id")
-  show    Show  @relation(fields: [showId], references: [id], onDelete: Cascade)
-  tag     Tag   @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  id     Int  @default(autoincrement())
+  showId Int  @map("show_id")
+  tagId  Int  @map("tag_id")
+  show   Show @relation(fields: [showId], references: [id], onDelete: Cascade)
+  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([showId, tagId])
   @@map("tagged_shows")
