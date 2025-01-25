@@ -21,12 +21,13 @@ model Club {
   name        String       @unique
   address     String
   website     String
+  visible     Boolean      @default(true)
   scrapingUrl String       @map("scraping_url")
   popularity  Float        @default(0.0)
   zipCode     String?      @map("zip_code") @db.VarChar(10)
   cityId      Int          @map("city_id")
   phoneNumber String?      @default("") @map("phone_number")
-  timezone    String       @default("") @map("timezone")
+  timezone    String?      @map("timezone")
   city        City         @relation(fields: [cityId], references: [id], onDelete: Cascade)
   shows       Show[]
   taggedClubs TaggedClub[]
@@ -81,16 +82,16 @@ model FavoriteComedian {
 model Show {
   id                  Int          @id @default(autoincrement())
   name                String?
-  date                DateTime
+  date                DateTime     @db.Timestamptz(6)
   showPageUrl         String       @map("show_page_url")
   clubId              Int          @map("club_id")
   ticketPriceCurrency String       @default("USD") @map("ticket_price_currency")
   popularity          Float        @default(0.0)
-  lastScrapedDate     DateTime?    @map("last_scraped_date")
+  lastScrapedDate     DateTime?    @map("last_scraped_date") @db.Timestamptz(6)
   description         String?
   ticketPurchaseUrl   String?      @map("ticket_purchase_url")
   ticketPrice         Decimal?     @map("ticket_price") @db.Decimal(5, 2)
-  suppliedTags        String[]     @default([]) @map("supplied_tags")
+  suppliedTags        String[]     @map("supplied_tags")
   soldOut             Boolean      @default(false) @map("sold_out")
   lineupItems         LineupItem[]
   club                Club         @relation(fields: [clubId], references: [id], onDelete: Cascade)

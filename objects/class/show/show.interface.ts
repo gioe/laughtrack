@@ -17,6 +17,7 @@ export interface ShowInterface extends Taggable, Entity, SocialDiscoverable {
     ticket: Ticket;
     lastScrapedDate?: Date
     description?: string
+    soldOut?: boolean,
 }
 
 // DB
@@ -32,6 +33,7 @@ export interface ShowDTO {
     description?: string;
     address?: string;
     imageUrl: string;
+    soldOut?: boolean,
 }
 
 export interface PaginatedShowResponseDTO {

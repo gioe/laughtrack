@@ -14,7 +14,7 @@ export default function AuthButtons({
                 <div className="hidden lg:flex lg:gap-x-12 items-center">
                     <HeaderItem
                         highlighted={pathname.includes("/profile")}
-                        href={`profile/${currentUser.id}`}
+                        href={`/profile/${currentUser.id}`}
                         title="Profile"
                     />
                     <FullRoundedButton handleClick={signOut} label="Log Out" />

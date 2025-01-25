@@ -19,6 +19,8 @@ import LoginModal from "@/ui/components/modals/login";
 import RegisterModal from "@/ui/components/modals/register";
 import { StyleContextProvider } from "@/contexts/StyleProvider";
 import { StyleContextKey } from "@/objects/enum";
+import FilterModal from "@/ui/components/modals/filter";
+import { FilterDataProvider } from "@/contexts/FilterDataProvider";
 
 const outfit = Outfit({
     weight: "400",

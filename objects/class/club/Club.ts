@@ -23,6 +23,7 @@ export class Club implements ClubInterface {
     readonly activeComedianCount?: number;
     readonly imageUrl: string;
     readonly phoneNumber: string;
+    readonly fallbackImageUrl: URL;
 
     // Complex objects
     readonly socialData?: SocialData;
@@ -43,7 +44,7 @@ export class Club implements ClubInterface {
 
         // Initialize arrays and complex objects
         this.tagIds = input.tags ?? [];
-        this.containedEntities = this.initializeContainedEntities(input.dates);
+        this.containedEntities = input.dates?.map(date => new Show(date)) ?? [];
         this.socialData = input.social_data ? new SocialData(input.social_data) : undefined;
 
         // Initialize flags and counts
@@ -51,13 +52,5 @@ export class Club implements ClubInterface {
         this.showCount = input.show_count;
         this.activeComedianCount = input.active_comedian_count
     }
-    fallbackImageUrl: URL;
 
-    private initializeContainedEntities(dates?: ShowDTO[]): Show[] {
-        return dates?.map(date => new Show(date)) ?? [];
-    }
-
-    getShows(): Show[] {
-        return this.containedEntities as Show[];
-    }
 }

@@ -41,7 +41,7 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
                 <p className="text-gray-600 font-dmSans text-[18px]">
                     {formatShowDate(show.date.toString())} · {`${show.address}`}
                 </p>
-                <p className="text-[#CD7F32] font-semibold mt-1 font-inter text-[20px]">{`$${ticket.price.toString()}`}</p>
+                <p className="text-copper font-semibold mt-1 font-inter text-[20px]">{`$${ticket.price.toString()}`}</p>
             </div>
         </div>
     );

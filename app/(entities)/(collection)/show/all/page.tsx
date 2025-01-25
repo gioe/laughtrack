@@ -35,7 +35,7 @@ export default async function ShowSearchPage(props: any) {
                 title={`Search shows in ${paramsWrapper.getParamValue("city")}`}
                 subTitle={`${total} results`}
             />
-            <FilterBar>
+            <FilterBar total={total}>
                 <ShowSearchBar />
             </FilterBar>
             <div className="mx-10">

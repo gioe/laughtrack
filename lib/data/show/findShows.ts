@@ -8,8 +8,7 @@ export async function findShows(params: any): Promise<ShowDTO[]> {
     const { userId, from_date, clubName, comedianName,
         to_date, city, tags, tagsEmpty, direction,
         size, offset, sortBy, showIds } = params
-    console.log(params)
-    console.log(new Date().toISOString())
+
     const filteredShows = await db.show.findMany({
         where: {
             club: {
@@ -59,6 +58,7 @@ export async function findShows(params: any): Promise<ShowDTO[]> {
             popularity: true,
             ticketPrice: true,
             ticketPurchaseUrl: true,
+            soldOut: true,
             club: {
                 select: {
                     name: true,
@@ -103,7 +103,7 @@ export async function findShows(params: any): Promise<ShowDTO[]> {
         take: Number(size),
         skip: offset,
     })
-    console.log(filteredShows)
+
     return filteredShows.map(show => ({
         id: show.id,
         date: show.date,
@@ -116,6 +116,7 @@ export async function findShows(params: any): Promise<ShowDTO[]> {
         clubName: show.club.name,
         imageUrl: buildClubImageUrl(show.club.name),
         scrapedate: show.lastScrapedDate,
+        soldOut: show.soldOut,
         lineup: show.lineupItems.map(item => ({
             id: item.comedian.id,
             name: item.comedian.name,

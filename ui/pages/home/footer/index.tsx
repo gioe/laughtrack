@@ -36,13 +36,13 @@ const FooterComponent = () => {
                         <nav className="flex space-x-6">
                             <a
                                 href="/about"
-                                className="text-gray-600 hover:text-[#CD7F32] transition-colors text-[17px] font-dmSans font-semibold"
+                                className="text-gray-600 hover:text-copper transition-colors text-[17px] font-dmSans font-semibold"
                             >
                                 About
                             </a>
                             <a
                                 href="/contact"
-                                className="text-gray-600 hover:text-[#CD7F32] transition-colors text-[17px] font-dmSans font-semibold"
+                                className="text-gray-600 hover:text-copper transition-colors text-[17px] font-dmSans font-semibold"
                             >
                                 Contact
                             </a>

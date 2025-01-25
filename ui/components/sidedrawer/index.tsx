@@ -23,6 +23,7 @@ interface SideDrawerProps {
 export function SideDrawer({ open, onClose, currentUser }: SideDrawerProps) {
     const loginModal = useLoginModal();
     const registerModal = useRegisterModal();
+
     const handleLoginClick = useCallback(() => {
         loginModal.onOpen();
     }, [loginModal]);

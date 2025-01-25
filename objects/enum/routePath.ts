@@ -10,7 +10,7 @@ export enum APIRoutePath {
     ComedianFavorite = "/api/comedian/favorite",
     ShowSearch = "/api/show/search",
     Home = "/api/home",
-    Tag = "/api/tag",
+    Filter = "/api/filter",
     About = "/api/about"
 }
 

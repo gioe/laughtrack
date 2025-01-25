@@ -9,6 +9,8 @@ import FooterComponent from "@/ui/pages/home/footer";
 import TableWithHeader from "@/ui/pages/entity/comedian/table";
 import SocialMediaColumn from "@/ui/pages/entity/comedian/socialColumn";
 import { ComedianDetailResponse } from "@/app/api/comedian/[name]/interface";
+import FilterBar from "@/ui/pages/search/filterBar";
+import ClubSearchBar from "@/ui/components/searchbar/club";
 
 export default async function ComedianDetailsPage(props: any) {
     const session = await auth();
@@ -32,7 +34,11 @@ export default async function ComedianDetailsPage(props: any) {
 
             <ComedianDetailHeader comedian={data} />
             <div className="max-w-7xl mx-auto p-6">
-                <TableWithHeader shows={shows} total={total} />
+                <TableWithHeader shows={shows} total={total}>
+                    <FilterBar total={total}>
+                        <ClubSearchBar />
+                    </FilterBar>
+                </TableWithHeader>
                 <SocialMediaColumn comedian={data} />
             </div>
             <FooterComponent />

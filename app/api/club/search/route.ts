@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { getTags } from "@/lib/data/tags/getTags";
+import { getFilters } from "@/lib/data/filters/getFilters";
 import { EntityType } from "@/objects/enum";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { NextResponse } from "next/server";
@@ -9,7 +9,7 @@ import { ClubSearchResponse } from "./interface";
 
 export async function GET(request: Request) {
     const searchParams = new URL(request.url).searchParams
-    const filters = await getTags(EntityType.Club);
+    const filters = await getFilters(EntityType.Club);
     const helper = await QueryHelper.storePageParams(searchParams, filters);
 
     return getSearchedClubs(helper.asQueryFilters())

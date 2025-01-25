@@ -1,7 +1,9 @@
-import { EntityPageDataProvider } from "@/contexts/EntityPageDataProvider";
+import { SortOptionProvider } from "@/contexts/SortOptionProvider";
 import { PageEntityProvider } from "@/contexts/PageEntityProvider";
 import { StyleContextProvider } from "@/contexts/StyleProvider";
 import { StyleContextKey } from "@/objects/enum";
+import { FilterDataProvider } from "@/contexts/FilterDataProvider";
+import FilterModal from "@/ui/components/modals/filter";
 
 export default async function EntityDetailLayout({
     children,
@@ -10,12 +12,13 @@ export default async function EntityDetailLayout({
     children: React.ReactNode;
     params: Promise<{ name: string }>;
 }) {
-    const identifier = (await params).name;
-
     return (
         <StyleContextProvider initialContext={StyleContextKey.Search}>
             <PageEntityProvider>
-                <EntityPageDataProvider>{children}</EntityPageDataProvider>
+                <FilterDataProvider>
+                    <FilterModal />
+                    <SortOptionProvider>{children}</SortOptionProvider>
+                </FilterDataProvider>
             </PageEntityProvider>
         </StyleContextProvider>
     );

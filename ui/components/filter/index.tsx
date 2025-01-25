@@ -1,52 +1,25 @@
 "use client";
+import { useFilterModal } from "@/hooks/modalState";
+import { Filter } from "lucide-react";
+import { useCallback } from "react";
 
-import React from "react";
-import { useState } from "react";
-import { SortParamComponent } from "../params/sort";
-import { PageParamComponent } from "../params/page";
-import { FunnelButton } from "../button/funnel";
-import QueryParamComponent from "../params/query";
-import { DrawerComponent } from "../drawer";
-import { FilterParamComponent } from "../params/filter";
+export function FilterModalButton() {
+    const filterModal = useFilterModal();
 
-interface TableFilterBarProps {
-    totalItems: number;
-    filtersString: string;
-}
-
-const TableFilterBar: React.FC<TableFilterBarProps> = ({
-    totalItems,
-    filtersString,
-}) => {
-    const filterCount = JSON.parse(filtersString).length;
-
-    const [sideDrawerIsOpen, setSideDrawerIsOpen] = useState(false);
-
-    const handleButtonClick = (isOpen: boolean) => {
-        setSideDrawerIsOpen(isOpen);
-    };
+    const openModal = useCallback(() => {
+        filterModal.onOpen();
+    }, [filterModal]);
 
     return (
-        <div>
-            <DrawerComponent
-                isOpen={sideDrawerIsOpen}
-                child={<FilterParamComponent filtersString={filtersString} />}
-                handleOpen={handleButtonClick}
-            />
-            <div className="flex items-center gap-2 flex-row-reverse">
-                <div className="flex items-center gap-4 justify-end">
-                    <QueryParamComponent
-                        inputPlaceholder={`Search for comedians`}
-                    />
-                    <SortParamComponent />
-                    <PageParamComponent itemCount={totalItems} />
-                    {filterCount > 0 && (
-                        <FunnelButton handleClick={handleButtonClick} />
-                    )}
-                </div>
-            </div>
-        </div>
+        <button
+            className="flex gap-2 items-center text-copper font-dmSans"
+            type="button"
+            onClick={openModal}
+        >
+            <Filter size={20} />
+            <span className="hidden sm:inline font-dmSans text-[16px]">
+                Filter Results
+            </span>
+        </button>
     );
-};
-
-export default TableFilterBar;
+}

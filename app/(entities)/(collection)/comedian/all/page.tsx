@@ -40,7 +40,7 @@ export default async function ComedianSearchPage(props: any) {
                 subTitle={`${total} results`}
             />
 
-            <FilterBar>
+            <FilterBar total={total}>
                 <ComedianSearchBar />
             </FilterBar>
             <ComedianGrid comedians={data} />

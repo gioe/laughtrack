@@ -62,7 +62,7 @@ export default function ClubSearchBar() {
                         />
                     }
                     name="city"
-                    placeholder="City"
+                    placeholder="Where"
                     items={selectableCities}
                     onChange={handleSelection}
                     value={selectedValue}

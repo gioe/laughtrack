@@ -7,7 +7,7 @@ interface FullRoundedButtonProps {
     handleClick?: () => void;
     href?: string | null | undefined;
     label: string;
-    isLoading?: boolean;
+    disabled?: boolean;
     type?: "submit" | "reset" | "button";
     color?: string;
 }
@@ -15,7 +15,7 @@ interface FullRoundedButtonProps {
 export function FullRoundedButton({
     handleClick,
     label,
-    isLoading,
+    disabled,
     type = "submit",
     href = undefined,
     color = "bg-copper",
@@ -26,7 +26,7 @@ export function FullRoundedButton({
     const ButtonComponent = () => (
         <button
             type={type}
-            disabled={isLoading}
+            disabled={disabled}
             onClick={() => {
                 if (handleClick) {
                     handleClick();

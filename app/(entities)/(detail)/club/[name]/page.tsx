@@ -10,6 +10,8 @@ import FooterComponent from "@/ui/pages/home/footer";
 import ClubDetailHeader from "@/ui/pages/entity/club/detailHeader";
 import ClubDataColumn from "@/ui/pages/entity/club/socialColumn";
 import { ClubDetailResponse } from "@/app/api/club/[name]/interface";
+import FilterBar from "@/ui/pages/search/filterBar";
+import ComedianSearchBar from "@/ui/components/searchbar/comedian";
 
 export default async function ClubDetailPage(props: {
     searchParams: Promise<URLSearchParams>;
@@ -35,7 +37,11 @@ export default async function ClubDetailPage(props: {
             <Navbar currentUser={session?.user} />
             <ClubDetailHeader club={data} />
             <div className="max-w-7xl mx-auto p-6 flex flex-row">
-                <TableWithHeader shows={shows} total={total} />
+                <TableWithHeader shows={shows} total={total}>
+                    <FilterBar total={total}>
+                        <ComedianSearchBar />
+                    </FilterBar>
+                </TableWithHeader>
                 <ClubDataColumn club={data} />
             </div>
             <FooterComponent />

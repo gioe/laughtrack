@@ -2,16 +2,13 @@
 
 import { useSession } from "next-auth/react";
 import { useState, useCallback } from "react";
-import { HeartIcon as OutlineHeart } from "@heroicons/react/24/outline";
-import { HeartIcon as SolidHeart } from "@heroicons/react/24/solid";
 import { useFavoriteRegisterModal } from "@/hooks/modalState";
 import { Comedian } from "@/objects/class/comedian/Comedian";
-import Image from "next/image";
-import Link from "next/link";
 import { makeRequest } from "@/util/actions/makeRequest";
 import { APIRoutePath, RestAPIAction } from "@/objects/enum";
 import SocialMediaBar from "../../social/bar";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
+import ComedianLineupImage from "../../image/comedian/lineup";
 
 interface ComedianGridCardProps {
     entity: string;
@@ -53,33 +50,13 @@ const ComedianGridCard: React.FC<ComedianGridCardProps> = ({ entity }) => {
     return (
         <div className="bg-ivory rounded-xl overflow-hidden pb-4 px-4">
             {/* Image Container */}
-            <div className="relative h-64">
-                <Link
-                    href={`/comedian/${comedian.name}`}
-                    className="block w-full h-full"
-                >
-                    <Image
-                        src={comedian.imageUrl}
-                        alt={`${comedian.name}`}
-                        fill
-                        className="object-cover rounded-xl"
-                        sizes="(max-width: 768px) 100vw,
-                               (max-width: 1200px) 50vw,
-                               25vw"
-                        priority={false}
-                    />
-                </Link>
-                <button
-                    onClick={handleFavoriteClick}
-                    className="absolute top-2 right-2 p-1 hover:bg-black/10 rounded-full transition-colors z-10"
-                >
-                    {isFavorite ? (
-                        <SolidHeart className="w-6 h-6 text-red-500" />
-                    ) : (
-                        <OutlineHeart className="w-6 h-6 text-red-500" />
-                    )}
-                </button>
-            </div>
+            <ComedianLineupImage
+                comedian={comedian}
+                handleFavoriteClick={handleFavoriteClick}
+                sizes="(max-width: 768px) 100vw,
+               (max-width: 1200px) 50vw,
+               25vw"
+            />
 
             {/* Content Container */}
             <div className="mt-4">

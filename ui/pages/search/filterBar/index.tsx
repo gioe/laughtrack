@@ -1,17 +1,28 @@
+"use client";
+import { useFilterProvider } from "@/contexts/FilterDataProvider";
+import { FilterModalButton } from "@/ui/components/filter";
+import { PageParamComponent } from "@/ui/components/params/page";
 import { SortParamComponent } from "@/ui/components/params/sort";
-import { Filter } from "lucide-react";
+import { filter } from "lodash";
 
-const FilterBar = ({ children }) => {
+interface FilterBarProps {
+    children: React.ReactNode;
+    total: number;
+}
+const FilterBar = ({ children, total }: FilterBarProps) => {
+    const { filters } = useFilterProvider();
+    console.log(filters);
     return (
-        <div className="flex items-center justify-between mx-24">
-            <SortParamComponent />
-            {children}
-            <button className="flex gap-2 items-center text-[#CD7F32] font-dmSans">
-                <Filter size={20} />
-                <span className="hidden sm:inline font-dmSans text-[16px]">
-                    Filter Results
-                </span>
-            </button>
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mx-24">
+            <div className="flex flex-col items-start gap-7 lg:gap-2 basis-1/2">
+                {children}
+                <PageParamComponent itemCount={total} />
+            </div>
+            <div className="flex flex-col pt-7 gap-7 lg:flex-row">
+                <SortParamComponent />
+
+                {filters.length > 0 && <FilterModalButton />}
+            </div>
         </div>
     );
 };

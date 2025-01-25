@@ -24,6 +24,7 @@ export class Show implements ShowInterface {
     lastScrapedDate?: Date;
     description?: string;
     imageUrl: string;
+    soldOut?: boolean
 
     // Constructor
     constructor(input: ShowDTO) {
@@ -39,19 +40,7 @@ export class Show implements ShowInterface {
         this.description = input.description
         this.address = input.address
         this.imageUrl = input.imageUrl
+        this.soldOut = input.soldOut
     }
-
-
-    overrideDate = (date: string): void => {
-        const providedDate = new Date(date);
-        this.date = new Date(
-            providedDate.getUTCFullYear(),
-            providedDate.getUTCMonth(),
-            providedDate.getUTCDate(),
-            this.date.getHours(),
-            this.date.getMinutes(),
-            this.date.getSeconds(),
-        );
-    };
 
 }

@@ -9,7 +9,7 @@ const NavButton = ({ direction, onClick }: NavButtonProps) => {
     return (
         <button
             onClick={onClick}
-            className="bg-[#CD7F32] rounded-full p-2 text-white hover:opacity-90 transition-opacity"
+            className="bg-copper rounded-full p-2 text-white hover:opacity-90 transition-opacity"
             aria-label={`Scroll ${direction}`}
         >
             {direction === "left" ? (

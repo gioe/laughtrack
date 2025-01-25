@@ -1,7 +1,7 @@
 "use client";
 
+import { CityDTO } from "@/lib/data/cities/getCities";
 import { useState, useContext, createContext } from "react";
-import { CityDTO } from "../objects/class/city/city.interface";
 
 export interface CityList {
     cities: CityDTO[];

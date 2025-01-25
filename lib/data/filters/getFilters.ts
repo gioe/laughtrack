@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { EntityType } from "@/objects/enum";
 
-export async function getTags(type?: string): Promise<FilterDataDTO[]> {
+export async function getFilters(type?: string): Promise<FilterDataDTO[]> {
     try {
         const tagCategories = await db.tagCategory.findMany({
             where: type ? {
@@ -18,7 +18,8 @@ export async function getTags(type?: string): Promise<FilterDataDTO[]> {
                     select: {
                         id: true,
                         display: true,
-                        value: true
+                        value: true,
+                        userFacing: true
                     }
                 }
             }
@@ -29,11 +30,13 @@ export async function getTags(type?: string): Promise<FilterDataDTO[]> {
             display: category.display || '',
             value: category.value || '',
             type: category.type ? EntityType[category.type] : EntityType.Show,
-            options: category.tags.map(tag => ({
-                id: tag.id,
-                display: tag.display || '',
-                value: tag.value || ''
-            }))
+            options: category.tags
+                .filter(tag => tag.userFacing)
+                .map(tag => ({
+                    id: tag.id,
+                    display: tag.display || '',
+                    value: tag.value || ''
+                }))
         }));
     } catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {

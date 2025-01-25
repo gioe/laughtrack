@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import TablePagination from "@mui/material/TablePagination";
 import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
 import { Navigator } from "@/objects/class/navigate/Navigator";
 import { QueryProperty } from "@/objects/enum";
+import TablePagination from "@mui/material/TablePagination";
 
 interface PageParamComponentProps {
     itemCount: number;
@@ -39,7 +39,7 @@ export function PageParamComponent({
     const handleChangeRows = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => {
-        const rowSizeValue = parseInt(event.target.value, 10);
+        const rowSizeValue = parseInt(event.target.value, 8);
         paramsHelper.setParamValue(QueryProperty.Size, rowSizeValue);
         navigator.replaceRoute(paramsHelper.asParamsString());
         setPageSize(rowSizeValue);
@@ -50,27 +50,33 @@ export function PageParamComponent({
             sx={{
                 ".MuiTablePagination-displayedRows": {
                     color: "#B87333",
-                    font: "inter",
+                    font: "dmSans",
+                    fontSize: "16px",
                 },
                 ".MuiTablePagination-input": {
                     color: "#B87333",
-                    font: "inter",
+                    font: "dmSans",
+                    fontSize: "16px",
                 },
                 ".MuiTablePagination-selectLabel": {
                     color: "#B87333",
-                    font: "inter",
+                    font: "dmSans",
+                    fontSize: "16px",
                 },
                 ".MuiTablePagination-selectIcon": {
                     color: "#B87333",
-                    font: "inter",
+                    font: "dmSans",
+                    fontSize: "16px",
                 },
                 ".MuiTablePagination-actions": {
                     color: "#B87333",
-                    font: "inter",
+                    font: "dmSans",
+                    fontSize: "16px",
                 },
                 ".MuiButtonBase-root": {
                     color: "#B87333",
-                    font: "inter",
+                    font: "dmSans",
+                    fontSize: "16px",
                 },
             }}
             component="div"

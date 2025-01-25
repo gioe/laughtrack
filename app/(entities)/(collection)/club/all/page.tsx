@@ -38,7 +38,7 @@ export default async function ClubSearchPage(props: any) {
                 title={`Search clubs`}
                 subTitle={`${total} results`}
             />
-            <FilterBar>
+            <FilterBar total={total}>
                 <ClubSearchBar />
             </FilterBar>
             <ClubGrid clubs={data} />
