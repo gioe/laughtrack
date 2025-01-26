@@ -1,45 +1,33 @@
 import { EntityType } from "../../enum";
 import { SelectionSection } from "../../interface/selectionSection.interface";
-import { FilterDataDTO, FilterOptionDTO } from "../../interface/filter.interface";
 import { SearchParamsHelper } from "../params/SearchParamsHelper";
 import { Selectable } from "../../interface";
+import { FilterDTO } from "@/objects/interface/filter.interface";
 
-export class Filter implements SelectionSection {
+export class Filter implements Selectable {
     // Properties
     id: number;
     display: string;
-    type: EntityType;
+    type: string;
     value: string;
-    options: Selectable[];
+    selected: boolean;
 
     // Constructor
-    constructor(input: FilterDataDTO, helper: SearchParamsHelper) {
+    constructor(input: FilterDTO, helper: SearchParamsHelper) {
+        const commaSeparatedValue = helper.getParamValue('filters')
         this.id = input.id
         this.type = input.type
         this.display = input.display
         this.value = input.value
-        const commaSeparatedValue = helper.getParamValue(input.value)
-        this.options = input.options.map((option: FilterOptionDTO) => {
-            return {
-                id: option.id,
-                display: option.display,
-                value: option.value,
-                selected: commaSeparatedValue.includes(option.value)
-
-            } as Selectable
-        })
+        this.selected = commaSeparatedValue.includes(this.value)
     }
 
     handleSelection(optionId: number) {
-        this.options = this.options.map(option => ({
-            ...option,
-            selected: option.id === optionId ? !option.selected : option.selected
-        }));
+        this.selected = this.id === optionId ? !this.selected : this.selected
     }
 
     asParamValue() {
-        return this.options.filter((value: Selectable) => value.selected)
-            .map((option: Selectable) => option.value).join(",");
+        return this.selected ? this.value : ""
     }
 
 }

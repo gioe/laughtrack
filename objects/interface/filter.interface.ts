@@ -7,17 +7,10 @@ export interface FilterInterface {
 }
 
 // DB
-export interface FilterDataDTO {
-    id: number;
-    display: string;
-    value: string;
-    type: EntityType,
-    options: FilterOptionDTO[];
-}
-
-export interface FilterOptionDTO {
+export interface FilterDTO {
     id: number;
     value: string;
     display: string;
     selected?: boolean;
+    type: string;
 }

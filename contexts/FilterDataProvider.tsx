@@ -2,17 +2,16 @@
 
 import { useState, useEffect, useContext, createContext } from "react";
 import { Filter } from "../objects/class/filter/Filter";
-import { FilterDataDTO } from "../objects/interface/filter.interface";
+import { FilterDTO } from "../objects/interface/filter.interface";
 import { useSearchParams } from "next/navigation";
 import { usePageContext } from "./PageEntityProvider";
 import { SearchParamsHelper } from "../objects/class/params/SearchParamsHelper";
 import { APIRoutePath } from "../objects/enum";
 import { makeRequest } from "../util/actions/makeRequest";
 import { GetFiltersResponse } from "@/app/api/filter/interface";
-import { Selectable } from "@/objects/interface";
 
 interface FilterDataState {
-    filters: Selectable[];
+    filters: Filter[];
 }
 
 const defaultState: FilterDataState = {
@@ -39,13 +38,11 @@ export function FilterDataProvider({
             const { filters } = await makeRequest<GetFiltersResponse>(
                 APIRoutePath.Filter + `/?entity=${primaryEntity}`,
             );
-            console.log(filters);
 
-            const parsedFilters = filters
-                .map((dto: FilterDataDTO) => {
-                    return new Filter(dto, paramsHelper);
-                })
-                .flatMap((filter) => filter.options);
+            const parsedFilters = filters.map(
+                (dto: FilterDTO) => new Filter(dto, paramsHelper),
+            );
+
             setState({
                 filters: parsedFilters,
             });

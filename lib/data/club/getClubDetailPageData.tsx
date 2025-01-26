@@ -9,7 +9,6 @@ export async function getClubDetailPageData(
 ): Promise<ClubDetailResponse> {
     try {
         const { name } = params;
-        console.log(`GETTING STUFF FOR ${name}`);
         const [club, total, dates] = await Promise.all([
             findClubByName(name),
             getShowCount({ ...params, clubName: name }),

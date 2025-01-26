@@ -7,7 +7,6 @@ import FilterModal from "@/ui/components/modals/filter";
 
 export default async function EntityDetailLayout({
     children,
-    params,
 }: {
     children: React.ReactNode;
     params: Promise<{ name: string }>;
