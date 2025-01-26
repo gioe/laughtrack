@@ -20,6 +20,7 @@ import { Calendar, ChevronsUpDown, MapPin, Search } from "lucide-react";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import { CityDTO } from "@/lib/data/cities/getCities";
 import { showSearchFormSchema } from "./schema";
+import { QueryProperty } from "@/objects/enum";
 
 export default function ShowSearchForm() {
     const cityList = useCityContext();
@@ -51,9 +52,9 @@ export default function ShowSearchForm() {
     async function submitForm(data: z.infer<typeof showSearchFormSchema>) {
         setIsLoading(true);
         const map = new Map<URLParam, ParamsDictValue>();
-        map.set("city", data.city);
-        map.set("from_date", data.dates.from);
-        map.set("to_date", data.dates.to);
+        map.set(QueryProperty.City, data.city);
+        map.set(QueryProperty.FromDate, data.dates.from);
+        map.set(QueryProperty.ToDate, data.dates.to);
         paramsHelper.updateParamsFromMap(map);
         navigator.pushPage("show/all", paramsHelper.asParamsString());
         setIsLoading(false);

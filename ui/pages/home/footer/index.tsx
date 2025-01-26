@@ -15,10 +15,9 @@ const FooterComponent = () => {
                         </h2>
                         <p className="text-[17px] text-gray-600 max-w-2xl font-dmSans">
                             Laughtrack is the easiest way to explore and enjoy
-                            comedy in New York City! Whether you're searching
-                            for a show tonight, following your favorite
-                            comedians, or discovering new clubs, we've got you
-                            covered.
+                            comedy. Whether you're searching for a show tonight,
+                            following your favorite comedians, or discovering
+                            new grassroots venues, we've got you covered.
                         </p>
                     </div>
                 </div>
@@ -45,6 +44,12 @@ const FooterComponent = () => {
                                 className="text-gray-600 hover:text-copper transition-colors text-[17px] font-dmSans font-semibold"
                             >
                                 Contact
+                            </a>
+                            <a
+                                href="/support"
+                                className="text-gray-600 hover:text-copper transition-colors text-[17px] font-dmSans font-semibold"
+                            >
+                                Support
                             </a>
                         </nav>
 

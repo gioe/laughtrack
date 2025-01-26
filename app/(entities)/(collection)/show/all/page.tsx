@@ -1,8 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-"use server";
-
 import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
-import { APIRoutePath } from "@/objects/enum";
+import { APIRoutePath, QueryProperty } from "@/objects/enum";
 import { makeRequest } from "@/util/actions/makeRequest";
 import { auth } from "@/auth";
 import { ShowSearchResponse } from "@/app/api/show/search/interface";
@@ -12,6 +9,7 @@ import ShowTable from "@/ui/pages/search/table";
 import FooterComponent from "@/ui/pages/home/footer";
 import SearchDetailHeader from "@/ui/pages/search/detailHeader";
 import ShowSearchBar from "@/ui/components/searchbar/show/search";
+import FilterModal from "@/ui/components/modals/filter";
 
 export default async function ShowSearchPage(props: any) {
     const session = await auth();
@@ -20,7 +18,7 @@ export default async function ShowSearchPage(props: any) {
         props.searchParams,
     );
 
-    const { data, total } = await makeRequest<ShowSearchResponse>(
+    const { data, total, filters } = await makeRequest<ShowSearchResponse>(
         APIRoutePath.ShowSearch,
         {
             searchParams: paramsWrapper.asUrlSearchParams(),
@@ -29,13 +27,14 @@ export default async function ShowSearchPage(props: any) {
 
     return (
         <main className="min-h-screen w-full bg-ivory">
+            <FilterModal filters={filters} total={total} />
             <Navbar currentUser={session?.user} />
 
             <SearchDetailHeader
-                title={`Search shows in ${paramsWrapper.getParamValue("city")}`}
+                title={`Search shows in ${paramsWrapper.getParamValue(QueryProperty.City)}`}
                 subTitle={`${total} results`}
             />
-            <FilterBar total={total}>
+            <FilterBar total={total} filters={filters.length > 0}>
                 <ShowSearchBar />
             </FilterBar>
             <div className="mx-10">

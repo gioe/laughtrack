@@ -1,7 +1,7 @@
 import { ParamsDictValue, SearchParamsHelper } from "../params/SearchParamsHelper";
 import { allQueryProperties, DEFAULT_ERROR, QueryProperty } from "../../enum/queryProperty";
 import { DynamicRoute } from "../../interface/identifable.interface";
-import { FilterDataDTO } from "../../interface/filter.interface";
+import { FilterDTO } from "@/objects/interface/filter.interface";
 
 // This class is meant to capture all of the page parameters that Next provides us with.
 // These are relevant for DB querying and their existence persists across all pages so we capture it
@@ -40,8 +40,8 @@ export class QueryHelper {
             ...this.getIdentifier(),
             // Domain Values,
             ...this.getDomainParams(),
-            // Tags.
-            ...this.getTags(),
+            // Filters.
+            ...this.getFilters(),
             // UserId
             ...this.getUserId()
         }
@@ -51,20 +51,12 @@ export class QueryHelper {
         return { userId: this.userId }
     }
 
-    getTags() {
+    getFilters() {
 
-        const tagValues = this.filterValues.flatMap((value: string) => {
-            const paramVal = this.searchParamsHelper.getParamValue(value)
-            if (typeof paramVal === 'string') {
-                return paramVal.split(",")
-            }
-            return this.searchParamsHelper.getParamValue(value)
-        }).filter((value: string) => value !== DEFAULT_ERROR)
-
-        const tagsEmpty = tagValues.length == 0
+        const filtersEmpty = this.filterValues.length == 0
         return {
-            tagsEmpty,
-            tags: tagsEmpty ? [''] : tagValues
+            filtersEmpty,
+            filters: filtersEmpty ? [''] : this.filterValues
         }
     }
 
@@ -110,8 +102,8 @@ export class QueryHelper {
         return {}
     }
 
-    static async storePageParams(searchParams: URLSearchParams, tags?: FilterDataDTO[], identifier?: DynamicRoute, userId?: string | null) {
-        const filterValues = tags ? tags.map((dto: FilterDataDTO) => dto.value) : [];
+    static async storePageParams(searchParams: URLSearchParams, filters?: FilterDTO[], identifier?: DynamicRoute, userId?: string | null) {
+        const filterValues = filters ? filters.filter((dto) => dto.selected).map((dto: FilterDTO) => dto.display) : [];
         const searchParamsHelper = new SearchParamsHelper(searchParams)
         return new QueryHelper(searchParamsHelper, filterValues, identifier, userId)
     }

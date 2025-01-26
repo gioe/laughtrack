@@ -3,7 +3,8 @@ import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { buildComedianImageUrl } from "@/util/imageUtil";
 
 export async function findComedians(params: any): Promise<ComedianDTO[]> {
-    const { query, tagsEmpty, tags, sortBy, direction, size, offset } = params;
+    const { query, filtersEmpty, filters, sortBy, direction, size, offset } =
+        params;
 
     const filteredComedians = await db.comedian.findMany({
         where: {
@@ -11,13 +12,13 @@ export async function findComedians(params: any): Promise<ComedianDTO[]> {
                 contains: query,
                 mode: "insensitive",
             },
-            ...(!tagsEmpty
+            ...(!filtersEmpty
                 ? {
                       taggedComedians: {
                           some: {
                               tag: {
-                                  value: {
-                                      in: tags,
+                                  display: {
+                                      in: filters,
                                   },
                               },
                           },

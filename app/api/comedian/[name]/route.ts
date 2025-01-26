@@ -7,7 +7,6 @@ import { ComedianDetailResponse } from "./interface";
 import { NextResponse } from "next/server";
 import { getComedianDetailPageData } from "@/lib/data/comedian/getComedianDetailPageData";
 
-
 export async function GET(request: Request, { params }) {
     const slug = await params
 
@@ -18,6 +17,6 @@ export async function GET(request: Request, { params }) {
     const helper = await QueryHelper.storePageParams(searchParams, filters, slug);
 
     return getComedianDetailPageData(helper.asQueryFilters())
-        .then((response: ComedianDetailResponse) => NextResponse.json({ data: response.data, shows: response.shows, total: response.total }, { status: 200 }))
+        .then((response: ComedianDetailResponse) => NextResponse.json({ data: response.data, shows: response.shows, total: response.total, filters: filters }, { status: 200 }))
         .catch((error: Error) => NextResponse.json({ message: error.message }, { status: 500 }));
 }

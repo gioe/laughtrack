@@ -6,9 +6,8 @@ import { buildClubImageUrl, buildComedianImageUrl } from "@/util/imageUtil"
 export async function findShows(params: any): Promise<ShowDTO[]> {
 
     const { userId, from_date, clubName, comedianName,
-        to_date, city, tags, tagsEmpty, direction,
+        to_date, city, filters, filtersEmpty, direction,
         size, offset, sortBy, showIds } = params
-
     const filteredShows = await db.show.findMany({
         where: {
             club: {
@@ -38,12 +37,12 @@ export async function findShows(params: any): Promise<ShowDTO[]> {
                 gte: from_date ? new Date(from_date).toISOString() : new Date().toISOString(),
                 ...(to_date ? { lte: new Date(to_date).toISOString() } : {})
             },
-            ...(!tagsEmpty ? {
+            ...(!filtersEmpty ? {
                 taggedShows: {
                     some: {
                         tag: {
-                            value: {
-                                in: tags
+                            display: {
+                                in: filters
                             }
                         }
                     }

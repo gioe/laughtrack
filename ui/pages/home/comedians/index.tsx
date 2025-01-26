@@ -17,7 +17,10 @@ const TrendingComedianGrid = ({ comedians }: TrendingComedianGridProps) => {
                 </p>
             </div>
 
-            <ComedianGrid comedians={comedians} />
+            <ComedianGrid
+                comedians={comedians}
+                className="grid grid-cols-1 m:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-6"
+            />
 
             <div className="text-center pt-8 mt-8">
                 <Link

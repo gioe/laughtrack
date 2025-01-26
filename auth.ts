@@ -38,6 +38,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         id: response.id,
                         role: response.role,
                         email: response.email,
+                        zipCode: response.zipCode
                     };
 
                 } catch (e) {

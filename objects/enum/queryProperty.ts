@@ -8,6 +8,10 @@ export enum QueryProperty {
     Query = 'query',
     Params = 'params',
     Tags = 'tags',
+    Filters = 'filters',
+    City = 'city',
+    FromDate = 'from_date',
+    ToDate = 'to_date'
 }
 
 export const allQueryProperties = [
@@ -16,16 +20,19 @@ export const allQueryProperties = [
     QueryProperty.Sort.valueOf(),
     QueryProperty.Query.valueOf(),
     QueryProperty.Page.valueOf(),
+    QueryProperty.Filters.valueOf(),
+    QueryProperty.City.valueOf(),
+
 ];
 export const DEFAULT_ERROR = 'Unknown error'
 
 export const queryPropertyDefaultMap = new MapWithDefault<string, string>([
     [QueryProperty.Page, "0"],
-    [QueryProperty.Size, "8"],
+    [QueryProperty.Size, "10"],
     [QueryProperty.Query, ""],
     [QueryProperty.Direction, "asc"],
     [QueryProperty.Sort, "name"],
-    ["city", ""],
+    [QueryProperty.City, ""],
     [DEFAULT, DEFAULT_ERROR]
 ]);
 

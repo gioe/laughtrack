@@ -2,7 +2,8 @@ import { db } from "@/lib/db";
 import { buildClubImageUrl } from "@/util/imageUtil";
 
 export async function findClubs(params: any) {
-    const { query, tags, tagsEmpty, sortBy, direction, size, offset } = params;
+    const { query, filters, filtersEmpty, sortBy, direction, size, offset } =
+        params;
 
     const filteredClubs = await db.club.findMany({
         where: {
@@ -10,13 +11,13 @@ export async function findClubs(params: any) {
                 contains: query,
                 mode: "insensitive",
             },
-            ...(!tagsEmpty
+            ...(!filtersEmpty
                 ? {
                       taggedClubs: {
                           some: {
                               tag: {
-                                  value: {
-                                      in: tags,
+                                  display: {
+                                      in: filters,
                                   },
                               },
                           },

@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 
 export async function getClubCount(params: any) {
-    const { query, tagsEmpty, tags } = params;
+    const { query, filtersEmpty, filters } = params;
 
     return db.club.count({
         where: {
@@ -9,13 +9,13 @@ export async function getClubCount(params: any) {
                 contains: query,
                 mode: "insensitive",
             },
-            ...(!tagsEmpty
+            ...(!filtersEmpty
                 ? {
                       taggedClubs: {
                           some: {
                               tag: {
-                                  value: {
-                                      in: tags,
+                                  display: {
+                                      in: filters,
                                   },
                               },
                           },

@@ -15,6 +15,7 @@ import { Navigator } from "@/objects/class/navigate/Navigator";
 import DropdownComponent from "@/ui/components/dropdown";
 import TextInputComponent from "@/ui/components/input/search/text/input";
 import CalendarFormComponent, { DateRange } from "@/ui/components/calendar";
+import { QueryProperty } from "@/objects/enum";
 
 export default function ShowSearchBar() {
     const { getCurrentStyles } = useStyleContext();
@@ -24,12 +25,20 @@ export default function ShowSearchBar() {
 
     const paramsHelper = new SearchParamsHelper(useSearchParams());
     const navigator = new Navigator(usePathname(), useRouter());
-    const currentSelection = paramsHelper.getParamValue("city") as string;
-    const currentQuery = paramsHelper.getParamValue("query") as string;
+    const currentSelection = paramsHelper.getParamValue(
+        QueryProperty.City,
+    ) as string;
+    const currentQuery = paramsHelper.getParamValue(
+        QueryProperty.Query,
+    ) as string;
 
     const currentDateRange = {
-        from: new Date(paramsHelper.getParamValue("from_date") as string),
-        to: new Date(paramsHelper.getParamValue("to_date") as string),
+        from: new Date(
+            paramsHelper.getParamValue(QueryProperty.FromDate) as string,
+        ),
+        to: new Date(
+            paramsHelper.getParamValue(QueryProperty.ToDate) as string,
+        ),
     };
 
     const [selectedValue, setSelectedValue] = useState(currentSelection);
@@ -44,7 +53,7 @@ export default function ShowSearchBar() {
 
     function handleSearch(value: string) {
         const map = new Map<URLParam, ParamsDictValue>();
-        map.set("query", value);
+        map.set(QueryProperty.Query, value);
         setComedianQuery(value);
         paramsHelper.updateParamsFromMap(map);
         navigator.replaceRoute(paramsHelper.asParamsString());
@@ -52,8 +61,8 @@ export default function ShowSearchBar() {
 
     function setDateRange(value?: DateRange) {
         const map = new Map<URLParam, ParamsDictValue>();
-        map.set("from_date", value?.from ?? "");
-        map.set("to_date", value?.to ?? "");
+        map.set(QueryProperty.FromDate, value?.from ?? "");
+        map.set(QueryProperty.ToDate, value?.to ?? "");
         setSelectedDateRange({
             from: value?.from ?? new Date(),
             to: value?.to ?? new Date(),
@@ -64,7 +73,7 @@ export default function ShowSearchBar() {
 
     function handleSelection(value: string) {
         const map = new Map<URLParam, ParamsDictValue>();
-        map.set("city", value);
+        map.set(QueryProperty.City, value);
         setSelectedValue(value);
         paramsHelper.updateParamsFromMap(map);
         navigator.replaceRoute(paramsHelper.asParamsString());

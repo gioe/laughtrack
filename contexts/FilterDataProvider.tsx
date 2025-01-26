@@ -6,7 +6,7 @@ import { FilterDTO } from "../objects/interface/filter.interface";
 import { useSearchParams } from "next/navigation";
 import { usePageContext } from "./PageEntityProvider";
 import { SearchParamsHelper } from "../objects/class/params/SearchParamsHelper";
-import { APIRoutePath } from "../objects/enum";
+import { APIRoutePath, QueryProperty } from "../objects/enum";
 import { makeRequest } from "../util/actions/makeRequest";
 import { GetFiltersResponse } from "@/app/api/filter/interface";
 
@@ -40,7 +40,11 @@ export function FilterDataProvider({
             );
 
             const parsedFilters = filters.map(
-                (dto: FilterDTO) => new Filter(dto, paramsHelper),
+                (dto: FilterDTO) =>
+                    new Filter(
+                        dto,
+                        paramsHelper.getParamValue(QueryProperty.Filters),
+                    ),
             );
 
             setState({

@@ -4,14 +4,17 @@ import { APIRoutePath, StyleContextKey } from "@/objects/enum";
 import { ClubSearchResponse } from "@/app/api/club/search/interface";
 import { CACHE } from "@/util/constants/cacheConstants";
 import { makeRequest } from "@/util/actions/makeRequest";
+import { StyleContextProvider } from "@/contexts/StyleProvider";
+import { FilterDTO } from "@/objects/interface/filter.interface";
+import { Filter } from "@/objects/class/filter/Filter";
+import { auth } from "@/auth";
+import ClubSearchBar from "@/ui/components/searchbar/club";
+import FilterModal from "@/ui/components/modals/filter";
 import FilterBar from "@/ui/pages/search/filterBar";
 import FooterComponent from "@/ui/pages/home/footer";
 import Navbar from "@/ui/components/navbar";
-import { auth } from "@/auth";
 import ClubGrid from "@/ui/components/grid/club";
 import SearchDetailHeader from "@/ui/pages/search/detailHeader";
-import { StyleContextProvider } from "@/contexts/StyleProvider";
-import ClubSearchBar from "@/ui/components/searchbar/club";
 
 export default async function ClubSearchPage(props: any) {
     const session = await auth();
@@ -20,7 +23,7 @@ export default async function ClubSearchPage(props: any) {
         props.searchParams,
     );
 
-    const { data, total } = await makeRequest<ClubSearchResponse>(
+    const { data, total, filters } = await makeRequest<ClubSearchResponse>(
         APIRoutePath.ClubSearch,
         {
             searchParams: paramsWrapper.asUrlSearchParams(),
@@ -28,8 +31,14 @@ export default async function ClubSearchPage(props: any) {
         },
     );
 
+    const parsedFilters = filters.map(
+        (dto: FilterDTO) =>
+            new Filter(dto, paramsWrapper.getParamValue("filters")),
+    );
+
     return (
         <main className="min-h-screen w-full bg-ivory">
+            <FilterModal filters={filters} total={total} />
             <StyleContextProvider initialContext={StyleContextKey.Search}>
                 <Navbar currentUser={session?.user} />
             </StyleContextProvider>
@@ -38,7 +47,7 @@ export default async function ClubSearchPage(props: any) {
                 title={`Search clubs`}
                 subTitle={`${total} results`}
             />
-            <FilterBar total={total}>
+            <FilterBar total={total} filters={parsedFilters.length > 0}>
                 <ClubSearchBar />
             </FilterBar>
             <ClubGrid clubs={data} />

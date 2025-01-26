@@ -4,4 +4,5 @@ export interface LoginResponse {
     id: string;
     email: string,
     role: string
+    zipCode: string;
 }

@@ -12,6 +12,8 @@ export async function POST(request: Request) {
         where: { email: email }
     }))
 
+    console.log(`The user is ${user}`)
+
     if (!user) {
         return NextResponse.json({ error: "User doesn't exist." }, { status: 400 });
     }
@@ -30,7 +32,8 @@ export async function POST(request: Request) {
         refreshToken,
         id: user.id.toString(),
         email: user.email,
-        role: user.role
+        role: user.role,
+        zipCode: user.zipCode
     }, { status: 200 });
 
 }

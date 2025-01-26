@@ -1,7 +1,7 @@
 import { db } from "@/lib/db"
 
 export async function getShowCount(params: any): Promise<number> {
-    const { clubName, city, comedianName, from_date, to_date, tagsEmpty, tags } = params
+    const { clubName, city, comedianName, from_date, to_date, filtersEmpty, filters } = params
 
     return await db.show.count({
         where: {
@@ -27,12 +27,12 @@ export async function getShowCount(params: any): Promise<number> {
                 gte: from_date ? new Date(from_date).toISOString() : new Date().toISOString(),
                 ...(to_date ? { lte: new Date(to_date).toISOString() } : {})
             },
-            ...(!tagsEmpty ? {
+            ...(!filtersEmpty ? {
                 taggedShows: {
                     some: {
                         tag: {
-                            value: {
-                                in: tags
+                            display: {
+                                in: filters
                             }
                         }
                     }

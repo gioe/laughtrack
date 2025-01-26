@@ -5,6 +5,7 @@ import { MapPin } from "lucide-react";
 import ImageGrid from "@/ui/components/grid/image";
 import { Club } from "@/objects/class/club/Club";
 import { ClubDTO } from "@/objects/class/club/club.interface";
+import ClubDataColumn from "../socialColumn";
 
 interface ClubDetailHeaderProps {
     club: ClubDTO;
@@ -37,6 +38,7 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({ club }) => {
                     </div>
                 </div>
             </div>
+            <ClubDataColumn club={club} />
 
             {/* Image Grid */}
             {/* <ImageGrid

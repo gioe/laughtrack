@@ -14,6 +14,7 @@ import { CityDTO } from "@/lib/data/cities/getCities";
 import { DropdownComponent } from "../../dropdown";
 import TextInputComponent from "../../input/search/text/input";
 import { useStyleContext } from "@/contexts/StyleProvider";
+import { QueryProperty } from "@/objects/enum";
 
 export default function ClubSearchBar() {
     const { getCurrentStyles } = useStyleContext();
@@ -23,8 +24,12 @@ export default function ClubSearchBar() {
 
     const paramsHelper = new SearchParamsHelper(useSearchParams());
     const navigator = new Navigator(usePathname(), useRouter());
-    const currentSelection = paramsHelper.getParamValue("city") as string;
-    const currentClubQuery = paramsHelper.getParamValue("query") as string;
+    const currentSelection = paramsHelper.getParamValue(
+        QueryProperty.City,
+    ) as string;
+    const currentClubQuery = paramsHelper.getParamValue(
+        QueryProperty.Query,
+    ) as string;
 
     const [selectedValue, setSelectedValue] = useState(currentSelection);
     const [clubQuery, setClubQuery] = useState(currentClubQuery);
@@ -37,7 +42,7 @@ export default function ClubSearchBar() {
 
     function handleSearch(value: string) {
         const map = new Map<URLParam, ParamsDictValue>();
-        map.set("query", value);
+        map.set(QueryProperty.Query, value);
         setClubQuery(value);
         paramsHelper.updateParamsFromMap(map);
         navigator.replaceRoute(paramsHelper.asParamsString());
@@ -45,7 +50,7 @@ export default function ClubSearchBar() {
 
     function handleSelection(value: string) {
         const map = new Map<URLParam, ParamsDictValue>();
-        map.set("city", value);
+        map.set(QueryProperty.City, value);
         setSelectedValue(value);
         paramsHelper.updateParamsFromMap(map);
         navigator.replaceRoute(paramsHelper.asParamsString());

@@ -15,7 +15,6 @@ export default async function EntityDetailLayout({
         <StyleContextProvider initialContext={StyleContextKey.Search}>
             <PageEntityProvider>
                 <FilterDataProvider>
-                    <FilterModal />
                     <SortOptionProvider>{children}</SortOptionProvider>
                 </FilterDataProvider>
             </PageEntityProvider>

@@ -5,6 +5,7 @@ import { Heart } from "lucide-react";
 import ImageGrid from "@/ui/components/grid/image";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { Comedian } from "@/objects/class/comedian/Comedian";
+import SocialMediaColumn from "../socialColumn";
 
 interface ClubDetailHeaderProps {
     comedian: ComedianDTO;
@@ -84,6 +85,9 @@ const ComedianDetailHeader: React.FC<ClubDetailHeaderProps> = ({
                     },
                 ]}
             />
+            <div className="pb-4">
+                <SocialMediaColumn comedian={comedian} />
+            </div>
         </div>
     );
 };

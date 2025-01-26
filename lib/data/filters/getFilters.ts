@@ -2,10 +2,11 @@ import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { EntityType } from "@/objects/enum";
 import { FilterDTO } from "@/objects/interface/filter.interface";
+import { Filter } from "@/objects/class/filter/Filter";
 
-export async function getFilters(type?: string): Promise<FilterDTO[]> {
+export async function getFilters(type?: string, providedFilters?: string): Promise<Filter[]> {
     try {
-        const tags = await db.tag.findMany({
+        const filters = await db.tag.findMany({
             where: type ? {
                 type: type
             } : undefined,
@@ -18,12 +19,15 @@ export async function getFilters(type?: string): Promise<FilterDTO[]> {
             }
         });
 
-        return tags.map(tag => ({
-            id: tag.id,
-            display: tag.display || '',
-            value: tag.value || '',
-            type: tag.type ? EntityType[tag.type] : EntityType.Show
-        }));
+        return filters.map(filter => ({
+            id: filter.id,
+            display: filter.display || '',
+            value: filter.value || '',
+            type: filter.type ? EntityType[filter.type] : EntityType.Show,
+            userFacing: filter.userFacing
+        })).filter((option) => option.userFacing).map((dto) => {
+            return new Filter(dto, providedFilters ?? "")
+        })
     } catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             throw new Error(`Database error: ${error.message}`);

@@ -13,17 +13,16 @@ export class Filter implements Selectable {
     selected: boolean;
 
     // Constructor
-    constructor(input: FilterDTO, helper: SearchParamsHelper) {
-        const commaSeparatedValue = helper.getParamValue('filters')
+    constructor(input: FilterDTO, paramValue: string | string[]) {
         this.id = input.id
         this.type = input.type
         this.display = input.display
         this.value = input.value
-        this.selected = commaSeparatedValue.includes(this.value)
+        this.selected = paramValue.includes(this.display)
     }
 
-    handleSelection(optionId: number) {
-        this.selected = this.id === optionId ? !this.selected : this.selected
+    handleSelection() {
+        this.selected = !this.selected
     }
 
     asParamValue() {

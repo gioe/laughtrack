@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 
 export async function getComedianCount(params: any) {
-    const { query, tagsEmpty, tags } = params;
+    const { query, filtersEmpty, filters } = params;
 
     return db.comedian.count({
         where: {
@@ -9,13 +9,13 @@ export async function getComedianCount(params: any) {
                 contains: query,
                 mode: "insensitive",
             },
-            ...(!tagsEmpty
+            ...(!filtersEmpty
                 ? {
                       taggedComedians: {
                           some: {
                               tag: {
-                                  value: {
-                                      in: tags,
+                                  display: {
+                                      in: filters,
                                   },
                               },
                           },

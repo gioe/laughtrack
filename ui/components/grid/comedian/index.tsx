@@ -1,16 +1,16 @@
 "use server";
 
-import { Comedian } from "@/objects/class/comedian/Comedian";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import ComedianGridCard from "../../cards/comedian";
 
 interface ComedianGridProps {
     comedians: ComedianDTO[];
+    className: string;
 }
-const ComedianGrid = ({ comedians }: ComedianGridProps) => {
+const ComedianGrid = ({ comedians, className }: ComedianGridProps) => {
     return (
         <div className="mx-24 my-12">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className={className}>
                 {comedians.map((comedian, index) => (
                     <ComedianGridCard
                         key={index.toString()}
