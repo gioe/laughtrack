@@ -75,6 +75,7 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
                 <Divider text="or" />
 
                 <SocialAuthButtons
+                    actionText="Log in"
                     onAppleClick={() => {}}
                     onGoogleClick={() => {}}
                 />

@@ -1,9 +1,11 @@
 import React from "react";
+import GoogleGLogo from "../../icons/GoogleIcon";
+import AppleLogo from "../../icons/AppleIcon";
 
 const SocialButton = ({ provider, onClick, children }) => {
     const logos = {
-        google: "/api/placeholder/20/20",
-        apple: "/api/placeholder/20/20",
+        google: <GoogleGLogo />,
+        apple: <AppleLogo />,
     };
 
     return (
@@ -12,11 +14,7 @@ const SocialButton = ({ provider, onClick, children }) => {
             onClick={onClick}
             className="flex-1 flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg text-[12px] text-black bg-coconut-cream hover:bg-gray-50 font-dmSans"
         >
-            <img
-                src={logos[provider.toLowerCase()]}
-                alt={`${provider} logo`}
-                className="w-5 h-5 mr-2"
-            />
+            <div className="pr-2">{logos[provider.toLowerCase()]}</div>
             {children}
         </button>
     );
@@ -25,7 +23,7 @@ const SocialButton = ({ provider, onClick, children }) => {
 const SocialAuthButtons = ({
     onGoogleClick,
     onAppleClick,
-    actionText = "Sign Up", // default text, can be "Log In" or "Sign Up"
+    actionText = "Sign up", // default text, can be "Log In" or "Sign Up"
 }) => {
     return (
         <div className="flex gap-4">

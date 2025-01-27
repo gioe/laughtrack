@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { useLoginModal, useRegisterModal } from "@/hooks/modalState";
 import LaughtrackLogin from "@/ui/pages/login";
 import FullScreenModal from "../fullscreen";
-import { on } from "events";
 
 const LoginModal = () => {
     const router = useRouter();
