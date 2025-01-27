@@ -19,7 +19,7 @@ export async function getSearchedComedians(
         const [total, data, filters] = await Promise.all([
             getComedianCount(helper.asQueryFilters()),
             findComedians(helper.asQueryFilters()),
-            getFilters(EntityType.Comedian, providedFilters),
+            getFilters(EntityType.Comedian, helper.asQueryFilters()),
         ]);
 
         return {

@@ -60,7 +60,7 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
                     isLoading={false}
                     name={"email"}
                     label={"Email"}
-                    placeholder={"Enter your email..."}
+                    placeholder={"Enter your email"}
                     form={form}
                 />
                 <FormInput

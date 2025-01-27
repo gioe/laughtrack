@@ -19,6 +19,7 @@ import LoginModal from "@/ui/components/modals/login";
 import RegisterModal from "@/ui/components/modals/register";
 import { StyleContextProvider } from "@/contexts/StyleProvider";
 import { StyleContextKey } from "@/objects/enum";
+import FavoriteRegisterModal from "@/ui/components/modals/favoriteRegister";
 
 const outfit = Outfit({
     weight: "400",
@@ -85,6 +86,7 @@ export default async function RootLayout({
                         <ToasterProvider />
                         <LoginModal />
                         <RegisterModal />
+                        <FavoriteRegisterModal />
                         <StyleContextProvider
                             initialContext={StyleContextKey.Home}
                         >

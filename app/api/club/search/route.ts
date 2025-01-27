@@ -1,6 +1,4 @@
-import { getFilters } from "@/lib/data/filters/getFilters";
-import { EntityType, QueryProperty } from "@/objects/enum";
-import { QueryHelper } from "@/objects/class/query/QueryHelper";
+import { QueryProperty } from "@/objects/enum";
 import { NextResponse } from "next/server";
 import { getSearchedClubs } from "@/lib/data/club/getSearchedClubs";
 import { ClubSearchResponse } from "./interface";

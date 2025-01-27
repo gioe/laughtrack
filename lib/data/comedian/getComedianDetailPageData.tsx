@@ -31,7 +31,7 @@ export async function getComedianDetailPageData(
                 ...helper.asQueryFilters(),
                 comedianName: name,
             }),
-            getFilters(EntityType.Comedian),
+            getFilters(EntityType.Show, helper.asQueryFilters()),
         ]);
 
         return {

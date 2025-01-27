@@ -23,7 +23,7 @@ export async function getClubDetailPageData(
             findClubByName(name),
             getShowCount({ ...helper.asQueryFilters(), clubName: name }),
             findShows({ ...helper.asQueryFilters(), clubName: name }),
-            getFilters(EntityType.Comedian, providedFilters),
+            getFilters(EntityType.Show, helper.asQueryFilters()),
         ]);
 
         return {

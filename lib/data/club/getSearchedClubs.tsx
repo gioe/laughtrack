@@ -11,18 +11,19 @@ export async function getSearchedClubs(
     providedFilters?: string,
 ): Promise<ClubSearchResponse> {
     try {
+        console.log(providedFilters);
+
         const helper = await QueryHelper.storePageParams(
             params,
             providedFilters,
         );
 
+        console.log(helper.asQueryFilters());
+
         const [total, data, filters] = await Promise.all([
             getClubCount(helper.asQueryFilters()),
             findClubs(helper.asQueryFilters()),
-            getFilters(
-                EntityType.Club,
-                providedFilters == null ? undefined : providedFilters,
-            ),
+            getFilters(EntityType.Club, helper.asQueryFilters()),
         ]);
 
         return {

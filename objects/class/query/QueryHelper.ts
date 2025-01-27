@@ -54,6 +54,7 @@ export class QueryHelper {
     getFilters() {
 
         const filters = this.filters ? this.filters.split(",") : ['']
+        console.log(filters)
         return {
             filtersEmpty: filters.length > 0,
             filters: filters.length > 0 ? [''] : filters
