@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+const EXCLUSIVITY_TAGS = ["Not A Real Comic"];
 
 export async function getComedianCount(params: any) {
     const { query, filtersEmpty, filters } = params;
@@ -22,6 +23,17 @@ export async function getComedianCount(params: any) {
                       },
                   }
                 : {}),
+            NOT: {
+                taggedComedians: {
+                    some: {
+                        tag: {
+                            display: {
+                                in: EXCLUSIVITY_TAGS,
+                            },
+                        },
+                    },
+                },
+            },
         },
     });
 }

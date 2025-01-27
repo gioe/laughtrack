@@ -5,6 +5,7 @@ export async function getClubCount(params: any) {
 
     return db.club.count({
         where: {
+            visible: true,
             name: {
                 contains: query,
                 mode: "insensitive",

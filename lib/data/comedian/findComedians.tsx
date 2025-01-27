@@ -2,6 +2,8 @@ import { db } from "@/lib/db";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { buildComedianImageUrl } from "@/util/imageUtil";
 
+const EXCLUSIVITY_TAGS = ["Not A Real Comic"];
+
 export async function findComedians(params: any): Promise<ComedianDTO[]> {
     const { query, filtersEmpty, filters, sortBy, direction, size, offset } =
         params;
@@ -25,6 +27,17 @@ export async function findComedians(params: any): Promise<ComedianDTO[]> {
                       },
                   }
                 : {}),
+            NOT: {
+                taggedComedians: {
+                    some: {
+                        tag: {
+                            display: {
+                                in: EXCLUSIVITY_TAGS,
+                            },
+                        },
+                    },
+                },
+            },
         },
         select: {
             id: true,
