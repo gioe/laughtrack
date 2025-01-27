@@ -1,14 +1,25 @@
 import { getShowCount } from "./getCount"
 import { findShows } from "./findShows"
 import { Prisma } from "@prisma/client";
+import { getFilters } from "../filters/getFilters";
+import { EntityType } from "@/objects/enum";
+import { QueryHelper } from "@/objects/class/query/QueryHelper";
 
-export async function getSearchedShows(params: any) {
+export async function getSearchedShows(params: URLSearchParams, providedFilters?: string) {
     try {
-        const [total, data] = await Promise.all([getShowCount(params), findShows(params)])
+
+        const helper = await QueryHelper.storePageParams(params, providedFilters);
+
+        const [total, data, filters] = await Promise.all([
+            getShowCount(helper.asQueryFilters()),
+            findShows(helper.asQueryFilters()),
+            getFilters(EntityType.Show, providedFilters)
+        ])
 
         return {
             total,
-            data
+            data,
+            filters
         }
     }
     catch (error) {

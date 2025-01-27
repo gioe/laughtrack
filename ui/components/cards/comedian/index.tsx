@@ -24,7 +24,6 @@ const ComedianGridCard: React.FC<ComedianGridCardProps> = ({ entity }) => {
         comedian.isFavorite ? true : false,
     );
     const handleFavoriteClick = async (e: React.MouseEvent) => {
-        // Prevent the link navigation when clicking the heart
         e.stopPropagation();
 
         if (session.status == "authenticated") {
@@ -49,7 +48,6 @@ const ComedianGridCard: React.FC<ComedianGridCardProps> = ({ entity }) => {
 
     return (
         <div className="bg-ivory rounded-xl overflow-hidden pb-4 px-4">
-            {/* Image Container */}
             <ComedianLineupImage
                 comedian={comedian}
                 handleFavoriteClick={handleFavoriteClick}
@@ -58,7 +56,6 @@ const ComedianGridCard: React.FC<ComedianGridCardProps> = ({ entity }) => {
                25vw"
             />
 
-            {/* Content Container */}
             <div className="mt-4">
                 <h2 className="text-[22px] font-bold mb-1 font-outfit text-center">
                     {comedian.name}

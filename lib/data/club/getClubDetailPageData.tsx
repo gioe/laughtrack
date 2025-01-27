@@ -3,21 +3,34 @@ import { findShows } from "../show/findShows";
 import { findClubByName } from "./findClubByName";
 import { Prisma } from "@prisma/client";
 import { ClubDetailResponse } from "@/app/api/club/[name]/interface";
+import { getFilters } from "../filters/getFilters";
+import { EntityType } from "@/objects/enum";
+import { QueryHelper } from "@/objects/class/query/QueryHelper";
 
 export async function getClubDetailPageData(
     params: any,
+    name: string,
+    providedFilters?: string,
 ): Promise<ClubDetailResponse> {
     try {
-        const { name } = params;
-        const [club, total, dates] = await Promise.all([
+        const helper = await QueryHelper.storePageParams(
+            params,
+            providedFilters,
+            { name },
+        );
+
+        const [club, total, dates, filters] = await Promise.all([
             findClubByName(name),
-            getShowCount({ ...params, clubName: name }),
-            findShows({ ...params, clubName: name }),
+            getShowCount({ ...helper.asQueryFilters(), clubName: name }),
+            findShows({ ...helper.asQueryFilters(), clubName: name }),
+            getFilters(EntityType.Comedian, providedFilters),
         ]);
+
         return {
             data: club,
             shows: dates,
             total,
+            filters,
         };
     } catch (error) {
         console.log(error);

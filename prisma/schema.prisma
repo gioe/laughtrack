@@ -21,13 +21,13 @@ model Club {
   name        String       @unique
   address     String
   website     String
-  visible     Boolean      @default(true)
   scrapingUrl String       @map("scraping_url")
   popularity  Float        @default(0.0)
   zipCode     String?      @map("zip_code") @db.VarChar(10)
   cityId      Int          @map("city_id")
   phoneNumber String?      @default("") @map("phone_number")
   timezone    String?      @map("timezone")
+  visible     Boolean?     @default(true)
   city        City         @relation(fields: [cityId], references: [id], onDelete: Cascade)
   shows       Show[]
   taggedClubs TaggedClub[]
@@ -112,29 +112,17 @@ model LineupItem {
   @@map("lineup_items")
 }
 
-model TagCategory {
-  id      Int     @id @default(autoincrement())
-  display String?
-  type    String?
-  value   String?
-  tags    Tag[]
-
-  @@map("tag_category")
-}
-
 model Tag {
   id              Int              @id @default(autoincrement())
   display         String?
   type            String?
   userFacing      Boolean          @default(false) @map("user_facing")
   pattern         String?
-  category        Int?
   value           String?
   keyWords        String[]         @map("key_words")
   taggedClubs     TaggedClub[]
   taggedComedians TaggedComedian[]
   taggedShows     TaggedShow[]
-  tagCategory     TagCategory?     @relation(fields: [category], references: [id], onDelete: Cascade)
 
   @@map("tags")
 }

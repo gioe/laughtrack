@@ -11,16 +11,16 @@ export class QueryHelper {
 
     identifier?: DynamicRoute
     searchParamsHelper: SearchParamsHelper;
-    filterValues: string[]
+    filters?: string
     userId?: string | null;
 
     constructor(searchParamsHelper: SearchParamsHelper,
-        filterValues: string[],
+        filters?: string,
         identifier?: DynamicRoute,
         userId?: string | null) {
         this.userId = userId
         this.identifier = identifier
-        this.filterValues = filterValues
+        this.filters = filters
         this.searchParamsHelper = searchParamsHelper
     }
 
@@ -53,10 +53,10 @@ export class QueryHelper {
 
     getFilters() {
 
-        const filtersEmpty = this.filterValues.length == 0
+        const filters = this.filters ? this.filters.split(",") : ['']
         return {
-            filtersEmpty,
-            filters: filtersEmpty ? [''] : this.filterValues
+            filtersEmpty: filters.length > 0,
+            filters: filters.length > 0 ? [''] : filters
         }
     }
 
@@ -102,10 +102,9 @@ export class QueryHelper {
         return {}
     }
 
-    static async storePageParams(searchParams: URLSearchParams, filters?: FilterDTO[], identifier?: DynamicRoute, userId?: string | null) {
-        const filterValues = filters ? filters.filter((dto) => dto.selected).map((dto: FilterDTO) => dto.display) : [];
+    static async storePageParams(searchParams: URLSearchParams, filters?: string, identifier?: DynamicRoute, userId?: string | null) {
         const searchParamsHelper = new SearchParamsHelper(searchParams)
-        return new QueryHelper(searchParamsHelper, filterValues, identifier, userId)
+        return new QueryHelper(searchParamsHelper, filters, identifier, userId)
     }
 
 }

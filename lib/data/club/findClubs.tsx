@@ -7,6 +7,7 @@ export async function findClubs(params: any) {
 
     const filteredClubs = await db.club.findMany({
         where: {
+            visible: true, // Add this line
             name: {
                 contains: query,
                 mode: "insensitive",
