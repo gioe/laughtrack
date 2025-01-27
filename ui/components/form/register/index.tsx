@@ -2,6 +2,7 @@
 "use client";
 
 import toast from "react-hot-toast";
+import FormSubmissionButton from "../../button/form";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { registerSchema } from "./schema";
@@ -9,9 +10,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { FormInput } from "../../input/index";
 import { FormProvider, useForm } from "react-hook-form";
-import { Divider } from "../../divider";
-import SocialAuthButtons from "../../auth/social";
-import FormSubmissionButton from "../../button/form";
 import { makeRequest } from "@/util/actions/makeRequest";
 import { APIRoutePath, RestAPIAction } from "@/objects/enum";
 import { RegisterResponse } from "@/app/api/auth/register/interface";

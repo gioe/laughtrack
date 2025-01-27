@@ -19,7 +19,7 @@ const ComedianLineupImage = ({
         <div className="relative h-64">
             <Link
                 href={`/comedian/${comedian.name}`}
-                className="block w-full h-full"
+                className="block w-full h-full relative"
             >
                 <Image
                     src={comedian.imageUrl}
@@ -28,6 +28,9 @@ const ComedianLineupImage = ({
                     className="object-cover rounded-xl"
                     sizes={sizes}
                     priority={false}
+                    onError={() => {
+                        console.log("THERE WAS AN ERROR WITH THE PHOTO");
+                    }}
                 />
             </Link>
             <button

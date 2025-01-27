@@ -10,8 +10,6 @@ import toast from "react-hot-toast";
 import { signIn } from "next-auth/react";
 import { FormInput } from "../../input";
 import FormSubmissionButton from "../../button/form";
-import SocialAuthButtons from "../../auth/social";
-import { Divider } from "@/ui/components/divider";
 
 interface LoginFormProps {
     onSubmit: () => void;

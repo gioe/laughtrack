@@ -2,6 +2,7 @@
 
 import { Club } from "@/objects/class/club/Club";
 import Image from "next/image";
+import Link from "next/link";
 
 interface PopularClubCardProps {
     entity: string;
@@ -13,15 +14,20 @@ const PopularClubCard: React.FC<PopularClubCardProps> = ({ entity }) => {
     return (
         <div className="w-[218px] transition-transform duration-300 hover:scale-105">
             {/* Image Container */}
-            <div className="relative w-[218px] h-[218px] rounded-2xl overflow-hidden mb-4">
-                <Image
-                    src={club.imageUrl}
-                    alt={club.name}
-                    width={218}
-                    height={218}
-                    className="object-cover"
-                    priority
-                />
+            <div className="relative w-[218px] h-[218px] rounded-2xl overflow-hidden mb-4 hover:cursor-pointer">
+                <Link
+                    href={`/club/${club.name}`}
+                    className="block w-full h-full relative"
+                >
+                    <Image
+                        src={club.imageUrl}
+                        alt={club.name}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 218px) 100vw, 218px"
+                        priority={false}
+                    />
+                </Link>
             </div>
 
             {/* Text Content */}
