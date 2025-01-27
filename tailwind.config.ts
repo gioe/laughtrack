@@ -88,6 +88,11 @@ const themeColors = {
 
 const fonts = {
     sans: ['"PT Sans"', "sans-serif"],
+    "gilroy-regular": ['"Gilroy-Regular"', "sans-serif"],
+    "gilroy-medium": ['"Gilroy-Medium"', "sans-serif"],
+    "gilroy-light": ['"Gilroy-Light"', "sans-serif"],
+    "gilroy-heavy": ['"Gilroy-Heavy"', "sans-serif"],
+    "gilroy-bold": ['"Gilroy-Bold"', "sans-serif"],
     bebas: "var(--font-bebas)",
     oswald: "var(--font-oswald)",
     fjalla: "var(--font-fjalla)",

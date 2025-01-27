@@ -19,8 +19,12 @@ const TableWithHeader: React.FC<TableWithHeaderProps> = ({
 }) => {
     return (
         <div className="flex-1">
-            <h1 className="text-2xl font-bold">Upcoming Shows</h1>
-            <p className="text-gray-600 mb-8">{total} upcoming shows</p>
+            <h1 className="font-gilroy-bold text-[26px] font-bold">
+                Upcoming Shows
+            </h1>
+            <p className="text-gray-600 font-dmSans text-[16px] mb-8">
+                {total} upcoming shows
+            </p>
             {children}
             <ShowTable shows={shows} />
         </div>

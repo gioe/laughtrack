@@ -1,4 +1,6 @@
 import "./globals.css";
+import "./fonts.css";
+
 import { NextUIProvider } from "@nextui-org/react";
 import { SessionProvider } from "next-auth/react";
 import {

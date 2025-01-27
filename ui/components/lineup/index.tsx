@@ -1,8 +1,10 @@
 "use client";
 
 import { Comedian } from "@/objects/class/comedian/Comedian";
-import Image from "next/image";
-import Link from "next/link";
+import { useState } from "react";
+import ComedianHeadshot from "../image/comedian";
+
+const PLACEHOLDER = "/images/comedian-placeholder.png";
 
 interface LineupGridProps {
     lineup: Comedian[];
@@ -12,19 +14,7 @@ const LineupGrid = ({ lineup }: LineupGridProps) => {
         <div className="flex gap-4 overflow-x-auto pb-4 snap-x hover:cursor-pointer">
             {lineup.map((comedian, index) => (
                 <div key={index} className="flex-shrink-0 snap-start">
-                    <div className="relative w-32 h-32 rounded-lg overflow-hidden mb-2">
-                        <Link
-                            href={`/comedian/${comedian.name}`}
-                            className="relative block h-full w-full"
-                        >
-                            <Image
-                                src={comedian.imageUrl}
-                                alt={comedian.name}
-                                fill
-                                className="object-cover"
-                            />
-                        </Link>
-                    </div>
+                    <ComedianHeadshot comedian={comedian} variant="lineup" />
                     {comedian.name.split(" ").map((nameString) => {
                         return (
                             <p

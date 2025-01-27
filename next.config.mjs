@@ -4,7 +4,7 @@ const nextConfig = {
     remotePatterns: [{
       protocol: 'https',
       hostname: 'laughtrack.b-cdn.net',
-    }, ],
+    }],
   }
 };
 

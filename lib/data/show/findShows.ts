@@ -3,6 +3,7 @@ import { db } from "@/lib/db"
 import { ShowDTO } from "@/objects/class/show/show.interface"
 import { buildClubImageUrl, buildComedianImageUrl } from "@/util/imageUtil"
 
+const EXCLUSIVITY_TAGS = ['Not Even Funny']
 export async function findShows(params: any): Promise<ShowDTO[]> {
 
     console.log(params)
@@ -122,6 +123,7 @@ export async function findShows(params: any): Promise<ShowDTO[]> {
         soldOut: show.soldOut,
         lineup: show.lineupItems.map(item => ({
             id: item.comedian.id,
+            uuid: item.comedian.uuid,
             name: item.comedian.name,
             imageUrl: buildComedianImageUrl(item.comedian.name),
             is_favorite: userId ? item.comedian.favoriteComedians.length > 0 : false,

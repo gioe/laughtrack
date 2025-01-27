@@ -6,7 +6,7 @@ import { twMerge } from "tailwind-merge";
 export default function Logo() {
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
-    const baseClasses = `text-[30px] font-bold font-chivo`;
+    const baseClasses = `text-[30px] font-bold font-gilroy-bold`;
 
     return (
         <div className="flex items-center">

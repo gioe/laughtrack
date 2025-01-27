@@ -40,7 +40,7 @@ const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
         <div className="max-w-full mx-auto px-8 py-12 bg-coconut-cream">
             <div className="flex justify-between items-center mb-4">
                 <div>
-                    <h2 className="text-3xl font-bold text-[#2D1810] mb-2">
+                    <h2 className="text-[36px] font-bold font-gilroy-bold text-cedar mb-2">
                         Popular Clubs
                     </h2>
                 </div>

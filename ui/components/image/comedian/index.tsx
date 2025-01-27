@@ -1,111 +1,84 @@
-"use client";
-
-import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
-import { Tooltip } from "@material-tailwind/react";
+import Image from "next/image";
 import { Comedian } from "@/objects/class/comedian/Comedian";
-
-// Types
-type AvatarShape = "rounded" | "circle";
-type AvatarSize = "xs" | "s" | "m" | "l" | "xl";
+import { HeartIcon as OutlineHeart } from "@heroicons/react/24/outline";
+import { HeartIcon as SolidHeart } from "@heroicons/react/24/solid";
+import { useState } from "react";
+import { useFavorite } from "@/hooks/useFavorite";
 
 interface ComedianHeadshotProps {
     comedian: Comedian;
-    tooltip?: boolean;
-    type?: AvatarShape;
-    size?: AvatarSize;
-    priority?: boolean;
-    quality?: number;
-    shouldAnimate?: boolean;
+    sizes?: string; // Make optional since lineup won't need it
+    variant?: "grid" | "lineup";
+    className?: string;
 }
 
-// Configuration
-const AVATAR_STYLES = {
-    shape: {
-        rounded: { borderRadius: "20%" },
-        circle: { borderRadius: "50%" },
+const PLACEHOLDER = "/images/comedian-placeholder.png";
+
+const variantStyles = {
+    grid: {
+        container: "relative h-64",
+        image: "object-cover object-center rounded-xl", // object-cover will crop/scale to fill
+        favoriteButton: "absolute top-2 right-2",
     },
-    size: {
-        xs: "size-12",
-        s: "size-16",
-        m: "size-20",
-        l: "size-40",
-        xl: "size-52",
+    lineup: {
+        container: "relative h-[136px] w-[136px]",
+        image: "object-cover object-center rounded-xl", // object-cover will crop/scale to fill
+        favoriteButton: "absolute -top-1 -right-1 scale-75",
     },
-} as const;
+};
 
 const ComedianHeadshot = ({
     comedian,
-    tooltip = true,
-    type = "rounded",
-    size = "l",
-    priority = true,
-    shouldAnimate = true,
+    sizes,
+    variant = "grid",
+    className = "",
 }: ComedianHeadshotProps) => {
-    const [src, setSrc] = useState(comedian.imageUrl);
+    const [error, setError] = useState(false);
+    const { isFavorite, handleFavoriteClick } = useFavorite({
+        initialState: comedian.isFavorite ?? false,
+        entityId: comedian.uuid,
+    });
 
-    const handleImageError = () => {
-        setSrc("");
-    };
+    const styles = variantStyles[variant];
 
-    // Determine if we need the pulsating border
-    const shouldPulsate =
-        (comedian.isAlias || comedian.isFavorite) && shouldAnimate;
-
-    const getPulsateStyles = () => {
-        if (!shouldPulsate) return "";
-
-        return `
-            before:absolute 
-            before:inset-0 
-            before:rounded-[inherit]
-            before:border-8
-            before:border-blue-400
-            before:border-radius-50%
-            before:animate-[pulse_2s_ease-in-out_infinite]
-            ${comedian.isAlias && !comedian.isFavorite ? "before:border-purple-400" : ""}
-            ${!comedian.isAlias && comedian.isFavorite ? "before:border-red-400" : ""}
-        `;
-    };
-
-    const ImageComponent = () => (
-        <div
-            className={`
-        relative 
-        inline-block 
-        hover:cursor-pointer 
-        object-cover 
-        object-center 
-        ${AVATAR_STYLES.size[size]}
-        ${getPulsateStyles()}
-    `}
-        >
-            <Link
-                href={`/comedian/${comedian.name}`}
-                className="relative block h-full w-full"
-            >
-                <Image
-                    fill
-                    src={src.toString()}
-                    alt={comedian.name}
-                    onError={handleImageError}
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    priority={priority}
-                    style={AVATAR_STYLES.shape[type]}
-                />
-            </Link>
-        </div>
-    );
-
-    if (!tooltip) {
-        return <ImageComponent />;
-    }
+    const imageProps =
+        variant === "grid"
+            ? {
+                  fill: true,
+                  sizes: sizes,
+              }
+            : {
+                  width: 136,
+                  height: 136,
+              };
 
     return (
-        <Tooltip key={comedian.name} content={comedian.name}>
-            <ImageComponent />
-        </Tooltip>
+        <div className={`${styles.container} ${className}`}>
+            <Link
+                href={`/comedian/${comedian.name}`}
+                className="block w-full h-full relative"
+            >
+                <Image
+                    src={error ? PLACEHOLDER : comedian.imageUrl}
+                    alt={`${comedian.name}`}
+                    className={styles.image}
+                    priority={false}
+                    onError={() => setError(true)}
+                    {...imageProps}
+                />
+            </Link>
+            <button
+                onClick={handleFavoriteClick}
+                className={`${styles.favoriteButton} p-1 hover:bg-black/10 rounded-full transition-colors z-10`}
+            >
+                {isFavorite ? (
+                    <SolidHeart className="w-6 h-6 text-red-500" />
+                ) : (
+                    <OutlineHeart className="w-6 h-6 text-red-500" />
+                )}
+            </button>
+        </div>
     );
 };
 

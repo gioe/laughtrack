@@ -6,6 +6,8 @@ import { Tooltip } from "@material-tailwind/react";
 import Link from "next/link";
 import { Club } from "@/objects/class/club/Club";
 
+const PLACEHOLDER = "/images/club-placeholder.png";
+
 const marqueeConfig = {
     // Colors
     rounded: {
@@ -36,11 +38,7 @@ const ClubMarquee = ({
     type = "rounded",
     size = "m",
 }: ClubMarqueeProps) => {
-    const [src, setSrc] = useState(club.imageUrl);
-
-    const handleImageError = () => {
-        setSrc("");
-    };
+    const [error, setError] = useState(false);
 
     const ImageComponent = () => (
         <div>
@@ -50,9 +48,9 @@ const ClubMarquee = ({
             >
                 <div className="bg-black rounded-lg overflow-hidden aspect-square mb-4 relative">
                     <Image
-                        src={src?.toString() ?? ""}
+                        src={error ? PLACEHOLDER : club.imageUrl}
                         alt={club.name}
-                        onError={handleImageError}
+                        onError={() => setError(true)}
                         fill
                         className="object-cover"
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

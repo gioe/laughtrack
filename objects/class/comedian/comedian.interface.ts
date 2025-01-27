@@ -1,7 +1,4 @@
-import {
-    Favoritable,
-    Entity,
-} from "../../interface";
+import { Favoritable, Entity } from "../../interface";
 import { SocialDataDTO } from "../socialData/socialData.interface";
 import { ShowDTO } from "../show/show.interface";
 
@@ -16,7 +13,7 @@ export interface ComedianInterface
 export interface ComedianDTO {
     name: string;
     imageUrl: string
-    uuid?: string;
+    uuid: string;
     id?: number
     userId?: number;
     social_data?: SocialDataDTO;

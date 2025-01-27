@@ -8,7 +8,7 @@ import { SocialData } from "../socialData/SocialData";
 export class Comedian implements ComedianInterface {
 
     name: string;
-    uuid?: string;
+    uuid: string;
     socialData?: SocialData;
     tagIds: number[];
     isFavorite: boolean;

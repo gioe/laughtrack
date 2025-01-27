@@ -10,7 +10,7 @@ const FooterComponent = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 mb-12">
                     {/* Brand and description */}
                     <div className="lg:col-span-8">
-                        <h2 className="text-[30px] font-bold text-[#2D1810] mb-4 font-chivo">
+                        <h2 className="text-[30px] font-bold text-[#2D1810] mb-4 font-gilroy-bold">
                             Laughtrack
                         </h2>
                         <p className="text-[17px] text-gray-600 max-w-2xl font-dmSans">
@@ -25,7 +25,7 @@ const FooterComponent = () => {
                 {/* Bottom bar */}
                 <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-gray-200">
                     {/* Copyright */}
-                    <div className="text-gray-600 mb-4 md:mb-0 text-[17px]">
+                    <div className="text-gray-600 mb-4 md:mb-0 text-[17px] font-dmSans">
                         Copyright © 2025 Laughtrack
                     </div>
 

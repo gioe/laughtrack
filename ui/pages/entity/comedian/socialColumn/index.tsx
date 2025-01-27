@@ -12,9 +12,6 @@ const SocialMediaColumn = ({ comedian }: SocialMediaColumnProps) => {
 
     return (
         <div className="w-64">
-            <h2 className="text-[22px] font-inter font-bold mb-4">
-                Social Media
-            </h2>
             <div className="space-y-2">
                 {parsedComedian.socialData?.instagram.account && (
                     <a
