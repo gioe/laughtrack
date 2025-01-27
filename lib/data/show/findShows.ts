@@ -8,6 +8,7 @@ export async function findShows(params: any): Promise<ShowDTO[]> {
     const { userId, from_date, clubName, comedianName,
         to_date, city, filters, filtersEmpty, direction,
         size, offset, sortBy, showIds } = params
+
     const filteredShows = await db.show.findMany({
         where: {
             club: {
@@ -16,7 +17,8 @@ export async function findShows(params: any): Promise<ShowDTO[]> {
                 } : {}),
                 city: {
                     name: city
-                }
+                },
+                visible: true
             },
             ...(showIds ? {
                 id: {
