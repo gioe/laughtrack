@@ -1,6 +1,7 @@
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { db } from "@/lib/db";
 import { buildComedianImageUrl } from "@/util/imageUtil";
+
 export async function findComedianByName(name: string): Promise<ComedianDTO> {
     const comedianData = await db.comedian.findFirst({
         where: {

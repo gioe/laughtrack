@@ -6,13 +6,16 @@ import { ComedianDetailResponse } from "@/app/api/comedian/[name]/interface";
 import { getFilters } from "../filters/getFilters";
 import { EntityType } from "@/objects/enum";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
+import { DynamicRoute } from "@/objects/interface/identifable.interface";
 
 export async function getComedianDetailPageData(
     params: URLSearchParams,
-    name: string,
+    slug: DynamicRoute,
     providedFilters?: string,
 ): Promise<ComedianDetailResponse> {
     try {
+        const { name } = slug;
+
         const helper = await QueryHelper.storePageParams(
             params,
             providedFilters,
@@ -22,7 +25,7 @@ export async function getComedianDetailPageData(
         );
 
         const [comedianData, totalCount, shows, filters] = await Promise.all([
-            findComedianByName(name),
+            findComedianByName(name ?? ""),
             getShowCount({
                 ...helper.asQueryFilters(),
                 comedianName: name,

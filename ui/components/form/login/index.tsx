@@ -72,13 +72,13 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
                     form={form}
                 />
 
-                <Divider text="or" />
+                {/* <Divider text="or" />
 
                 <SocialAuthButtons
                     actionText="Log in"
                     onAppleClick={() => {}}
                     onGoogleClick={() => {}}
-                />
+                /> */}
 
                 {/* Login Button */}
                 <FormSubmissionButton>Log In</FormSubmissionButton>

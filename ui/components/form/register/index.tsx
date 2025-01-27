@@ -96,12 +96,12 @@ export default function RegistrationForm({ onSubmit }: RegistrationFormProps) {
                     form={form}
                 />
 
-                <Divider text="or" />
+                {/* <Divider text="or" />
 
                 <SocialAuthButtons
                     onAppleClick={() => {}}
                     onGoogleClick={() => {}}
-                />
+                /> */}
 
                 {/* Login Button */}
                 <FormSubmissionButton>Sign Up</FormSubmissionButton>

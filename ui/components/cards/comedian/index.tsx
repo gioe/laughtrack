@@ -23,6 +23,7 @@ const ComedianGridCard: React.FC<ComedianGridCardProps> = ({ entity }) => {
     const [isFavorite, setIsFavorite] = useState(
         comedian.isFavorite ? true : false,
     );
+
     const handleFavoriteClick = async (e: React.MouseEvent) => {
         e.stopPropagation();
 

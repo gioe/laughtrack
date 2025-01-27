@@ -6,13 +6,15 @@ import { ClubDetailResponse } from "@/app/api/club/[name]/interface";
 import { getFilters } from "../filters/getFilters";
 import { EntityType } from "@/objects/enum";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
+import { DynamicRoute } from "@/objects/interface/identifable.interface";
 
 export async function getClubDetailPageData(
     params: any,
-    name: string,
+    slug: DynamicRoute,
     providedFilters?: string,
 ): Promise<ClubDetailResponse> {
     try {
+        const { name } = slug;
         const helper = await QueryHelper.storePageParams(
             params,
             providedFilters,
@@ -20,7 +22,7 @@ export async function getClubDetailPageData(
         );
 
         const [club, total, dates, filters] = await Promise.all([
-            findClubByName(name),
+            findClubByName(name ?? ""),
             getShowCount({ ...helper.asQueryFilters(), clubName: name }),
             findShows({ ...helper.asQueryFilters(), clubName: name }),
             getFilters(EntityType.Show, helper.asQueryFilters()),

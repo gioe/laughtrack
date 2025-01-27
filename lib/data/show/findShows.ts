@@ -5,6 +5,8 @@ import { buildClubImageUrl, buildComedianImageUrl } from "@/util/imageUtil"
 
 export async function findShows(params: any): Promise<ShowDTO[]> {
 
+    console.log(params)
+
     const { userId, from_date, clubName, comedianName,
         to_date, city, filters, filtersEmpty, direction,
         size, offset, sortBy, showIds } = params

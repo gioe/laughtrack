@@ -9,6 +9,7 @@ export async function getShowCount(params: any): Promise<number> {
                 ...(clubName ? {
                     name: clubName
                 } : {}),
+                visible: true,
                 city: {
                     name: city
                 }

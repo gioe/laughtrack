@@ -1,11 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Heart } from "lucide-react";
 import ImageGrid from "@/ui/components/grid/image";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { Comedian } from "@/objects/class/comedian/Comedian";
 import SocialMediaColumn from "../socialColumn";
+import { useFavoriteRegisterModal } from "@/hooks/modalState";
+import { useSession } from "next-auth/react";
+import { makeRequest } from "@/util/actions/makeRequest";
+import { APIRoutePath, RestAPIAction } from "@/objects/enum";
 
 interface ClubDetailHeaderProps {
     comedian: ComedianDTO;
@@ -14,37 +18,36 @@ interface ClubDetailHeaderProps {
 const ComedianDetailHeader: React.FC<ClubDetailHeaderProps> = ({
     comedian,
 }) => {
+    const registerModal = useFavoriteRegisterModal();
     const parsedComedian = new Comedian(comedian);
+    const session = useSession();
+
+    const [, setIsOpen] = useState(false);
     const [isFavorite, setIsFavorite] = useState(parsedComedian.isFavorite);
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleFavoriteClick = async () => {
-        try {
-            setIsLoading(true);
+    const handleFavoriteClick = async (e: React.MouseEvent) => {
+        e.stopPropagation();
 
-            const response = await fetch("/api/favorite", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
+        if (session.status == "authenticated") {
+            await makeRequest(APIRoutePath.ComedianFavorite, {
+                method: RestAPIAction.POST,
+                body: {
+                    comedianId: comedian.uuid,
+                    isFavorite,
                 },
-                body: JSON.stringify({
-                    comedianId: parsedComedian.id,
-                    isFavorite: !isFavorite,
-                }),
+            }).then((data: { state: boolean }) => {
+                setIsFavorite(data.state);
             });
-
-            if (!response.ok) {
-                throw new Error("Failed to update favorite status");
-            }
-
-            setIsFavorite(!isFavorite);
-        } catch (error) {
-            console.error("Error updating favorite status:", error);
-            // You might want to show a toast or error message here
-        } finally {
-            setIsLoading(false);
+        } else {
+            requireLogin();
         }
     };
+
+    const requireLogin = useCallback(() => {
+        setIsOpen((value) => !value);
+        registerModal.onOpen();
+    }, [registerModal]);
 
     return (
         <div className="max-w-6xl mx-auto p-6">
