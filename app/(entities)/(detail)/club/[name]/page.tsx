@@ -30,6 +30,7 @@ export default async function ClubDetailPage(props: {
             {
                 searchParams: paramsWrapper.asUrlSearchParams(),
                 revalidate: CACHE.detailPage,
+                session,
             },
         );
 

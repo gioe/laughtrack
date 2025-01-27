@@ -22,6 +22,7 @@ export default async function ShowSearchPage(props: any) {
         APIRoutePath.ShowSearch,
         {
             searchParams: paramsWrapper.asUrlSearchParams(),
+            session,
         },
     );
 

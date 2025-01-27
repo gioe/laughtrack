@@ -41,6 +41,7 @@ export async function findComedians(params: any): Promise<ComedianDTO[]> {
         },
         select: {
             id: true,
+            uuid: true,
             name: true,
             linktree: true,
             instagramAccount: true,
@@ -87,6 +88,7 @@ export async function findComedians(params: any): Promise<ComedianDTO[]> {
             website: comedian.website,
             popularity: comedian.popularity,
         },
+        uuid: comedian.uuid,
         show_count: comedian.lineupItems.length,
     }));
 }

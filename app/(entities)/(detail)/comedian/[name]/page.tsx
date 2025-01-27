@@ -26,6 +26,7 @@ export default async function ComedianDetailsPage(props: any) {
             {
                 searchParams: paramsWrapper.asUrlSearchParams(),
                 revalidate: CACHE.detailPage,
+                session,
             },
         );
 

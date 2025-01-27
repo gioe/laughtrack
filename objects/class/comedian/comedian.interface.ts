@@ -18,7 +18,7 @@ export interface ComedianDTO {
     userId?: number;
     social_data?: SocialDataDTO;
     dates?: ShowDTO[];
-    is_favorite?: boolean;
+    isFavorite?: boolean;
     tags?: number[]
     show_count?: number
     is_alias?: boolean

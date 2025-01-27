@@ -24,7 +24,7 @@ export class Comedian implements ComedianInterface {
         this.containedEntities = input.dates !== undefined ? input.dates.map((dto: ShowDTO) => new Show(dto)) : []
         this.socialData = input.social_data !== undefined ? new SocialData(input.social_data) : undefined;
         this.tagIds = input.tags ? input.tags : [];
-        this.isFavorite = input.is_favorite ?? false
+        this.isFavorite = input.isFavorite ?? false
         this.id = input.id ?? 0
         this.showCount = input.show_count
         this.imageUrl = input.imageUrl
