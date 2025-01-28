@@ -15,7 +15,7 @@ const getBaseUrl = () => {
     }
 
     // Assume localhost
-    return `http://localhost:${process.env.PORT || 3000}`;
+    return `${process.env.NEXT_PUBLIC_WEBSITE_URL}`
 };
 
 export const getUrl = (endpoint: string, searchParams?: URLSearchParams) => {
