@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { getFilters } from "@/lib/data/filters/getFilters";
-import { QueryHelper } from "@/objects/class/query/QueryHelper";
-import { EntityType, QueryProperty } from "@/objects/enum";
+import { QueryProperty } from "@/objects/enum";
 import { ComedianDetailResponse } from "./interface";
 import { NextResponse } from "next/server";
 import { getComedianDetailPageData } from "@/lib/data/comedian/getComedianDetailPageData";

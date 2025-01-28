@@ -19,6 +19,7 @@ export async function findComedianByName(name: string): Promise<ComedianDTO> {
             youtubeFollowers: true,
             website: true,
             popularity: true,
+            uuid: true,
         },
     });
 
@@ -30,6 +31,7 @@ export async function findComedianByName(name: string): Promise<ComedianDTO> {
         name: comedianData.name,
         id: comedianData.id,
         imageUrl: buildComedianImageUrl(comedianData.name),
+        uuid: comedianData.uuid,
         social_data: {
             id: comedianData.id,
             linktree: comedianData.linktree,

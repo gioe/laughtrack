@@ -41,6 +41,7 @@ export async function findComedians(params: any): Promise<ComedianDTO[]> {
         },
         select: {
             id: true,
+            uuid: true,
             name: true,
             linktree: true,
             instagramAccount: true,
@@ -75,6 +76,7 @@ export async function findComedians(params: any): Promise<ComedianDTO[]> {
         id: comedian.id,
         name: comedian.name,
         imageUrl: buildComedianImageUrl(comedian.name),
+        uuid: comedian.uuid,
         social_data: {
             id: comedian.id,
             linktree: comedian.linktree,

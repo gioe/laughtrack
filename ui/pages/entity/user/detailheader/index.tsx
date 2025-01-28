@@ -32,22 +32,22 @@ const UserDetailHeader = ({ user }: UserDetailHeaderProps) => {
             {/* Header Section */}
             <div className="flex justify-between items-start mb-6">
                 <div className="flex items-center gap-2">
-                    <h1 className="text-3xl font-bold text-gray-900">
+                    <h1 className="text-[32px] font-bold text-gray-900 font-gilroy-bold">
                         Your Profile
                     </h1>
                 </div>
                 <button
                     onClick={toggleEdit}
-                    className="flex items-center text-orange-700 hover:text-orange-800"
+                    className="flex items-center text-copper font-dmSans"
                 >
                     {isEditing ? (
                         <>
-                            <Save className="w-4 h-4 mr-1" />
+                            <Save className="w-4 h-4 mr-1 text-copper" />
                             {hasChanges ? "Save Updates" : "Done"}
                         </>
                     ) : (
                         <>
-                            <Pencil className="w-4 h-4 mr-1" />
+                            <Pencil className="w-4 h-4 mr-1 text-copper" />
                             Edit
                         </>
                     )}
@@ -56,7 +56,7 @@ const UserDetailHeader = ({ user }: UserDetailHeaderProps) => {
 
             <div className="px-4 space-y-4 mt-4">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1 font-dmSans">
                         Email address
                     </label>
                     <input
@@ -69,7 +69,7 @@ const UserDetailHeader = ({ user }: UserDetailHeaderProps) => {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1 font-dmSans">
                         Zip Code
                     </label>
                     <input

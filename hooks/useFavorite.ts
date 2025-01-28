@@ -19,6 +19,7 @@ export const useFavorite = ({
     entityId
 }: UseFavoriteProps): UseFavoriteReturn => {
     const session = useSession();
+    console.log(session)
     const registerModal = useFavoriteRegisterModal();
     const [isFavorite, setIsFavorite] = useState(initialState);
 
@@ -30,15 +31,18 @@ export const useFavorite = ({
         e.stopPropagation();
 
         if (session.status === "authenticated") {
-            await makeRequest(APIRoutePath.ComedianFavorite, {
-                method: RestAPIAction.POST,
-                body: {
-                    comedianId: entityId,
-                    isFavorite,
-                },
-            }).then((data: { state: boolean }) => {
-                setIsFavorite(data.state);
-            });
+            await makeRequest(APIRoutePath.ComedianFavorite,
+                {
+
+                    method: RestAPIAction.PUT,
+                    session: session.data,
+                    body: {
+                        comedianId: entityId,
+                        isFavorite,
+                    },
+                }).then((data: { state: boolean }) => {
+                    setIsFavorite(data.state);
+                });
         } else {
             requireLogin();
         }
