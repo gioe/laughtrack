@@ -12,7 +12,6 @@ export async function PUT(
         if (!userId) {
             return NextResponse.json({ error: "Unauthenticated" }, { status: 400 });
         }
-
         const { setFavorite, comedianId } = await req.json()
 
         return toggleFavorite(comedianId, userId, setFavorite)

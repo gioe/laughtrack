@@ -12,12 +12,12 @@ export class QueryHelper {
     identifier?: DynamicRoute
     searchParamsHelper: SearchParamsHelper;
     filters?: string
-    userId?: string | null;
+    userId?: string;
 
     constructor(searchParamsHelper: SearchParamsHelper,
         filters?: string,
         identifier?: DynamicRoute,
-        userId?: string | null) {
+        userId?: string) {
         this.userId = userId
         this.identifier = identifier
         this.filters = filters
@@ -101,7 +101,7 @@ export class QueryHelper {
         return {}
     }
 
-    static async storePageParams(searchParams: URLSearchParams, filters?: string, identifier?: DynamicRoute, userId?: string | null) {
+    static async storePageParams(searchParams: URLSearchParams, filters?: string, identifier?: DynamicRoute, userId?: string) {
         const searchParamsHelper = new SearchParamsHelper(searchParams)
         return new QueryHelper(searchParamsHelper, filters, identifier, userId)
     }

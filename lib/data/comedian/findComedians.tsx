@@ -64,9 +64,13 @@ export async function findComedians(params: any): Promise<ComedianDTO[]> {
                 select: {
                     id: true,
                 },
-                where: {
-                    userId: Number(userId),
-                },
+                ...(userId
+                    ? {
+                          where: {
+                              userId: Number(userId),
+                          },
+                      }
+                    : {}),
             },
             lineupItems: {
                 select: {

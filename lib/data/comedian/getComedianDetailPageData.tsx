@@ -18,14 +18,15 @@ export async function getComedianDetailPageData(
     try {
         const userId = headers.get("user_id");
         const { name } = slug;
-
+        const normalizedUserId =
+            !userId || userId === "undefined" ? undefined : userId;
         const helper = await QueryHelper.storePageParams(
             params,
             providedFilters,
             {
                 name,
             },
-            userId,
+            normalizedUserId,
         );
 
         const [comedianData, totalCount, shows, filters] = await Promise.all([

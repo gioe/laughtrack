@@ -4,9 +4,11 @@ import { getTrendingComedians } from "./getTrendingComedians";
 import { Prisma } from "@prisma/client";
 
 export async function getHomePageData(userId?: string): Promise<HomePageDataResponse> {
+
     try {
         const [comedians, clubs] = await Promise.all([
-            getTrendingComedians(userId), getPopularClubs(userId)
+            getTrendingComedians(userId),
+            getPopularClubs()
         ])
         return {
             comedians,

@@ -18,12 +18,14 @@ export async function getClubDetailPageData(
     try {
         const { name } = slug;
         const userId = headers.get("user_id");
+        const normalizedUserId =
+            !userId || userId === "undefined" ? undefined : userId;
 
         const helper = await QueryHelper.storePageParams(
             params,
             providedFilters,
             { name },
-            userId,
+            normalizedUserId,
         );
 
         const [club, total, dates, filters] = await Promise.all([

@@ -13,12 +13,13 @@ export async function getSearchedComedians(
     providedFilters?: string,
 ): Promise<ComedianSearchResponse> {
     const userId = headers.get("user_id");
-
+    const normalizedUserId =
+        !userId || userId === "undefined" ? undefined : userId;
     const helper = await QueryHelper.storePageParams(
         searchParams,
         providedFilters,
         undefined,
-        userId,
+        normalizedUserId,
     );
 
     try {

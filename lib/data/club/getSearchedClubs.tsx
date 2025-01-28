@@ -14,12 +14,13 @@ export async function getSearchedClubs(
 ): Promise<ClubSearchResponse> {
     try {
         const userId = headers.get("user_id");
-
+        const normalizedUserId =
+            !userId || userId === "undefined" ? undefined : userId;
         const helper = await QueryHelper.storePageParams(
             params,
             providedFilters,
             undefined,
-            userId,
+            normalizedUserId,
         );
 
         const [total, data, filters] = await Promise.all([

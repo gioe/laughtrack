@@ -53,10 +53,8 @@ export const makeRequest = async <T>(
     }
 
     // Make request
-    console.log(`Making request to ${url}`)
     const response = await fetch(url, requestOptions);
     if (!response.ok) {
-        console.log(`Error ${response}`)
         throw new Error("Fetch Error");
     }
 

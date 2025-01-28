@@ -5,8 +5,6 @@ export async function GET() {
     return getCities()
         .then((cities: CityDTO[]) => NextResponse.json({ cities }, { status: 200 }))
         .catch((error: Error) => {
-            console.log(error.message)
-            console.log(error)
             return NextResponse.json({ message: error.message }, { status: 500 })
         });
 }
