@@ -2,7 +2,6 @@ import { SortOptionProvider } from "@/contexts/SortOptionProvider";
 import { PageEntityProvider } from "@/contexts/PageEntityProvider";
 import { StyleContextProvider } from "@/contexts/StyleProvider";
 import { StyleContextKey } from "@/objects/enum";
-import { FilterDataProvider } from "@/contexts/FilterDataProvider";
 
 export default async function EntityDetailLayout({
     children,

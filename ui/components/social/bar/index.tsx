@@ -5,7 +5,7 @@ import { Tooltip } from "@material-tailwind/react";
 import WebIcon from "../../icons/WebIcon";
 import TikTokIcon from "../../icons/TikTokIcon";
 import InstagramIcon from "../../icons/InstagramIcon";
-import YouTubeIcon from "../../icons/YouTubeIcon";
+import YouTubeIcon from "../../icons/YoutubeIcon";
 
 interface SocialMediaBarProps {
     data: SocialData;

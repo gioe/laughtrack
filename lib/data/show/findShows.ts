@@ -136,8 +136,8 @@ export async function findShows(params: any): Promise<ShowDTO[]> {
             uuid: item.comedian.uuid,
             name: item.comedian.name,
             imageUrl: buildComedianImageUrl(item.comedian.name),
-            is_favorite: userId ? item.comedian.favoriteComedians.length > 0 : false,
-            is_alias: item.comedian.taggedComedians.length > 0
+            isFavorite: userId ? item.comedian.favoriteComedians.length > 0 : false,
+            isAlias: item.comedian.taggedComedians.length > 0
         }))
     }))
 }

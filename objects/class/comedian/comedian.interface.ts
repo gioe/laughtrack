@@ -21,7 +21,7 @@ export interface ComedianDTO {
     isFavorite?: boolean;
     tags?: number[]
     show_count?: number
-    is_alias?: boolean
+    isAlias?: boolean
 }
 
 export interface UpdateComedianDTO {

@@ -1,15 +1,11 @@
 "use client";
 
-import { useState, useEffect, useContext, createContext } from "react";
-import { Filter } from "../objects/class/filter/Filter";
-import { FilterDataDTO } from "../objects/interface/filter.interface";
+import { useState, useContext, createContext } from "react";
 import { useSearchParams } from "next/navigation";
 import { SortOptionInterface } from "../objects/interface";
 import { getSortOptionsForEntityType } from "../util/sort";
 import { usePageContext } from "./PageEntityProvider";
 import { SearchParamsHelper } from "../objects/class/params/SearchParamsHelper";
-import { APIRoutePath } from "../objects/enum";
-import { makeRequest } from "../util/actions/makeRequest";
 
 interface SortOptionState {
     sortOptions: SortOptionInterface[];

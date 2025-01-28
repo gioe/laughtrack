@@ -29,7 +29,7 @@ export class Comedian implements ComedianInterface {
         this.showCount = input.show_count
         this.imageUrl = input.imageUrl
         this.uuid = input.uuid
-        this.isAlias = input.is_alias ?? false
+        this.isAlias = input.isAlias ?? false
     }
 
 
