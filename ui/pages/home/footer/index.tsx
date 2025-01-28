@@ -26,7 +26,7 @@ const FooterComponent = () => {
                 <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-gray-200">
                     {/* Copyright */}
                     <div className="text-gray-600 mb-4 md:mb-0 text-[17px] font-dmSans">
-                        Copyright © 2025 Laughtrack
+                        Copyright © 2025 Laughtrack Digital, LLC
                     </div>
 
                     {/* Links and socials */}

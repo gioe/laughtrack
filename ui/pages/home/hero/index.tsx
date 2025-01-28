@@ -7,7 +7,7 @@ import HeroContent from "@/ui/components/hero";
 export const getCdnImageUrl = (imagePath: string) => {
     return new URL(
         imagePath,
-        `https://${process.env.BUNNYCDN_CDN_HOST}/`,
+        `https://${process.env.BUNNYCDN_CDN_HOST}/assets/`,
     ).toString();
 };
 

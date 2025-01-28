@@ -6,7 +6,7 @@ import { Tooltip } from "@material-tailwind/react";
 import Link from "next/link";
 import { Club } from "@/objects/class/club/Club";
 
-const PLACEHOLDER = "/images/club-placeholder.png";
+const PLACEHOLDER = "https://laughtrack.b-cdn.net/assets/club-placeholder.png";
 
 const marqueeConfig = {
     // Colors

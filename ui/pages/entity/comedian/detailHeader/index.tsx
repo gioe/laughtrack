@@ -8,7 +8,8 @@ import SocialMediaColumn from "../socialColumn";
 import { useFavorite } from "@/hooks/useFavorite";
 import Image from "next/image";
 
-const PLACEHOLDER = "/images/comedian-placeholder.png";
+const PLACEHOLDER =
+    "https://laughtrack.b-cdn.net/assets/comedian-placeholder.png";
 
 interface ClubDetailHeaderProps {
     comedian: ComedianDTO;

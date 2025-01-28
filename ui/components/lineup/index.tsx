@@ -1,10 +1,7 @@
 "use client";
 
 import { Comedian } from "@/objects/class/comedian/Comedian";
-import { useState } from "react";
 import ComedianHeadshot from "../image/comedian";
-
-const PLACEHOLDER = "/images/comedian-placeholder.png";
 
 interface LineupGridProps {
     lineup: Comedian[];

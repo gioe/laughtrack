@@ -15,7 +15,8 @@ interface ComedianHeadshotProps {
     className?: string;
 }
 
-const PLACEHOLDER = "/images/comedian-placeholder.png";
+const PLACEHOLDER =
+    "https://laughtrack.b-cdn.net/assets/comedian-placeholder.png";
 
 const variantStyles = {
     grid: {
