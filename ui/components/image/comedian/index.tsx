@@ -40,6 +40,7 @@ const ComedianHeadshot = ({
         entityId: comedian.uuid,
     });
 
+    console.log(isFavorite);
     const styles = variantStyles[variant];
 
     const imageProps =

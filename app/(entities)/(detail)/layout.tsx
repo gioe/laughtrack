@@ -3,7 +3,6 @@ import { PageEntityProvider } from "@/contexts/PageEntityProvider";
 import { StyleContextProvider } from "@/contexts/StyleProvider";
 import { StyleContextKey } from "@/objects/enum";
 import { FilterDataProvider } from "@/contexts/FilterDataProvider";
-import FilterModal from "@/ui/components/modals/filter";
 
 export default async function EntityDetailLayout({
     children,
@@ -14,9 +13,7 @@ export default async function EntityDetailLayout({
     return (
         <StyleContextProvider initialContext={StyleContextKey.Search}>
             <PageEntityProvider>
-                <FilterDataProvider>
-                    <SortOptionProvider>{children}</SortOptionProvider>
-                </FilterDataProvider>
+                <SortOptionProvider>{children}</SortOptionProvider>
             </PageEntityProvider>
         </StyleContextProvider>
     );

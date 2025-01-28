@@ -37,6 +37,14 @@ export async function getTrendingComedians(userId?: string): Promise<ComedianDTO
             website: true,
             popularity: true,
             linktree: true,
+            favoriteComedians: {
+                select: {
+                    id: true,
+                },
+                where: {
+                    userId: Number(userId),
+                },
+            },
             lineupItems: {
                 select: {
                     id: true,
@@ -67,6 +75,7 @@ export async function getTrendingComedians(userId?: string): Promise<ComedianDTO
             uuid: comedian.uuid,
             name: comedian.name,
             imageUrl: buildComedianImageUrl(comedian.name),
+            isFavorite: comedian.favoriteComedians.length > 0,
             social_data: {
                 id: comedian.id,
                 instagram_account: comedian.instagramAccount,

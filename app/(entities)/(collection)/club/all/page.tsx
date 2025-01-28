@@ -28,6 +28,7 @@ export default async function ClubSearchPage(props: any) {
         {
             searchParams: paramsWrapper.asUrlSearchParams(),
             revalidate: CACHE.search,
+            session,
         },
     );
 

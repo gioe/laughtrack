@@ -26,7 +26,6 @@ export const makeRequest = async <T>(
     } = options;
     // Create base URL
     const url = getUrl(endpoint, searchParams)
-
     // Construct headers
     const headers: Record<string, string> = {
         "Content-Type": "application/x-www-form-urlencoded",

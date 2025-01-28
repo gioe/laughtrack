@@ -7,13 +7,16 @@ import { getFilters } from "../filters/getFilters";
 import { EntityType } from "@/objects/enum";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { DynamicRoute } from "@/objects/interface/identifable.interface";
+import { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 
 export async function getComedianDetailPageData(
     params: URLSearchParams,
     slug: DynamicRoute,
+    headers: ReadonlyHeaders,
     providedFilters?: string,
 ): Promise<ComedianDetailResponse> {
     try {
+        const userId = headers.get("user_id");
         const { name } = slug;
 
         const helper = await QueryHelper.storePageParams(
@@ -22,10 +25,11 @@ export async function getComedianDetailPageData(
             {
                 name,
             },
+            userId,
         );
 
         const [comedianData, totalCount, shows, filters] = await Promise.all([
-            findComedianByName(name ?? ""),
+            findComedianByName(name, userId !== null ? userId : undefined),
             getShowCount({
                 ...helper.asQueryFilters(),
                 comedianName: name,

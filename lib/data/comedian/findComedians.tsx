@@ -5,8 +5,16 @@ import { buildComedianImageUrl } from "@/util/imageUtil";
 const EXCLUSIVITY_TAGS = ["Not A Real Comic"];
 
 export async function findComedians(params: any): Promise<ComedianDTO[]> {
-    const { query, filtersEmpty, filters, sortBy, direction, size, offset } =
-        params;
+    const {
+        query,
+        filtersEmpty,
+        filters,
+        sortBy,
+        direction,
+        size,
+        offset,
+        userId,
+    } = params;
 
     const filteredComedians = await db.comedian.findMany({
         where: {
@@ -52,6 +60,14 @@ export async function findComedians(params: any): Promise<ComedianDTO[]> {
             youtubeFollowers: true,
             website: true,
             popularity: true,
+            favoriteComedians: {
+                select: {
+                    id: true,
+                },
+                where: {
+                    userId: Number(userId),
+                },
+            },
             lineupItems: {
                 select: {
                     id: true,
@@ -72,23 +88,26 @@ export async function findComedians(params: any): Promise<ComedianDTO[]> {
         skip: offset,
     });
 
-    return filteredComedians.map((comedian) => ({
-        id: comedian.id,
-        name: comedian.name,
-        imageUrl: buildComedianImageUrl(comedian.name),
-        uuid: comedian.uuid,
-        social_data: {
+    return filteredComedians.map((comedian) => {
+        return {
             id: comedian.id,
-            linktree: comedian.linktree,
-            instagram_account: comedian.instagramAccount,
-            instagram_followers: comedian.instagramFollowers,
-            tiktok_account: comedian.tiktokAccount,
-            tiktok_followers: comedian.tiktokFollowers,
-            youtube_account: comedian.youtubeAccount,
-            youtube_followers: comedian.youtubeFollowers,
-            website: comedian.website,
-            popularity: comedian.popularity,
-        },
-        show_count: comedian.lineupItems.length,
-    }));
+            name: comedian.name,
+            imageUrl: buildComedianImageUrl(comedian.name),
+            isFavorite: comedian.favoriteComedians.length > 0,
+            uuid: comedian.uuid,
+            social_data: {
+                id: comedian.id,
+                linktree: comedian.linktree,
+                instagram_account: comedian.instagramAccount,
+                instagram_followers: comedian.instagramFollowers,
+                tiktok_account: comedian.tiktokAccount,
+                tiktok_followers: comedian.tiktokFollowers,
+                youtube_account: comedian.youtubeAccount,
+                youtube_followers: comedian.youtubeFollowers,
+                website: comedian.website,
+                popularity: comedian.popularity,
+            },
+            show_count: comedian.lineupItems.length,
+        };
+    });
 }

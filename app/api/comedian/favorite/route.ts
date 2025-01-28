@@ -1,4 +1,4 @@
-import { FavoriteToggleResponse, toggleFavorite } from "@/lib/data/favorites/toggleFavorite";
+import { toggleFavorite } from "@/lib/data/favorites/toggleFavorite";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -16,7 +16,7 @@ export async function PUT(
         const { isFavorite, comedianId } = await req.json()
 
         return toggleFavorite(comedianId, userId, isFavorite)
-            .then((response: FavoriteToggleResponse) => NextResponse.json({
+            .then((response: boolean) => NextResponse.json({
                 response
             }, { status: 200 }))
             .catch((error: Error) => {

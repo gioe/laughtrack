@@ -4,9 +4,8 @@ import { ShowDTO } from "@/objects/class/show/show.interface"
 import { buildClubImageUrl, buildComedianImageUrl } from "@/util/imageUtil"
 
 const EXCLUSIVITY_TAGS = ['Not Even Funny']
-export async function findShows(params: any): Promise<ShowDTO[]> {
 
-    console.log(params)
+export async function findShows(params: any): Promise<ShowDTO[]> {
 
     const { userId, from_date, clubName, comedianName,
         to_date, city, filters, filtersEmpty, direction,
@@ -52,7 +51,18 @@ export async function findShows(params: any): Promise<ShowDTO[]> {
                         }
                     }
                 }
-            } : {})
+            } : {}),
+            NOT: {
+                taggedShows: {
+                    some: {
+                        tag: {
+                            display: {
+                                in: EXCLUSIVITY_TAGS,
+                            },
+                        },
+                    },
+                },
+            },
         },
         select: {
             id: true,

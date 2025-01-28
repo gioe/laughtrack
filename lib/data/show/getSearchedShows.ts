@@ -4,11 +4,13 @@ import { Prisma } from "@prisma/client";
 import { getFilters } from "../filters/getFilters";
 import { EntityType } from "@/objects/enum";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
+import { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 
-export async function getSearchedShows(params: URLSearchParams, providedFilters?: string) {
+export async function getSearchedShows(params: URLSearchParams, headers: ReadonlyHeaders, providedFilters?: string) {
     try {
+        const userId = headers.get("user_id");
 
-        const helper = await QueryHelper.storePageParams(params, providedFilters);
+        const helper = await QueryHelper.storePageParams(params, providedFilters, undefined, userId);
 
         const [total, data, filters] = await Promise.all([
             getShowCount(helper.asQueryFilters()),

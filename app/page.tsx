@@ -14,6 +14,9 @@ export default async function HomePage() {
 
     const { comedians, clubs } = await makeRequest<HomePageDataResponse>(
         APIRoutePath.Home,
+        {
+            session,
+        },
     );
     return (
         <main className="min-h-screen w-full bg-ivory">
