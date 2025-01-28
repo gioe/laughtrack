@@ -3,6 +3,7 @@ import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { buildComedianImageUrl } from "@/util/imageUtil";
 
 export async function getTrendingComedians(userId?: string): Promise<ComedianDTO[]> {
+    console.log(userId)
     const activeComedians = await db.comedian.findMany({
         where: {
             lineupItems: {
@@ -14,15 +15,6 @@ export async function getTrendingComedians(userId?: string): Promise<ComedianDTO
                     },
                 },
             },
-            ...(userId ? {
-                include: {
-                    favoriteComedians: {
-                        where: {
-                            userId: Number(userId),
-                        },
-                    },
-                },
-            } : {}),
             NOT: {
                 taggedComedians: {
                     some: {
@@ -57,7 +49,14 @@ export async function getTrendingComedians(userId?: string): Promise<ComedianDTO
                         },
                     },
                 },
-            }
+            },
+            ...(userId ? {
+                favoriteComedians: {
+                    where: {
+                        userId: Number(userId),
+                    },
+                },
+            } : {}),
         },
     });
 
