@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { Comedian } from "@/objects/class/comedian/Comedian";
@@ -36,11 +38,10 @@ const ComedianHeadshot = ({
 }: ComedianHeadshotProps) => {
     const [error, setError] = useState(false);
     const { isFavorite, handleFavoriteClick } = useFavorite({
-        initialState: comedian.isFavorite ?? false,
+        initialState: comedian.isFavorite,
         entityId: comedian.uuid,
     });
 
-    console.log(isFavorite);
     const styles = variantStyles[variant];
 
     const imageProps =

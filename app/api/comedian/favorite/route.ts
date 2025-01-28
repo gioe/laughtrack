@@ -13,11 +13,11 @@ export async function PUT(
             return NextResponse.json({ error: "Unauthenticated" }, { status: 400 });
         }
 
-        const { isFavorite, comedianId } = await req.json()
+        const { setFavorite, comedianId } = await req.json()
 
-        return toggleFavorite(comedianId, userId, isFavorite)
-            .then((response: boolean) => NextResponse.json({
-                response
+        return toggleFavorite(comedianId, userId, setFavorite)
+            .then((state: boolean) => NextResponse.json({
+                response: state
             }, { status: 200 }))
             .catch((error: Error) => {
                 console.log(error)

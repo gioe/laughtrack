@@ -1,3 +1,4 @@
+'use client'
 import { useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useFavoriteRegisterModal } from '@/hooks/modalState';
@@ -30,17 +31,31 @@ export const useFavorite = ({
         e.stopPropagation();
 
         if (session.status === "authenticated") {
-            await makeRequest<boolean>(APIRoutePath.ComedianFavorite, {
-                method: RestAPIAction.PUT,
-                session: session.data,
-                body: {
-                    comedianId: entityId,
-                    isFavorite,
-                },
-            }).then((response: boolean) => {
-                console.log(response)
-                setIsFavorite(response)
-            });
+            // Optimistically update the UI
+            const newFavoriteState = !isFavorite;
+
+            setIsFavorite(newFavoriteState);
+
+            try {
+                const response = await makeRequest<boolean>(APIRoutePath.ComedianFavorite, {
+                    method: RestAPIAction.PUT,
+                    session: session.data,
+                    body: {
+                        comedianId: entityId,
+                        setFavorite: newFavoriteState,
+                    },
+                });
+
+                // If the response doesn't match our optimistic update, revert
+                if (response !== newFavoriteState) {
+                    setIsFavorite(!newFavoriteState);
+                }
+            } catch (error) {
+                // Revert the optimistic update on error
+                setIsFavorite(!newFavoriteState);
+                console.error('Failed to update favorite status:', error);
+                // Optionally add error notification here
+            }
         } else {
             requireLogin();
         }

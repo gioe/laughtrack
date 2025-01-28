@@ -3,8 +3,8 @@ import { db } from "@/lib/db"
 
 export async function toggleFavorite(comedianUuid: string,
     userId: string,
-    isFavorite: boolean): Promise<boolean> {
-    if (!isFavorite) {
+    setFavorite: boolean): Promise<boolean> {
+    if (setFavorite) {
         // Create favorite record
         await db.favoriteComedian.create({
             data: {
