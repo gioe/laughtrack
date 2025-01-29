@@ -1,40 +1,83 @@
 import { DateRange } from "@/ui/components/calendar";
-import {
-    removeNonNumbers,
-} from "./stringUtil";
-import { datesAreToday, datesAreTomorrow } from "@/util/dateUtil";
-import { format, isToday, isTomorrow } from "date-fns";
+import { format, isToday, isTomorrow, isSameDay } from "date-fns";
 
-export const determineDate = (dateString: string): number => {
-    const numberString = removeNonNumbers(dateString);
-    return Number(numberString);
+// Types
+type DateFormatter = (date: Date) => string;
+
+// Constants
+const DEFAULT_DATE_FORMAT = "LLL d, yyyy";
+
+/**
+ * Formats a single date with special handling for today and tomorrow
+ */
+const formatSingleDate: DateFormatter = (date: Date): string => {
+    if (isToday(date)) return "Today";
+    if (isTomorrow(date)) return "Tomorrow";
+    return format(date, DEFAULT_DATE_FORMAT);
 };
 
+/**
+ * Checks if a date range spans a single day
+ */
+const isSingleDayRange = (from: Date, to: Date): boolean => {
+    return isSameDay(from, to);
+};
+
+/**
+ * Formats a date range as a string
+ */
 export const formatDateRange = (placeholder: string, range?: DateRange): string => {
-    console.log(range)
-    if (!range) { throw new Error() }
+    // Handle undefined or empty range
+    if (!range || (!range.to)) {
+        return placeholder;
+    }
 
     const { from, to } = range;
 
-    if (to == undefined && from == undefined) { return placeholder }
+    try {
+        // Handle single date selection
+        if (!to && from) {
+            return formatSingleDate(from);
+        }
 
-    if (!to) {
-        return format(from, "LLL dd, yyyy");
+        // Handle invalid range where only 'to' date exists
+        if (to && !from) {
+            return formatSingleDate(to);
+        }
+
+        // At this point, both from and to should exist
+        if (!from || !to) {
+            throw new Error("Invalid date range");
+        }
+
+        // Handle single day range
+        if (isSingleDayRange(from, to)) {
+            return formatSingleDate(from);
+        }
+
+        // Handle multi-day range
+        return `${formatSingleDate(from)} - ${format(to, DEFAULT_DATE_FORMAT)}`;
+
+    } catch (error) {
+        console.error("Error formatting date range:", error);
+        return placeholder;
     }
+};
 
-    if (datesAreToday(from, to)) {
-        return "Today";
-    }
+/**
+ * Validates a date range
+ */
+export const isValidDateRange = (range: DateRange): boolean => {
+    if (!range.from) return false;
+    if (range.to && range.from > range.to) return false;
+    return true;
+};
 
-    if (datesAreTomorrow(from, to)) {
-        return "Tomorrow";
-    }
-
-    const formatStartDate = (): string => {
-        if (isToday(from)) return "Today";
-        if (isTomorrow(from)) return "Tomorrow";
-        return format(from, "LLL d, yyyy");
-    };
-
-    return `${formatStartDate()} - ${format(to, "LLL d, yyyy")}`;
+/**
+ * Extracts a number from a date string
+ * @deprecated Consider using proper date parsing instead
+ */
+export const determineDate = (dateString: string): number => {
+    if (!dateString) return 0;
+    return Number(dateString.replace(/\D/g, "")) || 0;
 };

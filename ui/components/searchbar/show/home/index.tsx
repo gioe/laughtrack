@@ -21,6 +21,13 @@ import { useStyleContext } from "@/contexts/StyleProvider";
 import { CityDTO } from "@/lib/data/cities/getCities";
 import { showSearchFormSchema } from "./schema";
 import { QueryProperty } from "@/objects/enum";
+import { Loader2 } from "lucide-react";
+
+const LoadingOverlay = () => (
+    <div className="absolute inset-0 bg-black/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+        <Loader2 className="w-6 h-6 text-white animate-spin" />
+    </div>
+);
 
 export default function ShowSearchForm() {
     const cityList = useCityContext();
@@ -43,27 +50,39 @@ export default function ShowSearchForm() {
         defaultValues: {
             city: undefined,
             dates: {
-                from: undefined,
+                from: new Date(),
                 to: undefined,
             },
         },
     });
 
     async function submitForm(data: z.infer<typeof showSearchFormSchema>) {
-        setIsLoading(true);
-        const map = new Map<URLParam, ParamsDictValue>();
-        map.set(QueryProperty.City, data.city);
-        map.set(QueryProperty.FromDate, data.dates.from);
-        map.set(QueryProperty.ToDate, data.dates.to);
-        paramsHelper.updateParamsFromMap(map);
-        navigator.pushPage("show/all", paramsHelper.asParamsString());
-        setIsLoading(false);
+        try {
+            setIsLoading(true);
+            const map = new Map<URLParam, ParamsDictValue>();
+            map.set(QueryProperty.City, data.city);
+            map.set(QueryProperty.FromDate, data.dates.from);
+            map.set(QueryProperty.ToDate, data.dates.to);
+
+            // You might want to add a small delay to show the loading state
+            // if the navigation is too quick
+            await new Promise((resolve) => setTimeout(resolve, 300));
+
+            paramsHelper.updateParamsFromMap(map);
+            navigator.pushPage("show/all", paramsHelper.asParamsString());
+        } catch (error) {
+            console.error("Error during navigation:", error);
+        } finally {
+            setIsLoading(false);
+        }
     }
 
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(submitForm)} className="relative">
                 <div className="flex flex-col md:flex-row items-stretch md:items-center bg-ivory/20 backdrop-blur rounded-2xl md:rounded-full overflow-hidden">
+                    {isLoading && <LoadingOverlay />}
+
                     {/* City Selection Dropdown */}
                     <div className="flex-1 min-w-0 md:min-w-[240px] border-b md:border-b-0 md:border-r border-gray-600/30">
                         <div className="px-4 md:px-8 py-4">
