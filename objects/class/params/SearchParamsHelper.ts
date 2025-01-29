@@ -49,7 +49,7 @@ export class SearchParamsHelper {
         const paramValue = this.paramsDict.get(key)
         if (paramValue == undefined) { return queryPropertyDefaultMap.get(key) }
         else if (Array.isArray(paramValue)) { return paramValue }
-        else return paramValue.toString()
+        else return decodeURIComponent(paramValue.toString().replace(/\+/g, " "));
     }
 
     asSlug() {

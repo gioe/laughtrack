@@ -58,7 +58,6 @@ export async function findComedianByName(
         throw new Error(`Comedian with name ${name} not found`);
     }
 
-    console.log(comedianData);
     return {
         name: comedianData.name,
         id: comedianData.id,

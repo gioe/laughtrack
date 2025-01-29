@@ -6,6 +6,8 @@ export enum QueryProperty {
     Page = 'page',
     Sort = 'sort_by',
     Query = 'query',
+    Comedian = 'comedian',
+    Club = 'club',
     Params = 'params',
     Tags = 'tags',
     Filters = 'filters',
@@ -22,8 +24,10 @@ export const allQueryProperties = [
     QueryProperty.Page.valueOf(),
     QueryProperty.Filters.valueOf(),
     QueryProperty.City.valueOf(),
-
+    QueryProperty.Comedian.valueOf(),
+    QueryProperty.Club.valueOf(),
 ];
+
 export const DEFAULT_ERROR = 'Unknown error'
 
 export const queryPropertyDefaultMap = new MapWithDefault<string, string>([
@@ -33,6 +37,8 @@ export const queryPropertyDefaultMap = new MapWithDefault<string, string>([
     [QueryProperty.Direction, "asc"],
     [QueryProperty.Sort, "name"],
     [QueryProperty.City, ""],
+    [QueryProperty.Comedian, ""],
+    [QueryProperty.Club, ""],
     [DEFAULT, DEFAULT_ERROR]
 ]);
 

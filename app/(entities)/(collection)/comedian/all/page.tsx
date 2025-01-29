@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
-import { APIRoutePath, StyleContextKey } from "@/objects/enum";
+import { APIRoutePath, QueryProperty, StyleContextKey } from "@/objects/enum";
 import { CACHE } from "@/util/constants/cacheConstants";
 import { makeRequest } from "@/util/actions/makeRequest";
 import { ComedianSearchResponse } from "@/app/api/comedian/search/interface";
@@ -13,6 +13,8 @@ import ComedianSearchBar from "@/ui/components/searchbar/comedian";
 import FilterModal from "@/ui/components/modals/filter";
 import Navbar from "@/ui/components/navbar";
 import FilterBar from "@/ui/pages/search/filterBar";
+import { FilterDTO } from "@/objects/interface/filter.interface";
+import { Filter } from "@/objects/class/filter/Filter";
 
 export default async function ComedianSearchPage(props: any) {
     const session = await auth();
@@ -31,6 +33,10 @@ export default async function ComedianSearchPage(props: any) {
                 tags: ["comedian-search-data", session?.user?.id || ""],
             },
         },
+    );
+    const parsedFilters = filters.map(
+        (dto: FilterDTO) =>
+            new Filter(dto, paramsWrapper.getParamValue(QueryProperty.Filters)),
     );
 
     return (

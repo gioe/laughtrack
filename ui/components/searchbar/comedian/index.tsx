@@ -9,9 +9,7 @@ import {
     URLParam,
 } from "../../../../objects/class/params/SearchParamsHelper";
 import { useCityContext } from "@/contexts/CityProvider";
-import { MapPin, Theater } from "lucide-react";
-import { CityDTO } from "@/lib/data/cities/getCities";
-import { DropdownComponent } from "../../dropdown";
+import { Theater } from "lucide-react";
 import TextInputComponent from "../../input/search/text/input";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import { QueryProperty } from "@/objects/enum";
@@ -32,26 +30,12 @@ export default function ComedianSearchBar() {
     ) as string;
 
     const [selectedValue, setSelectedValue] = useState(currentSelection);
-    const [clubQuery, setClubQuery] = useState(currentClubQuery);
-
-    const selectableCities = cityList.cities.map((city: CityDTO) => ({
-        id: city.id,
-        value: city.name,
-        display: city.name,
-    }));
+    const [comedianQuery, setComedianQuery] = useState(currentClubQuery);
 
     function handleSearch(value: string) {
         const map = new Map<URLParam, ParamsDictValue>();
-        map.set(QueryProperty.Query, value);
-        setClubQuery(value);
-        paramsHelper.updateParamsFromMap(map);
-        navigator.replaceRoute(paramsHelper.asParamsString());
-    }
-
-    function handleSelection(value: string) {
-        const map = new Map<URLParam, ParamsDictValue>();
-        map.set(QueryProperty.City, value);
-        setSelectedValue(value);
+        map.set(QueryProperty.Comedian, value);
+        setComedianQuery(value);
         paramsHelper.updateParamsFromMap(map);
         navigator.replaceRoute(paramsHelper.asParamsString());
     }
@@ -67,7 +51,7 @@ export default function ComedianSearchBar() {
                         />
                     }
                     placeholder="Search for comedian"
-                    value={clubQuery}
+                    value={comedianQuery}
                     onChange={handleSearch}
                     className="border-gray-200 bg-ivory ring-transparent focus:ring-transparent 
     shadow-none border-transparent focus:outline-none outline-none"

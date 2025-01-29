@@ -7,7 +7,6 @@ import {
 } from "../ui/select";
 import { FormControl, FormField, FormItem, FormMessage } from "../ui/form";
 import { Selectable } from "@/objects/interface";
-import { useStyleContext } from "@/contexts/StyleProvider";
 import { UseFormReturn } from "react-hook-form";
 
 // Base props that both variants share

@@ -3,7 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useCityContext } from "@/contexts/CityProvider";
-import { Calendar, ChevronsUpDownIcon, MapPin, Users } from "lucide-react";
+import { Calendar, ChevronsUpDown, MapPin, Users } from "lucide-react";
 import { CityDTO } from "@/lib/data/cities/getCities";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import {
@@ -16,6 +16,7 @@ import DropdownComponent from "@/ui/components/dropdown";
 import TextInputComponent from "@/ui/components/input/search/text/input";
 import CalendarFormComponent, { DateRange } from "@/ui/components/calendar";
 import { QueryProperty } from "@/objects/enum";
+import CalendarComponent from "@/ui/components/calendar";
 
 export default function ShowSearchBar() {
     const { getCurrentStyles } = useStyleContext();
@@ -51,9 +52,17 @@ export default function ShowSearchBar() {
         display: city.name,
     }));
 
-    function handleSearch(value: string) {
+    function handleComedianSearch(value: string) {
         const map = new Map<URLParam, ParamsDictValue>();
-        map.set(QueryProperty.Query, value);
+        map.set(QueryProperty.Comedian, value);
+        setComedianQuery(value);
+        paramsHelper.updateParamsFromMap(map);
+        navigator.replaceRoute(paramsHelper.asParamsString());
+    }
+
+    function handleClubSearch(value: string) {
+        const map = new Map<URLParam, ParamsDictValue>();
+        map.set(QueryProperty.Club, value);
         setComedianQuery(value);
         paramsHelper.updateParamsFromMap(map);
         navigator.replaceRoute(paramsHelper.asParamsString());
@@ -80,62 +89,87 @@ export default function ShowSearchBar() {
     }
 
     return (
-        <div className="flex items-center bg-ivory rounded-full border border-gray-200 px-4 py-2 shadow-sm max-w-4xl w-full">
-            {/* Location input */}
-            <div className="flex items-center flex-1 border-r border-gray-200 pr-4">
-                <DropdownComponent
-                    icon={
-                        <MapPin
-                            className={`size-5 ${styleConfig.iconTextColor}`}
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col lg:flex-row gap-2 lg:gap-0 bg-ivory rounded-3xl lg:rounded-full border border-gray-200 p-2 lg:p-4 shadow-sm">
+                {/* City Selection */}
+                <div className="flex-1 lg:border-r lg:border-gray-200 lg:pr-4">
+                    <div className="flex items-center w-full p-2 lg:p-0 rounded-full lg:rounded-none hover:bg-gray-50 lg:hover:bg-transparent transition-colors">
+                        <DropdownComponent
+                            icon={
+                                <MapPin
+                                    className={`w-5 h-5 ${styleConfig.iconTextColor}`}
+                                />
+                            }
+                            name="city"
+                            placeholder="City"
+                            items={selectableCities}
+                            onChange={handleSelection}
+                            value={selectedValue}
+                            className="w-full text-[16px] text-cedar rounded-lg font-dmSams ring-transparent focus:ring-transparent 
+                            shadow-none border-transparent focus:outline-none outline-none"
                         />
-                    }
-                    name="city"
-                    placeholder="City"
-                    items={selectableCities}
-                    onChange={handleSelection}
-                    value={selectedValue}
-                    className={`text-[16px] text-cedar rounded-lg font-dmSams ring-transparent focus:ring-transparent 
-                        shadow-none border-transparent focus:outline-none outline-none`}
-                />
-            </div>
+                    </div>
+                </div>
 
-            <div className="w-5/12 pl-6 py-4">
-                <CalendarFormComponent
-                    name="dates"
-                    value={dateRange}
-                    placeholder="When"
-                    onValueChange={(newRange) => setDateRange(newRange)}
-                    className={`text-[16px] text-cedar rounded-lg px-3 ring-transparent 
-                        focus:ring-transparent border-transparent focus:outline-none outline-none`}
-                    icon={
-                        <Calendar
-                            className={`size-5 ${styleConfig.iconTextColor}`}
+                {/* Date Selection */}
+                <div className="flex-1 lg:border-r lg:border-gray-200 lg:px-4">
+                    <div className="flex items-center w-full p-2 lg:p-0 rounded-full lg:rounded-none hover:bg-gray-50 lg:hover:bg-transparent transition-colors">
+                        <CalendarComponent
+                            variant="standalone"
+                            name="dates"
+                            value={dateRange}
+                            placeholder="When"
+                            onValueChange={(newRange) => setDateRange(newRange)}
+                            className="w-full text-[16px] text-cedar rounded-lg ring-transparent 
+                            focus:ring-transparent border-transparent focus:outline-none outline-none"
+                            icon={
+                                <Calendar
+                                    className={`w-5 h-5 ${styleConfig.iconTextColor}`}
+                                />
+                            }
+                            chevrons={
+                                <ChevronsUpDown className="w-3 h-3 ml-2 text-cedar" />
+                            }
+                            textSize="text-[16px]"
                         />
-                    }
-                    chevrons={
-                        <ChevronsUpDownIcon
-                            className={"w-3 h-3 pl-3"}
-                            style={{ opacity: 0.5 }}
-                        />
-                    }
-                    textSize="text-[16px]"
-                />
-            </div>
+                    </div>
+                </div>
 
-            {/* Date input */}
-            <div className="flex items-center flex-1 px-4">
-                <TextInputComponent
-                    icon={
-                        <Users
-                            className={`w-5 h-5 ${styleConfig.iconTextColor}`}
+                {/* Comedian Search */}
+                <div className="flex-1 lg:border-r lg:border-gray-200 lg:px-4">
+                    <div className="flex items-center w-full p-2 lg:p-0 rounded-full lg:rounded-none hover:bg-gray-50 lg:hover:bg-transparent transition-colors">
+                        <TextInputComponent
+                            icon={
+                                <Users
+                                    className={`w-5 h-5 ${styleConfig.iconTextColor}`}
+                                />
+                            }
+                            placeholder="Search for comedian"
+                            value={comedianQuery}
+                            onChange={handleComedianSearch}
+                            className="w-full border-gray-200 bg-ivory ring-transparent focus:ring-transparent 
+                            shadow-none border-transparent focus:outline-none outline-none"
                         />
-                    }
-                    placeholder="Search by comedian"
-                    value={comedianQuery}
-                    onChange={handleSearch}
-                    className="border-gray-200 pr-4 bg-ivory ring-transparent focus:ring-transparent 
-    shadow-none border-transparent focus:outline-none outline-none"
-                />
+                    </div>
+                </div>
+
+                {/* Club Search */}
+                <div className="flex-1 lg:px-4">
+                    <div className="flex items-center w-full p-2 lg:p-0 rounded-full lg:rounded-none hover:bg-gray-50 lg:hover:bg-transparent transition-colors">
+                        <TextInputComponent
+                            icon={
+                                <Users
+                                    className={`w-5 h-5 ${styleConfig.iconTextColor}`}
+                                />
+                            }
+                            placeholder="Search by club"
+                            value={comedianQuery}
+                            onChange={handleClubSearch}
+                            className="w-full border-gray-200 bg-ivory ring-transparent focus:ring-transparent 
+                            shadow-none border-transparent focus:outline-none outline-none"
+                        />
+                    </div>
+                </div>
             </div>
         </div>
     );

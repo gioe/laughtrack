@@ -30,13 +30,14 @@ export default async function ShowSearchPage(props: any) {
         },
     );
 
+    const city = paramsWrapper.getParamValue(QueryProperty.City);
     return (
         <main className="min-h-screen w-full bg-ivory">
             <FilterModal filters={filters} total={total} />
             <Navbar currentUser={session?.user} />
 
             <SearchDetailHeader
-                title={`Search shows in ${paramsWrapper.getParamValue(QueryProperty.City)}`}
+                title={`Search shows in ${city}`}
                 subTitle={`${total} results`}
             />
             <FilterBar total={total} filters={filters.length > 0}>

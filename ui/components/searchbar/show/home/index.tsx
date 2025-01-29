@@ -22,6 +22,7 @@ import { CityDTO } from "@/lib/data/cities/getCities";
 import { showSearchFormSchema } from "./schema";
 import { QueryProperty } from "@/objects/enum";
 import { Loader2 } from "lucide-react";
+import CalendarComponent from "@/ui/components/calendar";
 
 const LoadingOverlay = () => (
     <div className="absolute inset-0 bg-black/20 backdrop-blur-sm rounded-full flex items-center justify-center">
@@ -31,9 +32,6 @@ const LoadingOverlay = () => (
 
 export default function ShowSearchForm() {
     const cityList = useCityContext();
-    const { getCurrentStyles } = useStyleContext();
-    const styleConfig = getCurrentStyles();
-
     const paramsHelper = new SearchParamsHelper(useSearchParams());
     const navigator = new Navigator(usePathname(), useRouter());
 
@@ -50,7 +48,7 @@ export default function ShowSearchForm() {
         defaultValues: {
             city: undefined,
             dates: {
-                from: new Date(),
+                from: undefined,
                 to: undefined,
             },
         },
@@ -64,8 +62,6 @@ export default function ShowSearchForm() {
             map.set(QueryProperty.FromDate, data.dates.from);
             map.set(QueryProperty.ToDate, data.dates.to);
 
-            // You might want to add a small delay to show the loading state
-            // if the navigation is too quick
             await new Promise((resolve) => setTimeout(resolve, 300));
 
             paramsHelper.updateParamsFromMap(map);
@@ -83,7 +79,6 @@ export default function ShowSearchForm() {
                 <div className="flex flex-col md:flex-row items-stretch md:items-center bg-ivory/20 backdrop-blur rounded-2xl md:rounded-full overflow-hidden">
                     {isLoading && <LoadingOverlay />}
 
-                    {/* City Selection Dropdown */}
                     <div className="flex-1 min-w-0 md:min-w-[240px] border-b md:border-b-0 md:border-r border-gray-600/30">
                         <div className="px-4 md:px-8 py-4">
                             <DropdownComponent
@@ -100,10 +95,10 @@ export default function ShowSearchForm() {
                         </div>
                     </div>
 
-                    {/* Date Selection Calendar */}
                     <div className="flex-1 min-w-0 md:min-w-[240px]">
                         <div className="px-4 md:px-8 py-4">
-                            <CalendarFormComponent
+                            <CalendarComponent
+                                variant="form"
                                 name="dates"
                                 form={form}
                                 placeholder="When"
@@ -119,7 +114,6 @@ export default function ShowSearchForm() {
                         </div>
                     </div>
 
-                    {/* Search Button */}
                     <div className="px-4 md:px-6 py-4 md:py-0 flex justify-center md:justify-start">
                         <CircleIconButton
                             type="submit"
