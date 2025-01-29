@@ -103,6 +103,7 @@ export default function ShowSearchBar() {
                 <CalendarFormComponent
                     name="dates"
                     value={dateRange}
+                    placeholder="When"
                     onValueChange={(newRange) => setDateRange(newRange)}
                     className={`text-[16px] text-cedar rounded-lg px-3 ring-transparent 
                         focus:ring-transparent border-transparent focus:outline-none outline-none`}

@@ -1,6 +1,5 @@
 "use client";
 
-import { FilterDTO } from "@/objects/interface/filter.interface";
 import { FilterModalButton } from "@/ui/components/params/filter";
 import { PageParamComponent } from "@/ui/components/params/page";
 import { SortParamComponent } from "@/ui/components/params/sort";
@@ -12,14 +11,20 @@ interface FilterBarProps {
 }
 const FilterBar = ({ children, total, filters }: FilterBarProps) => {
     return (
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mx-24">
-            <div className="flex flex-col items-start gap-7 lg:gap-2 basis-1/2">
-                {children}
-                <PageParamComponent itemCount={total} />
-            </div>
-            <div className="flex flex-col pt-7 gap-7 lg:flex-row">
-                <SortParamComponent />
-                {filters && <FilterModalButton />}
+        <div className="w-full">
+            <div className="mx-10">
+                <div className="w-full max-w-4xl">{children}</div>
+
+                <div className="flex justify-between items-center">
+                    <PageParamComponent itemCount={total} />
+
+                    {/* Right Sort Dropdown */}
+                    <div className="flex items-center gap-4">
+                        <SortParamComponent />
+
+                        {filters && <FilterModalButton />}
+                    </div>
+                </div>
             </div>
         </div>
     );
