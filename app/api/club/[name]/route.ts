@@ -11,9 +11,8 @@ export async function GET(request: Request, { params }) {
         const headersList = await headers();
 
         const searchParams = new URL(request.url).searchParams
-        const providedFilters = searchParams.get(QueryProperty.Filters)
 
-        return getClubDetailPageData(searchParams, headersList, slug, providedFilters == null ? undefined : providedFilters)
+        return getClubDetailPageData(searchParams, headersList, slug)
             .then((response: ClubDetailResponse) => NextResponse.json({
                 data: response.data,
                 shows: response.shows,

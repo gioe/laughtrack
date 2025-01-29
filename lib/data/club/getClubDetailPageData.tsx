@@ -24,6 +24,7 @@ export async function getClubDetailPageData(
         if (!name) {
             throw new Error(`Detail request with no name should be impossible`);
         }
+
         const helper = await QueryHelper.storePageParams(
             params,
             providedFilters == null ? undefined : providedFilters,
