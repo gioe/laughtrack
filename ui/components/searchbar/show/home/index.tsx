@@ -62,56 +62,52 @@ export default function ShowSearchForm() {
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(submitForm)}>
-                <div
-                    className={`flex items-center justify-between w-full max-w-3xl bg-ivory/20 backdrop-blur rounded-full`}
-                >
+            <form onSubmit={form.handleSubmit(submitForm)} className="relative">
+                <div className="flex flex-col md:flex-row items-stretch md:items-center bg-ivory/20 backdrop-blur rounded-2xl md:rounded-full overflow-hidden">
                     {/* City Selection Dropdown */}
-                    <div className="w-5/12 px-6 py-4 border-r border-gray-600/50">
-                        <DropdownComponent
-                            icon={
-                                <MapPin
-                                    className={`w-5 h-5 ${styleConfig.iconTextColor}`}
-                                />
-                            }
-                            name="city"
-                            placeholder="Where"
-                            items={selectableCities}
-                            form={form}
-                            className={`text-[20px] text-white rounded-lg font-dmSams ring-transparent focus:ring-transparent 
-                                shadow-none border-transparent focus:outline-none outline-none`}
-                        />
+                    <div className="flex-1 min-w-0 md:min-w-[240px] border-b md:border-b-0 md:border-r border-gray-600/30">
+                        <div className="px-4 md:px-8 py-4">
+                            <DropdownComponent
+                                icon={
+                                    <MapPin className="w-5 h-5 text-white/80" />
+                                }
+                                name="city"
+                                placeholder="Where"
+                                items={selectableCities}
+                                form={form}
+                                className="w-full bg-transparent text-lg md:text-xl text-white ring-transparent focus:ring-transparent 
+                                shadow-none border-transparent focus:outline-none outline-none"
+                            />
+                        </div>
                     </div>
 
                     {/* Date Selection Calendar */}
-                    <div className="w-5/12 pl-6 py-4">
-                        <CalendarFormComponent
-                            name="dates"
-                            form={form}
-                            placeholder="When"
-                            className={`text-[20px] text-white rounded-lg px-3 ring-transparent 
-                                focus:ring-transparent border-transparent focus:outline-none outline-none`}
-                            icon={
-                                <Calendar
-                                    className={`w-5 h-5 ${styleConfig.iconTextColor}`}
-                                />
-                            }
-                            chevrons={
-                                <ChevronsUpDown
-                                    className={`w-5 h-5 ${styleConfig.iconTextColor} pl-2`}
-                                    style={{ opacity: 0.5 }}
-                                />
-                            }
-                            textSize="text-[20px]"
-                        />
+                    <div className="flex-1 min-w-0 md:min-w-[240px]">
+                        <div className="px-4 md:px-8 py-4">
+                            <CalendarFormComponent
+                                name="dates"
+                                form={form}
+                                placeholder="When"
+                                className="w-full bg-transparent text-lg md:text-xl text-white focus:outline-none"
+                                icon={
+                                    <Calendar className="w-5 h-5 text-white/80" />
+                                }
+                                chevrons={
+                                    <ChevronsUpDown className="w-5 h-5 text-white/50" />
+                                }
+                                textSize="text-xl"
+                            />
+                        </div>
                     </div>
 
                     {/* Search Button */}
-                    <div className="w-2/12 flex justify-center">
-                        <CircleIconButton type="submit">
-                            <Search
-                                className={`w-5 h-5 ${styleConfig.iconTextColor}`}
-                            />
+                    <div className="px-4 md:px-6 py-4 md:py-0 flex justify-center md:justify-start">
+                        <CircleIconButton
+                            type="submit"
+                            isLoading={isLoading}
+                            className="bg-copper w-full md:w-auto"
+                        >
+                            <Search className="w-5 h-5 text-white" />
                         </CircleIconButton>
                     </div>
                 </div>

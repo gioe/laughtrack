@@ -39,7 +39,7 @@ type DropdownProps = FormDropdownProps | StandaloneDropdownProps;
 export function DropdownComponent(props: DropdownProps) {
     // Common wrapper for the select content
     const SelectWrapper = ({ children }: { children: React.ReactNode }) => (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full">
             {props.icon}
             {children}
         </div>
@@ -52,33 +52,38 @@ export function DropdownComponent(props: DropdownProps) {
                 control={props.form.control}
                 name={props.name}
                 render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                        <SelectWrapper>
-                            <Select
-                                onValueChange={field.onChange}
-                                value={field.value}
-                            >
-                                <FormControl className={props.className}>
-                                    <SelectTrigger>
+                    <FormItem className="flex flex-col w-full">
+                        <FormControl>
+                            <SelectWrapper>
+                                <Select
+                                    onValueChange={field.onChange}
+                                    value={field.value}
+                                >
+                                    <SelectTrigger
+                                        className={`${props.className} w-full border-none focus:ring-0 focus:ring-offset-0`}
+                                    >
                                         <SelectValue
-                                            className="text-left pr-2"
+                                            className="text-left"
                                             placeholder={props.placeholder}
                                         />
                                     </SelectTrigger>
-                                </FormControl>
-                                <SelectContent className="rounded-lg bg-white">
-                                    {props.items.map((item) => (
-                                        <SelectItem
-                                            className="rounded-lg"
-                                            key={item.id.toString()}
-                                            value={item.value}
-                                        >
-                                            {item.display}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </SelectWrapper>
+                                    <SelectContent
+                                        className="rounded-lg bg-white"
+                                        align="start"
+                                    >
+                                        {props.items.map((item) => (
+                                            <SelectItem
+                                                className="rounded-lg"
+                                                key={item.id.toString()}
+                                                value={item.value}
+                                            >
+                                                {item.display}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </SelectWrapper>
+                        </FormControl>
                         <FormMessage />
                     </FormItem>
                 )}

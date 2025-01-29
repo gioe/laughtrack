@@ -42,6 +42,7 @@ const CalendarComponent = (props: CalendarComponentProps) => {
     today.setHours(0, 0, 0, 0);
 
     // Common calendar content
+
     const CalendarContent = ({
         selected,
         onSelect,
@@ -49,20 +50,24 @@ const CalendarComponent = (props: CalendarComponentProps) => {
         selected?: DateRange;
         onSelect: (value: DateRange | undefined) => void;
     }) => (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full">
             {props.icon}
             <Popover>
                 <PopoverTrigger asChild>
-                    <div className={props.className}>
-                        <div className="flex items-center justify-between w-full">
+                    <div className={`${props.className} w-full cursor-pointer`}>
+                        <div className="flex items-center justify-between w-full px-3 py-2">
                             <span className={props.textSize}>
                                 {formatDateRange(props.placeholder, selected)}
                             </span>
-                            {props.chevrons}
+                            <div className="ml-2">{props.chevrons}</div>
                         </div>
                     </div>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 rounded-lg" align="start">
+                <PopoverContent
+                    className="w-auto p-0 rounded-lg"
+                    align="start"
+                    sideOffset={8}
+                >
                     <Calendar
                         className="rounded-lg"
                         initialFocus
@@ -78,15 +83,14 @@ const CalendarComponent = (props: CalendarComponentProps) => {
         </div>
     );
 
-    // Render for form-controlled calendar
     if (props.form) {
         return (
             <FormField
                 control={props.form.control}
                 name={props.name}
                 render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                        <FormControl className={props.className}>
+                    <FormItem className="flex flex-col w-full">
+                        <FormControl>
                             <CalendarContent
                                 selected={field.value}
                                 onSelect={field.onChange}
@@ -99,7 +103,6 @@ const CalendarComponent = (props: CalendarComponentProps) => {
         );
     }
 
-    // Render for standalone calendar
     return (
         <CalendarContent
             selected={props.value}
