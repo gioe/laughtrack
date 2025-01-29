@@ -2,16 +2,17 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { Navigator } from "../../../../objects/class/navigate/Navigator";
+
+import { Users } from "lucide-react";
+import { useStyleContext } from "@/contexts/StyleProvider";
+import { QueryProperty } from "@/objects/enum";
 import {
     ParamsDictValue,
     SearchParamsHelper,
     URLParam,
-} from "../../../../objects/class/params/SearchParamsHelper";
-import { Users } from "lucide-react";
-import TextInputComponent from "../../input/search/text/input";
-import { useStyleContext } from "@/contexts/StyleProvider";
-import { QueryProperty } from "@/objects/enum";
+} from "@/objects/class/params/SearchParamsHelper";
+import { Navigator } from "@/objects/class/navigate/Navigator";
+import TextInputComponent from "@/ui/components/input/search/text/input";
 
 export default function ComedianSearchBar() {
     const { getCurrentStyles } = useStyleContext();

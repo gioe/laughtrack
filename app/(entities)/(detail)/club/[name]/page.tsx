@@ -1,5 +1,5 @@
 import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
-import { APIRoutePath } from "@/objects/enum";
+import { APIRoutePath, EntityType } from "@/objects/enum";
 import { CACHE } from "@/util/constants/cacheConstants";
 import { makeRequest } from "@/util/actions/makeRequest";
 import { DynamicRoute } from "@/objects/interface/identifable.interface";
@@ -10,7 +10,6 @@ import TableWithHeader from "@/ui/pages/entity/comedian/table";
 import FooterComponent from "@/ui/pages/home/footer";
 import ClubDetailHeader from "@/ui/pages/entity/club/detailHeader";
 import FilterBar from "@/ui/pages/search/filterBar";
-import ComedianSearchBar from "@/ui/components/searchbar/comedian";
 import FilterModal from "@/ui/components/modals/filter";
 
 export default async function ClubDetailPage(props: {
@@ -48,9 +47,11 @@ export default async function ClubDetailPage(props: {
             <ClubDetailHeader club={data} />
             <div className="max-w-7xl mx-auto p-6 flex flex-row">
                 <TableWithHeader shows={shows} total={total}>
-                    <FilterBar total={total} filters={filters.length > 0}>
-                        <ComedianSearchBar />
-                    </FilterBar>
+                    <FilterBar
+                        variant={EntityType.Comedian}
+                        total={total}
+                        filters={filters.length > 0}
+                    />
                 </TableWithHeader>
             </div>
             <FooterComponent />

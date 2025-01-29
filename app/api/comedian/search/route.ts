@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSearchedComedians } from "@/lib/data/comedian/getSearchedComedians";
+import { getSearchedComedians } from "@/lib/data/comedian/search/getSearchedComedians";
 import { ComedianSearchResponse } from "./interface";
 import { headers } from "next/headers";
 

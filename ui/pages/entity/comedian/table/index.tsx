@@ -1,9 +1,4 @@
-import { Show } from "@/objects/class/show/Show";
 import { ShowDTO } from "@/objects/class/show/show.interface";
-import ShowCard from "@/ui/components/cards/show";
-import ClubSearchBar from "@/ui/components/searchbar/club";
-import ComedianSearchBar from "@/ui/components/searchbar/comedian";
-import FilterBar from "@/ui/pages/search/filterBar";
 import ShowTable from "@/ui/pages/search/table";
 
 interface TableWithHeaderProps {

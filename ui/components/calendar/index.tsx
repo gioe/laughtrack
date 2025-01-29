@@ -3,6 +3,11 @@ import { UseFormReturn } from "react-hook-form";
 import React from "react";
 import { CalendarDisplay } from "./display";
 
+export enum CalendarVariant {
+    Form = "form",
+    Standalone = "standalone",
+}
+
 export interface DateRange {
     from: Date;
     to?: Date;
@@ -18,12 +23,12 @@ interface CalendarBaseProps {
 }
 
 type CalendarFormProps = CalendarBaseProps & {
-    variant: "form";
+    variant: CalendarVariant.Form;
     form: UseFormReturn<any>;
 };
 
 type CalendarStandaloneProps = CalendarBaseProps & {
-    variant: "standalone";
+    variant: CalendarVariant.Standalone;
     value?: DateRange;
     onValueChange: (value: DateRange | undefined) => void;
 };
@@ -32,7 +37,7 @@ type CalendarComponentProps = CalendarFormProps | CalendarStandaloneProps;
 
 // Main component with form/standalone logic
 const CalendarComponent = (props: CalendarComponentProps) => {
-    if (props.variant === "form") {
+    if (props.variant === CalendarVariant.Form) {
         return (
             <FormField
                 control={props.form.control}

@@ -1,5 +1,5 @@
 import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
-import { APIRoutePath, QueryProperty } from "@/objects/enum";
+import { APIRoutePath, EntityType, QueryProperty } from "@/objects/enum";
 import { makeRequest } from "@/util/actions/makeRequest";
 import { auth } from "@/auth";
 import { ShowSearchResponse } from "@/app/api/show/search/interface";
@@ -8,7 +8,6 @@ import FilterBar from "@/ui/pages/search/filterBar";
 import ShowTable from "@/ui/pages/search/table";
 import FooterComponent from "@/ui/pages/home/footer";
 import SearchDetailHeader from "@/ui/pages/search/detailHeader";
-import ShowSearchBar from "@/ui/components/searchbar/show/search";
 import FilterModal from "@/ui/components/modals/filter";
 import { CACHE } from "@/util/constants/cacheConstants";
 
@@ -40,9 +39,11 @@ export default async function ShowSearchPage(props: any) {
                 title={`Search shows in ${city}`}
                 subTitle={`${total} results`}
             />
-            <FilterBar total={total} filters={filters.length > 0}>
-                <ShowSearchBar />
-            </FilterBar>
+            <FilterBar
+                variant={EntityType.Show}
+                total={total}
+                filters={filters.length > 0}
+            />
             <div className="mx-10">
                 <ShowTable shows={data} />
             </div>

@@ -1,21 +1,38 @@
 "use client";
 
+import { EntityType } from "@/objects/enum";
 import { FilterModalButton } from "@/ui/components/params/filter";
 import { PageParamComponent } from "@/ui/components/params/page";
+import ClubSearchBar from "@/ui/components/params/searchbar/club";
+import ComedianSearchBar from "@/ui/components/params/searchbar/comedian";
+import ShowSearchBar from "@/ui/components/params/searchbar/show/search";
 import { SortParamComponent } from "@/ui/components/params/sort";
 
 interface FilterBarProps {
-    children: React.ReactNode;
+    variant: EntityType;
     total: number;
     filters: boolean;
 }
 
-const FilterBar = ({ children, total, filters }: FilterBarProps) => {
+const FilterBar = ({ variant, total, filters }: FilterBarProps) => {
+    const getSearchBar = (variant: EntityType) => {
+        switch (variant) {
+            case EntityType.Club:
+                return <ClubSearchBar />;
+            case EntityType.Show:
+                return <ShowSearchBar />;
+            case EntityType.Comedian:
+                return <ComedianSearchBar />;
+            default:
+                return null;
+        }
+    };
+
     return (
         <div className="px-4 sm:px-6 lg:px-10 py-4">
             {/* Search bar container */}
             <div className="flex items-center justify-center w-full">
-                {children}
+                {getSearchBar(variant)}
             </div>
 
             {/* Controls container */}

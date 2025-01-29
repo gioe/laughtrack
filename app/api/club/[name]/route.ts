@@ -1,8 +1,7 @@
-import { QueryProperty } from "@/objects/enum";
 import { ClubDetailResponse } from "./interface";
 import { NextResponse } from "next/server";
-import { getClubDetailPageData } from "@/lib/data/club/getClubDetailPageData";
 import { headers } from "next/headers";
+import { getClubDetailPageData } from "@/lib/data/club/detail/getClubDetailPageData";
 
 export async function GET(request: Request, { params }) {
     try {

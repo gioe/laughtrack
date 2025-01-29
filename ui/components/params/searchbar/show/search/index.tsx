@@ -14,7 +14,7 @@ import {
 import { Navigator } from "@/objects/class/navigate/Navigator";
 import DropdownComponent from "@/ui/components/dropdown";
 import TextInputComponent from "@/ui/components/input/search/text/input";
-import { DateRange } from "@/ui/components/calendar";
+import { CalendarVariant, DateRange } from "@/ui/components/calendar";
 import { QueryProperty } from "@/objects/enum";
 import CalendarComponent from "@/ui/components/calendar";
 
@@ -120,7 +120,7 @@ export default function ShowSearchBar() {
                 <div className="flex-1 lg:border-r lg:border-gray-200 lg:px-4">
                     <div className="flex items-center w-full p-2 lg:p-0 rounded-full lg:rounded-none hover:bg-gray-50 lg:hover:bg-transparent transition-colors">
                         <CalendarComponent
-                            variant="standalone"
+                            variant={CalendarVariant.Standalone}
                             name="dates"
                             value={dateRange}
                             placeholder="When"

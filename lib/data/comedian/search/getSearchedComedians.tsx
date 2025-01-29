@@ -1,11 +1,10 @@
-import { getComedianCount } from "./getComedianCount";
-import { findComedians } from "./findComedians";
 import { Prisma } from "@prisma/client";
 import { ComedianSearchResponse } from "@/app/api/comedian/search/interface";
-import { getFilters } from "../filters/getFilters";
+import { getFilters } from "../../filters/getFilters";
 import { EntityType, QueryProperty } from "@/objects/enum";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
+import { findComediansWithCount } from "./findComediansWithCount";
 
 export async function getSearchedComedians(
     searchParams: URLSearchParams,
@@ -23,14 +22,13 @@ export async function getSearchedComedians(
     );
 
     try {
-        const [total, data, filters] = await Promise.all([
-            getComedianCount(helper.asQueryFilters()),
-            findComedians(helper.asQueryFilters()),
+        const [comediansWithCount, filters] = await Promise.all([
+            findComediansWithCount(helper.asQueryFilters()),
             getFilters(EntityType.Comedian, helper.asQueryFilters()),
         ]);
         return {
-            data,
-            total,
+            data: comediansWithCount.comedians,
+            total: comediansWithCount.totalCount,
             filters,
         };
     } catch (error) {

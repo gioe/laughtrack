@@ -52,7 +52,6 @@ export class QueryHelper {
     }
 
     getFilters() {
-
         return {
             filtersEmpty: this.filters == undefined,
             filters: this.filters ? this.filters.split(",") : ['']
@@ -74,8 +73,14 @@ export class QueryHelper {
     }
 
     getQueryPattern() {
-        const queryValue = this.searchParamsHelper.getParamValue(QueryProperty.Query);
-        return { query: `%${queryValue}%` }
+        const comedianValue = this.searchParamsHelper.getParamValue(QueryProperty.Comedian);
+        const clubValue = this.searchParamsHelper.getParamValue(QueryProperty.Club);
+
+        return {
+            ...(clubValue.length > 0 ? { club: clubValue } : {}),
+            ...(comedianValue.length > 0 ? { comedian: comedianValue } : {})
+
+        }
     }
 
     getOffset() {

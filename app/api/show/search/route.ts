@@ -1,6 +1,6 @@
 import { QueryProperty } from "@/objects/enum";
 import { NextResponse } from "next/server";
-import { getSearchedShows } from "@/lib/data/show/getSearchedShows";
+import { getSearchedShows } from "@/lib/data/show/search/getSearchedShows";
 import { ShowSearchResponse } from "./interface";
 import { headers } from "next/headers";
 

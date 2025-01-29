@@ -1,19 +1,15 @@
 "use client";
 
-import CalendarFormComponent from "@/ui/components/calendar";
+import CalendarFormComponent, {
+    CalendarVariant,
+} from "@/ui/components/calendar";
 import { z } from "zod";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { Navigator } from "../../../../../objects/class/navigate/Navigator";
-import {
-    ParamsDictValue,
-    SearchParamsHelper,
-    URLParam,
-} from "../../../../../objects/class/params/SearchParamsHelper";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useCityContext } from "@/contexts/CityProvider";
-import { Form } from "../../../ui/form";
 import { DropdownComponent } from "@/ui/components/dropdown";
 import { CircleIconButton } from "@/ui/components/button/circleIcon";
 import { Calendar, ChevronsUpDown, MapPin, Search } from "lucide-react";
@@ -23,6 +19,13 @@ import { showSearchFormSchema } from "./schema";
 import { QueryProperty } from "@/objects/enum";
 import { Loader2 } from "lucide-react";
 import CalendarComponent from "@/ui/components/calendar";
+import {
+    ParamsDictValue,
+    SearchParamsHelper,
+    URLParam,
+} from "@/objects/class/params/SearchParamsHelper";
+import { Navigator } from "@/objects/class/navigate/Navigator";
+import { Form } from "@/ui/components/ui/form";
 
 const LoadingOverlay = () => (
     <div className="absolute inset-0 bg-black/20 backdrop-blur-sm rounded-full flex items-center justify-center">
@@ -98,7 +101,7 @@ export default function ShowSearchForm() {
                     <div className="flex-1 min-w-0 md:min-w-[240px]">
                         <div className="px-4 md:px-8 py-4">
                             <CalendarComponent
-                                variant="form"
+                                variant={CalendarVariant.Form}
                                 name="dates"
                                 form={form}
                                 placeholder="When"

@@ -1,11 +1,10 @@
 import { ClubSearchResponse } from "@/app/api/club/search/interface";
-import { getClubCount } from "./getClubCount";
-import { findClubs } from "./findClubs";
 import { Prisma } from "@prisma/client";
-import { getFilters } from "../filters/getFilters";
+import { getFilters } from "../../filters/getFilters";
 import { EntityType, QueryProperty } from "@/objects/enum";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
+import { findClubsWithCount } from "./findClubsWithCount";
 
 export async function getSearchedClubs(
     params: URLSearchParams,
@@ -24,15 +23,14 @@ export async function getSearchedClubs(
             normalizedUserId,
         );
 
-        const [total, data, filters] = await Promise.all([
-            getClubCount(helper.asQueryFilters()),
-            findClubs(helper.asQueryFilters()),
+        const [clubsWithCount, filters] = await Promise.all([
+            findClubsWithCount(helper.asQueryFilters()),
             getFilters(EntityType.Club, helper.asQueryFilters()),
         ]);
 
         return {
-            total,
-            data,
+            data: clubsWithCount.clubs,
+            total: clubsWithCount.totalCount,
             filters,
         };
     } catch (error) {

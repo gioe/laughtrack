@@ -1,16 +1,15 @@
-import { getShowCount } from "../show/getCount";
-import { findShows } from "../show/findShows";
-import { findClubByName } from "./findClubByName";
 import { Prisma } from "@prisma/client";
 import { ClubDetailResponse } from "@/app/api/club/[name]/interface";
-import { getFilters } from "../filters/getFilters";
 import { EntityType, QueryProperty } from "@/objects/enum";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { DynamicRoute } from "@/objects/interface/identifable.interface";
 import { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
+import { findClubByName } from "./findClubByName";
+import { findShowsWithCount } from "../../show/search/findShowsWithCount";
+import { getFilters } from "../../filters/getFilters";
 
 export async function getClubDetailPageData(
-    params: any,
+    params: URLSearchParams,
     headers: ReadonlyHeaders,
     slug: DynamicRoute,
 ): Promise<ClubDetailResponse> {
@@ -24,25 +23,26 @@ export async function getClubDetailPageData(
         if (!name) {
             throw new Error(`Detail request with no name should be impossible`);
         }
-
         const helper = await QueryHelper.storePageParams(
             params,
             providedFilters == null ? undefined : providedFilters,
-            { name },
+            undefined,
             normalizedUserId,
         );
 
-        const [club, total, dates, filters] = await Promise.all([
+        const [club, showsWithCount, filters] = await Promise.all([
             findClubByName(name),
-            getShowCount({ ...helper.asQueryFilters(), clubName: name }),
-            findShows({ ...helper.asQueryFilters(), clubName: name }),
+            findShowsWithCount({
+                ...helper.asQueryFilters(),
+                club: name,
+            }),
             getFilters(EntityType.Show, helper.asQueryFilters()),
         ]);
 
         return {
             data: club,
-            shows: dates,
-            total,
+            shows: showsWithCount.shows,
+            total: showsWithCount.totalCount,
             filters,
         };
     } catch (error) {

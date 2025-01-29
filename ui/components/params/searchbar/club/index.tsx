@@ -2,19 +2,19 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { Navigator } from "../../../../objects/class/navigate/Navigator";
+import { useCityContext } from "@/contexts/CityProvider";
+import { MapPin, Theater } from "lucide-react";
+import { CityDTO } from "@/lib/data/cities/getCities";
+import { useStyleContext } from "@/contexts/StyleProvider";
+import { QueryProperty } from "@/objects/enum";
 import {
     ParamsDictValue,
     SearchParamsHelper,
     URLParam,
-} from "../../../../objects/class/params/SearchParamsHelper";
-import { useCityContext } from "@/contexts/CityProvider";
-import { MapPin, Theater } from "lucide-react";
-import { CityDTO } from "@/lib/data/cities/getCities";
-import { DropdownComponent } from "../../dropdown";
-import TextInputComponent from "../../input/search/text/input";
-import { useStyleContext } from "@/contexts/StyleProvider";
-import { QueryProperty } from "@/objects/enum";
+} from "@/objects/class/params/SearchParamsHelper";
+import { Navigator } from "@/objects/class/navigate/Navigator";
+import DropdownComponent from "@/ui/components/dropdown";
+import TextInputComponent from "@/ui/components/input/search/text/input";
 
 export default function ClubSearchBar() {
     const { getCurrentStyles } = useStyleContext();

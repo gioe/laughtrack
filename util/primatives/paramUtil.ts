@@ -27,7 +27,6 @@ export function setParamDefaults(params: URLSearchParams, path: string): URLSear
     if (!params.has(QueryProperty.Sort)) { getSortParamDefaultFromPath(params, path) }
     if (!params.has(QueryProperty.Page)) { params.set(QueryProperty.Page, "1") }
     if (!params.has(QueryProperty.Size)) { params.set(QueryProperty.Size, "10") }
-    if (!params.has(QueryProperty.Query)) { params.set(QueryProperty.Query, "") }
     if (!params.has(QueryProperty.Direction)) { params.set(QueryProperty.Direction, "asc") }
 
     return params

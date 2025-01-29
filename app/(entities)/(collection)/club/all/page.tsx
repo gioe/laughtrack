@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
-import { APIRoutePath, QueryProperty, StyleContextKey } from "@/objects/enum";
+import {
+    APIRoutePath,
+    EntityType,
+    QueryProperty,
+    StyleContextKey,
+} from "@/objects/enum";
 import { ClubSearchResponse } from "@/app/api/club/search/interface";
 import { CACHE } from "@/util/constants/cacheConstants";
 import { makeRequest } from "@/util/actions/makeRequest";
@@ -8,13 +13,13 @@ import { StyleContextProvider } from "@/contexts/StyleProvider";
 import { FilterDTO } from "@/objects/interface/filter.interface";
 import { Filter } from "@/objects/class/filter/Filter";
 import { auth } from "@/auth";
-import ClubSearchBar from "@/ui/components/searchbar/club";
 import FilterModal from "@/ui/components/modals/filter";
 import FilterBar from "@/ui/pages/search/filterBar";
 import FooterComponent from "@/ui/pages/home/footer";
 import Navbar from "@/ui/components/navbar";
 import ClubGrid from "@/ui/components/grid/club";
 import SearchDetailHeader from "@/ui/pages/search/detailHeader";
+import ClubSearchBar from "@/ui/components/params/searchbar/club";
 
 export default async function ClubSearchPage(props: any) {
     const session = await auth();
@@ -51,9 +56,11 @@ export default async function ClubSearchPage(props: any) {
                 title={`Search clubs`}
                 subTitle={`${total} results`}
             />
-            <FilterBar total={total} filters={parsedFilters.length > 0}>
-                <ClubSearchBar />
-            </FilterBar>
+            <FilterBar
+                variant={EntityType.Club}
+                total={total}
+                filters={parsedFilters.length > 0}
+            />
             <ClubGrid clubs={data} />
             <FooterComponent />
         </main>

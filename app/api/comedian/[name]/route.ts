@@ -2,7 +2,7 @@
 
 import { ComedianDetailResponse } from "./interface";
 import { NextResponse } from "next/server";
-import { getComedianDetailPageData } from "@/lib/data/comedian/getComedianDetailPageData";
+import { getComedianDetailPageData } from "@/lib/data/comedian/detail/getComedianDetailPageData";
 import { headers } from "next/headers";
 
 export async function GET(request: Request, { params }) {
