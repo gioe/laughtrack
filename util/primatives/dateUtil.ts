@@ -10,9 +10,13 @@ export const determineDate = (dateString: string): number => {
     return Number(numberString);
 };
 
-export const formatDateRange = (range?: DateRange): string => {
+export const formatDateRange = (placeholder: string, range?: DateRange): string => {
+    console.log(range)
     if (!range) { throw new Error() }
+
     const { from, to } = range;
+
+    if (to == undefined && from == undefined) { return placeholder }
 
     if (!to) {
         return format(from, "LLL dd, yyyy");

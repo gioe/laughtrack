@@ -17,6 +17,7 @@ interface BaseCalendarProps {
     icon: React.ReactNode;
     chevrons: React.ReactNode;
     textSize: string;
+    placeholder: string;
 }
 
 // Props for the form variant
@@ -55,7 +56,7 @@ const CalendarComponent = (props: CalendarComponentProps) => {
                     <div className={props.className}>
                         <div className="flex items-center justify-between w-full">
                             <span className={props.textSize}>
-                                {formatDateRange(selected)}
+                                {formatDateRange(props.placeholder, selected)}
                             </span>
                             {props.chevrons}
                         </div>

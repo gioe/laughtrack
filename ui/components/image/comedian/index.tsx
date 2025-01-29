@@ -7,6 +7,7 @@ import { HeartIcon as OutlineHeart } from "@heroicons/react/24/outline";
 import { HeartIcon as SolidHeart } from "@heroicons/react/24/solid";
 import { useState } from "react";
 import { useFavorite } from "@/hooks/useFavorite";
+import { getLocalCdnUrl } from "@/util/cdnUtil";
 
 interface ComedianHeadshotProps {
     comedian: Comedian;
@@ -15,8 +16,7 @@ interface ComedianHeadshotProps {
     className?: string;
 }
 
-const PLACEHOLDER =
-    "https://laughtrack.b-cdn.net/assets/comedian-placeholder.png";
+const PLACEHOLDER = getLocalCdnUrl("comedian-placeholder.png");
 
 const variantStyles = {
     grid: {

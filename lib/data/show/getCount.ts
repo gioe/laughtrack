@@ -2,7 +2,6 @@ import { db } from "@/lib/db"
 
 export async function getShowCount(params: any): Promise<number> {
     const { clubName, city, comedianName, from_date, to_date, filtersEmpty, filters } = params
-
     return await db.show.count({
         where: {
             club: {

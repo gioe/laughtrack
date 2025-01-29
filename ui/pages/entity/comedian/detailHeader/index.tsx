@@ -7,9 +7,9 @@ import { Comedian } from "@/objects/class/comedian/Comedian";
 import SocialMediaColumn from "../socialColumn";
 import { useFavorite } from "@/hooks/useFavorite";
 import Image from "next/image";
+import { getLocalCdnUrl } from "@/util/cdnUtil";
 
-const PLACEHOLDER =
-    "https://laughtrack.b-cdn.net/assets/comedian-placeholder.png";
+const PLACEHOLDER = getLocalCdnUrl("comedian-placeholder.png");
 
 interface ClubDetailHeaderProps {
     comedian: ComedianDTO;

@@ -43,8 +43,8 @@ export default function ShowSearchForm() {
         defaultValues: {
             city: undefined,
             dates: {
-                from: new Date(),
-                to: new Date(),
+                from: undefined,
+                to: undefined,
             },
         },
     });
@@ -75,7 +75,7 @@ export default function ShowSearchForm() {
                                 />
                             }
                             name="city"
-                            placeholder="City"
+                            placeholder="Where"
                             items={selectableCities}
                             form={form}
                             className={`text-[20px] text-white rounded-lg font-dmSams ring-transparent focus:ring-transparent 
@@ -88,6 +88,7 @@ export default function ShowSearchForm() {
                         <CalendarFormComponent
                             name="dates"
                             form={form}
+                            placeholder="When"
                             className={`text-[20px] text-white rounded-lg px-3 ring-transparent 
                                 focus:ring-transparent border-transparent focus:outline-none outline-none`}
                             icon={
