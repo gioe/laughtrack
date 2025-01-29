@@ -10,6 +10,9 @@ import FooterComponent from "@/ui/pages/home/footer";
 import SearchDetailHeader from "@/ui/pages/search/detailHeader";
 import ShowSearchBar from "@/ui/components/searchbar/show/search";
 import FilterModal from "@/ui/components/modals/filter";
+import { unstable_cache } from "next/cache";
+import { Session } from "next-auth";
+import { CACHE } from "@/util/constants/cacheConstants";
 
 export default async function ShowSearchPage(props: any) {
     const session = await auth();
@@ -18,13 +21,19 @@ export default async function ShowSearchPage(props: any) {
         props.searchParams,
     );
 
-    const { data, total, filters } = await makeRequest<ShowSearchResponse>(
-        APIRoutePath.ShowSearch,
-        {
-            searchParams: paramsWrapper.asUrlSearchParams(),
-            session,
-        },
-    );
+    const getCachedShows = (currentSession: Session | null) =>
+        unstable_cache(
+            async () =>
+                await makeRequest<ShowSearchResponse>(APIRoutePath.ShowSearch, {
+                    searchParams: paramsWrapper.asUrlSearchParams(),
+                    revalidate: CACHE.search,
+                    session,
+                }),
+            ["show-search-data", currentSession?.user?.id || ""],
+            { revalidate: 86400 },
+        );
+
+    const { data, total, filters } = await getCachedShows(session)();
 
     return (
         <main className="min-h-screen w-full bg-ivory">

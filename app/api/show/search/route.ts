@@ -8,9 +8,8 @@ export async function GET(request: Request) {
     const headersList = await headers();
 
     const searchParams = new URL(request.url).searchParams
-    const providedFilters = searchParams.get(QueryProperty.Filters)
 
-    return getSearchedShows(searchParams, headersList, providedFilters == null ? undefined : providedFilters)
+    return getSearchedShows(searchParams, headersList)
         .then((response: ShowSearchResponse) => NextResponse.json({
             data: response.data,
             total: response.total,

@@ -16,6 +16,8 @@ export async function findComedians(params: any): Promise<ComedianDTO[]> {
         userId,
     } = params;
 
+    console.log(params);
+
     const filteredComedians = await db.comedian.findMany({
         where: {
             name: {

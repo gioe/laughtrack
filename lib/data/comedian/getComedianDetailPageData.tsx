@@ -4,28 +4,27 @@ import { getShowCount } from "../show/getCount";
 import { Prisma } from "@prisma/client";
 import { ComedianDetailResponse } from "@/app/api/comedian/[name]/interface";
 import { getFilters } from "../filters/getFilters";
-import { EntityType } from "@/objects/enum";
+import { EntityType, QueryProperty } from "@/objects/enum";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { DynamicRoute } from "@/objects/interface/identifable.interface";
 import { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 
 export async function getComedianDetailPageData(
-    params: URLSearchParams,
+    searchParams: URLSearchParams,
     slug: DynamicRoute,
     headers: ReadonlyHeaders,
-    providedFilters?: string,
 ): Promise<ComedianDetailResponse> {
     try {
         const userId = headers.get("user_id");
         const { name } = slug;
         const normalizedUserId =
             !userId || userId === "undefined" ? undefined : userId;
+        const providedFilters = searchParams.get(QueryProperty.Filters);
+
         const helper = await QueryHelper.storePageParams(
-            params,
-            providedFilters,
-            {
-                name,
-            },
+            searchParams,
+            providedFilters == null ? undefined : providedFilters,
+            { name },
             normalizedUserId,
         );
 

@@ -3,7 +3,6 @@ import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { buildComedianImageUrl } from "@/util/imageUtil";
 
 export async function getTrendingComedians(userId?: string): Promise<ComedianDTO[]> {
-    console.log(userId)
     const activeComedians = await db.comedian.findMany({
         where: {
             lineupItems: {

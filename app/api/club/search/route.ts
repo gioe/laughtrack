@@ -8,9 +8,8 @@ export async function GET(request: Request) {
     const searchParams = new URL(request.url).searchParams
     const headersList = await headers();
 
-    const providedFilters = searchParams.get(QueryProperty.Filters)
 
-    return getSearchedClubs(searchParams, headersList, providedFilters == null ? undefined : providedFilters)
+    return getSearchedClubs(searchParams, headersList)
         .then((response: ClubSearchResponse) => NextResponse.json({
             data: response.data,
             total: response.total,
