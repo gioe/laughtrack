@@ -3,7 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useCityContext } from "@/contexts/CityProvider";
-import { Calendar, ChevronsUpDown, MapPin, Users } from "lucide-react";
+import { Calendar, ChevronsUpDown, MapPin, Theater, Users } from "lucide-react";
 import { CityDTO } from "@/lib/data/cities/getCities";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import {
@@ -14,7 +14,7 @@ import {
 import { Navigator } from "@/objects/class/navigate/Navigator";
 import DropdownComponent from "@/ui/components/dropdown";
 import TextInputComponent from "@/ui/components/input/search/text/input";
-import CalendarFormComponent, { DateRange } from "@/ui/components/calendar";
+import { DateRange } from "@/ui/components/calendar";
 import { QueryProperty } from "@/objects/enum";
 import CalendarComponent from "@/ui/components/calendar";
 
@@ -29,8 +29,12 @@ export default function ShowSearchBar() {
     const currentSelection = paramsHelper.getParamValue(
         QueryProperty.City,
     ) as string;
-    const currentQuery = paramsHelper.getParamValue(
-        QueryProperty.Query,
+
+    const currentComedianQuery = paramsHelper.getParamValue(
+        QueryProperty.Comedian,
+    ) as string;
+    const currentClubQuery = paramsHelper.getParamValue(
+        QueryProperty.Club,
     ) as string;
 
     const currentDateRange = {
@@ -44,7 +48,8 @@ export default function ShowSearchBar() {
 
     const [selectedValue, setSelectedValue] = useState(currentSelection);
     const [dateRange, setSelectedDateRange] = useState(currentDateRange);
-    const [comedianQuery, setComedianQuery] = useState(currentQuery);
+    const [comedianQuery, setComedianQuery] = useState(currentComedianQuery);
+    const [clubQuery, setClubQuery] = useState(currentClubQuery);
 
     const selectableCities = cityList.cities.map((city: CityDTO) => ({
         id: city.id,
@@ -63,7 +68,7 @@ export default function ShowSearchBar() {
     function handleClubSearch(value: string) {
         const map = new Map<URLParam, ParamsDictValue>();
         map.set(QueryProperty.Club, value);
-        setComedianQuery(value);
+        setClubQuery(value);
         paramsHelper.updateParamsFromMap(map);
         navigator.replaceRoute(paramsHelper.asParamsString());
     }
@@ -158,12 +163,12 @@ export default function ShowSearchBar() {
                     <div className="flex items-center w-full p-2 lg:p-0 rounded-full lg:rounded-none hover:bg-gray-50 lg:hover:bg-transparent transition-colors">
                         <TextInputComponent
                             icon={
-                                <Users
+                                <Theater
                                     className={`w-5 h-5 ${styleConfig.iconTextColor}`}
                                 />
                             }
                             placeholder="Search by club"
-                            value={comedianQuery}
+                            value={clubQuery}
                             onChange={handleClubSearch}
                             className="w-full border-gray-200 bg-ivory ring-transparent focus:ring-transparent 
                             shadow-none border-transparent focus:outline-none outline-none"

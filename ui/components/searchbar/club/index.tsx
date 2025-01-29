@@ -27,8 +27,9 @@ export default function ClubSearchBar() {
     const currentSelection = paramsHelper.getParamValue(
         QueryProperty.City,
     ) as string;
+
     const currentClubQuery = paramsHelper.getParamValue(
-        QueryProperty.Query,
+        QueryProperty.Club,
     ) as string;
 
     const [selectedValue, setSelectedValue] = useState(currentSelection);
@@ -42,7 +43,7 @@ export default function ClubSearchBar() {
 
     function handleSearch(value: string) {
         const map = new Map<URLParam, ParamsDictValue>();
-        map.set(QueryProperty.Query, value);
+        map.set(QueryProperty.Club, value);
         setClubQuery(value);
         paramsHelper.updateParamsFromMap(map);
         navigator.replaceRoute(paramsHelper.asParamsString());
@@ -58,7 +59,6 @@ export default function ClubSearchBar() {
 
     return (
         <div className="flex items-center bg-ivory rounded-full border border-gray-200 px-4 py-2 shadow-sm max-w-xl w-full">
-            {/* Location input */}
             <div className="flex items-center flex-1 border-r border-gray-200 pr-4">
                 <DropdownComponent
                     icon={

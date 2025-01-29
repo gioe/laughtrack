@@ -8,8 +8,7 @@ import {
     SearchParamsHelper,
     URLParam,
 } from "../../../../objects/class/params/SearchParamsHelper";
-import { useCityContext } from "@/contexts/CityProvider";
-import { Theater } from "lucide-react";
+import { Users } from "lucide-react";
 import TextInputComponent from "../../input/search/text/input";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import { QueryProperty } from "@/objects/enum";
@@ -18,19 +17,14 @@ export default function ComedianSearchBar() {
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
 
-    const cityList = useCityContext();
-
     const paramsHelper = new SearchParamsHelper(useSearchParams());
     const navigator = new Navigator(usePathname(), useRouter());
-    const currentSelection = paramsHelper.getParamValue(
-        QueryProperty.City,
-    ) as string;
-    const currentClubQuery = paramsHelper.getParamValue(
-        QueryProperty.Query,
+
+    const currentComedianQuery = paramsHelper.getParamValue(
+        QueryProperty.Comedian,
     ) as string;
 
-    const [selectedValue, setSelectedValue] = useState(currentSelection);
-    const [comedianQuery, setComedianQuery] = useState(currentClubQuery);
+    const [comedianQuery, setComedianQuery] = useState(currentComedianQuery);
 
     function handleSearch(value: string) {
         const map = new Map<URLParam, ParamsDictValue>();
@@ -46,7 +40,7 @@ export default function ComedianSearchBar() {
             <div className="flex items-center flex-1 px-4">
                 <TextInputComponent
                     icon={
-                        <Theater
+                        <Users
                             className={`w-5 h-5 ${styleConfig.iconTextColor}`}
                         />
                     }
