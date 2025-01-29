@@ -21,6 +21,8 @@ import LoginModal from "@/ui/components/modals/login";
 import RegisterModal from "@/ui/components/modals/register";
 import { StyleContextProvider } from "@/contexts/StyleProvider";
 import { StyleContextKey } from "@/objects/enum";
+import { unstable_cache } from "next/cache";
+import { CACHE } from "@/util/constants/cacheConstants";
 import FavoriteRegisterModal from "@/ui/components/modals/favoriteRegister";
 
 const outfit = Outfit({
@@ -70,12 +72,23 @@ export const metadata: Metadata = {
     description: "Find funny stuff",
 };
 
+const getCachedCities = unstable_cache(
+    async () => {
+        return await getCities();
+    },
+    ["city-data"],
+    {
+        revalidate: CACHE.home,
+        tags: ["city-data"],
+    },
+);
+
 export default async function RootLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    const cities = await getCities();
+    const cities = await getCachedCities();
 
     return (
         <SessionProvider>

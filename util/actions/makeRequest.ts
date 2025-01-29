@@ -10,6 +10,7 @@ interface ExecuteOptions {
     searchParams?: URLSearchParams;
     revalidate?: false | 0 | number;
     session?: Session | null;
+    next?: NextFetchRequestConfig;  // Add this type for Next.js fetch options
 }
 
 export const makeRequest = async <T>(
@@ -22,7 +23,8 @@ export const makeRequest = async <T>(
         body,
         searchParams,
         revalidate = 0,
-        session
+        session,
+        next
     } = options;
     // Create base URL
     const url = getUrl(endpoint, searchParams)
@@ -42,7 +44,13 @@ export const makeRequest = async <T>(
     const requestOptions: RequestInit = {
         method,
         headers,
-        ...(method === "GET" ? { next: { revalidate } } : {}),
+        next: {
+            ...(next || {}),  // Allow passing in any next config options
+            ...(method === "GET" ? { revalidate } : {}),  // Keep existing revalidation logic
+            tags: [
+                ...(next?.tags || []),  // Spread any tags passed in through next config
+            ]
+        }
     };
 
     // Add body for non-GET requests
@@ -55,7 +63,7 @@ export const makeRequest = async <T>(
     // Make request
     const response = await fetch(url, requestOptions);
     if (!response.ok) {
-        throw new Error("Fetch Error");
+        throw new Error(`Fetch Error: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();

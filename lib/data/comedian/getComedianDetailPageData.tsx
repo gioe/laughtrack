@@ -17,6 +17,10 @@ export async function getComedianDetailPageData(
     try {
         const userId = headers.get("user_id");
         const { name } = slug;
+
+        if (!name) {
+            throw new Error("Defail request with no name should be impossible");
+        }
         const normalizedUserId =
             !userId || userId === "undefined" ? undefined : userId;
         const providedFilters = searchParams.get(QueryProperty.Filters);
@@ -29,7 +33,7 @@ export async function getComedianDetailPageData(
         );
 
         const [comedianData, totalCount, shows, filters] = await Promise.all([
-            findComedianByName(name, userId !== null ? userId : undefined),
+            findComedianByName(name, normalizedUserId),
             getShowCount({
                 ...helper.asQueryFilters(),
                 comedianName: name,

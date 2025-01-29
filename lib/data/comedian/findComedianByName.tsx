@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { buildComedianImageUrl } from "@/util/imageUtil";
 
 export async function findComedianByName(
-    name?: string,
+    name: string,
     userId?: string,
 ): Promise<ComedianDTO> {
     const comedianData = await db.comedian
@@ -11,10 +11,38 @@ export async function findComedianByName(
             where: {
                 name: name,
             },
-            include: {
-                favoriteComedians: {
+            select: {
+                id: true,
+                uuid: true,
+                name: true,
+                linktree: true,
+                instagramAccount: true,
+                instagramFollowers: true,
+                tiktokAccount: true,
+                tiktokFollowers: true,
+                youtubeAccount: true,
+                youtubeFollowers: true,
+                website: true,
+                popularity: true,
+                ...(userId
+                    ? {
+                          favoriteComedians: {
+                              where: {
+                                  userId: Number(userId),
+                              },
+                          },
+                      }
+                    : {}),
+                lineupItems: {
+                    select: {
+                        id: true,
+                    },
                     where: {
-                        userId: Number(userId),
+                        show: {
+                            date: {
+                                gt: new Date(),
+                            },
+                        },
                     },
                 },
             },
@@ -23,7 +51,6 @@ export async function findComedianByName(
             if (!comedian) return null;
             return {
                 ...comedian,
-                isFavorite: comedian.favoriteComedians.length > 0,
             };
         });
 
@@ -31,12 +58,12 @@ export async function findComedianByName(
         throw new Error(`Comedian with name ${name} not found`);
     }
 
+    console.log(comedianData);
     return {
         name: comedianData.name,
         id: comedianData.id,
         imageUrl: buildComedianImageUrl(comedianData.name),
         uuid: comedianData.uuid,
-        isFavorite: comedianData.isFavorite,
         social_data: {
             id: comedianData.id,
             linktree: comedianData.linktree,

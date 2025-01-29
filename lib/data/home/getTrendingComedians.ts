@@ -69,23 +69,29 @@ export async function getTrendingComedians(userId?: string): Promise<ComedianDTO
     return filteredComedians
         .sort(() => Math.random() - 0.5)
         .slice(0, 8)
-        .map((comedian) => ({
-            id: comedian.id,
-            uuid: comedian.uuid,
-            name: comedian.name,
-            imageUrl: buildComedianImageUrl(comedian.name),
-            social_data: {
+        .map((comedian) => {
+            return {
                 id: comedian.id,
-                instagram_account: comedian.instagramAccount,
-                instagram_followers: comedian.instagramFollowers,
-                tiktok_account: comedian.tiktokAccount,
-                tiktok_followers: comedian.tiktokFollowers,
-                youtube_account: comedian.youtubeAccount,
-                youtube_followers: comedian.youtubeFollowers,
-                website: comedian.website,
-                popularity: comedian.popularity,
-                linktree: comedian.linktree,
-            },
-            show_count: comedian.lineupItems.length,
-        }));
+                uuid: comedian.uuid,
+                name: comedian.name,
+                isFavorite:
+                    comedian.favoriteComedians == undefined
+                        ? false
+                        : comedian.favoriteComedians.length > 0,
+                imageUrl: buildComedianImageUrl(comedian.name),
+                social_data: {
+                    id: comedian.id,
+                    instagram_account: comedian.instagramAccount,
+                    instagram_followers: comedian.instagramFollowers,
+                    tiktok_account: comedian.tiktokAccount,
+                    tiktok_followers: comedian.tiktokFollowers,
+                    youtube_account: comedian.youtubeAccount,
+                    youtube_followers: comedian.youtubeFollowers,
+                    website: comedian.website,
+                    popularity: comedian.popularity,
+                    linktree: comedian.linktree,
+                },
+                show_count: comedian.lineupItems.length,
+            }
+        });
 }

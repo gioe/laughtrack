@@ -15,8 +15,6 @@ import FooterComponent from "@/ui/pages/home/footer";
 import Navbar from "@/ui/components/navbar";
 import ClubGrid from "@/ui/components/grid/club";
 import SearchDetailHeader from "@/ui/pages/search/detailHeader";
-import { unstable_cache } from "next/cache";
-import { Session } from "next-auth";
 
 export default async function ClubSearchPage(props: any) {
     const session = await auth();
@@ -25,19 +23,17 @@ export default async function ClubSearchPage(props: any) {
         props.searchParams,
     );
 
-    const getCachedClubs = (currentSession: Session | null) =>
-        unstable_cache(
-            async () =>
-                await makeRequest<ClubSearchResponse>(APIRoutePath.ClubSearch, {
-                    searchParams: paramsWrapper.asUrlSearchParams(),
-                    revalidate: CACHE.search,
-                    session,
-                }),
-            ["club-search-data", currentSession?.user?.id || ""],
-            { revalidate: 86400 },
-        );
-
-    const { data, total, filters } = await getCachedClubs(session)();
+    const { data, total, filters } = await makeRequest<ClubSearchResponse>(
+        APIRoutePath.ClubSearch,
+        {
+            searchParams: paramsWrapper.asUrlSearchParams(),
+            session,
+            next: {
+                revalidate: CACHE.search,
+                tags: ["club-search-data", session?.user?.id || ""],
+            },
+        },
+    );
 
     const parsedFilters = filters.map(
         (dto: FilterDTO) =>

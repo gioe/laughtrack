@@ -21,6 +21,9 @@ export async function getClubDetailPageData(
             !userId || userId === "undefined" ? undefined : userId;
         const providedFilters = params.get(QueryProperty.Filters);
 
+        if (!name) {
+            throw new Error(`Detail request with no name should be impossible`);
+        }
         const helper = await QueryHelper.storePageParams(
             params,
             providedFilters == null ? undefined : providedFilters,
@@ -29,7 +32,7 @@ export async function getClubDetailPageData(
         );
 
         const [club, total, dates, filters] = await Promise.all([
-            findClubByName(name ?? ""),
+            findClubByName(name),
             getShowCount({ ...helper.asQueryFilters(), clubName: name }),
             findShows({ ...helper.asQueryFilters(), clubName: name }),
             getFilters(EntityType.Show, helper.asQueryFilters()),

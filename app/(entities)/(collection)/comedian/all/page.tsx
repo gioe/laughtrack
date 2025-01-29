@@ -13,8 +13,6 @@ import ComedianSearchBar from "@/ui/components/searchbar/comedian";
 import FilterModal from "@/ui/components/modals/filter";
 import Navbar from "@/ui/components/navbar";
 import FilterBar from "@/ui/pages/search/filterBar";
-import { unstable_cache } from "next/cache";
-import { Session } from "next-auth";
 
 export default async function ComedianSearchPage(props: any) {
     const session = await auth();
@@ -23,22 +21,17 @@ export default async function ComedianSearchPage(props: any) {
         props.searchParams,
     );
 
-    const getCachedComedians = (currentSession: Session | null) =>
-        unstable_cache(
-            async () =>
-                await makeRequest<ComedianSearchResponse>(
-                    APIRoutePath.ComedianSearch,
-                    {
-                        searchParams: paramsWrapper.asUrlSearchParams(),
-                        revalidate: CACHE.search,
-                        session,
-                    },
-                ),
-            ["comedian-search-data", currentSession?.user?.id || ""],
-            { revalidate: 86400 },
-        );
-
-    const { data, total, filters } = await getCachedComedians(session)();
+    const { data, total, filters } = await makeRequest<ComedianSearchResponse>(
+        APIRoutePath.ComedianSearch,
+        {
+            searchParams: paramsWrapper.asUrlSearchParams(),
+            session,
+            next: {
+                revalidate: CACHE.search,
+                tags: ["comedian-search-data", session?.user?.id || ""],
+            },
+        },
+    );
 
     return (
         <main className="min-h-screen w-full bg-ivory">

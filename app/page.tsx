@@ -4,13 +4,13 @@ import { APIRoutePath } from "../objects/enum";
 import { HomePageDataResponse } from "./api/home/interface";
 import { makeRequest } from "../util/actions/makeRequest";
 import { auth } from "../auth";
+import { unstable_cache } from "next/cache";
+import { Session } from "next-auth";
+import { CACHE } from "@/util/constants/cacheConstants";
 import HeroComponent from "@/ui/pages/home/hero";
 import TrendingComedianGrid from "@/ui/pages/home/comedians";
 import TrendingClubsCarousel from "@/ui/pages/home/clubs";
 import FooterComponent from "@/ui/pages/home/footer";
-import { unstable_cache } from "next/cache";
-import { Session } from "next-auth";
-import { CACHE } from "@/util/constants/cacheConstants";
 
 export default async function HomePage() {
     const session = await auth();
@@ -24,7 +24,10 @@ export default async function HomePage() {
                 });
             },
             ["home-page-data", currentSession?.user?.id || ""],
-            { revalidate: 86400 },
+            {
+                revalidate: CACHE.home,
+                tags: ["home-page-data", currentSession?.user?.id || ""],
+            },
         );
 
     const { comedians, clubs } = await getCachedHomePageData(session)();

@@ -1,4 +1,3 @@
-import { QueryProperty } from "@/objects/enum";
 import { NextResponse } from "next/server";
 import { getSearchedComedians } from "@/lib/data/comedian/getSearchedComedians";
 import { ComedianSearchResponse } from "./interface";

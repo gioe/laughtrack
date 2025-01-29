@@ -16,8 +16,6 @@ export async function findComedians(params: any): Promise<ComedianDTO[]> {
         userId,
     } = params;
 
-    console.log(params);
-
     const filteredComedians = await db.comedian.findMany({
         where: {
             name: {
@@ -62,18 +60,15 @@ export async function findComedians(params: any): Promise<ComedianDTO[]> {
             youtubeFollowers: true,
             website: true,
             popularity: true,
-            favoriteComedians: {
-                select: {
-                    id: true,
-                },
-                ...(userId
-                    ? {
+            ...(userId
+                ? {
+                      favoriteComedians: {
                           where: {
                               userId: Number(userId),
                           },
-                      }
-                    : {}),
-            },
+                      },
+                  }
+                : {}),
             lineupItems: {
                 select: {
                     id: true,
@@ -99,8 +94,11 @@ export async function findComedians(params: any): Promise<ComedianDTO[]> {
             id: comedian.id,
             name: comedian.name,
             imageUrl: buildComedianImageUrl(comedian.name),
-            isFavorite: comedian.favoriteComedians.length > 0,
             uuid: comedian.uuid,
+            isFavorite:
+                comedian.favoriteComedians == undefined
+                    ? false
+                    : comedian.favoriteComedians.length > 0,
             social_data: {
                 id: comedian.id,
                 linktree: comedian.linktree,

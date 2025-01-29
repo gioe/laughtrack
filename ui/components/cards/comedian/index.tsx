@@ -11,7 +11,6 @@ interface ComedianGridCardProps {
 
 const ComedianGridCard: React.FC<ComedianGridCardProps> = ({ entity }) => {
     const comedian = new Comedian(JSON.parse(entity) as ComedianDTO);
-
     return (
         <div className="bg-ivory rounded-xl overflow-hidden pb-4 px-4">
             <ComedianHeadshot
