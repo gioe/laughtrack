@@ -63,6 +63,7 @@ export async function findComedianByName(
         id: comedianData.id,
         imageUrl: buildComedianImageUrl(comedianData.name),
         uuid: comedianData.uuid,
+        isFavorite: comedianData.favoriteComedians.length > 0,
         social_data: {
             id: comedianData.id,
             linktree: comedianData.linktree,
