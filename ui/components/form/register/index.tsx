@@ -27,6 +27,7 @@ export default function RegistrationForm({ onSubmit }: RegistrationFormProps) {
             email: "",
             password: "",
             zipCode: "",
+            emailOptIn: false,
         },
     });
 
@@ -94,12 +95,21 @@ export default function RegistrationForm({ onSubmit }: RegistrationFormProps) {
                     form={form}
                 />
 
-                {/* <Divider text="or" />
-
-                <SocialAuthButtons
-                    onAppleClick={() => {}}
-                    onGoogleClick={() => {}}
-                /> */}
+                {/* Email Preferences Checkbox */}
+                <div className="flex items-center space-x-2">
+                    <input
+                        type="checkbox"
+                        id="emailOptIn"
+                        {...form.register("emailOptIn")}
+                        className="h-4 w-4 rounded border-gray-300 text-brown-600 focus:ring-brown-500"
+                    />
+                    <label
+                        htmlFor="emailOptIn"
+                        className="text-sm text-gray-600"
+                    >
+                        Email me when artists I follow have shows in my area
+                    </label>
+                </div>
 
                 {/* Login Button */}
                 <FormSubmissionButton>Sign Up</FormSubmissionButton>

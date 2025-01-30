@@ -7,7 +7,7 @@ import { db } from "@/lib/db";
 
 export async function POST(request: Request) {
     const data = await request.json();
-    const { email, password, zipCode } = data
+    const { email, password, zipCode, emailOptIn } = data
 
 
     const user = await db.user.findUnique(({
@@ -27,6 +27,7 @@ export async function POST(request: Request) {
                     email,
                     password: hash,
                     zipCode,
+                    emailShowNotifications: emailOptIn,
                     role: 'admin'
                 }
             });

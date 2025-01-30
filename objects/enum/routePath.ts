@@ -10,7 +10,8 @@ export enum APIRoutePath {
     ComedianFavorite = "/api/comedian/favorite",
     ShowSearch = "/api/show/search",
     Home = "/api/home",
-    About = "/api/about"
+    About = "/api/about",
+    Profile = "/api/profile"
 }
 
 export const allPaths = [

@@ -57,14 +57,15 @@ model Comedian {
 }
 
 model User {
-  id                Int                @id @default(autoincrement())
-  email             String             @unique
-  password          String
-  role              String             @default("user")
-  zipCode           String?            @map("zip_code") @db.VarChar(10)
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @default(now()) @updatedAt @map("update_at")
-  favoriteComedians FavoriteComedian[]
+  id                    Int                @id @default(autoincrement())
+  email                 String             @unique
+  password              String
+  role                  String             @default("user")
+  zipCode               String?            @map("zip_code") @db.VarChar(10)
+  emailShowNotifications Boolean           @default(false) @map("email_show_notifications")
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @default(now()) @updatedAt @map("update_at")
+  favoriteComedians     FavoriteComedian[]
 
   @@map("users")
 }

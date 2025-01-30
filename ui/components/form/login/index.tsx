@@ -29,6 +29,7 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
     const submitForm = (data: z.infer<typeof loginSchema>) => {
         setIsLoading(true);
 
+        // Include emailOptIn in the submission data
         signIn("credentials", {
             ...data,
             redirect: false,
@@ -43,7 +44,7 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
                 }
             })
             .catch((e) => {
-                console.log(`THE ERROR LOOkS LIKE ${e}`);
+                console.log(`THE ERROR LOOKS LIKE ${e}`);
             });
     };
 
@@ -69,16 +70,6 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
                     placeholder={"Enter password"}
                     form={form}
                 />
-
-                {/* <Divider text="or" />
-
-                <SocialAuthButtons
-                    actionText="Log in"
-                    onAppleClick={() => {}}
-                    onGoogleClick={() => {}}
-                /> */}
-
-                {/* Login Button */}
                 <FormSubmissionButton>Log In</FormSubmissionButton>
             </form>
         </FormProvider>
