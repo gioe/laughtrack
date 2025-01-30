@@ -3,7 +3,7 @@ import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { buildComedianImageUrl } from "@/util/imageUtil";
 import { Prisma } from "@prisma/client";
 
-const EXCLUSIVITY_TAGS = ["Not A Real Comic"];
+const EXCLUSIVITY_TAGS = ["Not A Standup"];
 
 interface ComediansResponse {
     comedians: ComedianDTO[];
