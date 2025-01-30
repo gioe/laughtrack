@@ -18,12 +18,12 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
             session,
         },
     );
-    console.log(profile);
+
     return (
         <main className="min-h-screen w-full bg-ivory">
             <StyleContextProvider initialContext={StyleContextKey.Search}>
                 <Navbar currentUser={session?.user} />
-                <UserDetailHeader userProfile={profile} />
+                <UserDetailHeader userProfile={profile} session={session} />
             </StyleContextProvider>
 
             <FooterComponent />

@@ -4,35 +4,36 @@ import React, { useState } from "react";
 import { Pencil, Save } from "lucide-react";
 import { makeRequest } from "@/util/actions/makeRequest";
 import { APIRoutePath, RestAPIAction } from "@/objects/enum";
+import toast from "react-hot-toast";
+import { Session } from "next-auth";
 
 interface UserDetailHeaderProps {
     userProfile: UserProfileResponse;
+    session: Session | null;
 }
-const UserDetailHeader = ({ userProfile }: UserDetailHeaderProps) => {
+const UserDetailHeader = ({ userProfile, session }: UserDetailHeaderProps) => {
     const [isEditing, setIsEditing] = useState(false);
     const [email, setEmail] = useState(userProfile.email);
     const [emailOptin, setEmailOptin] = useState(userProfile.emailOptin);
     const [zipCode, setZipCode] = useState(userProfile.zipcode);
     const [hasChanges, setHasChanges] = useState(false);
 
-    const checkForChanges = () => {
-        return (
-            email !== userProfile.email ||
-            zipCode !== userProfile.zipcode ||
-            emailOptin !== userProfile.emailOptin
-        );
-    };
-
     const handleInputChange =
         (setter: (arg0: any) => void, isCheckbox: boolean = false) =>
         (e: { target: { value: any; checked: boolean } }) => {
             const newValue = isCheckbox ? e.target.checked : e.target.value;
-            setter(newValue);
-            console.log(email !== userProfile.email);
-            console.log(zipCode !== userProfile.zipcode);
-            console.log(emailOptin !== userProfile.emailOptin);
 
-            setHasChanges(checkForChanges());
+            // Check for changes using the new value that's about to be set
+            const hasAnyChange =
+                (setter === setEmail ? newValue : email) !==
+                    userProfile.email ||
+                (setter === setZipCode ? newValue : zipCode) !==
+                    userProfile.zipcode ||
+                (setter === setEmailOptin ? newValue : emailOptin) !==
+                    userProfile.emailOptin;
+
+            setter(newValue);
+            setHasChanges(hasAnyChange);
         };
 
     const toggleEdit = async () => {
@@ -40,6 +41,7 @@ const UserDetailHeader = ({ userProfile }: UserDetailHeaderProps) => {
             try {
                 const response = await makeRequest(APIRoutePath.Profile, {
                     method: RestAPIAction.PUT,
+                    session,
                     body: {
                         email: email,
                         zipCode: zipCode,
@@ -52,12 +54,16 @@ const UserDetailHeader = ({ userProfile }: UserDetailHeaderProps) => {
                 userProfile.zipcode = zipCode;
 
                 setHasChanges(false);
+                toast.success("Updated successfully");
             } catch (error) {
                 // Handle error appropriately
                 console.error("Failed to update profile:", error);
+                toast.error("Something went wrong");
+
                 // Optionally reset form to original values
                 setEmail(userProfile.email);
                 setZipCode(userProfile.zipcode);
+                setEmailOptin(userProfile.emailOptin);
                 // You might want to show an error message to the user here
                 return; // Don't toggle edit mode if save failed
             }

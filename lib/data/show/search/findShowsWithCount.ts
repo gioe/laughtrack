@@ -11,7 +11,6 @@ interface ShowsResponse {
 }
 
 export async function findShowsWithCount(params: any): Promise<ShowsResponse> {
-    console.log(params)
     const {
         userId,
         from_date,
@@ -84,9 +83,6 @@ export async function findShowsWithCount(params: any): Promise<ShowsResponse> {
             },
         },
     }
-
-
-    console.log(whereClause)
 
     // Execute both queries in parallel
     const [filteredShows, totalCount] = await Promise.all([
