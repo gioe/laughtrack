@@ -1,6 +1,6 @@
 import "./globals.css";
 import "./fonts.css";
-
+import GoogleAdsense from "@/ui/components/google";
 import { NextUIProvider } from "@nextui-org/react";
 import { SessionProvider } from "next-auth/react";
 import {
@@ -112,6 +112,7 @@ export default async function RootLayout({
                         <SpeedInsights />
                     </NextUIProvider>
                 </body>
+                <GoogleAdsense pId="6687976426244999" />
             </html>
         </SessionProvider>
     );
