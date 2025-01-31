@@ -1,5 +1,6 @@
 import "./globals.css";
 import "./fonts.css";
+import { ScrollPositionManager } from "@/ui/components/scroll/manager";
 import GoogleAdsense from "@/ui/components/google";
 import { NextUIProvider } from "@nextui-org/react";
 import { SessionProvider } from "next-auth/react";
@@ -98,6 +99,7 @@ export default async function RootLayout({
             >
                 <body>
                     <NextUIProvider>
+                        <ScrollPositionManager />
                         <ToasterProvider />
                         <LoginModal />
                         <RegisterModal />
