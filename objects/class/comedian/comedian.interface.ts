@@ -22,6 +22,8 @@ export interface ComedianDTO {
     tags?: number[]
     show_count?: number
     isAlias?: boolean
+    parentComedian?: ComedianDTO
+    lineupItems?: any[]
 }
 
 export interface UpdateComedianDTO {

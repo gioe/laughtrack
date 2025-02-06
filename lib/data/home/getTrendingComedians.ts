@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
+import { combineComedianResults } from "@/util/comedian/comedian_util";
 import { buildComedianImageUrl } from "@/util/imageUtil";
 
 export async function getTrendingComedians(userId?: string): Promise<ComedianDTO[]> {
@@ -37,6 +38,28 @@ export async function getTrendingComedians(userId?: string): Promise<ComedianDTO
             website: true,
             popularity: true,
             linktree: true,
+            parentComedian: {
+                select: {
+                    id: true,
+                    name: true,
+                    uuid: true,
+                    linktree: true,
+                    instagramAccount: true,
+                    instagramFollowers: true,
+                    tiktokAccount: true,
+                    tiktokFollowers: true,
+                    youtubeAccount: true,
+                    youtubeFollowers: true,
+                    website: true,
+                    popularity: true,
+                },
+            },
+            alternativeNames: {
+                select: {
+                    id: true,
+                    name: true,
+                },
+            },
             lineupItems: {
                 select: {
                     id: true,
@@ -59,11 +82,15 @@ export async function getTrendingComedians(userId?: string): Promise<ComedianDTO
         },
     });
 
+    console.log(activeComedians)
+    const combinedComedians = combineComedianResults(activeComedians)
+
 
     // Filter after the query for comedians with more than 3 upcoming shows
-    const filteredComedians = activeComedians.filter(
+    const filteredComedians = combinedComedians.filter(
         (comedian) => comedian.lineupItems.length > 3,
     );
+
 
     // Transform comedian data
     return filteredComedians

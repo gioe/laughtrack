@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
+import { combineComedianResults } from "@/util/comedian/comedian_util";
 import { buildComedianImageUrl } from "@/util/imageUtil";
 import { Prisma } from "@prisma/client";
 
@@ -24,12 +25,34 @@ export async function findComediansWithCount(
         userId,
     } = params;
 
-    // Common where clause for both count and find
+    // Where clause remains the same...
     const whereClause: Prisma.ComedianWhereInput = {
-        name: {
-            contains: comedian,
-            mode: Prisma.QueryMode.insensitive,
-        },
+        OR: [
+            {
+                name: {
+                    contains: comedian,
+                    mode: Prisma.QueryMode.insensitive,
+                },
+            },
+            {
+                alternativeNames: {
+                    some: {
+                        name: {
+                            contains: comedian,
+                            mode: Prisma.QueryMode.insensitive,
+                        },
+                    },
+                },
+            },
+            {
+                parentComedian: {
+                    name: {
+                        contains: comedian,
+                        mode: Prisma.QueryMode.insensitive,
+                    },
+                },
+            },
+        ],
         ...(!filtersEmpty
             ? {
                   taggedComedians: {
@@ -56,7 +79,7 @@ export async function findComediansWithCount(
         },
     };
 
-    // Execute both queries in parallel
+    // Execute both queries in parallel with updated select
     const [filteredComedians, totalCount] = await Promise.all([
         db.comedian.findMany({
             where: whereClause,
@@ -73,6 +96,28 @@ export async function findComediansWithCount(
                 youtubeFollowers: true,
                 website: true,
                 popularity: true,
+                parentComedian: {
+                    select: {
+                        id: true,
+                        name: true,
+                        uuid: true,
+                        linktree: true,
+                        instagramAccount: true,
+                        instagramFollowers: true,
+                        tiktokAccount: true,
+                        tiktokFollowers: true,
+                        youtubeAccount: true,
+                        youtubeFollowers: true,
+                        website: true,
+                        popularity: true,
+                    },
+                },
+                alternativeNames: {
+                    select: {
+                        id: true,
+                        name: true,
+                    },
+                },
                 ...(userId
                     ? {
                           favoriteComedians: {
@@ -106,30 +151,41 @@ export async function findComediansWithCount(
         }),
     ]);
 
+    const combinedResults = combineComedianResults(filteredComedians);
+
     return {
-        comedians: filteredComedians.map((comedian) => ({
-            id: comedian.id,
-            name: comedian.name,
-            imageUrl: buildComedianImageUrl(comedian.name),
-            uuid: comedian.uuid,
-            isFavorite:
-                comedian.favoriteComedians == undefined
-                    ? false
-                    : comedian.favoriteComedians.length > 0,
-            social_data: {
-                id: comedian.id,
-                linktree: comedian.linktree,
-                instagram_account: comedian.instagramAccount,
-                instagram_followers: comedian.instagramFollowers,
-                tiktok_account: comedian.tiktokAccount,
-                tiktok_followers: comedian.tiktokFollowers,
-                youtube_account: comedian.youtubeAccount,
-                youtube_followers: comedian.youtubeFollowers,
-                website: comedian.website,
-                popularity: comedian.popularity,
-            },
-            show_count: comedian.lineupItems.length,
-        })),
+        comedians: combinedResults.map((comedian) => {
+            // If this comedian has a parent, use the parent's data
+            const effectiveComedian = comedian.parentComedian || comedian;
+
+            return {
+                id: effectiveComedian.id,
+                name: effectiveComedian.name,
+                imageUrl: buildComedianImageUrl(effectiveComedian.name),
+                uuid: effectiveComedian.uuid,
+                isFavorite:
+                    comedian.favoriteComedians == undefined
+                        ? false
+                        : comedian.favoriteComedians.length > 0,
+                social_data: {
+                    id: effectiveComedian.id,
+                    linktree: effectiveComedian.linktree,
+                    instagram_account: effectiveComedian.instagramAccount,
+                    instagram_followers: effectiveComedian.instagramFollowers,
+                    tiktok_account: effectiveComedian.tiktokAccount,
+                    tiktok_followers: effectiveComedian.tiktokFollowers,
+                    youtube_account: effectiveComedian.youtubeAccount,
+                    youtube_followers: effectiveComedian.youtubeFollowers,
+                    website: effectiveComedian.website,
+                    popularity: effectiveComedian.popularity,
+                },
+                show_count: comedian.lineupItems.length,
+                // Optional: Include alternative names if you want them in the response
+                alternativeNames: comedian.alternativeNames?.map(
+                    (alt) => alt.name,
+                ),
+            };
+        }),
         totalCount,
     };
 }

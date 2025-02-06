@@ -118,15 +118,16 @@ model LineupItem {
 }
 
 model Tag {
-  id              Int              @id @default(autoincrement())
+  id              Int              @default(autoincrement()) @unique 
   display         String?
-  type            String?
+  type            String           // Removed ? to make it required
   userFacing      Boolean          @default(false) @map("user_facing")
-  value           String?
+  value           String           // Removed ? to make it required
   taggedClubs     TaggedClub[]
   taggedComedians TaggedComedian[]
   taggedShows     TaggedShow[]
 
+  @@id([value, type])  // Create compound primary key
   @@map("tags")
 }
 
