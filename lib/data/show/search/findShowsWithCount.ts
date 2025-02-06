@@ -1,4 +1,5 @@
 import { db } from "@/lib/db"
+import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { ShowDTO } from "@/objects/class/show/show.interface"
 import { buildClubImageUrl, buildComedianImageUrl } from "@/util/imageUtil"
 import { Prisma } from "@prisma/client";
@@ -26,14 +27,13 @@ export async function findShowsWithCount(params: any): Promise<ShowsResponse> {
         sortBy,
     } = params
 
-    // Common where clause for both count and find
     const whereClause = {
-        // Club clause
+        // Every show search has limitations on the club, even if it's just clubs in a as specific city.
         club: {
-            // Only visible clubs included, period.
+            // Only visible clubs included.
             visible: true,
 
-            // If the 'club' param is provided, this means there is a club name query string so we need to match on the name.
+            // If the 'club' param is provided, this means there is a club name query string so we need to match on that.
             ...(club ? {
                 name: {
                     contains: club,
@@ -49,12 +49,16 @@ export async function findShowsWithCount(params: any): Promise<ShowsResponse> {
             } : {}),
         },
 
-        // If the 'comedian' param is provided, it means we're doing a search for shows that contain a specific comedian by name.
+        // If the 'comedian' param is provided, it means we're doing a search for shows that contain a specific comedian.
+        // This is not always provided. Sometimes the other clauses are sufficient for a lookup.
         ...(comedian ? {
+            // Lineup items represent shows where the comedian is on the lineup.
+            // For every comedian query, we want to return to possibilities:
             lineupItems: {
                 some: {
                     comedian: {
                         OR: [
+                            // The comedian in the lineup item matches the supplieed query param and has no parent (meaning it is the parent)
                             {
                                 name: {
                                     contains: comedian,
@@ -62,6 +66,7 @@ export async function findShowsWithCount(params: any): Promise<ShowsResponse> {
                                 },
                                 parentComedianId: null
                             },
+                            // OR the comedian in the lineup's parent matches the query param.
                             {
                                 parentComedian: {
                                     name: {
@@ -75,10 +80,13 @@ export async function findShowsWithCount(params: any): Promise<ShowsResponse> {
                 },
             },
         } : {}),
+        // Shows whose dates are Greater Than (gte) today's date or a date parameter, if provided
         date: {
             gte: from_date ? new Date(from_date).toISOString() : new Date().toISOString(),
+            // If a Less Than (lte) paramater is provided, include that.
             ...(to_date ? { lte: new Date(to_date).toISOString() } : {})
         },
+        // Match any shows with tags matching the display of the provided filter, if the filter values aren't empty
         ...(!filtersEmpty ? {
             taggedShows: {
                 some: {
@@ -90,6 +98,7 @@ export async function findShowsWithCount(params: any): Promise<ShowsResponse> {
                 }
             }
         } : {}),
+        // Always exclude shows with specific tags. We should make this more scalable.
         NOT: {
             taggedShows: {
                 some: {
@@ -103,7 +112,8 @@ export async function findShowsWithCount(params: any): Promise<ShowsResponse> {
         },
     }
 
-    // Execute both queries in parallel
+    console.log(whereClause)
+    // Execute both queries in parallel, one to get the shows and the other to get the count.
     const [filteredShows, totalCount] = await Promise.all([
         db.show.findMany({
             where: whereClause,
@@ -123,17 +133,13 @@ export async function findShowsWithCount(params: any): Promise<ShowsResponse> {
                     }
                 },
                 lineupItems: {
-                    where: {
-                        comedian: {
-                            parentComedianId: null // Only get parent comedians
-                        }
-                    },
                     select: {
                         comedian: {
                             select: {
                                 id: true,
                                 uuid: true,
                                 name: true,
+                                parentComedian: true,
                                 alternativeNames: {
                                     select: {
                                         id: true
@@ -189,15 +195,48 @@ export async function findShowsWithCount(params: any): Promise<ShowsResponse> {
             imageUrl: buildClubImageUrl(show.club.name),
             scrapedate: show.lastScrapedDate,
             soldOut: show.soldOut,
-            lineup: show.lineupItems.map(item => ({
-                id: item.comedian.id,
-                uuid: item.comedian.uuid,
-                name: item.comedian.name,
-                imageUrl: buildComedianImageUrl(item.comedian.name),
-                isFavorite: userId ? item.comedian.favoriteComedians.length > 0 : false,
-                isAlias: item.comedian.taggedComedians.length > 0
-            }))
+            lineup: filterAndMapLineupItems(show.lineupItems, userId)
         })),
         totalCount
     }
 }
+
+const filterAndMapLineupItems = (lineupItems: any[], userId?: number) => {
+    console.log(lineupItems)
+    // First, create a set of parent IDs that are present in the lineup
+    const parentIdsInLineup = new Set(
+        lineupItems
+            .flatMap(comedian => {
+                if (comedian.parendComedian == undefined) {
+                    return comedian.id
+                }
+            })
+    );
+
+    // Filter out children whose parents are in the lineup
+    const filteredItems = lineupItems.filter(item => {
+        const hasParent = !!item.comedian.parentComedian;
+        if (!hasParent) return true; // Keep all non-child comedians
+
+        // Keep child only if their parent is not in the lineup
+        return !parentIdsInLineup.has(item.comedian.parentComedian.id);
+    });
+
+    // Map the filtered items
+    return filteredItems.map(item => mapLineupItem(item, userId));
+};
+
+const mapLineupItem = (item: { comedian: any }, userId?: number) => {
+    const effectiveComedian = getEffectiveComedian(item.comedian);
+
+    return {
+        id: effectiveComedian.id,
+        uuid: effectiveComedian.uuid,
+        name: effectiveComedian.name,
+        imageUrl: buildComedianImageUrl(effectiveComedian.name),
+        isFavorite: userId ? item.comedian.favoriteComedians.length > 0 : false,
+        isAlias: item.comedian.taggedComedians.length > 0
+    };
+};
+
+const getEffectiveComedian = (comedian: any) => comedian.parentComedian || comedian;

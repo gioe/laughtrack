@@ -8,10 +8,9 @@ export async function getTrendingComedians(userId?: string): Promise<ComedianDTO
         where: {
             parentComedianId: null,
             name: {
-                                contains: "Seaton",
-                                mode: Prisma.QueryMode.insensitive,
-                            },
-
+                contains: "Seaton",
+                mode: Prisma.QueryMode.insensitive,
+            },
             OR: [
                 {
                     lineupItems: {
@@ -56,15 +55,30 @@ export async function getTrendingComedians(userId?: string): Promise<ComedianDTO
             popularity: true,
             linktree: true,
             _count: {
-                select: { lineupItems: true }
+                select: {
+                    lineupItems: {
+                        where: {
+                            show: { date: { gt: new Date().toISOString() } }
+                        }
+                    }
+                }
             },
             alternativeNames: {
                 select: {
                     uuid: true,
                     name: true,
+                    lineupItems: {
+                        where: {
+                            show: { date: { gt: new Date().toISOString() } }
+                        }
+                    },
                     _count: {
                         select: {
-                            lineupItems: true
+                            lineupItems: {
+                                where: {
+                                    show: { date: { gt: new Date().toISOString() } }
+                                }
+                            }
                         }
                     }
                 }
@@ -77,7 +91,8 @@ export async function getTrendingComedians(userId?: string): Promise<ComedianDTO
         },
     });
 
-    console.log(comedians[0].alternativeNames)
+    console.log(comedians[0].alternativeNames[0])
+
     const topEight = comedians
         .filter(comedian => {
             const alternativeShowCount = comedian.alternativeNames.reduce((sum, alt) =>
@@ -86,8 +101,6 @@ export async function getTrendingComedians(userId?: string): Promise<ComedianDTO
         })
         .sort(() => Math.random() - 0.5)
         .slice(0, 8)
-
-    console.log(topEight)
 
     return topEight
         .map(comedian => ({
