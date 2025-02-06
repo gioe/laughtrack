@@ -112,7 +112,6 @@ export async function findShowsWithCount(params: any): Promise<ShowsResponse> {
         },
     }
 
-    console.log(whereClause)
     // Execute both queries in parallel, one to get the shows and the other to get the count.
     const [filteredShows, totalCount] = await Promise.all([
         db.show.findMany({
@@ -202,15 +201,14 @@ export async function findShowsWithCount(params: any): Promise<ShowsResponse> {
 }
 
 const filterAndMapLineupItems = (lineupItems: any[], userId?: number) => {
-    console.log(lineupItems)
     // First, create a set of parent IDs that are present in the lineup
     const parentIdsInLineup = new Set(
         lineupItems
-            .flatMap(comedian => {
-                if (comedian.parendComedian == undefined) {
-                    return comedian.id
+            .map(item => {
+                if (item.comedian.parentComedian == null) {
+                    return item.comedian.id
                 }
-            })
+            }).filter((item) => item !== undefined)
     );
 
     // Filter out children whose parents are in the lineup
