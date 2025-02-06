@@ -30,6 +30,7 @@ model Club {
   timezone    String?      @map("timezone")
   visible     Boolean?     @default(true)
   city        City         @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  scraper      String?
   shows       Show[]
   taggedClubs TaggedClub[]
 
@@ -52,6 +53,9 @@ model Comedian {
   favoriteComedians  FavoriteComedian[]
   lineupItems        LineupItem[]
   taggedComedians    TaggedComedian[]
+  parentComedianId   Int?              @map("parent_comedian_id")
+  parentComedian     Comedian?         @relation("ComedianAliases", fields: [parentComedianId], references: [id])
+  alternativeNames   Comedian[]        @relation("ComedianAliases")
 
   @@map("comedians")
 }
@@ -93,7 +97,6 @@ model Show {
   description         String?
   ticketPurchaseUrl   String?      @map("ticket_purchase_url")
   ticketPrice         Decimal?     @map("ticket_price") @db.Decimal(5, 2)
-  suppliedTags        String[]     @map("supplied_tags")
   soldOut             Boolean      @default(false) @map("sold_out")
   lineupItems         LineupItem[]
   club                Club         @relation(fields: [clubId], references: [id], onDelete: Cascade)
@@ -119,9 +122,7 @@ model Tag {
   display         String?
   type            String?
   userFacing      Boolean          @default(false) @map("user_facing")
-  pattern         String?
   value           String?
-  keyWords        String[]         @map("key_words")
   taggedClubs     TaggedClub[]
   taggedComedians TaggedComedian[]
   taggedShows     TaggedShow[]

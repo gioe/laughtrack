@@ -17,5 +17,8 @@ export async function GET(request: Request, { params }) {
             total: response.total,
             filters: response.filters
         }, { status: 200 }))
-        .catch((error: Error) => NextResponse.json({ message: error.message }, { status: 500 }));
+        .catch((error: Error) => {
+            console.log(error)
+            return NextResponse.json({ message: error.message }, { status: 500 })
+        });
 }

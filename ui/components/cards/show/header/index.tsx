@@ -1,10 +1,13 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import moment from "moment";
 import Image from "next/image";
 import { Show } from "@/objects/class/show/Show";
 import { formatShowDate } from "@/util/dateUtil";
+import { getLocalCdnUrl } from "@/util/cdnUtil";
+
+const PLACEHOLDER = getLocalCdnUrl("club-placeholder.png");
 
 interface ShowCardHeaderProps {
     show: Show;
@@ -15,13 +18,15 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
 }: ShowCardHeaderProps) => {
     const dateObject = moment(new Date(show.date ?? new Date()));
     const ticket = show.ticket;
+    const [error, setError] = useState(false);
 
     return (
         <div className="flex items-center gap-4">
             {/* Venue Logo */}
             <div className="relative w-16 h-16 rounded-full overflow-hidden">
                 <Image
-                    src={show.imageUrl}
+                    src={error ? PLACEHOLDER : show.imageUrl}
+                    onError={() => setError(true)}
                     alt={show.clubName ?? "Club logo"}
                     fill
                     className="object-cover"

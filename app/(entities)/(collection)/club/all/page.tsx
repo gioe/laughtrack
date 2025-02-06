@@ -19,7 +19,6 @@ import FooterComponent from "@/ui/pages/home/footer";
 import Navbar from "@/ui/components/navbar";
 import ClubGrid from "@/ui/components/grid/club";
 import SearchDetailHeader from "@/ui/pages/search/detailHeader";
-import ClubSearchBar from "@/ui/components/params/searchbar/club";
 
 export default async function ClubSearchPage(props: any) {
     const session = await auth();

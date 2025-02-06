@@ -29,12 +29,13 @@ export default async function ShowSearchPage(props: any) {
         },
     );
 
+    console.log(data);
+
     const city = paramsWrapper.getParamValue(QueryProperty.City);
     return (
         <main className="min-h-screen w-full bg-ivory">
             <FilterModal filters={filters} total={total} />
             <Navbar currentUser={session?.user} />
-
             <SearchDetailHeader
                 title={`Search shows in ${city}`}
                 subTitle={`${total} results`}

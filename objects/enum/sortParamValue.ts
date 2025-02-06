@@ -4,7 +4,7 @@ export enum SortParamValue {
     Date = 'date',
     Popularity = 'popularity',
     Activity = 'activity',
-    Price = 'price',
+    Price = 'ticketPrice',
     ScrapeDate = 'scrapedate'
 }
 

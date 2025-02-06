@@ -57,13 +57,16 @@ export async function findComedianByName(
     if (!comedianData) {
         throw new Error(`Comedian with name ${name} not found`);
     }
-
+    console.log(comedianData.favoriteComedians);
     return {
         name: comedianData.name,
         id: comedianData.id,
         imageUrl: buildComedianImageUrl(comedianData.name),
         uuid: comedianData.uuid,
-        isFavorite: comedianData.favoriteComedians.length > 0,
+        isFavorite:
+            comedianData.favoriteComedians == undefined
+                ? false
+                : comedianData.favoriteComedians.length > 0,
         social_data: {
             id: comedianData.id,
             linktree: comedianData.linktree,

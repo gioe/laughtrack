@@ -28,21 +28,20 @@ export async function findShowsWithCount(params: any): Promise<ShowsResponse> {
 
     // Common where clause for both count and find
     const whereClause = {
-        ...(club ? {
-            club: {
+        club: {
+            visible: true,
+            ...(club ? {
                 name: {
                     contains: club,
                     mode: Prisma.QueryMode.insensitive,
                 },
-                visible: true,
-                ...(city ? {
-                    city: {
-                        name: city
-                    }
-                } : {}),
-            },
-
-        } : {}),
+            }: {} ),
+            ...(city ? {
+                city: {
+                    name: city
+                }
+            } : {}),
+        },
         ...(comedian ?
             {
                 lineupItems: {

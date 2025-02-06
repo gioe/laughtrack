@@ -4,6 +4,7 @@ import NavigationDropdown from "../dropdown";
 import {
     BuildingStorefrontIcon,
     FaceSmileIcon,
+    MapPinIcon,
 } from "@heroicons/react/24/outline";
 
 // Navigation menu items
@@ -24,6 +25,14 @@ const MENU_ITEMS = {
             icon: BuildingStorefrontIcon,
         },
     ],
+    show: [
+        {
+            name: "Search",
+            description: "Search for shows in your area",
+            href: "/show/all",
+            icon: MapPinIcon,
+        },
+    ],
 };
 
 export default function NavigationMenu({ pathname }) {
@@ -32,6 +41,11 @@ export default function NavigationMenu({ pathname }) {
             <HeaderItem highlighted={pathname === "/"} href="/" title="Home" />
 
             <PopoverGroup className="flex items-center space-x-24">
+                <NavigationDropdown
+                    title="Shows"
+                    items={MENU_ITEMS.show}
+                    isHighlighted={pathname.includes("/show")}
+                />
                 <NavigationDropdown
                     title="Clubs"
                     items={MENU_ITEMS.club}

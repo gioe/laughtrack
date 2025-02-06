@@ -37,17 +37,26 @@ export default function ShowSearchBar() {
         QueryProperty.Club,
     ) as string;
 
-    const currentDateRange = {
-        from: new Date(
-            paramsHelper.getParamValue(QueryProperty.FromDate) as string,
-        ),
-        to: new Date(
-            paramsHelper.getParamValue(QueryProperty.ToDate) as string,
-        ),
+    const getDateRange = () => {
+        const fromString = paramsHelper.getParamValue(
+            QueryProperty.FromDate,
+        ) as string;
+        const toString = paramsHelper.getParamValue(
+            QueryProperty.ToDate,
+        ) as string;
+
+        const from = new Date(fromString);
+        const to = new Date(toString);
+
+        if (isNaN(from.getTime()) && isNaN(to.getTime())) {
+            return undefined;
+        }
+
+        return { from, to };
     };
 
     const [selectedValue, setSelectedValue] = useState(currentSelection);
-    const [dateRange, setSelectedDateRange] = useState(currentDateRange);
+    const [dateRange, setSelectedDateRange] = useState(getDateRange());
     const [comedianQuery, setComedianQuery] = useState(currentComedianQuery);
     const [clubQuery, setClubQuery] = useState(currentClubQuery);
 
