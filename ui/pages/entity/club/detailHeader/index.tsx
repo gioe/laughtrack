@@ -2,10 +2,12 @@
 
 import React, { useState } from "react";
 import { MapPin } from "lucide-react";
-import ImageGrid from "@/ui/components/grid/image";
 import { Club } from "@/objects/class/club/Club";
 import { ClubDTO } from "@/objects/class/club/club.interface";
 import ClubDataColumn from "../socialColumn";
+import { getLocalCdnUrl } from "@/util/cdnUtil";
+
+const PLACEHOLDER = getLocalCdnUrl("club-placeholder.png");
 
 interface ClubDetailHeaderProps {
     club: ClubDTO;
@@ -13,7 +15,7 @@ interface ClubDetailHeaderProps {
 
 const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({ club }) => {
     const parsedClub = new Club(club);
-    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(false);
 
     return (
         <div className="max-w-7xl mx-auto p-6">
@@ -22,8 +24,9 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({ club }) => {
                 <div className="flex items-center justify-between max-w-6xl mx-auto">
                     <div className="flex items-center gap-4">
                         <img
-                            src={parsedClub.imageUrl}
-                            alt={`${parsedClub.name} logo`}
+                            src={error ? PLACEHOLDER : parsedClub.imageUrl}
+                            alt={parsedClub.name}
+                            onError={() => setError(true)}
                             className="w-16 h-16 rounded-full"
                         />
                         <div className="flex flex-col gap-1">
@@ -39,16 +42,6 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({ club }) => {
                 </div>
             </div>
             <ClubDataColumn club={club} />
-
-            {/* Image Grid */}
-            {/* <ImageGrid
-                images={[
-                    {
-                        url: parsedClub.imageUrl,
-                        alt: parsedClub.name,
-                    },
-                ]}
-            /> */}
         </div>
     );
 };

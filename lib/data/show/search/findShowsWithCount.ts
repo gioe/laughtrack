@@ -28,33 +28,53 @@ export async function findShowsWithCount(params: any): Promise<ShowsResponse> {
 
     // Common where clause for both count and find
     const whereClause = {
+        // Club clause
         club: {
+            // Only visible clubs included, period.
             visible: true,
+
+            // If the 'club' param is provided, this means there is a club name query string so we need to match on the name.
             ...(club ? {
                 name: {
                     contains: club,
                     mode: Prisma.QueryMode.insensitive,
                 },
             }: {} ),
+
+            // If the 'city' param is provided, this means we only want shows from clubs in a specific city.
             ...(city ? {
                 city: {
                     name: city
                 }
             } : {}),
         },
-        ...(comedian ?
-            {
-                lineupItems: {
-                    some: {
-                        comedian: {
-                            name: {
-                                contains: comedian,
-                                mode: Prisma.QueryMode.insensitive,
+
+        // If the 'comedian' param is provided, it means we're doing a search for shows that contain a specific comedian by name.
+        ...(comedian ? {
+            lineupItems: {
+                some: {
+                    comedian: {
+                        OR: [
+                            {
+                                name: {
+                                    contains: comedian,
+                                    mode: Prisma.QueryMode.insensitive,
+                                },
+                                parentComedianId: null
                             },
-                        },
+                            {
+                                parentComedian: {
+                                    name: {
+                                        contains: comedian,
+                                        mode: Prisma.QueryMode.insensitive,
+                                    }
+                                }
+                            }
+                        ]
                     },
                 },
-            } : {}),
+            },
+        } : {}),
         date: {
             gte: from_date ? new Date(from_date).toISOString() : new Date().toISOString(),
             ...(to_date ? { lte: new Date(to_date).toISOString() } : {})
@@ -103,12 +123,22 @@ export async function findShowsWithCount(params: any): Promise<ShowsResponse> {
                     }
                 },
                 lineupItems: {
+                    where: {
+                        comedian: {
+                            parentComedianId: null // Only get parent comedians
+                        }
+                    },
                     select: {
                         comedian: {
                             select: {
                                 id: true,
                                 uuid: true,
                                 name: true,
+                                alternativeNames: {
+                                    select: {
+                                        id: true
+                                    }
+                                },
                                 taggedComedians: {
                                     where: {
                                         tag: {

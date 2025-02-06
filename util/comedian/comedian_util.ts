@@ -26,6 +26,7 @@ export function combineComedianResults(comedians: any[]) {
             } else {
                 // We've already created this record from a child, just add the lineup items
                 const existingRecord = comedianMap.get(comedian.id);
+                console.log(existingRecord)
                 existingRecord.lineupItems = [
                     ...existingRecord.lineupItems,
                     ...comedian.lineupItems

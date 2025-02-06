@@ -1,25 +1,42 @@
 import { db } from "@/lib/db";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
-import { combineComedianResults } from "@/util/comedian/comedian_util";
 import { buildComedianImageUrl } from "@/util/imageUtil";
+import { Prisma } from "@prisma/client";
 
 export async function getTrendingComedians(userId?: string): Promise<ComedianDTO[]> {
-    const activeComedians = await db.comedian.findMany({
+    const comedians = await db.comedian.findMany({
         where: {
-            lineupItems: {
-                some: {
-                    show: {
-                        date: {
-                            gt: new Date(),
+            parentComedianId: null,
+            name: {
+                                contains: "Seaton",
+                                mode: Prisma.QueryMode.insensitive,
+                            },
+
+            OR: [
+                {
+                    lineupItems: {
+                        some: {
+                            show: { date: { gt: new Date().toISOString() } },
                         },
                     },
                 },
-            },
+                {
+                    alternativeNames: {
+                        some: {
+                            lineupItems: {
+                                some: {
+                                    show: { date: { gt: new Date().toISOString() } },
+                                },
+                            },
+                        },
+                    },
+                },
+            ],
             NOT: {
                 taggedComedians: {
                     some: {
                         tag: {
-                            value: "alias",
+                            value: { in: ["alias", "non_human", "non comic"] }
                         },
                     },
                 },
@@ -38,87 +55,64 @@ export async function getTrendingComedians(userId?: string): Promise<ComedianDTO
             website: true,
             popularity: true,
             linktree: true,
-            parentComedian: {
-                select: {
-                    id: true,
-                    name: true,
-                    uuid: true,
-                    linktree: true,
-                    instagramAccount: true,
-                    instagramFollowers: true,
-                    tiktokAccount: true,
-                    tiktokFollowers: true,
-                    youtubeAccount: true,
-                    youtubeFollowers: true,
-                    website: true,
-                    popularity: true,
-                },
+            _count: {
+                select: { lineupItems: true }
             },
             alternativeNames: {
                 select: {
-                    id: true,
+                    uuid: true,
                     name: true,
-                },
-            },
-            lineupItems: {
-                select: {
-                    id: true,
-                },
-                where: {
-                    show: {
-                        date: {
-                            gt: new Date(),
-                        },
-                    },
-                },
+                    _count: {
+                        select: {
+                            lineupItems: true
+                        }
+                    }
+                }
             },
             ...(userId ? {
                 favoriteComedians: {
-                    where: {
-                        userId: Number(userId),
-                    },
+                    where: { userId: Number(userId) },
                 },
             } : {}),
         },
     });
 
-    console.log(activeComedians)
-    const combinedComedians = combineComedianResults(activeComedians)
-
-
-    // Filter after the query for comedians with more than 3 upcoming shows
-    const filteredComedians = combinedComedians.filter(
-        (comedian) => comedian.lineupItems.length > 3,
-    );
-
-
-    // Transform comedian data
-    return filteredComedians
+    console.log(comedians[0].alternativeNames)
+    const topEight = comedians
+        .filter(comedian => {
+            const alternativeShowCount = comedian.alternativeNames.reduce((sum, alt) =>
+                sum + alt._count.lineupItems, 0);
+            return (comedian._count.lineupItems + alternativeShowCount) > 3;
+        })
         .sort(() => Math.random() - 0.5)
         .slice(0, 8)
-        .map((comedian) => {
-            return {
+
+    console.log(topEight)
+
+    return topEight
+        .map(comedian => ({
+            id: comedian.id,
+            uuid: comedian.uuid,
+            name: comedian.name,
+            isFavorite:
+            comedian.favoriteComedians == undefined
+                ? false
+                : comedian.favoriteComedians.length > 0,
+            imageUrl: buildComedianImageUrl(comedian.name),
+            social_data: {
                 id: comedian.id,
-                uuid: comedian.uuid,
-                name: comedian.name,
-                isFavorite:
-                    comedian.favoriteComedians == undefined
-                        ? false
-                        : comedian.favoriteComedians.length > 0,
-                imageUrl: buildComedianImageUrl(comedian.name),
-                social_data: {
-                    id: comedian.id,
-                    instagram_account: comedian.instagramAccount,
-                    instagram_followers: comedian.instagramFollowers,
-                    tiktok_account: comedian.tiktokAccount,
-                    tiktok_followers: comedian.tiktokFollowers,
-                    youtube_account: comedian.youtubeAccount,
-                    youtube_followers: comedian.youtubeFollowers,
-                    website: comedian.website,
-                    popularity: comedian.popularity,
-                    linktree: comedian.linktree,
-                },
-                show_count: comedian.lineupItems.length,
-            }
-        });
+                instagram_account: comedian.instagramAccount,
+                instagram_followers: comedian.instagramFollowers,
+                tiktok_account: comedian.tiktokAccount,
+                tiktok_followers: comedian.tiktokFollowers,
+                youtube_account: comedian.youtubeAccount,
+                youtube_followers: comedian.youtubeFollowers,
+                website: comedian.website,
+                popularity: comedian.popularity,
+                linktree: comedian.linktree,
+            },
+            show_count: comedian._count.lineupItems +
+                comedian.alternativeNames.reduce((sum, alt) =>
+                    sum + alt._count.lineupItems, 0),
+        }));
 }

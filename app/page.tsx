@@ -18,10 +18,18 @@ export default async function HomePage() {
     const getCachedHomePageData = (currentSession: Session | null) =>
         unstable_cache(
             async () => {
-                return makeRequest<HomePageDataResponse>(APIRoutePath.Home, {
-                    session: currentSession,
-                    revalidate: CACHE.home,
-                });
+                try {
+                    return await makeRequest<HomePageDataResponse>(
+                        APIRoutePath.Home,
+                        {
+                            session: currentSession,
+                            revalidate: CACHE.home,
+                        },
+                    );
+                } catch (error) {
+                    console.error("Home page data fetch error:", error);
+                    throw error;
+                }
             },
             ["home-page-data", currentSession?.user?.id || ""],
             {

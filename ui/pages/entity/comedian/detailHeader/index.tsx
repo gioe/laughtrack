@@ -28,28 +28,23 @@ const ComedianDetailHeader: React.FC<ClubDetailHeaderProps> = ({
     });
 
     return (
-        <div className="w-full max-w-7xl mx-auto px-6 py-8">
-            <div className="flex flex-col md:flex-row gap-8">
-                {/* Left column with name and image */}
-                <div className="flex-1">
-                    <h1 className="text-[32px] font-bold font-gilroy-bold mb-6">
-                        {parsedComedian.name}
-                    </h1>
-                    <div className="relative aspect-[4/3] w-full max-w-md rounded-lg overflow-hidden">
-                        <Image
+        <div className="max-w-7xl mx-auto p-6">
+            {/* Header Section */}
+            <div className="w-full  p-4">
+                <div className="flex items-center justify-between max-w-6xl mx-auto">
+                    <div className="flex items-center gap-4">
+                        <img
                             src={error ? PLACEHOLDER : comedian.imageUrl}
                             alt={comedian.name}
-                            fill
-                            className="object-cover"
-                            sizes="(max-width: 768px) 100vw, 384px"
+                            className="w-16 h-16 rounded-full"
                             onError={() => setError(true)}
-                            priority
                         />
+                        <div className="flex flex-col gap-1">
+                            <h1 className="text-2xl font-bold text-gray-900">
+                                {parsedComedian.name}
+                            </h1>
+                        </div>
                     </div>
-                </div>
-
-                {/* Right column with actions and social links */}
-                <div className="w-full md:w-80">
                     <div className="flex gap-4 mb-8">
                         <button
                             onClick={handleFavoriteClick}
@@ -69,15 +64,9 @@ const ComedianDetailHeader: React.FC<ClubDetailHeaderProps> = ({
                             </span>
                         </button>
                     </div>
-
-                    <div className="space-y-4">
-                        <h2 className="text-[22px] font-bold font-gilroy-bold mb-4">
-                            Social Media
-                        </h2>
-                        <SocialMediaColumn comedian={comedian} />
-                    </div>
                 </div>
             </div>
+            <SocialMediaColumn comedian={comedian} />
         </div>
     );
 };

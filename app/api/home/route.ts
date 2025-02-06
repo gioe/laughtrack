@@ -9,5 +9,8 @@ export async function GET() {
     const normalizedUserId = (!userId || userId === "undefined") ? undefined : userId;
     return getHomePageData(normalizedUserId)
         .then((response: HomePageDataResponse) => NextResponse.json({ comedians: response.comedians, clubs: response.clubs }, { status: 200 }))
-        .catch((error: Error) => NextResponse.json({ message: error.message }, { status: 500 }));
+        .catch((error: Error) => {
+            console.log(error)
+            return NextResponse.json({ message: error.message }, { status: 500 })
+        });
 }
