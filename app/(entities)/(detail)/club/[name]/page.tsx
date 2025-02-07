@@ -11,6 +11,8 @@ import FooterComponent from "@/ui/pages/home/footer";
 import ClubDetailHeader from "@/ui/pages/entity/club/detailHeader";
 import FilterBar from "@/ui/pages/search/filterBar";
 import FilterModal from "@/ui/components/modals/filter";
+import { getSortOptionsForEntityType } from "@/util/sort";
+import { SearchVariant } from "@/objects/enum/searchVariant";
 
 export default async function ClubDetailPage(props: {
     searchParams: Promise<URLSearchParams>;
@@ -48,7 +50,7 @@ export default async function ClubDetailPage(props: {
             <div className="max-w-7xl mx-auto p-6 flex flex-row">
                 <TableWithHeader shows={shows} total={total}>
                     <FilterBar
-                        variant={EntityType.Comedian}
+                        variant={SearchVariant.ClubDetail}
                         total={total}
                         filters={filters.length > 0}
                     />

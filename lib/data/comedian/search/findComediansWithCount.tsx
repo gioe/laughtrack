@@ -1,10 +1,10 @@
 import { db } from "@/lib/db";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
-import { combineComedianResults } from "@/util/comedian/comedian_util";
+import { getEffectiveComedian } from "@/util/comedian/comedianUtil";
 import { buildComedianImageUrl } from "@/util/imageUtil";
 import { Prisma } from "@prisma/client";
 
-const EXCLUSIVITY_TAGS = ["Not A Standup"];
+const EXCLUSIVITY_TAGS = ["Not A Standup", "Not A Human"];
 
 interface ComediansResponse {
     comedians: ComedianDTO[];
@@ -27,32 +27,11 @@ export async function findComediansWithCount(
 
     // Where clause remains the same...
     const whereClause: Prisma.ComedianWhereInput = {
-        OR: [
-            {
-                name: {
-                    contains: comedian,
-                    mode: Prisma.QueryMode.insensitive,
-                },
-            },
-            {
-                alternativeNames: {
-                    some: {
-                        name: {
-                            contains: comedian,
-                            mode: Prisma.QueryMode.insensitive,
-                        },
-                    },
-                },
-            },
-            {
-                parentComedian: {
-                    name: {
-                        contains: comedian,
-                        mode: Prisma.QueryMode.insensitive,
-                    },
-                },
-            },
-        ],
+        name: {
+            contains: comedian,
+            mode: Prisma.QueryMode.insensitive,
+        },
+        parentComedian: null,
         ...(!filtersEmpty
             ? {
                   taggedComedians: {
@@ -96,7 +75,7 @@ export async function findComediansWithCount(
                 youtubeFollowers: true,
                 website: true,
                 popularity: true,
-                parentComedian: {
+                alternativeNames: {
                     select: {
                         id: true,
                         name: true,
@@ -110,12 +89,6 @@ export async function findComediansWithCount(
                         youtubeFollowers: true,
                         website: true,
                         popularity: true,
-                    },
-                },
-                alternativeNames: {
-                    select: {
-                        id: true,
-                        name: true,
                     },
                 },
                 ...(userId
@@ -151,12 +124,10 @@ export async function findComediansWithCount(
         }),
     ]);
 
-    const combinedResults = combineComedianResults(filteredComedians);
-
     return {
-        comedians: combinedResults.map((comedian) => {
+        comedians: filteredComedians.map((comedian) => {
             // If this comedian has a parent, use the parent's data
-            const effectiveComedian = comedian.parentComedian || comedian;
+            const effectiveComedian = getEffectiveComedian(comedian);
 
             return {
                 id: effectiveComedian.id,
@@ -180,10 +151,6 @@ export async function findComediansWithCount(
                     popularity: effectiveComedian.popularity,
                 },
                 show_count: comedian.lineupItems.length,
-                // Optional: Include alternative names if you want them in the response
-                alternativeNames: comedian.alternativeNames?.map(
-                    (alt) => alt.name,
-                ),
             };
         }),
         totalCount,

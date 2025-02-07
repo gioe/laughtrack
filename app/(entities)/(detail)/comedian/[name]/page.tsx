@@ -10,6 +10,8 @@ import TableWithHeader from "@/ui/pages/entity/comedian/table";
 import FilterBar from "@/ui/pages/search/filterBar";
 import FilterModal from "@/ui/components/modals/filter";
 import Navbar from "@/ui/components/navbar";
+import { getSortOptionsForEntityType } from "@/util/sort";
+import { SearchVariant } from "@/objects/enum/searchVariant";
 
 export default async function ComedianDetailsPage(props: any) {
     const session = await auth();
@@ -44,7 +46,7 @@ export default async function ComedianDetailsPage(props: any) {
             <div className="max-w-7xl mx-auto p-6">
                 <TableWithHeader shows={shows} total={total}>
                     <FilterBar
-                        variant={EntityType.Club}
+                        variant={SearchVariant.ComedianDetail}
                         total={total}
                         filters={filters.length > 0}
                     />

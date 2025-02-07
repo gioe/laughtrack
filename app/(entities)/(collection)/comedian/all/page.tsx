@@ -20,6 +20,8 @@ import FilterBar from "@/ui/pages/search/filterBar";
 import { FilterDTO } from "@/objects/interface/filter.interface";
 import { Filter } from "@/objects/class/filter/Filter";
 import ComedianSearchBar from "@/ui/components/params/searchbar/comedian";
+import { getSortOptionsForEntityType } from "@/util/sort";
+import { SearchVariant } from "@/objects/enum/searchVariant";
 
 export default async function ComedianSearchPage(props: any) {
     const session = await auth();
@@ -57,7 +59,7 @@ export default async function ComedianSearchPage(props: any) {
             />
 
             <FilterBar
-                variant={EntityType.Comedian}
+                variant={SearchVariant.AllComedians}
                 total={total}
                 filters={filters.length > 0}
             />

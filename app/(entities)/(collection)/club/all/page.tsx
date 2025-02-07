@@ -19,6 +19,8 @@ import FooterComponent from "@/ui/pages/home/footer";
 import Navbar from "@/ui/components/navbar";
 import ClubGrid from "@/ui/components/grid/club";
 import SearchDetailHeader from "@/ui/pages/search/detailHeader";
+import { getSortOptionsForEntityType } from "@/util/sort";
+import { SearchVariant } from "@/objects/enum/searchVariant";
 
 export default async function ClubSearchPage(props: any) {
     const session = await auth();
@@ -56,7 +58,7 @@ export default async function ClubSearchPage(props: any) {
                 subTitle={`${total} results`}
             />
             <FilterBar
-                variant={EntityType.Club}
+                variant={SearchVariant.AllClubs}
                 total={total}
                 filters={parsedFilters.length > 0}
             />

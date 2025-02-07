@@ -4,7 +4,6 @@ import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { useState } from "react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useSortOptionProvider } from "@/contexts/SortOptionProvider";
 import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
 import { Navigator } from "@/objects/class/navigate/Navigator";
 import { QueryProperty } from "@/objects/enum";
@@ -13,8 +12,11 @@ import { cn } from "@/util/tailwindUtil";
 import { Menu as MenuIcon } from "lucide-react";
 import { getDefaultSortingOption } from "@/util/filter/util";
 
-export function SortParamComponent() {
-    const { sortOptions } = useSortOptionProvider();
+interface SortComponentProps {
+    sortOptions: SortOptionInterface[];
+}
+
+export function SortParamComponent({ sortOptions }: SortComponentProps) {
     const paramsHelper = new SearchParamsHelper(useSearchParams());
 
     const navigator = new Navigator(usePathname(), useRouter());

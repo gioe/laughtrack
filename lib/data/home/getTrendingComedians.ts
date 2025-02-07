@@ -1,16 +1,11 @@
 import { db } from "@/lib/db";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { buildComedianImageUrl } from "@/util/imageUtil";
-import { Prisma } from "@prisma/client";
 
 export async function getTrendingComedians(userId?: string): Promise<ComedianDTO[]> {
     const comedians = await db.comedian.findMany({
         where: {
             parentComedianId: null,
-            name: {
-                contains: "Seaton",
-                mode: Prisma.QueryMode.insensitive,
-            },
             OR: [
                 {
                     lineupItems: {

@@ -1,6 +1,7 @@
 import { db } from "@/lib/db"
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { ShowDTO } from "@/objects/class/show/show.interface"
+import { filterAndMapLineupItems } from "@/util/comedian/comedianUtil";
 import { buildClubImageUrl, buildComedianImageUrl } from "@/util/imageUtil"
 import { Prisma } from "@prisma/client";
 
@@ -138,12 +139,9 @@ export async function findShowsWithCount(params: any): Promise<ShowsResponse> {
                                 id: true,
                                 uuid: true,
                                 name: true,
+                                // We'll need to understand if the comedian is a parent for downstream processing
                                 parentComedian: true,
-                                alternativeNames: {
-                                    select: {
-                                        id: true
-                                    }
-                                },
+                                // We may
                                 taggedComedians: {
                                     where: {
                                         tag: {
@@ -199,42 +197,3 @@ export async function findShowsWithCount(params: any): Promise<ShowsResponse> {
         totalCount
     }
 }
-
-const filterAndMapLineupItems = (lineupItems: any[], userId?: number) => {
-    // First, create a set of parent IDs that are present in the lineup
-    const parentIdsInLineup = new Set(
-        lineupItems
-            .map(item => {
-                if (item.comedian.parentComedian == null) {
-                    return item.comedian.id
-                }
-            }).filter((item) => item !== undefined)
-    );
-
-    // Filter out children whose parents are in the lineup
-    const filteredItems = lineupItems.filter(item => {
-        const hasParent = !!item.comedian.parentComedian;
-        if (!hasParent) return true; // Keep all non-child comedians
-
-        // Keep child only if their parent is not in the lineup
-        return !parentIdsInLineup.has(item.comedian.parentComedian.id);
-    });
-
-    // Map the filtered items
-    return filteredItems.map(item => mapLineupItem(item, userId));
-};
-
-const mapLineupItem = (item: { comedian: any }, userId?: number) => {
-    const effectiveComedian = getEffectiveComedian(item.comedian);
-
-    return {
-        id: effectiveComedian.id,
-        uuid: effectiveComedian.uuid,
-        name: effectiveComedian.name,
-        imageUrl: buildComedianImageUrl(effectiveComedian.name),
-        isFavorite: userId ? item.comedian.favoriteComedians.length > 0 : false,
-        isAlias: item.comedian.taggedComedians.length > 0
-    };
-};
-
-const getEffectiveComedian = (comedian: any) => comedian.parentComedian || comedian;
