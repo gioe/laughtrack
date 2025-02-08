@@ -17,7 +17,7 @@ import type { Metadata } from "next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { CityProvider } from "@/contexts/CityProvider";
 import { getCities } from "@/lib/data/cities/getCities";
-import ToasterProvider from "@/ui/components/providers/toaster";
+import ToasterProvider from "@/contexts/ToasterProvider";
 import LoginModal from "@/ui/components/modals/login";
 import RegisterModal from "@/ui/components/modals/register";
 import { StyleContextProvider } from "@/contexts/StyleProvider";
@@ -114,7 +114,6 @@ export default async function RootLayout({
                         <SpeedInsights />
                     </NextUIProvider>
                 </body>
-                <GoogleAdsense pId="6687976426244999" />
             </html>
         </SessionProvider>
     );

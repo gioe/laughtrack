@@ -5,8 +5,10 @@ import { SearchVariant } from "@/objects/enum/searchVariant";
 import { SortOptionInterface } from "@/objects/interface";
 import { FilterModalButton } from "@/ui/components/params/filter";
 import { PageParamComponent } from "@/ui/components/params/page";
-import ClubSearchBar from "@/ui/components/params/searchbar/club";
-import ComedianSearchBar from "@/ui/components/params/searchbar/comedian";
+import ClubSearchBar from "@/ui/components/params/searchbar/club/all";
+import ClubDetailSearchBar from "@/ui/components/params/searchbar/club/detail";
+import ComedianSearchBar from "@/ui/components/params/searchbar/comedian/all";
+import ComedianDetailSearchBar from "@/ui/components/params/searchbar/comedian/detail";
 import ShowSearchBar from "@/ui/components/params/searchbar/show/search";
 import { SortParamComponent } from "@/ui/components/params/sort";
 import { getSortOptionsForEntityType } from "@/util/sort";
@@ -22,11 +24,11 @@ const getSearchBar = (variant: SearchVariant) => {
         case SearchVariant.AllClubs:
             return <ClubSearchBar />;
         case SearchVariant.ClubDetail:
-            return <ComedianSearchBar />;
+            return <ClubDetailSearchBar />;
         case SearchVariant.AllComedians:
             return <ComedianSearchBar />;
         case SearchVariant.ComedianDetail:
-            return <ShowSearchBar />;
+            return <ComedianDetailSearchBar />;
         case SearchVariant.AllShows:
             return <ShowSearchBar />;
         default:

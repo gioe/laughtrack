@@ -19,7 +19,7 @@ import Navbar from "@/ui/components/navbar";
 import FilterBar from "@/ui/pages/search/filterBar";
 import { FilterDTO } from "@/objects/interface/filter.interface";
 import { Filter } from "@/objects/class/filter/Filter";
-import ComedianSearchBar from "@/ui/components/params/searchbar/comedian";
+import ComedianSearchBar from "@/ui/components/params/searchbar/comedian/all";
 import { getSortOptionsForEntityType } from "@/util/sort";
 import { SearchVariant } from "@/objects/enum/searchVariant";
 

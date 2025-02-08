@@ -2,9 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { useCityContext } from "@/contexts/CityProvider";
 import { MapPin, Theater } from "lucide-react";
-import { CityDTO } from "@/lib/data/cities/getCities";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import { QueryProperty } from "@/objects/enum";
 import {
@@ -13,35 +11,29 @@ import {
     URLParam,
 } from "@/objects/class/params/SearchParamsHelper";
 import { Navigator } from "@/objects/class/navigate/Navigator";
-import DropdownComponent from "@/ui/components/dropdown";
 import TextInputComponent from "@/ui/components/input/search/text/input";
+import ShowDistanceSelectionComponent, {
+    DistanceComponentVariant,
+} from "@/ui/components/area";
+import { DistanceData, getDistanceDataFromParams } from "@/util/search/util";
 
 export default function ClubSearchBar() {
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
 
-    const cityList = useCityContext();
-
     const paramsHelper = new SearchParamsHelper(useSearchParams());
     const navigator = new Navigator(usePathname(), useRouter());
-    const currentSelection = paramsHelper.getParamValue(
-        QueryProperty.City,
-    ) as string;
 
     const currentClubQuery = paramsHelper.getParamValue(
         QueryProperty.Club,
     ) as string;
 
-    const [selectedValue, setSelectedValue] = useState(currentSelection);
     const [clubQuery, setClubQuery] = useState(currentClubQuery);
+    const [distanceData, setDistanceQuery] = useState(
+        getDistanceDataFromParams(paramsHelper),
+    );
 
-    const selectableCities = cityList.cities.map((city: CityDTO) => ({
-        id: city.id,
-        value: city.name,
-        display: city.name,
-    }));
-
-    function handleSearch(value: string) {
+    function handleClubSearch(value: string) {
         const map = new Map<URLParam, ParamsDictValue>();
         map.set(QueryProperty.Club, value);
         setClubQuery(value);
@@ -49,35 +41,33 @@ export default function ClubSearchBar() {
         navigator.replaceRoute(paramsHelper.asParamsString());
     }
 
-    function handleSelection(value: string) {
+    function handleDistanceUpdate(data: DistanceData) {
         const map = new Map<URLParam, ParamsDictValue>();
-        map.set(QueryProperty.City, value);
-        setSelectedValue(value);
+        map.set(QueryProperty.Distance, data.distance ?? "");
+        map.set(QueryProperty.Zip, data.zipCode ?? "");
+        setDistanceQuery(data);
         paramsHelper.updateParamsFromMap(map);
         navigator.replaceRoute(paramsHelper.asParamsString());
     }
 
     return (
-        <div className="flex items-center bg-ivory rounded-full border border-gray-200 px-4 py-2 shadow-sm max-w-xl w-full">
+        <div className="flex items-center bg-ivory rounded-full border border-gray-200 px-4 py-2 shadow-sm max-w-3xl w-full">
             <div className="flex items-center flex-1 border-r border-gray-200 pr-4">
-                <DropdownComponent
+                <ShowDistanceSelectionComponent
+                    value={distanceData}
+                    onValueChange={handleDistanceUpdate}
+                    variant={DistanceComponentVariant.Standalone}
+                    name="distance"
                     icon={
                         <MapPin
-                            className={`w-5 h-5 ${styleConfig.iconTextColor}`}
+                            className={`w-5 h-5  ${styleConfig.iconTextColor}`}
                         />
                     }
-                    name="city"
-                    placeholder="Where"
-                    items={selectableCities}
-                    onChange={handleSelection}
-                    value={selectedValue}
-                    className={`text-[16px] text-cedar rounded-lg font-dmSams ring-transparent focus:ring-transparent 
-                        shadow-none border-transparent focus:outline-none outline-none`}
                 />
             </div>
 
             {/* Date input */}
-            <div className="flex items-center flex-1 px-4">
+            <div className="flex items-center px-4">
                 <TextInputComponent
                     icon={
                         <Theater
@@ -86,7 +76,7 @@ export default function ClubSearchBar() {
                     }
                     placeholder="Search for club"
                     value={clubQuery}
-                    onChange={handleSearch}
+                    onChange={handleClubSearch}
                     className="border-gray-200 pr-4 bg-ivory ring-transparent focus:ring-transparent shadow-none border-transparent"
                 />
             </div>

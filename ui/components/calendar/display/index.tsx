@@ -1,29 +1,27 @@
 import { formatDateRange } from "@/util/primatives/dateUtil";
 import React from "react";
-import { DateRange } from "..";
 import { Popover, PopoverTrigger, PopoverContent } from "../../ui/popover";
 import { Calendar } from "../../ui/calendar";
+import { DateRange } from "@/util/search/util";
+import { ChevronsUpDown } from "lucide-react";
+import { useStyleContext } from "@/contexts/StyleProvider";
 
 interface CalendarDisplayProps {
-    selected?: DateRange;
+    selectedRange?: DateRange;
     onSelect: (value: DateRange | undefined) => void;
-    className: string;
     icon: React.ReactNode;
-    chevrons: React.ReactNode;
-    textSize: string;
     placeholder: string;
 }
 
 // Component that handles the calendar display logic
 export const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
-    selected,
+    selectedRange,
     onSelect,
-    className,
     icon,
-    chevrons,
-    textSize,
     placeholder,
 }) => {
+    const { getCurrentStyles } = useStyleContext();
+    const styleConfig = getCurrentStyles();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -32,12 +30,21 @@ export const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
             {icon}
             <Popover>
                 <PopoverTrigger asChild>
-                    <div className={`${className} w-full cursor-pointer`}>
+                    <div
+                        className={`rounded-lg ring-transparent 
+                            focus:ring-transparent border-transparent focus:outline-none outline-none w-full cursor-pointer`}
+                    >
                         <div className="flex items-center justify-between w-full px-3 py-2">
-                            <span className={textSize}>
-                                {formatDateRange(placeholder, selected)}
+                            <span
+                                className={`${styleConfig.searchBarFontSize} ${styleConfig.searchBarTextColor}`}
+                            >
+                                {formatDateRange(placeholder, selectedRange)}
                             </span>
-                            <div className="ml-2">{chevrons}</div>
+                            <div className="ml-2">
+                                <ChevronsUpDown
+                                    className={`w-3 h-3 ml-2 ${styleConfig.iconTextColor}`}
+                                />
+                            </div>
                         </div>
                     </div>
                 </PopoverTrigger>
@@ -50,8 +57,8 @@ export const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
                         className="rounded-lg"
                         initialFocus
                         mode="range"
-                        selected={selected}
-                        defaultMonth={selected?.from}
+                        selected={selectedRange}
+                        defaultMonth={selectedRange?.from}
                         onSelect={onSelect}
                         numberOfMonths={2}
                         disabled={(date) => date < today}

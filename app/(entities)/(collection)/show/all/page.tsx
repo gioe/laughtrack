@@ -10,7 +10,6 @@ import FooterComponent from "@/ui/pages/home/footer";
 import SearchDetailHeader from "@/ui/pages/search/detailHeader";
 import FilterModal from "@/ui/components/modals/filter";
 import { CACHE } from "@/util/constants/cacheConstants";
-import { getSortOptionsForEntityType } from "@/util/sort";
 import { SearchVariant } from "@/objects/enum/searchVariant";
 
 export default async function ShowSearchPage(props: any) {

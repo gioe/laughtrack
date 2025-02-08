@@ -12,7 +12,7 @@ import { UseFormReturn } from "react-hook-form";
 // Base props that both variants share
 interface BaseDropdownProps {
     name: string;
-    placeholder: string;
+    placeholder?: string;
     items: Selectable[];
     className: string;
 }
@@ -26,7 +26,7 @@ interface FormDropdownProps extends BaseDropdownProps {
 
 // Props for the standalone variant
 interface StandaloneDropdownProps extends BaseDropdownProps {
-    icon: React.ReactNode;
+    icon?: React.ReactNode;
     form?: never; // Ensure form is not provided with onChange
     onChange: (value: string) => void;
     value?: string;
@@ -38,13 +38,12 @@ type DropdownProps = FormDropdownProps | StandaloneDropdownProps;
 export function DropdownComponent(props: DropdownProps) {
     // Common wrapper for the select content
     const SelectWrapper = ({ children }: { children: React.ReactNode }) => (
-        <div className="flex items-center gap-2 w-full">
+        <div className="flex items-center gap-2">
             {props.icon}
             {children}
         </div>
     );
 
-    // Render for form-controlled dropdown
     if (props.form) {
         return (
             <FormField
@@ -90,7 +89,6 @@ export function DropdownComponent(props: DropdownProps) {
         );
     }
 
-    // Render for standalone dropdown
     return (
         <SelectWrapper>
             <Select onValueChange={props.onChange} value={props.value}>

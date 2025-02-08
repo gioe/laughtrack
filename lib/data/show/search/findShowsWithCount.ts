@@ -1,5 +1,4 @@
 import { db } from "@/lib/db"
-import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { ShowDTO } from "@/objects/class/show/show.interface"
 import { filterAndMapLineupItems } from "@/util/comedian/comedianUtil";
 import { buildClubImageUrl, buildComedianImageUrl } from "@/util/imageUtil"
@@ -19,7 +18,7 @@ export async function findShowsWithCount(params: any): Promise<ShowsResponse> {
         club,
         comedian,
         to_date,
-        city,
+        zip_codes,
         filters,
         filtersEmpty,
         direction,
@@ -42,14 +41,19 @@ export async function findShowsWithCount(params: any): Promise<ShowsResponse> {
                 },
             }: {} ),
 
-            // If the 'city' param is provided, this means we only want shows from clubs in a specific city.
-            ...(city ? {
-                city: {
-                    name: city
+            // If the 'zip_codes' param is provided, this means we only want shows from clubs in a specific zip codes.
+            ...(zip_codes ? {
+                zipCode: {
+                    in: zip_codes
                 }
             } : {}),
         },
-
+        // Shows whose dates are Greater Than (gte) today's date or a date parameter, if provided
+        date: {
+                gte: from_date ? new Date(from_date).toISOString() : new Date().toISOString(),
+                // If a Less Than (lte) paramater is provided, include that.
+                ...(to_date ? { lte: new Date(to_date).toISOString() } : {})
+        },
         // If the 'comedian' param is provided, it means we're doing a search for shows that contain a specific comedian.
         // This is not always provided. Sometimes the other clauses are sufficient for a lookup.
         ...(comedian ? {
@@ -81,12 +85,6 @@ export async function findShowsWithCount(params: any): Promise<ShowsResponse> {
                 },
             },
         } : {}),
-        // Shows whose dates are Greater Than (gte) today's date or a date parameter, if provided
-        date: {
-            gte: from_date ? new Date(from_date).toISOString() : new Date().toISOString(),
-            // If a Less Than (lte) paramater is provided, include that.
-            ...(to_date ? { lte: new Date(to_date).toISOString() } : {})
-        },
         // Match any shows with tags matching the display of the provided filter, if the filter values aren't empty
         ...(!filtersEmpty ? {
             taggedShows: {

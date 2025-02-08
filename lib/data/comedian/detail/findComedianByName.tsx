@@ -57,7 +57,7 @@ export async function findComedianByName(
     if (!comedianData) {
         throw new Error(`Comedian with name ${name} not found`);
     }
-    console.log(comedianData.favoriteComedians);
+
     return {
         name: comedianData.name,
         id: comedianData.id,

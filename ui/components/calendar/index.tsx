@@ -1,24 +1,17 @@
+import React from "react";
 import { FormControl, FormField, FormItem, FormMessage } from "../ui/form";
 import { UseFormReturn } from "react-hook-form";
-import React from "react";
 import { CalendarDisplay } from "./display";
+import { DateRange } from "@/util/search/util";
 
 export enum CalendarVariant {
     Form = "form",
     Standalone = "standalone",
 }
 
-export interface DateRange {
-    from: Date;
-    to?: Date;
-}
-
 interface CalendarBaseProps {
     name: string;
-    className: string;
     icon: React.ReactNode;
-    chevrons: React.ReactNode;
-    textSize: string;
     placeholder: string;
 }
 
@@ -46,12 +39,9 @@ const CalendarComponent = (props: CalendarComponentProps) => {
                     <FormItem className="flex flex-col w-full">
                         <FormControl>
                             <CalendarDisplay
-                                selected={field.value}
+                                selectedRange={field.value}
                                 onSelect={field.onChange}
-                                className={props.className}
                                 icon={props.icon}
-                                chevrons={props.chevrons}
-                                textSize={props.textSize}
                                 placeholder={props.placeholder}
                             />
                         </FormControl>
@@ -64,12 +54,9 @@ const CalendarComponent = (props: CalendarComponentProps) => {
 
     return (
         <CalendarDisplay
-            selected={props.value}
+            selectedRange={props.value}
             onSelect={props.onValueChange}
-            className={props.className}
             icon={props.icon}
-            chevrons={props.chevrons}
-            textSize={props.textSize}
             placeholder={props.placeholder}
         />
     );

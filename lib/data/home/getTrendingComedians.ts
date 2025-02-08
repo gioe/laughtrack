@@ -86,7 +86,6 @@ export async function getTrendingComedians(userId?: string): Promise<ComedianDTO
         },
     });
 
-    console.log(comedians[0].alternativeNames[0])
 
     const topEight = comedians
         .filter(comedian => {

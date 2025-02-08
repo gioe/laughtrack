@@ -24,7 +24,7 @@ import {
     getDistanceDataFromParams,
 } from "@/util/search/util";
 
-export default function ShowSearchBar() {
+export default function ClubDetailSearchBar() {
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
 
@@ -94,6 +94,8 @@ export default function ShowSearchBar() {
                             name="distance"
                             value={distanceData}
                             onValueChange={handleDistanceUpdate}
+                            className={`text-[18px] text-white font-dmSams rounded-lg ring-transparent focus:ring-transparent
+                                shadow-none border-transparent focus:outline-none outline-none`}
                             icon={
                                 <MapPin
                                     className={`size-5 ${styleConfig.iconTextColor}`}
@@ -112,11 +114,17 @@ export default function ShowSearchBar() {
                             value={dateRange}
                             placeholder="When"
                             onValueChange={(newRange) => setDateRange(newRange)}
+                            className="rounded-lg ring-transparent 
+                            focus:ring-transparent border-transparent focus:outline-none outline-none"
                             icon={
                                 <Calendar
                                     className={`w-5 h-5 ${styleConfig.iconTextColor}`}
                                 />
                             }
+                            chevrons={
+                                <ChevronsUpDown className="w-3 h-3 ml-2 text-cedar" />
+                            }
+                            textSize="text-[18px]"
                         />
                     </div>
                 </div>
@@ -133,24 +141,6 @@ export default function ShowSearchBar() {
                             placeholder="Search for comedian"
                             value={comedianQuery}
                             onChange={handleComedianSearch}
-                            className="w-full border-gray-200 bg-ivory ring-transparent focus:ring-transparent 
-                            shadow-none border-transparent focus:outline-none outline-none"
-                        />
-                    </div>
-                </div>
-
-                {/* Club Search */}
-                <div className="flex-1 lg:px-4">
-                    <div className="flex items-center w-full p-2 lg:p-0 rounded-full lg:rounded-none hover:bg-gray-50 lg:hover:bg-transparent transition-colors">
-                        <TextInputComponent
-                            icon={
-                                <Theater
-                                    className={`w-5 h-5 ${styleConfig.iconTextColor}`}
-                                />
-                            }
-                            placeholder="Search by club"
-                            value={clubQuery}
-                            onChange={handleClubSearch}
                             className="w-full border-gray-200 bg-ivory ring-transparent focus:ring-transparent 
                             shadow-none border-transparent focus:outline-none outline-none"
                         />

@@ -11,6 +11,8 @@ export enum QueryProperty {
     Tags = 'tags',
     Filters = 'filters',
     City = 'city',
+    Zip = 'zip',
+    Distance = 'distance',
     FromDate = 'from_date',
     ToDate = 'to_date'
 }
@@ -36,6 +38,8 @@ export const queryPropertyDefaultMap = new MapWithDefault<string, string>([
     [QueryProperty.City, ""],
     [QueryProperty.Comedian, ""],
     [QueryProperty.Club, ""],
+    [QueryProperty.Distance, "5"],
+    [QueryProperty.Zip, '10003'],
     [DEFAULT, DEFAULT_ERROR]
 ]);
 

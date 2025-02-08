@@ -2,7 +2,7 @@ import { ParamsDictValue, SearchParamsHelper } from "../params/SearchParamsHelpe
 import { allQueryProperties, DEFAULT_ERROR, QueryProperty } from "../../enum/queryProperty";
 import { DynamicRoute } from "../../interface/identifable.interface";
 import { FilterDTO } from "@/objects/interface/filter.interface";
-
+import zipcodes from 'zipcodes';
 // This class is meant to capture all of the page parameters that Next provides us with.
 // These are relevant for DB querying and their existence persists across all pages so we capture it
 // as globally as possible, updating values according to page transitions.
@@ -43,8 +43,17 @@ export class QueryHelper {
             // Filters.
             ...this.getFilters(),
             // UserId
-            ...this.getUserId()
+            ...this.getUserId(),
+            // Zip Codes
+            ...this.getZipCodes()
         }
+    }
+
+    getZipCodes() {
+        const providedZip = this.searchParamsHelper.getParamValue(QueryProperty.Zip) as string
+        const radius = this.searchParamsHelper.getParamValue(QueryProperty.Distance) as string
+        const nearbyZips = zipcodes.radius(providedZip, Number(radius));
+        return { zip_codes: nearbyZips }
     }
 
     getUserId() {
