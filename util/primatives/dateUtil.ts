@@ -1,5 +1,5 @@
-import { DateRange } from "@/ui/components/calendar";
 import { format, isToday, isTomorrow, isSameDay } from "date-fns";
+import { DateRange } from "../search/util";
 
 // Types
 type DateFormatter = (date: Date) => string;

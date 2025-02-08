@@ -32,13 +32,13 @@ export default async function ShowSearchPage(props: any) {
 
     console.log(data);
 
-    const city = paramsWrapper.getParamValue(QueryProperty.City);
+    const zip = paramsWrapper.getParamValue(QueryProperty.Zip);
     return (
         <main className="min-h-screen w-full bg-ivory">
             <FilterModal filters={filters} total={total} />
             <Navbar currentUser={session?.user} />
             <SearchDetailHeader
-                title={`Search shows in ${city}`}
+                title={`Search for shows near ${zip}`}
                 subTitle={`${total} results`}
             />
             <FilterBar

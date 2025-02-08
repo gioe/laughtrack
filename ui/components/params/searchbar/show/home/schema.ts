@@ -7,7 +7,7 @@ export const showSearchFormSchema = z.object({
             .min(5, "Zip code must be 5 digits")
             .max(5, "Zip code must be 5 digits")
             .regex(/^[0-9]{5}$/, "Please enter a valid zip code"),
-    }),
+    }).required(),
     dates: z.object({
         from: z.date({
             required_error: "Start date is required",
@@ -17,5 +17,5 @@ export const showSearchFormSchema = z.object({
             required_error: "End date is required",
             invalid_type_error: "Please select a valid end date",
         })
-    })
+    }).required(),
 });

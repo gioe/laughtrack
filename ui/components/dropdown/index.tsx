@@ -8,13 +8,13 @@ import {
 import { FormControl, FormField, FormItem, FormMessage } from "../ui/form";
 import { Selectable } from "@/objects/interface";
 import { UseFormReturn } from "react-hook-form";
+import { useStyleContext } from "@/contexts/StyleProvider";
 
 // Base props that both variants share
 interface BaseDropdownProps {
     name: string;
     placeholder?: string;
     items: Selectable[];
-    className: string;
 }
 
 // Props for the form variant
@@ -36,12 +36,11 @@ interface StandaloneDropdownProps extends BaseDropdownProps {
 type DropdownProps = FormDropdownProps | StandaloneDropdownProps;
 
 export function DropdownComponent(props: DropdownProps) {
+    const { getCurrentStyles } = useStyleContext();
+    const styleConfig = getCurrentStyles();
     // Common wrapper for the select content
     const SelectWrapper = ({ children }: { children: React.ReactNode }) => (
-        <div className="flex items-center gap-2">
-            {props.icon}
-            {children}
-        </div>
+        <div className="flex items-center">{children}</div>
     );
 
     if (props.form) {
@@ -58,7 +57,10 @@ export function DropdownComponent(props: DropdownProps) {
                                     value={field.value}
                                 >
                                     <SelectTrigger
-                                        className={`${props.className} w-full border-none focus:ring-0 focus:ring-offset-0`}
+                                        className={`
+                                            ${styleConfig.searchBarFontSize} ${styleConfig.searchBarTextColor}
+                                            font-dmSans rounded-lg ring-transparent outline-none shadow-none border-transparent 
+                                             w-full border-none focus:ring-transparent focus:outline-none focus:ring-0 focus:ring-offset-0`}
                                     >
                                         <SelectValue
                                             className="text-left"
@@ -92,7 +94,12 @@ export function DropdownComponent(props: DropdownProps) {
     return (
         <SelectWrapper>
             <Select onValueChange={props.onChange} value={props.value}>
-                <SelectTrigger className={props.className}>
+                <SelectTrigger
+                    className={`
+                                            ${styleConfig.searchBarFontSize} ${styleConfig.searchBarTextColor}
+                                            font-dmSans rounded-lg ring-transparent outline-none shadow-none border-transparent 
+                                             w-full border-none focus:ring-transparent focus:outline-none focus:ring-0 focus:ring-offset-0`}
+                >
                     <SelectValue
                         className="text-left pr-2"
                         placeholder={props.placeholder}

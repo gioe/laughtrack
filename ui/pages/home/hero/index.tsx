@@ -18,7 +18,7 @@ const HeroComponent = ({ user }: HeroComponentProps) => {
             />
             <ContentWrapper>
                 <Navbar currentUser={user} />
-                <HeroContent title="Laughtrack" subtitle="Have a laugh" />
+                <HeroContent title="Laughtrack" subtitle="Get out and laugh" />
             </ContentWrapper>
         </section>
     );

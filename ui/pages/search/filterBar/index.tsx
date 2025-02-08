@@ -2,7 +2,6 @@
 
 import { EntityType } from "@/objects/enum";
 import { SearchVariant } from "@/objects/enum/searchVariant";
-import { SortOptionInterface } from "@/objects/interface";
 import { FilterModalButton } from "@/ui/components/params/filter";
 import { PageParamComponent } from "@/ui/components/params/page";
 import ClubSearchBar from "@/ui/components/params/searchbar/club/all";
@@ -13,6 +12,22 @@ import ShowSearchBar from "@/ui/components/params/searchbar/show/search";
 import { SortParamComponent } from "@/ui/components/params/sort";
 import { getSortOptionsForEntityType } from "@/util/sort";
 
+const VARIANT_TO_ENTITY_TYPE_MAP = {
+    [SearchVariant.AllClubs]: EntityType.Club,
+    [SearchVariant.ClubDetail]: EntityType.Show,
+    [SearchVariant.AllComedians]: EntityType.Comedian,
+    [SearchVariant.ComedianDetail]: EntityType.Show,
+    [SearchVariant.AllShows]: EntityType.Show,
+} as const;
+
+const VARIANT_TO_SEARCH_BAR_MAP = {
+    [SearchVariant.AllClubs]: ClubSearchBar,
+    [SearchVariant.ClubDetail]: ClubDetailSearchBar,
+    [SearchVariant.AllComedians]: ComedianSearchBar,
+    [SearchVariant.ComedianDetail]: ComedianDetailSearchBar,
+    [SearchVariant.AllShows]: ShowSearchBar,
+} as const;
+
 interface FilterBarProps {
     variant: SearchVariant;
     total: number;
@@ -20,38 +35,13 @@ interface FilterBarProps {
 }
 
 const getSearchBar = (variant: SearchVariant) => {
-    switch (variant) {
-        case SearchVariant.AllClubs:
-            return <ClubSearchBar />;
-        case SearchVariant.ClubDetail:
-            return <ClubDetailSearchBar />;
-        case SearchVariant.AllComedians:
-            return <ComedianSearchBar />;
-        case SearchVariant.ComedianDetail:
-            return <ComedianDetailSearchBar />;
-        case SearchVariant.AllShows:
-            return <ShowSearchBar />;
-        default:
-            return null;
-    }
+    const SearchBarComponent = VARIANT_TO_SEARCH_BAR_MAP[variant];
+    return SearchBarComponent ? <SearchBarComponent /> : null;
 };
 
 const getSortOptions = (variant: SearchVariant) => {
-    let sortOptions: SortOptionInterface[] = [];
-    switch (variant) {
-        case SearchVariant.AllClubs:
-            sortOptions = getSortOptionsForEntityType(EntityType.Club);
-        case SearchVariant.ClubDetail:
-            sortOptions = getSortOptionsForEntityType(EntityType.Show);
-        case SearchVariant.AllComedians:
-            sortOptions = getSortOptionsForEntityType(EntityType.Comedian);
-        case SearchVariant.ComedianDetail:
-            sortOptions = getSortOptionsForEntityType(EntityType.Show);
-        case SearchVariant.AllShows:
-            sortOptions = getSortOptionsForEntityType(EntityType.Show);
-        default:
-            break;
-    }
+    const entityType = VARIANT_TO_ENTITY_TYPE_MAP[variant] ?? EntityType.Show; // Default to Show if variant not found
+    const sortOptions = getSortOptionsForEntityType(entityType);
 
     return <SortParamComponent sortOptions={sortOptions} />;
 };

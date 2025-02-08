@@ -5,20 +5,19 @@ import { Calendar } from "../../ui/calendar";
 import { DateRange } from "@/util/search/util";
 import { ChevronsUpDown } from "lucide-react";
 import { useStyleContext } from "@/contexts/StyleProvider";
+import { Calendar as CalendarIcon } from "lucide-react";
+
+const PLACEHOLDER = "When";
 
 interface CalendarDisplayProps {
     selectedRange?: DateRange;
     onSelect: (value: DateRange | undefined) => void;
-    icon: React.ReactNode;
-    placeholder: string;
 }
 
 // Component that handles the calendar display logic
 export const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
     selectedRange,
     onSelect,
-    icon,
-    placeholder,
 }) => {
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
@@ -27,18 +26,15 @@ export const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
 
     return (
         <div className="flex items-center gap-2 w-full">
-            {icon}
+            <CalendarIcon className={`w-5 h-5 ${styleConfig.iconTextColor}`} />
             <Popover>
                 <PopoverTrigger asChild>
-                    <div
-                        className={`rounded-lg ring-transparent 
-                            focus:ring-transparent border-transparent focus:outline-none outline-none w-full cursor-pointer`}
-                    >
+                    <div>
                         <div className="flex items-center justify-between w-full px-3 py-2">
                             <span
-                                className={`${styleConfig.searchBarFontSize} ${styleConfig.searchBarTextColor}`}
+                                className={`${styleConfig.searchBarFontSize} ${styleConfig.searchBarTextColor} font-dmSans`}
                             >
-                                {formatDateRange(placeholder, selectedRange)}
+                                {formatDateRange(PLACEHOLDER, selectedRange)}
                             </span>
                             <div className="ml-2">
                                 <ChevronsUpDown

@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { Calendar, ChevronsUpDown, MapPin, Theater, Users } from "lucide-react";
+import { Theater, Users } from "lucide-react";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import {
     ParamsDictValue,
@@ -85,20 +85,21 @@ export default function ShowSearchBar() {
 
     return (
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col lg:flex-row gap-2 lg:gap-0 bg-ivory rounded-3xl lg:rounded-full border border-gray-200 p-2 lg:p-4 shadow-sm">
+            <div
+                className="flex flex-col lg:flex-row gap-2 lg:gap-0 
+            bg-ivory rounded-3xl lg:rounded-full border
+             border-gray-200 p-2 lg:p-4 shadow-sm"
+            >
                 {/* City Selection */}
                 <div className="flex-1 lg:border-r lg:border-gray-200 lg:pr-4">
-                    <div className="flex items-center p-2 lg:p-0 rounded-full lg:rounded-none hover:bg-gray-50 lg:hover:bg-transparent transition-colors">
+                    <div
+                        className="flex items-center p-2 lg:p-0 rounded-full lg:rounded-none
+                     hover:bg-gray-50 lg:hover:bg-transparent transition-colors"
+                    >
                         <ShowDistanceSelectionComponent
                             variant={DistanceComponentVariant.Standalone}
-                            name="distance"
                             value={distanceData}
                             onValueChange={handleDistanceUpdate}
-                            icon={
-                                <MapPin
-                                    className={`size-5 ${styleConfig.iconTextColor}`}
-                                />
-                            }
                         />
                     </div>
                 </div>
@@ -108,15 +109,8 @@ export default function ShowSearchBar() {
                     <div className="flex items-center w-full p-2 lg:p-0 rounded-full lg:rounded-none hover:bg-gray-50 lg:hover:bg-transparent transition-colors">
                         <CalendarComponent
                             variant={CalendarVariant.Standalone}
-                            name="dates"
                             value={dateRange}
-                            placeholder="When"
                             onValueChange={(newRange) => setDateRange(newRange)}
-                            icon={
-                                <Calendar
-                                    className={`w-5 h-5 ${styleConfig.iconTextColor}`}
-                                />
-                            }
                         />
                     </div>
                 </div>

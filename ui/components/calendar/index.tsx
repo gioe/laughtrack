@@ -3,25 +3,16 @@ import { FormControl, FormField, FormItem, FormMessage } from "../ui/form";
 import { UseFormReturn } from "react-hook-form";
 import { CalendarDisplay } from "./display";
 import { DateRange } from "@/util/search/util";
+import { ComponentVariant } from "@/objects/enum";
 
-export enum CalendarVariant {
-    Form = "form",
-    Standalone = "standalone",
-}
-
-interface CalendarBaseProps {
-    name: string;
-    icon: React.ReactNode;
-    placeholder: string;
-}
-
-type CalendarFormProps = CalendarBaseProps & {
-    variant: CalendarVariant.Form;
+type CalendarFormProps = {
+    variant: ComponentVariant.Form;
     form: UseFormReturn<any>;
+    name: string;
 };
 
-type CalendarStandaloneProps = CalendarBaseProps & {
-    variant: CalendarVariant.Standalone;
+type CalendarStandaloneProps = {
+    variant: ComponentVariant.Standalone;
     value?: DateRange;
     onValueChange: (value: DateRange | undefined) => void;
 };
@@ -30,7 +21,7 @@ type CalendarComponentProps = CalendarFormProps | CalendarStandaloneProps;
 
 // Main component with form/standalone logic
 const CalendarComponent = (props: CalendarComponentProps) => {
-    if (props.variant === CalendarVariant.Form) {
+    if (props.variant === ComponentVariant.Form) {
         return (
             <FormField
                 control={props.form.control}
@@ -41,8 +32,6 @@ const CalendarComponent = (props: CalendarComponentProps) => {
                             <CalendarDisplay
                                 selectedRange={field.value}
                                 onSelect={field.onChange}
-                                icon={props.icon}
-                                placeholder={props.placeholder}
                             />
                         </FormControl>
                         <FormMessage />
@@ -56,8 +45,6 @@ const CalendarComponent = (props: CalendarComponentProps) => {
         <CalendarDisplay
             selectedRange={props.value}
             onSelect={props.onValueChange}
-            icon={props.icon}
-            placeholder={props.placeholder}
         />
     );
 };
