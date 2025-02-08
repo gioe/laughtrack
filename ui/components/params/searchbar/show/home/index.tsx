@@ -18,7 +18,7 @@ import {
 import { Navigator } from "@/objects/class/navigate/Navigator";
 import { Form } from "@/ui/components/ui/form";
 import ShowLocationComponent from "@/ui/components/area";
-import { ComponentVariant } from "@/objects/enum";
+import { ComponentVariant, QueryProperty } from "@/objects/enum";
 
 const LoadingOverlay = () => (
     <div className="absolute inset-0 bg-black/20 backdrop-blur-sm rounded-full flex items-center justify-center">
@@ -60,10 +60,10 @@ export default function ShowSearchForm() {
 
             setIsLoading(true);
             const map = new Map<URLParam, ParamsDictValue>();
-            // map.set(QueryProperty.Distance, data.distance.distance);
-            // map.set(QueryProperty.Zip, data.distance.zipCode);
-            // map.set(QueryProperty.FromDate, data.dates.from);
-            // map.set(QueryProperty.ToDate, data.dates.to);
+            map.set(QueryProperty.Distance, data.distance.distance);
+            map.set(QueryProperty.Zip, data.distance.zipCode);
+            map.set(QueryProperty.FromDate, data.dates.from);
+            map.set(QueryProperty.ToDate, data.dates.to);
 
             await new Promise((resolve) => setTimeout(resolve, 300));
 
@@ -79,12 +79,7 @@ export default function ShowSearchForm() {
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(submitForm)} className="relative">
-                <div
-                    className="flex flex-col 
-                    overflow-hidden bg-ivory/20 backdrop-blur 
-                 rounded-2xl lg:flex-row  
-                 lg:rounded-full lg:items-center"
-                >
+                <div className="flex flex-col overflow-hidden bg-ivory/20 backdrop-blur rounded-2xl lg:flex-row  lg:rounded-full lg:items-center">
                     {isLoading && <LoadingOverlay />}
 
                     <div className="flex-1 border-b border-gray-600/30 lg:border-b-0 lg:border-r">

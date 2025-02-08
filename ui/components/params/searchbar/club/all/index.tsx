@@ -40,17 +40,25 @@ export default function ClubSearchBar() {
     }
 
     const handleDistanceSelection = (distance: string) => {
-        // onSelect({
-        //     ...selectedValues,
-        //     distance,
-        // });
+        const map = new Map<URLParam, ParamsDictValue>();
+        map.set(QueryProperty.Distance, distance);
+        setDistanceQuery({
+            ...distanceData,
+            distance,
+        });
+        paramsHelper.updateParamsFromMap(map);
+        navigator.replaceRoute(paramsHelper.asParamsString());
     };
 
     const handleZipCodeInput = (event: ChangeEvent<HTMLInputElement>) => {
-        // onSelect({
-        //     distance: selectedValues?.distance,
-        //     zipCode: event.target.value,
-        // });
+        const map = new Map<URLParam, ParamsDictValue>();
+        map.set(QueryProperty.Zip, event.target.value);
+        setDistanceQuery({
+            ...distanceData,
+            zipCode: event.target.value,
+        });
+        paramsHelper.updateParamsFromMap(map);
+        navigator.replaceRoute(paramsHelper.asParamsString());
     };
 
     return (
@@ -64,7 +72,6 @@ export default function ClubSearchBar() {
                 />
             </div>
 
-            {/* Date input */}
             <div className="flex items-center px-4">
                 <TextInputComponent
                     icon={

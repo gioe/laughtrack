@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ChangeEvent, useState } from "react";
-import { Calendar, ChevronsUpDown, MapPin, Theater, Users } from "lucide-react";
+import { Users } from "lucide-react";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import {
     ParamsDictValue,
@@ -41,7 +41,6 @@ export default function ClubDetailSearchBar() {
         getDateRangeFromParams(paramsHelper),
     );
     const [comedianQuery, setComedianQuery] = useState(currentComedianQuery);
-    const [clubQuery, setClubQuery] = useState(currentClubQuery);
 
     function handleComedianSearch(value: string) {
         const map = new Map<URLParam, ParamsDictValue>();
@@ -50,15 +49,6 @@ export default function ClubDetailSearchBar() {
         paramsHelper.updateParamsFromMap(map);
         navigator.replaceRoute(paramsHelper.asParamsString());
     }
-
-    function handleClubSearch(value: string) {
-        const map = new Map<URLParam, ParamsDictValue>();
-        map.set(QueryProperty.Club, value);
-        setClubQuery(value);
-        paramsHelper.updateParamsFromMap(map);
-        navigator.replaceRoute(paramsHelper.asParamsString());
-    }
-
     function setDateRange(value?: DateRange) {
         const map = new Map<URLParam, ParamsDictValue>();
         map.set(QueryProperty.FromDate, value?.from ?? "");
@@ -72,17 +62,25 @@ export default function ClubDetailSearchBar() {
     }
 
     const handleDistanceSelection = (distance: string) => {
-        // onSelect({
-        //     ...selectedValues,
-        //     distance,
-        // });
+        const map = new Map<URLParam, ParamsDictValue>();
+        map.set(QueryProperty.Distance, distance);
+        setDistanceQuery({
+            ...distanceData,
+            distance,
+        });
+        paramsHelper.updateParamsFromMap(map);
+        navigator.replaceRoute(paramsHelper.asParamsString());
     };
 
     const handleZipCodeInput = (event: ChangeEvent<HTMLInputElement>) => {
-        // onSelect({
-        //     distance: selectedValues?.distance,
-        //     zipCode: event.target.value,
-        // });
+        const map = new Map<URLParam, ParamsDictValue>();
+        map.set(QueryProperty.Zip, event.target.value);
+        setDistanceQuery({
+            ...distanceData,
+            zipCode: event.target.value,
+        });
+        paramsHelper.updateParamsFromMap(map);
+        navigator.replaceRoute(paramsHelper.asParamsString());
     };
     return (
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

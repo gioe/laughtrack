@@ -30,8 +30,6 @@ export default async function ShowSearchPage(props: any) {
         },
     );
 
-    console.log(data);
-
     const zip = paramsWrapper.getParamValue(QueryProperty.Zip);
     return (
         <main className="min-h-screen w-full bg-ivory">

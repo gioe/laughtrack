@@ -92,7 +92,6 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
         <div className="flex items-center gap-2">
             <MapPin className={`w-5 h-5 ${styleConfig.iconTextColor}`} />
             {buildDropdownComponent(props)}
-
             <div
                 className={`${styleConfig.searchBarTextColor} ${styleConfig.searchBarFontSize} font-dmSans`}
             >

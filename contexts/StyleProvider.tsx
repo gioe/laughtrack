@@ -44,7 +44,7 @@ export const styleContexts: StyleContexts = [
         key: StyleContextKey.Search,
         values: {
             searchBarFontSize: "text-[18px]",
-            searchBarTextColor: "text-white",
+            searchBarTextColor: "text-black",
             logoTextColor: "text-black",
             buttonBgColor: "bg-black",
             headerItemColorHighlighted: "text-cedar",
