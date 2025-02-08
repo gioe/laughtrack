@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { ChangeEvent, useState } from "react";
 import { Theater, Users } from "lucide-react";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import {
@@ -11,12 +11,9 @@ import {
 } from "@/objects/class/params/SearchParamsHelper";
 import { Navigator } from "@/objects/class/navigate/Navigator";
 import TextInputComponent from "@/ui/components/input/search/text/input";
-import { CalendarVariant } from "@/ui/components/calendar";
-import { QueryProperty } from "@/objects/enum";
+import { ComponentVariant, QueryProperty } from "@/objects/enum";
 import CalendarComponent from "@/ui/components/calendar";
-import ShowDistanceSelectionComponent, {
-    DistanceComponentVariant,
-} from "@/ui/components/area";
+import ShowDistanceSelectionComponent from "@/ui/components/area";
 import {
     DateRange,
     DistanceData,
@@ -83,6 +80,20 @@ export default function ShowSearchBar() {
         navigator.replaceRoute(paramsHelper.asParamsString());
     }
 
+    const handleDistanceSelection = (distance: string) => {
+        // onSelect({
+        //     ...selectedValues,
+        //     distance,
+        // });
+    };
+
+    const handleZipCodeInput = (event: ChangeEvent<HTMLInputElement>) => {
+        // onSelect({
+        //     distance: selectedValues?.distance,
+        //     zipCode: event.target.value,
+        // });
+    };
+
     return (
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div
@@ -97,9 +108,10 @@ export default function ShowSearchBar() {
                      hover:bg-gray-50 lg:hover:bg-transparent transition-colors"
                     >
                         <ShowDistanceSelectionComponent
-                            variant={DistanceComponentVariant.Standalone}
+                            variant={ComponentVariant.Standalone}
                             value={distanceData}
-                            onValueChange={handleDistanceUpdate}
+                            onDistanceSelection={handleDistanceSelection}
+                            onZipcodeInput={handleZipCodeInput}
                         />
                     </div>
                 </div>
@@ -108,9 +120,9 @@ export default function ShowSearchBar() {
                 <div className="flex-1 lg:border-r lg:border-gray-200 lg:px-4">
                     <div className="flex items-center w-full p-2 lg:p-0 rounded-full lg:rounded-none hover:bg-gray-50 lg:hover:bg-transparent transition-colors">
                         <CalendarComponent
-                            variant={CalendarVariant.Standalone}
+                            variant={ComponentVariant.Standalone}
                             value={dateRange}
-                            onValueChange={(newRange) => setDateRange(newRange)}
+                            onValueChange={setDateRange}
                         />
                     </div>
                 </div>

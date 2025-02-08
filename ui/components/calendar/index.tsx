@@ -21,22 +21,39 @@ type CalendarComponentProps = CalendarFormProps | CalendarStandaloneProps;
 
 // Main component with form/standalone logic
 const CalendarComponent = (props: CalendarComponentProps) => {
+    const getDateErrors = (formState: any) => {
+        const fromError = formState.errors.dates?.from?.message;
+        const toError = formState.errors.dates?.to?.message;
+
+        if (fromError && toError) {
+            return `Date selection is required`;
+        }
+        return fromError || toError || "";
+    };
+
     if (props.variant === ComponentVariant.Form) {
         return (
             <FormField
                 control={props.form.control}
                 name={props.name}
-                render={({ field }) => (
-                    <FormItem className="flex flex-col w-full">
-                        <FormControl>
-                            <CalendarDisplay
-                                selectedRange={field.value}
-                                onSelect={field.onChange}
-                            />
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                )}
+                render={({ field, formState }) => {
+                    const errorMessage = getDateErrors(formState);
+                    return (
+                        <FormItem className="flex flex-col w-full">
+                            <FormControl>
+                                <CalendarDisplay
+                                    selectedRange={field.value}
+                                    onSelect={field.onChange}
+                                />
+                            </FormControl>
+                            {errorMessage && (
+                                <p className="text-sm font-medium text-destructive">
+                                    {errorMessage}
+                                </p>
+                            )}
+                        </FormItem>
+                    );
+                }}
             />
         );
     }

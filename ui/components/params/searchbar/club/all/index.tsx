@@ -1,10 +1,10 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { ChangeEvent, useState } from "react";
 import { MapPin, Theater } from "lucide-react";
 import { useStyleContext } from "@/contexts/StyleProvider";
-import { QueryProperty } from "@/objects/enum";
+import { ComponentVariant, QueryProperty } from "@/objects/enum";
 import {
     ParamsDictValue,
     SearchParamsHelper,
@@ -12,9 +12,7 @@ import {
 } from "@/objects/class/params/SearchParamsHelper";
 import { Navigator } from "@/objects/class/navigate/Navigator";
 import TextInputComponent from "@/ui/components/input/search/text/input";
-import ShowDistanceSelectionComponent, {
-    DistanceComponentVariant,
-} from "@/ui/components/area";
+import ShowDistanceSelectionComponent from "@/ui/components/area";
 import { DistanceData, getDistanceDataFromParams } from "@/util/search/util";
 
 export default function ClubSearchBar() {
@@ -41,28 +39,28 @@ export default function ClubSearchBar() {
         navigator.replaceRoute(paramsHelper.asParamsString());
     }
 
-    function handleDistanceUpdate(data: DistanceData) {
-        const map = new Map<URLParam, ParamsDictValue>();
-        map.set(QueryProperty.Distance, data.distance ?? "");
-        map.set(QueryProperty.Zip, data.zipCode ?? "");
-        setDistanceQuery(data);
-        paramsHelper.updateParamsFromMap(map);
-        navigator.replaceRoute(paramsHelper.asParamsString());
-    }
+    const handleDistanceSelection = (distance: string) => {
+        // onSelect({
+        //     ...selectedValues,
+        //     distance,
+        // });
+    };
+
+    const handleZipCodeInput = (event: ChangeEvent<HTMLInputElement>) => {
+        // onSelect({
+        //     distance: selectedValues?.distance,
+        //     zipCode: event.target.value,
+        // });
+    };
 
     return (
         <div className="flex items-center bg-ivory rounded-full border border-gray-200 px-4 py-2 shadow-sm max-w-3xl w-full">
             <div className="flex items-center flex-1 border-r border-gray-200 pr-4">
                 <ShowDistanceSelectionComponent
+                    variant={ComponentVariant.Standalone}
                     value={distanceData}
-                    onValueChange={handleDistanceUpdate}
-                    variant={DistanceComponentVariant.Standalone}
-                    name="distance"
-                    icon={
-                        <MapPin
-                            className={`w-5 h-5  ${styleConfig.iconTextColor}`}
-                        />
-                    }
+                    onDistanceSelection={handleDistanceSelection}
+                    onZipcodeInput={handleZipCodeInput}
                 />
             </div>
 

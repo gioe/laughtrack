@@ -1,5 +1,5 @@
-import { formatDateRange } from "@/util/primatives/dateUtil";
 import React from "react";
+import { formatDateRange } from "@/util/primatives/dateUtil";
 import { Popover, PopoverTrigger, PopoverContent } from "../../ui/popover";
 import { Calendar } from "../../ui/calendar";
 import { DateRange } from "@/util/search/util";
@@ -30,17 +30,15 @@ export const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
             <Popover>
                 <PopoverTrigger asChild>
                     <div>
-                        <div className="flex items-center justify-between w-full px-3 py-2">
-                            <span
+                        <div className="flex items-center justify-between w-full h-9 gap-2">
+                            <div
                                 className={`${styleConfig.searchBarFontSize} ${styleConfig.searchBarTextColor} font-dmSans`}
                             >
                                 {formatDateRange(PLACEHOLDER, selectedRange)}
-                            </span>
-                            <div className="ml-2">
-                                <ChevronsUpDown
-                                    className={`w-3 h-3 ml-2 ${styleConfig.iconTextColor}`}
-                                />
                             </div>
+                            <ChevronsUpDown
+                                className={`w-4 h-4 opacity-50 ${styleConfig.iconTextColor}`}
+                            />
                         </div>
                     </div>
                 </PopoverTrigger>

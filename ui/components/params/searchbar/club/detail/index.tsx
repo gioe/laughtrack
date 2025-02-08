@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { ChangeEvent, useState } from "react";
 import { Calendar, ChevronsUpDown, MapPin, Theater, Users } from "lucide-react";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import {
@@ -11,12 +11,9 @@ import {
 } from "@/objects/class/params/SearchParamsHelper";
 import { Navigator } from "@/objects/class/navigate/Navigator";
 import TextInputComponent from "@/ui/components/input/search/text/input";
-import { CalendarVariant } from "@/ui/components/calendar";
-import { QueryProperty } from "@/objects/enum";
+import { ComponentVariant, QueryProperty } from "@/objects/enum";
 import CalendarComponent from "@/ui/components/calendar";
-import ShowDistanceSelectionComponent, {
-    DistanceComponentVariant,
-} from "@/ui/components/area";
+import ShowDistanceSelectionComponent from "@/ui/components/area";
 import {
     DateRange,
     DistanceData,
@@ -74,15 +71,19 @@ export default function ClubDetailSearchBar() {
         navigator.replaceRoute(paramsHelper.asParamsString());
     }
 
-    function handleDistanceUpdate(data: DistanceData) {
-        const map = new Map<URLParam, ParamsDictValue>();
-        map.set(QueryProperty.Distance, data.distance ?? "");
-        map.set(QueryProperty.Zip, data.zipCode ?? "");
-        setDistanceQuery(data);
-        paramsHelper.updateParamsFromMap(map);
-        navigator.replaceRoute(paramsHelper.asParamsString());
-    }
+    const handleDistanceSelection = (distance: string) => {
+        // onSelect({
+        //     ...selectedValues,
+        //     distance,
+        // });
+    };
 
+    const handleZipCodeInput = (event: ChangeEvent<HTMLInputElement>) => {
+        // onSelect({
+        //     distance: selectedValues?.distance,
+        //     zipCode: event.target.value,
+        // });
+    };
     return (
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col lg:flex-row gap-2 lg:gap-0 bg-ivory rounded-3xl lg:rounded-full border border-gray-200 p-2 lg:p-4 shadow-sm">
@@ -90,17 +91,10 @@ export default function ClubDetailSearchBar() {
                 <div className="flex-1 lg:border-r lg:border-gray-200 lg:pr-4">
                     <div className="flex items-center p-2 lg:p-0 rounded-full lg:rounded-none hover:bg-gray-50 lg:hover:bg-transparent transition-colors">
                         <ShowDistanceSelectionComponent
-                            variant={DistanceComponentVariant.Standalone}
-                            name="distance"
+                            variant={ComponentVariant.Standalone}
                             value={distanceData}
-                            onValueChange={handleDistanceUpdate}
-                            className={`text-[18px] text-white font-dmSams rounded-lg ring-transparent focus:ring-transparent
-                                shadow-none border-transparent focus:outline-none outline-none`}
-                            icon={
-                                <MapPin
-                                    className={`size-5 ${styleConfig.iconTextColor}`}
-                                />
-                            }
+                            onDistanceSelection={handleDistanceSelection}
+                            onZipcodeInput={handleZipCodeInput}
                         />
                     </div>
                 </div>
@@ -109,22 +103,9 @@ export default function ClubDetailSearchBar() {
                 <div className="flex-1 lg:border-r lg:border-gray-200 lg:px-4">
                     <div className="flex items-center w-full p-2 lg:p-0 rounded-full lg:rounded-none hover:bg-gray-50 lg:hover:bg-transparent transition-colors">
                         <CalendarComponent
-                            variant={CalendarVariant.Standalone}
-                            name="dates"
+                            variant={ComponentVariant.Standalone}
                             value={dateRange}
-                            placeholder="When"
-                            onValueChange={(newRange) => setDateRange(newRange)}
-                            className="rounded-lg ring-transparent 
-                            focus:ring-transparent border-transparent focus:outline-none outline-none"
-                            icon={
-                                <Calendar
-                                    className={`w-5 h-5 ${styleConfig.iconTextColor}`}
-                                />
-                            }
-                            chevrons={
-                                <ChevronsUpDown className="w-3 h-3 ml-2 text-cedar" />
-                            }
-                            textSize="text-[18px]"
+                            onValueChange={setDateRange}
                         />
                     </div>
                 </div>

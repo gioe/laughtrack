@@ -46,10 +46,7 @@ export default function ShowSearchForm() {
         },
     });
 
-    console.log("Form errors:", form.formState.errors);
-
     async function submitForm(data: z.infer<typeof showSearchFormSchema>) {
-        console.log(data);
         try {
             // Add validation debugging
             const validationResult = showSearchFormSchema.safeParse(data);
@@ -83,7 +80,7 @@ export default function ShowSearchForm() {
         <Form {...form}>
             <form onSubmit={form.handleSubmit(submitForm)} className="relative">
                 <div
-                    className="flex flex-col items-stretch 
+                    className="flex flex-col 
                     overflow-hidden bg-ivory/20 backdrop-blur 
                  rounded-2xl lg:flex-row  
                  lg:rounded-full lg:items-center"
@@ -94,7 +91,6 @@ export default function ShowSearchForm() {
                         <div className="px-4 py-4 lg:px-8">
                             <ShowLocationComponent
                                 variant={ComponentVariant.Form}
-                                name="distance"
                                 form={form}
                             />
                         </div>
