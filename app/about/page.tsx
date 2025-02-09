@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import { StatsDataResponse, StatsDTO } from "@/app/api/about/interface";
+import { StatsDataResponse } from "@/app/api/about/interface";
 import { APIRoutePath, StyleContextKey } from "@/objects/enum";
 import Navbar from "@/ui/components/navbar";
 import AboutUsSection from "@/ui/pages/about/content";

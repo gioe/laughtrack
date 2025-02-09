@@ -4,7 +4,8 @@ import { filterAndMapLineupItems } from "@/util/comedian/comedianUtil";
 import { buildClubImageUrl, buildComedianImageUrl } from "@/util/imageUtil"
 import { Prisma } from "@prisma/client";
 
-const EXCLUSIVITY_TAGS = ['Not Even Funny']
+const SHOW_EXCLUSIVITY_TAGS = ['Not Even Funny']
+const COMEDIAN_EXCLUSIVITY_TAGS = ["Not A Standup", "Not A Human"];
 
 interface ShowsResponse {
     shows: ShowDTO[];
@@ -82,6 +83,7 @@ export async function findShowsWithCount(params: any): Promise<ShowsResponse> {
                             }
                         ]
                     },
+
                 },
             },
         } : {}),
@@ -103,7 +105,7 @@ export async function findShowsWithCount(params: any): Promise<ShowsResponse> {
                 some: {
                     tag: {
                         display: {
-                            in: EXCLUSIVITY_TAGS,
+                            in: SHOW_EXCLUSIVITY_TAGS,
                         },
                     },
                 },

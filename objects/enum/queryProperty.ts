@@ -39,7 +39,7 @@ export const queryPropertyDefaultMap = new MapWithDefault<string, string>([
     [QueryProperty.Comedian, ""],
     [QueryProperty.Club, ""],
     [QueryProperty.Distance, "5"],
-    [QueryProperty.Zip, '10003'],
+    [QueryProperty.Zip, ''],
     [DEFAULT, DEFAULT_ERROR]
 ]);
 

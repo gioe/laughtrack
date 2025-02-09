@@ -21,19 +21,30 @@ export default function ComedianSearchBar() {
     const paramsHelper = new SearchParamsHelper(useSearchParams());
     const navigator = new Navigator(usePathname(), useRouter());
 
-    const currentComedianQuery = paramsHelper.getParamValue(
-        QueryProperty.Comedian,
-    ) as string;
+    const initialState = {
+        comedian: paramsHelper.getParamValue(QueryProperty.Comedian) as string,
+    };
 
-    const [comedianQuery, setComedianQuery] = useState(currentComedianQuery);
+    // Combined state management
+    const [searchState, setSearchState] = useState(initialState);
 
-    function handleSearch(value: string) {
+    const updateSearchParams = <T extends keyof typeof initialState>(
+        param: QueryProperty,
+        value: any,
+        stateUpdater: (prevState: typeof initialState) => typeof initialState,
+    ) => {
         const map = new Map<URLParam, ParamsDictValue>();
-        map.set(QueryProperty.Comedian, value);
-        setComedianQuery(value);
+        map.set(param, value);
+        setSearchState(stateUpdater);
         paramsHelper.updateParamsFromMap(map);
         navigator.replaceRoute(paramsHelper.asParamsString());
-    }
+    };
+
+    const handleComedianSearch = (value: string) =>
+        updateSearchParams(QueryProperty.Comedian, value, (prev) => ({
+            ...prev,
+            comedian: value,
+        }));
 
     return (
         <div className="flex items-center bg-ivory rounded-full border border-gray-200 px-4 py-2 shadow-sm max-w-xl w-full">
@@ -46,8 +57,8 @@ export default function ComedianSearchBar() {
                         />
                     }
                     placeholder="Search for comedian"
-                    value={comedianQuery}
-                    onChange={handleSearch}
+                    value={searchState.comedian}
+                    onChange={handleComedianSearch}
                     className="border-gray-200 bg-ivory ring-transparent focus:ring-transparent 
     shadow-none border-transparent focus:outline-none outline-none"
                 />

@@ -33,24 +33,10 @@ export function setParamDefaults(params: URLSearchParams, path: string): URLSear
 }
 
 function getSortParamDefaultFromPath(params: URLSearchParams, path: string): URLSearchParams {
-    if (path.startsWith('/club')) {
-        if (path.includes('/all')) {
-            params.set(QueryProperty.Sort, SortParamValue.Name)
-        } else {
-            params.set(QueryProperty.Sort, SortParamValue.Date)
-        }
+    if (path.startsWith('/club') || path.startsWith('/comedian')) {
+        params.set(QueryProperty.Sort, path.includes('/all') ? SortParamValue.Name : SortParamValue.Date)
     } else if (path.startsWith('/show')) {
-        if (path.includes('/all')) {
-            params.set(QueryProperty.Sort, SortParamValue.Date)
-        } else {
-            params.set(QueryProperty.Sort, SortParamValue.Name)
-        }
-    } else if (path.startsWith('/comedian')) {
-        if (path.includes('/all')) {
-            params.set(QueryProperty.Sort, SortParamValue.Name)
-        } else {
-            params.set(QueryProperty.Sort, SortParamValue.Date)
-        }
+        params.set(QueryProperty.Sort, path.includes('/all') ? SortParamValue.Date : SortParamValue.Name)
     }
     return params
 }

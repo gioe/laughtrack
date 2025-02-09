@@ -19,9 +19,11 @@ import {
     getDateRangeFromParams,
     getDistanceDataFromParams,
 } from "@/util/search/util";
+import { useSession } from "next-auth/react";
 
 export default function ShowSearchBar() {
     const { getCurrentStyles } = useStyleContext();
+    const { data } = useSession();
     const styleConfig = getCurrentStyles();
 
     const paramsHelper = new SearchParamsHelper(useSearchParams());
@@ -31,9 +33,11 @@ export default function ShowSearchBar() {
     const initialState = {
         comedian: paramsHelper.getParamValue(QueryProperty.Comedian) as string,
         club: paramsHelper.getParamValue(QueryProperty.Club) as string,
-        distance: getDistanceDataFromParams(paramsHelper),
+        distance: getDistanceDataFromParams(paramsHelper, data?.user),
         dateRange: getDateRangeFromParams(paramsHelper),
     };
+
+    console.log(initialState);
 
     // Combined state management
     const [searchState, setSearchState] = useState(initialState);

@@ -1,10 +1,8 @@
 import React from "react";
+import { getCdnUrl } from "@/util/cdnUtil";
 
 const SupportSection = () => {
-    const imageUrl = new URL(
-        `venue.png`,
-        `https://${process.env.BUNNYCDN_CDN_HOST}/`,
-    );
+    const imageUrl = getCdnUrl("venue.png");
 
     return (
         <div className="w-full bg-cream-50">

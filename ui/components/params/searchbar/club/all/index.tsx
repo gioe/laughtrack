@@ -14,59 +14,61 @@ import { Navigator } from "@/objects/class/navigate/Navigator";
 import TextInputComponent from "@/ui/components/input/search/text/input";
 import ShowDistanceSelectionComponent from "@/ui/components/area";
 import { DistanceData, getDistanceDataFromParams } from "@/util/search/util";
+import { useSession } from "next-auth/react";
 
 export default function ClubSearchBar() {
+    const { data } = useSession();
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
 
     const paramsHelper = new SearchParamsHelper(useSearchParams());
     const navigator = new Navigator(usePathname(), useRouter());
 
-    const currentClubQuery = paramsHelper.getParamValue(
-        QueryProperty.Club,
-    ) as string;
+    // Initial state setup
+    const initialState = {
+        club: paramsHelper.getParamValue(QueryProperty.Club) as string,
+        distance: getDistanceDataFromParams(paramsHelper, data?.user),
+    };
 
-    const [clubQuery, setClubQuery] = useState(currentClubQuery);
-    const [distanceData, setDistanceQuery] = useState(
-        getDistanceDataFromParams(paramsHelper),
-    );
+    // Combined state management
+    const [searchState, setSearchState] = useState(initialState);
 
-    function handleClubSearch(value: string) {
+    const updateSearchParams = <T extends keyof typeof initialState>(
+        param: QueryProperty,
+        value: any,
+        stateUpdater: (prevState: typeof initialState) => typeof initialState,
+    ) => {
         const map = new Map<URLParam, ParamsDictValue>();
-        map.set(QueryProperty.Club, value);
-        setClubQuery(value);
-        paramsHelper.updateParamsFromMap(map);
-        navigator.replaceRoute(paramsHelper.asParamsString());
-    }
-
-    const handleDistanceSelection = (distance: string) => {
-        const map = new Map<URLParam, ParamsDictValue>();
-        map.set(QueryProperty.Distance, distance);
-        setDistanceQuery({
-            ...distanceData,
-            distance,
-        });
+        map.set(param, value);
+        setSearchState(stateUpdater);
         paramsHelper.updateParamsFromMap(map);
         navigator.replaceRoute(paramsHelper.asParamsString());
     };
 
-    const handleZipCodeInput = (event: ChangeEvent<HTMLInputElement>) => {
-        const map = new Map<URLParam, ParamsDictValue>();
-        map.set(QueryProperty.Zip, event.target.value);
-        setDistanceQuery({
-            ...distanceData,
-            zipCode: event.target.value,
-        });
-        paramsHelper.updateParamsFromMap(map);
-        navigator.replaceRoute(paramsHelper.asParamsString());
-    };
+    const handleClubSearch = (value: string) =>
+        updateSearchParams(QueryProperty.Club, value, (prev) => ({
+            ...prev,
+            club: value,
+        }));
+
+    const handleDistanceSelection = (distance: string) =>
+        updateSearchParams(QueryProperty.Distance, distance, (prev) => ({
+            ...prev,
+            distance: { ...prev.distance, distance },
+        }));
+
+    const handleZipCodeInput = (event: ChangeEvent<HTMLInputElement>) =>
+        updateSearchParams(QueryProperty.Zip, event.target.value, (prev) => ({
+            ...prev,
+            distance: { ...prev.distance, zipCode: event.target.value },
+        }));
 
     return (
         <div className="flex items-center bg-ivory rounded-full border border-gray-200 px-4 py-2 shadow-sm max-w-3xl w-full">
             <div className="flex items-center flex-1 border-r border-gray-200 pr-4">
                 <ShowDistanceSelectionComponent
                     variant={ComponentVariant.Standalone}
-                    value={distanceData}
+                    value={searchState.distance}
                     onDistanceSelection={handleDistanceSelection}
                     onZipcodeInput={handleZipCodeInput}
                 />
@@ -80,7 +82,7 @@ export default function ClubSearchBar() {
                         />
                     }
                     placeholder="Search for club"
-                    value={clubQuery}
+                    value={searchState.club}
                     onChange={handleClubSearch}
                     className="border-gray-200 pr-4 bg-ivory ring-transparent focus:ring-transparent shadow-none border-transparent"
                 />
