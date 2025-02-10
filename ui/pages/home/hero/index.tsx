@@ -6,7 +6,7 @@ import HeroContent from "@/ui/components/hero";
 import { getCdnUrl } from "@/util/cdnUtil";
 
 interface HeroComponentProps {
-    user: UserInterface | null;
+    user?: UserInterface;
 }
 
 const HeroComponent = ({ user }: HeroComponentProps) => {

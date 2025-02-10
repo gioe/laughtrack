@@ -3,11 +3,46 @@
 import { NextRequest, NextResponse } from "next/server";
 import { QueryProperty, SortParamValue } from "./objects/enum";
 import { auth } from "./auth";
-import { UserInterface } from "./objects/class/user/user.interface";
 import { formattedDateParam } from "./util/primatives/paramUtil";
+import { UserInterface } from "./objects/class/user/user.interface";
+import { Session } from "next-auth";
 
+const protectedRoutes = [
+    '/profile',
+  ]
+
+function isProtectedRoute(pathname: string): boolean {
+    return protectedRoutes.some(route => pathname.startsWith(route))
+}
 export async function middleware(request: NextRequest) {
+    const pathname = request.nextUrl.pathname
     const session = await auth()
+
+    if (!isProtectedRoute(pathname)) {
+        return handlePublicRoute(request, session)
+    }
+
+    if (!session) {
+        const loginUrl = new URL('/', request.url)
+        loginUrl.searchParams.set('callbackUrl', pathname)
+        return NextResponse.redirect(loginUrl)
+    }
+
+    // Special handling for profile route
+    if (pathname.startsWith('/profile')) {
+        const userId = session.user?.id
+        if (!userId) {
+            return NextResponse.redirect(new URL('/', request.url))
+        }
+
+        // Internal rewrite to your API endpoint
+        return NextResponse.rewrite(new URL(`/profile/${userId}`, request.url))
+    }
+
+    return NextResponse.next()
+}
+
+async function handlePublicRoute(request: NextRequest, session: Session | null) {
     const url = new URL(request.nextUrl.pathname, request.url);
     const searchParams = new URLSearchParams(request.nextUrl.search);
 
@@ -19,6 +54,7 @@ export async function middleware(request: NextRequest) {
 
     return NextResponse.rewrite(url)
 }
+
 
 export function setParamDefaults(params: URLSearchParams, path: string, user?: UserInterface): URLSearchParams {
 

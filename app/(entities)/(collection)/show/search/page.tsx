@@ -15,7 +15,7 @@ import { ParamsProvider } from "@/contexts/ParamsProvider";
 
 export default async function ShowSearchPage(props: any) {
     const session = await auth();
-
+    console.log(session);
     const paramsHelper = await SearchParamsHelper.storePageParams(
         props.searchParams,
     );
@@ -26,7 +26,10 @@ export default async function ShowSearchPage(props: any) {
             session,
             next: {
                 revalidate: CACHE.search,
-                tags: ["show-search-data", session?.user?.id || ""],
+                tags: [
+                    "show-search-data",
+                    session?.user?.id ? session?.user?.id.toString() : "",
+                ],
             },
         },
     );

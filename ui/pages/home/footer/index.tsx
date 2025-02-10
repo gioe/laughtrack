@@ -1,8 +1,16 @@
-"use server";
+"use client";
 
-import { Instagram, Linkedin } from "lucide-react";
+import { openEmailClient } from "@/ui/components/button/contact";
 
 const FooterComponent = () => {
+    const handleClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        openEmailClient({
+            to: "contact@laughtrack-comedy.com",
+            subject: "Inquiry",
+            body: "",
+        });
+    };
     return (
         <footer className="py-16 border-t border-gray-200">
             <div className="max-w-7xl mx-auto px-8">
@@ -40,36 +48,19 @@ const FooterComponent = () => {
                                 About
                             </a>
                             <a
-                                href="/contact"
+                                href="#"
+                                onClick={handleClick}
                                 className="text-gray-600 hover:text-copper transition-colors text-[17px] font-dmSans font-semibold"
                             >
                                 Contact
                             </a>
-                            <a
+                            {/* <a
                                 href="/support"
                                 className="text-gray-600 hover:text-copper transition-colors text-[17px] font-dmSans font-semibold"
                             >
                                 Support
-                            </a>
+                            </a> */}
                         </nav>
-
-                        {/* Social icons */}
-                        {/* <div className="flex space-x-4">
-                            <a
-                                href="https://instagram.com/laughtrack"
-                                className="text-gray-600 hover:text-[#CD7F32] transition-colors"
-                                aria-label="Instagram"
-                            >
-                                <Instagram size={20} />
-                            </a>
-                            <a
-                                href="https://linkedin.com/company/laughtrack"
-                                className="text-gray-600 hover:text-[#CD7F32] transition-colors"
-                                aria-label="LinkedIn"
-                            >
-                                <Linkedin size={20} />
-                            </a>
-                        </div> */}
                     </div>
                 </div>
             </div>

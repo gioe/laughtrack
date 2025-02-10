@@ -31,10 +31,16 @@ export default async function HomePage() {
                     throw error;
                 }
             },
-            ["home-page-data", currentSession?.user?.id || ""],
+            [
+                "home-page-data",
+                session?.user?.id ? session?.user?.id.toString() : "",
+            ],
             {
                 revalidate: CACHE.home,
-                tags: ["home-page-data", currentSession?.user?.id || ""],
+                tags: [
+                    "home-page-data",
+                    session?.user?.id ? session?.user?.id.toString() : "",
+                ],
             },
         );
 

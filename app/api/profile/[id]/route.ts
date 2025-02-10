@@ -1,37 +1,42 @@
+import { auth } from "@/auth";
 import { getUserProfileData } from "@/lib/data/profile/getUserProfileData";
 import { updateUserProfileData } from "@/lib/data/profile/updateUserProfileData";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
+import { UserProfileResponse } from "./interface";
 
-export async function GET() {
-    const headersList = await headers();
-    const userId = headersList.get("user_id")
-    const normalizedUserId = (!userId || userId === "undefined") ? undefined : userId;
+export async function GET(
+    request: Request,
+    { params }: { params: { userId: string } }
+  ) {
 
-    if (!normalizedUserId) { return NextResponse.json({ message: 'Authentication required' }, { status: 500 }) }
+    const session = await auth()
 
-    return getUserProfileData(Number(normalizedUserId))
+    if (!session?.user) { return new NextResponse(null, { status: 401 }) }
+    if (session.user.id !== Number(params.userId)) { return new NextResponse(null, { status: 403 }) }
+
+    return getUserProfileData(Number(params.userId))
         .then((response: UserProfileResponse) => NextResponse.json({
-            profile: response
+            response
          }, { status: 200 }))
         .catch((error: Error) => NextResponse.json({ message: error.message }, { status: 500 }));
 }
 
 export async function PUT(
     req: NextRequest,
+    { params }: { params: { userId: string } }
+
 ) {
-    const headersList = await headers();
-    const userId = headersList.get("user_id")
-    const normalizedUserId = (!userId || userId === "undefined") ? undefined : userId;
-    if (!normalizedUserId) { return NextResponse.json({ message: 'Authentication required' }, { status: 500 }) }
+    const session = await auth()
+
+    if (!session?.user) { return new NextResponse(null, { status: 401 }) }
+    if (session.user.id !== Number(params.userId)) { return new NextResponse(null, { status: 403 }) }
 
     const { email, zipCode, emailOptin } = await req.json()
 
     return updateUserProfileData(email, zipCode, emailOptin)
         .then((response: UserProfileResponse) => NextResponse.json({
-            email: response.email,
-            zipcode: response.zipcode,
-            emailOptin: response.emailOptin,
+            response
          }, { status: 200 }))
         .catch((error: Error) => {
             console.log(error)

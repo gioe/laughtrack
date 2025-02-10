@@ -31,8 +31,7 @@ export default async function ComedianDetailsPage(props: any) {
                     revalidate: CACHE.detailPage,
                     tags: [
                         "comedian-detail-data",
-                        session?.user?.id || "",
-                        paramsHelper.asSlug(),
+                        session?.user?.id ? session?.user?.id.toString() : "",
                     ],
                 },
             },

@@ -31,7 +31,10 @@ export default async function ComedianSearchPage(props: any) {
             session,
             next: {
                 revalidate: CACHE.search,
-                tags: ["comedian-search-data", session?.user?.id || ""],
+                tags: [
+                    "comedian-search-data",
+                    session?.user?.id ? session?.user?.id.toString() : "",
+                ],
             },
         },
     );

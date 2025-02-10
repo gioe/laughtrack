@@ -5,17 +5,19 @@ import { Pencil, Save } from "lucide-react";
 import { makeRequest } from "@/util/actions/makeRequest";
 import { APIRoutePath, RestAPIAction } from "@/objects/enum";
 import toast from "react-hot-toast";
-import { Session } from "next-auth";
+import { useSession } from "next-auth/react";
+import { UserInterface } from "@/objects/class/user/user.interface";
 
 interface UserDetailHeaderProps {
-    userProfile: UserProfileResponse;
-    session: Session | null;
+    userProfile: UserInterface;
 }
-const UserDetailHeader = ({ userProfile, session }: UserDetailHeaderProps) => {
+
+const UserDetailHeader = ({ userProfile }: UserDetailHeaderProps) => {
+    const { data } = useSession();
     const [isEditing, setIsEditing] = useState(false);
     const [email, setEmail] = useState(userProfile.email);
     const [emailOptin, setEmailOptin] = useState(userProfile.emailOptin);
-    const [zipCode, setZipCode] = useState(userProfile.zipcode);
+    const [zipCode, setZipCode] = useState(userProfile.zipCode);
     const [hasChanges, setHasChanges] = useState(false);
 
     const handleInputChange =
@@ -28,7 +30,7 @@ const UserDetailHeader = ({ userProfile, session }: UserDetailHeaderProps) => {
                 (setter === setEmail ? newValue : email) !==
                     userProfile.email ||
                 (setter === setZipCode ? newValue : zipCode) !==
-                    userProfile.zipcode ||
+                    userProfile.zipCode ||
                 (setter === setEmailOptin ? newValue : emailOptin) !==
                     userProfile.emailOptin;
 
@@ -39,19 +41,22 @@ const UserDetailHeader = ({ userProfile, session }: UserDetailHeaderProps) => {
     const toggleEdit = async () => {
         if (isEditing && hasChanges) {
             try {
-                const response = await makeRequest(APIRoutePath.Profile, {
-                    method: RestAPIAction.PUT,
-                    session,
-                    body: {
-                        email: email,
-                        zipCode: zipCode,
-                        emailOptin: emailOptin,
+                const response = await makeRequest(
+                    APIRoutePath.Profile + `/${userProfile.id}`,
+                    {
+                        method: RestAPIAction.PUT,
+                        session: data,
+                        body: {
+                            email: email,
+                            zipCode: zipCode,
+                            emailOptin: emailOptin,
+                        },
                     },
-                });
+                );
 
                 // If the request is successful, update the original user data
                 userProfile.email = email;
-                userProfile.zipcode = zipCode;
+                userProfile.zipCode = zipCode;
 
                 setHasChanges(false);
                 toast.success("Updated successfully");
@@ -62,7 +67,7 @@ const UserDetailHeader = ({ userProfile, session }: UserDetailHeaderProps) => {
 
                 // Optionally reset form to original values
                 setEmail(userProfile.email);
-                setZipCode(userProfile.zipcode);
+                setZipCode(userProfile.zipCode);
                 setEmailOptin(userProfile.emailOptin);
                 // You might want to show an error message to the user here
                 return; // Don't toggle edit mode if save failed

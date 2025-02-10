@@ -36,7 +36,10 @@ export default async function ClubSearchPage(props: any) {
             session,
             next: {
                 revalidate: CACHE.search,
-                tags: ["club-search-data", session?.user?.id || ""],
+                tags: [
+                    "club-search-data",
+                    session?.user?.id ? session?.user?.id.toString() : "",
+                ],
             },
         },
     );

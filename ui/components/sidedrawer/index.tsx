@@ -10,9 +10,9 @@ import { useCallback } from "react";
 import { HeaderItem } from "../navbar/headerItem";
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
 import { FullRoundedButton } from "../button/rounded/full";
-import { signOut } from "next-auth/react";
 import { UserInterface } from "@/objects/class/user/user.interface";
 import { useLoginModal, useRegisterModal } from "@/hooks/modalState";
+import { useSignOut } from "@/hooks/useSignOut";
 
 interface SideDrawerProps {
     onClose: (open: boolean) => void;
@@ -23,6 +23,7 @@ interface SideDrawerProps {
 export function SideDrawer({ open, onClose, currentUser }: SideDrawerProps) {
     const loginModal = useLoginModal();
     const registerModal = useRegisterModal();
+    const handleSignOut = useSignOut();
 
     const handleLoginClick = useCallback(() => {
         loginModal.onOpen();
@@ -86,7 +87,7 @@ export function SideDrawer({ open, onClose, currentUser }: SideDrawerProps) {
                         <div className="flex flex-col py-6 gap-5">
                             {currentUser ? (
                                 <FullRoundedButton
-                                    handleClick={signOut}
+                                    handleClick={handleSignOut}
                                     label="Log Out"
                                 />
                             ) : (

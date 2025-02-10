@@ -1,3 +1,4 @@
+import { useSignOut } from "@/hooks/useSignOut";
 import { FullRoundedButton } from "../../button/rounded/full";
 import { HeaderItem } from "../../navbar/headerItem";
 import { signOut } from "next-auth/react";
@@ -8,6 +9,8 @@ export default function AuthButtons({
     onLogin,
     onSignup,
 }) {
+    const handleSignOut = useSignOut();
+
     return (
         <div className="flex items-center space-x-4">
             {currentUser ? (
@@ -17,7 +20,10 @@ export default function AuthButtons({
                         href={`/profile/${currentUser.id}`}
                         title="Profile"
                     />
-                    <FullRoundedButton handleClick={signOut} label="Log Out" />
+                    <FullRoundedButton
+                        handleClick={handleSignOut}
+                        label="Log Out"
+                    />
                 </div>
             ) : (
                 <div className="hidden lg:flex lg:flex-1 lg:justify-end gap-3">

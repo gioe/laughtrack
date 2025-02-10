@@ -5,6 +5,7 @@ export interface UserInterface {
     password?: string;
     role: string;
     zipCode?: string
+    emailOptin?: boolean
 }
 
 // DB

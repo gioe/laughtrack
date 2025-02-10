@@ -45,7 +45,6 @@ export default function ShowSearchBar() {
         value: any,
         stateUpdater: (prevState: typeof initialState) => typeof initialState,
     ) => {
-        console.log(value);
         const map = new Map<URLParam, ParamsDictValue>();
         map.set(param, value);
 
