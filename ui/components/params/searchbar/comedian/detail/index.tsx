@@ -12,14 +12,14 @@ import {
 import { Navigator } from "@/objects/class/navigate/Navigator";
 import TextInputComponent from "@/ui/components/input/search/text/input";
 import { ComponentVariant, QueryProperty } from "@/objects/enum";
-import CalendarComponent from "@/ui/components/calendar";
-import ShowDistanceSelectionComponent from "@/ui/components/area";
+import ShowDistanceSelectionComponent from "@/ui/components/params/searchbar/components/area";
 import {
     DateRange,
     getDateRangeFromParams,
     getDistanceDataFromParams,
 } from "@/util/search/util";
 import { useSession } from "next-auth/react";
+import CalendarComponent from "../../components/calendar";
 
 export default function ComedianDetailSearchBar() {
     const { getCurrentStyles } = useStyleContext();
@@ -122,7 +122,7 @@ export default function ComedianDetailSearchBar() {
                             placeholder="Search by club"
                             value={searchState.club}
                             onChange={handleClubSearch}
-                            className="w-full border-gray-200 bg-ivory ring-transparent focus:ring-transparent 
+                            className="w-full border-gray-200 bg-ivory ring-transparent focus:ring-transparent
                             shadow-none border-transparent focus:outline-none outline-none"
                         />
                     </div>

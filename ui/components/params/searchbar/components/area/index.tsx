@@ -5,7 +5,7 @@ import { useStyleContext } from "@/contexts/StyleProvider";
 import { MapPin } from "lucide-react";
 import { ComponentVariant } from "@/objects/enum";
 import DropdownComponent from "../dropdown";
-import ZipCodeInput from "../input/zipcode/input";
+import ZipCodeInput from "../zipcode/input";
 
 const selectableDistances = ["5", "10", "15", "20", "25", "50"].map(
     (distance: string, index: number) => ({

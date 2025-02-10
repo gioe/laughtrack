@@ -1,10 +1,12 @@
-const url = new URL(`sidebar.png`, `https:/laughtrack.b-cdn.net/`);
+import { getCdnUrl, getLocalCdnUrl } from "@/util/cdnUtil";
 
 export default function AuthImageContent() {
+    const url = getLocalCdnUrl(`sidebar.png`);
+    console.log(url);
     return (
         <div className="w-1/2 relative bg-gray-900">
             <img
-                src={url.toString()}
+                src={url}
                 alt="Comedy show"
                 className="w-full h-full object-cover"
             />

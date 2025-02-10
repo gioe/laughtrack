@@ -1,13 +1,12 @@
 import React, { ChangeEvent } from "react";
-import { Input, InputProps } from "../../ui/input";
+import { ComponentVariant } from "@/objects/enum";
 import {
     FormControl,
     FormField,
     FormItem,
-    FormLabel,
     FormMessage,
-} from "../../ui/form";
-import { ComponentVariant } from "@/objects/enum";
+} from "@/ui/components/ui/form";
+import { Input } from "@/ui/components/ui/input";
 
 interface ZipCodeInputBaseProps {
     disabled: boolean;

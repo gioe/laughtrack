@@ -1,11 +1,15 @@
 import React from "react";
 import { formatDateRange } from "@/util/primatives/dateUtil";
-import { Popover, PopoverTrigger, PopoverContent } from "../../ui/popover";
-import { Calendar } from "../../ui/calendar";
 import { DateRange } from "@/util/search/util";
 import { ChevronsUpDown } from "lucide-react";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar } from "@/ui/components/ui/calendar";
+import {
+    Popover,
+    PopoverTrigger,
+    PopoverContent,
+} from "@/ui/components/ui/popover";
 
 const PLACEHOLDER = "When";
 

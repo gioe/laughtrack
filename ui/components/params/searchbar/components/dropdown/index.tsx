@@ -1,4 +1,9 @@
-import { FormControl, FormField, FormItem, FormMessage } from "../ui/form";
+import {
+    FormControl,
+    FormField,
+    FormItem,
+    FormMessage,
+} from "../../../../ui/form";
 import { Selectable } from "@/objects/interface";
 import { UseFormReturn } from "react-hook-form";
 import { ComponentVariant } from "@/objects/enum";

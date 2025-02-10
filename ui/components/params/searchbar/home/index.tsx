@@ -9,7 +9,6 @@ import { CircleIconButton } from "@/ui/components/button/circleIcon";
 import { Search } from "lucide-react";
 import { showSearchFormSchema } from "./schema";
 import { Loader2 } from "lucide-react";
-import CalendarComponent from "@/ui/components/calendar";
 import {
     ParamsDictValue,
     SearchParamsHelper,
@@ -17,8 +16,9 @@ import {
 } from "@/objects/class/params/SearchParamsHelper";
 import { Navigator } from "@/objects/class/navigate/Navigator";
 import { Form } from "@/ui/components/ui/form";
-import ShowLocationComponent from "@/ui/components/area";
 import { ComponentVariant, QueryProperty } from "@/objects/enum";
+import CalendarComponent from "../components/calendar";
+import ShowLocationComponent from "../components/area";
 
 const LoadingOverlay = () => (
     <div className="absolute inset-0 bg-black/20 backdrop-blur-sm rounded-full flex items-center justify-center">

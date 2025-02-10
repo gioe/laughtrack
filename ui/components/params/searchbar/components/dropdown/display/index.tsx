@@ -4,7 +4,7 @@ import {
     SelectContent,
     SelectValue,
     SelectItem,
-} from "../../ui/select";
+} from "../../../../../ui/select";
 import { Selectable } from "@/objects/interface";
 import { useStyleContext } from "@/contexts/StyleProvider";
 

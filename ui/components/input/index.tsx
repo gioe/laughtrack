@@ -9,7 +9,7 @@ import {
 } from "../ui/form";
 import PasswordInput from "./password";
 import EmailInput from "./email";
-import ZipCodeInput from "./zipcode/input";
+import ZipCodeInput from "./zipcode";
 
 interface FormInputProps {
     isLoading: boolean;
@@ -57,8 +57,8 @@ export function FormInput({
                 return (
                     <FormItem>
                         <FormLabel
-                            className="text-black font-fjalla
-                         placeholder:text-black placeholder:font-fjalla"
+                            className="text-black font-dmSans
+                         placeholder:text-black placeholder:font-dmSans"
                         >
                             {label}
                         </FormLabel>

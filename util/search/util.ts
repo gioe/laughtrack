@@ -1,6 +1,7 @@
 import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
 import { UserInterface } from "@/objects/class/user/user.interface";
 import { QueryProperty } from "@/objects/enum";
+import { zip } from "lodash";
 
 export interface DateRange {
     from: Date;
@@ -25,7 +26,6 @@ export const getDateRangeFromParams = (paramsHelper: SearchParamsHelper): DateRa
 
         return { from: today, to: tomorrow };
     }
-    console.log(from, to)
     return { from, to };
 };
 

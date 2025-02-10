@@ -12,20 +12,19 @@ import {
 import { Navigator } from "@/objects/class/navigate/Navigator";
 import TextInputComponent from "@/ui/components/input/search/text/input";
 import { ComponentVariant, QueryProperty } from "@/objects/enum";
-import CalendarComponent from "@/ui/components/calendar";
-import ShowDistanceSelectionComponent from "@/ui/components/area";
+import ShowDistanceSelectionComponent from "@/ui/components/params/searchbar/components/area";
 import {
     DateRange,
     getDateRangeFromParams,
     getDistanceDataFromParams,
 } from "@/util/search/util";
 import { useSession } from "next-auth/react";
+import CalendarComponent from "../../components/calendar";
 
 export default function ShowSearchBar() {
     const { getCurrentStyles } = useStyleContext();
-    const { data } = useSession();
+    const session = useSession();
     const styleConfig = getCurrentStyles();
-
     const paramsHelper = new SearchParamsHelper(useSearchParams());
     const navigator = new Navigator(usePathname(), useRouter());
 
@@ -33,11 +32,9 @@ export default function ShowSearchBar() {
     const initialState = {
         comedian: paramsHelper.getParamValue(QueryProperty.Comedian) as string,
         club: paramsHelper.getParamValue(QueryProperty.Club) as string,
-        distance: getDistanceDataFromParams(paramsHelper, data?.user),
+        distance: getDistanceDataFromParams(paramsHelper, session.data?.user),
         dateRange: getDateRangeFromParams(paramsHelper),
     };
-
-    console.log(initialState);
 
     // Combined state management
     const [searchState, setSearchState] = useState(initialState);
@@ -97,7 +94,7 @@ export default function ShowSearchBar() {
     return (
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div
-                className="flex flex-col lg:flex-row gap-2 lg:gap-0 
+                className="flex flex-col lg:flex-row gap-2 lg:gap-0
             bg-ivory rounded-3xl lg:rounded-full border
              border-gray-200 p-2 lg:p-4 shadow-sm"
             >
@@ -136,7 +133,7 @@ export default function ShowSearchBar() {
                             placeholder="Search for comedian"
                             value={searchState.comedian}
                             onChange={handleComedianSearch}
-                            className="w-full border-gray-200 bg-ivory ring-transparent focus:ring-transparent 
+                            className="w-full border-gray-200 bg-ivory ring-transparent focus:ring-transparent
                             shadow-none border-transparent focus:outline-none outline-none"
                         />
                     </div>
@@ -153,7 +150,7 @@ export default function ShowSearchBar() {
                             placeholder="Search by club"
                             value={searchState.club}
                             onChange={handleClubSearch}
-                            className="border-gray-200 bg-ivory ring-transparent focus:ring-transparent 
+                            className="border-gray-200 bg-ivory ring-transparent focus:ring-transparent
                             shadow-none border-transparent focus:outline-none outline-none"
                         />
                     </div>

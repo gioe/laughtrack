@@ -12,7 +12,7 @@ import {
 } from "@/objects/class/params/SearchParamsHelper";
 import { Navigator } from "@/objects/class/navigate/Navigator";
 import TextInputComponent from "@/ui/components/input/search/text/input";
-import ShowDistanceSelectionComponent from "@/ui/components/area";
+import ShowDistanceSelectionComponent from "@/ui/components/params/searchbar/components/area";
 import { DistanceData, getDistanceDataFromParams } from "@/util/search/util";
 import { useSession } from "next-auth/react";
 
