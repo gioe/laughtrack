@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-
+import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -56,7 +56,7 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
             >
                 <FormInput
                     type="email"
-                    isLoading={false}
+                    isLoading={isLoading}
                     name={"email"}
                     label={"Email"}
                     placeholder={"Enter your email"}
@@ -64,7 +64,7 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
                 />
                 <FormInput
                     type="password"
-                    isLoading={false}
+                    isLoading={isLoading}
                     name={"password"}
                     label={"Password"}
                     placeholder={"Enter password"}
@@ -72,6 +72,11 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
                 />
                 <FormSubmissionButton>Log In</FormSubmissionButton>
             </form>
+            {isLoading && (
+                <div className="z-10 absolute inset-0 flex items-center justify-center bg-white/50 rounded-lg">
+                    <Loader2 className="w-8 h-8 text-[#8B593B] animate-spin" />
+                </div>
+            )}
         </FormProvider>
     );
 }

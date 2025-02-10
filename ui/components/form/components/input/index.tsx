@@ -56,10 +56,7 @@ export function FormInput({
             render={({ field }) => {
                 return (
                     <FormItem>
-                        <FormLabel
-                            className="text-black font-dmSans
-                         placeholder:text-black placeholder:font-dmSans"
-                        >
+                        <FormLabel className="text-black font-gilroy-bold font-bold">
                             {label}
                         </FormLabel>
                         <FormControl className="rounded-lg">

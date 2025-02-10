@@ -3,6 +3,7 @@
 
 import toast from "react-hot-toast";
 import FormSubmissionButton from "../../button/form";
+import { Loader2 } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { registerSchema } from "./schema";
@@ -70,7 +71,7 @@ export default function RegistrationForm({ onSubmit }: RegistrationFormProps) {
             >
                 <FormInput
                     type="email"
-                    isLoading={false}
+                    isLoading={isLoading}
                     name={"email"}
                     label={"Email"}
                     placeholder={"Enter your email"}
@@ -78,7 +79,7 @@ export default function RegistrationForm({ onSubmit }: RegistrationFormProps) {
                 />
                 <FormInput
                     type="password"
-                    isLoading={false}
+                    isLoading={isLoading}
                     name={"password"}
                     label={"Password"}
                     placeholder={"Enter password"}
@@ -86,7 +87,7 @@ export default function RegistrationForm({ onSubmit }: RegistrationFormProps) {
                 />
                 <FormInput
                     type="zipCode"
-                    isLoading={false}
+                    isLoading={isLoading}
                     name={"zipCode"}
                     label={"Zip Code"}
                     placeholder={
@@ -114,6 +115,11 @@ export default function RegistrationForm({ onSubmit }: RegistrationFormProps) {
                 {/* Login Button */}
                 <FormSubmissionButton>Sign Up</FormSubmissionButton>
             </form>
+            {isLoading && (
+                <div className="z-10 absolute inset-0 flex items-center justify-center bg-white/50 rounded-lg">
+                    <Loader2 className="w-8 h-8 text-[#8B593B] animate-spin" />
+                </div>
+            )}
         </FormProvider>
     );
 }
