@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Heart } from "lucide-react";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { Comedian } from "@/objects/class/comedian/Comedian";
-import SocialMediaColumn from "../socialColumn";
+import SocialMediaColumn from "../social";
 import { useFavorite } from "@/hooks/useFavorite";
 import Image from "next/image";
 import { getLocalCdnUrl } from "@/util/cdnUtil";

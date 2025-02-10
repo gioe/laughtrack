@@ -11,23 +11,22 @@ import {
     URLParam,
 } from "@/objects/class/params/SearchParamsHelper";
 import { Navigator } from "@/objects/class/navigate/Navigator";
-import TextInputComponent from "@/ui/components/params/searchbar/components/textInput";
-import ShowDistanceSelectionComponent from "@/ui/components/params/searchbar/components/area";
 import { getDistanceDataFromParams } from "@/util/search/util";
-import { useSession } from "next-auth/react";
+import ShowLocationComponent from "../../../components/area";
+import TextInputComponent from "../../../components/textInput";
+import { useParams } from "@/contexts/ParamsProvider";
 
 export default function ClubSearchBar() {
-    const { data } = useSession();
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
-
-    const paramsHelper = new SearchParamsHelper(useSearchParams());
+    const params = useParams();
+    const paramsHelper = new SearchParamsHelper(new URLSearchParams(params));
     const navigator = new Navigator(usePathname(), useRouter());
 
     // Initial state setup
     const initialState = {
         club: paramsHelper.getParamValue(QueryProperty.Club) as string,
-        distance: getDistanceDataFromParams(paramsHelper, data?.user),
+        distance: getDistanceDataFromParams(paramsHelper),
     };
 
     // Combined state management
@@ -66,7 +65,7 @@ export default function ClubSearchBar() {
     return (
         <div className="flex items-center bg-ivory rounded-full border border-gray-200 px-4 py-2 shadow-sm max-w-3xl w-full">
             <div className="flex items-center flex-1 border-r border-gray-200 pr-4">
-                <ShowDistanceSelectionComponent
+                <ShowLocationComponent
                     variant={ComponentVariant.Standalone}
                     value={searchState.distance}
                     onDistanceSelection={handleDistanceSelection}

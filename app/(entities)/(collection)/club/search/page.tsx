@@ -18,21 +18,21 @@ import FilterBar from "@/ui/pages/search/filterBar";
 import FooterComponent from "@/ui/pages/home/footer";
 import Navbar from "@/ui/components/navbar";
 import ClubGrid from "@/ui/components/grid/club";
-import SearchDetailHeader from "@/ui/pages/search/detailHeader";
-import { getSortOptionsForEntityType } from "@/util/sort";
+import SearchDetailHeader from "@/ui/pages/search/header";
 import { SearchVariant } from "@/objects/enum/searchVariant";
+import { ParamsProvider } from "@/contexts/ParamsProvider";
 
 export default async function ClubSearchPage(props: any) {
     const session = await auth();
 
-    const paramsWrapper = await SearchParamsHelper.storePageParams(
+    const paramsHelper = await SearchParamsHelper.storePageParams(
         props.searchParams,
     );
 
     const { data, total, filters } = await makeRequest<ClubSearchResponse>(
         APIRoutePath.ClubSearch,
         {
-            searchParams: paramsWrapper.asUrlSearchParams(),
+            searchParams: paramsHelper.asUrlSearchParams(),
             session,
             next: {
                 revalidate: CACHE.search,
@@ -43,26 +43,27 @@ export default async function ClubSearchPage(props: any) {
 
     const parsedFilters = filters.map(
         (dto: FilterDTO) =>
-            new Filter(dto, paramsWrapper.getParamValue(QueryProperty.Filters)),
+            new Filter(dto, paramsHelper.getParamValue(QueryProperty.Filters)),
     );
 
     return (
         <main className="min-h-screen w-full bg-ivory">
-            <FilterModal filters={filters} total={total} />
-            <StyleContextProvider initialContext={StyleContextKey.Search}>
-                <Navbar currentUser={session?.user} />
-            </StyleContextProvider>
+            <Navbar currentUser={session?.user} />
 
-            <SearchDetailHeader
-                title={`Search clubs`}
-                subTitle={`${total} results`}
-            />
-            <FilterBar
-                variant={SearchVariant.AllClubs}
-                total={total}
-                filters={parsedFilters.length > 0}
-            />
-            <ClubGrid clubs={data} />
+            <ParamsProvider value={paramsHelper.asUrlSearchParams()}>
+                <FilterModal filters={filters} total={total} />
+                <SearchDetailHeader
+                    title={`Search clubs`}
+                    subTitle={`${total} results`}
+                />
+                <FilterBar
+                    variant={SearchVariant.AllClubs}
+                    total={total}
+                    filters={parsedFilters.length > 0}
+                />
+                <ClubGrid clubs={data} />
+            </ParamsProvider>
+
             <FooterComponent />
         </main>
     );

@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { MapPin } from "lucide-react";
 import { Club } from "@/objects/class/club/Club";
 import { ClubDTO } from "@/objects/class/club/club.interface";
-import ClubDataColumn from "../socialColumn";
+import ClubDataColumn from "../social";
 import { getLocalCdnUrl } from "@/util/cdnUtil";
 
 const PLACEHOLDER = getLocalCdnUrl("club-placeholder.png");

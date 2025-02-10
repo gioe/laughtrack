@@ -12,8 +12,6 @@ export async function POST(request: Request) {
         where: { email: email }
     }))
 
-    console.log(`The user is ${user}`)
-
     if (!user) {
         return NextResponse.json({ error: "User doesn't exist." }, { status: 400 });
     }

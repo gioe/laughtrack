@@ -4,7 +4,7 @@ import { auth } from "@/auth";
 import { StyleContextProvider } from "@/contexts/StyleProvider";
 import { APIRoutePath, StyleContextKey } from "@/objects/enum";
 import Navbar from "@/ui/components/navbar";
-import UserDetailHeader from "@/ui/pages/entity/user/detailheader";
+import UserDetailHeader from "@/ui/pages/entity/user/header";
 import FooterComponent from "@/ui/pages/home/footer";
 import { makeRequest } from "@/util/actions/makeRequest";
 import { ProfilePageResponse } from "./interface";

@@ -1,11 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
-import {
-    APIRoutePath,
-    EntityType,
-    QueryProperty,
-    StyleContextKey,
-} from "@/objects/enum";
+import { APIRoutePath, QueryProperty, StyleContextKey } from "@/objects/enum";
 import { CACHE } from "@/util/constants/cacheConstants";
 import { makeRequest } from "@/util/actions/makeRequest";
 import { ComedianSearchResponse } from "@/app/api/comedian/search/interface";
@@ -13,27 +8,26 @@ import { auth } from "@/auth";
 import { StyleContextProvider } from "@/contexts/StyleProvider";
 import FooterComponent from "@/ui/pages/home/footer";
 import ComedianGrid from "@/ui/components/grid/comedian";
-import SearchDetailHeader from "@/ui/pages/search/detailHeader";
+import SearchDetailHeader from "@/ui/pages/search/header";
 import FilterModal from "@/ui/components/modals/filter";
 import Navbar from "@/ui/components/navbar";
 import FilterBar from "@/ui/pages/search/filterBar";
 import { FilterDTO } from "@/objects/interface/filter.interface";
 import { Filter } from "@/objects/class/filter/Filter";
-import ComedianSearchBar from "@/ui/components/params/searchbar/comedian/all";
-import { getSortOptionsForEntityType } from "@/util/sort";
 import { SearchVariant } from "@/objects/enum/searchVariant";
+import { ParamsProvider } from "@/contexts/ParamsProvider";
 
 export default async function ComedianSearchPage(props: any) {
     const session = await auth();
 
-    const paramsWrapper = await SearchParamsHelper.storePageParams(
+    const paramsHelper = await SearchParamsHelper.storePageParams(
         props.searchParams,
     );
 
     const { data, total, filters } = await makeRequest<ComedianSearchResponse>(
         APIRoutePath.ComedianSearch,
         {
-            searchParams: paramsWrapper.asUrlSearchParams(),
+            searchParams: paramsHelper.asUrlSearchParams(),
             session,
             next: {
                 revalidate: CACHE.search,
@@ -43,31 +37,32 @@ export default async function ComedianSearchPage(props: any) {
     );
     const parsedFilters = filters.map(
         (dto: FilterDTO) =>
-            new Filter(dto, paramsWrapper.getParamValue(QueryProperty.Filters)),
+            new Filter(dto, paramsHelper.getParamValue(QueryProperty.Filters)),
     );
 
     return (
         <main className="min-h-screen w-full bg-ivory">
-            <FilterModal filters={filters} total={total} />
-            <StyleContextProvider initialContext={StyleContextKey.Search}>
-                <Navbar currentUser={session?.user} />
-            </StyleContextProvider>
+            <Navbar currentUser={session?.user} />
 
-            <SearchDetailHeader
-                title={`Search comedians`}
-                subTitle={`${total} results`}
-            />
+            <ParamsProvider value={paramsHelper.asUrlSearchParams()}>
+                <FilterModal filters={filters} total={total} />
 
-            <FilterBar
-                variant={SearchVariant.AllComedians}
-                total={total}
-                filters={filters.length > 0}
-            />
+                <SearchDetailHeader
+                    title={`Search comedians`}
+                    subTitle={`${total} results`}
+                />
 
-            <ComedianGrid
-                comedians={data}
-                className="grid grid-cols-1 m:grid-cols-2 lg:grid-cols-2 xl:grid-cols-5 gap-6"
-            />
+                <FilterBar
+                    variant={SearchVariant.AllComedians}
+                    total={total}
+                    filters={filters.length > 0}
+                />
+
+                <ComedianGrid
+                    comedians={data}
+                    className="grid grid-cols-1 m:grid-cols-2 lg:grid-cols-2 xl:grid-cols-5 gap-6"
+                />
+            </ParamsProvider>
 
             <FooterComponent />
         </main>

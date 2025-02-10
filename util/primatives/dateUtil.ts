@@ -11,9 +11,9 @@ const DEFAULT_DATE_FORMAT = "LLL d, yyyy";
  * Formats a single date with special handling for today and tomorrow
  */
 const formatSingleDate: DateFormatter = (date: Date): string => {
-    if (isToday(date)) return "Today";
-    if (isTomorrow(date)) return "Tomorrow";
-    return format(date, DEFAULT_DATE_FORMAT);
+    if (isToday(date)) return "Today - ";
+    if (isTomorrow(date)) return "Tomorrow - ";
+    return `${format(date, DEFAULT_DATE_FORMAT)} - `;
 };
 
 /**
@@ -28,7 +28,7 @@ const isSingleDayRange = (from: Date, to: Date): boolean => {
  */
 export const formatDateRange = (placeholder: string, range?: DateRange): string => {
     // Handle undefined or empty range
-    if (!range || (!range.to)) {
+    if (!range?.to && !range?.from) {
         return placeholder;
     }
 
@@ -56,7 +56,7 @@ export const formatDateRange = (placeholder: string, range?: DateRange): string 
         }
 
         // Handle multi-day range
-        return `${formatSingleDate(from)} - ${format(to, DEFAULT_DATE_FORMAT)}`;
+        return `${formatSingleDate(from)} ${format(to, DEFAULT_DATE_FORMAT)}`;
 
     } catch (error) {
         console.error("Error formatting date range:", error);

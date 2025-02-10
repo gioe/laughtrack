@@ -17,8 +17,8 @@ import {
 import { Navigator } from "@/objects/class/navigate/Navigator";
 import { Form } from "@/ui/components/ui/form";
 import { ComponentVariant, QueryProperty } from "@/objects/enum";
-import CalendarComponent from "../components/calendar";
-import ShowLocationComponent from "../components/area";
+import CalendarComponent from "../../components/calendar";
+import ShowLocationComponent from "../../components/area";
 
 const LoadingOverlay = () => (
     <div className="absolute inset-0 bg-black/20 backdrop-blur-sm rounded-full flex items-center justify-center">
@@ -68,7 +68,7 @@ export default function ShowSearchForm() {
             await new Promise((resolve) => setTimeout(resolve, 300));
 
             paramsHelper.updateParamsFromMap(map);
-            navigator.pushPage("show/all", paramsHelper.asParamsString());
+            navigator.pushPage("show/search", paramsHelper.asParamsString());
         } catch (error) {
             console.error("Error during navigation:", error);
         } finally {

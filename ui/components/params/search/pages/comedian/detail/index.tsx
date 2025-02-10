@@ -10,30 +10,29 @@ import {
     URLParam,
 } from "@/objects/class/params/SearchParamsHelper";
 import { Navigator } from "@/objects/class/navigate/Navigator";
-import TextInputComponent from "@/ui/components/params/searchbar/components/textInput";
 import { ComponentVariant, QueryProperty } from "@/objects/enum";
-import ShowDistanceSelectionComponent from "@/ui/components/params/searchbar/components/area";
 import {
     DateRange,
     getDateRangeFromParams,
     getDistanceDataFromParams,
 } from "@/util/search/util";
-import { useSession } from "next-auth/react";
-import CalendarComponent from "../../components/calendar";
+import ShowLocationComponent from "../../../components/area";
+import CalendarComponent from "../../../components/calendar";
+import TextInputComponent from "../../../components/textInput";
+import { useParams } from "@/contexts/ParamsProvider";
 
 export default function ComedianDetailSearchBar() {
     const { getCurrentStyles } = useStyleContext();
-    const { data } = useSession();
-
     const styleConfig = getCurrentStyles();
-
-    const paramsHelper = new SearchParamsHelper(useSearchParams());
+    const params = useParams();
+    const paramsHelper = new SearchParamsHelper(new URLSearchParams(params));
     const navigator = new Navigator(usePathname(), useRouter());
+
     // Initial state setup
     const initialState = {
         comedian: paramsHelper.getParamValue(QueryProperty.Comedian) as string,
         club: paramsHelper.getParamValue(QueryProperty.Club) as string,
-        distance: getDistanceDataFromParams(paramsHelper, data?.user),
+        distance: getDistanceDataFromParams(paramsHelper),
         dateRange: getDateRangeFromParams(paramsHelper),
     };
 
@@ -60,7 +59,7 @@ export default function ComedianDetailSearchBar() {
             club: value,
         }));
 
-    const handleDateRangeSelection = (value?: DateRange) =>
+    const handleDateRangeSelection = (value?: DateRange) => {
         updateSearchParams(
             QueryProperty.FromDate,
             value?.from ?? "",
@@ -72,6 +71,14 @@ export default function ComedianDetailSearchBar() {
                 },
             }),
         );
+        updateSearchParams(QueryProperty.ToDate, value?.to ?? "", (prev) => ({
+            ...prev,
+            dateRange: {
+                from: value?.from ?? new Date(),
+                to: value?.to ?? new Date(),
+            },
+        }));
+    };
 
     const handleDistanceSelection = (distance: string) =>
         updateSearchParams(QueryProperty.Distance, distance, (prev) => ({
@@ -90,7 +97,7 @@ export default function ComedianDetailSearchBar() {
                 {/* City Selection */}
                 <div className="flex-1 lg:border-r lg:border-gray-200 lg:pr-4">
                     <div className="flex items-center p-2 lg:p-0 rounded-full lg:rounded-none hover:bg-gray-50 lg:hover:bg-transparent transition-colors">
-                        <ShowDistanceSelectionComponent
+                        <ShowLocationComponent
                             variant={ComponentVariant.Standalone}
                             value={searchState.distance}
                             onDistanceSelection={handleDistanceSelection}

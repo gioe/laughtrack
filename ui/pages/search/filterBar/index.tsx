@@ -4,11 +4,11 @@ import { EntityType } from "@/objects/enum";
 import { SearchVariant } from "@/objects/enum/searchVariant";
 import { FilterModalButton } from "@/ui/components/params/filter";
 import { PageParamComponent } from "@/ui/components/params/page";
-import ClubSearchBar from "@/ui/components/params/searchbar/club/all";
-import ClubDetailSearchBar from "@/ui/components/params/searchbar/club/detail";
-import ComedianSearchBar from "@/ui/components/params/searchbar/comedian/all";
-import ComedianDetailSearchBar from "@/ui/components/params/searchbar/comedian/detail";
-import ShowSearchBar from "@/ui/components/params/searchbar/show/all";
+import ClubSearchBar from "@/ui/components/params/search/pages/club/all";
+import ClubDetailSearchBar from "@/ui/components/params/search/pages/club/detail";
+import ComedianSearchBar from "@/ui/components/params/search/pages/comedian/all";
+import ComedianDetailSearchBar from "@/ui/components/params/search/pages/comedian/detail";
+import ShowSearchBar from "@/ui/components/params/search/pages/show/all";
 import { SortParamComponent } from "@/ui/components/params/sort";
 import { getSortOptionsForEntityType } from "@/util/sort";
 

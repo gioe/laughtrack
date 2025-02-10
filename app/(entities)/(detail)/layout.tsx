@@ -1,4 +1,3 @@
-import { PageEntityProvider } from "@/contexts/PageEntityProvider";
 import { StyleContextProvider } from "@/contexts/StyleProvider";
 import { StyleContextKey } from "@/objects/enum";
 
@@ -10,7 +9,7 @@ export default async function EntityDetailLayout({
 }) {
     return (
         <StyleContextProvider initialContext={StyleContextKey.Search}>
-            <PageEntityProvider>{children}</PageEntityProvider>
+            {children}
         </StyleContextProvider>
     );
 }

@@ -1,4 +1,4 @@
-import ShowSearchForm from "../params/searchbar/home";
+import ShowSearchForm from "../params/search/pages/home";
 
 interface HeroContentProps {
     title: string;

@@ -13,7 +13,7 @@ const MENU_ITEMS = {
         {
             name: "Search",
             description: "Search for comedians you're interested in",
-            href: "/comedian/all",
+            href: "/comedian/search",
             icon: FaceSmileIcon,
         },
     ],
@@ -21,7 +21,7 @@ const MENU_ITEMS = {
         {
             name: "Search",
             description: "Search for clubs you're interested in",
-            href: "/club/all",
+            href: "/club/search",
             icon: BuildingStorefrontIcon,
         },
     ],
@@ -29,7 +29,7 @@ const MENU_ITEMS = {
         {
             name: "Search",
             description: "Search for shows in your area",
-            href: "/show/all",
+            href: "/show/search",
             icon: MapPinIcon,
         },
     ],
