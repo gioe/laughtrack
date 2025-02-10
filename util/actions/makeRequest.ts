@@ -32,7 +32,6 @@ export const makeRequest = async <T>(
     const headers: Record<string, string> = {
         "Content-Type": "application/x-www-form-urlencoded",
         "x-auth-token": session?.accessToken ?? "",
-        "user_id": session?.user.id
     };
 
     // Add authorization header if token provided
