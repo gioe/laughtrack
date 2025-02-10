@@ -6,7 +6,7 @@ import {
     FormItem,
     FormLabel,
     FormMessage,
-} from "../ui/form";
+} from "../../../ui/form";
 import PasswordInput from "./password";
 import EmailInput from "./email";
 import ZipCodeInput from "./zipcode";

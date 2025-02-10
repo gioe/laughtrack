@@ -8,7 +8,7 @@ import { loginSchema } from "./schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
 import { signIn } from "next-auth/react";
-import { FormInput } from "../../input";
+import { FormInput } from "../components/input";
 import FormSubmissionButton from "../../button/form";
 
 interface LoginFormProps {

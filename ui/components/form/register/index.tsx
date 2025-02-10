@@ -8,7 +8,7 @@ import { useState } from "react";
 import { registerSchema } from "./schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { FormInput } from "../../input/index";
+import { FormInput } from "../components/input/index";
 import { FormProvider, useForm } from "react-hook-form";
 import { makeRequest } from "@/util/actions/makeRequest";
 import { APIRoutePath, RestAPIAction } from "@/objects/enum";

@@ -16,7 +16,6 @@ interface ShowCardHeaderProps {
 const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
     show,
 }: ShowCardHeaderProps) => {
-    const dateObject = moment(new Date(show.date ?? new Date()));
     const ticket = show.ticket;
     const [error, setError] = useState(false);
 
@@ -46,7 +45,9 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
                 <p className="text-gray-600 font-dmSans text-[18px]">
                     {formatShowDate(show.date.toString())} · {`${show.address}`}
                 </p>
-                <p className="text-copper font-semibold mt-1 font-inter text-[20px]">{`$${ticket.price.toString()}`}</p>
+                {!show.soldOut && (
+                    <p className="text-copper font-semibold mt-1 font-inter text-[20px]">{`$${ticket.price.toString()}`}</p>
+                )}
             </div>
         </div>
     );

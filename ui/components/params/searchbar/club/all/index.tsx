@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ChangeEvent, useState } from "react";
-import { MapPin, Theater } from "lucide-react";
+import { Theater } from "lucide-react";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import { ComponentVariant, QueryProperty } from "@/objects/enum";
 import {
@@ -11,9 +11,9 @@ import {
     URLParam,
 } from "@/objects/class/params/SearchParamsHelper";
 import { Navigator } from "@/objects/class/navigate/Navigator";
-import TextInputComponent from "@/ui/components/input/search/text/input";
+import TextInputComponent from "@/ui/components/params/searchbar/components/textInput";
 import ShowDistanceSelectionComponent from "@/ui/components/params/searchbar/components/area";
-import { DistanceData, getDistanceDataFromParams } from "@/util/search/util";
+import { getDistanceDataFromParams } from "@/util/search/util";
 import { useSession } from "next-auth/react";
 
 export default function ClubSearchBar() {

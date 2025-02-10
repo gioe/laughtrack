@@ -2,7 +2,6 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-
 import { Users } from "lucide-react";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import { QueryProperty } from "@/objects/enum";
@@ -12,7 +11,7 @@ import {
     URLParam,
 } from "@/objects/class/params/SearchParamsHelper";
 import { Navigator } from "@/objects/class/navigate/Navigator";
-import TextInputComponent from "@/ui/components/input/search/text/input";
+import TextInputComponent from "@/ui/components/params/searchbar/components/textInput";
 
 export default function ComedianSearchBar() {
     const { getCurrentStyles } = useStyleContext();
@@ -59,7 +58,7 @@ export default function ComedianSearchBar() {
                     placeholder="Search for comedian"
                     value={searchState.comedian}
                     onChange={handleComedianSearch}
-                    className="border-gray-200 bg-ivory ring-transparent focus:ring-transparent 
+                    className="border-gray-200 bg-ivory ring-transparent focus:ring-transparent
     shadow-none border-transparent focus:outline-none outline-none"
                 />
             </div>
