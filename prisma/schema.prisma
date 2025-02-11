@@ -61,23 +61,70 @@ model Comedian {
 }
 
 model User {
-  id                    Int                @id @default(autoincrement())
-  email                 String             @unique
-  password              String
-  role                  String             @default("user")
-  zipCode               String?            @map("zip_code") @db.VarChar(10)
-  emailShowNotifications Boolean           @default(false) @map("email_show_notifications")
-  createdAt             DateTime           @default(now())
-  updatedAt             DateTime           @default(now()) @updatedAt @map("update_at")
+  id            String          @id @default(cuid())
+  name          String?
+  email         String          @unique
+  emailVerified DateTime?
+  accounts      Account[]
+  sessions      Session[]
   favoriteComedians     FavoriteComedian[]
+  profile       UserProfile?  // One-to-one relation
 
-  @@map("users")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+ 
+model UserProfile {
+  id           String             @id @default(cuid())
+  user         User               @relation(fields: [userId], references: [id])
+  userId       String             @unique
+  role         String             @default("user")
+  emailShowNotifications Boolean  @default(false) @map("email_show_notifications")
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+ 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+ 
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+ 
+  @@id([provider, providerAccountId])
+}
+ 
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+ 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+ 
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+ 
+  @@id([identifier, token])
 }
 
 model FavoriteComedian {
   id         Int      @default(autoincrement())
   comedianId String   @map("comedian_id")
-  userId     Int      @map("user_id")
+  userId     String   @map("user_id")
   comedian   Comedian @relation(fields: [comedianId], references: [uuid], onDelete: Cascade)
   user       User     @relation(fields: [userId], references: [id])
 

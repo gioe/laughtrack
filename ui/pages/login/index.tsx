@@ -40,7 +40,7 @@ function LaughtrackLogin({
                             </p>
                         </div>
 
-                        <LoginForm onSubmit={handleSubmit} />
+                        <LoginForm />
                         {/* Sign Up Link */}
                         <p className="text-center text-gray-600 font-dmSans text-[16px] pt-10">
                             Don't have an account yet?{" "}
