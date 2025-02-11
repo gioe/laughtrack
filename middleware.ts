@@ -46,7 +46,7 @@ async function handlePublicRoute(request: NextRequest, session: Session | null) 
     const url = new URL(request.nextUrl.pathname, request.url);
     const searchParams = new URLSearchParams(request.nextUrl.search);
 
-    setParamDefaults(searchParams, request.nextUrl.pathname, session?.user)
+    setParamDefaults(searchParams, request.nextUrl.pathname, undefined)
 
     for (const [key, value] of searchParams.entries()) {
         url.searchParams.set(key, value);

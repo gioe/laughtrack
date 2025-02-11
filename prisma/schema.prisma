@@ -9,13 +9,6 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-model City {
-  id    Int    @id @default(autoincrement())
-  name  String @unique
-  clubs Club[]
-
-  @@map("cities")
-}
 
 model Club {
   id          Int          @id @default(autoincrement())
@@ -25,12 +18,10 @@ model Club {
   scrapingUrl String       @map("scraping_url")
   popularity  Float        @default(0.0)
   zipCode     String?      @map("zip_code") @db.VarChar(10)
-  cityId      Int          @map("city_id")
   phoneNumber String?      @default("") @map("phone_number")
   timezone    String?      @map("timezone")
   visible     Boolean?     @default(true)
-  city        City         @relation(fields: [cityId], references: [id], onDelete: Cascade)
-  scraper      String?
+  scraper     String?
   shows       Show[]
   taggedClubs TaggedClub[]
 
@@ -49,6 +40,8 @@ model Comedian {
   youtubeAccount     String?            @map("youtube_account")
   youtubeFollowers   Int?               @map("youtube_followers")
   uuid               String             @unique
+  totalShows         Int                @default(0) @map("total_shows")
+  soldOutShows       Int                @default(0) @map("sold_out_shows")
   linktree           String?
   favoriteComedians  FavoriteComedian[]
   lineupItems        LineupItem[]
@@ -65,21 +58,25 @@ model User {
   name          String?
   email         String          @unique
   emailVerified DateTime?
+  image         String?
   accounts      Account[]
   sessions      Session[]
-  favoriteComedians     FavoriteComedian[]
   profile       UserProfile?  // One-to-one relation
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@map("users")
 }
  
 model UserProfile {
-  id           String             @id @default(cuid())
-  user         User               @relation(fields: [userId], references: [id])
-  userId       String             @unique
-  role         String             @default("user")
+  id                     String             @id @default(cuid())
+  user                   User               @relation(fields: [userId], references: [id])
+  userId                 String             @unique
+  role                   String             @default("user")
   emailShowNotifications Boolean  @default(false) @map("email_show_notifications")
+  favoriteComedians      FavoriteComedian[]
+  zipCode                String?            @map("zip_code")
+  @@map("user_profiles")
 }
 
 model Account {
@@ -101,6 +98,7 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
  
   @@id([provider, providerAccountId])
+  @@map("accounts")
 }
  
 model Session {
@@ -111,6 +109,7 @@ model Session {
  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@map("sessions")
 }
  
 model VerificationToken {
@@ -119,16 +118,17 @@ model VerificationToken {
   expires    DateTime
  
   @@id([identifier, token])
+  @@map("tokens")
 }
 
 model FavoriteComedian {
-  id         Int      @default(autoincrement())
-  comedianId String   @map("comedian_id")
-  userId     String   @map("user_id")
-  comedian   Comedian @relation(fields: [comedianId], references: [uuid], onDelete: Cascade)
-  user       User     @relation(fields: [userId], references: [id])
+  id         Int             @default(autoincrement())
+  comedianId String          @map("comedian_id")
+  profileId     String       @map("profile_id")
+  comedian   Comedian        @relation(fields: [comedianId], references: [uuid], onDelete: Cascade)
+  user       UserProfile     @relation(fields: [profileId], references: [id])
 
-  @@id([userId, comedianId])
+  @@id([profileId, comedianId])
   @@map("favorite_comedians")
 }
 
@@ -138,19 +138,28 @@ model Show {
   date                DateTime     @db.Timestamptz(6)
   showPageUrl         String       @map("show_page_url")
   clubId              Int          @map("club_id")
-  ticketPriceCurrency String       @default("USD") @map("ticket_price_currency")
   popularity          Float        @default(0.0)
   lastScrapedDate     DateTime?    @map("last_scraped_date") @db.Timestamptz(6)
   description         String?
-  ticketPurchaseUrl   String?      @map("ticket_purchase_url")
-  ticketPrice         Decimal?     @map("ticket_price") @db.Decimal(5, 2)
-  soldOut             Boolean      @default(false) @map("sold_out")
+  tickets             Ticket[]     // New relation to Ticket model
   lineupItems         LineupItem[]
   club                Club         @relation(fields: [clubId], references: [id], onDelete: Cascade)
   taggedShows         TaggedShow[]
 
   @@unique([clubId, date])
   @@map("shows")
+}
+
+model Ticket {
+  id                Int      @id @default(autoincrement())
+  purchaseUrl       String?  @map("purchase_url")
+  price             Decimal? @map("price") @db.Decimal(5, 2)
+  soldOut           Boolean  @default(false) @map("sold_out")
+  showId            Int      @map("show_id")
+  show              Show     @relation(fields: [showId], references: [id], onDelete: Cascade)
+  ticketType        String?  @map("ticket_type")  // Optional ticket type field
+
+  @@map("tickets")
 }
 
 model LineupItem {
@@ -165,48 +174,45 @@ model LineupItem {
 }
 
 model Tag {
-  id              Int              @default(autoincrement()) @unique 
+  id              Int              @id @default(autoincrement())
   display         String?
-  type            String           // Removed ? to make it required
+  type            String           
   userFacing      Boolean          @default(false) @map("user_facing")
-  value           String           // Removed ? to make it required
+  value           String           
   taggedClubs     TaggedClub[]
   taggedComedians TaggedComedian[]
   taggedShows     TaggedShow[]
 
-  @@id([value, type])  // Create compound primary key
+  @@unique([type, value])  // Instead of making it the primary key
   @@map("tags")
 }
 
 model TaggedClub {
-  id     Int  @default(autoincrement())
+  id     Int  @id @default(autoincrement())
   clubId Int  @map("club_id")
   tagId  Int  @map("tag_id")
-  club   Club @relation(fields: [clubId], references: [id])
+  club   Club @relation(fields: [clubId], references: [id], onDelete: Cascade)
   tag    Tag  @relation(fields: [tagId], references: [id])
 
-  @@id([clubId, tagId])
   @@map("tagged_clubs")
 }
 
 model TaggedComedian {
-  id         Int      @default(autoincrement())
+  id         Int      @id @default(autoincrement())
   comedianId String   @map("comedian_id")
   tagId      Int      @map("tag_id")
   comedian   Comedian @relation(fields: [comedianId], references: [uuid], onDelete: Cascade)
   tag        Tag      @relation(fields: [tagId], references: [id])
 
-  @@id([comedianId, tagId])
   @@map("tagged_comedians")
 }
 
 model TaggedShow {
-  id     Int  @default(autoincrement())
-  showId Int  @map("show_id")
-  tagId  Int  @map("tag_id")
-  show   Show @relation(fields: [showId], references: [id], onDelete: Cascade)
-  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-  @@id([showId, tagId])
+  id         Int  @id @default(autoincrement())
+  showId     Int  @map("show_id")
+  tagId      Int  @map("tag_id")
+  show       Show @relation(fields: [showId], references: [id], onDelete: Cascade)
+  tag        Tag  @relation(fields: [tagId], references: [id])
+  
   @@map("tagged_shows")
 }

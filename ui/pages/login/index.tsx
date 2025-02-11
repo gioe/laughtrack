@@ -5,18 +5,10 @@ import AuthImageContent from "@/ui/components/auth/image";
 import LoginForm from "@/ui/components/form/login";
 
 interface LaughtrackLoginProps {
-    handleRegisterClick: () => void;
     handleSubmit: () => void;
 }
 
-function LaughtrackLogin({
-    handleSubmit,
-    handleRegisterClick,
-}: LaughtrackLoginProps) {
-    const clickRegisterButton = () => {
-        handleRegisterClick();
-    };
-
+function LaughtrackLogin({ handleSubmit }: LaughtrackLoginProps) {
     return (
         <div className="flex min-h-screen bg-coconut-cream">
             {/* Left Section - Login Form */}
@@ -36,13 +28,14 @@ function LaughtrackLogin({
                                 Welcome back
                             </h2>
                             <p className="text-gray-600 font-dmSans text-[16px]">
-                                Please log in to access your account.
+                                Continue with your preferred provider to access
+                                your account
                             </p>
                         </div>
 
-                        <LoginForm />
+                        <LoginForm onSubmit={handleSubmit} />
                         {/* Sign Up Link */}
-                        <p className="text-center text-gray-600 font-dmSans text-[16px] pt-10">
+                        {/* <p className="text-center text-gray-600 font-dmSans text-[16px] pt-10">
                             Don't have an account yet?{" "}
                             <a
                                 className="text-brown-600 hover:text-brown-500 hover:cursor-pointer"
@@ -50,7 +43,7 @@ function LaughtrackLogin({
                             >
                                 Sign Up
                             </a>
-                        </p>
+                        </p> */}
                     </div>
                 </main>
                 <Copyright />

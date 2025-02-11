@@ -1,6 +1,6 @@
 // Client
 export interface UserInterface {
-    id: number;
+    id: string;
     email: string;
     password?: string;
     role: string;

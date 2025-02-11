@@ -97,10 +97,10 @@ export function SideDrawer({ open, onClose, currentUser }: SideDrawerProps) {
                                         label="Log In"
                                     />
 
-                                    <FullRoundedButton
+                                    {/* <FullRoundedButton
                                         handleClick={handleSignupClick}
                                         label="Sign Up"
-                                    />
+                                    /> */}
                                 </>
                             )}
                         </div>

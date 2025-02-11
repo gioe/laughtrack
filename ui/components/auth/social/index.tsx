@@ -1,7 +1,6 @@
 import React from "react";
 import GoogleGLogo from "../../icons/GoogleIcon";
 import AppleLogo from "../../icons/AppleIcon";
-import { signIn } from "@/auth";
 
 const SocialButton = ({ provider, onClick, children }) => {
     const logos = {
@@ -22,26 +21,16 @@ const SocialButton = ({ provider, onClick, children }) => {
 };
 
 const SocialAuthButtons = ({
-    actionText = "Sign up", // default text, can be "Log In" or "Sign Up"
+    actionText = "Continue",
+    handleGoogleSignin,
+    handleAppleSignin,
 }) => {
     return (
-        <div className="flex gap-4">
-            <SocialButton
-                provider="google"
-                onClick={async () => {
-                    "use server";
-                    await signIn("google");
-                }}
-            >
+        <div className="flex flex-col gap-4">
+            <SocialButton provider="google" onClick={handleGoogleSignin}>
                 {actionText} with Google
             </SocialButton>
-            <SocialButton
-                provider="apple"
-                onClick={async () => {
-                    "use server";
-                    await signIn("apple");
-                }}
-            >
+            <SocialButton provider="apple" onClick={handleAppleSignin}>
                 {actionText} with Apple
             </SocialButton>
         </div>

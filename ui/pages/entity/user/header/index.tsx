@@ -6,18 +6,18 @@ import { makeRequest } from "@/util/actions/makeRequest";
 import { APIRoutePath, RestAPIAction } from "@/objects/enum";
 import toast from "react-hot-toast";
 import { useSession } from "next-auth/react";
-import { UserInterface } from "@/objects/class/user/user.interface";
+import { UserProfileResponse } from "@/app/api/profile/[id]/interface";
 
 interface UserDetailHeaderProps {
-    userProfile: UserInterface;
+    profile: UserProfileResponse;
 }
 
-const UserDetailHeader = ({ userProfile }: UserDetailHeaderProps) => {
+const UserDetailHeader = ({ profile }: UserDetailHeaderProps) => {
     const { data } = useSession();
     const [isEditing, setIsEditing] = useState(false);
-    const [email, setEmail] = useState(userProfile.email);
-    const [emailOptin, setEmailOptin] = useState(userProfile.emailOptin);
-    const [zipCode, setZipCode] = useState(userProfile.zipCode);
+    const [email, setEmail] = useState(profile.email);
+    const [emailOptin, setEmailOptin] = useState(profile.emailOptin);
+    const [zipCode, setZipCode] = useState(profile.zipCode);
     const [hasChanges, setHasChanges] = useState(false);
 
     const handleInputChange =
@@ -27,12 +27,11 @@ const UserDetailHeader = ({ userProfile }: UserDetailHeaderProps) => {
 
             // Check for changes using the new value that's about to be set
             const hasAnyChange =
-                (setter === setEmail ? newValue : email) !==
-                    userProfile.email ||
+                (setter === setEmail ? newValue : email) !== profile.email ||
                 (setter === setZipCode ? newValue : zipCode) !==
-                    userProfile.zipCode ||
+                    profile.zipCode ||
                 (setter === setEmailOptin ? newValue : emailOptin) !==
-                    userProfile.emailOptin;
+                    profile.emailOptin;
 
             setter(newValue);
             setHasChanges(hasAnyChange);
@@ -42,7 +41,7 @@ const UserDetailHeader = ({ userProfile }: UserDetailHeaderProps) => {
         if (isEditing && hasChanges) {
             try {
                 const response = await makeRequest(
-                    APIRoutePath.Profile + `/${userProfile.id}`,
+                    APIRoutePath.Profile + `/${profile.id}`,
                     {
                         method: RestAPIAction.PUT,
                         session: data,
@@ -55,8 +54,8 @@ const UserDetailHeader = ({ userProfile }: UserDetailHeaderProps) => {
                 );
 
                 // If the request is successful, update the original user data
-                userProfile.email = email;
-                userProfile.zipCode = zipCode;
+                profile.email = email;
+                profile.zipCode = zipCode;
 
                 setHasChanges(false);
                 toast.success("Updated successfully");
@@ -66,9 +65,9 @@ const UserDetailHeader = ({ userProfile }: UserDetailHeaderProps) => {
                 toast.error("Something went wrong");
 
                 // Optionally reset form to original values
-                setEmail(userProfile.email);
-                setZipCode(userProfile.zipCode);
-                setEmailOptin(userProfile.emailOptin);
+                setEmail(profile.email);
+                setZipCode(profile.zipCode);
+                setEmailOptin(profile.emailOptin);
                 // You might want to show an error message to the user here
                 return; // Don't toggle edit mode if save failed
             }
@@ -123,7 +122,7 @@ const UserDetailHeader = ({ userProfile }: UserDetailHeaderProps) => {
                     </label>
                     <input
                         type="text"
-                        value={zipCode}
+                        value={zipCode ? zipCode : undefined}
                         onChange={handleInputChange(setZipCode)}
                         disabled={!isEditing}
                         className="w-full max-w-md px-3 py-2 border rounded-md disabled:bg-gray-50 disabled:text-gray-500"

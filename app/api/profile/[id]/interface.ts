@@ -1,5 +1,8 @@
 import { UserInterface } from "@/objects/class/user/user.interface";
 
 export interface UserProfileResponse {
-    user: UserInterface
+    zipCode: string | null
+    emailOptin?: boolean
+    email: string,
+    id: string
 }

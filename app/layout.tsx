@@ -1,8 +1,7 @@
 import "./globals.css";
 import "./fonts.css";
 import { ScrollPositionManager } from "@/ui/components/scroll/manager";
-import GoogleAdsense from "@/ui/components/google";
-import { NextUIProvider } from "@nextui-org/react";
+import { HeroUIProvider } from "@heroui/react";
 import { SessionProvider } from "next-auth/react";
 import {
     Bebas_Neue,
@@ -15,15 +14,11 @@ import {
 } from "next/font/google";
 import type { Metadata } from "next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { CityProvider } from "@/contexts/CityProvider";
-import { getCities } from "@/lib/data/cities/getCities";
 import ToasterProvider from "@/contexts/ToasterProvider";
 import LoginModal from "@/ui/components/modals/login";
 import RegisterModal from "@/ui/components/modals/register";
 import { StyleContextProvider } from "@/contexts/StyleProvider";
 import { StyleContextKey } from "@/objects/enum";
-import { unstable_cache } from "next/cache";
-import { CACHE } from "@/util/constants/cacheConstants";
 import FavoriteRegisterModal from "@/ui/components/modals/favoriteRegister";
 
 const outfit = Outfit({
@@ -73,24 +68,11 @@ export const metadata: Metadata = {
     description: "Find funny stuff",
 };
 
-const getCachedCities = unstable_cache(
-    async () => {
-        return await getCities();
-    },
-    ["city-data"],
-    {
-        revalidate: CACHE.home,
-        tags: ["city-data"],
-    },
-);
-
 export default async function RootLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    const cities = await getCachedCities();
-
     return (
         <SessionProvider>
             <html
@@ -98,7 +80,7 @@ export default async function RootLayout({
                 className={`${bebas.variable} ${oswald.variable} ${inter.variable} ${fjalla.variable} ${chivo.variable} ${dmSams.variable} ${outfit.variable}`}
             >
                 <body>
-                    <NextUIProvider>
+                    <HeroUIProvider>
                         <ScrollPositionManager />
                         <ToasterProvider />
                         <LoginModal />
@@ -107,12 +89,10 @@ export default async function RootLayout({
                         <StyleContextProvider
                             initialContext={StyleContextKey.Home}
                         >
-                            <CityProvider initialCities={cities}>
-                                {children}
-                            </CityProvider>
+                            {children}
                         </StyleContextProvider>
                         <SpeedInsights />
-                    </NextUIProvider>
+                    </HeroUIProvider>
                 </body>
             </html>
         </SessionProvider>

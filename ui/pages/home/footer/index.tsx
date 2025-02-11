@@ -6,7 +6,7 @@ const FooterComponent = () => {
     const handleClick = (e: React.MouseEvent) => {
         e.preventDefault();
         openEmailClient({
-            to: "contact@laughtrack-comedy.com",
+            to: "contact@laugh-track.com",
             subject: "Inquiry",
             body: "",
         });

@@ -2,6 +2,7 @@ import { JWT } from "next-auth/jwt";
 import { getUrl } from "../urlUtil";
 import { Session } from "next-auth";
 import { RestAPIAction } from "../../objects/enum";
+import { headers } from "next/headers"
 
 interface ExecuteOptions {
     method?: RestAPIAction;
@@ -23,15 +24,14 @@ export const makeRequest = async <T>(
         body,
         searchParams,
         revalidate = 0,
-        session,
         next
     } = options;
     // Create base URL
     const url = getUrl(endpoint, searchParams)
+
     // Construct headers
     const headers: Record<string, string> = {
         "Content-Type": "application/x-www-form-urlencoded",
-        "x-auth-token": session?.accessToken ?? "",
     };
 
     // Add authorization header if token provided

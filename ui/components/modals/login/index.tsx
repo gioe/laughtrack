@@ -15,21 +15,12 @@ const LoginModal = () => {
         loginModal.onClose();
     };
 
-    const showRegistrationPage = () => {
-        loginModal.onClose();
-        router.refresh();
-        registerModal.onOpen();
-    };
-
     return (
         <FullScreenModal
             isOpen={loginModal.isOpen}
             onClose={() => loginModal.onClose()}
         >
-            <LaughtrackLogin
-                handleRegisterClick={showRegistrationPage}
-                handleSubmit={onSubmit}
-            />
+            <LaughtrackLogin handleSubmit={onSubmit} />
         </FullScreenModal>
     );
 };

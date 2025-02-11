@@ -45,8 +45,8 @@ const SupportSection = () => {
 
                     <p>
                         We're an accessible team - if you have suggestions for
-                        the product, email us at admin@laughtrack-comedy.com.
-                        More interest means more resources we can dedicate to
+                        the product, email us at contact@laugh-track.com. More
+                        interest means more resources we can dedicate to
                         building features that benefit everyone or, I guess,
                         anyone.
                     </p>

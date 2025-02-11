@@ -28,7 +28,7 @@ export default function AuthButtons({
             ) : (
                 <div className="hidden lg:flex lg:flex-1 lg:justify-end gap-3">
                     <FullRoundedButton handleClick={onLogin} label="Log In" />
-                    <FullRoundedButton handleClick={onSignup} label="Sign Up" />
+                    {/* <FullRoundedButton handleClick={onSignup} label="Sign Up" /> */}
                 </div>
             )}
         </div>

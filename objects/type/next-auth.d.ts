@@ -9,15 +9,14 @@ declare module "next-auth" {
      * Returned by `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
      */
     interface Session {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        user: any,
-        accessToken?: string,
-    }
-
-    interface User {
-        accessToken?: string,
-        refreshToken?: string
-    }
+        user: {
+          id: string  // Add the id field
+          email: string
+          name: string
+          role: string
+          // ... other default fields
+        }
+      }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

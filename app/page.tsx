@@ -11,6 +11,8 @@ import HeroComponent from "@/ui/pages/home/hero";
 import TrendingComedianGrid from "@/ui/pages/home/comedians";
 import TrendingClubsCarousel from "@/ui/pages/home/clubs";
 import FooterComponent from "@/ui/pages/home/footer";
+import { UserProfileResponse } from "./api/profile/[id]/interface";
+import { getUserProfileData } from "@/lib/data/profile/getUserProfileData";
 
 export default async function HomePage() {
     const session = await auth();

@@ -1,36 +1,29 @@
+import { UserProfileResponse } from "@/app/api/profile/[id]/interface";
 import { db } from "@/lib/db";
-import { Prisma } from "@prisma/client";
+import { Prisma, UserProfile } from "@prisma/client";
 
-export async function getUserProfileData (id: number): Promise<UserProfileResponse> {
+export async function getUserProfileData (id: string): Promise<UserProfileResponse> {
     try {
-        const userData = await db.user.findUnique({
+        const userProfile = await db.userProfile.findUnique({
             where: {
-                id: id,
+              userId: id
             },
             select: {
-                id: true,
-                email: true,
-                role: true,
+                emailShowNotifications: true,
                 zipCode: true,
-                emailShowNotifications: true
-            },
-        })
-        .then((comedian) => {
-            if (!comedian) return null;
-            return {
-                ...comedian,
-            };
-        });
+                user: true
+            }
+          });
 
-        if (!userData) {
-            throw new Error(`No user with id ${id} found`);
+        if (!userProfile) {
+            throw new Error(`No profile for user with id ${id} found`);
         }
 
         return {
-            id: userData.id,
-            email: userData.email,
-            zipcode: userData.zipCode == null ? undefined : userData.zipCode,
-            emailOptin: userData.emailShowNotifications,
+            zipCode: userProfile.zipCode,
+            emailOptin: userProfile.emailShowNotifications,
+            id: userProfile.user.id,
+            email: userProfile.user.email
         }
     }
     catch (error) {
