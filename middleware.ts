@@ -35,6 +35,13 @@ export async function middleware(request: NextRequest) {
             return NextResponse.redirect(new URL('/', request.url))
         }
 
+        const requestedProfileId = pathname.split('/').pop()
+
+        if (requestedProfileId && userId !== requestedProfileId) {
+            // User is trying to access another user's profile - redirect to their own profile
+            return NextResponse.redirect(new URL(`/profile/${userId}`, request.url))
+        }
+
         // Internal rewrite to your API endpoint
         return NextResponse.rewrite(new URL(`/profile/${userId}`, request.url))
     }
