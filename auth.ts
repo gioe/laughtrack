@@ -8,8 +8,11 @@ import { refreshAccessToken } from "./util/primatives/tokenUtil";
 import { APIRoutePath, RestAPIAction } from "./objects/enum";
 import { makeRequest } from "./util/actions/makeRequest";
 import { LoginResponse } from "./app/api/auth/login/interface";
+import { PrismaAdapter } from "@auth/prisma-adapter"
+import { prisma } from "./lib/db";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+    adapter: PrismaAdapter(prisma),
     providers: [
         Credentials({
             name: "Credentials",

@@ -2,23 +2,23 @@
 // middleware.js
 import { NextRequest, NextResponse } from "next/server";
 import { QueryProperty, SortParamValue } from "./objects/enum";
-import { auth } from "./auth";
+export { auth as middleware } from "@/auth"
 import { use } from "react";
 import { UserInterface } from "./objects/class/user/user.interface";
 
-export async function middleware(request: NextRequest) {
-    const session = await auth()
-    console.log(session?.user)
-    const url = new URL(request.nextUrl.pathname, request.url);
-    const searchParams = new URLSearchParams(request.nextUrl.search);
+// export async function middleware(request: NextRequest) {
+//     const session = await auth()
+//     console.log(session?.user)
+//     const url = new URL(request.nextUrl.pathname, request.url);
+//     const searchParams = new URLSearchParams(request.nextUrl.search);
 
-    setParamDefaults(searchParams, request.nextUrl.pathname, session?.user)
+//     setParamDefaults(searchParams, request.nextUrl.pathname, session?.user)
 
-    for (const [key, value] of searchParams.entries()) {
-        url.searchParams.set(key, value);
-    }
-    return NextResponse.rewrite(url)
-}
+//     for (const [key, value] of searchParams.entries()) {
+//         url.searchParams.set(key, value);
+//     }
+//     return NextResponse.rewrite(url)
+// }
 
 export function setParamDefaults(params: URLSearchParams, path: string, user?: UserInterface): URLSearchParams {
     const today = new Date();
