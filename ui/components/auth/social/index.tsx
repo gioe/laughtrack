@@ -1,6 +1,7 @@
 import React from "react";
 import GoogleGLogo from "../../icons/GoogleIcon";
 import AppleLogo from "../../icons/AppleIcon";
+import { signIn } from "@/auth";
 
 const SocialButton = ({ provider, onClick, children }) => {
     const logos = {
@@ -21,16 +22,26 @@ const SocialButton = ({ provider, onClick, children }) => {
 };
 
 const SocialAuthButtons = ({
-    onGoogleClick,
-    onAppleClick,
     actionText = "Sign up", // default text, can be "Log In" or "Sign Up"
 }) => {
     return (
         <div className="flex gap-4">
-            <SocialButton provider="google" onClick={onGoogleClick}>
+            <SocialButton
+                provider="google"
+                onClick={async () => {
+                    "use server";
+                    await signIn("google");
+                }}
+            >
                 {actionText} with Google
             </SocialButton>
-            <SocialButton provider="apple" onClick={onAppleClick}>
+            <SocialButton
+                provider="apple"
+                onClick={async () => {
+                    "use server";
+                    await signIn("apple");
+                }}
+            >
                 {actionText} with Apple
             </SocialButton>
         </div>
