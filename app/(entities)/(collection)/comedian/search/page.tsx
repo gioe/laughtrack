@@ -1,21 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
-import { APIRoutePath, QueryProperty, StyleContextKey } from "@/objects/enum";
 import { CACHE } from "@/util/constants/cacheConstants";
-import { makeRequest } from "@/util/actions/makeRequest";
-import { ComedianSearchResponse } from "@/app/api/comedian/search/interface";
 import { auth } from "@/auth";
-import { StyleContextProvider } from "@/contexts/StyleProvider";
-import FooterComponent from "@/ui/pages/home/footer";
 import ComedianGrid from "@/ui/components/grid/comedian";
 import SearchDetailHeader from "@/ui/pages/search/header";
 import FilterModal from "@/ui/components/modals/filter";
-import Navbar from "@/ui/components/navbar";
 import FilterBar from "@/ui/pages/search/filterBar";
-import { FilterDTO } from "@/objects/interface/filter.interface";
-import { Filter } from "@/objects/class/filter/Filter";
 import { SearchVariant } from "@/objects/enum/searchVariant";
 import { ParamsProvider } from "@/contexts/ParamsProvider";
+import { getSearchedComedians } from "@/lib/data/comedian/search/getSearchedComedians";
+import { Session } from "next-auth";
+import { unstable_cache } from "next/cache";
 
 export default async function ComedianSearchPage(props: any) {
     const session = await auth();
@@ -24,24 +19,36 @@ export default async function ComedianSearchPage(props: any) {
         props.searchParams,
     );
 
-    const { data, total, filters } = await makeRequest<ComedianSearchResponse>(
-        APIRoutePath.ComedianSearch,
-        {
-            searchParams: paramsHelper.asUrlSearchParams(),
-            session,
-            next: {
+    const getCachedSearchPageData = (
+        paramsHelper: SearchParamsHelper,
+        currentSession: Session | null,
+    ) =>
+        unstable_cache(
+            async () => {
+                try {
+                    return await getSearchedComedians(paramsHelper);
+                } catch (error) {
+                    console.error(
+                        "Comedian serach page data fetch error:",
+                        error,
+                    );
+                    throw error;
+                }
+            },
+            ["comedian-search-data", currentSession?.profile?.userId ?? ""],
+            {
                 revalidate: CACHE.search,
                 tags: [
                     "comedian-search-data",
-                    session?.user?.id ? session?.user?.id.toString() : "",
+                    currentSession?.profile?.userId ?? "",
                 ],
             },
-        },
-    );
-    const parsedFilters = filters.map(
-        (dto: FilterDTO) =>
-            new Filter(dto, paramsHelper.getParamValue(QueryProperty.Filters)),
-    );
+        );
+
+    const { data, total, filters } = await getCachedSearchPageData(
+        paramsHelper,
+        session,
+    )();
 
     return (
         <main className="min-h-screen w-full bg-ivory">

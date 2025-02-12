@@ -1,26 +1,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
-import {
-    APIRoutePath,
-    EntityType,
-    QueryProperty,
-    StyleContextKey,
-} from "@/objects/enum";
+import { APIRoutePath, QueryProperty } from "@/objects/enum";
 import { ClubSearchResponse } from "@/app/api/club/search/interface";
 import { CACHE } from "@/util/constants/cacheConstants";
 import { makeRequest } from "@/util/actions/makeRequest";
-import { StyleContextProvider } from "@/contexts/StyleProvider";
 import { FilterDTO } from "@/objects/interface/filter.interface";
 import { Filter } from "@/objects/class/filter/Filter";
 import { auth } from "@/auth";
 import FilterModal from "@/ui/components/modals/filter";
 import FilterBar from "@/ui/pages/search/filterBar";
-import FooterComponent from "@/ui/pages/home/footer";
-import Navbar from "@/ui/components/navbar";
 import ClubGrid from "@/ui/components/grid/club";
 import SearchDetailHeader from "@/ui/pages/search/header";
 import { SearchVariant } from "@/objects/enum/searchVariant";
 import { ParamsProvider } from "@/contexts/ParamsProvider";
+import { getSearchedClubs } from "@/lib/data/club/search/getSearchedClubs";
+import { unstable_cache } from "next/cache";
+import { Session } from "next-auth";
 
 export default async function ClubSearchPage(props: any) {
     const session = await auth();
@@ -29,25 +24,33 @@ export default async function ClubSearchPage(props: any) {
         props.searchParams,
     );
 
-    const { data, total, filters } = await makeRequest<ClubSearchResponse>(
-        APIRoutePath.ClubSearch,
-        {
-            searchParams: paramsHelper.asUrlSearchParams(),
-            session,
-            next: {
+    const getCachedSearchPageData = (
+        paramsHelper: SearchParamsHelper,
+        currentSession: Session | null,
+    ) =>
+        unstable_cache(
+            async () => {
+                try {
+                    return await getSearchedClubs(paramsHelper);
+                } catch (error) {
+                    console.error("Club serach page data fetch error:", error);
+                    throw error;
+                }
+            },
+            ["club-search-data", currentSession?.profile?.userId ?? ""],
+            {
                 revalidate: CACHE.search,
                 tags: [
                     "club-search-data",
-                    session?.user?.id ? session?.user?.id.toString() : "",
+                    currentSession?.profile?.userId ?? "",
                 ],
             },
-        },
-    );
+        );
 
-    const parsedFilters = filters.map(
-        (dto: FilterDTO) =>
-            new Filter(dto, paramsHelper.getParamValue(QueryProperty.Filters)),
-    );
+    const { data, total, filters } = await getCachedSearchPageData(
+        paramsHelper,
+        session,
+    )();
 
     return (
         <main className="min-h-screen w-full bg-ivory">
@@ -60,7 +63,7 @@ export default async function ClubSearchPage(props: any) {
                 <FilterBar
                     variant={SearchVariant.AllClubs}
                     total={total}
-                    filters={parsedFilters.length > 0}
+                    filters={filters.length > 0}
                 />
                 <ClubGrid clubs={data} />
             </ParamsProvider>

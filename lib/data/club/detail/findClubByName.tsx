@@ -1,8 +1,9 @@
 import { db } from "@/lib/db";
 import { ClubDTO } from "@/objects/class/club/club.interface";
+import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { buildClubImageUrl } from "@/util/imageUtil";
 
-export async function findClubByName(name: string): Promise<ClubDTO> {
+export async function findClubByName(helper: QueryHelper): Promise<ClubDTO> {
     const clubData = await db.club.findFirst({
         where: {
             name: name,

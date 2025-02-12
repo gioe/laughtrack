@@ -1,37 +1,51 @@
 import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
-import { APIRoutePath, QueryProperty } from "@/objects/enum";
-import { makeRequest } from "@/util/actions/makeRequest";
+import { QueryProperty } from "@/objects/enum";
 import { auth } from "@/auth";
-import { ShowSearchResponse } from "@/app/api/show/search/interface";
 import Navbar from "@/ui/components/navbar";
 import FilterBar from "@/ui/pages/search/filterBar";
 import ShowTable from "@/ui/pages/search/table";
-import FooterComponent from "@/ui/pages/home/footer";
 import SearchDetailHeader from "@/ui/pages/search/header";
 import FilterModal from "@/ui/components/modals/filter";
 import { CACHE } from "@/util/constants/cacheConstants";
 import { SearchVariant } from "@/objects/enum/searchVariant";
 import { ParamsProvider } from "@/contexts/ParamsProvider";
+import { unstable_cache } from "next/cache";
+import { getSearchedShows } from "@/lib/data/show/search/getSearchedShows";
+import { Session } from "next-auth";
 
 export default async function ShowSearchPage(props: any) {
     const session = await auth();
     const paramsHelper = await SearchParamsHelper.storePageParams(
         props.searchParams,
     );
-    const { data, total, filters } = await makeRequest<ShowSearchResponse>(
-        APIRoutePath.ShowSearch,
-        {
-            searchParams: paramsHelper.asUrlSearchParams(),
-            session,
-            next: {
+
+    const getCachedSearchPageData = (
+        paramsHelper: SearchParamsHelper,
+        currentSession: Session | null,
+    ) =>
+        unstable_cache(
+            async () => {
+                try {
+                    return await getSearchedShows(paramsHelper);
+                } catch (error) {
+                    console.error("Show search page data fetch error:", error);
+                    throw error;
+                }
+            },
+            ["show-search-data", currentSession?.profile?.userId ?? ""],
+            {
                 revalidate: CACHE.search,
                 tags: [
                     "show-search-data",
-                    session?.user?.id ? session?.user?.id.toString() : "",
+                    currentSession?.profile?.userId ?? "",
                 ],
             },
-        },
-    );
+        );
+
+    const { data, total, filters } = await getCachedSearchPageData(
+        paramsHelper,
+        session,
+    )();
 
     const zip = paramsHelper.getParamValue(QueryProperty.Zip);
     return (

@@ -1,18 +1,16 @@
 import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
-import { APIRoutePath } from "@/objects/enum";
 import { CACHE } from "@/util/constants/cacheConstants";
-import { makeRequest } from "@/util/actions/makeRequest";
 import { DynamicRoute } from "@/objects/interface/identifable.interface";
-import { ClubDetailResponse } from "@/app/api/club/[name]/interface";
 import { auth } from "@/auth";
-import Navbar from "@/ui/components/navbar";
 import TableWithHeader from "@/ui/pages/entity/comedian/table";
-import FooterComponent from "@/ui/pages/home/footer";
 import ClubDetailHeader from "@/ui/pages/entity/club/header";
 import FilterBar from "@/ui/pages/search/filterBar";
 import FilterModal from "@/ui/components/modals/filter";
 import { SearchVariant } from "@/objects/enum/searchVariant";
 import { ParamsProvider } from "@/contexts/ParamsProvider";
+import { getClubDetailPageData } from "@/lib/data/club/detail/getClubDetailPageData";
+import { unstable_cache } from "next/cache";
+import { Session } from "next-auth";
 
 export default async function ClubDetailPage(props: {
     searchParams: Promise<URLSearchParams>;
@@ -25,21 +23,33 @@ export default async function ClubDetailPage(props: {
         props.params,
     );
 
-    const { data, shows, total, filters } =
-        await makeRequest<ClubDetailResponse>(
-            APIRoutePath.Club + `/${paramsHelper.asSlug()}`,
+    const getCachedDetailPageData = (
+        paramsHelper: SearchParamsHelper,
+        currentSession: Session | null,
+    ) =>
+        unstable_cache(
+            async () => {
+                try {
+                    return await getClubDetailPageData(paramsHelper);
+                } catch (error) {
+                    console.error("Club detail page data fetch error:", error);
+                    throw error;
+                }
+            },
+            ["comedian-detail-data", currentSession?.profile?.userId ?? ""],
             {
-                searchParams: paramsHelper.asUrlSearchParams(),
-                session,
-                next: {
-                    revalidate: CACHE.detailPage,
-                    tags: [
-                        "comedian-detail-data",
-                        session?.user?.id ? session?.user?.id.toString() : "",
-                    ],
-                },
+                revalidate: CACHE.detailPage,
+                tags: [
+                    "comedian-detail-data",
+                    currentSession?.profile?.userId ?? "",
+                ],
             },
         );
+
+    const { data, shows, total, filters } = await getCachedDetailPageData(
+        paramsHelper,
+        session,
+    )();
 
     return (
         <main className="min-h-screen w-full bg-ivory">

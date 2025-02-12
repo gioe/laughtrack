@@ -52,16 +52,10 @@ export default async function HomePage() {
                     throw error;
                 }
             },
-            [
-                "home-page-data",
-                session?.user?.id ? session?.user?.id.toString() : "",
-            ],
+            ["home-page-data", currentSession?.profile?.userId ?? ""],
             {
                 revalidate: CACHE.home,
-                tags: [
-                    "home-page-data",
-                    session?.user?.id ? session?.user?.id.toString() : "",
-                ],
+                tags: ["home-page-data", currentSession?.profile?.userId ?? ""],
             },
         );
 

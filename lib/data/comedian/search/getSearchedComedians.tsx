@@ -3,22 +3,19 @@ import { ComedianSearchResponse } from "@/app/api/comedian/search/interface";
 import { getFilters } from "../../filters/getFilters";
 import { EntityType, QueryProperty } from "@/objects/enum";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
-import { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 import { findComediansWithCount } from "./findComediansWithCount";
+import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
 
 export async function getSearchedComedians(
-    searchParams: URLSearchParams,
-    headers: ReadonlyHeaders,
+    paramsHelper: SearchParamsHelper,
 ): Promise<ComedianSearchResponse> {
-    const userId = headers.get("user_id");
-    const normalizedUserId =
-        !userId || userId === "undefined" ? undefined : userId;
-    const providedFilters = searchParams.get(QueryProperty.Filters);
+    const providedFilters = paramsHelper.getParamValue(
+        QueryProperty.Filters,
+    ) as string;
+
     const helper = await QueryHelper.storePageParams(
-        searchParams,
+        paramsHelper.asUrlSearchParams(),
         providedFilters == null ? undefined : providedFilters,
-        undefined,
-        normalizedUserId,
     );
 
     try {
