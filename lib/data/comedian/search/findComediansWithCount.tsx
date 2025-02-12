@@ -4,8 +4,6 @@ import { getEffectiveComedian } from "@/util/comedian/comedianUtil";
 import { buildComedianImageUrl } from "@/util/imageUtil";
 import { Prisma } from "@prisma/client";
 
-const EXCLUSIVITY_TAGS = ["Not A Standup", "Not A Human"];
-
 interface ComediansResponse {
     comedians: ComedianDTO[];
     totalCount: number;
@@ -49,9 +47,7 @@ export async function findComediansWithCount(
             taggedComedians: {
                 some: {
                     tag: {
-                        display: {
-                            in: EXCLUSIVITY_TAGS,
-                        },
+                        userFacing: false,
                     },
                 },
             },
@@ -95,7 +91,9 @@ export async function findComediansWithCount(
                     ? {
                           favoriteComedians: {
                               where: {
-                                  userId: Number(userId),
+                                  user: {
+                                      userId,
+                                  },
                               },
                           },
                       }

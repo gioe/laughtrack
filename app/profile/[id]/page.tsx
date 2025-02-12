@@ -14,22 +14,18 @@ export default async function ProfilePage(props: {
     const [params, session] = await Promise.all([props.params, auth()]);
 
     if (!session) {
-        // No user so no access to profile
+        return <div>You shouldn't be here.</div>;
+    } else {
+        const profile = await getUserProfileData(session.profile?.userId);
+
+        return (
+            <main className="min-h-screen w-full bg-ivory">
+                <StyleContextProvider initialContext={StyleContextKey.Search}>
+                    <Navbar currentUser={session.profile} />
+                    <UserDetailHeader profile={profile} />
+                </StyleContextProvider>
+                <FooterComponent />
+            </main>
+        );
     }
-
-    if (session?.user.id !== params.id) {
-        // Mismatch
-    }
-
-    const profile = await getUserProfileData(session!.user.id);
-
-    return (
-        <main className="min-h-screen w-full bg-ivory">
-            <StyleContextProvider initialContext={StyleContextKey.Search}>
-                <Navbar currentUser={session?.user} />
-                <UserDetailHeader profile={profile} />
-            </StyleContextProvider>
-            <FooterComponent />
-        </main>
-    );
 }

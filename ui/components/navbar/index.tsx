@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { SideDrawer } from "../sidedrawer";
-import { UserInterface } from "@/objects/class/user/user.interface";
 import { Header } from "../header";
+import { UserProfileInterface } from "@/app/api/profile/[id]/interface";
 
 interface NavbarProps {
-    currentUser?: UserInterface | null;
+    currentUser?: UserProfileInterface | null;
 }
 
 const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {

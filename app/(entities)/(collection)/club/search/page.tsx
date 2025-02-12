@@ -51,8 +51,6 @@ export default async function ClubSearchPage(props: any) {
 
     return (
         <main className="min-h-screen w-full bg-ivory">
-            <Navbar currentUser={session?.user} />
-
             <ParamsProvider value={paramsHelper.asUrlSearchParams()}>
                 <FilterModal filters={filters} total={total} />
                 <SearchDetailHeader
@@ -66,8 +64,6 @@ export default async function ClubSearchPage(props: any) {
                 />
                 <ClubGrid clubs={data} />
             </ParamsProvider>
-
-            <FooterComponent />
         </main>
     );
 }

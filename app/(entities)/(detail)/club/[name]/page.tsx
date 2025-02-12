@@ -43,7 +43,6 @@ export default async function ClubDetailPage(props: {
 
     return (
         <main className="min-h-screen w-full bg-ivory">
-            <Navbar currentUser={session?.user} />
             <ParamsProvider value={paramsHelper.asUrlSearchParams()}>
                 <FilterModal filters={filters} total={total} />
                 <ClubDetailHeader club={data} />
@@ -57,7 +56,6 @@ export default async function ClubDetailPage(props: {
                     </TableWithHeader>
                 </div>
             </ParamsProvider>
-            <FooterComponent />
         </main>
     );
 }

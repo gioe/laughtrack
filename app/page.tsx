@@ -1,8 +1,5 @@
 "use server";
 
-import { APIRoutePath } from "../objects/enum";
-import { HomePageDataResponse } from "./api/home/interface";
-import { makeRequest } from "../util/actions/makeRequest";
 import { auth } from "../auth";
 import { unstable_cache } from "next/cache";
 import { Session } from "next-auth";
@@ -11,8 +8,34 @@ import HeroComponent from "@/ui/pages/home/hero";
 import TrendingComedianGrid from "@/ui/pages/home/comedians";
 import TrendingClubsCarousel from "@/ui/pages/home/clubs";
 import FooterComponent from "@/ui/pages/home/footer";
-import { UserProfileResponse } from "./api/profile/[id]/interface";
-import { getUserProfileData } from "@/lib/data/profile/getUserProfileData";
+import { getTrendingComedians } from "@/lib/data/home/getTrendingComedians";
+import { getPopularClubs } from "@/lib/data/home/getPopularClubs";
+import { Prisma } from "@prisma/client";
+import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
+import { ClubDTO } from "@/objects/class/club/club.interface";
+
+export interface HomePageData {
+    comedians: ComedianDTO[];
+    clubs: ClubDTO[];
+}
+
+async function getHomePageData(userId?: string): Promise<HomePageData> {
+    try {
+        const [comedians, clubs] = await Promise.all([
+            getTrendingComedians(userId),
+            getPopularClubs(),
+        ]);
+        return {
+            comedians,
+            clubs,
+        };
+    } catch (error) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+            throw new Error(`Database error: ${error.message}`);
+        }
+        throw error;
+    }
+}
 
 export default async function HomePage() {
     const session = await auth();
@@ -21,12 +44,8 @@ export default async function HomePage() {
         unstable_cache(
             async () => {
                 try {
-                    return await makeRequest<HomePageDataResponse>(
-                        APIRoutePath.Home,
-                        {
-                            session: currentSession,
-                            revalidate: CACHE.home,
-                        },
+                    return await getHomePageData(
+                        currentSession?.profile?.userId,
                     );
                 } catch (error) {
                     console.error("Home page data fetch error:", error);
@@ -50,7 +69,7 @@ export default async function HomePage() {
 
     return (
         <main className="min-h-screen w-full bg-ivory">
-            <HeroComponent user={session?.user} />
+            <HeroComponent profile={session?.profile} />
             <TrendingComedianGrid comedians={comedians} />
             <TrendingClubsCarousel clubs={clubs} />
             <FooterComponent />

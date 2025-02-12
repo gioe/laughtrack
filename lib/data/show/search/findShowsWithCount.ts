@@ -123,9 +123,6 @@ export async function findShowsWithCount(params: any): Promise<ShowsResponse> {
                 date: true,
                 lastScrapedDate: true,
                 popularity: true,
-                ticketPrice: true,
-                ticketPurchaseUrl: true,
-                soldOut: true,
                 club: {
                     select: {
                         name: true,
@@ -155,7 +152,9 @@ export async function findShowsWithCount(params: any): Promise<ShowsResponse> {
                                 ...(userId ? {
                                     favoriteComedians: {
                                         where: {
-                                            userId: Number(userId)
+                                            user: {
+                                                id: userId
+                                            }
                                         },
                                         select: {
                                             id: true
@@ -183,15 +182,10 @@ export async function findShowsWithCount(params: any): Promise<ShowsResponse> {
             id: show.id,
             date: show.date,
             name: show.name,
-            ticket: {
-                price: show.ticketPrice,
-                link: show.ticketPurchaseUrl
-            },
             address: show.club.address,
             clubName: show.club.name,
             imageUrl: buildClubImageUrl(show.club.name),
             scrapedate: show.lastScrapedDate,
-            soldOut: show.soldOut,
             lineup: filterAndMapLineupItems(show.lineupItems, userId)
         })),
         totalCount

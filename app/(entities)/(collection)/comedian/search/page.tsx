@@ -45,8 +45,6 @@ export default async function ComedianSearchPage(props: any) {
 
     return (
         <main className="min-h-screen w-full bg-ivory">
-            <Navbar currentUser={session?.user} />
-
             <ParamsProvider value={paramsHelper.asUrlSearchParams()}>
                 <FilterModal filters={filters} total={total} />
 
@@ -66,8 +64,6 @@ export default async function ComedianSearchPage(props: any) {
                     className="grid grid-cols-1 m:grid-cols-2 lg:grid-cols-2 xl:grid-cols-5 gap-6"
                 />
             </ParamsProvider>
-
-            <FooterComponent />
         </main>
     );
 }

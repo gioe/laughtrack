@@ -1,18 +1,19 @@
+import { UserProfileInterface } from "@/app/api/profile/[id]/interface";
 import { db } from "@/lib/db";
 
-export async function updateUserProfileData (email: string, zipCode: string, emailOptin: boolean): Promise<UserProfileResponse> {
-    const updatedData = await db.user.update({
+export async function updateUserProfileData (slug: string, data: any): Promise<UserProfileInterface> {
+    const { zipCode, emailOptin } = data
+
+    const updatedData = await db.userProfile.update({
         where: {
-            email: email
+            userId: slug
         },
         data: {
-            email: email,
             zipCode: zipCode,
             emailShowNotifications: emailOptin
         },
         select: {
             id: true,
-            email: true,
             zipCode: true,
             emailShowNotifications: true
         }
@@ -20,8 +21,7 @@ export async function updateUserProfileData (email: string, zipCode: string, ema
 
     return {
         id: updatedData.id,
-        email: updatedData.email,
-        zipcode: updatedData.zipCode == null ? undefined : updatedData.zipCode,
+        zipCode: updatedData.zipCode == null ? undefined : updatedData.zipCode,
         emailOptin: updatedData.emailShowNotifications
     }
 };

@@ -10,14 +10,14 @@ import { useCallback } from "react";
 import { HeaderItem } from "../navbar/headerItem";
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
 import { FullRoundedButton } from "../button/rounded/full";
-import { UserInterface } from "@/objects/class/user/user.interface";
 import { useLoginModal, useRegisterModal } from "@/hooks/modalState";
 import { useSignOut } from "@/hooks/useSignOut";
+import { UserProfileInterface } from "@/app/api/profile/[id]/interface";
 
 interface SideDrawerProps {
     onClose: (open: boolean) => void;
     open: boolean;
-    currentUser?: UserInterface | null;
+    currentUser?: UserProfileInterface | null;
 }
 
 export function SideDrawer({ open, onClose, currentUser }: SideDrawerProps) {
@@ -28,10 +28,6 @@ export function SideDrawer({ open, onClose, currentUser }: SideDrawerProps) {
     const handleLoginClick = useCallback(() => {
         loginModal.onOpen();
     }, [loginModal]);
-
-    const handleSignupClick = useCallback(() => {
-        registerModal.onOpen();
-    }, [registerModal]);
 
     return (
         <Dialog open={open} onClose={onClose} className="lg:hidden">

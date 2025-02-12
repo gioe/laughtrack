@@ -2,6 +2,7 @@
 
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { UserProfileInterface } from "@/app/api/profile/[id]/interface"
 import NextAuth from "next-auth"
 
 declare module "next-auth" {
@@ -9,14 +10,8 @@ declare module "next-auth" {
      * Returned by `useSession`, `getSession` and received as a prop on the `SessionProvider` React Context
      */
     interface Session {
-        user: {
-          id: string  // Add the id field
-          email: string
-          name: string
-          role: string
-          // ... other default fields
-        }
-      }
+        profile: UserProfileInterface | null
+    }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -5,34 +5,23 @@ import { ComedianDetailResponse } from "@/app/api/comedian/[name]/interface";
 import { getFilters } from "../../filters/getFilters";
 import { EntityType, QueryProperty } from "@/objects/enum";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
-import { DynamicRoute } from "@/objects/interface/identifable.interface";
-import { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
+import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
 
 export async function getComedianDetailPageData(
-    searchParams: URLSearchParams,
-    slug: DynamicRoute,
-    headers: ReadonlyHeaders,
+    paramsHelper: SearchParamsHelper,
 ): Promise<ComedianDetailResponse> {
     try {
-        const userId = headers.get("user_id");
-        const { name } = slug;
-
-        if (!name) {
-            throw new Error("Defail request with no name should be impossible");
-        }
-        const normalizedUserId =
-            !userId || userId === "undefined" ? undefined : userId;
-        const providedFilters = searchParams.get(QueryProperty.Filters);
+        const providedFilters = paramsHelper.getParamValue(
+            QueryProperty.Filters,
+        ) as string;
 
         const helper = await QueryHelper.storePageParams(
-            searchParams,
+            paramsHelper.asUrlSearchParams(),
             providedFilters == null ? undefined : providedFilters,
-            { name },
-            normalizedUserId,
         );
 
         const [comedianData, showsWithCount, filters] = await Promise.all([
-            findComedianByName(name, normalizedUserId),
+            findComedianByName(helper),
             findShowsWithCount({
                 ...helper.asQueryFilters(),
                 comedian: name,

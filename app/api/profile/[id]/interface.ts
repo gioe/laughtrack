@@ -1,8 +1,9 @@
-import { UserInterface } from "@/objects/class/user/user.interface";
 
-export interface UserProfileResponse {
-    zipCode: string | null
+export interface UserProfileInterface {
+    email?: string,
+    zipCode?: string | null
     emailOptin?: boolean
-    email: string,
-    id: string
+    id?: string,
+    userId?: string,
+    role?: string
 }

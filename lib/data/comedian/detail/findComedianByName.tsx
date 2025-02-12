@@ -1,15 +1,15 @@
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { db } from "@/lib/db";
 import { buildComedianImageUrl } from "@/util/imageUtil";
+import { QueryHelper } from "@/objects/class/query/QueryHelper";
 
 export async function findComedianByName(
-    name: string,
-    userId?: string,
+    helper: QueryHelper,
 ): Promise<ComedianDTO> {
     const comedianData = await db.comedian
         .findUnique({
             where: {
-                name: name,
+                name: helper.getSlug(),
             },
             select: {
                 id: true,
@@ -24,11 +24,13 @@ export async function findComedianByName(
                 youtubeFollowers: true,
                 website: true,
                 popularity: true,
-                ...(userId
+                ...(helper.getUserId()
                     ? {
                           favoriteComedians: {
                               where: {
-                                  userId: Number(userId),
+                                  user: {
+                                      id: helper.getUserId(),
+                                  },
                               },
                           },
                       }

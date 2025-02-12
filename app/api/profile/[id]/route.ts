@@ -1,27 +1,23 @@
 import { auth } from "@/auth";
-import { getUserProfileData } from "@/lib/data/profile/getUserProfileData";
 import { updateUserProfileData } from "@/lib/data/profile/updateUserProfileData";
 import { NextRequest, NextResponse } from "next/server";
-import { UserProfileResponse } from "./interface";
+import { UserProfileInterface } from "./interface";
 
 export async function PUT(
     req: NextRequest,
-    { params }: { params: { userId: string } }
-
+    { params  }
 ) {
-    const session = await auth()
-
+    const [ session, slug ] = await Promise.all([auth(), params])
     if (!session?.user) { return new NextResponse(null, { status: 401 }) }
-    if (session.user.id !== params.userId) { return new NextResponse(null, { status: 403 }) }
+    if (session.user.id !== slug.id) { return new NextResponse(null, { status: 403 }) }
 
-    const { email, zipCode, emailOptin } = await req.json()
+    const data = await req.json()
 
-    return updateUserProfileData(email, zipCode, emailOptin)
-        .then((response: UserProfileResponse) => NextResponse.json({
+    return updateUserProfileData(slug.id, data)
+        .then((response: UserProfileInterface) => NextResponse.json({
             response
          }, { status: 200 }))
         .catch((error: Error) => {
-            console.log(error)
             return NextResponse.json({ message: error.message }, { status: 500 })
         });
 }

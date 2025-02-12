@@ -18,9 +18,17 @@ export async function POST(request: Request) {
 
         // Update the database
         await db.user.update({
-            where: { email: userEmail },
-            data: { emailShowNotifications: false }
-        });
+            where: {
+              email: userEmail
+            },
+            data: {
+              profile: {
+                update: {
+                  emailShowNotifications: false
+                }
+              }
+            }
+          });
 
         return NextResponse.json({ success: true });
     } catch (error) {

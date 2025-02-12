@@ -1,6 +1,7 @@
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "rhel-openssl-3.0.x"]
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
@@ -124,7 +125,7 @@ model VerificationToken {
 model FavoriteComedian {
   id         Int             @default(autoincrement())
   comedianId String          @map("comedian_id")
-  profileId     String       @map("profile_id")
+  profileId  String          @map("profile_id")
   comedian   Comedian        @relation(fields: [comedianId], references: [uuid], onDelete: Cascade)
   user       UserProfile     @relation(fields: [profileId], references: [id])
 

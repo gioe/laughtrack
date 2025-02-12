@@ -80,12 +80,17 @@ export async function getTrendingComedians(userId?: string): Promise<ComedianDTO
             },
             ...(userId ? {
                 favoriteComedians: {
-                    where: { userId: Number(userId) },
+                    where: { user:
+                        {
+                        id:  userId
+                    }
+                },
                 },
             } : {}),
         },
     });
 
+    console.log(`GETTING COMEDIANS: ${comedians}`)
 
     const topEight = comedians
         .filter(comedian => {
@@ -101,10 +106,10 @@ export async function getTrendingComedians(userId?: string): Promise<ComedianDTO
             id: comedian.id,
             uuid: comedian.uuid,
             name: comedian.name,
-            isFavorite:
-            comedian.favoriteComedians == undefined
-                ? false
-                : comedian.favoriteComedians.length > 0,
+            // isFavorite:
+            // comedian.favoriteComedians == undefined
+            //     ? false
+            //     : comedian.favoriteComedians.length > 0,
             imageUrl: buildComedianImageUrl(comedian.name),
             social_data: {
                 id: comedian.id,

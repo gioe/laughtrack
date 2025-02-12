@@ -4,12 +4,13 @@ import BackgroundImage from "@/ui/components/background";
 import ContentWrapper from "@/ui/components/wrapper";
 import HeroContent from "@/ui/components/hero";
 import { getCdnUrl } from "@/util/cdnUtil";
+import { UserProfileInterface } from "@/app/api/profile/[id]/interface";
 
 interface HeroComponentProps {
-    user?: UserInterface;
+    profile?: UserProfileInterface | null;
 }
 
-const HeroComponent = ({ user }: HeroComponentProps) => {
+const HeroComponent = ({ profile }: HeroComponentProps) => {
     return (
         <section className="relative w-full h-[776px]">
             <BackgroundImage
@@ -17,7 +18,7 @@ const HeroComponent = ({ user }: HeroComponentProps) => {
                 alt={"Header background image"}
             />
             <ContentWrapper>
-                <Navbar currentUser={user} />
+                <Navbar currentUser={profile} />
                 <HeroContent title="Laughtrack" subtitle="Get out and laugh" />
             </ContentWrapper>
         </section>

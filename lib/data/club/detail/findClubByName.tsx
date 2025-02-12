@@ -11,7 +11,6 @@ export async function findClubByName(name: string): Promise<ClubDTO> {
             id: true,
             name: true,
             website: true,
-            city: true,
             address: true,
             zipCode: true,
         },
@@ -26,7 +25,6 @@ export async function findClubByName(name: string): Promise<ClubDTO> {
         id: clubData.id,
         imageUrl: buildClubImageUrl(clubData.name),
         website: clubData.website,
-        city: clubData.city.name,
         address: clubData.address,
         zipCode: clubData.zipCode,
     };

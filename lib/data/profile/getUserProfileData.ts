@@ -1,28 +1,31 @@
-import { UserProfileResponse } from "@/app/api/profile/[id]/interface";
+import { UserProfileInterface } from "@/app/api/profile/[id]/interface";
 import { db } from "@/lib/db";
-import { Prisma, UserProfile } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
-export async function getUserProfileData (id: string): Promise<UserProfileResponse> {
+export async function getUserProfileData (userId?: string): Promise<UserProfileInterface> {
     try {
         const userProfile = await db.userProfile.findUnique({
             where: {
-              userId: id
+              userId: userId
             },
             select: {
                 emailShowNotifications: true,
                 zipCode: true,
+                userId: true,
+                id: true,
                 user: true
             }
           });
 
         if (!userProfile) {
-            throw new Error(`No profile for user with id ${id} found`);
+            throw new Error(`No profile for user with id ${userId} found`);
         }
 
         return {
             zipCode: userProfile.zipCode,
             emailOptin: userProfile.emailShowNotifications,
-            id: userProfile.user.id,
+            id: userProfile.id,
+            userId: userProfile.userId,
             email: userProfile.user.email
         }
     }

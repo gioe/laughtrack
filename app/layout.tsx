@@ -16,10 +16,11 @@ import type { Metadata } from "next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import ToasterProvider from "@/contexts/ToasterProvider";
 import LoginModal from "@/ui/components/modals/login";
-import RegisterModal from "@/ui/components/modals/register";
 import { StyleContextProvider } from "@/contexts/StyleProvider";
 import { StyleContextKey } from "@/objects/enum";
-import FavoriteRegisterModal from "@/ui/components/modals/favoriteRegister";
+import { auth } from "@/auth";
+import Navbar from "@/ui/components/navbar";
+import FooterComponent from "@/ui/pages/home/footer";
 
 const outfit = Outfit({
     weight: "400",
@@ -73,6 +74,8 @@ export default async function RootLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
+    const session = await auth();
+
     return (
         <SessionProvider>
             <html
@@ -84,12 +87,12 @@ export default async function RootLayout({
                         <ScrollPositionManager />
                         <ToasterProvider />
                         <LoginModal />
-                        <RegisterModal />
-                        <FavoriteRegisterModal />
                         <StyleContextProvider
                             initialContext={StyleContextKey.Home}
                         >
+                            <Navbar currentUser={session?.profile} />
                             {children}
+                            <FooterComponent />
                         </StyleContextProvider>
                         <SpeedInsights />
                     </HeroUIProvider>

@@ -2,13 +2,13 @@
 import { useCallback } from "react";
 import { usePathname } from "next/navigation";
 import { useLoginModal, useRegisterModal } from "@/hooks/modalState";
-import { UserInterface } from "@/objects/class/user/user.interface";
 import Logo from "../logo";
 import NavigationMenu from "../navbar/menu";
 import AuthButtons from "../auth/header";
+import { UserProfileInterface } from "@/app/api/profile/[id]/interface";
 
 interface HeaderProps {
-    currentUser?: UserInterface | null;
+    currentUser?: UserProfileInterface | null;
 }
 
 export function Header({ currentUser }: HeaderProps) {

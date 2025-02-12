@@ -25,7 +25,7 @@ export interface ShowDTO {
     id: number;
     clubName?: string;
     date: Date;
-    ticket: TicketDTO;
+    ticket?: TicketDTO;
     name: string | null;
     social_data?: SocialDataDTO;
     tags?: number[]

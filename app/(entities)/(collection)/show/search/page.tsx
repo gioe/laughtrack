@@ -15,7 +15,6 @@ import { ParamsProvider } from "@/contexts/ParamsProvider";
 
 export default async function ShowSearchPage(props: any) {
     const session = await auth();
-    console.log(session);
     const paramsHelper = await SearchParamsHelper.storePageParams(
         props.searchParams,
     );
@@ -37,7 +36,7 @@ export default async function ShowSearchPage(props: any) {
     const zip = paramsHelper.getParamValue(QueryProperty.Zip);
     return (
         <main className="min-h-screen w-full bg-ivory">
-            <Navbar currentUser={session?.user} />
+            <Navbar currentUser={session?.profile} />
             <ParamsProvider value={paramsHelper.asUrlSearchParams()}>
                 <FilterModal filters={filters} total={total} />
                 <SearchDetailHeader
@@ -53,7 +52,6 @@ export default async function ShowSearchPage(props: any) {
                     <ShowTable shows={data} />
                 </div>
             </ParamsProvider>
-            <FooterComponent />
         </main>
     );
 }

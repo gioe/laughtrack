@@ -1,23 +1,22 @@
 "use client";
 
+import toast from "react-hot-toast";
 import React, { useState } from "react";
 import { Pencil, Save } from "lucide-react";
 import { makeRequest } from "@/util/actions/makeRequest";
 import { APIRoutePath, RestAPIAction } from "@/objects/enum";
-import toast from "react-hot-toast";
-import { useSession } from "next-auth/react";
-import { UserProfileResponse } from "@/app/api/profile/[id]/interface";
+import { UserProfileInterface } from "@/app/api/profile/[id]/interface";
+import { Loader2 } from "lucide-react";
 
 interface UserDetailHeaderProps {
-    profile: UserProfileResponse;
+    profile: UserProfileInterface;
 }
 
 const UserDetailHeader = ({ profile }: UserDetailHeaderProps) => {
-    const { data } = useSession();
+    const [isLoading, setIsLoading] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
-    const [email, setEmail] = useState(profile.email);
     const [emailOptin, setEmailOptin] = useState(profile.emailOptin);
-    const [zipCode, setZipCode] = useState(profile.zipCode);
+    const [zipCode, setZipCode] = useState(profile.zipCode ?? "");
     const [hasChanges, setHasChanges] = useState(false);
 
     const handleInputChange =
@@ -27,7 +26,6 @@ const UserDetailHeader = ({ profile }: UserDetailHeaderProps) => {
 
             // Check for changes using the new value that's about to be set
             const hasAnyChange =
-                (setter === setEmail ? newValue : email) !== profile.email ||
                 (setter === setZipCode ? newValue : zipCode) !==
                     profile.zipCode ||
                 (setter === setEmailOptin ? newValue : emailOptin) !==
@@ -39,34 +37,31 @@ const UserDetailHeader = ({ profile }: UserDetailHeaderProps) => {
 
     const toggleEdit = async () => {
         if (isEditing && hasChanges) {
+            setIsLoading(true);
             try {
-                const response = await makeRequest(
-                    APIRoutePath.Profile + `/${profile.id}`,
-                    {
-                        method: RestAPIAction.PUT,
-                        session: data,
-                        body: {
-                            email: email,
-                            zipCode: zipCode,
-                            emailOptin: emailOptin,
-                        },
+                const route = APIRoutePath.Profile + `/${profile.userId}`;
+                const response = await makeRequest(route, {
+                    method: RestAPIAction.PUT,
+                    body: {
+                        zipCode: zipCode,
+                        emailOptin: emailOptin,
                     },
-                );
+                });
 
                 // If the request is successful, update the original user data
-                profile.email = email;
                 profile.zipCode = zipCode;
 
                 setHasChanges(false);
+                setIsLoading(false);
                 toast.success("Updated successfully");
             } catch (error) {
                 // Handle error appropriately
+                setIsLoading(false);
                 console.error("Failed to update profile:", error);
                 toast.error("Something went wrong");
 
                 // Optionally reset form to original values
-                setEmail(profile.email);
-                setZipCode(profile.zipCode);
+                setZipCode(profile.zipCode ?? "");
                 setEmailOptin(profile.emailOptin);
                 // You might want to show an error message to the user here
                 return; // Don't toggle edit mode if save failed
@@ -109,9 +104,8 @@ const UserDetailHeader = ({ profile }: UserDetailHeaderProps) => {
                     </label>
                     <input
                         type="email"
-                        value={email}
-                        onChange={handleInputChange(setEmail)}
-                        disabled={!isEditing}
+                        value={profile.email}
+                        disabled={true}
                         className="w-full max-w-md px-3 py-2 border rounded-md disabled:bg-gray-50 disabled:text-gray-500"
                     />
                 </div>
@@ -122,7 +116,7 @@ const UserDetailHeader = ({ profile }: UserDetailHeaderProps) => {
                     </label>
                     <input
                         type="text"
-                        value={zipCode ? zipCode : undefined}
+                        value={zipCode}
                         onChange={handleInputChange(setZipCode)}
                         disabled={!isEditing}
                         className="w-full max-w-md px-3 py-2 border rounded-md disabled:bg-gray-50 disabled:text-gray-500"
@@ -141,10 +135,15 @@ const UserDetailHeader = ({ profile }: UserDetailHeaderProps) => {
                         htmlFor="emailOptIn"
                         className="text-sm text-gray-600"
                     >
-                        Email me when artists I follow have shows in my area
+                        Email me when comedians I follow have shows in my area
                     </label>
                 </div>
             </div>
+            {isLoading && (
+                <div className="z-10 absolute inset-0 flex items-center justify-center bg-white/50 rounded-lg">
+                    <Loader2 className="w-8 h-8 text-[#8B593B] animate-spin" />
+                </div>
+            )}
         </div>
     );
 };

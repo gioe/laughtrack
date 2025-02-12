@@ -16,21 +16,39 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     pages: {
         signIn: "/",
     },
-
+    events: {
+        createUser: async ({ user }) => {
+          // When a new user is created, create their profile
+          await db.userProfile.create({
+            data: {
+              userId: user.id!,
+              role: "user",
+              emailShowNotifications: false,
+            },
+          });
+        },
+      },
     callbacks: {
-        async     session({ session, token }) {
-            if (session.user) {
-              // Add the user ID from the token to the session
-              session.user.id = token.sub ?? ""
-            }
-            return session
+        async  session({ session }) {
+            console.log(session)
+            if (session?.user) {
+                // Optionally fetch and include the user profile
+                const profile = await prisma.userProfile.findUnique({
+                  where: { userId: session.user.id },
+                });
+                session.profile = {
+                    email: session.user.email,
+                    ...profile
+                };
+              }
+              return session;
           },
 
     },
 
     debug: process.env.NODE_ENV !== "production",
-
     session: {
-        strategy: "jwt",
+        strategy: "database",
+        maxAge: 30 * 24 * 60 * 60
     },
 });

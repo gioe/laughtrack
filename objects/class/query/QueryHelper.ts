@@ -24,31 +24,6 @@ export class QueryHelper {
         this.searchParamsHelper = searchParamsHelper
     }
 
-    asQueryFilters() {
-        return {
-            // Sort
-            ...this.getSortValue(),
-            // Query
-            ...this.getQueryPattern(),
-            // Page
-            ...this.getOffset(),
-            // Size
-            ...this.getSize(),
-            // Direction
-            ...this.getDirection(),
-            // Identifier
-            ...this.getIdentifier(),
-            // Domain Values,
-            ...this.getDomainParams(),
-            // Filters.
-            ...this.getFilters(),
-            // UserId
-            ...this.getUserId(),
-            // Zip Codes
-            ...this.getZipCodes()
-        }
-    }
-
     getZipCodes() {
         const providedZip = this.searchParamsHelper.getParamValue(QueryProperty.Zip) as string
         const radius = this.searchParamsHelper.getParamValue(QueryProperty.Distance) as string
@@ -57,7 +32,7 @@ export class QueryHelper {
     }
 
     getUserId() {
-        return { userId: this.userId }
+        return this.userId
     }
 
     getFilters() {

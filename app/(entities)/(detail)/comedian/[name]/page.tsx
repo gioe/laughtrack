@@ -1,17 +1,14 @@
 import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
-import { APIRoutePath } from "@/objects/enum";
 import { CACHE } from "@/util/constants/cacheConstants";
-import { makeRequest } from "@/util/actions/makeRequest";
-import { ComedianDetailResponse } from "@/app/api/comedian/[name]/interface";
 import { auth } from "@/auth";
 import ComedianDetailHeader from "@/ui/pages/entity/comedian/header";
-import FooterComponent from "@/ui/pages/home/footer";
 import TableWithHeader from "@/ui/pages/entity/comedian/table";
 import FilterBar from "@/ui/pages/search/filterBar";
 import FilterModal from "@/ui/components/modals/filter";
-import Navbar from "@/ui/components/navbar";
 import { SearchVariant } from "@/objects/enum/searchVariant";
 import { ParamsProvider } from "@/contexts/ParamsProvider";
+import { unstable_cache } from "next/cache";
+import { getComedianDetailPageData } from "@/lib/data/comedian/detail/getComedianDetailPageData";
 
 export default async function ComedianDetailsPage(props: any) {
     const session = await auth();
@@ -21,25 +18,34 @@ export default async function ComedianDetailsPage(props: any) {
         props.params,
     );
 
-    const { data, shows, total, filters } =
-        await makeRequest<ComedianDetailResponse>(
-            APIRoutePath.Comedian + `/${paramsHelper.asSlug()}`,
+    const getCachedDetailPageData = (paramsHelper: SearchParamsHelper) =>
+        unstable_cache(
+            async () => {
+                try {
+                    return await getComedianDetailPageData(paramsHelper);
+                } catch (error) {
+                    console.error("Home page data fetch error:", error);
+                    throw error;
+                }
+            },
+            [
+                "comedian-detail-data",
+                session?.user?.id ? session?.user?.id.toString() : "",
+            ],
             {
-                searchParams: paramsHelper.asUrlSearchParams(),
-                session,
-                next: {
-                    revalidate: CACHE.detailPage,
-                    tags: [
-                        "comedian-detail-data",
-                        session?.user?.id ? session?.user?.id.toString() : "",
-                    ],
-                },
+                revalidate: CACHE.detailPage,
+                tags: [
+                    "comedian-detail-data",
+                    session?.user?.id ? session?.user?.id.toString() : "",
+                ],
             },
         );
 
+    const { data, shows, total, filters } =
+        await getCachedDetailPageData(paramsHelper)();
+
     return (
         <main className="min-h-screen w-full bg-ivory">
-            <Navbar currentUser={session?.user} />
             <ParamsProvider value={paramsHelper.asUrlSearchParams()}>
                 <FilterModal filters={filters} total={total} />
 
@@ -54,7 +60,6 @@ export default async function ComedianDetailsPage(props: any) {
                     </TableWithHeader>
                 </div>
             </ParamsProvider>
-            <FooterComponent />
         </main>
     );
 }
