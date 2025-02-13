@@ -57,7 +57,7 @@ export default async function ClubSearchPage(props: any) {
     return (
         <main className="min-h-screen w-full bg-ivory">
             <ParamsProvider value={paramsHelper.asUrlSearchParams()}>
-                <FilterModal filters={filters} total={total} />
+                <FilterModal filters={[]} total={total} />
                 <SearchDetailHeader
                     title={`Search clubs`}
                     subTitle={`${total} results`}

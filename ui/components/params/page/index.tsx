@@ -21,6 +21,7 @@ export function PageParamComponent({
     const defaultPageSize = Number(
         paramsHelper.getParamValue(QueryProperty.Size),
     );
+    console.log(`The default index is: ${defaultIndex}`);
 
     const [pageIndex, setPageIndex] = useState(defaultIndex);
     const [pageSize, setPageSize] = useState(defaultPageSize);
@@ -29,11 +30,12 @@ export function PageParamComponent({
         event: React.MouseEvent<HTMLButtonElement> | null,
         newPageIndex: number,
     ) => {
-        setPageIndex(newPageIndex);
-
         const newPageValue = newPageIndex + 1;
+        console.log(`The new index is: ${newPageIndex}`);
+        console.log(`The new page is: ${newPageValue}`);
         paramsHelper.setParamValue(QueryProperty.Page, newPageValue.toString());
         navigator.replaceRoute(paramsHelper.asParamsString());
+        setPageIndex(newPageIndex);
     };
 
     const handleChangeRows = (

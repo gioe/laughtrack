@@ -26,7 +26,9 @@ export default async function ComedianDetailsPage(props: any) {
         unstable_cache(
             async () => {
                 try {
-                    return await getComedianDetailPageData(paramsHelper);
+                    return await getComedianDetailPageData(
+                        paramsHelper.asParamsString(),
+                    );
                 } catch (error) {
                     console.error(
                         "Comedian detail page data fetch error:",
@@ -53,7 +55,7 @@ export default async function ComedianDetailsPage(props: any) {
     return (
         <main className="min-h-screen w-full bg-ivory">
             <ParamsProvider value={paramsHelper.asUrlSearchParams()}>
-                <FilterModal filters={filters} total={total} />
+                <FilterModal filters={[]} total={total} />
                 <ComedianDetailHeader comedian={data} />
                 <div className="max-w-7xl mx-auto p-6">
                     <TableWithHeader shows={shows} total={total}>

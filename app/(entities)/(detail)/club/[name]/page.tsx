@@ -30,7 +30,9 @@ export default async function ClubDetailPage(props: {
         unstable_cache(
             async () => {
                 try {
-                    return await getClubDetailPageData(paramsHelper);
+                    return await getClubDetailPageData(
+                        paramsHelper.asParamsString(),
+                    );
                 } catch (error) {
                     console.error("Club detail page data fetch error:", error);
                     throw error;

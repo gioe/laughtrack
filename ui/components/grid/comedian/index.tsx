@@ -11,10 +11,10 @@ const ComedianGrid = ({ comedians, className }: ComedianGridProps) => {
     return (
         <div className="mx-24 my-12">
             <div className={className}>
-                {comedians.map((comedian, index) => (
+                {comedians.map((dto) => (
                     <ComedianGridCard
-                        key={index.toString()}
-                        entity={JSON.stringify(comedian)}
+                        key={dto.name}
+                        entity={JSON.stringify(dto)}
                     />
                 ))}
             </div>

@@ -305,9 +305,9 @@ export class QueryHelper {
     }
 
 
-    static async storePageParams(searchParams: URLSearchParams, filters?: string, identifier?: DynamicRoute, userId?: string) {
+    static async storePageParams(searchParams: URLSearchParams, userId?: string,) {
         const searchParamsHelper = new SearchParamsHelper(searchParams)
-        return new QueryHelper(searchParamsHelper, filters, identifier, userId)
+        return new QueryHelper(searchParamsHelper, userId)
     }
 
 }

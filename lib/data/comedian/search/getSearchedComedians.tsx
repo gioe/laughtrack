@@ -10,9 +10,11 @@ export type ComedianSearchResponse = PaginatedEntityResponseDTO<ComedianDTO>;
 
 export async function getSearchedComedians(
     searchParams: string,
+    userId?: string,
 ): Promise<ComedianSearchResponse> {
     const helper = await QueryHelper.storePageParams(
         new URLSearchParams(searchParams),
+        userId,
     );
 
     try {

@@ -30,7 +30,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     callbacks: {
         async  session({ session }) {
-            console.log(session)
             if (session?.user) {
                 // Optionally fetch and include the user profile
                 const profile = await prisma.userProfile.findUnique({

@@ -18,34 +18,43 @@ export default async function ComedianSearchPage(props: any) {
     const paramsHelper = await SearchParamsHelper.storePageParams(
         props.searchParams,
     );
-
     const getCachedSearchPageData = (
         paramsHelper: SearchParamsHelper,
         currentSession: Session | null,
-    ) =>
-        unstable_cache(
+    ) => {
+        // Create a unique cache key based on the query parameters
+        const queryParamsKey = paramsHelper.asParamsString();
+
+        return unstable_cache(
             async () => {
                 try {
                     return await getSearchedComedians(
-                        paramsHelper.asParamsString(),
+                        queryParamsKey,
+                        currentSession?.profile?.userId,
                     );
                 } catch (error) {
                     console.error(
-                        "Comedian serach page data fetch error:",
+                        "Comedian search page data fetch error:",
                         error,
                     );
                     throw error;
                 }
             },
-            ["comedian-search-data", currentSession?.profile?.userId ?? ""],
+            [
+                "comedian-search-data",
+                currentSession?.profile?.userId ?? "",
+                queryParamsKey, // Add query params to cache key
+            ],
             {
                 revalidate: CACHE.search,
                 tags: [
                     "comedian-search-data",
                     currentSession?.profile?.userId ?? "",
+                    `comedian-search-${queryParamsKey}`, // Add query-specific tag
                 ],
             },
         );
+    };
 
     const { data, total, filters } = await getCachedSearchPageData(
         paramsHelper,
@@ -55,7 +64,7 @@ export default async function ComedianSearchPage(props: any) {
     return (
         <main className="min-h-screen w-full bg-ivory">
             <ParamsProvider value={paramsHelper.asUrlSearchParams()}>
-                <FilterModal filters={filters} total={total} />
+                <FilterModal filters={[]} total={total} />
 
                 <SearchDetailHeader
                     title={`Search comedians`}
