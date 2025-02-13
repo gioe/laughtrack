@@ -26,7 +26,9 @@ export default async function ShowSearchPage(props: any) {
         unstable_cache(
             async () => {
                 try {
-                    return await getSearchedShows(paramsHelper);
+                    return await getSearchedShows(
+                        paramsHelper.asParamsString(),
+                    );
                 } catch (error) {
                     console.error("Show search page data fetch error:", error);
                     throw error;

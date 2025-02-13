@@ -9,7 +9,7 @@ export async function findComedianByName(
     const comedianData = await db.comedian
         .findUnique({
             where: {
-                name: helper.getSlug(),
+                name: helper.getNameSlug(),
             },
             select: {
                 id: true,

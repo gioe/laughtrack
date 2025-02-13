@@ -9,11 +9,7 @@ const SupportPage = async () => {
     const session = await auth();
     return (
         <main className="min-h-screen w-full bg-ivory">
-            <StyleContextProvider initialContext={StyleContextKey.Search}>
-                <Navbar currentUser={session?.profile} />
-            </StyleContextProvider>
             <SupportSection />
-            <FooterComponent />
         </main>
     );
 };

@@ -1,32 +1,25 @@
 import { findShowsWithCount } from "../../show/search/findShowsWithCount";
 import { findComedianByName } from "./findComedianByName";
 import { Prisma } from "@prisma/client";
-import { ComedianDetailResponse } from "@/app/api/comedian/[name]/interface";
 import { getFilters } from "../../filters/getFilters";
-import { EntityType, QueryProperty } from "@/objects/enum";
+import { EntityType } from "@/objects/enum";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
-import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
+import { EntityResponseDTO } from "@/objects/interface/paginatedEntity.interface";
+import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
+export type ComedianDetailResponse = EntityResponseDTO<ComedianDTO>;
 
 export async function getComedianDetailPageData(
-    paramsHelper: SearchParamsHelper,
+    paramsString: string,
 ): Promise<ComedianDetailResponse> {
     try {
-        const providedFilters = paramsHelper.getParamValue(
-            QueryProperty.Filters,
-        ) as string;
-
         const helper = await QueryHelper.storePageParams(
-            paramsHelper.asUrlSearchParams(),
-            providedFilters == null ? undefined : providedFilters,
+            new URLSearchParams(paramsString),
         );
 
         const [comedianData, showsWithCount, filters] = await Promise.all([
             findComedianByName(helper),
-            findShowsWithCount({
-                ...helper.asQueryFilters(),
-                comedian: name,
-            }),
-            getFilters(EntityType.Show, helper.asQueryFilters()),
+            findShowsWithCount(helper),
+            getFilters(EntityType.Show, helper),
         ]);
 
         return {

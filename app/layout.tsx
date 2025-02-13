@@ -90,9 +90,7 @@ export default async function RootLayout({
                         <StyleContextProvider
                             initialContext={StyleContextKey.Home}
                         >
-                            <Navbar currentUser={session?.profile} />
                             {children}
-                            <FooterComponent />
                         </StyleContextProvider>
                         <SpeedInsights />
                     </HeroUIProvider>

@@ -27,7 +27,7 @@ export function Header({ currentUser }: HeaderProps) {
 
     return (
         <nav className="relative bg-transparent px-4 py-4">
-            <div className="hidden lg:grid max-w-7xl mx-auto  lg:grid-cols-3 items-center">
+            <div className="hidden lg:grid max-w-7xl mx-auto lg:grid-cols-3 items-center">
                 {/* Left column - Logo */}
                 <div className="col-start-1">
                     <Logo />

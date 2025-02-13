@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 import { ClubDTO } from "@/objects/class/club/club.interface";
 import { buildClubImageUrl } from "@/util/imageUtil";
 
-export async function getPopularClubs(userId?: string): Promise<ClubDTO[]> {
+export async function getPopularClubs(): Promise<ClubDTO[]> {
     return db.club
         .findMany({
             select: {

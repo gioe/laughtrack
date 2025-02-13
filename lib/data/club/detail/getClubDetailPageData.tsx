@@ -8,25 +8,17 @@ import { getFilters } from "../../filters/getFilters";
 import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
 
 export async function getClubDetailPageData(
-    paramsHelper: SearchParamsHelper,
+    paramsString: string,
 ): Promise<ClubDetailResponse> {
     try {
-        const providedFilters = paramsHelper.getParamValue(
-            QueryProperty.Filters,
-        ) as string;
-
         const helper = await QueryHelper.storePageParams(
-            paramsHelper.asUrlSearchParams(),
-            providedFilters == null ? undefined : providedFilters,
+            new URLSearchParams(paramsString),
         );
 
         const [club, showsWithCount, filters] = await Promise.all([
             findClubByName(helper),
-            findShowsWithCount({
-                ...helper.asQueryFilters(),
-                club: name,
-            }),
-            getFilters(EntityType.Show, helper.asQueryFilters()),
+            findShowsWithCount(helper),
+            getFilters(EntityType.Show, helper),
         ]);
 
         return {

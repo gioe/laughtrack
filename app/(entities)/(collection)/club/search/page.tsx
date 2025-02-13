@@ -31,7 +31,9 @@ export default async function ClubSearchPage(props: any) {
         unstable_cache(
             async () => {
                 try {
-                    return await getSearchedClubs(paramsHelper);
+                    return await getSearchedClubs(
+                        paramsHelper.asParamsString(),
+                    );
                 } catch (error) {
                     console.error("Club serach page data fetch error:", error);
                     throw error;

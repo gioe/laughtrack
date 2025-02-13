@@ -25,8 +25,7 @@ export async function getFilters(type: string, params: any): Promise<Filter[]> {
             display: queriedFilter.display || '',
             value: queriedFilter.value || '',
             type: queriedFilter.type ? EntityType[queriedFilter.type] : EntityType.Show,
-            userFacing: queriedFilter.userFacing
-        })).filter((option) => option.userFacing).map((dto) => new Filter(dto, filters ?? ""))
+        })).map((dto) => new Filter(dto, filters ?? ""))
 
     } catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {

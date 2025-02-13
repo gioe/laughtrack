@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { ClubDTO } from "@/objects/class/club/club.interface";
+import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { buildClubImageUrl } from "@/util/imageUtil";
 import { Prisma } from "@prisma/client";
 
@@ -8,30 +9,14 @@ interface ClubsResponse {
     totalCount: number;
 }
 
-export async function findClubsWithCount(params: any): Promise<ClubsResponse> {
-    const { club, filters, filtersEmpty, sortBy, direction, size, offset } =
-        params;
-
+export async function findClubsWithCount(
+    queryHelper: QueryHelper,
+): Promise<ClubsResponse> {
     // Common where clause for both count and find
     const whereClause: Prisma.ClubWhereInput = {
         visible: true,
-        name: {
-            contains: club,
-            mode: Prisma.QueryMode.insensitive,
-        },
-        ...(!filtersEmpty
-            ? {
-                  taggedClubs: {
-                      some: {
-                          tag: {
-                              display: {
-                                  in: filters,
-                              },
-                          },
-                      },
-                  },
-              }
-            : {}),
+        ...queryHelper.getClubNameClause(),
+        ...queryHelper.getClubFiltersClause(),
     };
 
     // Execute both queries in parallel
@@ -45,11 +30,7 @@ export async function findClubsWithCount(params: any): Promise<ClubsResponse> {
                 website: true,
                 zipCode: true,
             },
-            orderBy: {
-                [sortBy]: direction,
-            },
-            take: Number(size),
-            skip: offset,
+            ...queryHelper.getGenericClauses(),
         }),
         db.club.count({
             where: whereClause,

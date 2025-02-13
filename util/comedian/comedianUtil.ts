@@ -1,6 +1,6 @@
 import { buildComedianImageUrl } from "../imageUtil";
 
-export const filterAndMapLineupItems = (lineupItems: any[], userId?: number) => {
+export const filterAndMapLineupItems = (lineupItems: any[], userId?: string) => {
     // First, create a set of parent IDs that are present in the lineup
     const parentIdsInLineup = new Set(
         lineupItems
@@ -24,7 +24,7 @@ export const filterAndMapLineupItems = (lineupItems: any[], userId?: number) => 
     return filteredItems.map(item => mapLineupItem(item, userId));
 };
 
-const mapLineupItem = (item: { comedian: any }, userId?: number) => {
+const mapLineupItem = (item: { comedian: any }, userId?: string) => {
     const effectiveComedian = getEffectiveComedian(item.comedian);
 
     return {

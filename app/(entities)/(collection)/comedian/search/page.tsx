@@ -2,15 +2,15 @@
 import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
 import { CACHE } from "@/util/constants/cacheConstants";
 import { auth } from "@/auth";
-import ComedianGrid from "@/ui/components/grid/comedian";
-import SearchDetailHeader from "@/ui/pages/search/header";
-import FilterModal from "@/ui/components/modals/filter";
-import FilterBar from "@/ui/pages/search/filterBar";
 import { SearchVariant } from "@/objects/enum/searchVariant";
 import { ParamsProvider } from "@/contexts/ParamsProvider";
 import { getSearchedComedians } from "@/lib/data/comedian/search/getSearchedComedians";
 import { Session } from "next-auth";
 import { unstable_cache } from "next/cache";
+import ComedianGrid from "@/ui/components/grid/comedian";
+import SearchDetailHeader from "@/ui/pages/search/header";
+import FilterModal from "@/ui/components/modals/filter";
+import FilterBar from "@/ui/pages/search/filterBar";
 
 export default async function ComedianSearchPage(props: any) {
     const session = await auth();
@@ -26,7 +26,9 @@ export default async function ComedianSearchPage(props: any) {
         unstable_cache(
             async () => {
                 try {
-                    return await getSearchedComedians(paramsHelper);
+                    return await getSearchedComedians(
+                        paramsHelper.asParamsString(),
+                    );
                 } catch (error) {
                     console.error(
                         "Comedian serach page data fetch error:",
@@ -65,7 +67,6 @@ export default async function ComedianSearchPage(props: any) {
                     total={total}
                     filters={filters.length > 0}
                 />
-
                 <ComedianGrid
                     comedians={data}
                     className="grid grid-cols-1 m:grid-cols-2 lg:grid-cols-2 xl:grid-cols-5 gap-6"

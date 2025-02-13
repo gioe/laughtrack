@@ -28,14 +28,12 @@ const AboutPage = async () => {
 
     return (
         <main className="min-h-screen w-full bg-ivory">
-            <Navbar currentUser={session?.profile} />
             <AboutUsSection />
             <StatsSection
                 clubCount={stats.clubCount}
                 comedianCount={stats.comedianCount}
                 showCount={stats.showCount}
             />
-            <FooterComponent />
         </main>
     );
 };

@@ -1,27 +1,24 @@
 import { Prisma } from "@prisma/client";
-import { ComedianSearchResponse } from "@/app/api/comedian/search/interface";
 import { getFilters } from "../../filters/getFilters";
-import { EntityType, QueryProperty } from "@/objects/enum";
+import { EntityType } from "@/objects/enum";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { findComediansWithCount } from "./findComediansWithCount";
-import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
+import { PaginatedEntityResponseDTO } from "@/objects/interface";
+import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
+
+export type ComedianSearchResponse = PaginatedEntityResponseDTO<ComedianDTO>;
 
 export async function getSearchedComedians(
-    paramsHelper: SearchParamsHelper,
+    searchParams: string,
 ): Promise<ComedianSearchResponse> {
-    const providedFilters = paramsHelper.getParamValue(
-        QueryProperty.Filters,
-    ) as string;
-
     const helper = await QueryHelper.storePageParams(
-        paramsHelper.asUrlSearchParams(),
-        providedFilters == null ? undefined : providedFilters,
+        new URLSearchParams(searchParams),
     );
 
     try {
         const [comediansWithCount, filters] = await Promise.all([
-            findComediansWithCount(helper.asQueryFilters()),
-            getFilters(EntityType.Comedian, helper.asQueryFilters()),
+            findComediansWithCount(helper),
+            getFilters(EntityType.Comedian, helper),
         ]);
         return {
             data: comediansWithCount.comedians,

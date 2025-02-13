@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
+import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { getEffectiveComedian } from "@/util/comedian/comedianUtil";
 import { buildComedianImageUrl } from "@/util/imageUtil";
 import { Prisma } from "@prisma/client";
@@ -10,48 +11,12 @@ interface ComediansResponse {
 }
 
 export async function findComediansWithCount(
-    params: any,
+    helper: QueryHelper,
 ): Promise<ComediansResponse> {
-    const {
-        sortBy,
-        comedian,
-        offset,
-        size,
-        direction,
-        filtersEmpty,
-        filters,
-        userId,
-    } = params;
-
-    // Where clause remains the same...
     const whereClause: Prisma.ComedianWhereInput = {
-        name: {
-            contains: comedian,
-            mode: Prisma.QueryMode.insensitive,
-        },
+        ...helper.getComedianNameClause(),
+        ...helper.getComedianFiltersClause(),
         parentComedian: null,
-        ...(!filtersEmpty
-            ? {
-                  taggedComedians: {
-                      some: {
-                          tag: {
-                              display: {
-                                  in: filters,
-                              },
-                          },
-                      },
-                  },
-              }
-            : {}),
-        NOT: {
-            taggedComedians: {
-                some: {
-                    tag: {
-                        userFacing: false,
-                    },
-                },
-            },
-        },
     };
 
     // Execute both queries in parallel with updated select
@@ -87,17 +52,6 @@ export async function findComediansWithCount(
                         popularity: true,
                     },
                 },
-                ...(userId
-                    ? {
-                          favoriteComedians: {
-                              where: {
-                                  user: {
-                                      userId,
-                                  },
-                              },
-                          },
-                      }
-                    : {}),
                 lineupItems: {
                     select: {
                         id: true,
@@ -110,12 +64,9 @@ export async function findComediansWithCount(
                         },
                     },
                 },
+                ...helper.getFavoriteComedianClause(),
             },
-            orderBy: {
-                [sortBy]: direction,
-            },
-            take: Number(size),
-            skip: offset,
+            ...helper.getGenericClauses(),
         }),
         db.comedian.count({
             where: whereClause,
