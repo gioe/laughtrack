@@ -17,11 +17,11 @@ export function PageParamComponent({
     const paramsHelper = new SearchParamsHelper(useSearchParams());
     const navigator = new Navigator(usePathname(), useRouter());
 
-    const defaultIndex = Number(paramsHelper.getParamValue(QueryProperty.Page));
+    const defaultIndex =
+        Number(paramsHelper.getParamValue(QueryProperty.Page)) - 1;
     const defaultPageSize = Number(
         paramsHelper.getParamValue(QueryProperty.Size),
     );
-    console.log(`The default index is: ${defaultIndex}`);
 
     const [pageIndex, setPageIndex] = useState(defaultIndex);
     const [pageSize, setPageSize] = useState(defaultPageSize);
@@ -31,8 +31,6 @@ export function PageParamComponent({
         newPageIndex: number,
     ) => {
         const newPageValue = newPageIndex + 1;
-        console.log(`The new index is: ${newPageIndex}`);
-        console.log(`The new page is: ${newPageValue}`);
         paramsHelper.setParamValue(QueryProperty.Page, newPageValue.toString());
         navigator.replaceRoute(paramsHelper.asParamsString());
         setPageIndex(newPageIndex);

@@ -227,7 +227,7 @@ export class QueryHelper {
         const providedZip = this.searchParamsHelper.getParamValue(QueryProperty.Zip) as string
         const radius = this.searchParamsHelper.getParamValue(QueryProperty.Distance) as string
         const zipResults = zipcodes.radius(providedZip, Number(radius));
-        const nearbyZips = zipResults.map(zip => typeof zip === 'string' ? zip : zip.zip);
+        const nearbyZips = zipResults.map((zip: string | zipcodes.ZipCode) => typeof zip === 'string' ? zip : zip.zip);
         return {
             zipCode: {
                 in: nearbyZips
