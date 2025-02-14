@@ -55,19 +55,17 @@ export default async function ClubDetailPage(props: {
 
     return (
         <main className="min-h-screen w-full bg-ivory">
-            <ParamsProvider value={paramsHelper.asUrlSearchParams()}>
-                <FilterModal filters={filters} total={total} />
-                <ClubDetailHeader club={data} />
-                <div className="max-w-7xl mx-auto p-6 flex flex-row">
-                    <TableWithHeader shows={shows} total={total}>
-                        <FilterBar
-                            variant={SearchVariant.ClubDetail}
-                            total={total}
-                            filters={filters.length > 0}
-                        />
-                    </TableWithHeader>
-                </div>
-            </ParamsProvider>
+            <FilterModal filters={filters} total={total} />
+            <ClubDetailHeader club={data} />
+            <div className="max-w-7xl mx-auto p-6 flex flex-row">
+                <TableWithHeader shows={shows} total={total}>
+                    <FilterBar
+                        variant={SearchVariant.ClubDetail}
+                        total={total}
+                        filters={filters.length > 0}
+                    />
+                </TableWithHeader>
+            </div>
         </main>
     );
 }

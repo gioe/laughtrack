@@ -63,24 +63,22 @@ export default async function ComedianSearchPage(props: any) {
 
     return (
         <main className="min-h-screen w-full bg-ivory">
-            <ParamsProvider value={paramsHelper.asUrlSearchParams()}>
-                <FilterModal filters={[]} total={total} />
+            <FilterModal filters={[]} total={total} />
 
-                <SearchDetailHeader
-                    title={`Search comedians`}
-                    subTitle={`${total} results`}
-                />
+            <SearchDetailHeader
+                title={`Search comedians`}
+                subTitle={`${total} results`}
+            />
 
-                <FilterBar
-                    variant={SearchVariant.AllComedians}
-                    total={total}
-                    filters={filters.length > 0}
-                />
-                <ComedianGrid
-                    comedians={data}
-                    className="grid grid-cols-1 m:grid-cols-2 lg:grid-cols-2 xl:grid-cols-5 gap-6"
-                />
-            </ParamsProvider>
+            <FilterBar
+                variant={SearchVariant.AllComedians}
+                total={total}
+                filters={filters.length > 0}
+            />
+            <ComedianGrid
+                comedians={data}
+                className="grid grid-cols-1 m:grid-cols-2 lg:grid-cols-2 xl:grid-cols-5 gap-6"
+            />
         </main>
     );
 }

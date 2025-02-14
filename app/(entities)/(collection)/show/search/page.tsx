@@ -53,21 +53,19 @@ export default async function ShowSearchPage(props: any) {
     return (
         <main className="min-h-screen w-full bg-ivory">
             <Navbar currentUser={session?.profile} />
-            <ParamsProvider value={paramsHelper.asUrlSearchParams()}>
-                <FilterModal filters={filters} total={total} />
-                <SearchDetailHeader
-                    title={`Search for shows near ${zip}`}
-                    subTitle={`${total} results`}
-                />
-                <FilterBar
-                    variant={SearchVariant.AllShows}
-                    total={total}
-                    filters={filters.length > 0}
-                />
-                <div className="mx-10">
-                    <ShowTable shows={data} />
-                </div>
-            </ParamsProvider>
+            <FilterModal filters={filters} total={total} />
+            <SearchDetailHeader
+                title={`Search for shows near ${zip}`}
+                subTitle={`${total} results`}
+            />
+            <FilterBar
+                variant={SearchVariant.AllShows}
+                total={total}
+                filters={filters.length > 0}
+            />
+            <div className="mx-10">
+                <ShowTable shows={data} />
+            </div>
         </main>
     );
 }

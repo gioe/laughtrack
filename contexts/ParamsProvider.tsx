@@ -1,17 +1,26 @@
 "use client";
 
-import { createContext, useContext, ReactNode } from "react";
+import { createContext, useContext, ReactNode, useState } from "react";
 
-const ParamsContext = createContext<URLSearchParams | undefined>(undefined);
+const ParamsContext = createContext({
+    searchParams: "",
+    updateParams: (params: string) => {},
+});
 
 interface ParamsProviderProps {
     children: ReactNode;
-    value: URLSearchParams;
+    value: "";
 }
 
 export function ParamsProvider({ children, value }: ParamsProviderProps) {
+    const [searchParams, setSearchParams] = useState<string>(value);
+
+    const updateParams = (value: string) => {
+        setSearchParams(value);
+    };
+
     return (
-        <ParamsContext.Provider value={value}>
+        <ParamsContext.Provider value={{ searchParams, updateParams }}>
             {children}
         </ParamsContext.Provider>
     );

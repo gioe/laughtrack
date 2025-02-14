@@ -1,3 +1,4 @@
+import { ParamsProvider } from "@/contexts/ParamsProvider";
 import { StyleContextProvider } from "@/contexts/StyleProvider";
 import { StyleContextKey } from "@/objects/enum";
 
@@ -8,8 +9,10 @@ export default async function EntityDetailLayout({
     params: Promise<{ name: string }>;
 }) {
     return (
-        <StyleContextProvider initialContext={StyleContextKey.Search}>
-            {children}
-        </StyleContextProvider>
+        <ParamsProvider value={""}>
+            <StyleContextProvider initialContext={StyleContextKey.Search}>
+                {children}
+            </StyleContextProvider>
+        </ParamsProvider>
     );
 }

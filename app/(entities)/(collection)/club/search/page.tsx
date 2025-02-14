@@ -1,11 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
-import { APIRoutePath, QueryProperty } from "@/objects/enum";
-import { ClubSearchResponse } from "@/app/api/club/search/interface";
 import { CACHE } from "@/util/constants/cacheConstants";
-import { makeRequest } from "@/util/actions/makeRequest";
-import { FilterDTO } from "@/objects/interface/filter.interface";
-import { Filter } from "@/objects/class/filter/Filter";
 import { auth } from "@/auth";
 import FilterModal from "@/ui/components/modals/filter";
 import FilterBar from "@/ui/pages/search/filterBar";
@@ -56,19 +51,17 @@ export default async function ClubSearchPage(props: any) {
 
     return (
         <main className="min-h-screen w-full bg-ivory">
-            <ParamsProvider value={paramsHelper.asUrlSearchParams()}>
-                <FilterModal filters={[]} total={total} />
-                <SearchDetailHeader
-                    title={`Search clubs`}
-                    subTitle={`${total} results`}
-                />
-                <FilterBar
-                    variant={SearchVariant.AllClubs}
-                    total={total}
-                    filters={filters.length > 0}
-                />
-                <ClubGrid clubs={data} />
-            </ParamsProvider>
+            <FilterModal filters={[]} total={total} />
+            <SearchDetailHeader
+                title={`Search clubs`}
+                subTitle={`${total} results`}
+            />
+            <FilterBar
+                variant={SearchVariant.AllClubs}
+                total={total}
+                filters={filters.length > 0}
+            />
+            <ClubGrid clubs={data} />
         </main>
     );
 }
