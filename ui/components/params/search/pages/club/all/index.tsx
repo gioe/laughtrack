@@ -5,28 +5,21 @@ import { ChangeEvent, useState } from "react";
 import { Theater } from "lucide-react";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import { ComponentVariant, QueryProperty } from "@/objects/enum";
-import {
-    ParamsDictValue,
-    SearchParamsHelper,
-    URLParam,
-} from "@/objects/class/params/SearchParamsHelper";
 import { Navigator } from "@/objects/class/navigate/Navigator";
 import { getDistanceDataFromParams } from "@/util/search/util";
 import ShowLocationComponent from "../../../components/area";
 import TextInputComponent from "../../../components/textInput";
-import { useParams } from "@/contexts/ParamsProvider";
 
 export default function ClubSearchBar() {
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
-    const params = useParams();
-    const paramsHelper = new SearchParamsHelper(new URLSearchParams(params));
+    const searchParams = useSearchParams();
     const navigator = new Navigator(usePathname(), useRouter());
 
     // Initial state setup
     const initialState = {
-        club: paramsHelper.getParamValue(QueryProperty.Club) as string,
-        distance: getDistanceDataFromParams(paramsHelper),
+        club: searchParams.get(QueryProperty.Club) as string,
+        distance: getDistanceDataFromParams(searchParams),
     };
 
     // Combined state management
@@ -37,11 +30,8 @@ export default function ClubSearchBar() {
         value: any,
         stateUpdater: (prevState: typeof initialState) => typeof initialState,
     ) => {
-        const map = new Map<URLParam, ParamsDictValue>();
-        map.set(param, value);
         setSearchState(stateUpdater);
-        paramsHelper.updateParamsFromMap(map);
-        navigator.replaceRoute(paramsHelper.asParamsString());
+        // navigator.replaceRoute(paramsHelper.asParamsString());
     };
 
     const handleClubSearch = (value: string) =>

@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
 import { CACHE } from "@/util/constants/cacheConstants";
 import { auth } from "@/auth";
 import FilterModal from "@/ui/components/modals/filter";
@@ -7,47 +6,43 @@ import FilterBar from "@/ui/pages/search/filterBar";
 import ClubGrid from "@/ui/components/grid/club";
 import SearchDetailHeader from "@/ui/pages/search/header";
 import { SearchVariant } from "@/objects/enum/searchVariant";
-import { ParamsProvider } from "@/contexts/ParamsProvider";
 import { getSearchedClubs } from "@/lib/data/club/search/getSearchedClubs";
 import { unstable_cache } from "next/cache";
-import { Session } from "next-auth";
+import { ParameterizedRequestData } from "@/objects/interface";
 
 export default async function ClubSearchPage(props: any) {
     const session = await auth();
 
-    const paramsHelper = await SearchParamsHelper.storePageParams(
-        props.searchParams,
-    );
+    const searchParams = await props.searchParams();
 
-    const getCachedSearchPageData = (
-        paramsHelper: SearchParamsHelper,
-        currentSession: Session | null,
-    ) =>
+    const requestData = {
+        params: searchParams,
+        userId: session?.profile?.userId,
+    };
+
+    const getCachedSearchPageData = (requestData: ParameterizedRequestData) =>
         unstable_cache(
             async () => {
                 try {
-                    return await getSearchedClubs(
-                        paramsHelper.asParamsString(),
-                    );
+                    return await getSearchedClubs(requestData);
                 } catch (error) {
                     console.error("Club serach page data fetch error:", error);
                     throw error;
                 }
             },
-            ["club-search-data", currentSession?.profile?.userId ?? ""],
+            ["club-search-data", requestData.userId ?? "", requestData.params],
             {
                 revalidate: CACHE.search,
                 tags: [
                     "club-search-data",
-                    currentSession?.profile?.userId ?? "",
+                    requestData.userId ?? "",
+                    `club-search-${requestData.params}`,
                 ],
             },
         );
 
-    const { data, total, filters } = await getCachedSearchPageData(
-        paramsHelper,
-        session,
-    )();
+    const { data, total, filters } =
+        await getCachedSearchPageData(requestData)();
 
     return (
         <main className="min-h-screen w-full bg-ivory">

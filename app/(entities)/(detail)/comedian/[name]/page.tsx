@@ -1,34 +1,34 @@
-import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
 import { CACHE } from "@/util/constants/cacheConstants";
 import { auth } from "@/auth";
+
+import { SearchVariant } from "@/objects/enum/searchVariant";
+import { unstable_cache } from "next/cache";
+import { getComedianDetailPageData } from "@/lib/data/comedian/detail/getComedianDetailPageData";
+import { ParameterizedRequestData } from "@/objects/interface";
 import ComedianDetailHeader from "@/ui/pages/entity/comedian/header";
 import TableWithHeader from "@/ui/pages/entity/comedian/table";
 import FilterBar from "@/ui/pages/search/filterBar";
 import FilterModal from "@/ui/components/modals/filter";
-import { SearchVariant } from "@/objects/enum/searchVariant";
-import { ParamsProvider } from "@/contexts/ParamsProvider";
-import { unstable_cache } from "next/cache";
-import { getComedianDetailPageData } from "@/lib/data/comedian/detail/getComedianDetailPageData";
-import { Session } from "next-auth";
 
-export default async function ComedianDetailsPage(props: any) {
+export default async function ComedianDetailsPage(props: {
+    searchParams: Promise<URLSearchParams>;
+    params: Promise<{ name: string }> | undefined;
+}) {
     const session = await auth();
+    const searchParams = await props.searchParams;
+    const slug = await props.params;
 
-    const paramsHelper = await SearchParamsHelper.storePageParams(
-        props.searchParams,
-        props.params,
-    );
+    const requestData = {
+        params: searchParams.toString(),
+        userId: session?.profile?.userId,
+        slug: slug?.name,
+    };
 
-    const getCachedDetailPageData = (
-        paramsHelper: SearchParamsHelper,
-        currentSession: Session | null,
-    ) =>
+    const getCachedDetailPageData = (requestData: ParameterizedRequestData) =>
         unstable_cache(
             async () => {
                 try {
-                    return await getComedianDetailPageData(
-                        paramsHelper.asParamsString(),
-                    );
+                    return await getComedianDetailPageData(requestData);
                 } catch (error) {
                     console.error(
                         "Comedian detail page data fetch error:",
@@ -37,20 +37,23 @@ export default async function ComedianDetailsPage(props: any) {
                     throw error;
                 }
             },
-            ["comedian-detail-data", currentSession?.profile?.userId ?? ""],
+            [
+                "comedian-detail-data",
+                requestData.userId ?? "",
+                requestData.params,
+            ],
             {
                 revalidate: CACHE.detailPage,
                 tags: [
                     "comedian-detail-data",
-                    currentSession?.profile?.userId ?? "",
+                    requestData.userId ?? "",
+                    `comedian-detail-${requestData.params}`,
                 ],
             },
         );
 
-    const { data, shows, total, filters } = await getCachedDetailPageData(
-        paramsHelper,
-        session,
-    )();
+    const { data, shows, total, filters } =
+        await getCachedDetailPageData(requestData)();
 
     return (
         <main className="min-h-screen w-full bg-ivory">

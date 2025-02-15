@@ -1,18 +1,18 @@
 import { Prisma } from "@prisma/client";
 import { ClubDetailResponse } from "@/app/api/club/[name]/interface";
-import { EntityType, QueryProperty } from "@/objects/enum";
+import { EntityType } from "@/objects/enum";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { findClubByName } from "./findClubByName";
 import { findShowsWithCount } from "../../show/search/findShowsWithCount";
 import { getFilters } from "../../filters/getFilters";
-import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
+import { ParameterizedRequestData } from "@/objects/interface";
 
 export async function getClubDetailPageData(
-    paramsString: string,
+    requestData: ParameterizedRequestData,
 ): Promise<ClubDetailResponse> {
     try {
         const helper = await QueryHelper.storePageParams(
-            new URLSearchParams(paramsString),
+            new URLSearchParams(requestData.params),
         );
 
         const [club, showsWithCount, filters] = await Promise.all([

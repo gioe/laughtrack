@@ -3,19 +3,18 @@ import { getFilters } from "../../filters/getFilters";
 import { EntityType } from "@/objects/enum";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { findComediansWithCount } from "./findComediansWithCount";
-import { PaginatedEntityResponseDTO } from "@/objects/interface";
+import {
+    PaginatedEntityResponseDTO,
+    ParameterizedRequestData,
+} from "@/objects/interface";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 
 export type ComedianSearchResponse = PaginatedEntityResponseDTO<ComedianDTO>;
 
 export async function getSearchedComedians(
-    searchParams: string,
-    userId?: string,
+    requestData: ParameterizedRequestData,
 ): Promise<ComedianSearchResponse> {
-    const helper = await QueryHelper.storePageParams(
-        new URLSearchParams(searchParams),
-        userId,
-    );
+    const helper = new QueryHelper(requestData);
 
     try {
         const [comediansWithCount, filters] = await Promise.all([

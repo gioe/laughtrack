@@ -16,16 +16,13 @@ import {
     getDateRangeFromParams,
     getDistanceDataFromParams,
 } from "@/util/search/util";
-import ShowLocationComponent from "../../../components/area";
 import CalendarComponent from "../../../components/calendar";
 import TextInputComponent from "../../../components/textInput";
-import { useParams } from "@/contexts/ParamsProvider";
 
 export default function ClubDetailSearchBar() {
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
-    const params = useParams();
-    const paramsHelper = new SearchParamsHelper(new URLSearchParams(params));
+    const paramsHelper = new SearchParamsHelper(useSearchParams());
     const navigator = new Navigator(usePathname(), useRouter());
 
     // Initial state setup

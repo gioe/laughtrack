@@ -4,13 +4,14 @@ import { getFilters } from "../../filters/getFilters";
 import { EntityType } from "@/objects/enum";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { findClubsWithCount } from "./findClubsWithCount";
+import { ParameterizedRequestData } from "@/objects/interface";
 
 export async function getSearchedClubs(
-    paramsString: string,
+    requestData: ParameterizedRequestData,
 ): Promise<ClubSearchResponse> {
     try {
         const helper = await QueryHelper.storePageParams(
-            new URLSearchParams(paramsString),
+            new URLSearchParams(requestData.params),
         );
 
         const [clubsWithCount, filters] = await Promise.all([

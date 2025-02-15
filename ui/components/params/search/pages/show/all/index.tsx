@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ChangeEvent, useState } from "react";
 import { Theater, Users } from "lucide-react";
 import { useStyleContext } from "@/contexts/StyleProvider";
@@ -19,13 +19,11 @@ import {
 import CalendarComponent from "../../../components/calendar";
 import TextInputComponent from "../../../components/textInput";
 import ShowLocationComponent from "../../../components/area";
-import { useParams } from "@/contexts/ParamsProvider";
 
 export default function ShowSearchBar() {
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
-    const params = useParams();
-    const paramsHelper = new SearchParamsHelper(new URLSearchParams(params));
+    const paramsHelper = new SearchParamsHelper(useSearchParams());
     const navigator = new Navigator(usePathname(), useRouter());
 
     // Initial state setup

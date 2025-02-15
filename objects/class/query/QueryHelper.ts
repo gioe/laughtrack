@@ -1,8 +1,7 @@
-import { ParamsDictValue, SearchParamsHelper } from "../params/SearchParamsHelper";
-import { allQueryProperties, DEFAULT_ERROR, QueryProperty } from "../../enum/queryProperty";
-import { DynamicRoute } from "../../interface/identifable.interface";
+import { QueryProperty } from "../../enum/queryProperty";
 import zipcodes from 'zipcodes';
 import { Prisma } from "@prisma/client";
+import { ParameterizedRequestData } from "@/objects/interface";
 
 // This class is meant to capture all of the page parameters that Next provides us with.
 // These are relevant for DB querying and their existence persists across all pages so we capture it
@@ -10,26 +9,27 @@ import { Prisma } from "@prisma/client";
 // It is almost certainly too bloated.
 export class QueryHelper {
 
-    identifier?: DynamicRoute
-    searchParamsHelper: SearchParamsHelper;
-    filters?: string
+    searchParams: URLSearchParams;
+    slug?: string
     userId?: string;
 
-    constructor(searchParamsHelper: SearchParamsHelper,
-        filters?: string,
-        identifier?: DynamicRoute,
-        userId?: string) {
-        this.userId = userId
-        this.identifier = identifier
-        this.filters = filters
-        this.searchParamsHelper = searchParamsHelper
+    constructor(requestData: ParameterizedRequestData) {
+        this.userId = requestData.userId
+        this.slug = requestData.slug
+        this.searchParams = new URLSearchParams(requestData.params)
     }
 
     // Comedians
     getComedianNameClause() {
+        const comedian = this.searchParams.get(QueryProperty.Comedian) as string;
+
+        if (!comedian) {
+            return {}
+        }
+
         return {
             name: {
-                contains: this.searchParamsHelper.getParamValue(QueryProperty.Comedian) as string,
+                contains: comedian,
                 mode: Prisma.QueryMode.insensitive,
             }
         }
@@ -48,7 +48,7 @@ export class QueryHelper {
             },
         };
 
-        if (!this.filters) {
+        if (!this.searchParams.get(QueryProperty.Filters)) {
             return commonClause;
         }
 
@@ -60,7 +60,7 @@ export class QueryHelper {
                         some: {
                             tag: {
                                 display: {
-                                    in: this.filters.split(","),
+                                    in: (this.searchParams.get(QueryProperty.Filters) as string).split(","),
                                 },
                             },
                         },
@@ -71,14 +71,13 @@ export class QueryHelper {
     }
 
     getFavoriteComedianClause() {
-        const userId = this.userId;
         return {
-            ...(userId
+            ...(this.userId
                 ? {
                       favoriteComedians: {
                           where: {
                               user: {
-                                  userId,
+                                  userId: this.userId,
                               },
                           },
                       },
@@ -88,13 +87,12 @@ export class QueryHelper {
     }
 
     getFavoriteComedianClauseWithSelection() {
-        const userId = this.userId;
         return {
-            ...(userId ? {
+            ...(this.userId ? {
                 favoriteComedians: {
                     where: {
                         user: {
-                            id: userId
+                            id: this.userId
                         }
                     },
                     select: {
@@ -107,9 +105,14 @@ export class QueryHelper {
 
     // Clubs
     getClubNameClause() {
+        const club = this.searchParams.get(QueryProperty.Club) as string
+        if (!club) {
+            return {}
+        }
+
         return {
             name: {
-                contains: this.searchParamsHelper.getParamValue(QueryProperty.Club) as string,
+                contains: club,
                 mode: Prisma.QueryMode.insensitive,
             }
         }
@@ -128,7 +131,7 @@ export class QueryHelper {
             },
         };
 
-        if (!this.filters) {
+        if (!this.searchParams.get(QueryProperty.Filters)) {
             return commonClause;
         }
 
@@ -140,7 +143,7 @@ export class QueryHelper {
                         some: {
                             tag: {
                                 display: {
-                                    in: this.filters.split(","),
+                                    in: (this.searchParams.get(QueryProperty.Filters) as string).split(","),
                                 },
                             },
                         },
@@ -164,7 +167,7 @@ export class QueryHelper {
             },
         };
 
-        if (!this.filters) {
+        if (!this.searchParams.get(QueryProperty.Filters)) {
             return commonClause;
         }
 
@@ -176,7 +179,7 @@ export class QueryHelper {
                         some: {
                             tag: {
                                 display: {
-                                    in: this.filters.split(","),
+                                    in: (this.searchParams.get(QueryProperty.Filters) as string).split(","),
                                 },
                             },
                         },
@@ -188,7 +191,7 @@ export class QueryHelper {
 
 
     getLineupItemClause() {
-        const comedian = this.searchParamsHelper.getParamValue(QueryProperty.Comedian) as string;
+        const comedian = this.searchParams.get(QueryProperty.Comedian) as string;
         return {
             ...(comedian ? {
                 // Lineup items represent shows where the comedian is on the lineup.
@@ -224,8 +227,8 @@ export class QueryHelper {
     }
 
     getZipCodeClause() {
-        const providedZip = this.searchParamsHelper.getParamValue(QueryProperty.Zip) as string
-        const radius = this.searchParamsHelper.getParamValue(QueryProperty.Distance) as string
+        const providedZip = this.searchParams.get(QueryProperty.Zip) as string
+        const radius = this.searchParams.get(QueryProperty.Distance) as string
         const zipResults = zipcodes.radius(providedZip, Number(radius));
         const nearbyZips = zipResults.map((zip: string | zipcodes.ZipCode) => typeof zip === 'string' ? zip : zip.zip);
         return {
@@ -236,8 +239,8 @@ export class QueryHelper {
     }
 
     getDateClause() {
-        const fromDate = this.searchParamsHelper.getParamValue(QueryProperty.FromDate) as string
-        const toDate = this.searchParamsHelper.getParamValue(QueryProperty.ToDate) as string
+        const fromDate = this.searchParams.get(QueryProperty.FromDate) as string
+        const toDate = this.searchParams.get(QueryProperty.ToDate) as string
         return {
             date: {
                 gte: fromDate ? new Date(fromDate).toISOString() : new Date().toISOString(),
@@ -248,10 +251,10 @@ export class QueryHelper {
     }
 
     getGenericClauses() {
-        const sortBy = this.searchParamsHelper.getParamValue(QueryProperty.Sort) as string
-        const direction = this.searchParamsHelper.getParamValue(QueryProperty.Direction) as string
-        const size = Number(this.searchParamsHelper.getParamValue(QueryProperty.Size) as string) ?? 10
-        const page = Number(this.searchParamsHelper.getParamValue(QueryProperty.Page)) - 1
+        const sortBy = this.searchParams.get(QueryProperty.Sort) as string
+        const direction = this.searchParams.get(QueryProperty.Direction) as string
+        const size = Number(this.searchParams.get(QueryProperty.Size) as string) ?? 10
+        const page = Number(this.searchParams.get(QueryProperty.Page)) - 1
         const offset = size * page
         return {
             orderBy: {
@@ -263,8 +266,8 @@ export class QueryHelper {
     }
 
     getZipCodes() {
-        const providedZip = this.searchParamsHelper.getParamValue(QueryProperty.Zip) as string
-        const radius = this.searchParamsHelper.getParamValue(QueryProperty.Distance) as string
+        const providedZip = this.searchParams.get(QueryProperty.Zip) as string
+        const radius = this.searchParams.get(QueryProperty.Distance) as string
         const nearbyZips = zipcodes.radius(providedZip, Number(radius))
         return {
             ...(nearbyZips ? {
@@ -280,34 +283,18 @@ export class QueryHelper {
     }
 
     getNameSlug() {
-        return this.identifier?.name
+        return this.slug
     }
 
     getIdSlug() {
-        return this.identifier?.id
+        return this.slug
     }
 
     getFilters() {
         return {
-            filtersEmpty: this.filters == undefined,
-            filters: this.filters ? this.filters.split(",") : ['']
+            filtersEmpty: this.searchParams.get(QueryProperty.Filters) == undefined,
+            filters: this.searchParams.get(QueryProperty.Filters) ? (this.searchParams.get(QueryProperty.Filters) as string).split(",") : ['']
         }
-    }
-
-    getDomainParams() {
-        const paramsMap = new Map<string, ParamsDictValue>()
-        for (const [key, value] of this.searchParamsHelper.paramsDict.entries()) {
-            if (!allQueryProperties.includes(key)) {
-                paramsMap.set(key, value)
-            }
-        }
-        return Object.fromEntries(paramsMap.entries())
-    }
-
-
-    static async storePageParams(searchParams: URLSearchParams, userId?: string,) {
-        const searchParamsHelper = new SearchParamsHelper(searchParams)
-        return new QueryHelper(searchParamsHelper, userId)
     }
 
 }

@@ -6,14 +6,16 @@ import { EntityType } from "@/objects/enum";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { EntityResponseDTO } from "@/objects/interface/paginatedEntity.interface";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
+import { ParameterizedRequestData } from "@/objects/interface";
+
 export type ComedianDetailResponse = EntityResponseDTO<ComedianDTO>;
 
 export async function getComedianDetailPageData(
-    paramsString: string,
+    requestData: ParameterizedRequestData,
 ): Promise<ComedianDetailResponse> {
     try {
         const helper = await QueryHelper.storePageParams(
-            new URLSearchParams(paramsString),
+            new URLSearchParams(requestData.params),
         );
 
         const [comedianData, showsWithCount, filters] = await Promise.all([

@@ -1,57 +1,51 @@
-import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
 import { CACHE } from "@/util/constants/cacheConstants";
-import { DynamicRoute } from "@/objects/interface/identifable.interface";
 import { auth } from "@/auth";
 import TableWithHeader from "@/ui/pages/entity/comedian/table";
 import ClubDetailHeader from "@/ui/pages/entity/club/header";
 import FilterBar from "@/ui/pages/search/filterBar";
 import FilterModal from "@/ui/components/modals/filter";
 import { SearchVariant } from "@/objects/enum/searchVariant";
-import { ParamsProvider } from "@/contexts/ParamsProvider";
 import { getClubDetailPageData } from "@/lib/data/club/detail/getClubDetailPageData";
 import { unstable_cache } from "next/cache";
-import { Session } from "next-auth";
+import { ParameterizedRequestData } from "@/objects/interface";
 
 export default async function ClubDetailPage(props: {
     searchParams: Promise<URLSearchParams>;
-    params: Promise<DynamicRoute> | undefined;
+    params: Promise<{ name: string }> | undefined;
 }) {
     const session = await auth();
+    const searchParams = await props.searchParams;
+    const slug = await props.params;
 
-    const paramsHelper = await SearchParamsHelper.storePageParams(
-        props.searchParams,
-        props.params,
-    );
+    const requestData = {
+        params: searchParams.toString(),
+        userId: session?.profile?.userId,
+        slug: slug?.name,
+    };
 
-    const getCachedDetailPageData = (
-        paramsHelper: SearchParamsHelper,
-        currentSession: Session | null,
-    ) =>
+    const getCachedDetailPageData = (requestData: ParameterizedRequestData) =>
         unstable_cache(
             async () => {
                 try {
-                    return await getClubDetailPageData(
-                        paramsHelper.asParamsString(),
-                    );
+                    return await getClubDetailPageData(requestData);
                 } catch (error) {
                     console.error("Club detail page data fetch error:", error);
                     throw error;
                 }
             },
-            ["comedian-detail-data", currentSession?.profile?.userId ?? ""],
+            ["club-detail-data", requestData.userId ?? "", requestData.params],
             {
                 revalidate: CACHE.detailPage,
                 tags: [
-                    "comedian-detail-data",
-                    currentSession?.profile?.userId ?? "",
+                    "club-detail-data",
+                    requestData.userId ?? "",
+                    `club-detail-${requestData.params}`,
                 ],
             },
         );
 
-    const { data, shows, total, filters } = await getCachedDetailPageData(
-        paramsHelper,
-        session,
-    )();
+    const { data, shows, total, filters } =
+        await getCachedDetailPageData(requestData)();
 
     return (
         <main className="min-h-screen w-full bg-ivory">

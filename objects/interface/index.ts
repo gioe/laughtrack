@@ -15,6 +15,7 @@ import {
 import { Taggable } from "./taggable.interface";
 import { AuthToken } from "./token.interface";
 import { Entity } from "./entity.interface"
+import { ParameterizedRequestData} from "./parameterizedRequest.interface"
 export type {
     Selectable,
     DatabaseIdentifiable,
@@ -31,5 +32,6 @@ export type {
     LineupItemDTO,
     PaginatedEntityResponseDTO,
     EntityContainer,
+    ParameterizedRequestData
 };
 

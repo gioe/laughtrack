@@ -4,11 +4,12 @@ import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
 import { QueryProperty } from "@/objects/enum";
 import { DEFAULT_ERROR } from "@/objects/enum/queryProperty";
 import { FilterDTO } from "@/objects/interface/filter.interface";
+import { ReadonlyURLSearchParams } from "next/navigation";
 import { useState } from "react";
 
-export const useFilters = (filters: FilterDTO[], paramsHelper: SearchParamsHelper, navigator: Navigator) => {
+export const useFilters = (filters: FilterDTO[], searchParams: ReadonlyURLSearchParams, navigator: Navigator) => {
 
-    const initialParamValue = paramsHelper.getParamValue(QueryProperty.Filters)
+    const initialParamValue = searchParams.get(QueryProperty.Filters) as string
 
     const [selectedFilters, setSelectedFilters] = useState(
         filters.map(dto => new Filter(dto, initialParamValue))
@@ -26,15 +27,15 @@ export const useFilters = (filters: FilterDTO[], paramsHelper: SearchParamsHelpe
             .map(f => f.display)
             .join(",");
 
-        paramsHelper.setParamValue(QueryProperty.Filters, paramValue);
-        navigator.replaceRoute(paramsHelper.asParamsString());
+        // searchParams.setParamValue(QueryProperty.Filters, paramValue);
+        // navigator.replaceRoute(paramsHelper.asParamsString());
         setSelectedFilters(newFilters);
     };
 
     const handleClose = () => {
         let resetValue = initialParamValue == DEFAULT_ERROR ? '' : initialParamValue
-        paramsHelper.setParamValue(QueryProperty.Filters, resetValue);
-        navigator.replaceRoute(paramsHelper.asParamsString());
+        // paramsHelper.setParamValue(QueryProperty.Filters, resetValue);
+        // navigator.replaceRoute(paramsHelper.asParamsString());
     };
 
     return { selectedFilters, handleFilterChange, handleClose };

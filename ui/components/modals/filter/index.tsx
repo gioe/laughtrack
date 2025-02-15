@@ -18,13 +18,13 @@ interface FilterModalProps {
 }
 
 const FilterModal = ({ filters, total }: FilterModalProps) => {
-    const paramsHelper = new SearchParamsHelper(useSearchParams());
+    const searchParams = useSearchParams();
     const navigator = new Navigator(usePathname(), useRouter());
 
     const filterModal = useFilterModal();
     const { selectedFilters, handleFilterChange, handleClose } = useFilters(
         filters,
-        paramsHelper,
+        searchParams,
         navigator,
     );
 
@@ -57,9 +57,9 @@ const FilterModal = ({ filters, total }: FilterModalProps) => {
                                 handleFilterChange(
                                     new Filter(
                                         option,
-                                        paramsHelper.getParamValue(
+                                        searchParams.get(
                                             QueryProperty.Filters,
-                                        ),
+                                        ) as string,
                                     ),
                                 )
                             }

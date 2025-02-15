@@ -41,10 +41,6 @@ export class SearchParamsHelper {
         }
     }
 
-    removeParam(key: URLParam) {
-        this.paramsDict.delete(key);
-    }
-
     getParamValue(key: URLParam): string | string[] {
         const paramValue = this.paramsDict.get(key)
         if (paramValue == undefined) { return queryPropertyDefaultMap.get(key) }
@@ -58,11 +54,11 @@ export class SearchParamsHelper {
     }
 
     asParamsString() {
-        const seachParams = new URLSearchParams()
+        const searchParams = new URLSearchParams()
         for (const [key, value] of this.paramsDict.entries()) {
-            seachParams.set(key, convertValueToString(value))
+            searchParams.set(key, convertValueToString(value))
         }
-        return seachParams.toString()
+        return searchParams.toString()
     }
 
     setDefaultValue(key: URLParam, value: string): void {

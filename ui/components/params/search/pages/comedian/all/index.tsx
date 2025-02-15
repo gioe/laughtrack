@@ -12,13 +12,11 @@ import {
 } from "@/objects/class/params/SearchParamsHelper";
 import { Navigator } from "@/objects/class/navigate/Navigator";
 import TextInputComponent from "../../../components/textInput";
-import { useParams } from "@/contexts/ParamsProvider";
 
 export default function ComedianSearchBar() {
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
-    const params = useParams();
-    const paramsHelper = new SearchParamsHelper(new URLSearchParams(params));
+    const paramsHelper = new SearchParamsHelper(useSearchParams());
     const navigator = new Navigator(usePathname(), useRouter());
 
     const initialState = {

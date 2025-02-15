@@ -1,37 +1,30 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
 import { CACHE } from "@/util/constants/cacheConstants";
 import { auth } from "@/auth";
 import { SearchVariant } from "@/objects/enum/searchVariant";
-import { ParamsProvider } from "@/contexts/ParamsProvider";
 import { getSearchedComedians } from "@/lib/data/comedian/search/getSearchedComedians";
-import { Session } from "next-auth";
 import { unstable_cache } from "next/cache";
 import ComedianGrid from "@/ui/components/grid/comedian";
 import SearchDetailHeader from "@/ui/pages/search/header";
 import FilterModal from "@/ui/components/modals/filter";
 import FilterBar from "@/ui/pages/search/filterBar";
+import { ParameterizedRequestData } from "@/objects/interface";
 
 export default async function ComedianSearchPage(props: any) {
     const session = await auth();
 
-    const paramsHelper = await SearchParamsHelper.storePageParams(
-        props.searchParams,
-    );
-    const getCachedSearchPageData = (
-        paramsHelper: SearchParamsHelper,
-        currentSession: Session | null,
-    ) => {
-        // Create a unique cache key based on the query parameters
-        const queryParamsKey = paramsHelper.asParamsString();
+    const searchParams = await props.searchParams;
 
+    const requestData = {
+        params: searchParams,
+        userId: session?.profile?.userId,
+    };
+
+    const getCachedSearchPageData = (requestData: ParameterizedRequestData) => {
         return unstable_cache(
             async () => {
                 try {
-                    return await getSearchedComedians(
-                        queryParamsKey,
-                        currentSession?.profile?.userId,
-                    );
+                    return await getSearchedComedians(requestData);
                 } catch (error) {
                     console.error(
                         "Comedian search page data fetch error:",
@@ -42,24 +35,22 @@ export default async function ComedianSearchPage(props: any) {
             },
             [
                 "comedian-search-data",
-                currentSession?.profile?.userId ?? "",
-                queryParamsKey, // Add query params to cache key
+                requestData.userId ?? "",
+                requestData.params,
             ],
             {
                 revalidate: CACHE.search,
                 tags: [
                     "comedian-search-data",
-                    currentSession?.profile?.userId ?? "",
-                    `comedian-search-${queryParamsKey}`, // Add query-specific tag
+                    requestData.userId ?? "",
+                    `comedian-search-${requestData.params}`,
                 ],
             },
         );
     };
 
-    const { data, total, filters } = await getCachedSearchPageData(
-        paramsHelper,
-        session,
-    )();
+    const { data, total, filters } =
+        await getCachedSearchPageData(requestData)();
 
     return (
         <main className="min-h-screen w-full bg-ivory">

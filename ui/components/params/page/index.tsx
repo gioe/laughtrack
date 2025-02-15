@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
 import { Navigator } from "@/objects/class/navigate/Navigator";
 import { QueryProperty } from "@/objects/enum";
 import TablePagination from "@mui/material/TablePagination";
@@ -14,14 +13,11 @@ interface PageParamComponentProps {
 export function PageParamComponent({
     itemCount,
 }: Readonly<PageParamComponentProps>) {
-    const paramsHelper = new SearchParamsHelper(useSearchParams());
+    const searchParams = useSearchParams();
     const navigator = new Navigator(usePathname(), useRouter());
 
-    const defaultIndex =
-        Number(paramsHelper.getParamValue(QueryProperty.Page)) - 1;
-    const defaultPageSize = Number(
-        paramsHelper.getParamValue(QueryProperty.Size),
-    );
+    const defaultIndex = Number(searchParams.get(QueryProperty.Page)) - 1;
+    const defaultPageSize = Number(searchParams.get(QueryProperty.Size));
 
     const [pageIndex, setPageIndex] = useState(defaultIndex);
     const [pageSize, setPageSize] = useState(defaultPageSize);
@@ -31,8 +27,7 @@ export function PageParamComponent({
         newPageIndex: number,
     ) => {
         const newPageValue = newPageIndex + 1;
-        paramsHelper.setParamValue(QueryProperty.Page, newPageValue.toString());
-        navigator.replaceRoute(paramsHelper.asParamsString());
+        // navigator.replaceRoute(paramsHelper.asParamsString());
         setPageIndex(newPageIndex);
     };
 
@@ -40,8 +35,7 @@ export function PageParamComponent({
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => {
         const rowSizeValue = parseInt(event.target.value, 8);
-        paramsHelper.setParamValue(QueryProperty.Size, rowSizeValue);
-        navigator.replaceRoute(paramsHelper.asParamsString());
+        // navigator.replaceRoute(paramsHelper.asParamsString());
         setPageSize(rowSizeValue);
     };
 
