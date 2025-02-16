@@ -1,7 +1,7 @@
 "use client";
 import { useCallback } from "react";
 import { usePathname } from "next/navigation";
-import { useLoginModal, useRegisterModal } from "@/hooks/modalState";
+import { useLoginModal, useRegisterModal } from "@/hooks/modal";
 import Logo from "../logo";
 import NavigationMenu from "../navbar/menu";
 import AuthButtons from "../auth/header";

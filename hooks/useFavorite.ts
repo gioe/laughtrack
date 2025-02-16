@@ -1,7 +1,7 @@
 'use client'
 import { useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
-import { useFavoriteRegisterModal } from '@/hooks/modalState';
+import { useFavoriteRegisterModal } from '@/hooks/modal';
 import { makeRequest } from '@/util/actions/makeRequest';
 import { APIRoutePath, RestAPIAction } from '@/objects/enum';
 

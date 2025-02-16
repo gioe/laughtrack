@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Navigator } from "@/objects/class/navigate/Navigator";
 import { QueryProperty } from "@/objects/enum";
 import TablePagination from "@mui/material/TablePagination";
+import { useUrlParams } from "@/hooks/useUrlParams";
 
 interface PageParamComponentProps {
     itemCount: number;
@@ -13,11 +12,10 @@ interface PageParamComponentProps {
 export function PageParamComponent({
     itemCount,
 }: Readonly<PageParamComponentProps>) {
-    const searchParams = useSearchParams();
-    const navigator = new Navigator(usePathname(), useRouter());
+    const { getParam, setParam } = useUrlParams();
 
-    const defaultIndex = Number(searchParams.get(QueryProperty.Page)) - 1;
-    const defaultPageSize = Number(searchParams.get(QueryProperty.Size));
+    const defaultIndex = Number(getParam(QueryProperty.Page)) - 1;
+    const defaultPageSize = Number(getParam(QueryProperty.Size));
 
     const [pageIndex, setPageIndex] = useState(defaultIndex);
     const [pageSize, setPageSize] = useState(defaultPageSize);
@@ -27,7 +25,7 @@ export function PageParamComponent({
         newPageIndex: number,
     ) => {
         const newPageValue = newPageIndex + 1;
-        // navigator.replaceRoute(paramsHelper.asParamsString());
+        setParam(QueryProperty.Page, newPageValue);
         setPageIndex(newPageIndex);
     };
 
@@ -35,7 +33,7 @@ export function PageParamComponent({
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => {
         const rowSizeValue = parseInt(event.target.value, 8);
-        // navigator.replaceRoute(paramsHelper.asParamsString());
+        setParam(QueryProperty.Size, rowSizeValue);
         setPageSize(rowSizeValue);
     };
 

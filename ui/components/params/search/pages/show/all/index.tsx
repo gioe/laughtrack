@@ -1,37 +1,40 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ChangeEvent, useState } from "react";
 import { Theater, Users } from "lucide-react";
 import { useStyleContext } from "@/contexts/StyleProvider";
-import {
-    ParamsDictValue,
-    SearchParamsHelper,
-    URLParam,
-} from "@/objects/class/params/SearchParamsHelper";
-import { Navigator } from "@/objects/class/navigate/Navigator";
 import { ComponentVariant, QueryProperty } from "@/objects/enum";
 import {
     DateRange,
+    DistanceData,
     getDateRangeFromParams,
-    getDistanceDataFromParams,
 } from "@/util/search/util";
 import CalendarComponent from "../../../components/calendar";
 import TextInputComponent from "../../../components/textInput";
 import ShowLocationComponent from "../../../components/area";
+import { ParamKeys, useUrlParams } from "@/hooks/useUrlParams";
 
 export default function ShowSearchBar() {
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
-    const paramsHelper = new SearchParamsHelper(useSearchParams());
-    const navigator = new Navigator(usePathname(), useRouter());
+    const { getTypedParam, setTypedParam } = useUrlParams();
+
+    const comedian = getTypedParam(QueryProperty.Comedian);
+    const club = getTypedParam(QueryProperty.Club);
+    const distance = getTypedParam(QueryProperty.Distance);
+    const zipCode = getTypedParam(QueryProperty.Zip);
+    const from = getTypedParam(QueryProperty.FromDate);
+    const to = getTypedParam(QueryProperty.ToDate);
 
     // Initial state setup
     const initialState = {
-        comedian: paramsHelper.getParamValue(QueryProperty.Comedian) as string,
-        club: paramsHelper.getParamValue(QueryProperty.Club) as string,
-        distance: getDistanceDataFromParams(paramsHelper),
-        dateRange: getDateRangeFromParams(paramsHelper),
+        comedian,
+        club,
+        distance: { distance, zipCode } as DistanceData,
+        dateRange: getDateRangeFromParams({
+            from,
+            to,
+        }),
     };
 
     // Combined state management
@@ -39,16 +42,12 @@ export default function ShowSearchBar() {
 
     // Generic update function for all search parameters
     const updateSearchParams = <T extends keyof typeof initialState>(
-        param: QueryProperty,
+        param: ParamKeys,
         value: any,
         stateUpdater: (prevState: typeof initialState) => typeof initialState,
     ) => {
-        const map = new Map<URLParam, ParamsDictValue>();
-        map.set(param, value);
-
+        setParam(param, value);
         setSearchState(stateUpdater);
-        paramsHelper.updateParamsFromMap(map);
-        navigator.replaceRoute(paramsHelper.asParamsString());
     };
 
     // Simplified handler functions
@@ -72,15 +71,20 @@ export default function ShowSearchBar() {
                 ...prev,
                 dateRange: {
                     from: value?.from ?? new Date(),
-                    to: value?.to ?? new Date(),
+                    to: value?.to,
                 },
             }),
         );
+
+        getDateRangeFromParams({
+            from,
+            to,
+        });
         updateSearchParams(QueryProperty.ToDate, value?.to ?? "", (prev) => ({
             ...prev,
             dateRange: {
                 from: value?.from ?? new Date(),
-                to: value?.to ?? new Date(),
+                to: value?.to,
             },
         }));
     };
@@ -137,7 +141,7 @@ export default function ShowSearchBar() {
                                 />
                             }
                             placeholder="Search for comedian"
-                            value={searchState.comedian}
+                            value={searchState.comedian ?? ""}
                             onChange={handleComedianSearch}
                             className="w-full border-gray-200 bg-ivory ring-transparent focus:ring-transparent
                             shadow-none border-transparent focus:outline-none outline-none"
@@ -154,7 +158,7 @@ export default function ShowSearchBar() {
                                 />
                             }
                             placeholder="Search by club"
-                            value={searchState.club}
+                            value={searchState.club ?? ""}
                             onChange={handleClubSearch}
                             className="border-gray-200 bg-ivory ring-transparent focus:ring-transparent
                             shadow-none border-transparent focus:outline-none outline-none"

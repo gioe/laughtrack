@@ -6,8 +6,9 @@ import { MapPin } from "lucide-react";
 import { ComponentVariant } from "@/objects/enum";
 import DropdownComponent from "../dropdown";
 import ZipCodeInput from "../zipcode/input";
+import { allDistanceOptions } from "@/objects/enum/distanceValues";
 
-const selectableDistances = ["5", "10", "15", "20", "25", "50"].map(
+const selectableDistances = allDistanceOptions.map(
     (distance: string, index: number) => ({
         id: index + 1,
         value: distance,

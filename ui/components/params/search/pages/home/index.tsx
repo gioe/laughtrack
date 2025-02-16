@@ -1,7 +1,6 @@
 "use client";
 
 import { z } from "zod";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -9,16 +8,11 @@ import { CircleIconButton } from "@/ui/components/button/circleIcon";
 import { Search } from "lucide-react";
 import { showSearchFormSchema } from "./schema";
 import { Loader2 } from "lucide-react";
-import {
-    ParamsDictValue,
-    SearchParamsHelper,
-    URLParam,
-} from "@/objects/class/params/SearchParamsHelper";
-import { Navigator } from "@/objects/class/navigate/Navigator";
 import { Form } from "@/ui/components/ui/form";
-import { ComponentVariant, QueryProperty } from "@/objects/enum";
+import { ComponentVariant } from "@/objects/enum";
 import CalendarComponent from "../../components/calendar";
 import ShowLocationComponent from "../../components/area";
+import { useUrlParams } from "@/hooks/useUrlParams";
 
 const LoadingOverlay = () => (
     <div className="absolute inset-0 bg-black/20 backdrop-blur-sm rounded-full flex items-center justify-center">
@@ -27,8 +21,7 @@ const LoadingOverlay = () => (
 );
 
 export default function ShowSearchForm() {
-    const paramsHelper = new SearchParamsHelper(useSearchParams());
-    const navigator = new Navigator(usePathname(), useRouter());
+    const { setMultipleParams } = useUrlParams();
 
     const [isLoading, setIsLoading] = useState(false);
 
@@ -59,16 +52,14 @@ export default function ShowSearchForm() {
             }
 
             setIsLoading(true);
-            const map = new Map<URLParam, ParamsDictValue>();
-            map.set(QueryProperty.Distance, data.distance.distance);
-            map.set(QueryProperty.Zip, data.distance.zipCode);
-            map.set(QueryProperty.FromDate, data.dates.from);
-            map.set(QueryProperty.ToDate, data.dates.to);
 
             await new Promise((resolve) => setTimeout(resolve, 300));
-
-            paramsHelper.updateParamsFromMap(map);
-            navigator.pushPage("show/search", paramsHelper.asParamsString());
+            setMultipleParams({
+                distance: data.distance.distance,
+                zip: data.distance.zipCode,
+                from: data.dates.from.toISOString(),
+                to: data.dates.to.toISOString(),
+            });
         } catch (error) {
             console.error("Error during navigation:", error);
         } finally {

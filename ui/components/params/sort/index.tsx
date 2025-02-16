@@ -3,25 +3,27 @@
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { useState } from "react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
-import { Navigator } from "@/objects/class/navigate/Navigator";
 import { QueryProperty } from "@/objects/enum";
 import { SortOptionInterface } from "@/objects/interface";
 import { cn } from "@/util/tailwindUtil";
 import { Menu as MenuIcon } from "lucide-react";
 import { getDefaultSortingOption } from "@/util/filter/util";
+import { useUrlParams } from "@/hooks/useUrlParams";
 
 interface SortComponentProps {
     sortOptions: SortOptionInterface[];
 }
 
 export function SortParamComponent({ sortOptions }: SortComponentProps) {
-    const paramsHelper = new SearchParamsHelper(useSearchParams());
+    const { getParam, setMultipleParams } = useUrlParams();
+    const sortParam = getParam(QueryProperty.Sort);
+    const directionParam = getParam(QueryProperty.Direction);
 
-    const navigator = new Navigator(usePathname(), useRouter());
-
-    const defaultOption = getDefaultSortingOption(sortOptions, paramsHelper);
+    const defaultOption = getDefaultSortingOption(
+        sortOptions,
+        sortParam,
+        directionParam,
+    );
 
     const [selectedSortingOption, setSelectedSortingOption] =
         useState(defaultOption);
@@ -40,12 +42,10 @@ export function SortParamComponent({ sortOptions }: SortComponentProps) {
     };
 
     const modifySortParam = (sortValue: SortOptionInterface) => {
-        paramsHelper.setParamValue(QueryProperty.Sort, sortValue.value);
-        paramsHelper.setParamValue(
-            QueryProperty.Direction,
-            sortValue.direction,
-        );
-        navigator.replaceRoute(paramsHelper.asParamsString());
+        setMultipleParams({
+            sort: sortValue.value,
+            direction: sortValue.direction,
+        });
         setSelectedSortingOption(sortValue);
     };
 

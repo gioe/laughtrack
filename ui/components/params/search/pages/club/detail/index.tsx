@@ -1,52 +1,42 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ChangeEvent, useState } from "react";
-import { Users } from "lucide-react";
-import { useStyleContext } from "@/contexts/StyleProvider";
-import {
-    ParamsDictValue,
-    SearchParamsHelper,
-    URLParam,
-} from "@/objects/class/params/SearchParamsHelper";
-import { Navigator } from "@/objects/class/navigate/Navigator";
-import { ComponentVariant, QueryProperty } from "@/objects/enum";
-import {
-    DateRange,
-    getDateRangeFromParams,
-    getDistanceDataFromParams,
-} from "@/util/search/util";
 import CalendarComponent from "../../../components/calendar";
 import TextInputComponent from "../../../components/textInput";
+import { useState } from "react";
+import { Users } from "lucide-react";
+import { useStyleContext } from "@/contexts/StyleProvider";
+import { ComponentVariant, QueryProperty } from "@/objects/enum";
+import { DateRange, getDateRangeFromParams } from "@/util/search/util";
+import { ParamKeys, useUrlParams } from "@/hooks/useUrlParams";
 
 export default function ClubDetailSearchBar() {
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
-    const paramsHelper = new SearchParamsHelper(useSearchParams());
-    const navigator = new Navigator(usePathname(), useRouter());
+    const { getTypedParam, setTypedParam } = useUrlParams();
+
+    const comedian = getTypedParam(QueryProperty.Comedian);
+    const from = getTypedParam(QueryProperty.FromDate);
+    const to = getTypedParam(QueryProperty.ToDate);
 
     // Initial state setup
     const initialState = {
-        comedian: paramsHelper.getParamValue(QueryProperty.Comedian) as string,
-        club: paramsHelper.getParamValue(QueryProperty.Club) as string,
-        distance: getDistanceDataFromParams(paramsHelper),
-        dateRange: getDateRangeFromParams(paramsHelper),
+        comedian,
+        dateRange: getDateRangeFromParams({
+            from,
+            to,
+        }),
     };
 
     // Combined state management
     const [searchState, setSearchState] = useState(initialState);
 
     const updateSearchParams = <T extends keyof typeof initialState>(
-        param: QueryProperty,
+        param: ParamKeys,
         value: any,
         stateUpdater: (prevState: typeof initialState) => typeof initialState,
     ) => {
-        const map = new Map<URLParam, ParamsDictValue>();
-        map.set(param, value);
-
+        setTypedParam(param, value);
         setSearchState(stateUpdater);
-        paramsHelper.updateParamsFromMap(map);
-        navigator.replaceRoute(paramsHelper.asParamsString());
     };
 
     const handleComedianSearch = (value: string) =>
@@ -62,22 +52,11 @@ export default function ClubDetailSearchBar() {
                 ...prev,
                 dateRange: {
                     from: value?.from ?? new Date(),
-                    to: value?.to ?? new Date(),
+                    to: value?.to,
                 },
             }),
         );
 
-    const handleDistanceSelection = (distance: string) =>
-        updateSearchParams(QueryProperty.Distance, distance, (prev) => ({
-            ...prev,
-            distance: { ...prev.distance, distance },
-        }));
-
-    const handleZipCodeInput = (event: ChangeEvent<HTMLInputElement>) =>
-        updateSearchParams(QueryProperty.Zip, event.target.value, (prev) => ({
-            ...prev,
-            distance: { ...prev.distance, zipCode: event.target.value },
-        }));
     return (
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col lg:flex-row gap-2 lg:gap-0 bg-ivory rounded-3xl lg:rounded-full border border-gray-200 p-2 lg:p-4 shadow-sm">
@@ -102,7 +81,7 @@ export default function ClubDetailSearchBar() {
                                 />
                             }
                             placeholder="Search for comedian"
-                            value={searchState.comedian}
+                            value={searchState.comedian ?? ""}
                             onChange={handleComedianSearch}
                             className="w-full border-gray-200 bg-ivory ring-transparent focus:ring-transparent
                             shadow-none border-transparent focus:outline-none outline-none"

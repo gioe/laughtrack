@@ -4,7 +4,7 @@ export enum QueryProperty {
     Direction = 'direction',
     Size = 'size',
     Page = 'page',
-    Sort = 'sort_by',
+    Sort = 'sort',
     Comedian = 'comedian',
     Club = 'club',
     Params = 'params',
@@ -13,8 +13,8 @@ export enum QueryProperty {
     City = 'city',
     Zip = 'zip',
     Distance = 'distance',
-    FromDate = 'from_date',
-    ToDate = 'to_date'
+    FromDate = 'fromDate',
+    ToDate = 'toDate'
 }
 
 export const allQueryProperties = [
@@ -27,19 +27,4 @@ export const allQueryProperties = [
     QueryProperty.Comedian.valueOf(),
     QueryProperty.Club.valueOf(),
 ];
-
-export const DEFAULT_ERROR = 'Unknown error'
-
-export const queryPropertyDefaultMap = new MapWithDefault<string, string>([
-    [QueryProperty.Page, "1"],
-    [QueryProperty.Size, "10"],
-    [QueryProperty.Direction, "asc"],
-    [QueryProperty.Sort, "name"],
-    [QueryProperty.City, ""],
-    [QueryProperty.Comedian, ""],
-    [QueryProperty.Club, ""],
-    [QueryProperty.Distance, "5"],
-    [QueryProperty.Zip, ''],
-    [DEFAULT, DEFAULT_ERROR]
-]);
 

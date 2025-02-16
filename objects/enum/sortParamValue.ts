@@ -8,11 +8,10 @@ export enum SortParamValue {
     ScrapeDate = 'scrapedate'
 }
 
-export const allSortOptionsName = [
-    SortParamValue.Name,
-    SortParamValue.Date,
-    SortParamValue.Price,
-    SortParamValue.Popularity,
-    SortParamValue.ScrapeDate,
-    SortParamValue.Activity
+export const allSortOptions = [
+    SortParamValue.Name.valueOf(),
+    SortParamValue.Date.valueOf(),
+    SortParamValue.Price.valueOf(),
+    SortParamValue.Popularity.valueOf(),
+    SortParamValue.Activity.valueOf()
 ]

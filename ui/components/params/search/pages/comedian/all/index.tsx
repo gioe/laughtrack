@@ -1,41 +1,33 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import TextInputComponent from "../../../components/textInput";
 import { useState } from "react";
 import { Users } from "lucide-react";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import { QueryProperty } from "@/objects/enum";
-import {
-    ParamsDictValue,
-    SearchParamsHelper,
-    URLParam,
-} from "@/objects/class/params/SearchParamsHelper";
-import { Navigator } from "@/objects/class/navigate/Navigator";
-import TextInputComponent from "../../../components/textInput";
+import { ParamKeys, useUrlParams } from "@/hooks/useUrlParams";
 
 export default function ComedianSearchBar() {
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
-    const paramsHelper = new SearchParamsHelper(useSearchParams());
-    const navigator = new Navigator(usePathname(), useRouter());
+    const { getTypedParam, setTypedParam } = useUrlParams();
+
+    const comedian = getTypedParam(QueryProperty.Comedian);
 
     const initialState = {
-        comedian: paramsHelper.getParamValue(QueryProperty.Comedian) as string,
+        comedian,
     };
 
     // Combined state management
     const [searchState, setSearchState] = useState(initialState);
 
     const updateSearchParams = <T extends keyof typeof initialState>(
-        param: QueryProperty,
+        param: ParamKeys,
         value: any,
         stateUpdater: (prevState: typeof initialState) => typeof initialState,
     ) => {
-        const map = new Map<URLParam, ParamsDictValue>();
-        map.set(param, value);
+        setTypedParam(param, value);
         setSearchState(stateUpdater);
-        paramsHelper.updateParamsFromMap(map);
-        navigator.replaceRoute(paramsHelper.asParamsString());
     };
 
     const handleComedianSearch = (value: string) =>
@@ -55,7 +47,7 @@ export default function ComedianSearchBar() {
                         />
                     }
                     placeholder="Search for comedian"
-                    value={searchState.comedian}
+                    value={searchState.comedian ?? ""}
                     onChange={handleComedianSearch}
                     className="border-gray-200 bg-ivory ring-transparent focus:ring-transparent
     shadow-none border-transparent focus:outline-none outline-none"

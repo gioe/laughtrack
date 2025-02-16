@@ -6,6 +6,6 @@ export enum DirectionParamValue {
 }
 
 export const allDirectionParamValues = [
-    DirectionParamValue.Ascending,
-    DirectionParamValue.Descending
+    DirectionParamValue.Ascending.valueOf(),
+    DirectionParamValue.Descending.valueOf()
 ]

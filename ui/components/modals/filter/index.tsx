@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useFilterModal } from "@/hooks/modalState";
+import { useFilterModal } from "@/hooks/modal";
 import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Navigator } from "@/objects/class/navigate/Navigator";

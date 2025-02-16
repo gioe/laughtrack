@@ -1,37 +1,39 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import ShowLocationComponent from "../../../components/area";
+import TextInputComponent from "../../../components/textInput";
 import { ChangeEvent, useState } from "react";
 import { Theater } from "lucide-react";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import { ComponentVariant, QueryProperty } from "@/objects/enum";
-import { Navigator } from "@/objects/class/navigate/Navigator";
-import { getDistanceDataFromParams } from "@/util/search/util";
-import ShowLocationComponent from "../../../components/area";
-import TextInputComponent from "../../../components/textInput";
+import { DistanceData } from "@/util/search/util";
+import { ParamKeys, useUrlParams } from "@/hooks/useUrlParams";
 
 export default function ClubSearchBar() {
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
-    const searchParams = useSearchParams();
-    const navigator = new Navigator(usePathname(), useRouter());
+    const { getTypedParam, setTypedParam } = useUrlParams();
+
+    const club = getTypedParam(QueryProperty.Club);
+    const distance = getTypedParam(QueryProperty.Distance);
+    const zipCode = getTypedParam(QueryProperty.Zip);
 
     // Initial state setup
     const initialState = {
-        club: searchParams.get(QueryProperty.Club) as string,
-        distance: getDistanceDataFromParams(searchParams),
+        club,
+        distance: { distance, zipCode } as DistanceData,
     };
 
     // Combined state management
     const [searchState, setSearchState] = useState(initialState);
 
     const updateSearchParams = <T extends keyof typeof initialState>(
-        param: QueryProperty,
+        param: ParamKeys,
         value: any,
         stateUpdater: (prevState: typeof initialState) => typeof initialState,
     ) => {
+        setTypedParam(param, value);
         setSearchState(stateUpdater);
-        // navigator.replaceRoute(paramsHelper.asParamsString());
     };
 
     const handleClubSearch = (value: string) =>
@@ -71,7 +73,7 @@ export default function ClubSearchBar() {
                         />
                     }
                     placeholder="Search for club"
-                    value={searchState.club}
+                    value={searchState.club ?? ""}
                     onChange={handleClubSearch}
                     className="border-gray-200 pr-4 bg-ivory ring-transparent focus:ring-transparent shadow-none border-transparent"
                 />

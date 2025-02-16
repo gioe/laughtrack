@@ -1,6 +1,7 @@
-import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
-import { QueryProperty } from "@/objects/enum";
-import { ReadonlyURLSearchParams } from "next/navigation";
+export interface DateRangeInput {
+    from: string | null;
+    to: string | null;
+}
 
 export interface DateRange {
     from: Date;
@@ -8,27 +9,17 @@ export interface DateRange {
 }
 
 export interface DistanceData {
-    distance?: string;
-    zipCode?: string;
+    distance: string | null;
+    zipCode: string | null;
 }
 
-export const getDateRangeFromParams = (searchParams: ReadonlyURLSearchParams): DateRange | undefined => {
-    const fromString = searchParams.get(QueryProperty.FromDate) as string;
-    const toString = searchParams.get(QueryProperty.ToDate) as string;
+export const getDateRangeFromParams = (input: DateRangeInput): DateRange | undefined => {
 
-    const from = new Date(fromString);
-    const to = new Date(toString);
+    const from = new Date(input.from ?? "");
+    const to = new Date(input.to ?? "");
 
-    return { from, to: isNaN(to.getTime()) ? undefined : to };
-};
-
-export const getDistanceDataFromParams = (searchParams: ReadonlyURLSearchParams): DistanceData | undefined => {
-    const distance = searchParams.get(QueryProperty.Distance) as string;
-    const zipCode = searchParams.get(QueryProperty.Zip) as string
-
-    if (!distance && !zipCode) {
-        return undefined;
-     }
-
-    return { distance, zipCode };
+    return {
+        from: isNaN(from.getTime()) ? new Date() : from,
+        to: isNaN(to.getTime()) ? undefined : to
+    };
 };
