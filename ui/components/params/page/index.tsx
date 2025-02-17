@@ -19,18 +19,17 @@ export function PageParamComponent({
     const pageSize = getTypedParam(QueryProperty.Size);
 
     // Initial state setup
-    const initialState = buildPaginationData({
+    const state = buildPaginationData({
         index,
         pageSize,
         itemCount,
     });
+    console.log(`The initial data is: ${JSON.stringify(state)}`);
 
-    const [paginationData, setPaginationData] = useState(initialState);
-
-    const updateSearchParams = <T extends keyof typeof initialState>(
+    const updateParams = <T extends keyof typeof state>(
         param: ParamKeys,
         value: any,
-        stateUpdater: (prevState: typeof initialState) => typeof initialState,
+        stateUpdater: (prevState: typeof state) => typeof state,
     ) => {
         setTypedParam(param, value);
     };
@@ -39,7 +38,7 @@ export function PageParamComponent({
         event: React.MouseEvent<HTMLButtonElement> | null,
         newPageIndex: number,
     ) => {
-        updateSearchParams(QueryProperty.Page, newPageIndex + 1, (prev) => ({
+        updateParams(QueryProperty.Page, newPageIndex + 1, (prev) => ({
             ...prev,
             index: newPageIndex,
         }));
@@ -49,7 +48,7 @@ export function PageParamComponent({
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => {
         const selectedSize = parseInt(event.target.value);
-        updateSearchParams(QueryProperty.Size, selectedSize, (prev) => ({
+        updateParams(QueryProperty.Size, selectedSize, (prev) => ({
             ...prev,
             pageSize: selectedSize,
         }));
@@ -90,9 +89,9 @@ export function PageParamComponent({
                 },
             }}
             component="div"
-            count={paginationData.itemCount}
-            page={paginationData.index}
-            rowsPerPage={paginationData.pageSize}
+            count={state.itemCount}
+            page={state.index}
+            rowsPerPage={state.pageSize}
             onPageChange={handleChangeOffset}
             onRowsPerPageChange={handleChangeRows}
         />
