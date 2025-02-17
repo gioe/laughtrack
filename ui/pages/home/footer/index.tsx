@@ -12,7 +12,7 @@ const FooterComponent = () => {
         });
     };
     return (
-        <footer className="py-16 border-t border-gray-200">
+        <footer className="py-16 border-t border-gray-200 bg-coconut-cream">
             <div className="max-w-7xl mx-auto px-8">
                 {/* Main footer content */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 mb-12">

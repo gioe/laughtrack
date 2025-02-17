@@ -49,8 +49,8 @@ export default function UnsubscribePage() {
     }, [token]);
 
     return (
-        <div className="min-h-screen bg-ivory flex flex-col items-center justify-center p-4">
-            <div className="max-w-md w-full bg-ivory rounded-lg shadow-md p-8">
+        <div className="min-h-screen bg-coconut-cream flex flex-col items-center justify-center p-4">
+            <div className="max-w-md w-full bg-coconut-cream rounded-lg shadow-md p-8">
                 <h1 className="text-2xl font-bold text-center mb-6">
                     Unsubscribe from Notifications
                 </h1>

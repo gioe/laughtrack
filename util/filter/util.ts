@@ -12,23 +12,21 @@ export const getDefaultSortingOption = (sortOptions: SortOptionInterface[], sort
     ) ?? sortOptions[0]
 }
 
-// config/urlParams.ts
-export interface ParamConfig<T> {
+interface ParamConfig {
     key: string;
-    defaultValue: T;
-    parse: (value: string | null) => T;
-    stringify: (value: T) => string;
-    validate?: (value: T) => boolean;
-    _type?: T; // Type helper - never used at runtime
+    defaultValue: string | number | Date | undefined;
+    parse: (value: string | null) => any;
+    stringify: (value: any) => string;
+    validate: (value: any) => boolean;
 }
 
 // Centralized parameter configuration
-export const paramConfigs = {
+export const paramConfigs: Record<string, ParamConfig> = {
     page: {
         key: QueryProperty.Page,
         defaultValue: 1,
         parse: (value: string | null) => {
-          const parsed = parseInt(value || '1', 10);
+          const parsed = parseInt(value || '1');
           return parsed > 0 ? parsed : 1;
         },
         stringify: (value: number) => value.toString(),
@@ -38,7 +36,7 @@ export const paramConfigs = {
         key: QueryProperty.Size,
         defaultValue: 10,
         parse: (value: string| null) => {
-            const parsed = parseInt(value || '10', 10);
+            const parsed = parseInt(value || '10');
             return parsed > 0 ? parsed : 10;
         },
         stringify: (value: number) => value.toString(),
@@ -47,16 +45,18 @@ export const paramConfigs = {
     direction: {
         key: QueryProperty.Direction,
         defaultValue: DirectionParamValue.Ascending,
-        parse: (value: string| null) => {
-            return value ? value : DirectionParamValue.Ascending;
+        parse: (value: DirectionParamValue | null): DirectionParamValue => {
+            return value || DirectionParamValue.Ascending
         },
-        stringify: (value: DirectionParamValue) => value.valueOf(),
-        validate: (value: string) => allDirectionParamValues.includes(value)
+        stringify: (value: string) => value,
+        validate: (value: string) => {
+            return allDirectionParamValues.includes(value);
+        }
     },
     sort: {
         key: QueryProperty.Sort,
         defaultValue: SortParamValue.Name,
-        parse: (value: string | null) => {
+        parse: (value: SortParamValue | null) => {
             return value ? value : SortParamValue.Name;
         },
         stringify: (value: SortParamValue) => value.valueOf(),
@@ -95,9 +95,9 @@ export const paramConfigs = {
     },
     distance: {
         key: QueryProperty.Distance,
-        defaultValue:  "5",
+        defaultValue: '5',
         parse: (value: string | null) => {
-            return value ?? "5"
+            return value ?? '5';
         },
         stringify: (value: string) => value,
         validate: (value: string) => allDistanceOptions.includes(value)
@@ -109,7 +109,7 @@ export const paramConfigs = {
             const to = new Date(value ?? "");
             return isNaN(to.getTime()) ? undefined : to
         },
-        stringify: (value: Date | undefined) => value?.toISOString(),
+        stringify: (value: Date | undefined) => value?.toISOString() ?? "",
         validate: (value: Date | undefined) => {
             return value == undefined || value > new Date()
         }

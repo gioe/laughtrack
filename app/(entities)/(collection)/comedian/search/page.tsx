@@ -11,9 +11,10 @@ import FilterBar from "@/ui/pages/search/filterBar";
 import { ParameterizedRequestData } from "@/objects/interface";
 
 export default async function ComedianSearchPage(props: any) {
-    const session = await auth();
-
-    const searchParams = await props.searchParams;
+    const [session, searchParams] = await Promise.all([
+        auth(),
+        props.searchParams,
+    ]);
 
     const requestData = {
         params: searchParams,
@@ -33,18 +34,10 @@ export default async function ComedianSearchPage(props: any) {
                     throw error;
                 }
             },
-            [
-                "comedian-search-data",
-                requestData.userId ?? "",
-                requestData.params,
-            ],
+            ["comedian-search-data", JSON.stringify(requestData)],
             {
                 revalidate: CACHE.search,
-                tags: [
-                    "comedian-search-data",
-                    requestData.userId ?? "",
-                    `comedian-search-${requestData.params}`,
-                ],
+                tags: ["comedian-search-data", JSON.stringify(requestData)],
             },
         );
     };
@@ -53,7 +46,7 @@ export default async function ComedianSearchPage(props: any) {
         await getCachedSearchPageData(requestData)();
 
     return (
-        <main className="min-h-screen w-full bg-ivory">
+        <main className="min-h-screen w-full bg-coconut-cream">
             <FilterModal filters={[]} total={total} />
 
             <SearchDetailHeader

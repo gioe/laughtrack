@@ -6,12 +6,15 @@ import Logo from "../logo";
 import NavigationMenu from "../navbar/menu";
 import AuthButtons from "../auth/header";
 import { UserProfileInterface } from "@/app/api/profile/[id]/interface";
+import { useStyleContext } from "@/contexts/StyleProvider";
 
 interface HeaderProps {
     currentUser?: UserProfileInterface | null;
 }
 
 export function Header({ currentUser }: HeaderProps) {
+    const { getCurrentStyles } = useStyleContext();
+    const styleConfig = getCurrentStyles();
     const pathname = usePathname();
 
     const loginModal = useLoginModal();
@@ -24,9 +27,10 @@ export function Header({ currentUser }: HeaderProps) {
     const handleSignupClick = useCallback(() => {
         registerModal.onOpen();
     }, [registerModal]);
-
     return (
-        <nav className="relative bg-transparent px-4 py-4">
+        <nav
+            className={`relative ${styleConfig.headerBackgroundColor} px-4 py-4`}
+        >
             <div className="hidden lg:grid max-w-7xl mx-auto lg:grid-cols-3 items-center">
                 {/* Left column - Logo */}
                 <div className="col-start-1">

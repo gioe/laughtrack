@@ -1,8 +1,6 @@
 import { Filter } from "@/objects/class/filter/Filter";
 import { Navigator } from "@/objects/class/navigate/Navigator";
-import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
 import { QueryProperty } from "@/objects/enum";
-import { DEFAULT_ERROR } from "@/objects/enum/queryProperty";
 import { FilterDTO } from "@/objects/interface/filter.interface";
 import { ReadonlyURLSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -33,7 +31,7 @@ export const useFilters = (filters: FilterDTO[], searchParams: ReadonlyURLSearch
     };
 
     const handleClose = () => {
-        let resetValue = initialParamValue == DEFAULT_ERROR ? '' : initialParamValue
+        // let resetValue = initialParamValue == DEFAULT_ERROR ? '' : initialParamValue
         // paramsHelper.setParamValue(QueryProperty.Filters, resetValue);
         // navigator.replaceRoute(paramsHelper.asParamsString());
     };

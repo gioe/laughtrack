@@ -19,7 +19,7 @@ export default async function ProfilePage(props: {
         const profile = await getUserProfileData(session.profile?.userId);
 
         return (
-            <main className="min-h-screen w-full bg-ivory">
+            <main className="min-h-screen w-full bg-coconut-cream">
                 <StyleContextProvider initialContext={StyleContextKey.Search}>
                     <Navbar currentUser={session.profile} />
                     <UserDetailHeader profile={profile} />

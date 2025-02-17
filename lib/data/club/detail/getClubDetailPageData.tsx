@@ -11,9 +11,7 @@ export async function getClubDetailPageData(
     requestData: ParameterizedRequestData,
 ): Promise<ClubDetailResponse> {
     try {
-        const helper = await QueryHelper.storePageParams(
-            new URLSearchParams(requestData.params),
-        );
+        const helper = new QueryHelper(requestData);
 
         const [club, showsWithCount, filters] = await Promise.all([
             findClubByName(helper),

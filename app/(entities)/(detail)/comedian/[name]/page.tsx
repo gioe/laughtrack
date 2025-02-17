@@ -14,9 +14,11 @@ export default async function ComedianDetailsPage(props: {
     searchParams: Promise<URLSearchParams>;
     params: Promise<{ name: string }> | undefined;
 }) {
-    const session = await auth();
-    const searchParams = await props.searchParams;
-    const slug = await props.params;
+    const [session, searchParams, slug] = await Promise.all([
+        auth(),
+        props.searchParams,
+        props.params,
+    ]);
 
     const requestData = {
         params: searchParams.toString(),
@@ -37,18 +39,10 @@ export default async function ComedianDetailsPage(props: {
                     throw error;
                 }
             },
-            [
-                "comedian-detail-data",
-                requestData.userId ?? "",
-                requestData.params,
-            ],
+            ["comedian-detail-data", JSON.stringify(requestData)],
             {
                 revalidate: CACHE.detailPage,
-                tags: [
-                    "comedian-detail-data",
-                    requestData.userId ?? "",
-                    `comedian-detail-${requestData.params}`,
-                ],
+                tags: ["comedian-detail-data", JSON.stringify(requestData)],
             },
         );
 
@@ -56,7 +50,7 @@ export default async function ComedianDetailsPage(props: {
         await getCachedDetailPageData(requestData)();
 
     return (
-        <main className="min-h-screen w-full bg-ivory">
+        <main className="min-h-screen w-full bg-coconut-cream">
             <FilterModal filters={[]} total={total} />
             <ComedianDetailHeader comedian={data} />
             <div className="max-w-7xl mx-auto p-6">

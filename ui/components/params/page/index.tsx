@@ -1,9 +1,10 @@
 "use client";
 
+import TablePagination from "@mui/material/TablePagination";
 import { useState } from "react";
 import { QueryProperty } from "@/objects/enum";
-import TablePagination from "@mui/material/TablePagination";
 import { useUrlParams } from "@/hooks/useUrlParams";
+import { buildPaginationData } from "@/util/pagination";
 
 interface PageParamComponentProps {
     itemCount: number;
@@ -12,29 +13,40 @@ interface PageParamComponentProps {
 export function PageParamComponent({
     itemCount,
 }: Readonly<PageParamComponentProps>) {
-    const { getParam, setParam } = useUrlParams();
+    const { getTypedParam, setTypedParam } = useUrlParams();
 
-    const defaultIndex = Number(getParam(QueryProperty.Page)) - 1;
-    const defaultPageSize = Number(getParam(QueryProperty.Size));
+    const index = getTypedParam(QueryProperty.Page);
+    const pageSize = getTypedParam(QueryProperty.Size);
 
-    const [pageIndex, setPageIndex] = useState(defaultIndex);
-    const [pageSize, setPageSize] = useState(defaultPageSize);
-
+    // Initial state setup
+    const initialState = buildPaginationData({
+        index,
+        pageSize,
+        itemCount,
+    });
+    const [paginationData, setPaginationData] = useState(initialState);
+    console.log(`The pagination data is ${JSON.stringify(paginationData)}`);
     const handleChangeOffset = (
         event: React.MouseEvent<HTMLButtonElement> | null,
         newPageIndex: number,
     ) => {
         const newPageValue = newPageIndex + 1;
-        setParam(QueryProperty.Page, newPageValue);
-        setPageIndex(newPageIndex);
+        setTypedParam(QueryProperty.Page, newPageValue);
+        setPaginationData({
+            ...paginationData,
+            index: newPageIndex,
+        });
     };
 
     const handleChangeRows = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => {
-        const rowSizeValue = parseInt(event.target.value, 8);
-        setParam(QueryProperty.Size, rowSizeValue);
-        setPageSize(rowSizeValue);
+        const selectedSize = parseInt(event.target.value);
+        setTypedParam(QueryProperty.Size, selectedSize);
+        setPaginationData({
+            ...paginationData,
+            pageSize: selectedSize,
+        });
     };
 
     return (
@@ -72,9 +84,9 @@ export function PageParamComponent({
                 },
             }}
             component="div"
-            count={itemCount}
-            page={pageIndex}
-            rowsPerPage={pageSize}
+            count={paginationData.itemCount}
+            page={paginationData.index}
+            rowsPerPage={paginationData.pageSize}
             onPageChange={handleChangeOffset}
             onRowsPerPageChange={handleChangeRows}
         />

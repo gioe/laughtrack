@@ -11,10 +11,10 @@ import { unstable_cache } from "next/cache";
 import { ParameterizedRequestData } from "@/objects/interface";
 
 export default async function ClubSearchPage(props: any) {
-    const session = await auth();
-
-    const searchParams = await props.searchParams();
-
+    const [session, searchParams] = await Promise.all([
+        auth(),
+        props.searchParams,
+    ]);
     const requestData = {
         params: searchParams,
         userId: session?.profile?.userId,
@@ -30,14 +30,10 @@ export default async function ClubSearchPage(props: any) {
                     throw error;
                 }
             },
-            ["club-search-data", requestData.userId ?? "", requestData.params],
+            ["club-search-data", JSON.stringify(requestData)],
             {
                 revalidate: CACHE.search,
-                tags: [
-                    "club-search-data",
-                    requestData.userId ?? "",
-                    `club-search-${requestData.params}`,
-                ],
+                tags: ["club-search-data", JSON.stringify(requestData)],
             },
         );
 
@@ -45,7 +41,7 @@ export default async function ClubSearchPage(props: any) {
         await getCachedSearchPageData(requestData)();
 
     return (
-        <main className="min-h-screen w-full bg-ivory">
+        <main className="min-h-screen w-full bg-coconut-cream">
             <FilterModal filters={[]} total={total} />
             <SearchDetailHeader
                 title={`Search clubs`}

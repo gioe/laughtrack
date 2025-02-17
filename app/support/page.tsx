@@ -8,7 +8,7 @@ import SupportSection from "@/ui/pages/support/content";
 const SupportPage = async () => {
     const session = await auth();
     return (
-        <main className="min-h-screen w-full bg-ivory">
+        <main className="min-h-screen w-full bg-coconut-cream">
             <SupportSection />
         </main>
     );

@@ -1,6 +1,6 @@
 export default function Loading() {
     return (
-        <div className="min-h-screen w-full bg-ivory">
+        <div className="min-h-screen w-full bg-coconut-cream">
             {/* Header Section */}
             <div className="space-y-2 mb-8">
                 <div className="h-8 w-48 bg-gray-200 rounded-lg animate-pulse" />

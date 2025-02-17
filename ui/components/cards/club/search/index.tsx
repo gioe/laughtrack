@@ -18,7 +18,7 @@ const ClubSearchCard: React.FC<ClubSearchCardProps> = ({ club }) => {
     const [error, setError] = useState(false);
 
     return (
-        <div className="bg-ivory rounded-xl overflow-hidden pb-4 px-4">
+        <div className="bg-coconut-cream rounded-xl overflow-hidden pb-4 px-4">
             <div className="relative h-64">
                 <Link
                     href={`/club/${parsedClub.name}`}

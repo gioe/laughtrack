@@ -9,7 +9,7 @@ interface ComedianGridProps {
 }
 const ComedianGrid = ({ comedians, className }: ComedianGridProps) => {
     return (
-        <div className="mx-24 my-12">
+        <div className="mx-24 mt-12">
             <div className={className}>
                 {comedians.map((dto) => (
                     <ComedianGridCard

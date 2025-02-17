@@ -37,7 +37,7 @@ export default function ComedianSearchBar() {
         }));
 
     return (
-        <div className="flex items-center bg-ivory rounded-full border border-gray-200 px-4 py-2 shadow-sm max-w-xl w-full">
+        <div className="flex items-center bg-coconut-cream rounded-full border border-gray-200 px-4 py-2 shadow-sm max-w-xl w-full">
             {/* Date input */}
             <div className="flex items-center flex-1 px-4">
                 <TextInputComponent
@@ -49,7 +49,7 @@ export default function ComedianSearchBar() {
                     placeholder="Search for comedian"
                     value={searchState.comedian ?? ""}
                     onChange={handleComedianSearch}
-                    className="border-gray-200 bg-ivory ring-transparent focus:ring-transparent
+                    className="border-gray-200 bg-coconut-cream ring-transparent focus:ring-transparent
     shadow-none border-transparent focus:outline-none outline-none"
                 />
             </div>

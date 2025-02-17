@@ -10,9 +10,7 @@ export async function getSearchedClubs(
     requestData: ParameterizedRequestData,
 ): Promise<ClubSearchResponse> {
     try {
-        const helper = await QueryHelper.storePageParams(
-            new URLSearchParams(requestData.params),
-        );
+        const helper = new QueryHelper(requestData);
 
         const [clubsWithCount, filters] = await Promise.all([
             findClubsWithCount(helper),

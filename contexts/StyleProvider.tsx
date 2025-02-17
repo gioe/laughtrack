@@ -4,6 +4,7 @@ import { StyleContextKey } from "@/objects/enum";
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
 export interface StyleValues {
+    headerBackgroundColor: string;
     searchBarTextColor: string;
     searchBarFontSize: string;
     iconTextColor: string;
@@ -28,6 +29,7 @@ export const styleContexts: StyleContexts = [
     {
         key: StyleContextKey.Home,
         values: {
+            headerBackgroundColor: "bg-transparent",
             searchBarFontSize: "text-[18px]",
             logoTextColor: "text-white",
             searchBarTextColor: "text-white",
@@ -43,6 +45,7 @@ export const styleContexts: StyleContexts = [
     {
         key: StyleContextKey.Search,
         values: {
+            headerBackgroundColor: "bg-coconut-cream",
             searchBarFontSize: "text-[18px]",
             searchBarTextColor: "text-black",
             logoTextColor: "text-black",

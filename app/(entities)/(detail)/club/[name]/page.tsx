@@ -13,9 +13,11 @@ export default async function ClubDetailPage(props: {
     searchParams: Promise<URLSearchParams>;
     params: Promise<{ name: string }> | undefined;
 }) {
-    const session = await auth();
-    const searchParams = await props.searchParams;
-    const slug = await props.params;
+    const [session, searchParams, slug] = await Promise.all([
+        auth(),
+        props.searchParams,
+        props.params,
+    ]);
 
     const requestData = {
         params: searchParams.toString(),
@@ -33,14 +35,10 @@ export default async function ClubDetailPage(props: {
                     throw error;
                 }
             },
-            ["club-detail-data", requestData.userId ?? "", requestData.params],
+            ["club-detail-data", JSON.stringify(requestData)],
             {
                 revalidate: CACHE.detailPage,
-                tags: [
-                    "club-detail-data",
-                    requestData.userId ?? "",
-                    `club-detail-${requestData.params}`,
-                ],
+                tags: ["club-detail-data", JSON.stringify(requestData)],
             },
         );
 
@@ -48,7 +46,7 @@ export default async function ClubDetailPage(props: {
         await getCachedDetailPageData(requestData)();
 
     return (
-        <main className="min-h-screen w-full bg-ivory">
+        <main className="min-h-screen w-full bg-coconut-cream">
             <FilterModal filters={filters} total={total} />
             <ClubDetailHeader club={data} />
             <div className="max-w-7xl mx-auto p-6 flex flex-row">

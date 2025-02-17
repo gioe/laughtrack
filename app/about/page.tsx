@@ -27,7 +27,7 @@ const AboutPage = async () => {
     const { stats } = await getCachedStats()();
 
     return (
-        <main className="min-h-screen w-full bg-ivory">
+        <main className="min-h-screen w-full bg-coconut-cream">
             <AboutUsSection />
             <StatsSection
                 clubCount={stats.clubCount}

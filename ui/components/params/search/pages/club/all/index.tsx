@@ -55,7 +55,7 @@ export default function ClubSearchBar() {
         }));
 
     return (
-        <div className="flex items-center bg-ivory rounded-full border border-gray-200 px-4 py-2 shadow-sm max-w-3xl w-full">
+        <div className="flex items-center bg-coconut-cream rounded-full border border-gray-200 px-4 py-2 shadow-sm max-w-3xl w-full">
             <div className="flex items-center flex-1 border-r border-gray-200 pr-4">
                 <ShowLocationComponent
                     variant={ComponentVariant.Standalone}
@@ -75,7 +75,7 @@ export default function ClubSearchBar() {
                     placeholder="Search for club"
                     value={searchState.club ?? ""}
                     onChange={handleClubSearch}
-                    className="border-gray-200 pr-4 bg-ivory ring-transparent focus:ring-transparent shadow-none border-transparent"
+                    className="border-gray-200 pr-4 bg-coconut-cream ring-transparent focus:ring-transparent shadow-none border-transparent"
                 />
             </div>
         </div>

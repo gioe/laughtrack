@@ -70,7 +70,7 @@ export default function ShowSearchForm() {
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(submitForm)} className="relative">
-                <div className="flex flex-col overflow-hidden bg-ivory/20 backdrop-blur rounded-2xl lg:flex-row  lg:rounded-full lg:items-center">
+                <div className="flex flex-col overflow-hidden bg-coconut-cream/20 backdrop-blur rounded-2xl lg:flex-row  lg:rounded-full lg:items-center">
                     {isLoading && <LoadingOverlay />}
 
                     <div className="flex-1 border-b border-gray-600/30 lg:border-b-0 lg:border-r">

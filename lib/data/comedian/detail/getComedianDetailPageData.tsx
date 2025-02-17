@@ -14,9 +14,7 @@ export async function getComedianDetailPageData(
     requestData: ParameterizedRequestData,
 ): Promise<ComedianDetailResponse> {
     try {
-        const helper = await QueryHelper.storePageParams(
-            new URLSearchParams(requestData.params),
-        );
+        const helper = new QueryHelper(requestData);
 
         const [comedianData, showsWithCount, filters] = await Promise.all([
             findComedianByName(helper),

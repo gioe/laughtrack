@@ -37,7 +37,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, body, footer }) => {
                             className="translate h-full lg:h-auto
                              md:h-auto border-0
                         flex w-full rounded-xl
-                        outline-none focus:outline-none bg-ivory"
+                        outline-none focus:outline-none bg-coconut-cream"
                         >
                             {body}
                             {footer}

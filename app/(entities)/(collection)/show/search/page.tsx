@@ -12,9 +12,10 @@ import { getSearchedShows } from "@/lib/data/show/search/getSearchedShows";
 import { ParameterizedRequestData } from "@/objects/interface";
 
 export default async function ShowSearchPage(props: any) {
-    const session = await auth();
-
-    const searchParams = await props.searchParams();
+    const [session, searchParams] = await Promise.all([
+        auth(),
+        props.searchParams,
+    ]);
 
     const requestData = {
         params: searchParams,
@@ -31,14 +32,10 @@ export default async function ShowSearchPage(props: any) {
                     throw error;
                 }
             },
-            ["show-search-data", requestData.userId ?? "", requestData.params],
+            ["show-search-data", JSON.stringify(requestData)],
             {
                 revalidate: CACHE.search,
-                tags: [
-                    "show-search-data",
-                    requestData.userId ?? "",
-                    `show-search-${requestData.params}`,
-                ],
+                tags: ["show-search-data", JSON.stringify(requestData)],
             },
         );
 
@@ -46,7 +43,7 @@ export default async function ShowSearchPage(props: any) {
         await getCachedSearchPageData(requestData)();
 
     return (
-        <main className="min-h-screen w-full bg-ivory">
+        <main className="min-h-screen w-full bg-coconut-cream">
             <Navbar currentUser={session?.profile} />
             <FilterModal filters={filters} total={total} />
             <SearchDetailHeader

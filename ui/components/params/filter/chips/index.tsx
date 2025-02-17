@@ -11,7 +11,7 @@ export const FilterChip = ({ label, selected, onClick }: FilterChipProps) => (
             ${
                 selected
                     ? "bg-copper text-white border border-copper hover:border-white"
-                    : "bg-ivory text-gray-700 border border-gray-300 hover:border-copper"
+                    : "bg-coconut-cream text-gray-700 border border-gray-300 hover:border-copper"
             }`}
     >
         {label}

@@ -105,7 +105,7 @@ export default function ShowSearchBar() {
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div
                 className="flex flex-col lg:flex-row gap-2 lg:gap-0
-            bg-ivory rounded-3xl lg:rounded-full border
+            bg-coconut-cream rounded-3xl lg:rounded-full border
              border-gray-200 p-2 lg:p-4 shadow-sm"
             >
                 <div className="flex-1 lg:border-r lg:border-gray-200 lg:pr-4">
@@ -143,7 +143,7 @@ export default function ShowSearchBar() {
                             placeholder="Search for comedian"
                             value={searchState.comedian ?? ""}
                             onChange={handleComedianSearch}
-                            className="w-full border-gray-200 bg-ivory ring-transparent focus:ring-transparent
+                            className="w-full border-gray-200 bg-coconut-cream ring-transparent focus:ring-transparent
                             shadow-none border-transparent focus:outline-none outline-none"
                         />
                     </div>
@@ -160,7 +160,7 @@ export default function ShowSearchBar() {
                             placeholder="Search by club"
                             value={searchState.club ?? ""}
                             onChange={handleClubSearch}
-                            className="border-gray-200 bg-ivory ring-transparent focus:ring-transparent
+                            className="border-gray-200 bg-coconut-cream ring-transparent focus:ring-transparent
                             shadow-none border-transparent focus:outline-none outline-none"
                         />
                     </div>

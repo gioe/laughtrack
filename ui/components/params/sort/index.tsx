@@ -15,9 +15,9 @@ interface SortComponentProps {
 }
 
 export function SortParamComponent({ sortOptions }: SortComponentProps) {
-    const { getParam, setMultipleParams } = useUrlParams();
-    const sortParam = getParam(QueryProperty.Sort);
-    const directionParam = getParam(QueryProperty.Direction);
+    const { getTypedParam, setMultipleTypedParams } = useUrlParams();
+    const sortParam = getTypedParam(QueryProperty.Sort);
+    const directionParam = getTypedParam(QueryProperty.Direction);
 
     const defaultOption = getDefaultSortingOption(
         sortOptions,
@@ -42,7 +42,7 @@ export function SortParamComponent({ sortOptions }: SortComponentProps) {
     };
 
     const modifySortParam = (sortValue: SortOptionInterface) => {
-        setMultipleParams({
+        setMultipleTypedParams({
             sort: sortValue.value,
             direction: sortValue.direction,
         });
