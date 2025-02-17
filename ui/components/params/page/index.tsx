@@ -3,7 +3,7 @@
 import TablePagination from "@mui/material/TablePagination";
 import { useState } from "react";
 import { QueryProperty } from "@/objects/enum";
-import { useUrlParams } from "@/hooks/useUrlParams";
+import { ParamKeys, useUrlParams } from "@/hooks/useUrlParams";
 import { buildPaginationData } from "@/util/pagination";
 
 interface PageParamComponentProps {
@@ -24,29 +24,35 @@ export function PageParamComponent({
         pageSize,
         itemCount,
     });
+
     const [paginationData, setPaginationData] = useState(initialState);
-    console.log(`The pagination data is ${JSON.stringify(paginationData)}`);
+
+    const updateSearchParams = <T extends keyof typeof initialState>(
+        param: ParamKeys,
+        value: any,
+        stateUpdater: (prevState: typeof initialState) => typeof initialState,
+    ) => {
+        setTypedParam(param, value);
+    };
+
     const handleChangeOffset = (
         event: React.MouseEvent<HTMLButtonElement> | null,
         newPageIndex: number,
     ) => {
-        const newPageValue = newPageIndex + 1;
-        setTypedParam(QueryProperty.Page, newPageValue);
-        setPaginationData({
-            ...paginationData,
+        updateSearchParams(QueryProperty.Page, newPageIndex + 1, (prev) => ({
+            ...prev,
             index: newPageIndex,
-        });
+        }));
     };
 
     const handleChangeRows = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => {
         const selectedSize = parseInt(event.target.value);
-        setTypedParam(QueryProperty.Size, selectedSize);
-        setPaginationData({
-            ...paginationData,
+        updateSearchParams(QueryProperty.Size, selectedSize, (prev) => ({
+            ...prev,
             pageSize: selectedSize,
-        });
+        }));
     };
 
     return (

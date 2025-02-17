@@ -4,7 +4,9 @@ import { allDistanceOptions } from "@/objects/enum/distanceValues";
 import { allSortOptions } from "@/objects/enum/sortParamValue";
 import { SortOptionInterface } from "@/objects/interface";
 
-export const getDefaultSortingOption = (sortOptions: SortOptionInterface[], sortOption: string | null, direction: string | null) => {
+export const getDefaultSortingOption = (sortOptions: SortOptionInterface[],
+    sortOption: string | null,
+    direction: string | null) => {
     return sortOptions.find(
         (value) =>
             value.value == sortOption &&
@@ -69,7 +71,7 @@ export const paramConfigs: Record<string, ParamConfig> = {
             return value ?? ""
         },
         stringify: (value: string) => value,
-        validate: (value: string) => value !== ""
+        validate: (value: string) => value.length > 0 || value == ""
     },
     club: {
         key: QueryProperty.Club,
@@ -78,7 +80,7 @@ export const paramConfigs: Record<string, ParamConfig> = {
             return value ?? ""
         },
         stringify: (value: string) => value,
-        validate: (value: string) => value !== ""
+        validate: (value: string) => value.length > 0 || value == ""
     },
     zip: {
         key: QueryProperty.Zip,

@@ -16,8 +16,10 @@ export function useUrlParams() {
       const config = paramConfigs[key];
       const value = searchParams.get(config.key);
       const parsed = config.parse(value);
-      if (config.validate(parsed)) {
+      if (config.validate?.(parsed)) {
         return parsed;
+      } else {
+        return parsed
       }
     }, [searchParams]);
 
@@ -26,7 +28,7 @@ export function useUrlParams() {
       value: ParamTypes[K]
     ): void => {
       const config = paramConfigs[key];
-      if (!config.validate(value)) {
+      if (!config.validate?.(value)) {
         console.warn(`Invalid value for parameter ${key}`);
         return;
       }
@@ -48,7 +50,7 @@ export function useUrlParams() {
 
       (Object.entries(updates) as [ParamKeys, any][]).forEach(([key, value]) => {
         const config = paramConfigs[key];
-        if (!config.validate(value)) {
+        if (!config.validate?.(value)) {
             console.warn(`Invalid value for parameter ${key}`);
             return;
           }
