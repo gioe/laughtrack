@@ -1,10 +1,9 @@
 "use client";
 
 import TablePagination from "@mui/material/TablePagination";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { QueryProperty } from "@/objects/enum";
-import { ParamKeys, useUrlParams } from "@/hooks/useUrlParams";
-import { buildPaginationData } from "@/util/pagination";
+import { useUrlParams } from "@/hooks/useUrlParams";
 
 interface PageParamComponentProps {
     itemCount: number;

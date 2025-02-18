@@ -9,10 +9,11 @@ import { Search } from "lucide-react";
 import { showSearchFormSchema } from "./schema";
 import { Loader2 } from "lucide-react";
 import { Form } from "@/ui/components/ui/form";
-import { ComponentVariant } from "@/objects/enum";
+import { ComponentVariant, StyleContextKey } from "@/objects/enum";
 import CalendarComponent from "../../components/calendar";
 import ShowLocationComponent from "../../components/area";
 import { useUrlParams } from "@/hooks/useUrlParams";
+import SearchBarContainer from "../../components/container";
 
 const LoadingOverlay = () => (
     <div className="absolute inset-0 bg-black/20 backdrop-blur-sm rounded-full flex items-center justify-center">
@@ -21,7 +22,7 @@ const LoadingOverlay = () => (
 );
 
 export default function ShowSearchForm() {
-    const { setMultipleParams } = useUrlParams();
+    const { setMultipleTypedParams } = useUrlParams();
 
     const [isLoading, setIsLoading] = useState(false);
 
@@ -54,7 +55,7 @@ export default function ShowSearchForm() {
             setIsLoading(true);
 
             await new Promise((resolve) => setTimeout(resolve, 300));
-            setMultipleParams({
+            setMultipleTypedParams({
                 distance: data.distance.distance,
                 zip: data.distance.zipCode,
                 from: data.dates.from.toISOString(),
@@ -70,38 +71,33 @@ export default function ShowSearchForm() {
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(submitForm)} className="relative">
-                <div className="flex flex-col overflow-hidden bg-coconut-cream/20 backdrop-blur rounded-2xl lg:flex-row  lg:rounded-full lg:items-center">
+                <SearchBarContainer variant={StyleContextKey.Home}>
                     {isLoading && <LoadingOverlay />}
 
-                    <div className="flex-1 border-b border-gray-600/30 lg:border-b-0 lg:border-r">
-                        <div className="px-4 py-4 lg:px-8">
-                            <ShowLocationComponent
-                                variant={ComponentVariant.Form}
-                                form={form}
-                            />
-                        </div>
+                    <div className={`lg:pr-4 lg:border-r`}>
+                        <ShowLocationComponent
+                            variant={ComponentVariant.Form}
+                            form={form}
+                        />
+                    </div>
+                    <div>
+                        <CalendarComponent
+                            variant={ComponentVariant.Form}
+                            name="dates"
+                            form={form}
+                        />
                     </div>
 
-                    <div className="flex">
-                        <div className="px-4 py-4 lg:px-8">
-                            <CalendarComponent
-                                variant={ComponentVariant.Form}
-                                name="dates"
-                                form={form}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="px-4 flex justify-center lg:justify-start lg:px-6 py-4 lg:py-0">
+                    <div>
                         <CircleIconButton
                             type="submit"
                             isLoading={isLoading}
                             className="bg-copper w-full lg:w-auto"
                         >
-                            <Search className="w-5 h-5 text-white" />
+                            <Search className="text-white" />
                         </CircleIconButton>
                     </div>
-                </div>
+                </SearchBarContainer>
             </form>
         </Form>
     );

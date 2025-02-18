@@ -3,7 +3,7 @@
 import TextInputComponent from "../../../components/textInput";
 import { Users } from "lucide-react";
 import { useStyleContext } from "@/contexts/StyleProvider";
-import { QueryProperty } from "@/objects/enum";
+import { QueryProperty, StyleContextKey } from "@/objects/enum";
 import { useUrlParams } from "@/hooks/useUrlParams";
 import SearchBarContainer from "../../../components/container";
 
@@ -22,12 +22,12 @@ export default function ComedianSearchBar() {
         setTypedParam(QueryProperty.Comedian, value);
 
     return (
-        <SearchBarContainer>
+        <SearchBarContainer maxWidth="max-w-xl">
             <TextInputComponent
                 icon={
                     <Users className={`w-5 h-5 ${styleConfig.iconTextColor}`} />
                 }
-                placeholder="Search for comedian"
+                placeholder="Search for a comedian"
                 value={state.comedian ?? ""}
                 onChange={handleComedianSearch}
             />

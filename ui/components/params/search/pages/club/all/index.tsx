@@ -42,6 +42,7 @@ export default function ClubSearchBar() {
                 onDistanceSelection={handleDistanceSelection}
                 onZipcodeInput={handleZipCodeInput}
             />
+            <div className={"hidden lg:border-r"}></div>
 
             <TextInputComponent
                 icon={
