@@ -1,6 +1,4 @@
-import { QueryProperty } from "@/objects/enum";
 import { auth } from "@/auth";
-import Navbar from "@/ui/components/navbar";
 import FilterBar from "@/ui/pages/search/filterBar";
 import ShowTable from "@/ui/pages/search/table";
 import SearchDetailHeader from "@/ui/pages/search/header";
@@ -44,10 +42,9 @@ export default async function ShowSearchPage(props: any) {
 
     return (
         <main className="min-h-screen w-full bg-coconut-cream">
-            <Navbar currentUser={session?.profile} />
-            <FilterModal filters={filters} total={total} />
+            <FilterModal filters={[]} total={total} />
             <SearchDetailHeader
-                title={`Search for shows near ${searchParams.get(QueryProperty.Zip)}`}
+                title={`Search for shows near you`}
                 subTitle={`${total} results`}
             />
             <FilterBar

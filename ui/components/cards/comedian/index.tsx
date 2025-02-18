@@ -2,7 +2,6 @@
 
 import { Comedian } from "@/objects/class/comedian/Comedian";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
-import SocialMediaBar from "../../social/bar";
 import ComedianHeadshot from "../../image/comedian";
 
 interface ComedianGridCardProps {
@@ -27,12 +26,6 @@ const ComedianGridCard: React.FC<ComedianGridCardProps> = ({ entity }) => {
                 <p className="text-[18px] text-gray-600 mb-4 text-center font-dmSans">
                     {`${comedian.showCount ?? 0} upcoming shows`}
                 </p>
-
-                <div className="w-full">
-                    {comedian.socialData && (
-                        <SocialMediaBar data={comedian.socialData} />
-                    )}
-                </div>
             </div>
         </div>
     );

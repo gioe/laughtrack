@@ -19,59 +19,58 @@ export async function findComediansWithCount(
         parentComedian: null,
     };
 
+    const totalCount = await db.comedian.count({
+        where: whereClause,
+    });
+
     // Execute both queries in parallel with updated select
-    const [filteredComedians, totalCount] = await Promise.all([
-        db.comedian.findMany({
-            where: whereClause,
-            select: {
-                id: true,
-                uuid: true,
-                name: true,
-                linktree: true,
-                instagramAccount: true,
-                instagramFollowers: true,
-                tiktokAccount: true,
-                tiktokFollowers: true,
-                youtubeAccount: true,
-                youtubeFollowers: true,
-                website: true,
-                popularity: true,
-                alternativeNames: {
-                    select: {
-                        id: true,
-                        name: true,
-                        uuid: true,
-                        linktree: true,
-                        instagramAccount: true,
-                        instagramFollowers: true,
-                        tiktokAccount: true,
-                        tiktokFollowers: true,
-                        youtubeAccount: true,
-                        youtubeFollowers: true,
-                        website: true,
-                        popularity: true,
-                    },
+    const filteredComedians = await db.comedian.findMany({
+        where: whereClause,
+        select: {
+            id: true,
+            uuid: true,
+            name: true,
+            linktree: true,
+            instagramAccount: true,
+            instagramFollowers: true,
+            tiktokAccount: true,
+            tiktokFollowers: true,
+            youtubeAccount: true,
+            youtubeFollowers: true,
+            website: true,
+            popularity: true,
+            alternativeNames: {
+                select: {
+                    id: true,
+                    name: true,
+                    uuid: true,
+                    linktree: true,
+                    instagramAccount: true,
+                    instagramFollowers: true,
+                    tiktokAccount: true,
+                    tiktokFollowers: true,
+                    youtubeAccount: true,
+                    youtubeFollowers: true,
+                    website: true,
+                    popularity: true,
                 },
-                lineupItems: {
-                    select: {
-                        id: true,
-                    },
-                    where: {
-                        show: {
-                            date: {
-                                gt: new Date(),
-                            },
+            },
+            lineupItems: {
+                select: {
+                    id: true,
+                },
+                where: {
+                    show: {
+                        date: {
+                            gt: new Date(),
                         },
                     },
                 },
-                ...helper.getFavoriteComedianClause(),
             },
-            ...helper.getGenericClauses(),
-        }),
-        db.comedian.count({
-            where: whereClause,
-        }),
-    ]);
+            ...helper.getFavoriteComedianClause(),
+        },
+        ...helper.getGenericClauses(totalCount),
+    });
 
     return {
         comedians: filteredComedians.map((comedian) => {

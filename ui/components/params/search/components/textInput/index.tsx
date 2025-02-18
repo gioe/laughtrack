@@ -21,8 +21,10 @@ const TextInputComponent = ({
                 placeholder={placeholder}
                 value={value}
                 onChange={(e) => onChange?.(e.target.value)}
-                className="outline-none w-full bg-transparent focus:outline-none border-none
-                 focus:border-none font-dmSans placeholder:font-dmSans text-[16px] text-cedar"
+                className="outline-none w-full bg-ivory border-none
+                font-dmSans text-cedar text-[16px]
+                focus:outline-none focus:border-none
+                placeholder:font-dmSans placeholder:text-[16px]"
             />
         </div>
     );

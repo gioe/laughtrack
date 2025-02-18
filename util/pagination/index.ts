@@ -1,6 +1,6 @@
 import { PaginationData } from "../../objects/interface";
 
-export const buildPaginationData = (data:PaginationData): PaginationData => {
+export const buildPaginationData = (data: PaginationData): PaginationData => {
     if (data.index < 1 || data.pageSize <= 0 || data.itemCount < 0) {
         throw new Error('Invalid pagination parameters: All values must be positive');
       }

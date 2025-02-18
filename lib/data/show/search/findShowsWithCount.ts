@@ -31,8 +31,12 @@ export async function findShowsWithCount(helper: QueryHelper): Promise<ShowsResp
         ...helper.getShowFiltersClause(),
     }
 
+    const totalCount = await db.show.count({
+        where: whereClause
+    })
+
     // Execute both queries in parallel, one to get the shows and the other to get the count.
-    const [filteredShows, totalCount] = await Promise.all([
+    const filteredShows = await
         db.show.findMany({
             where: whereClause,
             select: {
@@ -74,12 +78,8 @@ export async function findShowsWithCount(helper: QueryHelper): Promise<ShowsResp
                 }
             },
 
-            ...helper.getGenericClauses()
-        }),
-        db.show.count({
-            where: whereClause
-        })
-    ])
+            ...helper.getGenericClauses(totalCount),
+        });
 
     return {
         shows: filteredShows.map(show => ({

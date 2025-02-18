@@ -1,6 +1,3 @@
-import { EntityType } from "../../enum";
-import { SelectionSection } from "../../interface/selectionSection.interface";
-import { SearchParamsHelper } from "../params/SearchParamsHelper";
 import { Selectable } from "../../interface";
 import { FilterDTO } from "@/objects/interface/filter.interface";
 

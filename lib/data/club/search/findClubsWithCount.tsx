@@ -19,23 +19,22 @@ export async function findClubsWithCount(
         ...queryHelper.getClubFiltersClause(),
     };
 
+    const totalCount = await db.club.count({
+        where: whereClause,
+    });
+
     // Execute both queries in parallel
-    const [filteredClubs, totalCount] = await Promise.all([
-        db.club.findMany({
-            where: whereClause,
-            select: {
-                id: true,
-                name: true,
-                address: true,
-                website: true,
-                zipCode: true,
-            },
-            ...queryHelper.getGenericClauses(),
-        }),
-        db.club.count({
-            where: whereClause,
-        }),
-    ]);
+    const filteredClubs = await db.club.findMany({
+        where: whereClause,
+        select: {
+            id: true,
+            name: true,
+            address: true,
+            website: true,
+            zipCode: true,
+        },
+        ...queryHelper.getGenericClauses(totalCount),
+    });
 
     return {
         clubs: filteredClubs.map((club) => ({

@@ -2,6 +2,7 @@ import { QueryProperty } from "../../enum/queryProperty";
 import zipcodes from 'zipcodes';
 import { Prisma } from "@prisma/client";
 import { ParameterizedRequestData } from "@/objects/interface";
+import { buildPaginationData } from "@/util/pagination";
 
 // This class is meant to capture all of the page parameters that Next provides us with.
 // These are relevant for DB querying and their existence persists across all pages so we capture it
@@ -250,18 +251,30 @@ export class QueryHelper {
         }
     }
 
-    getGenericClauses() {
+    getGenericClauses(total: number) {
         const sortBy = this.searchParams.get(QueryProperty.Sort) as string
         const direction = this.searchParams.get(QueryProperty.Direction) as string
+
+        // Take the minimum number between the 'size=' param and the total results, which we got from a previous query. This is
+        // basically our LIMIT value if this were SQL.
         const size = Number(this.searchParams.get(QueryProperty.Size) as string) ?? 10
-        const page = Number(this.searchParams.get(QueryProperty.Page)) - 1
-        const offset = size * page
+        const take = Math.min(size, total)
+
+        // Get the max number of pages, which we'll need to calculate our 'skip' value, which is essentially our starting index
+        // The page itself will always be whatever is smaller: the page value provided or the max possible page. This is basically
+        // our OFFSET value if this were SQL.
+        const totalPages = Math.ceil(total / size);
+        const page = Math.min(Number(this.searchParams.get(QueryProperty.Page)), totalPages) - 1
+
+        // Our starting index is always our LIMIT size multiplied by our OFFSET
+        const skip = take * page
+
         return {
             orderBy: {
                 [sortBy]: direction,
             },
-            take: size,
-            skip: offset,
+            take,
+            skip,
         }
     }
 

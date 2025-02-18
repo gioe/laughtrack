@@ -1,7 +1,7 @@
 "use client";
 
 import TablePagination from "@mui/material/TablePagination";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { QueryProperty } from "@/objects/enum";
 import { ParamKeys, useUrlParams } from "@/hooks/useUrlParams";
 import { buildPaginationData } from "@/util/pagination";
@@ -15,43 +15,35 @@ export function PageParamComponent({
 }: Readonly<PageParamComponentProps>) {
     const { getTypedParam, setTypedParam } = useUrlParams();
 
-    const index = getTypedParam(QueryProperty.Page);
+    const page = getTypedParam(QueryProperty.Page);
     const pageSize = getTypedParam(QueryProperty.Size);
 
-    // Initial state setup
-    const state = buildPaginationData({
-        index,
-        pageSize,
-        itemCount,
-    });
-    console.log(`The initial data is: ${JSON.stringify(state)}`);
+    const correctedPage = useMemo(() => {
+        const maxPage = Math.ceil(itemCount / pageSize);
+        // The pagination library we're using is zero indexed by our pagination is not. We could our indexing but
+        // zero indexing in the url may be weird for non-technical users.
+        return Math.min(page, maxPage) - 1;
+    }, [itemCount, page, pageSize]);
 
-    const updateParams = <T extends keyof typeof state>(
-        param: ParamKeys,
-        value: any,
-        stateUpdater: (prevState: typeof state) => typeof state,
-    ) => {
-        setTypedParam(param, value);
-    };
+    // Update URL if we need to correct the page number
+    useEffect(() => {
+        if (correctedPage !== page - 1) {
+            setTypedParam(QueryProperty.Page, correctedPage + 1);
+        }
+    }, [correctedPage, page, setTypedParam]);
 
     const handleChangeOffset = (
         event: React.MouseEvent<HTMLButtonElement> | null,
         newPageIndex: number,
     ) => {
-        updateParams(QueryProperty.Page, newPageIndex + 1, (prev) => ({
-            ...prev,
-            index: newPageIndex,
-        }));
+        setTypedParam(QueryProperty.Page, newPageIndex + 1);
     };
 
     const handleChangeRows = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => {
         const selectedSize = parseInt(event.target.value);
-        updateParams(QueryProperty.Size, selectedSize, (prev) => ({
-            ...prev,
-            pageSize: selectedSize,
-        }));
+        setTypedParam(QueryProperty.Size, selectedSize);
     };
 
     return (
@@ -89,9 +81,9 @@ export function PageParamComponent({
                 },
             }}
             component="div"
-            count={state.itemCount}
-            page={state.index}
-            rowsPerPage={state.pageSize}
+            count={itemCount}
+            page={correctedPage}
+            rowsPerPage={pageSize}
             onPageChange={handleChangeOffset}
             onRowsPerPageChange={handleChangeRows}
         />
