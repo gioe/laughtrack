@@ -84,20 +84,18 @@ export const paramConfigs: Record<string, ParamConfig> = {
     },
     zip: {
         key: QueryProperty.Zip,
-        defaultValue: '10003',
+        defaultValue: "",
         parse: (value: string | null) => {
-            return value ?? "10003"
+            return value ?? ""
         },
         stringify: (value: string) => value,
         validate: (value: string) => {
-            const cleanZip = value.trim();
-            const zipRegex = /^[0-9]{5}(?:-[0-9]{4})?$/;
-            return zipRegex.test(cleanZip);
+            return value.length > 0 && value.length < 6 || value == ""
         }
     },
     distance: {
         key: QueryProperty.Distance,
-        defaultValue: '5',
+        defaultValue: "",
         parse: (value: string | null) => {
             return value ?? '5';
         },
@@ -106,26 +104,30 @@ export const paramConfigs: Record<string, ParamConfig> = {
     },
     toDate: {
         key: QueryProperty.ToDate,
-        defaultValue: undefined,
+        defaultValue: "",
         parse: (value: string| null) => {
             const to = new Date(value ?? "");
             return isNaN(to.getTime()) ? undefined : to
         },
-        stringify: (value: Date | undefined) => value?.toISOString() ?? "",
+        stringify: (value: Date | undefined) => value ? value.toISOString().slice(0, 10) : "",
         validate: (value: Date | undefined) => {
-            return value == undefined || value > new Date()
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            return value == undefined || value > today
         }
     },
     fromDate: {
         key: QueryProperty.FromDate,
-        defaultValue: new Date(),
+        defaultValue: "",
         parse: (value: string | null) => {
             const from = new Date(value ?? "");
-            return isNaN(from.getTime()) ? new Date() : from
+            return isNaN(from.getTime()) ? undefined : from
         },
-        stringify: (value: Date) => value.toISOString(),
-        validate: (value: Date) => {
-            return value >= new Date()
+        stringify: (value: Date | undefined) => value ? value.toISOString().slice(0, 10) : "",
+        validate: (value: Date | undefined) => {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            return value == undefined || value >= today
         }
     }
   } as const;

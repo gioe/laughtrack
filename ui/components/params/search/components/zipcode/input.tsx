@@ -1,4 +1,4 @@
-import React, { ChangeEvent } from "react";
+import { ChangeEvent, useCallback, useEffect, useState } from "react";
 import { ComponentVariant } from "@/objects/enum";
 import {
     FormControl,
@@ -7,11 +7,13 @@ import {
     FormMessage,
 } from "@/ui/components/ui/form";
 import { Input } from "@/ui/components/ui/input";
+import _ from "lodash";
 
 interface ZipCodeInputBaseProps {
     disabled: boolean;
     placeholder: string;
     className: string;
+    debounceTime?: number;
 }
 
 interface ZipCodeInputFormProps extends ZipCodeInputBaseProps {
@@ -22,7 +24,7 @@ interface ZipCodeInputFormProps extends ZipCodeInputBaseProps {
 
 interface ZipCodeInputStandaloneProps extends ZipCodeInputBaseProps {
     variant: ComponentVariant.Standalone;
-    onChange: (event: ChangeEvent<HTMLInputElement>) => void;
+    onChange?: (value: string) => void;
     value?: string;
 }
 
@@ -50,9 +52,43 @@ const ZipCodeInput = (props: ZipCodeInputComponentProps) => {
         );
     }
 
+    const [inputValue, setInputValue] = useState<string | undefined>(
+        props.value,
+    );
+
+    const debounceTime = props.debounceTime ?? 500;
+
+    // Get the debounced value
+    const debouncedOnChange = useCallback(
+        _.debounce((value: string) => {
+            props.onChange?.(value);
+        }, debounceTime),
+        [props, debounceTime],
+    );
+
+    // Update local value when prop value changes
+    useEffect(() => {
+        setInputValue(props.value);
+    }, [props]);
+
+    // Handle input changes
+    const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+        const newValue = event.target.value;
+        setInputValue(newValue);
+        debouncedOnChange(newValue);
+    };
+
     return (
         <div className="space-y-2">
-            <Input type="text" maxLength={5} pattern="[0-9]{5}" {...props} />
+            <Input
+                type="text"
+                maxLength={5}
+                pattern="[0-9]{5}"
+                className={props.className}
+                value={inputValue}
+                onChange={handleInputChange}
+                placeholder={props.placeholder}
+            />
         </div>
     );
 };

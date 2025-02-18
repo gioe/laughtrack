@@ -14,7 +14,7 @@ import {
 const PLACEHOLDER = "When";
 
 interface CalendarDisplayProps {
-    selectedRange?: DateRange;
+    selectedRange: any;
     onSelect: (value: DateRange | undefined) => void;
 }
 
@@ -34,9 +34,9 @@ export const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
             <Popover>
                 <PopoverTrigger asChild>
                     <div>
-                        <div className="flex items-center justify-between w-full h-9 gap-2">
+                        <div className="flex items-center justify-between w-full h-9 gap-2 pl-2">
                             <div
-                                className={`${styleConfig.searchBarFontSize} ${styleConfig.searchBarTextColor} font-dmSans`}
+                                className={`text-[18px] ${styleConfig.searchBarTextColor} font-dmSans`}
                             >
                                 {formatDateRange(PLACEHOLDER, selectedRange)}
                             </div>

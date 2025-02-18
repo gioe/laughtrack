@@ -55,14 +55,17 @@ export default function ShowSearchForm() {
             setIsLoading(true);
 
             await new Promise((resolve) => setTimeout(resolve, 300));
-            setMultipleTypedParams({
-                distance: data.distance.distance,
-                zip: data.distance.zipCode,
-                from: data.dates.from.toISOString(),
-                to: data.dates.to.toISOString(),
-            });
+            setMultipleTypedParams(
+                {
+                    distance: data.distance.distance,
+                    zip: data.distance.zipCode,
+                    fromDate: data.dates.from,
+                    toDate: data.dates.to,
+                },
+                "show/search",
+            );
         } catch (error) {
-            console.error("Error during navigation:", error);
+            console.error("Error duriang navigation:", error);
         } finally {
             setIsLoading(false);
         }

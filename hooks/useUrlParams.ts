@@ -44,16 +44,18 @@ export function useUrlParams() {
     }, [router, searchParams]);
 
     const setMultipleTypedParams = useCallback((
-      updates: Partial<ParamTypes>
+      updates: Partial<ParamTypes>,
+      providedPath?: string,
     ): void => {
       const current = new URLSearchParams(searchParams.toString());
 
       (Object.entries(updates) as [ParamKeys, any][]).forEach(([key, value]) => {
         const config = paramConfigs[key];
+        console.log(`The value is ${value} for key ${key}`)
         if (!config.validate?.(value)) {
-            console.warn(`Invalid value for parameter ${key}`);
             return;
           }
+        console.log(`The key value ${key} is valid`)
         const stringified = config.stringify(value);
         if (stringified === config.stringify(config.defaultValue)) {
           current.delete(config.key);
@@ -61,8 +63,9 @@ export function useUrlParams() {
           current.set(config.key, stringified);
         }
       });
+      if (providedPath) { router.push(`/${providedPath}?${current.toString()}`); }
+      else { router.push(`?${current.toString()}`) }
 
-      router.push(`?${current.toString()}`);
     }, [router, searchParams]);
 
     return {

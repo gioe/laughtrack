@@ -1,6 +1,5 @@
 "use client";
 
-import { ChangeEvent } from "react";
 import { Theater } from "lucide-react";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import { ComponentVariant, QueryProperty } from "@/objects/enum";
@@ -18,23 +17,19 @@ import SearchBarContainer from "../../../components/container";
 export default function ComedianDetailSearchBar() {
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
-    const { getTypedParam, setTypedParam } = useUrlParams();
-
-    const comedian = getTypedParam(QueryProperty.Comedian);
-    const club = getTypedParam(QueryProperty.Club);
-    const distance = getTypedParam(QueryProperty.Distance);
-    const zipCode = getTypedParam(QueryProperty.Zip);
-    const from = getTypedParam(QueryProperty.FromDate);
-    const to = getTypedParam(QueryProperty.ToDate);
-
+    const { getTypedParam, setTypedParam, setMultipleTypedParams } =
+        useUrlParams();
     // Initial state setup
     const state = {
-        comedian,
-        club,
-        distance: { distance, zipCode } as DistanceData,
+        comedian: getTypedParam(QueryProperty.Comedian),
+        club: getTypedParam(QueryProperty.Club),
+        distance: {
+            distance: getTypedParam(QueryProperty.Distance),
+            zipCode: getTypedParam(QueryProperty.Zip),
+        } as DistanceData,
         dateRange: getDateRangeFromParams({
-            from,
-            to,
+            from: getTypedParam(QueryProperty.FromDate),
+            to: getTypedParam(QueryProperty.ToDate),
         }),
     };
 
@@ -43,15 +38,17 @@ export default function ComedianDetailSearchBar() {
         setTypedParam(QueryProperty.Club, value);
 
     const handleDateRangeSelection = (value?: DateRange) => {
-        setTypedParam(QueryProperty.FromDate, value?.from ?? new Date());
-        setTypedParam(QueryProperty.ToDate, value?.to);
+        setMultipleTypedParams({
+            fromDate: value?.from,
+            toDate: value?.to,
+        });
     };
 
     const handleDistanceSelection = (distance: string) =>
         setTypedParam(QueryProperty.Distance, distance);
 
-    const handleZipCodeInput = (event: ChangeEvent<HTMLInputElement>) =>
-        setTypedParam(QueryProperty.Distance, event.target.value);
+    const handleZipCodeInput = (value: string) =>
+        setTypedParam(QueryProperty.Zip, value);
 
     return (
         <SearchBarContainer>

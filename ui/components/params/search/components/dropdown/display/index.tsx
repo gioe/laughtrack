@@ -24,7 +24,7 @@ export function DropdownDisplay(props: DropdownDisplayProps) {
         <div className="flex items-center">
             <Select onValueChange={props.onChange} value={props.value}>
                 <SelectTrigger
-                    className={`${styleConfig.searchBarFontSize} ${styleConfig.searchBarTextColor} font-dmSans h-9`}
+                    className={`text-[18px] ${styleConfig.searchBarTextColor} font-dmSans h-9`}
                 >
                     <SelectValue
                         className="text-left pr-2"

@@ -15,34 +15,34 @@ export default function ClubSearchBar() {
     const styleConfig = getCurrentStyles();
     const { getTypedParam, setTypedParam } = useUrlParams();
 
-    const club = getTypedParam(QueryProperty.Club);
-    const distance = getTypedParam(QueryProperty.Distance);
-    const zipCode = getTypedParam(QueryProperty.Zip);
-
     // Initial state setup
     const state = {
-        club,
-        distance: { distance, zipCode } as DistanceData,
+        club: getTypedParam(QueryProperty.Club),
+        distance: {
+            distance: getTypedParam(QueryProperty.Distance),
+            zipCode: getTypedParam(QueryProperty.Zip),
+        } as DistanceData,
     };
 
-    const handleClubSearch = (queryString: string) =>
-        setTypedParam(QueryProperty.Club, queryString);
+    const handleClubSearch = (value: string) =>
+        setTypedParam(QueryProperty.Club, value);
+
+    const handleZipCodeInput = (value: string) =>
+        setTypedParam(QueryProperty.Zip, value);
 
     const handleDistanceSelection = (distance: string) =>
         setTypedParam(QueryProperty.Distance, distance);
 
-    const handleZipCodeInput = (event: ChangeEvent<HTMLInputElement>) =>
-        setTypedParam(QueryProperty.Zip, event.target.value);
-
     return (
-        <SearchBarContainer>
-            <ShowLocationComponent
-                variant={ComponentVariant.Standalone}
-                value={state.distance}
-                onDistanceSelection={handleDistanceSelection}
-                onZipcodeInput={handleZipCodeInput}
-            />
-            <div className={"hidden lg:border-r"}></div>
+        <SearchBarContainer maxWidth="max-w-4xl">
+            <div className={"lg:pr-4 lg:border-r lg:border-black"}>
+                <ShowLocationComponent
+                    variant={ComponentVariant.Standalone}
+                    value={state.distance}
+                    onDistanceSelection={handleDistanceSelection}
+                    onZipcodeInput={handleZipCodeInput}
+                />
+            </div>
 
             <TextInputComponent
                 icon={

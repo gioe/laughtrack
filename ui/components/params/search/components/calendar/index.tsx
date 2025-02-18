@@ -13,7 +13,7 @@ type CalendarFormProps = {
 
 type CalendarStandaloneProps = {
     variant: ComponentVariant.Standalone;
-    value?: DateRange;
+    value: any;
     onValueChange: (value: DateRange | undefined) => void;
 };
 

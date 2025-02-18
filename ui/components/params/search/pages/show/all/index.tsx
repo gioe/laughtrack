@@ -18,24 +18,21 @@ import SearchBarContainer from "../../../components/container";
 export default function ShowSearchBar() {
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
-    const { getTypedParam, setTypedParam } = useUrlParams();
-
-    const comedian = getTypedParam(QueryProperty.Comedian);
-    const club = getTypedParam(QueryProperty.Club);
-    const distance = getTypedParam(QueryProperty.Distance);
-    const zipCode = getTypedParam(QueryProperty.Zip);
-    const from = getTypedParam(QueryProperty.FromDate);
-    const to = getTypedParam(QueryProperty.ToDate);
+    const { getTypedParam, setTypedParam, setMultipleTypedParams } =
+        useUrlParams();
 
     // Initial state setup
     const state = {
-        comedian,
-        club,
-        distance: { distance, zipCode } as DistanceData,
+        comedian: getTypedParam(QueryProperty.Comedian),
+        club: getTypedParam(QueryProperty.Club),
+        distance: {
+            distance: getTypedParam(QueryProperty.Distance),
+            zipCode: getTypedParam(QueryProperty.Zip),
+        } as DistanceData,
         dateRange: getDateRangeFromParams({
-            from,
-            to,
-        }),
+            from: getTypedParam(QueryProperty.FromDate),
+            to: getTypedParam(QueryProperty.ToDate),
+        }) as DateRange,
     };
 
     // Simplified handler functions
@@ -46,37 +43,49 @@ export default function ShowSearchBar() {
         setTypedParam(QueryProperty.Club, value);
 
     const handleDateRangeSelection = (value?: DateRange) => {
-        setTypedParam(QueryProperty.FromDate, value?.from ?? new Date());
-        setTypedParam(QueryProperty.ToDate, value?.to);
+        setMultipleTypedParams({
+            fromDate: value?.from,
+            toDate: value?.to,
+        });
     };
 
     const handleDistanceSelection = (distance: string) =>
         setTypedParam(QueryProperty.Distance, distance);
 
-    const handleZipCodeInput = (event: ChangeEvent<HTMLInputElement>) =>
-        setTypedParam(QueryProperty.Distance, event.target.value);
+    const handleZipCodeInput = (value: string) =>
+        setTypedParam(QueryProperty.Zip, value);
 
     return (
-        <SearchBarContainer>
-            <ShowLocationComponent
-                variant={ComponentVariant.Standalone}
-                value={state.distance}
-                onDistanceSelection={handleDistanceSelection}
-                onZipcodeInput={handleZipCodeInput}
-            />
-            <CalendarComponent
-                variant={ComponentVariant.Standalone}
-                value={state.dateRange}
-                onValueChange={handleDateRangeSelection}
-            />
-            <TextInputComponent
-                icon={
-                    <Users className={`w-5 h-5 ${styleConfig.iconTextColor}`} />
-                }
-                placeholder="Search for comedian"
-                value={state.comedian ?? ""}
-                onChange={handleComedianSearch}
-            />
+        <SearchBarContainer sizeFlip="xl">
+            <div className={"xl:pr-4 xl:border-r xl:border-black"}>
+                <ShowLocationComponent
+                    variant={ComponentVariant.Standalone}
+                    value={state.distance}
+                    onDistanceSelection={handleDistanceSelection}
+                    onZipcodeInput={handleZipCodeInput}
+                />
+            </div>
+
+            <div className={"xl:pr-4 xl:border-r xl:border-black"}>
+                <CalendarComponent
+                    variant={ComponentVariant.Standalone}
+                    value={state.dateRange}
+                    onValueChange={handleDateRangeSelection}
+                />
+            </div>
+            <div className={"xl:pr-4 xl:border-r xl:border-black"}>
+                <TextInputComponent
+                    icon={
+                        <Users
+                            className={`w-5 h-5 ${styleConfig.iconTextColor}`}
+                        />
+                    }
+                    placeholder="Search for comedian"
+                    value={state.comedian ?? ""}
+                    onChange={handleComedianSearch}
+                />
+            </div>
+
             <TextInputComponent
                 icon={
                     <Theater

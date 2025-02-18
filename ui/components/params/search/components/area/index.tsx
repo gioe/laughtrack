@@ -25,7 +25,7 @@ type ShowDistanceStandaloneProps = {
     variant: ComponentVariant.Standalone;
     value?: DistanceData;
     onDistanceSelection: (value: string) => void;
-    onZipcodeInput: (event: ChangeEvent<HTMLInputElement>) => void;
+    onZipcodeInput: (value: string) => void;
 };
 
 type ShowLocationComponentProps =
@@ -35,10 +35,8 @@ type ShowLocationComponentProps =
 const ShowLocationComponent = (props: ShowLocationComponentProps) => {
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
-    const zipCodeInputClassName = `
-                        ${styleConfig.searchBarFontSize}
-                        ${styleConfig.searchBarTextColor}
-                        w-40 h-9 border border-white
+    const zipCodeInputClassName = `${styleConfig.searchBarTextColor}
+                        text-[18px] w-40 h-9 border border-white
                         rounded-lg font-dmSans bg-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none`;
 
     const buildDropdownComponent = (props: ShowLocationComponentProps) => {
@@ -57,7 +55,7 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
             <DropdownComponent
                 items={selectableDistances}
                 onChange={props.onDistanceSelection}
-                value={props.value?.distance}
+                value={props.value?.distance ?? ""}
                 variant={props.variant}
             />
         );
@@ -81,7 +79,7 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
             <ZipCodeInput
                 variant={props.variant}
                 className={zipCodeInputClassName}
-                value={props.value?.zipCode}
+                value={props.value?.zipCode ?? ""}
                 onChange={props.onZipcodeInput}
                 placeholder="Enter a zip code"
                 disabled={false}
@@ -94,12 +92,12 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
             <MapPin className={`w-5 h-5 ${styleConfig.iconTextColor}`} />
             {buildDropdownComponent(props)}
             <div
-                className={`${styleConfig.searchBarTextColor} ${styleConfig.searchBarFontSize} font-dmSans`}
+                className={`${styleConfig.searchBarTextColor} text-[18px] font-dmSans`}
             >
                 miles
             </div>
             <div
-                className={`${styleConfig.searchBarTextColor} ${styleConfig.searchBarFontSize} font-dmSans`}
+                className={`${styleConfig.searchBarTextColor} text-[18px] font-dmSans`}
             >
                 around
             </div>

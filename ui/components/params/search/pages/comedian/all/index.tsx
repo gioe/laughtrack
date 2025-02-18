@@ -6,23 +6,21 @@ import { useStyleContext } from "@/contexts/StyleProvider";
 import { QueryProperty, StyleContextKey } from "@/objects/enum";
 import { useUrlParams } from "@/hooks/useUrlParams";
 import SearchBarContainer from "../../../components/container";
+import { ChangeEvent } from "react";
 
 export default function ComedianSearchBar() {
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
     const { getTypedParam, setTypedParam } = useUrlParams();
 
-    const comedian = getTypedParam(QueryProperty.Comedian);
-
     const state = {
-        comedian,
+        comedian: getTypedParam(QueryProperty.Comedian),
     };
 
     const handleComedianSearch = (value: string) =>
         setTypedParam(QueryProperty.Comedian, value);
-
     return (
-        <SearchBarContainer maxWidth="max-w-xl">
+        <SearchBarContainer maxWidth="max-w-4xl">
             <TextInputComponent
                 icon={
                     <Users className={`w-5 h-5 ${styleConfig.iconTextColor}`} />

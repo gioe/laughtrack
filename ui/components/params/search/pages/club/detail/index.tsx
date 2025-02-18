@@ -12,18 +12,15 @@ import SearchBarContainer from "../../../components/container";
 export default function ClubDetailSearchBar() {
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
-    const { getTypedParam, setTypedParam } = useUrlParams();
-
-    const comedian = getTypedParam(QueryProperty.Comedian);
-    const from = getTypedParam(QueryProperty.FromDate);
-    const to = getTypedParam(QueryProperty.ToDate);
+    const { getTypedParam, setTypedParam, setMultipleTypedParams } =
+        useUrlParams();
 
     // Initial state setup
     const state = {
-        comedian,
+        comedian: getTypedParam(QueryProperty.Comedian),
         dateRange: getDateRangeFromParams({
-            from,
-            to,
+            from: getTypedParam(QueryProperty.FromDate),
+            to: getTypedParam(QueryProperty.ToDate),
         }),
     };
 
@@ -33,8 +30,10 @@ export default function ClubDetailSearchBar() {
         setTypedParam(QueryProperty.Comedian, value);
 
     const handleDateRangeSelection = (value?: DateRange) => {
-        setTypedParam(QueryProperty.FromDate, value?.from ?? new Date());
-        setTypedParam(QueryProperty.ToDate, value?.to);
+        setMultipleTypedParams({
+            fromDate: value?.from,
+            toDate: value?.to,
+        });
     };
 
     return (
