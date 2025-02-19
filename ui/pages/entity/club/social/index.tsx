@@ -1,6 +1,5 @@
 import { Club } from "@/objects/class/club/Club";
 import { ClubDTO } from "@/objects/class/club/club.interface";
-import { SocialData } from "@/objects/class/socialData/SocialData";
 import { Phone, Globe, Clock } from "lucide-react";
 
 interface ClubDataColumnProps {

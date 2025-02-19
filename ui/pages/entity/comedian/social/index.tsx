@@ -1,5 +1,9 @@
 import { Comedian } from "@/objects/class/comedian/Comedian";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
+import InstagramIcon from "@/ui/components/icons/InstagramIcon";
+import TikTokIcon from "@/ui/components/icons/TikTokIcon";
+import YouTubeIcon from "@/ui/components/icons/YoutubeIcon";
+import { Globe } from "lucide-react";
 
 interface SocialMediaColumnProps {
     comedian: ComedianDTO;
@@ -8,7 +12,7 @@ interface SocialMediaColumnProps {
 const SocialMediaColumn = ({ comedian }: SocialMediaColumnProps) => {
     const parsedComedian = new Comedian(comedian);
     const className =
-        "text-copper text-[16px] font-dmSans hover:underline block";
+        "text-copper text-[16px] font-dmSans hover:underline flex items-center gap-2";
 
     return (
         <div className="w-64">
@@ -20,7 +24,8 @@ const SocialMediaColumn = ({ comedian }: SocialMediaColumnProps) => {
                         href={`instagram.com/${parsedComedian.socialData.instagram.account}`}
                         className={className}
                     >
-                        {`instagram.com/${parsedComedian.socialData.instagram.account}`}
+                        <InstagramIcon className="w-5 h-5" />
+                        <span>{`${parsedComedian.socialData.instagram.account}`}</span>
                     </a>
                 )}
 
@@ -29,7 +34,8 @@ const SocialMediaColumn = ({ comedian }: SocialMediaColumnProps) => {
                         href={`tiktok.com/${parsedComedian.socialData.tiktok.account}`}
                         className={className}
                     >
-                        {`tiktok.com/${parsedComedian.socialData.tiktok.account}`}
+                        <TikTokIcon className="w-5 h-5" />
+                        <span>{`${parsedComedian.socialData.tiktok.account}`}</span>
                     </a>
                 )}
 
@@ -38,7 +44,8 @@ const SocialMediaColumn = ({ comedian }: SocialMediaColumnProps) => {
                         href={`youtube.com/${parsedComedian.socialData.youtube.account}`}
                         className={className}
                     >
-                        {`youtube.com/${parsedComedian.socialData.youtube.account}`}
+                        <YouTubeIcon className="w-5 h-5" />
+                        <span>{`${parsedComedian.socialData.youtube.account}`}</span>
                     </a>
                 )}
 
@@ -47,7 +54,8 @@ const SocialMediaColumn = ({ comedian }: SocialMediaColumnProps) => {
                         href={`${parsedComedian.socialData.website}`}
                         className={className}
                     >
-                        {`${parsedComedian.socialData.website}`}
+                        <Globe className="w-5 h-5" />
+                        <span>{`${parsedComedian.socialData.website}`}</span>
                     </a>
                 )}
             </div>

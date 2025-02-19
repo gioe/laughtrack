@@ -1,6 +1,6 @@
 import React from "react";
 
-const InstagramIcon = ({ className = "", size = "w-10 h-10" }) => {
+const InstagramIcon = ({ className = "", size = "w-5 h-5" }) => {
     return (
         <div
             className={`${size} rounded-full bg-[#CD6837] flex items-center justify-center ${className}`}
