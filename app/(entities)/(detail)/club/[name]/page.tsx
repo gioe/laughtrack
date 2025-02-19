@@ -10,7 +10,7 @@ import { unstable_cache } from "next/cache";
 import { ParameterizedRequestData } from "@/objects/interface";
 
 export default async function ClubDetailPage(props: {
-    searchParams: Promise<URLSearchParams>;
+    searchParams: Promise<any>;
     params: Promise<{ name: string }> | undefined;
 }) {
     const [session, searchParams, slug] = await Promise.all([
@@ -20,7 +20,7 @@ export default async function ClubDetailPage(props: {
     ]);
 
     const requestData = {
-        params: searchParams.toString(),
+        params: searchParams,
         userId: session?.profile?.userId,
         slug: slug?.name,
     };
@@ -47,7 +47,7 @@ export default async function ClubDetailPage(props: {
 
     return (
         <main className="min-h-screen w-full bg-coconut-cream">
-            <FilterModal filters={filters} total={total} />
+            <FilterModal filters={[]} total={total} />
             <ClubDetailHeader club={data} />
             <div className="max-w-7xl mx-auto p-6 flex flex-row">
                 <TableWithHeader shows={shows} total={total}>

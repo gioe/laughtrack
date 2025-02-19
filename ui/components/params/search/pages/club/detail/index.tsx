@@ -37,12 +37,14 @@ export default function ClubDetailSearchBar() {
     };
 
     return (
-        <SearchBarContainer>
-            <CalendarComponent
-                variant={ComponentVariant.Standalone}
-                value={state.dateRange}
-                onValueChange={handleDateRangeSelection}
-            />
+        <SearchBarContainer maxWidth="max-w-2xl">
+            <div className={"lg:pr-4 lg:border-r lg:border-black"}>
+                <CalendarComponent
+                    variant={ComponentVariant.Standalone}
+                    value={state.dateRange}
+                    onValueChange={handleDateRangeSelection}
+                />
+            </div>
             <TextInputComponent
                 icon={
                     <Users className={`w-5 h-5 ${styleConfig.iconTextColor}`} />

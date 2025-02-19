@@ -6,55 +6,48 @@ import { QueryHelper } from "@/objects/class/query/QueryHelper";
 export async function findComedianByName(
     helper: QueryHelper,
 ): Promise<ComedianDTO> {
-    const comedianData = await db.comedian
-        .findUnique({
-            where: {
-                name: helper.getNameSlug(),
-            },
-            select: {
-                id: true,
-                uuid: true,
-                name: true,
-                linktree: true,
-                instagramAccount: true,
-                instagramFollowers: true,
-                tiktokAccount: true,
-                tiktokFollowers: true,
-                youtubeAccount: true,
-                youtubeFollowers: true,
-                website: true,
-                popularity: true,
-                ...(helper.getUserId()
-                    ? {
-                          favoriteComedians: {
-                              where: {
-                                  user: {
-                                      id: helper.getUserId(),
-                                  },
+    const comedianData = await db.comedian.findUnique({
+        where: {
+            name: helper.getSlug(),
+        },
+        select: {
+            id: true,
+            uuid: true,
+            name: true,
+            linktree: true,
+            instagramAccount: true,
+            instagramFollowers: true,
+            tiktokAccount: true,
+            tiktokFollowers: true,
+            youtubeAccount: true,
+            youtubeFollowers: true,
+            website: true,
+            popularity: true,
+            ...(helper.getUserId()
+                ? {
+                      favoriteComedians: {
+                          where: {
+                              user: {
+                                  id: helper.getUserId(),
                               },
                           },
-                      }
-                    : {}),
-                lineupItems: {
-                    select: {
-                        id: true,
-                    },
-                    where: {
-                        show: {
-                            date: {
-                                gt: new Date(),
-                            },
+                      },
+                  }
+                : {}),
+            lineupItems: {
+                select: {
+                    id: true,
+                },
+                where: {
+                    show: {
+                        date: {
+                            gt: new Date(),
                         },
                     },
                 },
             },
-        })
-        .then((comedian) => {
-            if (!comedian) return null;
-            return {
-                ...comedian,
-            };
-        });
+        },
+    });
 
     if (!comedianData) {
         throw new Error(`Comedian with name ${name} not found`);

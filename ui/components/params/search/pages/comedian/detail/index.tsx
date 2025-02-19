@@ -51,18 +51,24 @@ export default function ComedianDetailSearchBar() {
         setTypedParam(QueryProperty.Zip, value);
 
     return (
-        <SearchBarContainer>
-            <ShowLocationComponent
-                variant={ComponentVariant.Standalone}
-                value={state.distance}
-                onDistanceSelection={handleDistanceSelection}
-                onZipcodeInput={handleZipCodeInput}
-            />
-            <CalendarComponent
-                variant={ComponentVariant.Standalone}
-                value={state.dateRange}
-                onValueChange={handleDateRangeSelection}
-            />
+        <SearchBarContainer maxWidth="max-w-5xl">
+            <div className={"lg:pr-4 lg:border-r lg:border-black"}>
+                <ShowLocationComponent
+                    variant={ComponentVariant.Standalone}
+                    value={state.distance}
+                    onDistanceSelection={handleDistanceSelection}
+                    onZipcodeInput={handleZipCodeInput}
+                />
+            </div>
+
+            <div className={"lg:pr-4 lg:border-r lg:border-black"}>
+                <CalendarComponent
+                    variant={ComponentVariant.Standalone}
+                    value={state.dateRange}
+                    onValueChange={handleDateRangeSelection}
+                />
+            </div>
+
             <TextInputComponent
                 icon={
                     <Theater

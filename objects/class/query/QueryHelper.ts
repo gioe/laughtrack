@@ -16,7 +16,7 @@ export class QueryHelper {
 
     constructor(requestData: ParameterizedRequestData) {
         this.userId = requestData.userId
-        this.slug = requestData.slug
+        this.slug = requestData.slug ? decodeURI(requestData.slug) : undefined
         this.searchParams = new URLSearchParams(requestData.params)
     }
 
@@ -291,16 +291,12 @@ export class QueryHelper {
         }
     }
 
+    getSlug() {
+        return this.slug
+    }
+
     getUserId() {
         return this.userId
-    }
-
-    getNameSlug() {
-        return this.slug
-    }
-
-    getIdSlug() {
-        return this.slug
     }
 
     getFilters() {

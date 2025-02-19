@@ -29,7 +29,7 @@ export default function SearchBarContainer({
         <div
             className={`flex flex-col gap-4 px-4 py-3 rounded-lg gap-y-4
                     bg-coconut-cream/20 backdrop-blur
-                    ${sizeFlip}:flex-row ${sizeFlip}:rounded-full ${sizeFlip}:items-center`}
+                    lg:flex-row lg:rounded-full lg:items-center`}
         >
             {children}
         </div>

@@ -11,7 +11,7 @@ import FilterBar from "@/ui/pages/search/filterBar";
 import FilterModal from "@/ui/components/modals/filter";
 
 export default async function ComedianDetailsPage(props: {
-    searchParams: Promise<URLSearchParams>;
+    searchParams: Promise<any>;
     params: Promise<{ name: string }> | undefined;
 }) {
     const [session, searchParams, slug] = await Promise.all([
@@ -21,7 +21,7 @@ export default async function ComedianDetailsPage(props: {
     ]);
 
     const requestData = {
-        params: searchParams.toString(),
+        params: searchParams,
         userId: session?.profile?.userId,
         slug: slug?.name,
     };

@@ -6,7 +6,7 @@ import { buildClubImageUrl } from "@/util/imageUtil";
 export async function findClubByName(helper: QueryHelper): Promise<ClubDTO> {
     const clubData = await db.club.findFirst({
         where: {
-            name: helper.getNameSlug(),
+            name: helper.getSlug(),
         },
         select: {
             id: true,
