@@ -27,12 +27,12 @@ export function Header({ currentUser }: HeaderProps) {
     const handleSignupClick = useCallback(() => {
         registerModal.onOpen();
     }, [registerModal]);
+
     return (
         <nav
-            className={`relative ${styleConfig.headerBackgroundColor} px-4 py-4`}
+            className={`relative px-4 py-4 ${styleConfig.headerBackgroundColor}`}
         >
-            <div className="hidden lg:grid max-w-7xl mx-auto lg:grid-cols-3 items-center">
-                {/* Left column - Logo */}
+            <div className="hidden max-w-7xl mx-auto items-center lg:grid lg:grid-cols-3 ">
                 <div className="col-start-1">
                     <Logo />
                 </div>

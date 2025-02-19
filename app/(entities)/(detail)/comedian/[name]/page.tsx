@@ -54,7 +54,11 @@ export default async function ComedianDetailsPage(props: {
             <FilterModal filters={[]} total={total} />
             <ComedianDetailHeader comedian={data} />
             <div className="max-w-7xl mx-auto p-6">
-                <TableWithHeader shows={shows} total={total}>
+                <TableWithHeader
+                    shows={shows}
+                    total={total}
+                    errorMessage="No results. Clearly this comic doesn't work enough."
+                >
                     <FilterBar
                         variant={SearchVariant.ComedianDetail}
                         total={total}

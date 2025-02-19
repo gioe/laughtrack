@@ -21,7 +21,7 @@ const SocialMediaColumn = ({ comedian }: SocialMediaColumnProps) => {
             <div className="space-y-2">
                 {parsedComedian.socialData?.instagram.account && (
                     <a
-                        href={`instagram.com/${parsedComedian.socialData.instagram.account}`}
+                        href={`https://instagram.com/${parsedComedian.socialData.instagram.account}`}
                         className={className}
                     >
                         <InstagramIcon className="w-5 h-5" />
@@ -31,7 +31,7 @@ const SocialMediaColumn = ({ comedian }: SocialMediaColumnProps) => {
 
                 {parsedComedian.socialData?.tiktok.account && (
                     <a
-                        href={`tiktok.com/${parsedComedian.socialData.tiktok.account}`}
+                        href={`https://tiktok.com/${parsedComedian.socialData.tiktok.account}`}
                         className={className}
                     >
                         <TikTokIcon className="w-5 h-5" />
@@ -41,7 +41,7 @@ const SocialMediaColumn = ({ comedian }: SocialMediaColumnProps) => {
 
                 {parsedComedian.socialData?.youtube.account && (
                     <a
-                        href={`youtube.com/${parsedComedian.socialData.youtube.account}`}
+                        href={`https://youtube.com/${parsedComedian.socialData.youtube.account}`}
                         className={className}
                     >
                         <YouTubeIcon className="w-5 h-5" />

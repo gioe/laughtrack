@@ -20,11 +20,9 @@ const ComedianGrid = ({ comedians, className }: ComedianGridProps) => {
                     ))}
                 </div>
             ) : (
-                <div className="max-w-7xl">
-                    <h2 className="font-bold text-5xl w-maxtext-white pt-6">
-                        No upcoming shows. Check back later.
-                    </h2>
-                </div>
+                <h2 className="font-bold font-dmSans text-[60px] text-center max-w-7xl pt-6">
+                    No results. That person must not be funny enough.
+                </h2>
             )}
         </div>
     );

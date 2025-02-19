@@ -48,19 +48,19 @@ const getSortOptions = (variant: SearchVariant) => {
 
 const FilterBar = ({ variant, total, filters }: FilterBarProps) => {
     return (
-        <div className="px-4 sm:px-6 lg:px-10 py-4">
+        <div className="px-4 py-4 sm:px-6 lg:px-10">
             <div className="flex items-center justify-center w-full">
                 {getSearchBar(variant)}
             </div>
 
-            <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div className="flex justify-center sm:justify-start w-full sm:w-auto">
+            <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex justify-center w-full sm:justify-start sm:w-auto">
                     <div className="text-amber-800">
                         <PageParamComponent itemCount={total} />
                     </div>
                 </div>
 
-                <div className="flex items-center justify-center sm:justify-end gap-4 w-full sm:w-auto">
+                <div className="flex justify-center gap-4 w-full sm:justify-end sm:w-auto">
                     <div className="text-amber-800">
                         {getSortOptions(variant)}
                     </div>

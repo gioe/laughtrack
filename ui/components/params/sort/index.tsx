@@ -56,18 +56,22 @@ export function SortParamComponent({ sortOptions }: SortComponentProps) {
         >
             <div>
                 <MenuButton
-                    className="group flex items-center justify-between rounded-lg gap-2
+                    className="group flex items-center justify-between rounded-lg
             text-copper font-dmSans text-[16px] hover:bg-gray-50"
                 >
-                    <MenuIcon size={20} />
-                    <span className="hidden sm:inline pr-3">Sort by:</span>
-                    <span className="hidden sm:inline">
-                        {selectedSortingOption.name}
-                    </span>
-                    <ChevronDownIcon
-                        aria-hidden="true"
-                        className="h-5 w-5 flex-none text-copper"
-                    />
+                    <div className="flex items-center gap-2">
+                        <MenuIcon size={20} />
+                        <span className="hidden sm:inline pr-3">Sort by:</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="hidden sm:inline">
+                            {selectedSortingOption.name}
+                        </span>
+                        <ChevronDownIcon
+                            aria-hidden="true"
+                            className="h-5 w-5 flex-none text-copper"
+                        />
+                    </div>
                 </MenuButton>
             </div>
 

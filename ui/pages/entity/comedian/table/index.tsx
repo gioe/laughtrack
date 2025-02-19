@@ -5,12 +5,14 @@ interface TableWithHeaderProps {
     shows: ShowDTO[];
     total: number;
     children: React.ReactNode;
+    errorMessage?: string;
 }
 
 const TableWithHeader: React.FC<TableWithHeaderProps> = ({
     shows,
     total,
     children,
+    errorMessage,
 }) => {
     return (
         <div className="flex-1">
@@ -21,7 +23,7 @@ const TableWithHeader: React.FC<TableWithHeaderProps> = ({
                 {total} upcoming shows
             </p>
             {children}
-            <ShowTable shows={shows} />
+            <ShowTable shows={shows} errorMessage={errorMessage} />
         </div>
     );
 };
