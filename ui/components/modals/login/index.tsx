@@ -8,7 +8,6 @@ import FullScreenModal from "../fullscreen";
 const LoginModal = () => {
     const router = useRouter();
     const loginModal = useLoginModal();
-    const registerModal = useRegisterModal();
 
     const onSubmit = () => {
         router.refresh();

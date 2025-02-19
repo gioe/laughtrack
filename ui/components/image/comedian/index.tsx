@@ -39,6 +39,7 @@ const ComedianHeadshot = ({
 }: ComedianHeadshotProps) => {
     const [error, setError] = useState(false);
     const [loaded, setLoaded] = useState(false);
+
     const { isFavorite, handleFavoriteClick } = useFavorite({
         initialState: comedian.isFavorite,
         entityId: comedian.uuid,
