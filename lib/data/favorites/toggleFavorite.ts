@@ -2,14 +2,14 @@
 import { db } from "@/lib/db"
 
 export async function toggleFavorite(comedianUuid: string,
-    profileId: string,
+    userId: string,
     setFavorite: boolean): Promise<boolean> {
     if (setFavorite) {
         // Create favorite record
         await db.favoriteComedian.create({
             data: {
                 comedianId: comedianUuid,
-                profileId: profileId
+                profileId: userId
             },
             select: {
                 id: true
@@ -21,7 +21,7 @@ export async function toggleFavorite(comedianUuid: string,
         await db.favoriteComedian.deleteMany({
             where: {
                 comedianId: comedianUuid,
-                profileId: profileId
+                profileId: userId
             }
         });
         return false

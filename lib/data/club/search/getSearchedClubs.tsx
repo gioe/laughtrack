@@ -20,7 +20,6 @@ export async function getSearchedClubs(
             ),
         ]);
 
-        console.log(filters);
         return {
             data: clubsWithCount.clubs,
             total: clubsWithCount.totalCount,

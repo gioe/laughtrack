@@ -17,7 +17,6 @@ export default function ShowSearchBar() {
     const { getTypedParam, setTypedParam, setMultipleTypedParams } =
         useUrlParams();
 
-    console.log(getTypedParam(QueryProperty.FromDate));
     // Initial state setup
     const state = {
         comedian: getTypedParam(QueryProperty.Comedian),

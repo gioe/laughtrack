@@ -6,7 +6,6 @@ import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { Comedian } from "@/objects/class/comedian/Comedian";
 import SocialMediaColumn from "../social";
 import { useFavorite } from "@/hooks/useFavorite";
-import Image from "next/image";
 import { getLocalCdnUrl } from "@/util/cdnUtil";
 
 const PLACEHOLDER = getLocalCdnUrl("comedian-placeholder.png");

@@ -1,9 +1,8 @@
 'use client'
 import { useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
-import { makeRequest } from '@/util/actions/makeRequest';
-import { APIRoutePath, RestAPIAction } from '@/objects/enum';
 import useLoginModal from './useLoginModal';
+import { favorite } from '@/app/actions/favorite';
 
 interface UseFavoriteProps {
     initialState: boolean;
@@ -37,15 +36,7 @@ export const useFavorite = ({
             setIsFavorite(newFavoriteState);
 
             try {
-                const response = await makeRequest<boolean>(APIRoutePath.ComedianFavorite, {
-                    method: RestAPIAction.PUT,
-                    session: session.data,
-                    body: {
-                        comedianId: entityId,
-                        setFavorite: newFavoriteState,
-                    },
-                });
-
+                const response = await favorite(newFavoriteState, entityId);
                 // If the response doesn't match our optimistic update, revert
                 if (response !== newFavoriteState) {
                     setIsFavorite(!newFavoriteState);

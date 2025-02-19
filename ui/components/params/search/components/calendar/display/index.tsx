@@ -57,15 +57,7 @@ export const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
                         mode="range"
                         selected={selectedRange}
                         defaultMonth={selectedRange?.from}
-                        onSelect={(
-                            range: DateRange | undefined,
-                            selectedDay: Date,
-                        ) => {
-                            console.log("Selected range: ", range);
-                            console.log("Selected day: ", selectedDay);
-
-                            onSelect(range);
-                        }}
+                        onSelect={onSelect}
                         numberOfMonths={2}
                         disabled={(date) => date < today}
                     />

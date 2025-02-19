@@ -6,8 +6,6 @@ interface FilterChipProps {
 }
 
 export const FilterChip = ({ option, onClick }: FilterChipProps) => {
-    console.log(`The option is ${JSON.stringify(option)}`);
-
     return (
         <button
             onClick={() => {
