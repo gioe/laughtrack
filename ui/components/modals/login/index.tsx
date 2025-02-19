@@ -1,9 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useLoginModal } from "@/hooks/modal";
 import LaughtrackLogin from "@/ui/pages/login";
 import FullScreenModal from "../fullscreen";
+import { useLoginModal } from "@/hooks";
 
 const LoginModal = () => {
     const router = useRouter();

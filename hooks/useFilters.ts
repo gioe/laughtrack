@@ -1,40 +1,31 @@
-import { Filter } from "@/objects/class/filter/Filter";
-import { Navigator } from "@/objects/class/navigate/Navigator";
 import { QueryProperty } from "@/objects/enum";
 import { FilterDTO } from "@/objects/interface/filter.interface";
-import { ReadonlyURLSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useUrlParams } from "./useUrlParams";
 
-export const useFilters = (filters: FilterDTO[], searchParams: ReadonlyURLSearchParams, navigator: Navigator) => {
+export const useFilters = (filters: FilterDTO[]) => {
+    const { getTypedParam, setTypedParam } = useUrlParams();
 
-    const initialParamValue = searchParams.get(QueryProperty.Filters) as string
+    const setFilterParamValue = (newFilters: string[]) => {
+        console.log(newFilters);
+        const paramValue = newFilters.join(",");
+        setTypedParam(QueryProperty.Filters, paramValue);
+    }
 
-    const [selectedFilters, setSelectedFilters] = useState(
-        filters.map(dto => new Filter(dto, initialParamValue))
-            .filter(filter => filter.selected)
-            .map(filter => filter.id)
-    );
+    const initialSelections = filters.filter((f: FilterDTO) => f.selected).map((f: FilterDTO) => f.value);
+    console.log(initialSelections)
+    const urlSelections = getTypedParam(QueryProperty.Filters).split(",")
 
-    const handleFilterChange = (option: Filter) => {
-        const newFilters = selectedFilters.includes(option.id)
-            ? selectedFilters.filter(t => t !== option.id)
-            : [...selectedFilters, option.id];
-
-        const paramValue = filters
-            .filter(f => newFilters.includes(f.id))
-            .map(f => f.display)
-            .join(",");
-
-        // searchParams.setParamValue(QueryProperty.Filters, paramValue);
-        // navigator.replaceRoute(paramsHelper.asParamsString());
-        setSelectedFilters(newFilters);
+    const handleFilterChange = (value: string) => {
+        console.log(value)
+        const newFilters = initialSelections.includes(value)
+            ? initialSelections.filter((t: string) => t !== value)
+            : [...initialSelections, value];
+        console.log(newFilters)
+        setFilterParamValue(newFilters);
     };
 
     const handleClose = () => {
-        // let resetValue = initialParamValue == DEFAULT_ERROR ? '' : initialParamValue
-        // paramsHelper.setParamValue(QueryProperty.Filters, resetValue);
-        // navigator.replaceRoute(paramsHelper.asParamsString());
+        setFilterParamValue(urlSelections);
     };
-
-    return { selectedFilters, handleFilterChange, handleClose };
+    return { handleFilterChange, handleClose };
 };

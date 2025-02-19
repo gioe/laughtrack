@@ -47,7 +47,7 @@ export default async function ClubDetailPage(props: {
 
     return (
         <main className="min-h-screen w-full bg-coconut-cream">
-            <FilterModal filters={[]} total={total} />
+            <FilterModal filters={filters} total={total} />
             <ClubDetailHeader club={data} />
             <div className="max-w-7xl mx-auto p-6 flex flex-row">
                 <TableWithHeader shows={shows} total={total}>

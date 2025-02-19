@@ -20,7 +20,7 @@ const ComedianGrid = ({ comedians, className }: ComedianGridProps) => {
                     ))}
                 </div>
             ) : (
-                <h2 className="font-bold font-dmSans text-[60px] text-center max-w-7xl pt-6">
+                <h2 className="font-bold font-dmSans text-[60px] text-center pt-6">
                     No results. That person must not be funny enough.
                 </h2>
             )}

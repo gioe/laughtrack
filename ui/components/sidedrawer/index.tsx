@@ -10,9 +10,9 @@ import { useCallback } from "react";
 import { HeaderItem } from "../navbar/headerItem";
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
 import { FullRoundedButton } from "../button/rounded/full";
-import { useLoginModal } from "@/hooks/modal";
 import { useSignOut } from "@/hooks/useSignOut";
 import { UserProfileInterface } from "@/app/api/profile/[id]/interface";
+import { useLoginModal } from "@/hooks";
 
 interface SideDrawerProps {
     onClose: (open: boolean) => void;

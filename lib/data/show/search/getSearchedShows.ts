@@ -12,7 +12,7 @@ export async function getSearchedShows(requestData: ParameterizedRequestData) {
 
         const [showsWithCount, filters] = await Promise.all([
             findShowsWithCount(helper),
-            getFilters(EntityType.Show, helper),
+            getFilters(EntityType.Show, new URLSearchParams(requestData.params)),
         ])
 
         return {

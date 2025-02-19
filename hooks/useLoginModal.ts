@@ -1,4 +1,4 @@
-import { ModalState } from "../../objects/interface/modalState.interface";
+import { ModalState } from "@/objects/interface";
 import { create } from "zustand";
 
 const useLoginModal = create<ModalState>((set) => ({

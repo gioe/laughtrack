@@ -16,8 +16,8 @@ const ClubGrid = ({ clubs }: ClubGridProps) => {
                     })}
                 </div>
             ) : (
-                <h2 className="font-bold font-dmSans text-[60px] text-center max-w-7xl pt-6">
-                    No results. Are you making places up?
+                <h2 className="font-bold font-dmSans text-[60px] text-center pt-6">
+                    No results. Does that place even exist?
                 </h2>
             )}
         </div>

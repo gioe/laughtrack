@@ -51,7 +51,7 @@ const SocialMediaColumn = ({ comedian }: SocialMediaColumnProps) => {
 
                 {parsedComedian.socialData?.website && (
                     <a
-                        href={`${parsedComedian.socialData.website}`}
+                        href={`https://${parsedComedian.socialData.website}`}
                         className={className}
                     >
                         <Globe className="w-5 h-5" />

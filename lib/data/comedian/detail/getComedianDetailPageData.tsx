@@ -16,7 +16,10 @@ export async function getComedianDetailPageData(
         const [comedianData, showsWithCount, filters] = await Promise.all([
             findComedianByName(helper),
             findShowsWithCount(helper),
-            getFilters(EntityType.Show, helper),
+            getFilters(
+                EntityType.Show,
+                new URLSearchParams(requestData.params),
+            ),
         ]);
 
         return {

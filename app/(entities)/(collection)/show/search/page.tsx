@@ -1,13 +1,13 @@
 import { auth } from "@/auth";
-import FilterBar from "@/ui/pages/search/filterBar";
-import ShowTable from "@/ui/pages/search/table";
-import SearchDetailHeader from "@/ui/pages/search/header";
-import FilterModal from "@/ui/components/modals/filter";
 import { CACHE } from "@/util/constants/cacheConstants";
 import { SearchVariant } from "@/objects/enum/searchVariant";
 import { unstable_cache } from "next/cache";
 import { getSearchedShows } from "@/lib/data/show/search/getSearchedShows";
 import { ParameterizedRequestData } from "@/objects/interface";
+import FilterBar from "@/ui/pages/search/filterBar";
+import ShowTable from "@/ui/pages/search/table";
+import SearchDetailHeader from "@/ui/pages/search/header";
+import FilterModal from "@/ui/components/modals/filter";
 
 export default async function ShowSearchPage(props: any) {
     const [session, searchParams] = await Promise.all([
@@ -42,7 +42,7 @@ export default async function ShowSearchPage(props: any) {
 
     return (
         <main className="min-h-screen w-full bg-coconut-cream">
-            <FilterModal filters={[]} total={total} />
+            <FilterModal filters={filters} total={total} />
             <SearchDetailHeader
                 title={`Search for shows near you`}
                 subTitle={`${total} results`}

@@ -37,6 +37,8 @@ export class QueryHelper {
     }
 
     getComedianFiltersClause() {
+        const filters = this.searchParams.get(QueryProperty.Filters)
+
         const commonClause = {
             NOT: {
                 taggedComedians: {
@@ -49,7 +51,7 @@ export class QueryHelper {
             },
         };
 
-        if (!this.searchParams.get(QueryProperty.Filters)) {
+        if (!filters) {
             return commonClause;
         }
 
@@ -60,9 +62,10 @@ export class QueryHelper {
                     taggedComedians: {
                         some: {
                             tag: {
-                                display: {
-                                    in: (this.searchParams.get(QueryProperty.Filters) as string).split(","),
+                                value: {
+                                    in: filters.split(","),
                                 },
+                                type: 'comedian'
                             },
                         },
                     },
@@ -120,6 +123,8 @@ export class QueryHelper {
     }
 
     getClubFiltersClause() {
+        const filters = this.searchParams.get(QueryProperty.Filters)
+
         const commonClause = {
             NOT: {
                 taggedClubs: {
@@ -132,7 +137,7 @@ export class QueryHelper {
             },
         };
 
-        if (!this.searchParams.get(QueryProperty.Filters)) {
+        if (!filters) {
             return commonClause;
         }
 
@@ -143,8 +148,9 @@ export class QueryHelper {
                     taggedClubs: {
                         some: {
                             tag: {
-                                display: {
-                                    in: (this.searchParams.get(QueryProperty.Filters) as string).split(","),
+                                value: {
+                                    in: filters.split(","),
+                                    type: 'club'
                                 },
                             },
                         },
@@ -156,6 +162,7 @@ export class QueryHelper {
 
     // Shows
     getShowFiltersClause() {
+        const filters = this.searchParams.get(QueryProperty.Filters)
         const commonClause = {
             NOT: {
                 taggedShows: {
@@ -168,7 +175,7 @@ export class QueryHelper {
             },
         };
 
-        if (!this.searchParams.get(QueryProperty.Filters)) {
+        if (!filters) {
             return commonClause;
         }
 
@@ -179,8 +186,9 @@ export class QueryHelper {
                     taggedShows: {
                         some: {
                             tag: {
-                                display: {
-                                    in: (this.searchParams.get(QueryProperty.Filters) as string).split(","),
+                                value: {
+                                    in: filters.split(","),
+                                    type: 'show'
                                 },
                             },
                         },

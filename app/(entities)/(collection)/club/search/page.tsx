@@ -42,7 +42,7 @@ export default async function ClubSearchPage(props: any) {
 
     return (
         <main className="min-h-screen w-full bg-coconut-cream">
-            <FilterModal filters={[]} total={total} />
+            <FilterModal filters={filters} total={total} />
             <SearchDetailHeader
                 title={`Search clubs`}
                 subTitle={`${total} results`}

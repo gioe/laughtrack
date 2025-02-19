@@ -51,7 +51,7 @@ export default async function ComedianDetailsPage(props: {
 
     return (
         <main className="min-h-screen w-full bg-coconut-cream">
-            <FilterModal filters={[]} total={total} />
+            <FilterModal filters={filters} total={total} />
             <ComedianDetailHeader comedian={data} />
             <div className="max-w-7xl mx-auto p-6">
                 <TableWithHeader

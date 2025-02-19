@@ -1,5 +1,4 @@
 import { db } from "@/lib/db";
-import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { getEffectiveComedian } from "@/util/comedian/comedianUtil";
 import { buildComedianImageUrl } from "@/util/imageUtil";

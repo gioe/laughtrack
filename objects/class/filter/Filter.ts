@@ -10,12 +10,12 @@ export class Filter implements Selectable {
     selected: boolean;
 
     // Constructor
-    constructor(input: FilterDTO, paramValue: string | string[]) {
+    constructor(input: FilterDTO) {
         this.id = input.id
         this.type = input.type
         this.display = input.display
         this.value = input.value
-        this.selected = paramValue.includes(this.display)
+        this.selected = input.selected ?? false
     }
 
     handleSelection() {

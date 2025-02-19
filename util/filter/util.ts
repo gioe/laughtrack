@@ -118,5 +118,14 @@ export const paramConfigs: Record<string, ParamConfig> = {
         parse: (value: string| null) => parseToMidnight(value),
         stringify: (value: Date | undefined) => formattedDateParam(value),
         validate: (value: Date | undefined) => isDateTodayOrLater(value)
+    },
+    filters: {
+        key: QueryProperty.Filters,
+        defaultValue: "",
+        parse: (value: string | null) => {
+            return value ?? ""
+        },
+        stringify: (value: string) => value,
+        validate: (value: string) => value.length > 0 || value == ""
     }
   } as const;

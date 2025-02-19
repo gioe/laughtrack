@@ -1,5 +1,5 @@
 "use client";
-import { useFilterModal } from "@/hooks/modal";
+import { useFilterModal } from "@/hooks";
 import { Filter } from "lucide-react";
 import { useCallback } from "react";
 

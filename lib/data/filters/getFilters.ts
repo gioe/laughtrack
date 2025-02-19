@@ -1,22 +1,20 @@
 import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
-import { EntityType } from "@/objects/enum";
-import { Filter } from "@/objects/class/filter/Filter";
+import { FilterDTO } from "@/objects/interface/filter.interface";
+import { QueryProperty } from "@/objects/enum";
 
-export async function getFilters(type: string, params: any): Promise<Filter[]> {
-    const { filters } = params
+export async function getFilters(type: string, queryParams: URLSearchParams): Promise<FilterDTO[]> {
 
     try {
         const queriedFilters = await db.tag.findMany({
             where: {
-                type: type
+                type: type,
+                userFacing: true
             },
             select: {
                 id: true,
                 display: true,
                 value: true,
-                type: true,
-                userFacing: true
             }
         });
 
@@ -24,8 +22,8 @@ export async function getFilters(type: string, params: any): Promise<Filter[]> {
             id: queriedFilter.id,
             display: queriedFilter.display || '',
             value: queriedFilter.value || '',
-            type: queriedFilter.type ? EntityType[queriedFilter.type] : EntityType.Show,
-        })).map((dto) => new Filter(dto, filters ?? ""))
+            selected: queryParams.get(QueryProperty.Filters)?.includes(queriedFilter.value) || false
+        }))
 
     } catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {

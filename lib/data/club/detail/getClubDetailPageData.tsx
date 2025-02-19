@@ -16,7 +16,10 @@ export async function getClubDetailPageData(
         const [club, showsWithCount, filters] = await Promise.all([
             findClubByName(helper),
             findShowsWithCount(helper),
-            getFilters(EntityType.Show, helper),
+            getFilters(
+                EntityType.Show,
+                new URLSearchParams(requestData.params),
+            ),
         ]);
 
         return {
