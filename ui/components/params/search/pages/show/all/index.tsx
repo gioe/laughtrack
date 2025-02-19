@@ -3,16 +3,13 @@
 import { Theater, Users } from "lucide-react";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import { ComponentVariant, QueryProperty } from "@/objects/enum";
-import {
-    DateRange,
-    DistanceData,
-    getDateRangeFromParams,
-} from "@/util/search/util";
+import { getDateRangeFromParams } from "@/util/search/util";
 import CalendarComponent from "../../../components/calendar";
 import TextInputComponent from "../../../components/textInput";
 import ShowLocationComponent from "../../../components/area";
 import { useUrlParams } from "@/hooks/useUrlParams";
 import SearchBarContainer from "../../../components/container";
+import { DateRange, DistanceData } from "@/objects/interface";
 
 export default function ShowSearchBar() {
     const { getCurrentStyles } = useStyleContext();
@@ -20,6 +17,7 @@ export default function ShowSearchBar() {
     const { getTypedParam, setTypedParam, setMultipleTypedParams } =
         useUrlParams();
 
+    console.log(getTypedParam(QueryProperty.FromDate));
     // Initial state setup
     const state = {
         comedian: getTypedParam(QueryProperty.Comedian),
@@ -31,7 +29,7 @@ export default function ShowSearchBar() {
         dateRange: getDateRangeFromParams({
             from: getTypedParam(QueryProperty.FromDate),
             to: getTypedParam(QueryProperty.ToDate),
-        }) as DateRange,
+        }),
     };
 
     // Simplified handler functions

@@ -3,16 +3,13 @@
 import { Theater } from "lucide-react";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import { ComponentVariant, QueryProperty } from "@/objects/enum";
-import {
-    DateRange,
-    DistanceData,
-    getDateRangeFromParams,
-} from "@/util/search/util";
+import { getDateRangeFromParams } from "@/util/search/util";
 import ShowLocationComponent from "../../../components/area";
 import CalendarComponent from "../../../components/calendar";
 import TextInputComponent from "../../../components/textInput";
 import { useUrlParams } from "@/hooks/useUrlParams";
 import SearchBarContainer from "../../../components/container";
+import { DateRange, DistanceData } from "@/objects/interface";
 
 export default function ComedianDetailSearchBar() {
     const { getCurrentStyles } = useStyleContext();

@@ -1,6 +1,5 @@
 import React from "react";
 import { formatDateRange } from "@/util/primatives/dateUtil";
-import { DateRange } from "@/util/search/util";
 import { ChevronsUpDown } from "lucide-react";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import { Calendar as CalendarIcon } from "lucide-react";
@@ -10,11 +9,12 @@ import {
     PopoverTrigger,
     PopoverContent,
 } from "@/ui/components/ui/popover";
+import { DateRange } from "@/objects/interface";
 
 const PLACEHOLDER = "When";
 
 interface CalendarDisplayProps {
-    selectedRange: any;
+    selectedRange: DateRange;
     onSelect: (value: DateRange | undefined) => void;
 }
 
@@ -57,7 +57,15 @@ export const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
                         mode="range"
                         selected={selectedRange}
                         defaultMonth={selectedRange?.from}
-                        onSelect={onSelect}
+                        onSelect={(
+                            range: DateRange | undefined,
+                            selectedDay: Date,
+                        ) => {
+                            console.log("Selected range: ", range);
+                            console.log("Selected day: ", selectedDay);
+
+                            onSelect(range);
+                        }}
                         numberOfMonths={2}
                         disabled={(date) => date < today}
                     />

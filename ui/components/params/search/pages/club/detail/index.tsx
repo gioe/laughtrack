@@ -5,9 +5,10 @@ import TextInputComponent from "../../../components/textInput";
 import { Users } from "lucide-react";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import { ComponentVariant, QueryProperty } from "@/objects/enum";
-import { DateRange, getDateRangeFromParams } from "@/util/search/util";
+import { getDateRangeFromParams } from "@/util/search/util";
 import { useUrlParams } from "@/hooks/useUrlParams";
 import SearchBarContainer from "../../../components/container";
+import { DateRange } from "@/objects/interface";
 
 export default function ClubDetailSearchBar() {
     const { getCurrentStyles } = useStyleContext();

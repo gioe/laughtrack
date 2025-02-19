@@ -1,5 +1,5 @@
+import { DateRange } from "@/objects/interface";
 import { format, isToday, isTomorrow, isSameDay } from "date-fns";
-import { DateRange } from "../search/util";
 
 // Types
 type DateFormatter = (date: Date) => string;
@@ -26,7 +26,7 @@ const isSingleDayRange = (from: Date, to: Date): boolean => {
 /**
  * Formats a date range as a string
  */
-export const formatDateRange = (placeholder: string, range?: DateRange): string => {
+export const formatDateRange = (placeholder: string, range: DateRange): string => {
     // Handle undefined or empty range
     if (!range?.to && !range?.from) {
         return placeholder;
@@ -64,20 +64,17 @@ export const formatDateRange = (placeholder: string, range?: DateRange): string 
     }
 };
 
-/**
- * Validates a date range
- */
-export const isValidDateRange = (range: DateRange): boolean => {
-    if (!range.from) return false;
-    if (range.to && range.from > range.to) return false;
-    return true;
-};
+export const parseToMidnight = (value: string | null): Date | undefined => {
+    const date = value ? new Date(`${value}T00:00:00`) : new Date("");
+    // If the date is invalid, return undefined
+    if (isNaN(date.getTime())) return undefined;
 
-/**
- * Extracts a number from a date string
- * @deprecated Consider using proper date parsing instead
- */
-export const determineDate = (dateString: string): number => {
-    if (!dateString) return 0;
-    return Number(dateString.replace(/\D/g, "")) || 0;
+    // Set the time to midnight (00:00:00) in the local timezone
+    date.setHours(0, 0, 0, 0);
+    return date;
+};
+export const isDateTodayOrLater = (value: Date | undefined): boolean => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return value == undefined || value >= today;
 };

@@ -17,8 +17,10 @@ export function useUrlParams() {
       const value = searchParams.get(config.key);
       const parsed = config.parse(value);
       if (config.validate?.(parsed)) {
+        console.log(`validated parsed value for ${key}: ${parsed}`);
         return parsed;
       } else {
+        console.log(`Invalidated parsed value for ${key}: ${parsed}`);
         return parsed
       }
     }, [searchParams]);
@@ -48,14 +50,12 @@ export function useUrlParams() {
       providedPath?: string,
     ): void => {
       const current = new URLSearchParams(searchParams.toString());
-
+      console.log(`Setting multiple params: ${JSON.stringify(updates)}`);
       (Object.entries(updates) as [ParamKeys, any][]).forEach(([key, value]) => {
         const config = paramConfigs[key];
-        console.log(`The value is ${value} for key ${key}`)
         if (!config.validate?.(value)) {
             return;
           }
-        console.log(`The key value ${key} is valid`)
         const stringified = config.stringify(value);
         if (stringified === config.stringify(config.defaultValue)) {
           current.delete(config.key);

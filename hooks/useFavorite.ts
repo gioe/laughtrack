@@ -24,7 +24,6 @@ export const useFavorite = ({
     const [isFavorite, setIsFavorite] = useState(initialState);
 
     const requireLogin = useCallback(() => {
-        console.log(`OPEN MODAL`)
         registerModal.onOpen();
     }, [registerModal]);
 

@@ -1,21 +1,9 @@
-export interface DateRangeInput {
-    from: string | null;
-    to: string | null;
-}
-
-export interface DateRange {
-    from?: Date;
-    to?: Date;
-}
-
-export interface DistanceData {
-    distance: string | null;
-    zipCode: string | null;
-}
+import { DateRange, DateRangeInput } from "@/objects/interface";
 
 export const getDateRangeFromParams = (input: DateRangeInput): DateRange => {
-
+    console.log(`Input: ${input.from}`);
     const from = new Date(input.from ?? "");
+    console.log(`From: ${from}`);
     const to = new Date(input.to ?? "");
 
     return {

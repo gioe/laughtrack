@@ -3,6 +3,7 @@ import { allDirectionParamValues } from "@/objects/enum/directionParamValue";
 import { allDistanceOptions } from "@/objects/enum/distanceValues";
 import { allSortOptions } from "@/objects/enum/sortParamValue";
 import { SortOptionInterface } from "@/objects/interface";
+import { isDateTodayOrLater, parseToMidnight } from "../primatives/dateUtil";
 
 export const getDefaultSortingOption = (sortOptions: SortOptionInterface[],
     sortOption: string | null,
@@ -105,29 +106,16 @@ export const paramConfigs: Record<string, ParamConfig> = {
     toDate: {
         key: QueryProperty.ToDate,
         defaultValue: "",
-        parse: (value: string| null) => {
-            const to = new Date(value ?? "");
-            return isNaN(to.getTime()) ? undefined : to
-        },
+        parse: (value: string| null) =>  parseToMidnight(value),
         stringify: (value: Date | undefined) => value ? value.toISOString().slice(0, 10) : "",
-        validate: (value: Date | undefined) => {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            return value == undefined || value > today
-        }
+        validate: (value: Date | undefined) => isDateTodayOrLater(value)
+
     },
     fromDate: {
         key: QueryProperty.FromDate,
         defaultValue: "",
-        parse: (value: string | null) => {
-            const from = new Date(value ?? "");
-            return isNaN(from.getTime()) ? undefined : from
-        },
+        parse: (value: string| null) => parseToMidnight(value),
         stringify: (value: Date | undefined) => value ? value.toISOString().slice(0, 10) : "",
-        validate: (value: Date | undefined) => {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            return value == undefined || value >= today
-        }
+        validate: (value: Date | undefined) => isDateTodayOrLater(value)
     }
   } as const;
