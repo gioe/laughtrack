@@ -3,13 +3,8 @@ import { getFilters } from "../../filters/getFilters";
 import { EntityType } from "@/objects/enum";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { findComediansWithCount } from "./findComediansWithCount";
-import {
-    PaginatedEntityResponseDTO,
-    ParameterizedRequestData,
-} from "@/objects/interface";
-import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
-
-export type ComedianSearchResponse = PaginatedEntityResponseDTO<ComedianDTO>;
+import { ParameterizedRequestData } from "@/objects/interface";
+import { ComedianSearchResponse } from "./interface";
 
 export async function getSearchedComedians(
     requestData: ParameterizedRequestData,

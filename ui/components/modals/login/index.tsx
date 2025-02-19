@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useLoginModal, useRegisterModal } from "@/hooks/modal";
+import { useLoginModal } from "@/hooks/modal";
 import LaughtrackLogin from "@/ui/pages/login";
 import FullScreenModal from "../fullscreen";
 

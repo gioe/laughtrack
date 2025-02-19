@@ -1,12 +1,12 @@
 import { UseFormReturn } from "react-hook-form";
 import React from "react";
-import { DistanceData } from "@/util/search/util";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import { MapPin } from "lucide-react";
 import { ComponentVariant } from "@/objects/enum";
 import DropdownComponent from "../dropdown";
 import ZipCodeInput from "../zipcode/input";
 import { allDistanceOptions } from "@/objects/enum/distanceValues";
+import { DistanceData } from "@/objects/interface";
 
 const selectableDistances = allDistanceOptions.map(
     (distance: string, index: number) => ({
@@ -23,7 +23,7 @@ type ShowDistanceFormProps = {
 
 type ShowDistanceStandaloneProps = {
     variant: ComponentVariant.Standalone;
-    value?: DistanceData;
+    value: DistanceData;
     onDistanceSelection: (value: string) => void;
     onZipcodeInput: (value: string) => void;
 };

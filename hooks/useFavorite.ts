@@ -1,7 +1,7 @@
 'use client'
 import { useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRegisterModal } from '@/hooks/modal';
+import { useLoginModal } from '@/hooks/modal';
 import { makeRequest } from '@/util/actions/makeRequest';
 import { APIRoutePath, RestAPIAction } from '@/objects/enum';
 
@@ -20,12 +20,12 @@ export const useFavorite = ({
     entityId
 }: UseFavoriteProps): UseFavoriteReturn => {
     const session = useSession();
-    const registerModal = useRegisterModal();
+    const loginModal = useLoginModal();
     const [isFavorite, setIsFavorite] = useState(initialState);
 
     const requireLogin = useCallback(() => {
-        registerModal.onOpen();
-    }, [registerModal]);
+        loginModal.onOpen();
+    }, [loginModal]);
 
     const handleFavoriteClick = async (e: React.MouseEvent) => {
         e.stopPropagation();

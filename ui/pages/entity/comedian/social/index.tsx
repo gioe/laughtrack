@@ -2,7 +2,7 @@ import { Comedian } from "@/objects/class/comedian/Comedian";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import InstagramIcon from "@/ui/components/icons/InstagramIcon";
 import TikTokIcon from "@/ui/components/icons/TikTokIcon";
-import YouTubeIcon from "@/ui/components/icons/YoutubeIcon";
+import YouTubeIcon from "@/ui/components/icons/YouTubeIcon";
 import { Globe } from "lucide-react";
 
 interface SocialMediaColumnProps {

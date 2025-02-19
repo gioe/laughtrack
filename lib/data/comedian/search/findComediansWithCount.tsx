@@ -4,11 +4,7 @@ import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { getEffectiveComedian } from "@/util/comedian/comedianUtil";
 import { buildComedianImageUrl } from "@/util/imageUtil";
 import { Prisma } from "@prisma/client";
-
-interface ComediansResponse {
-    comedians: ComedianDTO[];
-    totalCount: number;
-}
+import { ComediansResponse } from "./interface";
 
 export async function findComediansWithCount(
     helper: QueryHelper,

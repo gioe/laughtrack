@@ -4,11 +4,8 @@ import { Prisma } from "@prisma/client";
 import { getFilters } from "../../filters/getFilters";
 import { EntityType } from "@/objects/enum";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
-import { EntityResponseDTO } from "@/objects/interface/paginatedEntity.interface";
-import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { ParameterizedRequestData } from "@/objects/interface";
-
-export type ComedianDetailResponse = EntityResponseDTO<ComedianDTO>;
+import { ComedianDetailResponse } from "./interface";
 
 export async function getComedianDetailPageData(
     requestData: ParameterizedRequestData,

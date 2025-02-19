@@ -4,6 +4,7 @@ import { allDistanceOptions } from "@/objects/enum/distanceValues";
 import { allSortOptions } from "@/objects/enum/sortParamValue";
 import { SortOptionInterface } from "@/objects/interface";
 import { isDateTodayOrLater, parseToMidnight } from "../primatives/dateUtil";
+import { formattedDateParam } from "../primatives/paramUtil";
 
 export const getDefaultSortingOption = (sortOptions: SortOptionInterface[],
     sortOption: string | null,
@@ -107,7 +108,7 @@ export const paramConfigs: Record<string, ParamConfig> = {
         key: QueryProperty.ToDate,
         defaultValue: "",
         parse: (value: string| null) =>  parseToMidnight(value),
-        stringify: (value: Date | undefined) => value ? value.toISOString().slice(0, 10) : "",
+        stringify: (value: Date | undefined) => formattedDateParam(value),
         validate: (value: Date | undefined) => isDateTodayOrLater(value)
 
     },
@@ -115,7 +116,7 @@ export const paramConfigs: Record<string, ParamConfig> = {
         key: QueryProperty.FromDate,
         defaultValue: "",
         parse: (value: string| null) => parseToMidnight(value),
-        stringify: (value: Date | undefined) => value ? value.toISOString().slice(0, 10) : "",
+        stringify: (value: Date | undefined) => formattedDateParam(value),
         validate: (value: Date | undefined) => isDateTodayOrLater(value)
     }
   } as const;

@@ -1,7 +1,7 @@
 "use client";
 import { useCallback } from "react";
 import { usePathname } from "next/navigation";
-import { useLoginModal, useRegisterModal } from "@/hooks/modal";
+import { useLoginModal } from "@/hooks/modal";
 import Logo from "../logo";
 import NavigationMenu from "../navbar/menu";
 import AuthButtons from "../auth/header";
@@ -18,15 +18,10 @@ export function Header({ currentUser }: HeaderProps) {
     const pathname = usePathname();
 
     const loginModal = useLoginModal();
-    const registerModal = useRegisterModal();
 
     const handleLoginClick = useCallback(() => {
         loginModal.onOpen();
     }, [loginModal]);
-
-    const handleSignupClick = useCallback(() => {
-        registerModal.onOpen();
-    }, [registerModal]);
 
     return (
         <nav
@@ -44,7 +39,6 @@ export function Header({ currentUser }: HeaderProps) {
                         currentUser={currentUser}
                         pathname={pathname}
                         onLogin={handleLoginClick}
-                        onSignup={handleSignupClick}
                     />
                 </div>
             </div>

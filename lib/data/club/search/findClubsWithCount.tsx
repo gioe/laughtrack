@@ -1,13 +1,8 @@
 import { db } from "@/lib/db";
-import { ClubDTO } from "@/objects/class/club/club.interface";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { buildClubImageUrl } from "@/util/imageUtil";
 import { Prisma } from "@prisma/client";
-
-interface ClubsResponse {
-    clubs: ClubDTO[];
-    totalCount: number;
-}
+import { ClubsResponse } from "./interface";
 
 export async function findClubsWithCount(
     queryHelper: QueryHelper,

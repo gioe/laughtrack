@@ -1,10 +1,10 @@
-import { ClubSearchResponse } from "@/app/api/club/search/interface";
 import { Prisma } from "@prisma/client";
 import { getFilters } from "../../filters/getFilters";
 import { EntityType } from "@/objects/enum";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { findClubsWithCount } from "./findClubsWithCount";
 import { ParameterizedRequestData } from "@/objects/interface";
+import { ClubSearchResponse } from "./interface";
 
 export async function getSearchedClubs(
     requestData: ParameterizedRequestData,

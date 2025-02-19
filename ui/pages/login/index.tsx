@@ -34,16 +34,6 @@ function LaughtrackLogin({ handleSubmit }: LaughtrackLoginProps) {
                         </div>
 
                         <LoginForm onSubmit={handleSubmit} />
-                        {/* Sign Up Link */}
-                        {/* <p className="text-center text-gray-600 font-dmSans text-[16px] pt-10">
-                            Don't have an account yet?{" "}
-                            <a
-                                className="text-brown-600 hover:text-brown-500 hover:cursor-pointer"
-                                onClick={clickRegisterButton}
-                            >
-                                Sign Up
-                            </a>
-                        </p> */}
                     </div>
                 </main>
                 <Copyright />

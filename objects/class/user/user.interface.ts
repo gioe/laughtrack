@@ -10,7 +10,7 @@ export interface UserInterface {
 
 // DB
 export interface UserDTO {
-    id?: number;
+    id?: string;
     email: string;
     password?: string;
     role: string;

@@ -1,6 +1,5 @@
 export enum APIRoutePath {
     AuthLogin = "/api/auth/login/",
-    AuthRegister = "/api/auth/register",
     TokenRefresh = "/api/token/refresh",
     Club = "/api/club/",
     ClubSearch = "/api/club/search",

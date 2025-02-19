@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { StatsDTO } from "../../../app/api/about/interface";
+import { StatsDTO } from "./interface";
 
 export async function getStats(): Promise<StatsDTO> {
     const [clubCount, comedianCount, showCount] = await Promise.all([
