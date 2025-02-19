@@ -1,5 +1,5 @@
 import { UseFormReturn } from "react-hook-form";
-import React, { ChangeEvent } from "react";
+import React from "react";
 import { DistanceData } from "@/util/search/util";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import { MapPin } from "lucide-react";

@@ -8,7 +8,7 @@ interface ShowTableProps {
 
 const ShowTable = ({
     shows,
-    errorMessage = "No results. Your search is a little specific, don't you think?",
+    errorMessage = "No results. Not the best search I've ever seen",
 }: ShowTableProps) => {
     return (
         <section className="grid grid-cols-1 gap-y-10 m-8">

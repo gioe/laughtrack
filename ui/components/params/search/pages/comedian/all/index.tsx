@@ -3,10 +3,9 @@
 import TextInputComponent from "../../../components/textInput";
 import { Users } from "lucide-react";
 import { useStyleContext } from "@/contexts/StyleProvider";
-import { QueryProperty, StyleContextKey } from "@/objects/enum";
+import { QueryProperty } from "@/objects/enum";
 import { useUrlParams } from "@/hooks/useUrlParams";
 import SearchBarContainer from "../../../components/container";
-import { ChangeEvent } from "react";
 
 export default function ComedianSearchBar() {
     const { getCurrentStyles } = useStyleContext();

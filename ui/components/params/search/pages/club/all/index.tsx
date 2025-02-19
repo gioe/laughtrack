@@ -2,7 +2,6 @@
 
 import ShowLocationComponent from "../../../components/area";
 import TextInputComponent from "../../../components/textInput";
-import { ChangeEvent } from "react";
 import { Theater } from "lucide-react";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import { ComponentVariant, QueryProperty } from "@/objects/enum";

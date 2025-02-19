@@ -59,9 +59,10 @@ export default async function ComedianSearchPage(props: any) {
                 total={total}
                 filters={filters.length > 0}
             />
+
             <ComedianGrid
                 comedians={data}
-                className="grid grid-cols-1 m:grid-cols-2 lg:grid-cols-2 xl:grid-cols-5 gap-6"
+                className="grid grid-cols-2 gap-6 m:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
             />
         </main>
     );

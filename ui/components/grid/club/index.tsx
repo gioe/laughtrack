@@ -8,9 +8,9 @@ interface ClubGridProps {
 }
 const ClubGrid = ({ clubs }: ClubGridProps) => {
     return (
-        <div className="mx-24 mt-12">
+        <div className="md:mx-10 lg:mx-10 mt-12">
             {clubs.length > 0 ? (
-                <div className="grid grid-cols-1 m:grid-cols-2 lg:grid-cols-2 xl:grid-cols-5 gap-6">
+                <div className="grid grid-cols-2 gap-6 m:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
                     {clubs.map((dto) => {
                         return <ClubSearchCard key={dto.name} club={dto} />;
                     })}

@@ -38,6 +38,7 @@ const ComedianHeadshot = ({
     className = "",
 }: ComedianHeadshotProps) => {
     const [error, setError] = useState(false);
+    const [loaded, setLoaded] = useState(false);
     const { isFavorite, handleFavoriteClick } = useFavorite({
         initialState: comedian.isFavorite,
         entityId: comedian.uuid,
@@ -68,19 +69,22 @@ const ComedianHeadshot = ({
                     className={styles.image}
                     priority={false}
                     onError={() => setError(true)}
+                    onLoadingComplete={() => setLoaded(true)}
                     {...imageProps}
                 />
             </Link>
-            <button
-                onClick={handleFavoriteClick}
-                className={`${styles.favoriteButton} p-1 hover:bg-black/10 rounded-full transition-colors z-10`}
-            >
-                {isFavorite ? (
-                    <SolidHeart className="w-6 h-6 text-red-500" />
-                ) : (
-                    <OutlineHeart className="w-6 h-6 text-red-500" />
-                )}
-            </button>
+            {loaded && (
+                <button
+                    onClick={handleFavoriteClick}
+                    className={`${styles.favoriteButton} p-1 hover:bg-black/10 rounded-full transition-colors z-10`}
+                >
+                    {isFavorite ? (
+                        <SolidHeart className="w-5 h-5 text-red-500" />
+                    ) : (
+                        <OutlineHeart className="w-5 h-5 text-red-500" />
+                    )}
+                </button>
+            )}
         </div>
     );
 };

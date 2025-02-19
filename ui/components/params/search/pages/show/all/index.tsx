@@ -1,6 +1,5 @@
 "use client";
 
-import { ChangeEvent } from "react";
 import { Theater, Users } from "lucide-react";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import { ComponentVariant, QueryProperty } from "@/objects/enum";
@@ -56,8 +55,8 @@ export default function ShowSearchBar() {
         setTypedParam(QueryProperty.Zip, value);
 
     return (
-        <SearchBarContainer sizeFlip="xl">
-            <div className={"xl:pr-4 xl:border-r xl:border-black"}>
+        <SearchBarContainer maxWidth="max-w-2xl" sizeFlip="xl">
+            <div className={"xxl:pr-4 xxl:border-r xxl:border-black"}>
                 <ShowLocationComponent
                     variant={ComponentVariant.Standalone}
                     value={state.distance}
@@ -66,14 +65,14 @@ export default function ShowSearchBar() {
                 />
             </div>
 
-            <div className={"xl:pr-4 xl:border-r xl:border-black"}>
+            <div className={"xxl:pr-4 xxl:border-r xxl:border-black"}>
                 <CalendarComponent
                     variant={ComponentVariant.Standalone}
                     value={state.dateRange}
                     onValueChange={handleDateRangeSelection}
                 />
             </div>
-            <div className={"xl:pr-4 xl:border-r xl:border-black"}>
+            <div className={"xxl:pr-4 xxl:border-r xxl:border-black"}>
                 <TextInputComponent
                     icon={
                         <Users
