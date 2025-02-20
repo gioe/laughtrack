@@ -62,7 +62,7 @@ export default async function HomePage() {
     const { comedians, clubs } = await getCachedHomePageData(session)();
 
     return (
-        <main className="min-h-screen w-full bg-coconut-cream">
+        <main className="min-h-screen w-full">
             <HeroComponent profile={session?.profile} />
             <TrendingComedianGrid comedians={comedians} />
             <TrendingClubsCarousel clubs={clubs} />

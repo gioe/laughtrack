@@ -46,7 +46,7 @@ const TextInputComponent = ({
     };
 
     const textInputClassName = `${styleConfig.searchBarTextColor} 
-        text-lg h-9 border border-white rounded-lg font-dmSans bg-transparent 
+        text-[18px] h-9 border border-white rounded-lg font-dmSans bg-transparent 
         focus:ring-2 focus:ring-blue-500 focus:outline-none 
         placeholder:font-dmSans placeholder:text-lg`;
 
