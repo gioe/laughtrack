@@ -158,7 +158,7 @@ model Ticket {
   soldOut           Boolean  @default(false) @map("sold_out")
   showId            Int      @map("show_id")
   show              Show     @relation(fields: [showId], references: [id], onDelete: Cascade)
-  ticketType        String?  @map("ticket_type")  // Optional ticket type field
+  type              String?  @map("type")  // Optional ticket type field
 
   @@map("tickets")
 }
