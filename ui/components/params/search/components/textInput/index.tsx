@@ -1,4 +1,3 @@
-import { useStyleContext } from "@/contexts/StyleProvider";
 import { Input } from "@/ui/components/ui/input";
 import { ChangeEvent, useCallback, useEffect, useState } from "react";
 import _ from "lodash";
@@ -21,8 +20,6 @@ const TextInputComponent = ({
     className,
     ...props
 }: TextInputComponentProps) => {
-    const { getCurrentStyles } = useStyleContext();
-    const styleConfig = getCurrentStyles();
     const [inputValue, setInputValue] = useState(value);
 
     // Get the debounced value
@@ -45,24 +42,16 @@ const TextInputComponent = ({
         debouncedOnChange(newValue);
     };
 
-    const textInputClassName = `${styleConfig.searchBarTextColor} 
-        text-[18px] h-9 border border-white rounded-lg font-dmSans bg-transparent 
-        focus:ring-2 focus:ring-blue-500 focus:outline-none 
-        placeholder:font-dmSans placeholder:text-lg`;
-
     return (
         <div className="flex items-center gap-2">
             {icon}
-            <div className="space-y-2">
-                <Input
-                    type="text"
-                    className={`${textInputClassName} ${className}`}
-                    value={inputValue}
-                    onChange={handleInputChange}
-                    placeholder={placeholder}
-                    {...props}
-                />
-            </div>
+            <Input
+                type="text"
+                value={inputValue}
+                onChange={handleInputChange}
+                placeholder={placeholder}
+                {...props}
+            />
         </div>
     );
 };

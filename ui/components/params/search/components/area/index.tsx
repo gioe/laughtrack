@@ -35,9 +35,6 @@ type ShowLocationComponentProps =
 const ShowLocationComponent = (props: ShowLocationComponentProps) => {
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
-    const zipCodeInputClassName = `${styleConfig.searchBarTextColor}
-                        text-[18px] w-40 h-9 border border-white
-                        rounded-lg font-dmSans bg-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none`;
 
     const buildDropdownComponent = (props: ShowLocationComponentProps) => {
         if (props.variant == ComponentVariant.Form) {
@@ -66,7 +63,6 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
             return (
                 <ZipCodeInput
                     variant={props.variant}
-                    className={zipCodeInputClassName}
                     form={props.form}
                     placeholder="Enter a zip code"
                     disabled={false}
@@ -78,7 +74,6 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
         return (
             <ZipCodeInput
                 variant={props.variant}
-                className={zipCodeInputClassName}
                 value={props.value?.zipCode ?? ""}
                 onChange={props.onZipcodeInput}
                 placeholder="Enter a zip code"
@@ -89,15 +84,15 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
 
     return (
         <div className="flex items-center gap-2">
-            <MapPin className={`w-5 h-5 ${styleConfig.iconTextColor}`} />
+            <MapPin className={`w-5 h-5 ${styleConfig.inputTextColor}`} />
             {buildDropdownComponent(props)}
             <div
-                className={`${styleConfig.searchBarTextColor} text-[18px] font-dmSans`}
+                className={`${styleConfig.inputTextColor} text-[18px] font-dmSans`}
             >
                 miles
             </div>
             <div
-                className={`${styleConfig.searchBarTextColor} text-[18px] font-dmSans`}
+                className={`${styleConfig.inputTextColor} text-[18px] font-dmSans`}
             >
                 around
             </div>

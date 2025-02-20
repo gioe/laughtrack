@@ -36,7 +36,7 @@ export const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
                     <div>
                         <div className="flex items-center justify-between w-full h-9 gap-2 pl-2">
                             <div
-                                className={`text-[18px] ${styleConfig.searchBarTextColor} font-dmSans`}
+                                className={`text-[18px] ${styleConfig.inputTextColor} font-dmSans`}
                             >
                                 {formatDateRange(PLACEHOLDER, selectedRange)}
                             </div>

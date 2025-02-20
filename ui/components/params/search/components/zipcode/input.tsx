@@ -12,7 +12,6 @@ import _ from "lodash";
 interface ZipCodeInputBaseProps {
     disabled: boolean;
     placeholder: string;
-    className: string;
     debounceTime?: number;
 }
 
@@ -79,17 +78,14 @@ const ZipCodeInput = (props: ZipCodeInputComponentProps) => {
     };
 
     return (
-        <div className="space-y-2">
-            <Input
-                type="text"
-                maxLength={5}
-                pattern="[0-9]{5}"
-                className={props.className}
-                value={inputValue}
-                onChange={handleInputChange}
-                placeholder={props.placeholder}
-            />
-        </div>
+        <Input
+            type="text"
+            maxLength={5}
+            pattern="[0-9]{5}"
+            value={inputValue}
+            onChange={handleInputChange}
+            placeholder={props.placeholder}
+        />
     );
 };
 
