@@ -12,7 +12,9 @@ const SocialButton = ({ provider, onClick, children }) => {
         <button
             type="button"
             onClick={onClick}
-            className="flex-1 flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg text-[12px] text-black bg-coconut-cream hover:bg-gray-50 font-dmSans"
+            className="flex-1 flex items-center justify-center px-4 py-2 border
+             border-gray-300 rounded-lg text-[12px] text-black font-dmSans
+              bg-coconut-cream hover:bg-copper "
         >
             <div className="pr-2">{logos[provider.toLowerCase()]}</div>
             {children}
@@ -30,9 +32,9 @@ const SocialAuthButtons = ({
             <SocialButton provider="google" onClick={handleGoogleSignin}>
                 {actionText} with Google
             </SocialButton>
-            <SocialButton provider="apple" onClick={handleAppleSignin}>
+            {/* <SocialButton provider="apple" onClick={handleAppleSignin}>
                 {actionText} with Apple
-            </SocialButton>
+            </SocialButton> */}
         </div>
     );
 };

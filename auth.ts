@@ -12,10 +12,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     providers: [Google, Apple],
 
     secret: process.env.NEXTAUTH_SECRET,
-
-    pages: {
-        signIn: "/",
-    },
     events: {
         createUser: async ({ user }) => {
           // When a new user is created, create their profile

@@ -12,7 +12,6 @@ export class Filter implements Selectable {
     // Constructor
     constructor(input: FilterDTO) {
         this.id = input.id
-        this.type = input.type
         this.display = input.display
         this.value = input.value
         this.selected = input.selected ?? false

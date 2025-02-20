@@ -12,5 +12,4 @@ export interface FilterDTO {
     value: string;
     display: string;
     selected?: boolean;
-    type?: string;
 }
