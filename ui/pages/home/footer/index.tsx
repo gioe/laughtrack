@@ -23,9 +23,7 @@ const FooterComponent = () => {
                         </h2>
                         <p className="text-[17px] text-gray-600 max-w-2xl font-dmSans">
                             Laughtrack is the easiest way to explore and enjoy
-                            comedy. Whether you're searching for a show tonight,
-                            following your favorite comedians, or discovering
-                            new grassroots venues, we've got you covered.
+                            comedy. Really the only way if we're being honest.
                         </p>
                     </div>
                 </div>

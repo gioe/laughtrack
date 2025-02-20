@@ -56,7 +56,10 @@ const StatsSection: React.FC<StatsSectionProps> = ({
                     Follow comedians you like. We'll let you know when they're
                     in your area. You wouldn't want to miss that one time that
                     one person on that one podcast was{" "}
-                    <a href="/" className="text-copper hover:underline">
+                    <a
+                        href="/show/search"
+                        className="text-copper hover:underline"
+                    >
                         at a club near you
                     </a>
                     , would you?
