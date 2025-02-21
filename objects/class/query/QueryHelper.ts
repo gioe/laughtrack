@@ -207,13 +207,27 @@ export class QueryHelper {
     }
 
 
+    /**
+     * Generates a Prisma query clause for filtering shows based on comedian lineup items.
+     * This method constructs a query that matches shows where either:
+     * 1. The comedian's name matches the search parameter directly (for parent comedians)
+     * 2. The comedian's parent name matches the search parameter (for child comedians)
+     *
+     * @returns An object containing the lineup items clause if a comedian search parameter exists,
+     * or an empty object if no comedian parameter is provided.
+     *
+     * @example
+     * // With comedian search parameter "John"
+     * // Returns shows where John is either directly in the lineup
+     * // or where a comedian with John as their parent is in the lineup
+     */
     getLineupItemClause() {
         const comedian = this.searchParams.get(QueryProperty.Comedian) as string;
         return {
-            ...(comedian ? {
-                // Lineup items represent shows where the comedian is on the lineup.
-                // For every comedian query, we want to return to possibilities:
-                lineupItems: {
+            lineupItems: {
+                ...(comedian ? {
+                    // Lineup items represent shows where the comedian is on the lineup.
+                    // For every comedian query, we want to return to possibilities:
                     some: {
                         comedian: {
                             OR: [
@@ -235,14 +249,12 @@ export class QueryHelper {
                                     }
                                 }
                             ]
-                        },
-
-                    },
-                },
-            } : {}),
+                        }
+                    }
+                } : {})
+            }
         }
     }
-
     getZipCodeClause() {
         const providedZip = this.searchParams.get(QueryProperty.Zip) as string
         const radius = this.searchParams.get(QueryProperty.Distance) as string

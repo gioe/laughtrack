@@ -39,7 +39,18 @@ export async function findShowsWithCount(helper: QueryHelper): Promise<ShowsResp
     // Execute both queries in parallel, one to get the shows and the other to get the count.
     const filteredShows = await
         db.show.findMany({
-            where: whereClause,
+            where: {
+                lineupItems: {
+                    // Only include lineup items where comedian tags are empty
+                    some: {
+                        comedian: {
+                            taggedComedians: {
+                                none: {}
+                            }
+                        }
+                    }
+                }
+            },
             select: {
                 id: true,
                 name: true,
@@ -69,17 +80,6 @@ export async function findShowsWithCount(helper: QueryHelper): Promise<ShowsResp
                                 name: true,
                                 // We'll need to understand if the comedian is a parent for downstream processing
                                 parentComedian: true,
-                                // We may
-                                taggedComedians: {
-                                    where: {
-                                        tag: {
-                                            value: 'alias'
-                                        }
-                                    },
-                                    select: {
-                                        id: true
-                                    }
-                                },
                                 ...helper.getFavoriteComedianClauseWithSelection()
                             }
                         }
