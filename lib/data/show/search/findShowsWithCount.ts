@@ -3,6 +3,7 @@ import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { ShowDTO } from "@/objects/class/show/show.interface"
 import { filterAndMapLineupItems } from "@/util/comedian/comedianUtil";
 import { buildClubImageUrl } from "@/util/imageUtil"
+import { mapTickets } from "@/util/ticket/ticketUtil";
 
 interface ShowsResponse {
     shows: ShowDTO[];
@@ -45,6 +46,14 @@ export async function findShowsWithCount(helper: QueryHelper): Promise<ShowsResp
                 date: true,
                 lastScrapedDate: true,
                 popularity: true,
+                tickets: {
+                    select: {
+                        price: true,
+                        soldOut: true,
+                        purchaseUrl: true,
+                        type: true
+                    }
+                },
                 club: {
                     select: {
                         name: true,
@@ -90,7 +99,8 @@ export async function findShowsWithCount(helper: QueryHelper): Promise<ShowsResp
             clubName: show.club.name,
             imageUrl: buildClubImageUrl(show.club.name),
             scrapedate: show.lastScrapedDate,
-            lineup: filterAndMapLineupItems(show.lineupItems, helper.getUserId())
+            lineup: filterAndMapLineupItems(show.lineupItems, helper.getUserId()),
+            tickets: mapTickets(show.tickets),
         })),
         totalCount
     }

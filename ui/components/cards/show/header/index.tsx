@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Show } from "@/objects/class/show/Show";
 import { formatShowDate } from "@/util/dateUtil";
 import { getLocalCdnUrl } from "@/util/cdnUtil";
+import { formatTicketString } from "@/util/ticket/ticketUtil";
 
 const PLACEHOLDER = getLocalCdnUrl("club-placeholder.png");
 
@@ -16,12 +17,10 @@ interface ShowCardHeaderProps {
 const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
     show,
 }: ShowCardHeaderProps) => {
-    const ticket = show.ticket;
     const [error, setError] = useState(false);
 
     return (
         <div className="flex items-center gap-4">
-            {/* Venue Logo */}
             <div className="relative w-16 h-16 rounded-full overflow-hidden">
                 <Image
                     src={error ? PLACEHOLDER : show.imageUrl}
@@ -32,7 +31,6 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
                 />
             </div>
 
-            {/* Venue Details */}
             <div>
                 <h2 className="text-[24px] font-inter font-bold text-[#2D1810] mb-1">
                     {show.clubName ?? ""}
@@ -46,7 +44,9 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
                     {formatShowDate(show.date.toString())} · {`${show.address}`}
                 </p>
                 {!show.soldOut && (
-                    <p className="text-copper font-semibold mt-1 font-inter text-[20px]">{`$${ticket.price.toString()}`}</p>
+                    <p className="text-copper font-semibold mt-1 font-inter text-[20px]">
+                        {formatTicketString(show.tickets)}
+                    </p>
                 )}
             </div>
         </div>

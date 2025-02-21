@@ -44,7 +44,6 @@ export default async function ClubDetailPage(props: {
 
     const { data, shows, total, filters } =
         await getCachedDetailPageData(requestData)();
-
     return (
         <main className="min-h-screen w-full bg-coconut-cream">
             <FilterModal filters={filters} total={total} />

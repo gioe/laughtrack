@@ -39,7 +39,6 @@ export default async function ShowSearchPage(props: any) {
 
     const { data, total, filters } =
         await getCachedSearchPageData(requestData)();
-
     return (
         <main className="min-h-screen w-full bg-coconut-cream">
             <FilterModal filters={filters} total={total} />

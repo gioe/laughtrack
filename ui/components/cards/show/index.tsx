@@ -14,17 +14,22 @@ interface ShowCardProps {
 
 const ShowCard: React.FC<ShowCardProps> = ({ show }: ShowCardProps) => {
     const parsedShow = new Show(show);
+    const stillOnSale = parsedShow.tickets
+        .map((ticket) => ticket.soldOut)
+        .includes(true);
 
     return (
         <div className="p-6 bg-[#FDF8EF] overflow-hidden transition-transform duration-300 hover:scale-105 rounded-xl">
             <div className="flex items-center justify-between mb-8">
                 <ShowCardHeader show={parsedShow} />
 
-                <FullRoundedButton
-                    href={parsedShow.ticket.link}
-                    label={show.soldOut ? "Sold Out" : "Get Tickets"}
-                    color={show.soldOut ? "bg-red-500" : "bg-copper"}
-                />
+                {parsedShow.tickets.length > 0 && (
+                    <FullRoundedButton
+                        href={parsedShow.tickets[0].purchaseUrl}
+                        label={stillOnSale ? "Sold Out" : "Get Tickets"}
+                        color={stillOnSale ? "bg-red-500" : "bg-copper"}
+                    />
+                )}
             </div>
 
             {parsedShow.lineup.length > 0 && (
