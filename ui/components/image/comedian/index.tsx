@@ -70,7 +70,7 @@ const ComedianHeadshot = ({
                     className={styles.image}
                     priority={false}
                     onError={() => setError(true)}
-                    onLoadingComplete={() => setLoaded(true)}
+                    onLoad={() => setLoaded(true)}
                     {...imageProps}
                 />
             </Link>

@@ -107,6 +107,10 @@ export class QueryHelper {
         }
     }
 
+    setComedianName() {
+        this.searchParams.set(QueryProperty.Comedian, this.slug ?? "")
+    }
+
     // Clubs
     getClubNameClause() {
         const club = this.searchParams.get(QueryProperty.Club) as string
@@ -158,6 +162,10 @@ export class QueryHelper {
                 },
             ],
         };
+    }
+
+    setClubName() {
+        this.searchParams.set(QueryProperty.Club, this.slug ?? "")
     }
 
     // Shows
@@ -250,11 +258,14 @@ export class QueryHelper {
     getDateClause() {
         const fromDate = this.searchParams.get(QueryProperty.FromDate) as string
         const toDate = this.searchParams.get(QueryProperty.ToDate) as string
+        const currentDate = new Date();
+        const fromDateObj = fromDate ? new Date(fromDate) : currentDate;
+        const isToday = fromDateObj.toDateString() === currentDate.toDateString();
+
         return {
             date: {
-                gte: fromDate ? new Date(fromDate).toISOString() : new Date().toISOString(),
-                // If a Less Than (lte) paramater is provided, include that.
-                ...(toDate ? { lte: new Date(toDate).toISOString() } : {})
+            gte: isToday ? currentDate.toISOString() : new Date(fromDateObj.setHours(0, 0, 0, 0)).toISOString(),
+            ...(toDate ? { lte: new Date(toDate).toISOString() } : {})
             }
         }
     }

@@ -65,7 +65,9 @@ export const formatDateRange = (placeholder: string, range: DateRange): string =
 };
 
 export const parseToMidnight = (value: string | null): Date | undefined => {
-    const date = value ? new Date(`${value}T00:00:00`) : new Date("");
+    const dateTime = `${value}T00:00:00`
+    const date = value ? new Date(dateTime) : new Date("");
+
     // If the date is invalid, return undefined
     if (isNaN(date.getTime())) return undefined;
 

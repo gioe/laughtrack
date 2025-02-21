@@ -12,7 +12,7 @@ export async function getClubDetailPageData(
 ): Promise<ClubDetailResponse> {
     try {
         const helper = new QueryHelper(requestData);
-
+        helper.setClubName();
         const [club, showsWithCount, filters] = await Promise.all([
             findClubByName(helper),
             findShowsWithCount(helper),

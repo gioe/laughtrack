@@ -29,7 +29,7 @@ function LaughtrackLogin({ handleSubmit }: LaughtrackLoginProps) {
                             </h2>
                             <p className="text-gray-600 font-dmSans text-[16px]">
                                 Continue with your preferred provider to access
-                                your account
+                                your account and build your profile
                             </p>
                         </div>
 

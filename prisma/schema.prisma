@@ -159,7 +159,8 @@ model Ticket {
   showId            Int      @map("show_id")
   show              Show     @relation(fields: [showId], references: [id], onDelete: Cascade)
   type              String?  @map("type")  // Optional ticket type field
-
+  
+  @@unique([showId, purchaseUrl, type])
   @@map("tickets")
 }
 
