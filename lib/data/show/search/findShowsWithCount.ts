@@ -39,18 +39,7 @@ export async function findShowsWithCount(helper: QueryHelper): Promise<ShowsResp
     // Execute both queries in parallel, one to get the shows and the other to get the count.
     const filteredShows = await
         db.show.findMany({
-            where: {
-                lineupItems: {
-                    // Only include lineup items where comedian tags are empty
-                    some: {
-                        comedian: {
-                            taggedComedians: {
-                                none: {}
-                            }
-                        }
-                    }
-                }
-            },
+            where: whereClause,
             select: {
                 id: true,
                 name: true,
@@ -72,6 +61,17 @@ export async function findShowsWithCount(helper: QueryHelper): Promise<ShowsResp
                     }
                 },
                 lineupItems: {
+                    where: {
+                        comedian: {
+                          taggedComedians: {
+                            none: {
+                              tag: {
+                                userFacing: false
+                              }
+                            }
+                          }
+                        }
+                      },
                     select: {
                         comedian: {
                             select: {
@@ -80,6 +80,16 @@ export async function findShowsWithCount(helper: QueryHelper): Promise<ShowsResp
                                 name: true,
                                 // We'll need to understand if the comedian is a parent for downstream processing
                                 parentComedian: true,
+                                taggedComedians: {
+                                    where: {
+                                        tag: {
+                                            value: 'alias'
+                                        }
+                                    },
+                                    select: {
+                                        id: true
+                                    }
+                                },
                                 ...helper.getFavoriteComedianClauseWithSelection()
                             }
                         }
@@ -90,18 +100,21 @@ export async function findShowsWithCount(helper: QueryHelper): Promise<ShowsResp
             ...helper.getGenericClauses(totalCount),
         });
 
+
     return {
-        shows: filteredShows.map(show => ({
-            id: show.id,
-            date: show.date,
-            name: show.name,
-            address: show.club.address,
-            clubName: show.club.name,
-            imageUrl: buildClubImageUrl(show.club.name),
-            scrapedate: show.lastScrapedDate,
-            lineup: filterAndMapLineupItems(show.lineupItems, helper.getUserId()),
-            tickets: mapTickets(show.tickets),
-        })),
+        shows: filteredShows.map(show => {
+            return ({
+                id: show.id,
+                date: show.date,
+                name: show.name,
+                address: show.club.address,
+                clubName: show.club.name,
+                imageUrl: buildClubImageUrl(show.club.name),
+                scrapedate: show.lastScrapedDate,
+                lineup: filterAndMapLineupItems(show.lineupItems, helper.getUserId()),
+                tickets: mapTickets(show.tickets),
+            })
+        }),
         totalCount
     }
 }
