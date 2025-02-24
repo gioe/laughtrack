@@ -255,6 +255,7 @@ export class QueryHelper {
             }
         }
     }
+
     getZipCodeClause() {
         const providedZip = this.searchParams.get(QueryProperty.Zip) as string
         const radius = this.searchParams.get(QueryProperty.Distance) as string
