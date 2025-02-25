@@ -2,7 +2,8 @@ import { QueryProperty } from "../../enum/queryProperty";
 import zipcodes from 'zipcodes';
 import { Prisma } from "@prisma/client";
 import { ParameterizedRequestData } from "@/objects/interface";
-import { buildPaginationData } from "@/util/pagination";
+import { toZonedTime, format } from 'date-fns-tz';
+import { isToday as isDateToday, parseISO } from 'date-fns';
 
 // This class is meant to capture all of the page parameters that Next provides us with.
 // These are relevant for DB querying and their existence persists across all pages so we capture it
@@ -13,8 +14,10 @@ export class QueryHelper {
     searchParams: URLSearchParams;
     slug?: string
     userId?: string;
+    timezone: string
 
     constructor(requestData: ParameterizedRequestData) {
+        this.timezone = requestData.timezone
         this.userId = requestData.userId
         this.slug = requestData.slug ? decodeURI(requestData.slug) : undefined
         this.searchParams = new URLSearchParams(requestData.params)
@@ -169,35 +172,23 @@ export class QueryHelper {
     }
 
     // Shows
-    getShowFiltersClause() {
-        const filters = this.searchParams.get(QueryProperty.Filters)
-        const commonClause = {
-            NOT: {
-                taggedShows: {
-                    some: {
-                        tag: {
-                            userFacing: false,
-                        },
-                    },
-                },
-            },
-        };
+    getShowTagsClause() {
+        const tags = this.searchParams.get(QueryProperty.Filters)
 
-        if (!filters) {
-            return commonClause;
+        if (!tags) {
+            return {};
         }
 
         return {
             AND: [
-                commonClause,
                 {
                     taggedShows: {
                         some: {
                             tag: {
                                 value: {
-                                    in: filters.split(","),
-                                    type: 'show'
+                                    in: tags.split(","),
                                 },
+                                type: 'show'
                             },
                         },
                     },
@@ -269,19 +260,41 @@ export class QueryHelper {
     }
 
     getDateClause() {
-        const fromDate = this.searchParams.get(QueryProperty.FromDate) as string
-        const toDate = this.searchParams.get(QueryProperty.ToDate) as string
-        const currentDate = new Date();
-        const fromDateObj = fromDate ? new Date(fromDate) : currentDate;
-        const isToday = fromDateObj.toDateString() === currentDate.toDateString();
+        const fromDate = this.searchParams.get(QueryProperty.FromDate)
+        const toDate = this.searchParams.get(QueryProperty.ToDate)
+        if (!fromDate) {
+            return {};
+        }
+
+        // Current time in UTC
+        const currentDateUTC = new Date();
+
+        // Convert fromDate midnight in timezone to UTC
+        const fromDateMidnight = toZonedTime(`${fromDate}T00:00:00`, this.timezone);
+
+        // Check if fromDate is today in the specified timezone
+        const todayInTimezone = toZonedTime(format(new Date(), 'yyyy-MM-dd'), this.timezone);
+        const isToday = fromDate === format(todayInTimezone, 'yyyy-MM-dd');
+
+        let fromDateFilter = isToday ? currentDateUTC.toISOString() :  fromDateMidnight.toISOString()
+
+          // Handle toDate if provided
+        let toDateFilter: string | undefined = undefined;
+        if (toDate) {
+            // Convert end of day in specified timezone to UTC
+            const toDateEndOfDay = toZonedTime(`${toDate}T23:59:59.999`, this.timezone);
+            const oneDayInMs = 24 * 60 * 60 * 1000;
+            toDateEndOfDay.setTime(toDateEndOfDay.getTime() - oneDayInMs);
+            toDateFilter = toDateEndOfDay.toISOString();
+        }
 
         return {
             date: {
-            gte: isToday ? currentDate.toISOString() : new Date(fromDateObj.setHours(0, 0, 0, 0)).toISOString(),
-            ...(toDate ? { lte: new Date(toDate).toISOString() } : {})
+              gte: fromDateFilter,
+              ...(toDateFilter ? { lte: toDateFilter } : {})
             }
-        }
-    }
+          };
+        };
 
     getGenericClauses(total: number) {
         const sortBy = this.searchParams.get(QueryProperty.Sort) as string

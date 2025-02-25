@@ -19,8 +19,9 @@ import LoginModal from "@/ui/components/modals/login";
 import { StyleContextProvider } from "@/contexts/StyleProvider";
 import { StyleContextKey } from "@/objects/enum";
 import { auth } from "@/auth";
-import Navbar from "@/ui/components/navbar";
-import FooterComponent from "@/ui/pages/home/footer";
+
+import { TimezoneProvider } from "@/contexts/TimezoneProvider";
+import { ClientTimezone } from "@/contexts/TimezoneCookieProvider";
 
 const outfit = Outfit({
     weight: "400",
@@ -84,15 +85,18 @@ export default async function RootLayout({
             >
                 <body>
                     <HeroUIProvider>
-                        <ScrollPositionManager />
-                        <ToasterProvider />
-                        <LoginModal />
-                        <StyleContextProvider
-                            initialContext={StyleContextKey.Home}
-                        >
-                            {children}
-                        </StyleContextProvider>
-                        <SpeedInsights />
+                        <TimezoneProvider>
+                            <ScrollPositionManager />
+                            <ToasterProvider />
+                            <LoginModal />
+                            <StyleContextProvider
+                                initialContext={StyleContextKey.Home}
+                            >
+                                <ClientTimezone />
+                                {children}
+                            </StyleContextProvider>
+                            <SpeedInsights />
+                        </TimezoneProvider>
                     </HeroUIProvider>
                 </body>
             </html>
