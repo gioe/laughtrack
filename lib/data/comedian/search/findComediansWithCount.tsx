@@ -55,6 +55,15 @@ export async function findComediansWithCount(
                     id: true,
                 },
                 where: {
+                    comedian: {
+                        taggedComedians: {
+                            none: {
+                                tag: {
+                                    restrictContent: true,
+                                },
+                            },
+                        },
+                    },
                     show: {
                         date: {
                             gt: new Date(),

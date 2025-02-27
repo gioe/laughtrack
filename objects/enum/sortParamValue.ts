@@ -5,7 +5,7 @@ export enum SortParamValue {
     Popularity = 'popularity',
     Activity = 'activity',
     Price = 'ticketPrice',
-    ScrapeDate = 'scrapedate'
+    ScrapeDate = 'scrapedate',
 }
 
 export const allSortOptions = [

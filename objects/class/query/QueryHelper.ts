@@ -3,7 +3,6 @@ import zipcodes from 'zipcodes';
 import { Prisma } from "@prisma/client";
 import { ParameterizedRequestData } from "@/objects/interface";
 import { toZonedTime, format } from 'date-fns-tz';
-import { isToday as isDateToday, parseISO } from 'date-fns';
 
 // This class is meant to capture all of the page parameters that Next provides us with.
 // These are relevant for DB querying and their existence persists across all pages so we capture it
@@ -41,31 +40,28 @@ export class QueryHelper {
 
     getComedianFiltersClause() {
         const filters = this.searchParams.get(QueryProperty.Filters)
-
         const commonClause = {
-            NOT: {
-                taggedComedians: {
-                    some: {
-                        tag: {
-                            userFacing: false,
-                        },
-                    },
+            taggedComedians: {
+              none: {
+                tag: {
+                  restrictContent: false,
                 },
+              },
             },
-        };
+          };
 
         if (!filters) {
             return commonClause;
         }
 
         return {
+            commonClause,
             AND: [
-                commonClause,
                 {
                     taggedComedians: {
                         some: {
                             tag: {
-                                value: {
+                                slug: {
                                     in: filters.split(","),
                                 },
                                 type: 'comedian'
@@ -132,33 +128,20 @@ export class QueryHelper {
     getClubFiltersClause() {
         const filters = this.searchParams.get(QueryProperty.Filters)
 
-        const commonClause = {
-            NOT: {
-                taggedClubs: {
-                    some: {
-                        tag: {
-                            userFacing: false,
-                        },
-                    },
-                },
-            },
-        };
-
         if (!filters) {
-            return commonClause;
+            return {};
         }
 
         return {
             AND: [
-                commonClause,
                 {
                     taggedClubs: {
                         some: {
                             tag: {
-                                value: {
+                                slug: {
                                     in: filters.split(","),
-                                    type: 'club'
                                 },
+                                type: 'club'
                             },
                         },
                     },
@@ -185,7 +168,7 @@ export class QueryHelper {
                     taggedShows: {
                         some: {
                             tag: {
-                                value: {
+                                slug: {
                                     in: tags.split(","),
                                 },
                                 type: 'show'
@@ -249,6 +232,8 @@ export class QueryHelper {
 
     getZipCodeClause() {
         const providedZip = this.searchParams.get(QueryProperty.Zip) as string
+
+        if (providedZip == "") return {}
         const radius = this.searchParams.get(QueryProperty.Distance) as string
         const zipResults = zipcodes.radius(providedZip, Number(radius));
         const nearbyZips = zipResults.map((zip: string | zipcodes.ZipCode) => typeof zip === 'string' ? zip : zip.zip);
@@ -310,14 +295,17 @@ export class QueryHelper {
         // our OFFSET value if this were SQL.
         const totalPages = Math.ceil(total / size);
         const page = Math.min(Number(this.searchParams.get(QueryProperty.Page)), totalPages) - 1
-
         // Our starting index is always our LIMIT size multiplied by our OFFSET
         const skip = take * page
+        const sortParams = [
+            { field: sortBy, direction: direction },
+            { field: 'name', direction: 'asc' }
+          ];
 
         return {
-            orderBy: {
-                [sortBy]: direction,
-            },
+            orderBy: sortParams.map(param => ({
+                [param.field]: param.direction
+              })),
             take,
             skip,
         }

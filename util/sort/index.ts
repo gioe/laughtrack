@@ -25,8 +25,8 @@ export const getSortOptionsForEntityType = (type: EntityType | undefined): SortO
             return [
                 { name: "A-Z", value: SortParamValue.Name, direction: DirectionParamValue.Ascending },
                 { name: "Z-A", value: SortParamValue.Name, direction: DirectionParamValue.Descending },
-                // { name: "Most Popular", value: SortParamValue.Popularity, direction: DirectionParamValue.Descending },
-                // { name: "Least Popular", value: SortParamValue.Popularity, direction: DirectionParamValue.Ascending },
+                { name: "Most Active", value: SortParamValue.Activity, direction: DirectionParamValue.Descending },
+                { name: "Least Active", value: SortParamValue.Activity, direction: DirectionParamValue.Ascending },
                 { name: "Most Popular", value: SortParamValue.Popularity, direction: DirectionParamValue.Descending },
                 { name: "Least Popular", value: SortParamValue.Popularity, direction: DirectionParamValue.Ascending },
             ]

@@ -12,7 +12,7 @@ export async function getComedianDetailPageData(
 ): Promise<ComedianDetailResponse> {
     try {
         const helper = new QueryHelper(requestData);
-
+        helper.setComedianName();
         const [comedianData, showsWithCount, filters] = await Promise.all([
             findComedianByName(helper),
             findShowsWithCount(helper),

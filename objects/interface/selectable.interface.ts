@@ -1,6 +1,6 @@
 export interface Selectable {
     id: number;
-    display: string;
-    value: string;
+    name: string;
+    slug: string;
     selected?: boolean;
 }
