@@ -26,13 +26,21 @@ export const filterAndMapLineupItems = (lineupItems: any[], userId?: string) => 
 
 const mapLineupItem = (item: { comedian: any }, userId?: string) => {
     const effectiveComedian = getEffectiveComedian(item.comedian);
-
+    const isAlias = containsAliasTag(effectiveComedian.taggedComedians)
     return {
         id: effectiveComedian.id,
         uuid: effectiveComedian.uuid,
         name: effectiveComedian.name,
-        imageUrl: buildComedianImageUrl(effectiveComedian.name),
-        isFavorite: userId ? item.comedian.favoriteComedians.length > 0 : false    };
+        imageUrl: buildComedianImageUrl(effectiveComedian, isAlias),
+        isFavorite: userId ? item.comedian.favoriteComedians.length > 0 : false ,
+        isAlias,
+    };
 };
+
+export const containsAliasTag = (taggedComedians: any[]) => {
+    return taggedComedians.includes((tag: any) => {
+        return tag.slug = 'alias'
+    })
+}
 
 export const getEffectiveComedian = (comedian: any) => comedian.parentComedian || comedian;

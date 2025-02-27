@@ -11,8 +11,8 @@ import { DistanceData } from "@/objects/interface";
 const selectableDistances = allDistanceOptions.map(
     (distance: string, index: number) => ({
         id: index + 1,
-        value: distance,
-        display: distance,
+        slug: distance,
+        name: distance,
     }),
 );
 
@@ -84,7 +84,7 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
 
     return (
         <div className="flex items-center gap-2">
-            <MapPin className={`w-5 h-5 ${styleConfig.inputTextColor}`} />
+            <MapPin className={`w-5 h-5 ${styleConfig.iconTextColor}`} />
             {buildDropdownComponent(props)}
             <div
                 className={`${styleConfig.inputTextColor} text-[18px] font-dmSans`}

@@ -1,6 +1,9 @@
 import { db } from "@/lib/db";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
-import { getEffectiveComedian } from "@/util/comedian/comedianUtil";
+import {
+    containsAliasTag,
+    getEffectiveComedian,
+} from "@/util/comedian/comedianUtil";
 import { buildComedianImageUrl } from "@/util/imageUtil";
 import { Prisma } from "@prisma/client";
 import { ComediansResponse } from "./interface";
@@ -53,6 +56,11 @@ export async function findComediansWithCount(
             lineupItems: {
                 select: {
                     id: true,
+                    comedian: {
+                        select: {
+                            taggedComedians: true,
+                        },
+                    },
                 },
                 where: {
                     comedian: {
@@ -80,11 +88,15 @@ export async function findComediansWithCount(
         comedians: filteredComedians.map((comedian) => {
             // If this comedian has a parent, use the parent's data
             const effectiveComedian = getEffectiveComedian(comedian);
-
+            const isAlias = containsAliasTag(effectiveComedian);
             return {
                 id: effectiveComedian.id,
                 name: effectiveComedian.name,
-                imageUrl: buildComedianImageUrl(effectiveComedian.name),
+                imageUrl: buildComedianImageUrl(
+                    effectiveComedian.name,
+                    isAlias,
+                ),
+                isAlias,
                 uuid: effectiveComedian.uuid,
                 isFavorite:
                     comedian.favoriteComedians == undefined

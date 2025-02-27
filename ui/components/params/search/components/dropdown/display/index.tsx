@@ -36,9 +36,9 @@ export function DropdownDisplay(props: DropdownDisplayProps) {
                         <SelectItem
                             className="rounded-lg"
                             key={item.id.toString()}
-                            value={item.value}
+                            value={item.slug}
                         >
-                            {item.display}
+                            {item.name}
                         </SelectItem>
                     ))}
                 </SelectContent>

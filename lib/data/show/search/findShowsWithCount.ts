@@ -81,13 +81,8 @@ export async function findShowsWithCount(helper: QueryHelper): Promise<ShowsResp
                                 name: true,
                                 parentComedian: true,
                                 taggedComedians: {
-                                    where: {
-                                        tag: {
-                                            value: 'alias'
-                                        }
-                                    },
                                     select: {
-                                        id: true
+                                        tag: true
                                     }
                                 },
                                 ...helper.getFavoriteComedianClauseWithSelection()
