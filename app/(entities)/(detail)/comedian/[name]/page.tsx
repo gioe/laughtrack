@@ -1,6 +1,5 @@
 import { CACHE } from "@/util/constants/cacheConstants";
 import { auth } from "@/auth";
-
 import { SearchVariant } from "@/objects/enum/searchVariant";
 import { unstable_cache } from "next/cache";
 import { getComedianDetailPageData } from "@/lib/data/comedian/detail/getComedianDetailPageData";
@@ -9,19 +8,22 @@ import ComedianDetailHeader from "@/ui/pages/entity/comedian/header";
 import TableWithHeader from "@/ui/pages/entity/comedian/table";
 import FilterBar from "@/ui/pages/search/filterBar";
 import FilterModal from "@/ui/components/modals/filter";
+import { cookies } from "next/headers";
 
 export default async function ComedianDetailsPage(props: {
     searchParams: Promise<any>;
     params: Promise<{ name: string }> | undefined;
 }) {
-    const [session, searchParams, slug] = await Promise.all([
+    const [session, cookieStore, searchParams, slug] = await Promise.all([
         auth(),
+        cookies(),
         props.searchParams,
         props.params,
     ]);
 
     const requestData = {
         params: searchParams,
+        timezone: cookieStore.get("timezone")?.value || "UTC",
         userId: session?.profile?.userId,
         slug: slug?.name,
     };

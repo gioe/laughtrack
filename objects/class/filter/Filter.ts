@@ -4,16 +4,15 @@ import { FilterDTO } from "@/objects/interface/filter.interface";
 export class Filter implements Selectable {
     // Properties
     id: number;
-    display: string;
-    type: string;
-    value: string;
+    name: string;
+    slug: string;
     selected: boolean;
 
     // Constructor
     constructor(input: FilterDTO) {
         this.id = input.id
-        this.display = input.display
-        this.value = input.value
+        this.name = input.name
+        this.slug = input.slug
         this.selected = input.selected ?? false
     }
 
@@ -22,7 +21,7 @@ export class Filter implements Selectable {
     }
 
     asParamValue() {
-        return this.selected ? this.value : ""
+        return this.selected ? this.slug : ""
     }
 
 }

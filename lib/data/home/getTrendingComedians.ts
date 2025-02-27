@@ -30,7 +30,7 @@ export async function getTrendingComedians(userId?: string): Promise<ComedianDTO
                 taggedComedians: {
                     some: {
                         tag: {
-                            value: { in: ["alias", "non_human", "non comic"] }
+                            slug: { in: ["alias", "non_human", "non comic"] }
                         },
                     },
                 },

@@ -16,6 +16,11 @@ export const getDefaultSortingOption = (sortOptions: SortOptionInterface[],
     ) ?? sortOptions[0]
 }
 
+export const paramsContainsFilter = (params: string | null, filter: string | null): boolean => {
+    if (!filter || !params) return false
+    return params.includes(filter)
+}
+
 interface ParamConfig {
     key: string;
     defaultValue: string | number | Date | undefined;

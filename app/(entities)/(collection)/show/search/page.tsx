@@ -8,15 +8,18 @@ import FilterBar from "@/ui/pages/search/filterBar";
 import ShowTable from "@/ui/pages/search/table";
 import SearchDetailHeader from "@/ui/pages/search/header";
 import FilterModal from "@/ui/components/modals/filter";
+import { cookies } from "next/headers";
 
 export default async function ShowSearchPage(props: any) {
-    const [session, searchParams] = await Promise.all([
+    const [session, cookieStore, searchParams] = await Promise.all([
         auth(),
+        cookies(),
         props.searchParams,
     ]);
 
     const requestData = {
         params: searchParams,
+        timezone: cookieStore.get("timezone")?.value || "UTC",
         userId: session?.profile?.userId,
     };
 

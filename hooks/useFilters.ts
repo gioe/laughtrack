@@ -10,7 +10,7 @@ export const useFilters = (filters: FilterDTO[]) => {
         setTypedParam(QueryProperty.Filters, paramValue);
     }
 
-    const initialSelections = filters.filter((f: FilterDTO) => f.selected).map((f: FilterDTO) => f.value);
+    const initialSelections = filters.filter((f: FilterDTO) => f.selected).map((f: FilterDTO) => f.slug);
     const urlSelections = getTypedParam(QueryProperty.Filters).split(",")
 
     const handleFilterChange = (value: string) => {

@@ -1,7 +1,8 @@
 import { db } from "@/lib/db";
-import { Prisma } from "@prisma/client";
+import { Prisma, TagVisibility } from "@prisma/client";
 import { FilterDTO } from "@/objects/interface/filter.interface";
 import { QueryProperty } from "@/objects/enum";
+import { paramsContainsFilter } from "@/util/filter/util";
 
 export async function getFilters(type: string, queryParams: URLSearchParams): Promise<FilterDTO[]> {
 
@@ -9,20 +10,20 @@ export async function getFilters(type: string, queryParams: URLSearchParams): Pr
         const queriedFilters = await db.tag.findMany({
             where: {
                 type: type,
-                userFacing: true
+                visibility: TagVisibility.PUBLIC,
             },
             select: {
                 id: true,
-                display: true,
-                value: true,
+                slug: true,
+                name: true,
             }
         });
 
         return queriedFilters.map(queriedFilter => ({
             id: queriedFilter.id,
-            display: queriedFilter.display || '',
-            value: queriedFilter.value || '',
-            selected: queryParams.get(QueryProperty.Filters)?.includes(queriedFilter.value) || false
+            name: queriedFilter.name || '',
+            slug: queriedFilter.slug || '',
+            selected: paramsContainsFilter(queryParams.get(QueryProperty.Filters), queriedFilter.slug)
         }))
 
     } catch (error) {

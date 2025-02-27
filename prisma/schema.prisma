@@ -160,7 +160,7 @@ model Ticket {
   show              Show     @relation(fields: [showId], references: [id], onDelete: Cascade)
   type              String?  @map("type")  // Optional ticket type field
   
-  @@unique([showId, purchaseUrl, type])
+  @@unique([showId, type])
   @@map("tickets")
 }
 
@@ -175,18 +175,27 @@ model LineupItem {
   @@map("lineup_items")
 }
 
+enum TagVisibility {
+  PUBLIC
+  ADMIN
+}
+
 model Tag {
   id              Int              @id @default(autoincrement())
-  display         String?
+  name            String?
   type            String           
   userFacing      Boolean          @default(false) @map("user_facing")
-  value           String           
+  slug            String?           
   taggedClubs     TaggedClub[]
   taggedComedians TaggedComedian[]
   taggedShows     TaggedShow[]
+  restrictContent Boolean          @default(false) 
+  visibility      TagVisibility    @default(ADMIN)
 
-  @@unique([type, value])  // Instead of making it the primary key
+  @@unique([type, slug])  // Instead of making it the primary key
   @@map("tags")
+  @@index([visibility])
+  @@index([restrictContent])
 }
 
 model TaggedClub {
@@ -206,6 +215,7 @@ model TaggedComedian {
   comedian   Comedian @relation(fields: [comedianId], references: [uuid], onDelete: Cascade)
   tag        Tag      @relation(fields: [tagId], references: [id])
 
+  @@unique([comedianId, tagId])
   @@map("tagged_comedians")
 }
 
@@ -216,5 +226,6 @@ model TaggedShow {
   show       Show @relation(fields: [showId], references: [id], onDelete: Cascade)
   tag        Tag  @relation(fields: [tagId], references: [id])
   
+  @@unique([showId, tagId])
   @@map("tagged_shows")
 }

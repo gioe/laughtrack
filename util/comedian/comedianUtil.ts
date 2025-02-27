@@ -32,9 +32,7 @@ const mapLineupItem = (item: { comedian: any }, userId?: string) => {
         uuid: effectiveComedian.uuid,
         name: effectiveComedian.name,
         imageUrl: buildComedianImageUrl(effectiveComedian.name),
-        isFavorite: userId ? item.comedian.favoriteComedians.length > 0 : false,
-        isAlias: item.comedian.taggedComedians.length > 0
-    };
+        isFavorite: userId ? item.comedian.favoriteComedians.length > 0 : false    };
 };
 
 export const getEffectiveComedian = (comedian: any) => comedian.parentComedian || comedian;

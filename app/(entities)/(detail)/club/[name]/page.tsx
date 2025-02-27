@@ -8,19 +8,22 @@ import { SearchVariant } from "@/objects/enum/searchVariant";
 import { getClubDetailPageData } from "@/lib/data/club/detail/getClubDetailPageData";
 import { unstable_cache } from "next/cache";
 import { ParameterizedRequestData } from "@/objects/interface";
+import { cookies } from "next/headers";
 
 export default async function ClubDetailPage(props: {
     searchParams: Promise<any>;
     params: Promise<{ name: string }> | undefined;
 }) {
-    const [session, searchParams, slug] = await Promise.all([
+    const [session, cookieStore, searchParams, slug] = await Promise.all([
         auth(),
+        cookies(),
         props.searchParams,
         props.params,
     ]);
 
     const requestData = {
         params: searchParams,
+        timezone: cookieStore.get("timezone")?.value || "UTC",
         userId: session?.profile?.userId,
         slug: slug?.name,
     };

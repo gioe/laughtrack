@@ -69,7 +69,7 @@ export function setParamDefaults(params: URLSearchParams, path: string, user?: U
     if (!params.has(QueryProperty.Page)) { params.set(QueryProperty.Page, "1") }
     if (!params.has(QueryProperty.Size)) { params.set(QueryProperty.Size, "10") }
     if (!params.has(QueryProperty.Direction)) { params.set(QueryProperty.Direction, "asc") }
-    if (!params.has(QueryProperty.Zip)) { params.set(QueryProperty.Zip, user?.zipCode ?? "10003")}
+    if (!params.has(QueryProperty.Zip)) { params.set(QueryProperty.Zip, user?.zipCode ?? "")}
     if (!params.has(QueryProperty.FromDate)) { params.set(QueryProperty.FromDate, formattedDateParam(new Date()))}
     if (!params.has(QueryProperty.Distance)) { params.set(QueryProperty.Distance, "5")}
 

@@ -29,13 +29,15 @@ export async function findShowsWithCount(helper: QueryHelper): Promise<ShowsResp
         // This is not always provided. Sometimes the other clauses are sufficient for a lookup.
         ...helper.getLineupItemClause(),
         // Match any shows with tags matching the display of the provided filter, if the filter values aren't empty
-        ...helper.getShowFiltersClause(),
+        ...helper.getShowTagsClause(),
     }
 
     const totalCount = await db.show.count({
         where: whereClause
     })
 
+    console.log(whereClause)
+    console.log(helper.getGenericClauses(totalCount))
     // Execute both queries in parallel, one to get the shows and the other to get the count.
     const filteredShows = await
         db.show.findMany({
@@ -44,7 +46,6 @@ export async function findShowsWithCount(helper: QueryHelper): Promise<ShowsResp
                 id: true,
                 name: true,
                 date: true,
-                lastScrapedDate: true,
                 popularity: true,
                 tickets: {
                     select: {
@@ -78,7 +79,6 @@ export async function findShowsWithCount(helper: QueryHelper): Promise<ShowsResp
                                 id: true,
                                 uuid: true,
                                 name: true,
-                                // We'll need to understand if the comedian is a parent for downstream processing
                                 parentComedian: true,
                                 taggedComedians: {
                                     where: {
@@ -102,19 +102,16 @@ export async function findShowsWithCount(helper: QueryHelper): Promise<ShowsResp
 
 
     return {
-        shows: filteredShows.map(show => {
-            return ({
-                id: show.id,
-                date: show.date,
-                name: show.name,
-                address: show.club.address,
-                clubName: show.club.name,
-                imageUrl: buildClubImageUrl(show.club.name),
-                scrapedate: show.lastScrapedDate,
-                lineup: filterAndMapLineupItems(show.lineupItems, helper.getUserId()),
-                tickets: mapTickets(show.tickets),
-            })
-        }),
+        shows: filteredShows.map(show => ({
+            id: show.id,
+            date: show.date,
+            name: show.name,
+            address: show.club.address,
+            clubName: show.club.name,
+            imageUrl: buildClubImageUrl(show.club.name),
+            lineup: filterAndMapLineupItems(show.lineupItems, helper.getUserId()),
+            tickets: mapTickets(show.tickets),
+        })),
         totalCount
     }
 }

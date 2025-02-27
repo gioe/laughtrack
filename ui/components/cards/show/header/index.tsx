@@ -21,7 +21,7 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
 
     return (
         <div className="flex items-center gap-4">
-            <div className="relative w-16 h-16 rounded-full overflow-hidden">
+            <div className="relative w-16 h-16 rounded-full overflow-hidden invisible md:visible">
                 <Image
                     src={error ? PLACEHOLDER : show.imageUrl}
                     onError={() => setError(true)}
