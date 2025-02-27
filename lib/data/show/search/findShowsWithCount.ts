@@ -62,6 +62,17 @@ export async function findShowsWithCount(helper: QueryHelper): Promise<ShowsResp
                     }
                 },
                 lineupItems: {
+                    where: {
+                        comedian: {
+                          taggedComedians: {
+                            none: {
+                              tag: {
+                                userFacing: false
+                              }
+                            }
+                          }
+                        }
+                      },
                     select: {
                         comedian: {
                             select: {
@@ -69,6 +80,16 @@ export async function findShowsWithCount(helper: QueryHelper): Promise<ShowsResp
                                 uuid: true,
                                 name: true,
                                 parentComedian: true,
+                                taggedComedians: {
+                                    where: {
+                                        tag: {
+                                            value: 'alias'
+                                        }
+                                    },
+                                    select: {
+                                        id: true
+                                    }
+                                },
                                 ...helper.getFavoriteComedianClauseWithSelection()
                             }
                         }
@@ -78,6 +99,7 @@ export async function findShowsWithCount(helper: QueryHelper): Promise<ShowsResp
 
             ...helper.getGenericClauses(totalCount),
         });
+
 
     return {
         shows: filteredShows.map(show => ({
