@@ -1,7 +1,6 @@
-export interface Paginated {
-    totalResults: number;
-}
+
 export interface PaginationData {
-    data: any;
-    totalPages: number;
+    index: number;
+    pageSize: number;
+    itemCount: number
 }

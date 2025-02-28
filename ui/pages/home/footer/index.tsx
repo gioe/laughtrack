@@ -1,10 +1,18 @@
-"use server";
+"use client";
 
-import { Instagram, Linkedin } from "lucide-react";
+import { openEmailClient } from "@/ui/components/button/contact";
 
 const FooterComponent = () => {
+    const handleClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        openEmailClient({
+            to: "contact@laugh-track.com",
+            subject: "Inquiry",
+            body: "",
+        });
+    };
     return (
-        <footer className="py-16 border-t border-gray-200">
+        <footer className="py-16 border-t border-gray-200 bg-coconut-cream">
             <div className="max-w-7xl mx-auto px-8">
                 {/* Main footer content */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 mb-12">
@@ -15,9 +23,7 @@ const FooterComponent = () => {
                         </h2>
                         <p className="text-[17px] text-gray-600 max-w-2xl font-dmSans">
                             Laughtrack is the easiest way to explore and enjoy
-                            comedy. Whether you're searching for a show tonight,
-                            following your favorite comedians, or discovering
-                            new grassroots venues, we've got you covered.
+                            comedy. Really the only way if we're being honest.
                         </p>
                     </div>
                 </div>
@@ -26,7 +32,7 @@ const FooterComponent = () => {
                 <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-gray-200">
                     {/* Copyright */}
                     <div className="text-gray-600 mb-4 md:mb-0 text-[17px] font-dmSans">
-                        Copyright © 2025 Laughtrack
+                        Copyright © 2025 Laughtrack Digital, LLC
                     </div>
 
                     {/* Links and socials */}
@@ -40,36 +46,19 @@ const FooterComponent = () => {
                                 About
                             </a>
                             <a
-                                href="/contact"
+                                href="#"
+                                onClick={handleClick}
                                 className="text-gray-600 hover:text-copper transition-colors text-[17px] font-dmSans font-semibold"
                             >
                                 Contact
                             </a>
-                            <a
+                            {/* <a
                                 href="/support"
                                 className="text-gray-600 hover:text-copper transition-colors text-[17px] font-dmSans font-semibold"
                             >
                                 Support
-                            </a>
+                            </a> */}
                         </nav>
-
-                        {/* Social icons */}
-                        {/* <div className="flex space-x-4">
-                            <a
-                                href="https://instagram.com/laughtrack"
-                                className="text-gray-600 hover:text-[#CD7F32] transition-colors"
-                                aria-label="Instagram"
-                            >
-                                <Instagram size={20} />
-                            </a>
-                            <a
-                                href="https://linkedin.com/company/laughtrack"
-                                className="text-gray-600 hover:text-[#CD7F32] transition-colors"
-                                aria-label="LinkedIn"
-                            >
-                                <Linkedin size={20} />
-                            </a>
-                        </div> */}
                     </div>
                 </div>
             </div>

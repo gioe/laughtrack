@@ -1,32 +1,30 @@
 import { db } from "@/lib/db";
-import { Prisma } from "@prisma/client";
-import { EntityType } from "@/objects/enum";
-import { Filter } from "@/objects/class/filter/Filter";
+import { Prisma, TagVisibility } from "@prisma/client";
+import { FilterDTO } from "@/objects/interface/filter.interface";
+import { QueryProperty } from "@/objects/enum";
+import { paramsContainsFilter } from "@/util/filter/util";
 
-export async function getFilters(type: string, params: any): Promise<Filter[]> {
-    const { filters } = params
+export async function getFilters(type: string, queryParams: URLSearchParams): Promise<FilterDTO[]> {
 
     try {
         const queriedFilters = await db.tag.findMany({
             where: {
-                type: type
+                type: type,
+                visibility: TagVisibility.PUBLIC,
             },
             select: {
                 id: true,
-                display: true,
-                value: true,
-                type: true,
-                userFacing: true
+                slug: true,
+                name: true,
             }
         });
 
         return queriedFilters.map(queriedFilter => ({
             id: queriedFilter.id,
-            display: queriedFilter.display || '',
-            value: queriedFilter.value || '',
-            type: queriedFilter.type ? EntityType[queriedFilter.type] : EntityType.Show,
-            userFacing: queriedFilter.userFacing
-        })).filter((option) => option.userFacing).map((dto) => new Filter(dto, filters ?? ""))
+            name: queriedFilter.name || '',
+            slug: queriedFilter.slug || '',
+            selected: paramsContainsFilter(queryParams.get(QueryProperty.Filters), queriedFilter.slug)
+        }))
 
     } catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {

@@ -1,4 +1,4 @@
-import { nextui } from "@nextui-org/theme";
+import { heroui } from "@heroui/theme";
 import type { Config } from "tailwindcss";
 import daisyui from "daisyui";
 import withMT from "@material-tailwind/react/utils/withMT";
@@ -140,7 +140,7 @@ const config: Config = {
     },
     plugins: [
         daisyui,
-        nextui(),
+        heroui(),
         require("@tailwindcss/forms"),
     ],
 };

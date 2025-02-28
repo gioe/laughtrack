@@ -3,26 +3,11 @@
 import Image from "next/image";
 import { useState } from "react";
 import { Tooltip } from "@material-tailwind/react";
-import Link from "next/link";
 import { Club } from "@/objects/class/club/Club";
+import { getLocalCdnUrl } from "@/util/cdnUtil";
+import Link from "next/link";
 
-const PLACEHOLDER = "/images/club-placeholder.png";
-
-const marqueeConfig = {
-    // Colors
-    rounded: {
-        borderRadius: "25%",
-    },
-    circle: {
-        borderRadius: "50%",
-    },
-
-    // Sizes
-    s: "size-16",
-    m: "size-24",
-    l: "size-40",
-    xl: "size-52",
-};
+const PLACEHOLDER = getLocalCdnUrl("club-placeholder.png");
 
 interface ClubMarqueeProps {
     club: Club;
@@ -32,12 +17,7 @@ interface ClubMarqueeProps {
     size?: string;
 }
 
-const ClubMarquee = ({
-    club,
-    tooltip = true,
-    type = "rounded",
-    size = "m",
-}: ClubMarqueeProps) => {
+const ClubMarquee = ({ club, tooltip = true }: ClubMarqueeProps) => {
     const [error, setError] = useState(false);
 
     const ImageComponent = () => (

@@ -1,8 +1,12 @@
 "use client";
 
 import { Club } from "@/objects/class/club/Club";
+import { getLocalCdnUrl } from "@/util/cdnUtil";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+
+const PLACEHOLDER = getLocalCdnUrl("club-placeholder.png");
 
 interface PopularClubCardProps {
     entity: string;
@@ -10,6 +14,7 @@ interface PopularClubCardProps {
 
 const PopularClubCard: React.FC<PopularClubCardProps> = ({ entity }) => {
     const club = JSON.parse(entity) as Club;
+    const [error, setError] = useState(false);
 
     return (
         <div className="w-[218px] transition-transform duration-300 hover:scale-105">
@@ -20,10 +25,11 @@ const PopularClubCard: React.FC<PopularClubCardProps> = ({ entity }) => {
                     className="block w-full h-full relative"
                 >
                     <Image
-                        src={club.imageUrl}
+                        src={error ? PLACEHOLDER : club.imageUrl}
                         alt={club.name}
                         fill
                         className="object-cover"
+                        onError={() => setError(true)}
                         sizes="(max-width: 218px) 100vw, 218px"
                         priority={false}
                     />

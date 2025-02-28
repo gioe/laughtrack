@@ -8,12 +8,18 @@ interface ClubGridProps {
 }
 const ClubGrid = ({ clubs }: ClubGridProps) => {
     return (
-        <div className="mx-24 my-12">
-            <div className="grid grid-cols-1 m:grid-cols-2 lg:grid-cols-2 xl:grid-cols-5 gap-6">
-                {clubs.map((dto) => {
-                    return <ClubSearchCard key={dto.name} club={dto} />;
-                })}
-            </div>
+        <div className="md:mx-10 lg:mx-10 mt-12">
+            {clubs.length > 0 ? (
+                <div className="grid grid-cols-2 gap-6 m:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+                    {clubs.map((dto) => {
+                        return <ClubSearchCard key={dto.name} club={dto} />;
+                    })}
+                </div>
+            ) : (
+                <h2 className="font-bold font-dmSans text-[60px] text-center pt-6">
+                    No results. Does that place even exist?
+                </h2>
+            )}
         </div>
     );
 };

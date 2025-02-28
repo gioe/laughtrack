@@ -1,16 +1,11 @@
 "use client";
 
 import React from "react";
-import { useFilterModal } from "@/hooks/modalState";
-import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Navigator } from "@/objects/class/navigate/Navigator";
-import { Filter } from "@/objects/class/filter/Filter";
 import { FilterDTO } from "@/objects/interface/filter.interface";
 import { Modal } from "../basic";
 import { FilterChip } from "../../params/filter/chips";
 import { useFilters } from "@/hooks/useFilters";
-import { QueryProperty } from "@/objects/enum";
+import { useFilterModal } from "@/hooks";
 
 interface FilterModalProps {
     filters: FilterDTO[];
@@ -18,21 +13,13 @@ interface FilterModalProps {
 }
 
 const FilterModal = ({ filters, total }: FilterModalProps) => {
-    const paramsHelper = new SearchParamsHelper(useSearchParams());
-    const navigator = new Navigator(usePathname(), useRouter());
-
     const filterModal = useFilterModal();
-    const { selectedFilters, handleFilterChange, handleClose } = useFilters(
-        filters,
-        paramsHelper,
-        navigator,
-    );
+    const { handleFilterChange, handleClose } = useFilters(filters);
 
     const onClose = () => {
         handleClose();
         filterModal.onClose();
     };
-
     return (
         <Modal
             isOpen={filterModal.isOpen}
@@ -50,19 +37,9 @@ const FilterModal = ({ filters, total }: FilterModalProps) => {
                 <div className="flex flex-wrap gap-2">
                     {filters.map((option) => (
                         <FilterChip
-                            key={option.id}
-                            label={option.display}
-                            selected={selectedFilters.includes(option.id)}
-                            onClick={() =>
-                                handleFilterChange(
-                                    new Filter(
-                                        option,
-                                        paramsHelper.getParamValue(
-                                            QueryProperty.Filters,
-                                        ),
-                                    ),
-                                )
-                            }
+                            key={`filter-${option.id}`}
+                            option={option}
+                            onClick={handleFilterChange}
                         />
                     ))}
                 </div>

@@ -1,11 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
-import { Navigator } from "@/objects/class/navigate/Navigator";
-import { QueryProperty } from "@/objects/enum";
 import TablePagination from "@mui/material/TablePagination";
+import { useEffect, useMemo } from "react";
+import { QueryProperty } from "@/objects/enum";
+import { useUrlParams } from "@/hooks/useUrlParams";
 
 interface PageParamComponentProps {
     itemCount: number;
@@ -14,35 +12,37 @@ interface PageParamComponentProps {
 export function PageParamComponent({
     itemCount,
 }: Readonly<PageParamComponentProps>) {
-    const paramsHelper = new SearchParamsHelper(useSearchParams());
-    const navigator = new Navigator(usePathname(), useRouter());
+    const { getTypedParam, setTypedParam } = useUrlParams();
 
-    const defaultIndex = Number(paramsHelper.getParamValue(QueryProperty.Page));
-    const defaultPageSize = Number(
-        paramsHelper.getParamValue(QueryProperty.Size),
-    );
+    const page = getTypedParam(QueryProperty.Page);
+    const pageSize = getTypedParam(QueryProperty.Size);
 
-    const [pageIndex, setPageIndex] = useState(defaultIndex);
-    const [pageSize, setPageSize] = useState(defaultPageSize);
+    const correctedPage = useMemo(() => {
+        const maxPage = Math.ceil(itemCount / pageSize);
+        // The pagination library we're using is zero indexed by our pagination is not. We could our indexing but
+        // zero indexing in the url may be weird for non-technical users.
+        return Math.min(page, maxPage) - 1;
+    }, [itemCount, page, pageSize]);
+
+    // Update URL if we need to correct the page number
+    useEffect(() => {
+        if (correctedPage !== page - 1) {
+            setTypedParam(QueryProperty.Page, correctedPage + 1);
+        }
+    }, [correctedPage, page, setTypedParam]);
 
     const handleChangeOffset = (
         event: React.MouseEvent<HTMLButtonElement> | null,
         newPageIndex: number,
     ) => {
-        setPageIndex(newPageIndex);
-
-        const newPageValue = newPageIndex + 1;
-        paramsHelper.setParamValue(QueryProperty.Page, newPageValue.toString());
-        navigator.replaceRoute(paramsHelper.asParamsString());
+        setTypedParam(QueryProperty.Page, newPageIndex + 1);
     };
 
     const handleChangeRows = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => {
-        const rowSizeValue = parseInt(event.target.value, 8);
-        paramsHelper.setParamValue(QueryProperty.Size, rowSizeValue);
-        navigator.replaceRoute(paramsHelper.asParamsString());
-        setPageSize(rowSizeValue);
+        const selectedSize = parseInt(event.target.value);
+        setTypedParam(QueryProperty.Size, selectedSize);
     };
 
     return (
@@ -81,7 +81,7 @@ export function PageParamComponent({
             }}
             component="div"
             count={itemCount}
-            page={pageIndex}
+            page={correctedPage}
             rowsPerPage={pageSize}
             onPageChange={handleChangeOffset}
             onRowsPerPageChange={handleChangeRows}

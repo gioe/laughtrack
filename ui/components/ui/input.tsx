@@ -1,19 +1,23 @@
 /* eslint-disable @typescript-eslint/no-empty-object-type */
 import * as React from "react";
-import { cn } from "@/util/tailwindUtil";
+import { useStyleContext } from "@/contexts/StyleProvider";
 
 export interface InputProps
     extends React.InputHTMLAttributes<HTMLInputElement> {}
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
     ({ className, type, ...props }, ref) => {
+        const { getCurrentStyles } = useStyleContext();
+        const styleConfig = getCurrentStyles();
         return (
             <input
                 type={type}
-                className={cn(
-                    "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
-                    className,
-                )}
+                className={`border-transparent bg-transparent transition-colors text-[18px] rounded-lg font-dmSans 
+                    focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring 
+                    disabled:cursor-not-allowed disabled:opacity-50
+                    focus:ring-2 focus:ring-blue-500 focus:bg-transparent focus:outline-none 
+                    placeholder:font-dmSans placeholder:text-[18px]
+                    ${styleConfig.inputTextColor}`}
                 ref={ref}
                 {...props}
             />

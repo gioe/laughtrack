@@ -3,28 +3,23 @@ import Navbar from "@/ui/components/navbar";
 import BackgroundImage from "@/ui/components/background";
 import ContentWrapper from "@/ui/components/wrapper";
 import HeroContent from "@/ui/components/hero";
-
-export const getCdnImageUrl = (imagePath: string) => {
-    return new URL(
-        imagePath,
-        `https://${process.env.BUNNYCDN_CDN_HOST}/`,
-    ).toString();
-};
+import { getCdnUrl } from "@/util/cdnUtil";
+import { UserProfileInterface } from "@/app/api/profile/[id]/interface";
 
 interface HeroComponentProps {
-    user: UserInterface | null;
+    profile?: UserProfileInterface | null;
 }
 
-const HeroComponent = ({ user }: HeroComponentProps) => {
+const HeroComponent = ({ profile }: HeroComponentProps) => {
     return (
         <section className="relative w-full h-[776px]">
             <BackgroundImage
-                imageUrl={getCdnImageUrl(`laughtrack-hero.png`)}
+                imageUrl={getCdnUrl(`laughtrack-hero.png`)}
                 alt={"Header background image"}
             />
             <ContentWrapper>
-                <Navbar currentUser={user} />
-                <HeroContent title="Laughtrack" subtitle="Have a laugh" />
+                <Navbar currentUser={profile} />
+                <HeroContent title="Laughtrack" subtitle="Get out and laugh" />
             </ContentWrapper>
         </section>
     );

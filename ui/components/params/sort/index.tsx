@@ -3,23 +3,27 @@
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { useState } from "react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useSortOptionProvider } from "@/contexts/SortOptionProvider";
-import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
-import { Navigator } from "@/objects/class/navigate/Navigator";
 import { QueryProperty } from "@/objects/enum";
 import { SortOptionInterface } from "@/objects/interface";
 import { cn } from "@/util/tailwindUtil";
 import { Menu as MenuIcon } from "lucide-react";
 import { getDefaultSortingOption } from "@/util/filter/util";
+import { useUrlParams } from "@/hooks/useUrlParams";
 
-export function SortParamComponent() {
-    const { sortOptions } = useSortOptionProvider();
-    const paramsHelper = new SearchParamsHelper(useSearchParams());
+interface SortComponentProps {
+    sortOptions: SortOptionInterface[];
+}
 
-    const navigator = new Navigator(usePathname(), useRouter());
+export function SortParamComponent({ sortOptions }: SortComponentProps) {
+    const { getTypedParam, setMultipleTypedParams } = useUrlParams();
+    const sortParam = getTypedParam(QueryProperty.Sort);
+    const directionParam = getTypedParam(QueryProperty.Direction);
 
-    const defaultOption = getDefaultSortingOption(sortOptions, paramsHelper);
+    const defaultOption = getDefaultSortingOption(
+        sortOptions,
+        sortParam,
+        directionParam,
+    );
 
     const [selectedSortingOption, setSelectedSortingOption] =
         useState(defaultOption);
@@ -38,12 +42,10 @@ export function SortParamComponent() {
     };
 
     const modifySortParam = (sortValue: SortOptionInterface) => {
-        paramsHelper.setParamValue(QueryProperty.Sort, sortValue.value);
-        paramsHelper.setParamValue(
-            QueryProperty.Direction,
-            sortValue.direction,
-        );
-        navigator.replaceRoute(paramsHelper.asParamsString());
+        setMultipleTypedParams({
+            sort: sortValue.value,
+            direction: sortValue.direction,
+        });
         setSelectedSortingOption(sortValue);
     };
 
@@ -54,18 +56,22 @@ export function SortParamComponent() {
         >
             <div>
                 <MenuButton
-                    className="group flex items-center justify-between rounded-lg gap-2
+                    className="group flex items-center justify-between rounded-lg
             text-copper font-dmSans text-[16px] hover:bg-gray-50"
                 >
-                    <MenuIcon size={20} />
-                    <span className="hidden sm:inline pr-3">Sort by:</span>
-                    <span className="hidden sm:inline">
-                        {selectedSortingOption.name}
-                    </span>
-                    <ChevronDownIcon
-                        aria-hidden="true"
-                        className="h-5 w-5 flex-none text-copper"
-                    />
+                    <div className="flex items-center gap-2">
+                        <MenuIcon size={20} />
+                        <span className="hidden sm:inline pr-3">Sort by:</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="hidden sm:inline">
+                            {selectedSortingOption.name}
+                        </span>
+                        <ChevronDownIcon
+                            aria-hidden="true"
+                            className="h-5 w-5 flex-none text-copper"
+                        />
+                    </div>
                 </MenuButton>
             </div>
 

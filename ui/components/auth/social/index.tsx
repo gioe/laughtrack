@@ -12,7 +12,9 @@ const SocialButton = ({ provider, onClick, children }) => {
         <button
             type="button"
             onClick={onClick}
-            className="flex-1 flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg text-[12px] text-black bg-coconut-cream hover:bg-gray-50 font-dmSans"
+            className="flex-1 flex items-center justify-center px-4 py-2 border
+             border-gray-300 rounded-lg text-[12px] text-black font-dmSans
+              bg-coconut-cream hover:bg-copper "
         >
             <div className="pr-2">{logos[provider.toLowerCase()]}</div>
             {children}
@@ -21,18 +23,18 @@ const SocialButton = ({ provider, onClick, children }) => {
 };
 
 const SocialAuthButtons = ({
-    onGoogleClick,
-    onAppleClick,
-    actionText = "Sign up", // default text, can be "Log In" or "Sign Up"
+    actionText = "Continue",
+    handleGoogleSignin,
+    handleAppleSignin,
 }) => {
     return (
-        <div className="flex gap-4">
-            <SocialButton provider="google" onClick={onGoogleClick}>
+        <div className="flex flex-col gap-4">
+            <SocialButton provider="google" onClick={handleGoogleSignin}>
                 {actionText} with Google
             </SocialButton>
-            <SocialButton provider="apple" onClick={onAppleClick}>
+            {/* <SocialButton provider="apple" onClick={handleAppleSignin}>
                 {actionText} with Apple
-            </SocialButton>
+            </SocialButton> */}
         </div>
     );
 };

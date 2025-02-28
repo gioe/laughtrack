@@ -1,24 +1,19 @@
-import { EntityType } from "../../enum";
-import { SelectionSection } from "../../interface/selectionSection.interface";
-import { SearchParamsHelper } from "../params/SearchParamsHelper";
 import { Selectable } from "../../interface";
 import { FilterDTO } from "@/objects/interface/filter.interface";
 
 export class Filter implements Selectable {
     // Properties
     id: number;
-    display: string;
-    type: string;
-    value: string;
+    name: string;
+    slug: string;
     selected: boolean;
 
     // Constructor
-    constructor(input: FilterDTO, paramValue: string | string[]) {
+    constructor(input: FilterDTO) {
         this.id = input.id
-        this.type = input.type
-        this.display = input.display
-        this.value = input.value
-        this.selected = paramValue.includes(this.display)
+        this.name = input.name
+        this.slug = input.slug
+        this.selected = input.selected ?? false
     }
 
     handleSelection() {
@@ -26,7 +21,7 @@ export class Filter implements Selectable {
     }
 
     asParamValue() {
-        return this.selected ? this.value : ""
+        return this.selected ? this.slug : ""
     }
 
 }

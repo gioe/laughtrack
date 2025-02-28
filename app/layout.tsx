@@ -1,7 +1,7 @@
 import "./globals.css";
 import "./fonts.css";
-
-import { NextUIProvider } from "@nextui-org/react";
+import { ScrollPositionManager } from "@/ui/components/scroll/manager";
+import { HeroUIProvider } from "@heroui/react";
 import { SessionProvider } from "next-auth/react";
 import {
     Bebas_Neue,
@@ -14,14 +14,14 @@ import {
 } from "next/font/google";
 import type { Metadata } from "next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { CityProvider } from "@/contexts/CityProvider";
-import { getCities } from "@/lib/data/cities/getCities";
-import ToasterProvider from "@/ui/components/providers/toaster";
+import ToasterProvider from "@/contexts/ToasterProvider";
 import LoginModal from "@/ui/components/modals/login";
-import RegisterModal from "@/ui/components/modals/register";
 import { StyleContextProvider } from "@/contexts/StyleProvider";
 import { StyleContextKey } from "@/objects/enum";
-import FavoriteRegisterModal from "@/ui/components/modals/favoriteRegister";
+import { auth } from "@/auth";
+
+import { TimezoneProvider } from "@/contexts/TimezoneProvider";
+import { ClientTimezone } from "@/contexts/TimezoneCookieProvider";
 
 const outfit = Outfit({
     weight: "400",
@@ -75,7 +75,7 @@ export default async function RootLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    const cities = await getCities();
+    const session = await auth();
 
     return (
         <SessionProvider>
@@ -84,20 +84,20 @@ export default async function RootLayout({
                 className={`${bebas.variable} ${oswald.variable} ${inter.variable} ${fjalla.variable} ${chivo.variable} ${dmSams.variable} ${outfit.variable}`}
             >
                 <body>
-                    <NextUIProvider>
-                        <ToasterProvider />
-                        <LoginModal />
-                        <RegisterModal />
-                        <FavoriteRegisterModal />
-                        <StyleContextProvider
-                            initialContext={StyleContextKey.Home}
-                        >
-                            <CityProvider initialCities={cities}>
+                    <HeroUIProvider>
+                        <TimezoneProvider>
+                            <ScrollPositionManager />
+                            <ToasterProvider />
+                            <LoginModal />
+                            <StyleContextProvider
+                                initialContext={StyleContextKey.Home}
+                            >
+                                <ClientTimezone />
                                 {children}
-                            </CityProvider>
-                        </StyleContextProvider>
-                        <SpeedInsights />
-                    </NextUIProvider>
+                            </StyleContextProvider>
+                            <SpeedInsights />
+                        </TimezoneProvider>
+                    </HeroUIProvider>
                 </body>
             </html>
         </SessionProvider>

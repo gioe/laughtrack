@@ -1,43 +1,56 @@
 {
-    // JS
-    "javascript.updateImportsOnFileMove.enabled": "always",
-    // TS
-    "typescript.updateImportsOnFileMove.enabled": "always",
-    // JSON
-    "[json]": {
-        "editor.defaultFormatter": "vscode.json-language-features"
-    },
-    "[jsonc]": {
-        "editor.defaultFormatter": "vscode.json-language-features"
-    },
-    // Extension: Git
-    "git.rebaseWhenSync": false,
-    "git.autofetch": true,
-    "git.enableSmartCommit": true,
-    // Extension: Prettier
-    "prettier.requireConfig": true,
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true,
-    // Extension: ESLint
-    "editor.codeActionsOnSave": {
-        "source.fixAll": "explicit",
-        "source.organizeImports": "never"
-    },
-    "eslint.validate": [
-        "javascript",
-        "javascriptreact",
-        "typescript",
-        "typescriptreact"
-    ],
-    "eslint.format.enable": true,
-    "npm.packageManager": "npm",
-    "[javascript]": {
-        "editor.defaultFormatter": "vsce-toolroom.vscode-beautify"
-    },
-    "[typescript]": {
-        "editor.defaultFormatter": "vscode.typescript-language-features"
-    },
-    "[sql]": {
-        "editor.defaultFormatter": "adpyke.vscode-sql-formatter"
-    }
+  "[javascript]": {
+    "editor.defaultFormatter": "vsce-toolroom.vscode-beautify"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "[sql]": {
+    "editor.defaultFormatter": "adpyke.vscode-sql-formatter"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "denoland.vscode-deno"
+  },
+  "deno.enablePaths": [
+    "supabase/functions"
+  ],
+  "deno.lint": true,
+  "deno.unstable": [
+    "bare-node-builtins",
+    "byonm",
+    "sloppy-imports",
+    "unsafe-proto",
+    "webgpu",
+    "broadcast-channel",
+    "worker-options",
+    "cron",
+    "kv",
+    "ffi",
+    "fs",
+    "http",
+    "net"
+  ],
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "never"
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "eslint.format.enable": true,
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  "git.autofetch": true,
+  "git.enableSmartCommit": true,
+  "git.rebaseWhenSync": false,
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "npm.packageManager": "npm",
+  "prettier.requireConfig": true,
+  "typescript.updateImportsOnFileMove.enabled": "always"
 }

@@ -1,24 +1,17 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useLoginModal, useRegisterModal } from "@/hooks/modalState";
 import LaughtrackLogin from "@/ui/pages/login";
 import FullScreenModal from "../fullscreen";
+import { useLoginModal } from "@/hooks";
 
 const LoginModal = () => {
     const router = useRouter();
     const loginModal = useLoginModal();
-    const registerModal = useRegisterModal();
 
     const onSubmit = () => {
         router.refresh();
         loginModal.onClose();
-    };
-
-    const showRegistrationPage = () => {
-        loginModal.onClose();
-        router.refresh();
-        registerModal.onOpen();
     };
 
     return (
@@ -26,10 +19,7 @@ const LoginModal = () => {
             isOpen={loginModal.isOpen}
             onClose={() => loginModal.onClose()}
         >
-            <LaughtrackLogin
-                handleRegisterClick={showRegistrationPage}
-                handleSubmit={onSubmit}
-            />
+            <LaughtrackLogin handleSubmit={onSubmit} />
         </FullScreenModal>
     );
 };

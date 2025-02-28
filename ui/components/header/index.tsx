@@ -1,34 +1,33 @@
 "use client";
-import { useCallback } from "react";
-import { usePathname } from "next/navigation";
-import { useLoginModal, useRegisterModal } from "@/hooks/modalState";
-import { UserInterface } from "@/objects/class/user/user.interface";
 import Logo from "../logo";
 import NavigationMenu from "../navbar/menu";
 import AuthButtons from "../auth/header";
+import { useCallback } from "react";
+import { usePathname } from "next/navigation";
+import { UserProfileInterface } from "@/app/api/profile/[id]/interface";
+import { useStyleContext } from "@/contexts/StyleProvider";
+import { useLoginModal } from "@/hooks";
 
 interface HeaderProps {
-    currentUser?: UserInterface | null;
+    currentUser?: UserProfileInterface | null;
 }
 
 export function Header({ currentUser }: HeaderProps) {
+    const { getCurrentStyles } = useStyleContext();
+    const styleConfig = getCurrentStyles();
     const pathname = usePathname();
 
     const loginModal = useLoginModal();
-    const registerModal = useRegisterModal();
 
     const handleLoginClick = useCallback(() => {
         loginModal.onOpen();
     }, [loginModal]);
 
-    const handleSignupClick = useCallback(() => {
-        registerModal.onOpen();
-    }, [registerModal]);
-
     return (
-        <nav className="relative bg-transparent px-4 py-4">
-            <div className="hidden lg:grid max-w-7xl mx-auto  lg:grid-cols-3 items-center">
-                {/* Left column - Logo */}
+        <nav
+            className={`relative px-4 py-4 ${styleConfig.headerBackgroundColor}`}
+        >
+            <div className="hidden max-w-7xl mx-auto items-center lg:grid lg:grid-cols-3 ">
                 <div className="col-start-1">
                     <Logo />
                 </div>
@@ -40,7 +39,6 @@ export function Header({ currentUser }: HeaderProps) {
                         currentUser={currentUser}
                         pathname={pathname}
                         onLogin={handleLoginClick}
-                        onSignup={handleSignupClick}
                     />
                 </div>
             </div>

@@ -2,7 +2,7 @@ import React from "react";
 
 export default function Loading() {
     return (
-        <div className="w-full mx-auto p-6 animate-pulse bg-ivory">
+        <div className="w-full mx-auto p-6 animate-pulse bg-coconut-cream">
             {/* Header */}
             <div className="max-w-7xl mx-auto p-6 animate-pulse">
                 <div className="flex items-center gap-4 mb-8">

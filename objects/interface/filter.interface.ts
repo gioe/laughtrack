@@ -9,8 +9,7 @@ export interface FilterInterface {
 // DB
 export interface FilterDTO {
     id: number;
-    value: string;
-    display: string;
+    slug: string;
+    name: string;
     selected?: boolean;
-    type: string;
 }

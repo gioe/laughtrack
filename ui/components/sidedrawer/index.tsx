@@ -10,27 +10,23 @@ import { useCallback } from "react";
 import { HeaderItem } from "../navbar/headerItem";
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
 import { FullRoundedButton } from "../button/rounded/full";
-import { signOut } from "next-auth/react";
-import { UserInterface } from "@/objects/class/user/user.interface";
-import { useLoginModal, useRegisterModal } from "@/hooks/modalState";
+import { useSignOut } from "@/hooks/useSignOut";
+import { UserProfileInterface } from "@/app/api/profile/[id]/interface";
+import { useLoginModal } from "@/hooks";
 
 interface SideDrawerProps {
     onClose: (open: boolean) => void;
     open: boolean;
-    currentUser?: UserInterface | null;
+    currentUser?: UserProfileInterface | null;
 }
 
 export function SideDrawer({ open, onClose, currentUser }: SideDrawerProps) {
     const loginModal = useLoginModal();
-    const registerModal = useRegisterModal();
+    const handleSignOut = useSignOut();
 
     const handleLoginClick = useCallback(() => {
         loginModal.onOpen();
     }, [loginModal]);
-
-    const handleSignupClick = useCallback(() => {
-        registerModal.onOpen();
-    }, [registerModal]);
 
     return (
         <Dialog open={open} onClose={onClose} className="lg:hidden">
@@ -86,7 +82,7 @@ export function SideDrawer({ open, onClose, currentUser }: SideDrawerProps) {
                         <div className="flex flex-col py-6 gap-5">
                             {currentUser ? (
                                 <FullRoundedButton
-                                    handleClick={signOut}
+                                    handleClick={handleSignOut}
                                     label="Log Out"
                                 />
                             ) : (
@@ -96,10 +92,10 @@ export function SideDrawer({ open, onClose, currentUser }: SideDrawerProps) {
                                         label="Log In"
                                     />
 
-                                    <FullRoundedButton
+                                    {/* <FullRoundedButton
                                         handleClick={handleSignupClick}
                                         label="Sign Up"
-                                    />
+                                    /> */}
                                 </>
                             )}
                         </div>

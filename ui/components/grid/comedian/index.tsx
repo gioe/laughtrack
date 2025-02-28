@@ -9,15 +9,21 @@ interface ComedianGridProps {
 }
 const ComedianGrid = ({ comedians, className }: ComedianGridProps) => {
     return (
-        <div className="mx-24 my-12">
-            <div className={className}>
-                {comedians.map((comedian, index) => (
-                    <ComedianGridCard
-                        key={index.toString()}
-                        entity={JSON.stringify(comedian)}
-                    />
-                ))}
-            </div>
+        <div className="md:mx-10 lg:mx-10 mt-12">
+            {comedians.length > 0 ? (
+                <div className={className}>
+                    {comedians.map((dto) => (
+                        <ComedianGridCard
+                            key={dto.name}
+                            entity={JSON.stringify(dto)}
+                        />
+                    ))}
+                </div>
+            ) : (
+                <h2 className="font-bold font-dmSans text-[60px] text-center pt-6">
+                    No results. That person must not be funny enough.
+                </h2>
+            )}
         </div>
     );
 };

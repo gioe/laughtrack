@@ -10,7 +10,10 @@ import { DirectionParamValue } from './directionParamValue'
 import { RestAPIAction } from './restApiAction'
 import { QueryProperty } from './queryProperty'
 import { StyleContextKey } from './styleContextKey'
+import { ComponentVariant } from './componentVariant'
+
 export {
+    ComponentVariant,
     RestAPIAction,
     QueryProperty,
     APIRoutePath,

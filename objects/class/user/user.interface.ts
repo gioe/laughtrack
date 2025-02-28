@@ -1,15 +1,16 @@
 // Client
 export interface UserInterface {
-    id: number;
+    id: string;
     email: string;
     password?: string;
     role: string;
     zipCode?: string
+    emailOptin?: boolean
 }
 
 // DB
 export interface UserDTO {
-    id?: number;
+    id?: string;
     email: string;
     password?: string;
     role: string;

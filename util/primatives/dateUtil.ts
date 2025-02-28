@@ -1,36 +1,82 @@
-import { DateRange } from "@/ui/components/calendar";
-import {
-    removeNonNumbers,
-} from "./stringUtil";
-import { datesAreToday, datesAreTomorrow } from "@/util/dateUtil";
-import { format, isToday, isTomorrow } from "date-fns";
+import { DateRange } from "@/objects/interface";
+import { format, isToday, isTomorrow, isSameDay } from "date-fns";
 
-export const determineDate = (dateString: string): number => {
-    const numberString = removeNonNumbers(dateString);
-    return Number(numberString);
+// Types
+type DateFormatter = (date: Date) => string;
+
+// Constants
+const DEFAULT_DATE_FORMAT = "LLL d, yyyy";
+
+/**
+ * Formats a single date with special handling for today and tomorrow
+ */
+const formatSingleDate: DateFormatter = (date: Date): string => {
+    if (isToday(date)) return "Today - ";
+    if (isTomorrow(date)) return "Tomorrow - ";
+    return `${format(date, DEFAULT_DATE_FORMAT)} - `;
 };
 
-export const formatDateRange = (range?: DateRange): string => {
-    if (!range) { throw new Error() }
+/**
+ * Checks if a date range spans a single day
+ */
+const isSingleDayRange = (from: Date, to: Date): boolean => {
+    return isSameDay(from, to);
+};
+
+/**
+ * Formats a date range as a string
+ */
+export const formatDateRange = (placeholder: string, range: DateRange): string => {
+    // Handle undefined or empty range
+    if (!range?.to && !range?.from) {
+        return placeholder;
+    }
+
     const { from, to } = range;
 
-    if (!to) {
-        return format(from, "LLL dd, yyyy");
+    try {
+        // Handle single date selection
+        if (!to && from) {
+            return formatSingleDate(from);
+        }
+
+        // Handle invalid range where only 'to' date exists
+        if (to && !from) {
+            return formatSingleDate(to);
+        }
+
+        // At this point, both from and to should exist
+        if (!from || !to) {
+            throw new Error("Invalid date range");
+        }
+
+        // Handle single day range
+        if (isSingleDayRange(from, to)) {
+            return formatSingleDate(from);
+        }
+
+        // Handle multi-day range
+        return `${formatSingleDate(from)} ${format(to, DEFAULT_DATE_FORMAT)}`;
+
+    } catch (error) {
+        console.error("Error formatting date range:", error);
+        return placeholder;
     }
+};
 
-    if (datesAreToday(from, to)) {
-        return "Today";
-    }
+export const parseToMidnight = (value: string | null): Date | undefined => {
+    const dateTime = `${value}T00:00:00`
+    const date = value ? new Date(dateTime) : new Date("");
 
-    if (datesAreTomorrow(from, to)) {
-        return "Tomorrow";
-    }
+    // If the date is invalid, return undefined
+    if (isNaN(date.getTime())) return undefined;
 
-    const formatStartDate = (): string => {
-        if (isToday(from)) return "Today";
-        if (isTomorrow(from)) return "Tomorrow";
-        return format(from, "LLL d, yyyy");
-    };
-
-    return `${formatStartDate()} - ${format(to, "LLL d, yyyy")}`;
+    // Set the time to midnight (00:00:00) in the local timezone
+    date.setHours(0, 0, 0, 0);
+    return date;
+};
+export const isDateTodayOrLater = (value: Date | undefined): boolean => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return value == undefined || value >= today;
 };

@@ -1,10 +1,8 @@
 import React from "react";
+import { getCdnUrl } from "@/util/cdnUtil";
 
 const SupportSection = () => {
-    const imageUrl = new URL(
-        `venue.png`,
-        `https://${process.env.BUNNYCDN_CDN_HOST}/`,
-    );
+    const imageUrl = getCdnUrl("venue.png");
 
     return (
         <div className="w-full bg-cream-50">
@@ -47,8 +45,8 @@ const SupportSection = () => {
 
                     <p>
                         We're an accessible team - if you have suggestions for
-                        the product, email us at admin@laughtrack-comedy.com.
-                        More interest means more resources we can dedicate to
+                        the product, email us at contact@laugh-track.com. More
+                        interest means more resources we can dedicate to
                         building features that benefit everyone or, I guess,
                         anyone.
                     </p>

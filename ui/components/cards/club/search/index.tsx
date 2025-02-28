@@ -2,8 +2,12 @@
 
 import { Club } from "@/objects/class/club/Club";
 import { ClubDTO } from "@/objects/class/club/club.interface";
+import { getLocalCdnUrl } from "@/util/cdnUtil";
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
+
+const PLACEHOLDER = getLocalCdnUrl("club-placeholder.png");
 
 interface ClubSearchCardProps {
     club: ClubDTO;
@@ -11,19 +15,21 @@ interface ClubSearchCardProps {
 
 const ClubSearchCard: React.FC<ClubSearchCardProps> = ({ club }) => {
     const parsedClub = new Club(club);
+    const [error, setError] = useState(false);
 
     return (
-        <div className="bg-ivory rounded-xl overflow-hidden pb-4 px-4">
+        <div className="bg-coconut-cream rounded-xl overflow-hidden pb-4 px-4">
             <div className="relative h-64">
                 <Link
                     href={`/club/${parsedClub.name}`}
                     className="block w-full h-full"
                 >
                     <Image
-                        src={parsedClub.imageUrl}
+                        src={error ? PLACEHOLDER : club.imageUrl}
                         alt={`${parsedClub.name}`}
                         fill
                         className="object-cover rounded-xl"
+                        onError={() => setError(true)}
                         sizes="(max-width: 768px) 100vw,
                                (max-width: 1200px) 50vw,
                                25vw"

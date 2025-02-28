@@ -1,48 +1,74 @@
-import { SearchParamsHelper } from "@/objects/class/params/SearchParamsHelper";
-import { APIRoutePath } from "@/objects/enum";
 import { CACHE } from "@/util/constants/cacheConstants";
-import { makeRequest } from "@/util/actions/makeRequest";
-import { ComedianDetailResponse } from "@/app/api/comedian/[name]/interface";
 import { auth } from "@/auth";
-import ComedianDetailHeader from "@/ui/pages/entity/comedian/detailHeader";
-import FooterComponent from "@/ui/pages/home/footer";
+import { SearchVariant } from "@/objects/enum/searchVariant";
+import { unstable_cache } from "next/cache";
+import { getComedianDetailPageData } from "@/lib/data/comedian/detail/getComedianDetailPageData";
+import { ParameterizedRequestData } from "@/objects/interface";
+import ComedianDetailHeader from "@/ui/pages/entity/comedian/header";
 import TableWithHeader from "@/ui/pages/entity/comedian/table";
 import FilterBar from "@/ui/pages/search/filterBar";
-import ClubSearchBar from "@/ui/components/searchbar/club";
 import FilterModal from "@/ui/components/modals/filter";
-import Navbar from "@/ui/components/navbar";
+import { cookies } from "next/headers";
 
-export default async function ComedianDetailsPage(props: any) {
-    const session = await auth();
-
-    const paramsWrapper = await SearchParamsHelper.storePageParams(
+export default async function ComedianDetailsPage(props: {
+    searchParams: Promise<any>;
+    params: Promise<{ name: string }> | undefined;
+}) {
+    const [session, cookieStore, searchParams, slug] = await Promise.all([
+        auth(),
+        cookies(),
         props.searchParams,
         props.params,
-    );
+    ]);
 
-    const { data, shows, total, filters } =
-        await makeRequest<ComedianDetailResponse>(
-            APIRoutePath.Comedian + `/${paramsWrapper.asSlug()}`,
+    const requestData = {
+        params: searchParams,
+        timezone: cookieStore.get("timezone")?.value || "UTC",
+        userId: session?.profile?.userId,
+        profileId: session?.profile?.id,
+        slug: slug?.name,
+    };
+
+    const getCachedDetailPageData = (requestData: ParameterizedRequestData) =>
+        unstable_cache(
+            async () => {
+                try {
+                    return await getComedianDetailPageData(requestData);
+                } catch (error) {
+                    console.error(
+                        "Comedian detail page data fetch error:",
+                        error,
+                    );
+                    throw error;
+                }
+            },
+            ["comedian-detail-data", JSON.stringify(requestData)],
             {
-                searchParams: paramsWrapper.asUrlSearchParams(),
                 revalidate: CACHE.detailPage,
-                session,
+                tags: ["comedian-detail-data", JSON.stringify(requestData)],
             },
         );
 
+    const { data, shows, total, filters } =
+        await getCachedDetailPageData(requestData)();
+
     return (
-        <main className="min-h-screen w-full bg-ivory">
+        <main className="min-h-screen w-full bg-coconut-cream">
             <FilterModal filters={filters} total={total} />
-            <Navbar currentUser={session?.user} />
             <ComedianDetailHeader comedian={data} />
             <div className="max-w-7xl mx-auto p-6">
-                <TableWithHeader shows={shows} total={total}>
-                    <FilterBar total={total} filters={filters.length > 0}>
-                        <ClubSearchBar />
-                    </FilterBar>
+                <TableWithHeader
+                    shows={shows}
+                    total={total}
+                    errorMessage="No results. Clearly this comic doesn't work enough."
+                >
+                    <FilterBar
+                        variant={SearchVariant.ComedianDetail}
+                        total={total}
+                        filters={filters.length > 0}
+                    />
                 </TableWithHeader>
             </div>
-            <FooterComponent />
         </main>
     );
 }

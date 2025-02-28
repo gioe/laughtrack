@@ -1,7 +1,9 @@
-import { SortOptionProvider } from "@/contexts/SortOptionProvider";
-import { PageEntityProvider } from "@/contexts/PageEntityProvider";
+import { auth } from "@/auth";
 import { StyleContextProvider } from "@/contexts/StyleProvider";
 import { StyleContextKey } from "@/objects/enum";
+import { Suspense } from "react";
+import Navbar from "@/ui/components/navbar";
+import FooterComponent from "@/ui/pages/home/footer";
 
 export default async function EntityDetailLayout({
     children,
@@ -9,11 +11,13 @@ export default async function EntityDetailLayout({
     children: React.ReactNode;
     params: Promise<{ name: string }>;
 }) {
+    const session = await auth();
+
     return (
         <StyleContextProvider initialContext={StyleContextKey.Search}>
-            <PageEntityProvider>
-                <SortOptionProvider>{children}</SortOptionProvider>
-            </PageEntityProvider>
+            <Navbar currentUser={session?.profile} />
+            <Suspense>{children}</Suspense>
+            <FooterComponent />
         </StyleContextProvider>
     );
 }

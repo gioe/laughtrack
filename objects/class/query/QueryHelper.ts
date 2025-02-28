@@ -1,109 +1,332 @@
-import { ParamsDictValue, SearchParamsHelper } from "../params/SearchParamsHelper";
-import { allQueryProperties, DEFAULT_ERROR, QueryProperty } from "../../enum/queryProperty";
-import { DynamicRoute } from "../../interface/identifable.interface";
-import { FilterDTO } from "@/objects/interface/filter.interface";
+import { QueryProperty } from "../../enum/queryProperty";
+import zipcodes from 'zipcodes';
+import { Prisma } from "@prisma/client";
+import { ParameterizedRequestData } from "@/objects/interface";
+import { toZonedTime, format } from 'date-fns-tz';
 
-// This class is meant to capture all of the page parameters that Next provides us with.
+// This class is meant to capture all of the page parameters that our Page URL contains and converts them into query parameters.
 // These are relevant for DB querying and their existence persists across all pages so we capture it
 // as globally as possible, updating values according to page transitions.
 // It is almost certainly too bloated.
 export class QueryHelper {
 
-    identifier?: DynamicRoute
-    searchParamsHelper: SearchParamsHelper;
-    filters?: string
+    searchParams: URLSearchParams;
+    slug?: string
+    profileId?: string;
     userId?: string;
+    timezone: string
 
-    constructor(searchParamsHelper: SearchParamsHelper,
-        filters?: string,
-        identifier?: DynamicRoute,
-        userId?: string) {
-        this.userId = userId
-        this.identifier = identifier
-        this.filters = filters
-        this.searchParamsHelper = searchParamsHelper
+    constructor(requestData: ParameterizedRequestData) {
+        this.timezone = requestData.timezone
+        this.userId = requestData.userId
+        this.profileId = requestData.profileId
+        this.slug = requestData.slug ? decodeURI(requestData.slug) : undefined
+        this.searchParams = new URLSearchParams(requestData.params)
     }
 
-    asQueryFilters() {
-        return {
-            // Sort
-            ...this.getSortValue(),
-            // Query
-            ...this.getQueryPattern(),
-            // Page
-            ...this.getOffset(),
-            // Size
-            ...this.getSize(),
-            // Direction
-            ...this.getDirection(),
-            // Identifier
-            ...this.getIdentifier(),
-            // Domain Values,
-            ...this.getDomainParams(),
-            // Filters.
-            ...this.getFilters(),
-            // UserId
-            ...this.getUserId()
+    // Comedians
+    getComedianNameClause() {
+        const comedian = this.searchParams.get(QueryProperty.Comedian) as string;
+
+        if (!comedian) {
+            return {}
         }
+
+        return {
+            name: {
+                contains: comedian,
+                mode: Prisma.QueryMode.insensitive,
+            }
+        }
+    }
+
+    getComedianFiltersClause() {
+        const filters = this.searchParams.get(QueryProperty.Filters)
+        const commonClause = {
+            taggedComedians: {
+              none: {
+                tag: {
+                  restrictContent: true,
+                },
+              },
+            },
+          };
+
+        if (!filters) {
+            return commonClause;
+        }
+
+        return {
+            ...commonClause,
+            AND: [
+                {
+                    taggedComedians: {
+                        some: {
+                            tag: {
+                                slug: {
+                                    in: filters.split(","),
+                                },
+                                type: 'comedian'
+                            },
+                        },
+                    },
+                },
+            ],
+        };
+    }
+
+    getFavoriteComedianClause() {
+        return {
+            ...(this.getProfileId() ? {
+                favoriteComedians: {
+                    where: {
+                        user: {
+                            id: this.getProfileId()
+                        }
+                    },
+                    select: {
+                        id: true
+                    }
+                }
+            } : {})
+        }
+    }
+
+    setComedianName() {
+        this.searchParams.set(QueryProperty.Comedian, this.slug ?? "")
+    }
+
+    // Clubs
+    getClubNameClause() {
+        const club = this.searchParams.get(QueryProperty.Club) as string
+        if (!club) {
+            return {}
+        }
+
+        return {
+            name: {
+                contains: club,
+                mode: Prisma.QueryMode.insensitive,
+            }
+        }
+    }
+
+    getClubFiltersClause() {
+        const filters = this.searchParams.get(QueryProperty.Filters)
+
+        if (!filters) {
+            return {};
+        }
+
+        return {
+            AND: [
+                {
+                    taggedClubs: {
+                        some: {
+                            tag: {
+                                slug: {
+                                    in: filters.split(","),
+                                },
+                                type: 'club'
+                            },
+                        },
+                    },
+                },
+            ],
+        };
+    }
+
+    setClubName() {
+        this.searchParams.set(QueryProperty.Club, this.slug ?? "")
+    }
+
+    // Shows
+    getShowTagsClause() {
+        const tags = this.searchParams.get(QueryProperty.Filters)
+
+        if (!tags) {
+            return {};
+        }
+
+        return {
+            AND: [
+                {
+                    taggedShows: {
+                        some: {
+                            tag: {
+                                slug: {
+                                    in: tags.split(","),
+                                },
+                                type: 'show'
+                            },
+                        },
+                    },
+                },
+            ],
+        };
+    }
+
+
+    /**
+     * Generates a Prisma query clause for filtering shows based on comedian lineup items.
+     * This method constructs a query that matches shows where either:
+     * 1. The comedian's name matches the search parameter directly (for parent comedians)
+     * 2. The comedian's parent name matches the search parameter (for child comedians)
+     *
+     * @returns An object containing the lineup items clause if a comedian search parameter exists,
+     * or an empty object if no comedian parameter is provided.
+     *
+     * @example
+     * // With comedian search parameter "John"
+     * // Returns shows where John is either directly in the lineup
+     * // or where a comedian with John as their parent is in the lineup
+     */
+    getLineupItemClause() {
+        const comedian = this.searchParams.get(QueryProperty.Comedian) as string;
+        return {
+            lineupItems: {
+                ...(comedian ? {
+                    // Lineup items represent shows where the comedian is on the lineup.
+                    // For every comedian query, we want to return to possibilities:
+                    some: {
+                        comedian: {
+                            OR: [
+                                // The comedian in the lineup item matches the supplieed query param and has no parent (meaning it is the parent)
+                                {
+                                    name: {
+                                        contains: comedian,
+                                        mode: Prisma.QueryMode.insensitive,
+                                    },
+                                    parentComedianId: null
+                                },
+                                // OR the comedian in the lineup's parent matches the query param.
+                                {
+                                    parentComedian: {
+                                        name: {
+                                            contains: comedian,
+                                            mode: Prisma.QueryMode.insensitive,
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                } : {})
+            }
+        }
+    }
+
+    getZipCodeClause() {
+        const providedZip = this.searchParams.get(QueryProperty.Zip) as string
+
+        if (providedZip == "") return {}
+        const radius = this.searchParams.get(QueryProperty.Distance) as string
+        const zipResults = zipcodes.radius(providedZip, Number(radius));
+        const nearbyZips = zipResults.map((zip: string | zipcodes.ZipCode) => typeof zip === 'string' ? zip : zip.zip);
+        return {
+            zipCode: {
+                in: nearbyZips
+            }
+        }
+    }
+
+    getDateClause() {
+        const fromDate = this.searchParams.get(QueryProperty.FromDate)
+        const toDate = this.searchParams.get(QueryProperty.ToDate)
+        if (!fromDate) {
+            return {};
+        }
+
+        // Current time in UTC
+        const currentDateUTC = new Date();
+
+        // Convert fromDate midnight in timezone to UTC
+        const fromDateMidnight = toZonedTime(`${fromDate}T00:00:00`, this.timezone);
+
+        // Check if fromDate is today in the specified timezone
+        const todayInTimezone = toZonedTime(format(new Date(), 'yyyy-MM-dd'), this.timezone);
+        const isToday = fromDate === format(todayInTimezone, 'yyyy-MM-dd');
+
+        let fromDateFilter = isToday ? currentDateUTC.toISOString() :  fromDateMidnight.toISOString()
+
+          // Handle toDate if provided
+        let toDateFilter: string | undefined = undefined;
+        if (toDate) {
+            // Convert end of day in specified timezone to UTC
+            const toDateEndOfDay = toZonedTime(`${toDate}T23:59:59.999`, this.timezone);
+            const oneDayInMs = 24 * 60 * 60 * 1000;
+            toDateEndOfDay.setTime(toDateEndOfDay.getTime() - oneDayInMs);
+            toDateFilter = toDateEndOfDay.toISOString();
+        }
+
+        return {
+            date: {
+              gte: fromDateFilter,
+              ...(toDateFilter ? { lte: toDateFilter } : {})
+            }
+          };
+        };
+
+    getGenericClauses(total: number) {
+        const sortBy = this.searchParams.get(QueryProperty.Sort) as string
+        const direction = this.searchParams.get(QueryProperty.Direction) as string
+
+        // Take the minimum number between the 'size=' param and the total results, which we got from a previous query. This is
+        // basically our LIMIT value if this were SQL.
+        const size = Number(this.searchParams.get(QueryProperty.Size) as string) ?? 10
+        const take = Math.min(size, total)
+
+        // Get the max number of pages, which we'll need to calculate our 'skip' value, which is essentially our starting index
+        // The page itself will always be whatever is smaller: the page value provided or the max possible page. This is basically
+        // our OFFSET value if this were SQL.
+        const totalPages = Math.ceil(total / size);
+        const page = Math.min(Number(this.searchParams.get(QueryProperty.Page)), totalPages) - 1
+        // Our starting index is always our LIMIT size multiplied by our OFFSET
+        const skip = take * page
+        const sortParams = [
+            { field: sortBy, direction: direction },
+            { field: 'name', direction: 'asc' }
+          ];
+
+        return {
+            orderBy: sortParams.map(param => ({
+                [param.field]: param.direction
+              })),
+            take,
+            skip,
+        }
+    }
+
+    getZipCodes() {
+        const providedZip = this.searchParams.get(QueryProperty.Zip) as string
+        const radius = this.searchParams.get(QueryProperty.Distance) as string
+        const nearbyZips = zipcodes.radius(providedZip, Number(radius))
+        return {
+            ...(nearbyZips ? {
+                zipCode: {
+                    in: nearbyZips
+                }
+            } : {})
+        }
+    }
+
+    getSlug() {
+        return this.slug
     }
 
     getUserId() {
-        return { userId: this.userId }
+        return this.userId
+    }
+
+    getProfileId() {
+        return this.profileId
     }
 
     getFilters() {
-
         return {
-            filtersEmpty: this.filters == undefined,
-            filters: this.filters ? this.filters.split(",") : ['']
+            filtersEmpty: this.searchParams.get(QueryProperty.Filters) == undefined,
+            filters: this.searchParams.get(QueryProperty.Filters) ? (this.searchParams.get(QueryProperty.Filters) as string).split(",") : ['']
         }
-    }
-
-    getDomainParams() {
-        const paramsMap = new Map<string, ParamsDictValue>()
-        for (const [key, value] of this.searchParamsHelper.paramsDict.entries()) {
-            if (!allQueryProperties.includes(key)) {
-                paramsMap.set(key, value)
-            }
-        }
-        return Object.fromEntries(paramsMap.entries())
-    }
-
-    getSortValue() {
-        return { sortBy: this.searchParamsHelper.getParamValue(QueryProperty.Sort) }
-    }
-
-    getQueryPattern() {
-        const queryValue = this.searchParamsHelper.getParamValue(QueryProperty.Query);
-        return { query: `%${queryValue}%` }
-    }
-
-    getOffset() {
-        const size = Number(this.searchParamsHelper.getParamValue(QueryProperty.Size))
-        const page = Number(this.searchParamsHelper.getParamValue(QueryProperty.Page)) - 1
-        const offset = size * page
-        return { offset: (offset == null ? 0 : offset) }
-    }
-
-    getSize() {
-        return { size: this.searchParamsHelper.getParamValue(QueryProperty.Size) ?? 10 }
-    }
-
-    getDirection() {
-        return { direction: this.searchParamsHelper.getParamValue(QueryProperty.Direction) }
-    }
-
-    getIdentifier() {
-        if (this.identifier) {
-            if (this.identifier.id !== undefined) { return { id: this.identifier.id } }
-            if (this.identifier.name !== undefined) { return { name: decodeURI(this.identifier.name) } }
-        }
-        return {}
-    }
-
-    static async storePageParams(searchParams: URLSearchParams, filters?: string, identifier?: DynamicRoute, userId?: string) {
-        const searchParamsHelper = new SearchParamsHelper(searchParams)
-        return new QueryHelper(searchParamsHelper, filters, identifier, userId)
     }
 
 }

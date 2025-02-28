@@ -1,6 +1,5 @@
 export enum APIRoutePath {
     AuthLogin = "/api/auth/login/",
-    AuthRegister = "/api/auth/register",
     TokenRefresh = "/api/token/refresh",
     Club = "/api/club/",
     ClubSearch = "/api/club/search",
@@ -10,7 +9,8 @@ export enum APIRoutePath {
     ComedianFavorite = "/api/comedian/favorite",
     ShowSearch = "/api/show/search",
     Home = "/api/home",
-    About = "/api/about"
+    About = "/api/about",
+    Profile = "/api/profile"
 }
 
 export const allPaths = [

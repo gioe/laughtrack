@@ -1,19 +1,24 @@
+import { FilterDTO } from "@/objects/interface/filter.interface";
+
 interface FilterChipProps {
-    label: string;
-    selected: boolean;
-    onClick: () => void;
+    option: FilterDTO;
+    onClick: (value: string) => void;
 }
 
-export const FilterChip = ({ label, selected, onClick }: FilterChipProps) => (
-    <button
-        onClick={onClick}
-        className={`px-4 py-2 rounded-full text-[13px] font-bold font-dmSans transition-colors
+export const FilterChip = ({ option, onClick }: FilterChipProps) => {
+    return (
+        <button
+            onClick={() => {
+                onClick(option.slug);
+            }}
+            className={`px-4 py-2 rounded-full text-[13px] font-bold font-dmSans transition-colors
             ${
-                selected
+                option.selected
                     ? "bg-copper text-white border border-copper hover:border-white"
-                    : "bg-ivory text-gray-700 border border-gray-300 hover:border-copper"
+                    : "bg-coconut-cream text-gray-700 border border-gray-300 hover:border-copper"
             }`}
-    >
-        {label}
-    </button>
-);
+        >
+            {option.name}
+        </button>
+    );
+};

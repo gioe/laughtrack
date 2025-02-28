@@ -4,6 +4,8 @@ import { StyleContextKey } from "@/objects/enum";
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
 export interface StyleValues {
+    headerBackgroundColor: string;
+    inputTextColor: string;
     iconTextColor: string;
     logoTextColor: string;
     buttonBgColor: string;
@@ -26,7 +28,9 @@ export const styleContexts: StyleContexts = [
     {
         key: StyleContextKey.Home,
         values: {
+            headerBackgroundColor: "bg-transparent",
             logoTextColor: "text-white",
+            inputTextColor: "text-white",
             buttonBgColor: "bg-copper",
             headerItemColorHighlighted: "text-white",
             baseHeaderItemColor: "text-white",
@@ -39,6 +43,8 @@ export const styleContexts: StyleContexts = [
     {
         key: StyleContextKey.Search,
         values: {
+            headerBackgroundColor: "bg-coconut-cream",
+            inputTextColor: "text-black",
             logoTextColor: "text-black",
             buttonBgColor: "bg-black",
             headerItemColorHighlighted: "text-cedar",

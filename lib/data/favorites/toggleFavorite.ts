@@ -9,7 +9,7 @@ export async function toggleFavorite(comedianUuid: string,
         await db.favoriteComedian.create({
             data: {
                 comedianId: comedianUuid,
-                userId: Number(userId)
+                profileId: userId
             },
             select: {
                 id: true
@@ -21,7 +21,7 @@ export async function toggleFavorite(comedianUuid: string,
         await db.favoriteComedian.deleteMany({
             where: {
                 comedianId: comedianUuid,
-                userId: Number(userId)
+                profileId: userId
             }
         });
         return false

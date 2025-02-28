@@ -1,10 +1,15 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import moment from "moment";
 import Image from "next/image";
 import { Show } from "@/objects/class/show/Show";
 import { formatShowDate } from "@/util/dateUtil";
+import { getLocalCdnUrl } from "@/util/cdnUtil";
+import { formatTicketString } from "@/util/ticket/ticketUtil";
+import { Ticket } from "@/objects/class/ticket/Ticket";
+
+const PLACEHOLDER = getLocalCdnUrl("club-placeholder.png");
 
 interface ShowCardHeaderProps {
     show: Show;
@@ -13,22 +18,20 @@ interface ShowCardHeaderProps {
 const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
     show,
 }: ShowCardHeaderProps) => {
-    const dateObject = moment(new Date(show.date ?? new Date()));
-    const ticket = show.ticket;
+    const [error, setError] = useState(false);
 
     return (
         <div className="flex items-center gap-4">
-            {/* Venue Logo */}
-            <div className="relative w-16 h-16 rounded-full overflow-hidden">
+            <div className="relative w-16 h-16 rounded-full overflow-hidden invisible md:visible">
                 <Image
-                    src={show.imageUrl}
+                    src={error ? PLACEHOLDER : show.imageUrl}
+                    onError={() => setError(true)}
                     alt={show.clubName ?? "Club logo"}
                     fill
                     className="object-cover"
                 />
             </div>
 
-            {/* Venue Details */}
             <div>
                 <h2 className="text-[24px] font-inter font-bold text-[#2D1810] mb-1">
                     {show.clubName ?? ""}
@@ -41,7 +44,15 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
                 <p className="text-gray-600 font-dmSans text-[18px]">
                     {formatShowDate(show.date.toString())} · {`${show.address}`}
                 </p>
-                <p className="text-copper font-semibold mt-1 font-inter text-[20px]">{`$${ticket.price.toString()}`}</p>
+                {!show.soldOut && (
+                    <p className="text-copper font-semibold mt-1 font-inter text-[20px]">
+                        {formatTicketString(
+                            show.tickets.filter(
+                                (ticket: Ticket) => !ticket.soldOut,
+                            ),
+                        )}
+                    </p>
+                )}
             </div>
         </div>
     );

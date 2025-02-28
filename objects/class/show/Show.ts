@@ -5,6 +5,7 @@ import { ComedianDTO } from "../comedian/comedian.interface";
 import { ShowDTO, ShowInterface } from "./show.interface";
 import { Ticket } from "../ticket/Ticket";
 import { SocialData } from "../socialData/SocialData";
+import { TicketDTO } from "../ticket/ticket.interface";
 
 export class Show implements ShowInterface {
     // Properties
@@ -14,7 +15,7 @@ export class Show implements ShowInterface {
     popularityScore?: number | undefined;
     clubName?: string | undefined;
     address?: string | undefined;
-    ticket: Ticket;
+    tickets: Ticket[];
     tagIds: number[];
     id: number;
     type: EntityType = EntityType.Show;
@@ -34,7 +35,7 @@ export class Show implements ShowInterface {
         this.containedEntities = input.lineup ? input.lineup.map((item: ComedianDTO) => new Comedian(item)) : []
         this.lineup = input.lineup ? input.lineup.map((item: ComedianDTO) => new Comedian(item)) : []
         this.clubName = input.clubName;
-        this.ticket = new Ticket(input.ticket)
+        this.tickets = input.tickets ? input.tickets.map((item: TicketDTO) => new Ticket(item)) : []
         this.tagIds = input.tags ? input.tags : [];
         this.id = input.id ?? 0
         this.description = input.description
@@ -42,5 +43,7 @@ export class Show implements ShowInterface {
         this.imageUrl = input.imageUrl
         this.soldOut = input.soldOut
     }
+    clubAddress?: string | undefined;
+    ticket: Ticket;
 
 }
