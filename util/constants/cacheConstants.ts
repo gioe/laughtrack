@@ -1,6 +1,6 @@
 export const CACHE = {
-    detailPage: 1,
+    detailPage: 3600,
     search: 1,
     home: 86400,
-    stats: 1,
+    stats: 86400,
 };

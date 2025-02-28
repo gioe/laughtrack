@@ -74,7 +74,6 @@ export async function findComediansWithCount(
 
     return {
         comedians: filteredComedians.map((comedian) => {
-            // If this comedian has a parent, use the parent's data
             const effectiveComedian = getEffectiveComedian(comedian);
             const isAlias = containsAliasTag(effectiveComedian.taggedComedians);
             return {
