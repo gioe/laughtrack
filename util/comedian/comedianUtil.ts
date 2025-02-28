@@ -31,16 +31,14 @@ const mapLineupItem = (item: { comedian: any }, userId?: string) => {
         id: effectiveComedian.id,
         uuid: effectiveComedian.uuid,
         name: effectiveComedian.name,
-        imageUrl: buildComedianImageUrl(effectiveComedian, isAlias),
+        imageUrl: buildComedianImageUrl(effectiveComedian.name),
         isFavorite: userId ? item.comedian.favoriteComedians.length > 0 : false ,
         isAlias,
     };
 };
 
 export const containsAliasTag = (taggedComedians: any[]) => {
-    return taggedComedians.includes((tag: any) => {
-        return tag.slug = 'alias'
-    })
+    return taggedComedians.some(tc => tc.tag.slug === 'alias');
 }
 
 export const getEffectiveComedian = (comedian: any) => comedian.parentComedian || comedian;

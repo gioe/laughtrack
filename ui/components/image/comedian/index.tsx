@@ -17,6 +17,7 @@ interface ComedianHeadshotProps {
 }
 
 const PLACEHOLDER = getLocalCdnUrl("comedian-placeholder.png");
+const ALIAS_PLACEHOLDER = getLocalCdnUrl("mystery-comedian-placeholder.png");
 
 const variantStyles = {
     grid: {
@@ -45,6 +46,14 @@ const ComedianHeadshot = ({
         entityId: comedian.uuid,
     });
 
+    const determineImage = () => {
+        return error
+            ? comedian.isAlias
+                ? ALIAS_PLACEHOLDER
+                : PLACEHOLDER
+            : comedian.imageUrl;
+    };
+
     const styles = variantStyles[variant];
 
     const imageProps =
@@ -65,7 +74,7 @@ const ComedianHeadshot = ({
                 className="block w-full h-full relative"
             >
                 <Image
-                    src={error ? PLACEHOLDER : comedian.imageUrl}
+                    src={determineImage()}
                     alt={`${comedian.name}`}
                     className={styles.image}
                     priority={false}

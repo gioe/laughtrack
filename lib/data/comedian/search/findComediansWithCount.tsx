@@ -21,7 +21,6 @@ export async function findComediansWithCount(
         where: whereClause,
     });
 
-    console.log(whereClause);
     // Execute both queries in parallel with updated select
     const filteredComedians = await db.comedian.findMany({
         where: whereClause,
@@ -77,20 +76,11 @@ export async function findComediansWithCount(
         comedians: filteredComedians.map((comedian) => {
             // If this comedian has a parent, use the parent's data
             const effectiveComedian = getEffectiveComedian(comedian);
-            console.log(effectiveComedian);
-
-            if (effectiveComedian.name == "Adal Rifai") {
-                console.log(effectiveComedian.taggedComedians);
-            }
             const isAlias = containsAliasTag(effectiveComedian.taggedComedians);
-
             return {
                 id: effectiveComedian.id,
                 name: effectiveComedian.name,
-                imageUrl: buildComedianImageUrl(
-                    effectiveComedian.name,
-                    isAlias,
-                ),
+                imageUrl: buildComedianImageUrl(effectiveComedian.name),
                 isAlias,
                 uuid: effectiveComedian.uuid,
                 isFavorite:
