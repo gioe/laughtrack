@@ -21,6 +21,7 @@ export async function findComediansWithCount(
         where: whereClause,
     });
 
+    console.log(whereClause);
     // Execute both queries in parallel with updated select
     const filteredComedians = await db.comedian.findMany({
         where: whereClause,
@@ -53,25 +54,13 @@ export async function findComediansWithCount(
                     popularity: true,
                 },
             },
-            lineupItems: {
+            taggedComedians: {
                 select: {
-                    id: true,
-                    comedian: {
-                        select: {
-                            taggedComedians: true,
-                        },
-                    },
+                    tag: true,
                 },
+            },
+            lineupItems: {
                 where: {
-                    comedian: {
-                        taggedComedians: {
-                            none: {
-                                tag: {
-                                    restrictContent: true,
-                                },
-                            },
-                        },
-                    },
                     show: {
                         date: {
                             gt: new Date(),
@@ -88,7 +77,13 @@ export async function findComediansWithCount(
         comedians: filteredComedians.map((comedian) => {
             // If this comedian has a parent, use the parent's data
             const effectiveComedian = getEffectiveComedian(comedian);
-            const isAlias = containsAliasTag(effectiveComedian);
+            console.log(effectiveComedian);
+
+            if (effectiveComedian.name == "Adal Rifai") {
+                console.log(effectiveComedian.taggedComedians);
+            }
+            const isAlias = containsAliasTag(effectiveComedian.taggedComedians);
+
             return {
                 id: effectiveComedian.id,
                 name: effectiveComedian.name,

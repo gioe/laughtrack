@@ -4,7 +4,7 @@ import { Prisma } from "@prisma/client";
 import { ParameterizedRequestData } from "@/objects/interface";
 import { toZonedTime, format } from 'date-fns-tz';
 
-// This class is meant to capture all of the page parameters that Next provides us with.
+// This class is meant to capture all of the page parameters that our Page URL contains and converts them into query parameters.
 // These are relevant for DB querying and their existence persists across all pages so we capture it
 // as globally as possible, updating values according to page transitions.
 // It is almost certainly too bloated.
@@ -44,7 +44,7 @@ export class QueryHelper {
             taggedComedians: {
               none: {
                 tag: {
-                  restrictContent: false,
+                  restrictContent: true,
                 },
               },
             },
@@ -55,7 +55,7 @@ export class QueryHelper {
         }
 
         return {
-            commonClause,
+            ...commonClause,
             AND: [
                 {
                     taggedComedians: {

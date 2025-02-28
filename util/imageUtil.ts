@@ -1,5 +1,4 @@
 export const buildComedianImageUrl = (name: string, isAlias: boolean) => {
-    console.log(`Is Alias? ${isAlias}`)
     if (isAlias) {
         return new URL("mystery-comedian-placeholder.png", `https://${process.env.BUNNYCDN_CDN_HOST}/`).toString()
     }
