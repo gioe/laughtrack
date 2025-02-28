@@ -21,6 +21,7 @@ export default async function ShowSearchPage(props: any) {
         params: searchParams,
         timezone: cookieStore.get("timezone")?.value || "UTC",
         userId: session?.profile?.userId,
+        profileId: session?.profile?.id,
     };
 
     const getCachedSearchPageData = (requestData: ParameterizedRequestData) =>

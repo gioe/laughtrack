@@ -25,6 +25,7 @@ export default async function ComedianDetailsPage(props: {
         params: searchParams,
         timezone: cookieStore.get("timezone")?.value || "UTC",
         userId: session?.profile?.userId,
+        profileId: session?.profile?.id,
         slug: slug?.name,
     };
 

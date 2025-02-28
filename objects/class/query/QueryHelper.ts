@@ -12,12 +12,14 @@ export class QueryHelper {
 
     searchParams: URLSearchParams;
     slug?: string
+    profileId?: string;
     userId?: string;
     timezone: string
 
     constructor(requestData: ParameterizedRequestData) {
         this.timezone = requestData.timezone
         this.userId = requestData.userId
+        this.profileId = requestData.profileId
         this.slug = requestData.slug ? decodeURI(requestData.slug) : undefined
         this.searchParams = new URLSearchParams(requestData.params)
     }
@@ -75,27 +77,11 @@ export class QueryHelper {
 
     getFavoriteComedianClause() {
         return {
-            ...(this.userId
-                ? {
-                      favoriteComedians: {
-                          where: {
-                              user: {
-                                  userId: this.userId,
-                              },
-                          },
-                      },
-                  }
-                : {}),
-        }
-    }
-
-    getFavoriteComedianClauseWithSelection() {
-        return {
-            ...(this.userId ? {
+            ...(this.getProfileId() ? {
                 favoriteComedians: {
                     where: {
                         user: {
-                            id: this.userId
+                            id: this.getProfileId()
                         }
                     },
                     select: {
@@ -330,6 +316,10 @@ export class QueryHelper {
 
     getUserId() {
         return this.userId
+    }
+
+    getProfileId() {
+        return this.profileId
     }
 
     getFilters() {

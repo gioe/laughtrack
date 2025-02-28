@@ -22,6 +22,7 @@ export default async function ClubSearchPage(props: any) {
         params: searchParams,
         timezone: cookieStore.get("timezone")?.value || "UTC",
         userId: session?.profile?.userId,
+        profileId: session?.profile?.id,
     };
 
     const getCachedSearchPageData = (requestData: ParameterizedRequestData) =>

@@ -7,7 +7,6 @@ import { ParameterizedRequestData } from "@/objects/interface";
 
 export async function getSearchedShows(requestData: ParameterizedRequestData) {
     try {
-
         const helper = new QueryHelper(requestData);
 
         const [showsWithCount, filters] = await Promise.all([

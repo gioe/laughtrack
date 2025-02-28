@@ -23,17 +23,7 @@ export async function findComedianByName(
             youtubeFollowers: true,
             website: true,
             popularity: true,
-            ...(helper.getUserId()
-                ? {
-                      favoriteComedians: {
-                          where: {
-                              user: {
-                                  id: helper.getUserId(),
-                              },
-                          },
-                      },
-                  }
-                : {}),
+            ...helper.getFavoriteComedianClause(),
             lineupItems: {
                 select: {
                     id: true,

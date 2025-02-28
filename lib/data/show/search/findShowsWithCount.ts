@@ -94,7 +94,7 @@ export async function findShowsWithCount(helper: QueryHelper): Promise<ShowsResp
                                         tag: true
                                     }
                                 },
-                                ...helper.getFavoriteComedianClauseWithSelection()
+                                ...helper.getFavoriteComedianClause()
                             }
                         }
                     }
@@ -103,7 +103,6 @@ export async function findShowsWithCount(helper: QueryHelper): Promise<ShowsResp
 
             ...helper.getGenericClauses(totalCount),
         });
-
     return {
         shows: filteredShows.map(show => ({
             id: show.id,
