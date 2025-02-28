@@ -7,6 +7,7 @@ import { Show } from "@/objects/class/show/Show";
 import { formatShowDate } from "@/util/dateUtil";
 import { getLocalCdnUrl } from "@/util/cdnUtil";
 import { formatTicketString } from "@/util/ticket/ticketUtil";
+import { Ticket } from "@/objects/class/ticket/Ticket";
 
 const PLACEHOLDER = getLocalCdnUrl("club-placeholder.png");
 
@@ -45,7 +46,11 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
                 </p>
                 {!show.soldOut && (
                     <p className="text-copper font-semibold mt-1 font-inter text-[20px]">
-                        {formatTicketString(show.tickets)}
+                        {formatTicketString(
+                            show.tickets.filter(
+                                (ticket: Ticket) => !ticket.soldOut,
+                            ),
+                        )}
                     </p>
                 )}
             </div>
