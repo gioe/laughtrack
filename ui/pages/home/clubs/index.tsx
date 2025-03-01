@@ -37,7 +37,7 @@ const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
     };
 
     return (
-        <div className="max-w-full mx-auto px-8 py-12 bg-coconut-cream">
+        <div className="max-w-7xl w-full mx-auto px-8 py-12 bg-coconut-cream">
             <div className="flex justify-between items-center mb-4">
                 <div>
                     <h2 className="text-[36px] font-bold font-gilroy-bold text-cedar mb-2">

@@ -7,12 +7,14 @@ import { usePathname } from "next/navigation";
 import { UserProfileInterface } from "@/app/api/profile/[id]/interface";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import { useLoginModal } from "@/hooks";
+import { HamburgerMenuButton } from "../button/hamburger";
 
 interface HeaderProps {
+    onClick: (open: boolean) => void;
     currentUser?: UserProfileInterface | null;
 }
 
-export function Header({ currentUser }: HeaderProps) {
+export function Header({ onClick, currentUser }: HeaderProps) {
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
     const pathname = usePathname();
@@ -27,6 +29,9 @@ export function Header({ currentUser }: HeaderProps) {
         <nav
             className={`relative px-4 py-4 ${styleConfig.headerBackgroundColor}`}
         >
+            <div className="flex lg:hidden">
+                <HamburgerMenuButton handleClick={() => onClick(true)} />
+            </div>
             <div className="hidden max-w-7xl mx-auto items-center lg:grid lg:grid-cols-3 ">
                 <div className="col-start-1">
                     <Logo />

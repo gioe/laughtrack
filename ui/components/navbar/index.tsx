@@ -14,7 +14,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
 
     return (
         <div className="w-full">
-            <Header currentUser={currentUser} />
+            <Header currentUser={currentUser} onClick={setMobileMenuOpen} />
             <div className="lg:hidden">
                 <SideDrawer
                     open={mobileMenuOpen}
