@@ -2,7 +2,7 @@ import { getLocalCdnUrl } from "@/util/cdnUtil";
 
 export default function AuthImageContent() {
     return (
-        <div className="w-1/2 relative bg-gray-900">
+        <div className="invisible lg:visible lg:w-1/2 lg:relative lg:bg-gray-900">
             <img
                 src={getLocalCdnUrl(`sidebar.png`)}
                 alt="Comedy show"

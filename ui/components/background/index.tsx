@@ -17,9 +17,11 @@ export default function BackgroundImage({
                 <Image
                     src={imageUrl}
                     alt={alt}
-                    width={2880}
-                    height={1772}
-                    className="object-cover object-center w-full h-full"
+                    fill
+                    sizes="(max-width: 768px) 100vw,
+                           (max-width: 1200px) 100vw,
+                           100vw"
+                    className="object-cover object-center"
                     priority
                     quality={90}
                 />
