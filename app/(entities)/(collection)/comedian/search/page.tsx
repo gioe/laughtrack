@@ -66,7 +66,7 @@ export default async function ComedianSearchPage(props: any) {
 
             <ComedianGrid
                 comedians={data}
-                className="grid grid-cols-2 gap-6 m:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
+                className="grid grid-cols-1 m:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6"
             />
         </main>
     );

@@ -52,6 +52,18 @@ const FooterComponent = () => {
                             >
                                 Contact
                             </a>
+                            <a
+                                href="/privacy"
+                                className="text-gray-600 hover:text-copper transition-colors text-[17px] font-dmSans font-semibold"
+                            >
+                                Privacy
+                            </a>
+                            <a
+                                href="/terms"
+                                className="text-gray-600 hover:text-copper transition-colors text-[17px] font-dmSans font-semibold"
+                            >
+                                Terms and Conditions
+                            </a>
                             {/* <a
                                 href="/support"
                                 className="text-gray-600 hover:text-copper transition-colors text-[17px] font-dmSans font-semibold"

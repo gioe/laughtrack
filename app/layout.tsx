@@ -3,6 +3,7 @@ import "./fonts.css";
 import { ScrollPositionManager } from "@/ui/components/scroll/manager";
 import { HeroUIProvider } from "@heroui/react";
 import { SessionProvider } from "next-auth/react";
+import { Analytics } from "@vercel/analytics/react";
 import {
     Bebas_Neue,
     Oswald,
@@ -95,6 +96,7 @@ export default async function RootLayout({
                                 <ClientTimezone />
                                 {children}
                             </StyleContextProvider>
+                            <Analytics />
                             <SpeedInsights />
                         </TimezoneProvider>
                     </HeroUIProvider>

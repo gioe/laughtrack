@@ -91,11 +91,6 @@ export function SideDrawer({ open, onClose, currentUser }: SideDrawerProps) {
                                         handleClick={handleLoginClick}
                                         label="Log In"
                                     />
-
-                                    {/* <FullRoundedButton
-                                        handleClick={handleSignupClick}
-                                        label="Sign Up"
-                                    /> */}
                                 </>
                             )}
                         </div>

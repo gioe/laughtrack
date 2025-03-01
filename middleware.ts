@@ -9,11 +9,12 @@ import { Session } from "next-auth";
 
 const protectedRoutes = [
     '/profile',
-  ]
+]
 
 function isProtectedRoute(pathname: string): boolean {
     return protectedRoutes.some(route => pathname.startsWith(route))
 }
+
 export async function middleware(request: NextRequest) {
     const pathname = request.nextUrl.pathname
     const session = await auth()
