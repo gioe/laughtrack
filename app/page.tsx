@@ -4,15 +4,15 @@ import { auth } from "../auth";
 import { unstable_cache } from "next/cache";
 import { Session } from "next-auth";
 import { CACHE } from "@/util/constants/cacheConstants";
-import HeroComponent from "@/ui/pages/home/hero";
-import TrendingComedianGrid from "@/ui/pages/home/comedians";
-import TrendingClubsCarousel from "@/ui/pages/home/clubs";
-import FooterComponent from "@/ui/pages/home/footer";
 import { getTrendingComedians } from "@/lib/data/home/getTrendingComedians";
 import { getPopularClubs } from "@/lib/data/home/getPopularClubs";
 import { Prisma } from "@prisma/client";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { ClubDTO } from "@/objects/class/club/club.interface";
+import HeroComponent from "@/ui/pages/home/hero";
+import TrendingComedianGrid from "@/ui/pages/home/comedians";
+import TrendingClubsCarousel from "@/ui/pages/home/clubs";
+import FooterComponent from "@/ui/pages/home/footer";
 
 export interface HomePageData {
     comedians: ComedianDTO[];

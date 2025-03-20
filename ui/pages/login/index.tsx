@@ -11,20 +11,17 @@ interface LaughtrackLoginProps {
 function LaughtrackLogin({ handleSubmit }: LaughtrackLoginProps) {
     return (
         <div className="flex min-h-screen bg-coconut-cream">
-            {/* Left Section - Login Form */}
-            <div className="w-1/2 p-8 flex flex-col">
+            <div className="w-full text-center lg:text-left lg:w-1/2 p-8 flex flex-col">
                 <div className="w-full px-8 pt-8 mb-12">
                     <h1 className="text-3xl font-bold text-gray-900 font-chivo">
                         Laughtrack
                     </h1>
                 </div>
 
-                {/* Main Content */}
-                <main className="flex-1 flex flex-col items-center px-4">
-                    {/* Login Form */}
+                <div className="flex-1 flex flex-col items-center px-4">
                     <div className="w-full max-w-md space-y-6">
                         <div className="text-center space-y-2">
-                            <h2 className="text-2xl font-bold text-gray-900 font-inter text-[28px]">
+                            <h2 className="text-2xl font-bold text-gray-900 font-dmSans text-[28px]">
                                 Welcome back
                             </h2>
                             <p className="text-gray-600 font-dmSans text-[16px]">
@@ -35,10 +32,9 @@ function LaughtrackLogin({ handleSubmit }: LaughtrackLoginProps) {
 
                         <LoginForm onSubmit={handleSubmit} />
                     </div>
-                </main>
+                </div>
                 <Copyright />
             </div>
-
             <AuthImageContent />
         </div>
     );

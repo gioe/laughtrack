@@ -9,7 +9,7 @@ interface TrendingComedianGridProps {
 }
 const TrendingComedianGrid = ({ comedians }: TrendingComedianGridProps) => {
     return (
-        <div className="max-w-7xl mx-auto py-8">
+        <div className="max-w-7xl w-full mx-auto py-8">
             <div className="text-center mb-8">
                 <h1 className="text-[36px] font-bold font-gilroy-bold mb-2 text-cedar">
                     Trending
