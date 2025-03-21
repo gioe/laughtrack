@@ -11,7 +11,7 @@ const ShowTable = ({
     errorMessage = "No results. Not the best search I've ever seen",
 }: ShowTableProps) => {
     return (
-        <section className="grid grid-cols-1 gap-y-10 m-8">
+        <section className="grid grid-cols-1 gap-y-6 sm:gap-y-8 md:gap-y-10 px-4 sm:px-6 md:px-8 mb-10">
             {shows.length > 0 ? (
                 shows.map((show) => {
                     return (
@@ -19,7 +19,7 @@ const ShowTable = ({
                     );
                 })
             ) : (
-                <h2 className="font-bold font-dmSans text-[60px] text-center max-w-7xl pt-6">
+                <h2 className="font-bold font-dmSans text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-center max-w-7xl pt-6">
                     {errorMessage}
                 </h2>
             )}

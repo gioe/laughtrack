@@ -16,10 +16,10 @@ export default function SearchBarContainer({
     if (variant == StyleContextKey.Search) {
         return (
             <div
-                className={`flex flex-col gap-4 rounded-lg
-                bg-ivory border border-black
-                px-4 py-3 shadow-lg ${maxWidth} w-full
-                ${sizeFlip}:flex-row ${sizeFlip}:rounded-full ${sizeFlip}:items-center`}
+                className={`flex flex-col gap-3 sm:gap-4 rounded-lg
+              bg-ivory border border-black
+              px-3 sm:px-4 py-2 sm:py-3 shadow-lg ${maxWidth} w-full mx-auto
+              ${sizeFlip}:flex-row ${sizeFlip}:rounded-full ${sizeFlip}:items-center`}
             >
                 {children}
             </div>
@@ -27,9 +27,10 @@ export default function SearchBarContainer({
     }
     return (
         <div
-            className={`flex flex-col gap-4 px-4 py-3 rounded-lg gap-y-4
-                    bg-coconut-cream/20 backdrop-blur
-                    lg:flex-row lg:rounded-full lg:items-center`}
+            className={`flex flex-col gap-3 sm:gap-4 px-3 sm:px-8 xs:px-8 xs:mx-8 py-2 sm:py-3 rounded-lg 
+                  bg-coconut-cream/20 backdrop-blur
+                  ${maxWidth}
+                  lg:flex-row lg:rounded-full lg:items-center`}
         >
             {children}
         </div>

@@ -18,16 +18,18 @@ const ShowCard: React.FC<ShowCardProps> = ({ show }: ShowCardProps) => {
         parsedShow.tickets.filter((ticket) => !ticket.soldOut).length > 0;
 
     return (
-        <div className="p-6 bg-[#FDF8EF] overflow-hidden transition-transform duration-300 hover:scale-105 rounded-xl">
-            <div className="flex items-center justify-between mb-8">
+        <div className="p-4 sm:p-6 bg-[#FDF8EF] overflow-hidden transition-transform duration-300 hover:scale-105 rounded-xl">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-0 mb-6 sm:mb-8">
                 <ShowCardHeader show={parsedShow} />
 
                 {parsedShow.tickets.length > 0 && (
-                    <FullRoundedButton
-                        href={parsedShow.tickets[0].purchaseUrl}
-                        label={stillOnSale ? "Get Tickets" : "Sold Out"}
-                        color={stillOnSale ? "bg-copper" : "bg-red-500"}
-                    />
+                    <div className="self-end sm:self-auto">
+                        <FullRoundedButton
+                            href={parsedShow.tickets[0].purchaseUrl}
+                            label={stillOnSale ? "Get Tickets" : "Sold Out"}
+                            color={stillOnSale ? "bg-copper" : "bg-red-500"}
+                        />
+                    </div>
                 )}
             </div>
 

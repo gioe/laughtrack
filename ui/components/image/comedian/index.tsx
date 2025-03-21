@@ -11,7 +11,7 @@ import { getLocalCdnUrl } from "@/util/cdnUtil";
 
 interface ComedianHeadshotProps {
     comedian: Comedian;
-    sizes?: string; // Make optional since lineup won't need it
+    sizes?: string;
     variant?: "grid" | "lineup";
     className?: string;
 }
@@ -21,13 +21,13 @@ const ALIAS_PLACEHOLDER = getLocalCdnUrl("mystery-comedian-placeholder.png");
 
 const variantStyles = {
     grid: {
-        container: "relative h-64",
-        image: "object-cover object-center rounded-xl", // object-cover will crop/scale to fill
+        container: "relative w-full aspect-square",
+        image: "object-cover object-center rounded-xl",
         favoriteButton: "absolute top-2 right-2",
     },
     lineup: {
         container: "relative h-[136px] w-[136px]",
-        image: "object-cover object-center rounded-xl", // object-cover will crop/scale to fill
+        image: "object-cover object-center rounded-xl",
         favoriteButton: "absolute -top-1 -right-1 scale-75",
     },
 };
@@ -56,17 +56,6 @@ const ComedianHeadshot = ({
 
     const styles = variantStyles[variant];
 
-    const imageProps =
-        variant === "grid"
-            ? {
-                  fill: true,
-                  sizes: sizes,
-              }
-            : {
-                  width: 136,
-                  height: 136,
-              };
-
     return (
         <div className={`${styles.container} ${className}`}>
             <Link
@@ -80,7 +69,8 @@ const ComedianHeadshot = ({
                     priority={false}
                     onError={() => setError(true)}
                     onLoad={() => setLoaded(true)}
-                    {...imageProps}
+                    fill={true}
+                    sizes={sizes}
                 />
             </Link>
             {loaded && (
