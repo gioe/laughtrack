@@ -16,14 +16,13 @@ import { useUrlParams } from "@/hooks/useUrlParams";
 import SearchBarContainer from "../../components/container";
 
 const LoadingOverlay = () => (
-    <div className="absolute inset-0 bg-black/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+    <div className="absolute inset-0 bg-black/20 backdrop-blur-sm rounded-full flex items-center justify-center z-10">
         <Loader2 className="w-6 h-6 text-white animate-spin" />
     </div>
 );
 
 export default function ShowSearchForm() {
     const { setMultipleTypedParams } = useUrlParams();
-
     const [isLoading, setIsLoading] = useState(false);
 
     const form = useForm<z.infer<typeof showSearchFormSchema>>({
@@ -65,7 +64,7 @@ export default function ShowSearchForm() {
                 "show/search",
             );
         } catch (error) {
-            console.error("Error duriang navigation:", error);
+            console.error("Error during navigation:", error);
         } finally {
             setIsLoading(false);
         }
@@ -73,17 +72,21 @@ export default function ShowSearchForm() {
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(submitForm)} className="relative">
+            <form
+                onSubmit={form.handleSubmit(submitForm)}
+                className="relative w-full"
+            >
                 <SearchBarContainer variant={StyleContextKey.Home}>
                     {isLoading && <LoadingOverlay />}
 
-                    <div className={`lg:pr-4 lg:border-r`}>
+                    <div className="flex-1 flex items-center pr-4 border-r">
                         <ShowLocationComponent
                             variant={ComponentVariant.Form}
                             form={form}
                         />
                     </div>
-                    <div>
+
+                    <div className="flex-1 px-4">
                         <CalendarComponent
                             variant={ComponentVariant.Form}
                             name="dates"
@@ -91,11 +94,11 @@ export default function ShowSearchForm() {
                         />
                     </div>
 
-                    <div>
+                    <div className="ml-auto">
                         <CircleIconButton
                             type="submit"
                             isLoading={isLoading}
-                            className="bg-copper w-full lg:w-auto"
+                            className="bg-copper"
                         >
                             <Search className="text-white" />
                         </CircleIconButton>

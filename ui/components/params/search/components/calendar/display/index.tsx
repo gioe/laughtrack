@@ -1,3 +1,4 @@
+// CalendarDisplay.tsx
 import React from "react";
 import { formatDateRange } from "@/util/primatives/dateUtil";
 import { ChevronsUpDown } from "lucide-react";
@@ -10,6 +11,7 @@ import {
     PopoverContent,
 } from "@/ui/components/ui/popover";
 import { DateRange } from "@/objects/interface";
+import { useMediaQuery } from "@/hooks/useMediaQuery"; // You'll need to create this hook
 
 const PLACEHOLDER = "When";
 
@@ -28,37 +30,43 @@ export const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    const isMobile = useMediaQuery("(max-width: 768px)");
+
     return (
-        <div className="flex items-center gap-2 w-full">
-            <CalendarIcon className={`w-5 h-5 ${styleConfig.iconTextColor}`} />
+        <div className="flex items-center">
+            <CalendarIcon
+                className={`w-5 h-5 mr-2 ${styleConfig.iconTextColor}`}
+            />
             <Popover>
                 <PopoverTrigger asChild>
-                    <div>
-                        <div className="flex items-center justify-between w-full h-9 gap-2 pl-2">
-                            <div
-                                className={`text-[18px] ${styleConfig.inputTextColor} font-dmSans`}
-                            >
-                                {formatDateRange(PLACEHOLDER, selectedRange)}
-                            </div>
-                            <ChevronsUpDown
-                                className={`w-4 h-4 opacity-50 ${styleConfig.iconTextColor}`}
-                            />
+                    <button
+                        type="button"
+                        className="flex items-center focus:outline-none"
+                    >
+                        <div
+                            className={`text-base ${styleConfig.inputTextColor} font-dmSans`}
+                        >
+                            {formatDateRange(PLACEHOLDER, selectedRange)}
                         </div>
-                    </div>
+                        <ChevronsUpDown
+                            className={`w-4 h-4 ml-1 opacity-50 ${styleConfig.iconTextColor}`}
+                        />
+                    </button>
                 </PopoverTrigger>
                 <PopoverContent
-                    className="w-auto p-0 rounded-lg"
-                    align="start"
-                    sideOffset={8}
+                    className="p-0 rounded-lg border shadow-lg"
+                    align="center"
+                    sideOffset={16}
+                    avoidCollisions={true}
                 >
                     <Calendar
                         className="rounded-lg"
                         initialFocus
                         mode="range"
                         selected={selectedRange}
-                        defaultMonth={selectedRange?.from}
+                        defaultMonth={selectedRange?.from || new Date()}
                         onSelect={onSelect}
-                        numberOfMonths={2}
+                        numberOfMonths={isMobile ? 1 : 2}
                         disabled={(date) => date < today}
                     />
                 </PopoverContent>

@@ -1,3 +1,4 @@
+// ShowLocationComponent.tsx
 import { UseFormReturn } from "react-hook-form";
 import React from "react";
 import { useStyleContext } from "@/contexts/StyleProvider";
@@ -64,7 +65,7 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
                 <ZipCodeInput
                     variant={props.variant}
                     form={props.form}
-                    placeholder="Enter a zip code"
+                    placeholder="Zip code"
                     disabled={false}
                     name="distance.zipCode"
                 />
@@ -76,27 +77,36 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
                 variant={props.variant}
                 value={props.value?.zipCode ?? ""}
                 onChange={props.onZipcodeInput}
-                placeholder="Enter a zip code"
+                placeholder="Zip code"
                 disabled={false}
             />
         );
     };
 
     return (
-        <div className="flex items-center gap-2">
-            <MapPin className={`w-5 h-5 ${styleConfig.iconTextColor}`} />
-            {buildDropdownComponent(props)}
+        <div className="flex items-center flex-wrap">
+            <div className="flex items-center mr-2">
+                <MapPin
+                    className={`w-5 h-5 mr-1 ${styleConfig.iconTextColor}`}
+                />
+                {buildDropdownComponent(props)}
+            </div>
+
             <div
-                className={`${styleConfig.inputTextColor} text-[18px] font-dmSans`}
+                className={`${styleConfig.inputTextColor} text-base font-dmSans mr-2`}
             >
                 miles
             </div>
+
             <div
-                className={`${styleConfig.inputTextColor} text-[18px] font-dmSans`}
+                className={`${styleConfig.inputTextColor} text-base font-dmSans mr-2`}
             >
                 around
             </div>
-            <div>{buildZipCodeComponent(props)}</div>
+
+            <div className="flex-1 min-w-[120px]">
+                {buildZipCodeComponent(props)}
+            </div>
         </div>
     );
 };

@@ -1,38 +1,32 @@
+// SearchBarContainer.tsx
 import { StyleContextKey } from "@/objects/enum";
 
 interface SearchBarContainerProps {
     children: React.ReactNode;
     maxWidth?: string;
     variant?: StyleContextKey;
-    sizeFlip?: string;
 }
 
 export default function SearchBarContainer({
     children,
     variant = StyleContextKey.Search,
-    maxWidth = "max-w-7xl",
-    sizeFlip = "lg",
+    maxWidth = "max-w-4xl",
 }: SearchBarContainerProps) {
-    if (variant == StyleContextKey.Search) {
-        return (
-            <div
-                className={`flex flex-col gap-3 sm:gap-4 rounded-lg
-              bg-ivory border border-black
-              px-3 sm:px-4 py-2 sm:py-3 shadow-lg ${maxWidth} w-full mx-auto
-              ${sizeFlip}:flex-row ${sizeFlip}:rounded-full ${sizeFlip}:items-center`}
-            >
-                {children}
-            </div>
-        );
-    }
-    return (
-        <div
-            className={`flex flex-col gap-3 sm:gap-4 px-3 sm:px-8 xs:px-8 xs:mx-8 py-2 sm:py-3 rounded-lg 
-                  bg-coconut-cream/20 backdrop-blur
-                  ${maxWidth}
-                  lg:flex-row lg:rounded-full lg:items-center`}
-        >
-            {children}
-        </div>
-    );
+    // Common classes for both variants
+    const baseClasses = `
+        w-full mx-auto ${maxWidth}
+        flex flex-col gap-4
+        p-4 rounded-lg
+        transition-all duration-200
+        md:p-4 md:gap-4
+        lg:flex-row lg:items-center lg:rounded-full
+    `;
+
+    // Variant-specific classes
+    const variantClasses =
+        variant === StyleContextKey.Search
+            ? "bg-ivory border border-black shadow-lg"
+            : "bg-coconut-cream/20 backdrop-blur";
+
+    return <div className={`${baseClasses} ${variantClasses}`}>{children}</div>;
 }
