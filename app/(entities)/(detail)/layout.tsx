@@ -16,7 +16,11 @@ export default async function EntityDetailLayout({
     return (
         <StyleContextProvider initialContext={StyleContextKey.Search}>
             <Navbar currentUser={session?.profile} />
-            <Suspense>{children}</Suspense>
+            <Suspense>
+                <main className="min-h-screen w-full bg-coconut-cream px-4 sm:px-6 md:px-8">
+                    {children}
+                </main>
+            </Suspense>
             <FooterComponent />
         </StyleContextProvider>
     );

@@ -9,6 +9,7 @@ import { getClubDetailPageData } from "@/lib/data/club/detail/getClubDetailPageD
 import { unstable_cache } from "next/cache";
 import { ParameterizedRequestData } from "@/objects/interface";
 import { cookies } from "next/headers";
+import ShowTable from "@/ui/pages/search/table";
 
 export default async function ClubDetailPage(props: {
     searchParams: Promise<any>;
@@ -52,15 +53,12 @@ export default async function ClubDetailPage(props: {
         <main className="min-h-screen w-full bg-coconut-cream">
             <FilterModal filters={filters} total={total} />
             <ClubDetailHeader club={data} />
-            <div className="max-w-7xl mx-auto p-6 flex flex-row">
-                <TableWithHeader shows={shows} total={total}>
-                    <FilterBar
-                        variant={SearchVariant.ClubDetail}
-                        total={total}
-                        filters={filters.length > 0}
-                    />
-                </TableWithHeader>
-            </div>
+            <FilterBar
+                variant={SearchVariant.ClubDetail}
+                total={total}
+                filters={filters.length > 0}
+            />
+            <ShowTable shows={shows} />
         </main>
     );
 }

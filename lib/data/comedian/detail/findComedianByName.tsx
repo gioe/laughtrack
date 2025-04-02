@@ -6,7 +6,7 @@ import { QueryHelper } from "@/objects/class/query/QueryHelper";
 export async function findComedianByName(
     helper: QueryHelper,
 ): Promise<ComedianDTO> {
-    const comedianData = await db.comedian.findUnique({
+    const comedianData = await db.comedian.findFirst({
         where: {
             name: helper.getSlug(),
         },

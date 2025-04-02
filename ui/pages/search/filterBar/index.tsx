@@ -48,26 +48,69 @@ const getSortOptions = (variant: SearchVariant) => {
 
 const FilterBar = ({ variant, total, filters }: FilterBarProps) => {
     return (
-        <div className="px-4 py-4 md:px-6 lg:px-10">
-            <div className="flex items-center justify-center w-full">
-                {getSearchBar(variant)}
-            </div>
-
-            <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div className="flex justify-center w-full md:justify-start md:w-auto">
-                    <div className="text-copper">
-                        <PageParamComponent itemCount={total} />
+        <div className="w-full">
+            {/* Search Bar Section - Centered with background */}
+            <div className="w-full bg-coconut-cream/30 border-b border-black/5 mb-6">
+                <div className="max-w-7xl mx-auto px-4 py-4 md:py-6 md:px-6 lg:px-10">
+                    <div className="w-full flex justify-center">
+                        {getSearchBar(variant)}
                     </div>
                 </div>
+            </div>
 
-                <div className="flex justify-center gap-4 w-full md:justify-end md:w-auto">
-                    <div className="text-copper">{getSortOptions(variant)}</div>
-
-                    {filters && (
-                        <div className="text-copper">
-                            <FilterModalButton />
+            {/* Controls Section - Full width */}
+            <div className="max-w-full mx-auto px-4 md:px-6 lg:px-10">
+                <div className="flex flex-col xl:flex-row items-start xl:items-center gap-6">
+                    {/* Left side - Results count */}
+                    <div className="hidden xl:flex items-center gap-2 min-w-[250px] xl:w-auto order-2 xl:order-1">
+                        <button
+                            type="button"
+                            className="flex items-center gap-2 text-copper font-dmSans text-[16px] whitespace-nowrap"
+                        >
+                            Results:
+                        </button>
+                        <div className="xl:block overflow-x-auto">
+                            <PageParamComponent itemCount={total} />
                         </div>
-                    )}
+                    </div>
+
+                    {/* Controls for smaller screens - stacked vertically */}
+                    <div className="flex flex-col w-full gap-4 xl:hidden">
+                        <div className="flex items-center justify-between w-full">
+                            <div className="text-copper">
+                                {getSortOptions(variant)}
+                            </div>
+                            {filters && (
+                                <div className="text-copper">
+                                    <FilterModalButton />
+                                </div>
+                            )}
+                        </div>
+                        <div className="flex items-center gap-2 overflow-x-auto min-w-0 w-full">
+                            <button
+                                type="button"
+                                className="flex items-center gap-2 text-copper font-dmSans text-[16px] whitespace-nowrap"
+                            >
+                                Results:
+                            </button>
+                            <div className="overflow-x-auto min-w-0">
+                                <PageParamComponent itemCount={total} />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right side - Sort and Filter for large screens */}
+                    <div className="hidden xl:flex items-center justify-end gap-6 flex-1 xl:w-auto order-1 xl:order-2">
+                        <div className="text-copper">
+                            {getSortOptions(variant)}
+                        </div>
+
+                        {filters && (
+                            <div className="text-copper border-l border-copper/20 pl-6">
+                                <FilterModalButton />
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

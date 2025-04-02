@@ -85,11 +85,15 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
     return (
         <div className="flex items-center space-x-3">
             <div className="flex items-center shrink-0 space-x-2">
-                <MapPin className="w-6 h-6 text-white/70" />
+                <MapPin
+                    className={`w-6 h-6 ${getCurrentStyles().iconTextColor}`}
+                />
                 <div className="w-20">{buildDropdownComponent(props)}</div>
             </div>
 
-            <span className="text-base font-normal text-white/70 whitespace-nowrap">
+            <span
+                className={`text-base font-normal ${getCurrentStyles().inputTextColor} whitespace-nowrap`}
+            >
                 miles around
             </span>
 
