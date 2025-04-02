@@ -30,8 +30,6 @@ export const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const isMobile = useMediaQuery("(max-width: 768px)");
-
     return (
         <div className="flex items-center">
             <CalendarIcon
@@ -66,7 +64,7 @@ export const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
                         selected={selectedRange}
                         defaultMonth={selectedRange?.from || new Date()}
                         onSelect={onSelect}
-                        numberOfMonths={isMobile ? 1 : 2}
+                        numberOfMonths={1}
                         disabled={(date) => date < today}
                     />
                 </PopoverContent>

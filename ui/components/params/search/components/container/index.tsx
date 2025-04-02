@@ -15,18 +15,19 @@ export default function SearchBarContainer({
     // Common classes for both variants
     const baseClasses = `
         w-full mx-auto ${maxWidth}
-        flex flex-col gap-4
-        p-4 rounded-lg
+        flex flex-col
+        p-3 md:p-4
+        rounded-2xl
         transition-all duration-200
-        md:p-4 md:gap-4
-        lg:flex-row lg:items-center lg:rounded-full
+        shadow-md hover:shadow-lg
+        backdrop-blur-sm
     `;
 
     // Variant-specific classes
     const variantClasses =
         variant === StyleContextKey.Search
-            ? "bg-ivory border border-black shadow-lg"
-            : "bg-coconut-cream/20 backdrop-blur";
+            ? "bg-ivory/95 border border-black/10"
+            : "bg-coconut-cream/30 border border-white/20";
 
     return <div className={`${baseClasses} ${variantClasses}`}>{children}</div>;
 }

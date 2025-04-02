@@ -4,7 +4,6 @@ import { z } from "zod";
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { CircleIconButton } from "@/ui/components/button/circleIcon";
 import { Search } from "lucide-react";
 import { showSearchFormSchema } from "./schema";
 import { Loader2 } from "lucide-react";
@@ -13,10 +12,9 @@ import { ComponentVariant, StyleContextKey } from "@/objects/enum";
 import CalendarComponent from "../../components/calendar";
 import ShowLocationComponent from "../../components/area";
 import { useUrlParams } from "@/hooks/useUrlParams";
-import SearchBarContainer from "../../components/container";
 
 const LoadingOverlay = () => (
-    <div className="absolute inset-0 bg-black/20 backdrop-blur-sm rounded-full flex items-center justify-center z-10">
+    <div className="absolute inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-10">
         <Loader2 className="w-6 h-6 text-white animate-spin" />
     </div>
 );
@@ -41,7 +39,6 @@ export default function ShowSearchForm() {
 
     async function submitForm(data: z.infer<typeof showSearchFormSchema>) {
         try {
-            // Add validation debugging
             const validationResult = showSearchFormSchema.safeParse(data);
             if (!validationResult.success) {
                 console.log(
@@ -52,8 +49,8 @@ export default function ShowSearchForm() {
             }
 
             setIsLoading(true);
-
             await new Promise((resolve) => setTimeout(resolve, 300));
+
             setMultipleTypedParams(
                 {
                     distance: data.distance.distance,
@@ -74,36 +71,44 @@ export default function ShowSearchForm() {
         <Form {...form}>
             <form
                 onSubmit={form.handleSubmit(submitForm)}
-                className="relative w-full"
+                className="w-full max-w-3xl mx-auto"
             >
-                <SearchBarContainer variant={StyleContextKey.Home}>
+                <div className="relative bg-zinc-900/80 backdrop-blur-md shadow-xl rounded-2xl overflow-hidden border border-white/10">
                     {isLoading && <LoadingOverlay />}
 
-                    <div className="flex-1 flex items-center pr-4 border-r">
-                        <ShowLocationComponent
-                            variant={ComponentVariant.Form}
-                            form={form}
-                        />
-                    </div>
+                    <div className="flex flex-col lg:flex-row">
+                        <div className="flex-1 p-4 lg:p-6">
+                            <div className="flex flex-col lg:flex-row items-center lg:divide-x divide-white/10">
+                                <div className="w-full lg:w-auto mb-4 lg:mb-0 lg:pr-10">
+                                    <ShowLocationComponent
+                                        variant={ComponentVariant.Form}
+                                        form={form}
+                                    />
+                                </div>
+                                <div className="w-full lg:w-auto lg:pl-10">
+                                    <CalendarComponent
+                                        variant={ComponentVariant.Form}
+                                        name="dates"
+                                        form={form}
+                                    />
+                                </div>
+                            </div>
+                        </div>
 
-                    <div className="flex-1 px-4">
-                        <CalendarComponent
-                            variant={ComponentVariant.Form}
-                            name="dates"
-                            form={form}
-                        />
+                        <div className="lg:border-l border-white/10">
+                            <button
+                                type="submit"
+                                disabled={isLoading}
+                                className="w-full lg:w-auto h-full px-8 py-4 lg:px-10 bg-copper hover:bg-copper/90
+                                         transition-colors flex items-center justify-center gap-3 text-white
+                                         font-medium"
+                            >
+                                <Search className="w-6 h-6" />
+                                <span className="lg:hidden">Search Shows</span>
+                            </button>
+                        </div>
                     </div>
-
-                    <div className="ml-auto">
-                        <CircleIconButton
-                            type="submit"
-                            isLoading={isLoading}
-                            className="bg-copper"
-                        >
-                            <Search className="text-white" />
-                        </CircleIconButton>
-                    </div>
-                </SearchBarContainer>
+                </div>
             </form>
         </Form>
     );

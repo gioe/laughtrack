@@ -31,6 +31,10 @@ type ZipCodeInputComponentProps =
     | ZipCodeInputFormProps
     | ZipCodeInputStandaloneProps;
 
+const validateZipCode = (value: string): boolean => {
+    return /^\d{5}$/.test(value);
+};
+
 const ZipCodeInput = (props: ZipCodeInputComponentProps) => {
     if (props.variant == ComponentVariant.Form) {
         return (
@@ -38,12 +42,33 @@ const ZipCodeInput = (props: ZipCodeInputComponentProps) => {
                 control={props.form.control}
                 name={props.name}
                 render={({ field }) => {
+                    const isValid =
+                        !field.value || validateZipCode(field.value);
                     return (
                         <FormItem>
-                            <FormControl className="rounded-lg">
-                                <Input {...field} {...props} />
+                            <FormControl>
+                                <Input
+                                    {...field}
+                                    type="text"
+                                    inputMode="numeric"
+                                    maxLength={5}
+                                    placeholder="Where"
+                                    className="border-b border-white/20 rounded-none px-2 py-1.5
+                                             text-white text-base placeholder:text-base placeholder:text-white/40
+                                             focus:border-white/40 hover:border-white/30
+                                             transition-colors text-center tracking-normal"
+                                    onChange={(e) => {
+                                        const value = e.target.value.replace(
+                                            /\D/g,
+                                            "",
+                                        );
+                                        if (value.length <= 5) {
+                                            field.onChange(value);
+                                        }
+                                    }}
+                                />
                             </FormControl>
-                            <FormMessage />
+                            <FormMessage className="absolute text-xs mt-1" />
                         </FormItem>
                     );
                 }}
@@ -54,37 +79,44 @@ const ZipCodeInput = (props: ZipCodeInputComponentProps) => {
     const [inputValue, setInputValue] = useState<string | undefined>(
         props.value,
     );
-
+    const [isValid, setIsValid] = useState(true);
     const debounceTime = props.debounceTime ?? 500;
 
-    // Get the debounced value
     const debouncedOnChange = useCallback(
         _.debounce((value: string) => {
-            props.onChange?.(value);
+            if (!value || validateZipCode(value)) {
+                props.onChange?.(value);
+            }
         }, debounceTime),
         [props, debounceTime],
     );
 
-    // Update local value when prop value changes
     useEffect(() => {
         setInputValue(props.value);
-    }, [props]);
+        setIsValid(!props.value || validateZipCode(props.value));
+    }, [props.value]);
 
-    // Handle input changes
     const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-        const newValue = event.target.value;
-        setInputValue(newValue);
-        debouncedOnChange(newValue);
+        const value = event.target.value.replace(/\D/g, "");
+        if (value.length <= 5) {
+            setInputValue(value);
+            setIsValid(!value || validateZipCode(value));
+            debouncedOnChange(value);
+        }
     };
 
     return (
         <Input
             type="text"
+            inputMode="numeric"
             maxLength={5}
-            pattern="[0-9]{5}"
             value={inputValue}
             onChange={handleInputChange}
-            placeholder={props.placeholder}
+            placeholder="Where"
+            className="border-b border-white/20 rounded-none px-2 py-1.5
+                     text-white text-base placeholder:text-base placeholder:text-white/40
+                     focus:border-white/40 hover:border-white/30
+                     transition-colors text-center tracking-normal"
         />
     );
 };
