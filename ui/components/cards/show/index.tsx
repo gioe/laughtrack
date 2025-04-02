@@ -18,29 +18,45 @@ const ShowCard: React.FC<ShowCardProps> = ({ show }: ShowCardProps) => {
         parsedShow.tickets.filter((ticket) => !ticket.soldOut).length > 0;
 
     return (
-        <div className="p-4 sm:p-6 bg-[#FDF8EF] overflow-hidden transition-transform duration-300 hover:scale-105 rounded-xl">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-0 mb-6 sm:mb-8">
-                <ShowCardHeader show={parsedShow} />
+        <div className="p-2 sm:p-6 bg-gradient-to-br from-[#FDF8EF] to-[#F5E6D3] overflow-hidden transition-all duration-300 hover:scale-[1.02] rounded-xl max-w-6xl mx-auto shadow-md hover:shadow-xl border border-white/20">
+            <div className="flex flex-col lg:flex-row gap-2 sm:gap-4">
+                <div className="flex-1 lg:w-[35%] flex flex-col gap-2 sm:gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4">
+                        <div className="flex-1">
+                            <ShowCardHeader show={parsedShow} />
+                        </div>
 
-                {parsedShow.tickets.length > 0 && (
-                    <div className="self-end sm:self-auto">
-                        <FullRoundedButton
-                            href={parsedShow.tickets[0].purchaseUrl}
-                            label={stillOnSale ? "Get Tickets" : "Sold Out"}
-                            color={stillOnSale ? "bg-copper" : "bg-red-500"}
-                        />
+                        {parsedShow.tickets.length > 0 && (
+                            <div className="sm:self-start">
+                                <FullRoundedButton
+                                    href={parsedShow.tickets[0].purchaseUrl}
+                                    label={
+                                        stillOnSale ? "Get Tickets" : "Sold Out"
+                                    }
+                                    color={
+                                        stillOnSale ? "bg-copper" : "bg-red-500"
+                                    }
+                                />
+                            </div>
+                        )}
+                    </div>
+
+                    {parsedShow.lineup.length > 0 && (
+                        <div className="lg:hidden">
+                            <Divider />
+                            <div className="pt-2 sm:pt-4">
+                                <LineupGrid lineup={parsedShow.lineup} />
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {parsedShow.lineup.length > 0 && (
+                    <div className="hidden lg:block lg:w-[65%]">
+                        <LineupGrid lineup={parsedShow.lineup} />
                     </div>
                 )}
             </div>
-
-            {parsedShow.lineup.length > 0 && (
-                <div>
-                    <Divider />
-                    <div className="pt-4">
-                        <LineupGrid lineup={parsedShow.lineup} />
-                    </div>
-                </div>
-            )}
         </div>
     );
 };
