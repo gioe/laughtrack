@@ -18,7 +18,13 @@ const ShowCard: React.FC<ShowCardProps> = ({ show }: ShowCardProps) => {
         parsedShow.tickets.filter((ticket) => !ticket.soldOut).length > 0;
 
     return (
-        <div className="p-2 sm:p-6 bg-gradient-to-br from-[#FDF8EF] to-[#F5E6D3] overflow-hidden transition-all duration-300 hover:scale-[1.02] rounded-xl w-full shadow-md hover:shadow-xl border border-white/20">
+        <div
+            className="p-2 sm:p-6 bg-gradient-to-br from-[#FDF8EF] to-[#F5E6D3] overflow-hidden
+                rounded-xl w-full shadow-md hover:shadow-xl border border-white/20
+                transform transition-all duration-500 ease-out
+                animate-[slideUp_500ms_ease-out,fadeIn_600ms_ease-out]
+                hover:scale-[1.02]"
+        >
             <div className="flex flex-col lg:flex-row gap-2 sm:gap-4">
                 <div className="flex-1 lg:w-[35%] flex flex-col gap-2 sm:gap-4">
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4">

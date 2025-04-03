@@ -30,35 +30,36 @@ const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
         setIsClient(true);
     }, []);
 
-    // Check if scrolling is possible in either direction and update indicators
     const checkScrollability = () => {
         const container = scrollContainerRef.current;
         if (!container) return;
 
-        // Check if can scroll left (scrollLeft > 0)
-        // Use a small threshold (1px) to account for rounding errors and browser inconsistencies
-        setCanScrollLeft(container.scrollLeft > 1);
+        // Get actual card width including gap
+        const cardWidth = window.innerWidth >= 640 ? 320 + 16 : 280 + 16; // card width + gap
+        const scrollPosition = Math.round(container.scrollLeft);
+        const maxScroll = container.scrollWidth - container.clientWidth;
 
-        // Check if can scroll right (scrollLeft + clientWidth < scrollWidth)
+        // More lenient scroll position checks for buttons
+        setCanScrollLeft(scrollPosition > 2);
         setCanScrollRight(
-            Math.ceil(container.scrollLeft + container.clientWidth) <
-                container.scrollWidth - 10,
+            Math.ceil(scrollPosition) < Math.floor(maxScroll - 10),
         );
 
-        // Update the active indicator based on scroll position
+        // Calculate active indicator based on actual card width
         if (sortedClubs.length > 0) {
-            const totalIndicators = Math.ceil(sortedClubs.length / 3);
-            const scrollPercentage =
-                container.scrollLeft /
-                (container.scrollWidth - container.clientWidth);
+            const totalSets = Math.ceil(sortedClubs.length / 3);
 
-            // Calculate which indicator should be active
-            const newActiveIndicator = Math.min(
-                Math.floor(scrollPercentage * totalIndicators),
-                totalIndicators - 1,
-            );
-
-            setActiveIndicator(newActiveIndicator);
+            if (Math.abs(scrollPosition - maxScroll) < 20) {
+                // If we're very close to the end, show the last indicator
+                setActiveIndicator(totalSets - 1);
+            } else {
+                const currentCard = Math.round(scrollPosition / cardWidth);
+                const newActiveIndicator = Math.min(
+                    Math.floor(currentCard / 3),
+                    totalSets - 1,
+                );
+                setActiveIndicator(newActiveIndicator);
+            }
         }
     };
 
@@ -66,29 +67,19 @@ const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
         const container = scrollContainerRef.current;
         if (!container) return;
 
-        // Define a handler that uses a timeout to ensure values are settled
         const handleScroll = () => {
-            // Use requestAnimationFrame for better performance and to ensure DOM is updated
-            requestAnimationFrame(() => {
-                checkScrollability();
-
-                // Debug log (remove in production)
-                console.log(
-                    "Scroll position:",
-                    container.scrollLeft,
-                    "Can scroll left:",
-                    container.scrollLeft > 1,
-                );
-            });
+            requestAnimationFrame(checkScrollability);
         };
 
-        // Initial check - use a timeout to ensure the DOM has fully rendered
-        setTimeout(checkScrollability, 100);
+        // Initial check after content loads
+        const initialCheck = () => {
+            checkScrollability();
+            // Check again after a short delay to account for any layout shifts
+            setTimeout(checkScrollability, 100);
+        };
+        initialCheck();
 
-        // Add scroll event listener with debounce-like behavior
         container.addEventListener("scroll", handleScroll);
-
-        // Add resize listener since card sizes might change on window resize
         window.addEventListener("resize", handleScroll);
 
         return () => {
@@ -99,65 +90,56 @@ const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
 
     const scroll = (direction: "left" | "right") => {
         const container = scrollContainerRef.current;
-        if (!container) {
-            console.warn("Scroll container ref is not available");
-            return;
-        }
+        if (!container) return;
 
-        try {
-            // Scroll by the width of visible cards (approximately)
-            const cardWidth = 300; // Approximate width of a card with margin
-            const visibleWidth = container.clientWidth;
+        // Use actual card width
+        const cardWidth = window.innerWidth >= 640 ? 320 + 16 : 280 + 16; // card width + gap
+        const visibleCards = 3;
+        const scrollAmount = cardWidth * visibleCards;
 
-            // Scroll by the number of fully visible cards, or at least one card
-            const scrollAmount =
-                direction === "left"
-                    ? -Math.max(visibleWidth * 0.8, cardWidth)
-                    : Math.max(visibleWidth * 0.8, cardWidth);
+        const currentScroll = container.scrollLeft;
+        const maxScroll = container.scrollWidth - container.clientWidth;
 
-            // Calculate target scroll position
-            let targetScrollLeft = container.scrollLeft + scrollAmount;
-
-            // Handle edge cases
-            if (direction === "left") {
-                // If scrolling left, don't go beyond the start (with small buffer)
-                targetScrollLeft = Math.max(0, targetScrollLeft);
-
-                // If we're close to the start, go all the way to start
-                if (targetScrollLeft < 50) {
-                    targetScrollLeft = 0;
-                }
-            } else {
-                // If scrolling right, don't go beyond the end (with small buffer)
-                const maxScroll = container.scrollWidth - container.clientWidth;
-                targetScrollLeft = Math.min(maxScroll, targetScrollLeft);
-
-                // If we're close to the end, go all the way to end
-                if (maxScroll - targetScrollLeft < 50) {
-                    targetScrollLeft = maxScroll;
-                }
+        let targetScroll;
+        if (direction === "left") {
+            // Calculate the nearest previous card set
+            const currentSet = Math.ceil(currentScroll / scrollAmount);
+            const targetSet = Math.max(0, currentSet - 1);
+            targetScroll = targetSet * scrollAmount;
+        } else {
+            // For right scroll, try to show new cards if possible
+            targetScroll = currentScroll + scrollAmount;
+            if (targetScroll > maxScroll) {
+                targetScroll = maxScroll;
             }
-
-            // Perform the scroll
-            container.scrollTo({
-                left: targetScrollLeft,
-                behavior: "smooth",
-            });
-
-            // Force update the scroll state after animation completes
-            setTimeout(checkScrollability, 500);
-        } catch (error) {
-            console.error("Error scrolling:", error);
         }
+
+        container.scrollTo({
+            left: targetScroll,
+            behavior: "smooth",
+        });
+
+        // Update scroll state after animation
+        setTimeout(checkScrollability, 300);
     };
 
-    // Focus trap for keyboard navigation
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === "ArrowLeft" && canScrollLeft) {
-            scroll("left");
-        } else if (e.key === "ArrowRight" && canScrollRight) {
-            scroll("right");
-        }
+    const scrollToIndicator = (index: number) => {
+        const container = scrollContainerRef.current;
+        if (!container) return;
+
+        const cardWidth = window.innerWidth >= 640 ? 320 + 16 : 280 + 16; // card width + gap
+        const targetScroll = index * (cardWidth * 3);
+
+        container.scrollTo({
+            left: Math.min(
+                targetScroll,
+                container.scrollWidth - container.clientWidth,
+            ),
+            behavior: "smooth",
+        });
+
+        // Update scroll state after animation
+        setTimeout(checkScrollability, 300);
     };
 
     return (
@@ -183,10 +165,7 @@ const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
 
             <div
                 ref={scrollContainerRef}
-                onKeyDown={handleKeyDown}
-                tabIndex={0}
-                aria-label="Popular comedy clubs carousel"
-                className="flex gap-4 md:gap-6 overflow-x-auto scrollbar-hide snap-x snap-mandatory py-4 px-2"
+                className="flex gap-4 md:gap-6 overflow-x-auto scrollbar-hide py-4 px-2 scroll-smooth"
                 style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
                 {sortedClubs.map((dto) => {
@@ -194,7 +173,7 @@ const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
                     return (
                         <div
                             key={club.name}
-                            className="flex-none w-[280px] sm:w-[320px] snap-start"
+                            className="flex-none w-[280px] sm:w-[320px]"
                         >
                             <PopularClubCard entity={JSON.stringify(club)} />
                         </div>
@@ -202,44 +181,21 @@ const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
                 })}
             </div>
 
-            {/* Dynamic mobile scroll indicator */}
             <div className="flex justify-center mt-4 gap-1.5 sm:hidden">
-                {sortedClubs.length > 0 &&
-                    Array.from({
-                        length: Math.ceil(sortedClubs.length / 3),
-                    }).map((_, index) => (
-                        <div
+                {Array.from({ length: Math.ceil(sortedClubs.length / 3) }).map(
+                    (_, index) => (
+                        <button
                             key={`indicator-${index}`}
                             className={`h-1.5 rounded-full transition-all duration-300 ${
                                 index === activeIndicator
                                     ? "w-8 bg-cedar"
                                     : "w-2 bg-gray-300"
                             }`}
-                            onClick={() => {
-                                // Allow clicking indicators to jump to that section
-                                const container = scrollContainerRef.current;
-                                if (!container) return;
-
-                                const totalWidth =
-                                    container.scrollWidth -
-                                    container.clientWidth;
-                                const totalIndicators = Math.ceil(
-                                    sortedClubs.length / 3,
-                                );
-                                const targetPosition =
-                                    (index / (totalIndicators - 1)) *
-                                    totalWidth;
-
-                                container.scrollTo({
-                                    left: targetPosition,
-                                    behavior: "smooth",
-                                });
-                            }}
-                            role="button"
-                            tabIndex={0}
+                            onClick={() => scrollToIndicator(index)}
                             aria-label={`Go to slide set ${index + 1}`}
                         />
-                    ))}
+                    ),
+                )}
             </div>
         </div>
     );

@@ -11,7 +11,15 @@ const LineupGrid = ({ lineup }: LineupGridProps) => {
         <div className="relative">
             <div className="flex gap-4 overflow-x-auto pb-4 snap-x hover:cursor-pointer scrollbar-hide">
                 {lineup.map((comedian, index) => (
-                    <div key={index} className="flex-shrink-0 snap-start">
+                    <div
+                        key={index}
+                        className="flex-shrink-0 snap-start animate-[slideUp_500ms_ease-out,fadeIn_600ms_ease-out]"
+                        style={{
+                            animationDelay: `${index * 100}ms`,
+                            opacity: 0,
+                            animation: `slideUp 500ms ${index * 100}ms ease-out forwards, fadeIn 600ms ${index * 100}ms ease-out forwards`,
+                        }}
+                    >
                         <ComedianHeadshot
                             comedian={comedian}
                             variant="lineup"

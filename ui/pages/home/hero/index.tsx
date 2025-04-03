@@ -11,21 +11,26 @@ interface HeroComponentProps {
 
 const HeroComponent = ({ profile }: HeroComponentProps) => {
     return (
-        <section className="relative w-full h-[500px] sm:h-[600px] md:h-[700px] lg:h-[776px]">
+        <section className="relative w-full h-[500px] sm:h-[600px] md:h-[700px] lg:h-[776px] overflow-hidden">
             <BackgroundImage
                 imageUrl={getCdnUrl(`laughtrack-hero.png`)}
                 alt={"Header background image"}
             />
+            <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" />
             <ContentWrapper>
                 <Navbar currentUser={profile} />
-                <div className="flex flex-col items-center justify-center h-full text-center w-full px-4 sm:px-6">
-                    <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-2 sm:mb-4 font-chivo text-white">
-                        Laughtrack
-                    </h1>
-                    <p className="text-lg sm:text-xl text-gray-200 mb-8 sm:mb-12 max-w-3xl font-chivo">
-                        Get out and laugh
-                    </p>
-                    <ShowSearchForm />
+                <div className="flex flex-col items-center justify-center h-full text-center w-full px-4 sm:px-6 relative">
+                    <div className="animate-fadeIn">
+                        <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold mb-4 sm:mb-6 font-chivo text-white drop-shadow-lg transform transition-transform duration-300 hover:scale-[1.02]">
+                            Laughtrack
+                        </h1>
+                        <p className="text-xl sm:text-2xl text-gray-100 mb-8 sm:mb-12 max-w-3xl font-chivo animate-slideUp opacity-90">
+                            Get out and laugh
+                        </p>
+                        <div className="transform transition-all duration-300 hover:scale-[1.02]">
+                            <ShowSearchForm />
+                        </div>
+                    </div>
                 </div>
             </ContentWrapper>
         </section>
