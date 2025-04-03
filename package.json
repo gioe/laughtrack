@@ -14,7 +14,7 @@
         "type-check": "tsc -b"
     },
     "dependencies": {
-        "@auth/prisma-adapter": "^2.7.4",
+        "@auth/prisma-adapter": "^2.8.0",
         "@headlessui/react": "^2.1.9",
         "@heroicons/react": "^2.1.5",
         "@heroui/autocomplete": "^2.1.7",
