@@ -8,6 +8,7 @@ import {
 } from "@/ui/components/ui/form";
 import { Input } from "@/ui/components/ui/input";
 import _ from "lodash";
+import { useStyleContext } from "@/contexts/StyleProvider";
 
 interface ZipCodeInputBaseProps {
     disabled: boolean;
@@ -36,6 +37,9 @@ const validateZipCode = (value: string): boolean => {
 };
 
 const ZipCodeInput = (props: ZipCodeInputComponentProps) => {
+    const { getCurrentStyles } = useStyleContext();
+    const styleConfig = getCurrentStyles();
+
     if (props.variant == ComponentVariant.Form) {
         return (
             <FormField
@@ -53,10 +57,10 @@ const ZipCodeInput = (props: ZipCodeInputComponentProps) => {
                                     inputMode="numeric"
                                     maxLength={5}
                                     placeholder="Where"
-                                    className="border-b border-white/20 rounded-none px-2 py-1.5
-                                             text-white text-base placeholder:text-base placeholder:text-white/40
-                                             focus:border-white/40 hover:border-white/30
-                                             transition-colors text-center tracking-normal"
+                                    className={`border-b border-gray-300 rounded-none px-2 py-1.5
+                                             ${styleConfig.inputTextColor} text-base placeholder:text-base placeholder:text-gray-400
+                                             focus:border-gray-400 hover:border-gray-400
+                                             transition-colors text-center tracking-normal`}
                                     onChange={(e) => {
                                         const value = e.target.value.replace(
                                             /\D/g,
@@ -113,10 +117,10 @@ const ZipCodeInput = (props: ZipCodeInputComponentProps) => {
             value={inputValue}
             onChange={handleInputChange}
             placeholder="Where"
-            className="border-b border-white/20 rounded-none px-2 py-1.5
-                     text-white text-base placeholder:text-base placeholder:text-white/40
-                     focus:border-white/40 hover:border-white/30
-                     transition-colors text-center tracking-normal"
+            className={`border-b border-gray-300 rounded-none px-2 py-1.5
+                     ${styleConfig.inputTextColor} text-base placeholder:text-base placeholder:text-gray-400
+                     focus:border-gray-400 hover:border-gray-400
+                     transition-colors text-center tracking-normal`}
         />
     );
 };
