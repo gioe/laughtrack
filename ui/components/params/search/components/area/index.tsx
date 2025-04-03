@@ -8,6 +8,7 @@ import DropdownComponent from "../dropdown";
 import ZipCodeInput from "../zipcode/input";
 import { allDistanceOptions } from "@/objects/enum/distanceValues";
 import { DistanceData } from "@/objects/interface";
+import { useLocationParams } from "../../hooks/useLocationParams";
 
 const selectableDistances = allDistanceOptions.map(
     (distance: string, index: number) => ({
@@ -25,8 +26,8 @@ type ShowDistanceFormProps = {
 type ShowDistanceStandaloneProps = {
     variant: ComponentVariant.Standalone;
     value: DistanceData;
-    onDistanceSelection: (value: string) => void;
-    onZipcodeInput: (value: string) => void;
+    onDistanceSelection?: (value: string) => void;
+    onZipcodeInput?: (value: string) => void;
 };
 
 type ShowLocationComponentProps =
@@ -35,9 +36,10 @@ type ShowLocationComponentProps =
 
 const ShowLocationComponent = (props: ShowLocationComponentProps) => {
     const { getCurrentStyles } = useStyleContext();
+    const { updateDistance, updateZipCode } = useLocationParams();
 
     const buildDropdownComponent = (props: ShowLocationComponentProps) => {
-        if (props.variant == ComponentVariant.Form) {
+        if (props.variant === ComponentVariant.Form) {
             return (
                 <DropdownComponent
                     items={selectableDistances}
@@ -51,7 +53,7 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
         return (
             <DropdownComponent
                 items={selectableDistances}
-                onChange={props.onDistanceSelection}
+                onChange={props.onDistanceSelection ?? updateDistance}
                 value={props.value?.distance ?? ""}
                 variant={props.variant}
             />
@@ -59,7 +61,7 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
     };
 
     const buildZipCodeComponent = (props: ShowLocationComponentProps) => {
-        if (props.variant == ComponentVariant.Form) {
+        if (props.variant === ComponentVariant.Form) {
             return (
                 <ZipCodeInput
                     variant={props.variant}
@@ -75,7 +77,7 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
             <ZipCodeInput
                 variant={props.variant}
                 value={props.value?.zipCode ?? ""}
-                onChange={props.onZipcodeInput}
+                onChange={props.onZipcodeInput ?? updateZipCode}
                 placeholder="Zip code"
                 disabled={false}
             />

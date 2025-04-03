@@ -1,9 +1,7 @@
 "use client";
 
 import TablePagination from "@mui/material/TablePagination";
-import { useEffect, useMemo } from "react";
-import { QueryProperty } from "@/objects/enum";
-import { useUrlParams } from "@/hooks/useUrlParams";
+import { usePageParams } from "./hooks/usePageParams";
 
 interface PageParamComponentProps {
     itemCount: number;
@@ -12,37 +10,21 @@ interface PageParamComponentProps {
 export function PageParamComponent({
     itemCount,
 }: Readonly<PageParamComponentProps>) {
-    const { getTypedParam, setTypedParam } = useUrlParams();
-
-    const page = getTypedParam(QueryProperty.Page);
-    const pageSize = getTypedParam(QueryProperty.Size);
-
-    const correctedPage = useMemo(() => {
-        const maxPage = Math.ceil(itemCount / pageSize);
-        // The pagination library we're using is zero indexed by our pagination is not. We could our indexing but
-        // zero indexing in the url may be weird for non-technical users.
-        return Math.min(page, maxPage) - 1;
-    }, [itemCount, page, pageSize]);
-
-    // Update URL if we need to correct the page number
-    useEffect(() => {
-        if (correctedPage !== page - 1) {
-            setTypedParam(QueryProperty.Page, correctedPage + 1);
-        }
-    }, [correctedPage, page, setTypedParam]);
+    const { currentPage, pageSize, updatePage, updatePageSize } =
+        usePageParams(itemCount);
 
     const handleChangeOffset = (
         event: React.MouseEvent<HTMLButtonElement> | null,
         newPageIndex: number,
     ) => {
-        setTypedParam(QueryProperty.Page, newPageIndex + 1);
+        updatePage(newPageIndex);
     };
 
     const handleChangeRows = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => {
         const selectedSize = parseInt(event.target.value);
-        setTypedParam(QueryProperty.Size, selectedSize);
+        updatePageSize(selectedSize);
     };
 
     return (
@@ -81,7 +63,7 @@ export function PageParamComponent({
             }}
             component="div"
             count={itemCount}
-            page={correctedPage}
+            page={currentPage}
             rowsPerPage={pageSize}
             onPageChange={handleChangeOffset}
             onRowsPerPageChange={handleChangeRows}
