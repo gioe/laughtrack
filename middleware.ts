@@ -1,11 +1,9 @@
-
 // middleware.js
 import { NextRequest, NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
 import { QueryProperty, SortParamValue } from "./objects/enum";
-import { auth } from "./auth";
 import { formattedDateParam } from "./util/primatives/paramUtil";
 import { UserInterface } from "./objects/class/user/user.interface";
-import { Session } from "next-auth";
 
 const protectedRoutes = [
     '/profile',
@@ -16,53 +14,44 @@ function isProtectedRoute(pathname: string): boolean {
 }
 
 export async function middleware(request: NextRequest) {
-    const pathname = request.nextUrl.pathname
-    const session = await auth()
+    try {
+        const pathname = request.nextUrl.pathname
 
-    if (!isProtectedRoute(pathname)) {
-        return handlePublicRoute(request, session)
-    }
-
-    if (!session) {
-        const loginUrl = new URL('/', request.url)
-        loginUrl.searchParams.set('callbackUrl', pathname)
-        return NextResponse.redirect(loginUrl)
-    }
-
-    // Special handling for profile route
-    if (pathname.startsWith('/profile')) {
-        const userId = session.user?.id
-        if (!userId) {
-            return NextResponse.redirect(new URL('/', request.url))
+        if (!isProtectedRoute(pathname)) {
+            return NextResponse.next()
         }
 
-        const requestedProfileId = pathname.split('/').pop()
+        const token = await getToken({ req: request })
 
-        if (requestedProfileId && userId !== requestedProfileId) {
-            // User is trying to access another user's profile - redirect to their own profile
-            return NextResponse.redirect(new URL(`/profile/${userId}`, request.url))
+        if (!token) {
+            const loginUrl = new URL('/', request.url)
+            loginUrl.searchParams.set('callbackUrl', pathname)
+            return NextResponse.redirect(loginUrl)
         }
 
-        // Internal rewrite to your API endpoint
-        return NextResponse.rewrite(new URL(`/profile/${userId}`, request.url))
+        // Special handling for profile route
+        if (pathname.startsWith('/profile')) {
+            const userId = token.sub
+            if (!userId) {
+                return NextResponse.redirect(new URL('/', request.url))
+            }
+
+            const requestedProfileId = pathname.split('/').pop()
+
+            if (requestedProfileId && userId !== requestedProfileId) {
+                // User is trying to access another user's profile - redirect to their own profile
+                return NextResponse.redirect(new URL(`/profile/${userId}`, request.url))
+            }
+
+            return NextResponse.next()
+        }
+
+        return NextResponse.next()
+    } catch (error) {
+        console.error('Middleware error:', error)
+        return NextResponse.next()
     }
-
-    return NextResponse.next()
 }
-
-async function handlePublicRoute(request: NextRequest, session: Session | null) {
-    const url = new URL(request.nextUrl.pathname, request.url);
-    const searchParams = new URLSearchParams(request.nextUrl.search);
-
-    setParamDefaults(searchParams, request.nextUrl.pathname, undefined)
-
-    for (const [key, value] of searchParams.entries()) {
-        url.searchParams.set(key, value);
-    }
-
-    return NextResponse.rewrite(url)
-}
-
 
 export function setParamDefaults(params: URLSearchParams, path: string, user?: UserInterface): URLSearchParams {
 
@@ -85,7 +74,6 @@ function getSortParamDefaultFromPath(params: URLSearchParams, path: string): URL
     }
     return params
 }
-
 
 export const config = {
     matcher: [
