@@ -11,7 +11,7 @@ const ShowTable = ({
     errorMessage = "No results. Not the best search I've ever seen",
 }: ShowTableProps) => {
     return (
-        <section className="grid grid-cols-1 gap-y-6 sm:gap-y-8 md:gap-y-10 px-4 sm:px-6 md:px-8 mb-10">
+        <section className="grid grid-cols-1 gap-y-6 sm:gap-y-8 md:gap-y-10 px-4 sm:px-6 md:px-8 mb-10 justify-items-start">
             {shows.length > 0 ? (
                 shows.map((show) => {
                     return (

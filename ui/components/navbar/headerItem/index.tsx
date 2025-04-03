@@ -18,7 +18,17 @@ export function HeaderItem({
 }: HeaderItemProps) {
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
-    const baseClasses = `text-[16px] font-semibold font-dmSans ${highlighted ? "opacity-100" : "opacity-50 hover:opacity-75"}`;
+    const baseClasses = `text-[16px] font-semibold font-dmSans relative
+        transition-all duration-200 ease-in-out
+        after:content-[''] after:absolute after:bottom-[-4px] after:left-0
+        after:w-full after:h-[2px] after:bg-copper after:transform
+        after:scale-x-0 after:origin-bottom-right after:transition-transform after:duration-200
+        ${
+            highlighted
+                ? "opacity-100 after:scale-x-100 after:origin-bottom-left"
+                : "opacity-70 hover:opacity-90"
+        }
+        hover:after:scale-x-100 hover:after:origin-bottom-left`;
 
     return (
         <a

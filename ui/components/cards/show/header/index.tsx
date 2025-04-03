@@ -22,13 +22,14 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
 
     return (
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-full overflow-hidden hidden sm:block">
+            <div className="relative aspect-square w-[12%] min-w-[48px] max-w-[64px] rounded-full overflow-hidden">
                 <Image
                     src={error ? PLACEHOLDER : show.imageUrl}
                     onError={() => setError(true)}
                     alt={show.clubName ?? "Club logo"}
                     fill
                     className="object-cover"
+                    sizes="(max-width: 48px) 48px, 64px"
                 />
             </div>
 

@@ -6,11 +6,13 @@ import { ChevronDownIcon } from "@heroicons/react/24/solid";
 export default function NavigationDropdown({ title, items, isHighlighted }) {
     return (
         <Popover className="relative">
-            <PopoverButton className="flex items-center gap-x-1 leading-6">
+            <PopoverButton className="flex items-center gap-x-1 leading-6 group">
                 <HeaderItem highlighted={isHighlighted} title={title} />
                 <ChevronDownIcon
                     aria-hidden="true"
-                    className="h-5 w-5 flex-none text-soft-charcoal"
+                    className="h-5 w-5 flex-none text-soft-charcoal opacity-70
+                    transition-all duration-200 transform group-hover:opacity-90
+                    group-hover:-translate-y-[1px] group-hover:text-copper"
                 />
             </PopoverButton>
             <NavbarPopoverItem items={items} />

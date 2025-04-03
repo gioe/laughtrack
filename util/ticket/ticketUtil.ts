@@ -13,10 +13,19 @@ export function mapTickets(tickets: any[]) {
 
 export function formatTicketString(tickets: Ticket[]) {
     if (tickets.length === 1) {
-        return `$${tickets[0].price.toString()}`;
+        return tickets[0].price == 0.00 ? "Free" : `$${tickets[0].price.toString()}`;
     } else if (tickets.length > 1) {
         const prices = tickets.map(ticket => ticket.price).sort((a, b) => a - b);
-        return `$${prices[0].toString()} - $${prices[prices.length - 1].toString()}`;
+        const lowestPrice = prices[0];
+        const highestPrice = prices[prices.length - 1];
+
+        if (lowestPrice == 0.00 && highestPrice == 0.00) {
+            return "Free";
+        } else if (lowestPrice == 0.00) {
+            return `Free - $${highestPrice.toString()}`;
+        } else {
+            return `$${lowestPrice.toString()} - $${highestPrice.toString()}`;
+        }
     } else {
         return '';
     }
