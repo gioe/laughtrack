@@ -1,6 +1,6 @@
 generator client {
   provider      = "prisma-client-js"
-  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+  binaryTargets = ["native", "rhel-openssl-3.0.x", "linux-arm64-openssl-3.0.x"]
   previewFeatures = ["driverAdapters"]
 }
 
@@ -31,7 +31,7 @@ model Club {
 
 model Comedian {
   id                 Int                @id @default(autoincrement())
-  name               String             @unique
+  name               String            
   instagramAccount   String?            @map("instagram_account")
   instagramFollowers Int?               @map("instagram_followers")
   tiktokAccount      String?            @map("tiktok_account")
@@ -71,8 +71,8 @@ model User {
  
 model UserProfile {
   id                     String             @id @default(cuid())
-  user                   User               @relation(fields: [userId], references: [id])
-  userId                 String             @unique
+  user                   User               @relation(fields: [userid], references: [id])
+  userid                 String             @unique  @map("user_id")
   role                   String             @default("user")
   emailShowNotifications Boolean  @default(false) @map("email_show_notifications")
   favoriteComedians      FavoriteComedian[]
@@ -142,12 +142,13 @@ model Show {
   popularity          Float        @default(0.0)
   lastScrapedDate     DateTime?    @map("last_scraped_date") @db.Timestamptz(6)
   description         String?
+  room                String?
   tickets             Ticket[]     // New relation to Ticket model
   lineupItems         LineupItem[]
   club                Club         @relation(fields: [clubId], references: [id], onDelete: Cascade)
   taggedShows         TaggedShow[]
 
-  @@unique([clubId, date])
+  @@unique([clubId, date, room])
   @@map("shows")
 }
 

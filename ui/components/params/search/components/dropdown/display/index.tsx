@@ -24,17 +24,17 @@ export function DropdownDisplay(props: DropdownDisplayProps) {
         <div className="flex items-center">
             <Select onValueChange={props.onChange} value={props.value}>
                 <SelectTrigger
-                    className={`text-[18px] ${styleConfig.inputTextColor} font-dmSans h-9 border-transparent shadow-none`}
+                    className={`text-[18px] ${styleConfig.inputTextColor} font-dmSans h-9 border-gray-300 shadow-none hover:border-gray-400 focus:border-gray-400`}
                 >
                     <SelectValue
                         className="text-left pr-2"
                         placeholder={props.placeholder}
                     />
                 </SelectTrigger>
-                <SelectContent className="rounded-lg bg-white">
+                <SelectContent className="rounded-lg bg-white border border-gray-300">
                     {props.items.map((item) => (
                         <SelectItem
-                            className="rounded-lg"
+                            className="rounded-lg text-gray-900 hover:text-gray-700 focus:text-gray-700"
                             key={item.id.toString()}
                             value={item.slug}
                         >

@@ -9,6 +9,7 @@ import TableWithHeader from "@/ui/pages/entity/comedian/table";
 import FilterBar from "@/ui/pages/search/filterBar";
 import FilterModal from "@/ui/components/modals/filter";
 import { cookies } from "next/headers";
+import ShowTable from "@/ui/pages/search/table";
 
 export default async function ComedianDetailsPage(props: {
     searchParams: Promise<any>;
@@ -56,19 +57,12 @@ export default async function ComedianDetailsPage(props: {
         <main className="min-h-screen w-full bg-coconut-cream">
             <FilterModal filters={filters} total={total} />
             <ComedianDetailHeader comedian={data} />
-            <div className="max-w-7xl mx-auto p-6">
-                <TableWithHeader
-                    shows={shows}
-                    total={total}
-                    errorMessage="No results. Clearly this comic doesn't work enough."
-                >
-                    <FilterBar
-                        variant={SearchVariant.ComedianDetail}
-                        total={total}
-                        filters={filters.length > 0}
-                    />
-                </TableWithHeader>
-            </div>
+            <FilterBar
+                variant={SearchVariant.ComedianDetail}
+                total={total}
+                filters={filters.length > 0}
+            />
+            <ShowTable shows={shows} />
         </main>
     );
 }

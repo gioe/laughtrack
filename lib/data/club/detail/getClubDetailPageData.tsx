@@ -13,6 +13,7 @@ export async function getClubDetailPageData(
     try {
         const helper = new QueryHelper(requestData);
         helper.setClubName();
+
         const [club, showsWithCount, filters] = await Promise.all([
             findClubByName(helper),
             findShowsWithCount(helper),
@@ -29,10 +30,16 @@ export async function getClubDetailPageData(
             filters,
         };
     } catch (error) {
-        console.log(error);
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
+            console.error("Database error in getClubDetailPageData:", error);
             throw new Error(`Database error: ${error.message}`);
         }
-        throw error;
+        if (error instanceof Error) {
+            console.error("Error in getClubDetailPageData:", error);
+            throw error;
+        }
+        throw new Error(
+            "An unknown error occurred while fetching club detail page data",
+        );
     }
 }

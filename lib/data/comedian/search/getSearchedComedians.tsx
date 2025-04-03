@@ -27,8 +27,15 @@ export async function getSearchedComedians(
         };
     } catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
+            console.error("Database error in getSearchedComedians:", error);
             throw new Error(`Database error: ${error.message}`);
         }
-        throw error;
+        if (error instanceof Error) {
+            console.error("Error in getSearchedComedians:", error);
+            throw error;
+        }
+        throw new Error(
+            "An unknown error occurred while searching for comedians",
+        );
     }
 }

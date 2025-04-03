@@ -268,30 +268,39 @@ export class QueryHelper {
         };
 
     getGenericClauses(total: number) {
-        const sortBy = this.searchParams.get(QueryProperty.Sort) as string
-        const direction = this.searchParams.get(QueryProperty.Direction) as string
+        // Default values for pagination
+        const defaultSize = 10;
+        const defaultPage = 1;
+        const defaultSortField = 'name';
+        const defaultSortDirection = 'asc';
 
-        // Take the minimum number between the 'size=' param and the total results, which we got from a previous query. This is
-        // basically our LIMIT value if this were SQL.
-        const size = Number(this.searchParams.get(QueryProperty.Size) as string) ?? 10
-        const take = Math.min(size, total)
+        // Get sort parameters with fallbacks
+        const sortBy = this.searchParams.get(QueryProperty.Sort) || defaultSortField;
+        const direction = this.searchParams.get(QueryProperty.Direction) || defaultSortDirection;
 
-        // Get the max number of pages, which we'll need to calculate our 'skip' value, which is essentially our starting index
-        // The page itself will always be whatever is smaller: the page value provided or the max possible page. This is basically
-        // our OFFSET value if this were SQL.
-        const totalPages = Math.ceil(total / size);
-        const page = Math.min(Number(this.searchParams.get(QueryProperty.Page)), totalPages) - 1
-        // Our starting index is always our LIMIT size multiplied by our OFFSET
-        const skip = take * page
+        // Handle pagination with proper null checks and defaults
+        const size = Math.max(1, Number(this.searchParams.get(QueryProperty.Size)) || defaultSize);
+        const take = Math.min(size, total);
+
+        // Calculate pagination with safeguards
+        const totalPages = Math.max(1, Math.ceil(total / size));
+        const page = Math.max(1, Math.min(
+            Number(this.searchParams.get(QueryProperty.Page)) || defaultPage,
+            totalPages
+        )) - 1;
+
+        const skip = Math.max(0, take * page);
+
+        // Ensure we always have valid sort parameters
         const sortParams = [
             { field: sortBy, direction: direction },
-            { field: 'name', direction: 'asc' }
-          ];
+            { field: defaultSortField, direction: defaultSortDirection }
+        ].filter(param => param.field && param.direction);
 
         return {
             orderBy: sortParams.map(param => ({
                 [param.field]: param.direction
-              })),
+            })),
             take,
             skip,
         }

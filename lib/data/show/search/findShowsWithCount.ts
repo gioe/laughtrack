@@ -4,116 +4,137 @@ import { ShowDTO } from "@/objects/class/show/show.interface"
 import { filterAndMapLineupItems } from "@/util/comedian/comedianUtil";
 import { buildClubImageUrl } from "@/util/imageUtil"
 import { mapTickets } from "@/util/ticket/ticketUtil";
+import { Prisma } from "@prisma/client";
 
 interface ShowsResponse {
     shows: ShowDTO[];
     totalCount: number;
 }
 
-export async function findShowsWithCount(helper: QueryHelper): Promise<ShowsResponse> {
-    const whereClause = {
-        // Shows whose dates are Greater Than (gte) today's date or a date parameter, if provided
-        ...helper.getDateClause(),
-        // Every show search has limitations on the club, even if it's just clubs in a as specific city.
-        club: {
-            // Only visible clubs included.
-            visible: true,
-
-            // If the 'club' param is provided, this means there is a club name query string so we need to match on that.
-            ...helper.getClubNameClause(),
-
-            // If the 'zip_codes' param is provided, this means we only want shows from clubs in a specific zip codes.
-            ...helper.getZipCodeClause()
+const SHOW_SELECT = {
+    id: true,
+    name: true,
+    date: true,
+    popularity: true,
+    tickets: {
+        select: {
+            price: true,
+            soldOut: true,
+            purchaseUrl: true,
+            type: true
+        }
+    },
+    club: {
+        select: {
+            name: true,
+            address: true
+        }
+    },
+    lineupItems: {
+        where: {
+            comedian: {
+                taggedComedians: {
+                    none: {
+                        tag: {
+                            userFacing: false
+                        }
+                    }
+                }
+            }
         },
-        // If the 'comedian' param is provided, it means we're doing a search for shows that contain a specific comedian.
-        // This is not always provided. Sometimes the other clauses are sufficient for a lookup.
-        ...helper.getLineupItemClause(),
-        // Match any shows with tags matching the display of the provided filter, if the filter values aren't empty
-        ...helper.getShowTagsClause(),
+        select: {
+            comedian: {
+                select: {
+                    id: true,
+                    uuid: true,
+                    name: true,
+                    parentComedian: {
+                        select: {
+                            id: true,
+                            uuid: true,
+                            name: true,
+                            taggedComedians: {
+                                select: {
+                                    tag: true
+                                }
+                            }
+                        }
+                    },
+                    taggedComedians: {
+                        select: {
+                            tag: true
+                        }
+                    }
+                }
+            }
+        }
     }
+} as const;
 
-    const totalCount = await db.show.count({
-        where: whereClause
-    })
+export async function findShowsWithCount(helper: QueryHelper): Promise<ShowsResponse> {
+    try {
+        const whereClause: Prisma.ShowWhereInput = {
+            // Shows whose dates are Greater Than (gte) today's date or a date parameter, if provided
+            ...helper.getDateClause(),
+            // Every show search has limitations on the club, even if it's just clubs in a specific city.
+            club: {
+                // Only visible clubs included.
+                visible: true,
 
-    // Execute both queries in parallel, one to get the shows and the other to get the count.
-    const filteredShows = await
-        db.show.findMany({
+                // If the 'club' param is provided, this means there is a club name query string so we need to match on that.
+                ...helper.getClubNameClause(),
+
+                // If the 'zip_codes' param is provided, this means we only want shows from clubs in a specific zip codes.
+                ...helper.getZipCodeClause()
+            },
+            // If the 'comedian' param is provided, it means we're doing a search for shows that contain a specific comedian.
+            // This is not always provided. Sometimes the other clauses are sufficient for a lookup.
+            ...helper.getLineupItemClause(),
+            // Match any shows with tags matching the display of the provided filter, if the filter values aren't empty
+            ...helper.getShowTagsClause(),
+        };
+
+        // Get total count first
+        const totalCount = await db.show.count({
+            where: whereClause
+        });
+
+        // Then get filtered shows with pagination
+        const filteredShows = await db.show.findMany({
             where: whereClause,
             select: {
-                id: true,
-                name: true,
-                date: true,
-                popularity: true,
-                tickets: {
-                    select: {
-                        price: true,
-                        soldOut: true,
-                        purchaseUrl: true,
-                        type: true
-                    }
-                },
-                club: {
-                    select: {
-                        name: true,
-                        address: true
-                    }
-                },
+                ...SHOW_SELECT,
                 lineupItems: {
-                    where: {
-                        comedian: {
-                          taggedComedians: {
-                            none: {
-                              tag: {
-                                userFacing: false
-                              }
-                            }
-                          }
-                        }
-                      },
+                    ...SHOW_SELECT.lineupItems,
                     select: {
                         comedian: {
-                            select: {
-                                id: true,
-                                uuid: true,
-                                name: true,
-                                parentComedian: {
-                                    select: {
-                                        id: true,
-                                        uuid: true,
-                                        name: true,
-                                        taggedComedians: {
-                                            select: {
-                                                tag: true
-                                            }
-                                        }
-                                    }
-                                },
-                                taggedComedians: {
-                                    select: {
-                                        tag: true
-                                    }
-                                },
-                                ...helper.getFavoriteComedianClause()
-                            }
+                            ...SHOW_SELECT.lineupItems.select.comedian,
+                            ...helper.getFavoriteComedianClause()
                         }
                     }
                 }
             },
-
             ...helper.getGenericClauses(totalCount),
         });
-    return {
-        shows: filteredShows.map(show => ({
-            id: show.id,
-            date: show.date,
-            name: show.name,
-            address: show.club.address,
-            clubName: show.club.name,
-            imageUrl: buildClubImageUrl(show.club.name),
-            lineup: filterAndMapLineupItems(show.lineupItems, helper.getUserId()),
-            tickets: mapTickets(show.tickets),
-        })),
-        totalCount
+
+        return {
+            shows: filteredShows.map(show => ({
+                id: show.id,
+                date: show.date,
+                name: show.name,
+                address: show.club.address,
+                clubName: show.club.name,
+                imageUrl: buildClubImageUrl(show.club.name),
+                lineup: filterAndMapLineupItems(show.lineupItems, helper.getUserId()),
+                tickets: mapTickets(show.tickets),
+            })),
+            totalCount
+        };
+    } catch (error) {
+        if (error instanceof Error) {
+            console.error('Error in findShowsWithCount:', error);
+            throw error;
+        }
+        throw new Error('An unknown error occurred while fetching shows');
     }
 }

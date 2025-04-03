@@ -1,4 +1,4 @@
-import { ChangeEvent, useCallback, useEffect, useState } from "react";
+import { ChangeEvent } from "react";
 import { ComponentVariant } from "@/objects/enum";
 import {
     FormControl,
@@ -7,12 +7,11 @@ import {
     FormMessage,
 } from "@/ui/components/ui/form";
 import { Input } from "@/ui/components/ui/input";
-import _ from "lodash";
+import { useStyleContext } from "@/contexts/StyleProvider";
 
 interface ZipCodeInputBaseProps {
     disabled: boolean;
     placeholder: string;
-    debounceTime?: number;
 }
 
 interface ZipCodeInputFormProps extends ZipCodeInputBaseProps {
@@ -31,62 +30,59 @@ type ZipCodeInputComponentProps =
     | ZipCodeInputFormProps
     | ZipCodeInputStandaloneProps;
 
+const validateZipCode = (value: string): boolean => {
+    return /^\d{5}$/.test(value);
+};
+
 const ZipCodeInput = (props: ZipCodeInputComponentProps) => {
-    if (props.variant == ComponentVariant.Form) {
+    const { getCurrentStyles } = useStyleContext();
+    const styleConfig = getCurrentStyles();
+
+    const handleInputChange =
+        (onChange: (value: string) => void) =>
+        (event: ChangeEvent<HTMLInputElement>) => {
+            const value = event.target.value.replace(/\D/g, "");
+            if (value.length <= 5) {
+                onChange(value);
+            }
+        };
+
+    const inputClassName = `border-b border-gray-300 rounded-none px-2 py-1.5
+                          ${styleConfig.inputTextColor} text-base placeholder:text-base placeholder:text-gray-400
+                          focus:border-gray-400 hover:border-gray-400
+                          transition-colors text-center tracking-normal`;
+
+    const renderInput = (value: string, onChange: (value: string) => void) => (
+        <Input
+            type="text"
+            inputMode="numeric"
+            maxLength={5}
+            value={value}
+            onChange={handleInputChange(onChange)}
+            placeholder="Where"
+            className={inputClassName}
+            disabled={props.disabled}
+        />
+    );
+
+    if (props.variant === ComponentVariant.Form) {
         return (
             <FormField
                 control={props.form.control}
                 name={props.name}
-                render={({ field }) => {
-                    return (
-                        <FormItem>
-                            <FormControl className="rounded-lg">
-                                <Input {...field} {...props} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    );
-                }}
+                render={({ field }) => (
+                    <FormItem>
+                        <FormControl>
+                            {renderInput(field.value, field.onChange)}
+                        </FormControl>
+                        <FormMessage className="absolute text-xs mt-1" />
+                    </FormItem>
+                )}
             />
         );
     }
 
-    const [inputValue, setInputValue] = useState<string | undefined>(
-        props.value,
-    );
-
-    const debounceTime = props.debounceTime ?? 500;
-
-    // Get the debounced value
-    const debouncedOnChange = useCallback(
-        _.debounce((value: string) => {
-            props.onChange?.(value);
-        }, debounceTime),
-        [props, debounceTime],
-    );
-
-    // Update local value when prop value changes
-    useEffect(() => {
-        setInputValue(props.value);
-    }, [props]);
-
-    // Handle input changes
-    const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-        const newValue = event.target.value;
-        setInputValue(newValue);
-        debouncedOnChange(newValue);
-    };
-
-    return (
-        <Input
-            type="text"
-            maxLength={5}
-            pattern="[0-9]{5}"
-            value={inputValue}
-            onChange={handleInputChange}
-            placeholder={props.placeholder}
-        />
-    );
+    return renderInput(props.value ?? "", props.onChange ?? (() => {}));
 };
 
 export default ZipCodeInput;

@@ -1,3 +1,4 @@
+// ShowLocationComponent.tsx
 import { UseFormReturn } from "react-hook-form";
 import React from "react";
 import { useStyleContext } from "@/contexts/StyleProvider";
@@ -7,6 +8,7 @@ import DropdownComponent from "../dropdown";
 import ZipCodeInput from "../zipcode/input";
 import { allDistanceOptions } from "@/objects/enum/distanceValues";
 import { DistanceData } from "@/objects/interface";
+import { useLocationParams } from "../../hooks/useLocationParams";
 
 const selectableDistances = allDistanceOptions.map(
     (distance: string, index: number) => ({
@@ -24,8 +26,8 @@ type ShowDistanceFormProps = {
 type ShowDistanceStandaloneProps = {
     variant: ComponentVariant.Standalone;
     value: DistanceData;
-    onDistanceSelection: (value: string) => void;
-    onZipcodeInput: (value: string) => void;
+    onDistanceSelection?: (value: string) => void;
+    onZipcodeInput?: (value: string) => void;
 };
 
 type ShowLocationComponentProps =
@@ -34,10 +36,10 @@ type ShowLocationComponentProps =
 
 const ShowLocationComponent = (props: ShowLocationComponentProps) => {
     const { getCurrentStyles } = useStyleContext();
-    const styleConfig = getCurrentStyles();
+    const { updateDistance, updateZipCode } = useLocationParams();
 
     const buildDropdownComponent = (props: ShowLocationComponentProps) => {
-        if (props.variant == ComponentVariant.Form) {
+        if (props.variant === ComponentVariant.Form) {
             return (
                 <DropdownComponent
                     items={selectableDistances}
@@ -51,7 +53,7 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
         return (
             <DropdownComponent
                 items={selectableDistances}
-                onChange={props.onDistanceSelection}
+                onChange={props.onDistanceSelection ?? updateDistance}
                 value={props.value?.distance ?? ""}
                 variant={props.variant}
             />
@@ -59,12 +61,12 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
     };
 
     const buildZipCodeComponent = (props: ShowLocationComponentProps) => {
-        if (props.variant == ComponentVariant.Form) {
+        if (props.variant === ComponentVariant.Form) {
             return (
                 <ZipCodeInput
                     variant={props.variant}
                     form={props.form}
-                    placeholder="Enter a zip code"
+                    placeholder="Zip code"
                     disabled={false}
                     name="distance.zipCode"
                 />
@@ -75,28 +77,29 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
             <ZipCodeInput
                 variant={props.variant}
                 value={props.value?.zipCode ?? ""}
-                onChange={props.onZipcodeInput}
-                placeholder="Enter a zip code"
+                onChange={props.onZipcodeInput ?? updateZipCode}
+                placeholder="Zip code"
                 disabled={false}
             />
         );
     };
 
     return (
-        <div className="flex items-center gap-2">
-            <MapPin className={`w-5 h-5 ${styleConfig.iconTextColor}`} />
-            {buildDropdownComponent(props)}
-            <div
-                className={`${styleConfig.inputTextColor} text-[18px] font-dmSans`}
-            >
-                miles
+        <div className="flex items-center space-x-3">
+            <div className="flex items-center shrink-0 space-x-2">
+                <MapPin
+                    className={`w-6 h-6 ${getCurrentStyles().iconTextColor}`}
+                />
+                <div className="w-20">{buildDropdownComponent(props)}</div>
             </div>
-            <div
-                className={`${styleConfig.inputTextColor} text-[18px] font-dmSans`}
+
+            <span
+                className={`text-base font-normal ${getCurrentStyles().inputTextColor} whitespace-nowrap`}
             >
-                around
-            </div>
-            <div>{buildZipCodeComponent(props)}</div>
+                miles around
+            </span>
+
+            <div className="w-28 shrink-0">{buildZipCodeComponent(props)}</div>
         </div>
     );
 };

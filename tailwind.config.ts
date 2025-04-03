@@ -112,15 +112,41 @@ const config: Config = {
         "./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}",
     ],
     theme: {
+        screens: {
+            '2xs': { min: '300px' },
+            xs: { max: '575px' }, // Mobile (iPhone 3 - iPhone XS Max).
+            sm: { min: '576px', max: '897px' }, // Mobile (matches max: iPhone 11 Pro Max landscape @ 896px).
+            md: { min: '898px', max: '1199px' }, // Tablet (matches max: iPad Pro @ 1112px).
+            lg: { min: '1200px' }, // Desktop smallest.
+            xl: { min: '1259px' }, // Desktop wide.
+            '2xl': { min: '1359px' } // Desktop widescreen.
+          },
         extend: {
+                   spacing: {
+                     '18': '4.5rem',
+                     '22': '5.5rem',
+                     '72': '18rem',
+                     '84': '21rem',
+                     '96': '24rem',
+                   },
             keyframes: {
                 pulse: {
                     "0%, 100%": { opacity: "1" },
                     "50%": { opacity: "0.5" },
                 },
+                fadeIn: {
+                    "0%": { opacity: "0" },
+                    "100%": { opacity: "1" }
+                },
+                slideUp: {
+                    "0%": { transform: "translateY(10px)", opacity: "0" },
+                    "100%": { transform: "translateY(0)", opacity: "1" }
+                }
             },
             animation: {
                 pulse: "pulse 2s ease-in-out infinite",
+                fadeIn: "fadeIn 0.3s ease-in-out",
+                slideUp: "slideUp 0.4s ease-out"
             },
             fontFamily: fonts,
             colors: {

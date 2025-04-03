@@ -52,46 +52,53 @@ export default function ShowSearchBar() {
         setTypedParam(QueryProperty.Zip, value);
 
     return (
-        <SearchBarContainer maxWidth="max-w-2xl" sizeFlip="xl">
-            <div className={"xxl:pr-4 xxl:border-r xxl:border-black"}>
-                <ShowLocationComponent
-                    variant={ComponentVariant.Standalone}
-                    value={state.distance}
-                    onDistanceSelection={handleDistanceSelection}
-                    onZipcodeInput={handleZipCodeInput}
-                />
-            </div>
-
-            <div className={"xxl:pr-4 xxl:border-r xxl:border-black"}>
-                <CalendarComponent
-                    variant={ComponentVariant.Standalone}
-                    value={state.dateRange}
-                    onValueChange={handleDateRangeSelection}
-                />
-            </div>
-            <div className={"xxl:pr-4 xxl:border-r xxl:border-black"}>
-                <TextInputComponent
-                    icon={
-                        <Users
-                            className={`w-5 h-5 ${styleConfig.iconTextColor}`}
-                        />
-                    }
-                    placeholder="Search for comedian"
-                    value={state.comedian ?? ""}
-                    onChange={handleComedianSearch}
-                />
-            </div>
-
-            <TextInputComponent
-                icon={
-                    <Theater
-                        className={`w-5 h-5 ${styleConfig.iconTextColor}`}
+        <SearchBarContainer maxWidth="max-w-7xl">
+            <div className="flex flex-col lg:flex-row items-center lg:divide-x divide-white/10">
+                <div className="w-full lg:w-auto mb-4 lg:mb-0 lg:pr-6">
+                    <ShowLocationComponent
+                        variant={ComponentVariant.Standalone}
+                        value={state.distance}
+                        onDistanceSelection={handleDistanceSelection}
+                        onZipcodeInput={handleZipCodeInput}
                     />
-                }
-                placeholder="Search by club"
-                value={state.club ?? ""}
-                onChange={handleClubSearch}
-            />
+                </div>
+
+                <div className="w-full lg:w-auto lg:pl-6 lg:pr-6">
+                    <CalendarComponent
+                        variant={ComponentVariant.Standalone}
+                        value={state.dateRange}
+                        onValueChange={handleDateRangeSelection}
+                    />
+                </div>
+
+                <div className="w-full lg:w-auto lg:pl-6 lg:pr-6">
+                    <TextInputComponent
+                        icon={
+                            <Users
+                                className={`w-5 h-5 ${styleConfig.iconTextColor}`}
+                            />
+                        }
+                        placeholder="Search for comedian"
+                        value={state.comedian ?? ""}
+                        onChange={handleComedianSearch}
+                        className={styleConfig.inputTextColor}
+                    />
+                </div>
+
+                <div className="w-full lg:w-auto lg:pl-6">
+                    <TextInputComponent
+                        icon={
+                            <Theater
+                                className={`w-5 h-5 ${styleConfig.iconTextColor}`}
+                            />
+                        }
+                        placeholder="Search by club"
+                        value={state.club ?? ""}
+                        onChange={handleClubSearch}
+                        className={styleConfig.inputTextColor}
+                    />
+                </div>
+            </div>
         </SearchBarContainer>
     );
 }

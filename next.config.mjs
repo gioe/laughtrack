@@ -26,6 +26,15 @@ const nextConfig = {
     fetches: {
       fullUrl: true,
     },
+  },
+  experimental: {
+    serverActions: {
+      allowedOrigins: ['laughtrack.b-cdn.net'],
+    },
+  },
+  env: {
+    DATABASE_URL: process.env.DATABASE_URL,
+    DIRECT_URL: process.env.DIRECT_URL,
   }
 };
 

@@ -9,9 +9,9 @@ interface ComedianGridProps {
 }
 const ComedianGrid = ({ comedians, className }: ComedianGridProps) => {
     return (
-        <div className="md:mx-10 lg:mx-10 mt-12">
+        <div className="w-full">
             {comedians.length > 0 ? (
-                <div className={className}>
+                <div className={`${className} animate-fade-in`}>
                     {comedians.map((dto) => (
                         <ComedianGridCard
                             key={dto.name}
@@ -20,9 +20,14 @@ const ComedianGrid = ({ comedians, className }: ComedianGridProps) => {
                     ))}
                 </div>
             ) : (
-                <h2 className="font-bold font-dmSans text-[60px] text-center pt-6">
-                    No results. That person must not be funny enough.
-                </h2>
+                <div className="flex flex-col items-center justify-center py-12 px-4">
+                    <h2 className="font-bold font-dmSans text-[48px] text-center text-cedar mb-4">
+                        No results found
+                    </h2>
+                    <p className="text-gray-600 text-center text-lg font-dmSans">
+                        That person must not be funny enough.
+                    </p>
+                </div>
             )}
         </div>
     );

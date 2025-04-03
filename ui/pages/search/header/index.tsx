@@ -5,11 +5,13 @@ interface SearchDetailHeaderProps {
 
 const SearchDetailHeader = ({ title, subTitle }: SearchDetailHeaderProps) => {
     return (
-        <div className="text-center py-8 bg-coconut-cream">
-            <h1 className="text-[32px] font-bold text-cedar font-gilroy-bold mb-2">
+        <div className="text-center py-6 md:py-8 bg-coconut-cream px-4">
+            <h1 className="text-2xl sm:text-3xl md:text-[32px] font-bold text-cedar font-gilroy-bold mb-1 sm:mb-2">
                 {title}
             </h1>
-            <p className="text-gray-600 text-[16px] font-dmSans">{subTitle}</p>
+            <p className="text-sm sm:text-base md:text-[16px] font-dmSans text-gray-600">
+                {subTitle}
+            </p>
         </div>
     );
 };

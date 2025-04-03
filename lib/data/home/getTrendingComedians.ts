@@ -1,41 +1,44 @@
 import { db } from "@/lib/db";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { buildComedianImageUrl } from "@/util/imageUtil";
+import { Prisma } from "@prisma/client";
 
 export async function getTrendingComedians(userId?: string): Promise<ComedianDTO[]> {
-    const comedians = await db.comedian.findMany({
-        where: {
-            parentComedianId: null,
-            OR: [
-                {
-                    lineupItems: {
-                        some: {
-                            show: { date: { gt: new Date().toISOString() } },
-                        },
+    const whereClause: Prisma.ComedianWhereInput = {
+        parentComedianId: null,
+        OR: [
+            {
+                lineupItems: {
+                    some: {
+                        show: { date: { gt: new Date().toISOString() } },
                     },
                 },
-                {
-                    alternativeNames: {
-                        some: {
-                            lineupItems: {
-                                some: {
-                                    show: { date: { gt: new Date().toISOString() } },
-                                },
+            },
+            {
+                alternativeNames: {
+                    some: {
+                        lineupItems: {
+                            some: {
+                                show: { date: { gt: new Date().toISOString() } },
                             },
                         },
                     },
                 },
-            ],
-            NOT: {
-                taggedComedians: {
-                    some: {
-                        tag: {
-                            slug: { in: ["alias", "non_human", "non comic"] }
-                        },
+            },
+        ],
+        NOT: {
+            taggedComedians: {
+                some: {
+                    tag: {
+                        slug: { in: ["alias", "non_human", "non comic"] }
                     },
                 },
             },
         },
+    };
+
+    const comedians = await db.comedian.findMany({
+        where: whereClause,
         select: {
             id: true,
             uuid: true,

@@ -1,5 +1,7 @@
 import { ShowDTO } from "@/objects/class/show/show.interface";
 import ShowCard from "@/ui/components/cards/show";
+import EmptyState from "@/ui/components/emptyState";
+import { Calendar, MapPin, Ticket } from "lucide-react";
 
 interface ShowTableProps {
     shows: ShowDTO[];
@@ -8,10 +10,10 @@ interface ShowTableProps {
 
 const ShowTable = ({
     shows,
-    errorMessage = "No results. Not the best search I've ever seen",
+    errorMessage = "Try updating your search or check back later",
 }: ShowTableProps) => {
     return (
-        <section className="grid grid-cols-1 gap-y-10 m-8">
+        <section className="grid grid-cols-1 gap-y-6 sm:gap-y-8 md:gap-y-10 px-4 sm:px-6 md:px-8 mb-10 justify-items-start">
             {shows.length > 0 ? (
                 shows.map((show) => {
                     return (
@@ -19,9 +21,11 @@ const ShowTable = ({
                     );
                 })
             ) : (
-                <h2 className="font-bold font-dmSans text-[60px] text-center max-w-7xl pt-6">
-                    {errorMessage}
-                </h2>
+                <EmptyState
+                    title="No Shows Found"
+                    message={errorMessage}
+                    icons={[Calendar, MapPin, Ticket]}
+                />
             )}
         </section>
     );
