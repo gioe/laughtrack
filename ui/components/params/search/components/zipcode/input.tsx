@@ -47,7 +47,7 @@ const ZipCodeInput = (props: ZipCodeInputComponentProps) => {
             }
         };
 
-    const inputClassName = `border-b border-gray-300 rounded-none px-2 py-1.5
+    const inputClassName = `border border-gray-300 rounded-lg px-2 py-1.5
                           ${styleConfig.inputTextColor} text-base placeholder:text-base placeholder:text-gray-400
                           focus:border-gray-400 hover:border-gray-400
                           transition-colors text-center tracking-normal`;

@@ -76,23 +76,22 @@ export async function findShowsWithCount(helper: QueryHelper): Promise<ShowsResp
         const whereClause: Prisma.ShowWhereInput = {
             // Shows whose dates are Greater Than (gte) today's date or a date parameter, if provided
             ...helper.getDateClause(),
-            // Every show search has limitations on the club, even if it's just clubs in a specific city.
+
+            // Club conditions
             club: {
-                // Only visible clubs included.
                 visible: true,
-
-                // If the 'club' param is provided, this means there is a club name query string so we need to match on that.
-                ...helper.getClubNameClause(),
-
-                // If the 'zip_codes' param is provided, this means we only want shows from clubs in a specific zip codes.
-                ...helper.getZipCodeClause()
+                // Only add these clauses if they have values
+                ...(helper.getClubNameClause().name && helper.getClubNameClause()),
+                ...(helper.getZipCodeClause().zipCode && helper.getZipCodeClause())
             },
+
             // If the 'comedian' param is provided, it means we're doing a search for shows that contain a specific comedian.
-            // This is not always provided. Sometimes the other clauses are sufficient for a lookup.
             ...helper.getLineupItemClause(),
-            // Match any shows with tags matching the display of the provided filter, if the filter values aren't empty
+
+            // Match any shows with tags matching the display of the provided filter
             ...helper.getShowTagsClause(),
         };
+
 
         // Get total count first
         const totalCount = await db.show.count({
@@ -116,7 +115,6 @@ export async function findShowsWithCount(helper: QueryHelper): Promise<ShowsResp
             },
             ...helper.getGenericClauses(totalCount),
         });
-
         return {
             shows: filteredShows.map(show => ({
                 id: show.id,
