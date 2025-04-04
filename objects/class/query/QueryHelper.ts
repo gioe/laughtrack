@@ -217,16 +217,37 @@ export class QueryHelper {
     }
 
     getZipCodeClause() {
-        const providedZip = this.searchParams.get(QueryProperty.Zip) as string
+        const providedZip = this.searchParams.get(QueryProperty.Zip);
+        const radius = this.searchParams.get(QueryProperty.Distance);
 
-        if (providedZip == "") return {}
-        const radius = this.searchParams.get(QueryProperty.Distance) as string
-        const zipResults = zipcodes.radius(providedZip, Number(radius));
-        const nearbyZips = zipResults.map((zip: string | zipcodes.ZipCode) => typeof zip === 'string' ? zip : zip.zip);
-        return {
-            zipCode: {
-                in: nearbyZips
+        // Return empty object if no zip code or invalid zip code
+        if (!providedZip || !/^\d{5}$/.test(providedZip)) {
+            return {};
+        }
+
+        // Return empty object if no radius or invalid radius
+        if (!radius || isNaN(Number(radius))) {
+            return {};
+        }
+
+        try {
+            const zipResults = zipcodes.radius(providedZip, Number(radius));
+            if (!zipResults || zipResults.length === 0) {
+                return {};
             }
+
+            const nearbyZips = zipResults.map((zip: string | zipcodes.ZipCode) =>
+                typeof zip === 'string' ? zip : zip.zip
+            );
+
+            return {
+                zipCode: {
+                    in: nearbyZips
+                }
+            };
+        } catch (error) {
+            console.error('Error in zip code radius calculation:', error);
+            return {};
         }
     }
 

@@ -23,12 +23,12 @@ const variantStyles = {
     grid: {
         container: "relative w-full aspect-square",
         image: "object-cover object-center rounded-xl",
-        favoriteButton: "absolute top-2 right-2",
+        favoriteButton: "absolute top-3 right-3",
     },
     lineup: {
         container: "relative h-[136px] w-[136px]",
         image: "object-cover object-center rounded-xl",
-        favoriteButton: "absolute -top-1 -right-1 scale-75",
+        favoriteButton: "absolute top-1 right-1",
     },
 };
 
@@ -76,12 +76,12 @@ const ComedianHeadshot = ({
             {loaded && (
                 <button
                     onClick={handleFavoriteClick}
-                    className={`${styles.favoriteButton} p-1 hover:bg-black/10 rounded-full transition-colors z-10`}
+                    className={`${styles.favoriteButton} p-2.5 bg-black/20 hover:bg-black/30 rounded-full transition-all duration-200 z-10 shadow-md`}
                 >
                     {isFavorite ? (
-                        <SolidHeart className="w-5 h-5 text-red-500" />
+                        <SolidHeart className="w-6 h-6 text-red-500 drop-shadow-sm" />
                     ) : (
-                        <OutlineHeart className="w-5 h-5 text-red-500" />
+                        <OutlineHeart className="w-6 h-6 text-white hover:text-red-500 drop-shadow-sm" />
                     )}
                 </button>
             )}
