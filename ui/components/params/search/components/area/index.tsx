@@ -78,28 +78,30 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
                 variant={props.variant}
                 value={props.value?.zipCode ?? ""}
                 onChange={props.onZipcodeInput ?? updateZipCode}
-                placeholder="Zip code"
+                placeholder="Where"
                 disabled={false}
             />
         );
     };
 
     return (
-        <div className="flex items-center space-x-3">
-            <div className="flex items-center shrink-0 space-x-2">
+        <div className="flex flex-wrap items-center gap-4 sm:gap-6 w-full">
+            <div className="flex items-center min-w-[120px] max-w-[160px]">
                 <MapPin
-                    className={`w-6 h-6 ${getCurrentStyles().iconTextColor}`}
+                    className={`w-5 h-5 mr-2 flex-shrink-0 ${getCurrentStyles().iconTextColor}`}
                 />
-                <div className="w-20">{buildDropdownComponent(props)}</div>
+                <div className="w-full">{buildDropdownComponent(props)}</div>
             </div>
 
             <span
-                className={`text-base font-normal ${getCurrentStyles().inputTextColor} whitespace-nowrap`}
+                className={`text-sm sm:text-base font-normal px-2 ${getCurrentStyles().inputTextColor} whitespace-nowrap`}
             >
                 miles around
             </span>
 
-            <div className="w-28 shrink-0">{buildZipCodeComponent(props)}</div>
+            <div className="w-full sm:w-auto flex-1 max-w-[200px]">
+                {buildZipCodeComponent(props)}
+            </div>
         </div>
     );
 };

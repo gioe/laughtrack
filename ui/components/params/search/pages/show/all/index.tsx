@@ -54,7 +54,7 @@ export default function ShowSearchBar() {
     return (
         <SearchBarContainer maxWidth="max-w-7xl">
             <div className="flex flex-col lg:flex-row items-center lg:divide-x divide-white/10">
-                <div className="w-full lg:w-auto mb-4 lg:mb-0 lg:pr-6">
+                <div className="w-full lg:w-auto mb-6 lg:mb-0 lg:pr-6">
                     <ShowLocationComponent
                         variant={ComponentVariant.Standalone}
                         value={state.distance}
@@ -63,7 +63,7 @@ export default function ShowSearchBar() {
                     />
                 </div>
 
-                <div className="w-full lg:w-auto lg:pl-6 lg:pr-6">
+                <div className="w-full lg:w-auto mb-6 lg:mb-0 lg:pl-6 lg:pr-6">
                     <CalendarComponent
                         variant={ComponentVariant.Standalone}
                         value={state.dateRange}
@@ -71,7 +71,7 @@ export default function ShowSearchBar() {
                     />
                 </div>
 
-                <div className="w-full lg:w-auto lg:pl-6 lg:pr-6">
+                <div className="w-full lg:w-auto mb-6 lg:mb-0 lg:pl-6 lg:pr-6">
                     <TextInputComponent
                         icon={
                             <Users

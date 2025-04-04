@@ -8,6 +8,7 @@ import {
 } from "@/ui/components/ui/form";
 import { Input } from "@/ui/components/ui/input";
 import { useStyleContext } from "@/contexts/StyleProvider";
+import { MapPin } from "lucide-react";
 
 interface ZipCodeInputBaseProps {
     disabled: boolean;
@@ -47,22 +48,28 @@ const ZipCodeInput = (props: ZipCodeInputComponentProps) => {
             }
         };
 
-    const inputClassName = `border border-gray-300 rounded-lg px-2 py-1.5
-                          ${styleConfig.inputTextColor} text-base placeholder:text-base placeholder:text-gray-400
-                          focus:border-gray-400 hover:border-gray-400
-                          transition-colors text-center tracking-normal`;
+    const inputClassName = `border-0 px-0 focus:ring-0 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0
+        ${styleConfig.inputTextColor} text-sm sm:text-base
+        placeholder:text-sm sm:placeholder:text-base placeholder:text-gray-400
+        tracking-normal
+        bg-transparent`;
 
     const renderInput = (value: string, onChange: (value: string) => void) => (
-        <Input
-            type="text"
-            inputMode="numeric"
-            maxLength={5}
-            value={value}
-            onChange={handleInputChange(onChange)}
-            placeholder="Where"
-            className={inputClassName}
-            disabled={props.disabled}
-        />
+        <div className="flex items-center gap-2 px-3 py-1.5 border border-gray-300 rounded-lg bg-transparent transition-colors hover:border-gray-400 focus-within:border-gray-400 focus-within:ring-2 focus-within:ring-blue-500 focus-within:outline-none">
+            <MapPin
+                className={`w-5 h-5 flex-shrink-0 ${styleConfig.iconTextColor}`}
+            />
+            <Input
+                type="text"
+                inputMode="numeric"
+                maxLength={5}
+                value={value}
+                onChange={handleInputChange(onChange)}
+                placeholder={props.placeholder}
+                className={inputClassName}
+                disabled={props.disabled}
+            />
+        </div>
     );
 
     if (props.variant === ComponentVariant.Form) {
