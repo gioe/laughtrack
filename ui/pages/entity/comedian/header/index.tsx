@@ -98,21 +98,6 @@ const ComedianDetailHeader: React.FC<ClubDetailHeaderProps> = ({
                             >
                                 {parsedComedian.name}
                             </motion.h1>
-
-                            {parsedComedian.socialData?.popularity && (
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    transition={{ duration: 0.3, delay: 0.2 }}
-                                    className="flex items-center gap-1 text-gray-600"
-                                >
-                                    <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                                    <span className="text-sm">
-                                        Popularity Score:{" "}
-                                        {parsedComedian.socialData.popularity}
-                                    </span>
-                                </motion.div>
-                            )}
                         </div>
                     </div>
                 </div>
