@@ -8,7 +8,7 @@ import { Search } from "lucide-react";
 import { showSearchFormSchema } from "./schema";
 import { Loader2 } from "lucide-react";
 import { Form } from "@/ui/components/ui/form";
-import { ComponentVariant, StyleContextKey } from "@/objects/enum";
+import { ComponentVariant } from "@/objects/enum";
 import CalendarComponent from "../../components/calendar";
 import ShowLocationComponent from "../../components/area";
 import { useUrlParams } from "@/hooks/useUrlParams";
@@ -77,15 +77,15 @@ export default function ShowSearchForm() {
                     {isLoading && <LoadingOverlay />}
 
                     <div className="flex flex-col lg:flex-row">
-                        <div className="flex-1 p-4 lg:p-6">
+                        <div className="flex-1 p-5 lg:p-8">
                             <div className="flex flex-col lg:flex-row items-center lg:divide-x divide-white/10">
-                                <div className="w-full lg:w-auto mb-4 lg:mb-0 lg:pr-10">
+                                <div className="w-full lg:w-auto mb-6 lg:mb-0 lg:pr-12">
                                     <ShowLocationComponent
                                         variant={ComponentVariant.Form}
                                         form={form}
                                     />
                                 </div>
-                                <div className="w-full lg:w-auto lg:pl-10">
+                                <div className="w-full lg:w-auto lg:pl-12">
                                     <CalendarComponent
                                         variant={ComponentVariant.Form}
                                         name="dates"

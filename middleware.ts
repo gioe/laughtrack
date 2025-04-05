@@ -16,9 +16,19 @@ function isProtectedRoute(pathname: string): boolean {
 export async function middleware(request: NextRequest) {
     try {
         const pathname = request.nextUrl.pathname
+        const url = request.nextUrl.clone()
+        const searchParams = new URLSearchParams(url.search)
 
+        // Apply default parameters
+        setParamDefaults(searchParams, pathname)
+
+        // Update the URL with the modified search params
+        url.search = searchParams.toString()
+        const response = NextResponse.rewrite(url)
+
+        // Handle protected routes
         if (!isProtectedRoute(pathname)) {
-            return NextResponse.next()
+            return response
         }
 
         const token = await getToken({ req: request })
@@ -42,11 +52,9 @@ export async function middleware(request: NextRequest) {
                 // User is trying to access another user's profile - redirect to their own profile
                 return NextResponse.redirect(new URL(`/profile/${userId}`, request.url))
             }
-
-            return NextResponse.next()
         }
 
-        return NextResponse.next()
+        return response
     } catch (error) {
         console.error('Middleware error:', error)
         return NextResponse.next()
@@ -68,9 +76,9 @@ export function setParamDefaults(params: URLSearchParams, path: string, user?: U
 
 function getSortParamDefaultFromPath(params: URLSearchParams, path: string): URLSearchParams {
     if (path.startsWith('/club') || path.startsWith('/comedian')) {
-        params.set(QueryProperty.Sort, path.includes('/search') ? SortParamValue.Name : SortParamValue.Date)
+        params.set(QueryProperty.Sort, path.includes('/search') ? SortParamValue.NameAsc : SortParamValue.DateAsc)
     } else if (path.startsWith('/show')) {
-        params.set(QueryProperty.Sort, path.includes('/search') ? SortParamValue.Date : SortParamValue.Name)
+        params.set(QueryProperty.Sort,  SortParamValue.DateAsc)
     }
     return params
 }

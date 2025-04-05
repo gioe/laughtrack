@@ -31,44 +31,46 @@ export const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
     today.setHours(0, 0, 0, 0);
 
     return (
-        <div className="flex items-center">
-            <CalendarIcon
-                className={`w-5 h-5 mr-2 ${styleConfig.iconTextColor}`}
-            />
-            <Popover>
-                <PopoverTrigger asChild>
-                    <button
-                        type="button"
-                        className="flex items-center focus:outline-none"
-                    >
-                        <div
-                            className={`text-base ${styleConfig.inputTextColor} font-dmSans`}
+        <div className="flex items-center gap-3">
+            <div className="flex items-center">
+                <CalendarIcon
+                    className={`w-5 h-5 mr-2 flex-shrink-0 ${styleConfig.iconTextColor}`}
+                />
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <button
+                            type="button"
+                            className="flex items-center focus:outline-none"
                         >
-                            {formatDateRange(PLACEHOLDER, selectedRange)}
-                        </div>
-                        <ChevronsUpDown
-                            className={`w-4 h-4 ml-1 opacity-50 ${styleConfig.iconTextColor}`}
+                            <div
+                                className={`text-sm sm:text-base ${styleConfig.inputTextColor} font-dmSans`}
+                            >
+                                {formatDateRange(PLACEHOLDER, selectedRange)}
+                            </div>
+                            <ChevronsUpDown
+                                className={`w-4 h-4 ml-2 opacity-50 ${styleConfig.iconTextColor}`}
+                            />
+                        </button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                        className="p-0 rounded-lg border shadow-lg"
+                        align="center"
+                        sideOffset={16}
+                        avoidCollisions={true}
+                    >
+                        <Calendar
+                            className="rounded-lg"
+                            initialFocus
+                            mode="range"
+                            selected={selectedRange}
+                            defaultMonth={selectedRange?.from || new Date()}
+                            onSelect={onSelect}
+                            numberOfMonths={1}
+                            disabled={(date) => date < today}
                         />
-                    </button>
-                </PopoverTrigger>
-                <PopoverContent
-                    className="p-0 rounded-lg border shadow-lg"
-                    align="center"
-                    sideOffset={16}
-                    avoidCollisions={true}
-                >
-                    <Calendar
-                        className="rounded-lg"
-                        initialFocus
-                        mode="range"
-                        selected={selectedRange}
-                        defaultMonth={selectedRange?.from || new Date()}
-                        onSelect={onSelect}
-                        numberOfMonths={1}
-                        disabled={(date) => date < today}
-                    />
-                </PopoverContent>
-            </Popover>
+                    </PopoverContent>
+                </Popover>
+            </div>
         </div>
     );
 };

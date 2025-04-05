@@ -8,8 +8,8 @@ export async function PUT(
     { params  }
 ) {
     const [ session, slug ] = await Promise.all([auth(), params])
-    if (!session?.user) { return new NextResponse(null, { status: 401 }) }
-    if (session.user.id !== slug.id) { return new NextResponse(null, { status: 403 }) }
+    if (!session?.profile) { return new NextResponse(null, { status: 401 }) }
+    if (session.profile.userid !== slug.id) { return new NextResponse(null, { status: 403 }) }
 
     const data = await req.json()
 

@@ -9,7 +9,9 @@ const USER_PROFILE_SELECT = {
     id: true,
     user: {
         select: {
-            email: true
+            email: true,
+            name: true,
+            image: true
         }
     }
 } as const;
@@ -36,7 +38,9 @@ export async function getUserProfileData(userId?: string): Promise<UserProfileIn
             emailOptin: userProfile.emailShowNotifications,
             id: userProfile.id,
             userId: userProfile.userid,
-            email: userProfile.user.email
+            email: userProfile.user.email,
+            name: userProfile.user.name ?? undefined,
+            image: userProfile.user.image ?? undefined
         };
     } catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {

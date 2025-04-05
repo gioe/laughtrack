@@ -13,6 +13,7 @@ import { UserProfileInterface } from "@/app/api/profile/[id]/interface";
 import { useLoginModal } from "@/hooks";
 import { SideDrawerItem } from "./item";
 import { usePathname } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface SideDrawerProps {
     onClose: (open: boolean) => void;
@@ -30,75 +31,156 @@ export function SideDrawer({ open, onClose, currentUser }: SideDrawerProps) {
         onClose(false); // Close drawer after clicking login
     }, [loginModal, onClose]);
 
+    const menuItems = [
+        { title: "Home", href: "/", highlighted: pathname === "/" },
+        {
+            title: "Shows",
+            href: "/show/search",
+            highlighted: pathname.includes("/show"),
+        },
+        {
+            title: "Clubs",
+            href: "/club/search",
+            highlighted: pathname.includes("/club"),
+        },
+        {
+            title: "Comedians",
+            href: "/comedian/search",
+            highlighted: pathname.includes("/comedian"),
+        },
+    ];
+
+    const sideDrawerVariants = {
+        hidden: { x: "100%", opacity: 0 },
+        visible: {
+            x: 0,
+            opacity: 1,
+            transition: {
+                type: "spring",
+                damping: 25,
+                stiffness: 300,
+            },
+        },
+        exit: {
+            x: "100%",
+            opacity: 0,
+            transition: {
+                type: "spring",
+                damping: 30,
+                stiffness: 300,
+            },
+        },
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, x: 20 },
+        visible: (i: number) => ({
+            opacity: 1,
+            x: 0,
+            transition: {
+                delay: i * 0.1,
+                duration: 0.3,
+            },
+        }),
+    };
+
     return (
-        <Dialog
-            open={open}
-            onClose={onClose}
-            className="lg:hidden relative z-30"
-        >
-            <div className="fixed inset-0 bg-black/25 backdrop-blur-sm" />
-            <DialogPanel className="fixed inset-y-0 right-0 z-40 w-full overflow-y-auto bg-coconut-cream px-4 sm:px-6 py-4 sm:py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10 shadow-xl transition-transform duration-300">
-                <div className="flex items-center justify-between">
-                    <span className="text-xl font-bold font-gilroy-bold">
-                        Laughtrack
-                    </span>
-                    <button
-                        type="button"
-                        className="p-2 rounded-md text-gray-500 hover:text-gray-700"
+        <AnimatePresence>
+            {open && (
+                <Dialog
+                    open={open}
+                    onClose={onClose}
+                    className="lg:hidden relative z-30"
+                >
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="fixed inset-0 bg-black/40 backdrop-blur-sm"
                         onClick={() => onClose(false)}
-                    >
-                        <XButton handleClick={() => onClose(false)} />
-                    </button>
-                </div>
-                <div className="mt-6 flow-root">
-                    <div className="-my-6 divide-y divide-gray-500/10">
-                        <div className="space-y-2 py-6">
-                            <SideDrawerItem
-                                title="Home"
-                                href="/"
-                                highlighted={pathname === "/"}
-                            />
-                            <SideDrawerItem
-                                title="Shows"
-                                href="/show/search"
-                                highlighted={pathname.includes("/show")}
-                            />
-                            <SideDrawerItem
-                                title="Clubs"
-                                href="/club/search"
-                                highlighted={pathname.includes("/club")}
-                            />
-                            <SideDrawerItem
-                                title="Comedians"
-                                href="/comedian/search"
-                                highlighted={pathname.includes("/comedian")}
-                            />
-                        </div>
-                        <div className="flex flex-col py-6 gap-5">
-                            {currentUser ? (
-                                <>
-                                    <SideDrawerItem
-                                        title="Profile"
-                                        href={`/profile/${currentUser.id}`}
-                                        highlighted={pathname.includes(
-                                            "/profile",
-                                        )}
+                    />
+                    <DialogPanel className="fixed inset-y-0 right-0 z-40 w-full overflow-y-auto bg-coconut-cream/95 px-4 sm:px-6 py-4 sm:py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10 shadow-xl">
+                        <motion.div
+                            variants={sideDrawerVariants}
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
+                            className="h-full flex flex-col"
+                        >
+                            <div className="flex items-center justify-between">
+                                <motion.span
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.2 }}
+                                    className="text-2xl font-bold font-chivo bg-gradient-to-r from-copper to-cedar bg-clip-text text-transparent"
+                                >
+                                    Laughtrack
+                                </motion.span>
+                                <motion.button
+                                    initial={{ opacity: 0, rotate: -90 }}
+                                    animate={{ opacity: 1, rotate: 0 }}
+                                    transition={{ delay: 0.3 }}
+                                    type="button"
+                                    className="p-2 rounded-md text-gray-500 hover:text-gray-700 transition-colors"
+                                    onClick={() => onClose(false)}
+                                >
+                                    <XButton
+                                        handleClick={() => onClose(false)}
                                     />
-                                    <FullRoundedButton
-                                        handleClick={handleSignOut}
-                                        label="Log Out"
-                                    />
-                                </>
-                            ) : (
-                                <FullRoundedButton
-                                    handleClick={handleLoginClick}
-                                    label="Log In"
-                                />
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </DialogPanel>
-        </Dialog>
+                                </motion.button>
+                            </div>
+                            <div className="mt-8 flex-1">
+                                <div className="space-y-2">
+                                    {menuItems.map((item, index) => (
+                                        <motion.div
+                                            key={item.title}
+                                            custom={index}
+                                            variants={itemVariants}
+                                            initial="hidden"
+                                            animate="visible"
+                                        >
+                                            <SideDrawerItem
+                                                title={item.title}
+                                                href={item.href}
+                                                highlighted={item.highlighted}
+                                            />
+                                        </motion.div>
+                                    ))}
+                                </div>
+                                <motion.div
+                                    variants={itemVariants}
+                                    initial="hidden"
+                                    animate="visible"
+                                    custom={menuItems.length + 1}
+                                    className="mt-8"
+                                >
+                                    {currentUser ? (
+                                        <div className="space-y-4">
+                                            <SideDrawerItem
+                                                title="Profile"
+                                                href={`/profile/${currentUser.id}`}
+                                                highlighted={pathname.includes(
+                                                    "/profile",
+                                                )}
+                                            />
+                                            <FullRoundedButton
+                                                handleClick={handleSignOut}
+                                                label="Log Out"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <FullRoundedButton
+                                            handleClick={handleLoginClick}
+                                            label="Log In"
+                                        />
+                                    )}
+                                </motion.div>
+                            </div>
+                        </motion.div>
+                    </DialogPanel>
+                </Dialog>
+            )}
+        </AnimatePresence>
     );
 }

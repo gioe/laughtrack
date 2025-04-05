@@ -20,7 +20,7 @@ export default async function ShowSearchPage(props: any) {
     const requestData = {
         params: searchParams,
         timezone: cookieStore.get("timezone")?.value || "UTC",
-        userId: session?.profile?.userId,
+        userId: session?.profile?.userid,
         profileId: session?.profile?.id,
     };
 
@@ -46,10 +46,6 @@ export default async function ShowSearchPage(props: any) {
     return (
         <main className="min-h-screen w-full bg-coconut-cream">
             <FilterModal filters={filters} total={total} />
-            <SearchDetailHeader
-                title={`Search for shows near you`}
-                subTitle={`${total} results`}
-            />
             <FilterBar
                 variant={SearchVariant.AllShows}
                 total={total}

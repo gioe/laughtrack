@@ -2,14 +2,54 @@
 
 import { Comedian } from "@/objects/class/comedian/Comedian";
 import ComedianHeadshot from "../image/comedian";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
 
 interface LineupGridProps {
     lineup: Comedian[];
 }
+
 const LineupGrid = ({ lineup }: LineupGridProps) => {
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const [showLeftScroll, setShowLeftScroll] = useState(false);
+    const [showRightScroll, setShowRightScroll] = useState(false);
+
+    // Check if scrolling is needed
+    const checkScroll = () => {
+        if (scrollContainerRef.current) {
+            const { scrollLeft, scrollWidth, clientWidth } =
+                scrollContainerRef.current;
+            setShowLeftScroll(scrollLeft > 0);
+            setShowRightScroll(scrollLeft < scrollWidth - clientWidth - 10); // 10px buffer
+        }
+    };
+
+    // Initial check and window resize handling
+    useEffect(() => {
+        checkScroll();
+        window.addEventListener("resize", checkScroll);
+        return () => window.removeEventListener("resize", checkScroll);
+    }, []);
+
+    // Scroll handling
+    const scroll = (direction: "left" | "right") => {
+        if (scrollContainerRef.current) {
+            const scrollAmount = scrollContainerRef.current.clientWidth * 0.75;
+            scrollContainerRef.current.scrollBy({
+                left: direction === "left" ? -scrollAmount : scrollAmount,
+                behavior: "smooth",
+            });
+        }
+    };
+
     return (
-        <div className="relative">
-            <div className="flex gap-4 overflow-x-auto pb-4 snap-x hover:cursor-pointer scrollbar-hide">
+        <div className="relative group">
+            {/* Scroll Container */}
+            <div
+                ref={scrollContainerRef}
+                onScroll={checkScroll}
+                className="flex gap-4 overflow-x-auto pb-4 snap-x hover:cursor-pointer scrollbar-hide"
+            >
                 {lineup.map((comedian, index) => (
                     <div
                         key={index}
@@ -24,20 +64,49 @@ const LineupGrid = ({ lineup }: LineupGridProps) => {
                             comedian={comedian}
                             variant="lineup"
                         />
-                        {comedian.name.split(" ").map((nameString) => {
-                            return (
-                                <p
-                                    key={nameString}
-                                    className="text-sm text-cedar font-semibold text-center font-dmSans text-[16px]"
-                                >
-                                    {`${nameString}`}
-                                </p>
-                            );
-                        })}
+                        {comedian.name.split(" ").map((nameString) => (
+                            <p
+                                key={nameString}
+                                className="text-sm text-cedar font-semibold text-center font-dmSans text-[16px]"
+                            >
+                                {nameString}
+                            </p>
+                        ))}
                     </div>
                 ))}
             </div>
-            <div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-[#F5E6D3]/60 to-transparent pointer-events-none" />
+
+            {/* Gradient Overlays */}
+            {showLeftScroll && (
+                <div className="absolute left-0 top-0 bottom-4 w-12 bg-gradient-to-r from-[#F5E6D3]/60 to-transparent pointer-events-none" />
+            )}
+            {showRightScroll && (
+                <div className="absolute right-0 top-0 bottom-4 w-12 bg-gradient-to-l from-[#F5E6D3]/60 to-transparent pointer-events-none" />
+            )}
+
+            {/* Scroll Buttons */}
+            {showLeftScroll && (
+                <button
+                    onClick={() => scroll("left")}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 
+                             shadow-md hover:bg-white transition-all duration-200 opacity-0 
+                             group-hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-copper"
+                    aria-label="Scroll left"
+                >
+                    <ChevronLeft className="w-5 h-5 text-copper" />
+                </button>
+            )}
+            {showRightScroll && (
+                <button
+                    onClick={() => scroll("right")}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 
+                             shadow-md hover:bg-white transition-all duration-200 opacity-0 
+                             group-hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-copper"
+                    aria-label="Scroll right"
+                >
+                    <ChevronRight className="w-5 h-5 text-copper" />
+                </button>
+            )}
         </div>
     );
 };

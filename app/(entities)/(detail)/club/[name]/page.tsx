@@ -25,7 +25,7 @@ export default async function ClubDetailPage(props: {
     const requestData = {
         params: searchParams,
         timezone: cookieStore.get("timezone")?.value || "UTC",
-        userId: session?.profile?.userId,
+        userId: session?.profile?.userid,
         profileId: session?.profile?.id,
         slug: slug?.name,
     };

@@ -1,11 +1,13 @@
 "use client";
 
-import TablePagination from "@mui/material/TablePagination";
+import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { usePageParams } from "./hooks/usePageParams";
 
 interface PageParamComponentProps {
     itemCount: number;
 }
+
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
 export function PageParamComponent({
     itemCount,
@@ -13,60 +15,65 @@ export function PageParamComponent({
     const { currentPage, pageSize, updatePage, updatePageSize } =
         usePageParams(itemCount);
 
-    const handleChangeOffset = (
-        event: React.MouseEvent<HTMLButtonElement> | null,
-        newPageIndex: number,
-    ) => {
-        updatePage(newPageIndex);
-    };
-
-    const handleChangeRows = (
-        event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-    ) => {
-        const selectedSize = parseInt(event.target.value);
-        updatePageSize(selectedSize);
-    };
+    const startItem = currentPage * pageSize + 1;
+    const endItem = Math.min((currentPage + 1) * pageSize, itemCount);
 
     return (
-        <TablePagination
-            sx={{
-                ".MuiTablePagination-displayedRows": {
-                    color: "#B87333",
-                    font: "dmSans",
-                    fontSize: "16px",
-                },
-                ".MuiTablePagination-input": {
-                    color: "#B87333",
-                    font: "dmSans",
-                    fontSize: "16px",
-                },
-                ".MuiTablePagination-selectLabel": {
-                    color: "#B87333",
-                    font: "dmSans",
-                    fontSize: "16px",
-                },
-                ".MuiTablePagination-selectIcon": {
-                    color: "#B87333",
-                    font: "dmSans",
-                    fontSize: "16px",
-                },
-                ".MuiTablePagination-actions": {
-                    color: "#B87333",
-                    font: "dmSans",
-                    fontSize: "16px",
-                },
-                ".MuiButtonBase-root": {
-                    color: "#B87333",
-                    font: "dmSans",
-                    fontSize: "16px",
-                },
-            }}
-            component="div"
-            count={itemCount}
-            page={currentPage}
-            rowsPerPage={pageSize}
-            onPageChange={handleChangeOffset}
-            onRowsPerPageChange={handleChangeRows}
-        />
+        <div className="inline-flex items-center gap-4 text-copper text-sm">
+            <div className="relative inline-flex items-center gap-2">
+                <span className="whitespace-nowrap">Rows per page:</span>
+                <div className="relative">
+                    <select
+                        value={pageSize}
+                        onChange={(e) => updatePageSize(Number(e.target.value))}
+                        className="appearance-none bg-copper/10 rounded-full pl-3 pr-8 py-1.5 
+                                 text-copper cursor-pointer focus:outline-none focus:ring-1 
+                                 focus:ring-copper hover:bg-copper/20 transition-colors"
+                        style={{
+                            WebkitAppearance: "none",
+                            MozAppearance: "none",
+                        }}
+                    >
+                        {PAGE_SIZE_OPTIONS.map((size) => (
+                            <option
+                                key={size}
+                                value={size}
+                                className="bg-white text-copper"
+                            >
+                                {size}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            </div>
+
+            <div className="inline-flex items-center whitespace-nowrap">
+                {startItem}-{endItem} of {itemCount}
+            </div>
+
+            <div className="inline-flex items-center gap-1">
+                <button
+                    onClick={() => updatePage(currentPage - 1)}
+                    disabled={currentPage === 0}
+                    className="p-1.5 rounded-full hover:bg-copper/10 disabled:opacity-50 
+                             disabled:hover:bg-transparent transition-colors duration-200 
+                             focus:outline-none focus:ring-1 focus:ring-copper"
+                    aria-label="Previous page"
+                >
+                    <ChevronLeft className="w-4 h-4" />
+                </button>
+
+                <button
+                    onClick={() => updatePage(currentPage + 1)}
+                    disabled={endItem >= itemCount}
+                    className="p-1.5 rounded-full hover:bg-copper/10 disabled:opacity-50 
+                             disabled:hover:bg-transparent transition-colors duration-200 
+                             focus:outline-none focus:ring-1 focus:ring-copper"
+                    aria-label="Next page"
+                >
+                    <ChevronRight className="w-4 h-4" />
+                </button>
+            </div>
+        </div>
     );
 }
