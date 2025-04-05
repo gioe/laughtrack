@@ -1,11 +1,16 @@
 export enum EntityType {
+    Comedian = "comedian",
     Club = "club",
     Show = "show",
-    Comedian = "comedian",
+    Tag = "tag",
+    User = "user",
+    UserProfile = "user_profile",
+    Account = "account",
+    Session = "session",
+    VerificationToken = "verification_token",
+    FavoriteComedian = "favorite_comedian",
+    LineupItem = "lineup_item",
+    TaggedClub = "tagged_club",
+    TaggedComedian = "tagged_comedian",
+    TaggedShow = "tagged_show",
 }
-
-export const allEntityTypes = [
-    EntityType.Club,
-    EntityType.Show,
-    EntityType.Comedian
-]

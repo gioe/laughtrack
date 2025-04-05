@@ -5,7 +5,7 @@ import { UserRole } from './userRole'
 import { ButtonType } from './buttonType'
 import { IndexProperty } from './indexProperty'
 import { HeaderKey } from './headerKey'
-import { APIRoutePath } from './routePath'
+import { APIRoutePath } from './apiRoutePath'
 import { DirectionParamValue } from './directionParamValue'
 import { RestAPIAction } from './restApiAction'
 import { QueryProperty } from './queryProperty'
@@ -27,3 +27,4 @@ export {
     DirectionParamValue,
     StyleContextKey
 }
+

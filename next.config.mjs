@@ -19,6 +19,12 @@ const nextConfig = {
         port: '',
         pathname: '/clubs/**',
         hostname: 'laughtrack.b-cdn.net',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+        port: '',
+        pathname: '/a/**',
       }
     ],
   },

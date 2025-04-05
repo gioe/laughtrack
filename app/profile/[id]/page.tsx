@@ -8,15 +8,13 @@ import UserDetailHeader from "@/ui/pages/entity/user/header";
 import FooterComponent from "@/ui/pages/home/footer";
 import { getUserProfileData } from "@/lib/data/profile/getUserProfileData";
 
-export default async function ProfilePage(props: {
-    params: Promise<{ id: string }>;
-}) {
-    const [params, session] = await Promise.all([props.params, auth()]);
+export default async function ProfilePage() {
+    const [session] = await Promise.all([auth()]);
 
     if (!session) {
         return <div>You shouldn't be here.</div>;
     } else {
-        const profile = await getUserProfileData(session.profile?.userId);
+        const profile = await getUserProfileData(session.profile?.userid);
 
         return (
             <main className="min-h-screen w-full bg-coconut-cream">

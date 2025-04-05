@@ -9,6 +9,7 @@ import { JWT } from "next-auth/jwt";
 
 // Define session types
 interface UserProfile {
+    id: string;
     userid: string;
     role: string;
     emailShowNotifications: boolean;
@@ -18,6 +19,7 @@ declare module "next-auth" {
     interface Session {
         profile: UserProfile | null;
         user?: {
+            id: string;
             email?: string | null;
         };
     }
