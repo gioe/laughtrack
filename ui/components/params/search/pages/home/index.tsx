@@ -8,7 +8,7 @@ import { Search } from "lucide-react";
 import { showSearchFormSchema } from "./schema";
 import { Loader2 } from "lucide-react";
 import { Form } from "@/ui/components/ui/form";
-import { ComponentVariant, StyleContextKey } from "@/objects/enum";
+import { ComponentVariant } from "@/objects/enum";
 import CalendarComponent from "../../components/calendar";
 import ShowLocationComponent from "../../components/area";
 import { useUrlParams } from "@/hooks/useUrlParams";

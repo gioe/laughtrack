@@ -49,7 +49,18 @@ export async function findComedianByName(
             },
             select: {
                 ...COMEDIAN_SELECT,
-                ...helper.getFavoriteComedianClause(),
+                ...(helper.getProfileId()
+                    ? {
+                          favoriteComedians: {
+                              where: {
+                                  profileId: helper.getProfileId(),
+                              },
+                              select: {
+                                  id: true,
+                              },
+                          },
+                      }
+                    : {}),
             },
         });
 

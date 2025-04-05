@@ -2,7 +2,7 @@
 
 import toast from "react-hot-toast";
 import React, { useState } from "react";
-import { Pencil, Save, Bell, Settings, Star } from "lucide-react";
+import { Save, Bell, Settings, Star } from "lucide-react";
 import { makeRequest } from "@/util/actions/makeRequest";
 import { APIRoutePath, RestAPIAction } from "@/objects/enum";
 import { UserProfileInterface } from "@/app/api/profile/[id]/interface";

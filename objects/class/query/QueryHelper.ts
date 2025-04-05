@@ -3,6 +3,7 @@ import zipcodes from 'zipcodes';
 import { Prisma } from "@prisma/client";
 import { ParameterizedRequestData } from "@/objects/interface";
 import { toZonedTime, format } from 'date-fns-tz';
+import { SortParamValue } from "@/objects/enum";
 
 // This class is meant to capture all of the page parameters that our Page URL contains and converts them into query parameters.
 // These are relevant for DB querying and their existence persists across all pages so we capture it
@@ -73,23 +74,6 @@ export class QueryHelper {
                 },
             ],
         };
-    }
-
-    getFavoriteComedianClause() {
-        return {
-            ...(this.getProfileId() ? {
-                favoriteComedians: {
-                    where: {
-                        user: {
-                            id: this.getProfileId()
-                        }
-                    },
-                    select: {
-                        id: true
-                    }
-                }
-            } : {})
-        }
     }
 
     setComedianName() {
@@ -292,12 +276,21 @@ export class QueryHelper {
         // Default values for pagination
         const defaultSize = 10;
         const defaultPage = 1;
-        const defaultSortField = 'name';
-        const defaultSortDirection = 'asc';
+        const defaultSortField = 'name_asc';
 
         // Get sort parameters with fallbacks
-        const sortBy = this.searchParams.get(QueryProperty.Sort) || defaultSortField;
-        const direction = this.searchParams.get(QueryProperty.Direction) || defaultSortDirection;
+        const sortParam = this.searchParams.get(QueryProperty.Sort) || defaultSortField;
+        const [field, direction] = sortParam.split('_');
+
+        // Map sort fields to database fields
+        const sortFieldMap: Record<string, string> = {
+            'name': 'name',
+            'date': 'date',
+            'price': 'price',
+            'popularity': 'popularity',
+            'activity': 'totalShows',
+            'total_shows': 'totalShows'
+        };
 
         // Handle pagination with proper null checks and defaults
         const size = Math.max(1, Number(this.searchParams.get(QueryProperty.Size)) || defaultSize);
@@ -312,16 +305,12 @@ export class QueryHelper {
 
         const skip = Math.max(0, take * page);
 
-        // Ensure we always have valid sort parameters
-        const sortParams = [
-            { field: sortBy, direction: direction },
-            { field: defaultSortField, direction: defaultSortDirection }
-        ].filter(param => param.field && param.direction);
+        // Map the sort field and ensure valid direction
+        const mappedField = sortFieldMap[field] || 'name';
+        const validDirection = direction?.toLowerCase() === 'desc' ? 'desc' : 'asc';
 
         return {
-            orderBy: sortParams.map(param => ({
-                [param.field]: param.direction
-            })),
+            orderBy: [{ [mappedField]: validDirection }],
             take,
             skip,
         }

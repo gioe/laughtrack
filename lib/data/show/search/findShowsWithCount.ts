@@ -107,8 +107,19 @@ export async function findShowsWithCount(helper: QueryHelper): Promise<ShowsResp
                     ...SHOW_SELECT.lineupItems,
                     select: {
                         comedian: {
-                            ...SHOW_SELECT.lineupItems.select.comedian,
-                            ...helper.getFavoriteComedianClause()
+                            select: {
+                                ...SHOW_SELECT.lineupItems.select.comedian.select,
+                                ...(helper.getProfileId() ? {
+                                    favoriteComedians: {
+                                        where: {
+                                            profileId: helper.getProfileId()
+                                        },
+                                        select: {
+                                            id: true
+                                        }
+                                    }
+                                } : {})
+                            }
                         }
                     }
                 }

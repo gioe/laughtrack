@@ -1,5 +1,4 @@
-import { DirectionParamValue, QueryProperty, SortParamValue } from "@/objects/enum";
-import { allDirectionParamValues } from "@/objects/enum/directionParamValue";
+import { QueryProperty, SortParamValue } from "@/objects/enum";
 import { allDistanceOptions } from "@/objects/enum/distanceValues";
 import { allSortOptions } from "@/objects/enum/sortParamValue";
 import { SortOptionInterface } from "@/objects/interface";
@@ -7,12 +6,10 @@ import { isDateTodayOrLater, parseToMidnight } from "../primatives/dateUtil";
 import { formattedDateParam } from "../primatives/paramUtil";
 
 export const getDefaultSortingOption = (sortOptions: SortOptionInterface[],
-    sortOption: string | null,
-    direction: string | null) => {
+    sortOption: string | null) => {
     return sortOptions.find(
         (value) =>
-            value.value == sortOption &&
-            value.direction == direction
+            value.value == sortOption
     ) ?? sortOptions[0]
 }
 
@@ -51,22 +48,11 @@ export const paramConfigs: Record<string, ParamConfig> = {
         stringify: (value: number) => value.toString(),
         validate: (value: number) => value > 0
     },
-    direction: {
-        key: QueryProperty.Direction,
-        defaultValue: DirectionParamValue.Ascending,
-        parse: (value: DirectionParamValue | null): DirectionParamValue => {
-            return value || DirectionParamValue.Ascending
-        },
-        stringify: (value: string) => value,
-        validate: (value: string) => {
-            return allDirectionParamValues.includes(value);
-        }
-    },
     sort: {
         key: QueryProperty.Sort,
-        defaultValue: SortParamValue.Name,
+        defaultValue: SortParamValue.DateAsc,
         parse: (value: SortParamValue | null) => {
-            return value ? value : SortParamValue.Name;
+            return value ? value : SortParamValue.DateAsc;
         },
         stringify: (value: SortParamValue) => value.valueOf(),
         validate: (value: string) => allSortOptions.includes(value)

@@ -6,7 +6,6 @@ import { ButtonType } from './buttonType'
 import { IndexProperty } from './indexProperty'
 import { HeaderKey } from './headerKey'
 import { APIRoutePath } from './apiRoutePath'
-import { DirectionParamValue } from './directionParamValue'
 import { RestAPIAction } from './restApiAction'
 import { QueryProperty } from './queryProperty'
 import { StyleContextKey } from './styleContextKey'
@@ -24,7 +23,6 @@ export {
     ButtonType,
     IndexProperty,
     HeaderKey,
-    DirectionParamValue,
     StyleContextKey
 }
 

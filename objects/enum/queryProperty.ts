@@ -1,7 +1,18 @@
 import { DEFAULT, MapWithDefault } from "../class/map/MapWithDefault";
 
 export enum QueryProperty {
+    FromDate = "fromDate",
+    ToDate = "toDate",
+    Filters = "filters",
+    Zip = "zip",
+    Size = "size",
+    Distance = "distance",
+    Direction = "direction",
     Name = "name",
+    Sort = "sort",
+    Comedian = "comedian",
+    Tag = "tag",
+    Club = "club",
     Date = "date",
     Location = "location",
     Price = "price",

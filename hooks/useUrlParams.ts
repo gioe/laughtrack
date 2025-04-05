@@ -1,4 +1,3 @@
-import { getFilters } from '@/lib/data/filters/getFilters';
 import { paramConfigs } from '@/util/filter/util';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback } from 'react';

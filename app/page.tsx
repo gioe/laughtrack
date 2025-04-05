@@ -45,17 +45,17 @@ export default async function HomePage() {
             async () => {
                 try {
                     return await getHomePageData(
-                        currentSession?.profile?.userId,
+                        currentSession?.profile?.userid,
                     );
                 } catch (error) {
                     console.error("Home page data fetch error:", error);
                     throw error;
                 }
             },
-            ["home-page-data", currentSession?.profile?.userId ?? ""],
+            ["home-page-data", currentSession?.profile?.userid ?? ""],
             {
                 revalidate: CACHE.home,
-                tags: ["home-page-data", currentSession?.profile?.userId ?? ""],
+                tags: ["home-page-data", currentSession?.profile?.userid ?? ""],
             },
         );
 
