@@ -32,7 +32,6 @@ export async function findClubByName(helper: QueryHelper): Promise<ClubDTO> {
         if (!clubData) {
             throw new Error(`Club with name "${name}" not found`);
         }
-        console.log("clubData", clubData);
         return {
             name: clubData.name,
             id: clubData.id,

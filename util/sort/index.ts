@@ -17,15 +17,15 @@ export const getSortOptionsForEntityType = (type: EntityType): SortOptionInterfa
                 { name: "Z-A", value: SortParamValue.NameDesc },
                 { name: "Most Active", value: SortParamValue.ActivityAsc },
                 { name: "Least Active", value: SortParamValue.ActivityDesc},
-                { name: "Most Popular", value: SortParamValue.PopularityAsc },
-                { name: "Least Popular", value: SortParamValue.PopularityDesc },
+                { name: "Most Popular", value: SortParamValue.PopularityDesc },
+                { name: "Least Popular", value: SortParamValue.PopularityAsc },
             ]
         default:
                 return [
                     { name: "Earliest Date", value: SortParamValue.DateAsc },
                     { name: "Latest Date", value: SortParamValue.DateDesc },
-                    { name: "Most Popular", value: SortParamValue.PopularityAsc },
-                    { name: "Least Popular", value: SortParamValue.PopularityDesc },
+                    { name: "Most Popular", value: SortParamValue.PopularityDesc },
+                    { name: "Least Popular", value: SortParamValue.PopularityAsc },
                     { name: "$$: Low to High", value: SortParamValue.PriceAsc},
                     { name: "$$: High to Low", value: SortParamValue.PriceDesc },
                 ]

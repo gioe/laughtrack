@@ -22,6 +22,7 @@ export async function getClubDetailPageData(
                 new URLSearchParams(requestData.params),
             ),
         ]);
+        console.log(showsWithCount);
 
         return {
             data: club,
