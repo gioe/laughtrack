@@ -1,35 +1,27 @@
-/node_modules
-/.pnp
-.pnp.js
-.yarn/install-state.gz
-.env
-# testing
-/coverage
+# Node / Next.js
+apps/web/node_modules/
+apps/web/.next/
+apps/web/out/
+apps/web/.vercel/
+apps/web/*.tsbuildinfo
+apps/web/next-env.d.ts
+apps/web/.env*.local
 
-# next.js
-/.next/
-/out/
-.next
+# Python / Scraper
+apps/scraper/.venv/
+apps/scraper/__pycache__/
+apps/scraper/*.py[cod]
+apps/scraper/.pytest_cache/
+apps/scraper/.mypy_cache/
+apps/scraper/.ruff_cache/
+apps/scraper/.import_linter_cache/
+apps/scraper/data/processed/
+apps/scraper/logs/
+apps/scraper/metrics/
+apps/scraper/dashboard.html
+apps/scraper/.env
 
-
-# production
-/build
-
-# misc
+# Shared
 .DS_Store
 *.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# local env files
-.env*.local
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+.venv/

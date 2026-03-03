@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.gioe.laughtrack.scrape-all</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/zsh</string>
+        <string>/Users/mattgioe/Desktop/projects/laughtrack-scraper/scripts/launchd_run_scrape_all.zsh</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/mattgioe/Desktop/projects/laughtrack-scraper</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+
+    <!-- Run at specific times using StartCalendarInterval. Example: daily at 02:30 -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>2</integer>
+        <key>Minute</key>
+        <integer>30</integer>
+    </dict>
+
+    <!-- Keep the job alive if it crashes -->
+    <key>KeepAlive</key>
+    <false/>
+
+    <!-- Log output paths -->
+    <key>StandardOutPath</key>
+    <string>/Users/mattgioe/Desktop/projects/laughtrack-scraper/logs/launchd-scrape-all.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/mattgioe/Desktop/projects/laughtrack-scraper/logs/launchd-scrape-all.err.log</string>
+</dict>
+</plist>

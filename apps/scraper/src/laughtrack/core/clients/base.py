@@ -1,0 +1,380 @@
+"""Base API client class providing common functionality for all API clients."""
+
+from abc import ABC
+from typing import Any, Dict, Optional
+
+from laughtrack.core.entities.club.model import Club
+from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.foundation.models.types import JSONDict
+from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
+from laughtrack.foundation.infrastructure.http.client import HttpClient
+
+
+class BaseApiClient(ABC):
+    """Base class for all API clients with common functionality."""
+
+    def __init__(self, club: Club, rate_limiter=None):
+        """Initialize the base API client.
+
+        Args:
+            club: The Club instance this client will work with
+            rate_limiter: Optional rate limiter for HTTP requests
+        """
+        self.club = club
+        self.rate_limiter = rate_limiter
+        self.http_client = HttpClient()
+
+        # Initialize headers - subclasses can override this
+        self.headers = self._initialize_headers()
+
+    async def _apply_rate_limit(self, target: str) -> None:
+        """Apply rate limiting if a limiter is configured.
+
+        Supports multiple limiter styles:
+        - Our project RateLimiter: has await_if_needed(target)
+        - Token-based limiters: have an awaitable acquire() method
+        - Async context managers are not required (to avoid protocol errors)
+        """
+        limiter = getattr(self, "rate_limiter", None)
+        if not limiter:
+            return
+
+        # Prefer our RateLimiter protocol
+        import inspect
+
+        await_if_needed = getattr(limiter, "await_if_needed", None)
+        if callable(await_if_needed):
+            try:
+                try:
+                    Logger.debug(
+                        "Applying rate limit (await_if_needed)",
+                        context={"club_name": getattr(self.club, "name", "-"), "target": target},
+                    )
+                except Exception:
+                    pass
+                if inspect.iscoroutinefunction(await_if_needed):
+                    await await_if_needed(target)
+                else:
+                    result = await_if_needed(target)
+                    if inspect.isawaitable(result):
+                        await result
+                return
+            except Exception:
+                # Fall through to other strategies
+                pass
+
+        # Fallback: acquire() coroutine
+        acquire = getattr(limiter, "acquire", None)
+        if callable(acquire):
+            try:
+                try:
+                    Logger.debug(
+                        "Applying rate limit (acquire)",
+                        context={"club_name": getattr(self.club, "name", "-"), "target": target},
+                    )
+                except Exception:
+                    pass
+                if inspect.iscoroutinefunction(acquire):
+                    await acquire()
+                else:
+                    result = acquire()
+                    if inspect.isawaitable(result):
+                        await result
+                return
+            except Exception:
+                return
+
+    def _initialize_headers(self) -> Dict[str, str]:
+        """Initialize default headers. Subclasses should override for custom auth."""
+        return BaseHeaders.get_headers("json")
+
+    # No extra systems: use direct DEBUG logging inline in request methods
+
+    def log_info(self, message: str) -> None:
+        """Log an info message."""
+        Logger.info(f"[{self.club.name}] {message}")
+
+    def log_warning(self, message: str) -> None:
+        """Log a warning message."""
+        Logger.warning(f"[{self.club.name}] {message}")
+
+    def log_error(self, message: str) -> None:
+        """Log an error message."""
+        Logger.error(f"[{self.club.name}] {message}")
+
+    async def cleanup(self):
+        """Optional async cleanup hook for clients with persistent resources."""
+        return None
+
+    async def fetch_json(
+        self,
+        url: str,
+        headers: Optional[Dict[str, str]] = None,
+        timeout: int = 30,
+        logger_context: Optional[Dict[str, Any]] = None,
+    ) -> Optional[JSONDict]:
+        """
+        Fetch JSON data from a URL with session management and error handling.
+
+        Args:
+            url: URL to fetch from
+            headers: Optional headers to include (defaults to self.headers)
+            timeout: Request timeout in seconds
+            logger_context: Context for logging
+
+        Returns:
+            JSON data as dictionary, or None if fetch failed
+        """
+        import aiohttp
+
+        request_headers = headers or self.headers
+        context = logger_context or {}
+        try:
+            timeout_config = aiohttp.ClientTimeout(total=timeout)
+            async with aiohttp.ClientSession(timeout=timeout_config) as session:
+                # DEBUG pre-request details
+                try:
+                    ctx: JSONDict = {"club_name": getattr(self.club, "name", "-")}
+                    if isinstance(context, dict):
+                        ctx.update(context)
+                    Logger.debug(
+                        f"HTTP GET {url} (pre) headers={list(request_headers.keys())} timeout={timeout}",
+                        context=ctx,
+                    )
+                except Exception:
+                    pass
+                await self._apply_rate_limit(url)
+                data = await self.http_client.fetch_json(
+                    session=session, url=url, headers=request_headers, logger_context=context
+                )
+                # DEBUG summary of response
+                try:
+                    ctx: JSONDict = {"club_name": getattr(self.club, "name", "-")}
+                    if isinstance(context, dict):
+                        ctx.update(context)
+                    if isinstance(data, dict):
+                        keys = list(data.keys())
+                        msg = data.get("message")
+                        msg_part = f", message={msg!r}" if isinstance(msg, (str, int, float, bool)) else ""
+                        summary = f"json dict keys={keys}{msg_part}"
+                    elif isinstance(data, list):
+                        summary = f"json list len={len(data)}"
+                    elif isinstance(data, str):
+                        preview = (data[:300] + "…") if len(data) > 300 else data
+                        summary = f"text len={len(data)} preview={preview!r}"
+                    else:
+                        summary = f"type={type(data).__name__}"
+                    Logger.debug(f"HTTP GET {url} → {summary}", context=ctx)
+                except Exception:
+                    pass
+                return data
+        except Exception as e:
+            self.log_error(f"Failed to fetch JSON from {url}: {e}")
+            return None
+
+    async def fetch_html(
+        self,
+        url: str,
+        headers: Optional[Dict[str, str]] = None,
+        timeout: int = 30,
+        logger_context: Optional[Dict[str, Any]] = None,
+    ) -> Optional[str]:
+        """
+        Fetch HTML content from a URL with session management and error handling.
+
+        Args:
+            url: URL to fetch from
+            headers: Optional headers to include (defaults to self.headers)
+            timeout: Request timeout in seconds
+            logger_context: Context for logging
+
+        Returns:
+            HTML content as string, or None if fetch failed
+        """
+        import aiohttp
+
+        request_headers = headers or self.headers
+        context = logger_context or {}
+
+        try:
+            timeout_config = aiohttp.ClientTimeout(total=timeout)
+            async with aiohttp.ClientSession(timeout=timeout_config) as session:
+                # DEBUG pre-request details
+                try:
+                    ctx: JSONDict = {"club_name": getattr(self.club, "name", "-")}
+                    if isinstance(context, dict):
+                        ctx.update(context)
+                    Logger.debug(
+                        f"HTTP GET {url} (pre) headers={list(request_headers.keys())} timeout={timeout}",
+                        context=ctx,
+                    )
+                except Exception:
+                    pass
+                await self._apply_rate_limit(url)
+                text = await self.http_client.fetch_html(
+                    session=session, url=url, headers=request_headers, logger_context=context
+                )
+                # DEBUG summary of response
+                try:
+                    ctx: JSONDict = {"club_name": getattr(self.club, "name", "-")}
+                    if isinstance(context, dict):
+                        ctx.update(context)
+                    if isinstance(text, str):
+                        preview = (text[:300] + "…") if len(text) > 300 else text
+                        summary = f"text len={len(text)} preview={preview!r}"
+                    else:
+                        summary = f"type={type(text).__name__}"
+                    Logger.debug(f"HTTP GET {url} → {summary}", context=ctx)
+                except Exception:
+                    pass
+                return text
+        except Exception as e:
+            self.log_error(f"Failed to fetch HTML from {url}: {e}")
+            return None
+
+    async def post_json(
+        self,
+        url: str,
+        payload: Any,
+        headers: Optional[Dict[str, str]] = None,
+        timeout: int = 30,
+        logger_context: Optional[Dict[str, Any]] = None,
+    ) -> Optional[JSONDict]:
+        """
+        POST JSON data to a URL and parse the JSON response.
+
+        Args:
+            url: URL to post to
+            payload: JSON-serializable payload (dict/list/etc.)
+            headers: Optional headers to include (defaults to self.headers)
+            timeout: Request timeout in seconds
+            logger_context: Context for logging
+
+        Returns:
+            Parsed JSON response as dict, or None on failure
+        """
+        import aiohttp
+
+        request_headers = headers or self.headers
+        # Ensure content type for JSON
+        if not any(k.lower() == "content-type" for k in request_headers.keys()):
+            request_headers["Content-Type"] = "application/json"
+
+        context = logger_context or {}
+
+        try:
+            timeout_config = aiohttp.ClientTimeout(total=timeout)
+            async with aiohttp.ClientSession(timeout=timeout_config) as session:
+                # DEBUG pre-request details
+                try:
+                    ctx: JSONDict = {"club_name": getattr(self.club, "name", "-")}
+                    if isinstance(context, dict):
+                        ctx.update(context)
+                    Logger.debug(
+                        f"HTTP POST {url} (pre json) headers={list(request_headers.keys())} timeout={timeout}",
+                        context=ctx,
+                    )
+                except Exception:
+                    pass
+                await self._apply_rate_limit(url)
+                async with session.post(url, json=payload, headers=request_headers) as response:
+                    if response.status != 200:
+                        Logger.warning(f"HTTP {response.status} when POSTing {url}")
+                        return None
+                    obj = await response.json()
+                # DEBUG summary of response
+                try:
+                    ctx: JSONDict = {"club_name": getattr(self.club, "name", "-")}
+                    if isinstance(context, dict):
+                        ctx.update(context)
+                    if isinstance(obj, dict):
+                        keys = list(obj.keys())
+                        msg = obj.get("message")
+                        msg_part = f", message={msg!r}" if isinstance(msg, (str, int, float, bool)) else ""
+                        summary = f"json dict keys={keys}{msg_part}"
+                    elif isinstance(obj, list):
+                        summary = f"json list len={len(obj)}"
+                    elif isinstance(obj, str):
+                        preview = (obj[:300] + "…") if len(obj) > 300 else obj
+                        summary = f"text len={len(obj)} preview={preview!r}"
+                    else:
+                        summary = f"type={type(obj).__name__}"
+                    Logger.debug(f"HTTP POST {url} → {summary}", context=ctx)
+                except Exception:
+                    pass
+                if not isinstance(obj, dict):
+                    Logger.warning(f"Unexpected JSON type from {url}; expected dict, got {type(obj).__name__}")
+                    return None
+                return obj
+        except Exception as e:
+            self.log_error(f"Failed to POST JSON to {url}: {e}")
+            return None
+
+    async def post_form(
+        self,
+        url: str,
+        payload: Any,
+        headers: Optional[Dict[str, str]] = None,
+        timeout: int = 30,
+        logger_context: Optional[Dict[str, Any]] = None,
+    ) -> Optional[str]:
+        """
+        POST form-encoded data to a URL and return text response.
+
+        Args:
+            url: URL to post to
+            payload: Form data (dict or string)
+            headers: Optional headers to include (defaults to self.headers)
+            timeout: Request timeout in seconds
+            logger_context: Context for logging
+
+        Returns:
+            Response text, or None on failure
+        """
+        import aiohttp
+
+        request_headers = headers or self.headers
+        # Ensure content type for form if not explicitly set
+        headers_lower = {k.lower(): v for k, v in request_headers.items()}
+        if "content-type" not in headers_lower:
+            request_headers["Content-Type"] = "application/x-www-form-urlencoded; charset=UTF-8"
+
+        context = logger_context or {}
+
+        try:
+            timeout_config = aiohttp.ClientTimeout(total=timeout)
+            async with aiohttp.ClientSession(timeout=timeout_config) as session:
+                # DEBUG pre-request details
+                try:
+                    ctx: JSONDict = {"club_name": getattr(self.club, "name", "-")}
+                    if isinstance(context, dict):
+                        ctx.update(context)
+                    Logger.debug(
+                        f"HTTP POST {url} (pre form) headers={list(request_headers.keys())} timeout={timeout}",
+                        context=ctx,
+                    )
+                except Exception:
+                    pass
+                await self._apply_rate_limit(url)
+                async with session.post(url, data=payload, headers=request_headers) as response:
+                    if response.status != 200:
+                        Logger.warning(f"HTTP {response.status} when POSTing form to {url}")
+                        return None
+                    text = await response.text()
+                # DEBUG summary of response
+                try:
+                    ctx: JSONDict = {"club_name": getattr(self.club, "name", "-")}
+                    if isinstance(context, dict):
+                        ctx.update(context)
+                    if isinstance(text, str):
+                        preview = (text[:300] + "…") if len(text) > 300 else text
+                        summary = f"text len={len(text)} preview={preview!r}"
+                    else:
+                        summary = f"type={type(text).__name__}"
+                    Logger.debug(f"HTTP POST {url} → {summary}", context=ctx)
+                except Exception:
+                    pass
+                return text
+        except Exception as e:
+            self.log_error(f"Failed to POST form to {url}: {e}")
+            return None
