@@ -1,0 +1,223 @@
+import os
+from pathlib import Path
+from typing import Any, Optional
+
+from dotenv import load_dotenv
+
+from laughtrack.foundation.models.types import JSONDict
+from laughtrack.foundation.infrastructure.logger.logger import Logger
+
+
+class ConfigManager:
+    """
+    Singleton class to manage configuration across the application.
+    Loads configuration from environment variables and provides a centralized access point.
+
+    Supported configuration sections:
+    - database: Database connection settings
+    - email: Email/SMTP configuration for notifications
+    - scraper: Web scraping and request settings
+    - api: External API keys and tokens (Eventbrite, Ticketmaster)
+    - monitoring: Alert thresholds and notification settings
+
+    Usage examples:
+        # Instance-based usage (traditional)
+        config = ConfigManager()
+        db_config = config.get_database_config()
+
+        # Class-based usage (no instantiation needed)
+        db_config = ConfigManager.get_database_configuration()
+        api_config = ConfigManager.get_api_configuration()
+
+        # Direct value access
+        db_host = ConfigManager.get_config('database', 'host')
+        eventbrite_token = ConfigManager.get_config('api', 'eventbrite_token')
+    """
+
+    _instance = None
+    _config: JSONDict = {}
+    _loaded = False
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(ConfigManager, cls).__new__(cls)
+            cls._instance._load_config()
+        return cls._instance
+
+    def _clean_password(self, password: Optional[str]) -> str:
+        """Clean non-breaking spaces and other problematic characters from password."""
+        if not password:
+            return ""
+
+        # Replace non-breaking spaces (\xa0) with regular spaces
+        cleaned = password.replace("\xa0", " ")
+
+        # Strip quotes if present (from .env file)
+        cleaned = cleaned.strip('"').strip("'")
+
+        return cleaned
+
+    def _load_config(self) -> None:
+        """Load configuration from environment variables."""
+        if self._loaded:
+            return
+
+        # Load .env file if it exists, searching up the tree
+        def _find_env_file() -> Optional[Path]:
+            # 1) explicit path override
+            override = os.getenv("LAUGHTRACK_DOTENV_PATH")
+            if override:
+                p = Path(override)
+                if p.exists():
+                    return p
+
+            # 2) search parents from this file up to repo root
+            for parent in Path(__file__).resolve().parents:
+                candidate = parent / ".env"
+                if candidate.exists():
+                    return candidate
+            return None
+
+        env_path = _find_env_file()
+        if env_path:
+            load_dotenv(dotenv_path=env_path, encoding="utf-8")
+
+        # Database configuration
+        self._config["database"] = {
+            "name": os.getenv("DATABASE_NAME"),
+            "user": os.getenv("DATABASE_USER"),
+            "host": os.getenv("DATABASE_HOST"),
+            "password": os.getenv("DATABASE_PASSWORD"),
+            "port": os.getenv("DATABASE_PORT"),
+        }
+
+        # Email configuration
+        self._config["email"] = {
+            "sendgrid_api_key": os.getenv("SENDGRID_API_KEY"),
+            "from_email": os.getenv("EMAIL_FROM_EMAIL", "admin@laugh-track.com"),
+            "from_name": os.getenv("EMAIL_FROM_NAME", "Laughtrack"),
+            # SMTP configuration for native email sending
+            "smtp_server": os.getenv("EMAIL_SMTP_SERVER", "smtp.gmail.com"),
+            "smtp_port": int(os.getenv("EMAIL_SMTP_PORT", "587")),
+            "smtp_username": os.getenv("EMAIL_SMTP_USERNAME"),
+            "smtp_password": self._clean_password(os.getenv("EMAIL_SMTP_PASSWORD")),
+            "smtp_use_tls": os.getenv("EMAIL_SMTP_USE_TLS", "true").lower() == "true",
+            "smtp_use_ssl": os.getenv("EMAIL_SMTP_USE_SSL", "false").lower() == "true",
+        }
+
+        # Scraper configuration
+        self._config["scraper"] = {
+            "max_workers": min(32, (os.cpu_count() or 4) + 4),
+            "request_timeout": int(os.getenv("REQUEST_TIMEOUT", "30")),
+            "max_retries": int(os.getenv("MAX_RETRIES", "3")),
+            "rate_limit": float(os.getenv("RATE_LIMIT", "10")),  # Requests per second
+        }
+
+        # API configuration
+        self._config["api"] = {
+            "eventbrite_token": os.getenv("EVENTBRITE_PRIVATE_TOKEN"),
+            "ticketmaster_api_key": os.getenv("TICKETMASTER_API_KEY"),
+        }
+
+        # Monitoring configuration
+        self._config["monitoring"] = {
+            "alert_recipients": os.getenv("ALERT_RECIPIENTS", "").split(",") if os.getenv("ALERT_RECIPIENTS") else [],
+            "failure_rate_warning_threshold": float(os.getenv("FAILURE_RATE_WARNING_THRESHOLD", "25.0")),
+            "failure_rate_critical_threshold": float(os.getenv("FAILURE_RATE_CRITICAL_THRESHOLD", "50.0")),
+            "enable_background_monitoring": os.getenv("ENABLE_BACKGROUND_MONITORING", "true").lower()
+            in ("true", "1", "yes", "on"),
+            "slack_webhook_url": os.getenv("SLACK_WEBHOOK_URL"),
+            "monitoring_webhook_url": os.getenv("MONITORING_WEBHOOK_URL"),
+        }
+
+        self._loaded = True
+        Logger.info("Configuration loaded successfully")
+
+    def get(self, section: str, key: str, default: Any = None) -> Any:
+        """
+        Get a configuration value.
+
+        Args:
+            section: Configuration section (e.g., 'database', 'email')
+            key: Configuration key
+            default: Default value if key is not found
+
+        Returns:
+            Configuration value or default
+        """
+        if section not in self._config:
+            return default
+        return self._config[section].get(key, default)
+
+    def get_section(self, section: str) -> JSONDict:
+        """
+        Get an entire configuration section.
+
+        Args:
+            section: Configuration section
+
+        Returns:
+            Dictionary of configuration values in the section
+        """
+        return self._config.get(section, {})
+
+    def get_database_config(self) -> JSONDict:
+        """Get database configuration."""
+        return self.get_section("database")
+
+    def get_email_config(self) -> JSONDict:
+        """Get email configuration."""
+        return self.get_section("email")
+
+    def get_scraper_config(self) -> JSONDict:
+        """Get scraper configuration."""
+        return self.get_section("scraper")
+
+    def get_api_config(self) -> JSONDict:
+        """Get API configuration."""
+        return self.get_section("api")
+
+    def get_monitoring_config(self) -> JSONDict:
+        """Get monitoring configuration."""
+        return self.get_section("monitoring")
+
+    # Class methods for direct access without instantiation
+    @classmethod
+    def get_instance(cls) -> "ConfigManager":
+        """Get the singleton instance."""
+        return cls()
+
+    @classmethod
+    def get_config(cls, section: str, key: str, default: Any = None) -> Any:
+        """Class method to get a configuration value without instantiation."""
+        return cls().get(section, key, default)
+
+    @classmethod
+    def get_config_section(cls, section: str) -> JSONDict:
+        """Class method to get an entire configuration section without instantiation."""
+        return cls().get_section(section)
+
+    @classmethod
+    def get_database_configuration(cls) -> JSONDict:
+        """Class method to get database configuration without instantiation."""
+        return cls().get_database_config()
+
+    @classmethod
+    def get_email_configuration(cls) -> JSONDict:
+        """Class method to get email configuration without instantiation."""
+        return cls().get_email_config()
+
+    @classmethod
+    def get_scraper_configuration(cls) -> JSONDict:
+        """Class method to get scraper configuration without instantiation."""
+        return cls().get_scraper_config()
+
+    @classmethod
+    def get_api_configuration(cls) -> JSONDict:
+        """Class method to get API configuration without instantiation."""
+        return cls().get_api_config()
+
+    @classmethod
+    def get_monitoring_configuration(cls) -> JSONDict:
+        """Class method to get monitoring configuration without instantiation."""
+        return cls().get_monitoring_config()

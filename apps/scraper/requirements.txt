@@ -1,0 +1,31 @@
+# Core Dependencies
+aiohttp>=3.9.0         # Async HTTP client for scrapers
+requests>=2.31.0       # HTTP library for synchronous requests
+curl-cffi>=0.5.0       # HTTP client with curl compatibility for anti-detection
+asynciolimiter>=1.0.0  # Async rate limiting for HTTP requests
+beautifulsoup4>=4.12.0 # HTML/XML parsing for web scraping
+psycopg2-binary>=2.9.5 # PostgreSQL adapter for Python
+pydantic>=2.0.0        # Data validation and settings management
+loguru>=0.7.0          # Advanced logging library
+pytz>=2023.3           # Timezone handling for show dates
+python-dotenv>=1.0.0   # Environment variable loading from .env files
+
+# Web Scraping & Data Processing
+Pillow>=10.0.0         # Image processing
+PyYAML>=6.0            # YAML file parsing for configuration
+python-dateutil>=2.8.0 # Date parsing and manipulation utilities
+
+# Development & Testing
+pytest>=7.4.0          # Testing framework
+pytest-asyncio>=0.21.0 # Async testing support
+pyclean>=2.2.0         # Utility for cleaning Python cache files
+
+# Optional Dependencies (for visualization and analysis)
+# Install with: pip install -r requirements.txt -r requirements-optional.txt
+# streamlit>=1.45.1     # Web dashboard for metrics visualization
+# plotly>=6.1.1         # Interactive plotting library
+# pandas>=2.2.3         # Data analysis and manipulation
+
+# System/Build Dependencies
+wheel                   # Python wheel package format
+pathlib>=1.0.1         # Path handling (usually built-in in Python 3.4+)
