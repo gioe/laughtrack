@@ -4,6 +4,7 @@ import { getToken } from "next-auth/jwt";
 import { QueryProperty, SortParamValue } from "./objects/enum";
 import { formattedDateParam } from "./util/primatives/paramUtil";
 import { UserInterface } from "./objects/class/user/user.interface";
+import { getCorsHeaders } from "./lib/cors";
 
 const protectedRoutes = [
     '/profile',
@@ -16,6 +17,23 @@ function isProtectedRoute(pathname: string): boolean {
 export async function middleware(request: NextRequest) {
     try {
         const pathname = request.nextUrl.pathname
+
+        // Handle CORS for all API routes
+        if (pathname.startsWith('/api')) {
+            const origin = request.headers.get('origin')
+            const corsHeaders = getCorsHeaders(origin)
+
+            if (request.method === 'OPTIONS') {
+                return new NextResponse(null, { status: 200, headers: corsHeaders })
+            }
+
+            const response = NextResponse.next()
+            Object.entries(corsHeaders).forEach(([key, value]) => {
+                response.headers.set(key, value)
+            })
+            return response
+        }
+
         const url = request.nextUrl.clone()
         const searchParams = new URLSearchParams(url.search)
 
@@ -87,10 +105,11 @@ export const config = {
     matcher: [
         /*
          * Match all request paths except for the ones starting with:
-         * - api (API routes)
          * - static (static files)
          * - favicon.ico (favicon file)
+         * - _next (Next.js internals)
+         * - images (static image files)
          */
-        '/((?!api|static|favicon.ico|_next|images).*)',
+        '/((?!static|favicon.ico|_next|images).*)',
     ],
 }
