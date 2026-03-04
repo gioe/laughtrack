@@ -1,1 +1,2 @@
+#!/bin/sh
 cd apps/web && npm run type-check
