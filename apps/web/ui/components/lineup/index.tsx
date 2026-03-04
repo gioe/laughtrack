@@ -125,7 +125,7 @@ const LineupGrid = ({ lineup }: LineupGridProps) => {
 
             {/* Mobile swipe cue — shown before user scrolls, hidden once they start */}
             {showRightScroll && !showLeftScroll && (
-                <div className={`lg:hidden absolute right-10 bottom-6 flex items-center gap-0.5 text-xs text-copper/60 pointer-events-none${swipeCuePulsing ? " animate-pulse" : ""}`}>
+                <div className={`lg:hidden absolute right-10 bottom-6 flex items-center gap-0.5 text-xs text-copper/60 pointer-events-none${swipeCuePulsing && !prefersReducedMotion ? " animate-pulse" : ""}`}>
                     <span>swipe</span>
                     <ChevronRight className="w-3 h-3" />
                 </div>

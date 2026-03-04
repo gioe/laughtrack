@@ -25,7 +25,7 @@ export function SideDrawerItem({ title, href, highlighted }: HeaderItemProps) {
     return (
         <motion.div
             whileHover={prefersReducedMotion ? undefined : { x: 4 }}
-            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            transition={prefersReducedMotion ? undefined : { type: "spring", stiffness: 400, damping: 25 }}
         >
             <Link href={href} className={twMerge(baseClasses)}>
                 <span className="flex items-center gap-2">{title}</span>

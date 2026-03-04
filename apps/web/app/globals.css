@@ -134,7 +134,8 @@ body,
 
 @media (prefers-reduced-motion: reduce) {
   .animate-fadeIn,
-  .animate-slideUp {
+  .animate-slideUp,
+  .animate-pulse {
     animation: none !important;
   }
 }
