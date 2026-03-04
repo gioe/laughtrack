@@ -40,6 +40,7 @@ class RateLimiter:
 
         self._domain_limits: Dict[str, float] = {}  # domain -> requests per second
         self._domain_locks: Dict[str, threading.Lock] = defaultdict(threading.Lock)
+        self._async_domain_locks: Dict[str, asyncio.Lock] = {}
         self._last_request: Dict[str, float] = {}
         self._global_lock = threading.Lock()
 
@@ -112,6 +113,12 @@ class RateLimiter:
 
             self._last_request[domain] = time.time()
 
+    def _get_async_lock(self, domain: str) -> asyncio.Lock:
+        """Get or create a per-domain asyncio.Lock for the async rate-limiting path."""
+        if domain not in self._async_domain_locks:
+            self._async_domain_locks[domain] = asyncio.Lock()
+        return self._async_domain_locks[domain]
+
     async def await_if_needed(self, target: ScrapingTarget) -> None:
         """
         Asynchronous rate limiting. Awaits if necessary to respect rate limits.
@@ -125,13 +132,12 @@ class RateLimiter:
 
         domain = self._extract_domain(target)
 
-        # For async, we use a simple approach since threading locks
-        # don't work well with asyncio
-        wait_time = self._should_wait(domain)
-        if wait_time:
-            await asyncio.sleep(wait_time)
+        async with self._get_async_lock(domain):
+            wait_time = self._should_wait(domain)
+            if wait_time:
+                await asyncio.sleep(wait_time)
 
-        self._last_request[domain] = time.time()
+            self._last_request[domain] = time.time()
 
     def get_stats(self) -> Dict[str, Dict]:
         """Get rate limiting statistics for monitoring."""
