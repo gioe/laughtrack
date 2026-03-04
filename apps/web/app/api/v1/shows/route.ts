@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSearchedShows } from "@/lib/data/show/search/getSearchedShows";
 
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const DEFAULT_DISTANCE = "25";
+
 export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
 
@@ -20,15 +23,31 @@ export async function GET(req: NextRequest) {
         );
     }
 
+    if (from && !ISO_DATE_RE.test(from)) {
+        return NextResponse.json(
+            { error: "from must be a valid date in YYYY-MM-DD format" },
+            { status: 400 }
+        );
+    }
+
+    if (to && !ISO_DATE_RE.test(to)) {
+        return NextResponse.json(
+            { error: "to must be a valid date in YYYY-MM-DD format" },
+            { status: 400 }
+        );
+    }
+
     const params = new URLSearchParams();
     params.set("zip", zip);
+    // Distance defaults to 25 miles so zip geo-filtering is always applied
+    params.set("distance", distance ?? DEFAULT_DISTANCE);
     if (from) params.set("fromDate", from);
     if (to) params.set("toDate", to);
-    if (page !== null) params.set("page", page);
+    // QueryHelper uses 1-indexed pages internally; API is 0-indexed
+    if (page !== null) params.set("page", String(Math.max(0, Number(page)) + 1));
     if (size !== null) params.set("size", size);
     if (comedian) params.set("comedian", comedian);
     if (filters) params.set("filters", filters);
-    if (distance) params.set("distance", distance);
 
     const timezone = req.headers.get("X-Timezone") ?? "UTC";
 
