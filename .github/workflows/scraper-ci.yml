@@ -8,6 +8,9 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/scraper
 
     strategy:
       matrix:
@@ -26,7 +29,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements*.txt') }}
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('apps/scraper/requirements*.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-${{ matrix.python-version }}-
             ${{ runner.os }}-pip-
@@ -42,12 +45,9 @@ jobs:
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
 
-      - name: Set PYTHONPATH for laughtrack imports
-        run: echo "PYTHONPATH=$PYTHONPATH:$(pwd)/src" >> $GITHUB_ENV
-
       - name: Run tests
         run: |
-          python -m pytest src/tests/unit/ -v --tb=short --disable-warnings \
+          python -m pytest -v --tb=short --disable-warnings \
             --junitxml=pytest-results.xml \
             --cov=src/laughtrack \
             --cov-report=xml:coverage.xml \
@@ -59,6 +59,6 @@ jobs:
         with:
           name: test-results-python-${{ matrix.python-version }}
           path: |
-            pytest-results.xml
-            coverage.xml
+            apps/scraper/pytest-results.xml
+            apps/scraper/coverage.xml
           retention-days: 30
