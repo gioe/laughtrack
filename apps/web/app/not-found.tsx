@@ -6,13 +6,13 @@ export default function NotFound() {
             <p className="text-7xl">🎤</p>
             <h1 className="text-5xl font-bold text-shark">404</h1>
             <h2 className="text-2xl font-semibold text-gray-700">
-                Looks like that comedian isn&apos;t in our lineup
+                This page doesn&apos;t exist
             </h2>
             <p className="text-gray-500 max-w-md">
                 The page you&apos;re looking for doesn&apos;t exist or may have moved.
             </p>
-            <Link href="/comedian/search" className="btn btn-primary">
-                Back to search
+            <Link href="/" className="btn btn-primary">
+                Go home
             </Link>
         </div>
     );
