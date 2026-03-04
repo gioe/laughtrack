@@ -102,6 +102,8 @@ class RateLimiter:
         """
         Synchronous rate limiting. Blocks if necessary to respect rate limits.
 
+        Do not mix with await_if_needed for the same domain from concurrent threads.
+
         Args:
             url: The URL being requested (domain will be extracted) or identifier string
         """
@@ -125,6 +127,8 @@ class RateLimiter:
     async def await_if_needed(self, target: ScrapingTarget) -> None:
         """
         Asynchronous rate limiting. Awaits if necessary to respect rate limits.
+
+        Do not mix with wait_if_needed for the same domain from concurrent threads.
 
         Args:
             target: The URL being requested (domain will be extracted) or identifier string
