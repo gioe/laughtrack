@@ -116,8 +116,6 @@ class WebhookAlertChannel(AlertChannel):
 
     async def send_alert(self, alert: Alert) -> bool:
         try:
-            import requests
-
             payload = {
                 "id": alert.id,
                 "title": alert.title,
@@ -128,9 +126,13 @@ class WebhookAlertChannel(AlertChannel):
                 "metadata": alert.metadata,
             }
 
-            response = requests.post(self.webhook_url, json=payload, headers=self.headers, timeout=10)
-
-            return response.status_code == 200
+            async with aiohttp.ClientSession() as session:
+                async with session.post(self.webhook_url, json=payload, headers=self.headers, timeout=aiohttp.ClientTimeout(total=10)) as response:
+                    if response.status == 200:
+                        return True
+                    body = await response.text()
+                    Logger.error(f"Webhook returned {response.status}: {body}")
+                    return False
         except Exception as e:
             Logger.error(f"Failed to send webhook alert: {e}")
             return False
