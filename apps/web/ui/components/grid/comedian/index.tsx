@@ -1,5 +1,3 @@
-"use server";
-
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import ComedianGridCard from "../../cards/comedian";
 
