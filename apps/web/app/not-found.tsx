@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { auth } from "@/auth";
+import { StyleContextProvider } from "@/contexts/StyleProvider";
+import { StyleContextKey } from "@/objects/enum";
 import Navbar from "@/ui/components/navbar";
 import FooterComponent from "@/ui/pages/home/footer";
 
@@ -7,6 +9,7 @@ export default async function NotFound() {
     const session = await auth();
 
     return (
+        <StyleContextProvider initialContext={StyleContextKey.Search}>
         <div className="flex flex-col min-h-screen">
             <Navbar currentUser={session?.profile} />
             <main className="flex-1 flex flex-col items-center justify-center gap-6 bg-coconut-cream px-4 text-center">
@@ -24,5 +27,6 @@ export default async function NotFound() {
             </main>
             <FooterComponent />
         </div>
+        </StyleContextProvider>
     );
 }
