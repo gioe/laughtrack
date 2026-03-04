@@ -18,7 +18,7 @@ export async function middleware(request: NextRequest) {
     try {
         const pathname = request.nextUrl.pathname
 
-        // Handle CORS for all API routes
+        // Handle CORS for all API routes and return early — API routes manage their own auth
         if (pathname.startsWith('/api')) {
             const origin = request.headers.get('origin')
             const corsHeaders = getCorsHeaders(origin)

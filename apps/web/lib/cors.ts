@@ -1,29 +1,29 @@
 const DEFAULT_ALLOWED_ORIGINS = ['laughtrack.b-cdn.net']
 
-function getAllowedOrigins(): string[] {
+// Memoize at module load — env vars are static after startup
+const ALLOWED_ORIGINS: string[] = (() => {
     const env = process.env.CORS_ALLOWED_ORIGINS
     if (!env) return DEFAULT_ALLOWED_ORIGINS
     if (env === '*') return ['*']
     return env.split(',').map((o) => o.trim()).filter(Boolean)
-}
+})()
 
 export function getCorsHeaders(origin: string | null): Record<string, string> {
-    const allowedOrigins = getAllowedOrigins()
-    const allowAll = allowedOrigins.includes('*')
+    const allowAll = ALLOWED_ORIGINS.includes('*')
 
-    let allowOrigin: string
-    if (allowAll) {
-        allowOrigin = '*'
-    } else if (origin && allowedOrigins.includes(origin)) {
-        allowOrigin = origin
-    } else {
-        allowOrigin = allowedOrigins[0] ?? ''
-    }
-
-    return {
-        'Access-Control-Allow-Origin': allowOrigin,
+    const headers: Record<string, string> = {
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
         'Access-Control-Max-Age': '86400',
+        'Vary': 'Origin',
     }
+
+    if (allowAll) {
+        headers['Access-Control-Allow-Origin'] = '*'
+    } else if (origin && ALLOWED_ORIGINS.includes(origin)) {
+        headers['Access-Control-Allow-Origin'] = origin
+    }
+    // Disallowed origin: omit Access-Control-Allow-Origin entirely
+
+    return headers
 }
