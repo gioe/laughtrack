@@ -2,7 +2,6 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { ClubDTO } from "@/objects/class/club/club.interface";
-import { Club } from "@/objects/class/club/Club";
 import PopularClubCard from "@/ui/components/cards/club/popular";
 import ScrollButtons from "@/ui/components/scroll";
 
@@ -172,17 +171,14 @@ const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
                 className="flex gap-4 md:gap-6 overflow-x-auto scrollbar-hide py-4 px-2 scroll-smooth"
                 style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
-                {sortedClubs.map((dto) => {
-                    const club = new Club(dto);
-                    return (
-                        <div
-                            key={club.name}
-                            className="flex-none w-[280px] sm:w-[320px]"
-                        >
-                            <PopularClubCard entity={club} />
-                        </div>
-                    );
-                })}
+                {sortedClubs.map((dto) => (
+                    <div
+                        key={dto.name}
+                        className="flex-none w-[280px] sm:w-[320px]"
+                    >
+                        <PopularClubCard entity={dto} />
+                    </div>
+                ))}
             </div>
 
             <div className="flex justify-center mt-4 gap-1.5 sm:hidden">

@@ -1,6 +1,7 @@
 "use client";
 
 import { Club } from "@/objects/class/club/Club";
+import { ClubDTO } from "@/objects/class/club/club.interface";
 import { getLocalCdnUrl } from "@/util/cdnUtil";
 import { useState } from "react";
 import Image from "next/image";
@@ -9,10 +10,11 @@ import Link from "next/link";
 const PLACEHOLDER = getLocalCdnUrl("club-placeholder.png");
 
 interface PopularClubCardProps {
-    entity: Club;
+    entity: ClubDTO;
 }
 
-const PopularClubCard: React.FC<PopularClubCardProps> = ({ entity: club }) => {
+const PopularClubCard: React.FC<PopularClubCardProps> = ({ entity }) => {
+    const club = new Club(entity);
     const [error, setError] = useState(false);
 
     return (
