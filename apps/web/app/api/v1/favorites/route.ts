@@ -1,21 +1,6 @@
 import { db } from "@/lib/db";
-import { verifyToken } from "@/util/token";
 import { NextRequest, NextResponse } from "next/server";
-
-async function getProfileId(req: NextRequest): Promise<string | null> {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) return null;
-    try {
-        const decoded = verifyToken(authHeader.slice(7));
-        const profile = await db.userProfile.findFirst({
-            where: { user: { email: decoded.email } },
-            select: { id: true },
-        });
-        return profile?.id ?? null;
-    } catch {
-        return null;
-    }
-}
+import { getProfileId } from "./_getProfileId";
 
 export async function POST(req: NextRequest) {
     try {
@@ -28,6 +13,14 @@ export async function POST(req: NextRequest) {
         const comedianId = body?.comedianId;
         if (!comedianId || typeof comedianId !== "string") {
             return NextResponse.json({ error: "comedianId is required" }, { status: 400 });
+        }
+
+        const comedian = await db.comedian.findUnique({
+            where: { uuid: comedianId },
+            select: { uuid: true },
+        });
+        if (!comedian) {
+            return NextResponse.json({ error: "Comedian not found" }, { status: 404 });
         }
 
         await db.favoriteComedian.upsert({
