@@ -11,6 +11,30 @@ import FilterBar from "@/ui/pages/search/filterBar";
 import FilterModal from "@/ui/components/modals/filter";
 import { cookies } from "next/headers";
 import ShowTable from "@/ui/pages/search/table";
+import type { Metadata } from "next";
+import { db } from "@/lib/db";
+
+export async function generateMetadata(props: {
+    params: Promise<{ name: string }>;
+}): Promise<Metadata> {
+    const { name: slug } = await props.params;
+    const name = decodeURI(slug);
+
+    const comedian = await db.comedian.findFirst({
+        where: { name: { equals: name, mode: "insensitive" } },
+        select: { name: true },
+    });
+
+    const comedianName = comedian?.name ?? name;
+    const title = `${comedianName} | LaughTrack`;
+    const description = `Discover upcoming comedy shows featuring ${comedianName}. Find schedules, tickets, and more on LaughTrack.`;
+
+    return {
+        title,
+        description,
+        openGraph: { title, description },
+    };
+}
 
 export default async function ComedianDetailsPage(props: {
     searchParams: Promise<any>;

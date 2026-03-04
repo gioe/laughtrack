@@ -11,6 +11,30 @@ import { unstable_cache } from "next/cache";
 import { ParameterizedRequestData } from "@/objects/interface";
 import { cookies } from "next/headers";
 import ShowTable from "@/ui/pages/search/table";
+import type { Metadata } from "next";
+import { db } from "@/lib/db";
+
+export async function generateMetadata(props: {
+    params: Promise<{ name: string }>;
+}): Promise<Metadata> {
+    const { name: slug } = await props.params;
+    const name = decodeURI(slug);
+
+    const club = await db.club.findFirst({
+        where: { name: { equals: name, mode: "insensitive" } },
+        select: { name: true },
+    });
+
+    const clubName = club?.name ?? name;
+    const title = `${clubName} | LaughTrack`;
+    const description = `Discover upcoming comedy shows at ${clubName}. Find schedules, tickets, and more on LaughTrack.`;
+
+    return {
+        title,
+        description,
+        openGraph: { title, description },
+    };
+}
 
 export default async function ClubDetailPage(props: {
     searchParams: Promise<any>;
