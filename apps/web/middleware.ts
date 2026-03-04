@@ -6,6 +6,28 @@ import { formattedDateParam } from "./util/primatives/paramUtil";
 import { UserInterface } from "./objects/class/user/user.interface";
 import { getCorsHeaders } from "./lib/cors";
 
+const SECURITY_HEADERS: Record<string, string> = {
+    'X-Frame-Options': 'DENY',
+    'X-Content-Type-Options': 'nosniff',
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+    'Content-Security-Policy': [
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+        "style-src 'self' 'unsafe-inline'",
+        "img-src 'self' data: blob: https://laughtrack.b-cdn.net https://lh3.googleusercontent.com",
+        "font-src 'self' data:",
+        "connect-src 'self' https:",
+        "frame-ancestors 'none'",
+    ].join('; '),
+};
+
+function applySecurityHeaders(response: NextResponse): NextResponse {
+    for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
+        response.headers.set(key, value);
+    }
+    return response;
+}
+
 const protectedRoutes = [
     '/profile',
 ]
@@ -31,7 +53,7 @@ export async function middleware(request: NextRequest) {
             Object.entries(corsHeaders).forEach(([key, value]) => {
                 response.headers.set(key, value)
             })
-            return response
+            return applySecurityHeaders(response)
         }
 
         const url = request.nextUrl.clone()
@@ -46,7 +68,7 @@ export async function middleware(request: NextRequest) {
 
         // Handle protected routes
         if (!isProtectedRoute(pathname)) {
-            return response
+            return applySecurityHeaders(response)
         }
 
         const token = await getToken({ req: request })
@@ -54,25 +76,25 @@ export async function middleware(request: NextRequest) {
         if (!token) {
             const loginUrl = new URL('/', request.url)
             loginUrl.searchParams.set('callbackUrl', pathname)
-            return NextResponse.redirect(loginUrl)
+            return applySecurityHeaders(NextResponse.redirect(loginUrl))
         }
 
         // Special handling for profile route
         if (pathname.startsWith('/profile')) {
             const userId = token.sub
             if (!userId) {
-                return NextResponse.redirect(new URL('/', request.url))
+                return applySecurityHeaders(NextResponse.redirect(new URL('/', request.url)))
             }
 
             const requestedProfileId = pathname.split('/').pop()
 
             if (requestedProfileId && userId !== requestedProfileId) {
                 // User is trying to access another user's profile - redirect to their own profile
-                return NextResponse.redirect(new URL(`/profile/${userId}`, request.url))
+                return applySecurityHeaders(NextResponse.redirect(new URL(`/profile/${userId}`, request.url)))
             }
         }
 
-        return response
+        return applySecurityHeaders(response)
     } catch (error) {
         console.error('Middleware error:', error)
         return NextResponse.next()
