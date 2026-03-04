@@ -10,6 +10,10 @@ interface TrendingClubsCarouselProps {
     clubs: ClubDTO[];
 }
 
+const CARD_WIDTH_SM = 280;
+const CARD_WIDTH_MD = 320;
+const CARD_GAP = 16;
+
 const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
     const scrollContainerRef = useRef<HTMLDivElement | null>(null);
     const [isClient, setIsClient] = useState(false);
@@ -35,7 +39,7 @@ const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
         if (!container) return;
 
         // Get actual card width including gap
-        const cardWidth = window.innerWidth >= 640 ? 320 + 16 : 280 + 16; // card width + gap
+        const cardWidth = window.innerWidth >= 640 ? CARD_WIDTH_MD + CARD_GAP : CARD_WIDTH_SM + CARD_GAP;
         const scrollPosition = Math.round(container.scrollLeft);
         const maxScroll = container.scrollWidth - container.clientWidth;
 
@@ -93,7 +97,7 @@ const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
         if (!container) return;
 
         // Use actual card width
-        const cardWidth = window.innerWidth >= 640 ? 320 + 16 : 280 + 16; // card width + gap
+        const cardWidth = window.innerWidth >= 640 ? CARD_WIDTH_MD + CARD_GAP : CARD_WIDTH_SM + CARD_GAP;
         const visibleCards = 3;
         const scrollAmount = cardWidth * visibleCards;
 
@@ -127,7 +131,7 @@ const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
         const container = scrollContainerRef.current;
         if (!container) return;
 
-        const cardWidth = window.innerWidth >= 640 ? 320 + 16 : 280 + 16; // card width + gap
+        const cardWidth = window.innerWidth >= 640 ? CARD_WIDTH_MD + CARD_GAP : CARD_WIDTH_SM + CARD_GAP;
         const targetScroll = index * (cardWidth * 3);
 
         container.scrollTo({
