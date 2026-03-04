@@ -11,7 +11,14 @@
         "lint:fix": "ESLINT_USE_FLAT_CONFIG=false eslint --fix \"./**/*.{ts,tsx}\" --ignore-pattern node_modules --ignore-pattern .next",
         "format": "prettier --write \"./**/*.{ts,tsx}\" --ignore-path .gitignore",
         "gcp-build": "tsc -p .",
-        "type-check": "tsc -b"
+        "type-check": "tsc -b",
+        "prepare": "cd ../.. && node apps/web/node_modules/.bin/husky"
+    },
+    "lint-staged": {
+        "**/*.{ts,tsx}": [
+            "eslint --fix",
+            "prettier --write"
+        ]
     },
     "dependencies": {
         "@auth/prisma-adapter": "^2.8.0",
@@ -86,6 +93,8 @@
         "daisyui": "^4.12.10",
         "eslint": "^9.13.0",
         "eslint-plugin-react-hooks": "^7.0.1",
+        "husky": "^9.1.7",
+        "lint-staged": "^16.3.2",
         "postcss": "^8",
         "prettier": "3.3.3",
         "prettier-plugin-tailwindcss": "^0.6.8",
