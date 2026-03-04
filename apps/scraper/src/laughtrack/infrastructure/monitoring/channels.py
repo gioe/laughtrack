@@ -62,16 +62,50 @@ Metadata:
 
 
 class SlackAlertChannel(AlertChannel):
-    """Slack alert channel (placeholder for future implementation)."""
+    """Slack alert channel via incoming webhook."""
+
+    _SEVERITY_COLORS = {
+        "low": "#36a64f",
+        "medium": "#ffcc00",
+        "high": "#ff8800",
+        "critical": "#cc0000",
+    }
 
     def __init__(self, webhook_url: str, channel: str = "#alerts"):
         self.webhook_url = webhook_url
         self.channel = channel
 
     async def send_alert(self, alert: Alert) -> bool:
-        # TODO: Implement Slack webhook integration
-        Logger.warning(f"[SLACK] {alert.severity.value}: {alert.title} (Slack not implemented)")
-        return True
+        try:
+            import requests
+
+            color = self._SEVERITY_COLORS.get(alert.severity.value, "#888888")
+            payload = {
+                "channel": self.channel,
+                "attachments": [
+                    {
+                        "color": color,
+                        "title": f"[{alert.severity.value.upper()}] {alert.title}",
+                        "text": alert.description,
+                        "fields": [
+                            {"title": "Source", "value": alert.source, "short": True},
+                            {"title": "Severity", "value": alert.severity.value, "short": True},
+                            {"title": "Time", "value": alert.timestamp.isoformat(), "short": True},
+                        ],
+                        "footer": json.dumps(alert.metadata) if alert.metadata else None,
+                    }
+                ],
+            }
+
+            response = requests.post(self.webhook_url, json=payload, timeout=10)
+            if response.status_code == 200:
+                return True
+
+            Logger.error(f"Slack webhook returned {response.status_code}: {response.text}")
+            return False
+        except Exception as e:
+            Logger.error(f"Failed to send Slack alert: {e}")
+            return False
 
 
 class WebhookAlertChannel(AlertChannel):
