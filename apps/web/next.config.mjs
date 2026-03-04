@@ -38,10 +38,6 @@ const nextConfig = {
       allowedOrigins: ['laughtrack.b-cdn.net'],
     },
   },
-  env: {
-    DATABASE_URL: process.env.DATABASE_URL,
-    DIRECT_URL: process.env.DIRECT_URL,
-  }
 };
 
 export default nextConfig
