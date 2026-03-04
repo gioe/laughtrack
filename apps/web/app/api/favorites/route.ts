@@ -1,14 +1,31 @@
+import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { buildComedianImageUrl } from "@/util/imageUtil";
+import { z } from "zod";
+
+const querySchema = z.object({
+    userId: z.string().min(1),
+});
 
 export async function GET(req: NextRequest) {
     try {
-        const { searchParams } = new URL(req.url);
-        const userId = searchParams.get('userId');
+        const session = await auth();
+        if (!session?.profile) {
+            return new NextResponse(null, { status: 401 });
+        }
 
-        if (!userId) {
-            return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+        const { searchParams } = new URL(req.url);
+        const parsed = querySchema.safeParse({ userId: searchParams.get('userId') });
+
+        if (!parsed.success) {
+            return NextResponse.json({ error: 'userId is required and must be a non-empty string' }, { status: 400 });
+        }
+
+        const { userId } = parsed.data;
+
+        if (session.profile.userid !== userId) {
+            return new NextResponse(null, { status: 403 });
         }
 
         const favorites = await db.favoriteComedian.findMany({
