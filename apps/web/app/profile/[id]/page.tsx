@@ -1,5 +1,3 @@
-"use server";
-
 import { auth } from "@/auth";
 import { StyleContextProvider } from "@/contexts/StyleProvider";
 import { StyleContextKey } from "@/objects/enum";

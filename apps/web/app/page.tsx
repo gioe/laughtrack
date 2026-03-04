@@ -1,5 +1,3 @@
-"use server";
-
 import { auth } from "../auth";
 import { unstable_cache } from "next/cache";
 import { Session } from "next-auth";
