@@ -43,7 +43,6 @@ export async function GET(
                 name: comedian.name,
                 imageUrl: buildComedianImageUrl(comedian.name),
                 social_data: {
-                    id: comedian.id,
                     linktree: comedian.linktree,
                     instagram_account: comedian.instagramAccount,
                     instagram_followers: comedian.instagramFollowers,

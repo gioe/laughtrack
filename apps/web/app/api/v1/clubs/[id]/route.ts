@@ -38,7 +38,7 @@ export async function GET(
                 website: club.website,
                 address: club.address,
                 zipCode: club.zipCode,
-                phone_number: club.phoneNumber,
+                phoneNumber: club.phoneNumber,
             },
         });
     } catch (error) {
