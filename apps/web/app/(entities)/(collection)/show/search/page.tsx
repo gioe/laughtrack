@@ -51,9 +51,7 @@ export default async function ShowSearchPage(props: any) {
                 total={total}
                 filters={filters.length > 0}
             />
-            <div className="mx-10">
-                <ShowTable shows={data} />
-            </div>
+            <ShowTable shows={data} />
         </main>
     );
 }
