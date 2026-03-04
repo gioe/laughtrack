@@ -5,11 +5,11 @@ import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import ComedianHeadshot from "../../image/comedian";
 
 interface ComedianGridCardProps {
-    entity: string;
+    entity: ComedianDTO;
 }
 
 const ComedianGridCard: React.FC<ComedianGridCardProps> = ({ entity }) => {
-    const comedian = new Comedian(JSON.parse(entity) as ComedianDTO);
+    const comedian = new Comedian(entity);
     return (
         <div className="bg-coconut-cream rounded-xl pb-4 px-4 h-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
             <ComedianHeadshot

@@ -15,7 +15,7 @@ const ComedianGrid = ({ comedians, className }: ComedianGridProps) => {
                     {comedians.map((dto) => (
                         <ComedianGridCard
                             key={dto.name}
-                            entity={JSON.stringify(dto)}
+                            entity={dto}
                         />
                     ))}
                 </div>
