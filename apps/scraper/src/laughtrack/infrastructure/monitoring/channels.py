@@ -2,6 +2,8 @@ import json
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional
 
+import aiohttp
+
 from laughtrack.domain.entities.email import EmailMessage
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.infrastructure.email.service import EmailService
@@ -77,32 +79,29 @@ class SlackAlertChannel(AlertChannel):
 
     async def send_alert(self, alert: Alert) -> bool:
         try:
-            import requests
-
             color = self._SEVERITY_COLORS.get(alert.severity.value, "#888888")
-            payload = {
-                "channel": self.channel,
-                "attachments": [
-                    {
-                        "color": color,
-                        "title": f"[{alert.severity.value.upper()}] {alert.title}",
-                        "text": alert.description,
-                        "fields": [
-                            {"title": "Source", "value": alert.source, "short": True},
-                            {"title": "Severity", "value": alert.severity.value, "short": True},
-                            {"title": "Time", "value": alert.timestamp.isoformat(), "short": True},
-                        ],
-                        "footer": json.dumps(alert.metadata) if alert.metadata else None,
-                    }
+            attachment: Dict = {
+                "color": color,
+                "title": f"[{alert.severity.value.upper()}] {alert.title}",
+                "text": alert.description,
+                "fields": [
+                    {"title": "Source", "value": alert.source, "short": True},
+                    {"title": "Severity", "value": alert.severity.value, "short": True},
+                    {"title": "Time", "value": alert.timestamp.isoformat(), "short": True},
                 ],
             }
+            if alert.metadata:
+                attachment["footer"] = json.dumps(alert.metadata)
 
-            response = requests.post(self.webhook_url, json=payload, timeout=10)
-            if response.status_code == 200:
-                return True
+            payload = {"attachments": [attachment]}
 
-            Logger.error(f"Slack webhook returned {response.status_code}: {response.text}")
-            return False
+            async with aiohttp.ClientSession() as session:
+                async with session.post(self.webhook_url, json=payload, timeout=aiohttp.ClientTimeout(total=10)) as response:
+                    if response.status == 200:
+                        return True
+                    body = await response.text()
+                    Logger.error(f"Slack webhook returned {response.status}: {body}")
+                    return False
         except Exception as e:
             Logger.error(f"Failed to send Slack alert: {e}")
             return False
