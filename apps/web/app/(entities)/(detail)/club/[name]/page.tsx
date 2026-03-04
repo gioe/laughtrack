@@ -20,11 +20,17 @@ export async function generateMetadata(props: {
     const { name: slug } = await props.params;
     const name = decodeURI(slug);
 
-    const club = await db.club.findFirst({
-        where: { name: { equals: name, mode: "insensitive" } },
-        select: { name: true },
-    });
+    const getClubName = unstable_cache(
+        () =>
+            db.club.findFirst({
+                where: { name: { equals: name, mode: "insensitive" } },
+                select: { name: true },
+            }),
+        ["club-metadata", name],
+        { revalidate: CACHE.detailPage, tags: ["club-metadata", name] },
+    );
 
+    const club = await getClubName();
     const clubName = club?.name ?? name;
     const title = `${clubName} | LaughTrack`;
     const description = `Discover upcoming comedy shows at ${clubName}. Find schedules, tickets, and more on LaughTrack.`;

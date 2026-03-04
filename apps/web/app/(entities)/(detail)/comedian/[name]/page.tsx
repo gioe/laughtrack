@@ -20,11 +20,17 @@ export async function generateMetadata(props: {
     const { name: slug } = await props.params;
     const name = decodeURI(slug);
 
-    const comedian = await db.comedian.findFirst({
-        where: { name: { equals: name, mode: "insensitive" } },
-        select: { name: true },
-    });
+    const getComedianName = unstable_cache(
+        () =>
+            db.comedian.findFirst({
+                where: { name: { equals: name, mode: "insensitive" } },
+                select: { name: true },
+            }),
+        ["comedian-metadata", name],
+        { revalidate: CACHE.detailPage, tags: ["comedian-metadata", name] },
+    );
 
+    const comedian = await getComedianName();
     const comedianName = comedian?.name ?? name;
     const title = `${comedianName} | LaughTrack`;
     const description = `Discover upcoming comedy shows featuring ${comedianName}. Find schedules, tickets, and more on LaughTrack.`;
