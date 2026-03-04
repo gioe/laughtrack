@@ -1,7 +1,7 @@
 'use client';
 
 import React, { Component, ReactNode } from 'react';
-import Link from 'next/link';
+import ErrorPage from '@/ui/components/errorPage';
 
 interface Props {
     children: ReactNode;
@@ -10,15 +10,16 @@ interface Props {
 
 interface State {
     hasError: boolean;
+    retryKey: number;
 }
 
 class ErrorBoundary extends Component<Props, State> {
     constructor(props: Props) {
         super(props);
-        this.state = { hasError: false };
+        this.state = { hasError: false, retryKey: 0 };
     }
 
-    static getDerivedStateFromError(): State {
+    static getDerivedStateFromError(_error: Error) {
         return { hasError: true };
     }
 
@@ -27,29 +28,32 @@ class ErrorBoundary extends Component<Props, State> {
     }
 
     render() {
-        if (this.state.hasError) {
+        const { hasError, retryKey } = this.state;
+
+        if (hasError) {
+            const reset = () =>
+                this.setState((prev) => ({
+                    hasError: false,
+                    retryKey: prev.retryKey + 1,
+                }));
+
             if (this.props.fallback) {
                 return this.props.fallback;
             }
             return (
-                <div className="min-h-[400px] flex flex-col items-center justify-center gap-6 bg-coconut-cream px-4 text-center">
-                    <h1 className="text-3xl font-bold text-gray-800">Something went wrong</h1>
-                    <p className="text-gray-500 max-w-md">An unexpected error occurred. Please try again.</p>
-                    <div className="flex gap-4">
-                        <button
-                            onClick={() => this.setState({ hasError: false })}
-                            className="btn btn-primary"
-                        >
-                            Try again
-                        </button>
-                        <Link href="/" className="btn btn-ghost">
-                            Go home
-                        </Link>
-                    </div>
-                </div>
+                <ErrorPage
+                    title="Something went wrong"
+                    description="An unexpected error occurred. Please try again."
+                    reset={reset}
+                />
             );
         }
-        return this.props.children;
+
+        return (
+            <React.Fragment key={retryKey}>
+                {this.props.children}
+            </React.Fragment>
+        );
     }
 }
 
