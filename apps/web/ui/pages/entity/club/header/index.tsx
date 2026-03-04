@@ -17,6 +17,7 @@ interface ClubDetailHeaderProps {
 const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({ club }) => {
     const parsedClub = new Club(club);
     const [error, setError] = useState(false);
+    const [imageLoaded, setImageLoaded] = useState(false);
 
     return (
         <div className="max-w-7xl mx-auto p-6">
@@ -30,9 +31,13 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({ club }) => {
                                 alt={parsedClub.name}
                                 fill
                                 sizes="64px"
-                                className="object-cover"
+                                className={`object-cover transition-opacity duration-300 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
                                 onError={() => setError(true)}
+                                onLoad={() => setImageLoaded(true)}
                             />
+                            {!imageLoaded && (
+                                <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+                            )}
                         </div>
                         <div className="flex flex-col gap-1">
                             <h1 className="text-2xl font-bold text-gray-900">
