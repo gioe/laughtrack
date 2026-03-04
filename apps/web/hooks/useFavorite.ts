@@ -27,6 +27,8 @@ export const useFavorite = ({
         loginModal.onOpen();
     }, [loginModal]);
 
+    const FAVORITE_ERROR_MSG = 'Failed to update favorite. Please try again.';
+
     const handleFavoriteClick = async (e: React.MouseEvent) => {
         e.stopPropagation();
 
@@ -41,12 +43,12 @@ export const useFavorite = ({
                 // If the response doesn't match our optimistic update, revert
                 if (response !== newFavoriteState) {
                     setIsFavorite(!newFavoriteState);
-                    toast.error('Failed to update favorite. Please try again.');
+                    toast.error(FAVORITE_ERROR_MSG);
                 }
             } catch (error) {
                 // Revert the optimistic update on error
                 setIsFavorite(!newFavoriteState);
-                toast.error('Failed to update favorite. Please try again.');
+                toast.error(FAVORITE_ERROR_MSG);
             }
         } else {
             requireLogin();
