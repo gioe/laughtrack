@@ -1,5 +1,6 @@
 'use client'
 import { useState, useCallback } from 'react';
+import toast from 'react-hot-toast';
 import { useSession } from 'next-auth/react';
 import useLoginModal from './useLoginModal';
 import { favorite } from '@/app/actions/favorite';
@@ -44,8 +45,7 @@ export const useFavorite = ({
             } catch (error) {
                 // Revert the optimistic update on error
                 setIsFavorite(!newFavoriteState);
-                console.error('Failed to update favorite status:', error);
-                // Optionally add error notification here
+                toast.error('Failed to update favorite. Please try again.');
             }
         } else {
             console.log('User must be logged in to favorite');
