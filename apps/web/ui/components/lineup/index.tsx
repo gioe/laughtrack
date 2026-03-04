@@ -4,6 +4,7 @@ import { Comedian } from "@/objects/class/comedian/Comedian";
 import ComedianHeadshot from "../image/comedian";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
+import { useReducedMotion } from "framer-motion";
 
 interface LineupGridProps {
     lineup: Comedian[];
@@ -15,6 +16,7 @@ const LineupGrid = ({ lineup }: LineupGridProps) => {
     const [showRightScroll, setShowRightScroll] = useState(false);
     // Stop the swipe-cue pulse after 2 cycles (~4s) to avoid indefinite motion (WCAG 2.3.3)
     const [swipeCuePulsing, setSwipeCuePulsing] = useState(true);
+    const prefersReducedMotion = useReducedMotion();
 
     // Check if scrolling is needed
     const checkScroll = () => {
@@ -45,7 +47,7 @@ const LineupGrid = ({ lineup }: LineupGridProps) => {
             const scrollAmount = scrollContainerRef.current.clientWidth * 0.75;
             scrollContainerRef.current.scrollBy({
                 left: direction === "left" ? -scrollAmount : scrollAmount,
-                behavior: "smooth",
+                behavior: prefersReducedMotion ? "auto" : "smooth",
             });
         }
     };
@@ -61,8 +63,8 @@ const LineupGrid = ({ lineup }: LineupGridProps) => {
                 {lineup.map((comedian, index) => (
                     <div
                         key={index}
-                        className="flex-shrink-0 snap-start animate-[slideUp_500ms_ease-out,fadeIn_600ms_ease-out]"
-                        style={{
+                        className="flex-shrink-0 snap-start"
+                        style={prefersReducedMotion ? {} : {
                             animationDelay: `${index * 100}ms`,
                             opacity: 0,
                             animation: `slideUp 500ms ${index * 100}ms ease-out forwards, fadeIn 600ms ${index * 100}ms ease-out forwards`,
