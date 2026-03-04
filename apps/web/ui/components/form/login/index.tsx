@@ -39,7 +39,7 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
                 email: values.email,
                 redirect: false,
             });
-            if (result?.error) {
+            if (!result || !result.ok || result.error) {
                 toast.error("Failed to send sign-in link. Please try again.");
             } else {
                 toast.success("Check your email for a sign-in link!");
@@ -130,6 +130,7 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
                 </form>
             </Form>
 
+            {/* Full-screen overlay only for social providers (they redirect away; email stays on page) */}
             {isSocialLoading && (
                 <motion.div
                     initial={{ opacity: 0 }}

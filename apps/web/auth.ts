@@ -35,6 +35,12 @@ if (!prisma) {
     throw new Error('Prisma client is not initialized');
 }
 
+if (process.env.NODE_ENV === 'production') {
+    if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
+        throw new Error('SMTP_HOST, SMTP_USER, and SMTP_PASSWORD must be set for email sign-in');
+    }
+}
+
 const adapter = PrismaAdapter(prisma);
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -43,12 +49,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         Google,
         Apple,
         Nodemailer({
+            id: "email",
             server: {
-                host: process.env.SMTP_HOST,
+                host: process.env.SMTP_HOST ?? "",
                 port: Number(process.env.SMTP_PORT) || 587,
                 auth: {
-                    user: process.env.SMTP_USER,
-                    pass: process.env.SMTP_PASSWORD,
+                    user: process.env.SMTP_USER ?? "",
+                    pass: process.env.SMTP_PASSWORD ?? "",
                 },
             },
             from: process.env.EMAIL_FROM ?? "noreply@laughtrack.com",
