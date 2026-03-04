@@ -12,8 +12,7 @@ interface PopularClubCardProps {
     entity: Club;
 }
 
-const PopularClubCard: React.FC<PopularClubCardProps> = ({ entity }) => {
-    const club = entity;
+const PopularClubCard: React.FC<PopularClubCardProps> = ({ entity: club }) => {
     const [error, setError] = useState(false);
 
     return (
