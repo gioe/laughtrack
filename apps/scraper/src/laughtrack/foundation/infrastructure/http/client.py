@@ -38,7 +38,11 @@ class HttpClient:
             logger_context: Context for logging
 
         Returns:
-            HTML content as string, or None if fetch failed
+            HTML content as string, or None if the response status is not 200.
+
+        Raises:
+            Exception: Any network or connection error is logged at WARN level
+                and re-raised so callers (e.g. retry wrappers) can handle it.
         """
         logger_context = logger_context or {}
 
@@ -77,7 +81,11 @@ class HttpClient:
             logger_context: Context for logging
 
         Returns:
-            JSON data as dictionary, or None if fetch failed
+            JSON data as dictionary, or None if the response status is not 200.
+
+        Raises:
+            Exception: Any network or connection error is logged at WARN level
+                and re-raised so callers (e.g. retry wrappers) can handle it.
         """
         logger_context = logger_context or {}
 
