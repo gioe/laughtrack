@@ -23,6 +23,7 @@ import { auth } from "@/auth";
 
 import { TimezoneProvider } from "@/contexts/TimezoneProvider";
 import { ClientTimezone } from "@/contexts/TimezoneCookieProvider";
+import ErrorBoundary from "@/ui/components/errorBoundary";
 
 const outfit = Outfit({
     weight: "400",
@@ -94,7 +95,9 @@ export default async function RootLayout({
                                 initialContext={StyleContextKey.Home}
                             >
                                 <ClientTimezone />
-                                {children}
+                                <ErrorBoundary>
+                                    {children}
+                                </ErrorBoundary>
                             </StyleContextProvider>
                             <Analytics />
                             <SpeedInsights />

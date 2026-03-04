@@ -4,6 +4,7 @@ import { StyleContextKey } from "@/objects/enum";
 import { Suspense } from "react";
 import Navbar from "@/ui/components/navbar";
 import FooterComponent from "@/ui/pages/home/footer";
+import ErrorBoundary from "@/ui/components/errorBoundary";
 
 export default async function EntityDetailLayout({
     children,
@@ -18,7 +19,9 @@ export default async function EntityDetailLayout({
             <Navbar currentUser={session?.profile} />
             <Suspense>
                 <main className="min-h-screen w-full bg-coconut-cream px-4 sm:px-6 md:px-8">
-                    {children}
+                    <ErrorBoundary>
+                        {children}
+                    </ErrorBoundary>
                 </main>
             </Suspense>
             <FooterComponent />
