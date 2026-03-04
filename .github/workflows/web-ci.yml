@@ -1,8 +1,10 @@
 name: Web CI
 
 on:
+  push:
+    branches: [main]
   pull_request:
-    branches: [main, master]
+    branches: [main]
     types: [opened, synchronize, reopened]
 
 jobs:
