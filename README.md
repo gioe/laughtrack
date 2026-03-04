@@ -17,9 +17,12 @@ This is a monorepo containing two apps:
 
 ```bash
 cd apps/web
+cp .env.example .env.local   # fill in your secrets
 npm install
 npm run dev
 ```
+
+See [`apps/web/.env.example`](apps/web/.env.example) for a description of all required environment variables.
 
 ### Scraper
 
