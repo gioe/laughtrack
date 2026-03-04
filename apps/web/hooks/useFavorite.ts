@@ -48,7 +48,6 @@ export const useFavorite = ({
                 toast.error('Failed to update favorite. Please try again.');
             }
         } else {
-            console.log('User must be logged in to favorite');
             requireLogin();
         }
     };
