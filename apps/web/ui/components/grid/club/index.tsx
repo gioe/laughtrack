@@ -1,5 +1,3 @@
-"use server";
-
 import { ClubDTO } from "@/objects/class/club/club.interface";
 import ClubSearchCard from "../../cards/club/search";
 
