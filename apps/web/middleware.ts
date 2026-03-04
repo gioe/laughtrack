@@ -12,7 +12,7 @@ const SECURITY_HEADERS: Record<string, string> = {
     'Referrer-Policy': 'strict-origin-when-cross-origin',
     'Content-Security-Policy': [
         "default-src 'self'",
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+        "script-src 'self' 'unsafe-inline'",
         "style-src 'self' 'unsafe-inline'",
         "img-src 'self' data: blob: https://laughtrack.b-cdn.net https://lh3.googleusercontent.com",
         "font-src 'self' data:",
@@ -46,7 +46,8 @@ export async function middleware(request: NextRequest) {
             const corsHeaders = getCorsHeaders(origin)
 
             if (request.method === 'OPTIONS') {
-                return new NextResponse(null, { status: 200, headers: corsHeaders })
+                const preflightResponse = new NextResponse(null, { status: 200, headers: corsHeaders })
+                return applySecurityHeaders(preflightResponse)
             }
 
             const response = NextResponse.next()
@@ -97,7 +98,7 @@ export async function middleware(request: NextRequest) {
         return applySecurityHeaders(response)
     } catch (error) {
         console.error('Middleware error:', error)
-        return NextResponse.next()
+        return applySecurityHeaders(NextResponse.next())
     }
 }
 
