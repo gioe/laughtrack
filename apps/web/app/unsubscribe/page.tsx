@@ -11,6 +11,13 @@ export default function UnsubscribePage() {
         "loading",
     );
     const [message, setMessage] = useState("Processing your request...");
+    // Stop the loading pulse after 2 cycles (~4s) to avoid indefinite motion (WCAG 2.3.3)
+    const [pulsing, setPulsing] = useState(true);
+
+    useEffect(() => {
+        const timer = setTimeout(() => setPulsing(false), 4000);
+        return () => clearTimeout(timer);
+    }, []);
 
     useEffect(() => {
         if (!token) {
@@ -57,7 +64,7 @@ export default function UnsubscribePage() {
 
                 <div className="text-center">
                     {status === "loading" && (
-                        <div className="animate-pulse font-gilroy-bold text-[32px] font-bold">
+                        <div className={`${pulsing ? "animate-pulse" : ""} font-gilroy-bold text-[32px] font-bold`}>
                             <p>{message}</p>
                         </div>
                     )}
