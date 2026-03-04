@@ -11,19 +11,21 @@ datasource db {
 }
 
 model Club {
-  id          Int          @id @default(autoincrement())
-  name        String       @unique
-  address     String
-  website     String
-  scrapingUrl String       @map("scraping_url")
-  popularity  Float        @default(0.0)
-  zipCode     String?      @map("zip_code") @db.VarChar(10)
-  phoneNumber String?      @default("") @map("phone_number")
-  timezone    String?      @map("timezone")
-  visible     Boolean?     @default(true)
-  scraper     String?
-  shows       Show[]
-  taggedClubs TaggedClub[]
+  id                 Int                 @id @default(autoincrement())
+  name               String              @unique
+  address            String
+  website            String
+  scrapingUrl        String              @map("scraping_url")
+  popularity         Float               @default(0.0)
+  zipCode            String?             @map("zip_code") @db.VarChar(10)
+  phoneNumber        String?             @default("") @map("phone_number")
+  timezone           String?             @map("timezone")
+  visible            Boolean?            @default(true)
+  scraper            String?
+  shows              Show[]
+  taggedClubs        TaggedClub[]
+  emailSubscriptions EmailSubscription[]
+  processedEmails    ProcessedEmail[]
 
   @@map("clubs")
 }
@@ -215,4 +217,27 @@ model TaggedShow {
 enum TagVisibility {
   PUBLIC
   ADMIN
+}
+
+model EmailSubscription {
+  id           Int       @id @default(autoincrement())
+  clubId       Int       @unique @map("club_id")
+  senderDomain String    @map("sender_domain")
+  subscribed   Boolean   @default(true)
+  lastReceived DateTime? @map("last_received")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  club         Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@map("email_subscriptions")
+}
+
+model ProcessedEmail {
+  id          Int      @id @default(autoincrement())
+  messageId   String   @unique @map("message_id")
+  clubId      Int      @map("club_id")
+  receivedAt  DateTime @map("received_at")
+  processedAt DateTime @default(now()) @map("processed_at")
+  club        Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@map("processed_emails")
 }
