@@ -27,6 +27,7 @@ model Club {
   emailSubscriptions EmailSubscription[]
   processedEmails    ProcessedEmail[]
 
+  @@index([visible])
   @@map("clubs")
 }
 
@@ -53,6 +54,7 @@ model Comedian {
   taggedComedians    TaggedComedian[]
   sentNotifications  SentNotification[]
 
+  @@index([parentComedianId])
   @@map("comedians")
 }
 
@@ -140,6 +142,7 @@ model Show {
   sentNotifications  SentNotification[]
 
   @@unique([clubId, date, room])
+  @@index([date])
   @@map("shows")
 }
 
