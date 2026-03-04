@@ -21,6 +21,11 @@ class RateLimiter:
 
     Provides both sync and async interfaces for rate limiting with domain-specific
     limits and global coordination.
+
+    Note: The sync (wait_if_needed) and async (await_if_needed) paths use separate
+    lock primitives (threading.Lock vs asyncio.Lock) and share _last_request without
+    cross-path coordination. Do not use both paths concurrently for the same domain
+    from different threads — use one path exclusively per process.
     """
 
     _instance = None
@@ -115,9 +120,7 @@ class RateLimiter:
 
     def _get_async_lock(self, domain: str) -> asyncio.Lock:
         """Get or create a per-domain asyncio.Lock for the async rate-limiting path."""
-        if domain not in self._async_domain_locks:
-            self._async_domain_locks[domain] = asyncio.Lock()
-        return self._async_domain_locks[domain]
+        return self._async_domain_locks.setdefault(domain, asyncio.Lock())
 
     async def await_if_needed(self, target: ScrapingTarget) -> None:
         """
