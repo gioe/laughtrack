@@ -2,6 +2,26 @@
 Club Selection Utility
 
 Interactive utility for selecting clubs and scraper types from the command line.
+
+Logging convention
+------------------
+This module intentionally mixes ``print()`` and ``Logger`` calls — they serve
+distinct purposes and both are correct:
+
+* **print()** — user-facing terminal output (menus, prompts, formatted tables).
+  These must reach the user's terminal regardless of the log level configured
+  for the process.  ``Logger.info`` is silently dropped at the default WARNING
+  console level, so menus and prompts *must* use ``print()``.
+
+* **Logger** — machine-readable telemetry (structured events, errors, progress
+  markers written to log files / log aggregators).  Use Logger for anything
+  that should appear in log files or be consumed programmatically.
+
+Future Logger-migration tasks must **not** add a criterion requiring that all
+``print()`` calls be removed from interactive CLI code; doing so would break
+the user-facing menus.  The rule of thumb is:
+  - User sees it → ``print()``
+  - Log file / monitoring sees it → ``Logger``
 """
 
 from typing import List, Optional
