@@ -51,6 +51,7 @@ model Comedian {
   favoriteComedians  FavoriteComedian[]
   lineupItems        LineupItem[]
   taggedComedians    TaggedComedian[]
+  sentNotifications  SentNotification[]
 
   @@map("comedians")
 }
@@ -63,8 +64,9 @@ model User {
   image         String?
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
-  accounts      Account[]
-  profile       UserProfile?
+  accounts           Account[]
+  profile            UserProfile?
+  sentNotifications  SentNotification[]
 
   @@map("users")
 }
@@ -131,10 +133,11 @@ model Show {
   lastScrapedDate DateTime?    @map("last_scraped_date") @db.Timestamptz(6)
   description     String?
   room            String?
-  lineupItems     LineupItem[]
-  club            Club         @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  taggedShows     TaggedShow[]
-  tickets         Ticket[]
+  lineupItems        LineupItem[]
+  club               Club               @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  taggedShows        TaggedShow[]
+  tickets            Ticket[]
+  sentNotifications  SentNotification[]
 
   @@unique([clubId, date, room])
   @@map("shows")
@@ -240,4 +243,18 @@ model ProcessedEmail {
   club        Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
 
   @@map("processed_emails")
+}
+
+model SentNotification {
+  id         Int      @id @default(autoincrement())
+  userId     String   @map("user_id")
+  comedianId String   @map("comedian_id")
+  showId     Int      @map("show_id")
+  sentAt     DateTime @default(now()) @map("sent_at")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comedian   Comedian @relation(fields: [comedianId], references: [uuid], onDelete: Cascade)
+  show       Show     @relation(fields: [showId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, comedianId, showId])
+  @@map("sent_notifications")
 }
