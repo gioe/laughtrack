@@ -13,7 +13,7 @@ import { UserProfileInterface } from "@/app/api/profile/[id]/interface";
 import { useLoginModal } from "@/hooks";
 import { SideDrawerItem } from "./item";
 import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 
 interface SideDrawerProps {
     onClose: (open: boolean) => void;
@@ -25,6 +25,7 @@ export function SideDrawer({ open, onClose, currentUser }: SideDrawerProps) {
     const pathname = usePathname();
     const loginModal = useLoginModal();
     const handleSignOut = useSignOut();
+    const prefersReducedMotion = useReducedMotion();
 
     const handleLoginClick = useCallback(() => {
         loginModal.onOpen();
@@ -51,36 +52,31 @@ export function SideDrawer({ open, onClose, currentUser }: SideDrawerProps) {
     ];
 
     const sideDrawerVariants = {
-        hidden: { x: "100%", opacity: 0 },
+        hidden: { x: prefersReducedMotion ? 0 : "100%", opacity: 0 },
         visible: {
             x: 0,
             opacity: 1,
-            transition: {
-                type: "spring",
-                damping: 25,
-                stiffness: 300,
-            },
+            transition: prefersReducedMotion
+                ? { duration: 0 }
+                : { type: "spring", damping: 25, stiffness: 300 },
         },
         exit: {
-            x: "100%",
+            x: prefersReducedMotion ? 0 : "100%",
             opacity: 0,
-            transition: {
-                type: "spring",
-                damping: 30,
-                stiffness: 300,
-            },
+            transition: prefersReducedMotion
+                ? { duration: 0 }
+                : { type: "spring", damping: 30, stiffness: 300 },
         },
     };
 
     const itemVariants = {
-        hidden: { opacity: 0, x: 20 },
+        hidden: { opacity: 0, x: prefersReducedMotion ? 0 : 20 },
         visible: (i: number) => ({
             opacity: 1,
             x: 0,
-            transition: {
-                delay: i * 0.1,
-                duration: 0.3,
-            },
+            transition: prefersReducedMotion
+                ? { duration: 0 }
+                : { delay: i * 0.1, duration: 0.3 },
         }),
     };
 
@@ -96,7 +92,7 @@ export function SideDrawer({ open, onClose, currentUser }: SideDrawerProps) {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        transition={{ duration: 0.3 }}
+                        transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
                         className="fixed inset-0 bg-black/40 backdrop-blur-sm"
                         onClick={() => onClose(false)}
                     />
@@ -110,17 +106,17 @@ export function SideDrawer({ open, onClose, currentUser }: SideDrawerProps) {
                         >
                             <div className="flex items-center justify-between">
                                 <motion.span
-                                    initial={{ opacity: 0, y: -10 }}
+                                    initial={{ opacity: 0, y: prefersReducedMotion ? 0 : -10 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.2 }}
+                                    transition={{ delay: prefersReducedMotion ? 0 : 0.2 }}
                                     className="text-2xl font-bold font-chivo bg-gradient-to-r from-copper to-cedar bg-clip-text text-transparent"
                                 >
                                     Laughtrack
                                 </motion.span>
                                 <motion.button
-                                    initial={{ opacity: 0, rotate: -90 }}
+                                    initial={{ opacity: 0, rotate: prefersReducedMotion ? 0 : -90 }}
                                     animate={{ opacity: 1, rotate: 0 }}
-                                    transition={{ delay: 0.3 }}
+                                    transition={{ delay: prefersReducedMotion ? 0 : 0.3 }}
                                     type="button"
                                     className="p-2 rounded-md text-gray-500 hover:text-gray-700 transition-colors"
                                     onClick={() => onClose(false)}

@@ -3,7 +3,7 @@
 import { ChevronRightIcon } from "@heroicons/react/24/solid";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import { twMerge } from "tailwind-merge";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
 
 interface HeaderItemProps {
@@ -13,7 +13,9 @@ interface HeaderItemProps {
 }
 
 export function SideDrawerItem({ title, href, highlighted }: HeaderItemProps) {
-    const baseClasses = `text-[16px] font-semibold font-dmSans 
+    const prefersReducedMotion = useReducedMotion();
+
+    const baseClasses = `text-[16px] font-semibold font-dmSans
         w-full group flex items-center justify-between
         rounded-lg py-3 pl-4 pr-3.5 -mx-3
         transition-all duration-200
@@ -22,7 +24,7 @@ export function SideDrawerItem({ title, href, highlighted }: HeaderItemProps) {
 
     return (
         <motion.div
-            whileHover={{ x: 4 }}
+            whileHover={prefersReducedMotion ? undefined : { x: 4 }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
         >
             <Link href={href} className={twMerge(baseClasses)}>
