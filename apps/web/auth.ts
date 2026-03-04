@@ -4,6 +4,7 @@ import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import Google from 'next-auth/providers/google'
 import Apple from 'next-auth/providers/apple'
+import Nodemailer from 'next-auth/providers/nodemailer'
 import { db, prisma } from "./lib/db";
 import { JWT } from "next-auth/jwt";
 
@@ -38,7 +39,21 @@ const adapter = PrismaAdapter(prisma);
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
     adapter,
-    providers: [Google, Apple],
+    providers: [
+        Google,
+        Apple,
+        Nodemailer({
+            server: {
+                host: process.env.SMTP_HOST,
+                port: Number(process.env.SMTP_PORT) || 587,
+                auth: {
+                    user: process.env.SMTP_USER,
+                    pass: process.env.SMTP_PASSWORD,
+                },
+            },
+            from: process.env.EMAIL_FROM ?? "noreply@laughtrack.com",
+        }),
+    ],
     secret: process.env.NEXTAUTH_SECRET,
     session: {
         strategy: "jwt",

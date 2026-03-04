@@ -56,6 +56,7 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
             await signIn("google");
         } catch {
             toast.error("Failed to sign in with Google");
+        } finally {
             setIsSocialLoading(false);
         }
     };
@@ -66,6 +67,7 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
             await signIn("apple");
         } catch {
             toast.error("Failed to sign in with Apple");
+        } finally {
             setIsSocialLoading(false);
         }
     };
@@ -111,10 +113,14 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
                                 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2
                                 focus:ring-[#8B593B] disabled:opacity-60 disabled:cursor-not-allowed"
                         >
-                            {isSubmitting ? (
+                            {isLoading ? (
                                 <>
                                     <Loader2 className="w-4 h-4 animate-spin" />
-                                    <span>Sending link…</span>
+                                    <span>
+                                        {isSubmitting
+                                            ? "Sending link…"
+                                            : "Loading…"}
+                                    </span>
                                 </>
                             ) : (
                                 "Continue with Email"
