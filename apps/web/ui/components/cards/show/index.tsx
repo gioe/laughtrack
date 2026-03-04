@@ -19,6 +19,7 @@ const ShowCard: React.FC<ShowCardProps> = ({ show }: ShowCardProps) => {
     const parsedShow = new Show(show);
     const stillOnSale =
         parsedShow.tickets.filter((ticket) => !ticket.soldOut).length > 0;
+    // Read before useEffect so first render always animates, remounts skip it
     const alreadySeen = seenShowIds.has(show.id);
 
     useEffect(() => {
