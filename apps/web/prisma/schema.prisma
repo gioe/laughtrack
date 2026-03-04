@@ -64,9 +64,9 @@ model User {
   image         String?
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
-  accounts           Account[]
-  profile            UserProfile?
-  sentNotifications  SentNotification[]
+  accounts          Account[]
+  profile           UserProfile?
+  sentNotifications SentNotification[]
 
   @@map("users")
 }
@@ -256,5 +256,6 @@ model SentNotification {
   show       Show     @relation(fields: [showId], references: [id], onDelete: Cascade)
 
   @@unique([userId, comedianId, showId])
+  @@index([userId])
   @@map("sent_notifications")
 }

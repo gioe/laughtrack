@@ -12,6 +12,9 @@ CREATE TABLE "sent_notifications" (
 -- CreateIndex
 CREATE UNIQUE INDEX "sent_notifications_user_id_comedian_id_show_id_key" ON "sent_notifications"("user_id", "comedian_id", "show_id");
 
+-- CreateIndex
+CREATE INDEX "sent_notifications_user_id_idx" ON "sent_notifications"("user_id");
+
 -- AddForeignKey
 ALTER TABLE "sent_notifications" ADD CONSTRAINT "sent_notifications_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
