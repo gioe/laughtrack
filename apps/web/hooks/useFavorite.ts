@@ -41,6 +41,7 @@ export const useFavorite = ({
                 // If the response doesn't match our optimistic update, revert
                 if (response !== newFavoriteState) {
                     setIsFavorite(!newFavoriteState);
+                    toast.error('Failed to update favorite. Please try again.');
                 }
             } catch (error) {
                 // Revert the optimistic update on error
