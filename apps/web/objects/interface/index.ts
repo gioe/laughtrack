@@ -11,6 +11,7 @@ import {
 import { SortOptionInterface } from "./sortOption.interface";
 import {
     FilterInterface,
+    FilterDTO,
 } from "./filter.interface";
 import { Taggable } from "./taggable.interface";
 import { AuthToken } from "./token.interface";
@@ -27,6 +28,7 @@ export type {
     ModalState,
     SortOptionInterface,
     FilterInterface,
+    FilterDTO,
     Taggable,
     AuthToken,
     Favoritable,
