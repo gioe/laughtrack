@@ -29,9 +29,9 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({ club }) => {
                                 src={error ? PLACEHOLDER : parsedClub.imageUrl}
                                 alt={parsedClub.name}
                                 fill
+                                sizes="64px"
                                 className="object-cover"
                                 onError={() => setError(true)}
-                                loading="lazy"
                             />
                         </div>
                         <div className="flex flex-col gap-1">
