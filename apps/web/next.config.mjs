@@ -1,4 +1,7 @@
 /** @type {import('next').NextConfig} */
+// Note: DATABASE_URL and DIRECT_URL are intentionally omitted from the `env` block.
+// They are server-side-only credentials read directly via process.env in lib/db.ts
+// and prisma/schema.prisma. Listing them here would expose them in the client bundle.
 const nextConfig = {
   images: {
     minimumCacheTTL: 0,
