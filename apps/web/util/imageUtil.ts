@@ -9,10 +9,12 @@ export const buildComedianImageUrl = (name: string) => {
 };
 
 export const buildClubImageUrl = (clubName: string) => {
-    return (
-        new URL(
+    try {
+        return new URL(
             `/clubs/${encodeURIComponent(clubName)}.png`,
             `https://${process.env.BUNNYCDN_CDN_HOST}/`,
-        ) ?? new URL(`logo.png`, `https://${process.env.BUNNYCDN_CDN_HOST}/`)
-    ).toString()
+        ).toString()
+    } catch {
+        return new URL(`logo.png`, `https://${process.env.BUNNYCDN_CDN_HOST}/`).toString()
+    }
 };
