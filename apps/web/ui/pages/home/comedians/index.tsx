@@ -1,5 +1,3 @@
-"use server";
-
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import ComedianGrid from "@/ui/components/grid/comedian";
 import Link from "next/link";
