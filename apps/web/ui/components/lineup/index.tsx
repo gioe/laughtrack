@@ -80,17 +80,20 @@ const LineupGrid = ({ lineup }: LineupGridProps) => {
             {showLeftScroll && (
                 <div className="absolute left-0 top-0 bottom-4 w-12 bg-gradient-to-r from-[#F5E6D3]/60 to-transparent pointer-events-none" />
             )}
+            {/* Desktop: gated on scroll state */}
             {showRightScroll && (
-                <div className="absolute right-0 top-0 bottom-4 w-12 bg-gradient-to-l from-[#F5E6D3]/60 to-transparent pointer-events-none" />
+                <div className="hidden lg:block absolute right-0 top-0 bottom-4 w-12 bg-gradient-to-l from-[#F5E6D3]/60 to-transparent pointer-events-none" />
             )}
+            {/* Mobile: always-visible right gradient */}
+            <div className="lg:hidden absolute right-0 top-0 bottom-4 w-16 bg-gradient-to-l from-[#F5E6D3]/80 to-transparent pointer-events-none" />
 
             {/* Scroll Buttons */}
             {showLeftScroll && (
                 <button
                     onClick={() => scroll("left")}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 
-                             shadow-md hover:bg-white transition-all duration-200 opacity-0 
-                             group-hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-copper"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80
+                             shadow-md hover:bg-white transition-all duration-200
+                             lg:opacity-0 lg:group-hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-copper"
                     aria-label="Scroll left"
                 >
                     <ChevronLeft className="w-5 h-5 text-copper" />
@@ -99,13 +102,21 @@ const LineupGrid = ({ lineup }: LineupGridProps) => {
             {showRightScroll && (
                 <button
                     onClick={() => scroll("right")}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 
-                             shadow-md hover:bg-white transition-all duration-200 opacity-0 
-                             group-hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-copper"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80
+                             shadow-md hover:bg-white transition-all duration-200
+                             lg:opacity-0 lg:group-hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-copper"
                     aria-label="Scroll right"
                 >
                     <ChevronRight className="w-5 h-5 text-copper" />
                 </button>
+            )}
+
+            {/* Mobile swipe cue — shown before user scrolls, hidden once they start */}
+            {showRightScroll && !showLeftScroll && (
+                <div className="lg:hidden absolute right-10 bottom-6 flex items-center gap-0.5 text-xs text-copper/60 pointer-events-none animate-pulse">
+                    <span>swipe</span>
+                    <ChevronRight className="w-3 h-3" />
+                </div>
             )}
         </div>
     );
