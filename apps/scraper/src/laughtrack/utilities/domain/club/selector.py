@@ -34,11 +34,11 @@ class ClubSelector:
             Logger.error("No clubs found in database")
             return []
 
-        # Display clubs (print once to show all at once)
+        # Display clubs (log once to show all at once)
         lines = ["\nAvailable clubs:"]
         for i, club in enumerate(clubs, 1):
             lines.append(f"{i:2d}. {club.name} ({club.scraper})")
-        print("\n".join(lines))
+        Logger.info("\n".join(lines))
 
         # Get user selection
         while True:
@@ -56,10 +56,10 @@ class ClubSelector:
                     Logger.info(f"Selected club: {selected_club.name}")
                     return [selected_club]
                 else:
-                    print(f"Invalid selection. Please enter a number between 1 and {len(clubs)}")
+                    Logger.warning(f"Invalid selection. Please enter a number between 1 and {len(clubs)}")
 
             except ValueError:
-                print("Invalid input. Please enter a number or 'q' to quit")
+                Logger.warning("Invalid input. Please enter a number or 'q' to quit")
             except KeyboardInterrupt:
                 Logger.info("Club selection cancelled by user")
                 return []
@@ -87,12 +87,12 @@ class ClubSelector:
             Logger.error("No scraper types found in database")
             return None
 
-        # Display scraper types (print once to show all at the same time)
+        # Display scraper types (log once to show all at the same time)
         lines = ["\nAvailable scraper types:"]
         for i, scraper_type in enumerate(scraper_types, 1):
             club_count = counts.get(scraper_type, 0)
             lines.append(f"{i:2d}. {scraper_type} ({club_count} clubs)")
-        print("\n".join(lines))
+        Logger.info("\n".join(lines))
 
         # Get user selection
         while True:
@@ -110,10 +110,10 @@ class ClubSelector:
                     Logger.info(f"Selected scraper type: {selected_scraper}")
                     return selected_scraper
                 else:
-                    print(f"Invalid selection. Please enter a number between 1 and {len(scraper_types)}")
+                    Logger.warning(f"Invalid selection. Please enter a number between 1 and {len(scraper_types)}")
 
             except ValueError:
-                print("Invalid input. Please enter a number or 'q' to quit")
+                Logger.warning("Invalid input. Please enter a number or 'q' to quit")
             except KeyboardInterrupt:
                 Logger.info("Scraper type selection cancelled by user")
                 return None
@@ -133,13 +133,13 @@ class ClubSelector:
             Logger.error("No clubs found in database")
             return []
 
-        # Display clubs (print once to show all at once)
+        # Display clubs (log once to show all at once)
         lines = ["\nAvailable clubs:"]
         for i, club in enumerate(clubs, 1):
             lines.append(f"{i:2d}. {club.name} ({club.scraper})")
-        print("\n".join(lines))
+        Logger.info("\n".join(lines))
 
-        print("\nSelect clubs (comma-separated numbers, e.g., '1,3,5' or 'all' for all clubs):")
+        Logger.info("\nSelect clubs (comma-separated numbers, e.g., '1,3,5' or 'all' for all clubs):")
 
         # Get user selection
         while True:
@@ -164,10 +164,10 @@ class ClubSelector:
                     Logger.info(f"Selected {len(selected_clubs)} clubs: {', '.join(club_names)}")
                     return selected_clubs
                 else:
-                    print(f"Invalid selection. All numbers must be between 1 and {len(clubs)}")
+                    Logger.warning(f"Invalid selection. All numbers must be between 1 and {len(clubs)}")
 
             except ValueError:
-                print("Invalid input. Please enter comma-separated numbers or 'all'")
+                Logger.warning("Invalid input. Please enter comma-separated numbers or 'all'")
             except KeyboardInterrupt:
                 Logger.info("Multiple club selection cancelled by user")
                 return []

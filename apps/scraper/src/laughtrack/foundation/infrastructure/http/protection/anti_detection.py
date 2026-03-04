@@ -18,6 +18,8 @@ from datetime import datetime, timedelta
 from typing import Dict, Tuple
 from urllib.parse import urlparse
 
+from laughtrack.foundation.infrastructure.logger.logger import Logger
+
 
 @dataclass
 class RequestSession:
@@ -233,8 +235,8 @@ class AntiDetectionManager:
             session.request_count += 1
 
             # Log the delay for monitoring
-            print(
-                f"[AntiDetection] {domain}: Waiting {actual_delay:.2f}s "
+            Logger.debug(
+                f"{domain}: Waiting {actual_delay:.2f}s "
                 f"(session: {session.session_id}, requests: {session.request_count}, "
                 f"errors: {session.consecutive_errors})"
             )
@@ -267,8 +269,8 @@ class AntiDetectionManager:
         with domain_lock:
             if domain in self._sessions:
                 old_session = self._sessions[domain]
-                print(
-                    f"[AntiDetection] Forcing session rotation for {domain} " f"(old session: {old_session.session_id})"
+                Logger.info(
+                    f"Forcing session rotation for {domain} (old session: {old_session.session_id})"
                 )
                 del self._sessions[domain]
 
@@ -279,7 +281,7 @@ class AntiDetectionManager:
                 self._domain_configs[domain] = self._domain_configs["default"].copy()
 
             self._domain_configs[domain].update(kwargs)
-            print(f"[AntiDetection] Updated config for {domain}: {kwargs}")
+            Logger.debug(f"Updated config for {domain}: {kwargs}")
 
 
 # Global anti-detection manager instance

@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Optional
 
 from laughtrack.domain.entities.email import EmailMessage
+from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.infrastructure.email.service import EmailService
 
 from .alerts import Alert
@@ -56,8 +57,7 @@ Metadata:
 
             return EmailService.send_email(message)
         except Exception as e:
-            # Log error but don't fail the alert system
-            print(f"Failed to send email alert: {e}")
+            Logger.error(f"Failed to send email alert: {e}")
             return False
 
 
@@ -70,7 +70,7 @@ class SlackAlertChannel(AlertChannel):
 
     async def send_alert(self, alert: Alert) -> bool:
         # TODO: Implement Slack webhook integration
-        print(f"[SLACK] {alert.severity.value}: {alert.title}")
+        Logger.info(f"[SLACK] {alert.severity.value}: {alert.title}")
         return True
 
 
@@ -99,5 +99,5 @@ class WebhookAlertChannel(AlertChannel):
 
             return response.status_code == 200
         except Exception as e:
-            print(f"Failed to send webhook alert: {e}")
+            Logger.error(f"Failed to send webhook alert: {e}")
             return False

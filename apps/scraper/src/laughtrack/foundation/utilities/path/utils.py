@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 from typing import List, Optional
 
+from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.models.types import JSONDict
 
 
@@ -84,7 +85,7 @@ class PathUtils:
             with open(latest, "r") as f:
                 data = json.load(f)
         except (json.JSONDecodeError, IOError) as e:
-            print(f"Warning: Could not load metrics file {latest}: {e}")
+            Logger.warning(f"Could not load metrics file {latest}: {e}")
             return []
 
         if isinstance(data, list):

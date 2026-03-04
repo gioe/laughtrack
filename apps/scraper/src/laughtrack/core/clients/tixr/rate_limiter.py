@@ -10,6 +10,7 @@ from collections import deque
 from enum import Enum
 from typing import Any, Dict, Optional
 
+from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.models.types import JSONDict
 
 from .config import (
@@ -120,7 +121,7 @@ class TixrAntiDetectionLimiter:
             if self._exceeds_hourly_limit():
                 wait_time = self._time_until_next_hour()
                 if self.safety_config.enable_logging:
-                    print(f"⏰ Hourly rate limit reached. Waiting {wait_time:.1f} seconds...")
+                    Logger.info(f"Hourly rate limit reached. Waiting {wait_time:.1f} seconds...")
                 time.sleep(wait_time)
                 delay_applied += wait_time
                 self._reset_session()
@@ -129,7 +130,7 @@ class TixrAntiDetectionLimiter:
             if self._exceeds_burst_limit():
                 burst_wait = self.rate_config.burst_cooldown
                 if self.safety_config.enable_logging:
-                    print(f"⚡ Burst limit reached. Cooling down for {burst_wait:.1f} seconds...")
+                    Logger.info(f"Burst limit reached. Cooling down for {burst_wait:.1f} seconds...")
                 time.sleep(burst_wait)
                 delay_applied += burst_wait
                 self._reset_burst_counter()
@@ -145,8 +146,8 @@ class TixrAntiDetectionLimiter:
                 if elapsed < total_delay:
                     wait_time = total_delay - elapsed
                     if self.safety_config.enable_logging and wait_time > 0.1:
-                        print(
-                            f"🤖 Anti-detection delay: {wait_time:.1f}s (base: {base_delay:.1f}s, backoff: {error_backoff:.1f}s)"
+                        Logger.debug(
+                            f"Anti-detection delay: {wait_time:.1f}s (base: {base_delay:.1f}s, backoff: {error_backoff:.1f}s)"
                         )
                     time.sleep(wait_time)
                     delay_applied += wait_time
@@ -158,7 +159,7 @@ class TixrAntiDetectionLimiter:
 
         except Exception as e:
             if self.safety_config.enable_logging:
-                print(f"⚠️ Error in rate limiter: {e}")
+                Logger.error(f"Error in rate limiter: {e}")
             return delay_applied
 
     async def wait_if_needed_async(self, url: str) -> float:
@@ -207,8 +208,8 @@ class TixrAntiDetectionLimiter:
         self._record_request(url, status, error_message=error_message)
 
         if self.safety_config.enable_logging:
-            print(
-                f"❌ Request error recorded. Consecutive errors: {self.consecutive_errors}, "
+            Logger.warning(
+                f"Request error recorded. Consecutive errors: {self.consecutive_errors}, "
                 f"Backoff delay: {self.current_backoff_delay:.1f}s"
             )
 
