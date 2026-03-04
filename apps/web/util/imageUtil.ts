@@ -1,7 +1,7 @@
 export const buildComedianImageUrl = (name: string) => {
     const value =  (
         new URL(
-            `/comedians/${name}.png`,
+            `/comedians/${encodeURIComponent(name)}.png`,
             `https://${process.env.BUNNYCDN_CDN_HOST}/`,
         )
     ).toString()
@@ -11,7 +11,7 @@ export const buildComedianImageUrl = (name: string) => {
 export const buildClubImageUrl = (clubName: string) => {
     return (
         new URL(
-            `/clubs/${clubName}.png`,
+            `/clubs/${encodeURIComponent(clubName)}.png`,
             `https://${process.env.BUNNYCDN_CDN_HOST}/`,
         ) ?? new URL(`logo.png`, `https://${process.env.BUNNYCDN_CDN_HOST}/`)
     ).toString()
