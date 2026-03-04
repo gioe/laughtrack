@@ -54,7 +54,11 @@ class HttpClient:
                 return await response.text()
 
         except Exception as e:
-            return None
+            Logger.warn(
+                f"HTTP fetch failed for {url}: {type(e).__name__}: {e}",
+                logger_context,
+            )
+            raise
 
     @staticmethod
     async def fetch_json(
@@ -89,4 +93,8 @@ class HttpClient:
                 return await response.json()
 
         except Exception as e:
-            return None
+            Logger.warn(
+                f"HTTP fetch failed for {url}: {type(e).__name__}: {e}",
+                logger_context,
+            )
+            raise
