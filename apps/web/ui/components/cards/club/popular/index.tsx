@@ -17,8 +17,8 @@ const PopularClubCard: React.FC<PopularClubCardProps> = ({ entity }) => {
     const [error, setError] = useState(false);
 
     return (
-        <div className="w-[218px] transition-transform duration-300 hover:scale-105">
-            <div className="relative w-[218px] h-[218px] rounded-2xl overflow-hidden mb-4 hover:cursor-pointer">
+        <div className="w-full transition-transform duration-300 hover:scale-105">
+            <div className="relative w-full aspect-square rounded-2xl overflow-hidden mb-4 hover:cursor-pointer">
                 <Link
                     href={`/club/${club.name}`}
                     className="block w-full h-full relative"
@@ -29,7 +29,7 @@ const PopularClubCard: React.FC<PopularClubCardProps> = ({ entity }) => {
                         fill
                         className="object-cover"
                         onError={() => setError(true)}
-                        sizes="(max-width: 218px) 100vw, 218px"
+                        sizes="(max-width: 640px) 280px, 320px"
                         priority={false}
                     />
                 </Link>
