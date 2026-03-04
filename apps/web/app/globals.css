@@ -131,3 +131,10 @@ body,
 .drawer-content {
   padding: 20px;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fadeIn,
+  .animate-slideUp {
+    animation: none !important;
+  }
+}
