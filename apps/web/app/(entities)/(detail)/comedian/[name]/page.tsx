@@ -1,4 +1,5 @@
 import { CACHE } from "@/util/constants/cacheConstants";
+import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { SearchVariant } from "@/objects/enum/searchVariant";
 import { unstable_cache } from "next/cache";
@@ -50,8 +51,17 @@ export default async function ComedianDetailsPage(props: {
             },
         );
 
-    const { data, shows, total, filters } =
-        await getCachedDetailPageData(requestData)();
+    let result;
+    try {
+        result = await getCachedDetailPageData(requestData)();
+    } catch (error) {
+        if (error instanceof Error && /not found/i.test(error.message)) {
+            notFound();
+        }
+        throw error;
+    }
+
+    const { data, shows, total, filters } = result;
 
     return (
         <main className="min-h-screen w-full bg-coconut-cream">
