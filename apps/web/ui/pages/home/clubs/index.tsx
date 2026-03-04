@@ -179,7 +179,7 @@ const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
                             key={club.name}
                             className="flex-none w-[280px] sm:w-[320px]"
                         >
-                            <PopularClubCard entity={JSON.stringify(club)} />
+                            <PopularClubCard entity={club} />
                         </div>
                     );
                 })}

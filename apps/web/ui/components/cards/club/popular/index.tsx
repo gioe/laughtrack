@@ -9,11 +9,11 @@ import Link from "next/link";
 const PLACEHOLDER = getLocalCdnUrl("club-placeholder.png");
 
 interface PopularClubCardProps {
-    entity: string;
+    entity: Club;
 }
 
 const PopularClubCard: React.FC<PopularClubCardProps> = ({ entity }) => {
-    const club = JSON.parse(entity) as Club;
+    const club = entity;
     const [error, setError] = useState(false);
 
     return (
