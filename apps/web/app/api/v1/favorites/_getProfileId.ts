@@ -7,11 +7,11 @@ export async function getProfileId(req: NextRequest): Promise<string | null> {
     if (!authHeader?.startsWith("Bearer ")) return null;
     try {
         const decoded = verifyToken(authHeader.slice(7));
-        const profile = await db.userProfile.findFirst({
-            where: { user: { email: decoded.email } },
-            select: { id: true },
+        const user = await db.user.findUnique({
+            where: { email: decoded.email },
+            select: { profile: { select: { id: true } } },
         });
-        return profile?.id ?? null;
+        return user?.profile?.id ?? null;
     } catch (error) {
         console.warn("Bearer token auth failed:", error instanceof Error ? error.message : error);
         return null;

@@ -14,6 +14,9 @@ export async function DELETE(
         }
 
         const { comedianId } = await params;
+        if (!comedianId) {
+            return NextResponse.json({ error: "comedianId is required" }, { status: 400 });
+        }
 
         await db.favoriteComedian.delete({
             where: { profileId_comedianId: { profileId, comedianId } },

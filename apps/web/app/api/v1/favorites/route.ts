@@ -9,8 +9,13 @@ export async function POST(req: NextRequest) {
             return new NextResponse(null, { status: 401 });
         }
 
-        const body = await req.json();
-        const comedianId = body?.comedianId;
+        let body: unknown;
+        try {
+            body = await req.json();
+        } catch {
+            return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+        }
+        const comedianId = (body as Record<string, unknown>)?.comedianId;
         if (!comedianId || typeof comedianId !== "string") {
             return NextResponse.json({ error: "comedianId is required" }, { status: 400 });
         }
