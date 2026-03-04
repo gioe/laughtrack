@@ -34,11 +34,11 @@ class ClubSelector:
             Logger.error("No clubs found in database")
             return []
 
-        # Display clubs (log once to show all at once)
+        # Display clubs (print once to show all at once)
         lines = ["\nAvailable clubs:"]
         for i, club in enumerate(clubs, 1):
             lines.append(f"{i:2d}. {club.name} ({club.scraper})")
-        Logger.info("\n".join(lines))
+        print("\n".join(lines))
 
         # Get user selection
         while True:
@@ -87,12 +87,12 @@ class ClubSelector:
             Logger.error("No scraper types found in database")
             return None
 
-        # Display scraper types (log once to show all at the same time)
+        # Display scraper types (print once to show all at the same time)
         lines = ["\nAvailable scraper types:"]
         for i, scraper_type in enumerate(scraper_types, 1):
             club_count = counts.get(scraper_type, 0)
             lines.append(f"{i:2d}. {scraper_type} ({club_count} clubs)")
-        Logger.info("\n".join(lines))
+        print("\n".join(lines))
 
         # Get user selection
         while True:
@@ -133,13 +133,13 @@ class ClubSelector:
             Logger.error("No clubs found in database")
             return []
 
-        # Display clubs (log once to show all at once)
+        # Display clubs (print once to show all at once)
         lines = ["\nAvailable clubs:"]
         for i, club in enumerate(clubs, 1):
             lines.append(f"{i:2d}. {club.name} ({club.scraper})")
-        Logger.info("\n".join(lines))
+        print("\n".join(lines))
 
-        Logger.info("\nSelect clubs (comma-separated numbers, e.g., '1,3,5' or 'all' for all clubs):")
+        print("\nSelect clubs (comma-separated numbers, e.g., '1,3,5' or 'all' for all clubs):")
 
         # Get user selection
         while True:

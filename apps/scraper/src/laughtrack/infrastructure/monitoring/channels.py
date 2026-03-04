@@ -70,7 +70,7 @@ class SlackAlertChannel(AlertChannel):
 
     async def send_alert(self, alert: Alert) -> bool:
         # TODO: Implement Slack webhook integration
-        Logger.info(f"[SLACK] {alert.severity.value}: {alert.title}")
+        Logger.warning(f"[SLACK] {alert.severity.value}: {alert.title} (Slack not implemented)")
         return True
 
 
