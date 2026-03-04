@@ -1,7 +1,7 @@
 import React from "react";
 import GoogleGLogo from "../../icons/GoogleIcon";
 import AppleLogo from "../../icons/AppleIcon";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 
 interface SocialButtonProps {
     provider: "google" | "apple";
@@ -10,6 +10,8 @@ interface SocialButtonProps {
 }
 
 const SocialButton = ({ provider, onClick, children }: SocialButtonProps) => {
+    const prefersReducedMotion = useReducedMotion();
+
     const logos = {
         google: <GoogleGLogo />,
         apple: <AppleLogo />,
@@ -19,8 +21,8 @@ const SocialButton = ({ provider, onClick, children }: SocialButtonProps) => {
         <motion.button
             type="button"
             onClick={onClick}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
+            whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
             className="w-full flex items-center justify-center gap-3 px-6 py-3
                 border border-gray-200 rounded-xl text-[14px] text-gray-700 font-dmSans
                 bg-white hover:bg-gray-50 transition-colors duration-200
@@ -46,18 +48,18 @@ const SocialAuthButtons = ({
     handleGoogleSignin,
     handleAppleSignin,
 }: SocialAuthButtonsProps) => {
+    const prefersReducedMotion = useReducedMotion();
+
     const container = {
         hidden: { opacity: 0 },
         show: {
             opacity: 1,
-            transition: {
-                staggerChildren: 0.1,
-            },
+            transition: prefersReducedMotion ? { duration: 0 } : { staggerChildren: 0.1 },
         },
     };
 
     const item = {
-        hidden: { opacity: 0, y: 20 },
+        hidden: { opacity: 0, y: prefersReducedMotion ? 0 : 20 },
         show: { opacity: 1, y: 0 },
     };
 
