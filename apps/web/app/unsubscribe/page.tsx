@@ -4,6 +4,9 @@ import { FullRoundedButton } from "@/ui/components/button/rounded/full";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
+// 2 × default animate-pulse cycle (2 s each) — stops motion per WCAG 2.3.3
+const PULSE_STOP_DELAY_MS = 4000;
+
 export default function UnsubscribePage() {
     const searchParams = useSearchParams();
     const token = searchParams.get("token");
@@ -11,11 +14,11 @@ export default function UnsubscribePage() {
         "loading",
     );
     const [message, setMessage] = useState("Processing your request...");
-    // Stop the loading pulse after 2 cycles (~4s) to avoid indefinite motion (WCAG 2.3.3)
+    // Stop the loading pulse after 2 cycles to avoid indefinite motion (WCAG 2.3.3)
     const [pulsing, setPulsing] = useState(true);
 
     useEffect(() => {
-        const timer = setTimeout(() => setPulsing(false), 4000);
+        const timer = setTimeout(() => setPulsing(false), PULSE_STOP_DELAY_MS);
         return () => clearTimeout(timer);
     }, []);
 
@@ -64,7 +67,7 @@ export default function UnsubscribePage() {
 
                 <div className="text-center">
                     {status === "loading" && (
-                        <div className={`${pulsing ? "animate-pulse" : ""} font-gilroy-bold text-[32px] font-bold`}>
+                        <div className={`${pulsing ? "animate-pulse " : ""}font-gilroy-bold text-[32px] font-bold`}>
                             <p>{message}</p>
                         </div>
                     )}
