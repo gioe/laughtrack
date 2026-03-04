@@ -1,7 +1,13 @@
 import asyncio
+import importlib.util
 from typing import Any, List, Optional
 
 import pytest
+
+pytestmark = pytest.mark.skipif(
+    importlib.util.find_spec("curl_cffi") is None,
+    reason="curl_cffi not installed",
+)
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.event.comedy_cellar import ComedyCellarEvent

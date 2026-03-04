@@ -1,7 +1,13 @@
 import asyncio
+import importlib.util
 from datetime import datetime, timezone
 
 import pytest
+
+pytestmark = pytest.mark.skipif(
+    importlib.util.find_spec("curl_cffi") is None,
+    reason="curl_cffi not installed",
+)
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.event.event import JsonLdEvent, Place, PostalAddress

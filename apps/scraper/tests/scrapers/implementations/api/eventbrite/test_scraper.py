@@ -1,4 +1,11 @@
+import importlib.util
+
 import pytest
+
+pytestmark = pytest.mark.skipif(
+    importlib.util.find_spec("curl_cffi") is None,
+    reason="curl_cffi not installed",
+)
 
 from laughtrack.scrapers.implementations.api.eventbrite.scraper import EventbriteScraper
 from laughtrack.core.entities.club.model import Club
