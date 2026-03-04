@@ -12,6 +12,7 @@ This codebase intentionally uses both `print()` and `Logger` — they serve dist
 **Rule of thumb:**
 - User sees it → `print()`
 - Log file / monitoring sees it → `Logger`
+- User-facing *error feedback* that also belongs in log files → `Logger.warning` / `Logger.error` is acceptable (these surface on the terminal at the default WARNING level)
 
 Future Logger-migration tasks must **not** require that all `print()` calls be removed from interactive CLI code — doing so would break user-facing menus and prompts.
 
