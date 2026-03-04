@@ -1,7 +1,6 @@
 import { CACHE } from "@/util/constants/cacheConstants";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
-import TableWithHeader from "@/ui/pages/entity/comedian/table";
 import ClubDetailHeader from "@/ui/pages/entity/club/header";
 import FilterBar from "@/ui/pages/search/filterBar";
 import FilterModal from "@/ui/components/modals/filter";
