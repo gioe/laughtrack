@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { MapPin } from "lucide-react";
+import Image from "next/image";
 import { Club } from "@/objects/class/club/Club";
 import { ClubDTO } from "@/objects/class/club/club.interface";
 import ClubDataColumn from "../social";
@@ -23,12 +24,16 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({ club }) => {
             <div className="w-full  p-4">
                 <div className="flex items-center justify-between max-w-6xl mx-auto">
                     <div className="flex items-center gap-4">
-                        <img
-                            src={error ? PLACEHOLDER : parsedClub.imageUrl}
-                            alt={parsedClub.name}
-                            onError={() => setError(true)}
-                            className="w-16 h-16 rounded-full"
-                        />
+                        <div className="relative w-16 h-16 rounded-full overflow-hidden">
+                            <Image
+                                src={error ? PLACEHOLDER : parsedClub.imageUrl}
+                                alt={parsedClub.name}
+                                fill
+                                className="object-cover"
+                                onError={() => setError(true)}
+                                loading="lazy"
+                            />
+                        </div>
                         <div className="flex flex-col gap-1">
                             <h1 className="text-2xl font-bold text-gray-900">
                                 {parsedClub.name}
