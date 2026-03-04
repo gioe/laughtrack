@@ -136,7 +136,7 @@ export async function findShowsWithCount(helper: QueryHelper): Promise<ShowsResp
                 address: show.club.address,
                 clubName: show.club.name,
                 imageUrl: buildClubImageUrl(show.club.name),
-                soldOut: show.tickets.length > 0 && show.tickets.every(t => t.soldOut),
+                soldOut: show.tickets.length > 0 && show.tickets.every(t => t.soldOut === true),
                 lineup: filterAndMapLineupItems(show.lineupItems, helper.getUserId()),
                 tickets: mapTickets(show.tickets),
             })),
