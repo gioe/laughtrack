@@ -23,14 +23,14 @@ export async function GET(req: NextRequest) {
         );
     }
 
-    if (from && !ISO_DATE_RE.test(from)) {
+    if (from && (!ISO_DATE_RE.test(from) || isNaN(new Date(from).getTime()))) {
         return NextResponse.json(
             { error: "from must be a valid date in YYYY-MM-DD format" },
             { status: 400 }
         );
     }
 
-    if (to && !ISO_DATE_RE.test(to)) {
+    if (to && (!ISO_DATE_RE.test(to) || isNaN(new Date(to).getTime()))) {
         return NextResponse.json(
             { error: "to must be a valid date in YYYY-MM-DD format" },
             { status: 400 }
