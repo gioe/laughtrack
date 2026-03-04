@@ -55,8 +55,8 @@ export function PageParamComponent({
                 <button
                     onClick={() => updatePage(currentPage - 1)}
                     disabled={currentPage === 0}
-                    className="p-1.5 rounded-full hover:bg-copper/10 disabled:opacity-50 
-                             disabled:hover:bg-transparent transition-colors duration-200 
+                    className="p-3 rounded-full hover:bg-copper/10 disabled:opacity-50
+                             disabled:hover:bg-transparent transition-colors duration-200
                              focus:outline-none focus:ring-1 focus:ring-copper"
                     aria-label="Previous page"
                 >
@@ -66,8 +66,8 @@ export function PageParamComponent({
                 <button
                     onClick={() => updatePage(currentPage + 1)}
                     disabled={endItem >= itemCount}
-                    className="p-1.5 rounded-full hover:bg-copper/10 disabled:opacity-50 
-                             disabled:hover:bg-transparent transition-colors duration-200 
+                    className="p-3 rounded-full hover:bg-copper/10 disabled:opacity-50
+                             disabled:hover:bg-transparent transition-colors duration-200
                              focus:outline-none focus:ring-1 focus:ring-copper"
                     aria-label="Next page"
                 >
