@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { motion } from "framer-motion";
 import { FullRoundedButton } from "@/ui/components/button/rounded/full";
 import { Show } from "@/objects/class/show/Show";
@@ -8,6 +8,8 @@ import ShowCardHeader from "@/ui/components/cards/show/header";
 import LineupGrid from "@/ui/components/lineup";
 import { ShowDTO } from "@/objects/class/show/show.interface";
 import { Divider } from "../../divider";
+
+const seenShowIds = new Set<number>();
 
 interface ShowCardProps {
     show: ShowDTO;
@@ -17,6 +19,11 @@ const ShowCard: React.FC<ShowCardProps> = ({ show }: ShowCardProps) => {
     const parsedShow = new Show(show);
     const stillOnSale =
         parsedShow.tickets.filter((ticket) => !ticket.soldOut).length > 0;
+    const alreadySeen = seenShowIds.has(show.id);
+
+    useEffect(() => {
+        seenShowIds.add(show.id);
+    }, [show.id]);
 
     return (
         <motion.div
@@ -24,7 +31,7 @@ const ShowCard: React.FC<ShowCardProps> = ({ show }: ShowCardProps) => {
                 rounded-xl w-full shadow-md hover:shadow-xl border border-white/20
                 transform transition-all duration-500 ease-out
                 hover:scale-[1.02]"
-            initial={{ opacity: 0, y: 20 }}
+            initial={alreadySeen ? false : { opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, ease: "easeOut" }}
