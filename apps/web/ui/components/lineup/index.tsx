@@ -13,6 +13,8 @@ const LineupGrid = ({ lineup }: LineupGridProps) => {
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const [showLeftScroll, setShowLeftScroll] = useState(false);
     const [showRightScroll, setShowRightScroll] = useState(false);
+    // Stop the swipe-cue pulse after 2 cycles (~4s) to avoid indefinite motion (WCAG 2.3.3)
+    const [swipeCuePulsing, setSwipeCuePulsing] = useState(true);
 
     // Check if scrolling is needed
     const checkScroll = () => {
@@ -29,6 +31,12 @@ const LineupGrid = ({ lineup }: LineupGridProps) => {
         checkScroll();
         window.addEventListener("resize", checkScroll);
         return () => window.removeEventListener("resize", checkScroll);
+    }, []);
+
+    // Stop swipe-cue pulse after 2 cycles (2 × 2s = 4s)
+    useEffect(() => {
+        const timer = setTimeout(() => setSwipeCuePulsing(false), 4000);
+        return () => clearTimeout(timer);
     }, []);
 
     // Scroll handling
@@ -84,8 +92,10 @@ const LineupGrid = ({ lineup }: LineupGridProps) => {
             {showRightScroll && (
                 <div className="hidden lg:block absolute right-0 top-0 bottom-4 w-12 bg-gradient-to-l from-[#F5E6D3]/60 to-transparent pointer-events-none" />
             )}
-            {/* Mobile: always-visible right gradient */}
-            <div className="lg:hidden absolute right-0 top-0 bottom-4 w-16 bg-gradient-to-l from-[#F5E6D3]/80 to-transparent pointer-events-none" />
+            {/* Mobile: always-visible right gradient (gated: only when content overflows right) */}
+            {showRightScroll && (
+                <div className="lg:hidden absolute right-0 top-0 bottom-4 w-16 bg-gradient-to-l from-[#F5E6D3]/80 to-transparent pointer-events-none" />
+            )}
 
             {/* Scroll Buttons */}
             {showLeftScroll && (
@@ -113,7 +123,7 @@ const LineupGrid = ({ lineup }: LineupGridProps) => {
 
             {/* Mobile swipe cue — shown before user scrolls, hidden once they start */}
             {showRightScroll && !showLeftScroll && (
-                <div className="lg:hidden absolute right-10 bottom-6 flex items-center gap-0.5 text-xs text-copper/60 pointer-events-none animate-pulse">
+                <div className={`lg:hidden absolute right-10 bottom-6 flex items-center gap-0.5 text-xs text-copper/60 pointer-events-none${swipeCuePulsing ? " animate-pulse" : ""}`}>
                     <span>swipe</span>
                     <ChevronRight className="w-3 h-3" />
                 </div>
