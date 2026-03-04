@@ -28,7 +28,6 @@ export interface ShowDTO {
     tickets?: TicketDTO[];
     name: string | null;
     social_data?: SocialDataDTO;
-    tags?: number[]
     lineup?: ComedianDTO[]
     description?: string;
     address?: string;

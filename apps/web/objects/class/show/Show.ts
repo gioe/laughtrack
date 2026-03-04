@@ -36,7 +36,7 @@ export class Show implements ShowInterface {
         this.lineup = input.lineup ? input.lineup.map((item: ComedianDTO) => new Comedian(item)) : []
         this.clubName = input.clubName;
         this.tickets = input.tickets ? input.tickets.map((item: TicketDTO) => new Ticket(item)) : []
-        this.tagIds = input.tags ? input.tags : [];
+        this.tagIds = [];
         this.id = input.id ?? 0
         this.description = input.description
         this.address = input.address

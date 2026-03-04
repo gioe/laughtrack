@@ -15,6 +15,7 @@ const SHOW_SELECT = {
     id: true,
     name: true,
     date: true,
+    description: true,
     popularity: true,
     tickets: {
         select: {
@@ -131,9 +132,11 @@ export async function findShowsWithCount(helper: QueryHelper): Promise<ShowsResp
                 id: show.id,
                 date: show.date,
                 name: show.name,
+                description: show.description ?? undefined,
                 address: show.club.address,
                 clubName: show.club.name,
                 imageUrl: buildClubImageUrl(show.club.name),
+                soldOut: show.tickets.length > 0 && show.tickets.every(t => t.soldOut),
                 lineup: filterAndMapLineupItems(show.lineupItems, helper.getUserId()),
                 tickets: mapTickets(show.tickets),
             })),
