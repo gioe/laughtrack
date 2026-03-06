@@ -1,13 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import moment from "moment";
 import Image from "next/image";
 import { Show } from "@/objects/class/show/Show";
 import { formatShowDate } from "@/util/dateUtil";
 import { getLocalCdnUrl } from "@/util/cdnUtil";
 import { formatTicketString } from "@/util/ticket/ticketUtil";
-import { Ticket } from "@/objects/class/ticket/Ticket";
 
 const PLACEHOLDER = getLocalCdnUrl("club-placeholder.png");
 
