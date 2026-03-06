@@ -1,3 +1,5 @@
+import { withSentryConfig } from '@sentry/nextjs';
+
 /** @type {import('next').NextConfig} */
 // Note: DATABASE_URL and DIRECT_URL are intentionally omitted from the `env` block.
 // They are server-side-only credentials read directly via process.env in lib/db.ts
@@ -43,4 +45,7 @@ const nextConfig = {
   },
 };
 
-export default nextConfig
+export default withSentryConfig(nextConfig, {
+    silent: true,
+    disableLogger: true,
+})
