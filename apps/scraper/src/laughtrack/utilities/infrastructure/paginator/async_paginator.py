@@ -1,7 +1,7 @@
 """
-Async paginator for handling pagination with aiohttp sessions.
+Async paginator for handling pagination with curl_cffi sessions.
 
-This module provides an async-enabled paginator that works with aiohttp sessions
+This module provides an async-enabled paginator that works with curl_cffi AsyncSession
 while leveraging the pagination logic from the base Paginator class.
 """
 
@@ -37,7 +37,7 @@ class AsyncPaginator(Paginator):
         Initialize the async paginator.
 
         Args:
-            async_session: The aiohttp ClientSession to use for requests
+            async_session: The curl_cffi AsyncSession to use for requests
             parent_scraper: Parent scraper instance for logging context
             config: Configuration for paginator behavior
         """

@@ -3,6 +3,8 @@
 from abc import ABC
 from typing import Any, Dict, Optional
 
+from curl_cffi.requests import AsyncSession
+
 from laughtrack.core.entities.club.model import Club
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.models.types import JSONDict
@@ -125,8 +127,6 @@ class BaseApiClient(ABC):
         Returns:
             JSON data as dictionary, or None if fetch failed
         """
-        from curl_cffi.requests import AsyncSession
-
         request_headers = headers or self.headers
         context = logger_context or {}
         try:
@@ -190,8 +190,6 @@ class BaseApiClient(ABC):
         Returns:
             HTML content as string, or None if fetch failed
         """
-        from curl_cffi.requests import AsyncSession
-
         request_headers = headers or self.headers
         context = logger_context or {}
 
@@ -251,8 +249,6 @@ class BaseApiClient(ABC):
         Returns:
             Parsed JSON response as dict, or None on failure
         """
-        from curl_cffi.requests import AsyncSession
-
         request_headers = headers or self.headers
         # Ensure content type for JSON
         if not any(k.lower() == "content-type" for k in request_headers.keys()):
@@ -328,8 +324,6 @@ class BaseApiClient(ABC):
         Returns:
             Response text, or None on failure
         """
-        from curl_cffi.requests import AsyncSession
-
         request_headers = headers or self.headers
         # Ensure content type for form if not explicitly set
         headers_lower = {k.lower(): v for k, v in request_headers.items()}

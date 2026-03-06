@@ -95,7 +95,7 @@ class SlackAlertChannel(AlertChannel):
 
             payload = {"attachments": [attachment]}
 
-            async with AsyncSession(impersonate="chrome124", timeout=10) as session:
+            async with AsyncSession(timeout=10) as session:
                 response = await session.post(self.webhook_url, json=payload)
                 if response.status_code == 200:
                     return True
@@ -126,7 +126,7 @@ class WebhookAlertChannel(AlertChannel):
                 "metadata": alert.metadata,
             }
 
-            async with AsyncSession(impersonate="chrome124", timeout=10) as session:
+            async with AsyncSession(timeout=10) as session:
                 response = await session.post(self.webhook_url, json=payload, headers=self.headers)
                 if response.status_code == 200:
                     return True
