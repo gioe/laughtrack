@@ -1,7 +1,8 @@
-'use client';
+"use client";
 
-import React, { Component, ReactNode } from 'react';
-import ErrorPage from '@/ui/components/errorPage';
+import React, { Component, ReactNode } from "react";
+import * as Sentry from "@sentry/nextjs";
+import ErrorPage from "@/ui/components/errorPage";
 
 interface Props {
     children: ReactNode;
@@ -19,12 +20,14 @@ class ErrorBoundary extends Component<Props, State> {
         this.state = { hasError: false, retryKey: 0 };
     }
 
-    static getDerivedStateFromError(_error: Error) {
+    static getDerivedStateFromError() {
         return { hasError: true };
     }
 
     componentDidCatch(error: Error, info: React.ErrorInfo) {
-        console.error('ErrorBoundary caught an error:', error, info);
+        Sentry.captureException(error, {
+            extra: { componentStack: info.componentStack },
+        });
     }
 
     render() {

@@ -1,7 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import ErrorPage from '@/ui/components/errorPage';
+import { useEffect } from "react";
+import * as Sentry from "@sentry/nextjs";
+import ErrorPage from "@/ui/components/errorPage";
 
 export default function Error({
     error,
@@ -11,7 +12,7 @@ export default function Error({
     reset: () => void;
 }) {
     useEffect(() => {
-        console.error(error, { digest: error.digest });
+        Sentry.captureException(error, { extra: { digest: error.digest } });
     }, [error]);
 
     return (
