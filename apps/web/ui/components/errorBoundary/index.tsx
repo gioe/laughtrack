@@ -28,6 +28,9 @@ class ErrorBoundary extends Component<Props, State> {
         Sentry.captureException(error, {
             extra: { componentStack: info.componentStack },
         });
+        if (process.env.NODE_ENV !== "production") {
+            console.error("ErrorBoundary caught an error:", error, info);
+        }
     }
 
     render() {
