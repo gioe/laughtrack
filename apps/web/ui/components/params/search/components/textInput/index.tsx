@@ -1,6 +1,5 @@
 import { Input } from "@/ui/components/ui/input";
-import { ChangeEvent, useCallback, useEffect, useState } from "react";
-import _ from "lodash";
+import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
 
 interface TextInputComponentProps {
     icon: React.ReactNode;
@@ -21,12 +20,18 @@ const TextInputComponent = ({
     ...props
 }: TextInputComponentProps) => {
     const [inputValue, setInputValue] = useState(value);
+    const timerRef = useRef<ReturnType<typeof setTimeout>>();
+
+    useEffect(() => () => clearTimeout(timerRef.current), []);
 
     // Get the debounced value
     const debouncedOnChange = useCallback(
-        _.debounce((value: string) => {
-            onChange?.(value);
-        }, debounceTime),
+        (value: string) => {
+            clearTimeout(timerRef.current);
+            timerRef.current = setTimeout(() => {
+                onChange?.(value);
+            }, debounceTime);
+        },
         [onChange, debounceTime],
     );
 
