@@ -38,7 +38,12 @@ class DomainRequestMetrics:
 
 @dataclass
 class ScrapingRunSummary:
-    """Aggregate summary for a full scrape_all run."""
+    """Aggregate summary for a full scrape_all run.
+
+    Note: clubs_ok / clubs_empty / clubs_errored are non-exclusive counts — a club
+    can appear in more than one bucket (e.g. both ok and none_resp > 0). Their sum
+    may exceed total_clubs. Use per_club for precise per-domain analysis.
+    """
 
     per_club: List[DomainRequestMetrics] = field(default_factory=list)
 

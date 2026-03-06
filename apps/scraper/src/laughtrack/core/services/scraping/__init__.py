@@ -138,11 +138,17 @@ class ScrapingService:
         self._send_slack_alert(failing)
 
     def _send_slack_alert(self, failing: List[DomainRequestMetrics]) -> None:
+        # Import guard is separate from execution guard so misconfigured environments
+        # surface a distinct error rather than silently swallowing an ImportError.
         try:
             from laughtrack.infrastructure.config.monitoring_config import MonitoringConfig
             from laughtrack.infrastructure.monitoring.channels import SlackAlertChannel
             from laughtrack.infrastructure.monitoring.alerts import Alert, AlertSeverity
+        except ImportError as e:  # pragma: no cover
+            Logger.error(f"Monitoring package not available; skipping Slack alert: {e}")
+            return
 
+        try:
             config = MonitoringConfig.default()
             if not config.is_slack_configured() or not config.slack_webhook_url:
                 Logger.warn("Slack webhook not configured; skipping scraping success-rate alert")
@@ -169,7 +175,19 @@ class ScrapingService:
                 webhook_url=config.slack_webhook_url,
                 channel=config.slack_channel,
             )
-            asyncio.run(channel.send_alert(alert))
+            # Guard against being called from an already-running event loop
+            # (e.g. async test runner, FastAPI handler) to avoid RuntimeError.
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                loop = None
+
+            if loop is not None and loop.is_running():
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                    executor.submit(asyncio.run, channel.send_alert(alert)).result()
+            else:
+                asyncio.run(channel.send_alert(alert))
         except Exception as e:  # pragma: no cover - defensive
             Logger.error(f"Failed to send Slack scraping alert: {e}")
 
