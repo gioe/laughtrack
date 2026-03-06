@@ -96,7 +96,7 @@ export default async function ClubDetailPage(props: {
             <FilterBar
                 variant={SearchVariant.ClubDetail}
                 total={total}
-                filters={filters.length > 0}
+                filters={filters.length}
             />
             <ShowTable shows={shows} />
         </main>

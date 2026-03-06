@@ -6,7 +6,6 @@ import { getSearchedShows } from "@/lib/data/show/search/getSearchedShows";
 import { ParameterizedRequestData } from "@/objects/interface";
 import FilterBar from "@/ui/pages/search/filterBar";
 import ShowTable from "@/ui/pages/search/table";
-import SearchDetailHeader from "@/ui/pages/search/header";
 import FilterModal from "@/ui/components/modals/filter";
 import { cookies } from "next/headers";
 
@@ -49,7 +48,7 @@ export default async function ShowSearchPage(props: any) {
             <FilterBar
                 variant={SearchVariant.AllShows}
                 total={total}
-                filters={filters.length > 0}
+                filters={filters.length}
             />
             <ShowTable shows={data} />
         </main>

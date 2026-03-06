@@ -31,7 +31,7 @@ const VARIANT_TO_SEARCH_BAR_MAP = {
 interface FilterBarProps {
     variant: SearchVariant;
     total: number;
-    filters: boolean;
+    filters: number;
 }
 
 const getSearchBar = (variant: SearchVariant) => {
@@ -70,12 +70,12 @@ const FilterBar = ({ variant, total, filters }: FilterBarProps) => {
                                 </div>
                             </div>
 
-                            {filters && (
+                            {filters > 0 && (
                                 <div
                                     className="[&>button]:px-4 [&>button]:py-2 [&>button]:bg-copper/10 [&>button]:rounded-full
                                               [&>button:hover]:bg-copper/20 [&>button]:transition-colors [&>button]:duration-200"
                                 >
-                                    <FilterModalButton />
+                                    <FilterModalButton filterCount={filters} />
                                 </div>
                             )}
                         </div>

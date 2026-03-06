@@ -55,7 +55,7 @@ export default async function ClubSearchPage(props: any) {
             <FilterBar
                 variant={SearchVariant.AllClubs}
                 total={total}
-                filters={filters.length > 0}
+                filters={filters.length}
             />
             <ClubGrid clubs={data} />
         </main>

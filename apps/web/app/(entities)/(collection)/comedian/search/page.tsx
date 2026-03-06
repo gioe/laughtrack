@@ -61,7 +61,7 @@ export default async function ComedianSearchPage(props: any) {
             <FilterBar
                 variant={SearchVariant.AllComedians}
                 total={total}
-                filters={filters.length > 0}
+                filters={filters.length}
             />
 
             <ComedianGrid

@@ -6,7 +6,6 @@ import { unstable_cache } from "next/cache";
 import { getComedianDetailPageData } from "@/lib/data/comedian/detail/getComedianDetailPageData";
 import { ParameterizedRequestData } from "@/objects/interface";
 import ComedianDetailHeader from "@/ui/pages/entity/comedian/header";
-import TableWithHeader from "@/ui/pages/entity/comedian/table";
 import FilterBar from "@/ui/pages/search/filterBar";
 import FilterModal from "@/ui/components/modals/filter";
 import { cookies } from "next/headers";
@@ -100,7 +99,7 @@ export default async function ComedianDetailsPage(props: {
             <FilterBar
                 variant={SearchVariant.ComedianDetail}
                 total={total}
-                filters={filters.length > 0}
+                filters={filters.length}
             />
             <ShowTable shows={shows} />
         </main>
