@@ -9,7 +9,7 @@ import asyncio
 from abc import ABC, abstractmethod
 from typing import Dict, Optional
 
-import aiohttp
+from curl_cffi.requests import AsyncSession
 
 from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
 
@@ -34,26 +34,31 @@ class AsyncHttpMixin(ABC):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._session: Optional[aiohttp.ClientSession] = None
+        self._session: Optional[AsyncSession] = None
+        self._session_closed: bool = True
         self._default_headers: Optional[Dict[str, str]] = None
 
-    async def get_session(self, headers: Optional[Dict[str, str]] = None) -> aiohttp.ClientSession:
+    async def get_session(self, headers: Optional[Dict[str, str]] = None) -> AsyncSession:
         """
-        Get or create aiohttp session with proper configuration.
+        Get or create curl_cffi AsyncSession with proper configuration.
 
         Args:
             headers: Optional custom headers to merge with defaults
 
         Returns:
-            Configured aiohttp ClientSession
+            Configured curl_cffi AsyncSession impersonating Chrome
         """
-        if self._session is None or self._session.closed:
+        if self._session is None or self._session_closed:
             # Get timeout from club if available, otherwise use default
             timeout_value = getattr(self.club, "timeout", 30) if hasattr(self.club, "timeout") else 30
-            timeout = aiohttp.ClientTimeout(total=timeout_value)
             session_headers = self._build_session_headers(headers)
 
-            self._session = aiohttp.ClientSession(timeout=timeout, headers=session_headers)
+            self._session = AsyncSession(
+                impersonate="chrome124",
+                timeout=timeout_value,
+                headers=session_headers,
+            )
+            self._session_closed = False
 
         return self._session
 
@@ -90,11 +95,10 @@ class AsyncHttpMixin(ABC):
         return BaseHeaders.get_headers()
 
     async def close_session(self):
-        """Close the aiohttp session if it exists."""
-        if self._session and not self._session.closed:
+        """Close the curl_cffi session if it exists."""
+        if self._session is not None and not self._session_closed:
             await self._session.close()
-            # Give the event loop time to clean up transports
-            await asyncio.sleep(0.1)
+            self._session_closed = True
             self._session = None
 
     async def __aenter__(self):

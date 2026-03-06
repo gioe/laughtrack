@@ -8,7 +8,7 @@ error handling, response parsing, and integration with existing infrastructure.
 import json
 from typing import Any, Dict, Optional
 
-import aiohttp
+from curl_cffi.requests import AsyncSession, RequestsError
 
 from laughtrack.foundation.models.types import JSONDict
 from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
@@ -40,7 +40,7 @@ class GraphQLClient:
 
     async def execute_query(
         self,
-        session: aiohttp.ClientSession,
+        session: AsyncSession,
         query: str,
         variables: Optional[JSONDict] = None,
         operation_name: Optional[str] = None,
@@ -73,20 +73,20 @@ class GraphQLClient:
         request_headers = self._build_headers(headers)
 
         try:
-            async with session.post(self.endpoint_url, json=payload, headers=request_headers) as response:
-                response.raise_for_status()
-                result = await response.json()
+            response = await session.post(self.endpoint_url, json=payload, headers=request_headers)
+            response.raise_for_status()
+            result = response.json()
 
-                # Check for GraphQL errors
-                if "errors" in result:
-                    errors = result["errors"]
-                    error_msg = f"GraphQL errors: {errors}"
-                    Logger.error(error_msg)
-                    raise Exception(error_msg)
+            # Check for GraphQL errors
+            if "errors" in result:
+                errors = result["errors"]
+                error_msg = f"GraphQL errors: {errors}"
+                Logger.error(error_msg)
+                raise Exception(error_msg)
 
-                return result.get("data", {})
+            return result.get("data", {})
 
-        except aiohttp.ClientError as e:
+        except RequestsError as e:
             Logger.error(f"GraphQL request failed: {e}")
             raise
         except json.JSONDecodeError as e:

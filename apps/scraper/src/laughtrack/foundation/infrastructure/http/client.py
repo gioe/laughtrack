@@ -5,9 +5,9 @@ This module provides common HTTP patterns with consistent error handling,
 logging, and URL normalization.
 """
 
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
-import aiohttp
+from curl_cffi.requests import AsyncSession
 
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.models.types import JSONDict
@@ -23,7 +23,7 @@ class HttpClient:
 
     @staticmethod
     async def fetch_html(
-        session: aiohttp.ClientSession,
+        session: AsyncSession,
         url: str,
         headers: Optional[Dict[str, str]] = None,
         logger_context: Optional[JSONDict] = None,
@@ -32,7 +32,7 @@ class HttpClient:
         Fetch HTML content from a URL with standardized error handling.
 
         Args:
-            session: Aiohttp session to use for the request
+            session: curl_cffi AsyncSession to use for the request
             url: URL to fetch (will be normalized)
             headers: Optional headers to include
             logger_context: Context for logging
@@ -50,12 +50,12 @@ class HttpClient:
             # Normalize URL to ensure proper scheme
             normalized_url = URLUtils.normalize_url(url)
 
-            async with session.get(normalized_url, headers=headers) as response:
-                if response.status != 200:
-                    Logger.warn(f"HTTP {response.status} when fetching {normalized_url}", logger_context)
-                    return None
+            response = await session.get(normalized_url, headers=headers)
+            if response.status_code != 200:
+                Logger.warn(f"HTTP {response.status_code} when fetching {normalized_url}", logger_context)
+                return None
 
-                return await response.text()
+            return response.text
 
         except Exception as e:
             Logger.warn(
@@ -66,7 +66,7 @@ class HttpClient:
 
     @staticmethod
     async def fetch_json(
-        session: aiohttp.ClientSession,
+        session: AsyncSession,
         url: str,
         headers: Optional[Dict[str, str]] = None,
         logger_context: Optional[JSONDict] = None,
@@ -75,7 +75,7 @@ class HttpClient:
         Fetch JSON data from a URL with standardized error handling.
 
         Args:
-            session: Aiohttp session to use for the request
+            session: curl_cffi AsyncSession to use for the request
             url: URL to fetch (will be normalized)
             headers: Optional headers to include
             logger_context: Context for logging
@@ -93,12 +93,12 @@ class HttpClient:
             # Normalize URL to ensure proper scheme
             normalized_url = URLUtils.normalize_url(url)
 
-            async with session.get(normalized_url, headers=headers) as response:
-                if response.status != 200:
-                    Logger.warn(f"HTTP {response.status} when fetching {normalized_url}", logger_context)
-                    return None
+            response = await session.get(normalized_url, headers=headers)
+            if response.status_code != 200:
+                Logger.warn(f"HTTP {response.status_code} when fetching {normalized_url}", logger_context)
+                return None
 
-                return await response.json()
+            return response.json()
 
         except Exception as e:
             Logger.warn(

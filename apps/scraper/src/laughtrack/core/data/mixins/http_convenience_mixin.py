@@ -29,9 +29,9 @@ class HttpConvenienceMixin(AsyncHttpMixin):
 
         async def _fetch_json():
             session = await self.get_session()
-            async with session.get(url, **kwargs) as response:
-                response.raise_for_status()
-                return await response.json()
+            response = await session.get(url, **kwargs)
+            response.raise_for_status()
+            return response.json()
 
         # Use error handler if available, otherwise execute directly
         error_handler = getattr(self, "error_handler", None)
@@ -45,9 +45,9 @@ class HttpConvenienceMixin(AsyncHttpMixin):
 
         async def _fetch_html():
             session = await self.get_session()
-            async with session.get(url, **kwargs) as response:
-                response.raise_for_status()
-                return await response.text()
+            response = await session.get(url, **kwargs)
+            response.raise_for_status()
+            return response.text
 
         # Use error handler if available, otherwise execute directly
         error_handler = getattr(self, "error_handler", None)
@@ -61,9 +61,9 @@ class HttpConvenienceMixin(AsyncHttpMixin):
         session = await self.get_session()
 
         async def _post_json():
-            async with session.post(url, json=data, **kwargs) as response:
-                response.raise_for_status()
-                return await response.json()
+            response = await session.post(url, json=data, **kwargs)
+            response.raise_for_status()
+            return response.json()
 
         # Use error handler if available, otherwise execute directly
         error_handler = getattr(self, "error_handler", None)
@@ -84,9 +84,9 @@ class HttpConvenienceMixin(AsyncHttpMixin):
                 headers["content-type"] = "application/x-www-form-urlencoded"
                 kwargs["headers"] = headers
 
-            async with session.post(url, data=data, **kwargs) as response:
-                response.raise_for_status()
-                return await response.text()
+            response = await session.post(url, data=data, **kwargs)
+            response.raise_for_status()
+            return response.text
 
         # Use error handler if available, otherwise execute directly
         error_handler = getattr(self, "error_handler", None)

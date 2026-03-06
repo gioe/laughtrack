@@ -7,7 +7,7 @@ page number, or cursor-based pagination systems.
 
 from typing import Any, AsyncIterator, Callable, Dict, List, Optional
 
-import aiohttp
+from curl_cffi.requests import AsyncSession
 
 from laughtrack.foundation.models.types import JSONDict
 from laughtrack.foundation.infrastructure.logger.logger import Logger
@@ -20,7 +20,7 @@ class ApiPaginator:
     - Page-based (e.g., page=1&per_page=50)
     """
 
-    def __init__(self, session: aiohttp.ClientSession, logger_context: Optional[JSONDict] = None):
+    def __init__(self, session: AsyncSession, logger_context: Optional[JSONDict] = None):
         """
         Initialize the API paginator.
 
@@ -65,28 +65,28 @@ class ApiPaginator:
             params.update({"offset": offset, "limit": limit})
 
             try:
-                async with self.session.get(base_url, headers=headers, params=params) as response:
-                    response.raise_for_status()
-                    data = await response.json()
+                response = await self.session.get(base_url, headers=headers, params=params)
+                response.raise_for_status()
+                data = response.json()
 
-                    # Extract items using custom function or default key
-                    if extract_items:
-                        items = extract_items(data)
-                    else:
-                        items = data.get(data_key, [])
+                # Extract items using custom function or default key
+                if extract_items:
+                    items = extract_items(data)
+                else:
+                    items = data.get(data_key, [])
 
-                    if not items:
-                        # End of data reached
-                        break
+                if not items:
+                    # End of data reached
+                    break
 
-                    yield items
+                yield items
 
-                    # If we got fewer items than limit, we've reached the end
-                    if len(items) < limit:
-                        break
+                # If we got fewer items than limit, we've reached the end
+                if len(items) < limit:
+                    break
 
-                    offset += limit
-                    page_count += 1
+                offset += limit
+                page_count += 1
 
             except Exception as e:
                 Logger.error(f"Error during offset/limit pagination at offset {offset}: {e}", self.logger_context)
@@ -125,27 +125,27 @@ class ApiPaginator:
             params.update({"page": page, "per_page": per_page})
 
             try:
-                async with self.session.get(base_url, headers=headers, params=params) as response:
-                    response.raise_for_status()
-                    data = await response.json()
+                response = await self.session.get(base_url, headers=headers, params=params)
+                response.raise_for_status()
+                data = response.json()
 
-                    # Extract items using custom function or default key
-                    if extract_items:
-                        items = extract_items(data)
-                    else:
-                        items = data.get(data_key, [])
+                # Extract items using custom function or default key
+                if extract_items:
+                    items = extract_items(data)
+                else:
+                    items = data.get(data_key, [])
 
-                    if not items:
-                        # End of data reached
-                        break
+                if not items:
+                    # End of data reached
+                    break
 
-                    yield items
+                yield items
 
-                    # If we got fewer items than per_page, we've reached the end
-                    if len(items) < per_page:
-                        break
+                # If we got fewer items than per_page, we've reached the end
+                if len(items) < per_page:
+                    break
 
-                    page += 1
+                page += 1
 
             except Exception as e:
                 Logger.error(f"Error during page-based pagination on page {page}: {e}", self.logger_context)

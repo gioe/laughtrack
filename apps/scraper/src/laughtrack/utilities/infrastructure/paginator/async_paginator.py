@@ -7,8 +7,9 @@ while leveraging the pagination logic from the base Paginator class.
 
 from typing import AsyncIterator, Dict, Optional
 
-import aiohttp
 import asyncio
+
+from curl_cffi.requests import AsyncSession
 
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.utilities.infrastructure.paginator.paginator import (
@@ -23,12 +24,12 @@ class AsyncPaginator(Paginator):
 
     This class provides async pagination capabilities while reusing the
     URL discovery logic from the base Paginator class. It works with
-    aiohttp sessions instead of the synchronous requests library.
+    curl_cffi AsyncSession instead of the synchronous requests library.
     """
 
     def __init__(
         self,
-        async_session: aiohttp.ClientSession,
+        async_session: AsyncSession,
         parent_scraper,
         config: Optional[PaginatorConfig] = None,
     ):
@@ -72,41 +73,41 @@ class AsyncPaginator(Paginator):
                 self._visited_urls.add(current_url)
 
             try:
-                async with self.async_session.get(current_url) as response:
-                    if response.status != 200:
-                        break
+                response = await self.async_session.get(current_url)
+                if response.status_code != 200:
+                    break
 
-                    html_content = await response.text()
+                html_content = response.text
 
-                    yield {"url": current_url, "html_content": html_content}
+                yield {"url": current_url, "html_content": html_content}
 
-                    # Optional stop condition
-                    if self.config.stop_condition:
-                        try:
-                            if self.config.stop_condition(html_content, current_url):
-                                break
-                        except Exception as e:
-                            # Log and continue pagination by default
-                            Logger.error(
-                                f"Stop condition raised an error: {str(e)}",
-                                self.parent_scraper.logger_context,
-                            )
+                # Optional stop condition
+                if self.config.stop_condition:
+                    try:
+                        if self.config.stop_condition(html_content, current_url):
+                            break
+                    except Exception as e:
+                        # Log and continue pagination by default
+                        Logger.error(
+                            f"Stop condition raised an error: {str(e)}",
+                            self.parent_scraper.logger_context,
+                        )
 
-                    # Find next page URL using parent class logic
-                    next_url = self.get_next_page_url(html_content, current_url)
+                # Find next page URL using parent class logic
+                next_url = self.get_next_page_url(html_content, current_url)
 
-                    # Stop if no next page found or if next page is already visited
-                    if not next_url:
-                        break
-                    elif self.config.track_visited and next_url in self._visited_urls:
-                        break
+                # Stop if no next page found or if next page is already visited
+                if not next_url:
+                    break
+                elif self.config.track_visited and next_url in self._visited_urls:
+                    break
 
-                    current_url = next_url
-                    page_count += 1
+                current_url = next_url
+                page_count += 1
 
-                    # Optional delay between requests
-                    if self.config.delay_seconds and self.config.delay_seconds > 0:
-                        await asyncio.sleep(self.config.delay_seconds)
+                # Optional delay between requests
+                if self.config.delay_seconds and self.config.delay_seconds > 0:
+                    await asyncio.sleep(self.config.delay_seconds)
 
             except Exception as e:
                 Logger.error(

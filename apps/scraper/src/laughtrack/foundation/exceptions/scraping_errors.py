@@ -9,11 +9,10 @@ from enum import Enum
 from typing import Optional
 
 try:
-    import aiohttp
-    HAS_AIOHTTP = True
+    from curl_cffi.requests import RequestsError as _CurlRequestsError
+    HAS_CURL_CFFI = True
 except ImportError:
-    HAS_AIOHTTP = False
-    aiohttp = None
+    HAS_CURL_CFFI = False
 
 
 class ErrorSeverity(Enum):

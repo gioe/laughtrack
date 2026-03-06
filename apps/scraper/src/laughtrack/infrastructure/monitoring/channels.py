@@ -2,7 +2,7 @@ import json
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional
 
-import aiohttp
+from curl_cffi.requests import AsyncSession
 
 from laughtrack.domain.entities.email import EmailMessage
 from laughtrack.foundation.infrastructure.logger.logger import Logger
@@ -95,13 +95,13 @@ class SlackAlertChannel(AlertChannel):
 
             payload = {"attachments": [attachment]}
 
-            async with aiohttp.ClientSession() as session:
-                async with session.post(self.webhook_url, json=payload, timeout=aiohttp.ClientTimeout(total=10)) as response:
-                    if response.status == 200:
-                        return True
-                    body = await response.text()
-                    Logger.error(f"Slack webhook returned {response.status}: {body}")
-                    return False
+            async with AsyncSession(impersonate="chrome124", timeout=10) as session:
+                response = await session.post(self.webhook_url, json=payload)
+                if response.status_code == 200:
+                    return True
+                body = response.text
+                Logger.error(f"Slack webhook returned {response.status_code}: {body}")
+                return False
         except Exception as e:
             Logger.error(f"Failed to send Slack alert: {e}")
             return False
@@ -126,13 +126,13 @@ class WebhookAlertChannel(AlertChannel):
                 "metadata": alert.metadata,
             }
 
-            async with aiohttp.ClientSession() as session:
-                async with session.post(self.webhook_url, json=payload, headers=self.headers, timeout=aiohttp.ClientTimeout(total=10)) as response:
-                    if response.status == 200:
-                        return True
-                    body = await response.text()
-                    Logger.error(f"Webhook returned {response.status}: {body}")
-                    return False
+            async with AsyncSession(impersonate="chrome124", timeout=10) as session:
+                response = await session.post(self.webhook_url, json=payload, headers=self.headers)
+                if response.status_code == 200:
+                    return True
+                body = response.text
+                Logger.error(f"Webhook returned {response.status_code}: {body}")
+                return False
         except Exception as e:
             Logger.error(f"Failed to send webhook alert: {e}")
             return False

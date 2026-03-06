@@ -9,7 +9,7 @@ import asyncio
 from functools import wraps
 from typing import Any, Callable, Dict, List, Optional, cast
 
-import aiohttp
+from curl_cffi.requests import RequestsError
 
 from laughtrack.foundation.exceptions import (
     DataError,
@@ -89,7 +89,7 @@ class ErrorHandler:
 
             except Exception as e:
                 # Classify the error
-                if isinstance(e, aiohttp.ClientError):
+                if isinstance(e, RequestsError):
                     classified_error = ErrorClassifier.classify_http_error(e)
                 elif isinstance(e, ScrapingError):
                     classified_error = e

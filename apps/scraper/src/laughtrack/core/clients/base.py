@@ -125,13 +125,12 @@ class BaseApiClient(ABC):
         Returns:
             JSON data as dictionary, or None if fetch failed
         """
-        import aiohttp
+        from curl_cffi.requests import AsyncSession
 
         request_headers = headers or self.headers
         context = logger_context or {}
         try:
-            timeout_config = aiohttp.ClientTimeout(total=timeout)
-            async with aiohttp.ClientSession(timeout=timeout_config) as session:
+            async with AsyncSession(impersonate="chrome124", timeout=timeout) as session:
                 # DEBUG pre-request details
                 try:
                     ctx: JSONDict = {"club_name": getattr(self.club, "name", "-")}
@@ -191,14 +190,13 @@ class BaseApiClient(ABC):
         Returns:
             HTML content as string, or None if fetch failed
         """
-        import aiohttp
+        from curl_cffi.requests import AsyncSession
 
         request_headers = headers or self.headers
         context = logger_context or {}
 
         try:
-            timeout_config = aiohttp.ClientTimeout(total=timeout)
-            async with aiohttp.ClientSession(timeout=timeout_config) as session:
+            async with AsyncSession(impersonate="chrome124", timeout=timeout) as session:
                 # DEBUG pre-request details
                 try:
                     ctx: JSONDict = {"club_name": getattr(self.club, "name", "-")}
@@ -253,7 +251,7 @@ class BaseApiClient(ABC):
         Returns:
             Parsed JSON response as dict, or None on failure
         """
-        import aiohttp
+        from curl_cffi.requests import AsyncSession
 
         request_headers = headers or self.headers
         # Ensure content type for JSON
@@ -263,8 +261,7 @@ class BaseApiClient(ABC):
         context = logger_context or {}
 
         try:
-            timeout_config = aiohttp.ClientTimeout(total=timeout)
-            async with aiohttp.ClientSession(timeout=timeout_config) as session:
+            async with AsyncSession(impersonate="chrome124", timeout=timeout) as session:
                 # DEBUG pre-request details
                 try:
                     ctx: JSONDict = {"club_name": getattr(self.club, "name", "-")}
@@ -277,11 +274,11 @@ class BaseApiClient(ABC):
                 except Exception:
                     pass
                 await self._apply_rate_limit(url)
-                async with session.post(url, json=payload, headers=request_headers) as response:
-                    if response.status != 200:
-                        Logger.warning(f"HTTP {response.status} when POSTing {url}")
-                        return None
-                    obj = await response.json()
+                response = await session.post(url, json=payload, headers=request_headers)
+                if response.status_code != 200:
+                    Logger.warning(f"HTTP {response.status_code} when POSTing {url}")
+                    return None
+                obj = response.json()
                 # DEBUG summary of response
                 try:
                     ctx: JSONDict = {"club_name": getattr(self.club, "name", "-")}
@@ -331,7 +328,7 @@ class BaseApiClient(ABC):
         Returns:
             Response text, or None on failure
         """
-        import aiohttp
+        from curl_cffi.requests import AsyncSession
 
         request_headers = headers or self.headers
         # Ensure content type for form if not explicitly set
@@ -342,8 +339,7 @@ class BaseApiClient(ABC):
         context = logger_context or {}
 
         try:
-            timeout_config = aiohttp.ClientTimeout(total=timeout)
-            async with aiohttp.ClientSession(timeout=timeout_config) as session:
+            async with AsyncSession(impersonate="chrome124", timeout=timeout) as session:
                 # DEBUG pre-request details
                 try:
                     ctx: JSONDict = {"club_name": getattr(self.club, "name", "-")}
@@ -356,11 +352,11 @@ class BaseApiClient(ABC):
                 except Exception:
                     pass
                 await self._apply_rate_limit(url)
-                async with session.post(url, data=payload, headers=request_headers) as response:
-                    if response.status != 200:
-                        Logger.warning(f"HTTP {response.status} when POSTing form to {url}")
-                        return None
-                    text = await response.text()
+                response = await session.post(url, data=payload, headers=request_headers)
+                if response.status_code != 200:
+                    Logger.warning(f"HTTP {response.status_code} when POSTing form to {url}")
+                    return None
+                text = response.text
                 # DEBUG summary of response
                 try:
                     ctx: JSONDict = {"club_name": getattr(self.club, "name", "-")}

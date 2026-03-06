@@ -10,7 +10,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Optional
 from urllib.parse import parse_qs, urljoin, urlparse
 
-import aiohttp
+from curl_cffi.requests import AsyncSession
 
 from laughtrack.utilities.infrastructure.html.scraper import HtmlScraper
 from laughtrack.foundation.infrastructure.logger.logger import Logger
@@ -20,14 +20,14 @@ class UrlDiscoveryStrategy(ABC):
     """Abstract base class for URL discovery strategies."""
 
     @abstractmethod
-    async def discover_urls(self, base_url: str, session: aiohttp.ClientSession) -> List[str]:
+    async def discover_urls(self, base_url: str, session: AsyncSession) -> List[str]:
         """Discover URLs from a base URL."""
 
 
 class StaticUrlStrategy(UrlDiscoveryStrategy):
     """Strategy for venues with static URLs (no discovery needed)."""
 
-    async def discover_urls(self, base_url: str, session: aiohttp.ClientSession) -> List[str]:
+    async def discover_urls(self, base_url: str, session: AsyncSession) -> List[str]:
         """Return the base URL as-is."""
         return [base_url]
 
@@ -39,7 +39,7 @@ class PaginationUrlStrategy(UrlDiscoveryStrategy):
         self.max_pages = max_pages
         self.page_param = page_param
 
-    async def discover_urls(self, base_url: str, session: aiohttp.ClientSession) -> List[str]:
+    async def discover_urls(self, base_url: str, session: AsyncSession) -> List[str]:
         """Discover paginated URLs."""
         urls = []
         visited = set()
@@ -51,14 +51,14 @@ class PaginationUrlStrategy(UrlDiscoveryStrategy):
             urls.append(current_url)
 
             try:
-                async with session.get(current_url) as response:
-                    response.raise_for_status()
-                    content = await response.text()
+                response = await session.get(current_url)
+                response.raise_for_status()
+                content = response.text
 
-                    # Find next page URL
-                    next_url = self._find_next_page_url(content, current_url)
-                    current_url = next_url
-                    page_count += 1
+                # Find next page URL
+                next_url = self._find_next_page_url(content, current_url)
+                current_url = next_url
+                page_count += 1
 
             except Exception as e:
                 Logger.warn(f"Error discovering paginated URLs: {e}")
@@ -104,7 +104,7 @@ class CalendarUrlStrategy(UrlDiscoveryStrategy):
     def __init__(self, months_ahead: int = 3):
         self.months_ahead = months_ahead
 
-    async def discover_urls(self, base_url: str, session: aiohttp.ClientSession) -> List[str]:
+    async def discover_urls(self, base_url: str, session: AsyncSession) -> List[str]:
         """Discover calendar URLs for upcoming months."""
         from datetime import datetime, timedelta
 
@@ -144,17 +144,17 @@ class ApiEndpointDiscoveryStrategy(UrlDiscoveryStrategy):
             r"api/lineup",
         ]
 
-    async def discover_urls(self, base_url: str, session: aiohttp.ClientSession) -> List[str]:
+    async def discover_urls(self, base_url: str, session: AsyncSession) -> List[str]:
         """Discover API endpoints from page source."""
         try:
-            async with session.get(base_url) as response:
-                response.raise_for_status()
-                content = await response.text()
+            response = await session.get(base_url)
+            response.raise_for_status()
+            content = response.text
 
-                # Extract API endpoints from JavaScript and HTML
-                endpoints = self._extract_api_endpoints(content, base_url)
+            # Extract API endpoints from JavaScript and HTML
+            endpoints = self._extract_api_endpoints(content, base_url)
 
-                return endpoints if endpoints else [base_url]
+            return endpoints if endpoints else [base_url]
 
         except Exception as e:
             Logger.warn(f"Error discovering API endpoints: {e}")
@@ -217,7 +217,7 @@ class UrlDiscoveryManager:
         self.strategies[name] = strategy
 
     async def discover_urls(
-        self, base_url: str, session: aiohttp.ClientSession, strategy_name: str = "static", use_cache: bool = True
+        self, base_url: str, session: AsyncSession, strategy_name: str = "static", use_cache: bool = True
     ) -> List[str]:
         """
         Discover URLs using the specified strategy.

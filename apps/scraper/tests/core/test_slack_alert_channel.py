@@ -26,39 +26,36 @@ def channel():
 
 
 def _mock_session(status: int, body: str = "ok"):
-    response = AsyncMock()
-    response.status = status
-    response.text = AsyncMock(return_value=body)
+    """Build a mock curl_cffi AsyncSession: post() is an AsyncMock returning a response."""
+    response = MagicMock()
+    response.status_code = status
+    response.text = body
 
-    cm_response = MagicMock()
-    cm_response.__aenter__ = AsyncMock(return_value=response)
-    cm_response.__aexit__ = AsyncMock(return_value=False)
+    session = MagicMock()
+    session.__aenter__ = AsyncMock(return_value=session)
+    session.__aexit__ = AsyncMock(return_value=False)
+    session.post = AsyncMock(return_value=response)
 
-    cm_session = MagicMock()
-    cm_session.__aenter__ = AsyncMock(return_value=cm_session)
-    cm_session.__aexit__ = AsyncMock(return_value=False)
-    cm_session.post = MagicMock(return_value=cm_response)
-
-    return cm_session
+    return session
 
 
 @pytest.mark.asyncio
 async def test_send_alert_returns_true_on_200(alert, channel):
-    with patch("laughtrack.infrastructure.monitoring.channels.aiohttp.ClientSession", return_value=_mock_session(200)):
+    with patch("laughtrack.infrastructure.monitoring.channels.AsyncSession", return_value=_mock_session(200)):
         result = await channel.send_alert(alert)
     assert result is True
 
 
 @pytest.mark.asyncio
 async def test_send_alert_returns_false_on_non_200(alert, channel):
-    with patch("laughtrack.infrastructure.monitoring.channels.aiohttp.ClientSession", return_value=_mock_session(400, "invalid_payload")):
+    with patch("laughtrack.infrastructure.monitoring.channels.AsyncSession", return_value=_mock_session(400, "invalid_payload")):
         result = await channel.send_alert(alert)
     assert result is False
 
 
 @pytest.mark.asyncio
 async def test_send_alert_returns_false_on_exception(alert, channel):
-    with patch("laughtrack.infrastructure.monitoring.channels.aiohttp.ClientSession", side_effect=Exception("network error")):
+    with patch("laughtrack.infrastructure.monitoring.channels.AsyncSession", side_effect=Exception("network error")):
         result = await channel.send_alert(alert)
     assert result is False
 
@@ -66,7 +63,7 @@ async def test_send_alert_returns_false_on_exception(alert, channel):
 @pytest.mark.asyncio
 async def test_send_alert_payload_includes_severity_color(alert, channel):
     session = _mock_session(200)
-    with patch("laughtrack.infrastructure.monitoring.channels.aiohttp.ClientSession", return_value=session):
+    with patch("laughtrack.infrastructure.monitoring.channels.AsyncSession", return_value=session):
         await channel.send_alert(alert)
 
     call_kwargs = session.post.call_args.kwargs
@@ -86,7 +83,7 @@ async def test_send_alert_omits_footer_when_no_metadata(channel):
         metadata={},
     )
     session = _mock_session(200)
-    with patch("laughtrack.infrastructure.monitoring.channels.aiohttp.ClientSession", return_value=session):
+    with patch("laughtrack.infrastructure.monitoring.channels.AsyncSession", return_value=session):
         await channel.send_alert(alert)
 
     call_kwargs = session.post.call_args.kwargs
@@ -97,7 +94,7 @@ async def test_send_alert_omits_footer_when_no_metadata(channel):
 @pytest.mark.asyncio
 async def test_send_alert_includes_footer_when_metadata_present(alert, channel):
     session = _mock_session(200)
-    with patch("laughtrack.infrastructure.monitoring.channels.aiohttp.ClientSession", return_value=session):
+    with patch("laughtrack.infrastructure.monitoring.channels.AsyncSession", return_value=session):
         await channel.send_alert(alert)
 
     call_kwargs = session.post.call_args.kwargs
