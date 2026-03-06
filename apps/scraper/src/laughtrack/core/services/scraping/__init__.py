@@ -1,5 +1,10 @@
 """Scraping service package (public path preserved)."""
 
+import asyncio
+import json
+import os
+import uuid
+from datetime import datetime, timezone
 from typing import Optional, List
 
 from laughtrack.app.scraper_resolver import ScraperResolver
@@ -11,14 +16,20 @@ from laughtrack.utilities.domain.scraper.result import ScrapingResultProcessor
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.app.wiring import build_services  # noqa: F401 (side-effects for wiring if needed)
 from laughtrack.core.models.results import ClubScrapingResult
+from laughtrack.core.models.domain_metrics import DomainRequestMetrics, ScrapingRunSummary
+
+_DEFAULT_SUCCESS_RATE_THRESHOLD = 70.0
 
 
 class ScrapingService:
-    def __init__(self):
+    def __init__(self, success_rate_threshold: float = _DEFAULT_SUCCESS_RATE_THRESHOLD):
         self.club_handler = ClubHandler()
         self.selector = ClubSelector()
         self._result_processor: Optional[ScrapingResultProcessor] = None
         self._scraping_resolver = ScraperResolver()
+        self.success_rate_threshold: float = float(
+            os.environ.get("SCRAPING_SUCCESS_RATE_THRESHOLD", success_rate_threshold)
+        )
 
     @property
     def result_processor(self) -> ScrapingResultProcessor:
@@ -33,7 +44,9 @@ class ScrapingService:
             raise ValueError("No clubs found with valid scraper configurations")
         Logger.info(f"Found {len(clubs)} clubs with scraper configurations")
         self._try_validate_scraper_keys(clubs)
-        results = self._scrape_clubs(clubs)
+        results, summary = self._scrape_clubs_with_metrics(clubs)
+        self._emit_summary(summary)
+        self._check_and_alert(summary)
         self.result_processor.process_results(results)
         return results
 
@@ -42,7 +55,7 @@ class ScrapingService:
         clubs = self.club_handler.get_clubs_by_ids([club_id]) if club_id else self.selector.get_club_selection()
         if not clubs:
             raise ValueError(f"Club with ID {club_id} not found" if club_id else "No club selected")
-        results = self._scrape_clubs(clubs)
+        results, _ = self._scrape_clubs_with_metrics(clubs)
         self.result_processor.process_results(results)
 
     def scrape_by_scraper_type(self, scraper_type: Optional[str] = None) -> None:
@@ -51,7 +64,7 @@ class ScrapingService:
         if not scraper_type:
             raise ValueError(f"Unknown scraper type: {scraper_type}")
         clubs = self.club_handler.get_clubs_for_scraper(scraper_type)
-        results = self._scrape_clubs(clubs)
+        results, _ = self._scrape_clubs_with_metrics(clubs)
         self.result_processor.process_results(results)
 
     # --- Internal helpers ---
@@ -62,8 +75,11 @@ class ScrapingService:
         except Exception as e:  # pragma: no cover - defensive
             Logger.warn(f"Scraper config validation skipped due to error: {e}")
 
-    def _scrape_clubs(self, clubs: List[Club]) -> List[ClubScrapingResult]:
+    def _scrape_clubs_with_metrics(
+        self, clubs: List[Club]
+    ) -> tuple[List[ClubScrapingResult], ScrapingRunSummary]:
         results: List[ClubScrapingResult] = []
+        summary = ScrapingRunSummary()
         for club in clubs:
             with Logger.use_context(club.as_context()):
                 if not getattr(club, "scraper", None):
@@ -74,9 +90,18 @@ class ScrapingService:
                 if not scraper_cls:
                     Logger.warn(f"No scraper found for club '{club.name}' with key '{key}'")
                     continue
+                metrics = DomainRequestMetrics(club_name=club.name, club_id=getattr(club, "id", None))
+                metrics.total += 1
                 try:
                     scraper: BaseScraper = scraper_cls(club)
-                    results.append(scraper.scrape_with_result())
+                    result = scraper.scrape_with_result()
+                    results.append(result)
+                    if result.error:
+                        metrics.error += 1
+                    elif result.num_shows == 0:
+                        metrics.none_resp += 1
+                    else:
+                        metrics.ok += 1
                 except Exception as e:  # pragma: no cover - defensive
                     Logger.error(f"Failed to scrape club '{club.name}': {e}")
                     results.append(
@@ -88,6 +113,65 @@ class ScrapingService:
                             club_id=club.id,
                         )
                     )
-        return results
+                    metrics.error += 1
+                summary.per_club.append(metrics)
+        return results, summary
+
+    def _emit_summary(self, summary: ScrapingRunSummary) -> None:
+        payload = {
+            "total_clubs": summary.total_clubs,
+            "clubs_ok": summary.clubs_ok,
+            "clubs_empty": summary.clubs_empty,
+            "clubs_errored": summary.clubs_errored,
+            "per_club": [m.as_log_dict() for m in summary.per_club],
+        }
+        Logger.info(f"scrape_all summary: {json.dumps(payload)}")
+
+    def _check_and_alert(self, summary: ScrapingRunSummary) -> None:
+        failing = summary.below_threshold(self.success_rate_threshold)
+        if not failing:
+            return
+        Logger.warn(
+            f"{len(failing)} domain(s) below {self.success_rate_threshold}% success threshold: "
+            + ", ".join(m.club_name for m in failing)
+        )
+        self._send_slack_alert(failing)
+
+    def _send_slack_alert(self, failing: List[DomainRequestMetrics]) -> None:
+        try:
+            from laughtrack.infrastructure.config.monitoring_config import MonitoringConfig
+            from laughtrack.infrastructure.monitoring.channels import SlackAlertChannel
+            from laughtrack.infrastructure.monitoring.alerts import Alert, AlertSeverity
+
+            config = MonitoringConfig.default()
+            if not config.is_slack_configured() or not config.slack_webhook_url:
+                Logger.warn("Slack webhook not configured; skipping scraping success-rate alert")
+                return
+
+            lines = [
+                f"• {m.club_name}: {m.success_rate:.0f}% ({m.ok}/{m.total} ok, "
+                f"{m.none_resp} empty, {m.error} errors)"
+                for m in failing
+            ]
+            alert = Alert(
+                id=str(uuid.uuid4()),
+                title=f"Scraping success rate below {self.success_rate_threshold:.0f}% threshold",
+                description="\n".join(lines),
+                severity=AlertSeverity.HIGH,
+                timestamp=datetime.now(timezone.utc),
+                source="ScrapingService",
+                metadata={
+                    "threshold_pct": self.success_rate_threshold,
+                    "failing_domains": [m.club_name for m in failing],
+                },
+            )
+            channel = SlackAlertChannel(
+                webhook_url=config.slack_webhook_url,
+                channel=config.slack_channel,
+            )
+            asyncio.run(channel.send_alert(alert))
+        except Exception as e:  # pragma: no cover - defensive
+            Logger.error(f"Failed to send Slack scraping alert: {e}")
+
 
 __all__ = ["ScrapingService"]
