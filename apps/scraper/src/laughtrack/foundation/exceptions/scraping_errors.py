@@ -73,10 +73,10 @@ class ErrorClassifier:
     @staticmethod
     def classify_http_error(exception, response=None) -> ScrapingError:
         """Classify HTTP client errors."""
-        if not HAS_AIOHTTP:
-            return NetworkError("HTTP error (aiohttp not available)", None, exception)
-            
-        status_code = response.status if response else None
+        if not HAS_CURL_CFFI:
+            return NetworkError("HTTP error (curl_cffi not available)", None, exception)
+
+        status_code = response.status_code if response else None
 
         # Check aiohttp exception types if available
         if hasattr(exception, '__class__') and hasattr(exception.__class__, '__module__'):

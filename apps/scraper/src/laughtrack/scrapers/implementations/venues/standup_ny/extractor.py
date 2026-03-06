@@ -108,20 +108,20 @@ class StandupNYEventExtractor:
             # Extract VenuePilot data from ticket page
             normalized_url = URLUtils.normalize_url(event.ticket_url)
 
-            async with session.get(normalized_url) as response:
-                if response.status != 200:
-                    Logger.warn(
-                        f"VenuePilot request failed for {normalized_url} with status {response.status}",
-                        self.logger_context,
-                    )
-                    return False
+            response = await session.get(normalized_url)
+            if response.status_code != 200:
+                Logger.warn(
+                    f"VenuePilot request failed for {normalized_url} with status {response.status_code}",
+                    self.logger_context,
+                )
+                return False
 
-                html_content = await response.text()
-                venue_pilot_data = self._extract_venue_pilot_data(html_content, event.ticket_url)
+            html_content = response.text
+            venue_pilot_data = self._extract_venue_pilot_data(html_content, event.ticket_url)
 
-                if venue_pilot_data:
-                    event.add_venue_pilot_data(venue_pilot_data)
-                    return True
+            if venue_pilot_data:
+                event.add_venue_pilot_data(venue_pilot_data)
+                return True
 
             return False
 
@@ -150,16 +150,16 @@ class StandupNYEventExtractor:
             Logger.info(f"Discovering GraphQL endpoint from calendar page: {club_url}", self.logger_context)
 
             normalized_calendar_url = URLUtils.normalize_url(club_url)
-            async with session.get(normalized_calendar_url) as response:
-                if response.status != 200:
-                    Logger.error(
-                        f"Failed to access calendar page, status {response.status}",
-                        self.logger_context,
-                    )
-                    return None
+            response = await session.get(normalized_calendar_url)
+            if response.status_code != 200:
+                Logger.error(
+                    f"Failed to access calendar page, status {response.status_code}",
+                    self.logger_context,
+                )
+                return None
 
-                html_content = await response.text()
-                return self._extract_graphql_endpoint_from_html(html_content, club_url)
+            html_content = response.text
+            return self._extract_graphql_endpoint_from_html(html_content, club_url)
 
         except Exception as e:
             Logger.error(f"Error discovering GraphQL endpoint: {e}", self.logger_context)
@@ -219,25 +219,24 @@ class StandupNYEventExtractor:
         try:
             payload = self._build_graphql_payload(endpoint_url)
 
-            async with session.post(endpoint_url, headers=self.graphql_headers, json=payload) as response:
-                if response.status != 200:
+            response = await session.post(endpoint_url, headers=self.graphql_headers, json=payload)
+            if response.status_code != 200:
+                Logger.error(
+                    f"GraphQL POST request to {endpoint_url} failed with status {response.status_code}",
+                    self.logger_context,
+                )
+                # Log response for debugging
+                try:
                     Logger.error(
-                        f"GraphQL POST request to {endpoint_url} failed with status {response.status}",
+                        f"Response body: {response.text[:500]}...",  # First 500 chars
                         self.logger_context,
                     )
-                    # Log response for debugging
-                    try:
-                        response_text = await response.text()
-                        Logger.error(
-                            f"Response body: {response_text[:500]}...",  # First 500 chars
-                            self.logger_context,
-                        )
-                    except:
-                        pass
-                    return None
+                except:
+                    pass
+                return None
 
-                data = await response.json()
-                return data.get("data", {}).get("publicEvents", [])
+            data = response.json()
+            return data.get("data", {}).get("publicEvents", [])
 
         except Exception as e:
             Logger.error(f"Error querying GraphQL endpoint: {e}", self.logger_context)

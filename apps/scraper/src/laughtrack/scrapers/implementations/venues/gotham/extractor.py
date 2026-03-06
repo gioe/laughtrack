@@ -68,16 +68,16 @@ class GothamEventExtractor:
             session = await self.get_session()
 
             # Fetch JSON with appropriate headers
-            async with session.get(monthly_url, headers=self.get_headers()) as response:
-                if response.status == 404 or response.status == 403:
-                    # Future months may not have files yet - this is normal
-                    Logger.info(
-                        f"Monthly file {monthly_url} not available (status {response.status})", self.logger_context
-                    )
-                    return None
+            response = await session.get(monthly_url, headers=self.get_headers())
+            if response.status_code == 404 or response.status_code == 403:
+                # Future months may not have files yet - this is normal
+                Logger.info(
+                    f"Monthly file {monthly_url} not available (status {response.status_code})", self.logger_context
+                )
+                return None
 
-                response.raise_for_status()
-                json_content = await response.json()
+            response.raise_for_status()
+            json_content = response.json()
 
             # Convert to typed monthly response
             monthly_response = GothamMonthlyResponse.from_dict(json_content)
