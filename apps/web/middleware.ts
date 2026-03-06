@@ -7,10 +7,10 @@ import { UserInterface } from "./objects/class/user/user.interface";
 import { getCorsHeaders } from "./lib/cors";
 
 const SECURITY_HEADERS: Record<string, string> = {
-    'X-Frame-Options': 'DENY',
-    'X-Content-Type-Options': 'nosniff',
-    'Referrer-Policy': 'strict-origin-when-cross-origin',
-    'Content-Security-Policy': [
+    "X-Frame-Options": "DENY",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Content-Security-Policy": [
         "default-src 'self'",
         "script-src 'self' 'unsafe-inline'",
         "style-src 'self' 'unsafe-inline'",
@@ -18,7 +18,7 @@ const SECURITY_HEADERS: Record<string, string> = {
         "font-src 'self' data:",
         "connect-src 'self' https:",
         "frame-ancestors 'none'",
-    ].join('; '),
+    ].join("; "),
 };
 
 function applySecurityHeaders(response: NextResponse): NextResponse {
@@ -28,100 +28,134 @@ function applySecurityHeaders(response: NextResponse): NextResponse {
     return response;
 }
 
-const protectedRoutes = [
-    '/profile',
-]
+// Patterns for routes that require authentication.
+// Add new protected route prefixes here as the app grows.
+const PROTECTED_ROUTE_PATTERNS: RegExp[] = [/^\/profile(\/|$)/];
 
 function isProtectedRoute(pathname: string): boolean {
-    return protectedRoutes.some(route => pathname.startsWith(route))
+    return PROTECTED_ROUTE_PATTERNS.some((pattern) => pattern.test(pathname));
 }
 
 export async function middleware(request: NextRequest) {
     try {
-        const pathname = request.nextUrl.pathname
+        const pathname = request.nextUrl.pathname;
 
         // Handle CORS for all API routes and return early — API routes manage their own auth
-        if (pathname.startsWith('/api')) {
-            const origin = request.headers.get('origin')
-            const corsHeaders = getCorsHeaders(origin)
+        if (pathname.startsWith("/api")) {
+            const origin = request.headers.get("origin");
+            const corsHeaders = getCorsHeaders(origin);
 
-            if (request.method === 'OPTIONS') {
-                const preflightResponse = new NextResponse(null, { status: 200, headers: corsHeaders })
-                return applySecurityHeaders(preflightResponse)
+            if (request.method === "OPTIONS") {
+                const preflightResponse = new NextResponse(null, {
+                    status: 200,
+                    headers: corsHeaders,
+                });
+                return applySecurityHeaders(preflightResponse);
             }
 
-            const response = NextResponse.next()
+            const response = NextResponse.next();
             Object.entries(corsHeaders).forEach(([key, value]) => {
-                response.headers.set(key, value)
-            })
-            return applySecurityHeaders(response)
+                response.headers.set(key, value);
+            });
+            return applySecurityHeaders(response);
         }
 
-        const url = request.nextUrl.clone()
-        const searchParams = new URLSearchParams(url.search)
+        const url = request.nextUrl.clone();
+        const searchParams = new URLSearchParams(url.search);
 
         // Apply default parameters
-        setParamDefaults(searchParams, pathname)
+        setParamDefaults(searchParams, pathname);
 
         // Update the URL with the modified search params
-        url.search = searchParams.toString()
-        const response = NextResponse.rewrite(url)
+        url.search = searchParams.toString();
+        const response = NextResponse.rewrite(url);
 
         // Handle protected routes
         if (!isProtectedRoute(pathname)) {
-            return applySecurityHeaders(response)
+            return applySecurityHeaders(response);
         }
 
-        const token = await getToken({ req: request })
+        const token = await getToken({ req: request });
 
         if (!token) {
-            const loginUrl = new URL('/', request.url)
-            loginUrl.searchParams.set('callbackUrl', pathname)
-            return applySecurityHeaders(NextResponse.redirect(loginUrl))
+            const loginUrl = new URL("/", request.url);
+            loginUrl.searchParams.set("callbackUrl", pathname);
+            return applySecurityHeaders(NextResponse.redirect(loginUrl));
         }
 
         // Special handling for profile route
-        if (pathname.startsWith('/profile')) {
-            const userId = token.sub
+        if (pathname.startsWith("/profile")) {
+            const userId = token.sub;
             if (!userId) {
-                return applySecurityHeaders(NextResponse.redirect(new URL('/', request.url)))
+                return applySecurityHeaders(
+                    NextResponse.redirect(new URL("/", request.url)),
+                );
             }
 
-            const requestedProfileId = pathname.split('/').pop()
+            const requestedProfileId = pathname.split("/").pop();
 
             if (requestedProfileId && userId !== requestedProfileId) {
                 // User is trying to access another user's profile - redirect to their own profile
-                return applySecurityHeaders(NextResponse.redirect(new URL(`/profile/${userId}`, request.url)))
+                return applySecurityHeaders(
+                    NextResponse.redirect(
+                        new URL(`/profile/${userId}`, request.url),
+                    ),
+                );
             }
         }
 
-        return applySecurityHeaders(response)
+        return applySecurityHeaders(response);
     } catch (error) {
-        console.error('Middleware error:', error)
-        return applySecurityHeaders(NextResponse.next())
+        console.error("Middleware error:", error);
+        return applySecurityHeaders(NextResponse.next());
     }
 }
 
-export function setParamDefaults(params: URLSearchParams, path: string, user?: UserInterface): URLSearchParams {
+export function setParamDefaults(
+    params: URLSearchParams,
+    path: string,
+    user?: UserInterface,
+): URLSearchParams {
+    if (!params.has(QueryProperty.Sort)) {
+        getSortParamDefaultFromPath(params, path);
+    }
+    if (!params.has(QueryProperty.Page)) {
+        params.set(QueryProperty.Page, "1");
+    }
+    if (!params.has(QueryProperty.Size)) {
+        params.set(QueryProperty.Size, "10");
+    }
+    if (!params.has(QueryProperty.Direction)) {
+        params.set(QueryProperty.Direction, "asc");
+    }
+    if (!params.has(QueryProperty.Zip)) {
+        params.set(QueryProperty.Zip, user?.zipCode ?? "");
+    }
+    if (!params.has(QueryProperty.FromDate)) {
+        params.set(QueryProperty.FromDate, formattedDateParam(new Date()));
+    }
+    if (!params.has(QueryProperty.Distance)) {
+        params.set(QueryProperty.Distance, "5");
+    }
 
-    if (!params.has(QueryProperty.Sort)) { getSortParamDefaultFromPath(params, path) }
-    if (!params.has(QueryProperty.Page)) { params.set(QueryProperty.Page, "1") }
-    if (!params.has(QueryProperty.Size)) { params.set(QueryProperty.Size, "10") }
-    if (!params.has(QueryProperty.Direction)) { params.set(QueryProperty.Direction, "asc") }
-    if (!params.has(QueryProperty.Zip)) { params.set(QueryProperty.Zip, user?.zipCode ?? "")}
-    if (!params.has(QueryProperty.FromDate)) { params.set(QueryProperty.FromDate, formattedDateParam(new Date()))}
-    if (!params.has(QueryProperty.Distance)) { params.set(QueryProperty.Distance, "5")}
-
-    return params
+    return params;
 }
 
-function getSortParamDefaultFromPath(params: URLSearchParams, path: string): URLSearchParams {
-    if (path.startsWith('/club') || path.startsWith('/comedian')) {
-        params.set(QueryProperty.Sort, path.includes('/search') ? SortParamValue.NameAsc : SortParamValue.DateAsc)
-    } else if (path.startsWith('/show')) {
-        params.set(QueryProperty.Sort,  SortParamValue.DateAsc)
+function getSortParamDefaultFromPath(
+    params: URLSearchParams,
+    path: string,
+): URLSearchParams {
+    if (path.startsWith("/club") || path.startsWith("/comedian")) {
+        params.set(
+            QueryProperty.Sort,
+            path.includes("/search")
+                ? SortParamValue.NameAsc
+                : SortParamValue.DateAsc,
+        );
+    } else if (path.startsWith("/show")) {
+        params.set(QueryProperty.Sort, SortParamValue.DateAsc);
     }
-    return params
+    return params;
 }
 
 export const config = {
@@ -133,6 +167,6 @@ export const config = {
          * - _next (Next.js internals)
          * - images (static image files)
          */
-        '/((?!static|favicon.ico|_next|images).*)',
+        "/((?!static|favicon.ico|_next|images).*)",
     ],
-}
+};
