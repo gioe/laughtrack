@@ -1,23 +1,32 @@
-import { auth } from "@/auth";
+import { resolveAuth } from "@/lib/auth/resolveAuth";
 import { updateUserProfileData } from "@/lib/data/profile/updateUserProfileData";
 import { NextRequest, NextResponse } from "next/server";
 import { UserProfileInterface } from "./interface";
 
-export async function PUT(
-    req: NextRequest,
-    { params  }
-) {
-    const [ session, slug ] = await Promise.all([auth(), params])
-    if (!session?.profile) { return new NextResponse(null, { status: 401 }) }
-    if (session.profile.userid !== slug.id) { return new NextResponse(null, { status: 403 }) }
+export async function PUT(req: NextRequest, { params }) {
+    const [authCtx, slug] = await Promise.all([resolveAuth(req), params]);
+    if (!authCtx) {
+        return new NextResponse(null, { status: 401 });
+    }
+    if (authCtx.userId !== slug.id) {
+        return new NextResponse(null, { status: 403 });
+    }
 
-    const data = await req.json()
+    const data = await req.json();
 
     return updateUserProfileData(slug.id, data)
-        .then((response: UserProfileInterface) => NextResponse.json({
-            response
-         }, { status: 200 }))
+        .then((response: UserProfileInterface) =>
+            NextResponse.json(
+                {
+                    response,
+                },
+                { status: 200 },
+            ),
+        )
         .catch((error: Error) => {
-            return NextResponse.json({ message: error.message }, { status: 500 })
+            return NextResponse.json(
+                { message: error.message },
+                { status: 500 },
+            );
         });
 }
