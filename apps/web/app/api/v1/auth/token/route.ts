@@ -31,9 +31,6 @@ export async function POST(req: NextRequest) {
     }
 
     const token = generateToken({ email: session.user.email }, "access");
-    if (!token) {
-        return new NextResponse(null, { status: 500 });
-    }
 
     return NextResponse.json({ token });
 }

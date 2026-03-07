@@ -5,12 +5,15 @@ import { AuthToken } from "../../objects/interface";
 const secret = process.env.SECRET_KEY;
 if (!secret) throw new Error("SECRET_KEY environment variable is not set");
 
-export const generateToken = (payload: any, type: string) => {
+export const generateToken = (
+    payload: any,
+    type: "access" | "refresh",
+): string => {
     if (type === "access") {
         return jwt.sign(payload, secret, {
             expiresIn: "24h",
         });
-    } else if (type === "refresh") {
+    } else {
         return jwt.sign(payload, secret, {
             expiresIn: "30d",
         });
