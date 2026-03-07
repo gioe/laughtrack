@@ -11,6 +11,7 @@
         "lint:fix": "ESLINT_USE_FLAT_CONFIG=false eslint --fix \"./**/*.{ts,tsx}\" --ignore-pattern node_modules --ignore-pattern .next",
         "format": "prettier --write \"./**/*.{ts,tsx}\" --ignore-path .gitignore",
         "gcp-build": "tsc -p .",
+        "test": "vitest run",
         "type-check": "tsc -b",
         "prepare": "cd ../.. && node apps/web/node_modules/.bin/husky"
     },
@@ -100,6 +101,7 @@
         "tailwindcss-animate": "^1.0.7",
         "tsx": "^4.19.2",
         "typescript": "^5.6.3",
-        "typescript-eslint": "^8.12.2"
+        "typescript-eslint": "^8.12.2",
+        "vitest": "^4.0.18"
     }
 }
