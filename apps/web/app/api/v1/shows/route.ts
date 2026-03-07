@@ -58,7 +58,9 @@ export async function GET(req: NextRequest) {
         const result = await getSearchedShows({
             params: params.toString(),
             timezone,
-            ...(authCtx?.profileId ? { profileId: authCtx.profileId } : {}),
+            ...(authCtx
+                ? { profileId: authCtx.profileId, userId: authCtx.userId }
+                : {}),
         });
 
         return NextResponse.json({
