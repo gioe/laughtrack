@@ -14,9 +14,12 @@ import { getSearchedShows } from "@/lib/data/show/search/getSearchedShows";
 const mockResolveAuth = vi.mocked(resolveAuth);
 const mockGetSearchedShows = vi.mocked(getSearchedShows);
 
-function makeRequest(params: Record<string, string> = {}): NextRequest {
+function makeRequest(
+    params: Record<string, string> = {},
+    { omitZip = false }: { omitZip?: boolean } = {},
+): NextRequest {
     const url = new URL("http://localhost/api/v1/shows");
-    url.searchParams.set("zip", "10001");
+    if (!omitZip) url.searchParams.set("zip", "10001");
     for (const [k, v] of Object.entries(params)) {
         url.searchParams.set(k, v);
     }
@@ -72,6 +75,44 @@ describe("GET /api/v1/shows", () => {
 
             expect(res.status).toBe(500);
             expect(body).toEqual({ error: "Failed to fetch shows" });
+        });
+    });
+
+    describe("input validation", () => {
+        it("returns 400 when zip is missing", async () => {
+            const req = makeRequest({}, { omitZip: true });
+            const res = await GET(req);
+            const body = await res.json();
+
+            expect(res.status).toBe(400);
+            expect(body.error).toMatch(/zip/i);
+        });
+
+        it("returns 400 when zip is not a 5-digit code", async () => {
+            const req = makeRequest({ zip: "123" });
+            const res = await GET(req);
+            const body = await res.json();
+
+            expect(res.status).toBe(400);
+            expect(body.error).toMatch(/zip/i);
+        });
+
+        it("returns 400 when from date is malformed", async () => {
+            const req = makeRequest({ from: "not-a-date" });
+            const res = await GET(req);
+            const body = await res.json();
+
+            expect(res.status).toBe(400);
+            expect(body.error).toMatch(/from/i);
+        });
+
+        it("returns 400 when to date is malformed", async () => {
+            const req = makeRequest({ to: "2024/13/99" });
+            const res = await GET(req);
+            const body = await res.json();
+
+            expect(res.status).toBe(400);
+            expect(body.error).toMatch(/to/i);
         });
     });
 
