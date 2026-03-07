@@ -112,6 +112,10 @@ def main(argv: list[str]) -> int:
         print(f"Error: Invalid task ID: {argv[2]}", file=sys.stderr)
         return 1
 
+    # Locate the tusk binary (sibling of this script in the same bin/ directory)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    tusk_bin = os.path.join(script_dir, "tusk")
+
     # Parse remaining flags
     remaining = argv[3:]
     session_id = None
@@ -168,18 +172,54 @@ def main(argv: list[str]) -> int:
 
         if len(rows) == 0:
             if len(closed_rows) == 0:
+                # No sessions at all. If a feature branch exists, tasks.db was likely reverted
+                # by a git stash or checkout — create a synthetic session so merge can proceed.
+                branch_check, _ = find_task_branch(task_id)
+                if branch_check:
+                    print(
+                        f"Warning: No session found for task {task_id} — tasks.db may have been "
+                        "reverted by a git stash or checkout. Creating a synthetic session to "
+                        "allow merge to proceed.\n"
+                        "Tip: add the tusk database to your .gitignore (run `tusk path` to find "
+                        "the exact path) to prevent this in future.",
+                        file=sys.stderr,
+                    )
+                    result = run([tusk_bin, "task-start", str(task_id), "--force"], check=False)
+                    if result.returncode != 0:
+                        print(
+                            f"Error: Could not create synthetic session:\n{result.stderr.strip()}\n\n"
+                            "Manual recovery:\n"
+                            f"  git checkout <default_branch>\n"
+                            f"  git merge --ff-only feature/TASK-{task_id}-*\n"
+                            f"  git push\n"
+                            f"  tusk task-done {task_id} --reason completed",
+                            file=sys.stderr,
+                        )
+                        return 1
+                    try:
+                        start_data = json.loads(result.stdout)
+                        session_id = start_data["session_id"]
+                        print(f"Synthetic session {session_id} created.", file=sys.stderr)
+                    except (json.JSONDecodeError, KeyError) as e:
+                        print(
+                            f"Error: Could not parse session from task-start output: {e}",
+                            file=sys.stderr,
+                        )
+                        return 1
+                else:
+                    print(
+                        f"Error: No session found for task {task_id}. "
+                        "Start a session with `tusk task-start` or pass --session <id> explicitly.",
+                        file=sys.stderr,
+                    )
+                    return 1
+            else:
+                session_id = closed_rows[0][0]
                 print(
-                    f"Error: No open session found for task {task_id}. "
-                    "Start a session with `tusk task-start` or pass --session <id> explicitly.",
+                    f"Warning: No open session found for task {task_id}; "
+                    f"falling back to last closed session {session_id}.",
                     file=sys.stderr,
                 )
-                return 1
-            session_id = closed_rows[0][0]
-            print(
-                f"Warning: No open session found for task {task_id}; "
-                f"falling back to last closed session {session_id}.",
-                file=sys.stderr,
-            )
         elif len(rows) > 1:
             lines = "\n".join(f"  session {r[0]}  (started {r[1]})" for r in rows)
             print(
@@ -200,10 +240,6 @@ def main(argv: list[str]) -> int:
     if use_pr and pr_number is None:
         print("Error: --pr-number <N> is required when using PR mode", file=sys.stderr)
         return 1
-
-    # Locate the tusk binary (sibling of this script in the same bin/ directory)
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    tusk_bin = os.path.join(script_dir, "tusk")
 
     # Preflight checks — abort before touching session or task state
     # Step 1a: Detect feature branch
@@ -237,12 +273,40 @@ def main(argv: list[str]) -> int:
     print(f"Found branch: {branch_name}", file=sys.stderr)
 
     # Step 2: Close the session (captures git diff stats while on feature branch)
+    #
+    # Checkpoint the WAL first so that any uncommitted writes (e.g. from tusk task-start)
+    # are flushed to the main db file before session-close reads the session row.
+    # Without this, a git stash or branch switch that reverts tasks.db to a pre-WAL
+    # snapshot can silently drop the session row, causing "No session found" below.
+    print("Checkpointing WAL...", file=sys.stderr)
+    try:
+        with sqlite3.connect(_db_path) as _conn:
+            row = _conn.execute("PRAGMA wal_checkpoint(FULL)").fetchone()
+            if row and row[0] > 0:
+                print(
+                    f"Warning: WAL checkpoint partially blocked (busy={row[0]}, log={row[1]}, checkpointed={row[2]}) — session row may still be at risk.",
+                    file=sys.stderr,
+                )
+    except sqlite3.Error as e:
+        # Non-fatal: warn and continue — session-close will surface any real issue.
+        print(f"Warning: WAL checkpoint failed: {e} — continuing.", file=sys.stderr)
+
     print(f"Closing session {session_id}...", file=sys.stderr)
     result = run([tusk_bin, "session-close", str(session_id)], check=False)
     session_was_closed = result.returncode == 0
     if result.returncode != 0:
         if "already closed" in result.stderr:
             print(f"Warning: session {session_id} is already closed — continuing.", file=sys.stderr)
+        elif "No session found" in result.stderr:
+            # The session row is missing despite the WAL checkpoint above — likely lost
+            # due to a git stash/checkout that reverted tasks.db before the WAL was
+            # checkpointed. Skip session-close and continue so the merge itself is not
+            # blocked by this transient data-loss scenario.
+            print(
+                f"Warning: session {session_id} not found in DB (may have been lost to a "
+                "WAL revert) — skipping session-close and continuing with merge.",
+                file=sys.stderr,
+            )
         else:
             print(f"Error: session-close failed:\n{result.stderr.strip()}", file=sys.stderr)
             return 2
