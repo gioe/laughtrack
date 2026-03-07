@@ -2,7 +2,8 @@
 import jwt from "jsonwebtoken";
 import { AuthToken } from "../../objects/interface";
 
-const secret = process.env.SECRET_KEY as string;
+const secret = process.env.SECRET_KEY;
+if (!secret) throw new Error("SECRET_KEY environment variable is not set");
 
 export const generateToken = (payload: any, type: string) => {
     if (type === "access") {
