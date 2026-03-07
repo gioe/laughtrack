@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSearchedShows } from "@/lib/data/show/search/getSearchedShows";
+import { resolveAuth } from "@/lib/auth/resolveAuth";
 
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const DEFAULT_DISTANCE = "25";
@@ -19,21 +20,21 @@ export async function GET(req: NextRequest) {
     if (!zip || !/^\d{5}$/.test(zip)) {
         return NextResponse.json(
             { error: "zip is required and must be a 5-digit US zip code" },
-            { status: 400 }
+            { status: 400 },
         );
     }
 
     if (from && (!ISO_DATE_RE.test(from) || isNaN(new Date(from).getTime()))) {
         return NextResponse.json(
             { error: "from must be a valid date in YYYY-MM-DD format" },
-            { status: 400 }
+            { status: 400 },
         );
     }
 
     if (to && (!ISO_DATE_RE.test(to) || isNaN(new Date(to).getTime()))) {
         return NextResponse.json(
             { error: "to must be a valid date in YYYY-MM-DD format" },
-            { status: 400 }
+            { status: 400 },
         );
     }
 
@@ -44,17 +45,20 @@ export async function GET(req: NextRequest) {
     if (from) params.set("fromDate", from);
     if (to) params.set("toDate", to);
     // QueryHelper uses 1-indexed pages internally; API is 0-indexed
-    if (page !== null) params.set("page", String(Math.max(0, Number(page)) + 1));
+    if (page !== null)
+        params.set("page", String(Math.max(0, Number(page)) + 1));
     if (size !== null) params.set("size", size);
     if (comedian) params.set("comedian", comedian);
     if (filters) params.set("filters", filters);
 
     const timezone = req.headers.get("X-Timezone") ?? "UTC";
+    const authCtx = await resolveAuth(req);
 
     try {
         const result = await getSearchedShows({
             params: params.toString(),
             timezone,
+            ...(authCtx?.profileId ? { profileId: authCtx.profileId } : {}),
         });
 
         return NextResponse.json({
@@ -64,6 +68,9 @@ export async function GET(req: NextRequest) {
         });
     } catch (error) {
         console.error("GET /api/v1/shows error:", error);
-        return NextResponse.json({ error: "Failed to fetch shows" }, { status: 500 });
+        return NextResponse.json(
+            { error: "Failed to fetch shows" },
+            { status: 500 },
+        );
     }
 }
