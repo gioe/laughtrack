@@ -52,9 +52,9 @@ export async function GET(req: NextRequest) {
     if (filters) params.set("filters", filters);
 
     const timezone = req.headers.get("X-Timezone") ?? "UTC";
-    const authCtx = await resolveAuth(req);
 
     try {
+        const authCtx = await resolveAuth(req);
         const result = await getSearchedShows({
             params: params.toString(),
             timezone,
