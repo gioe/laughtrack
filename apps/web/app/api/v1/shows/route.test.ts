@@ -106,8 +106,26 @@ describe("GET /api/v1/shows", () => {
             expect(body.error).toMatch(/from/i);
         });
 
+        it("returns 400 when from date matches ISO format but is an impossible calendar date", async () => {
+            const req = makeRequest({ from: "2024-13-01" });
+            const res = await GET(req);
+            const body = await res.json();
+
+            expect(res.status).toBe(400);
+            expect(body.error).toMatch(/from/i);
+        });
+
         it("returns 400 when to date is malformed", async () => {
             const req = makeRequest({ to: "2024/13/99" });
+            const res = await GET(req);
+            const body = await res.json();
+
+            expect(res.status).toBe(400);
+            expect(body.error).toMatch(/to/i);
+        });
+
+        it("returns 400 when to date matches ISO format but is an impossible calendar date", async () => {
+            const req = makeRequest({ to: "2024-13-01" });
             const res = await GET(req);
             const body = await res.json();
 
