@@ -3,12 +3,41 @@ name: Web CI
 on:
   push:
     branches: [main]
+    paths:
+      - "apps/web/**"
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened]
+    paths:
+      - "apps/web/**"
 
 jobs:
+  type-check:
+    name: Type Check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run type-check
+
   lint:
+    name: Lint
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -30,3 +59,29 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    env:
+      SKIP_ENV_VALIDATION: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
