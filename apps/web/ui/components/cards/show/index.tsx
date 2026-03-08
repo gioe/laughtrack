@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { FullRoundedButton } from "@/ui/components/button/rounded/full";
 import { Show } from "@/objects/class/show/Show";
 import ShowCardHeader from "@/ui/components/cards/show/header";
@@ -16,6 +16,7 @@ interface ShowCardProps {
 }
 
 const ShowCard: React.FC<ShowCardProps> = ({ show }: ShowCardProps) => {
+    const prefersReducedMotion = useReducedMotion();
     const parsedShow = new Show(show);
     const stillOnSale =
         parsedShow.tickets.filter((ticket) => !ticket.soldOut).length > 0;
@@ -30,11 +31,22 @@ const ShowCard: React.FC<ShowCardProps> = ({ show }: ShowCardProps) => {
         <motion.div
             className="p-2 sm:p-6 bg-gradient-to-br from-[#FDF8EF] to-[#F5E6D3] overflow-hidden
                 rounded-xl w-full shadow-md hover:shadow-xl border border-white/20"
-            initial={alreadySeen ? false : { opacity: 0, y: 20 }}
+            initial={
+                alreadySeen
+                    ? false
+                    : { opacity: 0, y: prefersReducedMotion ? 0 : 20 }
+            }
             whileInView={{ opacity: 1, y: 0 }}
-            whileHover={{ scale: 1.02, transition: { duration: 0.15 } }}
+            whileHover={
+                prefersReducedMotion
+                    ? undefined
+                    : { scale: 1.02, transition: { duration: 0.15 } }
+            }
             viewport={{ once: true }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
+            transition={{
+                duration: prefersReducedMotion ? 0 : 0.5,
+                ease: "easeOut",
+            }}
         >
             <div className="flex flex-col lg:flex-row gap-2 sm:gap-4">
                 <div className="flex-1 lg:w-[35%] flex flex-col gap-2 sm:gap-4">
