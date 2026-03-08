@@ -18,12 +18,12 @@ type TrendingComedianRow = {
     show_count: number;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function getTrendingComedians(
-    userId?: string,
-): Promise<ComedianDTO[]> {
+export async function getTrendingComedians(): Promise<ComedianDTO[]> {
     const now = new Date();
 
+    // Table/column mappings: comedians@@map, lineup_items@@map, shows@@map,
+    // tagged_comedians@@map, tags@@map. Comedian.uuid=comedians.uuid,
+    // LineupItem.comedianId=lineup_items.comedian_id, Comedian.parentComedianId=parent_comedian_id
     const rows = await db.$queryRaw<TrendingComedianRow[]>`
         WITH comedian_counts AS (
             SELECT
@@ -101,6 +101,6 @@ export async function getTrendingComedians(
             popularity: row.popularity,
             linktree: row.linktree,
         },
-        show_count: row.show_count,
+        show_count: Number(row.show_count),
     }));
 }

@@ -17,10 +17,10 @@ export interface HomePageData {
     clubs: ClubDTO[];
 }
 
-async function getHomePageData(userId?: string): Promise<HomePageData> {
+async function getHomePageData(): Promise<HomePageData> {
     try {
         const [comedians, clubs] = await Promise.all([
-            getTrendingComedians(userId),
+            getTrendingComedians(),
             getPopularClubs(),
         ]);
         return {
@@ -42,9 +42,7 @@ export default async function HomePage() {
         unstable_cache(
             async () => {
                 try {
-                    return await getHomePageData(
-                        currentSession?.profile?.userid,
-                    );
+                    return await getHomePageData();
                 } catch (error) {
                     console.error("Home page data fetch error:", error);
                     throw error;
