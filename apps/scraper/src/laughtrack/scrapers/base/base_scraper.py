@@ -114,10 +114,10 @@ class BaseScraper(HttpConvenienceMixin, ABC):
         # Set up logging context for this scraper instance (augment with scraper key)
         self.logger_context = {**club.as_context(), "scraper": self.key or "-"}
 
-        # Initialize rate limiting for this domain if specified
-        self.rate_limiter: Optional[RateLimiter] = None
+        # Always wire in the unified rate limiter; override RPS when the club
+        # specifies an explicit rate_limit.
+        self.rate_limiter: RateLimiter = RateLimiter()
         if club.rate_limit:
-            self.rate_limiter = RateLimiter()
             self.rate_limiter.set_domain_limit(club.scraping_domain, club.rate_limit)
 
         # Initialize transformation pipeline
@@ -238,9 +238,8 @@ class BaseScraper(HttpConvenienceMixin, ABC):
         async def fetch_single_target(target: ScrapingTarget) -> tuple[Optional[EventListContainer], ScrapingTarget]:
             """Fetch data from a single target with error handling and rate limiting."""
             try:
-                # Apply rate limiting if configured
-                if self.rate_limiter is not None:
-                    await self.rate_limiter.await_if_needed(target)
+                # Apply domain-appropriate rate limiting before each fetch
+                await self.rate_limiter.await_if_needed(target)
 
                 # Extract raw data using retry logic
                 async def _fetch_with_retry() -> Optional[EventListContainer]:

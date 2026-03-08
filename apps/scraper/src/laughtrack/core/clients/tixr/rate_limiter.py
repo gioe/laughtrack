@@ -350,29 +350,3 @@ class TixrAntiDetectionLimiter:
         )
         self.request_history.append(record)
 
-
-# Global instances for different use cases
-tixr_rate_limiter = TixrAntiDetectionLimiter(TixrConfigLevel.BALANCED)
-tixr_conservative_limiter = TixrAntiDetectionLimiter(TixrConfigLevel.CONSERVATIVE)
-tixr_aggressive_limiter = TixrAntiDetectionLimiter(TixrConfigLevel.AGGRESSIVE)
-
-
-def get_rate_limiter(level: TixrConfigLevel = TixrConfigLevel.BALANCED) -> TixrAntiDetectionLimiter:
-    """Get a rate limiter instance for the specified configuration level."""
-    if level == TixrConfigLevel.CONSERVATIVE:
-        return tixr_conservative_limiter
-    elif level == TixrConfigLevel.AGGRESSIVE:
-        return tixr_aggressive_limiter
-    else:
-        return tixr_rate_limiter
-
-
-def create_custom_limiter(
-    rate_config: TixrRateLimitConfig, safety_config: TixrSafetyConfig
-) -> TixrAntiDetectionLimiter:
-    """Create a custom rate limiter with specific configuration."""
-    return TixrAntiDetectionLimiter(
-        config_level=TixrConfigLevel.BALANCED,  # Will be overridden by rate_config
-        rate_config=rate_config,
-        safety_config=safety_config,
-    )

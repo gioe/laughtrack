@@ -1,169 +1,320 @@
 """
-Rate limiting infrastructure for coordinating scraping across multiple domains.
+Unified rate-limiting infrastructure for all scraping domains.
 
-This module provides a singleton RateLimiter that ensures domain-wide rate limiting
-coordination across all scrapers, preventing overwhelming target servers.
+A single RateLimiter singleton reads per-domain DomainConfig objects and
+applies either simple RPS-based limiting or full anti-detection behaviour
+(human-like delays, session rotation, exponential backoff) depending on the
+domain's configuration.
+
+Replaces the three previously separate systems:
+  - RateLimiter (simple RPS)
+  - AntiDetectionManager (session-aware, human-like delays)
+  - TixrAntiDetectionLimiter (Tixr-specific burst/hourly limits)
 """
 
 import asyncio
+import hashlib
+import random
 import threading
 import time
 from collections import defaultdict
-from datetime import datetime
-from typing import Dict, Optional
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from typing import Dict, Optional, Tuple
 
 from laughtrack.foundation.models.types import ScrapingTarget
+
+from .domain_config import DEFAULT_DOMAIN_CONFIGS, DomainConfig, _BUILTIN_USER_AGENTS
+
+
+# ---------------------------------------------------------------------------
+# Internal session state (used only in anti-detection mode)
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class _RequestSession:
+    """Tracks per-domain session state for anti-detection rate limiting."""
+
+    domain: str
+    start_time: datetime
+    request_count: int
+    last_request: datetime
+    consecutive_errors: int
+    user_agent: str
+    session_id: str
+
+
+# ---------------------------------------------------------------------------
+# Unified rate limiter
+# ---------------------------------------------------------------------------
 
 
 class RateLimiter:
     """
     Singleton rate limiter that coordinates requests across all scrapers.
 
-    Provides both sync and async interfaces for rate limiting with domain-specific
-    limits and global coordination.
+    Per-domain behaviour is driven by DomainConfig:
+    - Simple RPS mode  (enable_anti_detection=False): enforces a minimum
+      interval derived from requests_per_second.
+    - Anti-detection mode (enable_anti_detection=True): applies randomised
+      human-like delays, session rotation, and exponential backoff.
 
-    Note: The sync (wait_if_needed) and async (await_if_needed) paths use separate
-    lock primitives (threading.Lock vs asyncio.Lock) and share _last_request without
-    cross-path coordination. Do not use both paths concurrently for the same domain
-    from different threads — use one path exclusively per process.
+    The async path (await_if_needed) always uses asyncio.sleep — it never
+    blocks the event loop.
     """
 
-    _instance = None
-    _lock = threading.Lock()
+    _instance: Optional["RateLimiter"] = None
+    _class_lock = threading.Lock()
 
-    def __new__(cls):
+    def __new__(cls) -> "RateLimiter":
         if cls._instance is None:
-            with cls._lock:
+            with cls._class_lock:
                 if cls._instance is None:
-                    cls._instance = super().__new__(cls)
-                    cls._instance._initialized = False
+                    obj = super().__new__(cls)
+                    obj._initialized = False
+                    cls._instance = obj
         return cls._instance
 
-    def __init__(self):
+    def __init__(self) -> None:
         if self._initialized:
             return
 
-        self._domain_limits: Dict[str, float] = {}  # domain -> requests per second
+        # Per-domain configs (seeded from built-in defaults)
+        self._domain_configs: Dict[str, DomainConfig] = dict(DEFAULT_DOMAIN_CONFIGS)
+        self._default_config = DomainConfig()  # fallback
+
+        # RPS-mode state
+        self._last_request: Dict[str, float] = {}
         self._domain_locks: Dict[str, threading.Lock] = defaultdict(threading.Lock)
         self._async_domain_locks: Dict[str, asyncio.Lock] = {}
-        self._last_request: Dict[str, float] = {}
         self._global_lock = threading.Lock()
 
-        # Default rate limits (requests per second)
-        self._default_limits = {
-            "eventbrite.com": 0.5,  # 1 request per 2 seconds
-            "comedycellar.com": 1.0,  # 1 request per second
-            "thestandnyc.com": 1.0,
-            "eastvillecomedy.com": 2.0,  # 1 request per 0.5 seconds
-            "default": 1.0,  # Default 1 request per second
-        }
+        # Anti-detection session state
+        self._sessions: Dict[str, _RequestSession] = {}
+        self._session_locks: Dict[str, asyncio.Lock] = {}
 
-        self._domain_limits.update(self._default_limits)
         self._initialized = True
 
-    def set_domain_limit(self, domain: str, rate_limit: float) -> None:
-        """Set the rate limit for a specific domain."""
+    # ------------------------------------------------------------------
+    # Public configuration API
+    # ------------------------------------------------------------------
+
+    def set_domain_config(self, domain: str, config: DomainConfig) -> None:
+        """Register or replace the full DomainConfig for a domain."""
         with self._global_lock:
-            self._domain_limits[domain] = rate_limit
+            self._domain_configs[domain] = config
+
+    def set_domain_limit(self, domain: str, requests_per_second: float) -> None:
+        """
+        Convenience method: update only the RPS for a domain.
+
+        Creates a new DomainConfig (simple RPS mode) if the domain has no
+        existing config; otherwise updates requests_per_second in place.
+        """
+        with self._global_lock:
+            existing = self._domain_configs.get(domain)
+            if existing is None:
+                self._domain_configs[domain] = DomainConfig(requests_per_second=requests_per_second)
+            else:
+                # Preserve all other settings, only update RPS
+                self._domain_configs[domain] = DomainConfig(
+                    requests_per_second=requests_per_second,
+                    enable_anti_detection=existing.enable_anti_detection,
+                    min_delay=existing.min_delay,
+                    max_delay=existing.max_delay,
+                    session_request_limit=existing.session_request_limit,
+                    session_duration_secs=existing.session_duration_secs,
+                    error_backoff_base=existing.error_backoff_base,
+                    peak_hour_multiplier=existing.peak_hour_multiplier,
+                    user_agents=existing.user_agents,
+                )
 
     def get_domain_limit(self, domain: str) -> float:
-        """Get the rate limit for a domain."""
-        return self._domain_limits.get(domain, self._domain_limits["default"])
+        """Return the configured RPS for a domain."""
+        return self._get_config(domain).requests_per_second
 
-    def _extract_domain(self, url: str) -> str:
-        """Extract domain from URL for rate limiting."""
-        if "://" in url:
-            url = url.split("://", 1)[1]
-        domain = url.split("/")[0]
-        return domain.lower()
-
-    def _is_url(self, target: str) -> bool:
-        """Check if the target is a URL or just an identifier string."""
-        return target.startswith(("http://", "https://")) or "." in target
-
-    def _should_wait(self, domain: str) -> Optional[float]:
-        """
-        Check if we should wait before making a request to this domain.
-        Returns the wait time in seconds, or None if no wait is needed.
-        """
-        limit = self.get_domain_limit(domain)
-        min_interval = 1.0 / limit
-
-        now = time.time()
-        last_request = self._last_request.get(domain, 0)
-
-        time_since_last = now - last_request
-        if time_since_last < min_interval:
-            return min_interval - time_since_last
-
-        return None
-
-    def wait_if_needed(self, url: str) -> None:
-        """
-        Synchronous rate limiting. Blocks if necessary to respect rate limits.
-
-        Do not mix with await_if_needed for the same domain from concurrent threads.
-
-        Args:
-            url: The URL being requested (domain will be extracted) or identifier string
-        """
-        # Check if target is actually a URL, not just an identifier string
-        if not self._is_url(url):
-            return
-
-        domain = self._extract_domain(url)
-
-        with self._domain_locks[domain]:
-            wait_time = self._should_wait(domain)
-            if wait_time:
-                time.sleep(wait_time)
-
-            self._last_request[domain] = time.time()
-
-    def _get_async_lock(self, domain: str) -> asyncio.Lock:
-        """Get or create a per-domain asyncio.Lock for the async rate-limiting path."""
-        return self._async_domain_locks.setdefault(domain, asyncio.Lock())
+    # ------------------------------------------------------------------
+    # Main rate-limiting interface
+    # ------------------------------------------------------------------
 
     async def await_if_needed(self, target: ScrapingTarget) -> None:
         """
-        Asynchronous rate limiting. Awaits if necessary to respect rate limits.
+        Async rate limiting — awaits if necessary; never blocks the event loop.
 
-        Do not mix with wait_if_needed for the same domain from concurrent threads.
-
-        Args:
-            target: The URL being requested (domain will be extracted) or identifier string
+        Dispatches to anti-detection or simple RPS mode based on DomainConfig.
         """
-        # Check if target is actually a URL, not just an identifier string
         if not self._is_url(target):
             return
 
         domain = self._extract_domain(target)
+        config = self._get_config(domain)
 
-        async with self._get_async_lock(domain):
-            wait_time = self._should_wait(domain)
+        if config.enable_anti_detection:
+            await self._anti_detection_wait(domain, config)
+        else:
+            await self._rps_wait(domain, config)
+
+    def wait_if_needed(self, url: str) -> None:
+        """
+        Synchronous rate limiting (simple RPS mode only).
+
+        Use await_if_needed from async contexts.  Do not mix sync and async
+        calls for the same domain from concurrent threads.
+        """
+        if not self._is_url(url):
+            return
+
+        domain = self._extract_domain(url)
+        config = self._get_config(domain)
+
+        with self._domain_locks[domain]:
+            wait_time = self._rps_wait_time(domain, config)
             if wait_time:
-                await asyncio.sleep(wait_time)
-
+                time.sleep(wait_time)
             self._last_request[domain] = time.time()
 
+    # ------------------------------------------------------------------
+    # RPS mode internals
+    # ------------------------------------------------------------------
+
+    async def _rps_wait(self, domain: str, config: DomainConfig) -> None:
+        async with self._get_async_lock(domain):
+            wait_time = self._rps_wait_time(domain, config)
+            if wait_time:
+                await asyncio.sleep(wait_time)
+            self._last_request[domain] = time.time()
+
+    def _rps_wait_time(self, domain: str, config: DomainConfig) -> Optional[float]:
+        min_interval = 1.0 / config.requests_per_second
+        now = time.time()
+        last = self._last_request.get(domain, 0)
+        elapsed = now - last
+        if elapsed < min_interval:
+            return min_interval - elapsed
+        return None
+
+    def _get_async_lock(self, domain: str) -> asyncio.Lock:
+        return self._async_domain_locks.setdefault(domain, asyncio.Lock())
+
+    # ------------------------------------------------------------------
+    # Anti-detection mode internals
+    # ------------------------------------------------------------------
+
+    async def _anti_detection_wait(self, domain: str, config: DomainConfig) -> None:
+        async with self._get_session_lock(domain):
+            session = self._get_or_create_session(domain, config)
+            delay = self._calculate_anti_detection_delay(session, config)
+
+            time_since_last = (datetime.now() - session.last_request).total_seconds()
+            actual_delay = max(0.0, delay - time_since_last)
+
+            if actual_delay > 0:
+                await asyncio.sleep(actual_delay)
+
+            session.last_request = datetime.now()
+            session.request_count += 1
+
+    def _get_session_lock(self, domain: str) -> asyncio.Lock:
+        return self._session_locks.setdefault(domain, asyncio.Lock())
+
+    def _get_or_create_session(self, domain: str, config: DomainConfig) -> _RequestSession:
+        now = datetime.now()
+
+        if domain in self._sessions:
+            session = self._sessions[domain]
+            age = (now - session.start_time).total_seconds()
+            needs_rotation = (
+                session.request_count >= config.session_request_limit
+                or age > config.session_duration_secs
+                or session.consecutive_errors >= 3
+            )
+            if not needs_rotation:
+                return session
+
+        user_agents = config.user_agents or _BUILTIN_USER_AGENTS
+        session = _RequestSession(
+            domain=domain,
+            start_time=now,
+            request_count=0,
+            last_request=now - timedelta(seconds=config.max_delay),
+            consecutive_errors=0,
+            user_agent=random.choice(user_agents),
+            session_id=self._make_session_id(domain),
+        )
+        self._sessions[domain] = session
+        return session
+
+    def _calculate_anti_detection_delay(self, session: _RequestSession, config: DomainConfig) -> float:
+        base = random.uniform(config.min_delay, config.max_delay)
+        jitter = random.uniform(-0.5, 1.0)
+        delay = base + jitter
+
+        # Peak-hour slowdown (09:00–18:00 local time)
+        if 9 <= datetime.now().hour <= 18:
+            delay *= config.peak_hour_multiplier
+
+        # Exponential backoff on consecutive errors (cap at 8×)
+        if session.consecutive_errors > 0:
+            multiplier = min(2 ** session.consecutive_errors, 8)
+            delay += config.error_backoff_base * multiplier
+
+        # Progressive slowdown as session approaches its limit
+        if config.session_request_limit > 0:
+            progress = session.request_count / config.session_request_limit
+            if progress > 0.7:
+                delay *= 1.5
+
+        return max(delay, 1.0)
+
+    @staticmethod
+    def _make_session_id(domain: str) -> str:
+        data = f"{domain}_{time.time()}_{random.randint(10000, 99999)}"
+        return hashlib.md5(data.encode()).hexdigest()[:12]
+
+    # ------------------------------------------------------------------
+    # Helpers
+    # ------------------------------------------------------------------
+
+    def _get_config(self, domain: str) -> DomainConfig:
+        return self._domain_configs.get(domain, self._default_config)
+
+    @staticmethod
+    def _extract_domain(url: str) -> str:
+        if "://" in url:
+            url = url.split("://", 1)[1]
+        return url.split("/")[0].lower()
+
+    @staticmethod
+    def _is_url(target: str) -> bool:
+        return target.startswith(("http://", "https://")) or "." in target
+
+    # ------------------------------------------------------------------
+    # Monitoring / stats
+    # ------------------------------------------------------------------
+
     def get_stats(self) -> Dict[str, Dict]:
-        """Get rate limiting statistics for monitoring."""
+        """Return rate-limiting statistics for all known domains."""
         with self._global_lock:
             stats = {}
-            for domain, limit in self._domain_limits.items():
-                last_request = self._last_request.get(domain, 0)
-                stats[domain] = {
-                    "limit_rps": limit,
-                    "last_request": datetime.fromtimestamp(last_request) if last_request else None,
-                    "time_since_last": time.time() - last_request if last_request else None,
+            for domain, config in self._domain_configs.items():
+                last = self._last_request.get(domain, 0)
+                entry: Dict = {
+                    "mode": "anti_detection" if config.enable_anti_detection else "rps",
+                    "requests_per_second": config.requests_per_second,
+                    "last_request": datetime.fromtimestamp(last) if last else None,
+                    "time_since_last": time.time() - last if last else None,
                 }
+                if config.enable_anti_detection and domain in self._sessions:
+                    s = self._sessions[domain]
+                    entry["session_id"] = s.session_id
+                    entry["session_requests"] = s.request_count
+                    entry["consecutive_errors"] = s.consecutive_errors
+                stats[domain] = entry
             return stats
 
     def reset_domain(self, domain: str) -> None:
-        """Reset rate limiting state for a domain."""
+        """Reset all rate-limiting state for a domain."""
         with self._domain_locks[domain]:
             self._last_request.pop(domain, None)
-
-
-# Global rate limiter instance
-rate_limiter = RateLimiter()
+        self._sessions.pop(domain, None)

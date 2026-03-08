@@ -283,17 +283,3 @@ class AntiDetectionManager:
             self._domain_configs[domain].update(kwargs)
             Logger.debug(f"Updated config for {domain}: {kwargs}")
 
-
-# Global anti-detection manager instance
-anti_detection = AntiDetectionManager()
-
-# Configure Tixr with very conservative settings
-anti_detection.configure_domain(
-    "www.tixr.com",
-    min_delay=4.0,  # Minimum 4 seconds
-    max_delay=12.0,  # Maximum 12 seconds
-    session_limit=20,  # Only 20 requests per session
-    session_duration=2400,  # 40 minutes max session
-    error_backoff_base=15.0,  # 15 second base backoff
-    peak_hour_multiplier=2.0,  # Much slower during peak hours
-)
