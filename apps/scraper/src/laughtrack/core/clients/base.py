@@ -86,6 +86,32 @@ class BaseApiClient(ABC):
             except Exception:
                 return
 
+    def _get_impersonation_target(self, url: str) -> str:
+        """Return the curl-cffi impersonation target for *url*.
+
+        Asks the rate limiter for the active BrowserProfile of the request's
+        domain so the TLS fingerprint always matches the HTTP headers.  Falls
+        back to ``"chrome124"`` when no rate limiter or no active profile is
+        available.
+        """
+        limiter = getattr(self, "rate_limiter", None)
+        if limiter is None:
+            return "chrome124"
+        get_profile = getattr(limiter, "get_domain_profile", None)
+        if not callable(get_profile):
+            return "chrome124"
+        try:
+            if "://" in url:
+                domain = url.split("://", 1)[1].split("/")[0].lower()
+            else:
+                domain = url.split("/")[0].lower()
+            profile = get_profile(domain)
+            if profile is not None:
+                return profile.impersonation_target
+        except Exception:
+            pass
+        return "chrome124"
+
     def _initialize_headers(self) -> Dict[str, str]:
         """Initialize default headers. Subclasses should override for custom auth."""
         return BaseHeaders.get_headers("json")
@@ -130,7 +156,7 @@ class BaseApiClient(ABC):
         request_headers = headers or self.headers
         context = logger_context or {}
         try:
-            async with AsyncSession(impersonate="chrome124", timeout=timeout) as session:
+            async with AsyncSession(impersonate=self._get_impersonation_target(url), timeout=timeout) as session:
                 # DEBUG pre-request details
                 try:
                     ctx: JSONDict = {"club_name": getattr(self.club, "name", "-")}
@@ -194,7 +220,7 @@ class BaseApiClient(ABC):
         context = logger_context or {}
 
         try:
-            async with AsyncSession(impersonate="chrome124", timeout=timeout) as session:
+            async with AsyncSession(impersonate=self._get_impersonation_target(url), timeout=timeout) as session:
                 # DEBUG pre-request details
                 try:
                     ctx: JSONDict = {"club_name": getattr(self.club, "name", "-")}
@@ -257,7 +283,7 @@ class BaseApiClient(ABC):
         context = logger_context or {}
 
         try:
-            async with AsyncSession(impersonate="chrome124", timeout=timeout) as session:
+            async with AsyncSession(impersonate=self._get_impersonation_target(url), timeout=timeout) as session:
                 # DEBUG pre-request details
                 try:
                     ctx: JSONDict = {"club_name": getattr(self.club, "name", "-")}
@@ -333,7 +359,7 @@ class BaseApiClient(ABC):
         context = logger_context or {}
 
         try:
-            async with AsyncSession(impersonate="chrome124", timeout=timeout) as session:
+            async with AsyncSession(impersonate=self._get_impersonation_target(url), timeout=timeout) as session:
                 # DEBUG pre-request details
                 try:
                     ctx: JSONDict = {"club_name": getattr(self.club, "name", "-")}
