@@ -8,7 +8,10 @@ import SearchDetailHeader from "@/ui/pages/search/header";
 import { SearchVariant } from "@/objects/enum/searchVariant";
 import { getSearchedClubs } from "@/lib/data/club/search/getSearchedClubs";
 import { unstable_cache } from "next/cache";
-import { ParameterizedRequestData } from "@/objects/interface";
+import {
+    ParameterizedRequestData,
+    ShowSearchParams,
+} from "@/objects/interface";
 import { cookies } from "next/headers";
 
 export default async function ClubSearchPage(props: any) {
@@ -19,7 +22,7 @@ export default async function ClubSearchPage(props: any) {
     ]);
 
     const requestData = {
-        params: searchParams,
+        params: searchParams as ShowSearchParams,
         timezone: cookieStore.get("timezone")?.value || "UTC",
         userId: session?.profile?.userid,
         profileId: session?.profile?.id,

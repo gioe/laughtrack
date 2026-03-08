@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSearchedShows } from "@/lib/data/show/search/getSearchedShows";
 import { resolveAuth } from "@/lib/auth/resolveAuth";
+import { ShowSearchParams } from "@/objects/interface";
 
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const DEFAULT_DISTANCE = "25";
@@ -48,25 +49,25 @@ export async function GET(req: NextRequest) {
         }
     }
 
-    const params = new URLSearchParams();
-    params.set("zip", zip);
-    // Distance defaults to 25 miles so zip geo-filtering is always applied
-    params.set("distance", distance ?? DEFAULT_DISTANCE);
-    if (from) params.set("fromDate", from);
-    if (to) params.set("toDate", to);
-    // QueryHelper uses 1-indexed pages internally; API is 0-indexed
-    if (page !== null)
-        params.set("page", String(Math.max(0, Number(page)) + 1));
-    if (size !== null) params.set("size", size);
-    if (comedian) params.set("comedian", comedian);
-    if (filters) params.set("filters", filters);
+    const params: ShowSearchParams = {
+        zip,
+        // Distance defaults to 25 miles so zip geo-filtering is always applied
+        distance: distance ?? DEFAULT_DISTANCE,
+        fromDate: from ?? undefined,
+        toDate: to ?? undefined,
+        // QueryHelper uses 1-indexed pages internally; API is 0-indexed
+        page: page !== null ? String(Math.max(0, Number(page)) + 1) : undefined,
+        size: size ?? undefined,
+        comedian: comedian ?? undefined,
+        filters: filters ?? undefined,
+    };
 
     const timezone = req.headers.get("X-Timezone") ?? "UTC";
 
     try {
         const authCtx = await resolveAuth(req);
         const result = await getSearchedShows({
-            params: params.toString(),
+            params,
             timezone,
             ...(authCtx
                 ? { profileId: authCtx.profileId, userId: authCtx.userId }

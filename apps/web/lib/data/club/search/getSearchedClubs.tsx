@@ -14,10 +14,7 @@ export async function getSearchedClubs(
 
         const [clubsWithCount, filters] = await Promise.all([
             findClubsWithCount(helper),
-            getFilters(
-                EntityType.Club,
-                new URLSearchParams(requestData.params),
-            ),
+            getFilters(EntityType.Club, requestData.params.filters),
         ]);
 
         return {

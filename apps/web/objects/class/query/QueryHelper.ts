@@ -1,7 +1,7 @@
-import { QueryProperty } from "../../enum/queryProperty";
 import zipcodes from "zipcodes";
 import { Prisma } from "@prisma/client";
 import { ParameterizedRequestData } from "@/objects/interface";
+import { ShowSearchParams } from "@/objects/interface/showSearch.interface";
 import { toZonedTime, format } from "date-fns-tz";
 
 // This class is meant to capture all of the page parameters that our Page URL contains and converts them into query parameters.
@@ -9,7 +9,7 @@ import { toZonedTime, format } from "date-fns-tz";
 // as globally as possible, updating values according to page transitions.
 // It is almost certainly too bloated.
 export class QueryHelper {
-    searchParams: URLSearchParams;
+    params: ShowSearchParams;
     slug?: string;
     profileId?: string;
     userId?: string;
@@ -20,14 +20,12 @@ export class QueryHelper {
         this.userId = requestData.userId;
         this.profileId = requestData.profileId;
         this.slug = requestData.slug ? decodeURI(requestData.slug) : undefined;
-        this.searchParams = new URLSearchParams(requestData.params);
+        this.params = requestData.params;
     }
 
     // Comedians
     getComedianNameClause() {
-        const comedian = this.searchParams.get(
-            QueryProperty.Comedian,
-        ) as string;
+        const comedian = this.params.comedian;
 
         if (!comedian) {
             return {};
@@ -42,7 +40,7 @@ export class QueryHelper {
     }
 
     getComedianFiltersClause() {
-        const filters = this.searchParams.get(QueryProperty.Filters);
+        const filters = this.params.filters;
         const commonClause = {
             taggedComedians: {
                 none: {
@@ -77,12 +75,12 @@ export class QueryHelper {
     }
 
     setComedianName() {
-        this.searchParams.set(QueryProperty.Comedian, this.slug ?? "");
+        this.params = { ...this.params, comedian: this.slug ?? "" };
     }
 
     // Clubs
     getClubNameClause() {
-        const club = this.searchParams.get(QueryProperty.Club) as string;
+        const club = this.params.club;
         if (!club) {
             return {};
         }
@@ -96,7 +94,7 @@ export class QueryHelper {
     }
 
     getClubFiltersClause() {
-        const filters = this.searchParams.get(QueryProperty.Filters);
+        const filters = this.params.filters;
 
         if (!filters) {
             return {};
@@ -121,12 +119,12 @@ export class QueryHelper {
     }
 
     setClubName() {
-        this.searchParams.set(QueryProperty.Club, this.slug ?? "");
+        this.params = { ...this.params, club: this.slug ?? "" };
     }
 
     // Shows
     getShowTagsClause() {
-        const tags = this.searchParams.get(QueryProperty.Filters);
+        const tags = this.params.filters;
 
         if (!tags) {
             return {};
@@ -165,9 +163,7 @@ export class QueryHelper {
      * // or where a comedian with John as their parent is in the lineup
      */
     getLineupItemClause() {
-        const comedian = this.searchParams.get(
-            QueryProperty.Comedian,
-        ) as string;
+        const comedian = this.params.comedian;
         return {
             lineupItems: {
                 ...(comedian
@@ -206,24 +202,24 @@ export class QueryHelper {
     }
 
     getZipCodeClause() {
-        const providedZip = this.searchParams.get(QueryProperty.Zip);
-        const radius = this.searchParams.get(QueryProperty.Distance);
+        const providedZip = this.params.zip;
+        const radius = this.params.distance;
 
         // Return empty object if no zip code or invalid zip code
         if (!providedZip || !/^\d{5}$/.test(providedZip)) {
             return {};
         }
 
-        // Return empty object if no radius, invalid radius, or out-of-bounds radius
+        // If no valid radius, fall back to exact zip match so zip always scopes results
         const radiusNum = Number(radius);
         if (!radius || isNaN(radiusNum) || radiusNum < 1 || radiusNum > 500) {
-            return {};
+            return { zipCode: { equals: providedZip } };
         }
 
         try {
             const zipResults = zipcodes.radius(providedZip, Number(radius));
             if (!zipResults || zipResults.length === 0) {
-                return {};
+                return { zipCode: { equals: providedZip } };
             }
 
             const nearbyZips = zipResults.map(
@@ -238,14 +234,14 @@ export class QueryHelper {
             };
         } catch (error) {
             console.error("Error in zip code radius calculation:", error);
-            return {};
+            return { zipCode: { equals: providedZip } };
         }
     }
 
     getDateClause() {
         const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-        const fromDate = this.searchParams.get(QueryProperty.FromDate);
-        const toDate = this.searchParams.get(QueryProperty.ToDate);
+        const fromDate = this.params.fromDate;
+        const toDate = this.params.toDate;
         if (
             !fromDate ||
             !ISO_DATE_RE.test(fromDate) ||
@@ -308,8 +304,7 @@ export class QueryHelper {
         const defaultSortField = "name_asc";
 
         // Get sort parameters with fallbacks
-        const sortParam =
-            this.searchParams.get(QueryProperty.Sort) || defaultSortField;
+        const sortParam = this.params.sort || defaultSortField;
         const [field, direction] = sortParam.split("_");
 
         // Map sort fields to database fields
@@ -323,10 +318,7 @@ export class QueryHelper {
         };
 
         // Handle pagination with proper null checks and defaults
-        const size = Math.max(
-            1,
-            Number(this.searchParams.get(QueryProperty.Size)) || defaultSize,
-        );
+        const size = Math.max(1, Number(this.params.size) || defaultSize);
         const take = Math.min(size, total);
 
         // Calculate pagination with safeguards
@@ -334,11 +326,7 @@ export class QueryHelper {
         const page =
             Math.max(
                 1,
-                Math.min(
-                    Number(this.searchParams.get(QueryProperty.Page)) ||
-                        defaultPage,
-                    totalPages,
-                ),
+                Math.min(Number(this.params.page) || defaultPage, totalPages),
             ) - 1;
 
         const skip = Math.max(0, take * page);
@@ -356,13 +344,13 @@ export class QueryHelper {
     }
 
     getZipCodes() {
-        const providedZip = this.searchParams.get(QueryProperty.Zip) as string;
-        const radius = this.searchParams.get(QueryProperty.Distance) as string;
+        const providedZip = this.params.zip;
+        const radius = this.params.distance;
         const radiusNum = Number(radius);
         if (!radius || isNaN(radiusNum) || radiusNum < 1 || radiusNum > 500) {
             return {};
         }
-        const nearbyZips = zipcodes.radius(providedZip, radiusNum);
+        const nearbyZips = zipcodes.radius(providedZip ?? "", radiusNum);
         return {
             ...(nearbyZips
                 ? {
@@ -388,12 +376,9 @@ export class QueryHelper {
 
     getFilters() {
         return {
-            filtersEmpty:
-                this.searchParams.get(QueryProperty.Filters) == undefined,
-            filters: this.searchParams.get(QueryProperty.Filters)
-                ? (
-                      this.searchParams.get(QueryProperty.Filters) as string
-                  ).split(",")
+            filtersEmpty: this.params.filters == undefined,
+            filters: this.params.filters
+                ? this.params.filters.split(",")
                 : [""],
         };
     }

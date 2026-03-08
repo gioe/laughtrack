@@ -4,7 +4,10 @@ import { auth } from "@/auth";
 import { SearchVariant } from "@/objects/enum/searchVariant";
 import { unstable_cache } from "next/cache";
 import { getComedianDetailPageData } from "@/lib/data/comedian/detail/getComedianDetailPageData";
-import { ParameterizedRequestData } from "@/objects/interface";
+import {
+    ParameterizedRequestData,
+    ShowSearchParams,
+} from "@/objects/interface";
 import ComedianDetailHeader from "@/ui/pages/entity/comedian/header";
 import FilterBar from "@/ui/pages/search/filterBar";
 import FilterModal from "@/ui/components/modals/filter";
@@ -53,7 +56,7 @@ export default async function ComedianDetailsPage(props: {
     ]);
 
     const requestData = {
-        params: searchParams,
+        params: searchParams as ShowSearchParams,
         timezone: cookieStore.get("timezone")?.value || "UTC",
         userId: session?.profile?.userid,
         profileId: session?.profile?.id,

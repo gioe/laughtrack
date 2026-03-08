@@ -1,7 +1,6 @@
 import { db } from "@/lib/db";
 import { Prisma, TagVisibility } from "@prisma/client";
 import { FilterDTO } from "@/objects/interface/filter.interface";
-import { QueryProperty } from "@/objects/enum";
 import { paramsContainsFilter } from "@/util/filter/util";
 import { EntityType } from "@/objects/enum";
 
@@ -13,7 +12,7 @@ const TAG_SELECT = {
 
 export async function getFilters(
     type: EntityType,
-    queryParams: URLSearchParams
+    activeFilters: string | null | undefined,
 ): Promise<FilterDTO[]> {
     try {
         if (!Object.values(EntityType).includes(type)) {
@@ -26,36 +25,31 @@ export async function getFilters(
                 visibility: TagVisibility.PUBLIC,
                 AND: [
                     {
-                        OR: [
-                            { name: { not: null } },
-                            { slug: { not: null } }
-                        ]
-                    }
-                ]
+                        OR: [{ name: { not: null } }, { slug: { not: null } }],
+                    },
+                ],
             },
             select: TAG_SELECT,
             orderBy: {
-                name: 'asc'
-            }
+                name: "asc",
+            },
         });
 
-        const filters = queryParams.get(QueryProperty.Filters);
-
-        return queriedFilters.map(filter => ({
+        return queriedFilters.map((filter) => ({
             id: filter.id,
-            name: filter.name ?? '',
-            slug: filter.slug ?? '',
-            selected: paramsContainsFilter(filters, filter.slug)
+            name: filter.name ?? "",
+            slug: filter.slug ?? "",
+            selected: paramsContainsFilter(activeFilters ?? null, filter.slug),
         }));
     } catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
-            console.error('Database error in getFilters:', error);
+            console.error("Database error in getFilters:", error);
             throw new Error(`Database error: ${error.message}`);
         }
         if (error instanceof Error) {
-            console.error('Error in getFilters:', error);
+            console.error("Error in getFilters:", error);
             throw error;
         }
-        throw new Error('An unknown error occurred while fetching filters');
+        throw new Error("An unknown error occurred while fetching filters");
     }
 }

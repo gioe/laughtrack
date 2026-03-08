@@ -14,10 +14,7 @@ export async function getSearchedComedians(
     try {
         const [comediansWithCount, filters] = await Promise.all([
             findComediansWithCount(helper),
-            getFilters(
-                EntityType.Comedian,
-                new URLSearchParams(requestData.params),
-            ),
+            getFilters(EntityType.Comedian, requestData.params.filters),
         ]);
 
         return {
