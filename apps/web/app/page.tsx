@@ -1,6 +1,5 @@
 import { auth } from "../auth";
 import { unstable_cache } from "next/cache";
-import { Session } from "next-auth";
 import { CACHE } from "@/util/constants/cacheConstants";
 import { getTrendingComedians } from "@/lib/data/home/getTrendingComedians";
 import { getPopularClubs } from "@/lib/data/home/getPopularClubs";
@@ -38,24 +37,23 @@ async function getHomePageData(): Promise<HomePageData> {
 export default async function HomePage() {
     const session = await auth();
 
-    const getCachedHomePageData = (currentSession: Session | null) =>
-        unstable_cache(
-            async () => {
-                try {
-                    return await getHomePageData();
-                } catch (error) {
-                    console.error("Home page data fetch error:", error);
-                    throw error;
-                }
-            },
-            ["home-page-data", currentSession?.profile?.userid ?? ""],
-            {
-                revalidate: CACHE.home,
-                tags: ["home-page-data", currentSession?.profile?.userid ?? ""],
-            },
-        );
+    const getCachedHomePageData = unstable_cache(
+        async () => {
+            try {
+                return await getHomePageData();
+            } catch (error) {
+                console.error("Home page data fetch error:", error);
+                throw error;
+            }
+        },
+        ["home-page-data"],
+        {
+            revalidate: CACHE.home,
+            tags: ["home-page-data"],
+        },
+    );
 
-    const { comedians, clubs } = await getCachedHomePageData(session)();
+    const { comedians, clubs } = await getCachedHomePageData();
 
     return (
         <main className="min-h-screen w-full">
