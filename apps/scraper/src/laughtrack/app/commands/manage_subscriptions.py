@@ -38,6 +38,15 @@ def cmd_list() -> None:
 
 def cmd_add(club_id: int, sender_domain: str) -> None:
     """Insert or update an EmailSubscription row."""
+    if not sender_domain or "." not in sender_domain:
+        print(
+            f"Error: '{sender_domain}' is not a valid sender domain (must be non-empty and contain a dot).",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    # db.get_connection() opens with autocommit=True by default, so each
+    # execute is committed immediately without an explicit conn.commit().
     with db.get_connection() as conn:
         with conn.cursor() as cur:
             # Validate club exists
@@ -48,7 +57,7 @@ def cmd_add(club_id: int, sender_domain: str) -> None:
                 sys.exit(1)
             club_name = row[0]
 
-            # Upsert
+            # Upsert — committed automatically via autocommit=True
             cur.execute(
                 """
                 INSERT INTO email_subscriptions (club_id, sender_domain, subscribed)
@@ -60,7 +69,7 @@ def cmd_add(club_id: int, sender_domain: str) -> None:
                 (club_id, sender_domain),
             )
 
-    print(f"Subscription saved: club '{club_name}' (id={club_id}), sender_domain='{sender_domain}'")
+            print(f"Subscription saved: club '{club_name}' (id={club_id}), sender_domain='{sender_domain}'")
 
 
 def build_parser() -> argparse.ArgumentParser:
