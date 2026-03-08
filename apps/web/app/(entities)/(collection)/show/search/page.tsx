@@ -4,7 +4,7 @@ import { SearchVariant } from "@/objects/enum/searchVariant";
 import { unstable_cache } from "next/cache";
 import { getSearchedShows } from "@/lib/data/show/search/getSearchedShows";
 import { ParameterizedRequestData } from "@/objects/interface";
-import { toSearchParams } from "@/util/search/toShowSearchParams";
+import { toSearchParams } from "@/util/search/toSearchParams";
 import FilterBar from "@/ui/pages/search/filterBar";
 import ShowTable from "@/ui/pages/search/table";
 import FilterModal from "@/ui/components/modals/filter";

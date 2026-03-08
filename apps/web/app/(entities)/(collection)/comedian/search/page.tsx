@@ -9,7 +9,7 @@ import SearchDetailHeader from "@/ui/pages/search/header";
 import FilterModal from "@/ui/components/modals/filter";
 import FilterBar from "@/ui/pages/search/filterBar";
 import { ParameterizedRequestData } from "@/objects/interface";
-import { toSearchParams } from "@/util/search/toShowSearchParams";
+import { toSearchParams } from "@/util/search/toSearchParams";
 import { cookies } from "next/headers";
 
 export default async function ComedianSearchPage(props: any) {

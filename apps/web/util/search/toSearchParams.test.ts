@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { toSearchParams } from "./toShowSearchParams";
+import { toSearchParams } from "./toSearchParams";
 
 describe("toSearchParams", () => {
     it("returns undefined for absent keys", () => {

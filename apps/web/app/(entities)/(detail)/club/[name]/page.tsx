@@ -8,7 +8,7 @@ import { SearchVariant } from "@/objects/enum/searchVariant";
 import { getClubDetailPageData } from "@/lib/data/club/detail/getClubDetailPageData";
 import { unstable_cache } from "next/cache";
 import { ParameterizedRequestData } from "@/objects/interface";
-import { toSearchParams } from "@/util/search/toShowSearchParams";
+import { toSearchParams } from "@/util/search/toSearchParams";
 import { cookies } from "next/headers";
 import ShowTable from "@/ui/pages/search/table";
 import type { Metadata } from "next";

@@ -5,7 +5,7 @@ import { SearchVariant } from "@/objects/enum/searchVariant";
 import { unstable_cache } from "next/cache";
 import { getComedianDetailPageData } from "@/lib/data/comedian/detail/getComedianDetailPageData";
 import { ParameterizedRequestData } from "@/objects/interface";
-import { toSearchParams } from "@/util/search/toShowSearchParams";
+import { toSearchParams } from "@/util/search/toSearchParams";
 import ComedianDetailHeader from "@/ui/pages/entity/comedian/header";
 import FilterBar from "@/ui/pages/search/filterBar";
 import FilterModal from "@/ui/components/modals/filter";
