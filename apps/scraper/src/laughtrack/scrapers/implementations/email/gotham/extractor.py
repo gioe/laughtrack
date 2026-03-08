@@ -22,7 +22,9 @@ scanning ticket links and inferring surrounding context.
 
 import re
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Set
+
+import pytz
 
 from bs4 import BeautifulSoup, Tag
 
@@ -169,10 +171,15 @@ class GothamEmailExtractor:
     def _extract_from_ticket_links(self, soup: BeautifulSoup) -> List[EmailShowEvent]:
         """Scan all links for ticket URLs and infer surrounding context."""
         events: List[EmailShowEvent] = []
+        seen_urls: Set[str] = set()
 
         for anchor in soup.find_all("a", href=True):
             href: str = anchor["href"]
             if not any(domain in href for domain in _TICKET_DOMAINS):
+                continue
+            if not href.startswith(("https://", "http://")):
+                continue
+            if href in seen_urls:
                 continue
 
             context = anchor.find_parent(["div", "td", "tr", "section", "article"]) or anchor
@@ -180,6 +187,7 @@ class GothamEmailExtractor:
             headliner = self._extract_headliner_from_tag(context)
 
             if date and headliner:
+                seen_urls.add(href)
                 events.append(
                     EmailShowEvent(date=date, headliner=headliner, ticket_link=href)
                 )
@@ -212,7 +220,7 @@ class GothamEmailExtractor:
     def _extract_ticket_link_from_tag(self, tag: Tag) -> Optional[str]:
         for anchor in tag.find_all("a", href=True):
             href: str = anchor["href"]
-            if any(domain in href for domain in _TICKET_DOMAINS):
+            if any(domain in href for domain in _TICKET_DOMAINS) and href.startswith(("https://", "http://")):
                 return href
         return None
 
@@ -238,7 +246,6 @@ def _parse_date_from_text(text: str) -> Optional[datetime]:
             for fmt in _DATE_FORMATS:
                 try:
                     naive = datetime.strptime(f"{date_part} {time_part}".strip(), fmt)
-                    import pytz
                     tz = pytz.timezone(_VENUE_TIMEZONE)
                     return tz.localize(naive)
                 except Exception:

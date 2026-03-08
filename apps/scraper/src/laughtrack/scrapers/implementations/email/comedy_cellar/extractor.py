@@ -21,7 +21,9 @@ variations in newsletter design across marketing campaigns.
 
 import re
 from datetime import datetime, timezone
-from typing import List, Optional
+from typing import List, Optional, Set
+
+import pytz
 
 from bs4 import BeautifulSoup, Tag
 
@@ -126,10 +128,15 @@ class ComedyCellarEmailExtractor:
     def _extract_from_ticket_links(self, soup: BeautifulSoup) -> List[EmailShowEvent]:
         """Scan all links for reservation URLs and infer surrounding data."""
         events: List[EmailShowEvent] = []
+        seen_urls: Set[str] = set()
 
         for anchor in soup.find_all("a", href=True):
             href: str = anchor["href"]
             if _TICKET_DOMAIN not in href:
+                continue
+            if not href.startswith(("https://", "http://")):
+                continue
+            if href in seen_urls:
                 continue
 
             # Walk up the DOM to find the closest container with date + headliner.
@@ -138,6 +145,7 @@ class ComedyCellarEmailExtractor:
             headliner = self._extract_headliner_from_block(context)
 
             if date and headliner:
+                seen_urls.add(href)
                 events.append(
                     EmailShowEvent(date=date, headliner=headliner, ticket_link=href)
                 )
@@ -175,7 +183,7 @@ class ComedyCellarEmailExtractor:
         """Return the first Comedy Cellar reservation/ticket URL inside *tag*."""
         for anchor in tag.find_all("a", href=True):
             href: str = anchor["href"]
-            if _TICKET_DOMAIN in href:
+            if _TICKET_DOMAIN in href and href.startswith(("https://", "http://")):
                 return href
         return None
 
@@ -192,19 +200,16 @@ def _parse_date_from_text(text: str) -> Optional[datetime]:
         if m:
             date_part = m.group(1).strip().rstrip(",")
             time_part = m.group(2).strip()
-            combined = f"{date_part} {time_part}".upper()
-            for fmt in _DATE_FORMATS:
-                try:
-                    return DateTimeUtils.parse_datetime_with_timezone(
-                        f"{date_part} {time_part}", _VENUE_TIMEZONE
-                    )
-                except Exception:
-                    pass
+            try:
+                return DateTimeUtils.parse_datetime_with_timezone(
+                    f"{date_part} {time_part}", _VENUE_TIMEZONE
+                )
+            except Exception:
+                pass
             # Manual fallback using strptime
             for fmt in _DATE_FORMATS:
                 try:
                     naive = datetime.strptime(f"{date_part} {time_part}".strip(), fmt)
-                    import pytz
                     tz = pytz.timezone(_VENUE_TIMEZONE)
                     return tz.localize(naive)
                 except Exception:
