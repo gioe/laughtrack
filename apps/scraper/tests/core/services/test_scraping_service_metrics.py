@@ -179,9 +179,7 @@ class TestScrapeClubsWithMetrics:
         elapsed = time.monotonic() - start
 
         assert len(results) == 4
-        # With concurrency, 4 clubs at 0.05s each should finish much faster than sequential (0.20s)
-        assert elapsed < 0.15, f"Expected concurrent execution but took {elapsed:.2f}s"
-        # Verify at least 2 clubs overlapped
+        # Verify at least 2 clubs overlapped — this directly proves concurrency without relying on wall-clock timing
         assert max(active_at_once) >= 2
 
     def test_one_club_failure_does_not_abort_others(self):

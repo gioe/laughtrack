@@ -110,15 +110,15 @@ class ScrapingService:
         async def scrape_one(
             club: Club,
         ) -> tuple[Optional[ClubScrapingResult], Optional[DomainRequestMetrics]]:
+            if not getattr(club, "scraper", None):
+                Logger.warn(f"Club '{club.name}' has no scraper key configured; skipping")
+                return None, None
+            key: str = club.scraper if club.scraper is not None else ""
+            scraper_cls = self._scraping_resolver.get(key)
+            if not scraper_cls:
+                Logger.warn(f"No scraper found for club '{club.name}' with key '{key}'")
+                return None, None
             async with semaphore:
-                if not getattr(club, "scraper", None):
-                    Logger.warn(f"Club '{club.name}' has no scraper key configured; skipping")
-                    return None, None
-                key: str = club.scraper if club.scraper is not None else ""
-                scraper_cls = self._scraping_resolver.get(key)
-                if not scraper_cls:
-                    Logger.warn(f"No scraper found for club '{club.name}' with key '{key}'")
-                    return None, None
                 metrics = DomainRequestMetrics(club_name=club.name, club_id=getattr(club, "id", None))
                 metrics.total += 1
                 try:
@@ -131,7 +131,7 @@ class ScrapingService:
                     else:
                         metrics.ok += 1
                     return result, metrics
-                except Exception as e:  # pragma: no cover - defensive
+                except Exception as e:
                     Logger.error(f"Failed to scrape club '{club.name}': {e}")
                     result = ClubScrapingResult(
                         club_name=club.name,
