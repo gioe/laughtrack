@@ -33,6 +33,8 @@ class ShowHandler(BaseDatabaseHandler[Show]):
         super().__init__()
         self.ticket_handler = TicketHandler()
         self.tag_handler = TagHandler()
+        self.lineup_handler = LineupHandler()
+        self.comedian_handler = ComedianHandler()
 
     def get_entity_name(self) -> str:
         """Return the entity name for logging purposes."""
@@ -346,27 +348,23 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             # Extract valid show IDs
             show_ids = self._extract_valid_show_ids(shows)
 
-            # Initialize handlers
-            lineup_handler = LineupHandler()
-            comedian_handler = ComedianHandler()
-
             # Get current lineups from database
-            db_lineups = lineup_handler.get_lineup(show_ids)
+            db_lineups = self.lineup_handler.get_lineup(show_ids)
 
             # Get all comedians from show names in one batch
             show_names = [(show.name,) for show in shows]
-            show_name_comedians_map = lineup_handler.get_comedians_from_show_names(show_names)
+            show_name_comedians_map = self.lineup_handler.get_comedians_from_show_names(show_names)
 
             # Process comedian additions in memory
             self._process_comedian_additions(shows, show_name_comedians_map)
 
             # Batch update all lineups at once
-            lineup_handler.batch_update_lineups(shows, db_lineups)
+            self.lineup_handler.batch_update_lineups(shows, db_lineups)
 
             # Collect all comedian UUIDs and update popularity
             comedian_uuids = ShowUtils.collect_comedian_uuids(shows)
             if comedian_uuids:
-                comedian_handler.update_comedian_popularity(comedian_uuids)
+                self.comedian_handler.update_comedian_popularity(comedian_uuids)
 
             # Calculate and update popularity for all shows in batch
             self.calculate_and_update_popularity(show_ids)
