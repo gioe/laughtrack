@@ -12,6 +12,7 @@ from .email.utils import EmailUtils  # Importing EmailUtils for email-related op
 from .error_handling import ErrorHandler, RetryConfig
 from .paginator.url_discovery import create_discovery_manager
 from laughtrack.foundation.utilities.path.utils import PathUtils, ProjectPaths
+from .domain_config import DomainConfig
 from .rate_limiter import RateLimiter
 from laughtrack.foundation.infrastructure.task_queue.models import Task, TaskQueue, TaskStatus
 from .transformer.base import DataTransformer
@@ -29,6 +30,7 @@ __all__ = [
     "ProjectPaths",
     "BatchTemplateGenerator",
     "EmailUtils",
+    "DomainConfig",
     "RateLimiter",
     "create_discovery_manager",
 ]
