@@ -73,6 +73,11 @@ describe("toSearchParams", () => {
         expect(result.size).toBe("20");
     });
 
+    it("returns undefined for empty array input", () => {
+        const result = toSearchParams({ zip: [] });
+        expect(result.zip).toBeUndefined();
+    });
+
     it("handles mixed present and absent fields", () => {
         const result = toSearchParams({ zip: "94105", page: "1" });
         expect(result.zip).toBe("94105");
