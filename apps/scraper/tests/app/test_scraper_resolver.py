@@ -8,23 +8,11 @@ Criteria covered:
 
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from laughtrack.app.scraper_resolver import ScraperResolver
 from laughtrack.scrapers.implementations.email.comedy_cellar.scraper import (
     ComedyCellarEmailScraper,
 )
 from laughtrack.scrapers.implementations.email.gotham.scraper import GothamEmailScraper
-
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-
-def _fresh_resolver() -> ScraperResolver:
-    """Return an unloaded ScraperResolver (no cached registry)."""
-    return ScraperResolver()
 
 
 # ---------------------------------------------------------------------------
@@ -34,17 +22,13 @@ def _fresh_resolver() -> ScraperResolver:
 
 class TestGothamEmailScraperRegistration:
     def test_get_returns_gotham_email_scraper(self):
-        resolver = _fresh_resolver()
-        cls = resolver.get("gotham_email")
-        assert cls is GothamEmailScraper
+        assert ScraperResolver().get("gotham_email") is GothamEmailScraper
 
     def test_gotham_email_key_in_keys(self):
-        resolver = _fresh_resolver()
-        assert "gotham_email" in resolver.keys()
+        assert "gotham_email" in ScraperResolver().keys()
 
     def test_gotham_email_in_items(self):
-        resolver = _fresh_resolver()
-        mapping = dict(resolver.items())
+        mapping = dict(ScraperResolver().items())
         assert "gotham_email" in mapping
         assert mapping["gotham_email"] is GothamEmailScraper
 
@@ -56,17 +40,13 @@ class TestGothamEmailScraperRegistration:
 
 class TestComedyCellarEmailScraperRegistration:
     def test_get_returns_comedy_cellar_email_scraper(self):
-        resolver = _fresh_resolver()
-        cls = resolver.get("comedy_cellar_email")
-        assert cls is ComedyCellarEmailScraper
+        assert ScraperResolver().get("comedy_cellar_email") is ComedyCellarEmailScraper
 
     def test_comedy_cellar_email_key_in_keys(self):
-        resolver = _fresh_resolver()
-        assert "comedy_cellar_email" in resolver.keys()
+        assert "comedy_cellar_email" in ScraperResolver().keys()
 
     def test_comedy_cellar_email_in_items(self):
-        resolver = _fresh_resolver()
-        mapping = dict(resolver.items())
+        mapping = dict(ScraperResolver().items())
         assert "comedy_cellar_email" in mapping
         assert mapping["comedy_cellar_email"] is ComedyCellarEmailScraper
 
