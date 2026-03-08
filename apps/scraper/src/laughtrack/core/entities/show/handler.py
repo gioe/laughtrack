@@ -29,6 +29,11 @@ class ShowHandler(BaseDatabaseHandler[Show]):
     OPERATION_TYPE_UPDATED = "updated"
     OPERATION_TYPE_UNKNOWN = "unknown"
 
+    def __init__(self):
+        super().__init__()
+        self.ticket_handler = TicketHandler()
+        self.tag_handler = TagHandler()
+
     def get_entity_name(self) -> str:
         """Return the entity name for logging purposes."""
         return "show"
@@ -134,10 +139,8 @@ class ShowHandler(BaseDatabaseHandler[Show]):
         updated_shows = ShowUtils.update_shows_with_results(batch, results)
 
         # Process tickets and tags through their handlers
-        ticket_handler = TicketHandler()
-        tag_handler = TagHandler()
-        ticket_handler.insert_tickets(updated_shows)
-        tag_handler.process_show_tags(updated_shows)
+        self.ticket_handler.insert_tickets(updated_shows)
+        self.tag_handler.process_show_tags(updated_shows)
 
         return updated_shows
 
