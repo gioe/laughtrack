@@ -19,6 +19,10 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Dict, Optional
 
+from laughtrack.foundation.infrastructure.http.browser_profile import (
+    BUILTIN_PROFILES,
+    BrowserProfile,
+)
 from laughtrack.foundation.models.types import ScrapingTarget
 
 from .domain_config import BUILTIN_USER_AGENTS, DEFAULT_DOMAIN_CONFIGS, DomainConfig
@@ -38,8 +42,9 @@ class _RequestSession:
     request_count: int
     last_request: datetime
     consecutive_errors: int
-    user_agent: str
+    user_agent: str        # derived from profile.user_agent; kept for backward compat
     session_id: str
+    profile: Optional[BrowserProfile] = None  # full fingerprint profile for this session
 
 
 # ---------------------------------------------------------------------------
@@ -125,7 +130,7 @@ class RateLimiter:
                     session_duration_secs=existing.session_duration_secs,
                     error_backoff_base=existing.error_backoff_base,
                     peak_hour_multiplier=existing.peak_hour_multiplier,
-                    user_agents=existing.user_agents,
+                    browser_profiles=existing.browser_profiles,
                 )
 
     def get_domain_limit(self, domain: str) -> float:
@@ -161,6 +166,18 @@ class RateLimiter:
         """
         session = self._sessions.get(domain)
         return session.user_agent if session is not None else None
+
+    def get_domain_profile(self, domain: str) -> Optional[BrowserProfile]:
+        """
+        Return the current session's BrowserProfile for a domain, if one exists.
+
+        Callers in anti-detection mode can use this to build a full set of
+        browser-identity headers that are coherent with the TLS fingerprint
+        (curl-cffi impersonation target) selected for this session.
+        Returns None when the domain has no active anti-detection session.
+        """
+        session = self._sessions.get(domain)
+        return session.profile if session is not None else None
 
     # ------------------------------------------------------------------
     # Main rate-limiting interface
@@ -260,15 +277,17 @@ class RateLimiter:
             if not needs_rotation:
                 return session
 
-        user_agents = config.user_agents or BUILTIN_USER_AGENTS
+        profiles = config.browser_profiles or BUILTIN_PROFILES
+        profile = random.choice(profiles)
         session = _RequestSession(
             domain=domain,
             start_time=now,
             request_count=0,
             last_request=now - timedelta(seconds=config.max_delay),
             consecutive_errors=0,
-            user_agent=random.choice(user_agents),
+            user_agent=profile.user_agent,
             session_id=self._make_session_id(domain),
+            profile=profile,
         )
         self._sessions[domain] = session
         return session

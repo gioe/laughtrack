@@ -9,6 +9,11 @@ The unified RateLimiter reads these configs at runtime.
 from dataclasses import dataclass, field
 from typing import Dict, List
 
+from laughtrack.foundation.infrastructure.http.browser_profile import (
+    BUILTIN_PROFILES,
+    BrowserProfile,
+)
+
 
 @dataclass
 class DomainConfig:
@@ -38,22 +43,16 @@ class DomainConfig:
     error_backoff_base: float = 5.0   # base seconds added per error
     peak_hour_multiplier: float = 1.2  # multiplier during 09:00-18:00
 
-    # User agents cycled per session (leave empty to use built-in defaults)
-    user_agents: List[str] = field(default_factory=list)
+    # Full browser profiles cycled per session.  Leave empty to use BUILTIN_PROFILES.
+    browser_profiles: List[BrowserProfile] = field(default_factory=list)
 
 
 # ---------------------------------------------------------------------------
 # Default per-domain configs
 # ---------------------------------------------------------------------------
 
-BUILTIN_USER_AGENTS: List[str] = [
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
-]
+# Kept for backward-compatibility with callers that still reference this name.
+BUILTIN_USER_AGENTS: List[str] = [p.user_agent for p in BUILTIN_PROFILES]
 
 DEFAULT_DOMAIN_CONFIGS: Dict[str, "DomainConfig"] = {
     # Tixr: conservative anti-detection settings

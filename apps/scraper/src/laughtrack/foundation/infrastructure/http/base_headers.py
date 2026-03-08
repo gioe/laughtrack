@@ -1,7 +1,12 @@
 """Base headers configuration for scrapers and API clients."""
 
-from typing import Optional
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Optional
 from urllib.parse import urlparse
+
+if TYPE_CHECKING:
+    from laughtrack.foundation.infrastructure.http.browser_profile import BrowserProfile
 
 
 class BaseHeaders:
@@ -230,6 +235,33 @@ class BaseHeaders:
             base.update(additional_headers)
 
         return base
+
+    @classmethod
+    def from_profile(
+        cls,
+        profile: "BrowserProfile",
+        base_type: str = "desktop_browser",
+        **kwargs,
+    ) -> dict:
+        """
+        Build a header dict from a BrowserProfile.
+
+        The profile's user_agent, sec_ch_ua, accept_language, and platform
+        override whatever the base_type dict would have supplied, ensuring
+        the TLS fingerprint (from curl-cffi's impersonation_target) and the
+        HTTP headers always describe the same browser version.
+
+        Args:
+            profile:   A BrowserProfile instance.
+            base_type: Base header template to start from (default: ``desktop_browser``).
+            **kwargs:  Extra arguments forwarded to ``get_headers``.
+
+        Returns:
+            Dictionary of HTTP headers consistent with the supplied profile.
+        """
+        headers = cls.get_headers(base_type=base_type, **kwargs)
+        headers.update(profile.to_headers())
+        return headers
 
     @classmethod
     def get_venue_headers(cls, venue_type: str, **kwargs) -> dict:
