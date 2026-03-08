@@ -343,25 +343,6 @@ export class QueryHelper {
         };
     }
 
-    getZipCodes() {
-        const providedZip = this.params.zip;
-        const radius = this.params.distance;
-        const radiusNum = Number(radius);
-        if (!radius || isNaN(radiusNum) || radiusNum < 1 || radiusNum > 500) {
-            return {};
-        }
-        const nearbyZips = zipcodes.radius(providedZip ?? "", radiusNum);
-        return {
-            ...(nearbyZips
-                ? {
-                      zipCode: {
-                          in: nearbyZips,
-                      },
-                  }
-                : {}),
-        };
-    }
-
     getSlug() {
         return this.slug;
     }
