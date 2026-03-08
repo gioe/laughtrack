@@ -22,8 +22,15 @@ class ScrapingResultProcessor:
         self.show_service = ShowService()
         self.metrics_service = MetricsService()
 
+    def start_run(self) -> None:
+        """Mark the start of a scraping run before any per-club writes begin."""
+        self.metrics_service.start_session()
+
     def insert_club_result(self, club_result: ClubScrapingResult) -> DatabaseOperationResult:
-        """Persist shows for a single completed club immediately."""
+        """Persist shows for a single completed club immediately.
+
+        Must be called while holding the caller's db_lock to ensure thread safety.
+        """
         if not club_result.shows:
             return DatabaseOperationResult()
         Logger.info(f"Persisting {len(club_result.shows)} shows for '{club_result.club_name}'...")

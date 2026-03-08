@@ -111,11 +111,12 @@ class ScrapingService:
         # db_lock serializes all DB writes: only one club writes at a time,
         # which keeps ShowService thread-safe regardless of its internals.
         db_lock = asyncio.Lock()
-        self.result_processor.metrics_service.start_session()
+        self.result_processor.start_run()
 
         async def scrape_one(
             club: Club,
         ) -> tuple[Optional[ClubScrapingResult], Optional[DomainRequestMetrics]]:
+            nonlocal total_db_result
             if not getattr(club, "scraper", None):
                 Logger.warn(f"Club '{club.name}' has no scraper key configured; skipping")
                 return None, None
@@ -140,7 +141,6 @@ class ScrapingService:
                     # db_lock serializes writes so insert_club_result() is called
                     # from at most one thread at a time, ensuring ShowService thread safety.
                     try:
-                        nonlocal total_db_result
                         async with db_lock:
                             club_db_result = await loop.run_in_executor(
                                 None, self.result_processor.insert_club_result, result
