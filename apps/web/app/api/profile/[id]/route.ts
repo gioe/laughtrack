@@ -2,6 +2,17 @@ import { resolveAuth } from "@/lib/auth/resolveAuth";
 import { updateUserProfileData } from "@/lib/data/profile/updateUserProfileData";
 import { NextRequest, NextResponse } from "next/server";
 import { UserProfileInterface } from "./interface";
+import { z } from "zod";
+
+const ProfileUpdateSchema = z.object({
+    zipCode: z
+        .string()
+        .regex(/^\d{5}$/, "zipCode must be a 5-digit US zip code")
+        .optional(),
+    emailOptin: z.boolean().optional(),
+});
+
+type ProfileUpdateInput = z.infer<typeof ProfileUpdateSchema>;
 
 export async function PUT(req: NextRequest, { params }) {
     const [authCtx, slug] = await Promise.all([resolveAuth(req), params]);
@@ -12,7 +23,25 @@ export async function PUT(req: NextRequest, { params }) {
         return new NextResponse(null, { status: 403 });
     }
 
-    const data = await req.json();
+    let body: unknown;
+    try {
+        body = await req.json();
+    } catch {
+        return NextResponse.json(
+            { error: "Invalid JSON body" },
+            { status: 400 },
+        );
+    }
+
+    const parsed = ProfileUpdateSchema.safeParse(body);
+    if (!parsed.success) {
+        return NextResponse.json(
+            { error: parsed.error.errors[0].message },
+            { status: 400 },
+        );
+    }
+
+    const data: ProfileUpdateInput = parsed.data;
 
     return updateUserProfileData(slug.id, data)
         .then((response: UserProfileInterface) =>
