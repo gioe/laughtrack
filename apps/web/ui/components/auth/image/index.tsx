@@ -1,14 +1,21 @@
+"use client";
+
 import { getLocalCdnUrl } from "@/util/cdnUtil";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import Image from "next/image";
 
 export default function AuthImageContent() {
+    const prefersReducedMotion = useReducedMotion();
+
     return (
         <div className="invisible lg:visible lg:w-1/2 lg:relative lg:bg-gray-900 overflow-hidden">
             <motion.div
-                initial={{ scale: 1.1, opacity: 0 }}
+                initial={{ scale: prefersReducedMotion ? 1 : 1.1, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 1.2, ease: "easeOut" }}
+                transition={{
+                    duration: prefersReducedMotion ? 0 : 1.2,
+                    ease: "easeOut",
+                }}
                 className="relative w-full h-full"
             >
                 <Image
@@ -23,25 +30,40 @@ export default function AuthImageContent() {
             </motion.div>
 
             <motion.div
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.4 }}
+                transition={{
+                    duration: prefersReducedMotion ? 0 : 0.8,
+                    delay: prefersReducedMotion ? 0 : 0.4,
+                }}
                 className="absolute inset-0 flex flex-col justify-end p-12"
             >
                 <div className="max-w-lg mx-auto text-center text-white">
                     <motion.h2
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{
+                            opacity: 0,
+                            y: prefersReducedMotion ? 0 : 20,
+                        }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: 0.6 }}
+                        transition={{
+                            duration: prefersReducedMotion ? 0 : 0.6,
+                            delay: prefersReducedMotion ? 0 : 0.6,
+                        }}
                         className="text-4xl font-bold mb-6 font-chivo"
                     >
                         Laugh Local
                     </motion.h2>
 
                     <motion.p
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{
+                            opacity: 0,
+                            y: prefersReducedMotion ? 0 : 20,
+                        }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: 0.8 }}
+                        transition={{
+                            duration: prefersReducedMotion ? 0 : 0.6,
+                            delay: prefersReducedMotion ? 0 : 0.8,
+                        }}
                         className="text-lg opacity-90 font-dmSans leading-relaxed"
                     >
                         Laughtrack wants to get you out of the house. Find funny
