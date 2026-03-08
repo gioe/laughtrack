@@ -21,10 +21,6 @@ apps/scraper/metrics/
 apps/scraper/dashboard.html
 apps/scraper/.env
 
-# Tusk DB (SQLite WAL files are ephemeral and cause dirty-tree issues during tusk merge)
-tusk/tasks.db-shm
-tusk/tasks.db-wal
-
 # Shared
 .DS_Store
 *.pem
