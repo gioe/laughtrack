@@ -13,34 +13,47 @@ Returns JSON with task row, acceptance_criteria array, and task_progress array.
 Does not modify any state.
 """
 
+import argparse
+import importlib.util
 import json
+import os
 import sqlite3
 import sys
 
 
-def get_connection(db_path: str) -> sqlite3.Connection:
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON")
-    return conn
+def _load_db_lib():
+    _p = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tusk-db-lib.py")
+    _s = importlib.util.spec_from_file_location("tusk_db_lib", _p)
+    _m = importlib.util.module_from_spec(_s)
+    _s.loader.exec_module(_m)
+    return _m
+
+
+_db_lib = _load_db_lib()
+get_connection = _db_lib.get_connection
+
+
+def _task_id_type(value: str) -> int:
+    """Accept plain integer or TASK-NNN form."""
+    v = value
+    if v.upper().startswith("TASK-"):
+        v = v[5:]
+    try:
+        return int(v)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"Invalid task ID: {value}")
 
 
 def main(argv: list[str]) -> int:
-    if len(argv) < 3:
-        print("Usage: tusk task-get <task_id>", file=sys.stderr)
-        return 1
-
     db_path = argv[0]
-    raw_id = argv[2]
-
-    # Accept both plain integer and TASK-NNN form
-    if raw_id.upper().startswith("TASK-"):
-        raw_id = raw_id[5:]
-    try:
-        task_id = int(raw_id)
-    except ValueError:
-        print(f"Error: Invalid task ID: {argv[2]}", file=sys.stderr)
-        return 1
+    # argv[1] is config_path (unused)
+    parser = argparse.ArgumentParser(
+        prog="tusk task-get",
+        description="Fetch a single task bundle",
+    )
+    parser.add_argument("task_id", type=_task_id_type, help="Task ID (integer or TASK-NNN form)")
+    args = parser.parse_args(argv[2:])
+    task_id = args.task_id
 
     conn = get_connection(db_path)
     try:
@@ -74,4 +87,8 @@ def main(argv: list[str]) -> int:
 
 
 if __name__ == "__main__":
+    if len(sys.argv) < 2 or not sys.argv[1].endswith(".db"):
+        print("Error: This script must be invoked via the tusk wrapper.", file=sys.stderr)
+        print("Use: tusk task-get <task_id>", file=sys.stderr)
+        sys.exit(1)
     sys.exit(main(sys.argv[1:]))

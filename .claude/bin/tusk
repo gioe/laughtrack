@@ -176,8 +176,6 @@ update_gitignore() {
     ".claude/skills/"
     ".claude/settings.json"
     ".claude/tusk-manifest.json"
-    "tusk/tasks.db"
-    "tusk/tasks.db-*"
   )
   local added=0
   for entry in "${tusk_ignores[@]}"; do
@@ -194,6 +192,18 @@ update_gitignore() {
   else
     echo "  .gitignore already up to date."
   fi
+}
+
+update_claude_md() {
+  local claude_md="$REPO_ROOT/CLAUDE.md"
+  local sentinel="<!-- tusk-task-tools -->"
+  if grep -qF "$sentinel" "$claude_md" 2>/dev/null; then
+    echo "  CLAUDE.md already contains tusk task tool guidance."
+    return
+  fi
+  printf '\n%s\n## Tusk Task Lookup\n\n**Do NOT use Claude Code'\''s built-in `TaskList`, `TaskGet`, or `TaskUpdate` tools to look up or manage tasks.** Those tools manage background agent subprocesses, not tusk tasks.\n\nUse the tusk CLI instead:\n- `tusk task-list` — list tasks\n- `tusk task-get <id>` — get a task by ID (accepts `506` or `TASK-506`)\n- `tusk task-update <id>` — update a task\n' \
+    "$sentinel" >> "$claude_md"
+  echo "  Updated CLAUDE.md with tusk task tool guidance."
 }
 
 cmd_init() {
@@ -226,6 +236,7 @@ cmd_init() {
   # Skip when --skip-gitignore is passed (e.g., test/CI contexts using TUSK_DB override).
   if [[ $skip_gitignore -eq 0 ]]; then
     update_gitignore
+    update_claude_md
   fi
 
   # Validate config before proceeding
