@@ -27,6 +27,8 @@ export const useFavorite = ({
         loginModal.onOpen();
     }, [loginModal]);
 
+    const FAVORITE_ERROR_MSG = "Failed to update favorite. Please try again.";
+
     const handleFavoriteClick = async (e: React.MouseEvent) => {
         e.stopPropagation();
 
@@ -41,20 +43,28 @@ export const useFavorite = ({
                 if (
                     response !== null &&
                     typeof response === "object" &&
-                    "error" in response
+                    "error" in response &&
+                    typeof response.error === "string"
                 ) {
                     // FavoriteError: surface the descriptive message from validation/server
                     setIsFavorite(!newFavoriteState);
                     toast.error(response.error);
-                } else if (response !== newFavoriteState) {
-                    // Unexpected boolean mismatch or undefined — revert with generic message
+                } else if (response === undefined) {
+                    // Server-side auth guard fired despite authenticated client
+                    console.warn(
+                        "[useFavorite] server action returned undefined — possible server-session mismatch",
+                    );
                     setIsFavorite(!newFavoriteState);
-                    toast.error("Failed to update favorite. Please try again.");
+                    toast.error(FAVORITE_ERROR_MSG);
+                } else if (response !== newFavoriteState) {
+                    // Unexpected boolean mismatch — revert with generic message
+                    setIsFavorite(!newFavoriteState);
+                    toast.error(FAVORITE_ERROR_MSG);
                 }
             } catch {
                 // Revert the optimistic update on error
                 setIsFavorite(!newFavoriteState);
-                toast.error("Failed to update favorite. Please try again.");
+                toast.error(FAVORITE_ERROR_MSG);
             }
         } else {
             requireLogin();
