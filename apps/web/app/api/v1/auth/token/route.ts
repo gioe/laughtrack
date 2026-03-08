@@ -5,6 +5,7 @@ import {
     checkRateLimit,
     getClientIp,
     RATE_LIMITS,
+    rateLimitHeaders,
     rateLimitResponse,
 } from "@/lib/rateLimit";
 
@@ -44,5 +45,5 @@ export async function POST(req: NextRequest) {
 
     const token = generateToken({ email: session.user.email }, "access");
 
-    return NextResponse.json({ token });
+    return NextResponse.json({ token }, { headers: rateLimitHeaders(rl) });
 }
