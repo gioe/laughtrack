@@ -40,7 +40,7 @@ export async function favorite(
     )
         .then((state) => state)
         .catch((error: Error) => {
-            console.log(error);
+            console.error(error);
             return undefined;
         });
 }

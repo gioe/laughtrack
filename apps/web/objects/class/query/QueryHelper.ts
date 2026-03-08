@@ -358,7 +358,11 @@ export class QueryHelper {
     getZipCodes() {
         const providedZip = this.searchParams.get(QueryProperty.Zip) as string;
         const radius = this.searchParams.get(QueryProperty.Distance) as string;
-        const nearbyZips = zipcodes.radius(providedZip, Number(radius));
+        const radiusNum = Number(radius);
+        if (!radius || isNaN(radiusNum) || radiusNum < 1 || radiusNum > 500) {
+            return {};
+        }
+        const nearbyZips = zipcodes.radius(providedZip, radiusNum);
         return {
             ...(nearbyZips
                 ? {

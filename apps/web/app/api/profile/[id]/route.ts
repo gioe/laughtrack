@@ -4,13 +4,21 @@ import { NextRequest, NextResponse } from "next/server";
 import { UserProfileInterface } from "./interface";
 import { z } from "zod";
 
-const ProfileUpdateSchema = z.object({
-    zipCode: z
-        .string()
-        .regex(/^\d{5}$/, "zipCode must be a 5-digit US zip code")
-        .optional(),
-    emailOptin: z.boolean().optional(),
-});
+const ProfileUpdateSchema = z
+    .object({
+        zipCode: z
+            .string()
+            .regex(/^\d{5}$/, "zipCode must be a 5-digit US zip code")
+            .optional(),
+        emailOptin: z.boolean().optional(),
+    })
+    .refine(
+        (data) => data.zipCode !== undefined || data.emailOptin !== undefined,
+        {
+            message:
+                "At least one field (zipCode or emailOptin) must be provided",
+        },
+    );
 
 type ProfileUpdateInput = z.infer<typeof ProfileUpdateSchema>;
 

@@ -62,10 +62,16 @@ export async function POST(request: Request) {
                 { status: 401 },
             );
         }
-        console.log(error);
+        if (error instanceof jwt.JsonWebTokenError) {
+            return NextResponse.json(
+                { error: "Invalid unsubscribe link" },
+                { status: 400 },
+            );
+        }
+        console.error(error);
         return NextResponse.json(
-            { error: "Invalid unsubscribe link" },
-            { status: 400 },
+            { error: "Failed to process unsubscribe request" },
+            { status: 500 },
         );
     }
 }
