@@ -38,6 +38,16 @@ export async function GET(req: NextRequest) {
         );
     }
 
+    if (distance !== null) {
+        const distanceNum = Number(distance);
+        if (isNaN(distanceNum) || distanceNum < 1 || distanceNum > 500) {
+            return NextResponse.json(
+                { error: "distance must be a number between 1 and 500 miles" },
+                { status: 400 },
+            );
+        }
+    }
+
     const params = new URLSearchParams();
     params.set("zip", zip);
     // Distance defaults to 25 miles so zip geo-filtering is always applied
