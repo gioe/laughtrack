@@ -1,131 +1,106 @@
 import { db } from "@/lib/db";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { buildComedianImageUrl } from "@/util/imageUtil";
-import { Prisma } from "@prisma/client";
 
-export async function getTrendingComedians(userId?: string): Promise<ComedianDTO[]> {
-    const whereClause: Prisma.ComedianWhereInput = {
-        parentComedianId: null,
-        OR: [
-            {
-                lineupItems: {
-                    some: {
-                        show: { date: { gt: new Date().toISOString() } },
-                    },
-                },
-            },
-            {
-                alternativeNames: {
-                    some: {
-                        lineupItems: {
-                            some: {
-                                show: { date: { gt: new Date().toISOString() } },
-                            },
-                        },
-                    },
-                },
-            },
-        ],
-        NOT: {
-            taggedComedians: {
-                some: {
-                    tag: {
-                        slug: { in: ["alias", "non_human", "non comic"] }
-                    },
-                },
-            },
+type TrendingComedianRow = {
+    id: number;
+    uuid: string;
+    name: string;
+    instagram_account: string | null;
+    instagram_followers: number | null;
+    tiktok_account: string | null;
+    tiktok_followers: number | null;
+    youtube_account: string | null;
+    youtube_followers: number | null;
+    website: string | null;
+    popularity: number;
+    linktree: string | null;
+    show_count: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function getTrendingComedians(
+    userId?: string,
+): Promise<ComedianDTO[]> {
+    const now = new Date();
+
+    const rows = await db.$queryRaw<TrendingComedianRow[]>`
+        WITH comedian_counts AS (
+            SELECT
+                c.id,
+                c.uuid,
+                c.name,
+                c.instagram_account,
+                c.instagram_followers,
+                c.tiktok_account,
+                c.tiktok_followers,
+                c.youtube_account,
+                c.youtube_followers,
+                c.website,
+                c.popularity,
+                c.linktree,
+                (
+                    (
+                        SELECT COUNT(*)
+                        FROM lineup_items li
+                        JOIN shows s ON s.id = li.show_id
+                        WHERE li.comedian_id = c.uuid AND s.date > ${now}
+                    ) + COALESCE((
+                        SELECT SUM(cnt) FROM (
+                            SELECT COUNT(*) AS cnt
+                            FROM comedians alt
+                            JOIN lineup_items li ON li.comedian_id = alt.uuid
+                            JOIN shows s ON s.id = li.show_id
+                            WHERE alt.parent_comedian_id = c.id AND s.date > ${now}
+                        ) t
+                    ), 0)
+                )::int AS show_count
+            FROM comedians c
+            WHERE
+                c.parent_comedian_id IS NULL
+                AND NOT EXISTS (
+                    SELECT 1 FROM tagged_comedians tc
+                    JOIN tags t ON t.id = tc.tag_id
+                    WHERE tc.comedian_id = c.uuid
+                        AND t.slug IN ('alias', 'non_human', 'non comic')
+                )
+                AND (
+                    EXISTS (
+                        SELECT 1 FROM lineup_items li
+                        JOIN shows s ON s.id = li.show_id
+                        WHERE li.comedian_id = c.uuid AND s.date > ${now}
+                    ) OR EXISTS (
+                        SELECT 1 FROM comedians alt
+                        JOIN lineup_items li ON li.comedian_id = alt.uuid
+                        JOIN shows s ON s.id = li.show_id
+                        WHERE alt.parent_comedian_id = c.id AND s.date > ${now}
+                    )
+                )
+        )
+        SELECT *
+        FROM comedian_counts
+        WHERE show_count > 3
+        ORDER BY RANDOM()
+        LIMIT 8
+    `;
+
+    return rows.map((row) => ({
+        id: row.id,
+        uuid: row.uuid,
+        name: row.name,
+        imageUrl: buildComedianImageUrl(row.name),
+        social_data: {
+            id: row.id,
+            instagram_account: row.instagram_account,
+            instagram_followers: row.instagram_followers,
+            tiktok_account: row.tiktok_account,
+            tiktok_followers: row.tiktok_followers,
+            youtube_account: row.youtube_account,
+            youtube_followers: row.youtube_followers,
+            website: row.website,
+            popularity: row.popularity,
+            linktree: row.linktree,
         },
-    };
-
-    const comedians = await db.comedian.findMany({
-        where: whereClause,
-        select: {
-            id: true,
-            uuid: true,
-            name: true,
-            instagramAccount: true,
-            instagramFollowers: true,
-            tiktokAccount: true,
-            tiktokFollowers: true,
-            youtubeAccount: true,
-            youtubeFollowers: true,
-            website: true,
-            popularity: true,
-            linktree: true,
-            _count: {
-                select: {
-                    lineupItems: {
-                        where: {
-                            show: { date: { gt: new Date().toISOString() } }
-                        }
-                    }
-                }
-            },
-            alternativeNames: {
-                select: {
-                    uuid: true,
-                    name: true,
-                    lineupItems: {
-                        where: {
-                            show: { date: { gt: new Date().toISOString() } }
-                        }
-                    },
-                    _count: {
-                        select: {
-                            lineupItems: {
-                                where: {
-                                    show: { date: { gt: new Date().toISOString() } }
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            ...(userId ? {
-                favoriteComedians: {
-                    where: { user:
-                        {
-                        id:  userId
-                    }
-                },
-                },
-            } : {}),
-        },
-    });
-
-    const topEight = comedians
-        .filter(comedian => {
-            const alternativeShowCount = comedian.alternativeNames.reduce((sum, alt) =>
-                sum + alt._count.lineupItems, 0);
-            return (comedian._count.lineupItems + alternativeShowCount) > 3;
-        })
-        .sort(() => Math.random() - 0.5)
-        .slice(0, 8)
-
-    return topEight
-        .map(comedian => ({
-            id: comedian.id,
-            uuid: comedian.uuid,
-            name: comedian.name,
-            // isFavorite:
-            // comedian.favoriteComedians == undefined
-            //     ? false
-            //     : comedian.favoriteComedians.length > 0,
-            imageUrl: buildComedianImageUrl(comedian.name),
-            social_data: {
-                id: comedian.id,
-                instagram_account: comedian.instagramAccount,
-                instagram_followers: comedian.instagramFollowers,
-                tiktok_account: comedian.tiktokAccount,
-                tiktok_followers: comedian.tiktokFollowers,
-                youtube_account: comedian.youtubeAccount,
-                youtube_followers: comedian.youtubeFollowers,
-                website: comedian.website,
-                popularity: comedian.popularity,
-                linktree: comedian.linktree,
-            },
-            show_count: comedian._count.lineupItems +
-                comedian.alternativeNames.reduce((sum, alt) =>
-                    sum + alt._count.lineupItems, 0),
-        }));
+        show_count: row.show_count,
+    }));
 }
