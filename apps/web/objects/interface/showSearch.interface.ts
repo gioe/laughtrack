@@ -1,4 +1,4 @@
-export interface ShowSearchParams {
+export interface SearchParams {
     fromDate?: string;
     toDate?: string;
     filters?: string;

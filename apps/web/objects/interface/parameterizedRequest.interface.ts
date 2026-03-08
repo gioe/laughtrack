@@ -1,7 +1,7 @@
-import { ShowSearchParams } from "./showSearch.interface";
+import { SearchParams } from "./showSearch.interface";
 
 export interface ParameterizedRequestData {
-    params: ShowSearchParams;
+    params: SearchParams;
     timezone: string;
     userId?: string;
     profileId?: string;

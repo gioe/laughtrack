@@ -1,13 +1,13 @@
-import { ShowSearchParams } from "@/objects/interface";
+import { SearchParams } from "@/objects/interface";
 
 /**
  * Normalizes Next.js App Router searchParams (which may contain string[] for repeated
- * query parameters) into a plain ShowSearchParams object with string-only values.
+ * query parameters) into a plain SearchParams object with string-only values.
  * When a key appears multiple times in the URL, only the first value is used.
  */
-export function toShowSearchParams(
+export function toSearchParams(
     raw: Record<string, string | string[] | undefined>,
-): ShowSearchParams {
+): SearchParams {
     const pick = (key: string): string | undefined => {
         const v = raw[key];
         return Array.isArray(v) ? v[0] : v;

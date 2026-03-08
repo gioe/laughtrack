@@ -4,7 +4,7 @@ import { SearchVariant } from "@/objects/enum/searchVariant";
 import { unstable_cache } from "next/cache";
 import { getSearchedShows } from "@/lib/data/show/search/getSearchedShows";
 import { ParameterizedRequestData } from "@/objects/interface";
-import { toShowSearchParams } from "@/util/search/toShowSearchParams";
+import { toSearchParams } from "@/util/search/toShowSearchParams";
 import FilterBar from "@/ui/pages/search/filterBar";
 import ShowTable from "@/ui/pages/search/table";
 import FilterModal from "@/ui/components/modals/filter";
@@ -18,7 +18,7 @@ export default async function ShowSearchPage(props: any) {
     ]);
 
     const requestData = {
-        params: toShowSearchParams(searchParams),
+        params: toSearchParams(searchParams),
         timezone: cookieStore.get("timezone")?.value || "UTC",
         userId: session?.profile?.userid,
         profileId: session?.profile?.id,

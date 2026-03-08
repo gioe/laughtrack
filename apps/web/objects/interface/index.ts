@@ -12,7 +12,7 @@ import { Taggable } from "./taggable.interface";
 import { AuthToken } from "./token.interface";
 import { Entity } from "./entity.interface";
 import { ParameterizedRequestData } from "./parameterizedRequest.interface";
-import { ShowSearchParams } from "./showSearch.interface";
+import { SearchParams } from "./showSearch.interface";
 import { DateRange, DateRangeInput } from "./dateRange.interface";
 import { DistanceData } from "./distanceData.interface";
 
@@ -36,5 +36,5 @@ export type {
     PaginatedEntityResponseDTO,
     EntityContainer,
     ParameterizedRequestData,
-    ShowSearchParams,
+    SearchParams,
 };

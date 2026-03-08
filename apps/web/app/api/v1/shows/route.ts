@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSearchedShows } from "@/lib/data/show/search/getSearchedShows";
 import { resolveAuth } from "@/lib/auth/resolveAuth";
-import { ShowSearchParams } from "@/objects/interface";
+import { SearchParams } from "@/objects/interface";
 
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const DEFAULT_DISTANCE = "25";
@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
         }
     }
 
-    const params: ShowSearchParams = {
+    const params: SearchParams = {
         zip,
         // Distance defaults to 25 miles so zip geo-filtering is always applied
         distance: distance ?? DEFAULT_DISTANCE,

@@ -1,7 +1,7 @@
 import zipcodes from "zipcodes";
 import { Prisma } from "@prisma/client";
 import { ParameterizedRequestData } from "@/objects/interface";
-import { ShowSearchParams } from "@/objects/interface/showSearch.interface";
+import { SearchParams } from "@/objects/interface/showSearch.interface";
 import { toZonedTime, format } from "date-fns-tz";
 
 // This class is meant to capture all of the page parameters that our Page URL contains and converts them into query parameters.
@@ -9,7 +9,7 @@ import { toZonedTime, format } from "date-fns-tz";
 // as globally as possible, updating values according to page transitions.
 // It is almost certainly too bloated.
 export class QueryHelper {
-    params: ShowSearchParams;
+    params: SearchParams;
     slug?: string;
     profileId?: string;
     userId?: string;

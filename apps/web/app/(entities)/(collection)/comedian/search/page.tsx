@@ -9,7 +9,7 @@ import SearchDetailHeader from "@/ui/pages/search/header";
 import FilterModal from "@/ui/components/modals/filter";
 import FilterBar from "@/ui/pages/search/filterBar";
 import { ParameterizedRequestData } from "@/objects/interface";
-import { toShowSearchParams } from "@/util/search/toShowSearchParams";
+import { toSearchParams } from "@/util/search/toShowSearchParams";
 import { cookies } from "next/headers";
 
 export default async function ComedianSearchPage(props: any) {
@@ -20,7 +20,7 @@ export default async function ComedianSearchPage(props: any) {
     ]);
 
     const requestData = {
-        params: toShowSearchParams(searchParams),
+        params: toSearchParams(searchParams),
         timezone: cookieStore.get("timezone")?.value || "UTC",
         userId: session?.profile?.userid,
         profileId: session?.profile?.id,

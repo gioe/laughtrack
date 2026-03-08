@@ -8,7 +8,7 @@ import { SearchVariant } from "@/objects/enum/searchVariant";
 import { getClubDetailPageData } from "@/lib/data/club/detail/getClubDetailPageData";
 import { unstable_cache } from "next/cache";
 import { ParameterizedRequestData } from "@/objects/interface";
-import { toShowSearchParams } from "@/util/search/toShowSearchParams";
+import { toSearchParams } from "@/util/search/toShowSearchParams";
 import { cookies } from "next/headers";
 import ShowTable from "@/ui/pages/search/table";
 import type { Metadata } from "next";
@@ -54,7 +54,7 @@ export default async function ClubDetailPage(props: {
     ]);
 
     const requestData = {
-        params: toShowSearchParams(searchParams),
+        params: toSearchParams(searchParams),
         timezone: cookieStore.get("timezone")?.value || "UTC",
         userId: session?.profile?.userid,
         profileId: session?.profile?.id,
