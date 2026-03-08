@@ -54,7 +54,7 @@ class AsyncHttpMixin(ABC):
             session_headers = self._build_session_headers(headers)
 
             self._session = AsyncSession(
-                impersonate="chrome124",
+                impersonate=self._get_impersonation_target(),
                 timeout=timeout_value,
                 headers=session_headers,
             )
@@ -83,6 +83,34 @@ class AsyncHttpMixin(ABC):
             headers.update(custom_headers)
 
         return headers
+
+    def _get_impersonation_target(self) -> str:
+        """Return the curl-cffi impersonation target for this club's domain.
+
+        Reads the active BrowserProfile from the rate limiter (if available)
+        so the TLS fingerprint matches the HTTP headers built from that profile.
+        Falls back to ``"chrome124"`` when no limiter or profile is active.
+        """
+        limiter = getattr(self, "rate_limiter", None)
+        if limiter is None:
+            return "chrome124"
+        get_profile = getattr(limiter, "get_domain_profile", None)
+        if not callable(get_profile):
+            return "chrome124"
+        try:
+            domain = getattr(self.club, "scraping_domain", None)
+            if not domain:
+                scraping_url = getattr(self.club, "scraping_url", "") or ""
+                if "://" in scraping_url:
+                    domain = scraping_url.split("://", 1)[1].split("/")[0].lower()
+                else:
+                    domain = scraping_url.split("/")[0].lower()
+            profile = get_profile(domain)
+            if profile is not None:
+                return profile.impersonation_target
+        except Exception:
+            pass
+        return "chrome124"
 
     def _get_default_headers(self) -> Dict[str, str]:
         """
