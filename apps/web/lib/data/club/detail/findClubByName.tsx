@@ -3,6 +3,7 @@ import { ClubDTO } from "@/objects/class/club/club.interface";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { buildClubImageUrl } from "@/util/imageUtil";
 import { Prisma } from "@prisma/client";
+import { NotFoundError } from "@/objects/NotFoundError";
 
 const CLUB_SELECT = {
     id: true,
@@ -30,7 +31,7 @@ export async function findClubByName(helper: QueryHelper): Promise<ClubDTO> {
         });
 
         if (!clubData) {
-            throw new Error(`Club with name "${name}" not found`);
+            throw new NotFoundError(`Club with name "${name}" not found`);
         }
         return {
             name: clubData.name,

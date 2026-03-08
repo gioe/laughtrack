@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { buildComedianImageUrl } from "@/util/imageUtil";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { Prisma } from "@prisma/client";
+import { NotFoundError } from "@/objects/NotFoundError";
 
 const COMEDIAN_SELECT = {
     id: true,
@@ -65,7 +66,7 @@ export async function findComedianByName(
         });
 
         if (!comedianData) {
-            throw new Error(`Comedian with name "${name}" not found`);
+            throw new NotFoundError(`Comedian with name "${name}" not found`);
         }
 
         return {
