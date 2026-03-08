@@ -24,6 +24,12 @@ export const RATE_LIMITS = {
     unauthenticated: { limit: 20, windowMs: 60_000 } satisfies RateLimitConfig,
     /** Very tight limit for one-shot public actions like unsubscribe. */
     unsubscribe: { limit: 5, windowMs: 600_000 } satisfies RateLimitConfig,
+    /** Public read endpoints — anonymous callers. */
+    publicRead: { limit: 60, windowMs: 60_000 } satisfies RateLimitConfig,
+    /** Public read endpoints — authenticated callers (higher allowance). */
+    publicReadAuth: { limit: 300, windowMs: 60_000 } satisfies RateLimitConfig,
+    /** Token-exchange endpoint — stricter per-IP limit. */
+    authToken: { limit: 10, windowMs: 60_000 } satisfies RateLimitConfig,
 } as const;
 
 // In-memory store. Resets on server restart / cold start (acceptable for edge rate-limiting).
