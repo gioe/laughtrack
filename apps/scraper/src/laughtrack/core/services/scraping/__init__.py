@@ -17,6 +17,7 @@ from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.app.wiring import build_services  # noqa: F401 (side-effects for wiring if needed)
 from laughtrack.core.models.results import ClubScrapingResult
 from laughtrack.core.models.domain_metrics import DomainRequestMetrics, ScrapingRunSummary
+from laughtrack.foundation.models.operation_result import DatabaseOperationResult
 
 _DEFAULT_SUCCESS_RATE_THRESHOLD = 70.0
 _DEFAULT_MAX_CONCURRENT_CLUBS = 5
@@ -51,10 +52,10 @@ class ScrapingService:
             raise ValueError("No clubs found with valid scraper configurations")
         Logger.info(f"Found {len(clubs)} clubs with scraper configurations")
         self._try_validate_scraper_keys(clubs)
-        results, summary = self._scrape_clubs_with_metrics(clubs)
+        results, summary, db_result = self._scrape_clubs_with_metrics(clubs)
         self._emit_summary(summary)
         self._check_and_alert(summary)
-        self.result_processor.process_results(results)
+        self.result_processor.process_results(results, db_result)
         return results
 
     def scrape_single_club(self, club_id: Optional[int] = None) -> None:
@@ -62,8 +63,8 @@ class ScrapingService:
         clubs = self.club_handler.get_clubs_by_ids([club_id]) if club_id else self.selector.get_club_selection()
         if not clubs:
             raise ValueError(f"Club with ID {club_id} not found" if club_id else "No club selected")
-        results, _ = self._scrape_clubs_with_metrics(clubs)
-        self.result_processor.process_results(results)
+        results, _, db_result = self._scrape_clubs_with_metrics(clubs)
+        self.result_processor.process_results(results, db_result)
 
     def scrape_by_scraper_type(self, scraper_type: Optional[str] = None) -> None:
         Logger.info(f"Starting scrape of all clubs using scraper type: {scraper_type}")
@@ -71,8 +72,8 @@ class ScrapingService:
         if not scraper_type:
             raise ValueError(f"Unknown scraper type: {scraper_type}")
         clubs = self.club_handler.get_clubs_for_scraper(scraper_type)
-        results, _ = self._scrape_clubs_with_metrics(clubs)
-        self.result_processor.process_results(results)
+        results, _, db_result = self._scrape_clubs_with_metrics(clubs)
+        self.result_processor.process_results(results, db_result)
 
     # --- Internal helpers ---
     @property
@@ -88,7 +89,7 @@ class ScrapingService:
 
     def _scrape_clubs_with_metrics(
         self, clubs: List[Club]
-    ) -> tuple[List[ClubScrapingResult], ScrapingRunSummary]:
+    ) -> tuple[List[ClubScrapingResult], ScrapingRunSummary, DatabaseOperationResult]:
         try:
             loop = asyncio.get_running_loop()
         except RuntimeError:
@@ -103,9 +104,11 @@ class ScrapingService:
 
     async def _scrape_clubs_concurrently(
         self, clubs: List[Club]
-    ) -> tuple[List[ClubScrapingResult], ScrapingRunSummary]:
+    ) -> tuple[List[ClubScrapingResult], ScrapingRunSummary, DatabaseOperationResult]:
         semaphore = asyncio.Semaphore(self._max_concurrent_clubs)
         loop = asyncio.get_running_loop()
+        total_db_result = DatabaseOperationResult()
+        db_lock = asyncio.Lock()
 
         async def scrape_one(
             club: Club,
@@ -130,6 +133,16 @@ class ScrapingService:
                         metrics.none_resp += 1
                     else:
                         metrics.ok += 1
+                    # Persist immediately after this club completes scraping
+                    try:
+                        club_db_result = await loop.run_in_executor(
+                            None, self.result_processor.insert_club_result, result
+                        )
+                        nonlocal total_db_result
+                        async with db_lock:
+                            total_db_result = total_db_result + club_db_result
+                    except Exception as insert_err:
+                        Logger.error(f"Failed to persist shows for club '{club.name}': {insert_err}")
                     return result, metrics
                 except Exception as e:
                     Logger.error(f"Failed to scrape club '{club.name}': {e}")
@@ -152,7 +165,7 @@ class ScrapingService:
                 results.append(result)
             if metrics is not None:
                 summary.per_club.append(metrics)
-        return results, summary
+        return results, summary, total_db_result
 
     def _emit_summary(self, summary: ScrapingRunSummary) -> None:
         payload = {
