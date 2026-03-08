@@ -34,24 +34,24 @@ async function getHomePageData(): Promise<HomePageData> {
     }
 }
 
+const getCachedHomePageData = unstable_cache(
+    async () => {
+        try {
+            return await getHomePageData();
+        } catch (error) {
+            console.error("Home page data fetch error:", error);
+            throw error;
+        }
+    },
+    ["home-page-data"],
+    {
+        revalidate: CACHE.home,
+        tags: ["home-page-data"],
+    },
+);
+
 export default async function HomePage() {
     const session = await auth();
-
-    const getCachedHomePageData = unstable_cache(
-        async () => {
-            try {
-                return await getHomePageData();
-            } catch (error) {
-                console.error("Home page data fetch error:", error);
-                throw error;
-            }
-        },
-        ["home-page-data"],
-        {
-            revalidate: CACHE.home,
-            tags: ["home-page-data"],
-        },
-    );
 
     const { comedians, clubs } = await getCachedHomePageData();
 
