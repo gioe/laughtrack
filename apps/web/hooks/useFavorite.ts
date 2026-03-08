@@ -1,9 +1,9 @@
-'use client'
-import { useState, useCallback } from 'react';
-import toast from 'react-hot-toast';
-import { useSession } from 'next-auth/react';
-import useLoginModal from './useLoginModal';
-import { favorite } from '@/app/actions/favorite';
+"use client";
+import { useState, useCallback } from "react";
+import toast from "react-hot-toast";
+import { useSession } from "next-auth/react";
+import useLoginModal from "./useLoginModal";
+import { favorite } from "@/app/actions/favorite";
 
 interface UseFavoriteProps {
     initialState: boolean;
@@ -17,7 +17,7 @@ interface UseFavoriteReturn {
 
 export const useFavorite = ({
     initialState,
-    entityId
+    entityId,
 }: UseFavoriteProps): UseFavoriteReturn => {
     const session = useSession();
     const loginModal = useLoginModal();
@@ -26,8 +26,6 @@ export const useFavorite = ({
     const requireLogin = useCallback(() => {
         loginModal.onOpen();
     }, [loginModal]);
-
-    const FAVORITE_ERROR_MSG = 'Failed to update favorite. Please try again.';
 
     const handleFavoriteClick = async (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -40,15 +38,23 @@ export const useFavorite = ({
 
             try {
                 const response = await favorite(newFavoriteState, entityId);
-                // If the response doesn't match our optimistic update, revert
-                if (response !== newFavoriteState) {
+                if (
+                    response !== null &&
+                    typeof response === "object" &&
+                    "error" in response
+                ) {
+                    // FavoriteError: surface the descriptive message from validation/server
                     setIsFavorite(!newFavoriteState);
-                    toast.error(FAVORITE_ERROR_MSG);
+                    toast.error(response.error);
+                } else if (response !== newFavoriteState) {
+                    // Unexpected boolean mismatch or undefined — revert with generic message
+                    setIsFavorite(!newFavoriteState);
+                    toast.error("Failed to update favorite. Please try again.");
                 }
-            } catch (error) {
+            } catch {
                 // Revert the optimistic update on error
                 setIsFavorite(!newFavoriteState);
-                toast.error(FAVORITE_ERROR_MSG);
+                toast.error("Failed to update favorite. Please try again.");
             }
         } else {
             requireLogin();
