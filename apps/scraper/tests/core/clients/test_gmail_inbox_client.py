@@ -110,18 +110,33 @@ def test_credentials_default_to_empty_string_when_missing(monkeypatch):
     assert c._refresh_token == ""
 
 
+def test_missing_credentials_logs_warning(monkeypatch):
+    """EmailInboxClient logs a debug warning when any credential is missing."""
+    warnings = []
+    monkeypatch.setattr(gmail_module.Logger, "debug", lambda msg, *a, **k: warnings.append(msg))
+
+    monkeypatch.delenv("GMAIL_CLIENT_ID", raising=False)
+    monkeypatch.delenv("GMAIL_CLIENT_SECRET", raising=False)
+    monkeypatch.delenv("GMAIL_REFRESH_TOKEN", raising=False)
+
+    EmailInboxClient()
+
+    assert any("missing" in w.lower() for w in warnings)
+
+
 def test_build_service_passes_env_credentials_to_google(monkeypatch):
-    """_build_service passes client_id/client_secret/refresh_token from env vars to Google."""
+    """_build_service passes client_id/client_secret/refresh_token and scopes from env vars to Google."""
     import sys
     import types
 
     captured = {}
 
     class FakeCredentials:
-        def __init__(self, *, token, refresh_token, client_id, client_secret, token_uri):
+        def __init__(self, *, token, refresh_token, client_id, client_secret, token_uri, scopes=None):
             captured["client_id"] = client_id
             captured["client_secret"] = client_secret
             captured["refresh_token"] = refresh_token
+            captured["scopes"] = scopes
 
         def refresh(self, request):
             pass
@@ -169,6 +184,7 @@ def test_build_service_passes_env_credentials_to_google(monkeypatch):
     assert captured["client_id"] == "cid"
     assert captured["client_secret"] == "csecret"
     assert captured["refresh_token"] == "rtoken"
+    assert captured["scopes"] == EmailInboxClient.SCOPES
     assert captured["service_built"] is True
 
 
@@ -249,6 +265,71 @@ def test_list_unread_emails_fetches_each_message(client_with_mock_service):
     assert len(emails) == 2
     assert emails[0].message_id == "M1"
     assert emails[1].message_id == "M2"
+
+
+def test_list_unread_emails_returns_empty_on_api_error(client_with_mock_service):
+    """list_unread_emails returns [] when the Gmail API raises an exception."""
+
+    class FakeMessages:
+        def list(self, userId, q):
+            class FakeExecute:
+                def execute(self):
+                    raise Exception("quota exceeded")
+
+            return FakeExecute()
+
+    class FakeUsers:
+        def messages(self):
+            return FakeMessages()
+
+    class FakeService:
+        def users(self):
+            return FakeUsers()
+
+    c = client_with_mock_service(FakeService())
+    result = c.list_unread_emails("example.com")
+
+    assert result == []
+
+
+def test_list_unread_emails_paginates_all_results(client_with_mock_service):
+    """list_unread_emails follows nextPageToken to collect all messages."""
+    pages = [
+        {"messages": [{"id": "M1"}, {"id": "M2"}], "nextPageToken": "tok1"},
+        {"messages": [{"id": "M3"}]},
+    ]
+    page_calls = []
+
+    class FakeMessages:
+        def list(self, userId, q, pageToken=None):
+            page_calls.append(pageToken)
+
+            class FakeExecute:
+                def execute(self):
+                    return pages[len(page_calls) - 1]
+
+            return FakeExecute()
+
+    class FakeUsers:
+        def messages(self):
+            return FakeMessages()
+
+    class FakeService:
+        def users(self):
+            return FakeUsers()
+
+    c = client_with_mock_service(FakeService())
+    fetched_ids = []
+
+    def fake_fetch(message_id):
+        fetched_ids.append(message_id)
+        return GmailMessage(message_id=message_id, thread_id="T", subject="S", sender="s@e.com", date="d", snippet="")
+
+    c.fetch_email = fake_fetch
+    c.list_unread_emails("example.com")
+
+    assert page_calls == [None, "tok1"]
+    assert fetched_ids == ["M1", "M2", "M3"]
 
 
 def test_list_unread_emails_skips_failed_fetches(client_with_mock_service):

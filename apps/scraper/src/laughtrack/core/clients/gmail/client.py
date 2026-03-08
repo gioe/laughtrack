@@ -48,6 +48,9 @@ class EmailInboxClient:
         self._refresh_token = os.environ.get("GMAIL_REFRESH_TOKEN", "")
         self._service = None
 
+        if not all([self._client_id, self._client_secret, self._refresh_token]):
+            Logger.debug("[EmailInboxClient] One or more required Gmail credentials are missing (GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN)")
+
     def _build_service(self):
         """Build and return an authenticated Gmail API service object."""
         from google.auth.transport.requests import Request
@@ -60,6 +63,7 @@ class EmailInboxClient:
             client_id=self._client_id,
             client_secret=self._client_secret,
             token_uri="https://oauth2.googleapis.com/token",
+            scopes=self.SCOPES,
         )
         creds.refresh(Request())
         return build("gmail", "v1", credentials=creds)
@@ -74,6 +78,8 @@ class EmailInboxClient:
         """
         List unread emails filtered by sender domain.
 
+        Fetches all pages of results. Returns an empty list on API error.
+
         Args:
             sender_domain: Domain to filter by (e.g. "ticketmaster.com").
                            Matches any sender whose address ends with @<domain>.
@@ -86,8 +92,22 @@ class EmailInboxClient:
 
         Logger.debug(f"[EmailInboxClient] Listing unread emails from domain: {sender_domain}")
 
-        result = service.users().messages().list(userId="me", q=query).execute()
-        raw_messages = result.get("messages", [])
+        try:
+            result = service.users().messages().list(userId="me", q=query).execute()
+            raw_messages = list(result.get("messages", []))
+
+            # Paginate through all results using nextPageToken
+            while result.get("nextPageToken"):
+                result = service.users().messages().list(
+                    userId="me",
+                    q=query,
+                    pageToken=result["nextPageToken"],
+                ).execute()
+                raw_messages.extend(result.get("messages", []))
+
+        except Exception as exc:
+            Logger.debug(f"[EmailInboxClient] Failed to list emails from @{sender_domain}: {exc}")
+            return []
 
         emails: List[GmailMessage] = []
         for msg in raw_messages:
@@ -165,7 +185,7 @@ class EmailInboxClient:
         return html_body, text_body
 
     @staticmethod
-    def _decode_body(data: str) -> Optional[str]:
+    def _decode_body(data: Optional[str]) -> Optional[str]:
         """Decode a base64url-encoded email body string."""
         if not data:
             return None
