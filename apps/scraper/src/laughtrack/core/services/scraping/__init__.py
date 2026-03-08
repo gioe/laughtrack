@@ -108,7 +108,10 @@ class ScrapingService:
         semaphore = asyncio.Semaphore(self._max_concurrent_clubs)
         loop = asyncio.get_running_loop()
         total_db_result = DatabaseOperationResult()
+        # db_lock serializes all DB writes: only one club writes at a time,
+        # which keeps ShowService thread-safe regardless of its internals.
         db_lock = asyncio.Lock()
+        self.result_processor.metrics_service.start_session()
 
         async def scrape_one(
             club: Club,
@@ -133,13 +136,15 @@ class ScrapingService:
                         metrics.none_resp += 1
                     else:
                         metrics.ok += 1
-                    # Persist immediately after this club completes scraping
+                    # Persist immediately after this club completes scraping.
+                    # db_lock serializes writes so insert_club_result() is called
+                    # from at most one thread at a time, ensuring ShowService thread safety.
                     try:
-                        club_db_result = await loop.run_in_executor(
-                            None, self.result_processor.insert_club_result, result
-                        )
                         nonlocal total_db_result
                         async with db_lock:
+                            club_db_result = await loop.run_in_executor(
+                                None, self.result_processor.insert_club_result, result
+                            )
                             total_db_result = total_db_result + club_db_result
                     except Exception as insert_err:
                         Logger.error(f"Failed to persist shows for club '{club.name}': {insert_err}")

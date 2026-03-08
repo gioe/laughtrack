@@ -79,10 +79,14 @@ class TestScrapeClubsWithMetrics:
 
     def _make_service(self):
         from laughtrack.core.services.scraping import ScrapingService
+        from laughtrack.foundation.models.operation_result import DatabaseOperationResult
         with patch.object(ScrapingService, '__init__', lambda self, *a, **kw: None):
             svc = ScrapingService.__new__(ScrapingService)
             svc.success_rate_threshold = 70.0
             svc._scraping_resolver = MagicMock()
+            mock_rp = MagicMock()
+            mock_rp.insert_club_result.return_value = DatabaseOperationResult()
+            svc._result_processor = mock_rp
         return svc
 
     def _make_club(self, name="Club", scraper_key="test_scraper"):
@@ -103,7 +107,7 @@ class TestScrapeClubsWithMetrics:
         svc._scraping_resolver.get.return_value = lambda club: mock_scraper
 
         club = self._make_club()
-        _, summary = svc._scrape_clubs_with_metrics([club])
+        _, summary, _ = svc._scrape_clubs_with_metrics([club])
 
         assert len(summary.per_club) == 1
         m = summary.per_club[0]
@@ -121,7 +125,7 @@ class TestScrapeClubsWithMetrics:
         svc._scraping_resolver.get.return_value = lambda club: mock_scraper
 
         club = self._make_club()
-        _, summary = svc._scrape_clubs_with_metrics([club])
+        _, summary, _ = svc._scrape_clubs_with_metrics([club])
 
         m = summary.per_club[0]
         assert m.none_resp == 1
@@ -138,7 +142,7 @@ class TestScrapeClubsWithMetrics:
         svc._scraping_resolver.get.return_value = lambda club: mock_scraper
 
         club = self._make_club()
-        _, summary = svc._scrape_clubs_with_metrics([club])
+        _, summary, _ = svc._scrape_clubs_with_metrics([club])
 
         m = summary.per_club[0]
         assert m.error == 1
@@ -175,7 +179,7 @@ class TestScrapeClubsWithMetrics:
 
         clubs = [self._make_club(name=f"Club {i}") for i in range(4)]
         start = time.monotonic()
-        results, summary = svc._scrape_clubs_with_metrics(clubs)
+        results, summary, _ = svc._scrape_clubs_with_metrics(clubs)
         elapsed = time.monotonic() - start
 
         assert len(results) == 4
@@ -204,7 +208,7 @@ class TestScrapeClubsWithMetrics:
             self._make_club(name="Bad Club"),
             self._make_club(name="Good Club 2"),
         ]
-        results, summary = svc._scrape_clubs_with_metrics(clubs)
+        results, summary, _ = svc._scrape_clubs_with_metrics(clubs)
 
         assert len(results) == 3
         assert len(summary.per_club) == 3

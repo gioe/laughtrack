@@ -1,6 +1,6 @@
 """Tests for ScrapingResultProcessor incremental persistence."""
 
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
 import pytest
 
 from laughtrack.core.models.results import ClubScrapingResult
@@ -176,3 +176,27 @@ class TestIncrementalPersistenceInScrapeOne:
         assert insert_count[0] == 3
         # Only the 2 good clubs contributed to db_result
         assert db_result.inserts == 2
+
+    def test_insert_club_result_not_called_when_scraper_raises(self):
+        """When the scraper itself raises, insert_club_result must not be called for that club."""
+        svc = self._make_service()
+
+        def scraper_factory(club):
+            s = MagicMock()
+            if "Crash" in club.name:
+                s.scrape_with_result.side_effect = RuntimeError("scraper crash")
+            else:
+                s.scrape_with_result.return_value = ClubScrapingResult(
+                    club_name=club.name, shows=[MagicMock()], execution_time=1.0
+                )
+            return s
+
+        svc._scraping_resolver.get.return_value = scraper_factory
+
+        clubs = [self._make_club("Good Club"), self._make_club("Crash Club")]
+        results, summary, db_result = svc._scrape_clubs_with_metrics(clubs)
+
+        # insert called once (for the good club only)
+        assert svc._result_processor.insert_club_result.call_count == 1
+        assert db_result.inserts == 1
+

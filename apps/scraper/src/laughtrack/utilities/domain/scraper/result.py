@@ -42,6 +42,5 @@ class ScrapingResultProcessor:
         Logger.info("Finalizing scraping results...")
         if db_result is None:
             db_result = DatabaseOperationResult()
-        self.metrics_service.start_session()
         self.metrics_service.end_session(club_scraping_results, db_result)
         return db_result
