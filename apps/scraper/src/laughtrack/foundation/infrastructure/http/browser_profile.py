@@ -56,9 +56,15 @@ class BrowserProfile:
 # ---------------------------------------------------------------------------
 # Built-in profiles
 # ---------------------------------------------------------------------------
-# Only versions that have a matching curl-cffi impersonation target are
-# included here.  Using an unsupported target would silently fall back to
-# plain HTTP/2 without a real browser TLS fingerprint.
+# Only versions whose impersonation_target is confirmed valid in the
+# installed curl-cffi are included.  Using an unsupported target silently
+# falls back to plain HTTP/2 without a real browser TLS fingerprint,
+# making the TLS fingerprint inconsistent with the HTTP headers.
+#
+# Confirmed targets in curl-cffi ≤0.7.x:
+#   chrome99, chrome100, chrome101, chrome104, chrome107, chrome110,
+#   chrome116, chrome119, chrome120, chrome123, chrome124,
+#   chrome99_android, safari15_3, safari15_5, safari17_0, safari17_2_ios
 
 BUILTIN_PROFILES: List[BrowserProfile] = [
     BrowserProfile(
@@ -67,7 +73,7 @@ BUILTIN_PROFILES: List[BrowserProfile] = [
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
             "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
         ),
-        sec_ch_ua='"Google Chrome";v="124", "Chromium";v="124", "Not-A.Brand";v="99"',
+        sec_ch_ua='"Not-A.Brand";v="99", "Chromium";v="124", "Google Chrome";v="124"',
         accept_language="en-US,en;q=0.9",
         platform="macOS",
         impersonation_target="chrome124",
@@ -78,64 +84,53 @@ BUILTIN_PROFILES: List[BrowserProfile] = [
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
             "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
         ),
-        sec_ch_ua='"Google Chrome";v="124", "Chromium";v="124", "Not-A.Brand";v="99"',
+        sec_ch_ua='"Not-A.Brand";v="99", "Chromium";v="124", "Google Chrome";v="124"',
         accept_language="en-US,en;q=0.9",
         platform="Windows",
         impersonation_target="chrome124",
     ),
     BrowserProfile(
-        browser_version="chrome131",
+        browser_version="chrome120",
         user_agent=(
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         ),
-        sec_ch_ua='"Google Chrome";v="131", "Chromium";v="131", "Not-A.Brand";v="24"',
+        sec_ch_ua='"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
         accept_language="en-US,en;q=0.9",
         platform="macOS",
-        impersonation_target="chrome131",
+        impersonation_target="chrome120",
     ),
     BrowserProfile(
-        browser_version="chrome131",
+        browser_version="chrome120",
         user_agent=(
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         ),
-        sec_ch_ua='"Google Chrome";v="131", "Chromium";v="131", "Not-A.Brand";v="24"',
+        sec_ch_ua='"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
         accept_language="en-US,en;q=0.9",
         platform="Windows",
-        impersonation_target="chrome131",
+        impersonation_target="chrome120",
     ),
     BrowserProfile(
-        browser_version="chrome136",
+        browser_version="chrome116",
         user_agent=(
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"
         ),
-        sec_ch_ua='"Google Chrome";v="136", "Chromium";v="136", "Not/A)Brand";v="24"',
+        sec_ch_ua='"Not)A;Brand";v="24", "Chromium";v="116", "Google Chrome";v="116"',
         accept_language="en-US,en;q=0.9",
         platform="macOS",
-        impersonation_target="chrome136",
+        impersonation_target="chrome116",
     ),
     BrowserProfile(
-        browser_version="chrome136",
+        browser_version="chrome116",
         user_agent=(
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
+            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"
         ),
-        sec_ch_ua='"Google Chrome";v="136", "Chromium";v="136", "Not/A)Brand";v="24"',
+        sec_ch_ua='"Not)A;Brand";v="24", "Chromium";v="116", "Google Chrome";v="116"',
         accept_language="en-US,en;q=0.9",
         platform="Windows",
-        impersonation_target="chrome136",
-    ),
-    BrowserProfile(
-        browser_version="chrome_android135",
-        user_agent=(
-            "Mozilla/5.0 (Linux; Android 10; K) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Mobile Safari/537.36"
-        ),
-        sec_ch_ua='"Google Chrome";v="135", "Chromium";v="135", "Not-A.Brand";v="8"',
-        accept_language="en-US,en;q=0.9",
-        platform="Android",
-        impersonation_target="chrome_android135",
+        impersonation_target="chrome116",
     ),
 ]

@@ -1,6 +1,5 @@
 """Tests for BrowserProfile, BaseHeaders.from_profile, and RateLimiter profile rotation."""
 
-import random
 from dataclasses import FrozenInstanceError
 from unittest.mock import patch
 
@@ -38,26 +37,30 @@ class TestBrowserProfile:
             )
 
     def test_no_version_mixing_across_profiles(self):
-        """UA version number must appear in sec_ch_ua for the same profile."""
+        """Major version number extracted from browser_version must appear in sec_ch_ua."""
         for p in BUILTIN_PROFILES:
-            # Extract the numeric version from browser_version (e.g. "124" from "chrome124")
-            digits = "".join(c for c in p.browser_version if c.isdigit())
-            # The major version number should appear in sec_ch_ua
-            assert digits in p.sec_ch_ua, (
-                f"Profile {p.browser_version!r}: version digits {digits!r} "
+            # Extract the major version digits (e.g. "124" from "chrome124")
+            major = "".join(c for c in p.browser_version if c.isdigit())
+            assert major in p.sec_ch_ua, (
+                f"Profile {p.browser_version!r}: major version {major!r} "
                 f"not found in sec_ch_ua {p.sec_ch_ua!r}"
             )
 
-    def test_is_mobile_for_android(self):
-        android_profiles = [p for p in BUILTIN_PROFILES if p.platform == "Android"]
-        assert android_profiles, "Expected at least one Android profile in BUILTIN_PROFILES"
-        for p in android_profiles:
-            assert p.is_mobile is True
-
-    def test_is_mobile_false_for_desktop(self):
-        desktop_profiles = [p for p in BUILTIN_PROFILES if p.platform != "Android"]
-        for p in desktop_profiles:
+    def test_is_mobile_false_for_all_builtin_profiles(self):
+        # BUILTIN_PROFILES currently contains only desktop targets
+        for p in BUILTIN_PROFILES:
             assert p.is_mobile is False
+
+    def test_is_mobile_true_for_android_platform(self):
+        android_profile = BrowserProfile(
+            browser_version="chrome99_android",
+            user_agent="Mozilla/5.0 (Linux; Android 10; K) Chrome/99.0.0.0 Mobile",
+            sec_ch_ua='"Chromium";v="99"',
+            accept_language="en-US,en;q=0.9",
+            platform="Android",
+            impersonation_target="chrome99_android",
+        )
+        assert android_profile.is_mobile is True
 
     def test_to_headers_keys(self):
         p = BUILTIN_PROFILES[0]
@@ -68,10 +71,8 @@ class TestBrowserProfile:
         assert "sec-ch-ua-platform" in h
         assert "Accept-Language" in h
 
-    def test_to_headers_mobile_flag(self):
-        android = next(p for p in BUILTIN_PROFILES if p.platform == "Android")
+    def test_to_headers_mobile_flag_desktop(self):
         desktop = next(p for p in BUILTIN_PROFILES if p.platform != "Android")
-        assert android.to_headers()["sec-ch-ua-mobile"] == "?1"
         assert desktop.to_headers()["sec-ch-ua-mobile"] == "?0"
 
     def test_profile_is_frozen(self):
@@ -105,19 +106,11 @@ class TestBaseHeadersFromProfile:
         h = BaseHeaders.from_profile(profile)
         assert profile.platform in h["sec-ch-ua-platform"]
 
-    def test_android_profile_mobile_flag(self):
-        android = next(p for p in BUILTIN_PROFILES if p.platform == "Android")
-        h = BaseHeaders.from_profile(android, base_type="mobile_browser")
-        assert h["sec-ch-ua-mobile"] == "?1"
-
     def test_profile_overrides_base_ua(self):
         """The profile UA should replace whatever the base_type dict provides."""
         profile = BUILTIN_PROFILES[0]
-        # desktop_browser base has a hardcoded UA; profile must win
-        base_ua = BaseHeaders.DESKTOP_BROWSER_HEADERS.get("user-agent") or BaseHeaders.DESKTOP_BROWSER_HEADERS.get("User-Agent")
         h = BaseHeaders.from_profile(profile, base_type="desktop_browser")
         assert h["User-Agent"] == profile.user_agent
-        assert h["User-Agent"] != base_ua or profile.user_agent == base_ua  # profile wins
 
 
 # ---------------------------------------------------------------------------
@@ -145,12 +138,10 @@ class TestDomainConfigBrowserProfiles:
 def reset_rate_limiter():
     """Reset the RateLimiter singleton state between tests."""
     rl = RateLimiter()
-    # Snapshot configs before test so we can restore them afterward
     saved_configs = dict(rl._domain_configs)
     for domain in list(rl._sessions.keys()):
         rl.reset_domain(domain)
     yield
-    # Restore configs and clear any sessions created during the test
     rl._domain_configs = saved_configs
     for domain in list(rl._sessions.keys()):
         rl.reset_domain(domain)
@@ -187,12 +178,12 @@ class TestRateLimiterProfileRotation:
     @pytest.mark.asyncio
     async def test_custom_profiles_are_used(self):
         custom_profile = BrowserProfile(
-            browser_version="chrome131",
+            browser_version="chrome124",
             user_agent="CustomAgent/1.0",
-            sec_ch_ua='"Custom";v="131"',
+            sec_ch_ua='"Custom";v="124"',
             accept_language="fr-FR,fr;q=0.9",
             platform="Windows",
-            impersonation_target="chrome131",
+            impersonation_target="chrome124",
         )
         rl = RateLimiter()
         domain = "profile-test-3.example.com"
@@ -215,28 +206,40 @@ class TestRateLimiterProfileRotation:
         assert rl.get_domain_profile("unknown.example.com") is None
 
     @pytest.mark.asyncio
-    async def test_profile_rotates_on_session_reset(self):
-        """After resetting, a new random profile is picked for the next request."""
+    async def test_get_domain_profile_none_for_non_anti_detection_domain(self):
+        """RPS-mode domains never create a session so profile is always None."""
         rl = RateLimiter()
-        # Use a fast config to avoid real anti-detection delays
+        rps_domain = "rps-test.example.com"
+        rl.set_domain_config(rps_domain, DomainConfig(enable_anti_detection=False))
+        await rl.await_if_needed(f"https://{rps_domain}/events")
+        assert rl.get_domain_profile(rps_domain) is None
+
+    @pytest.mark.asyncio
+    async def test_profile_rotates_on_session_reset(self):
+        """Each new session picks a profile via random.choice; mock for determinism."""
+        rl = RateLimiter()
         fast_domain = "test-rotation.example.com"
+        profile_a = BUILTIN_PROFILES[0]   # chrome124 macOS
+        profile_b = BUILTIN_PROFILES[2]   # chrome120 macOS
         rl.set_domain_config(
             fast_domain,
             DomainConfig(
                 enable_anti_detection=True,
                 min_delay=0.0,
                 max_delay=0.0,
+                browser_profiles=[profile_a, profile_b],
             ),
         )
-        seen_profiles: set = set()
-        for _ in range(20):
-            rl.reset_domain(fast_domain)
-            await rl.await_if_needed(f"https://{fast_domain}/events")
-            p = rl.get_domain_profile(fast_domain)
-            assert p is not None
-            seen_profiles.add(p.browser_version)
-        # With 7 built-in profiles across multiple browser versions we expect
-        # at least 2 distinct versions to have appeared across 20 sessions.
-        assert len(seen_profiles) >= 2, (
-            f"Expected profile rotation across sessions, but only saw: {seen_profiles}"
-        )
+        # Alternate picks: a, b, a, b
+        picks = [profile_a, profile_b, profile_a, profile_b]
+        seen = []
+        with patch("laughtrack.utilities.infrastructure.rate_limiter.random.choice", side_effect=picks):
+            for _ in range(4):
+                rl.reset_domain(fast_domain)
+                await rl.await_if_needed(f"https://{fast_domain}/events")
+                seen.append(rl.get_domain_profile(fast_domain))
+
+        assert seen[0] is profile_a
+        assert seen[1] is profile_b
+        assert seen[2] is profile_a
+        assert seen[3] is profile_b
