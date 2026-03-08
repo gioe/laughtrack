@@ -8,7 +8,7 @@
         "build": "prisma generate && next build",
         "start": "next start",
         "lint": "next lint",
-        "lint:fix": "ESLINT_USE_FLAT_CONFIG=false eslint --fix \"./**/*.{ts,tsx}\" --ignore-pattern node_modules --ignore-pattern .next",
+        "lint:fix": "eslint --fix \"./**/*.{ts,tsx}\"",
         "format": "prettier --write \"./**/*.{ts,tsx}\" --ignore-path .gitignore",
         "gcp-build": "tsc -p .",
         "test": "vitest run",
