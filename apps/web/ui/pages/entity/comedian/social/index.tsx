@@ -1,3 +1,5 @@
+"use client";
+
 import { Comedian } from "@/objects/class/comedian/Comedian";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import InstagramIcon from "@/ui/components/icons/InstagramIcon";
