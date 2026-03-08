@@ -1,5 +1,7 @@
 """Tests for ScrapingService per-club metrics, summary emission, and alerting."""
 
+import threading
+import time
 from unittest.mock import MagicMock, patch, call
 import pytest
 
@@ -142,3 +144,86 @@ class TestScrapeClubsWithMetrics:
         assert m.error == 1
         assert m.ok == 0
         assert m.none_resp == 0
+
+    def test_clubs_run_concurrently(self):
+        """Multiple clubs should scrape in parallel, not sequentially."""
+        from laughtrack.core.services.scraping import ScrapingService
+        svc = self._make_service()
+
+        active_at_once = []
+        lock = threading.Lock()
+        active = [0]
+
+        def slow_scrape(club):
+            with lock:
+                active[0] += 1
+                active_at_once.append(active[0])
+            time.sleep(0.05)
+            with lock:
+                active[0] -= 1
+            return ClubScrapingResult(club_name=club.name, shows=[MagicMock()], execution_time=0.05)
+
+        mock_scraper = MagicMock()
+        mock_scraper.scrape_with_result.side_effect = lambda: slow_scrape(mock_scraper._club)
+        # Use a factory that attaches the club to the scraper so slow_scrape can access it
+        def scraper_factory(club):
+            s = MagicMock()
+            s.scrape_with_result.side_effect = lambda: slow_scrape(club)
+            return s
+
+        svc._scraping_resolver.get.return_value = scraper_factory
+
+        clubs = [self._make_club(name=f"Club {i}") for i in range(4)]
+        start = time.monotonic()
+        results, summary = svc._scrape_clubs_with_metrics(clubs)
+        elapsed = time.monotonic() - start
+
+        assert len(results) == 4
+        # With concurrency, 4 clubs at 0.05s each should finish much faster than sequential (0.20s)
+        assert elapsed < 0.15, f"Expected concurrent execution but took {elapsed:.2f}s"
+        # Verify at least 2 clubs overlapped
+        assert max(active_at_once) >= 2
+
+    def test_one_club_failure_does_not_abort_others(self):
+        """A failure in one club's scraper must not prevent other clubs from completing."""
+        from laughtrack.core.services.scraping import ScrapingService
+        svc = self._make_service()
+
+        good_result = ClubScrapingResult(club_name="Good Club", shows=[MagicMock()], execution_time=1.0)
+
+        def scraper_factory(club):
+            s = MagicMock()
+            if "Bad" in club.name:
+                s.scrape_with_result.side_effect = RuntimeError("network timeout")
+            else:
+                s.scrape_with_result.return_value = good_result
+            return s
+
+        svc._scraping_resolver.get.return_value = scraper_factory
+
+        clubs = [
+            self._make_club(name="Good Club 1"),
+            self._make_club(name="Bad Club"),
+            self._make_club(name="Good Club 2"),
+        ]
+        results, summary = svc._scrape_clubs_with_metrics(clubs)
+
+        assert len(results) == 3
+        assert len(summary.per_club) == 3
+        good_metrics = [m for m in summary.per_club if "Good" in m.club_name]
+        bad_metrics = [m for m in summary.per_club if "Bad" in m.club_name]
+        assert all(m.ok == 1 for m in good_metrics)
+        assert bad_metrics[0].error == 1
+
+    def test_max_concurrent_clubs_reads_env_var(self):
+        """MAX_CONCURRENT_CLUBS env var controls the semaphore limit."""
+        import os
+        from laughtrack.core.services.scraping import ScrapingService
+        svc = self._make_service()
+
+        with patch.dict(os.environ, {"MAX_CONCURRENT_CLUBS": "3"}):
+            assert svc._max_concurrent_clubs == 3
+
+        with patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("MAX_CONCURRENT_CLUBS", None)
+            assert svc._max_concurrent_clubs == 5  # default

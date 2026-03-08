@@ -19,6 +19,13 @@ from laughtrack.core.models.results import ClubScrapingResult
 from laughtrack.core.models.domain_metrics import DomainRequestMetrics, ScrapingRunSummary
 
 _DEFAULT_SUCCESS_RATE_THRESHOLD = 70.0
+_DEFAULT_MAX_CONCURRENT_CLUBS = 5
+
+
+def _scrape_with_context(scraper: BaseScraper, club: Club) -> ClubScrapingResult:
+    """Run scrape_with_result() inside the club's log context (thread-safe)."""
+    with Logger.use_context(club.as_context()):
+        return scraper.scrape_with_result()
 
 
 class ScrapingService:
@@ -68,6 +75,10 @@ class ScrapingService:
         self.result_processor.process_results(results)
 
     # --- Internal helpers ---
+    @property
+    def _max_concurrent_clubs(self) -> int:
+        return int(os.environ.get("MAX_CONCURRENT_CLUBS", _DEFAULT_MAX_CONCURRENT_CLUBS))
+
     def _try_validate_scraper_keys(self, clubs: List[Club]) -> None:
         try:
             from laughtrack.app.validators.scraper_config import validate_scraper_keys_for_clubs
@@ -78,42 +89,68 @@ class ScrapingService:
     def _scrape_clubs_with_metrics(
         self, clubs: List[Club]
     ) -> tuple[List[ClubScrapingResult], ScrapingRunSummary]:
-        results: List[ClubScrapingResult] = []
-        summary = ScrapingRunSummary()
-        for club in clubs:
-            with Logger.use_context(club.as_context()):
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+
+        if loop is not None and loop.is_running():
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(asyncio.run, self._scrape_clubs_concurrently(clubs))
+                return future.result()
+        return asyncio.run(self._scrape_clubs_concurrently(clubs))
+
+    async def _scrape_clubs_concurrently(
+        self, clubs: List[Club]
+    ) -> tuple[List[ClubScrapingResult], ScrapingRunSummary]:
+        semaphore = asyncio.Semaphore(self._max_concurrent_clubs)
+        loop = asyncio.get_running_loop()
+
+        async def scrape_one(
+            club: Club,
+        ) -> tuple[Optional[ClubScrapingResult], Optional[DomainRequestMetrics]]:
+            async with semaphore:
                 if not getattr(club, "scraper", None):
                     Logger.warn(f"Club '{club.name}' has no scraper key configured; skipping")
-                    continue
+                    return None, None
                 key: str = club.scraper if club.scraper is not None else ""
                 scraper_cls = self._scraping_resolver.get(key)
                 if not scraper_cls:
                     Logger.warn(f"No scraper found for club '{club.name}' with key '{key}'")
-                    continue
+                    return None, None
                 metrics = DomainRequestMetrics(club_name=club.name, club_id=getattr(club, "id", None))
                 metrics.total += 1
                 try:
                     scraper: BaseScraper = scraper_cls(club)
-                    result = scraper.scrape_with_result()
-                    results.append(result)
+                    result = await loop.run_in_executor(None, _scrape_with_context, scraper, club)
                     if result.error:
                         metrics.error += 1
                     elif result.num_shows == 0:
                         metrics.none_resp += 1
                     else:
                         metrics.ok += 1
+                    return result, metrics
                 except Exception as e:  # pragma: no cover - defensive
                     Logger.error(f"Failed to scrape club '{club.name}': {e}")
-                    results.append(
-                        ClubScrapingResult(
-                            club_name=club.name,
-                            shows=[],
-                            execution_time=0.0,
-                            error=str(e),
-                            club_id=club.id,
-                        )
+                    result = ClubScrapingResult(
+                        club_name=club.name,
+                        shows=[],
+                        execution_time=0.0,
+                        error=str(e),
+                        club_id=club.id,
                     )
                     metrics.error += 1
+                    return result, metrics
+
+        task_results = await asyncio.gather(*[scrape_one(club) for club in clubs])
+
+        results: List[ClubScrapingResult] = []
+        summary = ScrapingRunSummary()
+        for result, metrics in task_results:
+            if result is not None:
+                results.append(result)
+            if metrics is not None:
                 summary.per_club.append(metrics)
         return results, summary
 
