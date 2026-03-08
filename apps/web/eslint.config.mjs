@@ -16,7 +16,6 @@ export default [
   },
   {
     plugins: { "@next/next": nextPlugin },
-    settings: { ...nextPlugin.configs.recommended.settings },
     rules: {
       ...nextPlugin.configs.recommended.rules,
     },
