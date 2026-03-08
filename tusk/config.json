@@ -32,5 +32,5 @@
   "merge": {
     "mode": "local"
   },
-  "test_command": "cd apps/scraper && python3 -m pytest && cd ../web && npx vitest run"
+  "test_command": "cd apps/scraper && python3 -m pytest && cd ../web && npm test"
 }
