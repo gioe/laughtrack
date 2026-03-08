@@ -3,11 +3,13 @@ import { unstable_cache } from "next/cache";
 import { CACHE } from "@/util/constants/cacheConstants";
 import { getTrendingComedians } from "@/lib/data/home/getTrendingComedians";
 import { getPopularClubs } from "@/lib/data/home/getPopularClubs";
+import { getComediansByZip } from "@/lib/data/home/getComediansByZip";
 import { Prisma } from "@prisma/client";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { ClubDTO } from "@/objects/class/club/club.interface";
 import HeroComponent from "@/ui/pages/home/hero";
 import TrendingComedianGrid from "@/ui/pages/home/comedians";
+import ComedianNearYouSection from "@/ui/pages/home/comedians-near-you";
 import TrendingClubsCarousel from "@/ui/pages/home/clubs";
 import FooterComponent from "@/ui/pages/home/footer";
 
@@ -52,13 +54,23 @@ const getCachedHomePageData = unstable_cache(
 
 export default async function HomePage() {
     const session = await auth();
+    const zipCode = session?.profile?.zipCode ?? null;
 
-    const { comedians, clubs } = await getCachedHomePageData();
+    const [{ comedians, clubs }, nearYouComedians] = await Promise.all([
+        getCachedHomePageData(),
+        zipCode ? getComediansByZip(zipCode) : Promise.resolve([]),
+    ]);
 
     return (
         <main className="min-h-screen w-full">
             <HeroComponent profile={session?.profile} />
             <TrendingComedianGrid comedians={comedians} />
+            {zipCode && nearYouComedians.length > 0 && (
+                <ComedianNearYouSection
+                    comedians={nearYouComedians}
+                    zipCode={zipCode}
+                />
+            )}
             <TrendingClubsCarousel clubs={clubs} />
             <FooterComponent />
         </main>
