@@ -132,13 +132,16 @@ const ComedianDetailHeader: React.FC<ClubDetailHeaderProps> = ({
                 {showConfetti && (
                     <motion.div
                         initial={{
-                            opacity: 0,
+                            opacity: prefersReducedMotion ? 1 : 0,
                             scale: prefersReducedMotion ? 1 : 0,
                         }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{
-                            opacity: 0,
+                            opacity: prefersReducedMotion ? 1 : 0,
                             scale: prefersReducedMotion ? 1 : 0,
+                        }}
+                        transition={{
+                            duration: prefersReducedMotion ? 0 : undefined,
                         }}
                         className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
                     >
