@@ -4,7 +4,7 @@ import InstagramIcon from "@/ui/components/icons/InstagramIcon";
 import TikTokIcon from "@/ui/components/icons/TikTokIcon";
 import YouTubeIcon from "@/ui/components/icons/YouTubeIcon";
 import { Globe, ExternalLink, Share2 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
@@ -13,6 +13,7 @@ interface SocialMediaColumnProps {
 }
 
 const SocialMediaColumn = ({ comedian }: SocialMediaColumnProps) => {
+    const prefersReducedMotion = useReducedMotion();
     const parsedComedian = new Comedian(comedian);
     const [hoveredLink, setHoveredLink] = useState<string | null>(null);
     const [copiedPlatform, setCopiedPlatform] = useState<string | null>(null);
@@ -64,7 +65,7 @@ const SocialMediaColumn = ({ comedian }: SocialMediaColumnProps) => {
             setCopiedPlatform(link.platform);
             toast.success(`${link.platform} link copied to clipboard!`);
             setTimeout(() => setCopiedPlatform(null), 2000);
-        } catch (err) {
+        } catch {
             toast.error("Failed to copy link");
         }
     };
@@ -72,9 +73,9 @@ const SocialMediaColumn = ({ comedian }: SocialMediaColumnProps) => {
     return (
         <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-sm border border-gray-100">
             <motion.h2
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
+                transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
                 className="text-2xl font-bold mb-6 text-gray-900 font-dmSans"
             >
                 Connect
@@ -90,9 +91,15 @@ const SocialMediaColumn = ({ comedian }: SocialMediaColumnProps) => {
                     return (
                         <motion.div
                             key={link.platform}
-                            initial={{ opacity: 0, x: -20 }}
+                            initial={{
+                                opacity: 0,
+                                x: prefersReducedMotion ? 0 : -20,
+                            }}
                             animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.3, delay: index * 0.1 }}
+                            transition={{
+                                duration: prefersReducedMotion ? 0 : 0.3,
+                                delay: prefersReducedMotion ? 0 : index * 0.1,
+                            }}
                             className="relative"
                         >
                             <motion.a
@@ -116,8 +123,16 @@ const SocialMediaColumn = ({ comedian }: SocialMediaColumnProps) => {
                                                 ? "bg-white"
                                                 : "bg-gray-100"
                                         }`}
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
+                                        whileHover={
+                                            prefersReducedMotion
+                                                ? undefined
+                                                : { scale: 1.05 }
+                                        }
+                                        whileTap={
+                                            prefersReducedMotion
+                                                ? undefined
+                                                : { scale: 0.95 }
+                                        }
                                     >
                                         <Icon
                                             className={`w-5 h-5 transition-colors ${link.color}`}
@@ -137,8 +152,16 @@ const SocialMediaColumn = ({ comedian }: SocialMediaColumnProps) => {
                                 <div className="flex items-center gap-3">
                                     <motion.button
                                         onClick={(e) => handleShare(link, e)}
-                                        whileHover={{ scale: 1.1 }}
-                                        whileTap={{ scale: 0.9 }}
+                                        whileHover={
+                                            prefersReducedMotion
+                                                ? undefined
+                                                : { scale: 1.1 }
+                                        }
+                                        whileTap={
+                                            prefersReducedMotion
+                                                ? undefined
+                                                : { scale: 0.9 }
+                                        }
                                         className={`p-2 rounded-full transition-colors ${
                                             isHovered
                                                 ? "bg-white"
@@ -154,8 +177,16 @@ const SocialMediaColumn = ({ comedian }: SocialMediaColumnProps) => {
                                         />
                                     </motion.button>
                                     <motion.div
-                                        whileHover={{ scale: 1.1 }}
-                                        whileTap={{ scale: 0.9 }}
+                                        whileHover={
+                                            prefersReducedMotion
+                                                ? undefined
+                                                : { scale: 1.1 }
+                                        }
+                                        whileTap={
+                                            prefersReducedMotion
+                                                ? undefined
+                                                : { scale: 0.9 }
+                                        }
                                         className={`p-2 rounded-full transition-colors ${
                                             isHovered
                                                 ? "bg-white"
