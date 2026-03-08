@@ -2,11 +2,30 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSearchedShows } from "@/lib/data/show/search/getSearchedShows";
 import { resolveAuth } from "@/lib/auth/resolveAuth";
 import { SearchParams } from "@/objects/interface";
+import { auth } from "@/auth";
+import {
+    checkRateLimit,
+    getClientIp,
+    RATE_LIMITS,
+    rateLimitHeaders,
+    rateLimitResponse,
+} from "@/lib/rateLimit";
 
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const DEFAULT_DISTANCE = "25";
 
 export async function GET(req: NextRequest) {
+    const session = await auth();
+    const isAuthenticated = !!session?.profile;
+    const rateLimitKey = isAuthenticated
+        ? `shows:auth:${session!.profile!.userid}`
+        : `shows:anon:${getClientIp(req)}`;
+    const rl = checkRateLimit(
+        rateLimitKey,
+        isAuthenticated ? RATE_LIMITS.publicReadAuth : RATE_LIMITS.publicRead,
+    );
+    if (!rl.allowed) return rateLimitResponse(rl);
+
     const searchParams = req.nextUrl.searchParams;
 
     const zip = searchParams.get("zip");
@@ -21,21 +40,21 @@ export async function GET(req: NextRequest) {
     if (!zip || !/^\d{5}$/.test(zip)) {
         return NextResponse.json(
             { error: "zip is required and must be a 5-digit US zip code" },
-            { status: 400 },
+            { status: 400, headers: rateLimitHeaders(rl) },
         );
     }
 
     if (from && (!ISO_DATE_RE.test(from) || isNaN(new Date(from).getTime()))) {
         return NextResponse.json(
             { error: "from must be a valid date in YYYY-MM-DD format" },
-            { status: 400 },
+            { status: 400, headers: rateLimitHeaders(rl) },
         );
     }
 
     if (to && (!ISO_DATE_RE.test(to) || isNaN(new Date(to).getTime()))) {
         return NextResponse.json(
             { error: "to must be a valid date in YYYY-MM-DD format" },
-            { status: 400 },
+            { status: 400, headers: rateLimitHeaders(rl) },
         );
     }
 
@@ -44,7 +63,7 @@ export async function GET(req: NextRequest) {
         if (isNaN(distanceNum) || distanceNum < 1 || distanceNum > 500) {
             return NextResponse.json(
                 { error: "distance must be a number between 1 and 500 miles" },
-                { status: 400 },
+                { status: 400, headers: rateLimitHeaders(rl) },
             );
         }
     }
@@ -74,11 +93,10 @@ export async function GET(req: NextRequest) {
                 : {}),
         });
 
-        return NextResponse.json({
-            total: result.total,
-            data: result.data,
-            filters: result.filters,
-        });
+        return NextResponse.json(
+            { total: result.total, data: result.data, filters: result.filters },
+            { headers: rateLimitHeaders(rl) },
+        );
     } catch (error) {
         console.error("GET /api/v1/shows error:", error);
         return NextResponse.json(
