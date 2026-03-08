@@ -1,5 +1,6 @@
 import { CACHE } from "@/util/constants/cacheConstants";
 import { notFound } from "next/navigation";
+import { NotFoundError } from "@/objects/NotFoundError";
 import { auth } from "@/auth";
 import ClubDetailHeader from "@/ui/pages/entity/club/header";
 import FilterBar from "@/ui/pages/search/filterBar";
@@ -82,7 +83,7 @@ export default async function ClubDetailPage(props: {
     try {
         result = await getCachedDetailPageData(requestData)();
     } catch (error) {
-        if (error instanceof Error && /not found/i.test(error.message)) {
+        if (error instanceof NotFoundError) {
             notFound();
         }
         throw error;
