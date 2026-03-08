@@ -60,8 +60,12 @@ class EmailBaseScraper(BaseScraper):
 
     def __init__(self, club: Club) -> None:
         super().__init__(club)
+        if not getattr(self, "sender_domain", None):
+            raise TypeError(
+                f"{type(self).__name__} must set a non-empty 'sender_domain' class attribute."
+            )
         self._inbox_client: EmailInboxClient = EmailInboxClient()
-        # Keyed by message_id; populated in collect_scraping_targets()
+        # Keyed by message_id; populated in collect_scraping_targets() and evicted in get_data()
         self._email_cache: Dict[str, GmailMessage] = {}
 
     # ------------------------------------------------------------------
@@ -78,15 +82,17 @@ class EmailBaseScraper(BaseScraper):
                     cur.execute(
                         """
                         CREATE TABLE IF NOT EXISTS processed_emails (
-                            message_id   TEXT        PRIMARY KEY,
+                            message_id   TEXT        NOT NULL,
                             scraper_key  TEXT        NOT NULL,
-                            processed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                            processed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                            PRIMARY KEY (message_id, scraper_key)
                         )
                         """
                     )
         except Exception as exc:
-            Logger.debug(
-                f"[EmailBaseScraper] Could not ensure processed_emails table: {exc}",
+            Logger.warning(
+                f"[EmailBaseScraper] Could not ensure processed_emails table: {exc}. "
+                "Previously processed emails may be re-ingested on this run.",
                 self.logger_context,
             )
 
@@ -120,7 +126,7 @@ class EmailBaseScraper(BaseScraper):
                         """
                         INSERT INTO processed_emails (message_id, scraper_key)
                         VALUES (%s, %s)
-                        ON CONFLICT (message_id) DO NOTHING
+                        ON CONFLICT (message_id, scraper_key) DO NOTHING
                         """,
                         (message_id, self.key),
                     )
@@ -176,7 +182,8 @@ class EmailBaseScraper(BaseScraper):
         Returns:
             EmailPageData implementing EventListContainer, or None.
         """
-        message: Optional[GmailMessage] = self._email_cache.get(target)
+        # Pop evicts the entry so the cache does not grow unboundedly.
+        message: Optional[GmailMessage] = self._email_cache.pop(target, None)
         if message is None:
             Logger.debug(
                 f"[EmailBaseScraper] No cached email for message_id={target}",
@@ -194,7 +201,16 @@ class EmailBaseScraper(BaseScraper):
         except Exception:
             received_at = datetime.now(timezone.utc)
 
-        events: List[Any] = self.parse_email_html(message.html_body, message.subject, received_at)
+        try:
+            events: List[Any] = self.parse_email_html(message.html_body, message.subject, received_at)
+        except Exception as parse_exc:
+            Logger.error(
+                f"[EmailBaseScraper] parse_email_html raised for {target}: {parse_exc}",
+                self.logger_context,
+            )
+            self._mark_processed(target)
+            return None
+
         page_data = EmailPageData(
             html_body=message.html_body,
             subject=message.subject,

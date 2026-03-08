@@ -71,11 +71,7 @@ def club():
 
 @pytest.fixture
 def scraper(club):
-    # Suppress DB call during construction-time (table is ensured lazily in
-    # collect_scraping_targets, but patch just in case __init__ evolves).
-    with patch.object(ConcreteEmailScraper, "_ensure_processed_table", return_value=None):
-        s = ConcreteEmailScraper(club)
-    return s
+    return ConcreteEmailScraper(club)
 
 
 # ---------------------------------------------------------------------------
@@ -125,6 +121,16 @@ class TestEmailBaseScraperStructure:
         """EmailBaseScraper itself is abstract and cannot be instantiated."""
         with pytest.raises(TypeError):
             EmailBaseScraper(club)  # type: ignore[abstract]
+
+    def test_missing_sender_domain_raises_type_error(self, club):
+        """Subclasses that forget sender_domain fail immediately at construction."""
+        class NoSenderDomain(EmailBaseScraper):
+            key = "no_domain"
+            def parse_email_html(self, html_body, subject, received_at):
+                return []
+
+        with pytest.raises(TypeError, match="sender_domain"):
+            NoSenderDomain(club)
 
     def test_sender_domain_set_on_subclass(self, scraper):
         assert scraper.sender_domain == "example.com"
@@ -274,3 +280,27 @@ class TestGetData:
         mock_parse.assert_called_once()
         assert result is not None
         assert result.event_list == [{"parsed": True}]
+
+    @pytest.mark.asyncio
+    async def test_parse_email_html_exception_marks_processed_and_returns_none(self, scraper):
+        """If parse_email_html raises, the email is still marked processed to prevent loops."""
+        msg = _make_gmail_msg("MSG1", html_body="<div>bad</div>")
+        scraper._email_cache["MSG1"] = msg
+
+        with patch.object(scraper, "_mark_processed") as mock_mark:
+            with patch.object(scraper, "parse_email_html", side_effect=ValueError("bad html")):
+                result = await scraper.get_data("MSG1")
+
+        assert result is None
+        mock_mark.assert_called_once_with("MSG1")
+
+    @pytest.mark.asyncio
+    async def test_cache_entry_evicted_after_get_data(self, scraper):
+        """get_data() pops the message from _email_cache to prevent unbounded growth."""
+        msg = _make_gmail_msg("MSG1")
+        scraper._email_cache["MSG1"] = msg
+
+        with patch.object(scraper, "_mark_processed"):
+            await scraper.get_data("MSG1")
+
+        assert "MSG1" not in scraper._email_cache
