@@ -31,3 +31,8 @@ apps/scraper/.env
 .claude/skills/
 .claude/settings.json
 .claude/tusk-manifest.json
+
+# tusk database
+tusk/tasks.db
+tusk/tasks.db-shm
+tusk/tasks.db-wal
