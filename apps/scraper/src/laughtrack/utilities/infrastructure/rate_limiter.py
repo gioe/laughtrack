@@ -6,10 +6,7 @@ applies either simple RPS-based limiting or full anti-detection behaviour
 (human-like delays, session rotation, exponential backoff) depending on the
 domain's configuration.
 
-Replaces the three previously separate systems:
-  - RateLimiter (simple RPS)
-  - AntiDetectionManager (session-aware, human-like delays)
-  - TixrAntiDetectionLimiter (Tixr-specific burst/hourly limits)
+Consolidates three previously separate systems into one.
 """
 
 import asyncio
