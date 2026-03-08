@@ -1,6 +1,12 @@
 import { auth } from "@/auth";
 import { generateToken } from "@/util/token";
 import { NextRequest, NextResponse } from "next/server";
+import {
+    checkRateLimit,
+    getClientIp,
+    RATE_LIMITS,
+    rateLimitResponse,
+} from "@/lib/rateLimit";
 
 const ALLOWED_ORIGINS = (
     process.env.CORS_ALLOWED_ORIGINS ??
@@ -18,6 +24,12 @@ const ALLOWED_ORIGINS = (
  * Browser cross-origin requests are rejected via Origin check to prevent CSRF.
  */
 export async function POST(req: NextRequest) {
+    const rl = checkRateLimit(
+        `auth-token:${getClientIp(req)}`,
+        RATE_LIMITS.authToken,
+    );
+    if (!rl.allowed) return rateLimitResponse(rl);
+
     // CSRF: if Origin header is present, it must match an allowed origin.
     // Native iOS URLSession requests do not send Origin, so they pass through.
     const origin = req.headers.get("origin");
