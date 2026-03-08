@@ -18,13 +18,13 @@ import random
 import threading
 import time
 from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional
 
 from laughtrack.foundation.models.types import ScrapingTarget
 
-from .domain_config import DEFAULT_DOMAIN_CONFIGS, DomainConfig, _BUILTIN_USER_AGENTS
+from .domain_config import BUILTIN_USER_AGENTS, DEFAULT_DOMAIN_CONFIGS, DomainConfig
 
 
 # ---------------------------------------------------------------------------
@@ -93,6 +93,7 @@ class RateLimiter:
         # Anti-detection session state
         self._sessions: Dict[str, _RequestSession] = {}
         self._session_locks: Dict[str, asyncio.Lock] = {}
+        self._sessions_write_lock = threading.Lock()  # guards sync writes to _sessions
 
         self._initialized = True
 
@@ -133,6 +134,36 @@ class RateLimiter:
     def get_domain_limit(self, domain: str) -> float:
         """Return the configured RPS for a domain."""
         return self._get_config(domain).requests_per_second
+
+    def record_request_error(self, domain: str) -> None:
+        """
+        Increment the consecutive error counter for a domain's anti-detection session.
+
+        Call this after an HTTP error (e.g. 429, 5xx) so that exponential backoff
+        in _calculate_anti_detection_delay takes effect on the next request.
+        """
+        with self._sessions_write_lock:
+            session = self._sessions.get(domain)
+            if session is not None:
+                session.consecutive_errors += 1
+
+    def record_request_success(self, domain: str) -> None:
+        """Reset the consecutive error counter for a domain after a successful request."""
+        with self._sessions_write_lock:
+            session = self._sessions.get(domain)
+            if session is not None:
+                session.consecutive_errors = 0
+
+    def get_domain_user_agent(self, domain: str) -> Optional[str]:
+        """
+        Return the current session's User-Agent string for a domain, if one exists.
+
+        Callers in anti-detection mode can use this to set the User-Agent header
+        on outgoing requests, ensuring the rotated agent is actually applied.
+        Returns None when the domain has no active anti-detection session.
+        """
+        session = self._sessions.get(domain)
+        return session.user_agent if session is not None else None
 
     # ------------------------------------------------------------------
     # Main rate-limiting interface
@@ -232,7 +263,7 @@ class RateLimiter:
             if not needs_rotation:
                 return session
 
-        user_agents = config.user_agents or _BUILTIN_USER_AGENTS
+        user_agents = config.user_agents or BUILTIN_USER_AGENTS
         session = _RequestSession(
             domain=domain,
             start_time=now,
@@ -317,4 +348,5 @@ class RateLimiter:
         """Reset all rate-limiting state for a domain."""
         with self._domain_locks[domain]:
             self._last_request.pop(domain, None)
-        self._sessions.pop(domain, None)
+        with self._sessions_write_lock:
+            self._sessions.pop(domain, None)
