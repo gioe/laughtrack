@@ -23,6 +23,9 @@ export async function getComediansByZip(
 ): Promise<ComedianDTO[]> {
     if (!zipCode) return [];
 
+    // Validate zip code format before querying to prevent unexpected behavior
+    if (!/^\d{5}(-\d{4})?$/.test(zipCode)) return [];
+
     const now = new Date();
 
     const rows = await db.$queryRaw<NearYouComedianRow[]>`

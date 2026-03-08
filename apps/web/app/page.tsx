@@ -58,7 +58,9 @@ export default async function HomePage() {
 
     const [{ comedians, clubs }, nearYouComedians] = await Promise.all([
         getCachedHomePageData(),
-        zipCode ? getComediansByZip(zipCode) : Promise.resolve([]),
+        zipCode
+            ? getComediansByZip(zipCode).catch(() => [])
+            : Promise.resolve([]),
     ]);
 
     return (
