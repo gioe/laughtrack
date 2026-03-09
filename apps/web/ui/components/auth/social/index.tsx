@@ -30,7 +30,7 @@ const SocialButton = ({ provider, onClick, children }: SocialButtonProps) => {
                 focus:ring-offset-2 focus:ring-[#8B593B]"
         >
             <div className="flex items-center justify-center w-5 h-5">
-                {logos[provider.toLowerCase()]}
+                {logos[provider]}
             </div>
             <span className="font-medium">{children}</span>
         </motion.button>
@@ -46,7 +46,6 @@ interface SocialAuthButtonsProps {
 const SocialAuthButtons = ({
     actionText = "Continue",
     handleGoogleSignin,
-    handleAppleSignin,
 }: SocialAuthButtonsProps) => {
     const prefersReducedMotion = useReducedMotion();
 
@@ -54,7 +53,9 @@ const SocialAuthButtons = ({
         hidden: { opacity: 0 },
         show: {
             opacity: 1,
-            transition: prefersReducedMotion ? { duration: 0 } : { staggerChildren: 0.1 },
+            transition: prefersReducedMotion
+                ? { duration: 0 }
+                : { staggerChildren: 0.1 },
         },
     };
 

@@ -35,7 +35,7 @@ const MENU_ITEMS = {
     ],
 };
 
-export default function NavigationMenu({ pathname }) {
+export default function NavigationMenu({ pathname }: { pathname: string }) {
     return (
         <div className="flex items-center space-x-24">
             <HeaderItem highlighted={pathname === "/"} href="/" title="Home" />

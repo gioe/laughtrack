@@ -1,9 +1,10 @@
 "use client";
 
+import { MouseEvent } from "react";
 import { openEmailClient } from "@/ui/components/button/contact";
 
 const FooterComponent = () => {
-    const handleClick = (e) => {
+    const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();
         openEmailClient({
             to: "contact@laugh-track.com",

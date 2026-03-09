@@ -22,7 +22,10 @@ const ProfileUpdateSchema = z
 
 type ProfileUpdateInput = z.infer<typeof ProfileUpdateSchema>;
 
-export async function PUT(req: NextRequest, { params }) {
+export async function PUT(
+    req: NextRequest,
+    { params }: { params: Promise<{ id: string }> },
+) {
     const [authCtx, slug] = await Promise.all([resolveAuth(req), params]);
     if (authCtx === PROFILE_MISSING) {
         return NextResponse.json(

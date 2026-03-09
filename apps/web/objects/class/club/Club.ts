@@ -1,7 +1,6 @@
 import { EntityType } from "../../enum";
 import { Entity } from "../../interface";
 import { Show } from "../show/Show";
-import { ShowDTO } from "../show/show.interface";
 import { SocialData } from "../socialData/SocialData";
 import { ClubDTO, ClubInterface } from "./club.interface";
 
@@ -23,7 +22,7 @@ export class Club implements ClubInterface {
     readonly activeComedianCount?: number;
     readonly imageUrl: string;
     readonly phoneNumber: string;
-    readonly fallbackImageUrl: URL;
+    readonly fallbackImageUrl?: URL;
 
     // Complex objects
     readonly socialData?: SocialData;
@@ -40,17 +39,19 @@ export class Club implements ClubInterface {
         this.zipCode = input.zipCode ?? "";
         this.phoneNumber = input.phone_number ?? "";
 
-        this.imageUrl = input.imageUrl
+        this.imageUrl = input.imageUrl;
 
         // Initialize arrays and complex objects
         this.tagIds = input.tags ?? [];
-        this.containedEntities = input.dates?.map(date => new Show(date)) ?? [];
-        this.socialData = input.social_data ? new SocialData(input.social_data) : undefined;
+        this.containedEntities =
+            input.dates?.map((date) => new Show(date)) ?? [];
+        this.socialData = input.social_data
+            ? new SocialData(input.social_data)
+            : undefined;
 
         // Initialize flags and counts
         this.isFavorite = input.is_Favorite ?? false;
         this.showCount = input.show_count;
-        this.activeComedianCount = input.active_comedian_count
+        this.activeComedianCount = input.active_comedian_count;
     }
-
 }

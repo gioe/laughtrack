@@ -13,5 +13,5 @@ export class Ticket implements TicketInterface {
         this.soldOut = input.soldOut;
         this.type = input.type;
     }
-    link: string | null;
+    link?: string | null;
 }

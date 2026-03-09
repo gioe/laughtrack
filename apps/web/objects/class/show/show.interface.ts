@@ -14,7 +14,7 @@ export interface ShowInterface extends Taggable, Entity, SocialDiscoverable {
     popularityScore?: number;
     clubName?: string;
     clubAddress?: string;
-    ticket: Ticket;
+    ticket?: Ticket;
     lastScrapedDate?: Date;
     description?: string;
     soldOut?: boolean;

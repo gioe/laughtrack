@@ -1,7 +1,7 @@
 import React from "react";
-import { Input } from "../../../../ui/input";
+import { Input, InputProps } from "../../../../ui/input";
 
-const ZipCodeInput = (props) => {
+const ZipCodeInput = (props: InputProps) => {
     return (
         <div className="space-y-2">
             <Input

@@ -1,9 +1,19 @@
 import { useSignOut } from "@/hooks/useSignOut";
 import { FullRoundedButton } from "../../button/rounded/full";
 import { HeaderItem } from "../../navbar/headerItem";
-import { signOut } from "next-auth/react";
+import { UserProfileInterface } from "@/app/api/profile/[id]/interface";
 
-export default function AuthButtons({ currentUser, pathname, onLogin }) {
+interface AuthButtonsProps {
+    currentUser: UserProfileInterface | null | undefined;
+    pathname: string;
+    onLogin: () => void;
+}
+
+export default function AuthButtons({
+    currentUser,
+    pathname,
+    onLogin,
+}: AuthButtonsProps) {
     const handleSignOut = useSignOut();
 
     return (

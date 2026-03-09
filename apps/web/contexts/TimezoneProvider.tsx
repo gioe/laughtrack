@@ -1,11 +1,17 @@
 // app/components/TimezoneProvider.tsx
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
+import {
+    createContext,
+    useContext,
+    useState,
+    useEffect,
+    ReactNode,
+} from "react";
 
 const TimezoneContext = createContext({ timezone: "UTC" });
 
-export function TimezoneProvider({ children }) {
+export function TimezoneProvider({ children }: { children: ReactNode }) {
     const [timezone, setTimezone] = useState("UTC");
 
     useEffect(() => {

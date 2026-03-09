@@ -1,7 +1,17 @@
 import { X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, ReactNode, MouseEvent } from "react";
 
-const FullScreenModal = ({ isOpen, onClose, children }) => {
+interface FullScreenModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    children: ReactNode;
+}
+
+const FullScreenModal = ({
+    isOpen,
+    onClose,
+    children,
+}: FullScreenModalProps) => {
     const [isAnimating, setIsAnimating] = useState(false);
     const [shouldRender, setShouldRender] = useState(false);
 
@@ -39,7 +49,7 @@ const FullScreenModal = ({ isOpen, onClose, children }) => {
     if (!shouldRender) return null;
 
     // Prevent clicks inside the modal from closing it
-    const handleModalClick = (e) => {
+    const handleModalClick = (e: MouseEvent<HTMLDivElement>) => {
         e.stopPropagation();
     };
 

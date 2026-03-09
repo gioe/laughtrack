@@ -50,7 +50,8 @@ export class Show implements ShowInterface {
         this.address = input.address;
         this.imageUrl = input.imageUrl;
         this.soldOut = input.soldOut;
+        this.isFavorite = false;
     }
     clubAddress?: string | undefined;
-    ticket: Ticket;
+    ticket?: Ticket;
 }
