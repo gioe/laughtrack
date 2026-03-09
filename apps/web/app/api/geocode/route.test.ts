@@ -3,12 +3,14 @@ import { NextRequest } from "next/server";
 
 // Prevent next-auth (and its next/server import) from loading via the rateLimit chain
 vi.mock("@/lib/rateLimit", () => ({
-    checkRateLimit: vi.fn(() => ({
-        allowed: true,
-        limit: 100,
-        remaining: 99,
-        resetAt: 0,
-    })),
+    checkRateLimit: vi.fn(() =>
+        Promise.resolve({
+            allowed: true,
+            limit: 100,
+            remaining: 99,
+            resetAt: 0,
+        }),
+    ),
     getClientIp: vi.fn(() => "127.0.0.1"),
     RATE_LIMITS: { publicRead: {}, publicReadAuth: {} },
     rateLimitHeaders: vi.fn(() => ({})),

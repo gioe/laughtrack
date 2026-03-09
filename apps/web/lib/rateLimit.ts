@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 
 interface RateLimitWindow {
     count: number;
@@ -33,10 +35,37 @@ export const RATE_LIMITS = {
     authToken: { limit: 10, windowMs: 60_000 } satisfies RateLimitConfig,
 } as const;
 
-// In-memory store. Resets on server restart / cold start (acceptable for edge rate-limiting).
+// ---------------------------------------------------------------------------
+// Upstash Redis — initialised lazily when env vars are present.
+// Falls back to the in-memory store when the vars are absent (local dev).
+// ---------------------------------------------------------------------------
+function buildUpstashLimiter(config: RateLimitConfig): Ratelimit | null {
+    const url = process.env.UPSTASH_REDIS_REST_URL;
+    const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+    if (!url || !token) return null;
+    const redis = new Redis({ url, token });
+    return new Ratelimit({
+        redis,
+        limiter: Ratelimit.slidingWindow(config.limit, `${config.windowMs} ms`),
+        analytics: false,
+    });
+}
+
+// Cached limiters — one per config window+limit combo to avoid rebuilding on every call.
+const _limiterCache = new Map<string, Ratelimit | null>();
+function getLimiter(config: RateLimitConfig): Ratelimit | null {
+    const cacheKey = `${config.limit}:${config.windowMs}`;
+    if (!_limiterCache.has(cacheKey)) {
+        _limiterCache.set(cacheKey, buildUpstashLimiter(config));
+    }
+    return _limiterCache.get(cacheKey)!;
+}
+
+// ---------------------------------------------------------------------------
+// In-memory fallback (local dev / no Upstash credentials)
+// ---------------------------------------------------------------------------
 const store = new Map<string, RateLimitWindow>();
 
-// Evict expired entries when the store grows large to prevent unbounded memory growth.
 const STORE_CLEANUP_THRESHOLD = 5_000;
 function maybePruneStore(): void {
     if (store.size < STORE_CLEANUP_THRESHOLD) return;
@@ -44,6 +73,35 @@ function maybePruneStore(): void {
     for (const [key, entry] of store) {
         if (now >= entry.resetAt) store.delete(key);
     }
+}
+
+function checkRateLimitInMemory(
+    key: string,
+    config: RateLimitConfig,
+): RateLimitResult {
+    maybePruneStore();
+    const now = Date.now();
+    const entry = store.get(key);
+
+    if (!entry || now >= entry.resetAt) {
+        const resetAt = now + config.windowMs;
+        store.set(key, { count: 1, resetAt });
+        return {
+            allowed: true,
+            limit: config.limit,
+            remaining: config.limit - 1,
+            resetAt,
+        };
+    }
+
+    entry.count += 1;
+    const remaining = Math.max(0, config.limit - entry.count);
+    return {
+        allowed: entry.count <= config.limit,
+        limit: config.limit,
+        remaining,
+        resetAt: entry.resetAt,
+    };
 }
 
 /**
@@ -73,37 +131,32 @@ export function getClientIp(req: Request): string {
 }
 
 /**
- * Fixed-window rate limiter.
+ * Fixed/sliding-window rate limiter.
+ *
+ * Delegates to Upstash Redis when UPSTASH_REDIS_REST_URL and
+ * UPSTASH_REDIS_REST_TOKEN are set (production), otherwise falls back to an
+ * in-memory store (local development).
+ *
  * @param key    Unique bucket key, e.g. "favorites:anon:1.2.3.4"
  * @param config Window size and request limit
  */
-export function checkRateLimit(
+export async function checkRateLimit(
     key: string,
     config: RateLimitConfig,
-): RateLimitResult {
-    maybePruneStore();
-    const now = Date.now();
-    const entry = store.get(key);
+): Promise<RateLimitResult> {
+    const limiter = getLimiter(config);
 
-    if (!entry || now >= entry.resetAt) {
-        const resetAt = now + config.windowMs;
-        store.set(key, { count: 1, resetAt });
+    if (limiter) {
+        const result = await limiter.limit(key);
         return {
-            allowed: true,
-            limit: config.limit,
-            remaining: config.limit - 1,
-            resetAt,
+            allowed: result.success,
+            limit: result.limit,
+            remaining: result.remaining,
+            resetAt: result.reset,
         };
     }
 
-    entry.count += 1;
-    const remaining = Math.max(0, config.limit - entry.count);
-    return {
-        allowed: entry.count <= config.limit,
-        limit: config.limit,
-        remaining,
-        resetAt: entry.resetAt,
-    };
+    return checkRateLimitInMemory(key, config);
 }
 
 /**
@@ -137,7 +190,7 @@ export async function applyPublicReadRateLimit(
     const rateLimitKey = isAuthenticated
         ? `${routePrefix}:auth:${session!.profile!.userid}`
         : `${routePrefix}:anon:${getClientIp(req)}`;
-    const rl = checkRateLimit(
+    const rl = await checkRateLimit(
         rateLimitKey,
         isAuthenticated ? RATE_LIMITS.publicReadAuth : RATE_LIMITS.publicRead,
     );
