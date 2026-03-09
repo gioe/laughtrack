@@ -132,6 +132,11 @@ body,
   padding: 20px;
 }
 
+/* Stop skeleton pulses after 3 cycles (~6 s) to comply with WCAG 2.2.2 */
+.animate-pulse {
+  animation-iteration-count: 3 !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-fadeIn,
   .animate-slideUp,

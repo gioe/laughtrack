@@ -71,7 +71,9 @@ const ComedianDetailHeader: React.FC<ClubDetailHeaderProps> = ({
                                     onLoad={() => setImageLoaded(true)}
                                 />
                                 {!imageLoaded && (
-                                    <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+                                    <div
+                                        className={`absolute inset-0 bg-gray-200${!prefersReducedMotion ? " animate-pulse" : ""}`}
+                                    />
                                 )}
                             </div>
                             <motion.div

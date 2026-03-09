@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Club } from "@/objects/class/club/Club";
 import { ClubDTO } from "@/objects/class/club/club.interface";
 import ClubDataColumn from "../social";
+import { useReducedMotion } from "framer-motion";
 const PLACEHOLDER = "/placeholders/club-placeholder.svg";
 
 interface ClubDetailHeaderProps {
@@ -14,6 +15,7 @@ interface ClubDetailHeaderProps {
 
 const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({ club }) => {
     const parsedClub = new Club(club);
+    const prefersReducedMotion = useReducedMotion();
     const [error, setError] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
 
@@ -34,7 +36,9 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({ club }) => {
                                 onLoad={() => setImageLoaded(true)}
                             />
                             {!imageLoaded && (
-                                <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+                                <div
+                                    className={`absolute inset-0 bg-gray-200${!prefersReducedMotion ? " animate-pulse" : ""}`}
+                                />
                             )}
                         </div>
                         <div className="flex flex-col gap-1">
