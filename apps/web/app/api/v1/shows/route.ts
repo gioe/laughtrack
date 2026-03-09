@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSearchedShows } from "@/lib/data/show/search/getSearchedShows";
-import { resolveAuth } from "@/lib/auth/resolveAuth";
+import { resolveAuth, PROFILE_MISSING } from "@/lib/auth/resolveAuth";
 import { SearchParams } from "@/objects/interface";
 import {
     checkRateLimit,
@@ -74,11 +74,13 @@ export async function GET(req: NextRequest) {
     try {
         // resolveAuth handles both Bearer token (iOS) and session cookie auth,
         // so the rate-limit tier correctly reflects the caller's identity.
-        const authCtx = await resolveAuth(req);
+        const rawAuthCtx = await resolveAuth(req);
+        // Treat PROFILE_MISSING as anonymous — shows route works without auth
+        const authCtx = rawAuthCtx === PROFILE_MISSING ? null : rawAuthCtx;
 
         const isAuthenticated = authCtx !== null;
         const rateLimitKey = isAuthenticated
-            ? `shows:auth:${authCtx!.profileId}`
+            ? `shows:auth:${authCtx.profileId}`
             : `shows:anon:${getClientIp(req)}`;
         const rl = checkRateLimit(
             rateLimitKey,

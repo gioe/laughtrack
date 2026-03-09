@@ -2,7 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 
 // Use factory functions so real modules (and their DB deps) are never loaded
-vi.mock("@/lib/auth/resolveAuth", () => ({ resolveAuth: vi.fn() }));
+vi.mock("@/lib/auth/resolveAuth", () => ({
+    resolveAuth: vi.fn(),
+    PROFILE_MISSING: "PROFILE_MISSING",
+}));
 vi.mock("@/lib/data/show/search/getSearchedShows", () => ({
     getSearchedShows: vi.fn(),
 }));

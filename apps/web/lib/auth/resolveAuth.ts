@@ -8,14 +8,19 @@ export interface AuthContext {
     userId: string;
 }
 
+/** Sentinel returned when the user IS authenticated but has no UserProfile row. */
+export const PROFILE_MISSING = "PROFILE_MISSING" as const;
+export type ProfileMissing = typeof PROFILE_MISSING;
+
 /**
  * Resolves the authenticated user from a request.
  * Tries Bearer token first, then falls back to NextAuth session cookie.
- * Returns null if neither is present or valid.
+ * Returns null if not authenticated.
+ * Returns PROFILE_MISSING if authenticated but UserProfile row is absent.
  */
 export async function resolveAuth(
     req: NextRequest,
-): Promise<AuthContext | null> {
+): Promise<AuthContext | ProfileMissing | null> {
     const authHeader = req.headers.get("Authorization");
     if (authHeader?.startsWith("Bearer ")) {
         try {
@@ -24,10 +29,9 @@ export async function resolveAuth(
                 where: { email: decoded.email },
                 select: { id: true, profile: { select: { id: true } } },
             });
-            if (user?.profile?.id) {
-                return { profileId: user.profile.id, userId: user.id };
-            }
-            return null;
+            if (!user) return null;
+            if (!user.profile?.id) return PROFILE_MISSING;
+            return { profileId: user.profile.id, userId: user.id };
         } catch (error) {
             console.warn(
                 "Bearer token auth failed:",
@@ -38,6 +42,8 @@ export async function resolveAuth(
     }
 
     const session = await auth();
-    if (!session?.profile?.id || !session?.profile?.userid) return null;
+    if (!session) return null;
+    if (!session.profile?.id || !session.profile?.userid)
+        return PROFILE_MISSING;
     return { profileId: session.profile.id, userId: session.profile.userid };
 }

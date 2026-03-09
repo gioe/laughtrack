@@ -33,11 +33,19 @@ export async function GET(req: NextRequest) {
             return rateLimitResponse(rl);
         }
 
-        if (!session?.profile) {
+        if (!session) {
             return new NextResponse(null, {
                 status: 401,
                 headers: rateLimitHeaders(rl),
             });
+        }
+        if (!session.profile) {
+            return NextResponse.json(
+                {
+                    error: "User profile not found. Please sign out and sign in again.",
+                },
+                { status: 503, headers: rateLimitHeaders(rl) },
+            );
         }
 
         const { searchParams } = new URL(req.url);

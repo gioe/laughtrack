@@ -23,14 +23,13 @@ export async function favorite(
     }
 
     const session = await auth();
-    if (
-        !session ||
-        !session?.user ||
-        !session.user.id ||
-        !session.profile ||
-        !session.profile.id
-    ) {
+    if (!session || !session?.user || !session.user.id) {
         return;
+    }
+    if (!session.profile || !session.profile.id) {
+        return {
+            error: "User profile not found. Please sign out and sign in again.",
+        };
     }
 
     return toggleFavorite(
