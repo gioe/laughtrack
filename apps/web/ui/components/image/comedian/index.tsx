@@ -7,8 +7,6 @@ import { HeartIcon as OutlineHeart } from "@heroicons/react/24/outline";
 import { HeartIcon as SolidHeart } from "@heroicons/react/24/solid";
 import { useState } from "react";
 import { useFavorite } from "@/hooks/useFavorite";
-import { getLocalCdnUrl } from "@/util/cdnUtil";
-
 interface ComedianHeadshotProps {
     comedian: Comedian;
     sizes?: string;
@@ -16,8 +14,8 @@ interface ComedianHeadshotProps {
     className?: string;
 }
 
-const PLACEHOLDER = getLocalCdnUrl("comedian-placeholder.png");
-const ALIAS_PLACEHOLDER = getLocalCdnUrl("mystery-comedian-placeholder.png");
+const PLACEHOLDER = "/placeholders/comedian-placeholder.svg";
+const ALIAS_PLACEHOLDER = "/placeholders/mystery-comedian-placeholder.svg";
 
 const variantStyles = {
     grid: {

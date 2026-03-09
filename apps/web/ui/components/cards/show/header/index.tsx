@@ -4,10 +4,9 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { Show } from "@/objects/class/show/Show";
 import { formatShowDate } from "@/util/dateUtil";
-import { getLocalCdnUrl } from "@/util/cdnUtil";
 import { formatTicketString } from "@/util/ticket/ticketUtil";
 
-const PLACEHOLDER = getLocalCdnUrl("club-placeholder.png");
+const PLACEHOLDER = "/placeholders/club-placeholder.svg";
 
 interface ShowCardHeaderProps {
     show: Show;

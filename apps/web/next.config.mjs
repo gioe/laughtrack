@@ -7,6 +7,9 @@ import { withSentryConfig } from '@sentry/nextjs';
 const nextConfig = {
   images: {
     minimumCacheTTL: 0,
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     remotePatterns: [{
         protocol: 'https',
         port: '',

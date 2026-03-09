@@ -6,11 +6,10 @@ import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { Comedian } from "@/objects/class/comedian/Comedian";
 import SocialMediaColumn from "../social";
 import { useFavorite } from "@/hooks/useFavorite";
-import { getLocalCdnUrl } from "@/util/cdnUtil";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import Image from "next/image";
 
-const PLACEHOLDER = getLocalCdnUrl("comedian-placeholder.png");
+const PLACEHOLDER = "/placeholders/comedian-placeholder.svg";
 
 interface ClubDetailHeaderProps {
     comedian: ComedianDTO;

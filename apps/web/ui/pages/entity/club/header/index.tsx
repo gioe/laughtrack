@@ -6,9 +6,7 @@ import Image from "next/image";
 import { Club } from "@/objects/class/club/Club";
 import { ClubDTO } from "@/objects/class/club/club.interface";
 import ClubDataColumn from "../social";
-import { getLocalCdnUrl } from "@/util/cdnUtil";
-
-const PLACEHOLDER = getLocalCdnUrl("club-placeholder.png");
+const PLACEHOLDER = "/placeholders/club-placeholder.svg";
 
 interface ClubDetailHeaderProps {
     club: ClubDTO;

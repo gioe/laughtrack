@@ -4,10 +4,9 @@ import Image from "next/image";
 import { useState } from "react";
 import { Tooltip } from "@material-tailwind/react";
 import { Club } from "@/objects/class/club/Club";
-import { getLocalCdnUrl } from "@/util/cdnUtil";
 import Link from "next/link";
 
-const PLACEHOLDER = getLocalCdnUrl("club-placeholder.png");
+const PLACEHOLDER = "/placeholders/club-placeholder.svg";
 
 interface ClubMarqueeProps {
     club: Club;

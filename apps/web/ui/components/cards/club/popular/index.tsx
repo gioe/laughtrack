@@ -2,12 +2,11 @@
 
 import { Club } from "@/objects/class/club/Club";
 import { ClubDTO } from "@/objects/class/club/club.interface";
-import { getLocalCdnUrl } from "@/util/cdnUtil";
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-const PLACEHOLDER = getLocalCdnUrl("club-placeholder.png");
+const PLACEHOLDER = "/placeholders/club-placeholder.svg";
 
 interface PopularClubCardProps {
     entity: ClubDTO;
