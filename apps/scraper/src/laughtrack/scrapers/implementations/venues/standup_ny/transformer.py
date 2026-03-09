@@ -8,6 +8,7 @@ standardized Show objects for the Laughtrack database.
 from typing import Any, List, Optional
 
 from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.comedian.model import Comedian
 from laughtrack.core.entities.event.standup_ny import StandupNYEvent
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.entities.ticket.model import Ticket
@@ -101,13 +102,16 @@ class StandupNYEventTransformer(DataTransformer[StandupNYPageData]):
             # Extract ticket information
             tickets = self._extract_tickets(event)
 
+            # Extract comedian lineup
+            lineup = self._extract_lineup(event)
+
             # Create Show using the factory method
             return Show.create(
                 name=name,
                 date=formatted_datetime,
                 description=description,
                 show_page_url=show_page_url,
-                lineup=[],  # TODO: Extract comedian lineup if available in future
+                lineup=lineup,
                 tickets=tickets,
                 supplied_tags=["event"],  # Default tags for StandUp NY events
                 timezone=None,  # DateTimeUtils handles timezone conversion
@@ -158,6 +162,18 @@ class StandupNYEventTransformer(DataTransformer[StandupNYPageData]):
         except Exception as e:
             Logger.warn(f"Error parsing date for event {event.id}: {e}", self.logger_context)
             return None
+
+    def _extract_lineup(self, event: StandupNYEvent) -> List[Comedian]:
+        """
+        Extract comedian lineup from StandupNYEvent.
+
+        Uses VenuePilot performer data when available, falls back to GraphQL
+        promoter/support fields.
+        """
+        lineup = []
+        for name in event.get_lineup_names():
+            lineup.append(Comedian(name=name))
+        return lineup
 
     def _extract_tickets(self, event: StandupNYEvent) -> List[Ticket]:
         """

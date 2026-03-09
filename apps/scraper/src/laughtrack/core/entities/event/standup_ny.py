@@ -38,6 +38,8 @@ class StandupNYEvent:
     website_url: Optional[str] = None
     instagram_url: Optional[str] = None
     twitter_url: Optional[str] = None
+    promoter: Optional[str] = None  # Headliner comedian name(s) from GraphQL
+    support: Optional[str] = None  # Supporting comedian name(s) from GraphQL
 
     # VenuePilot enhanced data (if available)
     venue_pilot_event: Optional[Dict[str, Any]] = None
@@ -80,6 +82,8 @@ class StandupNYEvent:
             website_url=graphql_data.get("websiteUrl"),
             instagram_url=graphql_data.get("instagramUrl"),
             twitter_url=graphql_data.get("twitterUrl"),
+            promoter=graphql_data.get("promoter"),
+            support=graphql_data.get("support"),
             graphql_source=source,
             _raw_graphql_data=graphql_data,
         )
@@ -139,3 +143,37 @@ class StandupNYEvent:
         if self.venue_pilot_tickets:
             return len(self.venue_pilot_tickets)
         return 1 if self.ticket_url else 0
+
+    def get_lineup_names(self) -> List[str]:
+        """
+        Return comedian names for the show lineup.
+
+        Priority:
+        1. VenuePilot selectedEvent performers list
+        2. GraphQL promoter / support fields (comma-separated strings)
+        """
+        # 1. VenuePilot performers
+        if self.venue_pilot_event:
+            performers = self.venue_pilot_event.get("performers") or []
+            if performers and isinstance(performers, list):
+                names = []
+                for p in performers:
+                    if isinstance(p, dict):
+                        name = p.get("name") or p.get("displayName") or ""
+                    else:
+                        name = str(p)
+                    if name.strip():
+                        names.append(name.strip())
+                if names:
+                    return names
+
+        # 2. GraphQL promoter / support fields
+        names: List[str] = []
+        for field_value in [self.promoter, self.support]:
+            if not field_value:
+                continue
+            for name in field_value.split(","):
+                cleaned = name.strip()
+                if cleaned:
+                    names.append(cleaned)
+        return names
