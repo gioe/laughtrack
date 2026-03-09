@@ -36,7 +36,8 @@ export async function generateMetadata(props: {
     const comedianName = comedian?.name ?? name;
     const title = `${comedianName} | LaughTrack`;
     const description = `Discover upcoming comedy shows featuring ${comedianName}. Find schedules, tickets, and more on LaughTrack.`;
-    const url = `${process.env.NEXT_PUBLIC_WEBSITE_URL}/comedian/${slug}`;
+    const baseUrl = process.env.NEXT_PUBLIC_WEBSITE_URL;
+    const url = baseUrl ? `${baseUrl}/comedian/${slug}` : undefined;
     const image = buildComedianImageUrl(comedianName);
 
     return {
@@ -46,10 +47,10 @@ export async function generateMetadata(props: {
             title,
             description,
             type: "website",
-            url,
+            ...(url && { url }),
             images: [{ url: image }],
         },
-        twitter: { card: "summary_large_image" },
+        twitter: { card: "summary_large_image", images: [{ url: image }] },
     };
 }
 
