@@ -249,16 +249,17 @@ model ProcessedEmail {
 }
 
 model SentNotification {
-  id         Int      @id @default(autoincrement())
-  userId     String   @map("user_id")
-  comedianId String   @map("comedian_id")
-  showId     Int      @map("show_id")
-  sentAt     DateTime @default(now()) @map("sent_at")
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  comedian   Comedian @relation(fields: [comedianId], references: [uuid], onDelete: Cascade)
-  show       Show     @relation(fields: [showId], references: [id], onDelete: Cascade)
+  id               Int      @id @default(autoincrement())
+  userId           String   @map("user_id")
+  comedianId       String   @map("comedian_id")
+  showId           Int      @map("show_id")
+  notificationType String   @default("email") @map("notification_type")
+  sentAt           DateTime @default(now()) @map("sent_at")
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comedian         Comedian @relation(fields: [comedianId], references: [uuid], onDelete: Cascade)
+  show             Show     @relation(fields: [showId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, comedianId, showId])
+  @@unique([userId, comedianId, showId, notificationType], name: "sent_notifications_unique_per_channel")
   @@index([userId])
   @@map("sent_notifications")
 }
