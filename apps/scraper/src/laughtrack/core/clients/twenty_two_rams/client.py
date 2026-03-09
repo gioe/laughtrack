@@ -9,14 +9,15 @@ from laughtrack.core.entities.show.model import Show
 from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
 from laughtrack.scrapers.implementations.json_ld.extractor import EventExtractor
 from laughtrack.core.clients.base import BaseApiClient
+from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 
 
 class TwentyTwoRamsClient(BaseApiClient):
     """Client for scraping 22Rams ticketing pages."""
 
-    def __init__(self, club: Club):
+    def __init__(self, club: Club, proxy_pool: Optional[ProxyPool] = None):
         # Initialize with rate limiter
-        super().__init__(club, Limiter(1 / 3, max_burst=1))
+        super().__init__(club, Limiter(1 / 3, max_burst=1), proxy_pool=proxy_pool)
 
         # Override headers for web scraping
         self.headers = BaseHeaders.get_headers("desktop_browser")

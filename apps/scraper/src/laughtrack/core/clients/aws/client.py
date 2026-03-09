@@ -1,15 +1,16 @@
-from typing import List
+from typing import List, Optional
 
 from laughtrack.core.clients.base import BaseApiClient
 from laughtrack.core.entities.club.model import Club
+from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 from laughtrack.foundation.models.types import JSONDict
 
 
 class AWSClient(BaseApiClient):
     """Client for AWS buckets."""
 
-    def __init__(self, club: Club):
-        super().__init__(club)
+    def __init__(self, club: Club, proxy_pool: Optional[ProxyPool] = None):
+        super().__init__(club, proxy_pool=proxy_pool)
 
     def _build_s3_url(self, domain: str, path: str = "") -> str:
         """

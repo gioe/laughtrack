@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 
 from laughtrack.core.clients.base import BaseApiClient
 from laughtrack.core.entities.club.model import Club
+from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 from laughtrack.core.entities.comedian.model import Comedian
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.entities.ticket.model import Ticket
@@ -16,9 +17,9 @@ from laughtrack.foundation.utilities.url import URLUtils
 class WixEventsClient(BaseApiClient):
     """Client for Wix events."""
 
-    def __init__(self, club: Club):
+    def __init__(self, club: Club, proxy_pool: Optional[ProxyPool] = None):
         load_dotenv()
-        super().__init__(club)
+        super().__init__(club, proxy_pool=proxy_pool)
         # Domain without scheme for header context, base_url with scheme for requests
         self.domain = URLUtils.get_formatted_domain(self.club.scraping_url)
         self.base_url = URLUtils.get_base_domain_with_protocol(self.club.scraping_url)

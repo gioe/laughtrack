@@ -26,6 +26,7 @@ from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
 from laughtrack.scrapers.implementations.json_ld.extractor import EventExtractor
 from laughtrack.core.clients.base import BaseApiClient
+from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.datetime import DateTimeUtils
 
@@ -46,8 +47,8 @@ class LiveNationClient(BaseApiClient):
     TICKET_API_KEY = "b462oi7fic6pehcdkzony5bxhe"
     TICKET_API_SECRET = "pquzpfrfz7zd2ylvtz3w5dtyse"
 
-    def __init__(self, club: Club):
-        super().__init__(club)
+    def __init__(self, club: Club, proxy_pool: Optional[ProxyPool] = None):
+        super().__init__(club, proxy_pool=proxy_pool)
 
         # CRITICAL: Conservative rate limiting for Live Nation
         self.last_request_time = 0

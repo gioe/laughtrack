@@ -4,6 +4,7 @@ from typing import Any, List, Optional
 
 from laughtrack.core.clients.base import BaseApiClient
 from laughtrack.core.entities.club.model import Club
+from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.foundation.models.types import JSONDict
@@ -15,9 +16,9 @@ from laughtrack.foundation.utilities.url import URLUtils
 class VenuePilotClient(BaseApiClient):
     """Specialized scraper for VenuePilot."""
 
-    def __init__(self, club: Club):
+    def __init__(self, club: Club, proxy_pool: Optional[ProxyPool] = None):
         """Initialize the client with club data."""
-        super().__init__(club)
+        super().__init__(club, proxy_pool=proxy_pool)
         self.events_url = "https://www.venuepilot.co/graphql"
 
     async def fetch_events(self, venue_id: str) -> List[JSONDict]:

@@ -7,15 +7,16 @@ from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.foundation.models.types import JSONDict
 from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
 from laughtrack.core.clients.base import BaseApiClient
+from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 from laughtrack.foundation.utilities.datetime import DateTimeUtils
 
 
 class TicketplateClient(BaseApiClient):
     """Specialized scraper for Eventbrite pages."""
 
-    def __init__(self, club: Club):
+    def __init__(self, club: Club, proxy_pool: Optional[ProxyPool] = None):
         """Initialize the client with club data."""
-        super().__init__(club)
+        super().__init__(club, proxy_pool=proxy_pool)
         # Headers are initialized via _initialize_headers
 
     async def get_event_detail(self, slug: str) -> Any:

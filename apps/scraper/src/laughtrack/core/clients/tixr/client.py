@@ -12,6 +12,7 @@ from laughtrack.core.entities.comedian.model import Comedian
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.core.clients.base import BaseApiClient
+from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 from laughtrack.foundation.utilities.datetime import DateTimeUtils
 from laughtrack.foundation.utilities.url import URLUtils
 
@@ -32,14 +33,15 @@ class TixrClient(BaseApiClient):
     Uses BaseApiClient for HTTP operations and focuses on core functionality.
     """
 
-    def __init__(self, club: Club):
+    def __init__(self, club: Club, proxy_pool: Optional[ProxyPool] = None):
         """
         Initialize the Tixr client.
 
         Args:
             club: Club instance for configuration
+            proxy_pool: Optional ProxyPool for rotating proxy support
         """
-        super().__init__(club)
+        super().__init__(club, proxy_pool=proxy_pool)
 
         # Tixr API configuration
         self.base_api_url = "https://api.tixr.com/api/events"

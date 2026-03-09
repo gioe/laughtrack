@@ -7,14 +7,15 @@ from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
+from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 from laughtrack.core.clients.base import BaseApiClient
 
 
 class OvationTixClient(BaseApiClient):
     """Client for interacting with OvationTeix's API."""
 
-    def __init__(self, club: Club):
-        super().__init__(club, rate_limiter=Limiter(1 / 5, max_burst=1))
+    def __init__(self, club: Club, proxy_pool: Optional[ProxyPool] = None):
+        super().__init__(club, rate_limiter=Limiter(1 / 5, max_burst=1), proxy_pool=proxy_pool)
 
         # Initialize headers using BaseHeaders
         self.headers = BaseHeaders.get_headers(
