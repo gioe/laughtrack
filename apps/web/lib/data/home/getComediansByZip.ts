@@ -21,7 +21,7 @@ type NearYouComedianRow = {
 };
 
 function resolveZipCodes(zipCode: string, radius?: number): string[] {
-    if (!radius || isNaN(radius) || radius < 1 || radius > 500) {
+    if (!radius || radius < 1 || radius > 500) {
         return [zipCode];
     }
     try {

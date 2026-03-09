@@ -270,6 +270,7 @@ describe("getComediansByZip", () => {
 
             await getComediansByZip("10001", 5);
 
+            expect(mockZipRadius).toHaveBeenCalledWith("10001", 5);
             expect(mockQueryRaw).toHaveBeenCalledOnce();
         });
 
