@@ -164,3 +164,96 @@ class TestSessionInvalidatedOnProfileRotation:
         assert first is second
         assert MockSession.call_count == 1
         sess.close.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# Tests: proxy_url parameter
+# ---------------------------------------------------------------------------
+
+
+class TestProxyUrl:
+    @pytest.mark.asyncio
+    async def test_no_proxy_url_omits_proxy_kwarg(self):
+        """When proxy_url is not provided, AsyncSession must NOT receive a proxy kwarg."""
+        mixin = _ConcreteHttpMixin()
+
+        with patch("laughtrack.core.data.mixins.async_http_mixin.AsyncSession") as MockSession:
+            MockSession.return_value = AsyncMock()
+            await mixin.get_session()
+
+        call_kwargs = MockSession.call_args[1]
+        assert "proxy" not in call_kwargs
+
+    @pytest.mark.asyncio
+    async def test_proxy_url_forwarded_to_async_session(self):
+        """When proxy_url is provided it must be forwarded to AsyncSession as ``proxy``."""
+        mixin = _ConcreteHttpMixin()
+        proxy = "http://proxy.example.com:8080"
+
+        with patch("laughtrack.core.data.mixins.async_http_mixin.AsyncSession") as MockSession:
+            MockSession.return_value = AsyncMock()
+            await mixin.get_session(proxy_url=proxy)
+
+        call_kwargs = MockSession.call_args[1]
+        assert call_kwargs.get("proxy") == proxy
+
+    @pytest.mark.asyncio
+    async def test_same_proxy_url_reuses_session(self):
+        """Repeated calls with the same proxy_url must reuse the cached session."""
+        mixin = _ConcreteHttpMixin()
+        proxy = "http://proxy.example.com:8080"
+
+        with patch("laughtrack.core.data.mixins.async_http_mixin.AsyncSession") as MockSession:
+            sess = AsyncMock()
+            MockSession.return_value = sess
+
+            first = await mixin.get_session(proxy_url=proxy)
+            second = await mixin.get_session(proxy_url=proxy)
+
+        assert first is second
+        assert MockSession.call_count == 1
+
+    @pytest.mark.asyncio
+    async def test_changed_proxy_url_invalidates_session(self):
+        """When proxy_url changes between calls the old session is closed and a new one opened."""
+        mixin = _ConcreteHttpMixin()
+
+        with patch("laughtrack.core.data.mixins.async_http_mixin.AsyncSession") as MockSession:
+            sess1 = AsyncMock()
+            sess2 = AsyncMock()
+            MockSession.side_effect = [sess1, sess2]
+
+            first = await mixin.get_session(proxy_url="http://proxy1.example.com")
+            second = await mixin.get_session(proxy_url="http://proxy2.example.com")
+
+        sess1.close.assert_called_once()
+        assert second is sess2
+        assert MockSession.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_proxy_url_cleared_on_close_session(self):
+        """After close_session(), _session_proxy_url must be reset to None."""
+        mixin = _ConcreteHttpMixin()
+
+        with patch("laughtrack.core.data.mixins.async_http_mixin.AsyncSession") as MockSession:
+            MockSession.return_value = AsyncMock()
+            await mixin.get_session(proxy_url="http://proxy.example.com")
+
+        await mixin.close_session()
+        assert mixin._session_proxy_url is None
+
+    @pytest.mark.asyncio
+    async def test_no_proxy_to_proxy_invalidates_session(self):
+        """Switching from no proxy to a proxy must close the old session."""
+        mixin = _ConcreteHttpMixin()
+
+        with patch("laughtrack.core.data.mixins.async_http_mixin.AsyncSession") as MockSession:
+            sess1 = AsyncMock()
+            sess2 = AsyncMock()
+            MockSession.side_effect = [sess1, sess2]
+
+            await mixin.get_session()  # no proxy
+            await mixin.get_session(proxy_url="http://proxy.example.com")
+
+        sess1.close.assert_called_once()
+        assert MockSession.call_count == 2

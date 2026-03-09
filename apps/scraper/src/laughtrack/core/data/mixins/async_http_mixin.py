@@ -38,13 +38,21 @@ class AsyncHttpMixin(ABC):
         self._session_closed: bool = True
         self._default_headers: Optional[Dict[str, str]] = None
         self._session_impersonation_target: Optional[str] = None
+        self._session_proxy_url: Optional[str] = None
 
-    async def get_session(self, headers: Optional[Dict[str, str]] = None) -> AsyncSession:
+    async def get_session(
+        self,
+        headers: Optional[Dict[str, str]] = None,
+        proxy_url: Optional[str] = None,
+    ) -> AsyncSession:
         """
         Get or create curl_cffi AsyncSession with proper configuration.
 
         Args:
             headers: Optional custom headers to merge with defaults
+            proxy_url: Optional proxy URL to route the session through
+                (format: "http://proxy_url"). When provided, forwarded to
+                AsyncSession as the ``proxy`` parameter.
 
         Returns:
             Configured curl_cffi AsyncSession impersonating Chrome
@@ -56,19 +64,29 @@ class AsyncHttpMixin(ABC):
             if current_target != self._session_impersonation_target:
                 await self.close_session()
 
+        # Invalidate the session if the proxy has changed.
+        if self._session is not None and not self._session_closed:
+            if proxy_url != self._session_proxy_url:
+                await self.close_session()
+
         if self._session is None or self._session_closed:
             # Get timeout from club if available, otherwise use default
             timeout_value = getattr(self.club, "timeout", 30) if hasattr(self.club, "timeout") else 30
             session_headers = self._build_session_headers(headers)
             impersonation_target = self._get_impersonation_target()
 
-            self._session = AsyncSession(
+            session_kwargs = dict(
                 impersonate=impersonation_target,
                 timeout=timeout_value,
                 headers=session_headers,
             )
+            if proxy_url is not None:
+                session_kwargs["proxy"] = proxy_url
+
+            self._session = AsyncSession(**session_kwargs)
             self._session_closed = False
             self._session_impersonation_target = impersonation_target
+            self._session_proxy_url = proxy_url
 
         return self._session
 
@@ -139,6 +157,7 @@ class AsyncHttpMixin(ABC):
             self._session_closed = True
             self._session = None
             self._session_impersonation_target = None
+            self._session_proxy_url = None
             self._default_headers = None
 
     async def __aenter__(self):
