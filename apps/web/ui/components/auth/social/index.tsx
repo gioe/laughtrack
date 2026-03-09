@@ -40,7 +40,7 @@ const SocialButton = ({ provider, onClick, children }: SocialButtonProps) => {
 interface SocialAuthButtonsProps {
     actionText?: string;
     handleGoogleSignin: () => void;
-    handleAppleSignin: () => void;
+    handleAppleSignin?: () => void;
 }
 
 const SocialAuthButtons = ({
