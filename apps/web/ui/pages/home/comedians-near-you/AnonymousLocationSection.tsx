@@ -12,16 +12,10 @@ async function reverseGeocodeToZip(
     lng: number,
 ): Promise<string | null> {
     try {
-        const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
-            { headers: { "Accept-Language": "en" } },
-        );
+        const res = await fetch(`/api/geocode?lat=${lat}&lng=${lng}`);
         if (!res.ok) return null;
         const data = await res.json();
-        const postcode: string | undefined = data?.address?.postcode;
-        const zip = postcode?.split("-")[0];
-        if (zip && /^\d{5}$/.test(zip)) return zip;
-        return null;
+        return data?.zip ?? null;
     } catch {
         return null;
     }
