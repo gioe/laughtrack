@@ -18,7 +18,10 @@ type TrendingComedianRow = {
     show_count: number;
 };
 
-export async function getTrendingComedians(): Promise<ComedianDTO[]> {
+const MAX_COMEDIANS_LIMIT = 100;
+
+export async function getTrendingComedians(limit = 8): Promise<ComedianDTO[]> {
+    const safeLimit = Math.min(Math.max(1, limit), MAX_COMEDIANS_LIMIT);
     const now = new Date();
 
     // Table/column mappings: comedians@@map, lineup_items@@map, shows@@map,
@@ -81,7 +84,7 @@ export async function getTrendingComedians(): Promise<ComedianDTO[]> {
         FROM comedian_counts
         WHERE show_count > 3
         ORDER BY RANDOM()
-        LIMIT 8
+        LIMIT ${safeLimit}
     `;
 
     return rows.map((row) => ({

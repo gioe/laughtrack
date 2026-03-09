@@ -22,7 +22,15 @@ export async function GET(req: NextRequest) {
     if (!rl.allowed) return rateLimitResponse(rl);
 
     try {
-        const clubs = await getPopularClubs();
+        const rawLimit = req.nextUrl.searchParams.get("limit");
+        const limit = rawLimit !== null ? parseInt(rawLimit, 10) : 8;
+        if (isNaN(limit) || limit < 1) {
+            return NextResponse.json(
+                { error: "limit must be a positive integer" },
+                { status: 400 },
+            );
+        }
+        const clubs = await getPopularClubs(limit);
         return NextResponse.json(
             { data: clubs },
             { headers: rateLimitHeaders(rl) },
