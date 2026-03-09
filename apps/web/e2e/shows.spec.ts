@@ -3,6 +3,7 @@ import { test, expect } from "@playwright/test";
 test("show listing page renders results", async ({ page }) => {
     await page.goto("/show/search");
 
+    await expect(page).toHaveURL(/\/show\/search/);
     await expect(page.locator("main")).toBeVisible();
 
     // Either show cards (h2 with club name) or the empty state should be visible

@@ -9,10 +9,10 @@ test("comedian detail page loads correctly", async ({ page }) => {
 
     // Grab the first comedian card link and navigate to the detail page
     const firstLink = page.locator('a[href^="/comedian/"]').first();
+    await expect(firstLink).toBeVisible();
     const href = await firstLink.getAttribute("href");
-    expect(href).toBeTruthy();
 
     await page.goto(href!);
 
-    await expect(page.locator("h1")).toBeVisible();
+    await expect(page.locator("h1")).not.toBeEmpty();
 });
