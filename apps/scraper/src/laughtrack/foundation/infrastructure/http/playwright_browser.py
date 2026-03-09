@@ -181,13 +181,14 @@ class PlaywrightBrowser:
 
         Safe to call multiple times; subsequent calls are no-ops.
         """
-        if self._browser is not None:
-            await self._browser.close()
-            self._browser = None
-        if self._pw_cm is not None:
-            await self._pw_cm.__aexit__(None, None, None)
-            self._pw_cm = None
-            self._pw = None
+        async with self._browser_lock:
+            if self._browser is not None:
+                await self._browser.close()
+                self._browser = None
+            if self._pw_cm is not None:
+                await self._pw_cm.__aexit__(None, None, None)
+                self._pw_cm = None
+                self._pw = None
 
     async def fetch_html(self, url: str, proxy_url: Optional[str] = None) -> str:
         """Fetch fully-rendered HTML from *url* using the persistent Playwright browser.
