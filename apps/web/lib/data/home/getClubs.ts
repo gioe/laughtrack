@@ -4,14 +4,11 @@ import { buildClubImageUrl } from "@/util/imageUtil";
 
 const MAX_CLUBS_LIMIT = 100;
 
-export async function getPopularClubs(
-    limit = 8,
-    offset = 0,
-): Promise<ClubDTO[]> {
+export async function getClubs(limit = 8, offset = 0): Promise<ClubDTO[]> {
     const safeLimit = Math.min(Math.max(1, limit), MAX_CLUBS_LIMIT);
     return db.club
         .findMany({
-            orderBy: { id: "asc" },
+            orderBy: { id: "asc" }, // stable insertion-order sort for offset pagination
             select: {
                 id: true,
                 address: true,
@@ -39,21 +36,17 @@ export async function getPopularClubs(
             skip: offset,
         })
         .then((clubs) =>
-            clubs
-                .map((club) => ({
-                    id: club.id,
-                    address: club.address,
-                    name: club.name,
-                    zipCode: club.zipCode,
-                    imageUrl: buildClubImageUrl(club.name),
-                    active_comedian_count: new Set(
-                        club.shows.flatMap((show) =>
-                            show.lineupItems.map((item) => item.comedianId),
-                        ),
-                    ).size,
-                }))
-                .sort(
-                    (a, b) => b.active_comedian_count - a.active_comedian_count,
-                ),
+            clubs.map((club) => ({
+                id: club.id,
+                address: club.address,
+                name: club.name,
+                zipCode: club.zipCode,
+                imageUrl: buildClubImageUrl(club.name),
+                active_comedian_count: new Set(
+                    club.shows.flatMap((show) =>
+                        show.lineupItems.map((item) => item.comedianId),
+                    ),
+                ).size,
+            })),
         );
 }

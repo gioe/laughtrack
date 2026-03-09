@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPopularClubs } from "@/lib/data/home/getPopularClubs";
+import { getClubs } from "@/lib/data/home/getClubs";
 import { auth } from "@/auth";
 import {
     checkRateLimit,
@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
                 { status: 400 },
             );
         }
-        const clubs = await getPopularClubs(limit, offset);
+        const clubs = await getClubs(limit, offset);
         return NextResponse.json(
             { data: clubs },
             { headers: rateLimitHeaders(rl) },

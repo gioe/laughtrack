@@ -2,7 +2,7 @@ import { auth } from "../auth";
 import { unstable_cache } from "next/cache";
 import { CACHE } from "@/util/constants/cacheConstants";
 import { getTrendingComedians } from "@/lib/data/home/getTrendingComedians";
-import { getPopularClubs } from "@/lib/data/home/getPopularClubs";
+import { getClubs } from "@/lib/data/home/getClubs";
 import { getComediansByZip } from "@/lib/data/home/getComediansByZip";
 import { Prisma } from "@prisma/client";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
@@ -22,7 +22,7 @@ async function getHomePageData(): Promise<HomePageData> {
     try {
         const [comedians, clubs] = await Promise.all([
             getTrendingComedians(),
-            getPopularClubs(),
+            getClubs(),
         ]);
         return {
             comedians,
