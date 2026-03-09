@@ -34,7 +34,7 @@ export function FullRoundedButton({
         before:transition-transform before:duration-500
     `;
 
-    const ButtonComponent = () => (
+    const button = (
         <button
             type={type}
             disabled={disabled}
@@ -50,12 +50,8 @@ export function FullRoundedButton({
     );
 
     if (!href) {
-        return <ButtonComponent />;
+        return button;
     }
 
-    return (
-        <Link href={href}>
-            <ButtonComponent />
-        </Link>
-    );
+    return <Link href={href}>{button}</Link>;
 }

@@ -19,7 +19,7 @@ interface ClubMarqueeProps {
 const ClubMarquee = ({ club, tooltip = true }: ClubMarqueeProps) => {
     const [error, setError] = useState(false);
 
-    const ImageComponent = () => (
+    const imageContent = (
         <div>
             <Link
                 href={`/club/${club.name}`}
@@ -40,12 +40,12 @@ const ClubMarquee = ({ club, tooltip = true }: ClubMarqueeProps) => {
     );
 
     if (!tooltip) {
-        return <ImageComponent />;
+        return imageContent;
     }
 
     return (
         <Tooltip key={club.name} content={club.name}>
-            <ImageComponent />
+            {imageContent}
         </Tooltip>
     );
 };
