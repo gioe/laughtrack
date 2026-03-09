@@ -12,7 +12,7 @@ def _make_response(status_code: int, text: str = "", json_data=None):
     resp = MagicMock()
     resp.status_code = status_code
     resp.text = text
-    resp.json = MagicMock(return_value=json_data or {})
+    resp.json = MagicMock(return_value=json_data if json_data is not None else {})
     return resp
 
 
