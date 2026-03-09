@@ -1,6 +1,7 @@
 """Tests for BrowserProfile, BaseHeaders.from_profile, and RateLimiter profile rotation."""
 
 import asyncio
+import re
 import time
 from dataclasses import FrozenInstanceError
 from unittest.mock import patch
@@ -41,8 +42,15 @@ class TestBrowserProfile:
     def test_no_version_mixing_across_profiles(self):
         """Major version number extracted from browser_version must appear in sec_ch_ua."""
         for p in BUILTIN_PROFILES:
-            # Extract the major version digits (e.g. "124" from "chrome124")
-            major = "".join(c for c in p.browser_version if c.isdigit())
+            # Extract the major version as the first contiguous digit sequence
+            # (e.g. "124" from "chrome124" or "100" from "chrome_android100").
+            # Using re.search avoids the digit-join pitfall where non-version
+            # digits in the name could produce an ambiguous concatenated string.
+            m = re.search(r"\d+", p.browser_version)
+            assert m is not None, (
+                f"Profile {p.browser_version!r}: no version digits found"
+            )
+            major = m.group()
             assert major in p.sec_ch_ua, (
                 f"Profile {p.browser_version!r}: major version {major!r} "
                 f"not found in sec_ch_ua {p.sec_ch_ua!r}"
