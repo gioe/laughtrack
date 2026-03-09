@@ -7,8 +7,15 @@ when curl-cffi returns an empty body or a known bot-block response.
 Playwright is *lazy-imported* — the package is only loaded at the moment the
 first fallback is triggered, so scrapers that never encounter a bot-block page
 pay zero import overhead.
+
+The Chromium process is launched once on first use and reused across all
+subsequent fetch_html calls.  Call ``await browser.close()`` to shut it down
+explicitly; an ``atexit`` handler provides a best-effort shutdown on process exit.
 """
 
+import asyncio
+import atexit
+import weakref
 from typing import Optional
 from urllib.parse import urlparse
 
@@ -89,8 +96,30 @@ def _parse_proxy(proxy_url: str) -> dict:
         return {"server": proxy_url}
 
 
+def _atexit_close(browser_ref: "weakref.ref[PlaywrightBrowser]") -> None:
+    """Best-effort synchronous shutdown of the Playwright browser on process exit."""
+    browser = browser_ref()
+    if browser is None or browser._browser is None:
+        return
+    try:
+        loop = asyncio.new_event_loop()
+        try:
+            loop.run_until_complete(browser.close())
+        finally:
+            loop.close()
+    except Exception:
+        pass
+
+
 class PlaywrightBrowser:
     """Playwright headless browser for fetching JS-rendered pages.
+
+    Chromium is launched once on the first ``fetch_html`` call and reused for
+    all subsequent calls.  This avoids the 1–3 s per-call launch penalty when
+    multiple bot-blocked pages need to be fetched in the same scraping run.
+
+    A fresh browser *context* (and page) is created for every ``fetch_html``
+    call so that cookies and state do not leak between requests.
 
     Applies stealth patches on every page context to reduce bot-detection
     false positives:
@@ -102,6 +131,8 @@ class PlaywrightBrowser:
 
         browser = PlaywrightBrowser()
         html = await browser.fetch_html("https://example.com/events")
+        # … more fetches reuse the same Chromium process …
+        await browser.close()
     """
 
     def __init__(
@@ -115,8 +146,45 @@ class PlaywrightBrowser:
         self._locale = locale
         self._timeout_ms = timeout_ms
 
+        # Lazy browser state — populated by _ensure_browser()
+        self._pw_cm: Optional[object] = None   # async_playwright() context manager
+        self._pw: Optional[object] = None      # Playwright object (pw in `async with ... as pw`)
+        self._browser: Optional[object] = None # Browser instance
+
+        # Register best-effort cleanup on process exit
+        atexit.register(_atexit_close, weakref.ref(self))
+
+    async def _ensure_browser(self) -> None:
+        """Launch Chromium if it is not already running."""
+        if self._browser is not None:
+            return
+
+        # Lazy import — keeps playwright out of the import graph unless needed
+        from playwright.async_api import async_playwright  # noqa: PLC0415
+
+        self._pw_cm = async_playwright()
+        self._pw = await self._pw_cm.__aenter__()
+        self._browser = await self._pw.chromium.launch(headless=True)
+
+    async def close(self) -> None:
+        """Close the persistent Chromium browser and the Playwright context.
+
+        Safe to call multiple times; subsequent calls are no-ops.
+        """
+        if self._browser is not None:
+            await self._browser.close()
+            self._browser = None
+        if self._pw_cm is not None:
+            await self._pw_cm.__aexit__(None, None, None)
+            self._pw_cm = None
+            self._pw = None
+
     async def fetch_html(self, url: str, proxy_url: Optional[str] = None) -> str:
-        """Fetch fully-rendered HTML from *url* using a Playwright browser.
+        """Fetch fully-rendered HTML from *url* using the persistent Playwright browser.
+
+        The Chromium process is started on the first call and reused for all
+        subsequent calls.  A new browser context is created per call to ensure
+        cookie/state isolation between requests, then closed when done.
 
         Args:
             url: Page URL to navigate to (will be scheme-normalized).
@@ -130,38 +198,34 @@ class PlaywrightBrowser:
             ImportError: When playwright is not installed.
             Exception: Any Playwright navigation error.
         """
-        # Lazy import — keeps playwright out of the import graph unless needed
-        from playwright.async_api import async_playwright  # noqa: PLC0415
-
         normalized_url = URLUtils.normalize_url(url)
         proxy_dict = _parse_proxy(proxy_url) if proxy_url else None
 
-        async with async_playwright() as pw:
-            browser = await pw.chromium.launch(headless=True)
-            context = None
-            try:
-                context = await browser.new_context(
-                    viewport=self._viewport,
-                    locale=self._locale,
-                    java_script_enabled=True,
-                    proxy=proxy_dict,
-                    user_agent=_USER_AGENT,
-                )
-                page = await context.new_page()
-                # Apply stealth patches before any navigation
-                await page.add_init_script(_STEALTH_SCRIPT)
-                await page.goto(
-                    normalized_url,
-                    wait_until="domcontentloaded",
-                    timeout=self._timeout_ms,
-                )
-                html = await page.content()
-                Logger.debug(
-                    f"[PlaywrightBrowser] Fetched {normalized_url} ({len(html)} chars)",
-                    {},
-                )
-                return html
-            finally:
-                if context is not None:
-                    await context.close()
-                await browser.close()
+        await self._ensure_browser()
+
+        context = None
+        try:
+            context = await self._browser.new_context(
+                viewport=self._viewport,
+                locale=self._locale,
+                java_script_enabled=True,
+                proxy=proxy_dict,
+                user_agent=_USER_AGENT,
+            )
+            page = await context.new_page()
+            # Apply stealth patches before any navigation
+            await page.add_init_script(_STEALTH_SCRIPT)
+            await page.goto(
+                normalized_url,
+                wait_until="domcontentloaded",
+                timeout=self._timeout_ms,
+            )
+            html = await page.content()
+            Logger.debug(
+                f"[PlaywrightBrowser] Fetched {normalized_url} ({len(html)} chars)",
+                {},
+            )
+            return html
+        finally:
+            if context is not None:
+                await context.close()
