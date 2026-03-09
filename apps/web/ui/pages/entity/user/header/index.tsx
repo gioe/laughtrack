@@ -8,7 +8,8 @@ import { APIRoutePath, RestAPIAction } from "@/objects/enum";
 import { UserProfileInterface } from "@/app/api/profile/[id]/interface";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { useMotionProps } from "@/hooks";
 import FavoriteComediansGrid from "@/ui/components/grid/favoriteComedians";
 
 interface UserDetailHeaderProps {
@@ -23,7 +24,7 @@ interface EditableFieldsState {
 }
 
 const UserDetailHeader = ({ profile }: UserDetailHeaderProps) => {
-    const prefersReducedMotion = useReducedMotion();
+    const { mv } = useMotionProps();
     const [isLoading, setIsLoading] = useState(false);
     const [activeTab, setActiveTab] = useState<TabType>("favorites");
     const [fields, setFields] = useState<EditableFieldsState>({
@@ -153,15 +154,9 @@ const UserDetailHeader = ({ profile }: UserDetailHeaderProps) => {
                     {activeTab === "favorites" && (
                         <motion.div
                             key="favorites"
-                            initial={{
-                                opacity: 0,
-                                y: prefersReducedMotion ? 0 : 20,
-                            }}
+                            initial={{ opacity: 0, y: mv(20) }}
                             animate={{ opacity: 1, y: 0 }}
-                            exit={{
-                                opacity: 0,
-                                y: prefersReducedMotion ? 0 : -20,
-                            }}
+                            exit={{ opacity: 0, y: mv(-20) }}
                         >
                             <FavoriteComediansGrid userId={profile.userId!} />
                         </motion.div>
@@ -170,15 +165,9 @@ const UserDetailHeader = ({ profile }: UserDetailHeaderProps) => {
                     {activeTab === "notifications" && (
                         <motion.div
                             key="notifications"
-                            initial={{
-                                opacity: 0,
-                                y: prefersReducedMotion ? 0 : 20,
-                            }}
+                            initial={{ opacity: 0, y: mv(20) }}
                             animate={{ opacity: 1, y: 0 }}
-                            exit={{
-                                opacity: 0,
-                                y: prefersReducedMotion ? 0 : -20,
-                            }}
+                            exit={{ opacity: 0, y: mv(-20) }}
                             className="max-w-2xl"
                         >
                             <div className="bg-white rounded-xl p-6 shadow-sm">
@@ -226,15 +215,9 @@ const UserDetailHeader = ({ profile }: UserDetailHeaderProps) => {
                     {activeTab === "account" && (
                         <motion.div
                             key="account"
-                            initial={{
-                                opacity: 0,
-                                y: prefersReducedMotion ? 0 : 20,
-                            }}
+                            initial={{ opacity: 0, y: mv(20) }}
                             animate={{ opacity: 1, y: 0 }}
-                            exit={{
-                                opacity: 0,
-                                y: prefersReducedMotion ? 0 : -20,
-                            }}
+                            exit={{ opacity: 0, y: mv(-20) }}
                             className="max-w-2xl"
                         >
                             <div className="bg-white rounded-xl p-6 shadow-sm">

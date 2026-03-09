@@ -1,12 +1,13 @@
-import {useFavorite} from "./useFavorite"
-import {useFilters} from "./useFilters"
-import {useScrollPosition} from "./useScrollPosition"
-import {useSignOut} from "./useSignOut"
-import {useUrlParams} from "./useUrlParams"
-import {useMediaQuery} from "./useMediaQuery"
+import { useFavorite } from "./useFavorite";
+import { useFilters } from "./useFilters";
+import { useScrollPosition } from "./useScrollPosition";
+import { useSignOut } from "./useSignOut";
+import { useUrlParams } from "./useUrlParams";
+import { useMediaQuery } from "./useMediaQuery";
+import { useMotionProps } from "./useMotionProps";
 
 import useLoginModal from "./useLoginModal";
-import useFilterModal from "./useFilterModal"
+import useFilterModal from "./useFilterModal";
 
 export {
     useLoginModal,
@@ -15,6 +16,7 @@ export {
     useFilters,
     useScrollPosition,
     useSignOut,
-    useUrlParams,useMediaQuery
-
+    useUrlParams,
+    useMediaQuery,
+    useMotionProps,
 };

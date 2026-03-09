@@ -4,7 +4,7 @@ import { Comedian } from "@/objects/class/comedian/Comedian";
 import ComedianHeadshot from "../image/comedian";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
-import { useReducedMotion } from "framer-motion";
+import { useMotionProps } from "@/hooks";
 
 interface LineupGridProps {
     lineup: Comedian[];
@@ -16,7 +16,7 @@ const LineupGrid = ({ lineup }: LineupGridProps) => {
     const [showRightScroll, setShowRightScroll] = useState(false);
     // Stop the swipe-cue pulse after 2 cycles (~4s) to avoid indefinite motion (WCAG 2.3.3)
     const [swipeCuePulsing, setSwipeCuePulsing] = useState(true);
-    const prefersReducedMotion = useReducedMotion();
+    const { prefersReducedMotion } = useMotionProps();
 
     // Check if scrolling is needed
     const checkScroll = () => {
@@ -64,11 +64,15 @@ const LineupGrid = ({ lineup }: LineupGridProps) => {
                     <div
                         key={index}
                         className="flex-shrink-0 snap-start"
-                        style={prefersReducedMotion ? {} : {
-                            animationDelay: `${index * 100}ms`,
-                            opacity: 0,
-                            animation: `slideUp 500ms ${index * 100}ms ease-out forwards, fadeIn 600ms ${index * 100}ms ease-out forwards`,
-                        }}
+                        style={
+                            prefersReducedMotion
+                                ? {}
+                                : {
+                                      animationDelay: `${index * 100}ms`,
+                                      opacity: 0,
+                                      animation: `slideUp 500ms ${index * 100}ms ease-out forwards, fadeIn 600ms ${index * 100}ms ease-out forwards`,
+                                  }
+                        }
                     >
                         <ComedianHeadshot
                             comedian={comedian}
@@ -125,7 +129,9 @@ const LineupGrid = ({ lineup }: LineupGridProps) => {
 
             {/* Mobile swipe cue — shown before user scrolls, hidden once they start */}
             {showRightScroll && !showLeftScroll && (
-                <div className={`lg:hidden absolute right-10 bottom-6 flex items-center gap-0.5 text-xs text-copper/60 pointer-events-none${swipeCuePulsing && !prefersReducedMotion ? " animate-pulse" : ""}`}>
+                <div
+                    className={`lg:hidden absolute right-10 bottom-6 flex items-center gap-0.5 text-xs text-copper/60 pointer-events-none${swipeCuePulsing && !prefersReducedMotion ? " animate-pulse" : ""}`}
+                >
                     <span>swipe</span>
                     <ChevronRight className="w-3 h-3" />
                 </div>

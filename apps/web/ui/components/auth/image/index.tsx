@@ -1,18 +1,19 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import Image from "next/image";
+import { useMotionProps } from "@/hooks";
 
 export default function AuthImageContent() {
-    const prefersReducedMotion = useReducedMotion();
+    const { mv } = useMotionProps();
 
     return (
         <div className="invisible lg:visible lg:w-1/2 lg:relative lg:bg-gray-900 overflow-hidden">
             <motion.div
-                initial={{ scale: prefersReducedMotion ? 1 : 1.1, opacity: 0 }}
+                initial={{ scale: mv(1.1, 1), opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{
-                    duration: prefersReducedMotion ? 0 : 1.2,
+                    duration: mv(1.2),
                     ease: "easeOut",
                 }}
                 className="relative w-full h-full"
@@ -29,24 +30,21 @@ export default function AuthImageContent() {
             </motion.div>
 
             <motion.div
-                initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 20 }}
+                initial={{ opacity: 0, y: mv(20) }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{
-                    duration: prefersReducedMotion ? 0 : 0.8,
-                    delay: prefersReducedMotion ? 0 : 0.4,
+                    duration: mv(0.8),
+                    delay: mv(0.4),
                 }}
                 className="absolute inset-0 flex flex-col justify-end p-12"
             >
                 <div className="max-w-lg mx-auto text-center text-white">
                     <motion.h2
-                        initial={{
-                            opacity: 0,
-                            y: prefersReducedMotion ? 0 : 20,
-                        }}
+                        initial={{ opacity: 0, y: mv(20) }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{
-                            duration: prefersReducedMotion ? 0 : 0.6,
-                            delay: prefersReducedMotion ? 0 : 0.6,
+                            duration: mv(0.6),
+                            delay: mv(0.6),
                         }}
                         className="text-4xl font-bold mb-6 font-chivo"
                     >
@@ -54,14 +52,11 @@ export default function AuthImageContent() {
                     </motion.h2>
 
                     <motion.p
-                        initial={{
-                            opacity: 0,
-                            y: prefersReducedMotion ? 0 : 20,
-                        }}
+                        initial={{ opacity: 0, y: mv(20) }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{
-                            duration: prefersReducedMotion ? 0 : 0.6,
-                            delay: prefersReducedMotion ? 0 : 0.8,
+                            duration: mv(0.6),
+                            delay: mv(0.8),
                         }}
                         className="text-lg opacity-90 font-dmSans leading-relaxed"
                     >

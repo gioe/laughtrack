@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
+import { useMotionProps } from "@/hooks";
 import { Comedian } from "@/objects/class/comedian/Comedian";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import ComedianHeadshot from "../../image/comedian";
@@ -10,16 +11,12 @@ interface ComedianGridCardProps {
 }
 
 const ComedianGridCard: React.FC<ComedianGridCardProps> = ({ entity }) => {
-    const prefersReducedMotion = useReducedMotion();
+    const { mp } = useMotionProps();
     const comedian = new Comedian(entity);
     return (
         <motion.div
             className="bg-coconut-cream rounded-xl pb-4 px-4 h-full transition-shadow duration-300 hover:shadow-lg"
-            whileHover={
-                prefersReducedMotion
-                    ? undefined
-                    : { y: -4, transition: { duration: 0.15 } }
-            }
+            whileHover={mp({ y: -4, transition: { duration: 0.15 } })}
         >
             <ComedianHeadshot
                 comedian={comedian}

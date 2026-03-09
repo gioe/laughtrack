@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
+import { useMotionProps } from "@/hooks";
 import { Club } from "@/objects/class/club/Club";
 import { ClubDTO } from "@/objects/class/club/club.interface";
 import { useState } from "react";
@@ -14,18 +15,14 @@ interface PopularClubCardProps {
 }
 
 const PopularClubCard: React.FC<PopularClubCardProps> = ({ entity }) => {
-    const prefersReducedMotion = useReducedMotion();
+    const { mp } = useMotionProps();
     const club = new Club(entity);
     const [error, setError] = useState(false);
 
     return (
         <motion.div
             className="w-full"
-            whileHover={
-                prefersReducedMotion
-                    ? undefined
-                    : { scale: 1.05, transition: { duration: 0.15 } }
-            }
+            whileHover={mp({ scale: 1.05, transition: { duration: 0.15 } })}
         >
             <div className="relative w-full aspect-square rounded-2xl overflow-hidden mb-4 hover:cursor-pointer">
                 <Link

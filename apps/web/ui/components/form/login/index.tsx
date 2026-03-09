@@ -7,7 +7,8 @@ import { z } from "zod";
 import SocialAuthButtons from "../../auth/social";
 import toast from "react-hot-toast";
 import { signIn } from "next-auth/react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
+import { useMotionProps } from "@/hooks";
 import { Form } from "../../ui/form";
 import { FormInput } from "../components/input";
 
@@ -23,7 +24,7 @@ interface LoginFormProps {
 
 export default function LoginForm({ onSubmit }: LoginFormProps) {
     const [isSocialLoading, setIsSocialLoading] = useState(false);
-    const prefersReducedMotion = useReducedMotion();
+    const { mv } = useMotionProps();
 
     const form = useForm<LoginFormValues>({
         resolver: zodResolver(loginSchema),
@@ -75,9 +76,9 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 20 }}
+            initial={{ opacity: 0, y: mv(20) }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: prefersReducedMotion ? 0 : 0.4 }}
+            transition={{ duration: mv(0.4) }}
             className="relative space-y-6"
         >
             <SocialAuthButtons

@@ -6,7 +6,7 @@ import Image from "next/image";
 import { Club } from "@/objects/class/club/Club";
 import { ClubDTO } from "@/objects/class/club/club.interface";
 import ClubDataColumn from "../social";
-import { useReducedMotion } from "framer-motion";
+import { useMotionProps } from "@/hooks";
 
 const PLACEHOLDER = "/placeholders/club-placeholder.svg";
 
@@ -16,7 +16,7 @@ interface ClubDetailHeaderProps {
 
 const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({ club }) => {
     const parsedClub = new Club(club);
-    const prefersReducedMotion = useReducedMotion();
+    const { prefersReducedMotion } = useMotionProps();
     const [error, setError] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
 

@@ -6,7 +6,8 @@ import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { Comedian } from "@/objects/class/comedian/Comedian";
 import SocialMediaColumn from "../social";
 import { useFavorite } from "@/hooks/useFavorite";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { useMotionProps } from "@/hooks";
 import Image from "next/image";
 
 const PLACEHOLDER = "/placeholders/comedian-placeholder.svg";
@@ -18,7 +19,7 @@ interface ClubDetailHeaderProps {
 const ComedianDetailHeader: React.FC<ClubDetailHeaderProps> = ({
     comedian,
 }) => {
-    const prefersReducedMotion = useReducedMotion();
+    const { mv, mp, prefersReducedMotion } = useMotionProps();
     const [error, setError] = useState(false);
     const [showConfetti, setShowConfetti] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
@@ -45,14 +46,9 @@ const ComedianDetailHeader: React.FC<ClubDetailHeaderProps> = ({
                 <div className="flex-1">
                     <div className="flex items-start gap-6">
                         <motion.div
-                            initial={{
-                                opacity: 0,
-                                scale: prefersReducedMotion ? 1 : 0.9,
-                            }}
+                            initial={{ opacity: 0, scale: mv(0.9, 1) }}
                             animate={{ opacity: 1, scale: 1 }}
-                            transition={{
-                                duration: prefersReducedMotion ? 0 : 0.3,
-                            }}
+                            transition={{ duration: mv(0.3) }}
                             className="relative"
                         >
                             <div className="relative w-24 h-24 rounded-full overflow-hidden">
@@ -78,16 +74,8 @@ const ComedianDetailHeader: React.FC<ClubDetailHeaderProps> = ({
                             </div>
                             <motion.div
                                 className="absolute -bottom-2 -right-2"
-                                whileHover={
-                                    prefersReducedMotion
-                                        ? undefined
-                                        : { scale: 1.1 }
-                                }
-                                whileTap={
-                                    prefersReducedMotion
-                                        ? undefined
-                                        : { scale: 0.9 }
-                                }
+                                whileHover={mp({ scale: 1.1 })}
+                                whileTap={mp({ scale: 0.9 })}
                             >
                                 <button
                                     onClick={handleFavoriteWithAnimation}
@@ -106,14 +94,11 @@ const ComedianDetailHeader: React.FC<ClubDetailHeaderProps> = ({
 
                         <div className="flex-1">
                             <motion.h1
-                                initial={{
-                                    opacity: 0,
-                                    y: prefersReducedMotion ? 0 : 20,
-                                }}
+                                initial={{ opacity: 0, y: mv(20) }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{
-                                    duration: prefersReducedMotion ? 0 : 0.3,
-                                    delay: prefersReducedMotion ? 0 : 0.1,
+                                    duration: mv(0.3),
+                                    delay: mv(0.1),
                                 }}
                                 className="text-3xl font-bold text-gray-900 mb-2"
                             >
@@ -132,18 +117,12 @@ const ComedianDetailHeader: React.FC<ClubDetailHeaderProps> = ({
             <AnimatePresence>
                 {showConfetti && (
                     <motion.div
-                        initial={{
-                            opacity: prefersReducedMotion ? 1 : 0,
-                            scale: prefersReducedMotion ? 1 : 0,
-                        }}
+                        initial={{ opacity: mv(0, 1), scale: mv(0, 1) }}
                         animate={{ opacity: 1, scale: 1 }}
-                        exit={{
-                            opacity: prefersReducedMotion ? 1 : 0,
-                            scale: prefersReducedMotion ? 1 : 0,
-                        }}
-                        transition={{
-                            duration: prefersReducedMotion ? 0 : undefined,
-                        }}
+                        exit={{ opacity: mv(0, 1), scale: mv(0, 1) }}
+                        transition={
+                            prefersReducedMotion ? { duration: 0 } : undefined
+                        }
                         className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
                     >
                         <Sparkles className="w-12 h-12 text-yellow-400" />

@@ -1,9 +1,9 @@
 "use client";
 
 import { ChevronRightIcon } from "@heroicons/react/24/solid";
-import { useStyleContext } from "@/contexts/StyleProvider";
 import { twMerge } from "tailwind-merge";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
+import { useMotionProps } from "@/hooks";
 import Link from "next/link";
 
 interface HeaderItemProps {
@@ -13,7 +13,7 @@ interface HeaderItemProps {
 }
 
 export function SideDrawerItem({ title, href, highlighted }: HeaderItemProps) {
-    const prefersReducedMotion = useReducedMotion();
+    const { mp } = useMotionProps();
 
     const baseClasses = `text-[16px] font-semibold font-dmSans
         w-full group flex items-center justify-between
@@ -24,8 +24,8 @@ export function SideDrawerItem({ title, href, highlighted }: HeaderItemProps) {
 
     return (
         <motion.div
-            whileHover={prefersReducedMotion ? undefined : { x: 4 }}
-            transition={prefersReducedMotion ? undefined : { type: "spring", stiffness: 400, damping: 25 }}
+            whileHover={mp({ x: 4 })}
+            transition={mp({ type: "spring", stiffness: 400, damping: 25 })}
         >
             <Link href={href} className={twMerge(baseClasses)}>
                 <span className="flex items-center gap-2">{title}</span>
