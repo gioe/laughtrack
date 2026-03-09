@@ -35,12 +35,11 @@ export class Show implements ShowInterface {
             input.social_data !== undefined
                 ? new SocialData(input.social_data)
                 : undefined;
-        this.containedEntities = input.lineup
+        const lineupComedians = input.lineup
             ? input.lineup.map((item: ComedianLineupDTO) => new Comedian(item))
             : [];
-        this.lineup = input.lineup
-            ? input.lineup.map((item: ComedianLineupDTO) => new Comedian(item))
-            : [];
+        this.containedEntities = lineupComedians;
+        this.lineup = lineupComedians;
         this.clubName = input.clubName;
         this.tickets = input.tickets
             ? input.tickets.map((item: TicketDTO) => new Ticket(item))
