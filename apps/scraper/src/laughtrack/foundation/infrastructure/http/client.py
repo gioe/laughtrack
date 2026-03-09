@@ -5,7 +5,7 @@ This module provides common HTTP patterns with consistent error handling,
 logging, and URL normalization.
 """
 
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 from curl_cffi.requests import AsyncSession
 
@@ -41,8 +41,8 @@ class HttpClient:
             HTML content as string, or None if the response status is not 200.
 
         Raises:
-            Exception: Any network or connection error is logged at WARN level
-                and re-raised so callers (e.g. retry wrappers) can handle it.
+            Exception: Any network or connection error is re-raised so callers
+                can log and handle it (avoids duplicate log entries).
         """
         logger_context = logger_context or {}
 
@@ -57,11 +57,7 @@ class HttpClient:
 
             return response.text
 
-        except Exception as e:
-            Logger.warn(
-                f"HTTP fetch failed for {url}: {type(e).__name__}: {e}",
-                logger_context,
-            )
+        except Exception:
             raise
 
     @staticmethod
@@ -84,8 +80,8 @@ class HttpClient:
             JSON data as dictionary, or None if the response status is not 200.
 
         Raises:
-            Exception: Any network or connection error is logged at WARN level
-                and re-raised so callers (e.g. retry wrappers) can handle it.
+            Exception: Any network or connection error is re-raised so callers
+                can log and handle it (avoids duplicate log entries).
         """
         logger_context = logger_context or {}
 
@@ -100,9 +96,5 @@ class HttpClient:
 
             return response.json()
 
-        except Exception as e:
-            Logger.warn(
-                f"HTTP fetch failed for {url}: {type(e).__name__}: {e}",
-                logger_context,
-            )
+        except Exception:
             raise
