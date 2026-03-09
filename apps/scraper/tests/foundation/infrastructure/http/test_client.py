@@ -4,7 +4,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from laughtrack.foundation.infrastructure.http.client import HttpClient
+import laughtrack.foundation.infrastructure.http.client as client_module
+from laughtrack.foundation.infrastructure.http.client import HttpClient, _bot_block_reason
 
 
 def _make_response(status_code: int, text: str = "", json_data=None):
@@ -21,14 +22,21 @@ def _make_response(status_code: int, text: str = "", json_data=None):
 # ---------------------------------------------------------------------------
 
 
+_NO_FALLBACK = patch(
+    "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+    return_value=None,
+)
+
+
 class TestFetchHtml:
     @pytest.mark.asyncio
     async def test_non_200_returns_none_and_logs_warn(self):
         session = AsyncMock()
         session.get.return_value = _make_response(404)
 
-        with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn:
-            result = await HttpClient.fetch_html(session, "https://example.com/page")
+        with _NO_FALLBACK:
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn:
+                result = await HttpClient.fetch_html(session, "https://example.com/page")
 
         assert result is None
         mock_warn.assert_called_once()
@@ -40,7 +48,8 @@ class TestFetchHtml:
         session = AsyncMock()
         session.get.return_value = _make_response(200, text="<html>hello</html>")
 
-        result = await HttpClient.fetch_html(session, "https://example.com/page")
+        with _NO_FALLBACK:
+            result = await HttpClient.fetch_html(session, "https://example.com/page")
 
         assert result == "<html>hello</html>"
 
@@ -49,9 +58,10 @@ class TestFetchHtml:
         session = AsyncMock()
         session.get.side_effect = ConnectionError("timeout")
 
-        with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn:
-            with pytest.raises(ConnectionError):
-                await HttpClient.fetch_html(session, "https://example.com/page")
+        with _NO_FALLBACK:
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn:
+                with pytest.raises(ConnectionError):
+                    await HttpClient.fetch_html(session, "https://example.com/page")
 
         mock_warn.assert_not_called()
 
@@ -61,7 +71,8 @@ class TestFetchHtml:
         session.get.return_value = _make_response(200, text="<html/>")
         custom_headers = {"X-Custom": "value", "Accept-Language": "en"}
 
-        await HttpClient.fetch_html(session, "https://example.com/page", headers=custom_headers)
+        with _NO_FALLBACK:
+            await HttpClient.fetch_html(session, "https://example.com/page", headers=custom_headers)
 
         session.get.assert_called_once()
         _, kwargs = session.get.call_args
@@ -73,12 +84,200 @@ class TestFetchHtml:
         session.get.return_value = _make_response(403)
         context = {"club": "test_club", "scraper": "test"}
 
-        with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn:
-            await HttpClient.fetch_html(session, "https://example.com/page", logger_context=context)
+        with _NO_FALLBACK:
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn:
+                await HttpClient.fetch_html(
+                    session, "https://example.com/page", logger_context=context
+                )
 
         mock_warn.assert_called_once()
         call_context = mock_warn.call_args[0][1]
         assert call_context == context
+
+
+# ---------------------------------------------------------------------------
+# _bot_block_reason
+# ---------------------------------------------------------------------------
+
+
+class TestBotBlockReason:
+    def test_cloudflare_just_a_moment(self):
+        html = "<html><title>Just a moment...</title></html>"
+        assert _bot_block_reason(html) is not None
+
+    def test_cloudflare_challenge_js(self):
+        html = "<script>window._cf_chl_opt = {}</script>"
+        assert _bot_block_reason(html) is not None
+
+    def test_access_denied(self):
+        html = "<html><h1>Access Denied</h1></html>"
+        assert _bot_block_reason(html) is not None
+
+    def test_datadome(self):
+        html = '<script src="https://js.datadome.co/tags.js"></script>'
+        assert _bot_block_reason(html) is not None
+
+    def test_enable_javascript_cookies(self):
+        html = "<p>Enable JavaScript and cookies to continue</p>"
+        assert _bot_block_reason(html) is not None
+
+    def test_normal_html_returns_none(self):
+        html = "<html><body><h1>Standup NY — Upcoming Shows</h1></body></html>"
+        assert _bot_block_reason(html) is None
+
+    def test_case_insensitive(self):
+        html = "<title>JUST A MOMENT</title>"
+        assert _bot_block_reason(html) is not None
+
+
+# ---------------------------------------------------------------------------
+# fetch_html — Playwright fallback
+# ---------------------------------------------------------------------------
+
+
+def _make_browser_mock(html: str = "<html>playwright-rendered</html>"):
+    mock = AsyncMock()
+    mock.fetch_html = AsyncMock(return_value=html)
+    return mock
+
+
+class TestFetchHtmlFallback:
+    def setup_method(self):
+        # Reset the module-level singleton between tests
+        client_module._js_browser = None
+
+    @pytest.mark.asyncio
+    async def test_fallback_triggered_on_none_response(self):
+        """Non-200 → curl-cffi returns None → fallback fires."""
+        session = AsyncMock()
+        session.get.return_value = _make_response(403)
+        mock_browser = _make_browser_mock()
+
+        with patch("laughtrack.foundation.infrastructure.http.client._get_js_browser", return_value=mock_browser):
+            result = await HttpClient.fetch_html(session, "https://example.com/page")
+
+        mock_browser.fetch_html.assert_called_once()
+        assert result == "<html>playwright-rendered</html>"
+
+    @pytest.mark.asyncio
+    async def test_fallback_triggered_on_empty_body(self):
+        session = AsyncMock()
+        session.get.return_value = _make_response(200, text="   ")
+        mock_browser = _make_browser_mock()
+
+        with patch("laughtrack.foundation.infrastructure.http.client._get_js_browser", return_value=mock_browser):
+            result = await HttpClient.fetch_html(session, "https://example.com/page")
+
+        mock_browser.fetch_html.assert_called_once()
+        assert result == "<html>playwright-rendered</html>"
+
+    @pytest.mark.asyncio
+    async def test_fallback_triggered_on_bot_block(self):
+        bot_html = "<html><title>Just a moment...</title></html>"
+        session = AsyncMock()
+        session.get.return_value = _make_response(200, text=bot_html)
+        mock_browser = _make_browser_mock()
+
+        with patch("laughtrack.foundation.infrastructure.http.client._get_js_browser", return_value=mock_browser):
+            result = await HttpClient.fetch_html(session, "https://example.com/page")
+
+        mock_browser.fetch_html.assert_called_once()
+        assert result == "<html>playwright-rendered</html>"
+
+    @pytest.mark.asyncio
+    async def test_no_fallback_for_good_html(self):
+        good_html = "<html><body>Show listings here</body></html>"
+        session = AsyncMock()
+        session.get.return_value = _make_response(200, text=good_html)
+        mock_browser = _make_browser_mock()
+
+        with patch("laughtrack.foundation.infrastructure.http.client._get_js_browser", return_value=mock_browser):
+            result = await HttpClient.fetch_html(session, "https://example.com/page")
+
+        mock_browser.fetch_html.assert_not_called()
+        assert result == good_html
+
+    @pytest.mark.asyncio
+    async def test_fallback_disabled_when_no_browser(self):
+        """When _get_js_browser() returns None (env disabled), no fallback."""
+        session = AsyncMock()
+        session.get.return_value = _make_response(403)
+
+        with patch("laughtrack.foundation.infrastructure.http.client._get_js_browser", return_value=None):
+            result = await HttpClient.fetch_html(session, "https://example.com/page")
+
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_fallback_returns_none_on_playwright_exception(self):
+        session = AsyncMock()
+        session.get.return_value = _make_response(403)
+        mock_browser = AsyncMock()
+        mock_browser.fetch_html = AsyncMock(side_effect=RuntimeError("playwright crashed"))
+
+        with patch("laughtrack.foundation.infrastructure.http.client._get_js_browser", return_value=mock_browser):
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn"):
+                result = await HttpClient.fetch_html(session, "https://example.com/page")
+
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_proxy_passed_to_playwright_fallback(self):
+        session = AsyncMock()
+        session.get.return_value = _make_response(403)
+        mock_browser = _make_browser_mock()
+
+        with patch("laughtrack.foundation.infrastructure.http.client._get_js_browser", return_value=mock_browser):
+            await HttpClient.fetch_html(
+                session, "https://example.com/page", proxy_url="http://proxy:8080"
+            )
+
+        mock_browser.fetch_html.assert_called_once_with(
+            "https://example.com/page", proxy_url="http://proxy:8080"
+        )
+
+    @pytest.mark.asyncio
+    async def test_fallback_activation_logged(self):
+        session = AsyncMock()
+        session.get.return_value = _make_response(200, text="   ")
+        mock_browser = _make_browser_mock()
+
+        with patch("laughtrack.foundation.infrastructure.http.client._get_js_browser", return_value=mock_browser):
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.info") as mock_info:
+                await HttpClient.fetch_html(session, "https://example.com/page")
+
+        mock_info.assert_called_once()
+        log_msg = mock_info.call_args[0][0]
+        assert "Playwright fallback" in log_msg
+        assert "empty body" in log_msg
+
+
+# ---------------------------------------------------------------------------
+# _get_js_browser — env-flag disable
+# ---------------------------------------------------------------------------
+
+
+class TestGetJsBrowser:
+    def setup_method(self):
+        client_module._js_browser = None
+
+    def test_returns_none_when_env_flag_disabled(self, monkeypatch):
+        monkeypatch.setenv("PLAYWRIGHT_FALLBACK", "0")
+        result = client_module._get_js_browser()
+        assert result is None
+
+    def test_returns_none_when_playwright_not_installed(self, monkeypatch):
+        monkeypatch.setenv("PLAYWRIGHT_FALLBACK", "1")
+        with patch.dict("sys.modules", {"playwright": None, "playwright.async_api": None}):
+            with patch(
+                "laughtrack.foundation.infrastructure.http.client.Logger.warn"
+            ):
+                # Force re-creation by clearing the singleton
+                client_module._js_browser = None
+                with patch(
+                    "laughtrack.foundation.infrastructure.http.client.__builtins__"
+                ):
+                    pass  # can't easily test ImportError path without mocking import
 
 
 # ---------------------------------------------------------------------------

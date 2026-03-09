@@ -9,6 +9,10 @@ loguru>=0.7.0          # Advanced logging library
 pytz>=2023.3           # Timezone handling for show dates
 python-dotenv>=1.0.0   # Environment variable loading from .env files
 
+# Optional: Playwright JS fallback (lazy-loaded; only used when bot-block detected)
+# After installing, run: playwright install chromium
+playwright>=1.40.0     # Headless browser for JS-rendered pages
+
 # Web Scraping & Data Processing
 Pillow>=10.0.0         # Image processing
 PyYAML>=6.0            # YAML file parsing for configuration
