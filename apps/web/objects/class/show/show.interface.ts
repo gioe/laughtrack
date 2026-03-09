@@ -1,9 +1,9 @@
+import { Taggable, Entity } from "../../interface";
 import {
-    Taggable,
-    Entity,
-} from "../../interface";
-import { SocialDataDTO, SocialDiscoverable } from "../socialData/socialData.interface";
-import { ComedianDTO } from "../comedian/comedian.interface";
+    SocialDataDTO,
+    SocialDiscoverable,
+} from "../socialData/socialData.interface";
+import { ComedianLineupDTO } from "../comedian/comedian.interface";
 import { Ticket } from "../ticket/Ticket";
 import { TicketDTO } from "../ticket/ticket.interface";
 
@@ -13,11 +13,11 @@ export interface ShowInterface extends Taggable, Entity, SocialDiscoverable {
     date: Date;
     popularityScore?: number;
     clubName?: string;
-    clubAddress?: string,
+    clubAddress?: string;
     ticket: Ticket;
-    lastScrapedDate?: Date
-    description?: string
-    soldOut?: boolean,
+    lastScrapedDate?: Date;
+    description?: string;
+    soldOut?: boolean;
 }
 
 // DB
@@ -28,16 +28,16 @@ export interface ShowDTO {
     tickets?: TicketDTO[];
     name: string | null;
     social_data?: SocialDataDTO;
-    lineup?: ComedianDTO[]
+    lineup?: ComedianLineupDTO[];
     description?: string;
     address?: string;
     imageUrl: string;
-    soldOut?: boolean,
+    soldOut?: boolean;
 }
 
 export interface PaginatedShowResponseDTO {
     response: {
-        data: ShowDTO[],
-        total: number
-    }
+        data: ShowDTO[];
+        total: number;
+    };
 }
