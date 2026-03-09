@@ -36,3 +36,6 @@ apps/scraper/.env
 tusk/tasks.db
 tusk/tasks.db-shm
 tusk/tasks.db-wal
+
+# tusk generated files
+tusk/laughtrack-dashboard.html
