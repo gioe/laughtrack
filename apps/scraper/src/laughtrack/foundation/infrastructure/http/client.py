@@ -46,19 +46,15 @@ class HttpClient:
         """
         logger_context = logger_context or {}
 
-        try:
-            # Normalize URL to ensure proper scheme
-            normalized_url = URLUtils.normalize_url(url)
+        # Normalize URL to ensure proper scheme
+        normalized_url = URLUtils.normalize_url(url)
 
-            response = await session.get(normalized_url, headers=headers)
-            if response.status_code != 200:
-                Logger.warn(f"HTTP {response.status_code} when fetching {normalized_url}", logger_context)
-                return None
+        response = await session.get(normalized_url, headers=headers)
+        if response.status_code != 200:
+            Logger.warn(f"HTTP {response.status_code} when fetching {normalized_url}", logger_context)
+            return None
 
-            return response.text
-
-        except Exception:
-            raise
+        return response.text
 
     @staticmethod
     async def fetch_json(
@@ -85,16 +81,12 @@ class HttpClient:
         """
         logger_context = logger_context or {}
 
-        try:
-            # Normalize URL to ensure proper scheme
-            normalized_url = URLUtils.normalize_url(url)
+        # Normalize URL to ensure proper scheme
+        normalized_url = URLUtils.normalize_url(url)
 
-            response = await session.get(normalized_url, headers=headers)
-            if response.status_code != 200:
-                Logger.warn(f"HTTP {response.status_code} when fetching {normalized_url}", logger_context)
-                return None
+        response = await session.get(normalized_url, headers=headers)
+        if response.status_code != 200:
+            Logger.warn(f"HTTP {response.status_code} when fetching {normalized_url}", logger_context)
+            return None
 
-            return response.json()
-
-        except Exception:
-            raise
+        return response.json()
