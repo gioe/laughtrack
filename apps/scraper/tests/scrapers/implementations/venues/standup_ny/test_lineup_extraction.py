@@ -60,48 +60,49 @@ class TestGetLineupNames:
         event = _make_event(promoter="", support="")
         assert event.get_lineup_names() == []
 
-    def test_venue_pilot_performers_dict(self):
+    def test_venue_pilot_artists_dict(self):
+        # Live VenuePilot data uses "artists" key with {"name": str, "links": [...]} entries
         event = _make_event(
             promoter="GraphQL Name",
-            venue_pilot_event={"performers": [{"name": "VP Comedian"}, {"displayName": "VP Comic 2"}]},
+            venue_pilot_event={"artists": [{"name": "VP Comedian", "links": []}, {"name": "VP Comic 2", "links": []}]},
         )
         # VenuePilot takes priority
         assert event.get_lineup_names() == ["VP Comedian", "VP Comic 2"]
 
-    def test_venue_pilot_performers_non_dict(self):
+    def test_venue_pilot_artists_non_dict(self):
         event = _make_event(
-            venue_pilot_event={"performers": ["Non-Dict Comic"]},
+            venue_pilot_event={"artists": ["Non-Dict Comic"]},
         )
         assert event.get_lineup_names() == ["Non-Dict Comic"]
 
-    def test_venue_pilot_empty_performers_falls_through_to_graphql(self):
+    def test_venue_pilot_empty_artists_falls_through_to_graphql(self):
+        # Empty artists array is common in live data → fall through to GraphQL fields
         event = _make_event(
             promoter="GraphQL Comic",
-            venue_pilot_event={"performers": []},
+            venue_pilot_event={"artists": []},
         )
-        # Empty performers list → fall through to GraphQL fields
         assert event.get_lineup_names() == ["GraphQL Comic"]
 
     def test_venue_pilot_blank_name_entries_fall_through_to_graphql(self):
         event = _make_event(
             promoter="GraphQL Comic",
-            venue_pilot_event={"performers": [{"name": "  "}, {"displayName": ""}]},
+            venue_pilot_event={"artists": [{"name": "  "}, {"name": ""}]},
         )
         # All VenuePilot entries produce blank names → fall through
         assert event.get_lineup_names() == ["GraphQL Comic"]
 
-    def test_venue_pilot_no_performers_key_falls_through_to_graphql(self):
+    def test_venue_pilot_no_artists_key_falls_through_to_graphql(self):
         event = _make_event(
             promoter="GraphQL Comic",
             venue_pilot_event={"startTime": "20:00:00"},
         )
         assert event.get_lineup_names() == ["GraphQL Comic"]
 
-    def test_venue_pilot_performer_dict_missing_both_name_keys_falls_through_to_graphql(self):
-        # Performer dicts with neither 'name' nor 'displayName' produce empty strings → filtered
+    def test_venue_pilot_artist_dict_missing_name_key_falls_through_to_graphql(self):
+        # Artist dicts without a 'name' key produce empty strings → filtered
         event = _make_event(
             promoter="GraphQL Comic",
-            venue_pilot_event={"performers": [{"role": "host"}, {"role": "opener"}]},
+            venue_pilot_event={"artists": [{"links": []}, {"links": []}]},
         )
         assert event.get_lineup_names() == ["GraphQL Comic"]
 
