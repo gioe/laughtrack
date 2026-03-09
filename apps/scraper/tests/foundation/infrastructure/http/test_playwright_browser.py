@@ -162,6 +162,30 @@ class TestPlaywrightBrowser:
         assert kwargs.get("wait_until") == "domcontentloaded"
 
     @pytest.mark.asyncio
+    async def test_context_closed_after_fetch(self):
+        mock_pw_module, mock_browser, _ = _make_pw_mocks()
+        with _patch_playwright(mock_pw_module):
+            browser = PlaywrightBrowser()
+            await browser.fetch_html("https://example.com")
+
+        # new_context() returns mock_browser.new_context.return_value (the context mock)
+        context_mock = mock_browser.new_context.return_value
+        context_mock.close.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_context_closed_even_on_exception(self):
+        mock_pw_module, mock_browser, mock_page = _make_pw_mocks()
+        mock_page.goto.side_effect = RuntimeError("navigation failed")
+
+        with _patch_playwright(mock_pw_module):
+            browser = PlaywrightBrowser()
+            with pytest.raises(RuntimeError):
+                await browser.fetch_html("https://example.com")
+
+        context_mock = mock_browser.new_context.return_value
+        context_mock.close.assert_called_once()
+
+    @pytest.mark.asyncio
     async def test_proxy_with_credentials_parsed(self):
         mock_pw_module, mock_browser, _ = _make_pw_mocks()
         with _patch_playwright(mock_pw_module):

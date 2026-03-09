@@ -138,6 +138,7 @@ class PlaywrightBrowser:
 
         async with async_playwright() as pw:
             browser = await pw.chromium.launch(headless=True)
+            context = None
             try:
                 context = await browser.new_context(
                     viewport=self._viewport,
@@ -161,4 +162,6 @@ class PlaywrightBrowser:
                 )
                 return html
             finally:
+                if context is not None:
+                    await context.close()
                 await browser.close()

@@ -110,8 +110,12 @@ class TestBotBlockReason:
         assert _bot_block_reason(html) is not None
 
     def test_access_denied(self):
-        html = "<html><h1>Access Denied</h1></html>"
+        html = "<html><title>Access Denied</title></html>"
         assert _bot_block_reason(html) is not None
+
+    def test_access_denied_in_body_not_title_is_not_blocked(self):
+        html = "<html><body>Access denied to the VIP lounge</body></html>"
+        assert _bot_block_reason(html) is None
 
     def test_datadome(self):
         html = '<script src="https://js.datadome.co/tags.js"></script>'
@@ -232,8 +236,11 @@ class TestFetchHtmlFallback:
                 session, "https://example.com/page", proxy_url="http://proxy:8080"
             )
 
+        # The fallback receives the normalized URL, not the raw input
+        from laughtrack.foundation.utilities.url import URLUtils
+        expected_url = URLUtils.normalize_url("https://example.com/page")
         mock_browser.fetch_html.assert_called_once_with(
-            "https://example.com/page", proxy_url="http://proxy:8080"
+            expected_url, proxy_url="http://proxy:8080"
         )
 
     @pytest.mark.asyncio
@@ -261,23 +268,55 @@ class TestGetJsBrowser:
     def setup_method(self):
         client_module._js_browser = None
 
+    def teardown_method(self):
+        # Restore sentinel state so other tests aren't affected
+        client_module._js_browser = None
+
     def test_returns_none_when_env_flag_disabled(self, monkeypatch):
         monkeypatch.setenv("PLAYWRIGHT_FALLBACK", "0")
         result = client_module._get_js_browser()
         assert result is None
 
     def test_returns_none_when_playwright_not_installed(self, monkeypatch):
+        """ImportError path: returns None, logs warn once, sets _BROWSER_UNAVAILABLE sentinel."""
         monkeypatch.setenv("PLAYWRIGHT_FALLBACK", "1")
-        with patch.dict("sys.modules", {"playwright": None, "playwright.async_api": None}):
+        client_module._js_browser = None
+
+        def _raise_import(*args, **kwargs):
+            raise ImportError("No module named 'playwright'")
+
+        with patch(
+            "laughtrack.foundation.infrastructure.http.client.PlaywrightBrowser",
+            side_effect=_raise_import,
+            create=True,
+        ):
             with patch(
-                "laughtrack.foundation.infrastructure.http.client.Logger.warn"
+                "laughtrack.foundation.infrastructure.http.playwright_browser.PlaywrightBrowser",
+                side_effect=_raise_import,
+                create=True,
             ):
-                # Force re-creation by clearing the singleton
-                client_module._js_browser = None
-                with patch(
-                    "laughtrack.foundation.infrastructure.http.client.__builtins__"
-                ):
-                    pass  # can't easily test ImportError path without mocking import
+                # Patch the import inside _get_js_browser to raise ImportError
+                import builtins
+                original_import = builtins.__import__
+
+                def mock_import(name, *args, **kwargs):
+                    if name == "laughtrack.foundation.infrastructure.http.playwright_browser":
+                        raise ImportError("No module named 'playwright'")
+                    return original_import(name, *args, **kwargs)
+
+                with patch("builtins.__import__", side_effect=mock_import):
+                    with patch(
+                        "laughtrack.foundation.infrastructure.http.client.Logger.warn"
+                    ) as mock_warn:
+                        result = client_module._get_js_browser()
+
+        assert result is None
+        mock_warn.assert_called_once()
+        # Sentinel is set — second call does not re-attempt import or re-warn
+        with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn2:
+            result2 = client_module._get_js_browser()
+        assert result2 is None
+        mock_warn2.assert_not_called()  # no repeated warning
 
 
 # ---------------------------------------------------------------------------

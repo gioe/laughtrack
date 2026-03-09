@@ -35,7 +35,7 @@ from laughtrack.foundation.utilities.url import URLUtils
 _BOT_BLOCK_SIGNATURES: tuple[str, ...] = (
     "just a moment",        # Cloudflare waiting room / challenge
     "_cf_chl_opt",          # Cloudflare challenge JS variable
-    "access denied",        # Generic firewall / WAF block page
+    "<title>access denied</title>",  # Generic WAF block page (title-scoped to avoid false positives)
     "datadome",             # DataDome challenge interstitial
     "enable javascript and cookies to continue",  # Cloudflare human check
 )
@@ -57,7 +57,10 @@ def _bot_block_reason(html: str) -> Optional[str]:
 # Lazy JS-fallback browser singleton
 # ---------------------------------------------------------------------------
 
-_js_browser: Optional[Any] = None  # PlaywrightBrowser, created on first use
+_js_browser: Optional[Any] = None  # PlaywrightBrowser, or _BROWSER_UNAVAILABLE sentinel
+
+# Sentinel used after a failed import so we don't re-attempt (and re-warn) on every call.
+_BROWSER_UNAVAILABLE = object()
 
 
 def _get_js_browser() -> Optional[Any]:
@@ -68,11 +71,15 @@ def _get_js_browser() -> Optional[Any]:
 
     Returns ``None`` when:
     * ``PLAYWRIGHT_FALLBACK=0`` is set in the environment, or
-    * playwright is not installed (ImportError is swallowed with a warning).
+    * playwright is not installed (ImportError is swallowed with a warning,
+      and ``_BROWSER_UNAVAILABLE`` is stored so the warning fires only once).
     """
     global _js_browser
 
     if os.environ.get("PLAYWRIGHT_FALLBACK", "1") == "0":
+        return None
+
+    if _js_browser is _BROWSER_UNAVAILABLE:
         return None
 
     if _js_browser is None:
@@ -89,6 +96,7 @@ def _get_js_browser() -> Optional[Any]:
                 "Install it with: pip install playwright && playwright install chromium",
                 {},
             )
+            _js_browser = _BROWSER_UNAVAILABLE
             return None
 
     return _js_browser
