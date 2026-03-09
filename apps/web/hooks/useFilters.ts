@@ -1,5 +1,5 @@
 import { QueryProperty } from "@/objects/enum";
-import { FilterDTO } from "@/objects/interface/filter.interface";
+import { FilterDTO } from "@/objects/interface";
 import { useUrlParams } from "./useUrlParams";
 
 export const useFilters = (filters: FilterDTO[]) => {
@@ -8,10 +8,12 @@ export const useFilters = (filters: FilterDTO[]) => {
     const setFilterParamValue = (newFilters: string[]) => {
         const paramValue = newFilters.join(",");
         setTypedParam(QueryProperty.Filters, paramValue);
-    }
+    };
 
-    const initialSelections = filters.filter((f: FilterDTO) => f.selected).map((f: FilterDTO) => f.slug);
-    const urlSelections = getTypedParam(QueryProperty.Filters).split(",")
+    const initialSelections = filters
+        .filter((f: FilterDTO) => f.selected)
+        .map((f: FilterDTO) => f.slug);
+    const urlSelections = getTypedParam(QueryProperty.Filters).split(",");
 
     const handleFilterChange = (value: string) => {
         const newFilters = initialSelections.includes(value)

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { FilterDTO } from "@/objects/interface/filter.interface";
+import { FilterDTO } from "@/objects/interface";
 import { Modal } from "../basic";
 import { FilterChip } from "../../params/filter/chips";
 import { useFilters } from "@/hooks/useFilters";

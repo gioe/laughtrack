@@ -5,7 +5,7 @@ import { EntityType } from "@/objects/enum";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { ParameterizedRequestData } from "@/objects/interface";
 import { ShowDTO } from "@/objects/class/show/show.interface";
-import { FilterDTO } from "@/objects/interface/filter.interface";
+import { FilterDTO } from "@/objects/interface";
 
 interface ShowSearchResponse {
     total: number;

@@ -1,5 +1,5 @@
 import { Selectable } from "../../interface";
-import { FilterDTO } from "@/objects/interface/filter.interface";
+import { FilterDTO } from "@/objects/interface";
 
 export class Filter implements Selectable {
     // Properties
@@ -10,18 +10,17 @@ export class Filter implements Selectable {
 
     // Constructor
     constructor(input: FilterDTO) {
-        this.id = input.id
-        this.name = input.name
-        this.slug = input.slug
-        this.selected = input.selected ?? false
+        this.id = input.id;
+        this.name = input.name;
+        this.slug = input.slug;
+        this.selected = input.selected ?? false;
     }
 
     handleSelection() {
-        this.selected = !this.selected
+        this.selected = !this.selected;
     }
 
     asParamValue() {
-        return this.selected ? this.slug : ""
+        return this.selected ? this.slug : "";
     }
-
 }

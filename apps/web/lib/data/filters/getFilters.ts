@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { Prisma, TagVisibility } from "@prisma/client";
-import { FilterDTO } from "@/objects/interface/filter.interface";
+import { FilterDTO } from "@/objects/interface";
 import { paramsContainsFilter } from "@/util/filter/util";
 import { EntityType } from "@/objects/enum";
 

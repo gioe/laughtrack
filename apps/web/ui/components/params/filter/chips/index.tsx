@@ -1,4 +1,4 @@
-import { FilterDTO } from "@/objects/interface/filter.interface";
+import { FilterDTO } from "@/objects/interface";
 
 interface FilterChipProps {
     option: FilterDTO;
