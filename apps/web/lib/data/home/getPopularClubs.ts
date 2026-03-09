@@ -39,17 +39,21 @@ export async function getPopularClubs(
             skip: offset,
         })
         .then((clubs) =>
-            clubs.map((club) => ({
-                id: club.id,
-                address: club.address,
-                name: club.name,
-                zipCode: club.zipCode,
-                imageUrl: buildClubImageUrl(club.name),
-                active_comedian_count: new Set(
-                    club.shows.flatMap((show) =>
-                        show.lineupItems.map((item) => item.comedianId),
-                    ),
-                ).size,
-            })),
+            clubs
+                .map((club) => ({
+                    id: club.id,
+                    address: club.address,
+                    name: club.name,
+                    zipCode: club.zipCode,
+                    imageUrl: buildClubImageUrl(club.name),
+                    active_comedian_count: new Set(
+                        club.shows.flatMap((show) =>
+                            show.lineupItems.map((item) => item.comedianId),
+                        ),
+                    ).size,
+                }))
+                .sort(
+                    (a, b) => b.active_comedian_count - a.active_comedian_count,
+                ),
         );
 }
