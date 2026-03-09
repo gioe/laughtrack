@@ -27,6 +27,7 @@ class HttpClient:
         url: str,
         headers: Optional[Dict[str, str]] = None,
         logger_context: Optional[JSONDict] = None,
+        proxy_url: Optional[str] = None,
     ) -> Optional[str]:
         """
         Fetch HTML content from a URL with standardized error handling.
@@ -36,6 +37,8 @@ class HttpClient:
             url: URL to fetch (will be normalized)
             headers: Optional headers to include
             logger_context: Context for logging
+            proxy_url: Optional proxy URL (e.g. "http://host:8080"). When
+                provided the request is routed through that proxy.
 
         Returns:
             HTML content as string, or None if the response status is not 200.
@@ -49,7 +52,8 @@ class HttpClient:
         # Normalize URL to ensure proper scheme
         normalized_url = URLUtils.normalize_url(url)
 
-        response = await session.get(normalized_url, headers=headers)
+        proxies = {"http": proxy_url, "https": proxy_url} if proxy_url else None
+        response = await session.get(normalized_url, headers=headers, proxies=proxies)
         if response.status_code != 200:
             Logger.warn(f"HTTP {response.status_code} when fetching {normalized_url}", logger_context)
             return None
@@ -62,6 +66,7 @@ class HttpClient:
         url: str,
         headers: Optional[Dict[str, str]] = None,
         logger_context: Optional[JSONDict] = None,
+        proxy_url: Optional[str] = None,
     ) -> Optional[JSONDict]:
         """
         Fetch JSON data from a URL with standardized error handling.
@@ -71,6 +76,8 @@ class HttpClient:
             url: URL to fetch (will be normalized)
             headers: Optional headers to include
             logger_context: Context for logging
+            proxy_url: Optional proxy URL (e.g. "http://host:8080"). When
+                provided the request is routed through that proxy.
 
         Returns:
             JSON data as dictionary, or None if the response status is not 200.
@@ -84,7 +91,8 @@ class HttpClient:
         # Normalize URL to ensure proper scheme
         normalized_url = URLUtils.normalize_url(url)
 
-        response = await session.get(normalized_url, headers=headers)
+        proxies = {"http": proxy_url, "https": proxy_url} if proxy_url else None
+        response = await session.get(normalized_url, headers=headers, proxies=proxies)
         if response.status_code != 200:
             Logger.warn(f"HTTP {response.status_code} when fetching {normalized_url}", logger_context)
             return None
