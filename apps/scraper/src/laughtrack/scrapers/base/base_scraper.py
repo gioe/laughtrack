@@ -139,6 +139,15 @@ class BaseScraper(HttpConvenienceMixin, ABC):
         """Get the club instance for this scraper."""
         return self._club
 
+    async def get_session(self, headers=None, proxy_url=None):
+        """
+        Override AsyncHttpMixin.get_session() to auto-inject a proxy URL from the
+        pool when proxy_pool is configured and no explicit proxy_url is supplied.
+        """
+        if proxy_url is None and self.proxy_pool is not None:
+            proxy_url = self.proxy_pool.get_proxy()
+        return await super().get_session(headers=headers, proxy_url=proxy_url)
+
     def scrape(self) -> List[Show]:
         """
         Synchronously scrape shows from the venue.
