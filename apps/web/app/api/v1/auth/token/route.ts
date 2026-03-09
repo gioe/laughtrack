@@ -25,7 +25,7 @@ const ALLOWED_ORIGINS = (
  * Browser cross-origin requests are rejected via Origin check to prevent CSRF.
  */
 export async function POST(req: NextRequest) {
-    const rl = checkRateLimit(
+    const rl = await checkRateLimit(
         `auth-token:${getClientIp(req)}`,
         RATE_LIMITS.authToken,
     );

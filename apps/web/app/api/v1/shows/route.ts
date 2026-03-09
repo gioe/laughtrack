@@ -82,7 +82,7 @@ export async function GET(req: NextRequest) {
         const rateLimitKey = isAuthenticated
             ? `shows:auth:${authCtx.profileId}`
             : `shows:anon:${getClientIp(req)}`;
-        const rl = checkRateLimit(
+        const rl = await checkRateLimit(
             rateLimitKey,
             isAuthenticated
                 ? RATE_LIMITS.publicReadAuth

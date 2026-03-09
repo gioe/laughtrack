@@ -15,7 +15,7 @@ const UnsubscribeSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-    const rl = checkRateLimit(
+    const rl = await checkRateLimit(
         `unsubscribe:${getClientIp(request)}`,
         RATE_LIMITS.unsubscribe,
     );

@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
         const rateLimitKey = isAuthenticated
             ? `favorites:auth:${session!.profile!.userid}`
             : `favorites:anon:${getClientIp(req)}`;
-        const rl = checkRateLimit(
+        const rl = await checkRateLimit(
             rateLimitKey,
             isAuthenticated
                 ? RATE_LIMITS.authenticated
