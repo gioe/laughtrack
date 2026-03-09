@@ -98,6 +98,14 @@ class TestGetLineupNames:
         )
         assert event.get_lineup_names() == ["GraphQL Comic"]
 
+    def test_venue_pilot_performer_dict_missing_both_name_keys_falls_through_to_graphql(self):
+        # Performer dicts with neither 'name' nor 'displayName' produce empty strings → filtered
+        event = _make_event(
+            promoter="GraphQL Comic",
+            venue_pilot_event={"performers": [{"role": "host"}, {"role": "opener"}]},
+        )
+        assert event.get_lineup_names() == ["GraphQL Comic"]
+
 
 class TestExtractLineupTransformer:
     def test_transformer_lineup_populated_from_graphql(self):
