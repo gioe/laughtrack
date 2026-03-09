@@ -17,6 +17,7 @@ from laughtrack.utilities.infrastructure.html.scraper import HtmlScraper
 
 from laughtrack.core.entities.event.standup_ny import StandupNYEvent
 from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
+from laughtrack.foundation.infrastructure.http.client import HttpClient
 from laughtrack.foundation.models.types import JSONDict
 from laughtrack.scrapers.implementations.venues.standup_ny.data import StandupNYPageData
 from laughtrack.foundation.infrastructure.logger.logger import Logger
@@ -105,18 +106,12 @@ class StandupNYEventExtractor:
             return False
 
         try:
-            # Extract VenuePilot data from ticket page
-            normalized_url = URLUtils.normalize_url(event.ticket_url)
-
-            response = await session.get(normalized_url)
-            if response.status_code != 200:
-                Logger.warn(
-                    f"VenuePilot request failed for {normalized_url} with status {response.status_code}",
-                    self.logger_context,
-                )
+            html_content = await HttpClient.fetch_html(
+                session, event.ticket_url, logger_context=self.logger_context
+            )
+            if not html_content:
                 return False
 
-            html_content = response.text
             venue_pilot_data = self._extract_venue_pilot_data(html_content, event.ticket_url)
 
             if venue_pilot_data:
@@ -149,16 +144,13 @@ class StandupNYEventExtractor:
             # Calendar page - discover GraphQL endpoint
             Logger.info(f"Discovering GraphQL endpoint from calendar page: {club_url}", self.logger_context)
 
-            normalized_calendar_url = URLUtils.normalize_url(club_url)
-            response = await session.get(normalized_calendar_url)
-            if response.status_code != 200:
-                Logger.error(
-                    f"Failed to access calendar page, status {response.status_code}",
-                    self.logger_context,
-                )
+            html_content = await HttpClient.fetch_html(
+                session, club_url, logger_context=self.logger_context
+            )
+            if not html_content:
+                Logger.error("Failed to access calendar page", self.logger_context)
                 return None
 
-            html_content = response.text
             return self._extract_graphql_endpoint_from_html(html_content, club_url)
 
         except Exception as e:
