@@ -53,5 +53,4 @@ export class Show implements ShowInterface {
         this.isFavorite = false;
     }
     clubAddress?: string | undefined;
-    ticket?: Ticket;
 }

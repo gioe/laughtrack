@@ -4,7 +4,6 @@ import {
     SocialDiscoverable,
 } from "../socialData/socialData.interface";
 import { ComedianLineupDTO } from "../comedian/comedian.interface";
-import { Ticket } from "../ticket/Ticket";
 import { TicketDTO } from "../ticket/ticket.interface";
 
 // Client
@@ -14,7 +13,6 @@ export interface ShowInterface extends Taggable, Entity, SocialDiscoverable {
     popularityScore?: number;
     clubName?: string;
     clubAddress?: string;
-    ticket?: Ticket;
     lastScrapedDate?: Date;
     description?: string;
     soldOut?: boolean;
