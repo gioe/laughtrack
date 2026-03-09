@@ -1,5 +1,6 @@
 "use client";
 
+import { motion, useReducedMotion } from "framer-motion";
 import { Club } from "@/objects/class/club/Club";
 import { ClubDTO } from "@/objects/class/club/club.interface";
 import Image from "next/image";
@@ -13,11 +14,19 @@ interface ClubSearchCardProps {
 }
 
 const ClubSearchCard: React.FC<ClubSearchCardProps> = ({ club }) => {
+    const prefersReducedMotion = useReducedMotion();
     const parsedClub = new Club(club);
     const [error, setError] = useState(false);
 
     return (
-        <div className="bg-coconut-cream rounded-xl overflow-hidden pb-4 px-4 h-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+        <motion.div
+            className="bg-coconut-cream rounded-xl overflow-hidden pb-4 px-4 h-full transition-shadow duration-300 hover:shadow-lg"
+            whileHover={
+                prefersReducedMotion
+                    ? undefined
+                    : { y: -4, transition: { duration: 0.15 } }
+            }
+        >
             <div className="relative w-full aspect-square">
                 <Link
                     href={`/club/${parsedClub.name}`}
@@ -43,7 +52,7 @@ const ClubSearchCard: React.FC<ClubSearchCardProps> = ({ club }) => {
                     {`${parsedClub.address}`}
                 </p>
             </div>
-        </div>
+        </motion.div>
     );
 };
 
