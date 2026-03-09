@@ -19,9 +19,12 @@ type TrendingComedianRow = {
 };
 
 const MAX_COMEDIANS_LIMIT = 100;
+const POOL_MULTIPLIER = 4;
+const MAX_POOL_SIZE = 50;
 
 export async function getTrendingComedians(limit = 8): Promise<ComedianDTO[]> {
     const safeLimit = Math.min(Math.max(1, limit), MAX_COMEDIANS_LIMIT);
+    const poolSize = Math.min(safeLimit * POOL_MULTIPLIER, MAX_POOL_SIZE);
     const now = new Date();
 
     // Table/column mappings: comedians@@map, lineup_items@@map, shows@@map,
@@ -83,11 +86,18 @@ export async function getTrendingComedians(limit = 8): Promise<ComedianDTO[]> {
         SELECT *
         FROM comedian_counts
         WHERE show_count > 3
-        ORDER BY RANDOM()
-        LIMIT ${safeLimit}
+        ORDER BY show_count DESC
+        LIMIT ${poolSize}
     `;
 
-    return rows.map((row) => ({
+    // Shuffle in application code to avoid ORDER BY RANDOM() full sort at the DB layer.
+    for (let i = rows.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [rows[i], rows[j]] = [rows[j], rows[i]];
+    }
+    const selected = rows.slice(0, safeLimit);
+
+    return selected.map((row) => ({
         id: row.id,
         uuid: row.uuid,
         name: row.name,
