@@ -46,6 +46,8 @@ jobs:
           pip install -r requirements-dev.txt
 
       - name: Run tests
+        env:
+          PLAYWRIGHT_FALLBACK: "0"
         run: |
           python -m pytest -v --tb=short --disable-warnings \
             --junitxml=pytest-results.xml \
