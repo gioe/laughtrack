@@ -15,6 +15,8 @@ import { useReducedMotion } from "framer-motion";
 export function useMotionProps() {
     const prefersReducedMotion = useReducedMotion() ?? false;
 
+    // Wrapped in useCallback so callers can safely include these helpers in
+    // useEffect/useCallback/useMemo dependency arrays without causing infinite loops.
     const mv = useCallback(
         (normal: number, reduced = 0): number =>
             prefersReducedMotion ? reduced : normal,
