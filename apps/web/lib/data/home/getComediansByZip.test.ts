@@ -169,8 +169,8 @@ describe("getComediansByZip", () => {
 
             const result = await getComediansByZip("10001");
             const { social_data } = result[0];
-            expect(social_data!.instagram_account).toBeNull();
-            expect(social_data!.website).toBeNull();
+            expect(social_data.instagram_account).toBeNull();
+            expect(social_data.website).toBeNull();
         });
     });
 

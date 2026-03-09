@@ -232,8 +232,8 @@ describe("getTrendingComedians", () => {
             const result = await getTrendingComedians(8, 0);
             const { social_data } = result[0];
 
-            expect(social_data!.instagram_account).toBeNull();
-            expect(social_data!.website).toBeNull();
+            expect(social_data.instagram_account).toBeNull();
+            expect(social_data.website).toBeNull();
         });
     });
 
