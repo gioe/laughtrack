@@ -4,6 +4,8 @@ Unit tests for StandupNY comedian lineup extraction.
 Covers get_lineup_names() on StandupNYEvent and the transformer's lineup path.
 """
 
+from unittest.mock import patch
+
 from laughtrack.core.entities.event.standup_ny import StandupNYEvent
 from laughtrack.core.entities.comedian.model import Comedian
 from laughtrack.core.entities.club.model import Club
@@ -105,6 +107,61 @@ class TestGetLineupNames:
             venue_pilot_event={"artists": [{"links": []}, {"links": []}]},
         )
         assert event.get_lineup_names() == ["GraphQL Comic"]
+
+
+class TestGetLineupNamesWarning:
+    """Logger.warn is emitted when venue_pilot_event is present but artists yield no names."""
+
+    def test_warn_on_empty_artists_array(self):
+        event = _make_event(
+            id="evt-42",
+            promoter="GraphQL Comic",
+            venue_pilot_event={"artists": []},
+        )
+        with patch("laughtrack.core.entities.event.standup_ny.Logger") as mock_logger:
+            result = event.get_lineup_names()
+        mock_logger.warn.assert_called_once()
+        assert "evt-42" in mock_logger.warn.call_args[0][0]
+        assert result == ["GraphQL Comic"]
+
+    def test_warn_on_blank_name_entries(self):
+        event = _make_event(
+            id="evt-99",
+            promoter="GraphQL Comic",
+            venue_pilot_event={"artists": [{"name": "  "}, {"name": ""}]},
+        )
+        with patch("laughtrack.core.entities.event.standup_ny.Logger") as mock_logger:
+            result = event.get_lineup_names()
+        mock_logger.warn.assert_called_once()
+        assert "evt-99" in mock_logger.warn.call_args[0][0]
+        assert result == ["GraphQL Comic"]
+
+    def test_warn_on_no_artists_key(self):
+        event = _make_event(
+            id="evt-7",
+            promoter="GraphQL Comic",
+            venue_pilot_event={"startTime": "20:00:00"},
+        )
+        with patch("laughtrack.core.entities.event.standup_ny.Logger") as mock_logger:
+            result = event.get_lineup_names()
+        mock_logger.warn.assert_called_once()
+        assert "evt-7" in mock_logger.warn.call_args[0][0]
+        assert result == ["GraphQL Comic"]
+
+    def test_no_warn_when_artists_return_names(self):
+        event = _make_event(
+            id="evt-1",
+            venue_pilot_event={"artists": [{"name": "VP Comedian"}]},
+        )
+        with patch("laughtrack.core.entities.event.standup_ny.Logger") as mock_logger:
+            event.get_lineup_names()
+        mock_logger.warn.assert_not_called()
+
+    def test_no_warn_when_no_venue_pilot_event(self):
+        event = _make_event(id="evt-2", promoter="GraphQL Comic")
+        with patch("laughtrack.core.entities.event.standup_ny.Logger") as mock_logger:
+            event.get_lineup_names()
+        mock_logger.warn.assert_not_called()
 
 
 class TestExtractLineupTransformer:

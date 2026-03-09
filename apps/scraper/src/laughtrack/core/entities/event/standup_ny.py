@@ -9,6 +9,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+from laughtrack.foundation.infrastructure.logger.logger import Logger
+
 
 @dataclass
 class StandupNYEvent:
@@ -167,6 +169,9 @@ class StandupNYEvent:
                         names.append(name.strip())
                 if names:
                     return names
+            Logger.warn(
+                f"VenuePilot event {self.id!r} has no usable artists; falling back to GraphQL fields"
+            )
 
         # 2. GraphQL promoter / support fields
         # These are raw GraphQL field values (field keys: "promoter", "support").
