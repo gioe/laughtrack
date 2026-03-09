@@ -76,6 +76,7 @@ export default function AnonymousLocationSection() {
             () => {
                 setStep("zip-entry");
             },
+            { timeout: 10000 },
         );
     }, [fetchComedians]);
 
