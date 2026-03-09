@@ -130,9 +130,10 @@ describe("getComediansByZip", () => {
             });
         });
 
-        it("coerces show_count to a JS number", async () => {
-            // Prisma raw queries return BigInt for COUNT; the function casts with Number()
-            const row = makeRow({ show_count: BigInt(5) as unknown as number });
+        it("applies Number() cast to show_count from the DB row", async () => {
+            // The SQL uses COUNT(DISTINCT s.id)::int so Prisma returns a JS number.
+            // Number() is called defensively; verify it produces the expected value.
+            const row = makeRow({ show_count: 5 });
             mockQueryRaw.mockResolvedValue([row]);
 
             const result = await getComediansByZip("10001");
@@ -144,6 +145,13 @@ describe("getComediansByZip", () => {
             mockQueryRaw.mockResolvedValue([]);
             const result = await getComediansByZip("10001");
             expect(result).toEqual([]);
+        });
+
+        it("propagates DB errors as unhandled rejections (no try/catch in function)", async () => {
+            mockQueryRaw.mockRejectedValue(new Error("DB connection failed"));
+            await expect(getComediansByZip("10001")).rejects.toThrow(
+                "DB connection failed",
+            );
         });
 
         it("handles null optional social fields", async () => {
@@ -195,7 +203,7 @@ describe("getComediansByZip", () => {
             expect(result.map((c) => c.id)).toEqual([10, 20, 30]);
         });
 
-        it("returns at most 8 results (LIMIT is enforced by SQL; function maps whatever DB returns)", async () => {
+        it("maps all 8 rows returned by the DB (LIMIT 8 is enforced by SQL, not JS)", async () => {
             const rows = Array.from({ length: 8 }, (_, i) =>
                 makeRow({
                     id: i + 1,
@@ -211,26 +219,20 @@ describe("getComediansByZip", () => {
         });
     });
 
-    describe("tag exclusion and alias filtering", () => {
-        it("does not include rows with excluded tags when DB enforces the filter (rows absent from results)", async () => {
-            // The SQL excludes comedians tagged alias/non_human/non_comic via NOT EXISTS.
-            // In unit tests we verify the DB is called and rows are mapped as-is —
-            // the absence of such comedians is controlled by the SQL query.
-            const legitRow = makeRow({
-                id: 1,
-                uuid: "uuid-1",
-                name: "Clean Comic",
-            });
-            mockQueryRaw.mockResolvedValue([legitRow]);
+    describe("SQL filter contracts (verified via query scope, not JS logic)", () => {
+        it("maps a single row correctly when DB returns only non-excluded-tag comedians", async () => {
+            // SQL enforces NOT EXISTS (alias/non_human/non_comic) and parent_comedian_id IS NULL.
+            // This test confirms correct mapping of what the DB returns; filter correctness
+            // requires integration tests against a real DB.
+            const row = makeRow({ id: 1, uuid: "uuid-1", name: "Clean Comic" });
+            mockQueryRaw.mockResolvedValue([row]);
 
             const result = await getComediansByZip("10001");
             expect(result).toHaveLength(1);
             expect(result[0].name).toBe("Clean Comic");
         });
 
-        it("excludes alias comedians — parent_comedian_id IS NULL enforced in SQL", async () => {
-            // Only non-alias (parentComedianId IS NULL) rows reach the function;
-            // confirm mapping handles them without error.
+        it("maps multiple rows correctly when DB returns only non-alias comedians", async () => {
             const rows = [
                 makeRow({ id: 1, uuid: "uuid-1", name: "Headliner A" }),
                 makeRow({ id: 2, uuid: "uuid-2", name: "Headliner B" }),
