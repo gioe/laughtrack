@@ -52,12 +52,15 @@ class VenuePilotClient(BaseApiClient):
             # Get tickets
             tickets = self.extract_ticket_data(json_dict, show_page_url)
 
+            artists = event_data.get("artists", [])
+            lineup = [a["name"] for a in artists if isinstance(a, dict) and "name" in a]
+
             show_data = {
                 "name": name,
                 "date": formatted_date_time,
                 "description": description,
                 "show_page_url": show_page_url,
-                "lineup": [],
+                "lineup": lineup,
                 "tickets": tickets,
                 "supplied_tags": [],
                 "timezone": None,
