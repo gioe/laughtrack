@@ -9,8 +9,22 @@ of bad proxies.
 
 import os
 from typing import Dict, List, Optional, Set
+from urllib.parse import urlparse
 
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+
+
+def _sanitize_proxy_url(proxy_url: str) -> str:
+    """Return *proxy_url* with the userinfo (user:pass) component stripped."""
+    try:
+        parsed = urlparse(proxy_url)
+        if parsed.hostname:
+            host = parsed.hostname
+            netloc = f"{host}:{parsed.port}" if parsed.port else host
+            return parsed._replace(netloc=netloc).geturl()
+    except Exception:
+        pass
+    return "<proxy>"
 
 
 class ProxyPool:
@@ -41,8 +55,8 @@ class ProxyPool:
             rotation: "per_request" rotates after every get_proxy() call;
                       "per_session" keeps the same proxy until rotate() is
                       called explicitly.
-            max_failures: How many consecutive failures before a proxy is
-                          retired from the active pool.
+            max_failures: How many net failures (incremented on failure,
+                          decremented on success) before a proxy is retired.
         """
         if not proxies:
             raise ValueError("ProxyPool requires at least one proxy URL")
@@ -127,7 +141,7 @@ class ProxyPool:
         """
         active = self.active_proxies
         if not active:
-            Logger.warn("[ProxyPool] All proxies retired; sending requests without a proxy", {})
+            Logger.warn("[ProxyPool] All proxies retired — requests will be sent without a proxy", {})
             return None
 
         idx = self._index % len(active)
@@ -163,8 +177,14 @@ class ProxyPool:
             and self._failure_counts[proxy_url] >= self._max_failures
         ):
             self._retired.add(proxy_url)
+            # Clamp _index so rotation doesn't skip proxies after pool shrinks
+            active = self.active_proxies
+            if active:
+                self._index = self._index % len(active)
+            else:
+                self._index = 0
             Logger.warn(
-                f"[ProxyPool] Proxy {proxy_url!r} retired after "
+                f"[ProxyPool] Proxy {_sanitize_proxy_url(proxy_url)!r} retired after "
                 f"{self._max_failures} failures",
                 {},
             )

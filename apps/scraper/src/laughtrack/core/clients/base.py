@@ -208,7 +208,10 @@ class BaseApiClient(ABC):
                 except Exception:
                     pass
                 if proxy_url and self.proxy_pool is not None:
-                    self.proxy_pool.report_success(proxy_url)
+                    if data is None:
+                        self.proxy_pool.report_failure(proxy_url)
+                    else:
+                        self.proxy_pool.report_success(proxy_url)
                 return data
         except Exception as e:
             if proxy_url and self.proxy_pool is not None:
@@ -271,7 +274,10 @@ class BaseApiClient(ABC):
                 except Exception:
                     pass
                 if proxy_url and self.proxy_pool is not None:
-                    self.proxy_pool.report_success(proxy_url)
+                    if text is None:
+                        self.proxy_pool.report_failure(proxy_url)
+                    else:
+                        self.proxy_pool.report_success(proxy_url)
                 return text
         except Exception as e:
             if proxy_url and self.proxy_pool is not None:
