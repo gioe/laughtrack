@@ -254,7 +254,7 @@ describe("getTrendingComedians", () => {
 
             expect(result.length).toBe(limit);
             const inputIds = new Set(rows.map((r) => r.id));
-            result.forEach((c) => expect(inputIds.has(c.id)).toBe(true));
+            result.forEach((c) => expect(inputIds.has(c.id!)).toBe(true));
         });
 
         it("skips shuffle and fetches exact offset slice for paginated requests", async () => {
