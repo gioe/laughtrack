@@ -37,6 +37,7 @@ class AsyncHttpMixin(ABC):
         self._session: Optional[AsyncSession] = None
         self._session_closed: bool = True
         self._default_headers: Optional[Dict[str, str]] = None
+        self._session_impersonation_target: Optional[str] = None
 
     async def get_session(self, headers: Optional[Dict[str, str]] = None) -> AsyncSession:
         """
@@ -48,17 +49,26 @@ class AsyncHttpMixin(ABC):
         Returns:
             Configured curl_cffi AsyncSession impersonating Chrome
         """
+        # Invalidate the session if the active BrowserProfile has rotated since
+        # the session was created (TLS fingerprint must match HTTP headers).
+        if self._session is not None and not self._session_closed:
+            current_target = self._get_impersonation_target()
+            if current_target != self._session_impersonation_target:
+                await self.close_session()
+
         if self._session is None or self._session_closed:
             # Get timeout from club if available, otherwise use default
             timeout_value = getattr(self.club, "timeout", 30) if hasattr(self.club, "timeout") else 30
             session_headers = self._build_session_headers(headers)
+            impersonation_target = self._get_impersonation_target()
 
             self._session = AsyncSession(
-                impersonate=self._get_impersonation_target(),
+                impersonate=impersonation_target,
                 timeout=timeout_value,
                 headers=session_headers,
             )
             self._session_closed = False
+            self._session_impersonation_target = impersonation_target
 
         return self._session
 
@@ -128,6 +138,7 @@ class AsyncHttpMixin(ABC):
             await self._session.close()
             self._session_closed = True
             self._session = None
+            self._session_impersonation_target = None
 
     async def __aenter__(self):
         """Async context manager entry."""
