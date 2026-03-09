@@ -14,6 +14,7 @@ import { cookies } from "next/headers";
 import ShowTable from "@/ui/pages/search/table";
 import type { Metadata } from "next";
 import { db } from "@/lib/db";
+import { buildClubImageUrl } from "@/util/imageUtil";
 
 export async function generateMetadata(props: {
     params: Promise<{ name: string }>;
@@ -35,11 +36,20 @@ export async function generateMetadata(props: {
     const clubName = club?.name ?? name;
     const title = `${clubName} | LaughTrack`;
     const description = `Discover upcoming comedy shows at ${clubName}. Find schedules, tickets, and more on LaughTrack.`;
+    const url = `${process.env.NEXT_PUBLIC_WEBSITE_URL}/club/${slug}`;
+    const image = buildClubImageUrl(clubName);
 
     return {
         title,
         description,
-        openGraph: { title, description },
+        openGraph: {
+            title,
+            description,
+            type: "website",
+            url,
+            images: [{ url: image }],
+        },
+        twitter: { card: "summary_large_image" },
     };
 }
 
