@@ -10,21 +10,25 @@ export interface ComedianDTO {
     name: string;
     imageUrl: string;
     uuid: string;
-    id?: number;
+    id: number;
     userId?: number;
     social_data: SocialDataDTO;
     dates?: ShowDTO[];
     isFavorite?: boolean;
     tags?: number[];
-    show_count?: number;
+    show_count: number;
     isAlias?: boolean;
     parentComedian?: ComedianDTO;
     lineupItems?: any[];
 }
 
-// Lightweight comedian shape used for show lineup items (no social_data required)
-export type ComedianLineupDTO = Omit<ComedianDTO, "social_data"> & {
+// Lightweight comedian shape used for show lineup items (no social_data or show_count required)
+export type ComedianLineupDTO = Omit<
+    ComedianDTO,
+    "social_data" | "show_count"
+> & {
     social_data?: SocialDataDTO;
+    show_count?: number;
 };
 
 export interface UpdateComedianDTO {

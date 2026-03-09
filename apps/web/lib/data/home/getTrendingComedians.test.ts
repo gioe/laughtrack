@@ -141,7 +141,7 @@ describe("getTrendingComedians", () => {
 
             const result = await getTrendingComedians(8, 0);
 
-            expect(result.every((c) => (c.show_count ?? 0) > 3)).toBe(true);
+            expect(result.every((c) => c.show_count > 3)).toBe(true);
         });
 
         it("returns no comedians when DB returns no rows (show_count > 3 filter found no matches)", async () => {
@@ -171,8 +171,8 @@ describe("getTrendingComedians", () => {
 
             const result = await getTrendingComedians(8, 0);
 
-            expect(result[0].show_count ?? 0).toBeGreaterThan(3);
-            expect(result[1].show_count ?? 0).toBeGreaterThan(3);
+            expect(result[0].show_count).toBeGreaterThan(3);
+            expect(result[1].show_count).toBeGreaterThan(3);
         });
     });
 

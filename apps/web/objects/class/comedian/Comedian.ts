@@ -33,7 +33,7 @@ export class Comedian implements ComedianInterface {
             : undefined;
         this.tagIds = input.tags ? input.tags : [];
         this.isFavorite = input.isFavorite ?? false;
-        this.id = input.id ?? 0;
+        this.id = input.id;
         this.showCount = input.show_count;
         this.imageUrl = input.imageUrl;
         this.uuid = input.uuid;
