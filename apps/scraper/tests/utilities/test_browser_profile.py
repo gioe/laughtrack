@@ -269,8 +269,10 @@ class TestRateLimiterConcurrency:
         # 2 RPS → 0.5 s min interval; both callers launched at t=0 will wait.
         rl.set_domain_config(domain, DomainConfig(requests_per_second=2.0))
 
-        # Pre-seed so the first coroutine immediately calculates a non-zero wait.
-        rl._last_request[domain] = time.time()
+        # Pre-seed slightly in the past so both coroutines still need to wait
+        # but there is no risk of elapsed >= min_interval before they start.
+        seeded_time = time.time() - 0.01
+        rl._last_request[domain] = seeded_time
 
         events: list[str] = []
         original_sleep = asyncio.sleep
@@ -297,5 +299,6 @@ class TestRateLimiterConcurrency:
             "exit_sleep",
         ], f"Expected serialized sleeps, got: {events}"
 
-        # _last_request was updated atomically by the final coroutine.
-        assert rl._last_request[domain] > 0
+        # _last_request was advanced beyond the pre-seeded value, confirming
+        # that both coroutines updated it (not just a no-op pass-through).
+        assert rl._last_request[domain] > seeded_time
