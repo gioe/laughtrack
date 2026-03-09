@@ -4,6 +4,7 @@ import { CACHE } from "@/util/constants/cacheConstants";
 import { getTrendingComedians } from "@/lib/data/home/getTrendingComedians";
 import { getClubs } from "@/lib/data/home/getClubs";
 import { getComediansByZip } from "@/lib/data/home/getComediansByZip";
+import { DEFAULT_HOME_RADIUS_MILES } from "@/util/constants/radiusConstants";
 import { Prisma } from "@prisma/client";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { ClubDTO } from "@/objects/class/club/club.interface";
@@ -59,7 +60,9 @@ export default async function HomePage() {
     const [{ comedians, clubs }, nearYouComedians] = await Promise.all([
         getCachedHomePageData(),
         zipCode
-            ? getComediansByZip(zipCode).catch(() => [])
+            ? getComediansByZip(zipCode, DEFAULT_HOME_RADIUS_MILES).catch(
+                  () => [],
+              )
             : Promise.resolve([]),
     ]);
 
