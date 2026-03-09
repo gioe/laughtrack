@@ -40,8 +40,8 @@ function makeComedianRow(
         youtubeFollowers: number | null;
         website: string | null;
         popularity: number;
-        totalShows: number | null;
-        soldOutShows: number | null;
+        totalShows: number;
+        soldOutShows: number;
         parentComedianId: number | null;
         lineupItems: { id: number }[];
         favoriteComedians: { id: number }[];
@@ -60,8 +60,8 @@ function makeComedianRow(
         youtubeFollowers: null,
         website: "https://alice.example.com",
         popularity: 80,
-        totalShows: null,
-        soldOutShows: null,
+        totalShows: 0,
+        soldOutShows: 0,
         parentComedianId: null,
         lineupItems: [{ id: 10 }, { id: 11 }, { id: 12 }],
         favoriteComedians: [],
