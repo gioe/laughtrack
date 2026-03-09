@@ -12,6 +12,7 @@
         "format": "prettier --write \"./**/*.{ts,tsx}\" --ignore-path .gitignore",
         "gcp-build": "tsc -p .",
         "test": "vitest run",
+        "test:e2e": "playwright test",
         "type-check": "tsc -b",
         "prepare": "cd ../.. && node apps/web/node_modules/.bin/husky"
     },
@@ -79,6 +80,7 @@
     "devDependencies": {
         "@eslint/js": "^9.13.0",
         "@next/eslint-plugin-next": "^15.1.4",
+        "@playwright/test": "^1.58.2",
         "@types/bcryptjs": "^2.4.6",
         "@types/cookie-parser": "^1.4.7",
         "@types/cors": "^2.8.17",
