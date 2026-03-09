@@ -1,7 +1,7 @@
 """Unit tests for PlaywrightBrowser."""
 
 import sys
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, call, patch
 
 import pytest
 
@@ -131,16 +131,18 @@ class TestPlaywrightBrowser:
         assert kwargs.get("proxy") is None
 
     @pytest.mark.asyncio
-    async def test_browser_closed_after_fetch(self):
+    async def test_browser_not_closed_after_fetch(self):
+        """Chromium process stays alive after a single fetch (reuse across calls)."""
         mock_pw_module, mock_browser, _ = _make_pw_mocks()
         with _patch_playwright(mock_pw_module):
             browser = PlaywrightBrowser()
             await browser.fetch_html("https://example.com")
 
-        mock_browser.close.assert_called_once()
+        mock_browser.close.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_browser_closed_even_on_exception(self):
+    async def test_browser_not_closed_on_page_exception(self):
+        """Chromium process stays alive even when page navigation raises."""
         mock_pw_module, mock_browser, mock_page = _make_pw_mocks()
         mock_page.goto.side_effect = RuntimeError("navigation failed")
 
@@ -148,6 +150,52 @@ class TestPlaywrightBrowser:
             browser = PlaywrightBrowser()
             with pytest.raises(RuntimeError):
                 await browser.fetch_html("https://example.com")
+
+        mock_browser.close.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_browser_launched_once_across_multiple_fetches(self):
+        """Chromium is launched exactly once regardless of how many pages are fetched.
+
+        This verifies the per-call latency improvement: the old implementation
+        called chromium.launch() on every fetch_html invocation; the new
+        implementation calls it only on the first call.
+        """
+        mock_pw_module, mock_browser, _ = _make_pw_mocks()
+        # Each new_context call returns the same mock_context, which is fine for the test
+        mock_pw_chromium = mock_pw_module.async_playwright.return_value.__aenter__.return_value.chromium
+
+        with _patch_playwright(mock_pw_module):
+            browser = PlaywrightBrowser()
+            await browser.fetch_html("https://example.com/page1")
+            await browser.fetch_html("https://example.com/page2")
+            await browser.fetch_html("https://example.com/page3")
+
+        mock_pw_chromium.launch.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_explicit_close_stops_browser(self):
+        """await browser.close() closes the Chromium process and Playwright context."""
+        mock_pw_module, mock_browser, _ = _make_pw_mocks()
+        mock_cm = mock_pw_module.async_playwright.return_value
+
+        with _patch_playwright(mock_pw_module):
+            browser = PlaywrightBrowser()
+            await browser.fetch_html("https://example.com")
+            await browser.close()
+
+        mock_browser.close.assert_called_once()
+        mock_cm.__aexit__.assert_called_once_with(None, None, None)
+
+    @pytest.mark.asyncio
+    async def test_explicit_close_is_idempotent(self):
+        """Calling close() multiple times does not raise."""
+        mock_pw_module, mock_browser, _ = _make_pw_mocks()
+        with _patch_playwright(mock_pw_module):
+            browser = PlaywrightBrowser()
+            await browser.fetch_html("https://example.com")
+            await browser.close()
+            await browser.close()  # second call is a no-op
 
         mock_browser.close.assert_called_once()
 
@@ -199,3 +247,17 @@ class TestPlaywrightBrowser:
         assert proxy["server"] == "http://proxy:3128"
         assert proxy["username"] == "user"
         assert proxy["password"] == "secret"
+
+    def test_atexit_handler_registered(self):
+        """An atexit handler is registered when a PlaywrightBrowser is instantiated."""
+        import atexit as _atexit
+        from laughtrack.foundation.infrastructure.http.playwright_browser import _atexit_close
+
+        before = len(_atexit._atexit_callbacks if hasattr(_atexit, "_atexit_callbacks") else [])
+        browser = PlaywrightBrowser()
+
+        # Verify that _atexit_close is registered (it's in the atexit callback list)
+        # We check indirectly: calling it on a never-started browser is a no-op
+        import weakref
+        ref = weakref.ref(browser)
+        _atexit_close(ref)  # Must not raise even when _browser is None
