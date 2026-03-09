@@ -147,6 +147,8 @@ def reset_rate_limiter():
     rl._domain_configs = saved_configs
     for domain in list(rl._sessions.keys()):
         rl.reset_domain(domain)
+    rl._last_request.clear()
+    rl._async_domain_locks.clear()
 
 
 def _fast_anti_detection_domain(rl: RateLimiter, name: str) -> str:
