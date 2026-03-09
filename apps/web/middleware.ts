@@ -19,6 +19,8 @@ const SECURITY_HEADERS: Record<string, string> = {
         "connect-src 'self' https:",
         "frame-ancestors 'none'",
     ].join("; "),
+    "Permissions-Policy":
+        "camera=(), geolocation=(), microphone=(), payment=(), usb=()",
 };
 
 function applySecurityHeaders(response: NextResponse): NextResponse {
