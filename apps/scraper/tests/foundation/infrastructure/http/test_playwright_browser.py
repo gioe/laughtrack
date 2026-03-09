@@ -1,7 +1,7 @@
 """Unit tests for PlaywrightBrowser."""
 
 import sys
-from unittest.mock import AsyncMock, MagicMock, call, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -154,6 +154,22 @@ class TestPlaywrightBrowser:
         mock_browser.close.assert_not_called()
 
     @pytest.mark.asyncio
+    async def test_concurrent_fetch_launches_browser_only_once(self):
+        """Two concurrent fetch_html calls must not start two Chromium processes."""
+        import asyncio as _asyncio
+        mock_pw_module, mock_browser, _ = _make_pw_mocks()
+        mock_pw_chromium = mock_pw_module.async_playwright.return_value.__aenter__.return_value.chromium
+
+        with _patch_playwright(mock_pw_module):
+            browser = PlaywrightBrowser()
+            await _asyncio.gather(
+                browser.fetch_html("https://example.com/a"),
+                browser.fetch_html("https://example.com/b"),
+            )
+
+        mock_pw_chromium.launch.assert_called_once()
+
+    @pytest.mark.asyncio
     async def test_browser_launched_once_across_multiple_fetches(self):
         """Chromium is launched exactly once regardless of how many pages are fetched.
 
@@ -249,15 +265,15 @@ class TestPlaywrightBrowser:
         assert proxy["password"] == "secret"
 
     def test_atexit_handler_registered(self):
-        """An atexit handler is registered when a PlaywrightBrowser is instantiated."""
-        import atexit as _atexit
+        """atexit.register is called with _atexit_close when a PlaywrightBrowser is instantiated."""
+        import weakref
         from laughtrack.foundation.infrastructure.http.playwright_browser import _atexit_close
 
-        before = len(_atexit._atexit_callbacks if hasattr(_atexit, "_atexit_callbacks") else [])
-        browser = PlaywrightBrowser()
+        with patch("atexit.register") as mock_register:
+            browser = PlaywrightBrowser()
 
-        # Verify that _atexit_close is registered (it's in the atexit callback list)
-        # We check indirectly: calling it on a never-started browser is a no-op
-        import weakref
-        ref = weakref.ref(browser)
-        _atexit_close(ref)  # Must not raise even when _browser is None
+        mock_register.assert_called_once()
+        args = mock_register.call_args[0]
+        assert args[0] is _atexit_close
+        assert isinstance(args[1], weakref.ref)
+        assert args[1]() is browser

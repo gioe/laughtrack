@@ -150,21 +150,31 @@ class PlaywrightBrowser:
         self._pw_cm: Optional[object] = None   # async_playwright() context manager
         self._pw: Optional[object] = None      # Playwright object (pw in `async with ... as pw`)
         self._browser: Optional[object] = None # Browser instance
+        self._browser_lock = asyncio.Lock()    # Prevents concurrent launch
 
         # Register best-effort cleanup on process exit
         atexit.register(_atexit_close, weakref.ref(self))
 
     async def _ensure_browser(self) -> None:
-        """Launch Chromium if it is not already running."""
+        """Launch Chromium if it is not already running.
+
+        The lock prevents two concurrent fetch_html calls from each launching
+        their own Chromium process and leaking the first one.
+        """
         if self._browser is not None:
             return
 
-        # Lazy import — keeps playwright out of the import graph unless needed
-        from playwright.async_api import async_playwright  # noqa: PLC0415
+        async with self._browser_lock:
+            # Re-check inside the lock: a concurrent caller may have already launched
+            if self._browser is not None:
+                return
 
-        self._pw_cm = async_playwright()
-        self._pw = await self._pw_cm.__aenter__()
-        self._browser = await self._pw.chromium.launch(headless=True)
+            # Lazy import — keeps playwright out of the import graph unless needed
+            from playwright.async_api import async_playwright  # noqa: PLC0415
+
+            self._pw_cm = async_playwright()
+            self._pw = await self._pw_cm.__aenter__()
+            self._browser = await self._pw.chromium.launch(headless=True)
 
     async def close(self) -> None:
         """Close the persistent Chromium browser and the Playwright context.
