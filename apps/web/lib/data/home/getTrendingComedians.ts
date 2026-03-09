@@ -19,6 +19,8 @@ type TrendingComedianRow = {
 };
 
 const MAX_COMEDIANS_LIMIT = 100;
+// Fetch 4× the requested limit from DB (capped at 50) so the app-layer shuffle
+// has enough variety without pulling an unbounded result set.
 const POOL_MULTIPLIER = 4;
 const MAX_POOL_SIZE = 50;
 
