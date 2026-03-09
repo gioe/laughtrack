@@ -1,35 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getClubs } from "@/lib/data/home/getClubs";
-import { auth } from "@/auth";
 import {
-    checkRateLimit,
-    getClientIp,
-    RATE_LIMITS,
+    applyPublicReadRateLimit,
+    parseLimitParam,
     rateLimitHeaders,
-    rateLimitResponse,
 } from "@/lib/rateLimit";
 
 export async function GET(req: NextRequest) {
-    const session = await auth();
-    const isAuthenticated = !!session?.profile;
-    const rateLimitKey = isAuthenticated
-        ? `clubs:auth:${session!.profile!.userid}`
-        : `clubs:anon:${getClientIp(req)}`;
-    const rl = checkRateLimit(
-        rateLimitKey,
-        isAuthenticated ? RATE_LIMITS.publicReadAuth : RATE_LIMITS.publicRead,
-    );
-    if (!rl.allowed) return rateLimitResponse(rl);
+    const rl = await applyPublicReadRateLimit(req, "clubs");
+    if (rl instanceof NextResponse) return rl;
 
     try {
-        const rawLimit = req.nextUrl.searchParams.get("limit");
-        const limit = rawLimit !== null ? Number(rawLimit) : 8;
-        if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
-            return NextResponse.json(
-                { error: "limit must be a positive integer between 1 and 100" },
-                { status: 400 },
-            );
-        }
+        const limitOrErr = parseLimitParam(req);
+        if (limitOrErr instanceof NextResponse) return limitOrErr;
+        const limit = limitOrErr;
+
         const rawOffset = req.nextUrl.searchParams.get("offset");
         const offset = rawOffset !== null ? Number(rawOffset) : 0;
         if (!Number.isInteger(offset) || offset < 0) {

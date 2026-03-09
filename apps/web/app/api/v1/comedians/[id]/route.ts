@@ -1,29 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { buildComedianImageUrl } from "@/util/imageUtil";
-import { auth } from "@/auth";
-import {
-    checkRateLimit,
-    getClientIp,
-    RATE_LIMITS,
-    rateLimitHeaders,
-    rateLimitResponse,
-} from "@/lib/rateLimit";
+import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 
 export async function GET(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> },
 ) {
-    const session = await auth();
-    const isAuthenticated = !!session?.profile;
-    const rateLimitKey = isAuthenticated
-        ? `comedians-id:auth:${session!.profile!.userid}`
-        : `comedians-id:anon:${getClientIp(req)}`;
-    const rl = checkRateLimit(
-        rateLimitKey,
-        isAuthenticated ? RATE_LIMITS.publicReadAuth : RATE_LIMITS.publicRead,
-    );
-    if (!rl.allowed) return rateLimitResponse(rl);
+    const rl = await applyPublicReadRateLimit(req, "comedians-id");
+    if (rl instanceof NextResponse) return rl;
 
     const { id } = await params;
     const numericId = parseInt(id, 10);

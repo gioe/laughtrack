@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/auth";
 
 interface RateLimitWindow {
     count: number;
@@ -117,6 +118,54 @@ export function rateLimitHeaders(
         "X-RateLimit-Remaining": String(result.remaining),
         "X-RateLimit-Reset": String(Math.ceil(result.resetAt / 1000)),
     };
+}
+
+/**
+ * Apply the standard public-read rate limit (auth vs anon) for a given route prefix.
+ * Returns the RateLimitResult on success, or a 429 NextResponse if the limit is exceeded.
+ *
+ * Usage:
+ *   const rl = await applyPublicReadRateLimit(req, "clubs");
+ *   if (rl instanceof NextResponse) return rl;
+ */
+export async function applyPublicReadRateLimit(
+    req: NextRequest,
+    routePrefix: string,
+): Promise<RateLimitResult | NextResponse> {
+    const session = await auth();
+    const isAuthenticated = !!session?.profile;
+    const rateLimitKey = isAuthenticated
+        ? `${routePrefix}:auth:${session!.profile!.userid}`
+        : `${routePrefix}:anon:${getClientIp(req)}`;
+    const rl = checkRateLimit(
+        rateLimitKey,
+        isAuthenticated ? RATE_LIMITS.publicReadAuth : RATE_LIMITS.publicRead,
+    );
+    if (!rl.allowed) return rateLimitResponse(rl);
+    return rl;
+}
+
+/**
+ * Parse and validate the "limit" query parameter (integer, 1–100).
+ * Returns the parsed number, or a 400 NextResponse if invalid.
+ *
+ * Usage:
+ *   const limitOrErr = parseLimitParam(req);
+ *   if (limitOrErr instanceof NextResponse) return limitOrErr;
+ */
+export function parseLimitParam(
+    req: NextRequest,
+    defaultValue = 8,
+): number | NextResponse {
+    const raw = req.nextUrl.searchParams.get("limit");
+    const limit = raw !== null ? Number(raw) : defaultValue;
+    if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
+        return NextResponse.json(
+            { error: "limit must be a positive integer between 1 and 100" },
+            { status: 400 },
+        );
+    }
+    return limit;
 }
 
 /** Shorthand: build a 429 response with quota + Retry-After headers attached. */
