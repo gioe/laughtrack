@@ -149,17 +149,18 @@ class StandupNYEvent:
         Return comedian names for the show lineup.
 
         Priority:
-        1. VenuePilot selectedEvent performers list
+        1. VenuePilot selectedEvent artists list (confirmed field name from live API data;
+           each entry is {"name": str, "links": [...]})
         2. GraphQL promoter / support fields (comma-separated strings)
         """
-        # 1. VenuePilot performers
+        # 1. VenuePilot artists (live data confirms key is "artists", not "performers")
         if self.venue_pilot_event:
-            performers = self.venue_pilot_event.get("performers") or []
-            if performers and isinstance(performers, list):
+            artists = self.venue_pilot_event.get("artists") or []
+            if artists and isinstance(artists, list):
                 names = []
-                for p in performers:
+                for p in artists:
                     if isinstance(p, dict):
-                        name = p.get("name") or p.get("displayName") or ""
+                        name = p.get("name") or ""
                     else:
                         name = str(p)
                     if name.strip():
