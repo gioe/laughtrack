@@ -15,6 +15,29 @@ from laughtrack.core.data.mixins.http_convenience_mixin import (  # noqa: F401
 
 
 @runtime_checkable
+class JSBrowser(Protocol):
+    """Protocol for a JavaScript-capable browser that renders dynamic pages.
+
+    Implemented by PlaywrightBrowser in foundation/infrastructure/http/.
+    Used as the fallback when curl-cffi returns an empty body or a bot-block
+    response.
+    """
+
+    async def fetch_html(self, url: str, proxy_url: Optional[str] = None) -> str:
+        """Fetch fully-rendered HTML from *url*.
+
+        Args:
+            url: Page URL to navigate to.
+            proxy_url: Optional proxy URL applied to the browser context
+                       (e.g. "http://user:pass@host:port").
+
+        Returns:
+            The rendered HTML string after the DOM is ready.
+        """
+        ...
+
+
+@runtime_checkable
 class HttpConvenience(Protocol):
     """Protocol for convenient HTTP operations with error handling.
 
