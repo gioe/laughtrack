@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
                 {
                     error: "User profile not found. Please sign out and sign in again.",
                 },
-                { status: 503 },
+                { status: 422 },
             );
         }
         if (!authCtx) {

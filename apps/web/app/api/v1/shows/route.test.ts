@@ -137,6 +137,24 @@ describe("GET /api/v1/shows", () => {
         });
     });
 
+    describe("PROFILE_MISSING request", () => {
+        it("degrades to anonymous (200, no profileId/userId passed) when resolveAuth returns PROFILE_MISSING", async () => {
+            mockResolveAuth.mockResolvedValue("PROFILE_MISSING");
+            mockGetSearchedShows.mockResolvedValue(mockShowResult as any);
+
+            const req = makeRequest();
+            const res = await GET(req);
+
+            expect(res.status).toBe(200);
+            expect(mockGetSearchedShows).toHaveBeenCalledWith(
+                expect.not.objectContaining({
+                    profileId: expect.anything(),
+                    userId: expect.anything(),
+                }),
+            );
+        });
+    });
+
     describe("unauthenticated request", () => {
         it("does not pass profileId/userId and returns results without isFavorite enforced", async () => {
             mockResolveAuth.mockResolvedValue(null);

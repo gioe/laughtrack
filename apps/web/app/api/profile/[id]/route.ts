@@ -29,7 +29,7 @@ export async function PUT(req: NextRequest, { params }) {
             {
                 error: "User profile not found. Please sign out and sign in again.",
             },
-            { status: 503 },
+            { status: 422 },
         );
     }
     if (!authCtx) {

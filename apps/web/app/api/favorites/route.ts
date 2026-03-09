@@ -18,6 +18,8 @@ const querySchema = z.object({
 export async function GET(req: NextRequest) {
     try {
         const session = await auth();
+        // Bucket by profile when available; users with a session but no profile
+        // row are intentionally treated as anonymous for rate limiting.
         const isAuthenticated = !!session?.profile;
 
         const rateLimitKey = isAuthenticated
@@ -44,7 +46,7 @@ export async function GET(req: NextRequest) {
                 {
                     error: "User profile not found. Please sign out and sign in again.",
                 },
-                { status: 503, headers: rateLimitHeaders(rl) },
+                { status: 422, headers: rateLimitHeaders(rl) },
             );
         }
 
