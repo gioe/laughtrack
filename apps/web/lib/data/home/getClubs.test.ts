@@ -144,7 +144,7 @@ describe("getClubs", () => {
             mockFindMany.mockResolvedValue([] as any);
             await getClubs();
             expect(mockFindMany).toHaveBeenCalledWith(
-                expect.objectContaining({ take: 8 }),
+                expect.objectContaining({ take: 8, orderBy: { id: "asc" } }),
             );
         });
 
@@ -193,6 +193,32 @@ describe("getClubs", () => {
             await getClubs(100);
             expect(mockFindMany).toHaveBeenCalledWith(
                 expect.objectContaining({ take: 100 }),
+            );
+        });
+    });
+
+    describe("offset (skip) parameter", () => {
+        it("passes the default offset of 0 to findMany", async () => {
+            mockFindMany.mockResolvedValue([] as any);
+            await getClubs();
+            expect(mockFindMany).toHaveBeenCalledWith(
+                expect.objectContaining({ skip: 0 }),
+            );
+        });
+
+        it("passes a custom offset to findMany", async () => {
+            mockFindMany.mockResolvedValue([] as any);
+            await getClubs(8, 16);
+            expect(mockFindMany).toHaveBeenCalledWith(
+                expect.objectContaining({ skip: 16 }),
+            );
+        });
+
+        it("passes offset and clamped limit together", async () => {
+            mockFindMany.mockResolvedValue([] as any);
+            await getClubs(500, 10);
+            expect(mockFindMany).toHaveBeenCalledWith(
+                expect.objectContaining({ take: 100, skip: 10 }),
             );
         });
     });
