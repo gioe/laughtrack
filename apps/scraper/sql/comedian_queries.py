@@ -56,12 +56,12 @@ class ComedianQueries:
         SELECT uuid FROM comedians;
     '''
     
+    # Insert-only upsert: name-only stubs (e.g. from lineup extraction) must never
+    # overwrite existing comedian data. DO NOTHING on conflict ensures that follower
+    # counts, social accounts, and show stats for established comedians are preserved.
     BATCH_ADD_COMEDIANS = '''
-        INSERT INTO comedians (uuid, name, sold_out_shows, total_shows) 
-        VALUES %s 
-        ON CONFLICT (uuid) 
-            DO UPDATE SET 
-                sold_out_shows = comedians.sold_out_shows + EXCLUDED.sold_out_shows,
-                total_shows = comedians.total_shows + EXCLUDED.total_shows
-            RETURNING uuid
+        INSERT INTO comedians (uuid, name, sold_out_shows, total_shows)
+        VALUES %s
+        ON CONFLICT (uuid) DO NOTHING
+        RETURNING uuid
     '''

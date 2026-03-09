@@ -27,11 +27,17 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
         """
         Insert comedians into the database.
 
+        Uses ON CONFLICT DO NOTHING so that name-only stubs created during lineup
+        extraction (e.g. from StandupNY) never overwrite existing comedian data
+        (follower counts, social accounts, show stats).  Callers should not rely on
+        the return value to detect pre-existing comedians; an empty list means all
+        provided comedians were already present.
+
         Args:
             comedians: List of comedians to insert
 
         Returns:
-            List of inserted comedians
+            List of newly inserted comedian rows (empty when all already existed)
         """
         if not comedians:
             raise ValueError("No comedians to insert")
@@ -43,10 +49,13 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
                 ComedianQueries.BATCH_ADD_COMEDIANS, items, template=template, return_results=True
             )
 
-            if not results:
-                raise ValueError("No comedians were inserted")
+            inserted_count = len(results) if results else 0
+            skipped_count = len(comedians) - inserted_count
+            Logger.info(
+                f"insert_comedians: {inserted_count} inserted, {skipped_count} already existed (skipped)"
+            )
 
-            return results
+            return results or []
         except Exception as e:
             Logger.error(f"Error inserting comedians: {str(e)}")
             raise
