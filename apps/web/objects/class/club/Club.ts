@@ -17,7 +17,6 @@ export class Club implements ClubInterface {
     readonly address: string;
     readonly zipCode: string;
     readonly isFavorite: boolean;
-    readonly tagIds: number[];
     readonly showCount?: number;
     readonly activeComedianCount?: number;
     readonly imageUrl: string;
@@ -42,7 +41,6 @@ export class Club implements ClubInterface {
         this.imageUrl = input.imageUrl;
 
         // Initialize arrays and complex objects
-        this.tagIds = input.tags ?? [];
         this.containedEntities =
             input.dates?.map((date) => new Show(date)) ?? [];
         this.socialData = input.social_data

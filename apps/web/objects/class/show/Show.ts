@@ -16,7 +16,6 @@ export class Show implements ShowInterface {
     clubName?: string | undefined;
     address?: string | undefined;
     tickets: Ticket[];
-    tagIds: number[];
     id: number;
     type: EntityType = EntityType.Show;
     containedEntities: Entity[];
@@ -44,7 +43,6 @@ export class Show implements ShowInterface {
         this.tickets = input.tickets
             ? input.tickets.map((item: TicketDTO) => new Ticket(item))
             : [];
-        this.tagIds = [];
         this.id = input.id ?? 0;
         this.description = input.description;
         this.address = input.address;

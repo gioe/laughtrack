@@ -15,7 +15,6 @@ export interface ComedianDTO {
     social_data: SocialDataDTO;
     dates?: ShowDTO[];
     isFavorite?: boolean;
-    tags?: number[];
     show_count: number;
     isAlias?: boolean;
     parentComedian?: ComedianDTO;

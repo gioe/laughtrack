@@ -1,4 +1,4 @@
-import { Taggable, Entity } from "../../interface";
+import { Entity } from "../../interface";
 import {
     SocialDataDTO,
     SocialDiscoverable,
@@ -7,7 +7,7 @@ import { ComedianLineupDTO } from "../comedian/comedian.interface";
 import { TicketDTO } from "../ticket/ticket.interface";
 
 // Client
-export interface ShowInterface extends Taggable, Entity, SocialDiscoverable {
+export interface ShowInterface extends Entity, SocialDiscoverable {
     name: string;
     date: Date;
     popularityScore?: number;

@@ -13,7 +13,6 @@ export class Comedian implements ComedianInterface {
     name: string;
     uuid: string;
     socialData?: SocialData;
-    tagIds: number[];
     isFavorite: boolean;
     id: number;
     type: EntityType = EntityType.Comedian;
@@ -31,7 +30,6 @@ export class Comedian implements ComedianInterface {
         this.socialData = input.social_data
             ? new SocialData(input.social_data)
             : undefined;
-        this.tagIds = input.tags ? input.tags : [];
         this.isFavorite = input.isFavorite ?? false;
         this.id = input.id;
         this.showCount = input.show_count;
