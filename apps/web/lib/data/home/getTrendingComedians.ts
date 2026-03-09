@@ -92,7 +92,7 @@ export async function getTrendingComedians(
         SELECT *
         FROM comedian_counts
         WHERE show_count > 3
-        ORDER BY show_count DESC
+        ORDER BY show_count DESC, RANDOM()
         LIMIT ${fetchLimit}
         OFFSET ${fetchOffset}
     `;
