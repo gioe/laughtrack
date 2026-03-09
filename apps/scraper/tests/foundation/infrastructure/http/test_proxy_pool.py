@@ -2,6 +2,7 @@
 
 import os
 import tempfile
+import time
 from unittest.mock import patch
 
 import pytest
@@ -216,3 +217,58 @@ class TestNoProxy:
         # Caller pattern: proxy_url = pool.get_proxy() if pool else None
         proxy_url = pool.get_proxy() if pool else None
         assert proxy_url is None
+
+
+# ---------------------------------------------------------------------------
+# TTL-based un-retirement
+# ---------------------------------------------------------------------------
+
+
+class TestRetirementTTL:
+    def test_permanent_retirement_when_ttl_none(self):
+        """Default (ttl=None): retired proxy stays out forever."""
+        pool = ProxyPool(proxies=[PROXY_A, PROXY_B], max_failures=1)
+        pool.report_failure(PROXY_A)
+        assert PROXY_A in pool._retired
+        # Simulate lots of elapsed time — still retired because no TTL
+        pool._retired_at[PROXY_A] = time.monotonic() - 9999
+        pool._maybe_unretire()
+        assert PROXY_A in pool._retired
+
+    def test_unretired_after_ttl_expires(self):
+        """With a TTL, proxy is re-added to active pool after the TTL."""
+        pool = ProxyPool(proxies=[PROXY_A, PROXY_B], max_failures=1, retirement_ttl_seconds=60)
+        pool.report_failure(PROXY_A)
+        assert PROXY_A in pool._retired
+
+        # Back-date the retirement timestamp so the TTL appears elapsed
+        pool._retired_at[PROXY_A] = time.monotonic() - 61
+
+        assert PROXY_A in pool.active_proxies  # triggers _maybe_unretire
+
+    def test_failure_count_reset_on_unretirement(self):
+        """Failure count is reset to 0 when a proxy is un-retired."""
+        pool = ProxyPool(proxies=[PROXY_A], max_failures=1, retirement_ttl_seconds=60)
+        pool.report_failure(PROXY_A)
+        assert pool._failure_counts[PROXY_A] >= 1
+
+        pool._retired_at[PROXY_A] = time.monotonic() - 61
+        pool._maybe_unretire()
+
+        assert pool._failure_counts[PROXY_A] == 0
+
+    def test_not_unretired_before_ttl(self):
+        """Proxy stays retired if the TTL has not yet elapsed."""
+        pool = ProxyPool(proxies=[PROXY_A, PROXY_B], max_failures=1, retirement_ttl_seconds=3600)
+        pool.report_failure(PROXY_A)
+        # Retirement just happened — TTL not elapsed
+        assert PROXY_A not in pool.active_proxies
+
+    def test_get_proxy_returns_unretired_proxy(self):
+        """get_proxy() sees the un-retired proxy after TTL via active_proxies."""
+        pool = ProxyPool(proxies=[PROXY_A], max_failures=1, retirement_ttl_seconds=60)
+        pool.report_failure(PROXY_A)
+        assert pool.get_proxy() is None  # all retired
+
+        pool._retired_at[PROXY_A] = time.monotonic() - 61
+        assert pool.get_proxy() == PROXY_A  # un-retired on next call
