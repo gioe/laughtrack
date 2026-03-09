@@ -29,14 +29,14 @@ export async function getTrendingComedians(
     offset = 0,
 ): Promise<ComedianDTO[]> {
     const safeLimit = Math.min(Math.max(1, limit), MAX_COMEDIANS_LIMIT);
-    const safeOffset = Math.max(0, offset);
-    const poolSize = Math.min(safeLimit * POOL_MULTIPLIER, MAX_POOL_SIZE);
     const now = new Date();
 
     // Table/column mappings: comedians@@map, lineup_items@@map, shows@@map,
     // tagged_comedians@@map, tags@@map. Comedian.uuid=comedians.uuid,
     // LineupItem.comedianId=lineup_items.comedian_id, Comedian.parentComedianId=parent_comedian_id
-    const rows = await db.$queryRaw<TrendingComedianRow[]>`
+    const cteQuery = (fetchLimit: number, fetchOffset: number) => db.$queryRaw<
+        TrendingComedianRow[]
+    >`
         WITH comedian_counts AS (
             SELECT
                 c.id,
@@ -93,16 +93,26 @@ export async function getTrendingComedians(
         FROM comedian_counts
         WHERE show_count > 3
         ORDER BY show_count DESC
-        LIMIT ${poolSize}
-        OFFSET ${safeOffset}
+        LIMIT ${fetchLimit}
+        OFFSET ${fetchOffset}
     `;
 
-    // Shuffle in application code to avoid ORDER BY RANDOM() full sort at the DB layer.
-    for (let i = rows.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [rows[i], rows[j]] = [rows[j], rows[i]];
+    let selected: TrendingComedianRow[];
+    if (offset === 0) {
+        // For the first page, fetch a larger pool and shuffle to add variety.
+        const poolSize = Math.min(safeLimit * POOL_MULTIPLIER, MAX_POOL_SIZE);
+        const rows = await cteQuery(poolSize, 0);
+        // Shuffle in application code to avoid ORDER BY RANDOM() full sort at the DB layer.
+        for (let i = rows.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [rows[i], rows[j]] = [rows[j], rows[i]];
+        }
+        selected = rows.slice(0, safeLimit);
+    } else {
+        // For paginated requests the shuffle is incompatible with stable paging,
+        // so fetch exactly what the caller asked for at the given offset.
+        selected = await cteQuery(safeLimit, offset);
     }
-    const selected = rows.slice(0, safeLimit);
 
     return selected.map((row) => ({
         id: row.id,

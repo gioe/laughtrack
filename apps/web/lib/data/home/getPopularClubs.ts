@@ -9,9 +9,9 @@ export async function getPopularClubs(
     offset = 0,
 ): Promise<ClubDTO[]> {
     const safeLimit = Math.min(Math.max(1, limit), MAX_CLUBS_LIMIT);
-    const safeOffset = Math.max(0, offset);
     return db.club
         .findMany({
+            orderBy: { id: "asc" },
             select: {
                 id: true,
                 address: true,
@@ -36,7 +36,7 @@ export async function getPopularClubs(
                 },
             },
             take: safeLimit,
-            skip: safeOffset,
+            skip: offset,
         })
         .then((clubs) =>
             clubs.map((club) => ({
