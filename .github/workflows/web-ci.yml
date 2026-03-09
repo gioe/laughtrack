@@ -84,6 +84,36 @@ jobs:
       - name: Test
         run: npm test
 
+  e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    if: ${{ vars.E2E_BASE_URL != '' }}
+    defaults:
+      run:
+        working-directory: apps/web
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+        env:
+          BASE_URL: ${{ vars.E2E_BASE_URL }}
+
   build:
     name: Build
     runs-on: ubuntu-latest
