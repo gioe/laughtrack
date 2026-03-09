@@ -55,6 +55,31 @@ class TestFetchHtml:
 
         mock_warn.assert_not_called()
 
+    @pytest.mark.asyncio
+    async def test_headers_forwarded_to_session_get(self):
+        session = AsyncMock()
+        session.get.return_value = _make_response(200, text="<html/>")
+        custom_headers = {"X-Custom": "value", "Accept-Language": "en"}
+
+        await HttpClient.fetch_html(session, "https://example.com/page", headers=custom_headers)
+
+        session.get.assert_called_once()
+        _, kwargs = session.get.call_args
+        assert kwargs.get("headers") == custom_headers
+
+    @pytest.mark.asyncio
+    async def test_logger_context_passed_to_warn_on_non_200(self):
+        session = AsyncMock()
+        session.get.return_value = _make_response(403)
+        context = {"club": "test_club", "scraper": "test"}
+
+        with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn:
+            await HttpClient.fetch_html(session, "https://example.com/page", logger_context=context)
+
+        mock_warn.assert_called_once()
+        call_context = mock_warn.call_args[0][1]
+        assert call_context == context
+
 
 # ---------------------------------------------------------------------------
 # fetch_json
@@ -95,3 +120,28 @@ class TestFetchJson:
                 await HttpClient.fetch_json(session, "https://example.com/api")
 
         mock_warn.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_headers_forwarded_to_session_get(self):
+        session = AsyncMock()
+        session.get.return_value = _make_response(200, json_data={"ok": True})
+        custom_headers = {"Authorization": "Bearer token", "X-Request-ID": "abc"}
+
+        await HttpClient.fetch_json(session, "https://example.com/api", headers=custom_headers)
+
+        session.get.assert_called_once()
+        _, kwargs = session.get.call_args
+        assert kwargs.get("headers") == custom_headers
+
+    @pytest.mark.asyncio
+    async def test_logger_context_passed_to_warn_on_non_200(self):
+        session = AsyncMock()
+        session.get.return_value = _make_response(503)
+        context = {"club": "test_club", "endpoint": "/api/shows"}
+
+        with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn:
+            await HttpClient.fetch_json(session, "https://example.com/api", logger_context=context)
+
+        mock_warn.assert_called_once()
+        call_context = mock_warn.call_args[0][1]
+        assert call_context == context
