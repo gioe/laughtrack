@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback } from "react";
 import { useReducedMotion } from "framer-motion";
 
 /**
@@ -14,17 +15,23 @@ import { useReducedMotion } from "framer-motion";
 export function useMotionProps() {
     const prefersReducedMotion = useReducedMotion() ?? false;
 
-    function mv(normal: number, reduced = 0): number {
-        return prefersReducedMotion ? reduced : normal;
-    }
+    const mv = useCallback(
+        (normal: number, reduced = 0): number =>
+            prefersReducedMotion ? reduced : normal,
+        [prefersReducedMotion],
+    );
 
-    function mp<T>(props: T): T | undefined {
-        return prefersReducedMotion ? undefined : props;
-    }
+    const mp = useCallback(
+        <T>(props: T): T | undefined =>
+            prefersReducedMotion ? undefined : props,
+        [prefersReducedMotion],
+    );
 
-    function mt<T extends object>(transition: T): T | { duration: 0 } {
-        return prefersReducedMotion ? { duration: 0 as const } : transition;
-    }
+    const mt = useCallback(
+        <T extends object>(transition: T): T | { duration: 0 } =>
+            prefersReducedMotion ? { duration: 0 as const } : transition,
+        [prefersReducedMotion],
+    );
 
     return { prefersReducedMotion, mv, mp, mt };
 }
