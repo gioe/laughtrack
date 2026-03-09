@@ -48,6 +48,7 @@ export function SideDrawer({ open, onClose, currentUser }: SideDrawerProps) {
     ];
 
     const sideDrawerVariants = {
+        // mv() only handles numbers; "100%" requires a raw ternary here
         hidden: { x: prefersReducedMotion ? 0 : "100%", opacity: 0 },
         visible: {
             x: 0,
