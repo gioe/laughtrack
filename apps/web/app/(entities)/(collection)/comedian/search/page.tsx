@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { CACHE } from "@/util/constants/cacheConstants";
 import { auth } from "@/auth";
 import { SearchVariant } from "@/objects/enum/searchVariant";
@@ -12,7 +11,13 @@ import { ParameterizedRequestData } from "@/objects/interface";
 import { toSearchParams } from "@/util/search/toSearchParams";
 import { cookies } from "next/headers";
 
-export default async function ComedianSearchPage(props: any) {
+interface ComedianSearchPageProps {
+    searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export default async function ComedianSearchPage(
+    props: ComedianSearchPageProps,
+) {
     const [session, cookieStore, searchParams] = await Promise.all([
         auth(),
         cookies(),

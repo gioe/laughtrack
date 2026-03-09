@@ -1,11 +1,11 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // generic singleton creator:
 export function createSingleton<T>(name: string, create: () => T): T {
     const s = Symbol.for(name);
-    let scope = (global as any)[s];
+    const globalScope = global as Record<symbol, T | undefined>;
+    let scope = globalScope[s];
     if (!scope) {
-        scope = { ...create() };
-        (global as any)[s] = scope;
+        scope = { ...create() } as T;
+        globalScope[s] = scope;
     }
     return scope;
 }

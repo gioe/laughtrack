@@ -1,11 +1,11 @@
+import React from "react";
 import { PopoverPanel } from "@headlessui/react";
 
-interface NavbarPopoverItemModel {
+export interface NavbarPopoverItemModel {
     name: string;
     description: string;
     href: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    icon: any;
+    icon: React.ElementType;
 }
 
 interface NavbarPopoverItemProps {

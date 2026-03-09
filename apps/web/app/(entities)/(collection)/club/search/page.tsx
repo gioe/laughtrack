@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { CACHE } from "@/util/constants/cacheConstants";
 import { auth } from "@/auth";
 import FilterModal from "@/ui/components/modals/filter";
@@ -12,7 +11,11 @@ import { ParameterizedRequestData } from "@/objects/interface";
 import { toSearchParams } from "@/util/search/toSearchParams";
 import { cookies } from "next/headers";
 
-export default async function ClubSearchPage(props: any) {
+interface ClubSearchPageProps {
+    searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+export default async function ClubSearchPage(props: ClubSearchPageProps) {
     const [session, cookieStore, searchParams] = await Promise.all([
         auth(),
         cookies(),

@@ -1,14 +1,13 @@
 "use client";
 
+import { FieldValues, UseFormReturn, SubmitHandler } from "react-hook-form";
 import { Form } from "../ui/form";
 import { FullRoundedButton } from "../button/rounded/full";
 
 export interface BaseFormProps {
     isLoading: boolean;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    onSubmit: (data: any) => void;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    form: any;
+    onSubmit: SubmitHandler<FieldValues>;
+    form: UseFormReturn<FieldValues>;
     body: React.ReactNode;
 }
 
