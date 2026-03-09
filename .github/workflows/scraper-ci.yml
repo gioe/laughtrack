@@ -47,6 +47,7 @@ jobs:
 
       - name: Run tests
         env:
+          # Playwright binaries are not installed in CI; disable the Chromium fallback so tests stay fast and hermetic
           PLAYWRIGHT_FALLBACK: "0"
         run: |
           python -m pytest -v --tb=short --disable-warnings \
