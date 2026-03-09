@@ -1,6 +1,5 @@
 "use client";
 
-import { getLocalCdnUrl } from "@/util/cdnUtil";
 import { motion, useReducedMotion } from "framer-motion";
 import Image from "next/image";
 
@@ -19,7 +18,7 @@ export default function AuthImageContent() {
                 className="relative w-full h-full"
             >
                 <Image
-                    src={getLocalCdnUrl(`sidebar.png`)}
+                    src="/sidebar.png"
                     alt="Comedy show"
                     className="object-cover"
                     fill
