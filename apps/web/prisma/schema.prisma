@@ -141,6 +141,14 @@ model Show {
   tickets            Ticket[]
   sentNotifications  SentNotification[]
 
+  // Dual-index design (intentional):
+  // - @@unique([clubId, date, room]) enforces deduplication and is used by the
+  //   query planner when filtering on both clubId and date (e.g. upsert lookups
+  //   and show-page queries scoped to a single club).
+  // - @@index([date]) is a standalone index used for range-only date queries
+  //   (e.g. "shows between date A and date B" across all clubs). PostgreSQL will
+  //   prefer the narrower composite index when clubId is in the predicate and the
+  //   standalone index when only date is filtered.
   @@unique([clubId, date, room])
   @@index([date])
   @@map("shows")
