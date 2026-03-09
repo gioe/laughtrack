@@ -27,8 +27,18 @@ async function reverseGeocodeToZip(
     }
 }
 
+const DISMISSED_KEY = "laughtrack_location_dismissed";
+
 export default function AnonymousLocationSection() {
-    const [step, setStep] = useState<Step>("prompt");
+    const [step, setStep] = useState<Step>(() => {
+        if (
+            typeof window !== "undefined" &&
+            localStorage.getItem(DISMISSED_KEY) === "1"
+        ) {
+            return "declined";
+        }
+        return "prompt";
+    });
     const [comedians, setComedians] = useState<ComedianDTO[]>([]);
     const [zipCode, setZipCode] = useState("");
     const [zipInput, setZipInput] = useState("");
@@ -108,8 +118,15 @@ export default function AnonymousLocationSection() {
             </div>
 
             {step === "loading" ? (
-                <div className="flex justify-center py-8">
+                <div
+                    className="flex justify-center py-8"
+                    aria-label="Loading comedians"
+                    role="status"
+                >
                     <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-cedar" />
+                    <span className="sr-only">
+                        Loading comedians near you...
+                    </span>
                 </div>
             ) : (
                 <div className="flex flex-col items-center gap-6 max-w-sm mx-auto">
@@ -139,8 +156,12 @@ export default function AnonymousLocationSection() {
                     >
                         <input
                             type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             value={zipInput}
-                            onChange={(e) => setZipInput(e.target.value)}
+                            onChange={(e) =>
+                                setZipInput(e.target.value.replace(/\D/g, ""))
+                            }
                             placeholder="Enter zip code"
                             maxLength={5}
                             className="flex-1 px-4 py-3 border border-gray-300 rounded-full
@@ -164,7 +185,10 @@ export default function AnonymousLocationSection() {
                     )}
 
                     <button
-                        onClick={() => setStep("declined")}
+                        onClick={() => {
+                            localStorage.setItem(DISMISSED_KEY, "1");
+                            setStep("declined");
+                        }}
                         className="text-gray-400 font-dmSans text-sm hover:text-gray-600 transition-colors"
                     >
                         No thanks
