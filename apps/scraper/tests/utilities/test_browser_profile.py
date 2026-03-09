@@ -1,5 +1,7 @@
 """Tests for BrowserProfile, BaseHeaders.from_profile, and RateLimiter profile rotation."""
 
+import asyncio
+import time
 from dataclasses import FrozenInstanceError
 from unittest.mock import patch
 
@@ -243,3 +245,57 @@ class TestRateLimiterProfileRotation:
         assert seen[1] is profile_b
         assert seen[2] is profile_a
         assert seen[3] is profile_b
+
+
+# ---------------------------------------------------------------------------
+# RateLimiter — async domain-lock concurrency
+# ---------------------------------------------------------------------------
+
+
+class TestRateLimiterConcurrency:
+    @pytest.mark.asyncio
+    async def test_two_concurrent_rps_calls_serialized_by_domain_lock(self):
+        """Two concurrent coroutines for the same domain must be serialized.
+
+        We patch asyncio.sleep inside rate_limiter to (a) avoid real delays and
+        (b) record the order of enter/exit events.  With the per-domain
+        asyncio.Lock the second coroutine cannot enter the critical section
+        until the first has finished, so the events must be strictly
+        interleaved: enter→exit→enter→exit.  Without the lock both sleeps
+        would overlap and we'd see enter→enter→exit→exit instead.
+        """
+        rl = RateLimiter()
+        domain = "rps-concurrency-test.example.com"
+        # 2 RPS → 0.5 s min interval; both callers launched at t=0 will wait.
+        rl.set_domain_config(domain, DomainConfig(requests_per_second=2.0))
+
+        # Pre-seed so the first coroutine immediately calculates a non-zero wait.
+        rl._last_request[domain] = time.time()
+
+        events: list[str] = []
+        original_sleep = asyncio.sleep
+
+        async def tracked_sleep(delay: float) -> None:
+            events.append("enter_sleep")
+            await original_sleep(0)  # Real yield without real delay
+            events.append("exit_sleep")
+
+        with patch(
+            "laughtrack.utilities.infrastructure.rate_limiter.asyncio.sleep",
+            side_effect=tracked_sleep,
+        ):
+            await asyncio.gather(
+                rl.await_if_needed(f"https://{domain}/page1"),
+                rl.await_if_needed(f"https://{domain}/page2"),
+            )
+
+        # Serialized: each sleep fully completes before the next one begins.
+        assert events == [
+            "enter_sleep",
+            "exit_sleep",
+            "enter_sleep",
+            "exit_sleep",
+        ], f"Expected serialized sleeps, got: {events}"
+
+        # _last_request was updated atomically by the final coroutine.
+        assert rl._last_request[domain] > 0
