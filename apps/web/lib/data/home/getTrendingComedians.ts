@@ -24,8 +24,12 @@ const MAX_COMEDIANS_LIMIT = 100;
 const POOL_MULTIPLIER = 4;
 const MAX_POOL_SIZE = 50;
 
-export async function getTrendingComedians(limit = 8): Promise<ComedianDTO[]> {
+export async function getTrendingComedians(
+    limit = 8,
+    offset = 0,
+): Promise<ComedianDTO[]> {
     const safeLimit = Math.min(Math.max(1, limit), MAX_COMEDIANS_LIMIT);
+    const safeOffset = Math.max(0, offset);
     const poolSize = Math.min(safeLimit * POOL_MULTIPLIER, MAX_POOL_SIZE);
     const now = new Date();
 
@@ -90,6 +94,7 @@ export async function getTrendingComedians(limit = 8): Promise<ComedianDTO[]> {
         WHERE show_count > 3
         ORDER BY show_count DESC
         LIMIT ${poolSize}
+        OFFSET ${safeOffset}
     `;
 
     // Shuffle in application code to avoid ORDER BY RANDOM() full sort at the DB layer.

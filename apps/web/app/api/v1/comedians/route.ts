@@ -30,7 +30,15 @@ export async function GET(req: NextRequest) {
                 { status: 400 },
             );
         }
-        const comedians = await getTrendingComedians(limit);
+        const rawOffset = req.nextUrl.searchParams.get("offset");
+        const offset = rawOffset !== null ? Number(rawOffset) : 0;
+        if (!Number.isInteger(offset) || offset < 0) {
+            return NextResponse.json(
+                { error: "offset must be a non-negative integer" },
+                { status: 400 },
+            );
+        }
+        const comedians = await getTrendingComedians(limit, offset);
         return NextResponse.json(
             { data: comedians },
             { headers: rateLimitHeaders(rl) },

@@ -4,8 +4,12 @@ import { buildClubImageUrl } from "@/util/imageUtil";
 
 const MAX_CLUBS_LIMIT = 100;
 
-export async function getPopularClubs(limit = 8): Promise<ClubDTO[]> {
+export async function getPopularClubs(
+    limit = 8,
+    offset = 0,
+): Promise<ClubDTO[]> {
     const safeLimit = Math.min(Math.max(1, limit), MAX_CLUBS_LIMIT);
+    const safeOffset = Math.max(0, offset);
     return db.club
         .findMany({
             select: {
@@ -32,6 +36,7 @@ export async function getPopularClubs(limit = 8): Promise<ClubDTO[]> {
                 },
             },
             take: safeLimit,
+            skip: safeOffset,
         })
         .then((clubs) =>
             clubs.map((club) => ({
