@@ -168,6 +168,9 @@ class StandupNYEvent:
                     return names
 
         # 2. GraphQL promoter / support fields
+        # These are raw GraphQL field values (field keys: "promoter", "support").
+        # Split on comma — the API always uses comma as a separator; commas within
+        # a single performer name are not expected from this source.
         names: List[str] = []
         for field_value in [self.promoter, self.support]:
             if not field_value:
