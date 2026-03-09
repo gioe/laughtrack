@@ -8,6 +8,7 @@ of bad proxies.
 """
 
 import os
+import time
 from typing import Dict, List, Optional, Set
 from urllib.parse import urlparse
 
@@ -48,6 +49,7 @@ class ProxyPool:
         proxies: List[str],
         rotation: str = PER_REQUEST,
         max_failures: int = 3,
+        retirement_ttl_seconds: Optional[float] = None,
     ) -> None:
         """
         Args:
@@ -57,6 +59,10 @@ class ProxyPool:
                       called explicitly.
             max_failures: How many net failures (incremented on failure,
                           decremented on success) before a proxy is retired.
+            retirement_ttl_seconds: If set, retired proxies are re-added to
+                          the active pool after this many seconds with their
+                          failure count reset to 0.  When ``None`` (default),
+                          retirement is permanent for the process lifetime.
         """
         if not proxies:
             raise ValueError("ProxyPool requires at least one proxy URL")
@@ -64,8 +70,10 @@ class ProxyPool:
         self._proxies: List[str] = list(proxies)
         self._rotation = rotation
         self._max_failures = max_failures
+        self._retirement_ttl_seconds = retirement_ttl_seconds
         self._failure_counts: Dict[str, int] = {p: 0 for p in self._proxies}
         self._retired: Set[str] = set()
+        self._retired_at: Dict[str, float] = {}
         self._index: int = 0
 
     # ------------------------------------------------------------------
@@ -78,6 +86,7 @@ class ProxyPool:
         env_var: str = "SCRAPER_PROXY_LIST",
         rotation: str = PER_REQUEST,
         max_failures: int = 3,
+        retirement_ttl_seconds: Optional[float] = None,
     ) -> Optional["ProxyPool"]:
         """Build a ProxyPool from an environment variable.
 
@@ -112,15 +121,39 @@ class ProxyPool:
             f"[ProxyPool] Loaded {len(proxies)} proxies (rotation={rotation})",
             {"env_var": env_var},
         )
-        return cls(proxies=proxies, rotation=rotation, max_failures=max_failures)
+        return cls(
+            proxies=proxies,
+            rotation=rotation,
+            max_failures=max_failures,
+            retirement_ttl_seconds=retirement_ttl_seconds,
+        )
 
     # ------------------------------------------------------------------
     # Properties
     # ------------------------------------------------------------------
 
+    def _maybe_unretire(self) -> None:
+        """Re-add retired proxies whose TTL has expired (no-op when TTL is None)."""
+        if self._retirement_ttl_seconds is None or not self._retired:
+            return
+        now = time.monotonic()
+        to_unretire = [
+            p for p in list(self._retired)
+            if now - self._retired_at.get(p, now) >= self._retirement_ttl_seconds
+        ]
+        for p in to_unretire:
+            self._retired.discard(p)
+            self._retired_at.pop(p, None)
+            self._failure_counts[p] = 0
+            Logger.debug(
+                f"[ProxyPool] Proxy {_sanitize_proxy_url(p)!r} un-retired after TTL",
+                {},
+            )
+
     @property
     def active_proxies(self) -> List[str]:
-        """Proxy URLs that have not been retired."""
+        """Proxy URLs that have not been retired (checks TTL before returning)."""
+        self._maybe_unretire()
         return [p for p in self._proxies if p not in self._retired]
 
     @property
@@ -177,6 +210,7 @@ class ProxyPool:
             and self._failure_counts[proxy_url] >= self._max_failures
         ):
             self._retired.add(proxy_url)
+            self._retired_at[proxy_url] = time.monotonic()
             # Clamp _index so rotation doesn't skip proxies after pool shrinks
             active = self.active_proxies
             if active:
