@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { ClubDTO } from "@/objects/class/club/club.interface";
 import PopularClubCard from "@/ui/components/cards/club/popular";
 import ScrollButtons from "@/ui/components/scroll";
@@ -33,12 +33,15 @@ const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
         setIsClient(true);
     }, []);
 
-    const checkScrollability = () => {
+    const checkScrollability = useCallback(() => {
         const container = scrollContainerRef.current;
         if (!container) return;
 
         // Get actual card width including gap
-        const cardWidth = window.innerWidth >= 640 ? CARD_WIDTH_MD + CARD_GAP : CARD_WIDTH_SM + CARD_GAP;
+        const cardWidth =
+            window.innerWidth >= 640
+                ? CARD_WIDTH_MD + CARD_GAP
+                : CARD_WIDTH_SM + CARD_GAP;
         const scrollPosition = Math.round(container.scrollLeft);
         const maxScroll = container.scrollWidth - container.clientWidth;
 
@@ -64,7 +67,7 @@ const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
                 setActiveIndicator(newActiveIndicator);
             }
         }
-    };
+    }, [sortedClubs.length]);
 
     useEffect(() => {
         const container = scrollContainerRef.current;
@@ -89,14 +92,17 @@ const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
             container.removeEventListener("scroll", handleScroll);
             window.removeEventListener("resize", handleScroll);
         };
-    }, [isClient, sortedClubs.length]);
+    }, [isClient, checkScrollability]);
 
     const scroll = (direction: "left" | "right") => {
         const container = scrollContainerRef.current;
         if (!container) return;
 
         // Use actual card width
-        const cardWidth = window.innerWidth >= 640 ? CARD_WIDTH_MD + CARD_GAP : CARD_WIDTH_SM + CARD_GAP;
+        const cardWidth =
+            window.innerWidth >= 640
+                ? CARD_WIDTH_MD + CARD_GAP
+                : CARD_WIDTH_SM + CARD_GAP;
         const visibleCards = 3;
         const scrollAmount = cardWidth * visibleCards;
 
@@ -130,7 +136,10 @@ const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
         const container = scrollContainerRef.current;
         if (!container) return;
 
-        const cardWidth = window.innerWidth >= 640 ? CARD_WIDTH_MD + CARD_GAP : CARD_WIDTH_SM + CARD_GAP;
+        const cardWidth =
+            window.innerWidth >= 640
+                ? CARD_WIDTH_MD + CARD_GAP
+                : CARD_WIDTH_SM + CARD_GAP;
         const targetScroll = index * (cardWidth * 3);
 
         container.scrollTo({
