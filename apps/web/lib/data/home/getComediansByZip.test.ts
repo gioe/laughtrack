@@ -8,11 +8,18 @@ vi.mock("@/util/imageUtil", () => ({
         (name: string) => `https://cdn.example.com/${name}.png`,
     ),
 }));
+vi.mock("zipcodes", () => ({
+    default: {
+        radius: vi.fn(),
+    },
+}));
 
 import { getComediansByZip } from "./getComediansByZip";
 import { db } from "@/lib/db";
+import zipcodesMod from "zipcodes";
 
 const mockQueryRaw = vi.mocked(db.$queryRaw);
+const mockZipRadius = vi.mocked(zipcodesMod.radius);
 
 function makeRow(
     overrides: Partial<{
@@ -216,6 +223,65 @@ describe("getComediansByZip", () => {
 
             const result = await getComediansByZip("10001");
             expect(result).toHaveLength(8);
+        });
+    });
+
+    describe("radius-based zip expansion", () => {
+        it("calls zipcodes.radius and queries with expanded zip list when radius is provided", async () => {
+            mockZipRadius.mockReturnValue(["10001", "10002", "10003"]);
+            mockQueryRaw.mockResolvedValue([]);
+
+            await getComediansByZip("10001", 5);
+
+            expect(mockZipRadius).toHaveBeenCalledWith("10001", 5);
+            expect(mockQueryRaw).toHaveBeenCalledOnce();
+        });
+
+        it("falls back to exact zip when radius is not provided", async () => {
+            mockQueryRaw.mockResolvedValue([]);
+
+            await getComediansByZip("10001");
+
+            expect(mockZipRadius).not.toHaveBeenCalled();
+            expect(mockQueryRaw).toHaveBeenCalledOnce();
+        });
+
+        it("falls back to exact zip when radius is 0", async () => {
+            mockQueryRaw.mockResolvedValue([]);
+
+            await getComediansByZip("10001", 0);
+
+            expect(mockZipRadius).not.toHaveBeenCalled();
+            expect(mockQueryRaw).toHaveBeenCalledOnce();
+        });
+
+        it("falls back to exact zip when radius exceeds 500", async () => {
+            mockQueryRaw.mockResolvedValue([]);
+
+            await getComediansByZip("10001", 501);
+
+            expect(mockZipRadius).not.toHaveBeenCalled();
+            expect(mockQueryRaw).toHaveBeenCalledOnce();
+        });
+
+        it("falls back to exact zip when zipcodes.radius returns empty array", async () => {
+            mockZipRadius.mockReturnValue([]);
+            mockQueryRaw.mockResolvedValue([]);
+
+            await getComediansByZip("10001", 5);
+
+            expect(mockQueryRaw).toHaveBeenCalledOnce();
+        });
+
+        it("falls back to exact zip when zipcodes.radius throws", async () => {
+            mockZipRadius.mockImplementation(() => {
+                throw new Error("lookup failed");
+            });
+            mockQueryRaw.mockResolvedValue([]);
+
+            await getComediansByZip("10001", 5);
+
+            expect(mockQueryRaw).toHaveBeenCalledOnce();
         });
     });
 

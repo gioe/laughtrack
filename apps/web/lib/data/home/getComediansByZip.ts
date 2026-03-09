@@ -1,4 +1,6 @@
+import zipcodes from "zipcodes";
 import { db } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { buildComedianImageUrl } from "@/util/imageUtil";
 
@@ -18,8 +20,24 @@ type NearYouComedianRow = {
     show_count: number;
 };
 
+function resolveZipCodes(zipCode: string, radius?: number): string[] {
+    if (!radius || isNaN(radius) || radius < 1 || radius > 500) {
+        return [zipCode];
+    }
+    try {
+        const results = zipcodes.radius(zipCode, radius);
+        if (!results || results.length === 0) return [zipCode];
+        return results.map((z: string | zipcodes.ZipCode) =>
+            typeof z === "string" ? z : z.zip,
+        );
+    } catch {
+        return [zipCode];
+    }
+}
+
 export async function getComediansByZip(
     zipCode: string,
+    radius?: number,
 ): Promise<ComedianDTO[]> {
     if (!zipCode) return [];
 
@@ -27,6 +45,7 @@ export async function getComediansByZip(
     if (!/^\d{5}(-\d{4})?$/.test(zipCode)) return [];
 
     const now = new Date();
+    const nearbyZips = resolveZipCodes(zipCode, radius);
 
     const rows = await db.$queryRaw<NearYouComedianRow[]>`
         WITH comedian_counts AS (
@@ -48,7 +67,7 @@ export async function getComediansByZip(
             JOIN lineup_items li ON li.comedian_id = c.uuid
             JOIN shows s ON s.id = li.show_id
             JOIN clubs cl ON cl.id = s.club_id
-            WHERE cl.zip_code = ${zipCode}
+            WHERE cl.zip_code IN (${Prisma.join(nearbyZips)})
               AND s.date > ${now}
               AND c.parent_comedian_id IS NULL
               AND NOT EXISTS (
