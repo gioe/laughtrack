@@ -10,20 +10,27 @@ from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.models.types import JSONDict
 from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
 from laughtrack.foundation.infrastructure.http.client import HttpClient
+from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 
 
 class BaseApiClient(ABC):
     """Base class for all API clients with common functionality."""
 
-    def __init__(self, club: Club, rate_limiter=None):
+    def __init__(self, club: Club, rate_limiter=None, proxy_pool: Optional[ProxyPool] = None):
         """Initialize the base API client.
 
         Args:
             club: The Club instance this client will work with
             rate_limiter: Optional rate limiter for HTTP requests
+            proxy_pool: Optional ProxyPool for rotating proxy support.
+                When provided, each request is routed through the next
+                available proxy in the pool.  When ``None`` (default) or
+                when the pool has no active proxies, requests are sent
+                directly as before.
         """
         self.club = club
         self.rate_limiter = rate_limiter
+        self.proxy_pool = proxy_pool
         self.http_client = HttpClient()
 
         # Initialize headers - subclasses can override this
@@ -112,6 +119,12 @@ class BaseApiClient(ABC):
             pass
         return "chrome124"
 
+    def _get_proxy_url(self) -> Optional[str]:
+        """Return the next proxy URL from the pool, or ``None`` if no pool."""
+        if self.proxy_pool is None:
+            return None
+        return self.proxy_pool.get_proxy()
+
     def _initialize_headers(self) -> Dict[str, str]:
         """Initialize default headers. Subclasses should override for custom auth."""
         return BaseHeaders.get_headers("json")
@@ -155,6 +168,7 @@ class BaseApiClient(ABC):
         """
         request_headers = headers or self.headers
         context = logger_context or {}
+        proxy_url = self._get_proxy_url()
         try:
             async with AsyncSession(impersonate=self._get_impersonation_target(url), timeout=timeout) as session:
                 # DEBUG pre-request details
@@ -170,7 +184,8 @@ class BaseApiClient(ABC):
                     pass
                 await self._apply_rate_limit(url)
                 data = await self.http_client.fetch_json(
-                    session=session, url=url, headers=request_headers, logger_context=context
+                    session=session, url=url, headers=request_headers,
+                    logger_context=context, proxy_url=proxy_url,
                 )
                 # DEBUG summary of response
                 try:
@@ -192,8 +207,12 @@ class BaseApiClient(ABC):
                     Logger.debug(f"HTTP GET {url} → {summary}", context=ctx)
                 except Exception:
                     pass
+                if proxy_url and self.proxy_pool is not None:
+                    self.proxy_pool.report_success(proxy_url)
                 return data
         except Exception as e:
+            if proxy_url and self.proxy_pool is not None:
+                self.proxy_pool.report_failure(proxy_url)
             self.log_error(f"Failed to fetch JSON from {url}: {e}")
             return None
 
@@ -218,6 +237,7 @@ class BaseApiClient(ABC):
         """
         request_headers = headers or self.headers
         context = logger_context or {}
+        proxy_url = self._get_proxy_url()
 
         try:
             async with AsyncSession(impersonate=self._get_impersonation_target(url), timeout=timeout) as session:
@@ -234,7 +254,8 @@ class BaseApiClient(ABC):
                     pass
                 await self._apply_rate_limit(url)
                 text = await self.http_client.fetch_html(
-                    session=session, url=url, headers=request_headers, logger_context=context
+                    session=session, url=url, headers=request_headers,
+                    logger_context=context, proxy_url=proxy_url,
                 )
                 # DEBUG summary of response
                 try:
@@ -249,8 +270,12 @@ class BaseApiClient(ABC):
                     Logger.debug(f"HTTP GET {url} → {summary}", context=ctx)
                 except Exception:
                     pass
+                if proxy_url and self.proxy_pool is not None:
+                    self.proxy_pool.report_success(proxy_url)
                 return text
         except Exception as e:
+            if proxy_url and self.proxy_pool is not None:
+                self.proxy_pool.report_failure(proxy_url)
             self.log_error(f"Failed to fetch HTML from {url}: {e}")
             return None
 
@@ -281,6 +306,8 @@ class BaseApiClient(ABC):
             request_headers["Content-Type"] = "application/json"
 
         context = logger_context or {}
+        proxy_url = self._get_proxy_url()
+        proxies = {"http": proxy_url, "https": proxy_url} if proxy_url else None
 
         try:
             async with AsyncSession(impersonate=self._get_impersonation_target(url), timeout=timeout) as session:
@@ -296,9 +323,11 @@ class BaseApiClient(ABC):
                 except Exception:
                     pass
                 await self._apply_rate_limit(url)
-                response = await session.post(url, json=payload, headers=request_headers)
+                response = await session.post(url, json=payload, headers=request_headers, proxies=proxies)
                 if response.status_code != 200:
                     Logger.warning(f"HTTP {response.status_code} when POSTing {url}")
+                    if proxy_url and self.proxy_pool is not None:
+                        self.proxy_pool.report_failure(proxy_url)
                     return None
                 obj = response.json()
                 # DEBUG summary of response
@@ -324,8 +353,12 @@ class BaseApiClient(ABC):
                 if not isinstance(obj, dict):
                     Logger.warning(f"Unexpected JSON type from {url}; expected dict, got {type(obj).__name__}")
                     return None
+                if proxy_url and self.proxy_pool is not None:
+                    self.proxy_pool.report_success(proxy_url)
                 return obj
         except Exception as e:
+            if proxy_url and self.proxy_pool is not None:
+                self.proxy_pool.report_failure(proxy_url)
             self.log_error(f"Failed to POST JSON to {url}: {e}")
             return None
 
@@ -357,6 +390,8 @@ class BaseApiClient(ABC):
             request_headers["Content-Type"] = "application/x-www-form-urlencoded; charset=UTF-8"
 
         context = logger_context or {}
+        proxy_url = self._get_proxy_url()
+        proxies = {"http": proxy_url, "https": proxy_url} if proxy_url else None
 
         try:
             async with AsyncSession(impersonate=self._get_impersonation_target(url), timeout=timeout) as session:
@@ -372,9 +407,11 @@ class BaseApiClient(ABC):
                 except Exception:
                     pass
                 await self._apply_rate_limit(url)
-                response = await session.post(url, data=payload, headers=request_headers)
+                response = await session.post(url, data=payload, headers=request_headers, proxies=proxies)
                 if response.status_code != 200:
                     Logger.warning(f"HTTP {response.status_code} when POSTing form to {url}")
+                    if proxy_url and self.proxy_pool is not None:
+                        self.proxy_pool.report_failure(proxy_url)
                     return None
                 text = response.text
                 # DEBUG summary of response
@@ -390,7 +427,11 @@ class BaseApiClient(ABC):
                     Logger.debug(f"HTTP POST {url} → {summary}", context=ctx)
                 except Exception:
                     pass
+                if proxy_url and self.proxy_pool is not None:
+                    self.proxy_pool.report_success(proxy_url)
                 return text
         except Exception as e:
+            if proxy_url and self.proxy_pool is not None:
+                self.proxy_pool.report_failure(proxy_url)
             self.log_error(f"Failed to POST form to {url}: {e}")
             return None
