@@ -139,6 +139,7 @@ class AsyncHttpMixin(ABC):
             self._session_closed = True
             self._session = None
             self._session_impersonation_target = None
+            self._default_headers = None
 
     async def __aenter__(self):
         """Async context manager entry."""
