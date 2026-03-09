@@ -1,7 +1,7 @@
 import { EntityType } from "../../enum";
 import { Entity } from "../../interface";
 import { Comedian } from "../comedian/Comedian";
-import { ComedianLineupDTO } from "../comedian/comedian.interface";
+import { ComedianLineupDTO } from "../comedian/comedianLineup.interface";
 import { ShowDTO, ShowInterface } from "./show.interface";
 import { Ticket } from "../ticket/Ticket";
 import { SocialData } from "../socialData/SocialData";

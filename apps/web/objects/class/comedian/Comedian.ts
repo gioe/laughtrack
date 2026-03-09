@@ -24,7 +24,7 @@ export class Comedian implements ComedianInterface {
     constructor(input: ComedianDTO | ComedianLineupDTO) {
         this.name = input.name;
         this.containedEntities =
-            input.dates !== undefined
+            "dates" in input && input.dates !== undefined
                 ? input.dates.map((dto: ShowDTO) => new Show(dto))
                 : [];
         this.socialData = input.social_data

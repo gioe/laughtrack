@@ -3,7 +3,7 @@ import {
     SocialDataDTO,
     SocialDiscoverable,
 } from "../socialData/socialData.interface";
-import { ComedianLineupDTO } from "../comedian/comedian.interface";
+import { ComedianLineupDTO } from "../comedian/comedianLineup.interface";
 import { TicketDTO } from "../ticket/ticket.interface";
 
 // Client
