@@ -23,10 +23,10 @@ export async function GET(req: NextRequest) {
 
     try {
         const rawLimit = req.nextUrl.searchParams.get("limit");
-        const limit = rawLimit !== null ? parseInt(rawLimit, 10) : 8;
-        if (isNaN(limit) || limit < 1) {
+        const limit = rawLimit !== null ? Number(rawLimit) : 8;
+        if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
             return NextResponse.json(
-                { error: "limit must be a positive integer" },
+                { error: "limit must be a positive integer between 1 and 100" },
                 { status: 400 },
             );
         }
