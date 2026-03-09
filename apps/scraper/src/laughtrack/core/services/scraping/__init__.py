@@ -165,11 +165,16 @@ class ScrapingService:
 
         results: List[ClubScrapingResult] = []
         summary = ScrapingRunSummary()
+        skipped = 0
         for result, metrics in task_results:
             if result is not None:
                 results.append(result)
             if metrics is not None:
                 summary.per_club.append(metrics)
+            elif result is None:
+                skipped += 1
+        if skipped > 0:
+            Logger.warn(f"{skipped} club(s) skipped: no scraper key or no matching scraper class")
         return results, summary, total_db_result
 
     def _emit_summary(self, summary: ScrapingRunSummary) -> None:

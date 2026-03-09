@@ -217,6 +217,29 @@ class TestScrapeClubsWithMetrics:
         assert all(m.ok == 1 for m in good_metrics)
         assert bad_metrics[0].error == 1
 
+    def test_skipped_clubs_emit_warning(self):
+        """Clubs with no scraper key or no matching scraper class emit a summary warning."""
+        from laughtrack.core.services.scraping import ScrapingService
+        svc = self._make_service()
+
+        # Club with no scraper key
+        no_key_club = self._make_club(name="No Key Club", scraper_key=None)
+        no_key_club.scraper = None
+
+        # Club with unresolvable scraper key
+        svc._scraping_resolver.get.return_value = None
+        bad_key_club = self._make_club(name="Bad Key Club", scraper_key="unknown")
+
+        with patch('laughtrack.core.services.scraping.Logger') as mock_logger:
+            results, summary, _ = svc._scrape_clubs_with_metrics([no_key_club, bad_key_club])
+
+        assert len(results) == 0
+        assert len(summary.per_club) == 0
+        warn_calls = [str(c) for c in mock_logger.warn.call_args_list]
+        summary_warn = [c for c in warn_calls if "skipped" in c and "club(s)" in c]
+        assert len(summary_warn) == 1, f"Expected one summary warning, got: {warn_calls}"
+        assert "2" in summary_warn[0]
+
     def test_max_concurrent_clubs_reads_env_var(self):
         """MAX_CONCURRENT_CLUBS env var controls the semaphore limit."""
         import os
