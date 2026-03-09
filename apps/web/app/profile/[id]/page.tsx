@@ -7,7 +7,7 @@ import FooterComponent from "@/ui/pages/home/footer";
 import { getUserProfileData } from "@/lib/data/profile/getUserProfileData";
 
 export default async function ProfilePage() {
-    const [session] = await Promise.all([auth()]);
+    const session = await auth();
 
     if (!session) {
         return <div>You shouldn't be here.</div>;
