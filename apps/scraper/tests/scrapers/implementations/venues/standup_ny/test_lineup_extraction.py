@@ -8,7 +8,6 @@ from laughtrack.core.entities.event.standup_ny import StandupNYEvent
 from laughtrack.core.entities.comedian.model import Comedian
 from laughtrack.core.entities.club.model import Club
 from laughtrack.scrapers.implementations.venues.standup_ny.transformer import StandupNYEventTransformer
-from laughtrack.scrapers.implementations.venues.standup_ny.data import StandupNYPageData
 
 
 def _make_event(**kwargs) -> StandupNYEvent:
