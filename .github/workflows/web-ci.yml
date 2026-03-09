@@ -87,7 +87,9 @@ jobs:
   e2e:
     name: E2E Tests
     runs-on: ubuntu-latest
+    # Only runs when E2E_BASE_URL is set as a GitHub Actions repo/environment variable
     if: ${{ vars.E2E_BASE_URL != '' }}
+    needs: [type-check, lint, test]
     defaults:
       run:
         working-directory: apps/web
