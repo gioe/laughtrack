@@ -6,7 +6,10 @@ This service encapsulates the network requests and API logic for Comedy Cellar,
 allowing the scraper to focus on orchestration and data flow.
 """
 
+from typing import Optional
+
 from laughtrack.core.entities.club.model import Club
+from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 from laughtrack.foundation.models.api.comedy_cellar.models import (
     ComedyCellarLineupAPIResponse,
     ComedyCellarShowsAPIResponse,
@@ -26,8 +29,8 @@ class ComedyCellarAPIClient(BaseApiClient):
     to get standard HTTP methods with error handling and retries.
     """
 
-    def __init__(self, club: Club):
-        super().__init__(club)
+    def __init__(self, club: Club, proxy_pool: Optional[ProxyPool] = None):
+        super().__init__(club, proxy_pool=proxy_pool)
 
         # API endpoints
         self.lineup_api_url = "https://www.comedycellar.com/lineup/api/"

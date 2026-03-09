@@ -47,9 +47,9 @@ class ComedyCellarScraper(BaseScraper):
 
     key = "comedy_cellar"
 
-    def __init__(self, club: Club):
-        super().__init__(club)
-        self.api_client = ComedyCellarAPIClient(club)
+    def __init__(self, club: Club, **kwargs):
+        super().__init__(club, **kwargs)
+        self.api_client = ComedyCellarAPIClient(club, proxy_pool=self.proxy_pool)
 
     async def collect_scraping_targets(self) -> List[str]:
         """

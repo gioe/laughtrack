@@ -30,8 +30,8 @@ class TicketmasterScraper(BaseScraper):
     """
     key = 'live_nation'
 
-    def __init__(self, club: Club):
-        super().__init__(club)
+    def __init__(self, club: Club, **kwargs):
+        super().__init__(club, **kwargs)
 
         # Validate that ticketmaster_id is configured
         if not club.ticketmaster_id:
@@ -68,7 +68,7 @@ class TicketmasterScraper(BaseScraper):
         try:
             # Use the TicketmasterClient to fetch events
             if not self.ticketmaster_client:
-                self.ticketmaster_client = TicketmasterClient(self.club)
+                self.ticketmaster_client = TicketmasterClient(self.club, proxy_pool=self.proxy_pool)
 
             Logger.info(f"Fetching events for venue {self.venue_id} via Ticketmaster API", self.logger_context)
 

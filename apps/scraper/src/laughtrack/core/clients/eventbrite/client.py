@@ -7,6 +7,7 @@ from laughtrack.core.entities.event.eventbrite import EventbriteEvent
 from laughtrack.core.entities.club.model import Club
 from laughtrack.infrastructure.config.config_manager import ConfigManager
 from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
+from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 from laughtrack.core.clients.base import BaseApiClient
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from .models import EventbriteListEventsResponse, EventbriteSingleEventResponse
@@ -27,7 +28,7 @@ class EventbriteClient(BaseApiClient):
         "Accept-Encoding": "gzip, deflate",
     }
 
-    def __init__(self, club: Club):
+    def __init__(self, club: Club, proxy_pool: Optional[ProxyPool] = None):
         """Initialize the Eventbrite client for a specific club/venue.
 
         Contract
@@ -45,7 +46,7 @@ class EventbriteClient(BaseApiClient):
         # Initialize with shared project rate limiter; set/ensure domain limit
         limiter = RateLimiter()
         limiter.set_domain_limit("eventbrite.com", self.RATE_LIMIT)
-        super().__init__(club, limiter)
+        super().__init__(club, limiter, proxy_pool=proxy_pool)
 
         # DEBUG: client initialization details
         try:

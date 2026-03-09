@@ -17,6 +17,7 @@ from typing import List, Optional
 
 from laughtrack.core.clients.base import BaseApiClient
 from laughtrack.core.entities.club.model import Club
+from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 from laughtrack.core.entities.comedian.model import Comedian
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.entities.ticket.model import Ticket
@@ -45,8 +46,8 @@ class TicketmasterClient(BaseApiClient):
     BASE_URL = "https://app.ticketmaster.com/discovery/v2"
     DEFAULT_MARKET = "US"  # Default to US market
 
-    def __init__(self, club: Club, api_key: Optional[str] = None):
-        super().__init__(club)
+    def __init__(self, club: Club, api_key: Optional[str] = None, proxy_pool: Optional[ProxyPool] = None):
+        super().__init__(club, proxy_pool=proxy_pool)
 
         # Get API key from environment or parameter
         self.api_key = api_key or ConfigManager.get_config("api", "ticketmaster_api_key")

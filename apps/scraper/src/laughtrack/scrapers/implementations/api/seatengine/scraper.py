@@ -18,8 +18,8 @@ class SeatEngineScraper(BaseScraper):
     """
     key = 'seatengine'
     
-    def __init__(self, club: Club):
-        super().__init__(club)
+    def __init__(self, club: Club, **kwargs):
+        super().__init__(club, **kwargs)
 
         # Validate that club has seatengine_id
         if not club.seatengine_id:
@@ -29,7 +29,7 @@ class SeatEngineScraper(BaseScraper):
         self.venue_id = club.seatengine_id
 
         # Initialize the SeatEngine client
-        self.seatengine_client = SeatEngineClient(club)
+        self.seatengine_client = SeatEngineClient(club, proxy_pool=self.proxy_pool)
 
         self.logger_context = club.as_context()
 

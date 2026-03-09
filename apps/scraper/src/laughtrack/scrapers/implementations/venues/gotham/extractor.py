@@ -12,6 +12,7 @@ from laughtrack.core.clients.gotham.models.models import GothamMonthlyResponse
 from laughtrack.core.clients.showclix.client import ShowclixAPIClient
 from laughtrack.core.entities.event.gotham import GothamEvent
 from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
+from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.json.utils import JSONUtils
 from laughtrack.utilities.infrastructure.scraper import log_filter_breakdown
@@ -30,17 +31,18 @@ class GothamEventExtractor:
     - Showclix ticket data enrichment
     """
 
-    def __init__(self, club, http_session_getter):
+    def __init__(self, club, http_session_getter, proxy_pool: Optional[ProxyPool] = None):
         """
         Initialize the extractor.
 
         Args:
             club: Club entity with configuration
             http_session_getter: Async function to get HTTP session
+            proxy_pool: Optional ProxyPool forwarded to Showclix client.
         """
         self.club = club
         self.get_session = http_session_getter
-        self.showclix_client = ShowclixAPIClient(club)
+        self.showclix_client = ShowclixAPIClient(club, proxy_pool=proxy_pool)
         self.logger_context = club.as_context()
 
     def get_headers(self) -> dict:

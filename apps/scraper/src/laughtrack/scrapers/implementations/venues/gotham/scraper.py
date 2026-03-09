@@ -43,10 +43,10 @@ class GothamComedyClubScraper(BaseScraper):
 
     key = "gotham"
 
-    def __init__(self, club: Club):
-        super().__init__(club)
+    def __init__(self, club: Club, **kwargs):
+        super().__init__(club, **kwargs)
         self.transformer = GothamEventTransformer(club)
-        self.extractor = GothamEventExtractor(club, self.get_session)
+        self.extractor = GothamEventExtractor(club, self.get_session, proxy_pool=self.proxy_pool)
 
     async def collect_scraping_targets(self) -> List[ScrapingTarget]:
         """

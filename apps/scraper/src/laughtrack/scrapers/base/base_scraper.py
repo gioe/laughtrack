@@ -17,6 +17,7 @@ from typing import Awaitable, Callable, List, Optional
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
+from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 from laughtrack.shared.types import ScrapingTarget
 from laughtrack.ports.scraping import EventListContainer
 from laughtrack.ports.http import HttpConvenienceMixin
@@ -97,19 +98,22 @@ class BaseScraper(HttpConvenienceMixin, ABC):
     # Each scraper must define its unique key that matches the club.scraper field
     key: Optional[str] = None
 
-    def __init__(self, club: Club) -> None:
+    def __init__(self, club: Club, proxy_pool: Optional[ProxyPool] = None) -> None:
         """
         Initialize the scraper with club configuration and infrastructure components.
 
         Args:
             club: Club entity containing scraper configuration, rate limits,
                  retry settings, and venue-specific parameters.
+            proxy_pool: Optional ProxyPool for rotating proxy support. When provided,
+                 subclasses should forward it to any BaseApiClient they construct.
 
         Raises:
             ValueError: If club configuration is invalid
         """
         super().__init__()
         self._club = club  # Store as private attribute to avoid conflict with AsyncHttpMixin
+        self.proxy_pool: Optional[ProxyPool] = proxy_pool
 
         # Set up logging context for this scraper instance (augment with scraper key)
         self.logger_context = {**club.as_context(), "scraper": self.key or "-"}

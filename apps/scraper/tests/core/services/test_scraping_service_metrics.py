@@ -83,6 +83,7 @@ class TestScrapeClubsWithMetrics:
         with patch.object(ScrapingService, '__init__', lambda self, *a, **kw: None):
             svc = ScrapingService.__new__(ScrapingService)
             svc.success_rate_threshold = 70.0
+            svc.proxy_pool = None
             svc._scraping_resolver = MagicMock()
             mock_rp = MagicMock()
             mock_rp.insert_club_result.return_value = DatabaseOperationResult()
@@ -104,7 +105,7 @@ class TestScrapeClubsWithMetrics:
         result = ClubScrapingResult(club_name="Club", shows=[MagicMock()], execution_time=1.0)
         mock_scraper = MagicMock()
         mock_scraper.scrape_with_result.return_value = result
-        svc._scraping_resolver.get.return_value = lambda club: mock_scraper
+        svc._scraping_resolver.get.return_value = lambda club, **kw: mock_scraper
 
         club = self._make_club()
         _, summary, _ = svc._scrape_clubs_with_metrics([club])
@@ -122,7 +123,7 @@ class TestScrapeClubsWithMetrics:
         result = ClubScrapingResult(club_name="Club", shows=[], execution_time=1.0)
         mock_scraper = MagicMock()
         mock_scraper.scrape_with_result.return_value = result
-        svc._scraping_resolver.get.return_value = lambda club: mock_scraper
+        svc._scraping_resolver.get.return_value = lambda club, **kw: mock_scraper
 
         club = self._make_club()
         _, summary, _ = svc._scrape_clubs_with_metrics([club])
@@ -139,7 +140,7 @@ class TestScrapeClubsWithMetrics:
         result = ClubScrapingResult(club_name="Club", shows=[], execution_time=0.0, error="boom")
         mock_scraper = MagicMock()
         mock_scraper.scrape_with_result.return_value = result
-        svc._scraping_resolver.get.return_value = lambda club: mock_scraper
+        svc._scraping_resolver.get.return_value = lambda club, **kw: mock_scraper
 
         club = self._make_club()
         _, summary, _ = svc._scrape_clubs_with_metrics([club])
@@ -170,7 +171,7 @@ class TestScrapeClubsWithMetrics:
         mock_scraper = MagicMock()
         mock_scraper.scrape_with_result.side_effect = lambda: slow_scrape(mock_scraper._club)
         # Use a factory that attaches the club to the scraper so slow_scrape can access it
-        def scraper_factory(club):
+        def scraper_factory(club, **kw):
             s = MagicMock()
             s.scrape_with_result.side_effect = lambda: slow_scrape(club)
             return s
@@ -193,7 +194,7 @@ class TestScrapeClubsWithMetrics:
 
         good_result = ClubScrapingResult(club_name="Good Club", shows=[MagicMock()], execution_time=1.0)
 
-        def scraper_factory(club):
+        def scraper_factory(club, **kw):
             s = MagicMock()
             if "Bad" in club.name:
                 s.scrape_with_result.side_effect = RuntimeError("network timeout")

@@ -84,6 +84,7 @@ class TestIncrementalPersistenceInScrapeOne:
         with patch.object(ScrapingService, '__init__', lambda self, *a, **kw: None):
             svc = ScrapingService.__new__(ScrapingService)
             svc.success_rate_threshold = 70.0
+            svc.proxy_pool = None
             svc._scraping_resolver = MagicMock()
             mock_rp = MagicMock()
             mock_rp.insert_club_result.return_value = DatabaseOperationResult(inserts=1)
@@ -105,7 +106,7 @@ class TestIncrementalPersistenceInScrapeOne:
         club_a_result = ClubScrapingResult(club_name="Club A", shows=[MagicMock()], execution_time=1.0)
         club_b_result = ClubScrapingResult(club_name="Club B", shows=[MagicMock()], execution_time=1.0)
 
-        def scraper_factory(club):
+        def scraper_factory(club, **kw):
             s = MagicMock()
             s.scrape_with_result.return_value = (
                 club_a_result if "A" in club.name else club_b_result
@@ -125,7 +126,7 @@ class TestIncrementalPersistenceInScrapeOne:
         svc = self._make_service()
         svc._result_processor.insert_club_result.return_value = DatabaseOperationResult(inserts=3, updates=1)
 
-        def scraper_factory(club):
+        def scraper_factory(club, **kw):
             s = MagicMock()
             s.scrape_with_result.return_value = ClubScrapingResult(
                 club_name=club.name, shows=[MagicMock()], execution_time=1.0
@@ -154,7 +155,7 @@ class TestIncrementalPersistenceInScrapeOne:
 
         svc._result_processor.insert_club_result.side_effect = insert_side_effect
 
-        def scraper_factory(club):
+        def scraper_factory(club, **kw):
             s = MagicMock()
             s.scrape_with_result.return_value = ClubScrapingResult(
                 club_name=club.name, shows=[MagicMock()], execution_time=1.0
@@ -181,7 +182,7 @@ class TestIncrementalPersistenceInScrapeOne:
         """When the scraper itself raises, insert_club_result must not be called for that club."""
         svc = self._make_service()
 
-        def scraper_factory(club):
+        def scraper_factory(club, **kw):
             s = MagicMock()
             if "Crash" in club.name:
                 s.scrape_with_result.side_effect = RuntimeError("scraper crash")

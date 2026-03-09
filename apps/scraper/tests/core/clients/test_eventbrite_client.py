@@ -16,7 +16,7 @@ def silence_logging(monkeypatch):
 @pytest.fixture
 def stub_base_init(monkeypatch):
     def _stub():
-        def _init(self, club, limiter):
+        def _init(self, club, limiter=None, proxy_pool=None):
             # Minimal attributes used by EventbriteClient methods
             self.club = club
             self.headers = {}

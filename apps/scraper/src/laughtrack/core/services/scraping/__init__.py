@@ -13,6 +13,7 @@ from laughtrack.core.entities.club.model import Club
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.utilities.domain.club.selector import ClubSelector
 from laughtrack.utilities.domain.scraper.result import ScrapingResultProcessor
+from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.app.wiring import build_services  # noqa: F401 (side-effects for wiring if needed)
 from laughtrack.core.models.results import ClubScrapingResult
@@ -38,6 +39,7 @@ class ScrapingService:
         self.success_rate_threshold: float = float(
             os.environ.get("SCRAPING_SUCCESS_RATE_THRESHOLD", success_rate_threshold)
         )
+        self.proxy_pool: Optional[ProxyPool] = ProxyPool.from_env()
 
     @property
     def result_processor(self) -> ScrapingResultProcessor:
@@ -129,7 +131,7 @@ class ScrapingService:
                 metrics = DomainRequestMetrics(club_name=club.name, club_id=getattr(club, "id", None))
                 metrics.total += 1
                 try:
-                    scraper: BaseScraper = scraper_cls(club)
+                    scraper: BaseScraper = scraper_cls(club, proxy_pool=self.proxy_pool)
                     result = await loop.run_in_executor(None, _scrape_with_context, scraper, club)
                     if result.error:
                         metrics.error += 1

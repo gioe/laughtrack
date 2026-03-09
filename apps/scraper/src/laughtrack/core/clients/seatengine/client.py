@@ -9,6 +9,7 @@ from laughtrack.core.entities.comedian.model import Comedian
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
+from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 from laughtrack.core.clients.base import BaseApiClient
 from laughtrack.foundation.utilities.datetime import DateTimeUtils
 from laughtrack.foundation.utilities.url import URLUtils
@@ -17,9 +18,9 @@ from laughtrack.foundation.utilities.url import URLUtils
 class SeatEngineClient(BaseApiClient):
     """Client for interacting with SeatEngine's API."""
 
-    def __init__(self, club: Club):
+    def __init__(self, club: Club, proxy_pool: Optional[ProxyPool] = None):
         """Initialize the client with club data."""
-        super().__init__(club)
+        super().__init__(club, proxy_pool=proxy_pool)
         domain = URLUtils.get_formatted_domain(club.scraping_url)
         self.headers = BaseHeaders.get_headers(
             base_type="mobile_browser",

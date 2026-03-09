@@ -13,6 +13,7 @@ from laughtrack.core.clients.base import BaseApiClient
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.ticket.local.broadway import BroadwayTicket
 from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
+from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 from laughtrack.foundation.utilities.url import URLUtils
 
 
@@ -33,6 +34,7 @@ class TesseraClient(BaseApiClient):
         base_domain: str,
         api_base_url: str,
         origin_url: str,
+        proxy_pool: Optional[ProxyPool] = None,
     ):
         """
         Initialize the Tessera client.
@@ -44,7 +46,7 @@ class TesseraClient(BaseApiClient):
         """
         # Store origin_url before calling super so _initialize_headers can use it
         self.origin_url = origin_url
-        super().__init__(club)
+        super().__init__(club, proxy_pool=proxy_pool)
 
         self.base_domain = base_domain
         self.api_base_url = api_base_url

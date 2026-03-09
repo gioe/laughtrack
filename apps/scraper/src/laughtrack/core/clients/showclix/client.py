@@ -10,6 +10,7 @@ from typing import Dict, Optional
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
+from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 from laughtrack.core.clients.base import BaseApiClient
 from laughtrack.core.clients.showclix.models import ShowclixEventData
 from laughtrack.foundation.infrastructure.logger.logger import Logger
@@ -25,14 +26,15 @@ class ShowclixAPIClient(BaseApiClient):
     - Error handling and logging
     """
 
-    def __init__(self, club: Club):
+    def __init__(self, club: Club, proxy_pool: Optional[ProxyPool] = None):
         """
         Initialize the Showclix client.
 
         Args:
             club: Club instance for context
+            proxy_pool: Optional ProxyPool for rotating proxy support.
         """
-        super().__init__(club)
+        super().__init__(club, proxy_pool=proxy_pool)
 
     def _initialize_headers(self) -> Dict[str, str]:
         """Initialize headers optimized for Showclix requests."""

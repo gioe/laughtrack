@@ -26,15 +26,15 @@ class EventbriteScraper(BaseScraper):
 
     key = 'eventbrite'
     
-    def __init__(self, club: Club):
-        super().__init__(club)
+    def __init__(self, club: Club, **kwargs):
+        super().__init__(club, **kwargs)
 
         # Validate that club has eventbrite_id
         if not club.eventbrite_id:
             raise ValueError(f"Club {club.name} does not have an eventbrite_id configured")
 
         # Initialize the Eventbrite client
-        self.eventbrite_client = EventbriteClient(club)
+        self.eventbrite_client = EventbriteClient(club, proxy_pool=self.proxy_pool)
 
         self.logger_context = club.as_context()
 
