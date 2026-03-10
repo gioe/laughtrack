@@ -155,7 +155,13 @@ class TestPlaywrightBrowser:
 
     @pytest.mark.asyncio
     async def test_concurrent_fetch_launches_browser_only_once(self):
-        """Two concurrent fetch_html calls must not start two Chromium processes."""
+        """Two fetch_html calls must not start two Chromium processes.
+
+        Under the current implementation fetch_html holds _browser_lock for its
+        entire body, so the two gather tasks are serialized rather than truly
+        concurrent.  The important invariant verified here is that Chromium is
+        launched exactly once regardless of the order/serialization.
+        """
         import asyncio as _asyncio
         mock_pw_module, mock_browser, _ = _make_pw_mocks()
         mock_pw_chromium = mock_pw_module.async_playwright.return_value.__aenter__.return_value.chromium
@@ -344,3 +350,25 @@ class TestPlaywrightBrowser:
 
         assert result == "<html>rendered</html>"
         assert browser._browser is None  # close() ran after fetch completed
+
+    @pytest.mark.asyncio
+    async def test_fetch_after_close_relaunches_browser(self):
+        """fetch_html called after close() must re-launch the browser without raising.
+
+        close() sets self._browser = None; a subsequent fetch_html should
+        re-enter _launch_if_needed_locked and create a fresh Chromium process.
+        """
+        mock_pw_module, mock_browser, _ = _make_pw_mocks()
+        mock_pw_chromium = mock_pw_module.async_playwright.return_value.__aenter__.return_value.chromium
+
+        with _patch_playwright(mock_pw_module):
+            browser = PlaywrightBrowser()
+            await browser.fetch_html("https://example.com/first")
+            await browser.close()
+            assert browser._browser is None
+            # Second fetch after close() should succeed and re-launch.
+            result = await browser.fetch_html("https://example.com/second")
+
+        assert result == "<html>rendered</html>"
+        # Chromium launched twice: once before close(), once after.
+        assert mock_pw_chromium.launch.call_count == 2

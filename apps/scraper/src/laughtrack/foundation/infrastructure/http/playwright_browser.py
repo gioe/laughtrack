@@ -146,11 +146,14 @@ class PlaywrightBrowser:
         self._locale = locale
         self._timeout_ms = timeout_ms
 
-        # Lazy browser state — populated by _ensure_browser()
+        # Lazy browser state — populated by _launch_if_needed_locked()
         self._pw_cm: Optional[object] = None   # async_playwright() context manager
         self._pw: Optional[object] = None      # Playwright object (pw in `async with ... as pw`)
         self._browser: Optional[object] = None # Browser instance
-        self._browser_lock = asyncio.Lock()    # Prevents concurrent launch
+        # Serializes browser launch, the entire fetch_html body, and close() to
+        # prevent TOCTOU races between active fetches and concurrent close() calls.
+        # fetch_html calls are therefore serialized; concurrent callers queue up.
+        self._browser_lock = asyncio.Lock()
 
         # Register best-effort cleanup on process exit
         atexit.register(_atexit_close, weakref.ref(self))
