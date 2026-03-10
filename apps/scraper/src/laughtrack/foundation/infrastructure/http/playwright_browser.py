@@ -155,26 +155,20 @@ class PlaywrightBrowser:
         # Register best-effort cleanup on process exit
         atexit.register(_atexit_close, weakref.ref(self))
 
-    async def _ensure_browser(self) -> None:
+    async def _launch_if_needed_locked(self) -> None:
         """Launch Chromium if it is not already running.
 
-        The lock prevents two concurrent fetch_html calls from each launching
-        their own Chromium process and leaking the first one.
+        MUST be called with ``_browser_lock`` already held by the caller.
         """
         if self._browser is not None:
             return
 
-        async with self._browser_lock:
-            # Re-check inside the lock: a concurrent caller may have already launched
-            if self._browser is not None:
-                return
+        # Lazy import — keeps playwright out of the import graph unless needed
+        from playwright.async_api import async_playwright  # noqa: PLC0415
 
-            # Lazy import — keeps playwright out of the import graph unless needed
-            from playwright.async_api import async_playwright  # noqa: PLC0415
-
-            self._pw_cm = async_playwright()
-            self._pw = await self._pw_cm.__aenter__()
-            self._browser = await self._pw.chromium.launch(headless=True)
+        self._pw_cm = async_playwright()
+        self._pw = await self._pw_cm.__aenter__()
+        self._browser = await self._pw.chromium.launch(headless=True)
 
     async def close(self) -> None:
         """Close the persistent Chromium browser and the Playwright context.
@@ -212,31 +206,36 @@ class PlaywrightBrowser:
         normalized_url = URLUtils.normalize_url(url)
         proxy_dict = _parse_proxy(proxy_url) if proxy_url else None
 
-        await self._ensure_browser()
+        # Hold the lock across the entire fetch to prevent a concurrent close()
+        # from setting self._browser = None between _ensure_browser() and
+        # new_context() (TOCTOU race).  close() acquires the same lock, so it
+        # will wait until this fetch completes before tearing down the browser.
+        async with self._browser_lock:
+            await self._launch_if_needed_locked()
 
-        context = None
-        try:
-            context = await self._browser.new_context(
-                viewport=self._viewport,
-                locale=self._locale,
-                java_script_enabled=True,
-                proxy=proxy_dict,
-                user_agent=_USER_AGENT,
-            )
-            page = await context.new_page()
-            # Apply stealth patches before any navigation
-            await page.add_init_script(_STEALTH_SCRIPT)
-            await page.goto(
-                normalized_url,
-                wait_until="domcontentloaded",
-                timeout=self._timeout_ms,
-            )
-            html = await page.content()
-            Logger.debug(
-                f"[PlaywrightBrowser] Fetched {normalized_url} ({len(html)} chars)",
-                {},
-            )
-            return html
-        finally:
-            if context is not None:
-                await context.close()
+            context = None
+            try:
+                context = await self._browser.new_context(
+                    viewport=self._viewport,
+                    locale=self._locale,
+                    java_script_enabled=True,
+                    proxy=proxy_dict,
+                    user_agent=_USER_AGENT,
+                )
+                page = await context.new_page()
+                # Apply stealth patches before any navigation
+                await page.add_init_script(_STEALTH_SCRIPT)
+                await page.goto(
+                    normalized_url,
+                    wait_until="domcontentloaded",
+                    timeout=self._timeout_ms,
+                )
+                html = await page.content()
+                Logger.debug(
+                    f"[PlaywrightBrowser] Fetched {normalized_url} ({len(html)} chars)",
+                    {},
+                )
+                return html
+            finally:
+                if context is not None:
+                    await context.close()

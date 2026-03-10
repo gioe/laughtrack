@@ -280,23 +280,67 @@ class TestPlaywrightBrowser:
 
     @pytest.mark.asyncio
     async def test_concurrent_close_and_fetch_does_not_raise(self):
-        """close() called concurrently with fetch_html() must not corrupt state or raise.
+        """close() called concurrently with fetch_html() must not raise AttributeError.
 
-        The _browser_lock guards _ensure_browser and close() so that concurrent
-        callers serialise access to the shared browser state.
+        fetch_html holds _browser_lock for its entire body, so close() cannot
+        clear self._browser between _launch_if_needed_locked() and new_context()
+        (the TOCTOU window).  Instead, close() waits until the fetch completes
+        before tearing down the browser.
         """
         import asyncio as _asyncio
         mock_pw_module, mock_browser, _ = _make_pw_mocks()
 
         with _patch_playwright(mock_pw_module):
             browser = PlaywrightBrowser()
-            # Run fetch_html and close() concurrently; neither should raise.
+            # Neither coroutine should raise — gather propagates exceptions by default.
             await _asyncio.gather(
                 browser.fetch_html("https://example.com"),
                 browser.close(),
             )
 
-        # After close() the browser state is cleared.
+        # fetch_html always goes first in gather order; close() runs after and
+        # clears the browser state.
         assert browser._browser is None
         assert browser._pw_cm is None
         assert browser._pw is None
+
+    @pytest.mark.asyncio
+    async def test_close_waits_for_active_fetch_before_clearing_browser(self):
+        """close() must not clear self._browser while fetch_html is using it.
+
+        Uses asyncio events to force the race: close() is triggered mid-fetch
+        (after _launch_if_needed_locked but before new_context returns).
+        With the lock held throughout fetch_html, close() is blocked until the
+        fetch completes — no AttributeError must be raised.
+        """
+        import asyncio as _asyncio
+        mock_pw_module, mock_browser, _ = _make_pw_mocks()
+
+        fetch_entered_lock = _asyncio.Event()
+
+        async def slow_new_context(*args, **kwargs):
+            # Signal that we are inside the lock (browser in use), then yield so
+            # the close() task can attempt to acquire the lock (it should block).
+            fetch_entered_lock.set()
+            await _asyncio.sleep(0)
+            return mock_browser.new_context.return_value
+
+        mock_browser.new_context.side_effect = slow_new_context
+
+        with _patch_playwright(mock_pw_module):
+            browser = PlaywrightBrowser()
+
+            async def deferred_close():
+                # Wait until fetch_html has entered the critical section, then
+                # try to close.  With the fix, close() blocks until the fetch
+                # releases the lock — no AttributeError is raised.
+                await fetch_entered_lock.wait()
+                await browser.close()
+
+            result, _ = await _asyncio.gather(
+                browser.fetch_html("https://example.com"),
+                deferred_close(),
+            )
+
+        assert result == "<html>rendered</html>"
+        assert browser._browser is None  # close() ran after fetch completed
