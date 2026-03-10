@@ -277,3 +277,26 @@ class TestPlaywrightBrowser:
         assert args[0] is _atexit_close
         assert isinstance(args[1], weakref.ref)
         assert args[1]() is browser
+
+    @pytest.mark.asyncio
+    async def test_concurrent_close_and_fetch_does_not_raise(self):
+        """close() called concurrently with fetch_html() must not corrupt state or raise.
+
+        The _browser_lock guards _ensure_browser and close() so that concurrent
+        callers serialise access to the shared browser state.
+        """
+        import asyncio as _asyncio
+        mock_pw_module, mock_browser, _ = _make_pw_mocks()
+
+        with _patch_playwright(mock_pw_module):
+            browser = PlaywrightBrowser()
+            # Run fetch_html and close() concurrently; neither should raise.
+            await _asyncio.gather(
+                browser.fetch_html("https://example.com"),
+                browser.close(),
+            )
+
+        # After close() the browser state is cleared.
+        assert browser._browser is None
+        assert browser._pw_cm is None
+        assert browser._pw is None
