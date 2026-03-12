@@ -51,3 +51,16 @@ class ClubQueries:
             scraper       = COALESCE(clubs.scraper,       EXCLUDED.scraper)
         RETURNING *
     '''
+
+    UPSERT_CLUB_BY_SEATENGINE_VENUE = '''
+        INSERT INTO clubs (
+            name, address, website, scraping_url,
+            seatengine_id, scraper, visible,
+            zip_code, phone_number, popularity, timezone
+        )
+        VALUES (%s, %s, %s, 'www.seatengine.com', %s, 'seatengine', true, %s, '', 0, NULL)
+        ON CONFLICT (name) DO UPDATE SET
+            seatengine_id = COALESCE(clubs.seatengine_id, EXCLUDED.seatengine_id),
+            scraper       = COALESCE(clubs.scraper,       EXCLUDED.scraper)
+        RETURNING *
+    '''

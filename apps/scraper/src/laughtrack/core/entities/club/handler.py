@@ -134,6 +134,40 @@ class ClubHandler(BaseDatabaseHandler[Club]):
             Logger.error(f"Error upserting club for Eventbrite venue {venue.id}: {e}")
             raise
 
+    def upsert_for_seatengine_venue(self, venue: dict) -> Optional[Club]:
+        """
+        Upsert a clubs row for a SeatEngine venue discovered via the national
+        enumeration job.  On conflict (name), preserves any existing seatengine_id
+        and scraper values rather than overwriting them.
+
+        Args:
+            venue: dict with at minimum 'id' and 'name' keys from SeatEngine API
+
+        Returns:
+            Club: the upserted (or existing) club, or None on invalid input
+        """
+        venue_id = str(venue.get("id", "")).strip()
+        name = (venue.get("name") or "").strip()
+        if not venue_id or not name:
+            return None
+
+        address = (venue.get("address") or "").strip()
+        website = (venue.get("website") or "").strip()
+        zip_code = (venue.get("zip") or venue.get("postal_code") or "").strip()
+
+        try:
+            results = self.execute_with_cursor(
+                ClubQueries.UPSERT_CLUB_BY_SEATENGINE_VENUE,
+                (name, address, website, venue_id, zip_code),
+                return_results=True,
+            )
+            if not results:
+                return None
+            return Club.from_db_row(results[0])
+        except Exception as e:
+            Logger.error(f"Error upserting club for SeatEngine venue {venue_id}: {e}")
+            raise
+
     def get_clubs_for_scraper(self, scraper_type: str) -> List[Club]:
         """
         Fetch all clubs that use a specific scraper type.
