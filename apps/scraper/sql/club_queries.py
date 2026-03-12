@@ -45,7 +45,7 @@ class ClubQueries:
             eventbrite_id, scraper, visible,
             zip_code, phone_number, popularity, timezone
         )
-        VALUES (%s, %s, '', 'www.eventbrite.com', %s, 'eventbrite', true, %s, '', 0, 'America/New_York')
+        VALUES (%s, %s, '', 'www.eventbrite.com', %s, 'eventbrite', true, %s, '', 0, NULL)
         ON CONFLICT (name) DO UPDATE SET
             eventbrite_id = COALESCE(clubs.eventbrite_id, EXCLUDED.eventbrite_id),
             scraper       = COALESCE(clubs.scraper,       EXCLUDED.scraper)

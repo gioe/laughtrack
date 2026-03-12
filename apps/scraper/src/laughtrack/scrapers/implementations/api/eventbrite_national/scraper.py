@@ -22,7 +22,6 @@ from laughtrack.core.entities.event.eventbrite import EventbriteEvent as DomainE
 from laughtrack.core.entities.show.model import Show
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.infrastructure.config.config_manager import ConfigManager
-from laughtrack.ports.scraping import EventListContainer
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 
 
@@ -42,6 +41,7 @@ class EventbriteNationalScraper(BaseScraper):
     _COMEDY_SUBCATEGORY_ID = "103003"
     _BASE_API_URL = "https://www.eventbriteapi.com/v3"
     _REQUEST_TIMEOUT = 30
+    _MAX_PAGES = 50
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
@@ -55,7 +55,7 @@ class EventbriteNationalScraper(BaseScraper):
         """Single logical target representing the national comedy category."""
         return ["national"]
 
-    async def get_data(self, target: str) -> Optional[EventListContainer]:
+    async def get_data(self, target: str) -> None:
         """Not used: scrape_async is fully overridden for multi-venue logic."""
         return None  # pragma: no cover
 
@@ -104,8 +104,10 @@ class EventbriteNationalScraper(BaseScraper):
 
         events: list = []
         continuation: Optional[str] = None
+        page = 0
 
-        while True:
+        while page < self._MAX_PAGES:
+            page += 1
             params = dict(base_params)
             if continuation:
                 params["continuation"] = continuation
@@ -127,6 +129,12 @@ class EventbriteNationalScraper(BaseScraper):
                 break
             continuation = response.pagination.continuation
 
+        if page >= self._MAX_PAGES:
+            Logger.warn(
+                f"EventbriteNational: reached MAX_PAGES ({self._MAX_PAGES}) — pagination truncated",
+                self.logger_context,
+            )
+
         return events
 
     async def _process_events(self, api_events: list) -> List[Show]:
@@ -135,7 +143,7 @@ class EventbriteNationalScraper(BaseScraper):
         for event in api_events:
             venue_groups[event.venue.id].append(event)
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         shows: List[Show] = []
 
         for venue_id, group in venue_groups.items():
