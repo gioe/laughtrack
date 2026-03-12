@@ -33,8 +33,21 @@ class ClubQueries:
     
     GET_DISTINCT_SCRAPER_TYPES = '''
         SELECT scraper, COUNT(*) as club_count
-        FROM clubs 
+        FROM clubs
         WHERE scraper IS NOT NULL
         GROUP BY scraper
         ORDER BY scraper
+    '''
+
+    UPSERT_CLUB_BY_EVENTBRITE_VENUE = '''
+        INSERT INTO clubs (
+            name, address, website, scraping_url,
+            eventbrite_id, scraper, visible,
+            zip_code, phone_number, popularity, timezone
+        )
+        VALUES (%s, %s, '', 'www.eventbrite.com', %s, 'eventbrite', true, %s, '', 0, 'America/New_York')
+        ON CONFLICT (name) DO UPDATE SET
+            eventbrite_id = COALESCE(clubs.eventbrite_id, EXCLUDED.eventbrite_id),
+            scraper       = COALESCE(clubs.scraper,       EXCLUDED.scraper)
+        RETURNING *
     '''
