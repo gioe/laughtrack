@@ -96,6 +96,44 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         """
         return self.get_clubs_by_ids(club_ids)
 
+    def upsert_for_eventbrite_venue(self, venue) -> Optional[Club]:
+        """
+        Upsert a clubs row for an Eventbrite venue discovered via the national
+        search API.  On conflict (name), preserves any existing eventbrite_id
+        and scraper values rather than overwriting them.
+
+        Args:
+            venue: EventbriteVenue from the API response
+
+        Returns:
+            Club: the upserted (or existing) club, or None on invalid input
+        """
+        if not venue or not getattr(venue, "id", None) or not getattr(venue, "name", None):
+            return None
+
+        address = ""
+        zip_code = ""
+        if venue.address:
+            parts = [
+                p for p in [venue.address.address_1, venue.address.city, venue.address.region]
+                if p
+            ]
+            address = ", ".join(parts)
+            zip_code = venue.address.postal_code or ""
+
+        try:
+            results = self.execute_with_cursor(
+                ClubQueries.UPSERT_CLUB_BY_EVENTBRITE_VENUE,
+                (venue.name, address, venue.id, zip_code),
+                return_results=True,
+            )
+            if not results:
+                return None
+            return Club.from_db_row(results[0])
+        except Exception as e:
+            Logger.error(f"Error upserting club for Eventbrite venue {venue.id}: {e}")
+            raise
+
     def get_clubs_for_scraper(self, scraper_type: str) -> List[Club]:
         """
         Fetch all clubs that use a specific scraper type.
