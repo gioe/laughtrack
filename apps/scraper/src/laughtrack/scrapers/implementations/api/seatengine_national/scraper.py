@@ -17,6 +17,7 @@ from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
 from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.infrastructure.config.config_manager import ConfigManager
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 
 
@@ -33,17 +34,17 @@ class SeatEngineNationalScraper(BaseScraper):
     key = "seatengine_national"
 
     _BASE_API_URL = "https://services.seatengine.com/api/v1"
-    _AUTH_TOKEN = "3c7de746-6bc2-4efb-8e91-16da6155edce"
     _REQUEST_TIMEOUT = 30
     _MAX_PAGES = 50
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
         self._club_handler = ClubHandler()
+        auth_token = ConfigManager.get_config("api", "seatengine_auth_token")
         self._headers = BaseHeaders.get_headers(
             base_type="mobile_browser",
             auth_type="seat_engine",
-            auth_token=self._AUTH_TOKEN,
+            auth_token=auth_token,
             domain="services.seatengine.com",
         )
 

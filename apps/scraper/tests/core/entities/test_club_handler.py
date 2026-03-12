@@ -327,3 +327,179 @@ class TestUpsertForEventbriteVenueInvalidInput:
         with patch.object(handler, "execute_with_cursor", return_value=[]):
             result = handler.upsert_for_eventbrite_venue(venue)
         assert result is None
+
+
+# ---------------------------------------------------------------------------
+# Tests for upsert_for_seatengine_venue
+# ---------------------------------------------------------------------------
+
+def _make_seatengine_club_row(**overrides):
+    """Return a dict that Club.from_db_row() can consume for SeatEngine clubs."""
+    defaults = {
+        "id": 99,
+        "name": "Test Club",
+        "address": "123 Main St, New York, NY",
+        "website": "https://testclub.com",
+        "scraping_url": "www.seatengine.com",
+        "popularity": 0,
+        "zip_code": "10001",
+        "phone_number": "",
+        "timezone": "America/New_York",
+        "visible": True,
+        "scraper": "seatengine",
+        "eventbrite_id": None,
+        "ticketmaster_id": None,
+        "seatengine_id": "458",
+        "rate_limit": 1.0,
+        "max_retries": 3,
+        "timeout": 30,
+    }
+    defaults.update(overrides)
+    return defaults
+
+
+class TestUpsertForSeatEngineVenueHappyPath:
+    """Valid venue dict inserts new club and returns Club with correct seatengine_id."""
+
+    def test_returns_club_with_matching_seatengine_id(self):
+        venue = {"id": 458, "name": "McGuire's Comedy Club", "address": "123 Main St", "zip": "10001", "website": ""}
+        row = _make_seatengine_club_row(name="McGuire's Comedy Club", seatengine_id="458")
+
+        handler = ClubHandler()
+        with patch.object(handler, "execute_with_cursor", return_value=[row]):
+            result = handler.upsert_for_seatengine_venue(venue)
+
+        assert result is not None
+        assert isinstance(result, Club)
+        assert result.seatengine_id == "458"
+        assert result.name == "McGuire's Comedy Club"
+
+    def test_passes_correct_params_to_execute(self):
+        """execute_with_cursor receives (name, address, website, venue_id, zip_code)."""
+        venue = {"id": 457, "name": "Brokerage Comedy Club", "address": "200 Elm St", "zip": "11795", "website": "https://brokerage.com"}
+        row = _make_seatengine_club_row(name="Brokerage Comedy Club", seatengine_id="457")
+
+        handler = ClubHandler()
+        with patch.object(handler, "execute_with_cursor", return_value=[row]) as mock_exec:
+            handler.upsert_for_seatengine_venue(venue)
+
+        mock_exec.assert_called_once()
+        params = mock_exec.call_args[0][1]
+        assert params[0] == "Brokerage Comedy Club"   # name
+        assert params[1] == "200 Elm St"              # address
+        assert params[2] == "https://brokerage.com"   # website
+        assert params[3] == "457"                     # venue_id (stringified)
+        assert params[4] == "11795"                   # zip_code
+
+    def test_venue_id_stringified(self):
+        """Numeric id in the dict is converted to string for the DB param."""
+        venue = {"id": 325, "name": "Stress Factory", "address": "", "zip": "", "website": ""}
+        row = _make_seatengine_club_row(name="Stress Factory", seatengine_id="325")
+
+        handler = ClubHandler()
+        with patch.object(handler, "execute_with_cursor", return_value=[row]) as mock_exec:
+            handler.upsert_for_seatengine_venue(venue)
+
+        params = mock_exec.call_args[0][1]
+        assert params[3] == "325"
+
+    def test_postal_code_fallback(self):
+        """zip_code is read from 'postal_code' key when 'zip' is absent."""
+        venue = {"id": 456, "name": "Governors Comedy Club", "address": "", "postal_code": "11520", "website": ""}
+        row = _make_seatengine_club_row(name="Governors Comedy Club", seatengine_id="456", zip_code="11520")
+
+        handler = ClubHandler()
+        with patch.object(handler, "execute_with_cursor", return_value=[row]) as mock_exec:
+            handler.upsert_for_seatengine_venue(venue)
+
+        params = mock_exec.call_args[0][1]
+        assert params[4] == "11520"
+
+
+class TestUpsertForSeatEngineVenueConflict:
+    """Conflict on name preserves existing scraper and seatengine_id via COALESCE."""
+
+    def test_existing_club_retains_original_scraper(self):
+        """When a club already exists with scraper='broadway', it stays 'broadway'."""
+        venue = {"id": 999, "name": "Broadway Comedy Club", "address": "", "zip": "", "website": ""}
+        existing_row = _make_seatengine_club_row(
+            name="Broadway Comedy Club",
+            scraper="broadway",
+            seatengine_id="original-se-id",
+        )
+
+        handler = ClubHandler()
+        with patch.object(handler, "execute_with_cursor", return_value=[existing_row]):
+            result = handler.upsert_for_seatengine_venue(venue)
+
+        assert result is not None
+        assert result.scraper == "broadway"
+
+    def test_existing_club_retains_original_seatengine_id(self):
+        """When a club already has a seatengine_id, it stays unchanged."""
+        venue = {"id": 999, "name": "Broadway Comedy Club", "address": "", "zip": "", "website": ""}
+        existing_row = _make_seatengine_club_row(
+            name="Broadway Comedy Club",
+            seatengine_id="original-se-id",
+            scraper="broadway",
+        )
+
+        handler = ClubHandler()
+        with patch.object(handler, "execute_with_cursor", return_value=[existing_row]):
+            result = handler.upsert_for_seatengine_venue(venue)
+
+        assert result.seatengine_id == "original-se-id"
+
+    def test_sql_uses_coalesce_for_seatengine_id(self):
+        """SQL contract: UPSERT_CLUB_BY_SEATENGINE_VENUE must use COALESCE for seatengine_id."""
+        sql = ClubQueries.UPSERT_CLUB_BY_SEATENGINE_VENUE.upper()
+        assert "COALESCE" in sql
+        assert "SEATENGINE_ID" in sql
+
+    def test_sql_uses_coalesce_for_scraper(self):
+        """SQL contract: UPSERT_CLUB_BY_SEATENGINE_VENUE must use COALESCE for scraper."""
+        sql = ClubQueries.UPSERT_CLUB_BY_SEATENGINE_VENUE.upper()
+        assert "COALESCE" in sql
+        assert "SCRAPER" in sql
+
+
+class TestUpsertForSeatEngineVenueInvalidInput:
+    """Missing/empty id or name returns None without raising."""
+
+    def test_missing_id_returns_none(self):
+        handler = ClubHandler()
+        result = handler.upsert_for_seatengine_venue({"name": "Some Club"})
+        assert result is None
+
+    def test_empty_id_returns_none(self):
+        handler = ClubHandler()
+        result = handler.upsert_for_seatengine_venue({"id": "", "name": "Some Club"})
+        assert result is None
+
+    def test_missing_name_returns_none(self):
+        handler = ClubHandler()
+        result = handler.upsert_for_seatengine_venue({"id": 123})
+        assert result is None
+
+    def test_empty_name_returns_none(self):
+        handler = ClubHandler()
+        result = handler.upsert_for_seatengine_venue({"id": 123, "name": ""})
+        assert result is None
+
+    def test_no_db_call_on_invalid_input(self):
+        """execute_with_cursor must NOT be called when input is invalid."""
+        handler = ClubHandler()
+        with patch.object(handler, "execute_with_cursor") as mock_exec:
+            handler.upsert_for_seatengine_venue({"name": "No Id"})
+            handler.upsert_for_seatengine_venue({"id": "", "name": "Empty Id"})
+            handler.upsert_for_seatengine_venue({"id": 123, "name": None})
+
+        mock_exec.assert_not_called()
+
+    def test_none_returned_when_db_returns_empty(self):
+        """If execute_with_cursor returns [], the method returns None."""
+        venue = {"id": 458, "name": "Valid Club"}
+        handler = ClubHandler()
+        with patch.object(handler, "execute_with_cursor", return_value=[]):
+            result = handler.upsert_for_seatengine_venue(venue)
+        assert result is None
