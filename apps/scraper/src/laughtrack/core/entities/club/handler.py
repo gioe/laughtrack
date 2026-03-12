@@ -168,6 +168,45 @@ class ClubHandler(BaseDatabaseHandler[Club]):
             Logger.error(f"Error upserting club for SeatEngine venue {venue_id}: {e}")
             raise
 
+    def upsert_for_ticketmaster_venue(self, venue: dict) -> Optional[Club]:
+        """
+        Upsert a clubs row for a Ticketmaster venue discovered via the national
+        comedy genre scraper.  On conflict (name), preserves any existing
+        ticketmaster_id, scraper, and timezone values.
+
+        Args:
+            venue: dict from TM Discovery API _embedded.venues[0]
+
+        Returns:
+            Club: the upserted (or existing) club, or None on invalid input
+        """
+        venue_id = (venue.get("id") or "").strip()
+        name = (venue.get("name") or "").strip()
+        if not venue_id or not name:
+            return None
+
+        address_obj = venue.get("address") or {}
+        street = address_obj.get("line1", "")
+        city = (venue.get("city") or {}).get("name", "")
+        state = (venue.get("state") or {}).get("stateCode", "")
+        address_parts = [p for p in [street, city, state] if p]
+        address = ", ".join(address_parts)
+        zip_code = (venue.get("postalCode") or "").strip()
+        timezone = (venue.get("timezone") or "").strip() or None
+
+        try:
+            results = self.execute_with_cursor(
+                ClubQueries.UPSERT_CLUB_BY_TICKETMASTER_VENUE,
+                (name, address, venue_id, zip_code, timezone),
+                return_results=True,
+            )
+            if not results:
+                return None
+            return Club.from_db_row(results[0])
+        except Exception as e:
+            Logger.error(f"Error upserting club for Ticketmaster venue {venue_id}: {e}")
+            raise
+
     def get_clubs_for_scraper(self, scraper_type: str) -> List[Club]:
         """
         Fetch all clubs that use a specific scraper type.

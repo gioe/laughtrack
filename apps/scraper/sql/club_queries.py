@@ -64,3 +64,17 @@ class ClubQueries:
             scraper       = COALESCE(clubs.scraper,       EXCLUDED.scraper)
         RETURNING *
     '''
+
+    UPSERT_CLUB_BY_TICKETMASTER_VENUE = '''
+        INSERT INTO clubs (
+            name, address, website, scraping_url,
+            ticketmaster_id, scraper, visible,
+            zip_code, phone_number, popularity, timezone
+        )
+        VALUES (%s, %s, '', 'www.ticketmaster.com', %s, 'live_nation', true, %s, '', 0, %s)
+        ON CONFLICT (name) DO UPDATE SET
+            ticketmaster_id = COALESCE(clubs.ticketmaster_id, EXCLUDED.ticketmaster_id),
+            scraper         = COALESCE(clubs.scraper,         EXCLUDED.scraper),
+            timezone        = COALESCE(clubs.timezone,        EXCLUDED.timezone)
+        RETURNING *
+    '''
