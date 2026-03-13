@@ -2,12 +2,14 @@ name: Scraper Production Run
 
 on:
   schedule:
+    # Daily at 06:00 UTC (02:00 ET / 22:00 PT)
     - cron: '0 6 * * *'
   workflow_dispatch:
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     defaults:
       run:
         working-directory: apps/scraper
@@ -22,9 +24,10 @@ jobs:
           python-version: "3.13"
 
       - name: Cache pip dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
+          # Only hash requirements.txt — dev deps are not installed in production
           key: ${{ runner.os }}-pip-3.13-${{ hashFiles('apps/scraper/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-3.13-
@@ -58,3 +61,17 @@ jobs:
           SEATENGINE_AUTH_TOKEN: ${{ secrets.SEATENGINE_AUTH_TOKEN }}
         run: |
           python -m scripts.core.scrape_shows --all
+
+      - name: Upload scraper logs
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: scraper-logs-${{ github.run_id }}
+          path: apps/scraper/logs/
+          retention-days: 30
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "::error::Scraper production run failed. Check the logs artifact for details."
+          echo "GitHub will send an email notification to repository administrators."
