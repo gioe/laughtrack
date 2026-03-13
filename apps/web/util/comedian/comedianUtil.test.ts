@@ -36,11 +36,11 @@ describe("filterAndMapLineupItems", () => {
         it("does not throw when userId is set but favoriteComedians is absent (null profileId)", () => {
             const item = makeItem();
             delete (item.comedian as Record<string, unknown>).favoriteComedians;
-            expect(() =>
-                filterAndMapLineupItems([item], "user-1"),
-            ).not.toThrow();
-            const [result] = filterAndMapLineupItems([item], "user-1");
-            expect(result.isFavorite).toBe(false);
+            let result: ReturnType<typeof filterAndMapLineupItems>[0];
+            expect(() => {
+                [result] = filterAndMapLineupItems([item], "user-1");
+            }).not.toThrow();
+            expect(result!.isFavorite).toBe(false);
         });
     });
 });

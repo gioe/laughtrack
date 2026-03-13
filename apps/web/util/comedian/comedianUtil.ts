@@ -30,7 +30,7 @@ export const filterAndMapLineupItems = (
 
 const mapLineupItem = (item: { comedian: any }, userId?: string) => {
     const effectiveComedian = getEffectiveComedian(item.comedian);
-    const isAlias = containsAliasTag(effectiveComedian.taggedComedians);
+    const isAlias = containsAliasTag(effectiveComedian.taggedComedians ?? []);
     return {
         id: effectiveComedian.id,
         uuid: effectiveComedian.uuid,
