@@ -1,11 +1,29 @@
+import { unstable_cache } from "next/cache";
+import { CACHE } from "@/util/constants/cacheConstants";
 import AboutUsSection from "@/ui/pages/about/content";
 import StatsSection from "@/ui/pages/about/stats";
 import { getStats } from "@/lib/data/stats/getStats";
 
-export const dynamic = "force-dynamic";
+export const revalidate = CACHE.stats;
+
+const getCachedStats = unstable_cache(
+    async () => {
+        try {
+            return await getStats();
+        } catch (error) {
+            console.error("About page stats fetch error:", error);
+            return { clubCount: 0, comedianCount: 0, showCount: 0 };
+        }
+    },
+    ["about-page-stats"],
+    {
+        revalidate: CACHE.stats,
+        tags: ["about-page-stats"],
+    },
+);
 
 const AboutPage = async () => {
-    const { clubCount, comedianCount, showCount } = await getStats();
+    const { clubCount, comedianCount, showCount } = await getCachedStats();
 
     return (
         <main className="min-h-screen w-full bg-coconut-cream">
