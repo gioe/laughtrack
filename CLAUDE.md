@@ -44,3 +44,35 @@ Do NOT add `__init__.py` to test directories whose path segments match Python st
 module names (e.g., a directory named `email/` under `tests/`). pytest's rootdir-based
 import mode works without `__init__.py`; adding it causes the test package to shadow
 the stdlib module, producing `ModuleNotFoundError` at import time.
+
+## npm audit fix in apps/web
+
+Due to next-auth beta's strict peer dependency declarations, `npm audit fix`
+will fail with ERESOLVE unless you pass `--legacy-peer-deps`:
+
+    npm audit fix --legacy-peer-deps
+
+Also: lockfile regeneration can silently bump transitive beta deps (e.g.,
+next-auth beta.25 → beta.30). After running audit fix, check `git diff
+apps/web/package-lock.json` for implicit version bumps in packages listed
+in package.json and update the pinned versions there to match.
+
+## Testing Concurrent asyncio Races
+
+`AsyncMock` operations resolve in a single event-loop turn with no suspension.
+A test using `asyncio.gather(coroutine_a(), coroutine_b())` may pass even when
+a TOCTOU race bug is present, because one coroutine completes entirely before
+the other begins — the race window never opens.
+
+To properly force a race, use `asyncio.Event` + a `side_effect` that does
+`await asyncio.sleep(0)` at the critical point to yield control to competing
+coroutines. Example:
+
+```python
+entered = asyncio.Event()
+async def slow_side_effect(*args, **kwargs):
+    entered.set()            # signal we are inside the critical section
+    await asyncio.sleep(0)   # yield so the competing coroutine can run
+    return mock.return_value
+mock.side_effect = slow_side_effect
+```

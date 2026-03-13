@@ -106,9 +106,9 @@ dupe_rc=$?
 
 # Exit code 1 from tusk dupes = duplicates found
 if [ "$dupe_rc" -eq 1 ]; then
-  echo "Duplicate task detected! Similar tasks found for summary:"
-  echo "  '$summary'"
-  echo ""
+  echo "Duplicate task detected! Similar tasks found for summary:" >&2
+  echo "  '$summary'" >&2
+  echo "" >&2
   echo "$dupe_output" | python3 -c "
 import sys, json
 try:
@@ -117,9 +117,9 @@ try:
         print(f\"  TASK-{d['id']} ({d['similarity']:.0%} match): {d['summary']}\")
 except:
     pass
-" 2>/dev/null
-  echo ""
-  echo "Run 'tusk dupes check \"<summary>\"' to review, or close the duplicate first."
+" 2>/dev/null >&2
+  echo "" >&2
+  echo "Run 'tusk dupes check \"<summary>\"' to review, or close the duplicate first." >&2
   exit 2
 fi
 

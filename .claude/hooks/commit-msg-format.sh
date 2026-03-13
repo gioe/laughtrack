@@ -53,7 +53,10 @@ result=$(TUSK_CMD="$command" python3 "$tmppy" 2>/dev/null)
 rm -f "$tmppy"
 
 if [[ "$result" == "WARN" ]]; then
-  echo "Warning: commit message does not start with [TASK-<id>]. Use 'tusk commit <id> \"<message>\" <files>' to enforce this format automatically."
+  python3 -c "
+import json
+print(json.dumps({'hookSpecificOutput': {'hookEventName': 'PreToolUse', 'additionalContext': \"Warning: commit message does not start with [TASK-<id>]. Use 'tusk commit <id> \\\"<message>\\\" <files>' to enforce this format automatically.\"}}))
+"
 fi
 
 exit 0
