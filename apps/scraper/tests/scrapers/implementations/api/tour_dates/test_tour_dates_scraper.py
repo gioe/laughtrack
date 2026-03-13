@@ -233,13 +233,17 @@ def test_songkick_event_to_show_creates_show_for_us_event(platform_club):
 
     with patch.object(
         scraper._club_handler, "upsert_for_tour_date_venue", return_value=venue_club
-    ):
+    ) as mock_upsert:
         show = scraper._songkick_event_to_show(us_event, comedian)
 
     assert show is not None
     assert show.club_id == 1
     assert show.lineup == [comedian]
     assert "John Mulaney" in show.name
+
+    # Verify address is correctly parsed from "New York, NY, US" → "New York, NY"
+    venue_dict = mock_upsert.call_args[0][0]
+    assert venue_dict["address"] == "New York, NY"
 
 
 # ------------------------------------------------------------------ #
