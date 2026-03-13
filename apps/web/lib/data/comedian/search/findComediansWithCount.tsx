@@ -93,7 +93,7 @@ export async function findComediansWithCount(
             comedians: filteredComedians.map((comedian) => {
                 const effectiveComedian = getEffectiveComedian(comedian);
                 const isAlias = containsAliasTag(
-                    effectiveComedian.taggedComedians,
+                    effectiveComedian.taggedComedians ?? [],
                 );
 
                 return {

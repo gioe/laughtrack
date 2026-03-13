@@ -118,8 +118,11 @@ describe("containsAliasTag", () => {
 
     it("does not throw and returns false when a taggedComedian entry has a null tag", () => {
         const taggedComedians = [{ tag: null }, { tag: { slug: "headliner" } }];
-        expect(() => containsAliasTag(taggedComedians)).not.toThrow();
-        expect(containsAliasTag(taggedComedians)).toBe(false);
+        let result: boolean;
+        expect(() => {
+            result = containsAliasTag(taggedComedians);
+        }).not.toThrow();
+        expect(result!).toBe(false);
     });
 
     it("does not throw and returns false when a taggedComedian entry has an undefined tag", () => {
@@ -127,8 +130,11 @@ describe("containsAliasTag", () => {
             { tag: undefined },
             { tag: { slug: "headliner" } },
         ];
-        expect(() => containsAliasTag(taggedComedians)).not.toThrow();
-        expect(containsAliasTag(taggedComedians)).toBe(false);
+        let result: boolean;
+        expect(() => {
+            result = containsAliasTag(taggedComedians);
+        }).not.toThrow();
+        expect(result!).toBe(false);
     });
 });
 
