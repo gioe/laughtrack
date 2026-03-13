@@ -184,10 +184,12 @@ async def test_scrape_async_skips_comedian_on_api_error(platform_club):
 
     with patch.object(scraper, "_get_comedians_with_tour_ids", return_value=[comedian_ok, comedian_bad]):
         with patch.object(scraper, "_fetch_songkick_shows", side_effect=fake_fetch_songkick):
-            with pytest.raises(RuntimeError):
-                # The error propagates; individual comedian error isolation
-                # is the caller's responsibility (per national scraper pattern)
-                await scraper.scrape_async()
+            with patch.object(scraper, "_persist_shows_and_lineups"):
+                shows = await scraper.scrape_async()
+
+    # The bad comedian is skipped; the good comedian's show is still returned
+    assert len(shows) == 1
+    assert shows[0].club_id == 1
 
 
 # ------------------------------------------------------------------ #
@@ -323,3 +325,63 @@ def test_parse_datetime_returns_none_for_invalid(platform_club):
     scraper = TourDatesScraper(platform_club)
     dt = scraper._parse_datetime("not-a-date")
     assert dt is None
+
+
+# ------------------------------------------------------------------ #
+# _persist_shows_and_lineups                                          #
+# ------------------------------------------------------------------ #
+
+def test_persist_shows_and_lineups_links_lineups(platform_club):
+    """After insert_shows() sets IDs, batch_update_lineups is called with those shows."""
+    from laughtrack.core.entities.comedian.model import Comedian
+
+    future_date = datetime(2027, 9, 1, 20, 0, tzinfo=timezone.utc)
+    comedian = Comedian(name="Test Comic", uuid="test-uuid")
+    show = Show(
+        name="Test Comic at Venue",
+        club_id=1,
+        date=future_date,
+        show_page_url="https://www.songkick.com/concerts/42",
+        lineup=[comedian],
+    )
+
+    def fake_insert_shows(shows):
+        # Simulate ShowHandler setting show IDs on the original objects
+        for s in shows:
+            s.id = 99
+
+    scraper = TourDatesScraper(platform_club)
+
+    with patch.object(scraper._show_handler, "insert_shows", side_effect=fake_insert_shows):
+        with patch.object(
+            scraper._lineup_handler, "batch_update_lineups"
+        ) as mock_lineups:
+            scraper._persist_shows_and_lineups([show])
+
+    mock_lineups.assert_called_once()
+    called_shows = mock_lineups.call_args[0][0]
+    assert len(called_shows) == 1
+    assert called_shows[0].id == 99
+
+
+def test_persist_shows_and_lineups_skips_lineup_when_no_ids(platform_club):
+    """If insert_shows() fails to set IDs, lineup insertion is skipped gracefully."""
+    future_date = datetime(2027, 9, 2, 20, 0, tzinfo=timezone.utc)
+    show = Show(
+        name="Test Comic at Venue",
+        club_id=1,
+        date=future_date,
+        show_page_url="https://www.songkick.com/concerts/43",
+        lineup=[],
+    )
+    # show.id remains None — simulates insert returning no IDs
+
+    scraper = TourDatesScraper(platform_club)
+
+    with patch.object(scraper._show_handler, "insert_shows"):
+        with patch.object(
+            scraper._lineup_handler, "batch_update_lineups"
+        ) as mock_lineups:
+            scraper._persist_shows_and_lineups([show])
+
+    mock_lineups.assert_not_called()

@@ -17,6 +17,7 @@ from urllib.parse import urlencode
 
 from laughtrack.core.entities.club.handler import ClubHandler
 from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.comedian.handler import ComedianHandler
 from laughtrack.core.entities.comedian.model import Comedian
 from laughtrack.core.entities.lineup.handler import LineupHandler
 from laughtrack.core.entities.show.handler import ShowHandler
@@ -60,6 +61,7 @@ class TourDatesScraper(BaseScraper):
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
         self._club_handler = ClubHandler()
+        self._comedian_handler = ComedianHandler()
         self._show_handler = ShowHandler()
         self._lineup_handler = LineupHandler()
         self._songkick_api_key: Optional[str] = ConfigManager.get_config("api", "songkick_api_key")
@@ -94,18 +96,25 @@ class TourDatesScraper(BaseScraper):
 
             for row in comedian_rows:
                 comedian = Comedian(name=row["name"], uuid=row["uuid"])
-                shows: List[Show] = []
+                try:
+                    shows: List[Show] = []
 
-                if row.get("songkick_id") and self._songkick_api_key:
-                    shows.extend(
-                        await self._fetch_songkick_shows(comedian, row["songkick_id"])
-                    )
-                if row.get("bandsintown_id") and self._bandsintown_app_id:
-                    shows.extend(
-                        await self._fetch_bandsintown_shows(comedian, row["bandsintown_id"])
-                    )
+                    if row.get("songkick_id") and self._songkick_api_key:
+                        shows.extend(
+                            await self._fetch_songkick_shows(comedian, row["songkick_id"])
+                        )
+                    if row.get("bandsintown_id") and self._bandsintown_app_id:
+                        shows.extend(
+                            await self._fetch_bandsintown_shows(comedian, row["bandsintown_id"])
+                        )
 
-                all_shows.extend(shows)
+                    all_shows.extend(shows)
+                except Exception as e:
+                    Logger.error(
+                        f"TourDates: skipping comedian '{comedian.name}' due to error: {e}",
+                        self.logger_context,
+                    )
+                    continue
 
             Logger.info(
                 f"TourDates: discovered {len(all_shows)} total tour-date shows",
@@ -208,9 +217,9 @@ class TourDatesScraper(BaseScraper):
             if event_dt < datetime.now(tz=timezone.utc):
                 return None
 
-            # Build address from city string components
-            parts = [p.strip() for p in city_str.rstrip(", US").split(",")]
-            # parts typically: ["New York", "NY"] — drop the trailing ", US"
+            # Build address from city string components ("New York, NY, US" → "New York, NY")
+            city_core = city_str.removesuffix(", US")
+            parts = [p.strip() for p in city_core.split(",")]
             state = parts[-1].strip() if len(parts) >= 2 else ""
             city = parts[0].strip() if parts else ""
             address = f"{city}, {state}" if state else city
@@ -251,7 +260,7 @@ class TourDatesScraper(BaseScraper):
 
     async def _fetch_bandsintown_shows(self, comedian: Comedian, artist_id: str) -> List[Show]:
         """Fetch upcoming US tour dates from the BandsInTown artist events API."""
-        now = datetime.utcnow()
+        now = datetime.now(tz=timezone.utc)
         date_from = now.strftime("%Y-%m-%d")
         date_to = (now + timedelta(days=365)).strftime("%Y-%m-%d")
 
@@ -378,7 +387,7 @@ class TourDatesScraper(BaseScraper):
 
     def _get_comedians_with_tour_ids(self) -> List[dict]:
         """Query all comedians that have a songkick_id or bandsintown_id."""
-        results = self._club_handler.execute_with_cursor(
+        results = self._comedian_handler.execute_with_cursor(
             ComedianQueries.GET_COMEDIANS_WITH_TOUR_IDS,
             return_results=True,
         )
