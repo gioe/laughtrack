@@ -2,6 +2,21 @@
 
 `db.get_connection()` (and `db.get_connection(autocommit=True)`) opens a psycopg2 connection with `autocommit=True` by default. Each `cur.execute()` commits immediately — no explicit `conn.commit()` is required. Use `db.get_transaction()` only when you need multi-statement atomicity.
 
+## Prisma Interactive Transactions (Neon Serverless)
+
+`db.$transaction(async (tx) => { ... })` **works correctly** with this project's Neon setup.
+The project uses `@prisma/adapter-neon` with `@neondatabase/serverless` Pool (WebSocket
+protocol), which connects directly to the Neon compute endpoint — not through PgBouncer.
+The PgBouncer transaction-mode limitation (which blocks interactive transactions) does NOT
+apply here.
+
+When setting a specific isolation level, use the Prisma enum:
+```ts
+db.$transaction(async (tx) => { ... }, {
+    isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead,
+})
+```
+
 ## Prisma Migrations
 
 `prisma migrate dev` **cannot be run locally** in this project for two reasons:
