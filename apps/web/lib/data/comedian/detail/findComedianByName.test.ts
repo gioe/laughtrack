@@ -43,6 +43,8 @@ function makeComedianRow(
         totalShows: number;
         soldOutShows: number;
         parentComedianId: number | null;
+        songkickId: string | null;
+        bandsintownId: string | null;
         lineupItems: { id: number }[];
         favoriteComedians: { id: number }[];
     }> = {},
@@ -63,6 +65,8 @@ function makeComedianRow(
         totalShows: 0,
         soldOutShows: 0,
         parentComedianId: null,
+        songkickId: null,
+        bandsintownId: null,
         lineupItems: [{ id: 10 }, { id: 11 }, { id: 12 }],
         favoriteComedians: [],
         ...overrides,
