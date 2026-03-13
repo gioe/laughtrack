@@ -16,7 +16,7 @@ Triggered by a single clubs row with scraper='ticketmaster_national'.
 import asyncio
 from collections import defaultdict
 from datetime import datetime, timedelta
-from typing import List, Optional
+from typing import List
 from urllib.parse import urlencode
 
 from laughtrack.core.clients.ticketmaster.client import TicketmasterClient
@@ -92,8 +92,9 @@ class TicketmasterNationalScraper(BaseScraper):
 
     async def _fetch_national_comedy_events(self) -> list:
         """Paginate through the Ticketmaster Discovery API for US comedy events."""
-        start_dt = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-        end_dt = (datetime.utcnow() + timedelta(days=180)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        now = datetime.utcnow()
+        start_dt = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+        end_dt = (now + timedelta(days=180)).strftime("%Y-%m-%dT%H:%M:%SZ")
 
         base_params = {
             "apikey": self._api_key,
