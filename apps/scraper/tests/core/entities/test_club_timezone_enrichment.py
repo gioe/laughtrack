@@ -250,6 +250,5 @@ class TestEnrichTimezones:
         assert count == 2
         # Single batch call — not one per club
         mock_batch.assert_called_once()
-        _, call_kwargs = mock_batch.call_args
         items = mock_batch.call_args[0][1]
         assert set(items) == {(1, "America/New_York"), (2, "America/Los_Angeles")}

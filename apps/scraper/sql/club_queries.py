@@ -71,13 +71,6 @@ class ClubQueries:
         ORDER BY id
     '''
 
-    UPDATE_CLUB_TIMEZONE = '''
-        UPDATE clubs
-        SET timezone = %s
-        WHERE id = %s AND timezone IS NULL
-        RETURNING id
-    '''
-
     BATCH_UPDATE_CLUB_TIMEZONES = '''
         UPDATE clubs AS c
         SET timezone = v.timezone
