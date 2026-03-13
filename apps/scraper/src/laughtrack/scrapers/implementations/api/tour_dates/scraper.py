@@ -11,6 +11,7 @@ Triggered by a single clubs row with scraper='tour_dates'.
 """
 
 import asyncio
+import os
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional
 from urllib.parse import urlencode
@@ -54,6 +55,7 @@ class TourDatesScraper(BaseScraper):
     key = "tour_dates"
 
     _SONGKICK_BASE_URL = "https://api.songkick.com/api/3.0"
+    _DEFAULT_MAX_CONCURRENT_COMEDIANS = 5
     _BANDSINTOWN_BASE_URL = "https://rest.bandsintown.com/v3"
     _REQUEST_TIMEOUT = 30
     _MAX_PAGES = 20
@@ -79,8 +81,12 @@ class TourDatesScraper(BaseScraper):
         """Not used: scrape_async is fully overridden."""
         return None  # pragma: no cover
 
+    @property
+    def _max_concurrent_comedians(self) -> int:
+        return int(os.environ.get("MAX_CONCURRENT_COMEDIANS", self._DEFAULT_MAX_CONCURRENT_COMEDIANS))
+
     async def scrape_async(self) -> List[Show]:
-        """Override: fetch tour dates per comedian, upsert venues, persist shows + lineups."""
+        """Override: fetch tour dates per comedian concurrently, upsert venues, persist shows + lineups."""
         try:
             comedian_rows = self._get_comedians_with_tour_ids()
             if not comedian_rows:
@@ -92,29 +98,11 @@ class TourDatesScraper(BaseScraper):
                 self.logger_context,
             )
 
-            all_shows: List[Show] = []
-
-            for row in comedian_rows:
-                comedian = Comedian(name=row["name"], uuid=row["uuid"])
-                try:
-                    shows: List[Show] = []
-
-                    if row.get("songkick_id") and self._songkick_api_key:
-                        shows.extend(
-                            await self._fetch_songkick_shows(comedian, row["songkick_id"])
-                        )
-                    if row.get("bandsintown_id") and self._bandsintown_app_id:
-                        shows.extend(
-                            await self._fetch_bandsintown_shows(comedian, row["bandsintown_id"])
-                        )
-
-                    all_shows.extend(shows)
-                except Exception as e:
-                    Logger.error(
-                        f"TourDates: skipping comedian '{comedian.name}' due to error: {e}",
-                        self.logger_context,
-                    )
-                    continue
+            semaphore = asyncio.Semaphore(self._max_concurrent_comedians)
+            results = await asyncio.gather(
+                *[self._scrape_comedian(row, semaphore) for row in comedian_rows]
+            )
+            all_shows: List[Show] = [show for shows in results for show in shows]
 
             Logger.info(
                 f"TourDates: discovered {len(all_shows)} total tour-date shows",
@@ -133,6 +121,28 @@ class TourDatesScraper(BaseScraper):
             raise
         finally:
             await self._cleanup_resources()
+
+    async def _scrape_comedian(self, row: dict, semaphore: asyncio.Semaphore) -> List[Show]:
+        """Fetch tour dates for a single comedian, guarded by the concurrency semaphore."""
+        comedian = Comedian(name=row["name"], uuid=row["uuid"])
+        async with semaphore:
+            try:
+                shows: List[Show] = []
+                if row.get("songkick_id") and self._songkick_api_key:
+                    shows.extend(
+                        await self._fetch_songkick_shows(comedian, row["songkick_id"])
+                    )
+                if row.get("bandsintown_id") and self._bandsintown_app_id:
+                    shows.extend(
+                        await self._fetch_bandsintown_shows(comedian, row["bandsintown_id"])
+                    )
+                return shows
+            except Exception as e:
+                Logger.error(
+                    f"TourDates: skipping comedian '{comedian.name}' due to error: {e}",
+                    self.logger_context,
+                )
+                return []
 
     # ------------------------------------------------------------------ #
     # Songkick                                                             #
