@@ -46,6 +46,8 @@ model Comedian {
   totalShows         Int                @default(0) @map("total_shows")
   soldOutShows       Int                @default(0) @map("sold_out_shows")
   linktree           String?
+  songkickId         String?            @map("songkick_id")
+  bandsintownId      String?            @map("bandsintown_id")
   parentComedianId   Int?               @map("parent_comedian_id")
   parentComedian     Comedian?          @relation("ComedianAliases", fields: [parentComedianId], references: [id])
   alternativeNames   Comedian[]         @relation("ComedianAliases")
