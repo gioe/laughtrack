@@ -24,25 +24,27 @@ Copy `.env.example` to `.env.local` for local development, or add these to your 
 
 | Variable | Required | Description |
 |---|---|---|
-| `DATABASE_URL` | Yes | Pooled connection URL used by Prisma at runtime. For Neon: use the **pooled** connection string (includes `?pgbouncer=true`). |
-| `DIRECT_URL` | Yes | **Non-pooled** Neon connection URL. Must be the direct endpoint — not the pooled one. Required for `prisma migrate deploy` to work. |
+| `DATABASE_URL` | Yes | Neon connection URL used by Prisma at runtime. Use the **pooled** Neon endpoint (the one whose hostname ends in `-pooler.`). Do **not** append `?pgbouncer=true` — this project uses `@prisma/adapter-neon` with the WebSocket protocol, which connects directly to the Neon compute endpoint, bypassing PgBouncer entirely. |
+| `DIRECT_URL` | Yes | **Non-pooled** Neon connection URL (direct endpoint, no `-pooler.` in the hostname). Required for `prisma migrate deploy` to work. |
 
-> **Important:** `DIRECT_URL` must be the **non-pooled** Neon URL (the one that does **not** include `?pgbouncer=true`). Prisma uses this URL when running migrations. If you point it at the pooled endpoint, `prisma migrate deploy` will fail with a transaction error.
+> **Important:** `DIRECT_URL` must be the **non-pooled** Neon URL. Prisma uses this URL when running migrations — the pooled endpoint blocks the advisory locks that migration tracking requires.
 
 In the Neon dashboard, find both URLs under **Connection Details**:
-- Pooled → `DATABASE_URL`
-- Direct → `DIRECT_URL`
+- Pooled endpoint → `DATABASE_URL`
+- Direct endpoint → `DIRECT_URL`
+
+> **Note on `?pgbouncer=true`:** This parameter is only for the Prisma HTTP/PgBouncer connection mode. This project uses `@prisma/adapter-neon` with `@neondatabase/serverless` (WebSocket), which is not subject to PgBouncer's transaction-mode restrictions. Do not add `?pgbouncer=true` to either URL.
 
 ### Authentication (Required)
 
 | Variable | Required | Description |
 |---|---|---|
-| `NEXTAUTH_SECRET` | Yes | Random secret used to sign session tokens. Generate with: `openssl rand -base64 32` |
-| `AUTH_URL` | Yes | Canonical URL of the app (e.g. `https://laughtrack.com`). Required on Cloud Run where the host cannot be inferred. Use `http://localhost:3000` locally. |
+| `NEXTAUTH_SECRET` | Yes | Random secret used to sign session tokens. Generate with: `openssl rand -base64 32`. **Rotating this secret invalidates all active user sessions immediately.** |
+| `AUTH_URL` | Yes (Cloud Run) / No (Vercel) | Canonical URL of the app (e.g. `https://laughtrack.com`). Required on Cloud Run where the host cannot be inferred from the request. On Vercel, NextAuth v5 auto-detects the URL from `VERCEL_URL`. Use `http://localhost:3000` locally. |
 | `AUTH_GOOGLE_ID` | Yes | Google OAuth client ID. Create credentials at [console.cloud.google.com](https://console.cloud.google.com). |
 | `AUTH_GOOGLE_SECRET` | Yes | Google OAuth client secret. |
-| `AUTH_APPLE_ID` | No | Apple Sign In service ID. Added post-TASK-91. See setup instructions below. |
-| `AUTH_APPLE_SECRET` | No | Apple Sign In private key (.p8 file contents). Added post-TASK-91. See setup instructions below. |
+| `AUTH_APPLE_ID` | No | Apple Sign In service ID. Added post-TASK-91. See setup instructions below. Both `AUTH_APPLE_ID` and `AUTH_APPLE_SECRET` must be set together — the Apple provider is always registered in `auth.ts` and will fail at sign-in if either var is missing. |
+| `AUTH_APPLE_SECRET` | No | Apple Sign In private key (.p8 file contents). Added post-TASK-91. |
 
 #### Generating NEXTAUTH_SECRET
 
@@ -50,9 +52,11 @@ In the Neon dashboard, find both URLs under **Connection Details**:
 openssl rand -base64 32
 ```
 
+> **Operational note:** `NEXTAUTH_SECRET` and `SECRET_KEY` must be identical across all running instances (e.g. multiple Cloud Run revisions or Vercel preview deployments sharing the same Neon DB). Changing `NEXTAUTH_SECRET` in production will immediately log out all users.
+
 #### Apple Sign In Setup (AUTH_APPLE_ID / AUTH_APPLE_SECRET)
 
-Apple OAuth credentials were added in TASK-91 and are optional — the app works without them (Google and magic-link email sign-in remain available).
+Apple OAuth credentials were added in TASK-91 and are optional — the app works without them (Google and magic-link email sign-in remain available). However, if either variable is absent, the Apple sign-in button will appear but fail.
 
 To enable Apple Sign In:
 
@@ -63,6 +67,7 @@ To enable Apple Sign In:
    ```
    -----BEGIN PRIVATE KEY-----\nMIGT...\n-----END PRIVATE KEY-----
    ```
+   > **Warning:** Some hosting provider UIs (including certain Vercel flows) will double-escape the backslash, breaking Apple Sign In silently. Verify the stored value contains single `\n` sequences, not `\\n`. Test Apple auth end-to-end in staging before relying on it in production.
 5. Add the OAuth redirect URL `https://your-domain.com/api/auth/callback/apple` to the Services ID configuration
 
 ### Email / Magic-Link Sign-In (Required in Production)
@@ -94,16 +99,24 @@ For Gmail, create an **App Password** at [myaccount.google.com/apppasswords](htt
 
 ### Public App Config (Required)
 
+> **Build-time requirement:** Variables prefixed with `NEXT_PUBLIC_` are statically inlined into the JavaScript bundle at build time by Next.js. They **must** be set in the build environment (e.g. as Vercel build-time env vars), not only as runtime secrets. If set only at runtime, they will be `undefined` in all client-side code.
+
 | Variable | Required | Description |
 |---|---|---|
-| `NEXT_PUBLIC_WEBSITE_URL` | Yes | Canonical URL of the site (e.g. `https://laughtrack.com`). Used for absolute URLs and OG meta tags. |
+| `NEXT_PUBLIC_WEBSITE_URL` | Yes | Canonical URL of the site (e.g. `https://laughtrack.com`). Used for absolute URLs and OG meta tags. **Must be a build-time env var** — see note above. |
 | `CORS_ALLOWED_ORIGINS` | No | Comma-separated list of allowed CORS origins. Defaults to `NEXT_PUBLIC_WEBSITE_URL` if not set. |
 
 ### Error Tracking (Optional)
 
 | Variable | Required | Description |
 |---|---|---|
-| `NEXT_PUBLIC_SENTRY_DSN` | No | Sentry DSN from your project's Client Keys page. Leave empty in development. |
+| `NEXT_PUBLIC_SENTRY_DSN` | No | Sentry DSN from your project's Client Keys page. Leave empty in development. **Must be a build-time env var** — this value is inlined at build time into server, edge, and client Sentry configs. Setting it only as a runtime secret will result in Sentry being silently disabled. |
+
+### Storage (Optional)
+
+| Variable | Required | Description |
+|---|---|---|
+| `DIRECTORY_PATH` | No | Absolute path to a local directory for file storage (e.g. `/tmp/laughtrack`). Not required in Cloud Run or Vercel deployments where this path is unused. |
 
 ### Cloud Run (Auto-Set)
 
@@ -115,14 +128,18 @@ For Gmail, create an **App Password** at [myaccount.google.com/apppasswords](htt
 
 ## Running Migrations
 
-Always use `prisma migrate deploy` (not `prisma migrate dev`) in production:
+> **Important:** `prisma migrate dev` cannot be used in **any** environment (local or production) in this project. The shadow database validation fails on a migration that requires existing data (`Gotham Comedy Club` must exist). Always use `prisma migrate deploy`.
+>
+> For new migrations: write the SQL manually, create the directory `prisma/migrations/<timestamp>_<name>/migration.sql`, update `prisma/schema.prisma`, and commit both files. Then run `prisma migrate deploy` to apply.
 
 ```bash
 cd apps/web
-DATABASE_URL="<pooled-url>" DIRECT_URL="<direct-url>" npx prisma migrate deploy
+npx prisma migrate deploy
 ```
 
-`DIRECT_URL` must be set to the **non-pooled** Neon endpoint. The pooled endpoint uses PgBouncer in transaction mode which blocks the advisory locks that migration tracking requires.
+Ensure `DATABASE_URL` and `DIRECT_URL` are set in the environment before running. `DIRECT_URL` must point to the non-pooled Neon endpoint.
+
+> **Migration timing:** Always run `prisma migrate deploy` **before** the new app version goes live. On Vercel, add it as a build command (`npx prisma migrate deploy && next build`) or run it manually before triggering a deploy. Deploying the new code before the schema is updated will cause runtime errors.
 
 ---
 
@@ -130,14 +147,19 @@ DATABASE_URL="<pooled-url>" DIRECT_URL="<direct-url>" npx prisma migrate deploy
 
 1. Connect the repo in the Vercel dashboard
 2. Set the **Root Directory** to `apps/web`
-3. Add all required environment variables in **Settings → Environment Variables**
-4. Vercel runs `npm run build` automatically on each push to `main`
+3. Add all required environment variables in **Settings → Environment Variables** — ensure `NEXT_PUBLIC_*` vars are set as **build-time** variables (not runtime-only)
+4. Add `npx prisma migrate deploy &&` before `next build` in the build command if you want migrations to run automatically on deploy
+5. Vercel runs the build command automatically on each push to `main`
+
+> **Rollback:** If a deploy is broken, use **Vercel dashboard → Deployments → Promote** to instantly revert to the previous deployment. The Vercel CLI also supports `vercel rollback`. Note that rolling back code does not roll back database schema migrations.
 
 ---
 
 ## Scraper Secrets (GitHub Actions)
 
 The Python scraper runs via GitHub Actions. Add scraper secrets under **GitHub repo Settings → Secrets and variables → Actions**:
+
+> **Note:** The scraper uses individual `DATABASE_HOST / DATABASE_NAME / DATABASE_USER / DATABASE_PASSWORD / DATABASE_PORT` variables rather than a single connection string (psycopg2 vs Prisma). Both connect to the same Neon database.
 
 | Secret | Description |
 |---|---|
@@ -150,17 +172,20 @@ The Python scraper runs via GitHub Actions. Add scraper secrets under **GitHub r
 | `EMAIL_SMTP_PORT` | SMTP port |
 | `EMAIL_SMTP_USERNAME` | SMTP username |
 | `EMAIL_SMTP_PASSWORD` | SMTP password |
-| `EMAIL_SMTP_USE_TLS` | `"true"` or `"false"` |
+| `EMAIL_SMTP_USE_TLS` | `"true"` or `"false"` — for STARTTLS (port 587) |
+| `EMAIL_SMTP_USE_SSL` | `"true"` or `"false"` — for SSL (port 465); set to `"false"` when using TLS |
 | `EMAIL_FROM_EMAIL` | From address for scraping reports |
-| `EMAIL_SCRAPING_REPORT_RECIPIENTS` | Comma-separated list of report recipients |
+| `ALERT_RECIPIENTS` | Comma-separated list of email addresses to receive scraping alerts |
+| `MONITORING_WEBHOOK_URL` | (Optional) Webhook URL for monitoring alerts (e.g. Slack incoming webhook) |
 | `TICKETMASTER_API_KEY` | (Optional) Ticketmaster API key |
 | `SONGKICK_API_KEY` | (Optional) Songkick API key |
 | `BANDSINTOWN_APP_ID` | (Optional) Bandsintown app ID |
 | `EVENTBRITE_PRIVATE_TOKEN` | (Optional) Eventbrite private token |
+| `SEATENGINE_AUTH_TOKEN` | (Optional) SeatEngine auth token — the scraper has a built-in default but production deployments should set this explicitly |
 | `SLACK_WEBHOOK_URL` | (Optional) Slack webhook for scraping alerts |
 | `MAX_CONCURRENT_CLUBS` | (Optional) Max clubs scraped simultaneously (default: `5`) |
 
-These secrets are injected into the scraper GitHub Actions workflow at runtime and are never stored in the repository.
+These secrets are consumed by the scraper application and should be added to any GitHub Actions workflow that runs the scraper in production.
 
 ---
 
@@ -171,17 +196,18 @@ These secrets are injected into the scraper GitHub Actions workflow at runtime a
 - `DATABASE_URL`
 - `DIRECT_URL`
 - `NEXTAUTH_SECRET`
-- `AUTH_URL`
+- `AUTH_URL` (required on Cloud Run; optional on Vercel)
 - `AUTH_GOOGLE_ID`
 - `AUTH_GOOGLE_SECRET`
 - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_SECURE`, `EMAIL_FROM`
 - `BUNNYCDN_CDN_HOST`
 - `SECRET_KEY`
-- `NEXT_PUBLIC_WEBSITE_URL`
+- `NEXT_PUBLIC_WEBSITE_URL` **(build-time)**
 
 ### Optional
 
-- `AUTH_APPLE_ID`, `AUTH_APPLE_SECRET` — enables Apple Sign In
+- `AUTH_APPLE_ID`, `AUTH_APPLE_SECRET` — enables Apple Sign In (both required together)
 - `CORS_ALLOWED_ORIGINS` — defaults to `NEXT_PUBLIC_WEBSITE_URL`
-- `NEXT_PUBLIC_SENTRY_DSN` — enables Sentry error tracking
+- `NEXT_PUBLIC_SENTRY_DSN` — enables Sentry error tracking **(build-time)**
+- `DIRECTORY_PATH` — local file storage path (not needed on Vercel/Cloud Run)
 - `K_REVISION` — auto-set by Cloud Run, do not set manually
