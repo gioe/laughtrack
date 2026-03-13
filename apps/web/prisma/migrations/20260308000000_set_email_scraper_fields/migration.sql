@@ -11,8 +11,8 @@ BEGIN
 
     -- Comedy Cellar: set scraper='comedy_cellar_email' (idempotent: skip if already set)
     UPDATE "clubs" SET scraper = 'comedy_cellar_email'
-    WHERE name = 'Comedy Cellar' AND scraper IS DISTINCT FROM 'comedy_cellar_email';
-    IF NOT EXISTS (SELECT 1 FROM "clubs" WHERE name = 'Comedy Cellar') THEN
-        RAISE EXCEPTION 'Club "Comedy Cellar" not found — check clubs.name matches exactly.';
+    WHERE name = 'Comedy Cellar New York' AND scraper IS DISTINCT FROM 'comedy_cellar_email';
+    IF NOT EXISTS (SELECT 1 FROM "clubs" WHERE name = 'Comedy Cellar New York') THEN
+        RAISE EXCEPTION 'Club "Comedy Cellar New York" not found — check clubs.name matches exactly.';
     END IF;
 END $$;
