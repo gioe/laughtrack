@@ -171,44 +171,43 @@ class TestTimezoneFromAddress:
 
 class TestEnrichTimezones:
     def test_updates_club_with_resolved_timezone(self):
-        """A club whose address resolves to a timezone is updated in the DB."""
+        """A club whose address resolves to a timezone is batch-updated in the DB."""
         row = _make_club_row(id=10, name="Comedy Cellar", address="117 MacDougal St, New York, NY")
         handler = ClubHandler()
 
-        call_results = [
-            [row],       # GET_CLUBS_WITH_NULL_TIMEZONE
-            [{"id": 10}],  # UPDATE_CLUB_TIMEZONE
-        ]
-        with patch.object(handler, "execute_with_cursor", side_effect=call_results) as mock_exec:
+        with patch.object(handler, "execute_with_cursor", return_value=[row]), \
+             patch.object(handler, "execute_batch_operation", return_value=[{"id": 10}]) as mock_batch:
             count = handler.enrich_timezones(scraper="eventbrite")
 
         assert count == 1
-        # Second call must use UPDATE query with correct timezone and club id
-        update_call = mock_exec.call_args_list[1]
-        assert update_call[0][0] == ClubQueries.UPDATE_CLUB_TIMEZONE
-        assert update_call[0][1] == ("America/New_York", 10)
+        mock_batch.assert_called_once_with(
+            ClubQueries.BATCH_UPDATE_CLUB_TIMEZONES,
+            [(10, "America/New_York")],
+            return_results=True,
+        )
 
     def test_skips_club_with_unresolvable_timezone(self):
-        """A club whose address has no recognisable state is skipped without error."""
+        """A club whose address has no recognisable state skips the batch UPDATE entirely."""
         row = _make_club_row(id=20, name="Mystery Club", address="Somewhere, Abroad, XX")
         handler = ClubHandler()
 
-        with patch.object(handler, "execute_with_cursor", return_value=[row]) as mock_exec:
+        with patch.object(handler, "execute_with_cursor", return_value=[row]), \
+             patch.object(handler, "execute_batch_operation") as mock_batch:
             count = handler.enrich_timezones(scraper="eventbrite")
 
         assert count == 0
-        # Only the SELECT should have been called; no UPDATE
-        assert mock_exec.call_count == 1
+        mock_batch.assert_not_called()
 
     def test_returns_zero_when_no_clubs_found(self):
-        """Returns 0 and does not call UPDATE when the SELECT returns nothing."""
+        """Returns 0 and does not call batch UPDATE when the SELECT returns nothing."""
         handler = ClubHandler()
 
-        with patch.object(handler, "execute_with_cursor", return_value=[]) as mock_exec:
+        with patch.object(handler, "execute_with_cursor", return_value=[]), \
+             patch.object(handler, "execute_batch_operation") as mock_batch:
             count = handler.enrich_timezones(scraper="eventbrite")
 
         assert count == 0
-        assert mock_exec.call_count == 1
+        mock_batch.assert_not_called()
 
     def test_select_query_uses_scraper_param(self):
         """GET_CLUBS_WITH_NULL_TIMEZONE is called with the scraper argument."""
@@ -222,38 +221,35 @@ class TestEnrichTimezones:
         assert select_call[0][1] == ("seatengine",)
 
     def test_idempotent_update_uses_null_guard(self):
-        """UPDATE query includes 'AND timezone IS NULL' so it won't touch set values."""
-        assert "timezone IS NULL" in ClubQueries.UPDATE_CLUB_TIMEZONE
+        """BATCH UPDATE query includes 'AND c.timezone IS NULL' so it won't touch set values."""
+        assert "timezone IS NULL" in ClubQueries.BATCH_UPDATE_CLUB_TIMEZONES
 
     def test_does_not_count_club_when_update_null_guard_fires(self):
-        """If UPDATE returns empty (another process already set timezone), club is not counted."""
+        """If batch UPDATE returns empty (another process already set timezone), count is 0."""
         row = _make_club_row(id=10, address="117 MacDougal St, New York, NY")
         handler = ClubHandler()
 
-        call_results = [
-            [row],  # GET_CLUBS_WITH_NULL_TIMEZONE
-            [],     # UPDATE_CLUB_TIMEZONE returns empty — timezone was set concurrently
-        ]
-        with patch.object(handler, "execute_with_cursor", side_effect=call_results):
+        with patch.object(handler, "execute_with_cursor", return_value=[row]), \
+             patch.object(handler, "execute_batch_operation", return_value=[]):
             count = handler.enrich_timezones(scraper="eventbrite")
 
         assert count == 0
 
     def test_multiple_clubs_all_updated(self):
-        """All clubs with resolvable addresses are updated."""
+        """All clubs with resolvable addresses are updated in a single batch call."""
         rows = [
             _make_club_row(id=1, address="117 MacDougal St, New York, NY"),
             _make_club_row(id=2, address="8001 Sunset Blvd, Los Angeles, CA"),
         ]
         handler = ClubHandler()
 
-        # First call = SELECT, then one UPDATE per club
-        call_results = [
-            rows,
-            [{"id": 1}],
-            [{"id": 2}],
-        ]
-        with patch.object(handler, "execute_with_cursor", side_effect=call_results):
+        with patch.object(handler, "execute_with_cursor", return_value=rows), \
+             patch.object(handler, "execute_batch_operation", return_value=[{"id": 1}, {"id": 2}]) as mock_batch:
             count = handler.enrich_timezones(scraper="eventbrite")
 
         assert count == 2
+        # Single batch call — not one per club
+        mock_batch.assert_called_once()
+        _, call_kwargs = mock_batch.call_args
+        items = mock_batch.call_args[0][1]
+        assert set(items) == {(1, "America/New_York"), (2, "America/Los_Angeles")}

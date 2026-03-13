@@ -78,6 +78,14 @@ class ClubQueries:
         RETURNING id
     '''
 
+    BATCH_UPDATE_CLUB_TIMEZONES = '''
+        UPDATE clubs AS c
+        SET timezone = v.timezone
+        FROM (VALUES %s) AS v(id, timezone)
+        WHERE c.id = v.id AND c.timezone IS NULL
+        RETURNING c.id
+    '''
+
     UPSERT_CLUB_BY_TICKETMASTER_VENUE = '''
         INSERT INTO clubs (
             name, address, website, scraping_url,

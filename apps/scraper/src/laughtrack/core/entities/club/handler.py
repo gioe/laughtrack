@@ -232,25 +232,28 @@ class ClubHandler(BaseDatabaseHandler[Club]):
             Logger.info(f"No clubs with scraper='{scraper}' and timezone=NULL found.")
             return 0
 
-        updated = 0
+        updates: List[tuple] = []
         for row in rows:
             club = Club.from_db_row(row)
             tz = timezone_from_address(club.address)
-            if not tz:
+            if tz:
+                updates.append((club.id, tz))
+            else:
                 Logger.warning(
                     f"Could not resolve timezone for club {club.id} '{club.name}' "
                     f"(address: {club.address!r})"
                 )
-                continue
-            result = self.execute_with_cursor(
-                ClubQueries.UPDATE_CLUB_TIMEZONE,
-                (tz, club.id),
-                return_results=True,
-            )
-            if result:
-                Logger.info(f"Club {club.id} '{club.name}' → timezone={tz}")
-                updated += 1
 
+        if not updates:
+            Logger.info("Timezone enrichment: no resolvable timezones found.")
+            return 0
+
+        results = self.execute_batch_operation(
+            ClubQueries.BATCH_UPDATE_CLUB_TIMEZONES,
+            updates,
+            return_results=True,
+        )
+        updated = len(results) if results else 0
         Logger.info(f"Timezone enrichment complete: {updated}/{len(rows)} clubs updated.")
         return updated
 
