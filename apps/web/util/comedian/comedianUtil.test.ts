@@ -115,6 +115,21 @@ describe("containsAliasTag", () => {
     it("returns false for an empty array", () => {
         expect(containsAliasTag([])).toBe(false);
     });
+
+    it("does not throw and returns false when a taggedComedian entry has a null tag", () => {
+        const taggedComedians = [{ tag: null }, { tag: { slug: "headliner" } }];
+        expect(() => containsAliasTag(taggedComedians)).not.toThrow();
+        expect(containsAliasTag(taggedComedians)).toBe(false);
+    });
+
+    it("does not throw and returns false when a taggedComedian entry has an undefined tag", () => {
+        const taggedComedians = [
+            { tag: undefined },
+            { tag: { slug: "headliner" } },
+        ];
+        expect(() => containsAliasTag(taggedComedians)).not.toThrow();
+        expect(containsAliasTag(taggedComedians)).toBe(false);
+    });
 });
 
 describe("getEffectiveComedian", () => {

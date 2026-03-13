@@ -44,7 +44,7 @@ const mapLineupItem = (item: { comedian: any }, userId?: string) => {
 };
 
 export const containsAliasTag = (taggedComedians: any[]) => {
-    return taggedComedians.some((tc) => tc.tag.slug === "alias");
+    return taggedComedians.some((tc) => tc.tag?.slug === "alias");
 };
 
 export const getEffectiveComedian = (comedian: any) =>
