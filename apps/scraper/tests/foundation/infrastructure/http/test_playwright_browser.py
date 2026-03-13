@@ -1,5 +1,7 @@
 """Unit tests for PlaywrightBrowser."""
 
+import asyncio
+import concurrent.futures
 import sys
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -283,6 +285,100 @@ class TestPlaywrightBrowser:
         assert args[0] is _atexit_close
         assert isinstance(args[1], weakref.ref)
         assert args[1]() is browser
+
+    @pytest.mark.asyncio
+    async def test_launch_loop_stored_on_first_fetch(self):
+        """_launch_loop is set to the running event loop on the first fetch."""
+        mock_pw_module, _, _ = _make_pw_mocks()
+        with _patch_playwright(mock_pw_module):
+            browser = PlaywrightBrowser()
+            assert browser._launch_loop is None
+            await browser.fetch_html("https://example.com")
+
+        assert browser._launch_loop is asyncio.get_event_loop()
+
+    def test_atexit_close_uses_run_coroutine_threadsafe_when_loop_running(self):
+        """_atexit_close uses run_coroutine_threadsafe when the original loop is still running."""
+        import weakref
+        from laughtrack.foundation.infrastructure.http.playwright_browser import _atexit_close
+
+        close_coro = MagicMock()
+
+        # Use a plain object so we can set arbitrary attributes freely
+        class FakeBrowser:
+            _browser = MagicMock()
+            _launch_loop = MagicMock()
+            def close(self):  # noqa: ANN201
+                return close_coro
+
+        fake = FakeBrowser()
+        fake._launch_loop.is_running.return_value = True
+
+        mock_future = MagicMock()
+        mock_future.result = MagicMock(return_value=None)
+
+        with patch(
+            "asyncio.run_coroutine_threadsafe",
+            return_value=mock_future,
+        ) as mock_rcts:
+            ref = weakref.ref(fake)
+            _atexit_close(ref)
+
+        mock_rcts.assert_called_once_with(close_coro, fake._launch_loop)
+        mock_future.result.assert_called_once_with(timeout=10)
+
+    def test_atexit_close_uses_new_loop_when_original_loop_not_running(self):
+        """_atexit_close falls back to a new event loop when the original loop is stopped."""
+        import weakref
+        from laughtrack.foundation.infrastructure.http.playwright_browser import _atexit_close
+
+        mock_browser_obj = MagicMock()
+        mock_browser_obj._browser = MagicMock()
+
+        mock_loop = MagicMock()
+        mock_loop.is_running.return_value = False
+        mock_browser_obj._launch_loop = mock_loop
+
+        close_coro = MagicMock()
+        mock_browser_obj.close = MagicMock(return_value=close_coro)
+
+        new_loop = MagicMock()
+
+        with (
+            patch("asyncio.new_event_loop", return_value=new_loop) as mock_nel,
+            patch("asyncio.run_coroutine_threadsafe") as mock_rcts,
+        ):
+            ref = weakref.ref(mock_browser_obj)
+            _atexit_close(ref)
+
+        mock_nel.assert_called_once()
+        new_loop.run_until_complete.assert_called_once_with(close_coro)
+        new_loop.close.assert_called_once()
+        mock_rcts.assert_not_called()
+
+    def test_atexit_close_uses_new_loop_when_launch_loop_is_none(self):
+        """_atexit_close falls back to a new loop when _launch_loop was never set."""
+        import weakref
+        from laughtrack.foundation.infrastructure.http.playwright_browser import _atexit_close
+
+        mock_browser_obj = MagicMock()
+        mock_browser_obj._browser = MagicMock()
+        mock_browser_obj._launch_loop = None
+
+        close_coro = MagicMock()
+        mock_browser_obj.close = MagicMock(return_value=close_coro)
+
+        new_loop = MagicMock()
+
+        with (
+            patch("asyncio.new_event_loop", return_value=new_loop),
+            patch("asyncio.run_coroutine_threadsafe") as mock_rcts,
+        ):
+            ref = weakref.ref(mock_browser_obj)
+            _atexit_close(ref)
+
+        new_loop.run_until_complete.assert_called_once_with(close_coro)
+        mock_rcts.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_concurrent_close_and_fetch_does_not_raise(self):

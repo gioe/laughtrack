@@ -11,10 +11,33 @@ pay zero import overhead.
 The Chromium process is launched once on first use and reused across all
 subsequent fetch_html calls.  Call ``await browser.close()`` to shut it down
 explicitly; an ``atexit`` handler provides a best-effort shutdown on process exit.
+
+Atexit cleanup and asyncio event loop safety
+--------------------------------------------
+Playwright browser and context objects are bound to the event loop on which they
+were created.  When ``atexit`` fires *during* ``asyncio.run()`` shutdown (i.e.
+while the original loop is still running but tearing down), calling
+``asyncio.new_event_loop().run_until_complete(browser.close())`` runs
+``close()`` on a *different* loop.  Playwright's internal transport may reject
+this, leaving the Chromium process alive after the scraper exits.
+
+``_atexit_close`` avoids this by inspecting the loop that was current when the
+browser was first launched (``_launch_loop``):
+
+* **Loop still running** — schedules ``close()`` on the original loop via
+  ``asyncio.run_coroutine_threadsafe`` and blocks until it completes.  This
+  path is taken when atexit fires during ``asyncio.run()`` shutdown.
+* **Loop not running** — falls back to creating a new event loop, which is safe
+  because the original loop has already finished and released all Playwright
+  transports.
+
+Callers should prefer ``await browser.close()`` for deterministic shutdown.
+The atexit handler is a last-resort safety net only.
 """
 
 import asyncio
 import atexit
+import concurrent.futures
 import weakref
 from typing import Optional
 from urllib.parse import urlparse
@@ -97,16 +120,33 @@ def _parse_proxy(proxy_url: str) -> dict:
 
 
 def _atexit_close(browser_ref: "weakref.ref[PlaywrightBrowser]") -> None:
-    """Best-effort synchronous shutdown of the Playwright browser on process exit."""
+    """Best-effort synchronous shutdown of the Playwright browser on process exit.
+
+    Schedules ``close()`` on the original event loop when it is still running
+    (e.g., during ``asyncio.run()`` teardown), so Playwright objects are closed
+    on the same loop that created them.  Falls back to a new event loop when the
+    original loop is no longer running.
+    """
     browser = browser_ref()
     if browser is None or browser._browser is None:
         return
     try:
-        loop = asyncio.new_event_loop()
-        try:
-            loop.run_until_complete(browser.close())
-        finally:
-            loop.close()
+        launch_loop = browser._launch_loop
+        if launch_loop is not None and launch_loop.is_running():
+            # The original loop is still running (shutdown phase of asyncio.run()).
+            # Submit close() onto that loop from this thread and block until done.
+            future = asyncio.run_coroutine_threadsafe(browser.close(), launch_loop)
+            try:
+                future.result(timeout=10)
+            except concurrent.futures.TimeoutError:
+                pass
+        else:
+            # Original loop is done; a fresh loop is safe to use.
+            loop = asyncio.new_event_loop()
+            try:
+                loop.run_until_complete(browser.close())
+            finally:
+                loop.close()
     except Exception:
         pass
 
@@ -150,6 +190,9 @@ class PlaywrightBrowser:
         self._pw_cm: Optional[object] = None   # async_playwright() context manager
         self._pw: Optional[object] = None      # Playwright object (pw in `async with ... as pw`)
         self._browser: Optional[object] = None # Browser instance
+        # Event loop on which Chromium was launched; used by _atexit_close to
+        # schedule close() on the correct loop (see module docstring).
+        self._launch_loop: Optional[asyncio.AbstractEventLoop] = None
         # Serializes browser launch, the entire fetch_html body, and close() to
         # prevent TOCTOU races between active fetches and concurrent close() calls.
         # fetch_html calls are therefore serialized; concurrent callers queue up.
@@ -165,6 +208,10 @@ class PlaywrightBrowser:
         """
         if self._browser is not None:
             return
+
+        # Record the running loop before any await so _atexit_close can close
+        # Playwright objects on the same loop they were created on.
+        self._launch_loop = asyncio.get_running_loop()
 
         # Lazy import — keeps playwright out of the import graph unless needed
         from playwright.async_api import async_playwright  # noqa: PLC0415
