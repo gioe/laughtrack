@@ -1,18 +1,22 @@
 import { buildComedianImageUrl } from "../imageUtil";
 
-export const filterAndMapLineupItems = (lineupItems: any[], userId?: string) => {
+export const filterAndMapLineupItems = (
+    lineupItems: any[],
+    userId?: string,
+) => {
     // First, create a set of parent IDs that are present in the lineup
     const parentIdsInLineup = new Set(
         lineupItems
-            .map(item => {
+            .map((item) => {
                 if (item.comedian.parentComedian == null) {
-                    return item.comedian.id
+                    return item.comedian.id;
                 }
-            }).filter((item) => item !== undefined)
+            })
+            .filter((item) => item !== undefined),
     );
 
     // Filter out children whose parents are in the lineup
-    const filteredItems = lineupItems.filter(item => {
+    const filteredItems = lineupItems.filter((item) => {
         const hasParent = !!item.comedian.parentComedian;
         if (!hasParent) return true; // Keep all non-child comedians
 
@@ -21,24 +25,27 @@ export const filterAndMapLineupItems = (lineupItems: any[], userId?: string) => 
     });
 
     // Map the filtered items
-    return filteredItems.map(item => mapLineupItem(item, userId));
+    return filteredItems.map((item) => mapLineupItem(item, userId));
 };
 
 const mapLineupItem = (item: { comedian: any }, userId?: string) => {
     const effectiveComedian = getEffectiveComedian(item.comedian);
-    const isAlias = containsAliasTag(effectiveComedian.taggedComedians)
+    const isAlias = containsAliasTag(effectiveComedian.taggedComedians);
     return {
         id: effectiveComedian.id,
         uuid: effectiveComedian.uuid,
         name: effectiveComedian.name,
         imageUrl: buildComedianImageUrl(effectiveComedian.name),
-        isFavorite: userId ? item.comedian.favoriteComedians.length > 0 : false ,
+        isFavorite: userId
+            ? (item.comedian.favoriteComedians?.length ?? 0) > 0
+            : false,
         isAlias,
     };
 };
 
 export const containsAliasTag = (taggedComedians: any[]) => {
-    return taggedComedians.some(tc => tc.tag.slug === 'alias');
-}
+    return taggedComedians.some((tc) => tc.tag.slug === "alias");
+};
 
-export const getEffectiveComedian = (comedian: any) => comedian.parentComedian || comedian;
+export const getEffectiveComedian = (comedian: any) =>
+    comedian.parentComedian || comedian;
