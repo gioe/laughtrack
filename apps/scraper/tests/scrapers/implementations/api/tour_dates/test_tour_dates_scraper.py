@@ -74,7 +74,6 @@ async def test_scrape_async_no_comedians(platform_club):
 @pytest.mark.asyncio
 async def test_scrape_async_songkick_returns_shows(platform_club):
     """Given a comedian with songkick_id and a mocked API response, returns Shows."""
-    venue_club = _make_venue_club()
     comedian_row = {
         "uuid": "abc-123",
         "name": "John Mulaney",
@@ -113,7 +112,6 @@ async def test_scrape_async_songkick_returns_shows(platform_club):
 @pytest.mark.asyncio
 async def test_scrape_async_bandsintown_returns_shows(platform_club):
     """Given a comedian with bandsintown_id and a mocked API response, returns Shows."""
-    venue_club = _make_venue_club()
     comedian_row = {
         "uuid": "def-456",
         "name": "Hannah Gadsby",
