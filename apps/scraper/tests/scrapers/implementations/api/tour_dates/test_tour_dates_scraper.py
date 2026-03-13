@@ -242,7 +242,7 @@ def test_songkick_event_to_show_creates_show_for_us_event(platform_club):
     assert "John Mulaney" in show.name
 
     # Verify address is correctly parsed from "New York, NY, US" → "New York, NY"
-    venue_dict = mock_upsert.call_args[0][0]
+    venue_dict = mock_upsert.call_args.args[0]
     assert venue_dict["address"] == "New York, NY"
 
 
@@ -295,13 +295,17 @@ def test_bandsintown_event_to_show_creates_show_for_us_event(platform_club):
 
     with patch.object(
         scraper._club_handler, "upsert_for_tour_date_venue", return_value=venue_club
-    ):
+    ) as mock_upsert:
         show = scraper._bandsintown_event_to_show(us_event, comedian)
 
     assert show is not None
     assert show.club_id == 2
     assert show.lineup == [comedian]
     assert "Hannah Gadsby" in show.name
+
+    # Verify address is correctly assembled from city + region ("Los Angeles", "CA" → "Los Angeles, CA")
+    venue_dict = mock_upsert.call_args.args[0]
+    assert venue_dict["address"] == "Los Angeles, CA"
 
 
 # ------------------------------------------------------------------ #
