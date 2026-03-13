@@ -22,10 +22,33 @@
   "review": {
     "mode": "ai_only",
     "max_passes": 2,
-    "reviewers": [{
-      "name": "general",
-      "description": "Reviews the diff across all quality dimensions: (1) Correctness — logic errors, edge cases, off-by-one errors, missing error handling, race conditions, contradicts acceptance criteria; (2) Security — injection attacks, auth bypass, data exposure, input validation gaps, secrets in code; (3) Readability & Maintainability — unclear naming, functions doing too much, dead code, comments that explain what instead of why; (4) Design — unnecessary coupling, DRY violations, premature abstraction, inconsistency with existing patterns; (5) Tests — missing coverage for new behavior, tests that don't verify the right thing, untested failure paths; (6) Performance — N+1 queries, expensive operations in hot paths, unjustified new dependencies; (7) Operational Concerns — unsafe migrations, insufficient logging for production debugging, missing rollback plan for risky changes."
-    }]
+    "reviewers": [
+      {
+        "name": "general",
+        "domains": [],
+        "description": "Reviews the diff across all quality dimensions: (1) Correctness — logic errors, edge cases, off-by-one errors, missing error handling, race conditions, contradicts acceptance criteria; (2) Security — injection attacks, auth bypass, data exposure, input validation gaps, secrets in code; (3) Readability & Maintainability — unclear naming, functions doing too much, dead code, comments that explain what instead of why; (4) Design — unnecessary coupling, DRY violations, premature abstraction, inconsistency with existing patterns; (5) Tests — missing coverage for new behavior, tests that don't verify the right thing, untested failure paths; (6) Performance — N+1 queries, expensive operations in hot paths, unjustified new dependencies; (7) Operational Concerns — unsafe migrations, insufficient logging for production debugging, missing rollback plan for risky changes."
+      },
+      {
+        "name": "frontend",
+        "domains": ["frontend"],
+        "description": "Specializes in React/Next.js App Router code. Focuses on: (1) React correctness — improper hook usage (conditional hooks, missing deps in useEffect/useCallback/useMemo), state mutation, missing key props, unnecessary re-renders; (2) Next.js patterns — Server vs Client Component boundary mistakes, missing 'use client' directives, incorrect use of server actions, layout/page data-fetching anti-patterns; (3) Accessibility — missing ARIA labels, non-semantic HTML, keyboard navigation gaps, color contrast issues; (4) Styling — TailwindCSS class conflicts, responsive breakpoint gaps, DaisyUI/HeroUI component misuse; (5) Type safety — missing TypeScript types, unsafe 'any' usage, unhandled nullable props; (6) Bundle size — large client-side imports that should be server-only, missing dynamic imports for heavy components; (7) UX — loading/error states not handled, optimistic updates not rolled back on failure."
+      },
+      {
+        "name": "backend",
+        "domains": ["api", "database"],
+        "description": "Specializes in Next.js API routes, server actions, and database access. Focuses on: (1) Auth & authorization — missing session checks, privilege escalation, unauthenticated access to protected resources; (2) Input validation — Zod schema gaps, missing sanitization, SQL injection via raw queries, unvalidated searchParams; (3) Prisma safety — missing field existence checks against schema, over-fetching with select *, N+1 query patterns, transactions missing for multi-step writes; (4) Rate limiting — public routes missing applyPublicReadRateLimit, inconsistent limit tiers; (5) Error handling — leaking internal error details to clients, missing try/catch around external calls, unhandled Promise rejections; (6) Server actions — missing revalidatePath/revalidateTag after mutations, returning sensitive data in action responses; (7) Migration safety — destructive schema changes without a rollback plan, data-dependent migrations that assume row existence."
+      },
+      {
+        "name": "scraper",
+        "domains": ["scraper"],
+        "description": "Specializes in the Python scraper pipeline (apps/scraper/). Focuses on: (1) DB connection hygiene — using db.get_connection() correctly (autocommit=True by default), never calling conn.commit() manually unless inside db.get_transaction(), connections closed in finally blocks; (2) Concurrency correctness — asyncio.gather usage, proper semaphore bounds, no shared mutable state across coroutines without locks, TOCTOU races (use asyncio.Event + sleep(0) in tests to expose them); (3) Error isolation — per-club/per-comedian failures caught and logged without aborting the full run, metrics recorded for failures; (4) Scraping reliability — robust CSS/XPath selectors, graceful handling of missing fields, no hard-coded dates or venue-specific logic that will break on site changes; (5) Test quality — AsyncMock race conditions (mocks resolve instantly; use sleep(0) to force real concurrency), over-mocking that hides integration bugs; (6) Incremental persistence — results written per-club/comedian rather than all-at-end to reduce data loss on partial failures; (7) Environment config — env var parsing hardened against bad values, sensible defaults, no secrets in source."
+      },
+      {
+        "name": "infrastructure",
+        "domains": ["infrastructure"],
+        "description": "Specializes in CI/CD, GitHub Actions, Docker, and deployment config. Focuses on: (1) Workflow correctness — jobs referencing correct branch patterns, missing required status checks, steps that can silently pass on failure due to missing 'fail-fast' or 'continue-on-error' misuse; (2) Secret management — secrets referenced but not declared, secrets logged in run steps, overly broad IAM/token permissions; (3) Caching — cache keys too broad (causes stale hits) or too narrow (cache misses on every run), missing restore-keys fallback; (4) Dependency pinning — actions using mutable tags (v2, latest) instead of pinned SHA or semver, transitive dep version drift; (5) Rollback safety — deploy steps with no rollback path, missing smoke-test gates before marking deploy complete; (6) Docker — large image layers that should be combined, secrets baked into image layers, missing .dockerignore entries; (7) Branch protection — required checks matching actual workflow job names, force-push protections on main."
+      }
+    ]
   },
   "review_categories": ["must_fix", "suggest", "defer"],
   "review_severities": ["critical", "major", "minor"],
