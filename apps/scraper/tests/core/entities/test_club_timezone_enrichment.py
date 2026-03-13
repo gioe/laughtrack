@@ -11,7 +11,7 @@ import importlib.util
 import sys
 from pathlib import Path
 from types import ModuleType
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock, patch
 
 # ---------------------------------------------------------------------------
 # Bootstrap (mirrors test_club_handler.py pattern)
@@ -224,6 +224,20 @@ class TestEnrichTimezones:
     def test_idempotent_update_uses_null_guard(self):
         """UPDATE query includes 'AND timezone IS NULL' so it won't touch set values."""
         assert "timezone IS NULL" in ClubQueries.UPDATE_CLUB_TIMEZONE
+
+    def test_does_not_count_club_when_update_null_guard_fires(self):
+        """If UPDATE returns empty (another process already set timezone), club is not counted."""
+        row = _make_club_row(id=10, address="117 MacDougal St, New York, NY")
+        handler = ClubHandler()
+
+        call_results = [
+            [row],  # GET_CLUBS_WITH_NULL_TIMEZONE
+            [],     # UPDATE_CLUB_TIMEZONE returns empty — timezone was set concurrently
+        ]
+        with patch.object(handler, "execute_with_cursor", side_effect=call_results):
+            count = handler.enrich_timezones(scraper="eventbrite")
+
+        assert count == 0
 
     def test_multiple_clubs_all_updated(self):
         """All clubs with resolvable addresses are updated."""

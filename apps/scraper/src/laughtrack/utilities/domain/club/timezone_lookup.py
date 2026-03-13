@@ -71,7 +71,7 @@ def timezone_from_state(state_code: str) -> Optional[str]:
     return _STATE_TO_TIMEZONE.get(state_code.strip().upper())
 
 
-def timezone_from_address(address: str) -> Optional[str]:
+def timezone_from_address(address: Optional[str]) -> Optional[str]:
     """
     Infer IANA timezone from a venue address string.
 
