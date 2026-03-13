@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { filterAndMapLineupItems } from "./comedianUtil";
+import {
+    filterAndMapLineupItems,
+    containsAliasTag,
+    getEffectiveComedian,
+} from "./comedianUtil";
 
 const makeItem = (overrides: Record<string, unknown> = {}) => ({
     comedian: {
@@ -12,6 +16,19 @@ const makeItem = (overrides: Record<string, unknown> = {}) => ({
         ...overrides,
     },
 });
+
+const parentComedian = { id: 10, uuid: "uuid-10", name: "Parent Comedian" };
+const makeChild = (parentPresent: boolean) =>
+    makeItem({
+        id: 2,
+        uuid: "uuid-2",
+        name: "Child Comedian",
+        parentComedian: parentPresent
+            ? parentComedian
+            : { id: 99, uuid: "uuid-99", name: "Absent Parent" },
+    });
+const makeParent = () =>
+    makeItem({ id: 10, uuid: "uuid-10", name: "Parent Comedian" });
 
 describe("filterAndMapLineupItems", () => {
     describe("isFavorite", () => {
@@ -42,5 +59,56 @@ describe("filterAndMapLineupItems", () => {
             }).not.toThrow();
             expect(result!.isFavorite).toBe(false);
         });
+    });
+
+    describe("parent-deduplication", () => {
+        it("excludes a child comedian when its parent is present in the lineup", () => {
+            const parent = makeParent();
+            const child = makeChild(true);
+            const results = filterAndMapLineupItems([parent, child]);
+            expect(results).toHaveLength(1);
+            expect(results[0].id).toBe(10);
+        });
+
+        it("retains a child comedian when its parent is absent from the lineup", () => {
+            const child = makeChild(false); // parent id 99 not in lineup
+            const results = filterAndMapLineupItems([child]);
+            expect(results).toHaveLength(1);
+        });
+    });
+});
+
+describe("containsAliasTag", () => {
+    it("returns true when the alias tag is present", () => {
+        const taggedComedians = [
+            { tag: { slug: "headliner" } },
+            { tag: { slug: "alias" } },
+        ];
+        expect(containsAliasTag(taggedComedians)).toBe(true);
+    });
+
+    it("returns false when no alias tag is present", () => {
+        const taggedComedians = [{ tag: { slug: "headliner" } }];
+        expect(containsAliasTag(taggedComedians)).toBe(false);
+    });
+
+    it("returns false for an empty array", () => {
+        expect(containsAliasTag([])).toBe(false);
+    });
+});
+
+describe("getEffectiveComedian", () => {
+    it("returns parentComedian when it is set", () => {
+        const comedian = {
+            id: 2,
+            name: "Alias",
+            parentComedian: { id: 1, name: "Real" },
+        };
+        expect(getEffectiveComedian(comedian)).toEqual({ id: 1, name: "Real" });
+    });
+
+    it("returns the comedian itself when parentComedian is null", () => {
+        const comedian = { id: 1, name: "Real", parentComedian: null };
+        expect(getEffectiveComedian(comedian)).toEqual(comedian);
     });
 });
