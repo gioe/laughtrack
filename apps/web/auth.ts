@@ -33,7 +33,10 @@ if (!prisma) {
     throw new Error("Prisma client is not initialized");
 }
 
-if (process.env.NODE_ENV === "production") {
+if (
+    process.env.NODE_ENV === "production" &&
+    process.env.NEXT_PHASE !== "phase-production-build"
+) {
     if (
         !process.env.SMTP_HOST ||
         !process.env.SMTP_USER ||

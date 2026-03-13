@@ -4,6 +4,8 @@ import { unstable_cache } from "next/cache";
 import { CACHE } from "@/util/constants/cacheConstants";
 import { getStats } from "@/lib/data/stats/getStats";
 
+export const dynamic = "force-dynamic";
+
 const AboutPage = async () => {
     const getCachedStats = () =>
         unstable_cache(
