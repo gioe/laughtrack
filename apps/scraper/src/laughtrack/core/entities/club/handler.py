@@ -254,7 +254,14 @@ class ClubHandler(BaseDatabaseHandler[Club]):
             return_results=True,
         )
         updated = len(results) if results else 0
-        Logger.info(f"Timezone enrichment complete: {updated}/{len(updates)} clubs updated.")
+        null_guarded = len(updates) - updated
+        unresolvable = len(rows) - len(updates)
+        Logger.info(
+            f"Timezone enrichment: {updated}/{len(updates)} updated, "
+            f"{null_guarded} resolvable-but-missed (null-guard fired), "
+            f"{unresolvable} skipped (no state match), "
+            f"{len(rows)} total examined."
+        )
         return updated
 
     def get_clubs_for_scraper(self, scraper_type: str) -> List[Club]:
