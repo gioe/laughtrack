@@ -207,6 +207,53 @@ class ClubHandler(BaseDatabaseHandler[Club]):
             Logger.error(f"Error upserting club for Ticketmaster venue {venue_id}: {e}")
             raise
 
+    def enrich_timezones(self, scraper: str = "eventbrite") -> int:
+        """
+        Enrich timezone for clubs that were upserted without one.
+
+        Queries clubs WHERE scraper = <scraper> AND timezone IS NULL, infers
+        the timezone from the stored address (US state abbreviation), and
+        updates only rows still NULL — so re-running is always safe.
+
+        Args:
+            scraper: The scraper type to filter clubs by (default: 'eventbrite').
+
+        Returns:
+            Number of clubs whose timezone was successfully updated.
+        """
+        from laughtrack.utilities.domain.club.timezone_lookup import timezone_from_address  # noqa: PLC0415
+
+        rows = self.execute_with_cursor(
+            ClubQueries.GET_CLUBS_WITH_NULL_TIMEZONE,
+            (scraper,),
+            return_results=True,
+        )
+        if not rows:
+            Logger.info(f"No clubs with scraper='{scraper}' and timezone=NULL found.")
+            return 0
+
+        updated = 0
+        for row in rows:
+            club = Club.from_db_row(row)
+            tz = timezone_from_address(club.address)
+            if not tz:
+                Logger.warning(
+                    f"Could not resolve timezone for club {club.id} '{club.name}' "
+                    f"(address: {club.address!r})"
+                )
+                continue
+            result = self.execute_with_cursor(
+                ClubQueries.UPDATE_CLUB_TIMEZONE,
+                (tz, club.id),
+                return_results=True,
+            )
+            if result:
+                Logger.info(f"Club {club.id} '{club.name}' → timezone={tz}")
+                updated += 1
+
+        Logger.info(f"Timezone enrichment complete: {updated}/{len(rows)} clubs updated.")
+        return updated
+
     def get_clubs_for_scraper(self, scraper_type: str) -> List[Club]:
         """
         Fetch all clubs that use a specific scraper type.

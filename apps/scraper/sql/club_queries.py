@@ -65,6 +65,19 @@ class ClubQueries:
         RETURNING *
     '''
 
+    GET_CLUBS_WITH_NULL_TIMEZONE = '''
+        SELECT * FROM clubs
+        WHERE scraper = %s AND timezone IS NULL
+        ORDER BY id
+    '''
+
+    UPDATE_CLUB_TIMEZONE = '''
+        UPDATE clubs
+        SET timezone = %s
+        WHERE id = %s AND timezone IS NULL
+        RETURNING id
+    '''
+
     UPSERT_CLUB_BY_TICKETMASTER_VENUE = '''
         INSERT INTO clubs (
             name, address, website, scraping_url,
