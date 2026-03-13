@@ -17,15 +17,27 @@ const makeItem = (overrides: Record<string, unknown> = {}) => ({
     },
 });
 
-const parentComedian = { id: 10, uuid: "uuid-10", name: "Parent Comedian" };
-const makeChild = (parentPresent: boolean) =>
+const parentComedian = {
+    id: 10,
+    uuid: "uuid-10",
+    name: "Parent Comedian",
+    taggedComedians: [],
+};
+// parentInLineup=true: child's parentComedian.id matches the parent fixture (id 10)
+// parentInLineup=false: child's parentComedian.id is 99, which is not in the lineup
+const makeChild = (parentInLineup: boolean) =>
     makeItem({
         id: 2,
         uuid: "uuid-2",
         name: "Child Comedian",
-        parentComedian: parentPresent
+        parentComedian: parentInLineup
             ? parentComedian
-            : { id: 99, uuid: "uuid-99", name: "Absent Parent" },
+            : {
+                  id: 99,
+                  uuid: "uuid-99",
+                  name: "Absent Parent",
+                  taggedComedians: [],
+              },
     });
 const makeParent = () =>
     makeItem({ id: 10, uuid: "uuid-10", name: "Parent Comedian" });
@@ -75,6 +87,14 @@ describe("filterAndMapLineupItems", () => {
             const results = filterAndMapLineupItems([child]);
             expect(results).toHaveLength(1);
         });
+
+        it("filters correctly regardless of child-before-parent ordering", () => {
+            const parent = makeParent();
+            const child = makeChild(true);
+            const results = filterAndMapLineupItems([child, parent]);
+            expect(results).toHaveLength(1);
+            expect(results[0].id).toBe(10);
+        });
     });
 });
 
@@ -109,6 +129,11 @@ describe("getEffectiveComedian", () => {
 
     it("returns the comedian itself when parentComedian is null", () => {
         const comedian = { id: 1, name: "Real", parentComedian: null };
+        expect(getEffectiveComedian(comedian)).toEqual(comedian);
+    });
+
+    it("returns the comedian itself when parentComedian is undefined", () => {
+        const comedian = { id: 1, name: "Real" };
         expect(getEffectiveComedian(comedian)).toEqual(comedian);
     });
 });
