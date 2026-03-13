@@ -47,7 +47,7 @@ export default function UnsubscribePage() {
                 setMessage(
                     "You have been successfully unsubscribed notifications",
                 );
-            } catch (error) {
+            } catch {
                 setStatus("error");
                 setMessage(
                     "Something went wrong. Please try again or contact support.",
@@ -67,7 +67,9 @@ export default function UnsubscribePage() {
 
                 <div className="text-center">
                     {status === "loading" && (
-                        <div className={`${pulsing ? "animate-pulse " : ""}font-gilroy-bold text-[32px] font-bold`}>
+                        <div
+                            className={`${pulsing ? "animate-pulse " : ""}font-gilroy-bold text-[32px] font-bold`}
+                        >
                             <p>{message}</p>
                         </div>
                     )}

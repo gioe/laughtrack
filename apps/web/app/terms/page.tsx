@@ -1,9 +1,3 @@
-import AboutUsSection from "@/ui/pages/about/content";
-import StatsSection from "@/ui/pages/about/stats";
-import { unstable_cache } from "next/cache";
-import { CACHE } from "@/util/constants/cacheConstants";
-import { getStats } from "@/lib/data/stats/getStats";
-
 const TermsPage = async () => {
     return (
         <main className="min-h-screen w-full bg-coconut-cream">

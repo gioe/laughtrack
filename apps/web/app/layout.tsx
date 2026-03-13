@@ -19,7 +19,6 @@ import ToasterProvider from "@/contexts/ToasterProvider";
 import LoginModal from "@/ui/components/modals/login";
 import { StyleContextProvider } from "@/contexts/StyleProvider";
 import { StyleContextKey } from "@/objects/enum";
-import { auth } from "@/auth";
 
 import { TimezoneProvider } from "@/contexts/TimezoneProvider";
 import { ClientTimezone } from "@/contexts/TimezoneCookieProvider";
@@ -77,8 +76,6 @@ export default async function RootLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    const session = await auth();
-
     return (
         <SessionProvider>
             <html
@@ -95,9 +92,7 @@ export default async function RootLayout({
                                 initialContext={StyleContextKey.Home}
                             >
                                 <ClientTimezone />
-                                <ErrorBoundary>
-                                    {children}
-                                </ErrorBoundary>
+                                <ErrorBoundary>{children}</ErrorBoundary>
                             </StyleContextProvider>
                             <Analytics />
                             <SpeedInsights />

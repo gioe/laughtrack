@@ -10,7 +10,6 @@ export default async function EntityDetailLayout({
     children,
 }: {
     children: React.ReactNode;
-    params: Promise<{ name: string }>;
 }) {
     const session = await auth();
 
