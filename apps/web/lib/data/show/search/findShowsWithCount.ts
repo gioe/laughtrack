@@ -97,7 +97,7 @@ export async function findShowsWithCount(
             ...helper.getShowTagsClause(),
         };
 
-        // Run COUNT and findMany in a transaction to guarantee a consistent snapshot
+        // Run COUNT and findMany under REPEATABLE READ to guarantee a consistent snapshot
         const [totalCount, filteredShows] = await db.$transaction(
             async (tx) => {
                 const count = await tx.show.count({
@@ -138,6 +138,7 @@ export async function findShowsWithCount(
 
                 return [count, shows] as const;
             },
+            { isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead },
         );
         return {
             shows: filteredShows.map((show) => ({
