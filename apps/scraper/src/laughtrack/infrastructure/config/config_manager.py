@@ -118,6 +118,8 @@ class ConfigManager:
             "eventbrite_token": os.getenv("EVENTBRITE_PRIVATE_TOKEN"),
             "ticketmaster_api_key": os.getenv("TICKETMASTER_API_KEY"),
             "seatengine_auth_token": os.getenv("SEATENGINE_AUTH_TOKEN", "3c7de746-6bc2-4efb-8e91-16da6155edce"),
+            "songkick_api_key": os.getenv("SONGKICK_API_KEY"),
+            "bandsintown_app_id": os.getenv("BANDSINTOWN_APP_ID"),
         }
 
         # Monitoring configuration

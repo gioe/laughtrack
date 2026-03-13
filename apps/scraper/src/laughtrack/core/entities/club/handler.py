@@ -207,6 +207,39 @@ class ClubHandler(BaseDatabaseHandler[Club]):
             Logger.error(f"Error upserting club for Ticketmaster venue {venue_id}: {e}")
             raise
 
+    def upsert_for_tour_date_venue(self, venue: dict) -> Optional[Club]:
+        """
+        Upsert a clubs row for a venue discovered via the tour-date aggregator
+        (Songkick or BandsInTown).  On conflict (name), preserves any existing
+        scraper and timezone values rather than overwriting them.
+
+        Args:
+            venue: dict with at minimum 'name' key; optional 'address', 'zip_code', 'timezone'
+
+        Returns:
+            Club: the upserted (or existing) club, or None on invalid input
+        """
+        name = (venue.get("name") or "").strip()
+        if not name:
+            return None
+
+        address = (venue.get("address") or "").strip()
+        zip_code = (venue.get("zip_code") or "").strip()
+        timezone = (venue.get("timezone") or None)
+
+        try:
+            results = self.execute_with_cursor(
+                ClubQueries.UPSERT_CLUB_BY_TOUR_DATE_VENUE,
+                (name, address, zip_code, timezone),
+                return_results=True,
+            )
+            if not results:
+                return None
+            return Club.from_db_row(results[0])
+        except Exception as e:
+            Logger.error(f"Error upserting club for tour date venue '{name}': {e}")
+            raise
+
     def enrich_timezones(self, scraper: str = "eventbrite") -> int:
         """
         Enrich timezone for clubs that were upserted without one.

@@ -92,3 +92,16 @@ class ClubQueries:
             timezone        = COALESCE(clubs.timezone,        EXCLUDED.timezone)
         RETURNING *
     '''
+
+    UPSERT_CLUB_BY_TOUR_DATE_VENUE = '''
+        INSERT INTO clubs (
+            name, address, website, scraping_url,
+            scraper, visible,
+            zip_code, phone_number, popularity, timezone
+        )
+        VALUES (%s, %s, '', 'tour_dates', 'tour_dates', true, %s, '', 0, %s)
+        ON CONFLICT (name) DO UPDATE SET
+            scraper   = COALESCE(clubs.scraper,   EXCLUDED.scraper),
+            timezone  = COALESCE(clubs.timezone,  EXCLUDED.timezone)
+        RETURNING *
+    '''

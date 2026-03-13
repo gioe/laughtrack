@@ -65,3 +65,10 @@ class ComedianQueries:
         ON CONFLICT (uuid) DO NOTHING
         RETURNING uuid
     '''
+
+    GET_COMEDIANS_WITH_TOUR_IDS = '''
+        SELECT uuid, name, songkick_id, bandsintown_id
+        FROM comedians
+        WHERE songkick_id IS NOT NULL OR bandsintown_id IS NOT NULL
+        ORDER BY name
+    '''
