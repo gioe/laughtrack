@@ -137,6 +137,10 @@ def _atexit_close(browser_ref: "weakref.ref[PlaywrightBrowser]") -> None:
             # Submit close() onto that loop from this thread and block until done.
             future = asyncio.run_coroutine_threadsafe(browser.close(), launch_loop)
             try:
+                # close() acquires _browser_lock; if an active fetch_html holds
+                # it, we may block here until the fetch completes.  The 10-second
+                # timeout prevents an indefinite hang — prefer explicit
+                # ``await browser.close()`` before the loop exits.
                 future.result(timeout=10)
             except concurrent.futures.TimeoutError:
                 pass

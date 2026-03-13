@@ -295,7 +295,7 @@ class TestPlaywrightBrowser:
             assert browser._launch_loop is None
             await browser.fetch_html("https://example.com")
 
-        assert browser._launch_loop is asyncio.get_event_loop()
+        assert browser._launch_loop is asyncio.get_running_loop()
 
     def test_atexit_close_uses_run_coroutine_threadsafe_when_loop_running(self):
         """_atexit_close uses run_coroutine_threadsafe when the original loop is still running."""
@@ -379,6 +379,29 @@ class TestPlaywrightBrowser:
 
         new_loop.run_until_complete.assert_called_once_with(close_coro)
         mock_rcts.assert_not_called()
+
+    def test_atexit_close_does_not_raise_when_future_times_out(self):
+        """_atexit_close silently absorbs a TimeoutError from future.result()."""
+        import weakref
+        from laughtrack.foundation.infrastructure.http.playwright_browser import _atexit_close
+
+        close_coro = MagicMock()
+
+        class FakeBrowser:
+            _browser = MagicMock()
+            _launch_loop = MagicMock()
+            def close(self):  # noqa: ANN201
+                return close_coro
+
+        fake = FakeBrowser()
+        fake._launch_loop.is_running.return_value = True
+
+        mock_future = MagicMock()
+        mock_future.result.side_effect = concurrent.futures.TimeoutError()
+
+        with patch("asyncio.run_coroutine_threadsafe", return_value=mock_future):
+            ref = weakref.ref(fake)
+            _atexit_close(ref)  # must not raise
 
     @pytest.mark.asyncio
     async def test_concurrent_close_and_fetch_does_not_raise(self):
