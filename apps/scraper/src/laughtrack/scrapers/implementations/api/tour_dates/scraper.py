@@ -83,7 +83,11 @@ class TourDatesScraper(BaseScraper):
 
     @property
     def _max_concurrent_comedians(self) -> int:
-        return int(os.environ.get("MAX_CONCURRENT_COMEDIANS", self._DEFAULT_MAX_CONCURRENT_COMEDIANS))
+        try:
+            val = int(os.environ.get("MAX_CONCURRENT_COMEDIANS", self._DEFAULT_MAX_CONCURRENT_COMEDIANS))
+            return val if val > 0 else self._DEFAULT_MAX_CONCURRENT_COMEDIANS
+        except (ValueError, TypeError):
+            return self._DEFAULT_MAX_CONCURRENT_COMEDIANS
 
     async def scrape_async(self) -> List[Show]:
         """Override: fetch tour dates per comedian concurrently, upsert venues, persist shows + lineups."""

@@ -409,12 +409,10 @@ async def test_comedians_processed_concurrently(platform_club):
 
     active = [0]
     max_active = [0]
-    entered = asyncio.Event()
 
     async def slow_fetch(comedian, artist_id):
         active[0] += 1
         max_active[0] = max(max_active[0], active[0])
-        entered.set()
         await asyncio.sleep(0)  # yield to let other coroutines run
         active[0] -= 1
         future_date = datetime(2027, 6, 1, 19, 30, tzinfo=timezone.utc)
@@ -461,11 +459,16 @@ async def test_scrape_async_skips_comedian_on_error_concurrent(platform_club):
 
 
 def test_max_concurrent_comedians_reads_env_var(platform_club):
-    """MAX_CONCURRENT_COMEDIANS env var controls the semaphore limit."""
+    """MAX_CONCURRENT_COMEDIANS env var controls the semaphore limit; falls back to default on bad values."""
     scraper = TourDatesScraper(platform_club)
 
     with patch.dict(os.environ, {"MAX_CONCURRENT_COMEDIANS": "3"}):
         assert scraper._max_concurrent_comedians == 3
 
-    os.environ.pop("MAX_CONCURRENT_COMEDIANS", None)
     assert scraper._max_concurrent_comedians == 5  # default
+
+    with patch.dict(os.environ, {"MAX_CONCURRENT_COMEDIANS": "abc"}):
+        assert scraper._max_concurrent_comedians == 5  # invalid → default
+
+    with patch.dict(os.environ, {"MAX_CONCURRENT_COMEDIANS": "0"}):
+        assert scraper._max_concurrent_comedians == 5  # zero → default
