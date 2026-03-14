@@ -161,6 +161,41 @@ describe("findShowsWithCount", () => {
         });
     });
 
+    describe("invocation contract — getClubNameClause and getZipCodeClause", () => {
+        it("calls getClubNameClause and getZipCodeClause each twice when clauses have values", async () => {
+            mockTransaction.mockImplementation(async (fn: any) =>
+                fn(makeTx(0)),
+            );
+
+            const helper = {
+                ...makeHelper(),
+                getClubNameClause: vi.fn(() => ({
+                    name: { equals: "Laugh Factory" },
+                })),
+                getZipCodeClause: vi.fn(() => ({
+                    zipCode: { equals: "10001" },
+                })),
+            };
+
+            await findShowsWithCount(helper as any);
+
+            expect(helper.getClubNameClause).toHaveBeenCalledTimes(2);
+            expect(helper.getZipCodeClause).toHaveBeenCalledTimes(2);
+        });
+
+        it("calls getClubNameClause and getZipCodeClause each once when clauses are empty", async () => {
+            mockTransaction.mockImplementation(async (fn: any) =>
+                fn(makeTx(0)),
+            );
+
+            const helper = makeHelper() as any;
+            await findShowsWithCount(helper);
+
+            expect(helper.getClubNameClause).toHaveBeenCalledTimes(1);
+            expect(helper.getZipCodeClause).toHaveBeenCalledTimes(1);
+        });
+    });
+
     describe("error propagation", () => {
         it("propagates an Error thrown inside the transaction to the caller", async () => {
             const dbError = new Error("Transaction failed");
