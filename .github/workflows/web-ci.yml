@@ -140,6 +140,7 @@ jobs:
       # Required GitHub Actions secrets for this step:
       #   DATABASE_URL  — Neon serverless connection string (runtime + Prisma client)
       #   DIRECT_URL    — Direct Neon connection string (Prisma migrate deploy only)
+      #   AUTH_SECRET   — NextAuth v5 session token signing secret (openssl rand -base64 32)
       # See apps/web/.env.example for variable descriptions and provisioning guidance.
       - name: Build
         run: npm run build

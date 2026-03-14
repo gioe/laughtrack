@@ -37,6 +37,12 @@ if (
     process.env.NODE_ENV === "production" &&
     process.env.NEXT_PHASE !== "phase-production-build"
 ) {
+    if (!process.env.AUTH_SECRET) {
+        throw new Error(
+            "AUTH_SECRET must be set in production — generate one with: openssl rand -base64 32",
+        );
+    }
+
     if (
         !process.env.SMTP_HOST ||
         !process.env.SMTP_USER ||
@@ -69,7 +75,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             from: process.env.EMAIL_FROM ?? "noreply@laughtrack.com",
         }),
     ],
-    secret: process.env.AUTH_SECRET,
     session: {
         strategy: "jwt",
         maxAge: 30 * 24 * 60 * 60, // 30 days
