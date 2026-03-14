@@ -5,7 +5,7 @@ const AboutUsSection = () => {
     const imageUrl = getCdnUrl("venue.png");
 
     return (
-        <div className="w-full bg-cream-50">
+        <div className="w-full bg-coconut-cream">
             <div className="max-w-7xl mx-auto px-6 py-12">
                 {/* Header with fade-in and slide-up animation */}
                 <div className="text-center mb-8 animate-fadeIn">

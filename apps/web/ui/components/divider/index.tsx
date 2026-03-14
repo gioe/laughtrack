@@ -10,7 +10,7 @@ export function Divider({ text }: DropdownProps) {
             </div>
             <div className="relative flex justify-center text-sm">
                 {text && (
-                    <span className="px-2 bg-cream-50 text-gray-500">
+                    <span className="px-2 bg-coconut-cream text-gray-500">
                         {text}
                     </span>
                 )}

@@ -88,7 +88,7 @@ const UserDetailHeader = ({ profile }: UserDetailHeaderProps) => {
     return (
         <div className="max-w-7xl mx-auto">
             {/* Profile Header */}
-            <div className="relative bg-gradient-to-r from-copper/10 to-brown-600/5 rounded-b-3xl p-8">
+            <div className="relative bg-gradient-to-r from-copper/10 to-cedar/5 rounded-b-3xl p-8">
                 <div className="flex items-start justify-between">
                     <div className="flex items-center gap-6">
                         <div className="relative">
