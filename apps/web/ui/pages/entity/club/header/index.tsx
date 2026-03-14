@@ -7,6 +7,7 @@ import { Club } from "@/objects/class/club/Club";
 import { ClubDTO } from "@/objects/class/club/club.interface";
 import ClubDataColumn from "../social";
 import { useMotionProps } from "@/hooks";
+import { motion } from "framer-motion";
 
 const PLACEHOLDER = "/placeholders/club-placeholder.svg";
 
@@ -16,45 +17,70 @@ interface ClubDetailHeaderProps {
 
 const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({ club }) => {
     const parsedClub = new Club(club);
-    const { prefersReducedMotion } = useMotionProps();
+    const { mv } = useMotionProps();
     const [error, setError] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
 
+    const showImage =
+        !error && !!parsedClub.imageUrl && parsedClub.imageUrl !== PLACEHOLDER;
+
     return (
-        <div className="max-w-7xl mx-auto p-6">
-            {/* Header Section */}
-            <div className="w-full  p-4">
-                <div className="flex items-center justify-between max-w-6xl mx-auto">
-                    <div className="flex items-center gap-4">
-                        <div className="relative w-16 h-16 rounded-full overflow-hidden">
-                            <Image
-                                src={error ? PLACEHOLDER : parsedClub.imageUrl}
-                                alt={parsedClub.name}
-                                fill
-                                sizes="64px"
-                                className={`object-cover transition-opacity duration-300 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
-                                onError={() => setError(true)}
-                                onLoad={() => setImageLoaded(true)}
-                            />
-                            {!imageLoaded && (
-                                <div
-                                    className={`absolute inset-0 bg-gray-200${!prefersReducedMotion ? " animate-pulse" : ""}`}
-                                />
-                            )}
-                        </div>
-                        <div className="flex flex-col gap-1">
-                            <h1 className="text-2xl font-bold text-gray-900">
-                                {parsedClub.name}
-                            </h1>
-                            <div className="flex items-center gap-2 text-gray-600">
-                                <MapPin className="w-4 h-4" />
-                                <span>{parsedClub.address}</span>
-                            </div>
-                        </div>
-                    </div>
+        <div className="max-w-7xl mx-auto">
+            {/* Hero Image Section */}
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: mv(0.4) }}
+                className="relative w-full h-52 md:h-80 overflow-hidden rounded-xl"
+            >
+                {/* Gradient fallback background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-stone-600 via-stone-800 to-stone-900" />
+
+                {/* Hero image */}
+                {showImage && (
+                    <Image
+                        src={parsedClub.imageUrl}
+                        alt={parsedClub.name}
+                        fill
+                        className={`object-cover object-center transition-opacity duration-500 ${
+                            imageLoaded ? "opacity-100" : "opacity-0"
+                        }`}
+                        onError={() => setError(true)}
+                        onLoad={() => setImageLoaded(true)}
+                        priority
+                        sizes="(max-width: 768px) 100vw, 1280px"
+                    />
+                )}
+
+                {/* Bottom gradient overlay for text legibility */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+
+                {/* Name + Address overlaid at bottom */}
+                <div className="absolute bottom-0 left-0 right-0 p-6">
+                    <motion.h1
+                        initial={{ opacity: 0, y: mv(20) }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: mv(0.3), delay: mv(0.1) }}
+                        className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg mb-1"
+                    >
+                        {parsedClub.name}
+                    </motion.h1>
+                    <motion.div
+                        initial={{ opacity: 0, y: mv(10) }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: mv(0.3), delay: mv(0.2) }}
+                        className="flex items-center gap-2 text-white/80"
+                    >
+                        <MapPin className="w-4 h-4" />
+                        <span>{parsedClub.address}</span>
+                    </motion.div>
                 </div>
+            </motion.div>
+
+            {/* Contact info below hero */}
+            <div className="p-6">
+                <ClubDataColumn club={club} />
             </div>
-            <ClubDataColumn club={club} />
         </div>
     );
 };

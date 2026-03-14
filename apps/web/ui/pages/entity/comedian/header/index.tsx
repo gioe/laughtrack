@@ -39,79 +39,77 @@ const ComedianDetailHeader: React.FC<ClubDetailHeaderProps> = ({
         await handleFavoriteClick(e);
     };
 
+    const showImage =
+        !error && !!comedian.imageUrl && comedian.imageUrl !== PLACEHOLDER;
+
     return (
-        <div className="max-w-7xl mx-auto p-6">
-            <div className="flex flex-col md:flex-row gap-8">
-                {/* Left Column - Comedian Info */}
-                <div className="flex-1">
-                    <div className="flex items-start gap-6">
-                        <motion.div
-                            initial={{ opacity: 0, scale: mv(0.9, 1) }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: mv(0.3) }}
-                            className="relative"
+        <div className="max-w-7xl mx-auto relative">
+            {/* Hero Image Section */}
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: mv(0.4) }}
+                className="relative w-full h-60 md:h-96 overflow-hidden rounded-xl"
+            >
+                {/* Gradient fallback background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-slate-600 via-slate-800 to-slate-900" />
+
+                {/* Hero image */}
+                {showImage && (
+                    <Image
+                        src={comedian.imageUrl}
+                        alt={comedian.name}
+                        fill
+                        className={`object-cover object-top transition-opacity duration-500 ${
+                            imageLoaded ? "opacity-100" : "opacity-0"
+                        }`}
+                        onError={() => setError(true)}
+                        onLoad={() => setImageLoaded(true)}
+                        priority
+                        sizes="(max-width: 768px) 100vw, 1280px"
+                    />
+                )}
+
+                {/* Bottom gradient overlay for text legibility */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+
+                {/* Name + Favorite button overlaid at bottom */}
+                <div className="absolute bottom-0 left-0 right-0 p-6 flex items-end justify-between">
+                    <motion.h1
+                        initial={{ opacity: 0, y: mv(20) }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{
+                            duration: mv(0.3),
+                            delay: mv(0.1),
+                        }}
+                        className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg"
+                    >
+                        {parsedComedian.name}
+                    </motion.h1>
+
+                    <motion.div
+                        whileHover={mp({ scale: 1.1 })}
+                        whileTap={mp({ scale: 0.9 })}
+                    >
+                        <button
+                            onClick={handleFavoriteWithAnimation}
+                            className="p-3 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:shadow-xl transition-shadow"
                         >
-                            <div className="relative w-24 h-24 rounded-full overflow-hidden">
-                                <Image
-                                    src={
-                                        error ? PLACEHOLDER : comedian.imageUrl
-                                    }
-                                    alt={comedian.name}
-                                    fill
-                                    className={`object-cover transition-opacity duration-300 ${
-                                        imageLoaded
-                                            ? "opacity-100"
-                                            : "opacity-0"
-                                    }`}
-                                    onError={() => setError(true)}
-                                    onLoad={() => setImageLoaded(true)}
-                                />
-                                {!imageLoaded && (
-                                    <div
-                                        className={`absolute inset-0 bg-gray-200${!prefersReducedMotion ? " animate-pulse" : ""}`}
-                                    />
-                                )}
-                            </div>
-                            <motion.div
-                                className="absolute -bottom-2 -right-2"
-                                whileHover={mp({ scale: 1.1 })}
-                                whileTap={mp({ scale: 0.9 })}
-                            >
-                                <button
-                                    onClick={handleFavoriteWithAnimation}
-                                    className="p-2 bg-white rounded-full shadow-lg hover:shadow-xl transition-shadow"
-                                >
-                                    <Heart
-                                        className={`w-5 h-5 ${
-                                            isFavorite
-                                                ? "text-red-500 fill-current"
-                                                : "text-gray-400"
-                                        }`}
-                                    />
-                                </button>
-                            </motion.div>
-                        </motion.div>
-
-                        <div className="flex-1">
-                            <motion.h1
-                                initial={{ opacity: 0, y: mv(20) }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{
-                                    duration: mv(0.3),
-                                    delay: mv(0.1),
-                                }}
-                                className="text-3xl font-bold text-gray-900 mb-2"
-                            >
-                                {parsedComedian.name}
-                            </motion.h1>
-                        </div>
-                    </div>
+                            <Heart
+                                className={`w-6 h-6 ${
+                                    isFavorite
+                                        ? "text-red-500 fill-current"
+                                        : "text-gray-600"
+                                }`}
+                            />
+                        </button>
+                    </motion.div>
                 </div>
+            </motion.div>
 
-                {/* Right Column - Social Media */}
-                <div className="md:w-64">
-                    <SocialMediaColumn comedian={comedian} />
-                </div>
+            {/* Social Links */}
+            <div className="p-6">
+                <SocialMediaColumn comedian={comedian} />
             </div>
 
             <AnimatePresence>
@@ -123,7 +121,7 @@ const ComedianDetailHeader: React.FC<ClubDetailHeaderProps> = ({
                         transition={
                             prefersReducedMotion ? { duration: 0 } : undefined
                         }
-                        className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+                        className="absolute top-48 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10"
                     >
                         <Sparkles className="w-12 h-12 text-yellow-400" />
                     </motion.div>
