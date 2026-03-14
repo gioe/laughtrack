@@ -69,7 +69,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             from: process.env.EMAIL_FROM ?? "noreply@laughtrack.com",
         }),
     ],
-    secret: process.env.NEXTAUTH_SECRET,
+    secret: process.env.AUTH_SECRET,
     session: {
         strategy: "jwt",
         maxAge: 30 * 24 * 60 * 60, // 30 days
