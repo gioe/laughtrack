@@ -141,6 +141,25 @@ Ensure `DATABASE_URL` and `DIRECT_URL` are set in the environment before running
 
 > **Migration timing:** Always run `prisma migrate deploy` **before** the new app version goes live. On Vercel, add it as a build command (`npx prisma migrate deploy && next build`) or run it manually before triggering a deploy. Deploying the new code before the schema is updated will cause runtime errors.
 
+### Post-Migration: Data Seed Script (Fresh Environments Only)
+
+The email scrapers for Gotham Comedy Club and Comedy Cellar require a one-time data seed that **cannot run inside a Prisma migration** (the shadow DB used by `migrate dev` would fail if those clubs don't exist). This seed is stored separately:
+
+```
+apps/web/prisma/scripts/set_email_scraper_fields.sql
+```
+
+**When to run it:** On any **fresh environment** (new Neon database, staging env, disaster-recovery restore) after `prisma migrate deploy` completes and after the clubs data has been seeded. It is safe to skip on re-deployments where the database already has this data — the script is idempotent.
+
+```bash
+cd apps/web
+psql $DIRECT_URL -f prisma/scripts/set_email_scraper_fields.sql
+```
+
+This sets `scraper = 'gotham_email'` on the Gotham Comedy Club row and `scraper = 'comedy_cellar_email'` on the Comedy Cellar New York row. If either club is missing, the script raises an exception rather than silently skipping — check that club names match exactly.
+
+> **This step is NOT automated** by the Vercel build command (`prisma migrate deploy && next build`). It must be run manually when provisioning a new environment. Without it, the email scrapers for those two clubs will not activate.
+
 ---
 
 ## Deploying to Vercel
