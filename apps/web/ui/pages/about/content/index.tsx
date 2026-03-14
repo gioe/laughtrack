@@ -9,7 +9,7 @@ const AboutUsSection = () => {
             <div className="max-w-7xl mx-auto px-6 py-12">
                 {/* Header with fade-in and slide-up animation */}
                 <div className="text-center mb-8 animate-fadeIn">
-                    <h1 className="text-[32px] font-bold mb-4 font-outfit bg-gradient-to-r from-copper to-cedar bg-clip-text text-transparent transform transition-transform duration-300 hover:scale-105">
+                    <h1 className="text-[32px] font-bold mb-4 font-chivo bg-gradient-to-r from-copper to-cedar bg-clip-text text-transparent transform transition-transform duration-300 hover:scale-105">
                         About Us
                     </h1>
                     <p className="text-gray-700 font-dmSans text-[16px] animate-slideUp">

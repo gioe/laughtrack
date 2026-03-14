@@ -20,7 +20,7 @@ const StatsSection: React.FC<StatsSectionProps> = ({
                     {/* Clubs Stat */}
                     <div className="flex flex-col items-center">
                         <Theater className="w-12 h-12 text-copper mb-4" />
-                        <h2 className="text-[40px] font-inter font-bold mb-2">
+                        <h2 className="text-[40px] font-gilroy-bold font-bold mb-2">
                             {clubCount.toLocaleString()}
                         </h2>
                         <p className="text-gray-600 font-dmSans text-[19px]">
@@ -31,7 +31,7 @@ const StatsSection: React.FC<StatsSectionProps> = ({
                     {/* Comedians Stat */}
                     <div className="flex flex-col items-center">
                         <Users className="w-12 h-12 text-copper mb-4" />
-                        <h2 className="text-[40px] font-inter font-bold mb-2">
+                        <h2 className="text-[40px] font-gilroy-bold font-bold mb-2">
                             {comedianCount.toLocaleString()}
                         </h2>
                         <p className="text-gray-600 font-dmSans text-[19px]">
@@ -42,7 +42,7 @@ const StatsSection: React.FC<StatsSectionProps> = ({
                     {/* Shows Stat */}
                     <div className="flex flex-col items-center">
                         <Timer className="w-12 h-12 text-copper mb-4" />
-                        <h2 className="text-[40px] font-inter font-bold mb-2">
+                        <h2 className="text-[40px] font-gilroy-bold font-bold mb-2">
                             {showCount.toLocaleString()}
                         </h2>
                         <p className="text-gray-600 font-dmSans text-[19px]">

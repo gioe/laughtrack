@@ -86,6 +86,10 @@ const themeColors = {
     },
 };
 
+// Typography system:
+//   font-chivo      → hero/page-level display headings (h1 in hero, login, auth modals)
+//   font-gilroy-bold → UI headings and entity names (card titles, section headings, stat values)
+//   font-dmSans     → all body text, descriptions, labels, metadata, navigation
 const fonts = {
     sans: ['"PT Sans"', "sans-serif"],
     "gilroy-regular": ['"Gilroy-Regular"', "sans-serif"],

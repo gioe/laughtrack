@@ -9,7 +9,7 @@ const SupportSection = () => {
             {/* Content Container */}
             <div className="max-w-7xl mx-auto px-6 py-12">
                 {/* Header */}
-                <h1 className="text-[32px] font-bold text-center mb-4 font-outfit">
+                <h1 className="text-[32px] font-bold text-center mb-4 font-chivo">
                     Support
                 </h1>
 

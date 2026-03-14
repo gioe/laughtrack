@@ -31,7 +31,7 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
             </div>
 
             <div>
-                <h2 className="text-xl sm:text-2xl md:text-[24px] font-inter font-bold text-[#2D1810] mb-1">
+                <h2 className="text-xl sm:text-2xl md:text-[24px] font-gilroy-bold font-bold text-[#2D1810] mb-1">
                     {show.clubName ?? ""}
                 </h2>
                 {show.name && (
@@ -43,7 +43,7 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
                     {formatShowDate(show.date.toString())} · {`${show.address}`}
                 </p>
                 {!show.soldOut && (
-                    <p className="text-lg sm:text-xl md:text-[20px] text-copper font-semibold mt-1 font-inter">
+                    <p className="text-lg sm:text-xl md:text-[20px] text-copper font-semibold mt-1 font-dmSans">
                         {formatTicketString(
                             show.tickets.filter((ticket) => !ticket.soldOut),
                         )}
