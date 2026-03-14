@@ -41,9 +41,9 @@ const ShowCard: React.FC<ShowCardProps> = ({ show }: ShowCardProps) => {
                 ease: "easeOut",
             }}
         >
-            <div className="flex flex-col lg:flex-row gap-2 sm:gap-4">
-                <div className="flex-1 lg:w-[35%] flex flex-col gap-2 sm:gap-4">
-                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4">
+            <div className="flex flex-col lg:flex-row gap-4">
+                <div className="flex-1 lg:w-[35%] flex flex-col gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                         <div className="flex-1">
                             <ShowCardHeader show={parsedShow} />
                         </div>
