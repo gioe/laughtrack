@@ -31,7 +31,7 @@ const FilterModal = ({ filters, total }: FilterModalProps) => {
             </p>
 
             <div className="mb-6 pt-7 animate-slideUp">
-                <h3 className="text-[18px] font-bold font-chivo text-gray-800 mb-3 pb-3 border-b border-gray-100">
+                <h3 className="text-[18px] font-bold font-gilroy-bold text-gray-800 mb-3 pb-3 border-b border-gray-100">
                     Filter By
                 </h3>
                 <div className="flex flex-wrap gap-2">

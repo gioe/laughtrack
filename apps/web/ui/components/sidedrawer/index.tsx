@@ -100,7 +100,7 @@ export function SideDrawer({ open, onClose, currentUser }: SideDrawerProps) {
                                     initial={{ opacity: 0, y: mv(-10) }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: mv(0.2) }}
-                                    className="text-2xl font-bold font-chivo bg-gradient-to-r from-copper to-cedar bg-clip-text text-transparent"
+                                    className="text-2xl font-bold font-gilroy-bold bg-gradient-to-r from-copper to-cedar bg-clip-text text-transparent"
                                 >
                                     Laughtrack
                                 </motion.span>
