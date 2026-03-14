@@ -162,7 +162,7 @@ describe("findShowsWithCount", () => {
     });
 
     describe("invocation contract — getClubNameClause and getZipCodeClause", () => {
-        it("calls getClubNameClause and getZipCodeClause each twice when clauses have values", async () => {
+        it("calls getClubNameClause and getZipCodeClause each once when clauses have values", async () => {
             mockTransaction.mockImplementation(async (fn: any) =>
                 fn(makeTx(3)),
             );
@@ -179,8 +179,8 @@ describe("findShowsWithCount", () => {
 
             await findShowsWithCount(helper as any);
 
-            expect(helper.getClubNameClause).toHaveBeenCalledTimes(2);
-            expect(helper.getZipCodeClause).toHaveBeenCalledTimes(2);
+            expect(helper.getClubNameClause).toHaveBeenCalledTimes(1);
+            expect(helper.getZipCodeClause).toHaveBeenCalledTimes(1);
         });
 
         it("calls getClubNameClause and getZipCodeClause each once when clauses are empty", async () => {

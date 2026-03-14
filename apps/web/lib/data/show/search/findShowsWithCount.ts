@@ -76,6 +76,8 @@ export async function findShowsWithCount(
     helper: QueryHelper,
 ): Promise<ShowsResponse> {
     try {
+        const clubNameClause = helper.getClubNameClause();
+        const zipCodeClause = helper.getZipCodeClause();
         const whereClause: Prisma.ShowWhereInput = {
             // Shows whose dates are Greater Than (gte) today's date or a date parameter, if provided
             ...helper.getDateClause(),
@@ -84,10 +86,8 @@ export async function findShowsWithCount(
             club: {
                 visible: true,
                 // Only add these clauses if they have values
-                ...(helper.getClubNameClause().name &&
-                    helper.getClubNameClause()),
-                ...(helper.getZipCodeClause().zipCode &&
-                    helper.getZipCodeClause()),
+                ...(clubNameClause.name && clubNameClause),
+                ...(zipCodeClause.zipCode && zipCodeClause),
             },
 
             // If the 'comedian' param is provided, it means we're doing a search for shows that contain a specific comedian.
