@@ -5,7 +5,7 @@
 html,
 body,
 :root {
-  background-color: #faf6e0; /* or any color you want */
+  background-color: var(--coconut-cream);
   height: 100%;
 }
 
@@ -40,6 +40,7 @@ body,
 
 @layer base {
   :root {
+    --coconut-cream: #FAF6E0;
     --background: 0 0% 100%;
     --foreground: 20 14.3% 4.1%;
     --card: 0 0% 100%;
