@@ -26,9 +26,12 @@ export default function Loading() {
             {/* Stats section skeleton */}
             <div className="w-full bg-coconut-cream py-16">
                 <div className="max-w-7xl mx-auto px-4">
-                    <div className="grid grid-cols-3 gap-8 mb-12">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-12">
                         {[...Array(3)].map((_, i) => (
-                            <div key={i} className="flex flex-col items-center gap-4">
+                            <div
+                                key={i}
+                                className="flex flex-col items-center gap-4"
+                            >
                                 {/* Icon */}
                                 <div className="h-12 w-12 bg-gray-200 rounded-lg animate-pulse" />
                                 {/* Count */}
