@@ -1,38 +1,45 @@
-import { PrismaClient } from '@prisma/client'
-import { PrismaNeon } from '@prisma/adapter-neon'
-import { Pool } from '@neondatabase/serverless'
+import { PrismaClient } from "@prisma/client";
+import { PrismaNeon } from "@prisma/adapter-neon";
+import { Pool } from "@neondatabase/serverless";
 
 // Create a singleton instance of the Prisma client
 const globalForPrisma = globalThis as unknown as {
-    prisma: PrismaClient | undefined
-}
+    prisma: PrismaClient | undefined;
+};
 
-// Initialize the Neon connection pool
-const connectionString = process.env.DATABASE_URL
+// Validate required environment variables at startup
+const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
-    throw new Error('DATABASE_URL environment variable is not set')
+    throw new Error("DATABASE_URL environment variable is not set");
+}
+if (!process.env.DIRECT_URL) {
+    throw new Error("DIRECT_URL environment variable is not set");
 }
 
 // Create the Prisma client with the Neon adapter
 const prismaClientSingleton = () => {
-    const neon = new Pool({ connectionString })
-    const adapter = new PrismaNeon(neon)
+    const neon = new Pool({ connectionString });
+    const adapter = new PrismaNeon(neon);
 
     return new PrismaClient({
         adapter,
-        log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
-    })
-}
+        log:
+            process.env.NODE_ENV === "development"
+                ? ["query", "info", "warn", "error"]
+                : ["error"],
+    });
+};
 
 // In development, store the Prisma client in the global scope to prevent multiple instances
-if (process.env.NODE_ENV !== 'production') {
+if (process.env.NODE_ENV !== "production") {
     if (!globalForPrisma.prisma) {
-        globalForPrisma.prisma = prismaClientSingleton()
+        globalForPrisma.prisma = prismaClientSingleton();
     }
 }
 
-export const prisma = process.env.NODE_ENV === 'production'
-    ? prismaClientSingleton()
-    : globalForPrisma.prisma!
+export const prisma =
+    process.env.NODE_ENV === "production"
+        ? prismaClientSingleton()
+        : globalForPrisma.prisma!;
 
-export const db = prisma
+export const db = prisma;
