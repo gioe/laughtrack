@@ -289,9 +289,8 @@ describe("findShowsWithCount", () => {
                 ),
             );
 
-            await findShowsWithCount(
-                makeHelper({ profileId: "profile-123" }) as any,
-            );
+            const helper = makeHelper({ profileId: "profile-123" });
+            await findShowsWithCount(helper as any);
 
             const comedianSelect =
                 capturedSelect.lineupItems.select.comedian.select;
@@ -302,6 +301,7 @@ describe("findShowsWithCount", () => {
             expect(comedianSelect.favoriteComedians.select).toEqual({
                 id: true,
             });
+            expect(helper.getProfileId).toHaveBeenCalledTimes(2);
         });
 
         it("excludes favoriteComedians from the comedian select when profileId is not set", async () => {
