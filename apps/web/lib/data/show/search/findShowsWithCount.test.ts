@@ -179,12 +179,65 @@ describe("findShowsWithCount", () => {
             ).rejects.toThrow("Transaction failed");
         });
 
-        it("wraps a non-Error rejection with a generic message", async () => {
+        it("replaces a non-Error rejection with a generic message", async () => {
             mockTransaction.mockRejectedValue("string error");
 
             await expect(
                 findShowsWithCount(makeHelper() as any),
             ).rejects.toThrow("An unknown error occurred while fetching shows");
+        });
+    });
+
+    describe("soldOut mapping", () => {
+        it("sets soldOut to false when tickets array is empty", async () => {
+            const show = makeShow({ tickets: [] });
+            mockTransaction.mockImplementation(async (fn: any) =>
+                fn(makeTx(1, () => Promise.resolve([show]))),
+            );
+
+            const result = await findShowsWithCount(makeHelper() as any);
+
+            expect(result.shows[0].soldOut).toBe(false);
+        });
+
+        it("sets soldOut to true when all tickets are soldOut", async () => {
+            const show = makeShow({
+                tickets: [{ soldOut: true }, { soldOut: true }],
+            });
+            mockTransaction.mockImplementation(async (fn: any) =>
+                fn(makeTx(1, () => Promise.resolve([show]))),
+            );
+
+            const result = await findShowsWithCount(makeHelper() as any);
+
+            expect(result.shows[0].soldOut).toBe(true);
+        });
+
+        it("sets soldOut to false when tickets are partially sold out", async () => {
+            const show = makeShow({
+                tickets: [{ soldOut: true }, { soldOut: false }],
+            });
+            mockTransaction.mockImplementation(async (fn: any) =>
+                fn(makeTx(1, () => Promise.resolve([show]))),
+            );
+
+            const result = await findShowsWithCount(makeHelper() as any);
+
+            expect(result.shows[0].soldOut).toBe(false);
+        });
+    });
+
+    describe("transaction options", () => {
+        it("calls db.$transaction with RepeatableRead isolation level", async () => {
+            mockTransaction.mockImplementation(async (fn: any) =>
+                fn(makeTx(0)),
+            );
+
+            await findShowsWithCount(makeHelper() as any);
+
+            expect(mockTransaction).toHaveBeenCalledWith(expect.any(Function), {
+                isolationLevel: "RepeatableRead",
+            });
         });
     });
 
@@ -211,6 +264,9 @@ describe("findShowsWithCount", () => {
             expect(comedianSelect.favoriteComedians.where.profileId).toBe(
                 "profile-123",
             );
+            expect(comedianSelect.favoriteComedians.select).toEqual({
+                id: true,
+            });
         });
 
         it("excludes favoriteComedians from the comedian select when profileId is not set", async () => {
