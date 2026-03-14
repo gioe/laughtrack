@@ -83,12 +83,23 @@ class ConfigManager:
             load_dotenv(dotenv_path=env_path, encoding="utf-8")
 
         # Database configuration
+        _db_port_raw = os.getenv("DATABASE_PORT")
+        if _db_port_raw is not None:
+            try:
+                _db_port = int(_db_port_raw)
+            except ValueError:
+                raise ValueError(
+                    f"DATABASE_PORT must be a valid integer, got: {_db_port_raw!r}"
+                )
+        else:
+            _db_port = None
+
         self._config["database"] = {
             "name": os.getenv("DATABASE_NAME"),
             "user": os.getenv("DATABASE_USER"),
             "host": os.getenv("DATABASE_HOST"),
             "password": os.getenv("DATABASE_PASSWORD"),
-            "port": os.getenv("DATABASE_PORT"),
+            "port": _db_port,
         }
 
         # Email configuration
