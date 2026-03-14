@@ -42,8 +42,5 @@ if echo "$changed" | grep -qx 'VERSION'; then
   exit 0
 fi
 
-python3 -c "
-import json
-print(json.dumps({'hookSpecificOutput': {'hookEventName': 'PreToolUse', 'additionalContext': 'Warning: distributable files (bin/, skills/, config.default.json, or install.sh) changed but VERSION was not bumped. Bump VERSION and update CHANGELOG before pushing.'}}))
-"
+echo "Warning: distributable files (bin/, skills/, config.default.json, or install.sh) changed but VERSION was not bumped. Bump VERSION and update CHANGELOG before pushing."
 exit 0

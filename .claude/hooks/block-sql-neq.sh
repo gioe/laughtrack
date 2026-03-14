@@ -19,7 +19,7 @@ echo "$command" | grep -q '!=' || exit 0
 # This avoids false positives on git commits, echo strings, etc. that happen
 # to mention != alongside SQL keywords as documentation text.
 if echo "$command" | grep -qE '(^|[|;&]|&&|\|\||\$\()\s*(bin/)?tusk\b'; then
-  echo "Use <> instead of != in SQL — shell history expansion breaks !=." >&2
+  echo "Use <> instead of != in SQL — shell history expansion breaks !=."
   exit 2
 fi
 

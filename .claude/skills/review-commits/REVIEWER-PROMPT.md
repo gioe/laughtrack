@@ -2,6 +2,8 @@
 
 Use this template when spawning each background reviewer agent in Step 5 of the `/review-commits` skill. Replace `{placeholders}` with actual values.
 
+> **Prerequisites:** Reviewer agents require **Bash tool access** to run `git diff` and `tusk review` commands. Ensure the Bash tool is auto-approved in the Claude Code session before spawning agents. Without Bash access, the agent will stall waiting for permission instead of completing the review — and the orchestrator will eventually treat it as stuck (auto-approved with no findings), silently skipping the review.
+
 ---
 
 ## Prompt Text
@@ -58,17 +60,26 @@ You are a code reviewer agent. Your job is to analyze a git diff for task #{task
 
 ---
 
-## Your Diff to Review
-
-```diff
-{diff_content}
-```
-
----
-
 ## Review Steps
 
-### Step 1: Read and Understand the Diff
+### Step 1: Fetch the Diff
+
+Fetch the diff directly from the repository — never rely on an inline diff passed in the prompt, as copy errors can introduce fabricated changes:
+
+```bash
+git remote set-head origin --auto 2>/dev/null
+DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
+CURRENT_BRANCH=$(git branch --show-current)
+git diff "${DEFAULT_BRANCH}...HEAD"
+```
+
+If the result is empty and `CURRENT_BRANCH == DEFAULT_BRANCH`, fall back to:
+
+```bash
+git diff HEAD~1..HEAD
+```
+
+If the diff is still empty after the fallback, report "No changes found to review." and stop.
 
 Read the entire diff carefully to understand what changed, which files were modified, and what task #{task_id} is trying to accomplish.
 
