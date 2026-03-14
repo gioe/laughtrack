@@ -91,6 +91,10 @@ class ConfigManager:
                 raise ValueError(
                     f"DATABASE_PORT must be a valid integer, got: {_db_port_raw!r}"
                 )
+            if not (1 <= _db_port <= 65535):
+                raise ValueError(
+                    f"DATABASE_PORT must be between 1 and 65535, got: {_db_port}"
+                )
         else:
             _db_port = None
 
