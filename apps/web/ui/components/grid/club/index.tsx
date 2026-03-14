@@ -8,7 +8,7 @@ const ClubGrid = ({ clubs }: ClubGridProps) => {
     return (
         <div className="w-full">
             {clubs.length > 0 ? (
-                <div className="grid grid-cols-1 m:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 animate-fade-in">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 animate-fade-in">
                     {clubs.map((dto) => {
                         return <ClubSearchCard key={dto.name} club={dto} />;
                     })}
