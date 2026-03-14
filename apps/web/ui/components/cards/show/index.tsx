@@ -10,6 +10,12 @@ import LineupGrid from "@/ui/components/lineup";
 import { ShowDTO } from "@/objects/class/show/show.interface";
 import { Divider } from "../../divider";
 
+// NOTE: Responsive classes in this file use project-custom Tailwind breakpoints
+// (not Tailwind defaults). See tailwind.config.ts `theme.screens` for definitions:
+//   xs  → max-width  575px  (mobile portrait)
+//   sm  → 576–897px         (mobile landscape)
+//   md  → 898–1199px        (tablet)
+//   lg  → min-width 1200px  (desktop)
 const seenShowIds = new Set<number>();
 
 interface ShowCardProps {
