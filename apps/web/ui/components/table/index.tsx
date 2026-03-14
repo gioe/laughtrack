@@ -34,9 +34,7 @@ export default function Table<T extends Entity>({
             {data.length > 0 ? (
                 data.map((item) => {
                     return (
-                        <div className="w-3/4" key={keyExtractor(item)}>
-                            {renderItem(item)}
-                        </div>
+                        <div key={keyExtractor(item)}>{renderItem(item)}</div>
                     );
                 })
             ) : (
