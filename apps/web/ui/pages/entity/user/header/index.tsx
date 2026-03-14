@@ -24,8 +24,10 @@ interface EditableFieldsState {
 }
 
 const UserDetailHeader = ({ profile }: UserDetailHeaderProps) => {
-    const { mv } = useMotionProps();
+    const { mv, mt, prefersReducedMotion } = useMotionProps();
     const [isLoading, setIsLoading] = useState(false);
+    const [imageLoaded, setImageLoaded] = useState(false);
+    const [imageError, setImageError] = useState(false);
     const [activeTab, setActiveTab] = useState<TabType>("favorites");
     const [fields, setFields] = useState<EditableFieldsState>({
         emailOptin: profile.emailOptin ?? false,
@@ -87,36 +89,62 @@ const UserDetailHeader = ({ profile }: UserDetailHeaderProps) => {
 
     return (
         <div className="max-w-7xl mx-auto">
-            {/* Profile Header */}
-            <div className="relative bg-gradient-to-r from-copper/10 to-cedar/5 rounded-b-3xl p-8">
-                <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-6">
-                        <div className="relative">
-                            {profile.image ? (
-                                <Image
-                                    src={profile.image}
-                                    alt="Profile"
-                                    width={100}
-                                    height={100}
-                                    className="rounded-full border-4 border-white shadow-lg"
-                                />
-                            ) : (
-                                <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center">
-                                    <span className="text-2xl text-gray-500">
-                                        {profile.email?.[0]?.toUpperCase()}
-                                    </span>
-                                </div>
-                            )}
-                        </div>
-                        <div>
-                            <h1 className="text-3xl font-bold text-gray-900 font-gilroy-bold">
-                                {profile.name || "Comedy Fan"}
-                            </h1>
-                            <p className="text-gray-600">{profile.email}</p>
-                        </div>
-                    </div>
+            {/* Hero Image Section */}
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={mt({ duration: 0.4 })}
+                className="relative w-full h-48 md:h-64 overflow-hidden rounded-xl"
+            >
+                {/* Gradient fallback background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-copper/60 via-cedar/40 to-stone-800" />
+
+                {/* Hero image */}
+                {profile.image && !imageError && (
+                    <>
+                        <Image
+                            src={profile.image}
+                            alt={profile.name || "Profile"}
+                            fill
+                            className={`object-cover object-center transition-opacity duration-500 ${
+                                imageLoaded ? "opacity-100" : "opacity-0"
+                            }`}
+                            onError={() => setImageError(true)}
+                            onLoad={() => setImageLoaded(true)}
+                            priority
+                            sizes="(max-width: 768px) 100vw, 1280px"
+                        />
+                        {/* Skeleton pulse during image load */}
+                        {!imageLoaded && (
+                            <div
+                                className={`absolute inset-0 bg-stone-700${!prefersReducedMotion ? " animate-pulse" : ""}`}
+                            />
+                        )}
+                        {/* Overlay gradient — only when image is present */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                    </>
+                )}
+
+                {/* Name + email overlaid at bottom */}
+                <div className="absolute bottom-0 left-0 right-0 p-6">
+                    <motion.h1
+                        initial={{ opacity: 0, y: mv(20) }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={mt({ duration: 0.3, delay: mv(0.1) })}
+                        className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg font-gilroy-bold"
+                    >
+                        {profile.name || "Comedy Fan"}
+                    </motion.h1>
+                    <motion.p
+                        initial={{ opacity: 0, y: mv(10) }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={mt({ duration: 0.3, delay: mv(0.2) })}
+                        className="text-white/80"
+                    >
+                        {profile.email}
+                    </motion.p>
                 </div>
-            </div>
+            </motion.div>
 
             {/* Tabs */}
             <div className="border-b border-gray-200 mt-6">
