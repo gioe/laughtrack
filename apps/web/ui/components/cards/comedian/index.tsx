@@ -15,7 +15,7 @@ const ComedianGridCard: React.FC<ComedianGridCardProps> = ({ entity }) => {
     const comedian = new Comedian(entity);
     return (
         <motion.div
-            className="bg-coconut-cream rounded-xl pb-4 px-4 h-full transition-shadow duration-300 hover:shadow-lg"
+            className="bg-white rounded-xl pb-4 px-4 h-full transition-shadow duration-300 hover:shadow-lg"
             whileHover={mp({ y: -4, transition: { duration: 0.15 } })}
         >
             <ComedianHeadshot

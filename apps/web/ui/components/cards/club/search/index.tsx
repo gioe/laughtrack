@@ -21,7 +21,7 @@ const ClubSearchCard: React.FC<ClubSearchCardProps> = ({ club }) => {
 
     return (
         <motion.div
-            className="bg-coconut-cream rounded-xl overflow-hidden pb-4 px-4 h-full transition-shadow duration-300 hover:shadow-lg"
+            className="bg-white rounded-xl overflow-hidden pb-4 px-4 h-full transition-shadow duration-300 hover:shadow-lg"
             whileHover={mp({ y: -4, transition: { duration: 0.15 } })}
         >
             <div className="relative w-full aspect-square">
