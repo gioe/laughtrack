@@ -24,7 +24,7 @@ const PopularClubCard: React.FC<PopularClubCardProps> = ({ entity }) => {
             className="w-full"
             whileHover={mp({ scale: 1.05, transition: { duration: 0.15 } })}
         >
-            <div className="relative w-full aspect-square rounded-2xl overflow-hidden mb-4 hover:cursor-pointer">
+            <div className="relative w-full aspect-square rounded-xl overflow-hidden mb-4 hover:cursor-pointer">
                 <Link
                     href={`/club/${club.name}`}
                     className="block w-full h-full relative"
