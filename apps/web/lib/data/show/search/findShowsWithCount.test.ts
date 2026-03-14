@@ -164,7 +164,7 @@ describe("findShowsWithCount", () => {
     describe("invocation contract — getClubNameClause and getZipCodeClause", () => {
         it("calls getClubNameClause and getZipCodeClause each twice when clauses have values", async () => {
             mockTransaction.mockImplementation(async (fn: any) =>
-                fn(makeTx(0)),
+                fn(makeTx(3)),
             );
 
             const helper = {
