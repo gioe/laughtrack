@@ -4,7 +4,7 @@ import AboutUsSection from "@/ui/pages/about/content";
 import StatsSection from "@/ui/pages/about/stats";
 import { getStats } from "@/lib/data/stats/getStats";
 
-export const revalidate = CACHE.stats;
+export const revalidate = 86400;
 
 const getCachedStats = unstable_cache(
     async () => {
