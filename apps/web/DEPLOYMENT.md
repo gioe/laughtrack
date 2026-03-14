@@ -176,6 +176,130 @@ This sets `scraper = 'gotham_email'` on the Gotham Comedy Club row and `scraper 
 
 ---
 
+## Deploying to Google Cloud Run
+
+The `Dockerfile` is at `apps/web/Dockerfile` and produces a standalone Next.js image that runs on port 3000. The steps below assume you have the [gcloud CLI](https://cloud.google.com/sdk/docs/install) installed and authenticated.
+
+### 1. Enable Required APIs
+
+```bash
+gcloud services enable run.googleapis.com \
+    artifactregistry.googleapis.com \
+    secretmanager.googleapis.com
+```
+
+### 2. Build and Push the Docker Image
+
+`NEXT_PUBLIC_*` variables are baked into the JavaScript bundle at build time — they must be passed as Docker build arguments, not set at Cloud Run runtime.
+
+```bash
+# From the repo root
+cd apps/web
+
+# Build — supply NEXT_PUBLIC_* as build args
+docker build \
+    --build-arg NEXT_PUBLIC_WEBSITE_URL=https://laughtrack.com \
+    --build-arg NEXT_PUBLIC_SENTRY_DSN=<your-dsn-or-blank> \
+    -t us-docker.pkg.dev/<PROJECT_ID>/laughtrack/web:latest .
+
+# Push to Artifact Registry
+docker push us-docker.pkg.dev/<PROJECT_ID>/laughtrack/web:latest
+```
+
+Replace `<PROJECT_ID>` with your GCP project ID and `us-docker.pkg.dev` with your Artifact Registry region if different.
+
+> **Sentry DSN:** If you are not using Sentry, omit `--build-arg NEXT_PUBLIC_SENTRY_DSN` or leave the value blank. Sentry is optional.
+
+### 3. Store Secrets in Secret Manager
+
+Use Google Secret Manager to supply runtime environment variables instead of embedding them in the service definition. Create one secret per variable:
+
+```bash
+# Example — repeat for each required variable
+echo -n "postgres://..." | gcloud secrets create DATABASE_URL --data-file=-
+echo -n "$(openssl rand -base64 32)" | gcloud secrets create AUTH_SECRET --data-file=-
+```
+
+Secrets to create: `DATABASE_URL`, `DIRECT_URL`, `AUTH_SECRET`, `AUTH_URL`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_SECURE`, `EMAIL_FROM`, `BUNNYCDN_CDN_HOST`, `SECRET_KEY`, and any optional secrets (`AUTH_APPLE_ID`, `AUTH_APPLE_SECRET`, `CORS_ALLOWED_ORIGINS`).
+
+Grant the Cloud Run service account access to read each secret:
+
+```bash
+gcloud secrets add-iam-policy-binding DATABASE_URL \
+    --member="serviceAccount:<SERVICE_ACCOUNT_EMAIL>" \
+    --role="roles/secretmanager.secretAccessor"
+```
+
+### 4. Deploy the Service
+
+```bash
+gcloud run deploy laughtrack-web \
+    --image us-docker.pkg.dev/<PROJECT_ID>/laughtrack/web:latest \
+    --region us-central1 \
+    --platform managed \
+    --port 3000 \
+    --memory 512Mi \
+    --cpu 1 \
+    --concurrency 80 \
+    --min-instances 1 \
+    --set-secrets="DATABASE_URL=DATABASE_URL:latest,\
+DIRECT_URL=DIRECT_URL:latest,\
+AUTH_SECRET=AUTH_SECRET:latest,\
+AUTH_URL=AUTH_URL:latest,\
+AUTH_GOOGLE_ID=AUTH_GOOGLE_ID:latest,\
+AUTH_GOOGLE_SECRET=AUTH_GOOGLE_SECRET:latest,\
+SMTP_HOST=SMTP_HOST:latest,\
+SMTP_PORT=SMTP_PORT:latest,\
+SMTP_USER=SMTP_USER:latest,\
+SMTP_PASSWORD=SMTP_PASSWORD:latest,\
+SMTP_SECURE=SMTP_SECURE:latest,\
+EMAIL_FROM=EMAIL_FROM:latest,\
+BUNNYCDN_CDN_HOST=BUNNYCDN_CDN_HOST:latest,\
+SECRET_KEY=SECRET_KEY:latest"
+```
+
+**Key service settings:**
+
+| Setting | Recommended | Notes |
+|---|---|---|
+| `--memory` | `512Mi` | Increase to `1Gi` if you see OOM errors under load |
+| `--concurrency` | `80` | Max requests per container instance; Cloud Run default |
+| `--min-instances` | `1` | Keeps one instance warm to avoid cold-start latency; set to `0` for pure scale-to-zero (slower first request) |
+| `--port` | `3000` | Must match the `EXPOSE 3000` in the Dockerfile |
+
+> **AUTH_URL:** This variable is **required on Cloud Run** (see the Authentication section above). Cloud Run does not auto-detect the canonical URL the way Vercel does. Set it to your service's public URL, e.g. `https://laughtrack.com` or `https://laughtrack-web-<hash>-uc.a.run.app`.
+
+### 5. Connecting to Neon
+
+This project uses `@prisma/adapter-neon` with `@neondatabase/serverless` (WebSocket protocol). Cloud Run containers can reach external services over HTTPS/WSS without any VPC connector. No additional network configuration is required for Neon.
+
+Use the **pooled** Neon connection string for `DATABASE_URL` and the **non-pooled** string for `DIRECT_URL`, exactly as described in the Database section above.
+
+### 6. Run Migrations Before Deploying
+
+Run `prisma migrate deploy` against the live Neon database **before** sending traffic to the new container revision:
+
+```bash
+cd apps/web
+DATABASE_URL=<pooled-url> DIRECT_URL=<direct-url> npx prisma migrate deploy
+```
+
+Then deploy the new image (step 4). Rolling back a Cloud Run revision does **not** roll back database migrations — plan schema changes accordingly.
+
+### 7. Rollback
+
+To revert to the previous revision:
+
+```bash
+gcloud run services update-traffic laughtrack-web \
+    --to-revisions PREV=100 \
+    --region us-central1
+```
+
+Or use the Cloud Run console: **Cloud Run → laughtrack-web → Revisions → Route traffic**.
+
+---
+
 ## Scraper Secrets (GitHub Actions)
 
 The Python scraper runs via GitHub Actions. Add scraper secrets under **GitHub repo Settings → Secrets and variables → Actions**:
