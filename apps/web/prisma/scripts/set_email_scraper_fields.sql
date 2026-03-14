@@ -3,7 +3,7 @@
 -- idempotent on a clean database (shadow DB safe).
 --
 -- Run manually against the Neon production database when needed:
---   psql $DATABASE_URL -f prisma/scripts/set_email_scraper_fields.sql
+--   psql $DIRECT_URL -f prisma/scripts/set_email_scraper_fields.sql
 DO $$
 BEGIN
     -- Gotham Comedy Club: set scraper='gotham_email' (idempotent: skip if already set)

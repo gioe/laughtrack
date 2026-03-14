@@ -149,14 +149,16 @@ The email scrapers for Gotham Comedy Club and Comedy Cellar require a one-time d
 apps/web/prisma/scripts/set_email_scraper_fields.sql
 ```
 
-**When to run it:** On any **fresh environment** (new Neon database, staging env, disaster-recovery restore) after `prisma migrate deploy` completes and after the clubs data has been seeded. It is safe to skip on re-deployments where the database already has this data — the script is idempotent.
+**When to run it:** On any **fresh environment** (new Neon database, staging env, disaster-recovery restore) after `prisma migrate deploy` completes and after the clubs data has been seeded. Clubs are populated by normal Prisma migrations — run `prisma migrate deploy` first to ensure the `clubs` rows for "Gotham Comedy Club" and "Comedy Cellar New York" exist before running this script. It is safe to skip on re-deployments where the database already has this data — the script is idempotent.
+
+> **Note:** `prisma migrate deploy` runs the migration `20260308000000_set_email_scraper_fields`, which also attempts these UPDATEs — but silently no-ops if the club rows don't exist yet (it was written this way to be shadow-DB safe). The standalone script is the only path that includes the exception guard to detect missing clubs. Always run the standalone script on fresh environments to confirm the clubs activated correctly.
 
 ```bash
 cd apps/web
 psql $DIRECT_URL -f prisma/scripts/set_email_scraper_fields.sql
 ```
 
-This sets `scraper = 'gotham_email'` on the Gotham Comedy Club row and `scraper = 'comedy_cellar_email'` on the Comedy Cellar New York row. If either club is missing, the script raises an exception rather than silently skipping — check that club names match exactly.
+This sets `scraper = 'gotham_email'` on the Gotham Comedy Club row and `scraper = 'comedy_cellar_email'` on the Comedy Cellar New York row. The script is all-or-nothing: if either club is missing, it raises an exception and rolls back — both clubs must exist before running it. If either club is missing, check that the club names match exactly and that migrations have been fully applied.
 
 > **This step is NOT automated** by the Vercel build command (`prisma migrate deploy && next build`). It must be run manually when provisioning a new environment. Without it, the email scrapers for those two clubs will not activate.
 
