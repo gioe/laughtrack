@@ -70,16 +70,24 @@ export default async function HomePage() {
     return (
         <main className="min-h-screen w-full">
             <HeroComponent profile={session?.profile} />
-            <TrendingComedianGrid comedians={comedians} />
+            <section className="w-full bg-white">
+                <TrendingComedianGrid comedians={comedians} />
+            </section>
             {zipCode && nearYouComedians.length > 0 ? (
-                <ComedianNearYouSection
-                    comedians={nearYouComedians}
-                    zipCode={zipCode}
-                />
+                <section className="w-full bg-coconut-cream">
+                    <ComedianNearYouSection
+                        comedians={nearYouComedians}
+                        zipCode={zipCode}
+                    />
+                </section>
             ) : !zipCode ? (
-                <AnonymousLocationSection />
+                <section className="w-full bg-coconut-cream">
+                    <AnonymousLocationSection />
+                </section>
             ) : null}
-            <TrendingClubsCarousel clubs={clubs} />
+            <section className="w-full bg-white">
+                <TrendingClubsCarousel clubs={clubs} />
+            </section>
             <FooterComponent />
         </main>
     );
