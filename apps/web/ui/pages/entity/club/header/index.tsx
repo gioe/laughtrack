@@ -17,7 +17,7 @@ interface ClubDetailHeaderProps {
 
 const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({ club }) => {
     const parsedClub = new Club(club);
-    const { mv } = useMotionProps();
+    const { mv, mt, prefersReducedMotion } = useMotionProps();
     const [error, setError] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
 
@@ -30,7 +30,7 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({ club }) => {
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ duration: mv(0.4) }}
+                transition={mt({ duration: 0.4 })}
                 className="relative w-full h-52 md:h-80 overflow-hidden rounded-xl"
             >
                 {/* Gradient fallback background */}
@@ -38,29 +38,36 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({ club }) => {
 
                 {/* Hero image */}
                 {showImage && (
-                    <Image
-                        src={parsedClub.imageUrl}
-                        alt={parsedClub.name}
-                        fill
-                        className={`object-cover object-center transition-opacity duration-500 ${
-                            imageLoaded ? "opacity-100" : "opacity-0"
-                        }`}
-                        onError={() => setError(true)}
-                        onLoad={() => setImageLoaded(true)}
-                        priority
-                        sizes="(max-width: 768px) 100vw, 1280px"
-                    />
+                    <>
+                        <Image
+                            src={parsedClub.imageUrl}
+                            alt={parsedClub.name}
+                            fill
+                            className={`object-cover object-center transition-opacity duration-500 ${
+                                imageLoaded ? "opacity-100" : "opacity-0"
+                            }`}
+                            onError={() => setError(true)}
+                            onLoad={() => setImageLoaded(true)}
+                            priority
+                            sizes="(max-width: 768px) 100vw, 1280px"
+                        />
+                        {/* Skeleton pulse during image load */}
+                        {!imageLoaded && (
+                            <div
+                                className={`absolute inset-0 bg-stone-700${!prefersReducedMotion ? " animate-pulse" : ""}`}
+                            />
+                        )}
+                        {/* Overlay gradient — only when image is present */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                    </>
                 )}
-
-                {/* Bottom gradient overlay for text legibility */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
                 {/* Name + Address overlaid at bottom */}
                 <div className="absolute bottom-0 left-0 right-0 p-6">
                     <motion.h1
                         initial={{ opacity: 0, y: mv(20) }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: mv(0.3), delay: mv(0.1) }}
+                        transition={mt({ duration: 0.3, delay: mv(0.1) })}
                         className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg mb-1"
                     >
                         {parsedClub.name}
@@ -68,10 +75,10 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({ club }) => {
                     <motion.div
                         initial={{ opacity: 0, y: mv(10) }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: mv(0.3), delay: mv(0.2) }}
+                        transition={mt({ duration: 0.3, delay: mv(0.2) })}
                         className="flex items-center gap-2 text-white/80"
                     >
-                        <MapPin className="w-4 h-4" />
+                        <MapPin aria-hidden="true" className="w-4 h-4" />
                         <span>{parsedClub.address}</span>
                     </motion.div>
                 </div>

@@ -19,7 +19,7 @@ interface ClubDetailHeaderProps {
 const ComedianDetailHeader: React.FC<ClubDetailHeaderProps> = ({
     comedian,
 }) => {
-    const { mv, mp, prefersReducedMotion } = useMotionProps();
+    const { mv, mp, mt, prefersReducedMotion } = useMotionProps();
     const [error, setError] = useState(false);
     const [showConfetti, setShowConfetti] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
@@ -43,12 +43,12 @@ const ComedianDetailHeader: React.FC<ClubDetailHeaderProps> = ({
         !error && !!comedian.imageUrl && comedian.imageUrl !== PLACEHOLDER;
 
     return (
-        <div className="max-w-7xl mx-auto relative">
+        <div className="max-w-7xl mx-auto">
             {/* Hero Image Section */}
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ duration: mv(0.4) }}
+                transition={mt({ duration: 0.4 })}
                 className="relative w-full h-60 md:h-96 overflow-hidden rounded-xl"
             >
                 {/* Gradient fallback background */}
@@ -56,32 +56,36 @@ const ComedianDetailHeader: React.FC<ClubDetailHeaderProps> = ({
 
                 {/* Hero image */}
                 {showImage && (
-                    <Image
-                        src={comedian.imageUrl}
-                        alt={comedian.name}
-                        fill
-                        className={`object-cover object-top transition-opacity duration-500 ${
-                            imageLoaded ? "opacity-100" : "opacity-0"
-                        }`}
-                        onError={() => setError(true)}
-                        onLoad={() => setImageLoaded(true)}
-                        priority
-                        sizes="(max-width: 768px) 100vw, 1280px"
-                    />
+                    <>
+                        <Image
+                            src={comedian.imageUrl}
+                            alt={parsedComedian.name}
+                            fill
+                            className={`object-cover object-top transition-opacity duration-500 ${
+                                imageLoaded ? "opacity-100" : "opacity-0"
+                            }`}
+                            onError={() => setError(true)}
+                            onLoad={() => setImageLoaded(true)}
+                            priority
+                            sizes="(max-width: 768px) 100vw, 1280px"
+                        />
+                        {/* Skeleton pulse during image load */}
+                        {!imageLoaded && (
+                            <div
+                                className={`absolute inset-0 bg-slate-700${!prefersReducedMotion ? " animate-pulse" : ""}`}
+                            />
+                        )}
+                        {/* Overlay gradient — only when image is present */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                    </>
                 )}
-
-                {/* Bottom gradient overlay for text legibility */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
                 {/* Name + Favorite button overlaid at bottom */}
                 <div className="absolute bottom-0 left-0 right-0 p-6 flex items-end justify-between">
                     <motion.h1
                         initial={{ opacity: 0, y: mv(20) }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{
-                            duration: mv(0.3),
-                            delay: mv(0.1),
-                        }}
+                        transition={mt({ duration: 0.3, delay: mv(0.1) })}
                         className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg"
                     >
                         {parsedComedian.name}
@@ -93,9 +97,16 @@ const ComedianDetailHeader: React.FC<ClubDetailHeaderProps> = ({
                     >
                         <button
                             onClick={handleFavoriteWithAnimation}
+                            aria-label={
+                                isFavorite
+                                    ? "Remove from favorites"
+                                    : "Add to favorites"
+                            }
+                            aria-pressed={isFavorite}
                             className="p-3 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:shadow-xl transition-shadow"
                         >
                             <Heart
+                                aria-hidden="true"
                                 className={`w-6 h-6 ${
                                     isFavorite
                                         ? "text-red-500 fill-current"
@@ -105,28 +116,34 @@ const ComedianDetailHeader: React.FC<ClubDetailHeaderProps> = ({
                         </button>
                     </motion.div>
                 </div>
+
+                {/* Confetti burst — centered in hero */}
+                <AnimatePresence>
+                    {showConfetti && (
+                        <motion.div
+                            initial={{ opacity: mv(0, 1), scale: mv(0, 1) }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: mv(0, 1), scale: mv(0, 1) }}
+                            transition={
+                                prefersReducedMotion
+                                    ? { duration: 0 }
+                                    : undefined
+                            }
+                            className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                        >
+                            <Sparkles
+                                aria-hidden="true"
+                                className="w-12 h-12 text-yellow-400"
+                            />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </motion.div>
 
             {/* Social Links */}
             <div className="p-6">
                 <SocialMediaColumn comedian={comedian} />
             </div>
-
-            <AnimatePresence>
-                {showConfetti && (
-                    <motion.div
-                        initial={{ opacity: mv(0, 1), scale: mv(0, 1) }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: mv(0, 1), scale: mv(0, 1) }}
-                        transition={
-                            prefersReducedMotion ? { duration: 0 } : undefined
-                        }
-                        className="absolute top-48 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10"
-                    >
-                        <Sparkles className="w-12 h-12 text-yellow-400" />
-                    </motion.div>
-                )}
-            </AnimatePresence>
         </div>
     );
 };
