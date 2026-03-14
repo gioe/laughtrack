@@ -107,13 +107,25 @@ class ConfigManager:
         }
 
         # Email configuration
+        _smtp_port_raw = os.getenv("EMAIL_SMTP_PORT", "587")
+        try:
+            _smtp_port = int(_smtp_port_raw)
+        except ValueError:
+            raise ValueError(
+                f"EMAIL_SMTP_PORT must be a valid integer, got: {_smtp_port_raw!r}"
+            )
+        if not (1 <= _smtp_port <= 65535):
+            raise ValueError(
+                f"EMAIL_SMTP_PORT must be between 1 and 65535, got: {_smtp_port}"
+            )
+
         self._config["email"] = {
             "sendgrid_api_key": os.getenv("SENDGRID_API_KEY"),
             "from_email": os.getenv("EMAIL_FROM_EMAIL", "admin@laugh-track.com"),
             "from_name": os.getenv("EMAIL_FROM_NAME", "Laughtrack"),
             # SMTP configuration for native email sending
             "smtp_server": os.getenv("EMAIL_SMTP_SERVER", "smtp.gmail.com"),
-            "smtp_port": int(os.getenv("EMAIL_SMTP_PORT", "587")),
+            "smtp_port": _smtp_port,
             "smtp_username": os.getenv("EMAIL_SMTP_USERNAME"),
             "smtp_password": self._clean_password(os.getenv("EMAIL_SMTP_PASSWORD")),
             "smtp_use_tls": os.getenv("EMAIL_SMTP_USE_TLS", "true").lower() == "true",
@@ -121,11 +133,35 @@ class ConfigManager:
         }
 
         # Scraper configuration
+        _request_timeout_raw = os.getenv("REQUEST_TIMEOUT", "30")
+        try:
+            _request_timeout = int(_request_timeout_raw)
+        except ValueError:
+            raise ValueError(
+                f"REQUEST_TIMEOUT must be a valid integer, got: {_request_timeout_raw!r}"
+            )
+
+        _max_retries_raw = os.getenv("MAX_RETRIES", "3")
+        try:
+            _max_retries = int(_max_retries_raw)
+        except ValueError:
+            raise ValueError(
+                f"MAX_RETRIES must be a valid integer, got: {_max_retries_raw!r}"
+            )
+
+        _rate_limit_raw = os.getenv("RATE_LIMIT", "10")
+        try:
+            _rate_limit = float(_rate_limit_raw)
+        except ValueError:
+            raise ValueError(
+                f"RATE_LIMIT must be a valid number, got: {_rate_limit_raw!r}"
+            )
+
         self._config["scraper"] = {
             "max_workers": min(32, (os.cpu_count() or 4) + 4),
-            "request_timeout": int(os.getenv("REQUEST_TIMEOUT", "30")),
-            "max_retries": int(os.getenv("MAX_RETRIES", "3")),
-            "rate_limit": float(os.getenv("RATE_LIMIT", "10")),  # Requests per second
+            "request_timeout": _request_timeout,
+            "max_retries": _max_retries,
+            "rate_limit": _rate_limit,  # Requests per second
         }
 
         # API configuration
