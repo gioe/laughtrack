@@ -15,20 +15,20 @@ export default function Loading() {
                 <div className="h-10 w-32 bg-gray-200 rounded-lg animate-pulse" />
             </div>
 
-            {/* Club Cards Grid */}
+            {/* Comedian Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {[1, 2, 3, 4, 5, 6, 8].map((item) => (
                     <div
                         key={item}
                         className="bg-white rounded-xl shadow-sm flex flex-col items-center text-center pb-4 px-4"
                     >
-                        {/* Club Image */}
+                        {/* Comedian Headshot */}
                         <div className="h-64 w-full bg-gray-200 rounded-xl animate-pulse mb-4" />
 
                         {/* Club Name */}
                         <div className="h-6 w-48 bg-gray-200 rounded-lg animate-pulse mb-2" />
 
-                        {/* Club Address */}
+                        {/* Comedian Show Count */}
                         <div className="h-4 w-56 bg-gray-200 rounded-lg animate-pulse" />
                     </div>
                 ))}
