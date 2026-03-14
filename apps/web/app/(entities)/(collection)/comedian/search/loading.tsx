@@ -20,7 +20,7 @@ export default function Loading() {
                 {[1, 2, 3, 4, 5, 6, 8].map((item) => (
                     <div
                         key={item}
-                        className="flex flex-col items-center text-center"
+                        className="bg-white rounded-xl shadow-sm flex flex-col items-center text-center pb-4 px-4"
                     >
                         {/* Club Image */}
                         <div className="h-64 w-full bg-gray-200 rounded-xl animate-pulse mb-4" />
