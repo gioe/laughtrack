@@ -28,7 +28,7 @@ const brandColors = {
     ivory: "#FFFFF0",
     paarl: "#A96030",
     cedar: "#361E14",
-    "coconut-cream": "var(--coconut-cream)",
+    "coconut-cream": "rgb(var(--coconut-cream-rgb) / <alpha-value>)",
     locust: "#acae89",
     "pine-tree": "#232604",
     skeptic: "#9eb4aa",

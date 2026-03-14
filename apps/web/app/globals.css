@@ -41,6 +41,7 @@ body,
 @layer base {
   :root {
     --coconut-cream: #FAF6E0;
+    --coconut-cream-rgb: 250 246 224;
     --background: 0 0% 100%;
     --foreground: 20 14.3% 4.1%;
     --card: 0 0% 100%;
