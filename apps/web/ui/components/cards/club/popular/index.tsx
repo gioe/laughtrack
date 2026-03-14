@@ -35,7 +35,7 @@ const PopularClubCard: React.FC<PopularClubCardProps> = ({ entity }) => {
                         fill
                         className="object-cover"
                         onError={() => setError(true)}
-                        sizes="(max-width: 640px) 280px, 320px"
+                        sizes="(max-width: 319px) calc(100vw - 2rem), (max-width: 640px) 280px, 320px"
                         priority={false}
                     />
                 </Link>

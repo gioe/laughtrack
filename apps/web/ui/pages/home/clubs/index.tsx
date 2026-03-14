@@ -183,7 +183,7 @@ const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
                 {sortedClubs.map((dto) => (
                     <div
                         key={dto.name}
-                        className="flex-none w-[280px] sm:w-[320px]"
+                        className="flex-none w-[280px] sm:w-[320px] max-w-[calc(100vw-2rem)]"
                     >
                         <PopularClubCard entity={dto} />
                     </div>
