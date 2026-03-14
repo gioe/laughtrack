@@ -39,20 +39,20 @@ In the Neon dashboard, find both URLs under **Connection Details**:
 
 | Variable | Required | Description |
 |---|---|---|
-| `NEXTAUTH_SECRET` | Yes | Random secret used to sign session tokens. Generate with: `openssl rand -base64 32`. **Rotating this secret invalidates all active user sessions immediately.** |
+| `AUTH_SECRET` | Yes | Random secret used to sign session tokens. Generate with: `openssl rand -base64 32`. **Rotating this secret invalidates all active user sessions immediately.** NextAuth v5 uses `AUTH_SECRET` as the canonical name; `NEXTAUTH_SECRET` is supported as a legacy alias but may be dropped in a future release. |
 | `AUTH_URL` | Yes (Cloud Run) / No (Vercel) | Canonical URL of the app (e.g. `https://laughtrack.com`). Required on Cloud Run where the host cannot be inferred from the request. On Vercel, NextAuth v5 auto-detects the URL from `VERCEL_URL`. Use `http://localhost:3000` locally. |
 | `AUTH_GOOGLE_ID` | Yes | Google OAuth client ID. Create credentials at [console.cloud.google.com](https://console.cloud.google.com). |
 | `AUTH_GOOGLE_SECRET` | Yes | Google OAuth client secret. |
 | `AUTH_APPLE_ID` | No | Apple Sign In service ID. Added post-TASK-91. See setup instructions below. Both `AUTH_APPLE_ID` and `AUTH_APPLE_SECRET` must be set together — the Apple provider is always registered in `auth.ts` and will fail at sign-in if either var is missing. |
 | `AUTH_APPLE_SECRET` | No | Apple Sign In private key (.p8 file contents). Added post-TASK-91. |
 
-#### Generating NEXTAUTH_SECRET
+#### Generating AUTH_SECRET
 
 ```bash
 openssl rand -base64 32
 ```
 
-> **Operational note:** `NEXTAUTH_SECRET` and `SECRET_KEY` must be identical across all running instances (e.g. multiple Cloud Run revisions or Vercel preview deployments sharing the same Neon DB). Changing `NEXTAUTH_SECRET` in production will immediately log out all users.
+> **Operational note:** `AUTH_SECRET` and `SECRET_KEY` must be identical across all running instances (e.g. multiple Cloud Run revisions or Vercel preview deployments sharing the same Neon DB). Changing `AUTH_SECRET` in production will immediately log out all users.
 
 #### Apple Sign In Setup (AUTH_APPLE_ID / AUTH_APPLE_SECRET)
 
@@ -216,7 +216,7 @@ These secrets are consumed by the scraper application and should be added to any
 
 - `DATABASE_URL`
 - `DIRECT_URL`
-- `NEXTAUTH_SECRET`
+- `AUTH_SECRET` (or legacy alias `NEXTAUTH_SECRET`)
 - `AUTH_URL` (required on Cloud Run; optional on Vercel)
 - `AUTH_GOOGLE_ID`
 - `AUTH_GOOGLE_SECRET`
