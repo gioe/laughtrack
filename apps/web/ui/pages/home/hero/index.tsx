@@ -11,7 +11,7 @@ interface HeroComponentProps {
 
 const HeroComponent = ({ profile }: HeroComponentProps) => {
     return (
-        <section className="relative w-full h-[500px] sm:h-[600px] md:h-[700px] lg:h-[776px] overflow-hidden">
+        <section className="relative w-full h-[380px] sm:h-[600px] md:h-[700px] lg:h-[776px] overflow-hidden">
             <BackgroundImage
                 imageUrl={getCdnUrl(`laughtrack-hero.png`)}
                 alt={"Header background image"}
