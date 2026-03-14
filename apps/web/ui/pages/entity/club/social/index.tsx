@@ -16,21 +16,23 @@ const ClubDataColumn = ({ club }: ClubDataColumnProps) => {
                     {parsedClub.phoneNumber !== "" && (
                         <a
                             href={`tel:${parsedClub.phoneNumber}`}
-                            className="flex items-center gap-2 text-cedar hover:text-copper"
+                            className="flex items-center gap-2 text-cedar hover:text-paarl"
                         >
                             <Phone className="w-5 h-5" />
                             <span>{parsedClub.phoneNumber}</span>
                         </a>
                     )}
-                    <a
-                        href={parsedClub.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-cedar hover:text-copper"
-                    >
-                        <Globe className="w-5 h-5" />
-                        <span>{parsedClub.website}</span>
-                    </a>
+                    {parsedClub.website !== "" && (
+                        <a
+                            href={parsedClub.website}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 text-cedar hover:text-paarl"
+                        >
+                            <Globe className="w-5 h-5" />
+                            <span>{parsedClub.website}</span>
+                        </a>
+                    )}
                 </div>
             </section>
         </div>
