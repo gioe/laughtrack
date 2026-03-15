@@ -39,7 +39,7 @@ const FooterComponent = () => {
     };
 
     return (
-        <footer className="border-t border-gray-200 bg-gradient-to-b from-coconut-cream to-[#F5E6D3]">
+        <footer className="bg-gradient-to-b from-coconut-cream to-[#F5E6D3]">
             {/* Copper accent strip */}
             <div className="h-1 bg-gradient-to-r from-transparent via-copper to-transparent opacity-60" />
 
@@ -59,10 +59,10 @@ const FooterComponent = () => {
                     </div>
 
                     <div className="lg:col-span-4 flex flex-col justify-center md:items-end">
-                        <p className="text-sm text-gray-500 font-dmSans mb-3 lg:text-right">
+                        <p className="text-sm text-gray-500 font-dmSans mb-3 md:text-right">
                             Follow us
                         </p>
-                        <div className="flex gap-3">
+                        <div className="flex gap-3 md:justify-end">
                             {SOCIAL_LINKS.map(({ label, href, Icon }) => (
                                 <a
                                     key={label}
@@ -70,7 +70,7 @@ const FooterComponent = () => {
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     aria-label={label}
-                                    className="transition-transform duration-200 hover:-translate-y-1"
+                                    className="transition-transform duration-200 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-copper rounded-full"
                                 >
                                     <Icon size="w-9 h-9" />
                                 </a>
