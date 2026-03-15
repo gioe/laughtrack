@@ -52,17 +52,17 @@ export function SortParamComponent({ sortOptions }: SortComponentProps) {
                 <div className="py-1 bg-white rounded-lg">
                     {sortOptions.map((option) => (
                         <MenuItem key={option.name}>
-                            <h1
+                            <button
                                 onClick={() => updateSort(option)}
                                 className={cn(
                                     isSelected(option)
                                         ? "font-dmSans text-gray-900"
                                         : "font-dmSans text-gray-500",
-                                    "block px-4 py-2 text-sm data-[focus]:bg-gray-100 cursor-pointer",
+                                    "block w-full text-left px-4 py-2 text-sm data-[focus]:bg-gray-100 cursor-pointer",
                                 )}
                             >
                                 {option.name}
-                            </h1>
+                            </button>
                         </MenuItem>
                     ))}
                 </div>
