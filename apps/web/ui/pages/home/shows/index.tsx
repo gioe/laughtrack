@@ -92,6 +92,7 @@ const ShowDiscoverySection = ({
                 <div className="flex items-center gap-4 self-end sm:self-auto">
                     <Link
                         href={seeAllHref}
+                        aria-label={`See all ${title} shows`}
                         className="text-sm font-dmSans text-copper hover:underline whitespace-nowrap"
                     >
                         See all →
