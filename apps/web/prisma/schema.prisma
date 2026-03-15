@@ -18,8 +18,8 @@ model Club {
   scrapingUrl        String              @map("scraping_url")
   popularity         Float               @default(0.0)
   zipCode            String?             @map("zip_code") @db.VarChar(10)
-  city               String?
-  state              String?
+  city               String?             @map("city")
+  state              String?             @map("state")
   phoneNumber        String?             @default("") @map("phone_number")
   timezone           String?             @map("timezone")
   visible            Boolean?            @default(true)
