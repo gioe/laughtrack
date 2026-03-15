@@ -9,10 +9,10 @@ Covers:
 
 import importlib.util
 import sys
-
-import pytest
 from pathlib import Path
 from types import ModuleType
+
+import pytest
 from unittest.mock import MagicMock, patch
 
 # ---------------------------------------------------------------------------
