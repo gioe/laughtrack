@@ -113,6 +113,8 @@ class ClubHandler(BaseDatabaseHandler[Club]):
 
         address = ""
         zip_code = ""
+        city = None
+        state = None
         if venue.address:
             parts = [
                 p for p in [venue.address.address_1, venue.address.city, venue.address.region]
@@ -120,11 +122,13 @@ class ClubHandler(BaseDatabaseHandler[Club]):
             ]
             address = ", ".join(parts)
             zip_code = venue.address.postal_code or ""
+            city = venue.address.city or None
+            state = venue.address.region or None
 
         try:
             results = self.execute_with_cursor(
                 ClubQueries.UPSERT_CLUB_BY_EVENTBRITE_VENUE,
-                (venue.name, address, venue.id, zip_code),
+                (venue.name, address, venue.id, zip_code, city, state),
                 return_results=True,
             )
             if not results:
@@ -155,10 +159,13 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         website = (venue.get("website") or "").strip()
         zip_code = (venue.get("zip") or venue.get("postal_code") or "").strip()
 
+        from laughtrack.utilities.domain.club.timezone_lookup import parse_city_state_from_address  # noqa: PLC0415
+        city, state = parse_city_state_from_address(address)
+
         try:
             results = self.execute_with_cursor(
                 ClubQueries.UPSERT_CLUB_BY_SEATENGINE_VENUE,
-                (name, address, website, venue_id, zip_code),
+                (name, address, website, venue_id, zip_code, city, state),
                 return_results=True,
             )
             if not results:
@@ -187,8 +194,8 @@ class ClubHandler(BaseDatabaseHandler[Club]):
 
         address_obj = venue.get("address") or {}
         street = address_obj.get("line1", "")
-        city = (venue.get("city") or {}).get("name", "")
-        state = (venue.get("state") or {}).get("stateCode", "")
+        city = (venue.get("city") or {}).get("name", "") or None
+        state = (venue.get("state") or {}).get("stateCode", "") or None
         address_parts = [p for p in [street, city, state] if p]
         address = ", ".join(address_parts)
         zip_code = (venue.get("postalCode") or "").strip()
@@ -197,7 +204,7 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         try:
             results = self.execute_with_cursor(
                 ClubQueries.UPSERT_CLUB_BY_TICKETMASTER_VENUE,
-                (name, address, venue_id, zip_code, timezone),
+                (name, address, venue_id, zip_code, city, state, timezone),
                 return_results=True,
             )
             if not results:
@@ -227,10 +234,13 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         zip_code = (venue.get("zip_code") or "").strip()
         timezone = (venue.get("timezone") or None)
 
+        from laughtrack.utilities.domain.club.timezone_lookup import parse_city_state_from_address  # noqa: PLC0415
+        city, state = parse_city_state_from_address(address)
+
         try:
             results = self.execute_with_cursor(
                 ClubQueries.UPSERT_CLUB_BY_TOUR_DATE_VENUE,
-                (name, address, zip_code, timezone),
+                (name, address, zip_code, city, state, timezone),
                 return_results=True,
             )
             if not results:
@@ -293,6 +303,55 @@ class ClubHandler(BaseDatabaseHandler[Club]):
             f"Timezone enrichment: {updated}/{len(updates)} updated, "
             f"{null_guarded} resolvable-but-missed (null-guard fired), "
             f"{unresolvable} skipped (no state match), "
+            f"{len(rows)} total examined."
+        )
+        return updated
+
+    def backfill_city_state(self) -> int:
+        """
+        Populate city and state for clubs where either column is NULL, by
+        parsing the stored address field (format: "Street, City, State ZIP").
+
+        Only updates rows still missing city or state — re-running is safe.
+
+        Returns:
+            Number of clubs whose city/state was successfully updated.
+        """
+        from laughtrack.utilities.domain.club.timezone_lookup import parse_city_state_from_address  # noqa: PLC0415
+
+        rows = self.execute_with_cursor(
+            ClubQueries.GET_CLUBS_WITH_NULL_CITY_STATE,
+            return_results=True,
+        )
+        if not rows:
+            Logger.info("City/state backfill: no clubs with missing city or state found.")
+            return 0
+
+        updates: List[tuple] = []
+        for row in rows:
+            club = Club.from_db_row(row)
+            city, state = parse_city_state_from_address(club.address)
+            if city or state:
+                updates.append((club.id, city, state))
+            else:
+                Logger.warning(
+                    f"Could not parse city/state for club {club.id} '{club.name}' "
+                    f"(address: {club.address!r})"
+                )
+
+        if not updates:
+            Logger.info("City/state backfill: no parseable addresses found.")
+            return 0
+
+        results = self.execute_batch_operation(
+            ClubQueries.BATCH_UPDATE_CLUB_CITY_STATE,
+            updates,
+            return_results=True,
+        )
+        updated = len(results) if results else 0
+        Logger.info(
+            f"City/state backfill: {updated}/{len(updates)} updated, "
+            f"{len(rows) - len(updates)} skipped (unparseable address), "
             f"{len(rows)} total examined."
         )
         return updated

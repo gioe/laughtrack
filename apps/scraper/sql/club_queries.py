@@ -43,12 +43,14 @@ class ClubQueries:
         INSERT INTO clubs (
             name, address, website, scraping_url,
             eventbrite_id, scraper, visible,
-            zip_code, phone_number, popularity, timezone
+            zip_code, city, state, phone_number, popularity, timezone
         )
-        VALUES (%s, %s, '', 'www.eventbrite.com', %s, 'eventbrite', true, %s, '', 0, NULL)
+        VALUES (%s, %s, '', 'www.eventbrite.com', %s, 'eventbrite', true, %s, %s, %s, '', 0, NULL)
         ON CONFLICT (name) DO UPDATE SET
             eventbrite_id = COALESCE(clubs.eventbrite_id, EXCLUDED.eventbrite_id),
-            scraper       = COALESCE(clubs.scraper,       EXCLUDED.scraper)
+            scraper       = COALESCE(clubs.scraper,       EXCLUDED.scraper),
+            city          = COALESCE(clubs.city,          EXCLUDED.city),
+            state         = COALESCE(clubs.state,         EXCLUDED.state)
         RETURNING *
     '''
 
@@ -56,12 +58,14 @@ class ClubQueries:
         INSERT INTO clubs (
             name, address, website, scraping_url,
             seatengine_id, scraper, visible,
-            zip_code, phone_number, popularity, timezone
+            zip_code, city, state, phone_number, popularity, timezone
         )
-        VALUES (%s, %s, %s, 'www.seatengine.com', %s, 'seatengine', true, %s, '', 0, NULL)
+        VALUES (%s, %s, %s, 'www.seatengine.com', %s, 'seatengine', true, %s, %s, %s, '', 0, NULL)
         ON CONFLICT (name) DO UPDATE SET
             seatengine_id = COALESCE(clubs.seatengine_id, EXCLUDED.seatengine_id),
-            scraper       = COALESCE(clubs.scraper,       EXCLUDED.scraper)
+            scraper       = COALESCE(clubs.scraper,       EXCLUDED.scraper),
+            city          = COALESCE(clubs.city,          EXCLUDED.city),
+            state         = COALESCE(clubs.state,         EXCLUDED.state)
         RETURNING *
     '''
 
@@ -83,13 +87,15 @@ class ClubQueries:
         INSERT INTO clubs (
             name, address, website, scraping_url,
             ticketmaster_id, scraper, visible,
-            zip_code, phone_number, popularity, timezone
+            zip_code, city, state, phone_number, popularity, timezone
         )
-        VALUES (%s, %s, '', 'www.ticketmaster.com', %s, 'live_nation', true, %s, '', 0, %s)
+        VALUES (%s, %s, '', 'www.ticketmaster.com', %s, 'live_nation', true, %s, %s, %s, '', 0, %s)
         ON CONFLICT (name) DO UPDATE SET
             ticketmaster_id = COALESCE(clubs.ticketmaster_id, EXCLUDED.ticketmaster_id),
             scraper         = COALESCE(clubs.scraper,         EXCLUDED.scraper),
-            timezone        = COALESCE(clubs.timezone,        EXCLUDED.timezone)
+            timezone        = COALESCE(clubs.timezone,        EXCLUDED.timezone),
+            city            = COALESCE(clubs.city,            EXCLUDED.city),
+            state           = COALESCE(clubs.state,           EXCLUDED.state)
         RETURNING *
     '''
 
@@ -97,11 +103,27 @@ class ClubQueries:
         INSERT INTO clubs (
             name, address, website, scraping_url,
             scraper, visible,
-            zip_code, phone_number, popularity, timezone
+            zip_code, city, state, phone_number, popularity, timezone
         )
-        VALUES (%s, %s, '', 'tour_dates', 'tour_dates', true, %s, '', 0, %s)
+        VALUES (%s, %s, '', 'tour_dates', 'tour_dates', true, %s, %s, %s, '', 0, %s)
         ON CONFLICT (name) DO UPDATE SET
             scraper   = COALESCE(clubs.scraper,   EXCLUDED.scraper),
-            timezone  = COALESCE(clubs.timezone,  EXCLUDED.timezone)
+            timezone  = COALESCE(clubs.timezone,  EXCLUDED.timezone),
+            city      = COALESCE(clubs.city,      EXCLUDED.city),
+            state     = COALESCE(clubs.state,     EXCLUDED.state)
         RETURNING *
+    '''
+
+    GET_CLUBS_WITH_NULL_CITY_STATE = '''
+        SELECT * FROM clubs
+        WHERE (city IS NULL OR state IS NULL) AND address IS NOT NULL AND address != ''
+        ORDER BY id
+    '''
+
+    BATCH_UPDATE_CLUB_CITY_STATE = '''
+        UPDATE clubs AS c
+        SET city = v.city, state = v.state
+        FROM (VALUES %s) AS v(id, city, state)
+        WHERE c.id = v.id AND (c.city IS NULL OR c.state IS NULL)
+        RETURNING c.id
     '''
