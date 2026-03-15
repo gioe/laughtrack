@@ -4,8 +4,13 @@ import ComedianGridCard from "../../cards/comedian";
 interface ComedianGridProps {
     comedians: ComedianDTO[];
     className: string;
+    isTrending?: boolean;
 }
-const ComedianGrid = ({ comedians, className }: ComedianGridProps) => {
+const ComedianGrid = ({
+    comedians,
+    className,
+    isTrending,
+}: ComedianGridProps) => {
     return (
         <div className="w-full">
             {comedians.length > 0 ? (
@@ -14,6 +19,7 @@ const ComedianGrid = ({ comedians, className }: ComedianGridProps) => {
                         <ComedianGridCard
                             key={dto.name}
                             entity={dto}
+                            isTrending={isTrending}
                         />
                     ))}
                 </div>
