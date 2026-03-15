@@ -122,7 +122,8 @@ class ClubQueries:
 
     BATCH_UPDATE_CLUB_CITY_STATE = '''
         UPDATE clubs AS c
-        SET city = v.city, state = v.state
+        SET city  = COALESCE(c.city,  v.city),
+            state = COALESCE(c.state, v.state)
         FROM (VALUES %s) AS v(id, city, state)
         WHERE c.id = v.id AND (c.city IS NULL OR c.state IS NULL)
         RETURNING c.id

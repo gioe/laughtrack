@@ -588,6 +588,72 @@ class TestSeatEngineVenueCityStateExtraction:
 
 
 # ---------------------------------------------------------------------------
+# Tests: city/state extraction in Ticketmaster upsert
+# ---------------------------------------------------------------------------
+
+def _make_ticketmaster_club_row(**overrides):
+    """Return a dict that Club.from_db_row() can consume for Ticketmaster clubs."""
+    defaults = {
+        "id": 99,
+        "name": "Test Club",
+        "address": "123 Main St, New York, NY",
+        "website": "",
+        "scraping_url": "www.ticketmaster.com",
+        "popularity": 0,
+        "zip_code": "10001",
+        "city": "New York",
+        "state": "NY",
+        "phone_number": "",
+        "timezone": "America/New_York",
+        "visible": True,
+        "scraper": "live_nation",
+        "eventbrite_id": None,
+        "ticketmaster_id": "tm-001",
+        "seatengine_id": None,
+        "rate_limit": 1.0,
+        "max_retries": 3,
+        "timeout": 30,
+    }
+    defaults.update(overrides)
+    return defaults
+
+
+class TestTicketmasterVenueCityStateExtraction:
+    """City and state are read from structured API fields for Ticketmaster venues."""
+
+    def test_city_and_state_extracted_from_structured_fields(self):
+        venue = {
+            "id": "tm-001",
+            "name": "Radio City Music Hall",
+            "address": {"line1": "1260 Avenue of the Americas"},
+            "city": {"name": "New York"},
+            "state": {"stateCode": "NY"},
+            "postalCode": "10020",
+            "timezone": "America/New_York",
+        }
+        row = _make_ticketmaster_club_row(name="Radio City Music Hall", city="New York", state="NY")
+        handler = ClubHandler()
+        with patch.object(handler, "execute_with_cursor", return_value=[row]) as mock_exec:
+            handler.upsert_for_ticketmaster_venue(venue)
+
+        params = mock_exec.call_args[0][1]
+        assert params[4] == "New York"  # city
+        assert params[5] == "NY"        # state
+
+    def test_city_state_none_when_absent_from_venue(self):
+        """City and state default to None when not present in venue dict."""
+        venue = {"id": "tm-002", "name": "Unknown Hall", "postalCode": ""}
+        row = _make_ticketmaster_club_row(name="Unknown Hall", city=None, state=None)
+        handler = ClubHandler()
+        with patch.object(handler, "execute_with_cursor", return_value=[row]) as mock_exec:
+            handler.upsert_for_ticketmaster_venue(venue)
+
+        params = mock_exec.call_args[0][1]
+        assert params[4] is None  # city
+        assert params[5] is None  # state
+
+
+# ---------------------------------------------------------------------------
 # Tests: ClubHandler.backfill_city_state
 # ---------------------------------------------------------------------------
 
