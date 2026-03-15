@@ -19,8 +19,8 @@ export const getSortOptionsForEntityType = (
                 { name: "Least Popular", value: SortParamValue.PopularityAsc },
                 { name: "A-Z", value: SortParamValue.NameAsc },
                 { name: "Z-A", value: SortParamValue.NameDesc },
-                { name: "Most Active", value: SortParamValue.ActivityAsc },
-                { name: "Least Active", value: SortParamValue.ActivityDesc },
+                { name: "Most Active", value: SortParamValue.ActivityDesc },
+                { name: "Least Active", value: SortParamValue.ActivityAsc },
             ];
         default:
             return [
