@@ -19,7 +19,7 @@ const ComedianGridCard: React.FC<ComedianGridCardProps> = ({
     const comedian = new Comedian(entity);
     return (
         <motion.div
-            className="relative bg-gradient-to-b from-white to-coconut-cream/60 rounded-xl pb-4 px-4 h-full shadow-sm border-b-2 border-transparent transition-shadow transition-colors duration-300 hover:shadow-lg hover:border-copper"
+            className="relative bg-gradient-to-b from-white to-coconut-cream/60 rounded-xl pb-4 px-4 h-full shadow-sm border-b-2 border-transparent transition-all duration-300 hover:shadow-lg hover:border-copper"
             whileHover={mp({ y: -4, transition: { duration: 0.15 } })}
         >
             <ComedianHeadshot
@@ -35,7 +35,10 @@ const ComedianGridCard: React.FC<ComedianGridCardProps> = ({
 
                 {isTrending && (
                     <div className="flex justify-center">
-                        <span className="w-2 h-2 rounded-full bg-copper" />
+                        <span
+                            className="w-2 h-2 rounded-full bg-copper"
+                            aria-hidden="true"
+                        />
                     </div>
                 )}
 
