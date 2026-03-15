@@ -24,6 +24,9 @@ export default async function ComedianSearchPage(
         props.searchParams,
     ]);
 
+    const theme =
+        typeof searchParams.theme === "string" ? searchParams.theme : undefined;
+
     const requestData = {
         params: toSearchParams(searchParams),
         timezone: cookieStore.get("timezone")?.value || "UTC",
@@ -60,8 +63,11 @@ export default async function ComedianSearchPage(
             <FilterModal filters={filters} total={total} />
 
             <SearchDetailHeader
-                title={`Search comedians`}
+                title="Search comedians"
                 subTitle={`${total} results`}
+                variant="comedian"
+                theme={theme}
+                tagline="Find comedians performing near you"
             />
 
             <FilterBar

@@ -22,6 +22,9 @@ export default async function ClubSearchPage(props: ClubSearchPageProps) {
         props.searchParams,
     ]);
 
+    const theme =
+        typeof searchParams.theme === "string" ? searchParams.theme : undefined;
+
     const requestData = {
         params: toSearchParams(searchParams),
         timezone: cookieStore.get("timezone")?.value || "UTC",
@@ -53,8 +56,11 @@ export default async function ClubSearchPage(props: ClubSearchPageProps) {
         <main className="min-h-screen w-full bg-coconut-cream">
             <FilterModal filters={filters} total={total} />
             <SearchDetailHeader
-                title={`Search clubs`}
+                title="Search clubs"
                 subTitle={`${total} results`}
+                variant="club"
+                theme={theme}
+                tagline="Discover comedy clubs in your area"
             />
             <FilterBar
                 variant={SearchVariant.AllClubs}
