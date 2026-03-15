@@ -81,7 +81,7 @@ const LineupGrid = ({ lineup }: LineupGridProps) => {
                         {comedian.name.split(" ").map((nameString) => (
                             <p
                                 key={nameString}
-                                className="text-sm text-cedar font-semibold text-center font-dmSans text-[16px]"
+                                className="text-[16px] text-cedar font-semibold text-center font-dmSans"
                             >
                                 {nameString}
                             </p>
