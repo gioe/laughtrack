@@ -71,6 +71,25 @@ def timezone_from_state(state_code: str) -> Optional[str]:
     return _STATE_TO_TIMEZONE.get(state_code.strip().upper())
 
 
+def _split_address_parts(address: str) -> list[str]:
+    """Split a comma-separated address into stripped, non-empty parts."""
+    return [p.strip() for p in address.split(",") if p.strip()]
+
+
+def _extract_state_code(candidate: str) -> Optional[str]:
+    """
+    Extract a two-letter US state code from the last address segment.
+
+    Accepts "NY" or "NY 10001" (with optional ZIP). Returns the uppercased
+    state abbreviation if it exists in _STATE_TO_TIMEZONE, else None.
+    """
+    m = re.match(r"^([A-Za-z]{2})(?:\s+\d{5}(?:-\d{4})?)?$", candidate)
+    if m:
+        code = m.group(1).upper()
+        return code if code in _STATE_TO_TIMEZONE else None
+    return None
+
+
 def parse_city_state_from_address(address: Optional[str]) -> tuple[Optional[str], Optional[str]]:
     """
     Parse city and state from a comma-separated US address string.
@@ -80,19 +99,11 @@ def parse_city_state_from_address(address: Optional[str]) -> tuple[Optional[str]
     """
     if not address:
         return None, None
-    parts = [p.strip() for p in address.split(",") if p.strip()]
+    parts = _split_address_parts(address)
     if len(parts) < 2:
         return None, None
-    # Last segment: state abbreviation (optionally followed by ZIP)
-    candidate = parts[-1].strip()
-    m = re.match(r"^([A-Za-z]{2})(?:\s+\d{5}(?:-\d{4})?)?$", candidate)
-    if m:
-        code = m.group(1).upper()
-        state = code if code in _STATE_TO_TIMEZONE else None
-    else:
-        state = None
-    # Second-to-last: city
-    city = parts[-2].strip() or None
+    state = _extract_state_code(parts[-1])
+    city = parts[-2] or None
     return city, state
 
 
@@ -108,12 +119,8 @@ def timezone_from_address(address: Optional[str]) -> Optional[str]:
     """
     if not address:
         return None
-    parts = [p.strip() for p in address.split(",") if p.strip()]
+    parts = _split_address_parts(address)
     if not parts:
         return None
-    # Last segment is the state, optionally followed by a ZIP: "NY" or "NY 10001"
-    candidate = parts[-1].strip()
-    m = re.match(r"^([A-Za-z]{2})(?:\s+\d{5}(?:-\d{4})?)?$", candidate)
-    if m:
-        return timezone_from_state(m.group(1))
-    return None
+    state = _extract_state_code(parts[-1])
+    return timezone_from_state(state) if state else None
