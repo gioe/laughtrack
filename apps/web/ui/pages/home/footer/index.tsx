@@ -1,12 +1,16 @@
 "use client";
 
-import { MouseEvent } from "react";
+import React, { MouseEvent } from "react";
 import { openEmailClient } from "@/ui/components/button/contact";
 import XIcon from "@/ui/components/icons/XIcon";
 import InstagramIcon from "@/ui/components/icons/InstagramIcon";
 import TikTokIcon from "@/ui/components/icons/TikTokIcon";
 
-const SOCIAL_LINKS = [
+const SOCIAL_LINKS: {
+    label: string;
+    href: string;
+    Icon: React.ComponentType<{ size?: string; className?: string }>;
+}[] = [
     {
         label: "Twitter / X",
         href: "https://x.com/laughtrackapp",
@@ -54,7 +58,7 @@ const FooterComponent = () => {
                         </p>
                     </div>
 
-                    <div className="lg:col-span-4 flex flex-col justify-center lg:items-end">
+                    <div className="lg:col-span-4 flex flex-col justify-center md:items-end">
                         <p className="text-sm text-gray-500 font-dmSans mb-3 lg:text-right">
                             Follow us
                         </p>
