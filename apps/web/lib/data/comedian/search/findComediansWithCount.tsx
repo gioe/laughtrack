@@ -43,28 +43,29 @@ const COMEDIAN_SELECT = {
             tag: true,
         },
     },
-    _count: {
-        select: {
-            lineupItems: {
-                where: {
-                    show: {
-                        date: {
-                            gt: new Date(),
-                        },
+} as const;
+
+// _count select is built fresh per request to avoid capturing a stale module-load Date
+function buildUpcomingCountSelect() {
+    return {
+        _count: {
+            select: {
+                lineupItems: {
+                    where: {
+                        show: { date: { gt: new Date() } },
                     },
                 },
             },
         },
-    },
-} as const;
+    } as const;
+}
 
-function mapComedian(
-    comedian: Prisma.ComedianGetPayload<{
-        select: typeof COMEDIAN_SELECT & {
-            favoriteComedians?: { select: { id: true } };
-        };
-    }>,
-) {
+type ComedianWithUpcomingCount = Prisma.ComedianGetPayload<{
+    select: typeof COMEDIAN_SELECT &
+        ReturnType<typeof buildUpcomingCountSelect>;
+}> & { favoriteComedians?: { id: number }[] };
+
+function mapComedian(comedian: ComedianWithUpcomingCount) {
     const effectiveComedian = getEffectiveComedian(comedian);
     const isAlias = containsAliasTag(effectiveComedian.taggedComedians ?? []);
 
@@ -74,10 +75,7 @@ function mapComedian(
         imageUrl: buildComedianImageUrl(effectiveComedian.name),
         isAlias,
         uuid: effectiveComedian.uuid,
-        isFavorite: Boolean(
-            (comedian as { favoriteComedians?: { id: number }[] })
-                .favoriteComedians?.length,
-        ),
+        isFavorite: Boolean(comedian.favoriteComedians?.length),
         social_data: {
             id: effectiveComedian.id,
             linktree: effectiveComedian.linktree,
@@ -106,42 +104,92 @@ export async function findComediansWithCount(
             },
         };
 
-        const favoriteSelect = helper.getProfileId()
-            ? {
-                  favoriteComedians: {
-                      where: {
-                          profileId: helper.getProfileId(),
-                      },
-                      select: {
-                          id: true,
-                      },
-                  },
-              }
-            : {};
+        const upcomingCountSelect = buildUpcomingCountSelect();
 
         // Get total count first
         const totalCount = await db.comedian.count({ where: whereClause });
 
-        // For show_count_desc: fetch all matching comedians, sort in JS, paginate in JS.
-        // The _count.lineupItems subquery is computed in SQL (not N+1).
+        // For show_count_desc: use raw SQL to ORDER BY upcoming show count with DB-level
+        // LIMIT/OFFSET, then fetch full comedian data for only that page's IDs.
         if (helper.params.sort === SortParamValue.ShowCountDesc) {
-            const allComedians = await db.comedian.findMany({
-                where: whereClause,
+            const { take, skip } = helper.getGenericClauses(totalCount);
+
+            // Build parameterized WHERE conditions mirroring the Prisma whereClause
+            const whereConditions: Prisma.Sql[] = [
+                Prisma.sql`c."parentComedianId" IS NULL`,
+                Prisma.sql`NOT EXISTS (
+                    SELECT 1 FROM "TaggedComedian" tc
+                    JOIN "Tag" t ON tc."tagId" = t.id
+                    WHERE tc."comedianId" = c.id AND t."restrictContent" = true
+                )`,
+            ];
+
+            const comedianName = helper.params.comedian;
+            if (comedianName) {
+                whereConditions.push(
+                    Prisma.sql`c.name ILIKE ${"%" + comedianName + "%"}`,
+                );
+            }
+
+            const filtersParam = helper.params.filters;
+            if (filtersParam) {
+                whereConditions.push(
+                    Prisma.sql`EXISTS (
+                        SELECT 1 FROM "TaggedComedian" tc2
+                        JOIN "Tag" t2 ON tc2."tagId" = t2.id
+                        WHERE tc2."comedianId" = c.id
+                          AND t2.slug IN (${Prisma.join(filtersParam.split(","))})
+                          AND t2.type = 'comedian'
+                    )`,
+                );
+            }
+
+            const sortedRows = await db.$queryRaw<{ id: number }[]>(
+                Prisma.sql`
+                    SELECT c.id
+                    FROM "Comedian" c
+                    WHERE ${Prisma.join(whereConditions, " AND ")}
+                    ORDER BY (
+                        SELECT COUNT(*) FROM "LineupItem" li
+                        JOIN "Show" s ON li."showId" = s.id
+                        WHERE li."comedianId" = c.id AND s.date > NOW()
+                    ) DESC
+                    LIMIT ${take} OFFSET ${skip}
+                `,
+            );
+
+            const comedianIds = sortedRows.map((r) => r.id);
+
+            if (comedianIds.length === 0) {
+                return { comedians: [], totalCount };
+            }
+
+            const comediansById = await db.comedian.findMany({
+                where: { id: { in: comedianIds } },
                 select: {
                     ...COMEDIAN_SELECT,
-                    ...favoriteSelect,
+                    ...upcomingCountSelect,
+                    ...(helper.getProfileId()
+                        ? {
+                              favoriteComedians: {
+                                  where: {
+                                      profileId: helper.getProfileId(),
+                                  },
+                                  select: { id: true },
+                              },
+                          }
+                        : {}),
                 },
             });
 
-            allComedians.sort(
-                (a, b) => b._count.lineupItems - a._count.lineupItems,
+            // Re-sort to match the SQL ordering
+            const idOrder = new Map(comedianIds.map((id, i) => [id, i]));
+            const sorted = (comediansById as ComedianWithUpcomingCount[]).sort(
+                (a, b) => (idOrder.get(a.id) ?? 0) - (idOrder.get(b.id) ?? 0),
             );
 
-            const { take, skip } = helper.getGenericClauses(totalCount);
-            const paginated = allComedians.slice(skip, skip + take);
-
             return {
-                comedians: paginated.map(mapComedian),
+                comedians: sorted.map(mapComedian),
                 totalCount,
             };
         }
@@ -150,13 +198,27 @@ export async function findComediansWithCount(
             where: whereClause,
             select: {
                 ...COMEDIAN_SELECT,
-                ...favoriteSelect,
+                ...upcomingCountSelect,
+                ...(helper.getProfileId()
+                    ? {
+                          favoriteComedians: {
+                              where: {
+                                  profileId: helper.getProfileId(),
+                              },
+                              select: {
+                                  id: true,
+                              },
+                          },
+                      }
+                    : {}),
             },
             ...helper.getGenericClauses(totalCount),
         });
 
         return {
-            comedians: filteredComedians.map(mapComedian),
+            comedians: (filteredComedians as ComedianWithUpcomingCount[]).map(
+                mapComedian,
+            ),
             totalCount,
         };
     } catch (error) {
