@@ -93,6 +93,7 @@ _tz_lookup_mod = _load_module(
 )
 timezone_from_address = _tz_lookup_mod.timezone_from_address
 timezone_from_state = _tz_lookup_mod.timezone_from_state
+parse_city_state_from_address = _tz_lookup_mod.parse_city_state_from_address
 
 sys.modules["laughtrack.utilities.domain.club.timezone_lookup"] = _tz_lookup_mod
 
@@ -116,6 +117,8 @@ def _make_club_row(**overrides):
         "scraping_url": "www.eventbrite.com",
         "popularity": 0,
         "zip_code": "10012",
+        "city": None,
+        "state": None,
         "phone_number": "",
         "timezone": None,
         "visible": True,
@@ -252,3 +255,44 @@ class TestEnrichTimezones:
         mock_batch.assert_called_once()
         items = mock_batch.call_args[0][1]
         assert set(items) == {(1, "America/New_York"), (2, "America/Los_Angeles")}
+
+
+# ---------------------------------------------------------------------------
+# Tests: parse_city_state_from_address
+# ---------------------------------------------------------------------------
+
+class TestParseCityStateFromAddress:
+    def test_standard_address_returns_city_and_state(self):
+        city, state = parse_city_state_from_address("117 MacDougal St, New York, NY")
+        assert city == "New York"
+        assert state == "NY"
+
+    def test_address_with_zip_returns_city_and_state(self):
+        city, state = parse_city_state_from_address("123 Main St, New York, NY 10001")
+        assert city == "New York"
+        assert state == "NY"
+
+    def test_ca_address(self):
+        city, state = parse_city_state_from_address("8001 Sunset Blvd, Los Angeles, CA")
+        assert city == "Los Angeles"
+        assert state == "CA"
+
+    def test_unknown_state_returns_none_state(self):
+        city, state = parse_city_state_from_address("Some Place, Springfield, XX")
+        assert city == "Springfield"
+        assert state is None
+
+    def test_single_segment_returns_none_both(self):
+        city, state = parse_city_state_from_address("No commas here")
+        assert city is None
+        assert state is None
+
+    def test_empty_string_returns_none_both(self):
+        city, state = parse_city_state_from_address("")
+        assert city is None
+        assert state is None
+
+    def test_none_returns_none_both(self):
+        city, state = parse_city_state_from_address(None)
+        assert city is None
+        assert state is None

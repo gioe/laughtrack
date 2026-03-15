@@ -94,6 +94,14 @@ sys.modules["laughtrack.core.entities.club.model"] = _club_model_mod
 sys.modules["laughtrack.core.data.base_handler"] = _base_handler_mod
 sys.modules["sql.club_queries"] = _club_queries_mod
 
+# Load timezone_lookup (used via lazy import in handler methods)
+_tz_lookup_mod = _load_module(
+    "src/laughtrack/utilities/domain/club/timezone_lookup.py",
+    "laughtrack.utilities.domain.club.timezone_lookup",
+)
+parse_city_state_from_address = _tz_lookup_mod.parse_city_state_from_address
+sys.modules["laughtrack.utilities.domain.club.timezone_lookup"] = _tz_lookup_mod
+
 # Load ClubHandler
 _club_handler_mod = _load_module(
     "src/laughtrack/core/entities/club/handler.py",
@@ -131,6 +139,8 @@ def _make_club_row(**overrides):
         "scraping_url": "www.eventbrite.com",
         "popularity": 0,
         "zip_code": "10001",
+        "city": "New York",
+        "state": "NY",
         "phone_number": "",
         "timezone": "America/New_York",
         "visible": True,
@@ -343,6 +353,8 @@ def _make_seatengine_club_row(**overrides):
         "scraping_url": "www.seatengine.com",
         "popularity": 0,
         "zip_code": "10001",
+        "city": "New York",
+        "state": "NY",
         "phone_number": "",
         "timezone": "America/New_York",
         "visible": True,
@@ -503,3 +515,161 @@ class TestUpsertForSeatEngineVenueInvalidInput:
         with patch.object(handler, "execute_with_cursor", return_value=[]):
             result = handler.upsert_for_seatengine_venue(venue)
         assert result is None
+
+
+# ---------------------------------------------------------------------------
+# Tests: city/state extraction in Eventbrite upsert
+# ---------------------------------------------------------------------------
+
+class TestEventbriteVenueCityStateExtraction:
+    """City and state are passed to execute_with_cursor from venue.address fields."""
+
+    def test_city_and_state_extracted_from_address(self):
+        venue = _FakeVenue(
+            id="v1",
+            name="Comedy Cellar",
+            address=_FakeAddress(
+                address_1="117 MacDougal St",
+                city="New York",
+                region="NY",
+                postal_code="10012",
+            ),
+        )
+        row = _make_club_row(name="Comedy Cellar", city="New York", state="NY")
+        handler = ClubHandler()
+        with patch.object(handler, "execute_with_cursor", return_value=[row]) as mock_exec:
+            handler.upsert_for_eventbrite_venue(venue)
+
+        params = mock_exec.call_args[0][1]
+        assert params[4] == "New York"  # city
+        assert params[5] == "NY"        # state
+
+    def test_city_state_none_when_no_address(self):
+        venue = _FakeVenue(id="v2", name="Club No Address", address=None)
+        row = _make_club_row(name="Club No Address", city=None, state=None)
+        handler = ClubHandler()
+        with patch.object(handler, "execute_with_cursor", return_value=[row]) as mock_exec:
+            handler.upsert_for_eventbrite_venue(venue)
+
+        params = mock_exec.call_args[0][1]
+        assert params[4] is None  # city
+        assert params[5] is None  # state
+
+
+# ---------------------------------------------------------------------------
+# Tests: city/state extraction in SeatEngine upsert
+# ---------------------------------------------------------------------------
+
+class TestSeatEngineVenueCityStateExtraction:
+    """City and state are parsed from the address string for SeatEngine venues."""
+
+    def test_city_and_state_parsed_from_address(self):
+        venue = {"id": 100, "name": "Stress Factory", "address": "90 New St, Newark, NJ", "zip": "07102", "website": ""}
+        row = _make_seatengine_club_row(name="Stress Factory", city="Newark", state="NJ")
+        handler = ClubHandler()
+        with patch.object(handler, "execute_with_cursor", return_value=[row]) as mock_exec:
+            handler.upsert_for_seatengine_venue(venue)
+
+        params = mock_exec.call_args[0][1]
+        assert params[5] == "Newark"  # city
+        assert params[6] == "NJ"      # state
+
+    def test_city_state_none_when_address_unparseable(self):
+        """No city/state when address has only one segment."""
+        venue = {"id": 101, "name": "Mystery Club", "address": "NoCommasHere", "zip": "", "website": ""}
+        row = _make_seatengine_club_row(name="Mystery Club", city=None, state=None)
+        handler = ClubHandler()
+        with patch.object(handler, "execute_with_cursor", return_value=[row]) as mock_exec:
+            handler.upsert_for_seatengine_venue(venue)
+
+        params = mock_exec.call_args[0][1]
+        assert params[5] is None  # city
+        assert params[6] is None  # state
+
+
+# ---------------------------------------------------------------------------
+# Tests: ClubHandler.backfill_city_state
+# ---------------------------------------------------------------------------
+
+def _make_backfill_club_row(**overrides):
+    """Row for a club with city/state NULL."""
+    defaults = {
+        "id": 10,
+        "name": "Test Club",
+        "address": "117 MacDougal St, New York, NY",
+        "website": "",
+        "scraping_url": "www.test.com",
+        "popularity": 0,
+        "zip_code": "10012",
+        "city": None,
+        "state": None,
+        "phone_number": "",
+        "timezone": "America/New_York",
+        "visible": True,
+        "scraper": "eventbrite",
+        "eventbrite_id": None,
+        "ticketmaster_id": None,
+        "seatengine_id": None,
+        "rate_limit": 1.0,
+        "max_retries": 3,
+        "timeout": 30,
+    }
+    defaults.update(overrides)
+    return defaults
+
+
+class TestBackfillCityState:
+    """ClubHandler.backfill_city_state populates city/state from address."""
+
+    def test_updates_club_with_parseable_address(self):
+        """A club whose address yields city/state is batch-updated."""
+        row = _make_backfill_club_row(id=10, address="117 MacDougal St, New York, NY")
+        handler = ClubHandler()
+        with patch.object(handler, "execute_with_cursor", return_value=[row]), \
+             patch.object(handler, "execute_batch_operation", return_value=[{"id": 10}]) as mock_batch:
+            result = handler.backfill_city_state()
+
+        assert result == 1
+        mock_batch.assert_called_once()
+        updates = mock_batch.call_args[0][1]
+        assert len(updates) == 1
+        assert updates[0] == (10, "New York", "NY")
+
+    def test_skips_club_with_unparseable_address(self):
+        """A club with a single-segment address (no commas) is skipped."""
+        row = _make_backfill_club_row(id=11, address="NoCommasHere")
+        handler = ClubHandler()
+        with patch.object(handler, "execute_with_cursor", return_value=[row]), \
+             patch.object(handler, "execute_batch_operation") as mock_batch:
+            result = handler.backfill_city_state()
+
+        assert result == 0
+        mock_batch.assert_not_called()
+
+    def test_returns_zero_when_no_clubs_need_update(self):
+        """If no clubs have NULL city/state, returns 0 without calling batch op."""
+        handler = ClubHandler()
+        with patch.object(handler, "execute_with_cursor", return_value=[]), \
+             patch.object(handler, "execute_batch_operation") as mock_batch:
+            result = handler.backfill_city_state()
+
+        assert result == 0
+        mock_batch.assert_not_called()
+
+    def test_multiple_clubs_batched_in_single_update(self):
+        """All resolvable clubs are sent in one batch."""
+        rows = [
+            _make_backfill_club_row(id=1, address="208 W 23rd St, New York, NY"),
+            _make_backfill_club_row(id=2, address="8001 Sunset Blvd, Los Angeles, CA"),
+        ]
+        handler = ClubHandler()
+        with patch.object(handler, "execute_with_cursor", return_value=rows), \
+             patch.object(handler, "execute_batch_operation", return_value=[{"id": 1}, {"id": 2}]) as mock_batch:
+            result = handler.backfill_city_state()
+
+        assert result == 2
+        mock_batch.assert_called_once()
+        updates = mock_batch.call_args[0][1]
+        assert len(updates) == 2
+        assert updates[0] == (1, "New York", "NY")
+        assert updates[1] == (2, "Los Angeles", "CA")
