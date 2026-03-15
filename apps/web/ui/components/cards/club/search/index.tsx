@@ -21,7 +21,7 @@ const ClubSearchCard: React.FC<ClubSearchCardProps> = ({ club }) => {
 
     return (
         <motion.div
-            className="bg-white rounded-xl overflow-hidden pb-4 px-4 h-full shadow-sm transition-shadow duration-300 hover:shadow-lg"
+            className="bg-gradient-to-b from-white to-coconut-cream/60 rounded-xl pb-4 px-4 h-full shadow-sm border-b-2 border-transparent transition-shadow transition-colors duration-300 hover:shadow-lg hover:border-copper"
             whileHover={mp({ y: -4, transition: { duration: 0.15 } })}
         >
             <div className="relative w-full aspect-square">
@@ -41,7 +41,7 @@ const ClubSearchCard: React.FC<ClubSearchCardProps> = ({ club }) => {
                 </Link>
             </div>
             <div className="mt-4 space-y-2">
-                <h2 className="text-[22px] font-bold font-gilroy-bold text-center text-cedar hover:text-[#2D1810] transition-colors">
+                <h2 className="text-[22px] font-extrabold font-gilroy-bold text-center text-cedar hover:text-[#2D1810] transition-colors">
                     {parsedClub.name}
                 </h2>
 
