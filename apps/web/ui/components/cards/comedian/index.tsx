@@ -19,7 +19,7 @@ const ComedianGridCard: React.FC<ComedianGridCardProps> = ({
     const comedian = new Comedian(entity);
     return (
         <motion.div
-            className="relative bg-gradient-to-b from-white to-coconut-cream/60 rounded-xl pb-4 px-4 h-full shadow-sm border-b-2 border-transparent transition-all duration-300 hover:shadow-lg hover:border-copper"
+            className="relative h-full flex flex-col items-center"
             whileHover={mp({ y: -4, transition: { duration: 0.15 } })}
         >
             <ComedianHeadshot
@@ -28,7 +28,7 @@ const ComedianGridCard: React.FC<ComedianGridCardProps> = ({
                 variant="grid"
             />
 
-            <div className="mt-4 space-y-2">
+            <div className="mt-4 space-y-2 w-full">
                 <h2 className="text-[22px] font-extrabold font-gilroy-bold text-center text-cedar hover:text-[#2D1810] transition-colors">
                     {comedian.name}
                 </h2>
@@ -42,9 +42,11 @@ const ComedianGridCard: React.FC<ComedianGridCardProps> = ({
                     </div>
                 )}
 
-                <p className="text-[16px] text-gray-600 text-center font-dmSans">
-                    {`${comedian.showCount ?? 0} upcoming shows`}
-                </p>
+                <div className="flex justify-center">
+                    <span className="bg-copper/10 text-copper text-xs px-2 py-0.5 rounded-full font-dmSans">
+                        {`${comedian.showCount ?? 0} upcoming shows`}
+                    </span>
+                </div>
             </div>
         </motion.div>
     );

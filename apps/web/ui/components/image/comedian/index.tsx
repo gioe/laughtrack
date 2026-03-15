@@ -20,11 +20,13 @@ const ALIAS_PLACEHOLDER = "/placeholders/mystery-comedian-placeholder.svg";
 const variantStyles = {
     grid: {
         container: "relative w-full aspect-square",
-        image: "object-cover object-center rounded-xl",
+        link: "block w-full h-full relative rounded-full overflow-hidden",
+        image: "object-cover object-center",
         favoriteButton: "absolute top-3 right-3",
     },
     lineup: {
         container: "relative h-[136px] w-[136px]",
+        link: "block w-full h-full relative",
         image: "object-cover object-center rounded-xl",
         favoriteButton: "absolute top-1 right-1",
     },
@@ -56,10 +58,7 @@ const ComedianHeadshot = ({
 
     return (
         <div className={`${styles.container} ${className}`}>
-            <Link
-                href={`/comedian/${comedian.name}`}
-                className="block w-full h-full relative"
-            >
+            <Link href={`/comedian/${comedian.name}`} className={styles.link}>
                 <Image
                     src={determineImage()}
                     alt={`${comedian.name}`}
