@@ -4,6 +4,7 @@ import NavigationMenu from "../navbar/menu";
 import AuthButtons from "../auth/header";
 import { useCallback } from "react";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 import { UserProfileInterface } from "@/app/api/profile/[id]/interface";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import { useLoginModal } from "@/hooks";
@@ -29,7 +30,16 @@ export function Header({ onClick, currentUser }: HeaderProps) {
         <nav
             className={`relative px-4 py-4 ${styleConfig.headerBackgroundColor}`}
         >
-            <div className="flex lg:hidden">
+            <div className="flex items-center justify-between lg:hidden">
+                <Link href="/">
+                    <img
+                        src="/logomark.svg"
+                        alt="Laughtrack"
+                        width={32}
+                        height={32}
+                        className="shrink-0"
+                    />
+                </Link>
                 <HamburgerMenuButton handleClick={() => onClick(true)} />
             </div>
             <div className="hidden max-w-7xl mx-auto items-center lg:grid lg:grid-cols-3 ">
