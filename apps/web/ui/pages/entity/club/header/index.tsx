@@ -20,6 +20,10 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({ club }) => {
     const { mv, mt, prefersReducedMotion } = useMotionProps();
     const [error, setError] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
+    const locationLabel =
+        parsedClub.city && parsedClub.state
+            ? `${parsedClub.city}, ${parsedClub.state}`
+            : parsedClub.city || parsedClub.address;
 
     const showImage =
         !error && !!parsedClub.imageUrl && parsedClub.imageUrl !== PLACEHOLDER;
@@ -79,7 +83,7 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({ club }) => {
                         className="flex items-center gap-2 text-white/80"
                     >
                         <MapPin aria-hidden="true" className="w-4 h-4" />
-                        <span>{parsedClub.address}</span>
+                        <span>{locationLabel}</span>
                     </motion.div>
                 </div>
             </motion.div>
