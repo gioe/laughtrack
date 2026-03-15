@@ -10,6 +10,8 @@ const CLUB_SELECT = {
     name: true,
     website: true,
     address: true,
+    city: true,
+    state: true,
     zipCode: true,
 } as const;
 
@@ -39,6 +41,8 @@ export async function findClubByName(helper: QueryHelper): Promise<ClubDTO> {
             imageUrl: buildClubImageUrl(clubData.name),
             website: clubData.website,
             address: clubData.address,
+            city: clubData.city ?? undefined,
+            state: clubData.state ?? undefined,
             zipCode: clubData.zipCode,
         };
     } catch (error) {

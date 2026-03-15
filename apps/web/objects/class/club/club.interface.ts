@@ -6,6 +6,7 @@ import { SocialDataDTO } from "../socialData/socialData.interface";
 export interface ClubInterface extends Favoritable, Entity {
     website: string;
     city: string;
+    state: string;
     address: string;
     zipCode: string;
     showCount?: number;
