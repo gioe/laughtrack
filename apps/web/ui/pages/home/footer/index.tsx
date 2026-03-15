@@ -5,7 +5,7 @@ import { openEmailClient } from "@/ui/components/button/contact";
 import XIcon from "@/ui/components/icons/XIcon";
 import InstagramIcon from "@/ui/components/icons/InstagramIcon";
 import TikTokIcon from "@/ui/components/icons/TikTokIcon";
-import { siteConfig } from "@/lib/siteConfig";
+import { siteConfig } from "@/ui/config/siteConfig";
 
 const SOCIAL_LINKS: {
     label: string;
