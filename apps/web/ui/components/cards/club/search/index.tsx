@@ -14,17 +14,26 @@ interface ClubSearchCardProps {
     club: ClubDTO;
 }
 
+function parseCityState(address: string): string {
+    const parts = address.split(",").map((s) => s.trim());
+    if (parts.length < 3) return address;
+    const city = parts[1];
+    const state = parts[2].trim().split(" ")[0];
+    return `${city}, ${state}`;
+}
+
 const ClubSearchCard: React.FC<ClubSearchCardProps> = ({ club }) => {
     const { mp } = useMotionProps();
     const parsedClub = new Club(club);
     const [error, setError] = useState(false);
+    const locationLabel = parseCityState(parsedClub.address);
 
     return (
         <motion.div
             className="bg-gradient-to-b from-white to-coconut-cream/60 rounded-xl overflow-hidden pb-4 px-4 h-full shadow-sm border-b-2 border-transparent transition-all duration-300 hover:shadow-lg hover:border-copper"
             whileHover={mp({ y: -4, transition: { duration: 0.15 } })}
         >
-            <div className="relative w-full aspect-square">
+            <div className="relative w-full aspect-video">
                 <Link
                     href={`/club/${parsedClub.name}`}
                     className="block w-full h-full"
@@ -46,8 +55,14 @@ const ClubSearchCard: React.FC<ClubSearchCardProps> = ({ club }) => {
                 </h2>
 
                 <p className="text-[16px] text-gray-600 text-center font-dmSans">
-                    {`${parsedClub.address}`}
+                    {locationLabel}
                 </p>
+
+                <div className="flex justify-center">
+                    <span className="bg-copper/10 text-copper text-xs px-2 py-0.5 rounded-full font-dmSans">
+                        {`${parsedClub.showCount ?? 0} upcoming shows`}
+                    </span>
+                </div>
             </div>
         </motion.div>
     );
