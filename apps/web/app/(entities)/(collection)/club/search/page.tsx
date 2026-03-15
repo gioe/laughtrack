@@ -53,7 +53,7 @@ export default async function ClubSearchPage(props: ClubSearchPageProps) {
         await getCachedSearchPageData(requestData)();
 
     return (
-        <main className="min-h-screen w-full bg-coconut-cream">
+        <>
             <FilterModal filters={filters} total={total} />
             <SearchDetailHeader
                 title="Search clubs"
@@ -68,6 +68,6 @@ export default async function ClubSearchPage(props: ClubSearchPageProps) {
                 filters={filters.length}
             />
             <ClubGrid clubs={data} />
-        </main>
+        </>
     );
 }

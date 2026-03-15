@@ -103,7 +103,7 @@ export default async function ClubDetailPage(props: {
     const { data, shows, total, filters } = result;
 
     return (
-        <main className="min-h-screen w-full bg-coconut-cream">
+        <>
             <FilterModal filters={filters} total={total} />
             <ClubDetailHeader club={data} />
             <FilterBar
@@ -112,6 +112,6 @@ export default async function ClubDetailPage(props: {
                 filters={filters.length}
             />
             <ShowTable shows={shows} />
-        </main>
+        </>
     );
 }

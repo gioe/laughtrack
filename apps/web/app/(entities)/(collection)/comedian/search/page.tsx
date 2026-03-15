@@ -59,7 +59,7 @@ export default async function ComedianSearchPage(
         await getCachedSearchPageData(requestData)();
 
     return (
-        <main className="min-h-screen w-full bg-coconut-cream">
+        <>
             <FilterModal filters={filters} total={total} />
 
             <SearchDetailHeader
@@ -80,6 +80,6 @@ export default async function ComedianSearchPage(
                 comedians={data}
                 className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6"
             />
-        </main>
+        </>
     );
 }

@@ -106,7 +106,7 @@ export default async function ComedianDetailsPage(props: {
     const { data, shows, total, filters } = result;
 
     return (
-        <main className="min-h-screen w-full bg-coconut-cream">
+        <>
             <FilterModal filters={filters} total={total} />
             <ComedianDetailHeader comedian={data} />
             <FilterBar
@@ -115,6 +115,6 @@ export default async function ComedianDetailsPage(props: {
                 filters={filters.length}
             />
             <ShowTable shows={shows} />
-        </main>
+        </>
     );
 }
