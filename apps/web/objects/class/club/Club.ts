@@ -14,6 +14,7 @@ export class Club implements ClubInterface {
     // Optional properties with default values
     readonly website: string;
     readonly city: string;
+    readonly state: string;
     readonly address: string;
     readonly zipCode: string;
     readonly isFavorite: boolean;
@@ -34,6 +35,7 @@ export class Club implements ClubInterface {
         // Initialize location-related properties
         this.website = input.website ?? "";
         this.city = input.city ?? "";
+        this.state = input.state ?? "";
         this.address = input.address ?? "";
         this.zipCode = input.zipCode ?? "";
         this.phoneNumber = input.phone_number ?? "";

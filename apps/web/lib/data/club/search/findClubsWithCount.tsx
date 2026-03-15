@@ -8,6 +8,8 @@ const CLUB_SELECT = {
     id: true,
     name: true,
     address: true,
+    city: true,
+    state: true,
     website: true,
     zipCode: true,
     shows: {
@@ -48,6 +50,8 @@ export async function findClubsWithCount(
                 id: club.id,
                 name: club.name,
                 address: club.address,
+                city: club.city ?? undefined,
+                state: club.state ?? undefined,
                 zipCode: club.zipCode,
                 imageUrl: buildClubImageUrl(club.name),
                 show_count: club.shows.length,

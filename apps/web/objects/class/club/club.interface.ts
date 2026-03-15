@@ -19,6 +19,7 @@ export interface ClubDTO {
     website?: string;
     address?: string;
     city?: string;
+    state?: string;
     zipCode: string | null;
     social_data?: SocialDataDTO;
     dates?: ShowDTO[];
