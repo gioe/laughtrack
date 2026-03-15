@@ -1,7 +1,5 @@
 """Unit tests for Club.to_tuple()."""
 
-import pytest
-
 from laughtrack.core.entities.club.model import Club
 
 
