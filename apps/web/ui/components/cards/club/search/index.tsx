@@ -14,19 +14,14 @@ interface ClubSearchCardProps {
     club: ClubDTO;
 }
 
-function parseCityState(address: string): string {
-    const parts = address.split(",").map((s) => s.trim());
-    if (parts.length < 3) return address;
-    const city = parts[1];
-    const state = parts[2].trim().split(" ")[0];
-    return `${city}, ${state}`;
-}
-
 const ClubSearchCard: React.FC<ClubSearchCardProps> = ({ club }) => {
     const { mp } = useMotionProps();
     const parsedClub = new Club(club);
     const [error, setError] = useState(false);
-    const locationLabel = parseCityState(parsedClub.address);
+    const locationLabel =
+        parsedClub.city && parsedClub.state
+            ? `${parsedClub.city}, ${parsedClub.state}`
+            : parsedClub.city || parsedClub.address;
 
     return (
         <motion.div
