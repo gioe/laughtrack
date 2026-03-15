@@ -47,38 +47,36 @@ const getSortOptions = (variant: SearchVariant) => {
 
 const FilterBar = ({ variant, total, filters }: FilterBarProps) => {
     return (
-        <div className="sticky top-0 z-10 w-full bg-coconut-cream/30 border-b border-black/5">
-            <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8">
-                <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
+        <div className="sticky top-0 z-20 w-full bg-coconut-cream border-b border-black/5">
+            <div
+                className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8"
+                role="search"
+                aria-label="Search and filter results"
+            >
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                     {/* Search input — full-width on mobile, flex-1 on sm+ */}
-                    <div className="w-full sm:flex-1">
-                        {getSearchBar(variant)}
-                    </div>
+                    <div className="sm:flex-1">{getSearchBar(variant)}</div>
 
-                    {/* Sort + Filter — inline on sm+, second row on mobile */}
-                    <div className="flex items-center gap-4 shrink-0">
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-copper">
-                                Sort by:
-                            </span>
+                    {/* Controls row: sort+filter left, pagination right */}
+                    <div className="flex items-center justify-between sm:justify-start sm:gap-4 sm:shrink-0">
+                        <div className="flex items-center gap-3">
                             <div className="text-copper">
                                 {getSortOptions(variant)}
                             </div>
+
+                            {filters > 0 && (
+                                <div
+                                    className="[&>button]:px-4 [&>button]:py-2 [&>button]:bg-copper/10 [&>button]:rounded-full
+                                              [&>button:hover]:bg-copper/20 [&>button]:transition-colors [&>button]:duration-200"
+                                >
+                                    <FilterModalButton filterCount={filters} />
+                                </div>
+                            )}
                         </div>
 
-                        {filters > 0 && (
-                            <div
-                                className="[&>button]:px-4 [&>button]:py-2 [&>button]:bg-copper/10 [&>button]:rounded-full
-                                          [&>button:hover]:bg-copper/20 [&>button]:transition-colors [&>button]:duration-200"
-                            >
-                                <FilterModalButton filterCount={filters} />
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Pagination */}
-                    <div className="shrink-0 sm:ml-auto">
-                        <PageParamComponent itemCount={total} />
+                        <div className="sm:ml-4">
+                            <PageParamComponent itemCount={total} />
+                        </div>
                     </div>
                 </div>
             </div>
