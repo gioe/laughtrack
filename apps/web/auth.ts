@@ -28,32 +28,6 @@ declare module "next-auth" {
     }
 }
 
-// Ensure Prisma client is initialized before using it
-if (!prisma) {
-    throw new Error("Prisma client is not initialized");
-}
-
-if (
-    process.env.NODE_ENV === "production" &&
-    process.env.NEXT_PHASE !== "phase-production-build"
-) {
-    if (!process.env.AUTH_SECRET) {
-        throw new Error(
-            "AUTH_SECRET must be set in production — generate one with: openssl rand -base64 32",
-        );
-    }
-
-    if (
-        !process.env.SMTP_HOST ||
-        !process.env.SMTP_USER ||
-        !process.env.SMTP_PASSWORD
-    ) {
-        throw new Error(
-            "SMTP_HOST, SMTP_USER, and SMTP_PASSWORD must be set for email sign-in",
-        );
-    }
-}
-
 const adapter = PrismaAdapter(prisma);
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
