@@ -12,7 +12,7 @@ const WebIcon = ({ className = "", size = "w-10 h-10" }: WebIconProps) => {
         >
             <svg
                 viewBox="0 0 24 24"
-                className="w-5 h-5 text-white"
+                className="w-full h-full text-white"
                 fill="currentColor"
                 strokeLinecap="round"
                 strokeLinejoin="round"
