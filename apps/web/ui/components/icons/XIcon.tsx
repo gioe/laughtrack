@@ -12,7 +12,7 @@ const XIcon = ({ className = "", size = "w-5 h-5" }: XIconProps) => {
         >
             <svg
                 viewBox="0 0 24 24"
-                className="w-full h-full text-white"
+                className="w-full h-full p-1.5 text-white"
                 fill="currentColor"
                 aria-hidden="true"
             >
