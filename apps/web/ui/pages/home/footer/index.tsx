@@ -5,6 +5,7 @@ import { openEmailClient } from "@/ui/components/button/contact";
 import XIcon from "@/ui/components/icons/XIcon";
 import InstagramIcon from "@/ui/components/icons/InstagramIcon";
 import TikTokIcon from "@/ui/components/icons/TikTokIcon";
+import { siteConfig } from "@/lib/siteConfig";
 
 const SOCIAL_LINKS: {
     label: string;
@@ -13,17 +14,17 @@ const SOCIAL_LINKS: {
 }[] = [
     {
         label: "Twitter / X",
-        href: "https://x.com/laughtrackapp",
+        href: `https://x.com/${siteConfig.social.twitter}`,
         Icon: XIcon,
     },
     {
         label: "Instagram",
-        href: "https://instagram.com/laughtrackapp",
+        href: `https://instagram.com/${siteConfig.social.instagram}`,
         Icon: InstagramIcon,
     },
     {
         label: "TikTok",
-        href: "https://tiktok.com/@laughtrackapp",
+        href: `https://tiktok.com/@${siteConfig.social.tiktok}`,
         Icon: TikTokIcon,
     },
 ];
