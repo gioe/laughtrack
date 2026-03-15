@@ -80,4 +80,24 @@ describe("toggleFavorite", () => {
             expect(mockUpsert).not.toHaveBeenCalled();
         });
     });
+
+    describe("error propagation", () => {
+        it("propagates upsert rejection to the caller", async () => {
+            const dbError = new Error("DB connection lost");
+            mockUpsert.mockRejectedValue(dbError);
+
+            await expect(
+                toggleFavorite(COMEDIAN_UUID, USER_ID, true),
+            ).rejects.toThrow("DB connection lost");
+        });
+
+        it("propagates deleteMany rejection to the caller", async () => {
+            const dbError = new Error("DB connection lost");
+            mockDeleteMany.mockRejectedValue(dbError);
+
+            await expect(
+                toggleFavorite(COMEDIAN_UUID, USER_ID, false),
+            ).rejects.toThrow("DB connection lost");
+        });
+    });
 });
