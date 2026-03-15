@@ -7,15 +7,9 @@ const globalForPrisma = globalThis as unknown as {
     prisma: PrismaClient | undefined;
 };
 
-// Validate DATABASE_URL before constructing the Neon pool
-const connectionString = process.env.DATABASE_URL;
-if (!connectionString) {
-    throw new Error("DATABASE_URL environment variable is not set");
-}
-
 // Create the Prisma client with the Neon adapter
 const prismaClientSingleton = () => {
-    const neon = new Pool({ connectionString });
+    const neon = new Pool({ connectionString: process.env.DATABASE_URL });
     const adapter = new PrismaNeon(neon);
 
     return new PrismaClient({
