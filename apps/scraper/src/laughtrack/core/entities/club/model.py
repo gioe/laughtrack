@@ -152,6 +152,8 @@ class Club(DatabaseEntity):
             self.seatengine_id,
             self.ticketmaster_id,
             self.timeout,
+            self.city,
+            self.state,
         )
 
     def to_unique_key(self) -> tuple:
