@@ -22,7 +22,7 @@ const SearchDetailHeader = ({
     } = getSearchThemeClasses(variant, theme);
 
     return (
-        <div className={`text-center py-16 md:py-20 px-4 ${container}`}>
+        <header className={`text-center py-16 md:py-20 px-4 ${container}`}>
             <h1
                 className={`text-2xl sm:text-3xl md:text-[32px] font-bold font-gilroy-bold mb-1 sm:mb-2 ${titleCls}`}
             >
@@ -40,7 +40,7 @@ const SearchDetailHeader = ({
             >
                 {subTitle}
             </p>
-        </div>
+        </header>
     );
 };
 

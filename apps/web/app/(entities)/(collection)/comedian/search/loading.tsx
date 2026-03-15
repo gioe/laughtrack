@@ -2,10 +2,10 @@ export default function Loading() {
     return (
         <div className="min-h-screen w-full bg-coconut-cream">
             {/* Header Section */}
-            <div className="h-44 md:h-52 bg-gray-200 animate-pulse flex flex-col items-center justify-center gap-3 mb-0 px-4">
-                <div className="h-8 w-64 bg-gray-300 rounded-lg animate-pulse" />
-                <div className="h-4 w-48 bg-gray-300 rounded-lg animate-pulse" />
-                <div className="h-4 w-24 bg-gray-300 rounded-lg animate-pulse" />
+            <div className="h-48 md:h-56 bg-gray-200 animate-pulse flex flex-col items-center justify-center gap-3 mb-0 px-4">
+                <div className="h-8 w-64 bg-gray-300 rounded-lg" />
+                <div className="h-4 w-48 bg-gray-300 rounded-lg" />
+                <div className="h-4 w-24 bg-gray-300 rounded-lg" />
             </div>
 
             {/* Filter Bar */}

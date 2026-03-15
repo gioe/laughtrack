@@ -113,6 +113,7 @@ const config: Config = {
     content: [
         "./ui/components/**/*.{js,ts,jsx,tsx}",
         "./ui/pages/**/*.{js,ts,jsx,tsx}",
+        "./ui/util/**/*.{js,ts,jsx,tsx}",
         "./app/**/*.{js,ts,jsx,tsx}",
         "./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}",
     ],
