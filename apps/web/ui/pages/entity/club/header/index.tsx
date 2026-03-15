@@ -31,7 +31,7 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({ club }) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={mt({ duration: 0.4 })}
-                className="relative w-full h-52 md:h-80 overflow-hidden rounded-xl"
+                className="relative w-full h-52 sm:h-64 md:h-80 overflow-hidden rounded-xl"
             >
                 {/* Gradient fallback background */}
                 <div className="absolute inset-0 bg-gradient-to-br from-stone-600 via-stone-800 to-stone-900" />

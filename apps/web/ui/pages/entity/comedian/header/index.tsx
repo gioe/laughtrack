@@ -49,7 +49,7 @@ const ComedianDetailHeader: React.FC<ClubDetailHeaderProps> = ({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={mt({ duration: 0.4 })}
-                className="relative w-full h-60 md:h-96 overflow-hidden rounded-xl"
+                className="relative w-full h-60 sm:h-72 md:h-96 overflow-hidden rounded-xl"
             >
                 {/* Gradient fallback background */}
                 <div className="absolute inset-0 bg-gradient-to-br from-slate-600 via-slate-800 to-slate-900" />
