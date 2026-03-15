@@ -22,7 +22,7 @@ const variantStyles = {
         container: "relative w-full aspect-square",
         link: "block w-full h-full relative rounded-full overflow-hidden",
         image: "object-cover object-center",
-        favoriteButton: "absolute top-3 right-3",
+        favoriteButton: "absolute top-[10%] right-[10%]",
     },
     lineup: {
         container: "relative h-[136px] w-[136px]",
