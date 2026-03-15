@@ -9,6 +9,8 @@ Covers:
 
 import importlib.util
 import sys
+
+import pytest
 from pathlib import Path
 from types import ModuleType
 from unittest.mock import MagicMock, patch
@@ -296,3 +298,17 @@ class TestParseCityStateFromAddress:
         city, state = parse_city_state_from_address(None)
         assert city is None
         assert state is None
+
+    @pytest.mark.parametrize("code,city_name,expected_tz", [
+        ("PR", "San Juan", "America/Puerto_Rico"),
+        ("VI", "Charlotte Amalie", "America/St_Thomas"),
+        ("GU", "Hagåtña", "Pacific/Guam"),
+        ("AS", "Pago Pago", "Pacific/Pago_Pago"),
+        ("MP", "Saipan", "Pacific/Saipan"),
+    ])
+    def test_us_territory_returns_state_code(self, code, city_name, expected_tz):
+        address = f"123 Main St, {city_name}, {code}"
+        city, state = parse_city_state_from_address(address)
+        assert city == city_name
+        assert state == code
+        assert timezone_from_state(state) == expected_tz

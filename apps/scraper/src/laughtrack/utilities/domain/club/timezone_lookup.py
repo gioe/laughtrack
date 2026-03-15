@@ -61,6 +61,8 @@ _STATE_TO_TIMEZONE: dict[str, str] = {
     "PR": "America/Puerto_Rico",
     "VI": "America/St_Thomas",
     "GU": "Pacific/Guam",
+    "AS": "Pacific/Pago_Pago",
+    "MP": "Pacific/Saipan",
 }
 
 
@@ -96,6 +98,10 @@ def parse_city_state_from_address(address: Optional[str]) -> tuple[Optional[str]
 
     Expects format: "Street, City, State" or "Street, City, State ZIP"
     Returns (city, state) tuple; either may be None if unparseable.
+
+    Supported codes: all 50 US states + DC, and the territories PR, VI, GU,
+    AS, and MP. The UM (U.S. Minor Outlying Islands) code is not supported
+    because those islands span multiple timezones with no single IANA mapping.
     """
     if not address:
         return None, None
