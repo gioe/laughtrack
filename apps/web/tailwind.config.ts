@@ -147,11 +147,16 @@ const config: Config = {
                     "0%": { transform: "translateY(10px)", opacity: "0" },
                     "100%": { transform: "translateY(0)", opacity: "1" },
                 },
+                shimmer: {
+                    "0%": { backgroundPosition: "200% 0" },
+                    "100%": { backgroundPosition: "-200% 0" },
+                },
             },
             animation: {
                 pulse: "pulse 2s ease-in-out infinite",
                 fadeIn: "fadeIn 0.3s ease-in-out",
                 slideUp: "slideUp 0.4s ease-out",
+                shimmer: "shimmer 1.5s infinite linear",
             },
             fontFamily: fonts,
             colors: {
