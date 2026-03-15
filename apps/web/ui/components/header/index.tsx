@@ -5,6 +5,7 @@ import AuthButtons from "../auth/header";
 import { useCallback } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { UserProfileInterface } from "@/app/api/profile/[id]/interface";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import { useLoginModal } from "@/hooks";
@@ -32,7 +33,7 @@ export function Header({ onClick, currentUser }: HeaderProps) {
         >
             <div className="flex items-center justify-between lg:hidden">
                 <Link href="/">
-                    <img
+                    <Image
                         src="/logomark.svg"
                         alt="Laughtrack"
                         width={32}
