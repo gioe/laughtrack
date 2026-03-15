@@ -1,6 +1,11 @@
 import React from "react";
 
-const TikTokIcon = ({ className = "", size = "w-5 h-5" }) => {
+interface TikTokIconProps {
+    className?: string;
+    size?: string;
+}
+
+const TikTokIcon = ({ className = "", size = "w-5 h-5" }: TikTokIconProps) => {
     return (
         <div
             className={`${size} rounded-full bg-[#CD6837] flex items-center justify-center ${className}`}

@@ -1,6 +1,14 @@
 import React from "react";
 
-const YouTubeIcon = ({ className = "", size = "w-5 h-5" }) => {
+interface YouTubeIconProps {
+    className?: string;
+    size?: string;
+}
+
+const YouTubeIcon = ({
+    className = "",
+    size = "w-5 h-5",
+}: YouTubeIconProps) => {
     return (
         <div
             className={`${size} rounded-full bg-[#CD6837] flex items-center justify-center ${className}`}

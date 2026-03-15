@@ -1,6 +1,11 @@
 import React from "react";
 
-const XIcon = ({ className = "", size = "w-5 h-5" }) => {
+interface XIconProps {
+    className?: string;
+    size?: string;
+}
+
+const XIcon = ({ className = "", size = "w-5 h-5" }: XIconProps) => {
     return (
         <div
             className={`${size} rounded-full bg-[#CD6837] flex items-center justify-center ${className}`}

@@ -1,6 +1,11 @@
 import React from "react";
 
-const WebIcon = ({ className = "", size = "w-10 h-10" }) => {
+interface WebIconProps {
+    className?: string;
+    size?: string;
+}
+
+const WebIcon = ({ className = "", size = "w-10 h-10" }: WebIconProps) => {
     return (
         <div
             className={`${size} rounded-full bg-[#CD6837] flex items-center justify-center ${className}`}

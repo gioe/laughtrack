@@ -1,9 +1,16 @@
+interface AppleLogoProps {
+    className?: string;
+    width?: number;
+    height?: number;
+    fill?: string;
+}
+
 export default function AppleLogo({
     className = "",
     width = 24,
     height = 24,
     fill = "black",
-}) {
+}: AppleLogoProps) {
     return (
         <svg
             width={width}
