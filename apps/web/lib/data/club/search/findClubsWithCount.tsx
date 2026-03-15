@@ -12,13 +12,16 @@ const CLUB_SELECT = {
     state: true,
     website: true,
     zipCode: true,
-    shows: {
-        where: {
-            date: {
-                gt: new Date(),
+    _count: {
+        select: {
+            shows: {
+                where: {
+                    date: {
+                        gt: new Date(),
+                    },
+                },
             },
         },
-        select: { id: true },
     },
 } as const;
 
@@ -54,7 +57,7 @@ export async function findClubsWithCount(
                 state: club.state ?? undefined,
                 zipCode: club.zipCode,
                 imageUrl: buildClubImageUrl(club.name),
-                show_count: club.shows.length,
+                show_count: club._count.shows,
             })),
             totalCount,
         };
