@@ -40,7 +40,7 @@ const ShowCard: React.FC<ShowCardProps> = ({ show }: ShowCardProps) => {
                 rounded-xl w-full shadow-md hover:shadow-xl border border-white/20"
             initial={alreadySeen ? false : { opacity: 0, y: mv(20) }}
             whileInView={{ opacity: 1, y: 0 }}
-            whileHover={mp({ scale: 1.02, transition: { duration: 0.15 } })}
+            whileHover={mp({ y: -4, transition: { duration: 0.15 } })}
             viewport={{ once: true }}
             transition={{
                 duration: mv(0.5),

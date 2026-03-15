@@ -22,7 +22,7 @@ const PopularClubCard: React.FC<PopularClubCardProps> = ({ entity }) => {
     return (
         <motion.div
             className="w-full"
-            whileHover={mp({ scale: 1.05, transition: { duration: 0.15 } })}
+            whileHover={mp({ y: -4, transition: { duration: 0.15 } })}
         >
             <div className="relative w-full aspect-square rounded-xl overflow-hidden mb-4 hover:cursor-pointer">
                 <Link
