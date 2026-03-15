@@ -71,6 +71,31 @@ def timezone_from_state(state_code: str) -> Optional[str]:
     return _STATE_TO_TIMEZONE.get(state_code.strip().upper())
 
 
+def parse_city_state_from_address(address: Optional[str]) -> tuple[Optional[str], Optional[str]]:
+    """
+    Parse city and state from a comma-separated US address string.
+
+    Expects format: "Street, City, State" or "Street, City, State ZIP"
+    Returns (city, state) tuple; either may be None if unparseable.
+    """
+    if not address:
+        return None, None
+    parts = [p.strip() for p in address.split(",") if p.strip()]
+    if len(parts) < 2:
+        return None, None
+    # Last segment: state abbreviation (optionally followed by ZIP)
+    candidate = parts[-1].strip()
+    m = re.match(r"^([A-Za-z]{2})(?:\s+\d{5}(?:-\d{4})?)?$", candidate)
+    if m:
+        code = m.group(1).upper()
+        state = code if code in _STATE_TO_TIMEZONE else None
+    else:
+        state = None
+    # Second-to-last: city
+    city = parts[-2].strip() or None
+    return city, state
+
+
 def timezone_from_address(address: Optional[str]) -> Optional[str]:
     """
     Infer IANA timezone from a venue address string.

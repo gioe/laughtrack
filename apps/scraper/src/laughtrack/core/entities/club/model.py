@@ -25,6 +25,8 @@ class Club(DatabaseEntity):
     phone_number: str
     visible: bool
     timezone: str = "America/New_York"
+    city: Optional[str] = None
+    state: Optional[str] = None
     scraper: Optional[str] = None
     eventbrite_id: Optional[str] = None
     ticketmaster_id: Optional[str] = None
@@ -98,6 +100,8 @@ class Club(DatabaseEntity):
             zip_code=row.get("zip_code", ""),
             phone_number=row.get("phone_number", ""),
             timezone=row.get("timezone", "America/New_York"),
+            city=row.get("city"),
+            state=row.get("state"),
             visible=row.get("visible", True),
             scraper=row.get("scraper"),
             eventbrite_id=row.get("eventbrite_id"),
