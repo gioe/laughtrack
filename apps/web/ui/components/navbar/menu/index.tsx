@@ -37,10 +37,10 @@ const MENU_ITEMS = {
 
 export default function NavigationMenu({ pathname }: { pathname: string }) {
     return (
-        <div className="flex items-center space-x-24">
+        <div className="flex items-center space-x-12">
             <HeaderItem highlighted={pathname === "/"} href="/" title="Home" />
 
-            <PopoverGroup className="flex items-center space-x-24">
+            <PopoverGroup className="flex items-center space-x-12">
                 <NavigationDropdown
                     title="Shows"
                     items={MENU_ITEMS.show}
