@@ -1,29 +1,31 @@
+import { db } from "@/lib/db";
 
-import { db } from "@/lib/db"
-
-export async function toggleFavorite(comedianUuid: string,
+export async function toggleFavorite(
+    comedianUuid: string,
     userId: string,
-    setFavorite: boolean): Promise<boolean> {
+    setFavorite: boolean,
+): Promise<boolean> {
     if (setFavorite) {
-        // Create favorite record
-        await db.favoriteComedian.create({
-            data: {
-                comedianId: comedianUuid,
-                profileId: userId
+        // Upsert to avoid P2002 unique-constraint violation on retry/concurrent calls
+        await db.favoriteComedian.upsert({
+            where: {
+                profileId_comedianId: {
+                    profileId: userId,
+                    comedianId: comedianUuid,
+                },
             },
-            select: {
-                id: true
-            }
+            create: { profileId: userId, comedianId: comedianUuid },
+            update: {},
         });
-        return true
+        return true;
     } else {
         // Remove favorite record
         await db.favoriteComedian.deleteMany({
             where: {
                 comedianId: comedianUuid,
-                profileId: userId
-            }
+                profileId: userId,
+            },
         });
-        return false
+        return false;
     }
 }
