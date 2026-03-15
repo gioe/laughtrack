@@ -2,6 +2,27 @@
 
 import { MouseEvent } from "react";
 import { openEmailClient } from "@/ui/components/button/contact";
+import XIcon from "@/ui/components/icons/XIcon";
+import InstagramIcon from "@/ui/components/icons/InstagramIcon";
+import TikTokIcon from "@/ui/components/icons/TikTokIcon";
+
+const SOCIAL_LINKS = [
+    {
+        label: "Twitter / X",
+        href: "https://x.com/laughtrackapp",
+        Icon: XIcon,
+    },
+    {
+        label: "Instagram",
+        href: "https://instagram.com/laughtrackapp",
+        Icon: InstagramIcon,
+    },
+    {
+        label: "TikTok",
+        href: "https://tiktok.com/@laughtrackapp",
+        Icon: TikTokIcon,
+    },
+];
 
 const FooterComponent = () => {
     const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
@@ -14,8 +35,11 @@ const FooterComponent = () => {
     };
 
     return (
-        <footer className="py-16 sm:py-20 border-t border-gray-200 bg-gradient-to-b from-coconut-cream to-[#F5E6D3]">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+        <footer className="border-t border-gray-200 bg-gradient-to-b from-coconut-cream to-[#F5E6D3]">
+            {/* Copper accent strip */}
+            <div className="h-1 bg-gradient-to-r from-transparent via-copper to-transparent opacity-60" />
+
+            <div className="py-16 sm:py-20 max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 sm:gap-12 mb-12 sm:mb-16">
                     <div className="lg:col-span-8">
                         <h2
@@ -28,6 +52,26 @@ const FooterComponent = () => {
                             Laughtrack is the easiest way to explore and enjoy
                             comedy. Really the only way.
                         </p>
+                    </div>
+
+                    <div className="lg:col-span-4 flex flex-col justify-center lg:items-end">
+                        <p className="text-sm text-gray-500 font-dmSans mb-3 lg:text-right">
+                            Follow us
+                        </p>
+                        <div className="flex gap-3">
+                            {SOCIAL_LINKS.map(({ label, href, Icon }) => (
+                                <a
+                                    key={label}
+                                    href={href}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    aria-label={label}
+                                    className="transition-transform duration-200 hover:-translate-y-1"
+                                >
+                                    <Icon size="w-9 h-9" />
+                                </a>
+                            ))}
+                        </div>
                     </div>
                 </div>
 
