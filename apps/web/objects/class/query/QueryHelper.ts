@@ -301,7 +301,7 @@ export class QueryHelper {
         // Default values for pagination
         const defaultSize = 10;
         const defaultPage = 1;
-        const defaultSortField = "name_asc";
+        const defaultSortField = "popularity_desc";
 
         // Get sort parameters with fallbacks
         const sortParam = this.params.sort || defaultSortField;
