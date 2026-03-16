@@ -281,7 +281,7 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
             params["id"] = ",".join(ids)
         elif handle:
             params["forHandle"] = handle if handle.startswith("@") else f"@{handle}"
-        resp = requests.get(_YOUTUBE_API_URL, params=params, timeout=10)
+        resp = requests.get(_YOUTUBE_API_URL, params=params, timeout=5)
         resp.raise_for_status()
         return resp.json()
 
