@@ -42,8 +42,6 @@ export default function ShowSearchForm() {
             }
 
             setIsLoading(true);
-            await new Promise((resolve) => setTimeout(resolve, 300));
-
             setMultipleTypedParams(
                 {
                     distance: data.distance.distance,
