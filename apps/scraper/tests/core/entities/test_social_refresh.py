@@ -385,3 +385,337 @@ class TestRefreshYouTubeFollowers:
 
         # 5 rows with batch_size=2 → 3 calls: [0:2], [2:4], [4:5]
         assert handler._fetch_youtube_subscriber_counts.call_count == 3
+
+
+# ---------------------------------------------------------------------------
+# SQL contract tests — Instagram
+# ---------------------------------------------------------------------------
+
+class TestInstagramFollowersSqlContract:
+    def test_update_query_only_sets_instagram_followers(self):
+        """UPDATE_COMEDIAN_INSTAGRAM_FOLLOWERS must SET only instagram_followers."""
+        sql = ComedianQueries.UPDATE_COMEDIAN_INSTAGRAM_FOLLOWERS.lower()
+        assert "instagram_followers" in sql
+        assert "youtube_followers" not in sql
+        assert "tiktok_followers" not in sql
+
+    def test_update_query_is_a_partial_upsert(self):
+        sql = ComedianQueries.UPDATE_COMEDIAN_INSTAGRAM_FOLLOWERS.lower()
+        assert "update" in sql
+        assert "where" in sql
+        assert "uuid" in sql
+
+    def test_get_query_filters_null_and_empty(self):
+        sql = ComedianQueries.GET_COMEDIANS_WITH_INSTAGRAM_ACCOUNT.lower()
+        assert "is not null" in sql
+        assert "instagram_account" in sql
+        sql_raw = ComedianQueries.GET_COMEDIANS_WITH_INSTAGRAM_ACCOUNT
+        assert "<> ''" in sql_raw or "!= ''" in sql_raw
+
+
+# ---------------------------------------------------------------------------
+# SQL contract tests — TikTok
+# ---------------------------------------------------------------------------
+
+class TestTikTokFollowersSqlContract:
+    def test_update_query_only_sets_tiktok_followers(self):
+        """UPDATE_COMEDIAN_TIKTOK_FOLLOWERS must SET only tiktok_followers."""
+        sql = ComedianQueries.UPDATE_COMEDIAN_TIKTOK_FOLLOWERS.lower()
+        assert "tiktok_followers" in sql
+        assert "youtube_followers" not in sql
+        assert "instagram_followers" not in sql
+
+    def test_update_query_is_a_partial_upsert(self):
+        sql = ComedianQueries.UPDATE_COMEDIAN_TIKTOK_FOLLOWERS.lower()
+        assert "update" in sql
+        assert "where" in sql
+        assert "uuid" in sql
+
+    def test_get_query_filters_null_and_empty(self):
+        sql = ComedianQueries.GET_COMEDIANS_WITH_TIKTOK_ACCOUNT.lower()
+        assert "is not null" in sql
+        assert "tiktok_account" in sql
+        sql_raw = ComedianQueries.GET_COMEDIANS_WITH_TIKTOK_ACCOUNT
+        assert "<> ''" in sql_raw or "!= ''" in sql_raw
+
+
+# ---------------------------------------------------------------------------
+# _get_comedians_with_instagram_accounts
+# ---------------------------------------------------------------------------
+
+class TestGetComediansWithInstagramAccounts:
+    def test_returns_list_of_dicts_with_uuid_and_account(self):
+        handler = _make_handler()
+        handler.execute_with_cursor.return_value = [
+            {"uuid": "uuid-1", "instagram_account": "@comedian1"},
+            {"uuid": "uuid-2", "instagram_account": "comedian2"},
+        ]
+        rows = handler._get_comedians_with_instagram_accounts()
+        assert rows == [
+            {"uuid": "uuid-1", "instagram_account": "@comedian1"},
+            {"uuid": "uuid-2", "instagram_account": "comedian2"},
+        ]
+
+    def test_none_result_returns_empty_list(self):
+        handler = _make_handler()
+        handler.execute_with_cursor.return_value = None
+        rows = handler._get_comedians_with_instagram_accounts()
+        assert rows == []
+
+    def test_passes_correct_query(self):
+        handler = _make_handler()
+        handler.execute_with_cursor.return_value = []
+        handler._get_comedians_with_instagram_accounts()
+        handler.execute_with_cursor.assert_called_once_with(
+            ComedianQueries.GET_COMEDIANS_WITH_INSTAGRAM_ACCOUNT, return_results=True
+        )
+
+
+# ---------------------------------------------------------------------------
+# _fetch_instagram_follower_count
+# ---------------------------------------------------------------------------
+
+class TestFetchInstagramFollowerCount:
+    def _ig_response(self, follower_count: int) -> dict:
+        return {"data": {"user": {"edge_followed_by": {"count": follower_count}}}}
+
+    def test_happy_path_returns_uuid_and_count(self):
+        handler = _make_handler()
+        row = {"uuid": "uuid-1", "instagram_account": "@mycomedian"}
+        with patch.object(ComedianHandler, "_instagram_request", return_value=self._ig_response(150_000)):
+            result = handler._fetch_instagram_follower_count(row)
+        assert result == ("uuid-1", 150_000)
+
+    def test_strips_at_prefix_before_request(self):
+        handler = _make_handler()
+        row = {"uuid": "uuid-2", "instagram_account": "@somecomedian"}
+        with patch.object(ComedianHandler, "_instagram_request", return_value=self._ig_response(100)) as mock_req:
+            handler._fetch_instagram_follower_count(row)
+        mock_req.assert_called_once_with("somecomedian")
+
+    def test_account_without_at_prefix_works(self):
+        handler = _make_handler()
+        row = {"uuid": "uuid-3", "instagram_account": "bareaccount"}
+        with patch.object(ComedianHandler, "_instagram_request", return_value=self._ig_response(200)) as mock_req:
+            result = handler._fetch_instagram_follower_count(row)
+        assert result == ("uuid-3", 200)
+        mock_req.assert_called_once_with("bareaccount")
+
+    def test_api_error_returns_none(self):
+        handler = _make_handler()
+        row = {"uuid": "uuid-4", "instagram_account": "@unavailable"}
+        with patch.object(ComedianHandler, "_instagram_request", side_effect=RuntimeError("403 Forbidden")):
+            result = handler._fetch_instagram_follower_count(row)
+        assert result is None
+
+    def test_malformed_response_returns_none(self):
+        handler = _make_handler()
+        row = {"uuid": "uuid-5", "instagram_account": "@comedian5"}
+        with patch.object(ComedianHandler, "_instagram_request", return_value={"data": {}}):
+            result = handler._fetch_instagram_follower_count(row)
+        assert result is None
+
+
+# ---------------------------------------------------------------------------
+# refresh_instagram_followers — end-to-end
+# ---------------------------------------------------------------------------
+
+class TestRefreshInstagramFollowers:
+    def test_empty_accounts_returns_zero_without_api_call(self):
+        handler = _make_handler()
+        handler._get_comedians_with_instagram_accounts = MagicMock(return_value=[])
+        handler._fetch_instagram_follower_count = MagicMock()
+
+        result = handler.refresh_instagram_followers()
+
+        assert result == 0
+        handler._fetch_instagram_follower_count.assert_not_called()
+        handler.execute_batch_operation.assert_not_called()
+
+    def test_updates_are_persisted_via_execute_batch_operation(self):
+        handler = _make_handler()
+        rows = [{"uuid": "uuid-A", "instagram_account": "@comedianA"}]
+        handler._get_comedians_with_instagram_accounts = MagicMock(return_value=rows)
+        handler._fetch_instagram_follower_count = MagicMock(return_value=("uuid-A", 75_000))
+
+        result = handler.refresh_instagram_followers()
+
+        assert result == 1
+        handler.execute_batch_operation.assert_called_once_with(
+            ComedianQueries.UPDATE_COMEDIAN_INSTAGRAM_FOLLOWERS,
+            [("uuid-A", 75_000)],
+        )
+
+    def test_failed_accounts_are_skipped(self):
+        """Accounts where fetch returns None are excluded from the DB update."""
+        handler = _make_handler()
+        rows = [
+            {"uuid": "uuid-ok", "instagram_account": "@ok"},
+            {"uuid": "uuid-fail", "instagram_account": "@fail"},
+        ]
+        handler._get_comedians_with_instagram_accounts = MagicMock(return_value=rows)
+
+        def _side_effect(row):
+            if row["uuid"] == "uuid-fail":
+                return None
+            return ("uuid-ok", 50_000)
+
+        handler._fetch_instagram_follower_count = MagicMock(side_effect=_side_effect)
+
+        result = handler.refresh_instagram_followers()
+
+        assert result == 1
+        handler.execute_batch_operation.assert_called_once_with(
+            ComedianQueries.UPDATE_COMEDIAN_INSTAGRAM_FOLLOWERS,
+            [("uuid-ok", 50_000)],
+        )
+
+    def test_no_batch_call_when_all_fetches_fail(self):
+        handler = _make_handler()
+        rows = [{"uuid": "uuid-B", "instagram_account": "@comedianB"}]
+        handler._get_comedians_with_instagram_accounts = MagicMock(return_value=rows)
+        handler._fetch_instagram_follower_count = MagicMock(return_value=None)
+
+        result = handler.refresh_instagram_followers()
+
+        assert result == 0
+        handler.execute_batch_operation.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# _get_comedians_with_tiktok_accounts
+# ---------------------------------------------------------------------------
+
+class TestGetComediansWithTikTokAccounts:
+    def test_returns_list_of_dicts_with_uuid_and_account(self):
+        handler = _make_handler()
+        handler.execute_with_cursor.return_value = [
+            {"uuid": "uuid-1", "tiktok_account": "@comedian1"},
+        ]
+        rows = handler._get_comedians_with_tiktok_accounts()
+        assert rows == [{"uuid": "uuid-1", "tiktok_account": "@comedian1"}]
+
+    def test_none_result_returns_empty_list(self):
+        handler = _make_handler()
+        handler.execute_with_cursor.return_value = None
+        rows = handler._get_comedians_with_tiktok_accounts()
+        assert rows == []
+
+    def test_passes_correct_query(self):
+        handler = _make_handler()
+        handler.execute_with_cursor.return_value = []
+        handler._get_comedians_with_tiktok_accounts()
+        handler.execute_with_cursor.assert_called_once_with(
+            ComedianQueries.GET_COMEDIANS_WITH_TIKTOK_ACCOUNT, return_results=True
+        )
+
+
+# ---------------------------------------------------------------------------
+# _fetch_tiktok_follower_count
+# ---------------------------------------------------------------------------
+
+class TestFetchTikTokFollowerCount:
+    def _tt_response(self, follower_count: int) -> dict:
+        return {"userInfo": {"stats": {"followerCount": follower_count}}}
+
+    def test_happy_path_returns_uuid_and_count(self):
+        handler = _make_handler()
+        row = {"uuid": "uuid-1", "tiktok_account": "@mycomedian"}
+        with patch.object(ComedianHandler, "_tiktok_request", return_value=self._tt_response(200_000)):
+            result = handler._fetch_tiktok_follower_count(row)
+        assert result == ("uuid-1", 200_000)
+
+    def test_strips_at_prefix_before_request(self):
+        handler = _make_handler()
+        row = {"uuid": "uuid-2", "tiktok_account": "@ttcomedian"}
+        with patch.object(ComedianHandler, "_tiktok_request", return_value=self._tt_response(100)) as mock_req:
+            handler._fetch_tiktok_follower_count(row)
+        mock_req.assert_called_once_with("ttcomedian")
+
+    def test_account_without_at_prefix_works(self):
+        handler = _make_handler()
+        row = {"uuid": "uuid-3", "tiktok_account": "bareaccount"}
+        with patch.object(ComedianHandler, "_tiktok_request", return_value=self._tt_response(300)) as mock_req:
+            result = handler._fetch_tiktok_follower_count(row)
+        assert result == ("uuid-3", 300)
+        mock_req.assert_called_once_with("bareaccount")
+
+    def test_api_error_returns_none(self):
+        handler = _make_handler()
+        row = {"uuid": "uuid-4", "tiktok_account": "@unavailable"}
+        with patch.object(ComedianHandler, "_tiktok_request", side_effect=RuntimeError("429 Rate Limited")):
+            result = handler._fetch_tiktok_follower_count(row)
+        assert result is None
+
+    def test_malformed_response_returns_none(self):
+        handler = _make_handler()
+        row = {"uuid": "uuid-5", "tiktok_account": "@comedian5"}
+        with patch.object(ComedianHandler, "_tiktok_request", return_value={"userInfo": {}}):
+            result = handler._fetch_tiktok_follower_count(row)
+        assert result is None
+
+
+# ---------------------------------------------------------------------------
+# refresh_tiktok_followers — end-to-end
+# ---------------------------------------------------------------------------
+
+class TestRefreshTikTokFollowers:
+    def test_empty_accounts_returns_zero_without_api_call(self):
+        handler = _make_handler()
+        handler._get_comedians_with_tiktok_accounts = MagicMock(return_value=[])
+        handler._fetch_tiktok_follower_count = MagicMock()
+
+        result = handler.refresh_tiktok_followers()
+
+        assert result == 0
+        handler._fetch_tiktok_follower_count.assert_not_called()
+        handler.execute_batch_operation.assert_not_called()
+
+    def test_updates_are_persisted_via_execute_batch_operation(self):
+        handler = _make_handler()
+        rows = [{"uuid": "uuid-A", "tiktok_account": "@comedianA"}]
+        handler._get_comedians_with_tiktok_accounts = MagicMock(return_value=rows)
+        handler._fetch_tiktok_follower_count = MagicMock(return_value=("uuid-A", 120_000))
+
+        result = handler.refresh_tiktok_followers()
+
+        assert result == 1
+        handler.execute_batch_operation.assert_called_once_with(
+            ComedianQueries.UPDATE_COMEDIAN_TIKTOK_FOLLOWERS,
+            [("uuid-A", 120_000)],
+        )
+
+    def test_failed_accounts_are_skipped(self):
+        """Accounts where fetch returns None are excluded from the DB update."""
+        handler = _make_handler()
+        rows = [
+            {"uuid": "uuid-ok", "tiktok_account": "@ok"},
+            {"uuid": "uuid-fail", "tiktok_account": "@fail"},
+        ]
+        handler._get_comedians_with_tiktok_accounts = MagicMock(return_value=rows)
+
+        def _side_effect(row):
+            if row["uuid"] == "uuid-fail":
+                return None
+            return ("uuid-ok", 90_000)
+
+        handler._fetch_tiktok_follower_count = MagicMock(side_effect=_side_effect)
+
+        result = handler.refresh_tiktok_followers()
+
+        assert result == 1
+        handler.execute_batch_operation.assert_called_once_with(
+            ComedianQueries.UPDATE_COMEDIAN_TIKTOK_FOLLOWERS,
+            [("uuid-ok", 90_000)],
+        )
+
+    def test_no_batch_call_when_all_fetches_fail(self):
+        handler = _make_handler()
+        rows = [{"uuid": "uuid-B", "tiktok_account": "@comedianB"}]
+        handler._get_comedians_with_tiktok_accounts = MagicMock(return_value=rows)
+        handler._fetch_tiktok_follower_count = MagicMock(return_value=None)
+
+        result = handler.refresh_tiktok_followers()
+
+        assert result == 0
+        handler.execute_batch_operation.assert_not_called()
