@@ -63,6 +63,7 @@ jobs:
           python -m scripts.core.scrape_shows --all
 
       - name: Update comedian popularity scores
+        if: success()
         env:
           DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
           DATABASE_USER: ${{ secrets.DATABASE_USER }}

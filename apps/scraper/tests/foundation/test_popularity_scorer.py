@@ -67,12 +67,12 @@ class TestCalculateComedianPopularityRecencyScore:
         score = PopularityScorer.calculate_comedian_popularity()
         assert score == 0.0
 
-    def test_recency_score_capped_at_one(self):
-        """Recency scores above 1.0 are clamped by SHOW_PERFORMANCE_WEIGHT contribution."""
-        # recency_score > 1.0 is unusual but the math should still be bounded by weight
+    def test_recency_score_above_1_is_clamped(self):
+        """recency_score > 1.0 is clamped to 1.0 before use; popularity stays within [0, 1]."""
         score = PopularityScorer.calculate_comedian_popularity(recency_score=2.0)
-        # 0.6 * 2.0 = 1.2 → raw; no explicit cap in scorer, but let's assert > 0.6
-        assert score > 0.6
+        # clamped to 1.0 → 0.0*0.4 + 1.0*0.6 = 0.6
+        assert score == round(0.0 * 0.4 + 1.0 * 0.6, 4)
+        assert score <= 1.0
 
     def test_partial_social_with_recency(self):
         """Partial social data + recency produces expected weighted result."""
@@ -120,7 +120,7 @@ class TestGetComedianRecencyScoresSql:
         assert "comedian_id" in sql
         assert "recency_score" in sql
 
-    def test_query_normalizes_by_15(self):
-        """Normalization constant: 5 upcoming shows (3 pts each) = max score."""
+    def test_query_normalizes_by_20(self):
+        """Normalization constant: 5 upcoming shows (4 pts each) = max score."""
         sql = self.ComedianQueries.GET_COMEDIAN_RECENCY_SCORES
-        assert "15.0" in sql or "/ 15" in sql
+        assert "20.0" in sql or "/ 20" in sql

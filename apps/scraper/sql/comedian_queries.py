@@ -72,13 +72,13 @@ class ComedianQueries:
             LEAST(
                 SUM(
                     CASE
-                        WHEN s.date >= CURRENT_DATE THEN 3.0
-                        WHEN s.date >= CURRENT_DATE - INTERVAL '30 days' THEN 3.0
-                        WHEN s.date >= CURRENT_DATE - INTERVAL '90 days' THEN 2.0
+                        WHEN s.date >= CURRENT_DATE               THEN 4.0
+                        WHEN s.date >= CURRENT_DATE - INTERVAL '30 days'  THEN 3.0
+                        WHEN s.date >= CURRENT_DATE - INTERVAL '90 days'  THEN 2.0
                         WHEN s.date >= CURRENT_DATE - INTERVAL '180 days' THEN 1.0
                         ELSE 0.0
                     END
-                ) / 15.0,
+                ) / 20.0,
                 1.0
             ) AS recency_score
         FROM lineup_items li

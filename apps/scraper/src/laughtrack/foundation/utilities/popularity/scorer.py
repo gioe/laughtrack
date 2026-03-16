@@ -57,9 +57,10 @@ class PopularityScorer:
         # Calculate social media score (0-1)
         social_score = cls._calculate_social_media_score(instagram_followers, tiktok_followers, youtube_followers)
 
-        # Use recency score when available; fall back to historical sold-out ratio
+        # Use recency score when available; fall back to historical sold-out ratio.
+        # Clamp to [0.0, 1.0] to guarantee popularity stays within its stated contract.
         if recency_score > 0.0:
-            performance_score = recency_score
+            performance_score = min(recency_score, 1.0)
         else:
             performance_score = cls._calculate_performance_score(sold_out_shows, total_shows)
 

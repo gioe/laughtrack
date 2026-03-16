@@ -109,6 +109,7 @@ def _make_stub(name: str) -> Comedian:
     c.website = None
     c.linktree = None
     c.parent_comedian_id = None
+    c.recency_score = 0.0
     return c
 
 
