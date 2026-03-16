@@ -8,7 +8,7 @@ import ShowLocationComponent from "../../../components/area";
 import CalendarComponent from "../../../components/calendar";
 import TextInputComponent from "../../../components/textInput";
 import { useUrlParams } from "@/hooks/useUrlParams";
-import SearchBarContainer from "../../../components/container";
+import SearchBarLayout, { SearchBarSection } from "../../../components/layout";
 import { DateRange, DistanceData } from "@/objects/interface";
 
 export default function ComedianDetailSearchBar() {
@@ -48,39 +48,37 @@ export default function ComedianDetailSearchBar() {
         setTypedParam(QueryProperty.Zip, value);
 
     return (
-        <SearchBarContainer maxWidth="max-w-7xl">
-            <div className="flex flex-col lg:flex-row items-center lg:divide-x divide-white/10">
-                <div className="w-full lg:w-auto mb-4 lg:mb-0 lg:pr-6">
-                    <ShowLocationComponent
-                        variant={ComponentVariant.Standalone}
-                        value={state.distance}
-                        onDistanceSelection={handleDistanceSelection}
-                        onZipcodeInput={handleZipCodeInput}
-                    />
-                </div>
+        <SearchBarLayout>
+            <SearchBarSection first>
+                <ShowLocationComponent
+                    variant={ComponentVariant.Standalone}
+                    value={state.distance}
+                    onDistanceSelection={handleDistanceSelection}
+                    onZipcodeInput={handleZipCodeInput}
+                />
+            </SearchBarSection>
 
-                <div className="w-full lg:w-auto lg:pl-6 lg:pr-6">
-                    <CalendarComponent
-                        variant={ComponentVariant.Standalone}
-                        value={state.dateRange}
-                        onValueChange={handleDateRangeSelection}
-                    />
-                </div>
+            <SearchBarSection>
+                <CalendarComponent
+                    variant={ComponentVariant.Standalone}
+                    value={state.dateRange}
+                    onValueChange={handleDateRangeSelection}
+                />
+            </SearchBarSection>
 
-                <div className="w-full lg:w-auto lg:pl-6">
-                    <TextInputComponent
-                        icon={
-                            <Theater
-                                className={`w-5 h-5 ${styleConfig.iconTextColor}`}
-                            />
-                        }
-                        placeholder="Search by club"
-                        value={state.club ?? ""}
-                        onChange={handleClubSearch}
-                        className={styleConfig.inputTextColor}
-                    />
-                </div>
-            </div>
-        </SearchBarContainer>
+            <SearchBarSection last>
+                <TextInputComponent
+                    icon={
+                        <Theater
+                            className={`w-5 h-5 ${styleConfig.iconTextColor}`}
+                        />
+                    }
+                    placeholder="Search by club"
+                    value={state.club ?? ""}
+                    onChange={handleClubSearch}
+                    className={styleConfig.inputTextColor}
+                />
+            </SearchBarSection>
+        </SearchBarLayout>
     );
 }
