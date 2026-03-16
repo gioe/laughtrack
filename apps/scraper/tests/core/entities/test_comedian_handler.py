@@ -255,6 +255,118 @@ def _make_handler() -> ComedianHandler:
 # _fetch_recency_scores
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# BATCH_UPDATE_COMEDIAN_SHOW_COUNTS — SQL contract
+# ---------------------------------------------------------------------------
+
+class TestBatchUpdateComedianShowCountsSql:
+    def test_query_updates_both_columns(self):
+        """Query must SET both total_shows and sold_out_shows."""
+        sql = ComedianQueries.BATCH_UPDATE_COMEDIAN_SHOW_COUNTS.lower()
+        assert "total_shows" in sql
+        assert "sold_out_shows" in sql
+
+    def test_query_uses_any_param_not_show_id_filter(self):
+        """Query must use ANY(%s) for comedian_id filtering, not a show_id whitelist."""
+        sql = ComedianQueries.BATCH_UPDATE_COMEDIAN_SHOW_COUNTS
+        assert "ANY(%s)" in sql, "Expected ANY(%s) for comedian_id array parameter"
+        assert "show_id = ANY" not in sql.lower(), (
+            "Query must not filter by show_id — must aggregate across all shows"
+        )
+
+    def test_query_aggregates_from_lineup_items(self):
+        """Query must join lineup_items to count per-comedian show totals."""
+        sql = ComedianQueries.BATCH_UPDATE_COMEDIAN_SHOW_COUNTS.lower()
+        assert "lineup_items" in sql
+
+    def test_query_uses_bool_and_for_sold_out_detection(self):
+        """BOOL_AND(sold_out) is the correct aggregate for all-tickets-sold-out."""
+        sql = ComedianQueries.BATCH_UPDATE_COMEDIAN_SHOW_COUNTS.lower()
+        assert "bool_and" in sql, "Expected BOOL_AND to determine show-level sold-out status"
+
+
+# ---------------------------------------------------------------------------
+# _refresh_comedian_show_counts
+# ---------------------------------------------------------------------------
+
+class TestRefreshComedianShowCounts:
+    def test_calls_execute_with_cursor_with_correct_query(self):
+        """_refresh_comedian_show_counts delegates to execute_with_cursor with BATCH_UPDATE_COMEDIAN_SHOW_COUNTS."""
+        handler = _make_handler()
+        handler.execute_with_cursor.return_value = None
+
+        handler._refresh_comedian_show_counts(["uuid-1", "uuid-2"])
+
+        handler.execute_with_cursor.assert_called_once_with(
+            ComedianQueries.BATCH_UPDATE_COMEDIAN_SHOW_COUNTS,
+            (["uuid-1", "uuid-2"],),
+        )
+
+    def test_exception_from_execute_with_cursor_propagates(self):
+        """A DB error in execute_with_cursor bubbles up from _refresh_comedian_show_counts."""
+        handler = _make_handler()
+        handler.execute_with_cursor.side_effect = RuntimeError("DB error")
+
+        with pytest.raises(RuntimeError, match="DB error"):
+            handler._refresh_comedian_show_counts(["uuid-1"])
+
+
+# ---------------------------------------------------------------------------
+# update_comedian_popularity — show count refresh integration
+# ---------------------------------------------------------------------------
+
+class TestUpdateComedianPopularityRefreshShowCounts:
+    def _make_comedian(self, uuid: str) -> Comedian:
+        c = _make_stub(f"Comedian-{uuid}")
+        c.uuid = uuid
+        return c
+
+    def _setup_handler(self, uuids, comedians, recency_map):
+        handler = _make_handler()
+        handler._get_comedian_uuids = MagicMock(return_value=uuids)
+        handler._fetch_comedian_details = MagicMock(return_value=comedians)
+        handler._fetch_recency_scores = MagicMock(return_value=recency_map)
+        handler._refresh_comedian_show_counts = MagicMock()
+        handler.execute_batch_operation = MagicMock(return_value=[{"id": "ok"}])
+        return handler
+
+    def test_refresh_show_counts_called_before_fetch_details(self):
+        """_refresh_comedian_show_counts must be called before _fetch_comedian_details."""
+        uuids = ["uuid-A"]
+        comedians = [self._make_comedian("uuid-A")]
+        handler = self._setup_handler(uuids, comedians, {})
+
+        call_order = []
+        handler._refresh_comedian_show_counts.side_effect = lambda *a, **kw: call_order.append("refresh")
+        handler._fetch_comedian_details.side_effect = lambda *a, **kw: (call_order.append("fetch"), comedians)[1]
+
+        handler.update_comedian_popularity()
+
+        assert call_order == ["refresh", "fetch"], (
+            "show counts must be refreshed before comedian details are fetched"
+        )
+
+    def test_refresh_show_counts_receives_target_uuids(self):
+        """_refresh_comedian_show_counts is called with the resolved target UUIDs."""
+        uuids = ["uuid-1", "uuid-2"]
+        comedians = [self._make_comedian(u) for u in uuids]
+        handler = self._setup_handler(uuids, comedians, {})
+
+        handler.update_comedian_popularity()
+
+        handler._refresh_comedian_show_counts.assert_called_once_with(uuids)
+
+    def test_exception_from_refresh_show_counts_propagates(self):
+        """A DB error in _refresh_comedian_show_counts bubbles up from update_comedian_popularity."""
+        uuids = ["uuid-1"]
+        comedians = [self._make_comedian("uuid-1")]
+        handler = self._setup_handler(uuids, comedians, {})
+        handler._refresh_comedian_show_counts.side_effect = RuntimeError("show count DB error")
+
+        with pytest.raises(RuntimeError, match="show count DB error"):
+            handler.update_comedian_popularity()
+
+
 class TestFetchRecencyScores:
     def test_happy_path_returns_dict_of_float_scores(self):
         """execute_with_cursor returning rows → dict maps comedian_id to float recency_score."""
