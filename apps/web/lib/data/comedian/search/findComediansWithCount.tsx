@@ -161,7 +161,7 @@ export async function findComediansWithCount(
                         SELECT COUNT(*) FROM "LineupItem" li
                         JOIN "Show" s ON li."showId" = s.id
                         WHERE li."comedianId" = c.id AND s.date > NOW()
-                    ) ${sortDir}
+                    ) ${sortDir}, c.name ASC
                     LIMIT ${take} OFFSET ${skip}
                 `,
             );

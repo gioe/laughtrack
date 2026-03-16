@@ -337,7 +337,10 @@ export class QueryHelper {
             direction?.toLowerCase() === "desc" ? "desc" : "asc";
 
         return {
-            orderBy: [{ [mappedField]: validDirection }],
+            orderBy: [
+                { [mappedField]: validDirection },
+                { name: "asc" as const },
+            ],
             take,
             skip,
         };
