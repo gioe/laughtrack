@@ -65,3 +65,18 @@ class ComedianQueries:
         WHERE songkick_id IS NOT NULL OR bandsintown_id IS NOT NULL
         ORDER BY name
     '''
+
+    GET_COMEDIANS_WITH_YOUTUBE_ACCOUNT = '''
+        SELECT uuid, youtube_account
+        FROM comedians
+        WHERE youtube_account IS NOT NULL
+          AND youtube_account <> ''
+        ORDER BY name
+    '''
+
+    UPDATE_COMEDIAN_YOUTUBE_FOLLOWERS = '''
+        UPDATE comedians AS c
+        SET youtube_followers = v.followers::int
+        FROM (VALUES %s) AS v(uuid, followers)
+        WHERE c.uuid = v.uuid::text
+    '''

@@ -1,7 +1,9 @@
 """Comedian database handler for comedian-specific operations."""
 
+import re
 from typing import List, Optional
 
+import requests
 from psycopg2.extras import DictRow
 from laughtrack.core.data.base_handler import BaseDatabaseHandler
 from sql.comedian_queries import ComedianQueries
@@ -10,6 +12,9 @@ from laughtrack.foundation.infrastructure.database.template import BatchTemplate
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 from .model import Comedian
+
+_YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3/channels"
+_CHANNEL_ID_RE = re.compile(r"UC[\w-]{22}")
 
 
 class ComedianHandler(BaseDatabaseHandler[Comedian]):
@@ -132,6 +137,124 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
 
         Logger.info(f"Retrieved {len(results)} comedian UUIDs from database")
         return [row["uuid"] for row in results]
+
+    # ------------------------------------------------------------------
+    # Social follower refresh
+    # ------------------------------------------------------------------
+
+    def refresh_youtube_followers(self, api_key: str, batch_size: int = 50) -> int:
+        """Fetch current YouTube subscriber counts and persist them to the DB.
+
+        Queries the YouTube Data API v3 for comedians that have a youtube_account
+        set, then updates only the youtube_followers column (all other fields are
+        left unchanged).
+
+        Args:
+            api_key: YouTube Data API v3 key.
+            batch_size: Max channel IDs per API request (YouTube limit: 50).
+
+        Returns:
+            Number of comedian rows updated.
+        """
+        rows = self._get_comedians_with_youtube_accounts()
+        if not rows:
+            Logger.info("refresh_youtube_followers: no comedians with YouTube accounts")
+            return 0
+
+        updates: List[tuple] = []
+        for i in range(0, len(rows), batch_size):
+            batch = rows[i : i + batch_size]
+            updates.extend(self._fetch_youtube_subscriber_counts(api_key, batch))
+
+        if updates:
+            self.execute_batch_operation(
+                ComedianQueries.UPDATE_COMEDIAN_YOUTUBE_FOLLOWERS, updates
+            )
+
+        Logger.info(f"refresh_youtube_followers: updated {len(updates)} comedians")
+        return len(updates)
+
+    def _get_comedians_with_youtube_accounts(self) -> List[dict]:
+        """Return rows with (uuid, youtube_account) for all comedians that have one."""
+        rows = (
+            self.execute_with_cursor(
+                ComedianQueries.GET_COMEDIANS_WITH_YOUTUBE_ACCOUNT, return_results=True
+            )
+            or []
+        )
+        return [{"uuid": r["uuid"], "youtube_account": r["youtube_account"]} for r in rows]
+
+    def _fetch_youtube_subscriber_counts(
+        self, api_key: str, rows: List[dict]
+    ) -> List[tuple]:
+        """Call the YouTube Data API for a batch of comedians.
+
+        Separates rows into channel-ID vs handle lookups; channel IDs are batched
+        in a single request (up to 50), handles are requested individually because
+        the ``forHandle`` parameter only accepts one value at a time.
+
+        Returns list of ``(uuid, subscriber_count)`` tuples.
+        """
+        channel_id_rows: List[tuple] = []   # (uuid, channel_id)
+        handle_rows: List[tuple] = []        # (uuid, handle)
+
+        for row in rows:
+            uuid = row["uuid"]
+            account = row["youtube_account"].strip()
+            channel_id = _CHANNEL_ID_RE.search(account)
+            if channel_id:
+                channel_id_rows.append((uuid, channel_id.group()))
+            else:
+                # Strip URL prefix or leading @
+                m = re.search(r"youtube\.com/@([\w.-]+)", account)
+                handle = m.group(1) if m else account.lstrip("@")
+                handle_rows.append((uuid, handle))
+
+        results: List[tuple] = []
+
+        # Batch request for channel IDs
+        if channel_id_rows:
+            ids = [cid for _, cid in channel_id_rows]
+            id_to_uuid = {cid: uuid for uuid, cid in channel_id_rows}
+            try:
+                data = self._youtube_request(api_key, ids=ids)
+                for item in data.get("items", []):
+                    cid = item["id"]
+                    count = item["statistics"].get("subscriberCount")
+                    if count is not None and cid in id_to_uuid:
+                        results.append((id_to_uuid[cid], int(count)))
+            except Exception as e:
+                Logger.error(f"YouTube channel-ID batch request failed: {e}")
+
+        # Individual requests for handles
+        for uuid, handle in handle_rows:
+            try:
+                data = self._youtube_request(api_key, handle=handle)
+                items = data.get("items", [])
+                if items:
+                    count = items[0]["statistics"].get("subscriberCount")
+                    if count is not None:
+                        results.append((uuid, int(count)))
+            except Exception as e:
+                Logger.warn(f"YouTube request failed for handle @{handle}: {e}")
+
+        return results
+
+    @staticmethod
+    def _youtube_request(
+        api_key: str,
+        ids: Optional[List[str]] = None,
+        handle: Optional[str] = None,
+    ) -> dict:
+        """Make a single YouTube Data API v3 channels request."""
+        params: dict = {"part": "statistics", "key": api_key}
+        if ids:
+            params["id"] = ",".join(ids)
+        elif handle:
+            params["forHandle"] = handle if handle.startswith("@") else f"@{handle}"
+        resp = requests.get(_YOUTUBE_API_URL, params=params, timeout=10)
+        resp.raise_for_status()
+        return resp.json()
 
     def _get_comedian_uuids(self, comedian_ids: Optional[List[str]] = None) -> List[str]:
         """Get the list of comedian UUIDs to process."""
