@@ -1,12 +1,13 @@
+import type { ReactNode } from "react";
 import SearchBarContainer from "../container";
 
 interface SearchBarLayoutProps {
-    children: React.ReactNode;
+    children: ReactNode;
     maxWidth?: string;
 }
 
 interface SearchBarSectionProps {
-    children: React.ReactNode;
+    children: ReactNode;
     first?: boolean;
     last?: boolean;
 }
@@ -16,10 +17,21 @@ export function SearchBarSection({
     first,
     last,
 }: SearchBarSectionProps) {
-    const padding = first ? "lg:pr-6" : last ? "lg:pl-6" : "lg:pl-6 lg:pr-6";
+    const both = first && last;
+    const padding = both
+        ? ""
+        : first
+          ? "lg:pr-6"
+          : last
+            ? "lg:pl-6"
+            : "lg:pl-6 lg:pr-6";
     const margin = last ? "" : "mb-6 lg:mb-0";
     return (
-        <div className={`w-full lg:w-auto ${margin} ${padding}`.trim()}>
+        <div
+            className={["w-full lg:w-auto", margin, padding]
+                .filter(Boolean)
+                .join(" ")}
+        >
             {children}
         </div>
     );
