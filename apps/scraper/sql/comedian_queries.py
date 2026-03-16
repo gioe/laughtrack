@@ -66,6 +66,28 @@ class ComedianQueries:
         RETURNING uuid
     '''
 
+    GET_COMEDIAN_RECENCY_SCORES = '''
+        SELECT
+            li.comedian_id,
+            LEAST(
+                SUM(
+                    CASE
+                        WHEN s.date >= CURRENT_DATE THEN 3.0
+                        WHEN s.date >= CURRENT_DATE - INTERVAL '30 days' THEN 3.0
+                        WHEN s.date >= CURRENT_DATE - INTERVAL '90 days' THEN 2.0
+                        WHEN s.date >= CURRENT_DATE - INTERVAL '180 days' THEN 1.0
+                        ELSE 0.0
+                    END
+                ) / 15.0,
+                1.0
+            ) AS recency_score
+        FROM lineup_items li
+        JOIN shows s ON s.id = li.show_id
+        WHERE li.comedian_id = ANY(%s)
+          AND s.date >= CURRENT_DATE - INTERVAL '180 days'
+        GROUP BY li.comedian_id
+    '''
+
     GET_COMEDIANS_WITH_TOUR_IDS = '''
         SELECT uuid, name, songkick_id, bandsintown_id
         FROM comedians

@@ -64,6 +64,9 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
         """
         Update popularity for comedians in the database.
 
+        Fetches recency scores (date-decayed recent/upcoming show activity) and merges
+        them with social follower data before recomputing each comedian's popularity score.
+
         Args:
             comedian_ids: Optional list of specific comedian IDs to update. If None, updates all comedians.
         """
@@ -78,6 +81,11 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
             if not comedians:
                 raise ValueError("No comedian details found")
 
+            # Fetch recency scores and apply them to the comedian objects
+            recency_map = self._fetch_recency_scores(target_uuids)
+            for comedian in comedians:
+                comedian.recency_score = recency_map.get(comedian.uuid, 0.0)
+
             # Update comedians with new popularity values
             items = [comedian.to_popularity_tuple() for comedian in comedians]
             updated_count = self.execute_batch_operation(
@@ -89,6 +97,25 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
 
         except Exception as e:
             Logger.error(f"Error updating comedian popularity: {str(e)}")
+            raise
+
+    def _fetch_recency_scores(self, comedian_uuids: List[str]) -> dict:
+        """Fetch date-decayed recency scores for a list of comedian UUIDs.
+
+        Returns a dict mapping comedian UUID to recency_score (0.0–1.0).
+        Comedians with no shows in the last 180 days are absent from the dict
+        and should be treated as 0.0.
+        """
+        try:
+            results = (
+                self.execute_with_cursor(
+                    ComedianQueries.GET_COMEDIAN_RECENCY_SCORES, (comedian_uuids,), return_results=True
+                )
+                or []
+            )
+            return {row["comedian_id"]: float(row["recency_score"]) for row in results}
+        except Exception as e:
+            Logger.error(f"Error fetching comedian recency scores: {str(e)}")
             raise
 
     def get_all_comedian_uuids(self) -> List[str]:

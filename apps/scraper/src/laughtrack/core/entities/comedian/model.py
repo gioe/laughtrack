@@ -28,6 +28,9 @@ class Comedian(DatabaseEntity):
     website: Optional[str] = None
     linktree: Optional[str] = None
     parent_comedian_id: Optional[int] = None
+    # Recency score: set by the popularity update pipeline, not persisted in DB.
+    # Represents normalized recent/upcoming show activity (0.0 = no recent shows, 1.0 = max).
+    recency_score: float = 0.0
 
     def __eq__(self, other):
         if not isinstance(other, Comedian):
@@ -51,6 +54,8 @@ class Comedian(DatabaseEntity):
         Calculate comedian popularity based on social media followers and performance metrics.
 
         Delegates to PopularityScorer utility for consistent scoring across the application.
+        When recency_score is set by the popularity update pipeline, it replaces the stale
+        sold_out_shows/total_shows performance component.
 
         Returns:
             float: Popularity score between 0 and 1
@@ -61,6 +66,7 @@ class Comedian(DatabaseEntity):
             youtube_followers=self.youtube_followers,
             sold_out_shows=self.sold_out_shows,
             total_shows=self.total_shows,
+            recency_score=self.recency_score,
         )
 
     @classmethod

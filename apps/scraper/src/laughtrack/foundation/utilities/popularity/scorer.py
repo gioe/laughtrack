@@ -33,16 +33,23 @@ class PopularityScorer:
         youtube_followers: Optional[int] = None,
         sold_out_shows: int = 0,
         total_shows: int = 0,
+        recency_score: float = 0.0,
     ) -> float:
         """
         Calculate comedian popularity based on social media followers and performance metrics.
+
+        When recency_score > 0, it is used as the performance component instead of the
+        sold_out_shows/total_shows ratio. This produces a recency-weighted score that
+        rewards comedians with upcoming or recent shows over those with stale historical data.
 
         Args:
             instagram_followers: Number of Instagram followers
             tiktok_followers: Number of TikTok followers
             youtube_followers: Number of YouTube subscribers
-            sold_out_shows: Number of sold out shows
-            total_shows: Total number of shows performed
+            sold_out_shows: Number of sold out shows (used only when recency_score == 0)
+            total_shows: Total number of shows performed (used only when recency_score == 0)
+            recency_score: Pre-normalized (0-1) recency-weighted show activity score.
+                           When provided, replaces the sold_out/total_shows performance score.
 
         Returns:
             float: Popularity score between 0 and 1
@@ -50,8 +57,11 @@ class PopularityScorer:
         # Calculate social media score (0-1)
         social_score = cls._calculate_social_media_score(instagram_followers, tiktok_followers, youtube_followers)
 
-        # Calculate performance score (0-1)
-        performance_score = cls._calculate_performance_score(sold_out_shows, total_shows)
+        # Use recency score when available; fall back to historical sold-out ratio
+        if recency_score > 0.0:
+            performance_score = recency_score
+        else:
+            performance_score = cls._calculate_performance_score(sold_out_shows, total_shows)
 
         # Weighted combination
         popularity = social_score * cls.SOCIAL_MEDIA_WEIGHT + performance_score * cls.SHOW_PERFORMANCE_WEIGHT
