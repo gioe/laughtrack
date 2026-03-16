@@ -108,12 +108,11 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
 
             # Update comedians with new popularity values
             items = [comedian.to_popularity_tuple() for comedian in comedians]
-            updated_count = self.execute_batch_operation(
-                ComedianQueries.BATCH_UPDATE_COMEDIAN_POPULARITY, items, return_results=True
+            self.execute_batch_operation(
+                ComedianQueries.BATCH_UPDATE_COMEDIAN_POPULARITY, items
             )
 
-            if not updated_count:
-                raise ValueError("No comedians were updated")
+            Logger.info(f"update_comedian_popularity: processed {len(items)} comedians")
 
         except Exception as e:
             Logger.error(f"Error updating comedian popularity: {str(e)}")
