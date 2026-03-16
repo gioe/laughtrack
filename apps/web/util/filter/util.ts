@@ -7,10 +7,14 @@ import { formattedDateParam } from "../primatives/paramUtil";
 
 export const getDefaultSortingOption = (
     sortOptions: SortOptionInterface[],
-    sortOption: string | null,
+    sortOption: string | null | undefined,
 ) => {
+    // Explicit default: when no sort param is in the URL, use the first option
+    // for the entity type (e.g. PopularityDesc for comedians, DateAsc for shows).
+    if (!sortOption) return sortOptions[0];
     return (
-        sortOptions.find((value) => value.value == sortOption) ?? sortOptions[0]
+        sortOptions.find((value) => value.value === sortOption) ??
+        sortOptions[0]
     );
 };
 
@@ -69,9 +73,16 @@ export const paramConfigs: {
     },
     sort: {
         key: QueryProperty.Sort,
+        // defaultValue is the "URL clean value": setTypedParam omits the sort param
+        // when this value is selected (DateAsc = shows default). Per-entity defaults
+        // are resolved by getDefaultSortingOption returning sortOptions[0] when the
+        // URL param is absent — see that function for the explicit null-check path.
         defaultValue: SortParamValue.DateAsc,
         parse: (value: string | null) => {
-            return (value as SortParamValue) || SortParamValue.DateAsc;
+            // Return the raw value; absent params (null) fall through to validation
+            // failure so getTypedParam returns undefined, triggering the explicit
+            // sortOptions[0] path in getDefaultSortingOption.
+            return value as SortParamValue;
         },
         stringify: (value: SortParamValue) => value.valueOf(),
         validate: (value: SortParamValue) => allSortOptions.includes(value),
