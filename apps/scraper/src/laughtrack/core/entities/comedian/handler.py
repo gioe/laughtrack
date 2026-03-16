@@ -81,6 +81,9 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
             if not target_uuids:
                 raise ValueError("No comedians found to update")
 
+            # Refresh sold_out_shows and total_shows before reading comedian details
+            self._refresh_comedian_show_counts(target_uuids)
+
             # Get current comedian details
             comedians = self._fetch_comedian_details(target_uuids)
             if not comedians:
@@ -121,6 +124,21 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
             return {row["comedian_id"]: float(row["recency_score"]) for row in results}
         except Exception as e:
             Logger.error(f"Error fetching comedian recency scores: {str(e)}")
+            raise
+
+    def _refresh_comedian_show_counts(self, comedian_uuids: List[str]) -> None:
+        """Update sold_out_shows and total_shows for the given comedians across all shows.
+
+        Aggregates show counts from the full historical lineup_items / tickets data
+        (no show_id filter) so that the popularity scorer always uses accurate stats.
+        """
+        try:
+            self.execute_with_cursor(
+                ComedianQueries.BATCH_UPDATE_COMEDIAN_SHOW_COUNTS,
+                (comedian_uuids,),
+            )
+        except Exception as e:
+            Logger.error(f"Error refreshing comedian show counts: {str(e)}")
             raise
 
     def get_all_comedian_uuids(self) -> List[str]:
