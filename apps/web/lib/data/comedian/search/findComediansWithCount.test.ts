@@ -162,8 +162,8 @@ describe("findComediansWithCount", () => {
             await findComediansWithCount(helper);
 
             // findMany called with `where: { id: { in: [...] } }` (page-only IDs)
-            const call = mockFindMany.mock.calls[0][0];
-            expect(call.where).toMatchObject({ id: { in: [1] } });
+            const call = mockFindMany.mock.calls[0]?.[0];
+            expect(call?.where).toMatchObject({ id: { in: [1] } });
             // No orderBy or take/skip in the findMany call (ordering handled by raw SQL)
             expect(call).not.toHaveProperty("take");
             expect(call).not.toHaveProperty("skip");
