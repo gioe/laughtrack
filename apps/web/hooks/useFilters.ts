@@ -35,5 +35,5 @@ export const useFilters = (filters: FilterDTO[]) => {
         setFilterParamValue(savedSelections.current);
     };
 
-    return { handleOpen, handleFilterChange, handleClose };
+    return { handleOpen, handleFilterChange, handleClose, selections };
 };

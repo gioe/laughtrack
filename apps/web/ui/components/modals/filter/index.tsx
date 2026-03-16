@@ -14,7 +14,8 @@ interface FilterModalProps {
 
 const FilterModal = ({ filters, total }: FilterModalProps) => {
     const filterModal = useFilterModal();
-    const { handleOpen, handleFilterChange, handleClose } = useFilters(filters);
+    const { handleOpen, handleFilterChange, handleClose, selections } =
+        useFilters(filters);
 
     useEffect(() => {
         if (filterModal.isOpen) {
@@ -47,6 +48,7 @@ const FilterModal = ({ filters, total }: FilterModalProps) => {
                             key={`filter-${option.id}`}
                             option={option}
                             onClick={handleFilterChange}
+                            isSelected={selections.includes(option.slug)}
                         />
                     ))}
                 </div>
