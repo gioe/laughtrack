@@ -342,3 +342,94 @@ class TestTikTokCassette:
             ComedianHandler._tiktok_request("testcomedian")
 
         assert "uniqueId=testcomedian" in cassette.requests[0].uri
+
+
+# ---------------------------------------------------------------------------
+# End-to-end: refresh_instagram_followers — DB row → HTTP → parse → batch write
+# ---------------------------------------------------------------------------
+
+
+class TestRefreshInstagramFollowersCassette:
+    """End-to-end cassette tests for refresh_instagram_followers().
+
+    Mocks the DB cursor layer (execute_with_cursor / execute_batch_operation)
+    but lets the real HTTP stack execute, replaying cassettes. This validates
+    that the full pipeline — DB row → HTTP → parse → execute_batch_operation —
+    works together and catches regressions that per-layer mocks cannot.
+    """
+
+    def test_happy_path_calls_execute_batch_operation_with_parsed_counts(self):
+        """Full pipeline: DB row → cassette HTTP → parse → batch update."""
+        handler = _make_handler()
+        handler.execute_with_cursor.return_value = [
+            {"uuid": "uuid-e2e-ig-1", "instagram_account": "@testcomedian"}
+        ]
+        with _vcr.use_cassette("instagram_happy_path.yaml"):
+            result = handler.refresh_instagram_followers()
+
+        assert result == 1
+        handler.execute_batch_operation.assert_called_once_with(
+            ComedianQueries.UPDATE_COMEDIAN_INSTAGRAM_FOLLOWERS,
+            [("uuid-e2e-ig-1", 150_000)],
+        )
+
+    def test_schema_drift_does_not_call_execute_batch_operation(self):
+        """When API schema drifts all fetches return None and no DB write occurs.
+
+        This is the key regression guard: if Instagram renames a response key
+        the pipeline should silently skip all updates rather than persist wrong
+        data or raise an unhandled exception.
+        """
+        handler = _make_handler()
+        handler.execute_with_cursor.return_value = [
+            {"uuid": "uuid-e2e-ig-drift", "instagram_account": "@driftcomedian"}
+        ]
+        with _vcr.use_cassette("instagram_schema_drift.yaml"):
+            result = handler.refresh_instagram_followers()
+
+        assert result == 0
+        handler.execute_batch_operation.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# End-to-end: refresh_tiktok_followers — DB row → HTTP → parse → batch write
+# ---------------------------------------------------------------------------
+
+
+class TestRefreshTikTokFollowersCassette:
+    """End-to-end cassette tests for refresh_tiktok_followers().
+
+    Same strategy as TestRefreshInstagramFollowersCassette — DB layer mocked,
+    HTTP layer replayed from cassettes.
+    """
+
+    def test_happy_path_calls_execute_batch_operation_with_parsed_counts(self):
+        """Full pipeline: DB row → cassette HTTP → parse → batch update."""
+        handler = _make_handler()
+        handler.execute_with_cursor.return_value = [
+            {"uuid": "uuid-e2e-tt-1", "tiktok_account": "@testcomedian"}
+        ]
+        with _vcr.use_cassette("tiktok_happy_path.yaml"):
+            result = handler.refresh_tiktok_followers()
+
+        assert result == 1
+        handler.execute_batch_operation.assert_called_once_with(
+            ComedianQueries.UPDATE_COMEDIAN_TIKTOK_FOLLOWERS,
+            [("uuid-e2e-tt-1", 200_000)],
+        )
+
+    def test_schema_drift_does_not_call_execute_batch_operation(self):
+        """When API schema drifts all fetches return None and no DB write occurs.
+
+        If TikTok renames userInfo.stats.followerCount the pipeline must skip
+        all updates rather than persist wrong data or raise an exception.
+        """
+        handler = _make_handler()
+        handler.execute_with_cursor.return_value = [
+            {"uuid": "uuid-e2e-tt-drift", "tiktok_account": "@driftcomedian"}
+        ]
+        with _vcr.use_cassette("tiktok_schema_drift.yaml"):
+            result = handler.refresh_tiktok_followers()
+
+        assert result == 0
+        handler.execute_batch_operation.assert_not_called()
