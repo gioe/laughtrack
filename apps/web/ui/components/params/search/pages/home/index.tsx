@@ -1,10 +1,9 @@
 "use client";
 
 import { z } from "zod";
-import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Search, Loader2 } from "lucide-react";
+import { Search } from "lucide-react";
 import { showSearchFormSchema } from "./schema";
 import { Form } from "@/ui/components/ui/form";
 import { ComponentVariant } from "@/objects/enum";
@@ -14,7 +13,6 @@ import { useUrlParams } from "@/hooks/useUrlParams";
 
 export default function ShowSearchForm() {
     const { setMultipleTypedParams } = useUrlParams();
-    const [isLoading, setIsLoading] = useState(false);
 
     const form = useForm<z.infer<typeof showSearchFormSchema>>({
         resolver: zodResolver(showSearchFormSchema),
@@ -41,7 +39,6 @@ export default function ShowSearchForm() {
                 return;
             }
 
-            setIsLoading(true);
             setMultipleTypedParams(
                 {
                     distance: data.distance.distance,
@@ -53,8 +50,6 @@ export default function ShowSearchForm() {
             );
         } catch (error) {
             console.error("Error during navigation:", error);
-        } finally {
-            setIsLoading(false);
         }
     }
 
@@ -65,9 +60,7 @@ export default function ShowSearchForm() {
                 className="w-full max-w-3xl mx-auto"
             >
                 <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl overflow-hidden">
-                    <div
-                        className={`flex flex-col sm:flex-row sm:items-stretch${isLoading ? " pointer-events-none" : ""}`}
-                    >
+                    <div className="flex flex-col sm:flex-row sm:items-stretch">
                         {/* Location section */}
                         <div className="flex-1 px-6 pt-5 pb-4 sm:py-5">
                             <label
@@ -107,24 +100,14 @@ export default function ShowSearchForm() {
                         <div className="px-5 pb-5 sm:py-4 sm:pr-4 sm:flex sm:items-center sm:pl-3">
                             <button
                                 type="submit"
-                                disabled={isLoading}
-                                aria-label={
-                                    isLoading
-                                        ? "Loading, please wait"
-                                        : "Find Shows"
-                                }
+                                aria-label="Find Shows"
                                 className="w-full sm:w-auto px-7 py-3 bg-copper hover:bg-copper/90
                                            active:scale-[0.98] transition-all duration-150
                                            rounded-xl flex items-center justify-center gap-2.5
                                            text-white font-semibold text-base
-                                           disabled:opacity-60 disabled:cursor-not-allowed
                                            shadow-lg shadow-black/20"
                             >
-                                {isLoading ? (
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                ) : (
-                                    <Search className="w-5 h-5" />
-                                )}
+                                <Search className="w-5 h-5" />
                                 Find Shows
                             </button>
                         </div>
