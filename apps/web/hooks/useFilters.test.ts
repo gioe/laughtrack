@@ -66,7 +66,7 @@ describe("useFilters", () => {
         });
     });
 
-    describe("rapid clicks accumulate multiple selections", () => {
+    describe("sequential toggles accumulate correctly", () => {
         it("accumulates selections when different filters are toggled in sequence", () => {
             const { result } = renderHook(() =>
                 useFilters(makeFilters(["a", "b", "c"])),
@@ -153,6 +153,34 @@ describe("useFilters", () => {
             expect(mockSetTypedParam).toHaveBeenLastCalledWith(
                 QueryProperty.Filters,
                 "a",
+            );
+        });
+
+        it("reverts to selections accumulated via handleFilterChange before handleOpen was called", () => {
+            const { result } = renderHook(() =>
+                useFilters(makeFilters(["a", "b", "c"])),
+            );
+
+            // Build up selections before opening the modal
+            act(() => {
+                result.current.handleFilterChange("a");
+            });
+            act(() => {
+                result.current.handleFilterChange("b");
+            });
+            act(() => {
+                result.current.handleOpen();
+            }); // save ["a", "b"]
+            act(() => {
+                result.current.handleFilterChange("c");
+            }); // add c
+            act(() => {
+                result.current.handleClose();
+            }); // revert to ["a", "b"]
+
+            expect(mockSetTypedParam).toHaveBeenLastCalledWith(
+                QueryProperty.Filters,
+                "a,b",
             );
         });
     });

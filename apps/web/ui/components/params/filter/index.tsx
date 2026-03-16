@@ -25,7 +25,10 @@ export function FilterModalButton({ filterCount }: FilterModalButtonProps) {
                 Filter Results
             </span>
             {filterCount != null && filterCount > 0 && (
-                <span className="absolute -top-2 -right-2 flex items-center justify-center min-w-[1rem] h-4 px-0.5 rounded-full bg-copper text-white text-[10px] font-bold leading-none">
+                <span
+                    data-testid="filter-count-badge"
+                    className="absolute -top-2 -right-2 flex items-center justify-center min-w-[1rem] h-4 px-0.5 rounded-full bg-copper text-white text-[10px] font-bold leading-none"
+                >
                     {filterCount > 9 ? "9+" : filterCount}
                 </span>
             )}

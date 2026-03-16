@@ -104,6 +104,16 @@ describe("useSortParams", () => {
                 SortParamValue.DateAsc,
             );
         });
+
+        it("returns undefined selectedOption when sortOptions array is empty", () => {
+            mockGetTypedParam.mockReturnValue(undefined);
+
+            const { result } = renderHook(() => useSortParams([]));
+
+            // getDefaultSortingOption returns sortOptions[0] which is undefined for an
+            // empty array — callers must ensure sortOptions is non-empty.
+            expect(result.current.selectedOption).toBeUndefined();
+        });
     });
 
     describe("isSelected", () => {

@@ -39,9 +39,11 @@ describe("FilterBar", () => {
     it.each(allVariantTypes)(
         "renders without error for variant %s",
         (variant) => {
-            expect(() =>
-                render(<FilterBar variant={variant} total={0} filters={0} />),
-            ).not.toThrow();
+            const { container } = render(
+                <FilterBar variant={variant} total={0} filters={0} />,
+            );
+            // Every variant must produce at least some DOM output
+            expect(container.firstChild).not.toBeNull();
         },
     );
 
@@ -119,6 +121,32 @@ describe("FilterBar", () => {
         );
         expect(
             container.querySelector('[data-testid="comedian-all-search"]'),
+        ).not.toBeNull();
+    });
+
+    it("renders the correct search bar for ClubDetail", () => {
+        const { container } = render(
+            <FilterBar
+                variant={SearchVariant.ClubDetail}
+                total={5}
+                filters={0}
+            />,
+        );
+        expect(
+            container.querySelector('[data-testid="club-detail-search"]'),
+        ).not.toBeNull();
+    });
+
+    it("renders the correct search bar for ComedianDetail", () => {
+        const { container } = render(
+            <FilterBar
+                variant={SearchVariant.ComedianDetail}
+                total={5}
+                filters={0}
+            />,
+        );
+        expect(
+            container.querySelector('[data-testid="comedian-detail-search"]'),
         ).not.toBeNull();
     });
 });
