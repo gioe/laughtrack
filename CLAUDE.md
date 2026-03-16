@@ -197,3 +197,22 @@ async def slow_side_effect(*args, **kwargs):
     return mock.return_value
 mock.side_effect = slow_side_effect
 ```
+
+## React Component and Hook Tests — Vitest Setup
+
+The project uses `happy-dom` + `@testing-library/react` for React unit tests.
+Add this docblock to any test file that renders React or calls hooks:
+
+```
+/**
+ * @vitest-environment happy-dom
+ */
+```
+
+Key mocking patterns:
+- Mock `@/hooks/useUrlParams` (not `next/navigation` directly) to isolate hooks that read/write URL params.
+- Mock heavy child components by path (e.g. `@/ui/components/params/sort`) to avoid their `next/navigation` dependency chain.
+- Use `container.querySelector(...)` for scoped element queries when multiple renders exist in the same test — `getByTestId` queries the full document body and will throw on multiple matches.
+
+Do NOT install `@vitejs/plugin-react` for test JSX support — it conflicts with vitest's bundled vite version.
+The `esbuild.jsx: "automatic"` setting in `vitest.config.ts` handles JSX transform without a plugin.
