@@ -55,5 +55,12 @@
   "merge": {
     "mode": "local"
   },
-  "test_command": "cd apps/scraper && python3 -m pytest && cd ../web && npm test"
+  "test_command": "cd apps/scraper && python3 -m pytest && cd ../web && npm test",
+  "domain_test_commands": {
+    "frontend": "cd apps/web && npm test",
+    "api": "cd apps/web && npm test",
+    "database": "cd apps/web && npm test",
+    "scraper": "cd apps/scraper && python3 -m pytest",
+    "infrastructure": "cd apps/scraper && python3 -m pytest && cd ../web && npm test"
+  }
 }

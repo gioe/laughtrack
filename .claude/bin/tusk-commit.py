@@ -27,6 +27,7 @@ Exit codes:
 
 import json
 import os
+import sqlite3
 import subprocess
 import sys
 
@@ -79,14 +80,32 @@ def run(args: list[str], check: bool = True, cwd: str | None = None) -> subproce
     return subprocess.run(args, capture_output=True, text=True, check=check, cwd=cwd)
 
 
-def load_test_command(config_path: str) -> str:
-    """Load test_command from config, defaulting to empty string (disabled)."""
+def load_test_command(config_path: str, task_id: int | None = None, db_path: str | None = None) -> str:
+    """Load test command from config.
+
+    If domain_test_commands is defined and the task's domain has an entry,
+    that domain-specific command is returned instead of the global test_command.
+    Falls back to the global test_command when no domain match is found.
+    """
     try:
         with open(config_path) as f:
             config = json.load(f)
-        return config.get("test_command", "") or ""
     except Exception:
         return ""
+
+    domain_cmds: dict = config.get("domain_test_commands") or {}
+    if domain_cmds and task_id is not None and db_path and os.path.exists(db_path):
+        try:
+            conn = sqlite3.connect(db_path)
+            conn.row_factory = sqlite3.Row
+            row = conn.execute("SELECT domain FROM tasks WHERE id = ?", (task_id,)).fetchone()
+            conn.close()
+            if row and row["domain"] and row["domain"] in domain_cmds:
+                return domain_cmds[row["domain"]] or ""
+        except Exception:
+            pass
+
+    return config.get("test_command", "") or ""
 
 
 def main(argv: list[str]) -> int:
@@ -278,7 +297,8 @@ def main(argv: list[str]) -> int:
         print()
 
     # ── Step 2: Run test_command gate (hard-blocks on failure) ───────
-    test_cmd = load_test_command(config_path)
+    db_path = os.environ.get("TUSK_DB") or os.path.join(repo_root, "tusk", "tasks.db")
+    test_cmd = load_test_command(config_path, task_id=task_id, db_path=db_path)
     if test_cmd and not skip_verify:
         print(f"=== Running test_command: {test_cmd} ===")
         test = subprocess.run(test_cmd, shell=True, capture_output=False, cwd=repo_root)
