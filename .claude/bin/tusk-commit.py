@@ -98,8 +98,10 @@ def load_test_command(config_path: str, task_id: int | None = None, db_path: str
         try:
             conn = sqlite3.connect(db_path)
             conn.row_factory = sqlite3.Row
-            row = conn.execute("SELECT domain FROM tasks WHERE id = ?", (task_id,)).fetchone()
-            conn.close()
+            try:
+                row = conn.execute("SELECT domain FROM tasks WHERE id = ?", (task_id,)).fetchone()
+            finally:
+                conn.close()
             if row and row["domain"] and row["domain"] in domain_cmds:
                 return domain_cmds[row["domain"]] or ""
         except Exception:
