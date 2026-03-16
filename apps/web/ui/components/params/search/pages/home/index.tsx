@@ -67,7 +67,9 @@ export default function ShowSearchForm() {
                 className="w-full max-w-3xl mx-auto"
             >
                 <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl overflow-hidden">
-                    <div className="flex flex-col sm:flex-row sm:items-stretch">
+                    <div
+                        className={`flex flex-col sm:flex-row sm:items-stretch${isLoading ? " pointer-events-none" : ""}`}
+                    >
                         {/* Location section */}
                         <div className="flex-1 px-6 pt-5 pb-4 sm:py-5">
                             <p className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-2.5">
@@ -84,7 +86,7 @@ export default function ShowSearchForm() {
                         <div className="sm:hidden h-px bg-white/15 mx-6" />
 
                         {/* Dates section */}
-                        <div className="flex-1 px-6 pt-4 sm:pt-5 pb-5 sm:pb-5">
+                        <div className="flex-1 px-6 pt-4 sm:pt-5 pb-5">
                             <p className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-2.5">
                                 When
                             </p>
@@ -100,6 +102,11 @@ export default function ShowSearchForm() {
                             <button
                                 type="submit"
                                 disabled={isLoading}
+                                aria-label={
+                                    isLoading
+                                        ? "Loading, please wait"
+                                        : "Find Shows"
+                                }
                                 className="w-full sm:w-auto px-7 py-3 bg-copper hover:bg-copper/90
                                            active:scale-[0.98] transition-all duration-150
                                            rounded-xl flex items-center justify-center gap-2.5
