@@ -18,6 +18,7 @@ from types import ModuleType
 from unittest.mock import MagicMock, patch, call
 
 import pytest
+import requests as _requests
 
 
 # ---------------------------------------------------------------------------
@@ -134,6 +135,8 @@ _comedian_handler_mod = _load_module(
     "laughtrack.core.entities.comedian.handler_social_test",
 )
 ComedianHandler = _comedian_handler_mod.ComedianHandler
+# Disable per-request sleep delay so tests run at full speed
+_comedian_handler_mod._SOCIAL_REQUEST_DELAY_S = 0.0
 
 
 # ---------------------------------------------------------------------------
@@ -515,6 +518,18 @@ class TestFetchInstagramFollowerCount:
             result = handler._fetch_instagram_follower_count(row)
         assert result is None
 
+    def test_http_error_returns_none(self):
+        """requests.exceptions.HTTPError (e.g. 429) is caught and returns None."""
+        handler = _make_handler()
+        row = {"uuid": "uuid-6", "instagram_account": "@ratelimited"}
+        with patch.object(
+            ComedianHandler,
+            "_instagram_request",
+            side_effect=_requests.exceptions.HTTPError("429 Too Many Requests"),
+        ):
+            result = handler._fetch_instagram_follower_count(row)
+        assert result is None
+
 
 # ---------------------------------------------------------------------------
 # refresh_instagram_followers — end-to-end
@@ -580,6 +595,20 @@ class TestRefreshInstagramFollowers:
 
         assert result == 0
         handler.execute_batch_operation.assert_not_called()
+
+    def test_warns_when_accounts_exist_but_zero_updated(self):
+        """Logs a warning when rows are present but all fetches fail (API blocked)."""
+        handler = _make_handler()
+        rows = [{"uuid": "uuid-C", "instagram_account": "@comedian_c"}]
+        handler._get_comedians_with_instagram_accounts = MagicMock(return_value=rows)
+        handler._fetch_instagram_follower_count = MagicMock(return_value=None)
+
+        import sys as _sys
+        logger_mock = _sys.modules.get("laughtrack.foundation.infrastructure.logger.logger")
+        with patch.object(logger_mock.Logger, "warn") as mock_warn:
+            handler.refresh_instagram_followers()
+        mock_warn.assert_called_once()
+        assert "0 updated" in mock_warn.call_args[0][0]
 
 
 # ---------------------------------------------------------------------------
@@ -654,6 +683,18 @@ class TestFetchTikTokFollowerCount:
             result = handler._fetch_tiktok_follower_count(row)
         assert result is None
 
+    def test_http_error_returns_none(self):
+        """requests.exceptions.HTTPError (e.g. 429) is caught and returns None."""
+        handler = _make_handler()
+        row = {"uuid": "uuid-6", "tiktok_account": "@ratelimited"}
+        with patch.object(
+            ComedianHandler,
+            "_tiktok_request",
+            side_effect=_requests.exceptions.HTTPError("429 Too Many Requests"),
+        ):
+            result = handler._fetch_tiktok_follower_count(row)
+        assert result is None
+
 
 # ---------------------------------------------------------------------------
 # refresh_tiktok_followers — end-to-end
@@ -719,3 +760,17 @@ class TestRefreshTikTokFollowers:
 
         assert result == 0
         handler.execute_batch_operation.assert_not_called()
+
+    def test_warns_when_accounts_exist_but_zero_updated(self):
+        """Logs a warning when rows are present but all fetches fail (API blocked)."""
+        handler = _make_handler()
+        rows = [{"uuid": "uuid-C", "tiktok_account": "@comedian_c"}]
+        handler._get_comedians_with_tiktok_accounts = MagicMock(return_value=rows)
+        handler._fetch_tiktok_follower_count = MagicMock(return_value=None)
+
+        import sys as _sys
+        logger_mock = _sys.modules.get("laughtrack.foundation.infrastructure.logger.logger")
+        with patch.object(logger_mock.Logger, "warn") as mock_warn:
+            handler.refresh_tiktok_followers()
+        mock_warn.assert_called_once()
+        assert "0 updated" in mock_warn.call_args[0][0]

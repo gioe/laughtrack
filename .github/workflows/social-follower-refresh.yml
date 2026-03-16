@@ -50,6 +50,7 @@ jobs:
           DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
           DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          INSTAGRAM_APP_ID: ${{ secrets.INSTAGRAM_APP_ID }}
         run: |
           python -m scripts.core.refresh_social_followers --platform all
 

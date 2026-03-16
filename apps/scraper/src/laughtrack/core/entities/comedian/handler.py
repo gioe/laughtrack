@@ -1,6 +1,8 @@
 """Comedian database handler for comedian-specific operations."""
 
+import os
 import re
+import time
 from typing import List, Optional
 
 import requests
@@ -16,8 +18,15 @@ from .model import Comedian
 _YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3/channels"
 _CHANNEL_ID_RE = re.compile(r"UC[\w-]{22}")
 _INSTAGRAM_API_URL = "https://i.instagram.com/api/v1/users/web_profile_info/"
-_INSTAGRAM_APP_ID = "936619743392459"
 _TIKTOK_API_URL = "https://www.tiktok.com/api/user/detail/"
+# Realistic browser UA required by both Instagram and TikTok endpoint fingerprinting
+_BROWSER_UA = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/124.0.0.0 Safari/537.36"
+)
+# Delay between per-comedian requests to avoid rate-limiting on unofficial endpoints
+_SOCIAL_REQUEST_DELAY_S = float(os.environ.get("SOCIAL_REQUEST_DELAY_S", "1.0"))
 
 
 class ComedianHandler(BaseDatabaseHandler[Comedian]):
@@ -300,11 +309,18 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
             result = self._fetch_instagram_follower_count(row)
             if result is not None:
                 updates.append(result)
+            time.sleep(_SOCIAL_REQUEST_DELAY_S)
 
-        if updates:
-            self.execute_batch_operation(
-                ComedianQueries.UPDATE_COMEDIAN_INSTAGRAM_FOLLOWERS, updates
+        if not updates:
+            Logger.warn(
+                f"refresh_instagram_followers: {len(rows)} accounts found but 0 updated — "
+                "API may be rate-limiting or unavailable"
             )
+            return 0
+
+        self.execute_batch_operation(
+            ComedianQueries.UPDATE_COMEDIAN_INSTAGRAM_FOLLOWERS, updates
+        )
 
         Logger.info(f"refresh_instagram_followers: updated {len(updates)} comedians")
         return len(updates)
@@ -338,9 +354,10 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
     @staticmethod
     def _instagram_request(account: str) -> dict:
         """Fetch Instagram public profile info for a username."""
+        app_id = os.environ.get("INSTAGRAM_APP_ID", "936619743392459")
         headers = {
-            "X-IG-App-ID": _INSTAGRAM_APP_ID,
-            "User-Agent": "Mozilla/5.0 (compatible; LaughTrack/1.0)",
+            "X-IG-App-ID": app_id,
+            "User-Agent": _BROWSER_UA,
         }
         resp = requests.get(
             _INSTAGRAM_API_URL,
@@ -374,11 +391,18 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
             result = self._fetch_tiktok_follower_count(row)
             if result is not None:
                 updates.append(result)
+            time.sleep(_SOCIAL_REQUEST_DELAY_S)
 
-        if updates:
-            self.execute_batch_operation(
-                ComedianQueries.UPDATE_COMEDIAN_TIKTOK_FOLLOWERS, updates
+        if not updates:
+            Logger.warn(
+                f"refresh_tiktok_followers: {len(rows)} accounts found but 0 updated — "
+                "API may be rate-limiting or unavailable"
             )
+            return 0
+
+        self.execute_batch_operation(
+            ComedianQueries.UPDATE_COMEDIAN_TIKTOK_FOLLOWERS, updates
+        )
 
         Logger.info(f"refresh_tiktok_followers: updated {len(updates)} comedians")
         return len(updates)
@@ -412,12 +436,9 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
     @staticmethod
     def _tiktok_request(account: str) -> dict:
         """Fetch TikTok public user detail for a username."""
-        params = {
-            "uniqueId": account,
-            "msToken": "",
-        }
+        params = {"uniqueId": account}
         headers = {
-            "User-Agent": "Mozilla/5.0 (compatible; LaughTrack/1.0)",
+            "User-Agent": _BROWSER_UA,
             "Referer": "https://www.tiktok.com/",
         }
         resp = requests.get(_TIKTOK_API_URL, params=params, headers=headers, timeout=10)
