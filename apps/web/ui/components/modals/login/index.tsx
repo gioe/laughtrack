@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import LaughtrackLogin from "@/ui/pages/login";
 import FullScreenModal from "../fullscreen";
@@ -18,7 +17,9 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
 
 const LoginModal = () => {
     const router = useRouter();
-    const loginModal = useLoginModal();
+    const onOpen = useLoginModal((s) => s.onOpen);
+    const onClose = useLoginModal((s) => s.onClose);
+    const isOpen = useLoginModal((s) => s.isOpen);
     const searchParams = useSearchParams();
 
     useEffect(() => {
@@ -26,25 +27,22 @@ const LoginModal = () => {
         if (error) {
             const message =
                 AUTH_ERROR_MESSAGES[error] ?? AUTH_ERROR_MESSAGES.Default;
-            loginModal.onOpen();
+            onOpen();
             toast.error(message);
             // Remove the error param from the URL so it doesn't re-trigger
             const url = new URL(window.location.href);
             url.searchParams.delete("error");
             router.replace(url.pathname + url.search, { scroll: false });
         }
-    }, [searchParams, loginModal, router]);
+    }, [searchParams, onOpen, router]);
 
     const onSubmit = () => {
         router.refresh();
-        loginModal.onClose();
+        onClose();
     };
 
     return (
-        <FullScreenModal
-            isOpen={loginModal.isOpen}
-            onClose={() => loginModal.onClose()}
-        >
+        <FullScreenModal isOpen={isOpen} onClose={onClose}>
             <LaughtrackLogin handleSubmit={onSubmit} />
         </FullScreenModal>
     );

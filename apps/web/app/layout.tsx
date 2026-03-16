@@ -101,7 +101,7 @@ export default async function RootLayout({
                         <TimezoneProvider>
                             <ScrollPositionManager />
                             <ToasterProvider />
-                            <Suspense>
+                            <Suspense fallback={null}>
                                 <LoginModal />
                             </Suspense>
                             <StyleContextProvider
