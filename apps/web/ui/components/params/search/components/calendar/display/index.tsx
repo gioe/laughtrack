@@ -11,19 +11,20 @@ import {
     PopoverContent,
 } from "@/ui/components/ui/popover";
 import { DateRange } from "@/objects/interface";
-import { useMediaQuery } from "@/hooks/useMediaQuery"; // You'll need to create this hook
 
 const PLACEHOLDER = "When";
 
 interface CalendarDisplayProps {
     selectedRange: DateRange;
     onSelect: (value: DateRange | undefined) => void;
+    id?: string;
 }
 
 // Component that handles the calendar display logic
 export const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
     selectedRange,
     onSelect,
+    id,
 }) => {
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
@@ -40,6 +41,7 @@ export const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
                     <PopoverTrigger asChild>
                         <button
                             type="button"
+                            id={id}
                             className="flex items-center focus:outline-none"
                         >
                             <div

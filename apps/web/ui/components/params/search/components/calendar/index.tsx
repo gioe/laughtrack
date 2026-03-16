@@ -9,12 +9,14 @@ type CalendarFormProps = {
     variant: ComponentVariant.Form;
     form: UseFormReturn<any>;
     name: string;
+    inputId?: string;
 };
 
 type CalendarStandaloneProps = {
     variant: ComponentVariant.Standalone;
     value: any;
     onValueChange: (value: DateRange | undefined) => void;
+    inputId?: string;
 };
 
 type CalendarComponentProps = CalendarFormProps | CalendarStandaloneProps;
@@ -44,6 +46,7 @@ const CalendarComponent = (props: CalendarComponentProps) => {
                                 <CalendarDisplay
                                     selectedRange={field.value}
                                     onSelect={field.onChange}
+                                    id={props.inputId}
                                 />
                             </FormControl>
                             {errorMessage && (
@@ -62,6 +65,7 @@ const CalendarComponent = (props: CalendarComponentProps) => {
         <CalendarDisplay
             selectedRange={props.value}
             onSelect={props.onValueChange}
+            id={props.inputId}
         />
     );
 };
