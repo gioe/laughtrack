@@ -13,6 +13,7 @@ import { MapPin } from "lucide-react";
 interface ZipCodeInputBaseProps {
     disabled: boolean;
     placeholder: string;
+    id?: string;
 }
 
 interface ZipCodeInputFormProps extends ZipCodeInputBaseProps {
@@ -30,10 +31,6 @@ interface ZipCodeInputStandaloneProps extends ZipCodeInputBaseProps {
 type ZipCodeInputComponentProps =
     | ZipCodeInputFormProps
     | ZipCodeInputStandaloneProps;
-
-const validateZipCode = (value: string): boolean => {
-    return /^\d{5}$/.test(value);
-};
 
 const ZipCodeInput = (props: ZipCodeInputComponentProps) => {
     const { getCurrentStyles } = useStyleContext();
@@ -63,6 +60,7 @@ const ZipCodeInput = (props: ZipCodeInputComponentProps) => {
                 type="text"
                 inputMode="numeric"
                 maxLength={5}
+                id={props.id}
                 value={value}
                 onChange={handleInputChange(onChange)}
                 placeholder={props.placeholder}

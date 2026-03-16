@@ -21,6 +21,7 @@ const selectableDistances = allDistanceOptions.map(
 type ShowDistanceFormProps = {
     variant: ComponentVariant.Form;
     form: UseFormReturn<any>;
+    inputId?: string;
 };
 
 type ShowDistanceStandaloneProps = {
@@ -28,6 +29,7 @@ type ShowDistanceStandaloneProps = {
     value: DistanceData;
     onDistanceSelection?: (value: string) => void;
     onZipcodeInput?: (value: string) => void;
+    inputId?: string;
 };
 
 type ShowLocationComponentProps =
@@ -69,6 +71,7 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
                     placeholder="Zip code"
                     disabled={false}
                     name="distance.zipCode"
+                    id={props.inputId}
                 />
             );
         }
@@ -80,6 +83,7 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
                 onChange={props.onZipcodeInput ?? updateZipCode}
                 placeholder="Where"
                 disabled={false}
+                id={props.inputId}
             />
         );
     };
