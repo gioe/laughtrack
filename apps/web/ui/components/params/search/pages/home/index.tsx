@@ -4,20 +4,13 @@ import { z } from "zod";
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Search } from "lucide-react";
+import { Search, Loader2 } from "lucide-react";
 import { showSearchFormSchema } from "./schema";
-import { Loader2 } from "lucide-react";
 import { Form } from "@/ui/components/ui/form";
 import { ComponentVariant } from "@/objects/enum";
 import CalendarComponent from "../../components/calendar";
 import ShowLocationComponent from "../../components/area";
 import { useUrlParams } from "@/hooks/useUrlParams";
-
-const LoadingOverlay = () => (
-    <div className="absolute inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-10">
-        <Loader2 className="w-6 h-6 text-white animate-spin" />
-    </div>
-);
 
 export default function ShowSearchForm() {
     const { setMultipleTypedParams } = useUrlParams();
@@ -73,38 +66,53 @@ export default function ShowSearchForm() {
                 onSubmit={form.handleSubmit(submitForm)}
                 className="w-full max-w-3xl mx-auto"
             >
-                <div className="relative bg-zinc-900/80 backdrop-blur-md shadow-xl rounded-2xl overflow-hidden border border-white/10">
-                    {isLoading && <LoadingOverlay />}
-
-                    <div className="flex flex-col lg:flex-row">
-                        <div className="flex-1 p-5 lg:p-8">
-                            <div className="flex flex-col lg:flex-row items-center lg:divide-x divide-white/10">
-                                <div className="w-full lg:w-auto mb-6 lg:mb-0 lg:pr-12">
-                                    <ShowLocationComponent
-                                        variant={ComponentVariant.Form}
-                                        form={form}
-                                    />
-                                </div>
-                                <div className="w-full lg:w-auto lg:pl-12">
-                                    <CalendarComponent
-                                        variant={ComponentVariant.Form}
-                                        name="dates"
-                                        form={form}
-                                    />
-                                </div>
-                            </div>
+                <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl overflow-hidden">
+                    <div className="flex flex-col sm:flex-row sm:items-stretch">
+                        {/* Location section */}
+                        <div className="flex-1 px-6 pt-5 pb-4 sm:py-5">
+                            <p className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-2.5">
+                                Where
+                            </p>
+                            <ShowLocationComponent
+                                variant={ComponentVariant.Form}
+                                form={form}
+                            />
                         </div>
 
-                        <div className="lg:border-l border-white/10">
+                        {/* Vertical divider (desktop) / Horizontal divider (mobile) */}
+                        <div className="hidden sm:block w-px bg-white/15 my-4" />
+                        <div className="sm:hidden h-px bg-white/15 mx-6" />
+
+                        {/* Dates section */}
+                        <div className="flex-1 px-6 pt-4 sm:pt-5 pb-5 sm:pb-5">
+                            <p className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-2.5">
+                                When
+                            </p>
+                            <CalendarComponent
+                                variant={ComponentVariant.Form}
+                                name="dates"
+                                form={form}
+                            />
+                        </div>
+
+                        {/* Search button */}
+                        <div className="px-5 pb-5 sm:py-4 sm:pr-4 sm:flex sm:items-center sm:pl-3">
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full lg:w-auto h-full px-8 py-4 lg:px-10 bg-copper hover:bg-copper/90
-                                         transition-colors flex items-center justify-center gap-3 text-white
-                                         font-medium"
+                                className="w-full sm:w-auto px-7 py-3 bg-copper hover:bg-copper/90
+                                           active:scale-[0.98] transition-all duration-150
+                                           rounded-xl flex items-center justify-center gap-2.5
+                                           text-white font-semibold text-base
+                                           disabled:opacity-60 disabled:cursor-not-allowed
+                                           shadow-lg shadow-black/20"
                             >
-                                <Search className="w-6 h-6" />
-                                <span className="lg:hidden">Search Shows</span>
+                                {isLoading ? (
+                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                ) : (
+                                    <Search className="w-5 h-5" />
+                                )}
+                                Find Shows
                             </button>
                         </div>
                     </div>
