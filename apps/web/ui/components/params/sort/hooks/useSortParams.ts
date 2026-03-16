@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from "react";
 import { useUrlParams } from "@/hooks/useUrlParams";
 import { QueryProperty } from "@/objects/enum";
 import { SortOptionInterface } from "@/objects/interface";
@@ -17,23 +17,29 @@ export function useSortParams(sortOptions: SortOptionInterface[]) {
     // Sync with URL params on mount and when URL params change
     useEffect(() => {
         const currentSort = getSortState();
-        if (currentSort.value !== selectedOption.value) {
+        if (currentSort?.value !== selectedOption?.value) {
             setSelectedOption(currentSort);
         }
-    }, [getSortState, selectedOption.value]);
+    }, [getSortState, selectedOption?.value]);
 
-    const updateSort = useCallback((sortValue: SortOptionInterface) => {
-        setTypedParam(QueryProperty.Sort, sortValue.value);
-        setSelectedOption(sortValue);
-    }, [setTypedParam]);
+    const updateSort = useCallback(
+        (sortValue: SortOptionInterface) => {
+            setTypedParam(QueryProperty.Sort, sortValue.value);
+            setSelectedOption(sortValue);
+        },
+        [setTypedParam],
+    );
 
-    const isSelected = useCallback((option: SortOptionInterface) => {
-        return option.value === selectedOption.value;
-    }, [selectedOption]);
+    const isSelected = useCallback(
+        (option: SortOptionInterface) => {
+            return option.value === selectedOption.value;
+        },
+        [selectedOption],
+    );
 
     return {
         selectedOption,
         updateSort,
-        isSelected
+        isSelected,
     };
 }
