@@ -302,7 +302,7 @@ export class QueryHelper {
         // Default values for pagination
         const defaultSize = 10;
         const defaultPage = 1;
-        const defaultSortField = "popularity_desc";
+        const defaultSortField = SortParamValue.PopularityDesc;
 
         // Map full sort param values to database fields and directions
         const sortMap: Record<
