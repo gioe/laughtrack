@@ -50,20 +50,38 @@ export default function ComedianDetailSearchBar() {
     return (
         <SearchBarLayout>
             <SearchBarSection first>
-                <ShowLocationComponent
-                    variant={ComponentVariant.Standalone}
-                    value={state.distance}
-                    onDistanceSelection={handleDistanceSelection}
-                    onZipcodeInput={handleZipCodeInput}
-                />
+                <div>
+                    <label
+                        htmlFor="comedian-detail-zip"
+                        className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1 block"
+                    >
+                        Where
+                    </label>
+                    <ShowLocationComponent
+                        variant={ComponentVariant.Standalone}
+                        value={state.distance}
+                        onDistanceSelection={handleDistanceSelection}
+                        onZipcodeInput={handleZipCodeInput}
+                        inputId="comedian-detail-zip"
+                    />
+                </div>
             </SearchBarSection>
 
             <SearchBarSection>
-                <CalendarComponent
-                    variant={ComponentVariant.Standalone}
-                    value={state.dateRange}
-                    onValueChange={handleDateRangeSelection}
-                />
+                <div>
+                    <p
+                        id="comedian-detail-dates-label"
+                        className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1"
+                    >
+                        When
+                    </p>
+                    <CalendarComponent
+                        variant={ComponentVariant.Standalone}
+                        value={state.dateRange}
+                        onValueChange={handleDateRangeSelection}
+                        inputId="comedian-detail-dates-label"
+                    />
+                </div>
             </SearchBarSection>
 
             <SearchBarSection last>

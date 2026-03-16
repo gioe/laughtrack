@@ -34,12 +34,21 @@ export default function ClubSearchBar() {
     return (
         <SearchBarLayout>
             <SearchBarSection first>
-                <ShowLocationComponent
-                    variant={ComponentVariant.Standalone}
-                    value={state.distance}
-                    onDistanceSelection={handleDistanceSelection}
-                    onZipcodeInput={handleZipCodeInput}
-                />
+                <div>
+                    <label
+                        htmlFor="club-all-zip"
+                        className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1 block"
+                    >
+                        Where
+                    </label>
+                    <ShowLocationComponent
+                        variant={ComponentVariant.Standalone}
+                        value={state.distance}
+                        onDistanceSelection={handleDistanceSelection}
+                        onZipcodeInput={handleZipCodeInput}
+                        inputId="club-all-zip"
+                    />
+                </div>
             </SearchBarSection>
 
             <SearchBarSection last>

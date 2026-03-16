@@ -52,20 +52,38 @@ export default function ShowSearchBar() {
     return (
         <SearchBarLayout>
             <SearchBarSection first>
-                <ShowLocationComponent
-                    variant={ComponentVariant.Standalone}
-                    value={state.distance}
-                    onDistanceSelection={handleDistanceSelection}
-                    onZipcodeInput={handleZipCodeInput}
-                />
+                <div>
+                    <label
+                        htmlFor="show-all-zip"
+                        className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1 block"
+                    >
+                        Where
+                    </label>
+                    <ShowLocationComponent
+                        variant={ComponentVariant.Standalone}
+                        value={state.distance}
+                        onDistanceSelection={handleDistanceSelection}
+                        onZipcodeInput={handleZipCodeInput}
+                        inputId="show-all-zip"
+                    />
+                </div>
             </SearchBarSection>
 
             <SearchBarSection>
-                <CalendarComponent
-                    variant={ComponentVariant.Standalone}
-                    value={state.dateRange}
-                    onValueChange={handleDateRangeSelection}
-                />
+                <div>
+                    <p
+                        id="show-all-dates-label"
+                        className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1"
+                    >
+                        When
+                    </p>
+                    <CalendarComponent
+                        variant={ComponentVariant.Standalone}
+                        value={state.dateRange}
+                        onValueChange={handleDateRangeSelection}
+                        inputId="show-all-dates-label"
+                    />
+                </div>
             </SearchBarSection>
 
             <SearchBarSection>

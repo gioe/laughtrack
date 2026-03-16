@@ -40,11 +40,20 @@ export default function ClubDetailSearchBar() {
     return (
         <SearchBarLayout>
             <SearchBarSection first>
-                <CalendarComponent
-                    variant={ComponentVariant.Standalone}
-                    value={state.dateRange}
-                    onValueChange={handleDateRangeSelection}
-                />
+                <div>
+                    <p
+                        id="club-detail-dates-label"
+                        className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1"
+                    >
+                        When
+                    </p>
+                    <CalendarComponent
+                        variant={ComponentVariant.Standalone}
+                        value={state.dateRange}
+                        onValueChange={handleDateRangeSelection}
+                        inputId="club-detail-dates-label"
+                    />
+                </div>
             </SearchBarSection>
 
             <SearchBarSection last>
