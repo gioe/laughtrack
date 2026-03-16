@@ -152,6 +152,45 @@ _comedian_handler_mod._SOCIAL_REQUEST_DELAY_S = 0.0
 # VCR instance — record_mode=none ensures cassettes are always replayed
 # and tests fail if a cassette is missing or a new request is attempted.
 # ---------------------------------------------------------------------------
+#
+# HOW TO RE-RECORD CASSETTES (runbook)
+# =====================================
+# Run this procedure when Instagram or TikTok changes their API schema and
+# the cassette tests start failing with KeyError or unexpected values.
+#
+# Prerequisites:
+#   - Network access to api.instagram.com and www.tiktok.com (run locally,
+#     NOT from a cloud/CI environment — both platforms block datacenter IPs).
+#   - No extra credentials are required for these public endpoints, but you
+#     may need a residential IP or VPN if your network is flagged.
+#
+# Steps:
+#   1. Temporarily change record_mode below from "none" to "new_episodes":
+#          record_mode="new_episodes"
+#      "new_episodes" replays existing cassettes but records any request that
+#      has no matching cassette entry — it will NOT re-record already-present
+#      interactions. To force a full re-record of a specific cassette, delete
+#      its YAML file from tests/core/entities/cassettes/ first.
+#
+#   2. Run the VCR tests:
+#          cd apps/scraper
+#          python -m pytest tests/core/entities/test_social_refresh_vcr.py -v
+#
+#   3. Inspect the YAML diffs in tests/core/entities/cassettes/:
+#          git diff tests/core/entities/cassettes/
+#      Verify that the changed keys match the known schema update. Unexpected
+#      changes (e.g., new auth challenges, redirect responses) should be
+#      investigated before committing.
+#
+#   4. Reset record_mode back to "none":
+#          record_mode="none"
+#
+#   5. Re-run the tests to confirm they pass in replay-only mode, then commit
+#      the updated cassette YAML files together with the code change:
+#          git add tests/core/entities/cassettes/
+#          git commit -m "Update VCR cassettes: <brief description of schema change>"
+#
+# ---------------------------------------------------------------------------
 
 _vcr = _vcr_module.VCR(
     cassette_library_dir=str(_CASSETTE_DIR),
