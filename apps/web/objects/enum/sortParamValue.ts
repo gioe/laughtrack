@@ -12,6 +12,7 @@ export enum SortParamValue {
     TotalShowsAsc = "total_shows_asc",
     TotalShowsDesc = "total_shows_desc",
     ShowCountDesc = "show_count_desc",
+    ShowCountAsc = "show_count_asc",
 }
 
 export const allSortOptions = [
@@ -28,4 +29,5 @@ export const allSortOptions = [
     SortParamValue.TotalShowsAsc.valueOf(),
     SortParamValue.TotalShowsDesc.valueOf(),
     SortParamValue.ShowCountDesc.valueOf(),
+    SortParamValue.ShowCountAsc.valueOf(),
 ];

@@ -109,9 +109,12 @@ export async function findComediansWithCount(
         // Get total count first
         const totalCount = await db.comedian.count({ where: whereClause });
 
-        // For show_count_desc: use raw SQL to ORDER BY upcoming show count with DB-level
-        // LIMIT/OFFSET, then fetch full comedian data for only that page's IDs.
-        if (helper.params.sort === SortParamValue.ShowCountDesc) {
+        // For show_count_desc / show_count_asc: use raw SQL to ORDER BY upcoming show count
+        // with DB-level LIMIT/OFFSET, then fetch full comedian data for only that page's IDs.
+        if (
+            helper.params.sort === SortParamValue.ShowCountDesc ||
+            helper.params.sort === SortParamValue.ShowCountAsc
+        ) {
             const { take, skip } = helper.getGenericClauses(totalCount);
 
             // Build parameterized WHERE conditions mirroring the Prisma whereClause
@@ -144,6 +147,11 @@ export async function findComediansWithCount(
                 );
             }
 
+            const sortDir =
+                helper.params.sort === SortParamValue.ShowCountAsc
+                    ? Prisma.sql`ASC`
+                    : Prisma.sql`DESC`;
+
             const sortedRows = await db.$queryRaw<{ id: number }[]>(
                 Prisma.sql`
                     SELECT c.id
@@ -153,7 +161,7 @@ export async function findComediansWithCount(
                         SELECT COUNT(*) FROM "LineupItem" li
                         JOIN "Show" s ON li."showId" = s.id
                         WHERE li."comedianId" = c.id AND s.date > NOW()
-                    ) DESC
+                    ) ${sortDir}
                     LIMIT ${take} OFFSET ${skip}
                 `,
             );

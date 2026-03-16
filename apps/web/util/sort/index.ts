@@ -21,6 +21,10 @@ export const getSortOptionsForEntityType = (
                     name: "Most Upcoming Shows",
                     value: SortParamValue.ShowCountDesc,
                 },
+                {
+                    name: "Fewest Upcoming Shows",
+                    value: SortParamValue.ShowCountAsc,
+                },
                 { name: "A-Z", value: SortParamValue.NameAsc },
                 { name: "Z-A", value: SortParamValue.NameDesc },
                 { name: "Most Active", value: SortParamValue.ActivityDesc },
