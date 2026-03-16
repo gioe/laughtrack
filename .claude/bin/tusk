@@ -24,6 +24,7 @@
 #   tusk criteria done <cid> [--skip-verify]  Mark a criterion as completed
 #   tusk criteria skip <cid> --reason <reason>  Mark a criterion as deferred to chain
 #   tusk criteria reset <cid>    Reset a criterion to incomplete (clears deferred flag too)
+#   tusk criteria finish-deferred --reason <r> <id...>  Mark all deferred criteria with given reason as completed
 #   tusk progress <id> [--next-steps "..."]  Log a progress checkpoint from HEAD
 #   tusk lint                   Run convention checks non-interactively
 #   tusk dag [--all]           Generate and open an HTML dependency DAG
@@ -717,9 +718,9 @@ candidates = [
   'init','path','config','validate','sql-quote','branch','commit',
   'lint','lint-rule','dupes','criteria','dashboard','chain','blockers',
   'review','deps','session-stats','session-recalc','skill-run',
-  'call-breakdown','session-close','task-get','task-select','task-start',
+  'call-breakdown','session-close','task-get','task-get-multi','task-select','task-start',
   'task-done','task-insert','task-update','task-reopen','task-list',
-  'autoclose','backlog-scan','test-detect','loop','merge','progress',
+  'audit','autoclose','backlog-scan','test-detect','init-scan-codebase','init-scan-todos','filter-reviewers','loop','merge','progress',
   'setup','token-audit','sync-skills','generate-manifest','pricing-update','wsjf','shell',
   'version','version-bump','changelog-add','migrate','regen-triggers','upgrade',
 ]
@@ -1006,6 +1007,8 @@ case "${1:-}" in
   chain) shift; exec python3 "$SCRIPT_DIR/tusk-chain.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   blockers) shift; exec python3 "$SCRIPT_DIR/tusk-blockers.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   review) shift; exec python3 "$SCRIPT_DIR/tusk-review.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
+  review-verdict) shift; exec python3 "$SCRIPT_DIR/tusk-review.py" "$DB_PATH" "$(resolve_config)" verdict "$@" ;;
+  review-pass-status) shift; exec python3 "$SCRIPT_DIR/tusk-review.py" "$DB_PATH" "$(resolve_config)" pass-status "$@" ;;
   deps) shift; exec python3 "$SCRIPT_DIR/tusk-deps.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   session-stats) shift; exec python3 "$SCRIPT_DIR/tusk-session-stats.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   session-recalc) shift; exec python3 "$SCRIPT_DIR/tusk-session-recalc.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
@@ -1015,6 +1018,7 @@ case "${1:-}" in
   git-default-branch) cmd_git_default_branch ;;
   branch-parse) shift; cmd_branch_parse "$@" ;;
   task-get) shift; exec python3 "$SCRIPT_DIR/tusk-task-get.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
+  task-get-multi) shift; exec python3 "$SCRIPT_DIR/tusk-task-get-multi.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   task-select) shift; exec python3 "$SCRIPT_DIR/tusk-task-select.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   task-start) shift; exec python3 "$SCRIPT_DIR/tusk-task-start.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   task-done) shift; exec python3 "$SCRIPT_DIR/tusk-task-done.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
@@ -1022,9 +1026,13 @@ case "${1:-}" in
   task-update) shift; exec python3 "$SCRIPT_DIR/tusk-task-update.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   task-reopen) shift; exec python3 "$SCRIPT_DIR/tusk-task-reopen.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   task-list) shift; exec python3 "$SCRIPT_DIR/tusk-task-list.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
+  audit) shift; exec python3 "$SCRIPT_DIR/tusk-audit.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   autoclose) shift; exec python3 "$SCRIPT_DIR/tusk-autoclose.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   backlog-scan) shift; exec python3 "$SCRIPT_DIR/tusk-backlog-scan.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   test-detect) shift; exec python3 "$SCRIPT_DIR/tusk-test-detect.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
+  init-scan-codebase) shift; exec python3 "$SCRIPT_DIR/tusk-init-scan-codebase.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
+  init-scan-todos) shift; exec python3 "$SCRIPT_DIR/tusk-init-scan-todos.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
+  filter-reviewers) shift; exec python3 "$SCRIPT_DIR/tusk-filter-reviewers.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   loop) shift; exec python3 "$SCRIPT_DIR/tusk-loop.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   merge) shift; exec python3 "$SCRIPT_DIR/tusk-merge.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   progress) shift; exec python3 "$SCRIPT_DIR/tusk-progress.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
@@ -1043,6 +1051,6 @@ case "${1:-}" in
   update-gitignore) cmd_update_gitignore ;;
   regen-triggers) cmd_regen_triggers ;;
   upgrade) shift; cmd_upgrade "$@" ;;
-  "")     echo "Usage: tusk {init|path|config|validate|sql-quote|commit|lint|lint-rule|dupes|deps|blockers|review|criteria|dag|dashboard|wsjf|setup|autoclose|backlog-scan|token-audit|sync-skills|pricing-update|session-stats|session-recalc|session-close|git-default-branch|skill-run|call-breakdown|task-get|task-select|task-start|task-done|task-insert|task-update|task-reopen|task-list|merge|progress|shell|version|version-bump|changelog-add|migrate|update-gitignore|upgrade|regen-triggers|report-issue|\"SQL ...\"}" >&2; exit 1 ;;
+  "")     echo "Usage: tusk {init|path|config|validate|sql-quote|commit|lint|lint-rule|dupes|deps|blockers|review|criteria|dag|dashboard|wsjf|audit|setup|autoclose|backlog-scan|init-scan-codebase|filter-reviewers|token-audit|sync-skills|pricing-update|session-stats|session-recalc|session-close|git-default-branch|branch-parse|skill-run|call-breakdown|task-get|task-get-multi|task-select|task-start|task-done|task-insert|task-update|task-reopen|task-list|merge|progress|shell|version|version-bump|changelog-add|migrate|update-gitignore|upgrade|regen-triggers|report-issue|\"SQL ...\"}" >&2; exit 1 ;;
   *)      cmd_query "$@" ;;
 esac
