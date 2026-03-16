@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { ParameterizedRequestData } from "@/objects/interface";
 import { SearchParams } from "@/objects/interface/showSearch.interface";
 import { toZonedTime, format } from "date-fns-tz";
+import { SortParamValue } from "@/objects/enum/sortParamValue";
 
 // This class is meant to capture all of the page parameters that our Page URL contains and converts them into query parameters.
 // These are relevant for DB querying and their existence persists across all pages so we capture it
@@ -303,18 +304,49 @@ export class QueryHelper {
         const defaultPage = 1;
         const defaultSortField = "popularity_desc";
 
-        // Get sort parameters with fallbacks
-        const sortParam = this.params.sort || defaultSortField;
-        const [field, direction] = sortParam.split("_");
-
-        // Map sort fields to database fields
-        const sortFieldMap: Record<string, string> = {
-            name: "name",
-            date: "date",
-            price: "price",
-            popularity: "popularity",
-            activity: "totalShows",
-            total_shows: "totalShows",
+        // Map full sort param values to database fields and directions
+        const sortMap: Record<
+            string,
+            { field: string; direction: "asc" | "desc" }
+        > = {
+            [SortParamValue.NameAsc]: { field: "name", direction: "asc" },
+            [SortParamValue.NameDesc]: { field: "name", direction: "desc" },
+            [SortParamValue.ActivityAsc]: {
+                field: "totalShows",
+                direction: "asc",
+            },
+            [SortParamValue.ActivityDesc]: {
+                field: "totalShows",
+                direction: "desc",
+            },
+            [SortParamValue.DateAsc]: { field: "date", direction: "asc" },
+            [SortParamValue.DateDesc]: { field: "date", direction: "desc" },
+            [SortParamValue.PriceAsc]: { field: "price", direction: "asc" },
+            [SortParamValue.PriceDesc]: { field: "price", direction: "desc" },
+            [SortParamValue.PopularityAsc]: {
+                field: "popularity",
+                direction: "asc",
+            },
+            [SortParamValue.PopularityDesc]: {
+                field: "popularity",
+                direction: "desc",
+            },
+            [SortParamValue.TotalShowsAsc]: {
+                field: "totalShows",
+                direction: "asc",
+            },
+            [SortParamValue.TotalShowsDesc]: {
+                field: "totalShows",
+                direction: "desc",
+            },
+            [SortParamValue.ShowCountAsc]: {
+                field: "totalShows",
+                direction: "asc",
+            },
+            [SortParamValue.ShowCountDesc]: {
+                field: "totalShows",
+                direction: "desc",
+            },
         };
 
         // Handle pagination with proper null checks and defaults
@@ -331,10 +363,10 @@ export class QueryHelper {
 
         const skip = Math.max(0, take * page);
 
-        // Map the sort field and ensure valid direction
-        const mappedField = sortFieldMap[field] || "name";
-        const validDirection =
-            direction?.toLowerCase() === "desc" ? "desc" : "asc";
+        // Look up full sort param; invalid values fall back to popularity_desc
+        const sortParam = this.params.sort || defaultSortField;
+        const sortEntry = sortMap[sortParam] ?? sortMap[defaultSortField];
+        const { field: mappedField, direction: validDirection } = sortEntry;
 
         return {
             orderBy: [
