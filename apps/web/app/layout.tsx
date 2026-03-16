@@ -75,6 +75,7 @@ export const metadata: Metadata = {
             { url: "/logomark-32.png", sizes: "32x32", type: "image/png" },
             { url: "/logomark-64.png", sizes: "64x64", type: "image/png" },
             { url: "/logomark-192.png", sizes: "192x192", type: "image/png" },
+            { url: "/logomark-512.png", sizes: "512x512", type: "image/png" },
         ],
         apple: {
             url: "/logomark-192.png",
