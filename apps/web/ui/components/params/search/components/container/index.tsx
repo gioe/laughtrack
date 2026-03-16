@@ -3,14 +3,14 @@ import { StyleContextKey } from "@/objects/enum";
 
 interface SearchBarContainerProps {
     children: React.ReactNode;
-    maxWidth?: string;
+    maxWidth: string;
     variant?: StyleContextKey;
 }
 
 export default function SearchBarContainer({
     children,
     variant = StyleContextKey.Search,
-    maxWidth = "max-w-4xl",
+    maxWidth,
 }: SearchBarContainerProps) {
     // Common classes for both variants
     const baseClasses = `
