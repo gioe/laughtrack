@@ -10,6 +10,8 @@ follower columns are touched).
 Usage:
     python -m scripts.core.refresh_social_followers
     python -m scripts.core.refresh_social_followers --platform youtube
+    python -m scripts.core.refresh_social_followers --platform instagram
+    python -m scripts.core.refresh_social_followers --platform tiktok
 
 Environment variables:
     YOUTUBE_API_KEY  YouTube Data API v3 key (required for YouTube refresh)
@@ -29,13 +31,15 @@ def main() -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  %(prog)s                     # Refresh all configured platforms
-  %(prog)s --platform youtube  # Refresh YouTube only
+  %(prog)s                      # Refresh all configured platforms
+  %(prog)s --platform youtube   # Refresh YouTube only
+  %(prog)s --platform instagram # Refresh Instagram only
+  %(prog)s --platform tiktok    # Refresh TikTok only
         """,
     )
     parser.add_argument(
         "--platform",
-        choices=["youtube", "all"],
+        choices=["youtube", "instagram", "tiktok", "all"],
         default="all",
         help="Platform to refresh (default: all)",
     )
@@ -52,6 +56,14 @@ Examples:
             else:
                 updated = service.refresh_youtube_followers(youtube_api_key)
                 Logger.info(f"YouTube follower refresh complete: {updated} comedians updated")
+
+        if args.platform in ("instagram", "all"):
+            updated = service.refresh_instagram_followers()
+            Logger.info(f"Instagram follower refresh complete: {updated} comedians updated")
+
+        if args.platform in ("tiktok", "all"):
+            updated = service.refresh_tiktok_followers()
+            Logger.info(f"TikTok follower refresh complete: {updated} comedians updated")
 
     except KeyboardInterrupt:
         Logger.info("Operation cancelled by user")

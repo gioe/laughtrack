@@ -51,7 +51,7 @@ jobs:
           DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
         run: |
-          python -m scripts.core.refresh_social_followers --platform youtube
+          python -m scripts.core.refresh_social_followers --platform all
 
       - name: Update comedian popularity scores
         if: success()
