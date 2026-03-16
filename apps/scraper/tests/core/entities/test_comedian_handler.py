@@ -1,16 +1,21 @@
 """
-Unit tests for ComedianHandler.insert_comedians.
+Unit tests for ComedianHandler.
 
-Verifies that the insert-only (DO NOTHING on conflict) contract is upheld:
-name-only stubs created during lineup extraction must never overwrite
-existing comedian data.
+Covers:
+- insert_comedians: DO NOTHING on conflict contract (stub names never overwrite existing data)
+- _fetch_recency_scores: happy path, empty results, exception propagation
+- update_comedian_popularity: recency map applied; absent comedians default to 0.0
 """
 
 import importlib.util
 import sys
+from abc import ABC as _ABC, abstractmethod as _abstractmethod
 from pathlib import Path
 from types import ModuleType
+from typing import Generic as _Generic, TypeVar as _TypeVar
 from unittest.mock import MagicMock
+
+import pytest
 
 
 # ---------------------------------------------------------------------------
@@ -79,6 +84,59 @@ Comedian = _comedian_model_mod.Comedian
 # Load ComedianQueries directly (no deps)
 _comedian_queries_mod = _load_module("sql/comedian_queries.py", "sql.comedian_queries_direct")
 ComedianQueries = _comedian_queries_mod.ComedianQueries
+
+# ---------------------------------------------------------------------------
+# Additional stubs for ComedianHandler loading
+# ---------------------------------------------------------------------------
+
+# Register model and queries under canonical import paths so handler.py relative imports resolve
+sys.modules.setdefault("laughtrack.core.entities.comedian.model", _comedian_model_mod)
+sys.modules.setdefault("sql", _comedian_queries_mod)
+sys.modules.setdefault("sql.comedian_queries", _comedian_queries_mod)
+
+# Stub BatchTemplateGenerator (used by insert_comedians, not under test here)
+_stub("laughtrack.foundation.infrastructure.database", BatchTemplateGenerator=MagicMock())
+_stub("laughtrack.foundation.infrastructure.database.template", BatchTemplateGenerator=MagicMock())
+_stub("laughtrack.foundation.infrastructure.database.operation", DatabaseOperationLogger=MagicMock())
+
+# Stub BaseDatabaseHandler so handler.py loads without a live DB
+_T_stub = _TypeVar("_T_stub")
+
+
+class _BaseDatabaseHandlerStub(_Generic[_T_stub], _ABC):
+    """Minimal stand-in for BaseDatabaseHandler used only during module loading."""
+
+    def __init__(self) -> None:
+        pass
+
+    @_abstractmethod
+    def get_entity_name(self) -> str: ...
+
+    @_abstractmethod
+    def get_entity_class(self): ...
+
+    def execute_with_cursor(self, operation, params=None, return_results=False):
+        raise NotImplementedError  # always patched in tests
+
+    def execute_batch_operation(self, query, items, template=None, return_results=False, log_summary=True):
+        raise NotImplementedError  # always patched in tests
+
+    def _get_cursor_factory(self):
+        return dict
+
+
+_stub("laughtrack.core.data.base_handler", BaseDatabaseHandler=_BaseDatabaseHandlerStub)
+_stub("laughtrack.core.data", BaseDatabaseHandler=_BaseDatabaseHandlerStub)
+_stub("laughtrack.core", BaseDatabaseHandler=_BaseDatabaseHandlerStub)
+_stub("laughtrack.core.entities", Comedian=None)
+_stub("laughtrack.core.entities.comedian", Comedian=None)
+
+# Load ComedianHandler
+_comedian_handler_mod = _load_module(
+    "src/laughtrack/core/entities/comedian/handler.py",
+    "laughtrack.core.entities.comedian.handler_direct",
+)
+ComedianHandler = _comedian_handler_mod.ComedianHandler
 
 
 # ---------------------------------------------------------------------------
@@ -179,3 +237,105 @@ class TestComedianInsertTuple:
         # instagram_followers=50000 must NOT appear in the tuple
         assert comedian.instagram_followers not in t
         assert comedian.tiktok_followers not in t
+
+
+# ---------------------------------------------------------------------------
+# Helpers — ComedianHandler construction
+# ---------------------------------------------------------------------------
+
+def _make_handler() -> ComedianHandler:
+    """Return a ComedianHandler with all DB methods replaced by MagicMocks."""
+    handler = ComedianHandler.__new__(ComedianHandler)
+    handler.execute_with_cursor = MagicMock()
+    handler.execute_batch_operation = MagicMock()
+    return handler
+
+
+# ---------------------------------------------------------------------------
+# _fetch_recency_scores
+# ---------------------------------------------------------------------------
+
+class TestFetchRecencyScores:
+    def test_happy_path_returns_dict_of_float_scores(self):
+        """execute_with_cursor returning rows → dict maps comedian_id to float recency_score."""
+        handler = _make_handler()
+        handler.execute_with_cursor.return_value = [
+            {"comedian_id": "uuid-1", "recency_score": 0.85},
+            {"comedian_id": "uuid-2", "recency_score": 0.40},
+        ]
+
+        result = handler._fetch_recency_scores(["uuid-1", "uuid-2"])
+
+        assert result == {"uuid-1": 0.85, "uuid-2": 0.40}
+        assert all(isinstance(v, float) for v in result.values())
+
+    def test_none_result_returns_empty_dict(self):
+        """When execute_with_cursor returns None, result is an empty dict (no KeyError)."""
+        handler = _make_handler()
+        handler.execute_with_cursor.return_value = None
+
+        result = handler._fetch_recency_scores(["uuid-1"])
+
+        assert result == {}
+
+    def test_exception_propagates_from_execute_with_cursor(self):
+        """A DB error raised by execute_with_cursor bubbles up unchanged."""
+        handler = _make_handler()
+        handler.execute_with_cursor.side_effect = RuntimeError("DB connection lost")
+
+        with pytest.raises(RuntimeError, match="DB connection lost"):
+            handler._fetch_recency_scores(["uuid-1"])
+
+
+# ---------------------------------------------------------------------------
+# update_comedian_popularity — recency map integration
+# ---------------------------------------------------------------------------
+
+class TestUpdateComedianPopularity:
+    def _make_comedian(self, uuid: str) -> Comedian:
+        c = _make_stub(f"Comedian-{uuid}")
+        c.uuid = uuid
+        return c
+
+    def _setup_handler(self, uuids, comedians, recency_map):
+        """Return a handler with all helpers stubbed out."""
+        handler = _make_handler()
+        handler._get_comedian_uuids = MagicMock(return_value=uuids)
+        handler._fetch_comedian_details = MagicMock(return_value=comedians)
+        handler._fetch_recency_scores = MagicMock(return_value=recency_map)
+        # execute_batch_operation must return truthy to pass the "no comedians updated" guard
+        handler.execute_batch_operation = MagicMock(return_value=[{"id": "ok"}])
+        return handler
+
+    def test_recency_score_applied_to_comedian_from_map(self):
+        """Comedians present in the recency map get recency_score set correctly."""
+        uuids = ["uuid-A", "uuid-B"]
+        comedians = [self._make_comedian("uuid-A"), self._make_comedian("uuid-B")]
+        handler = self._setup_handler(uuids, comedians, {"uuid-A": 0.9, "uuid-B": 0.3})
+
+        handler.update_comedian_popularity()
+
+        assert comedians[0].recency_score == 0.9
+        assert comedians[1].recency_score == 0.3
+
+    def test_comedian_absent_from_recency_map_defaults_to_zero(self):
+        """Comedians not in the recency map keep recency_score=0.0."""
+        uuids = ["uuid-X", "uuid-Y"]
+        comedians = [self._make_comedian("uuid-X"), self._make_comedian("uuid-Y")]
+        # Only uuid-X has an entry; uuid-Y is absent
+        handler = self._setup_handler(uuids, comedians, {"uuid-X": 0.7})
+
+        handler.update_comedian_popularity()
+
+        assert comedians[0].recency_score == 0.7
+        assert comedians[1].recency_score == 0.0
+
+    def test_exception_from_fetch_recency_scores_propagates(self):
+        """A DB error in _fetch_recency_scores bubbles up from update_comedian_popularity."""
+        uuids = ["uuid-1"]
+        comedians = [self._make_comedian("uuid-1")]
+        handler = self._setup_handler(uuids, comedians, {})
+        handler._fetch_recency_scores.side_effect = RuntimeError("recency DB error")
+
+        with pytest.raises(RuntimeError, match="recency DB error"):
+            handler.update_comedian_popularity()
