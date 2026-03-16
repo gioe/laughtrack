@@ -21,8 +21,8 @@ export default function NavigationDropdown({
                 <ChevronDownIcon
                     aria-hidden="true"
                     className="h-5 w-5 flex-none text-soft-charcoal opacity-70
-                    transition-all duration-200 transform group-hover:opacity-90
-                    group-hover:-translate-y-[1px] group-hover:text-copper"
+                    transition-all duration-300 ease-out transform group-hover:opacity-90
+                    group-hover:text-copper group-data-[open]:rotate-180 group-data-[open]:opacity-90 group-data-[open]:text-copper"
                 />
             </PopoverButton>
             <NavbarPopoverItem items={items} />
