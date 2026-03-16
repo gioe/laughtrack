@@ -1,0 +1,23 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Referer:
+      - https://www.tiktok.com/
+      User-Agent:
+      - Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML,
+        like Gecko) Chrome/124.0.0.0 Safari/537.36
+    method: GET
+    uri: https://www.tiktok.com/api/user/detail/?uniqueId=testcomedian
+  response:
+    body:
+      string: '{"userInfo":{"user":{"id":"6789012345","uniqueId":"testcomedian","nickname":"Test
+        Comedian","avatarThumb":"https://example.com/avatar.jpg","signature":"Comedian
+        | Touring nationally","verified":true},"stats":{"followerCount":200000,"followingCount":350,"heartCount":4500000,"videoCount":210,"diggCount":8000}},"statusCode":0,"statusMsg":""}'
+    headers:
+      Content-Type:
+      - application/json; charset=utf-8
+    status:
+      code: 200
+      message: OK
+version: 1

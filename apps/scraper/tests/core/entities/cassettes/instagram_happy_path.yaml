@@ -1,0 +1,22 @@
+interactions:
+- request:
+    body: null
+    headers:
+      User-Agent:
+      - Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML,
+        like Gecko) Chrome/124.0.0.0 Safari/537.36
+      X-IG-App-ID:
+      - '936619743392459'
+    method: GET
+    uri: https://i.instagram.com/api/v1/users/web_profile_info/?username=testcomedian
+  response:
+    body:
+      string: '{"data":{"user":{"id":"12345678901","username":"testcomedian","full_name":"Test
+        Comedian","biography":"Stand-up comedian touring nationwide.","is_private":false,"is_verified":true,"profile_pic_url":"https://example.com/pic.jpg","edge_followed_by":{"count":150000},"edge_follow":{"count":612},"edge_owner_to_timeline_media":{"count":87}}}}'
+    headers:
+      Content-Type:
+      - application/json; charset=utf-8
+    status:
+      code: 200
+      message: OK
+version: 1

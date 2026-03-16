@@ -1,0 +1,21 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Referer:
+      - https://www.tiktok.com/
+      User-Agent:
+      - Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML,
+        like Gecko) Chrome/124.0.0.0 Safari/537.36
+    method: GET
+    uri: https://www.tiktok.com/api/user/detail/?uniqueId=ratelimited
+  response:
+    body:
+      string: '{"statusCode":10201,"statusMsg":"Rate limit exceeded"}'
+    headers:
+      Content-Type:
+      - application/json; charset=utf-8
+    status:
+      code: 429
+      message: Too Many Requests
+version: 1

@@ -34,3 +34,6 @@ line-profiler>=4.1.0  # Line-by-line profiling
 
 # Architecture & Import Contracts
 import-linter>=1.10.0   # Enforce layering and dependency rules
+
+# Cassette-based HTTP replay testing
+vcrpy>=4.3.0            # Record/replay HTTP interactions for schema-drift tests
