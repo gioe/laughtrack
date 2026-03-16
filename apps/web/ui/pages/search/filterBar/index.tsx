@@ -57,26 +57,31 @@ const FilterBar = ({ variant, total, filters }: FilterBarProps) => {
                     {/* Search input — full-width on mobile, flex-1 on sm+ */}
                     <div className="sm:flex-1">{getSearchBar(variant)}</div>
 
-                    {/* Controls row: sort+filter left, pagination right */}
-                    <div className="flex items-center justify-between sm:justify-start sm:gap-4 sm:shrink-0">
+                    {/* Controls row: [sort · filter · count] | [pagination] */}
+                    <div className="flex items-center gap-2 sm:shrink-0">
+                        {/* Search controls cluster */}
                         <div className="flex items-center gap-3">
                             <div className="text-copper">
                                 {getSortOptions(variant)}
                             </div>
 
                             {filters > 0 && (
-                                <div
-                                    className="[&>button]:px-4 [&>button]:py-2 [&>button]:bg-copper/10 [&>button]:rounded-full
-                                              [&>button:hover]:bg-copper/20 [&>button]:transition-colors [&>button]:duration-200"
-                                >
-                                    <FilterModalButton filterCount={filters} />
-                                </div>
+                                <FilterModalButton filterCount={filters} />
                             )}
+
+                            <span className="hidden sm:block text-sm text-copper/60 whitespace-nowrap">
+                                {total.toLocaleString()} results
+                            </span>
                         </div>
 
-                        <div className="sm:ml-4">
-                            <PageParamComponent itemCount={total} />
-                        </div>
+                        {/* Separator */}
+                        <div
+                            className="hidden sm:block mx-1 h-5 w-px bg-black/15 shrink-0"
+                            aria-hidden="true"
+                        />
+
+                        {/* Pagination */}
+                        <PageParamComponent itemCount={total} />
                     </div>
                 </div>
             </div>
