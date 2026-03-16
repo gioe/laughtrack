@@ -37,6 +37,36 @@ class ComedianQueries:
         RETURNING uuid
     '''
 
+    # Recomputes sold_out_shows and total_shows for each comedian across ALL shows
+    # (no show_id filter).  A show is sold out when every ticket for that show has
+    # sold_out = TRUE and at least one ticket exists; shows with no tickets are not
+    # counted as sold out.
+    BATCH_UPDATE_COMEDIAN_SHOW_COUNTS = '''
+        UPDATE comedians AS c
+        SET
+            total_shows    = v.total_shows,
+            sold_out_shows = v.sold_out_shows
+        FROM (
+            SELECT
+                li.comedian_id,
+                COUNT(DISTINCT li.show_id) AS total_shows,
+                COUNT(DISTINCT CASE
+                    WHEN ta.all_sold_out THEN li.show_id
+                END) AS sold_out_shows
+            FROM lineup_items li
+            LEFT JOIN (
+                SELECT
+                    show_id,
+                    BOOL_AND(sold_out) AS all_sold_out
+                FROM tickets
+                GROUP BY show_id
+            ) ta ON ta.show_id = li.show_id
+            WHERE li.comedian_id = ANY(%s)
+            GROUP BY li.comedian_id
+        ) v
+        WHERE c.uuid = v.comedian_id
+    '''
+
     GET_COMEDIAN_RECENCY_SCORES = '''
         SELECT
             li.comedian_id,
