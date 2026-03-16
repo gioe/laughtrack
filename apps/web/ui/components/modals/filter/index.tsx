@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { FilterDTO } from "@/objects/interface";
 import { Modal } from "../basic";
 import { FilterChip } from "../../params/filter/chips";
@@ -14,7 +14,13 @@ interface FilterModalProps {
 
 const FilterModal = ({ filters, total }: FilterModalProps) => {
     const filterModal = useFilterModal();
-    const { handleFilterChange, handleClose } = useFilters(filters);
+    const { handleOpen, handleFilterChange, handleClose } = useFilters(filters);
+
+    useEffect(() => {
+        if (filterModal.isOpen) {
+            handleOpen();
+        }
+    }, [filterModal.isOpen]);
 
     const onClose = () => {
         handleClose();

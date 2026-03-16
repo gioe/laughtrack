@@ -1,29 +1,39 @@
+import { useRef, useState } from "react";
 import { QueryProperty } from "@/objects/enum";
 import { FilterDTO } from "@/objects/interface";
 import { useUrlParams } from "./useUrlParams";
 
 export const useFilters = (filters: FilterDTO[]) => {
-    const { getTypedParam, setTypedParam } = useUrlParams();
+    const { setTypedParam } = useUrlParams();
+
+    const [selections, setSelections] = useState<string[]>(() =>
+        filters
+            .filter((f: FilterDTO) => f.selected)
+            .map((f: FilterDTO) => f.slug),
+    );
+    const savedSelections = useRef<string[]>(selections);
 
     const setFilterParamValue = (newFilters: string[]) => {
         const paramValue = newFilters.join(",");
         setTypedParam(QueryProperty.Filters, paramValue);
     };
 
-    const initialSelections = filters
-        .filter((f: FilterDTO) => f.selected)
-        .map((f: FilterDTO) => f.slug);
-    const urlSelections = getTypedParam(QueryProperty.Filters).split(",");
+    const handleOpen = () => {
+        savedSelections.current = selections;
+    };
 
     const handleFilterChange = (value: string) => {
-        const newFilters = initialSelections.includes(value)
-            ? initialSelections.filter((t: string) => t !== value)
-            : [...initialSelections, value];
+        const newFilters = selections.includes(value)
+            ? selections.filter((t: string) => t !== value)
+            : [...selections, value];
+        setSelections(newFilters);
         setFilterParamValue(newFilters);
     };
 
     const handleClose = () => {
-        setFilterParamValue(urlSelections);
+        setSelections(savedSelections.current);
+        setFilterParamValue(savedSelections.current);
     };
-    return { handleFilterChange, handleClose };
+
+    return { handleOpen, handleFilterChange, handleClose };
 };
