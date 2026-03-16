@@ -20,7 +20,8 @@ const FilterModal = ({ filters, total }: FilterModalProps) => {
         if (filterModal.isOpen) {
             handleOpen();
         }
-    }, [filterModal.isOpen]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filterModal.isOpen]); // intentionally omit handleOpen — we only want to snapshot selections at modal-open time, not every render
 
     const onClose = () => {
         handleClose();
