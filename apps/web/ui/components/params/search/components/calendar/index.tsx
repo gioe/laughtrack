@@ -46,7 +46,7 @@ const CalendarComponent = (props: CalendarComponentProps) => {
                                 <CalendarDisplay
                                     selectedRange={field.value}
                                     onSelect={field.onChange}
-                                    id={props.inputId}
+                                    ariaLabelledBy={props.inputId}
                                 />
                             </FormControl>
                             {errorMessage && (
@@ -65,7 +65,7 @@ const CalendarComponent = (props: CalendarComponentProps) => {
         <CalendarDisplay
             selectedRange={props.value}
             onSelect={props.onValueChange}
-            id={props.inputId}
+            ariaLabelledBy={props.inputId}
         />
     );
 };

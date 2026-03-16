@@ -91,17 +91,17 @@ export default function ShowSearchForm() {
 
                         {/* Dates section */}
                         <div className="flex-1 px-6 pt-4 sm:pt-5 pb-5">
-                            <label
-                                htmlFor="show-search-dates"
-                                className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-2.5 block"
+                            <p
+                                id="show-search-dates-label"
+                                className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-2.5"
                             >
                                 When
-                            </label>
+                            </p>
                             <CalendarComponent
                                 variant={ComponentVariant.Form}
                                 name="dates"
                                 form={form}
-                                inputId="show-search-dates"
+                                inputId="show-search-dates-label"
                             />
                         </div>
 
