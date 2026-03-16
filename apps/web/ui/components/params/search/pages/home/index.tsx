@@ -72,12 +72,16 @@ export default function ShowSearchForm() {
                     >
                         {/* Location section */}
                         <div className="flex-1 px-6 pt-5 pb-4 sm:py-5">
-                            <p className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-2.5">
+                            <label
+                                htmlFor="show-search-zip"
+                                className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-2.5 block"
+                            >
                                 Where
-                            </p>
+                            </label>
                             <ShowLocationComponent
                                 variant={ComponentVariant.Form}
                                 form={form}
+                                inputId="show-search-zip"
                             />
                         </div>
 
@@ -87,13 +91,17 @@ export default function ShowSearchForm() {
 
                         {/* Dates section */}
                         <div className="flex-1 px-6 pt-4 sm:pt-5 pb-5">
-                            <p className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-2.5">
+                            <label
+                                htmlFor="show-search-dates"
+                                className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-2.5 block"
+                            >
                                 When
-                            </p>
+                            </label>
                             <CalendarComponent
                                 variant={ComponentVariant.Form}
                                 name="dates"
                                 form={form}
+                                inputId="show-search-dates"
                             />
                         </div>
 
