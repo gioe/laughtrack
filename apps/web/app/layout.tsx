@@ -1,5 +1,6 @@
 import "./globals.css";
 import "./fonts.css";
+import { Suspense } from "react";
 import { ScrollPositionManager } from "@/ui/components/scroll/manager";
 import { HeroUIProvider } from "@heroui/react";
 import { SessionProvider } from "next-auth/react";
@@ -69,6 +70,19 @@ const oswald = Oswald({
 export const metadata: Metadata = {
     title: "Laughtrack",
     description: "Find funny stuff",
+    icons: {
+        icon: [
+            { url: "/logomark-32.png", sizes: "32x32", type: "image/png" },
+            { url: "/logomark-64.png", sizes: "64x64", type: "image/png" },
+            { url: "/logomark-192.png", sizes: "192x192", type: "image/png" },
+        ],
+        apple: {
+            url: "/logomark-192.png",
+            sizes: "192x192",
+            type: "image/png",
+        },
+        shortcut: "/logomark.svg",
+    },
 };
 
 export default async function RootLayout({
@@ -87,7 +101,9 @@ export default async function RootLayout({
                         <TimezoneProvider>
                             <ScrollPositionManager />
                             <ToasterProvider />
-                            <LoginModal />
+                            <Suspense>
+                                <LoginModal />
+                            </Suspense>
                             <StyleContextProvider
                                 initialContext={StyleContextKey.Home}
                             >
