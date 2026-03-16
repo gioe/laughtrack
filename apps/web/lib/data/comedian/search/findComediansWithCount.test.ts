@@ -94,6 +94,52 @@ describe("findComediansWithCount", () => {
         });
     });
 
+    describe("show_count_asc sort", () => {
+        it("uses $queryRaw for ordered IDs with ASC direction", async () => {
+            mockCount.mockResolvedValue(3);
+            // Raw SQL returns IDs in ascending show-count order: 2, 1, 3
+            mockQueryRaw.mockResolvedValue([
+                { id: 2 },
+                { id: 1 },
+                { id: 3 },
+            ] as never);
+            mockFindMany.mockResolvedValue([
+                makeComedianRow(1, 2),
+                makeComedianRow(2, 1),
+                makeComedianRow(3, 5),
+            ] as never);
+
+            const helper = makeHelper(SortParamValue.ShowCountAsc);
+            const result = await findComediansWithCount(helper);
+
+            expect(mockQueryRaw).toHaveBeenCalledOnce();
+            expect(mockFindMany).toHaveBeenCalledOnce();
+            // Result must be in SQL order: 2, 1, 3 (fewest first)
+            expect(result.comedians.map((c) => c.id)).toEqual([2, 1, 3]);
+        });
+
+        it("returns comedians ordered by ascending show_count after re-sort", async () => {
+            mockCount.mockResolvedValue(3);
+            mockQueryRaw.mockResolvedValue([
+                { id: 2 },
+                { id: 1 },
+                { id: 3 },
+            ] as never);
+            mockFindMany.mockResolvedValue([
+                makeComedianRow(1, 2),
+                makeComedianRow(2, 1),
+                makeComedianRow(3, 5),
+            ] as never);
+
+            const helper = makeHelper(SortParamValue.ShowCountAsc);
+            const result = await findComediansWithCount(helper);
+
+            expect(result.comedians[0].show_count).toBe(1);
+            expect(result.comedians[1].show_count).toBe(2);
+            expect(result.comedians[2].show_count).toBe(5);
+        });
+    });
+
     describe("show_count_desc sort", () => {
         it("uses $queryRaw for ordered IDs, then findMany by those IDs", async () => {
             mockCount.mockResolvedValue(3);
