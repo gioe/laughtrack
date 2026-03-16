@@ -110,3 +110,33 @@ class ComedianQueries:
         FROM (VALUES %s) AS v(uuid, followers)
         WHERE c.uuid = v.uuid::text
     '''
+
+    GET_COMEDIANS_WITH_INSTAGRAM_ACCOUNT = '''
+        SELECT uuid, instagram_account
+        FROM comedians
+        WHERE instagram_account IS NOT NULL
+          AND instagram_account <> ''
+        ORDER BY name
+    '''
+
+    UPDATE_COMEDIAN_INSTAGRAM_FOLLOWERS = '''
+        UPDATE comedians AS c
+        SET instagram_followers = v.followers::int
+        FROM (VALUES %s) AS v(uuid, followers)
+        WHERE c.uuid = v.uuid::text
+    '''
+
+    GET_COMEDIANS_WITH_TIKTOK_ACCOUNT = '''
+        SELECT uuid, tiktok_account
+        FROM comedians
+        WHERE tiktok_account IS NOT NULL
+          AND tiktok_account <> ''
+        ORDER BY name
+    '''
+
+    UPDATE_COMEDIAN_TIKTOK_FOLLOWERS = '''
+        UPDATE comedians AS c
+        SET tiktok_followers = v.followers::int
+        FROM (VALUES %s) AS v(uuid, followers)
+        WHERE c.uuid = v.uuid::text
+    '''

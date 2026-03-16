@@ -15,6 +15,9 @@ from .model import Comedian
 
 _YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3/channels"
 _CHANNEL_ID_RE = re.compile(r"UC[\w-]{22}")
+_INSTAGRAM_API_URL = "https://i.instagram.com/api/v1/users/web_profile_info/"
+_INSTAGRAM_APP_ID = "936619743392459"
+_TIKTOK_API_URL = "https://www.tiktok.com/api/user/detail/"
 
 
 class ComedianHandler(BaseDatabaseHandler[Comedian]):
@@ -271,6 +274,153 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
         elif handle:
             params["forHandle"] = handle if handle.startswith("@") else f"@{handle}"
         resp = requests.get(_YOUTUBE_API_URL, params=params, timeout=10)
+        resp.raise_for_status()
+        return resp.json()
+
+    # ------------------------------------------------------------------
+    # Instagram follower refresh
+    # ------------------------------------------------------------------
+
+    def refresh_instagram_followers(self) -> int:
+        """Fetch current Instagram follower counts and persist them to the DB.
+
+        Queries the Instagram web profile API for comedians that have an
+        instagram_account set, then updates only the instagram_followers column.
+
+        Returns:
+            Number of comedian rows updated.
+        """
+        rows = self._get_comedians_with_instagram_accounts()
+        if not rows:
+            Logger.info("refresh_instagram_followers: no comedians with Instagram accounts")
+            return 0
+
+        updates: List[tuple] = []
+        for row in rows:
+            result = self._fetch_instagram_follower_count(row)
+            if result is not None:
+                updates.append(result)
+
+        if updates:
+            self.execute_batch_operation(
+                ComedianQueries.UPDATE_COMEDIAN_INSTAGRAM_FOLLOWERS, updates
+            )
+
+        Logger.info(f"refresh_instagram_followers: updated {len(updates)} comedians")
+        return len(updates)
+
+    def _get_comedians_with_instagram_accounts(self) -> List[dict]:
+        """Return rows with (uuid, instagram_account) for all comedians that have one."""
+        rows = (
+            self.execute_with_cursor(
+                ComedianQueries.GET_COMEDIANS_WITH_INSTAGRAM_ACCOUNT, return_results=True
+            )
+            or []
+        )
+        return [{"uuid": r["uuid"], "instagram_account": r["instagram_account"]} for r in rows]
+
+    def _fetch_instagram_follower_count(self, row: dict) -> Optional[tuple]:
+        """Fetch the current Instagram follower count for a single comedian.
+
+        Returns a ``(uuid, follower_count)`` tuple on success, or ``None`` if
+        the account is unreachable or the response cannot be parsed.
+        """
+        uuid = row["uuid"]
+        account = row["instagram_account"].strip().lstrip("@")
+        try:
+            data = self._instagram_request(account)
+            count = data["data"]["user"]["edge_followed_by"]["count"]
+            return (uuid, int(count))
+        except Exception as e:
+            Logger.warn(f"Instagram request failed for @{account}: {e}")
+            return None
+
+    @staticmethod
+    def _instagram_request(account: str) -> dict:
+        """Fetch Instagram public profile info for a username."""
+        headers = {
+            "X-IG-App-ID": _INSTAGRAM_APP_ID,
+            "User-Agent": "Mozilla/5.0 (compatible; LaughTrack/1.0)",
+        }
+        resp = requests.get(
+            _INSTAGRAM_API_URL,
+            params={"username": account},
+            headers=headers,
+            timeout=10,
+        )
+        resp.raise_for_status()
+        return resp.json()
+
+    # ------------------------------------------------------------------
+    # TikTok follower refresh
+    # ------------------------------------------------------------------
+
+    def refresh_tiktok_followers(self) -> int:
+        """Fetch current TikTok follower counts and persist them to the DB.
+
+        Queries the TikTok public user detail API for comedians that have a
+        tiktok_account set, then updates only the tiktok_followers column.
+
+        Returns:
+            Number of comedian rows updated.
+        """
+        rows = self._get_comedians_with_tiktok_accounts()
+        if not rows:
+            Logger.info("refresh_tiktok_followers: no comedians with TikTok accounts")
+            return 0
+
+        updates: List[tuple] = []
+        for row in rows:
+            result = self._fetch_tiktok_follower_count(row)
+            if result is not None:
+                updates.append(result)
+
+        if updates:
+            self.execute_batch_operation(
+                ComedianQueries.UPDATE_COMEDIAN_TIKTOK_FOLLOWERS, updates
+            )
+
+        Logger.info(f"refresh_tiktok_followers: updated {len(updates)} comedians")
+        return len(updates)
+
+    def _get_comedians_with_tiktok_accounts(self) -> List[dict]:
+        """Return rows with (uuid, tiktok_account) for all comedians that have one."""
+        rows = (
+            self.execute_with_cursor(
+                ComedianQueries.GET_COMEDIANS_WITH_TIKTOK_ACCOUNT, return_results=True
+            )
+            or []
+        )
+        return [{"uuid": r["uuid"], "tiktok_account": r["tiktok_account"]} for r in rows]
+
+    def _fetch_tiktok_follower_count(self, row: dict) -> Optional[tuple]:
+        """Fetch the current TikTok follower count for a single comedian.
+
+        Returns a ``(uuid, follower_count)`` tuple on success, or ``None`` if
+        the account is unreachable or the response cannot be parsed.
+        """
+        uuid = row["uuid"]
+        account = row["tiktok_account"].strip().lstrip("@")
+        try:
+            data = self._tiktok_request(account)
+            count = data["userInfo"]["stats"]["followerCount"]
+            return (uuid, int(count))
+        except Exception as e:
+            Logger.warn(f"TikTok request failed for @{account}: {e}")
+            return None
+
+    @staticmethod
+    def _tiktok_request(account: str) -> dict:
+        """Fetch TikTok public user detail for a username."""
+        params = {
+            "uniqueId": account,
+            "msToken": "",
+        }
+        headers = {
+            "User-Agent": "Mozilla/5.0 (compatible; LaughTrack/1.0)",
+            "Referer": "https://www.tiktok.com/",
+        }
+        resp = requests.get(_TIKTOK_API_URL, params=params, headers=headers, timeout=10)
         resp.raise_for_status()
         return resp.json()
 
