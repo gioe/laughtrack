@@ -22,18 +22,41 @@ export async function generateMetadata(props: {
             : undefined;
     const zip =
         typeof searchParams.zip === "string" ? searchParams.zip : undefined;
+    const club =
+        typeof searchParams.club === "string" ? searchParams.club : undefined;
+    const fromDate =
+        typeof searchParams.fromDate === "string"
+            ? searchParams.fromDate
+            : undefined;
+    const toDate =
+        typeof searchParams.toDate === "string"
+            ? searchParams.toDate
+            : undefined;
 
     let titleBase = "Comedy Shows";
-    if (comedian && zip) titleBase = `${comedian} Shows Near ${zip}`;
+    if (comedian && club && zip)
+        titleBase = `${comedian} Shows at ${club} Near ${zip}`;
+    else if (comedian && club) titleBase = `${comedian} Shows at ${club}`;
+    else if (comedian && zip) titleBase = `${comedian} Shows Near ${zip}`;
     else if (comedian) titleBase = `${comedian} Shows`;
+    else if (club && zip) titleBase = `${club} Shows Near ${zip}`;
+    else if (club) titleBase = `${club} Shows`;
     else if (zip) titleBase = `Comedy Shows Near ${zip}`;
 
     const title = `${titleBase} | LaughTrack`;
+
+    let dateContext = "";
+    if (fromDate && toDate) dateContext = ` from ${fromDate} to ${toDate}`;
+    else if (fromDate) dateContext = ` from ${fromDate}`;
+    else if (toDate) dateContext = ` through ${toDate}`;
+
     const description = comedian
-        ? `Find upcoming ${comedian} comedy shows. Browse schedules, tickets, and more on LaughTrack.`
-        : zip
-          ? `Discover upcoming comedy shows near ${zip}. Browse schedules, tickets, and more on LaughTrack.`
-          : "Discover upcoming comedy shows. Browse schedules, tickets, and more on LaughTrack.";
+        ? `Find upcoming ${comedian} comedy shows${dateContext}. Browse schedules, tickets, and more on LaughTrack.`
+        : club
+          ? `Discover upcoming comedy shows at ${club}${dateContext}. Browse schedules, tickets, and more on LaughTrack.`
+          : zip
+            ? `Discover upcoming comedy shows near ${zip}${dateContext}. Browse schedules, tickets, and more on LaughTrack.`
+            : `Discover upcoming comedy shows${dateContext}. Browse schedules, tickets, and more on LaughTrack.`;
 
     const baseUrl = process.env.NEXT_PUBLIC_WEBSITE_URL;
     const url = baseUrl ? `${baseUrl}/show/search` : undefined;
