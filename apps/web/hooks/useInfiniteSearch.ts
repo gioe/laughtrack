@@ -15,9 +15,13 @@ interface UseInfiniteSearchResult<T> {
     data: T[];
     total: number;
     isLoading: boolean;
+    isError: boolean;
+    errorMessage?: string;
     hasMore: boolean;
     /** Attach this ref to the sentinel div at the bottom of the list. */
     sentinelRef: (el: Element | null) => void;
+    /** Re-triggers loadMore from the current page after an error. */
+    retry: () => void;
 }
 
 export function useInfiniteSearch<T>({
@@ -33,6 +37,10 @@ export function useInfiniteSearch<T>({
     const [data, setData] = useState<T[]>(initialData);
     const [total, setTotal] = useState(initialTotal);
     const [isLoading, setIsLoading] = useState(false);
+    const [isError, setIsError] = useState(false);
+    const [errorMessage, setErrorMessage] = useState<string | undefined>(
+        undefined,
+    );
     const [hasMore, setHasMore] = useState(initialData.length < initialTotal);
 
     // Refs avoid stale closure issues inside the observer callback
@@ -75,11 +83,17 @@ export function useInfiniteSearch<T>({
             );
             setTotal(json.total);
             setHasMore(newCount < json.total);
+            setIsError(false);
+            setErrorMessage(undefined);
 
             loadedCountRef.current = newCount;
             nextPageRef.current = page + 1;
         } catch (err) {
             console.error("useInfiniteSearch fetch error:", err);
+            setIsError(true);
+            setErrorMessage(
+                err instanceof Error ? err.message : "Failed to load results",
+            );
         } finally {
             isLoadingRef.current = false;
             setIsLoading(false);
@@ -120,5 +134,14 @@ export function useInfiniteSearch<T>({
         [loadMore],
     );
 
-    return { data, total, isLoading, hasMore, sentinelRef };
+    return {
+        data,
+        total,
+        isLoading,
+        isError,
+        errorMessage,
+        hasMore,
+        sentinelRef,
+        retry: loadMore,
+    };
 }
