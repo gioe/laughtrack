@@ -58,7 +58,7 @@ const FilterBar = ({ variant, total, filters }: FilterBarProps) => {
                     <div className="sm:flex-1">{getSearchBar(variant)}</div>
 
                     {/* Controls row: [sort · filter · count] | [pagination] */}
-                    <div className="flex items-center gap-2 sm:shrink-0">
+                    <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap sm:shrink-0">
                         {/* Search controls cluster */}
                         <div className="flex items-center gap-3">
                             <div className="text-copper">
