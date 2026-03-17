@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { usePageParams } from "./hooks/usePageParams";
 
 interface PageParamComponentProps {
@@ -19,9 +19,11 @@ export function PageParamComponent({
     const endItem = Math.min((currentPage + 1) * pageSize, itemCount);
 
     return (
-        <div className="inline-flex items-center gap-4 text-copper text-sm">
+        <div className="inline-flex items-center gap-2 sm:gap-4 text-copper text-sm">
             <div className="relative inline-flex items-center gap-2">
-                <span className="whitespace-nowrap">Rows per page:</span>
+                <span className="hidden sm:inline whitespace-nowrap">
+                    Rows per page:
+                </span>
                 <div className="relative">
                     <select
                         value={pageSize}
