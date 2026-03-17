@@ -248,7 +248,8 @@ export class QueryHelper {
             !ISO_DATE_RE.test(fromDate) ||
             isNaN(new Date(fromDate).getTime())
         ) {
-            return {};
+            // No valid fromDate provided — default to upcoming shows only
+            return { date: { gte: new Date().toISOString() } };
         }
         if (
             toDate &&
