@@ -10,6 +10,7 @@ import ComedianSearchClient from "@/ui/pages/search/comedian/ComedianSearchClien
 import { ParameterizedRequestData } from "@/objects/interface";
 import { toSearchParams } from "@/util/search/toSearchParams";
 import { cookies } from "next/headers";
+import { Suspense } from "react";
 
 interface ComedianSearchPageProps {
     searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -76,11 +77,13 @@ export default async function ComedianSearchPage(
                 filters={filters.length}
             />
 
-            <ComedianSearchClient
-                initialData={data}
-                initialTotal={total}
-                initialFilters={filters}
-            />
+            <Suspense>
+                <ComedianSearchClient
+                    initialData={data}
+                    initialTotal={total}
+                    initialFilters={filters}
+                />
+            </Suspense>
         </>
     );
 }

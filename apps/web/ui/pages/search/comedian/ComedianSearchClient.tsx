@@ -39,9 +39,6 @@ const ComedianSearchClient = ({
                 className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6"
             />
 
-            {/* Sentinel div — IntersectionObserver triggers next page load */}
-            <div ref={sentinelRef} className="h-4" aria-hidden="true" />
-
             {isLoading && (
                 <div className="flex justify-center py-6">
                     <span className="loading loading-spinner loading-md text-copper" />
@@ -53,6 +50,9 @@ const ComedianSearchClient = ({
                     All results loaded
                 </p>
             )}
+
+            {/* Sentinel div — IntersectionObserver triggers next page load */}
+            <div ref={sentinelRef} className="h-4" aria-hidden="true" />
         </>
     );
 };

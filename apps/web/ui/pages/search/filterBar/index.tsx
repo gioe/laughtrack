@@ -5,6 +5,12 @@ import { SearchVariant } from "@/objects/enum/searchVariant";
 import { FilterModalButton } from "@/ui/components/params/filter";
 import { PageParamComponent } from "@/ui/components/params/page";
 import ClubSearchBar from "@/ui/components/params/search/pages/club/all";
+import ClubDetailSearchBar from "@/ui/components/params/search/pages/club/detail";
+import ComedianSearchBar from "@/ui/components/params/search/pages/comedian/all";
+import ComedianDetailSearchBar from "@/ui/components/params/search/pages/comedian/detail";
+import ShowSearchBar from "@/ui/components/params/search/pages/show/all";
+import { SortParamComponent } from "@/ui/components/params/sort";
+import { getSortOptionsForEntityType } from "@/util/sort";
 
 // Variants that use infinite scroll — no pagination controls needed
 const INFINITE_SCROLL_VARIANTS = new Set([
@@ -12,12 +18,6 @@ const INFINITE_SCROLL_VARIANTS = new Set([
     SearchVariant.AllComedians,
     SearchVariant.AllShows,
 ]);
-import ClubDetailSearchBar from "@/ui/components/params/search/pages/club/detail";
-import ComedianSearchBar from "@/ui/components/params/search/pages/comedian/all";
-import ComedianDetailSearchBar from "@/ui/components/params/search/pages/comedian/detail";
-import ShowSearchBar from "@/ui/components/params/search/pages/show/all";
-import { SortParamComponent } from "@/ui/components/params/sort";
-import { getSortOptionsForEntityType } from "@/util/sort";
 
 const VARIANT_TO_ENTITY_TYPE_MAP = {
     [SearchVariant.AllClubs]: EntityType.Club,

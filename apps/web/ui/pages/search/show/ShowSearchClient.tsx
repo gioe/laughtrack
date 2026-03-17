@@ -41,9 +41,6 @@ const ShowSearchClient = ({
         <>
             <ShowTable shows={data} />
 
-            {/* Sentinel div — IntersectionObserver triggers next page load */}
-            <div ref={sentinelRef} className="h-4" aria-hidden="true" />
-
             {isLoading && (
                 <div className="flex justify-center py-6">
                     <span className="loading loading-spinner loading-md text-copper" />
@@ -55,6 +52,9 @@ const ShowSearchClient = ({
                     All results loaded
                 </p>
             )}
+
+            {/* Sentinel div — IntersectionObserver triggers next page load */}
+            <div ref={sentinelRef} className="h-4" aria-hidden="true" />
         </>
     );
 };

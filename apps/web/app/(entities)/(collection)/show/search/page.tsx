@@ -9,6 +9,7 @@ import FilterBar from "@/ui/pages/search/filterBar";
 import ShowSearchClient from "@/ui/pages/search/show/ShowSearchClient";
 import FilterModal from "@/ui/components/modals/filter";
 import { cookies } from "next/headers";
+import { Suspense } from "react";
 
 export default async function ShowSearchPage(props: any) {
     const [session, cookieStore, searchParams] = await Promise.all([
@@ -52,11 +53,13 @@ export default async function ShowSearchPage(props: any) {
                 total={total}
                 filters={filters.length}
             />
-            <ShowSearchClient
-                initialData={data}
-                initialTotal={total}
-                initialFilters={filters}
-            />
+            <Suspense>
+                <ShowSearchClient
+                    initialData={data}
+                    initialTotal={total}
+                    initialFilters={filters}
+                />
+            </Suspense>
         </>
     );
 }

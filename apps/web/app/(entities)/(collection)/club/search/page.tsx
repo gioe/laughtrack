@@ -10,6 +10,7 @@ import { ParameterizedRequestData } from "@/objects/interface";
 import { toSearchParams } from "@/util/search/toSearchParams";
 import ClubSearchClient from "@/ui/pages/search/club/ClubSearchClient";
 import { cookies } from "next/headers";
+import { Suspense } from "react";
 
 interface ClubSearchPageProps {
     searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -67,11 +68,13 @@ export default async function ClubSearchPage(props: ClubSearchPageProps) {
                 total={total}
                 filters={filters.length}
             />
-            <ClubSearchClient
-                initialData={data}
-                initialTotal={total}
-                initialFilters={filters}
-            />
+            <Suspense>
+                <ClubSearchClient
+                    initialData={data}
+                    initialTotal={total}
+                    initialFilters={filters}
+                />
+            </Suspense>
         </>
     );
 }
