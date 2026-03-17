@@ -11,6 +11,36 @@ import { ParameterizedRequestData } from "@/objects/interface";
 import { toSearchParams } from "@/util/search/toSearchParams";
 import { cookies } from "next/headers";
 import { Suspense } from "react";
+import type { Metadata } from "next";
+
+export async function generateMetadata(props: {
+    searchParams: Promise<Record<string, string | string[] | undefined>>;
+}): Promise<Metadata> {
+    const searchParams = await props.searchParams;
+    const zip =
+        typeof searchParams.zip === "string" ? searchParams.zip : undefined;
+
+    const title = zip
+        ? `Find Comedians Near ${zip} | LaughTrack`
+        : "Find Comedians | LaughTrack";
+    const description = zip
+        ? `Browse comedy performers near ${zip}. Discover upcoming shows on LaughTrack.`
+        : "Browse comedy performers and discover upcoming shows on LaughTrack.";
+
+    const baseUrl = process.env.NEXT_PUBLIC_WEBSITE_URL;
+    const url = baseUrl ? `${baseUrl}/comedian/search` : undefined;
+
+    return {
+        title,
+        description,
+        openGraph: {
+            title,
+            description,
+            type: "website",
+            ...(url && { url }),
+        },
+    };
+}
 
 interface ComedianSearchPageProps {
     searchParams: Promise<Record<string, string | string[] | undefined>>;

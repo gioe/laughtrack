@@ -11,6 +11,36 @@ import { toSearchParams } from "@/util/search/toSearchParams";
 import ClubSearchClient from "@/ui/pages/search/club/ClubSearchClient";
 import { cookies } from "next/headers";
 import { Suspense } from "react";
+import type { Metadata } from "next";
+
+export async function generateMetadata(props: {
+    searchParams: Promise<Record<string, string | string[] | undefined>>;
+}): Promise<Metadata> {
+    const searchParams = await props.searchParams;
+    const zip =
+        typeof searchParams.zip === "string" ? searchParams.zip : undefined;
+
+    const title = zip
+        ? `Comedy Clubs Near ${zip} | LaughTrack`
+        : "Comedy Clubs | LaughTrack";
+    const description = zip
+        ? `Find comedy clubs near ${zip}. Discover shows and venues on LaughTrack.`
+        : "Find comedy clubs near you. Discover shows and venues on LaughTrack.";
+
+    const baseUrl = process.env.NEXT_PUBLIC_WEBSITE_URL;
+    const url = baseUrl ? `${baseUrl}/club/search` : undefined;
+
+    return {
+        title,
+        description,
+        openGraph: {
+            title,
+            description,
+            type: "website",
+            ...(url && { url }),
+        },
+    };
+}
 
 interface ClubSearchPageProps {
     searchParams: Promise<Record<string, string | string[] | undefined>>;
