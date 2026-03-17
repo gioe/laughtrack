@@ -114,6 +114,13 @@ class ClubQueries:
         RETURNING *
     '''
 
+    # Recomputes total_shows for every club by counting all Show rows per club_id.
+    # Clubs with no shows are set to 0 (correlated subquery covers all clubs).
+    UPDATE_CLUB_TOTAL_SHOWS = '''
+        UPDATE clubs
+        SET total_shows = (SELECT COUNT(*) FROM shows WHERE shows.club_id = clubs.id)
+    '''
+
     GET_CLUBS_WITH_NULL_CITY_STATE = '''
         SELECT * FROM clubs
         WHERE (city IS NULL OR state IS NULL) AND address IS NOT NULL AND address != ''
