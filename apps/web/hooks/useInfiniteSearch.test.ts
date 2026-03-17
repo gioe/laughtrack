@@ -24,6 +24,19 @@ function makeMockObserver(cb: IOCallback) {
     };
 }
 
+/** Fires the captured IntersectionObserver callback — fails fast if sentinelRef was never called. */
+function fireIO(isIntersecting: boolean) {
+    if (!capturedIOCallback) {
+        throw new Error(
+            "IO callback not captured — did you call result.current.sentinelRef(el)?",
+        );
+    }
+    capturedIOCallback(
+        [{ isIntersecting } as IntersectionObserverEntry],
+        {} as IntersectionObserver,
+    );
+}
+
 beforeEach(() => {
     capturedIOCallback = null;
     vi.clearAllMocks();
@@ -164,10 +177,7 @@ describe("useInfiniteSearch", () => {
             expect(mockObserve).toHaveBeenCalledWith(sentinel);
 
             await act(async () => {
-                capturedIOCallback!(
-                    [{ isIntersecting: true } as IntersectionObserverEntry],
-                    {} as IntersectionObserver,
-                );
+                fireIO(true);
             });
 
             await waitFor(() => {
@@ -180,6 +190,35 @@ describe("useInfiniteSearch", () => {
             expect(mockFetch).toHaveBeenCalledOnce();
             const url: string = mockFetch.mock.calls[0][0] as string;
             expect(url).toContain("page=1");
+        });
+
+        it("passes an AbortSignal to fetch", async () => {
+            mockFetch.mockResolvedValue(makeJsonResponse([], 0));
+
+            const { result } = renderHook(() =>
+                useInfiniteSearch({
+                    endpoint: "/api/search",
+                    params: {},
+                    initialData: [],
+                    initialTotal: 5,
+                }),
+            );
+
+            const sentinel = document.createElement("div");
+            act(() => {
+                result.current.sentinelRef(sentinel);
+            });
+
+            await act(async () => {
+                fireIO(true);
+            });
+
+            await waitFor(() => {
+                expect(mockFetch).toHaveBeenCalledOnce();
+            });
+
+            const fetchOptions = mockFetch.mock.calls[0][1] as RequestInit;
+            expect(fetchOptions.signal).toBeInstanceOf(AbortSignal);
         });
 
         it("does not call fetch when sentinel is not intersecting", async () => {
@@ -198,10 +237,7 @@ describe("useInfiniteSearch", () => {
             });
 
             act(() => {
-                capturedIOCallback!(
-                    [{ isIntersecting: false } as IntersectionObserverEntry],
-                    {} as IntersectionObserver,
-                );
+                fireIO(false);
             });
 
             expect(mockFetch).not.toHaveBeenCalled();
@@ -229,6 +265,176 @@ describe("useInfiniteSearch", () => {
 
             expect(mockDisconnect).toHaveBeenCalledOnce();
         });
+
+        it("sets isLoading=true while fetch is in-flight and false after completion", async () => {
+            let resolveFirstFetch!: (val: unknown) => void;
+            const firstFetchPromise = new Promise(
+                (resolve) => (resolveFirstFetch = resolve),
+            );
+            mockFetch.mockReturnValueOnce(firstFetchPromise);
+
+            const { result } = renderHook(() =>
+                useInfiniteSearch({
+                    endpoint: "/api/search",
+                    params: {},
+                    initialData: [],
+                    initialTotal: 5,
+                }),
+            );
+
+            const sentinel = document.createElement("div");
+            act(() => {
+                result.current.sentinelRef(sentinel);
+            });
+
+            // Fire the observer — loadMore sets isLoading synchronously before the first await
+            act(() => {
+                fireIO(true);
+            });
+
+            expect(result.current.isLoading).toBe(true);
+
+            // Resolve the fetch
+            await act(async () => {
+                resolveFirstFetch(makeJsonResponse([{ id: 1 }], 1));
+            });
+
+            await waitFor(() => {
+                expect(result.current.isLoading).toBe(false);
+            });
+        });
+    });
+
+    describe("error handling", () => {
+        it("sets isError=true and errorMessage when fetch returns a non-ok response", async () => {
+            mockFetch.mockResolvedValue({ ok: false, status: 500 });
+
+            const { result } = renderHook(() =>
+                useInfiniteSearch({
+                    endpoint: "/api/search",
+                    params: {},
+                    initialData: [],
+                    initialTotal: 5,
+                }),
+            );
+
+            const sentinel = document.createElement("div");
+            act(() => {
+                result.current.sentinelRef(sentinel);
+            });
+
+            await act(async () => {
+                fireIO(true);
+            });
+
+            await waitFor(() => {
+                expect(result.current.isError).toBe(true);
+            });
+
+            expect(result.current.errorMessage).toBe("500");
+            expect(result.current.isLoading).toBe(false);
+        });
+
+        it("sets isError=true and errorMessage when fetch throws a network error", async () => {
+            mockFetch.mockRejectedValue(new Error("Network failure"));
+
+            const { result } = renderHook(() =>
+                useInfiniteSearch({
+                    endpoint: "/api/search",
+                    params: {},
+                    initialData: [],
+                    initialTotal: 5,
+                }),
+            );
+
+            const sentinel = document.createElement("div");
+            act(() => {
+                result.current.sentinelRef(sentinel);
+            });
+
+            await act(async () => {
+                fireIO(true);
+            });
+
+            await waitFor(() => {
+                expect(result.current.isError).toBe(true);
+            });
+
+            expect(result.current.errorMessage).toBe("Network failure");
+            expect(result.current.isLoading).toBe(false);
+        });
+
+        it("retry() re-fires loadMore and clears isError on success", async () => {
+            mockFetch
+                .mockRejectedValueOnce(new Error("Network failure"))
+                .mockResolvedValueOnce(makeJsonResponse([{ id: 1 }], 1));
+
+            const { result } = renderHook(() =>
+                useInfiniteSearch({
+                    endpoint: "/api/search",
+                    params: {},
+                    initialData: [],
+                    initialTotal: 5,
+                }),
+            );
+
+            const sentinel = document.createElement("div");
+            act(() => {
+                result.current.sentinelRef(sentinel);
+            });
+
+            await act(async () => {
+                fireIO(true);
+            });
+
+            await waitFor(() => {
+                expect(result.current.isError).toBe(true);
+            });
+
+            // Call retry to re-trigger loadMore
+            await act(async () => {
+                result.current.retry();
+            });
+
+            await waitFor(() => {
+                expect(result.current.isError).toBe(false);
+            });
+
+            expect(result.current.errorMessage).toBeUndefined();
+            expect(result.current.data).toEqual([{ id: 1 }]);
+            expect(mockFetch).toHaveBeenCalledTimes(2);
+        });
+
+        it("swallows AbortError without setting isError", async () => {
+            const abortError = new Error("The user aborted a request.");
+            abortError.name = "AbortError";
+            mockFetch.mockRejectedValue(abortError);
+
+            const { result } = renderHook(() =>
+                useInfiniteSearch({
+                    endpoint: "/api/search",
+                    params: {},
+                    initialData: [],
+                    initialTotal: 5,
+                }),
+            );
+
+            const sentinel = document.createElement("div");
+            act(() => {
+                result.current.sentinelRef(sentinel);
+            });
+
+            await act(async () => {
+                fireIO(true);
+            });
+
+            await waitFor(() => {
+                expect(result.current.isLoading).toBe(false);
+            });
+
+            expect(result.current.isError).toBe(false);
+            expect(result.current.errorMessage).toBeUndefined();
+        });
     });
 
     describe("hasMore", () => {
@@ -253,10 +459,7 @@ describe("useInfiniteSearch", () => {
             });
 
             await act(async () => {
-                capturedIOCallback!(
-                    [{ isIntersecting: true } as IntersectionObserverEntry],
-                    {} as IntersectionObserver,
-                );
+                fireIO(true);
             });
 
             await waitFor(() => {
@@ -287,10 +490,7 @@ describe("useInfiniteSearch", () => {
             });
 
             await act(async () => {
-                capturedIOCallback!(
-                    [{ isIntersecting: true } as IntersectionObserverEntry],
-                    {} as IntersectionObserver,
-                );
+                fireIO(true);
             });
 
             await waitFor(() => {
