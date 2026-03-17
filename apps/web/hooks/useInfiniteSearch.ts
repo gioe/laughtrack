@@ -47,6 +47,7 @@ export function useInfiniteSearch<T>({
     const nextPageRef = useRef(1); // page 0 already served by SSR
     const loadedCountRef = useRef(initialData.length);
     const isLoadingRef = useRef(false);
+    const hasMoreRef = useRef(initialData.length < initialTotal);
     const paramsRef = useRef(params);
     paramsRef.current = params;
 
@@ -54,6 +55,7 @@ export function useInfiniteSearch<T>({
     const abortControllerRef = useRef<AbortController | null>(null);
 
     const loadMore = useCallback(async () => {
+        if (!hasMoreRef.current) return;
         if (isLoadingRef.current) return;
 
         isLoadingRef.current = true;
@@ -87,6 +89,7 @@ export function useInfiniteSearch<T>({
                 page === 0 ? json.data : [...prev, ...json.data],
             );
             setTotal(json.total);
+            hasMoreRef.current = newCount < json.total;
             setHasMore(newCount < json.total);
             setIsError(false);
             setErrorMessage(undefined);
@@ -115,6 +118,7 @@ export function useInfiniteSearch<T>({
 
         nextPageRef.current = 0;
         loadedCountRef.current = 0;
+        hasMoreRef.current = true;
         setData([]);
         setTotal(0);
         setHasMore(true);
