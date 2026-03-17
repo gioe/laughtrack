@@ -85,7 +85,7 @@ class LineupHandler(BaseDatabaseHandler[LineupItem]):
         try:
             results = self.execute_with_cursor(LineupQueries.BATCH_GET_LINEUP, (show_ids,), return_results=True)
             if not results:
-                raise ValueError("No lineups found for provided show IDs")
+                return {}
 
             return {row["show_id"]: [Comedian.from_db_row(row) for row in row["lineup"]] for row in results}
         except Exception as e:
@@ -111,7 +111,7 @@ class LineupHandler(BaseDatabaseHandler[LineupItem]):
             )
 
             if not results:
-                raise ValueError("No comedians found for provided show names")
+                return {}
 
             show_comedians_map = {}
             for row in results:
