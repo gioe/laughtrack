@@ -70,6 +70,9 @@ export async function generateMetadata(props: {
             type: "website",
             ...(url && { url }),
         },
+        twitter: {
+            card: "summary",
+        },
     };
 }
 
