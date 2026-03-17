@@ -102,13 +102,9 @@ export default async function RootLayout({
                         <TimezoneProvider>
                             <ScrollPositionManager />
                             <ToasterProvider />
-                            <StyleContextProvider
-                                initialContext={StyleContextKey.Search}
-                            >
-                                <Suspense fallback={null}>
-                                    <LoginModal />
-                                </Suspense>
-                            </StyleContextProvider>
+                            <Suspense fallback={null}>
+                                <LoginModal />
+                            </Suspense>
                             <StyleContextProvider
                                 initialContext={StyleContextKey.Home}
                             >
