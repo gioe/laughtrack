@@ -371,7 +371,12 @@ export class QueryHelper {
         return {
             orderBy: [
                 { [mappedField]: validDirection },
-                ...(mappedField !== "name" ? [{ name: "asc" as const }] : []),
+                ...(mappedField !== "name"
+                    ? [
+                          { totalShows: "desc" as const },
+                          { name: "asc" as const },
+                      ]
+                    : []),
             ],
             take,
             skip,
