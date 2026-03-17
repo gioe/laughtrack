@@ -66,6 +66,25 @@ describe("QueryHelper.getDateClause", () => {
             expect(result.date.lte).toBeDefined();
         });
 
+        it("returns fromDate-only clause when toDate is an invalid ISO string", () => {
+            const result = makeHelper({
+                fromDate: "2026-06-15",
+                toDate: "not-a-date",
+            }).getDateClause() as any;
+            expect(result).toHaveProperty("date.gte");
+            expect(result.date.gte).toContain("2026-06-15");
+            expect(result.date.lte).toBeUndefined();
+        });
+
+        it("returns fromDate-only clause when toDate fails date parsing", () => {
+            const result = makeHelper({
+                fromDate: "2026-06-15",
+                toDate: "2026-99-99",
+            }).getDateClause() as any;
+            expect(result).toHaveProperty("date.gte");
+            expect(result.date.lte).toBeUndefined();
+        });
+
         it("returns gte:now default when fromDate is today (uses current time not midnight)", () => {
             // When fromDate equals today, getDateClause uses currentDateUTC not midnight
             const todayNYC = new Intl.DateTimeFormat("en-CA", {

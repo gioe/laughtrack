@@ -251,12 +251,9 @@ export class QueryHelper {
             // No valid fromDate provided — default to upcoming shows only
             return { date: { gte: new Date().toISOString() } };
         }
-        if (
-            toDate &&
-            (!ISO_DATE_RE.test(toDate) || isNaN(new Date(toDate).getTime()))
-        ) {
-            return {};
-        }
+        const toDateValid =
+            !toDate ||
+            (ISO_DATE_RE.test(toDate) && !isNaN(new Date(toDate).getTime()));
 
         // Current time in UTC
         const currentDateUTC = new Date();
@@ -278,9 +275,9 @@ export class QueryHelper {
             ? currentDateUTC.toISOString()
             : fromDateMidnight.toISOString();
 
-        // Handle toDate if provided
+        // Handle toDate if provided and valid
         let toDateFilter: string | undefined = undefined;
-        if (toDate) {
+        if (toDate && toDateValid) {
             // Convert end of day in specified timezone to UTC
             const toDateEndOfDay = toZonedTime(
                 `${toDate}T23:59:59.999`,
