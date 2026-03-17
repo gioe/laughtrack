@@ -202,6 +202,15 @@ export async function findComediansWithCount(
             };
         }
 
+        const { orderBy, take, skip } = helper.getGenericClauses(totalCount);
+        // Inject totalShows tiebreaker after the primary sort so more-active comedians
+        // surface first among ties — valid because Comedian has a totalShows column.
+        const comedianOrderBy = [
+            orderBy[0],
+            { totalShows: "desc" as const },
+            ...orderBy.slice(1),
+        ];
+
         const filteredComedians = await db.comedian.findMany({
             where: whereClause,
             select: {
@@ -220,7 +229,9 @@ export async function findComediansWithCount(
                       }
                     : {}),
             },
-            ...helper.getGenericClauses(totalCount),
+            orderBy: comedianOrderBy,
+            take,
+            skip,
         });
 
         return {
