@@ -58,6 +58,7 @@ class ScrapingService:
         self._emit_summary(summary)
         self._check_and_alert(summary)
         self.result_processor.process_results(results, db_result)
+        self.club_handler.refresh_club_total_shows()
         return results
 
     def scrape_single_club(self, club_id: Optional[int] = None) -> None:

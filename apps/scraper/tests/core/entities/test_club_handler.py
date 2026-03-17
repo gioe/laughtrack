@@ -739,3 +739,33 @@ class TestBackfillCityState:
         assert len(updates) == 2
         assert updates[0] == (1, "New York", "NY")
         assert updates[1] == (2, "Los Angeles", "CA")
+
+
+# ---------------------------------------------------------------------------
+# Tests: ClubHandler.refresh_club_total_shows
+# ---------------------------------------------------------------------------
+
+class TestRefreshClubTotalShows:
+    """ClubHandler.refresh_club_total_shows executes the UPDATE_CLUB_TOTAL_SHOWS query."""
+
+    def test_calls_execute_with_cursor_with_correct_query(self):
+        """execute_with_cursor is called with UPDATE_CLUB_TOTAL_SHOWS and no extra params."""
+        handler = ClubHandler()
+        with patch.object(handler, "execute_with_cursor") as mock_exec:
+            handler.refresh_club_total_shows()
+
+        mock_exec.assert_called_once_with(ClubQueries.UPDATE_CLUB_TOTAL_SHOWS)
+
+    def test_sql_updates_total_shows_column(self):
+        """SQL contract: UPDATE_CLUB_TOTAL_SHOWS must reference total_shows and shows table."""
+        sql = ClubQueries.UPDATE_CLUB_TOTAL_SHOWS.upper()
+        assert "TOTAL_SHOWS" in sql
+        assert "FROM SHOWS" in sql
+
+    def test_reraises_on_db_error(self):
+        """DB exceptions propagate out of refresh_club_total_shows."""
+        import pytest
+        handler = ClubHandler()
+        with patch.object(handler, "execute_with_cursor", side_effect=RuntimeError("db error")):
+            with pytest.raises(RuntimeError, match="db error"):
+                handler.refresh_club_total_shows()

@@ -356,6 +356,19 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         )
         return updated
 
+    def refresh_club_total_shows(self) -> None:
+        """Recompute total_shows for every club by counting Show rows per club_id.
+
+        Called at the end of each scrape run so the column stays in sync with
+        the current shows table.  Clubs with no shows are set to 0.
+        """
+        try:
+            self.execute_with_cursor(ClubQueries.UPDATE_CLUB_TOTAL_SHOWS)
+            Logger.info("refresh_club_total_shows: club total_shows updated")
+        except Exception as e:
+            Logger.error(f"Error refreshing club total_shows: {str(e)}")
+            raise
+
     def get_clubs_for_scraper(self, scraper_type: str) -> List[Club]:
         """
         Fetch all clubs that use a specific scraper type.
