@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import { useEffect, useState, ReactNode, MouseEvent } from "react";
+import { useEffect, useRef, useState, ReactNode, MouseEvent } from "react";
 
 interface FullScreenModalProps {
     isOpen: boolean;
@@ -14,27 +14,28 @@ const FullScreenModal = ({
 }: FullScreenModalProps) => {
     const [isAnimating, setIsAnimating] = useState(false);
     const [shouldRender, setShouldRender] = useState(false);
+    const savedScrollY = useRef(0);
 
     useEffect(() => {
         if (isOpen) {
             setShouldRender(true);
             setIsAnimating(true);
-            const scrollPosition = window.scrollY;
+            savedScrollY.current = window.scrollY;
             document.body.style.position = "fixed";
-            document.body.style.top = `-${scrollPosition}px`;
+            document.body.style.top = `-${savedScrollY.current}px`;
             document.body.style.width = "100%";
             return () => {
                 document.body.style.position = "";
                 document.body.style.top = "";
                 document.body.style.width = "";
+                window.scrollTo(0, savedScrollY.current);
             };
         } else {
             setIsAnimating(false);
-            const scrollPosition = document.body.style.top;
             document.body.style.position = "";
             document.body.style.top = "";
             document.body.style.width = "";
-            window.scrollTo(0, parseInt(scrollPosition || "0", 10) * -1);
+            window.scrollTo(0, savedScrollY.current);
             const timer = setTimeout(() => setShouldRender(false), 300);
             return () => clearTimeout(timer);
         }

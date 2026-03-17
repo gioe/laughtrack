@@ -110,7 +110,7 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
                             type="submit"
                             disabled={isLoading}
                             className="w-full flex items-center justify-center gap-2 px-6 py-3
-                                border border-[#8B593B] rounded-xl text-[14px] text-white font-dmSans
+                                border border-copper rounded-xl text-[14px] text-white font-dmSans
                                 bg-copper hover:bg-copper/90 transition-colors duration-200
                                 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2
                                 focus:ring-copper disabled:opacity-60 disabled:cursor-not-allowed"
@@ -140,7 +140,7 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
                     className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm rounded-lg"
                 >
                     <div className="flex flex-col items-center gap-2">
-                        <Loader2 className="w-8 h-8 text-[#8B593B] animate-spin" />
+                        <Loader2 className="w-8 h-8 text-copper animate-spin" />
                         <p className="text-sm text-gray-600 font-dmSans">
                             Connecting to your account...
                         </p>
