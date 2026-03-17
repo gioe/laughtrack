@@ -5,32 +5,34 @@ import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { Prisma } from "@prisma/client";
 import { NotFoundError } from "@/objects/NotFoundError";
 
-const COMEDIAN_SELECT = {
-    id: true,
-    uuid: true,
-    name: true,
-    linktree: true,
-    instagramAccount: true,
-    instagramFollowers: true,
-    tiktokAccount: true,
-    tiktokFollowers: true,
-    youtubeAccount: true,
-    youtubeFollowers: true,
-    website: true,
-    popularity: true,
-    lineupItems: {
-        select: {
-            id: true,
-        },
-        where: {
-            show: {
-                date: {
-                    gt: new Date(),
+function buildComedianSelect() {
+    return {
+        id: true,
+        uuid: true,
+        name: true,
+        linktree: true,
+        instagramAccount: true,
+        instagramFollowers: true,
+        tiktokAccount: true,
+        tiktokFollowers: true,
+        youtubeAccount: true,
+        youtubeFollowers: true,
+        website: true,
+        popularity: true,
+        lineupItems: {
+            select: {
+                id: true,
+            },
+            where: {
+                show: {
+                    date: {
+                        gt: new Date(),
+                    },
                 },
             },
         },
-    },
-} as const;
+    } as const;
+}
 
 export async function findComedianByName(
     helper: QueryHelper,
@@ -49,7 +51,7 @@ export async function findComedianByName(
                 },
             },
             select: {
-                ...COMEDIAN_SELECT,
+                ...buildComedianSelect(),
                 ...(helper.getProfileId()
                     ? {
                           favoriteComedians: {
