@@ -188,6 +188,16 @@ describe("findShowsWithCount", () => {
                 findShowsWithCount(makeHelper() as any),
             ).rejects.toThrow("An unknown error occurred while fetching shows");
         });
+
+        it("propagates an Error thrown by db.show.findMany to the caller", async () => {
+            const dbError = new Error("DB findMany failed");
+            mockCount.mockResolvedValue(1);
+            mockFindMany.mockRejectedValue(dbError);
+
+            await expect(
+                findShowsWithCount(makeHelper() as any),
+            ).rejects.toThrow("DB findMany failed");
+        });
     });
 
     describe("soldOut mapping", () => {

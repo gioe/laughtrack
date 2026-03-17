@@ -97,6 +97,10 @@ export async function findShowsWithCount(
             ...helper.getShowTagsClause(),
         };
 
+        // Sequential awaits instead of a RepeatableRead transaction — slight count/data
+        // skew between the two calls is acceptable for paginated search (same pattern
+        // as findComediansWithCount and findClubsWithCount). The transaction was
+        // crashing on Neon serverless (digest 3246448085).
         const totalCount = await db.show.count({
             where: whereClause,
         });
