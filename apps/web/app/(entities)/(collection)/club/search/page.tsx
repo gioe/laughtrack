@@ -2,13 +2,13 @@ import { CACHE } from "@/util/constants/cacheConstants";
 import { auth } from "@/auth";
 import FilterModal from "@/ui/components/modals/filter";
 import FilterBar from "@/ui/pages/search/filterBar";
-import ClubGrid from "@/ui/components/grid/club";
 import SearchDetailHeader from "@/ui/pages/search/header";
 import { SearchVariant } from "@/objects/enum/searchVariant";
 import { getSearchedClubs } from "@/lib/data/club/search/getSearchedClubs";
 import { unstable_cache } from "next/cache";
 import { ParameterizedRequestData } from "@/objects/interface";
 import { toSearchParams } from "@/util/search/toSearchParams";
+import ClubSearchClient from "@/ui/pages/search/club/ClubSearchClient";
 import { cookies } from "next/headers";
 
 interface ClubSearchPageProps {
@@ -38,7 +38,7 @@ export default async function ClubSearchPage(props: ClubSearchPageProps) {
                 try {
                     return await getSearchedClubs(requestData);
                 } catch (error) {
-                    console.error("Club serach page data fetch error:", error);
+                    console.error("Club search page data fetch error:", error);
                     throw error;
                 }
             },
@@ -67,7 +67,11 @@ export default async function ClubSearchPage(props: ClubSearchPageProps) {
                 total={total}
                 filters={filters.length}
             />
-            <ClubGrid clubs={data} />
+            <ClubSearchClient
+                initialData={data}
+                initialTotal={total}
+                initialFilters={filters}
+            />
         </>
     );
 }

@@ -5,6 +5,13 @@ import { SearchVariant } from "@/objects/enum/searchVariant";
 import { FilterModalButton } from "@/ui/components/params/filter";
 import { PageParamComponent } from "@/ui/components/params/page";
 import ClubSearchBar from "@/ui/components/params/search/pages/club/all";
+
+// Variants that use infinite scroll — no pagination controls needed
+const INFINITE_SCROLL_VARIANTS = new Set([
+    SearchVariant.AllClubs,
+    SearchVariant.AllComedians,
+    SearchVariant.AllShows,
+]);
 import ClubDetailSearchBar from "@/ui/components/params/search/pages/club/detail";
 import ComedianSearchBar from "@/ui/components/params/search/pages/comedian/all";
 import ComedianDetailSearchBar from "@/ui/components/params/search/pages/comedian/detail";
@@ -80,8 +87,10 @@ const FilterBar = ({ variant, total, filters }: FilterBarProps) => {
                             aria-hidden="true"
                         />
 
-                        {/* Pagination */}
-                        <PageParamComponent itemCount={total} />
+                        {/* Pagination — hidden for infinite-scroll variants */}
+                        {!INFINITE_SCROLL_VARIANTS.has(variant) && (
+                            <PageParamComponent itemCount={total} />
+                        )}
                     </div>
                 </div>
             </div>

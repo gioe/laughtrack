@@ -3,10 +3,10 @@ import { auth } from "@/auth";
 import { SearchVariant } from "@/objects/enum/searchVariant";
 import { getSearchedComedians } from "@/lib/data/comedian/search/getSearchedComedians";
 import { unstable_cache } from "next/cache";
-import ComedianGrid from "@/ui/components/grid/comedian";
 import SearchDetailHeader from "@/ui/pages/search/header";
 import FilterModal from "@/ui/components/modals/filter";
 import FilterBar from "@/ui/pages/search/filterBar";
+import ComedianSearchClient from "@/ui/pages/search/comedian/ComedianSearchClient";
 import { ParameterizedRequestData } from "@/objects/interface";
 import { toSearchParams } from "@/util/search/toSearchParams";
 import { cookies } from "next/headers";
@@ -76,9 +76,10 @@ export default async function ComedianSearchPage(
                 filters={filters.length}
             />
 
-            <ComedianGrid
-                comedians={data}
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6"
+            <ComedianSearchClient
+                initialData={data}
+                initialTotal={total}
+                initialFilters={filters}
             />
         </>
     );

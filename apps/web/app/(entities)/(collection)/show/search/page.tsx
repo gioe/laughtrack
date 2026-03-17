@@ -6,7 +6,7 @@ import { getSearchedShows } from "@/lib/data/show/search/getSearchedShows";
 import { ParameterizedRequestData } from "@/objects/interface";
 import { toSearchParams } from "@/util/search/toSearchParams";
 import FilterBar from "@/ui/pages/search/filterBar";
-import ShowTable from "@/ui/pages/search/table";
+import ShowSearchClient from "@/ui/pages/search/show/ShowSearchClient";
 import FilterModal from "@/ui/components/modals/filter";
 import { cookies } from "next/headers";
 
@@ -43,6 +43,7 @@ export default async function ShowSearchPage(props: any) {
 
     const { data, total, filters } =
         await getCachedSearchPageData(requestData)();
+
     return (
         <>
             <FilterModal filters={filters} total={total} />
@@ -51,7 +52,11 @@ export default async function ShowSearchPage(props: any) {
                 total={total}
                 filters={filters.length}
             />
-            <ShowTable shows={data} />
+            <ShowSearchClient
+                initialData={data}
+                initialTotal={total}
+                initialFilters={filters}
+            />
         </>
     );
 }
