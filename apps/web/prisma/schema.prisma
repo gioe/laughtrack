@@ -24,6 +24,7 @@ model Club {
   timezone           String?             @map("timezone")
   visible            Boolean?            @default(true)
   scraper            String?
+  totalShows         Int                 @default(0) @map("total_shows")
   shows              Show[]
   taggedClubs        TaggedClub[]
   emailSubscriptions EmailSubscription[]
