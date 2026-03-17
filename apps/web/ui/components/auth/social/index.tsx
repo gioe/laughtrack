@@ -28,7 +28,7 @@ const SocialButton = ({ provider, onClick, children }: SocialButtonProps) => {
                 border border-gray-200 rounded-xl text-[14px] text-gray-700 font-dmSans
                 bg-white hover:bg-gray-50 transition-colors duration-200
                 shadow-sm hover:shadow focus:outline-none focus:ring-2
-                focus:ring-offset-2 focus:ring-[#8B593B]"
+                focus:ring-offset-2 focus:ring-copper"
         >
             <div className="flex items-center justify-center w-5 h-5">
                 {logos[provider]}

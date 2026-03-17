@@ -111,9 +111,9 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
                             disabled={isLoading}
                             className="w-full flex items-center justify-center gap-2 px-6 py-3
                                 border border-[#8B593B] rounded-xl text-[14px] text-white font-dmSans
-                                bg-[#8B593B] hover:bg-[#7a4e33] transition-colors duration-200
+                                bg-copper hover:bg-copper/90 transition-colors duration-200
                                 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2
-                                focus:ring-[#8B593B] disabled:opacity-60 disabled:cursor-not-allowed"
+                                focus:ring-copper disabled:opacity-60 disabled:cursor-not-allowed"
                         >
                             {isLoading ? (
                                 <>
