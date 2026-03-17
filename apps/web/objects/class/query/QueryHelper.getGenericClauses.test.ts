@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { QueryHelper } from "./QueryHelper";
 import { SortParamValue } from "@/objects/enum/sortParamValue";
 
-const TIEBREAKER = [{ totalShows: "desc" }, { name: "asc" }];
+const TIEBREAKER = [{ name: "asc" }];
 
 function makeHelper(sort: string): QueryHelper {
     return new QueryHelper({
