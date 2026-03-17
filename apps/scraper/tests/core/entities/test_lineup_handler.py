@@ -422,3 +422,87 @@ class TestBatchUpdateLineupsComedianHandlerInjection:
 
         my_handler.insert_comedians.assert_called_once()
         other_handler.insert_comedians.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# Tests: LineupHandler.batch_update_lineups — lineup mutation (add/remove)
+# ---------------------------------------------------------------------------
+
+class TestBatchUpdateLineupsLineupMutation:
+    def _make_handler(self):
+        h = _make_lineup_handler()
+        h.batch_add_lineup_items = MagicMock()
+        h.batch_delete_lineup_items = MagicMock()
+        return h
+
+    def test_batch_add_lineup_items_called_with_correct_items_when_comedian_added(self):
+        """batch_add_lineup_items receives the LineupItem for each newly added comedian."""
+        h = self._make_handler()
+        comedian_handler = MagicMock()
+
+        new_comedian = MagicMock()
+        new_comedian.uuid = "uuid-new"
+
+        show = MagicMock()
+        show.id = 1
+        show.lineup = [new_comedian]
+
+        sentinel = object()
+        with patch.object(_lineup_handler_mod.LineupItem, "create_lineup_item", return_value=sentinel) as mock_create:
+            h.batch_update_lineups(
+                shows=[show],
+                current_lineups={},  # empty — comedian is new
+                comedian_handler=comedian_handler,
+            )
+
+        mock_create.assert_called_once_with(1, "uuid-new")
+        h.batch_add_lineup_items.assert_called_once_with([sentinel])
+        h.batch_delete_lineup_items.assert_not_called()
+
+    def test_batch_delete_lineup_items_called_with_correct_items_when_comedian_removed(self):
+        """batch_delete_lineup_items receives the LineupItem for each departed comedian."""
+        h = self._make_handler()
+        comedian_handler = MagicMock()
+
+        old_comedian = MagicMock()
+        old_comedian.uuid = "uuid-old"
+
+        show = MagicMock()
+        show.id = 5
+        show.lineup = []  # comedian has left
+
+        sentinel = object()
+        with patch.object(_lineup_handler_mod.LineupItem, "create_lineup_item", return_value=sentinel) as mock_create:
+            h.batch_update_lineups(
+                shows=[show],
+                current_lineups={5: [old_comedian]},
+                comedian_handler=comedian_handler,
+            )
+
+        mock_create.assert_called_once_with(5, "uuid-old")
+        h.batch_delete_lineup_items.assert_called_once_with([sentinel])
+        h.batch_add_lineup_items.assert_not_called()
+
+    def test_neither_add_nor_delete_called_when_lineup_unchanged(self):
+        """No mutation calls when the new lineup matches the current lineup exactly."""
+        h = self._make_handler()
+        comedian_handler = MagicMock()
+
+        comedian = MagicMock()
+        comedian.uuid = "uuid-same"
+
+        current_comedian = MagicMock()
+        current_comedian.uuid = "uuid-same"
+
+        show = MagicMock()
+        show.id = 9
+        show.lineup = [comedian]
+
+        h.batch_update_lineups(
+            shows=[show],
+            current_lineups={9: [current_comedian]},
+            comedian_handler=comedian_handler,
+        )
+
+        h.batch_add_lineup_items.assert_not_called()
+        h.batch_delete_lineup_items.assert_not_called()
