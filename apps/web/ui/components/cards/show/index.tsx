@@ -16,6 +16,18 @@ import { Divider } from "../../divider";
 //   sm  → 576–897px         (mobile landscape)
 //   md  → 898–1199px        (tablet)
 //   lg  → min-width 1200px  (desktop)
+// Module-level Set that persists for the lifetime of the JS module (i.e., the browser session tab).
+// Purpose: suppress entry animations when a ShowCard remounts for a show the user has already seen
+// this session (e.g., navigating away and returning to the same search results).
+//
+// Trade-off: first-visit cards animate in; return-visit cards skip the animation.
+// This is intentional — re-animating already-seen cards on back-navigation is jarring.
+// Framer's `viewport={{ once: true }}` only suppresses within one component lifecycle;
+// this Set extends that guarantee across remounts.
+//
+// An alternative (per-route context) was evaluated and ruled out: the added complexity
+// is not justified for this UX improvement given that the suppress-on-return behavior
+// is acceptable and consistent with common list animation patterns.
 const seenShowIds = new Set<number>();
 
 interface ShowCardProps {
