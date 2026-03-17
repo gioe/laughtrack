@@ -1,12 +1,14 @@
 """Lineup database handler for lineup-specific operations."""
 
-from typing import Dict, List
+from typing import TYPE_CHECKING, Dict, List
 
 from laughtrack.core.data.base_handler import BaseDatabaseHandler
 from sql.lineup_queries import LineupQueries
 
-from laughtrack.core.entities.comedian.handler import ComedianHandler
 from laughtrack.core.entities.comedian.model import Comedian
+
+if TYPE_CHECKING:
+    from laughtrack.core.entities.comedian.handler import ComedianHandler
 from laughtrack.core.entities.show.model import Show
 from laughtrack.foundation.infrastructure.database.template import BatchTemplateGenerator
 from laughtrack.foundation.infrastructure.logger.logger import Logger
@@ -25,13 +27,19 @@ class LineupHandler(BaseDatabaseHandler[LineupItem]):
         """Return the LineupItem class for instantiation."""
         return LineupItem
 
-    def batch_update_lineups(self, shows: List[Show], current_lineups: Dict[int, List[Comedian]]) -> None:
+    def batch_update_lineups(
+        self,
+        shows: List[Show],
+        current_lineups: Dict[int, List[Comedian]],
+        comedian_handler: "ComedianHandler",
+    ) -> None:
         """
         Update lineups for multiple shows in batch.
 
         Args:
             shows: List of shows to update
             current_lineups: Dictionary mapping show IDs to their current lineups
+            comedian_handler: Handler used to insert any new comedians before updating lineups
         """
         # Collect all lineup changes
         to_add = []
@@ -63,7 +71,6 @@ class LineupHandler(BaseDatabaseHandler[LineupItem]):
         # First insert any new comedians into the database
         all_comedians = list({comedian for show in shows for comedian in show.lineup})
         if all_comedians:
-            comedian_handler = ComedianHandler()
             comedian_handler.insert_comedians(all_comedians)
 
         # Then perform batch lineup updates

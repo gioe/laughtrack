@@ -360,7 +360,7 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             self._process_comedian_additions(shows, show_name_comedians_map)
 
             # Batch update all lineups at once
-            self.lineup_handler.batch_update_lineups(shows, db_lineups)
+            self.lineup_handler.batch_update_lineups(shows, db_lineups, self.comedian_handler)
 
             # Collect all comedian UUIDs and update popularity
             comedian_uuids = ShowUtils.collect_comedian_uuids(shows)
