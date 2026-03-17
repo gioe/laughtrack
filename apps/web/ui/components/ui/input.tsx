@@ -1,15 +1,13 @@
-/* eslint-disable @typescript-eslint/no-empty-object-type */
 import * as React from "react";
-import { useStyleContext } from "@/contexts/StyleProvider";
 import { cn } from "@/lib/utils";
 
 export interface InputProps
-    extends React.InputHTMLAttributes<HTMLInputElement> {}
+    extends React.InputHTMLAttributes<HTMLInputElement> {
+    inputTextColor?: string;
+}
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-    ({ className, type, ...props }, ref) => {
-        const { getCurrentStyles } = useStyleContext();
-        const styleConfig = getCurrentStyles();
+    ({ className, type, inputTextColor = "text-black", ...props }, ref) => {
         return (
             <input
                 type={type}
@@ -24,7 +22,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                     disabled:cursor-not-allowed disabled:opacity-50
                     placeholder:text-sm sm:placeholder:text-base
                     placeholder:text-gray-400`,
-                    styleConfig.inputTextColor,
+                    inputTextColor,
                     className,
                 )}
                 ref={ref}
