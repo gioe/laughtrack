@@ -356,20 +356,10 @@ class TestUpdateShowsAndRelatedCallsLineup:
 # Tests: LineupHandler.batch_update_lineups — comedian_handler injection
 # ---------------------------------------------------------------------------
 
-def _make_show_with_lineup(*comedian_names):
-    """Return a MagicMock show whose .lineup is a list of comedian mocks."""
-    show = MagicMock()
-    show.id = id(show)  # unique int
-    show.lineup = [MagicMock(name=n) for n in comedian_names]
-    return show
-
-
 class TestBatchUpdateLineupsComedianHandlerInjection:
     def _make_handler(self):
         h = _make_lineup_handler()
-        # get_lineup returns empty dict (no existing lineups) so all comedians are new
-        h.execute_with_cursor.return_value = []
-        # batch ops are no-ops
+        # batch ops are no-ops (batch_update_lineups uses execute_batch_operation for add/remove)
         h.execute_batch_operation.return_value = None
         return h
 
@@ -395,8 +385,7 @@ class TestBatchUpdateLineupsComedianHandlerInjection:
         comedian_handler.insert_comedians.assert_called_once()
         args, _ = comedian_handler.insert_comedians.call_args
         inserted = set(args[0])
-        assert c1 in inserted
-        assert c2 in inserted
+        assert inserted == {c1, c2}
 
     def test_insert_comedians_not_called_when_all_shows_have_empty_lineups(self):
         """insert_comedians() must NOT be called when all shows have no lineup members."""
