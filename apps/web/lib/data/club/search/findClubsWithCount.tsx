@@ -49,10 +49,21 @@ export async function findClubsWithCount(
         });
 
         // Then get filtered clubs with pagination
+        const { orderBy, take, skip } =
+            queryHelper.getGenericClauses(totalCount);
+        // Inject totalShows tiebreaker after the primary sort so more-active clubs
+        // surface first among ties — valid because Club now has a totalShows column.
+        const clubOrderBy = [
+            orderBy[0],
+            { totalShows: "desc" as const },
+            ...orderBy.slice(1),
+        ];
         const filteredClubs = await db.club.findMany({
             where: whereClause,
             select: buildClubSelect(),
-            ...queryHelper.getGenericClauses(totalCount),
+            orderBy: clubOrderBy,
+            take,
+            skip,
         });
 
         return {
