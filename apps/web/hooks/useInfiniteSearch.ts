@@ -51,6 +51,7 @@ export function useInfiniteSearch<T>({
     paramsRef.current = params;
 
     const observerRef = useRef<IntersectionObserver | null>(null);
+    const abortControllerRef = useRef<AbortController | null>(null);
 
     const loadMore = useCallback(async () => {
         if (isLoadingRef.current) return;
@@ -59,6 +60,8 @@ export function useInfiniteSearch<T>({
         setIsLoading(true);
 
         const page = nextPageRef.current;
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
 
         try {
             const query = new URLSearchParams();
@@ -68,7 +71,9 @@ export function useInfiniteSearch<T>({
             query.set("page", String(page));
             query.set("size", String(pageSize));
 
-            const res = await fetch(`${endpoint}?${query.toString()}`);
+            const res = await fetch(`${endpoint}?${query.toString()}`, {
+                signal: controller.signal,
+            });
             if (!res.ok) throw new Error(`${res.status}`);
 
             const json = (await res.json()) as { data: T[]; total: number };
@@ -89,6 +94,7 @@ export function useInfiniteSearch<T>({
             loadedCountRef.current = newCount;
             nextPageRef.current = page + 1;
         } catch (err) {
+            if (err instanceof Error && err.name === "AbortError") return;
             console.error("useInfiniteSearch fetch error:", err);
             setIsError(true);
             setErrorMessage(
@@ -104,6 +110,8 @@ export function useInfiniteSearch<T>({
     useEffect(() => {
         if (paramsKey === prevParamsKey.current) return;
         prevParamsKey.current = paramsKey;
+
+        abortControllerRef.current?.abort();
 
         nextPageRef.current = 0;
         loadedCountRef.current = 0;
