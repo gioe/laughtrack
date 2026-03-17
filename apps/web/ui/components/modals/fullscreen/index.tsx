@@ -19,31 +19,25 @@ const FullScreenModal = ({
         if (isOpen) {
             setShouldRender(true);
             setIsAnimating(true);
-            // Save the current scroll position
             const scrollPosition = window.scrollY;
-            // Add styles to prevent scrolling and maintain position
             document.body.style.position = "fixed";
             document.body.style.top = `-${scrollPosition}px`;
             document.body.style.width = "100%";
+            return () => {
+                document.body.style.position = "";
+                document.body.style.top = "";
+                document.body.style.width = "";
+            };
         } else {
             setIsAnimating(false);
-            // Wait for animation to complete before unmounting
-            const timer = setTimeout(() => setShouldRender(false), 300);
-            // Restore scrolling and position when modal closes
             const scrollPosition = document.body.style.top;
             document.body.style.position = "";
             document.body.style.top = "";
             document.body.style.width = "";
             window.scrollTo(0, parseInt(scrollPosition || "0", 10) * -1);
+            const timer = setTimeout(() => setShouldRender(false), 300);
             return () => clearTimeout(timer);
         }
-
-        // Cleanup function to restore scrolling if component unmounts
-        return () => {
-            document.body.style.position = "";
-            document.body.style.top = "";
-            document.body.style.width = "";
-        };
     }, [isOpen]);
 
     if (!shouldRender) return null;
