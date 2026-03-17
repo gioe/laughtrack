@@ -27,7 +27,6 @@ Exit codes:
 
 import json
 import os
-import sqlite3
 import subprocess
 import sys
 
@@ -80,34 +79,14 @@ def run(args: list[str], check: bool = True, cwd: str | None = None) -> subproce
     return subprocess.run(args, capture_output=True, text=True, check=check, cwd=cwd)
 
 
-def load_test_command(config_path: str, task_id: int | None = None, db_path: str | None = None) -> str:
-    """Load test command from config.
-
-    If domain_test_commands is defined and the task's domain has an entry,
-    that domain-specific command is returned instead of the global test_command.
-    Falls back to the global test_command when no domain match is found.
-    """
+def load_test_command(config_path: str) -> str:
+    """Load test_command from config, defaulting to empty string (disabled)."""
     try:
         with open(config_path) as f:
             config = json.load(f)
+        return config.get("test_command", "") or ""
     except Exception:
         return ""
-
-    domain_cmds: dict = config.get("domain_test_commands") or {}
-    if domain_cmds and task_id is not None and db_path and os.path.exists(db_path):
-        try:
-            conn = sqlite3.connect(db_path)
-            conn.row_factory = sqlite3.Row
-            try:
-                row = conn.execute("SELECT domain FROM tasks WHERE id = ?", (task_id,)).fetchone()
-            finally:
-                conn.close()
-            if row and row["domain"] and row["domain"] in domain_cmds:
-                return domain_cmds[row["domain"]] or ""
-        except Exception:
-            pass
-
-    return config.get("test_command", "") or ""
 
 
 def main(argv: list[str]) -> int:
@@ -217,20 +196,26 @@ def main(argv: list[str]) -> int:
                 abs_path = abs_path_root
             else:
                 abs_path = abs_path_cwd  # let pre-flight emit the diagnostic
-            # Always call realpath (not guarded by os.path.exists) so that
-            # case-mismatched path components are normalised even for new files
-            # that don't exist on disk yet.  realpath resolves all existing
-            # ancestors to their canonical form and passes through any
-            # non-existing tail unchanged (strict=False default behaviour).
+            # realpath is used only for the escape check: resolving symlinks
+            # and case differences ensures _escapes_root gives the correct
+            # answer on all platforms.  It must NOT be used to compute the
+            # path we hand to git add — if a directory component is a symlink
+            # (e.g. apps/web -> packages/web), realpath would silently replace
+            # the symlink name with its target, producing a path git doesn't
+            # recognise (GitHub Issue #365).
+            #
+            # We pass real_repo_root (not repo_root) to _make_relative so that a
+            # symlinked repo root (e.g. sym_repo -> real_repo, GitHub Issue #628)
+            # is resolved before the prefix comparison — without this, the relpath
+            # fallback inside _make_relative produces '..' components.  Critically,
+            # abs_path is NOT realpath'd, preserving symlink names inside the file
+            # path.  _make_relative's case-insensitive prefix logic handles the
+            # macOS case-divergence scenario (#363) without requiring realpath on
+            # abs_path.
             real_abs = os.path.realpath(abs_path)
             if _escapes_root(real_abs, real_repo_root):
                 escape_errors.append((f, abs_path))
-            # Use real paths for _make_relative so symlink divergence between
-            # abs_path/repo_root cannot produce '..' components.  _escapes_root
-            # has already confirmed real_abs is inside real_repo_root, so
-            # _make_relative is guaranteed to return a clean relative path.
-            # On macOS, _make_relative handles case-insensitive prefix matching.
-            resolved = _make_relative(real_abs, real_repo_root)
+            resolved = _make_relative(abs_path, real_repo_root)
             resolved_files.append(resolved)
 
     if escape_errors:
@@ -266,11 +251,31 @@ def main(argv: list[str]) -> int:
 
     # Pre-flight: verify each resolved path exists so we can emit a useful diagnostic
     # before git produces a cryptic "pathspec did not match" error.
-    missing = [
+    # Exception: files absent from disk but still tracked by git are valid deletions —
+    # `git add` stages their removal natively and they must not be rejected as missing.
+    not_on_disk = [
         (orig, resolved)
         for orig, resolved in zip(files, resolved_files)
         if not os.path.exists(resolved if os.path.isabs(resolved) else os.path.join(repo_root, resolved))
     ]
+    missing = not_on_disk
+    if not_on_disk:
+        # Convert to repo-root-relative paths for `git ls-files` (which outputs relative paths).
+        rel_for_git = [
+            os.path.relpath(resolved, repo_root) if os.path.isabs(resolved) else resolved
+            for _, resolved in not_on_disk
+        ]
+        ls = run(
+            ["git", "ls-files", "--"] + rel_for_git,
+            check=False,
+            cwd=repo_root,
+        )
+        git_tracked = set(ls.stdout.splitlines())
+        missing = [
+            (orig, resolved)
+            for (orig, resolved), rel in zip(not_on_disk, rel_for_git)
+            if rel not in git_tracked
+        ]
     if missing:
         for orig, resolved in missing:
             was_remapped = orig != resolved
@@ -299,8 +304,7 @@ def main(argv: list[str]) -> int:
         print()
 
     # ── Step 2: Run test_command gate (hard-blocks on failure) ───────
-    db_path = os.environ.get("TUSK_DB") or os.path.join(repo_root, "tusk", "tasks.db")
-    test_cmd = load_test_command(config_path, task_id=task_id, db_path=db_path)
+    test_cmd = load_test_command(config_path)
     if test_cmd and not skip_verify:
         print(f"=== Running test_command: {test_cmd} ===")
         test = subprocess.run(test_cmd, shell=True, capture_output=False, cwd=repo_root)

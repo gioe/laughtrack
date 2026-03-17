@@ -31,7 +31,7 @@ def cmd_validate(config_path: str) -> int:
     errors = []
 
     # ── Check for unknown top-level keys ──
-    KNOWN_KEYS = {'domains', 'task_types', 'statuses', 'priorities', 'closed_reasons', 'complexity', 'blocker_types', 'criterion_types', 'agents', 'dupes', 'review', 'review_categories', 'review_severities', 'merge', 'test_command', 'domain_test_commands'}
+    KNOWN_KEYS = {'domains', 'task_types', 'statuses', 'priorities', 'closed_reasons', 'complexity', 'blocker_types', 'criterion_types', 'agents', 'dupes', 'review', 'review_categories', 'review_severities', 'merge', 'test_command'}
     known_list = ', '.join(sorted(KNOWN_KEYS))
     unknown = set(cfg.keys()) - KNOWN_KEYS
     if unknown:
@@ -172,18 +172,6 @@ def cmd_validate(config_path: str) -> int:
         tc = cfg['test_command']
         if tc is not None and not isinstance(tc, str):
             errors.append(f'"test_command" must be a string (got {type(tc).__name__}: {tc!r}).')
-
-    # ── Validate domain_test_commands (optional dict of string→string) ──
-    if 'domain_test_commands' in cfg:
-        dtc = cfg['domain_test_commands']
-        if not isinstance(dtc, dict):
-            errors.append(f'"domain_test_commands" must be an object (got {type(dtc).__name__}).')
-        else:
-            for k, v in dtc.items():
-                if not isinstance(k, str):
-                    errors.append(f'"domain_test_commands" keys must be strings (got {type(k).__name__}: {k!r}).')
-                if v is not None and not isinstance(v, str):
-                    errors.append(f'"domain_test_commands.{k}" must be a string or null (got {type(v).__name__}: {v!r}).')
 
     # ── Report ──
     if errors:

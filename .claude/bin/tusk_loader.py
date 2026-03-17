@@ -1,34 +1,40 @@
-"""Dynamic module loader for hyphenated tusk script filenames.
+"""tusk_loader — generic loader for hyphenated bin/tusk-*.py modules.
 
-Python cannot import modules with hyphens in their names via normal import
-statements. This loader provides a `load()` function that imports them by
-path so other tusk scripts can share code from tusk-db-lib.py etc.
+Python cannot import hyphenated filenames directly. This module provides a
+single load() function that handles importlib boilerplate for all callers.
 
-Usage:
+Usage in any bin/tusk-*.py script:
+
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     import tusk_loader
+
     _db_lib = tusk_loader.load("tusk-db-lib")
+    _pricing = tusk_loader.load("tusk-pricing-lib")
 """
 
 import importlib.util
 import os
+import sys
+
+_BIN_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-def load(module_name: str):
-    """Load a tusk-*.py module by its hyphenated name (without .py extension).
+def load(name: str):
+    """Load a bin/tusk-*.py module by its hyphenated filename stem.
 
     Args:
-        module_name: The hyphenated module name, e.g. "tusk-db-lib"
+        name: the stem of the file, e.g. "tusk-db-lib" or "tusk-pricing-lib".
 
     Returns:
         The loaded module object.
     """
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(script_dir, f"{module_name}.py")
-
-    spec = importlib.util.spec_from_file_location(module_name, file_path)
-    if spec is None or spec.loader is None:
-        raise ImportError(f"Cannot load module '{module_name}' from {file_path}")
-
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+    module_name = name.replace("-", "_")
+    cached = sys.modules.get(module_name)
+    if cached is not None:
+        return cached
+    path = os.path.join(_BIN_DIR, f"{name}.py")
+    spec = importlib.util.spec_from_file_location(module_name, path)
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = mod
+    spec.loader.exec_module(mod)
+    return mod
