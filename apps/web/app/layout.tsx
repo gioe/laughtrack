@@ -4,7 +4,6 @@ import { Suspense } from "react";
 import { ScrollPositionManager } from "@/ui/components/scroll/manager";
 import { HeroUIProvider } from "@heroui/react";
 import { SessionProvider } from "next-auth/react";
-import { Analytics } from "@vercel/analytics/react";
 import {
     Bebas_Neue,
     Oswald,
@@ -15,7 +14,6 @@ import {
     Outfit,
 } from "next/font/google";
 import type { Metadata } from "next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import ToasterProvider from "@/contexts/ToasterProvider";
 import LoginModal from "@/ui/components/modals/login";
 import { StyleContextProvider } from "@/contexts/StyleProvider";
@@ -111,8 +109,6 @@ export default async function RootLayout({
                                 <ClientTimezone />
                                 <ErrorBoundary>{children}</ErrorBoundary>
                             </StyleContextProvider>
-                            <Analytics />
-                            <SpeedInsights />
                         </TimezoneProvider>
                     </HeroUIProvider>
                 </body>
