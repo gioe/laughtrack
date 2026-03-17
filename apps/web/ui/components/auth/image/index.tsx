@@ -8,7 +8,7 @@ export default function AuthImageContent() {
     const { mv } = useMotionProps();
 
     return (
-        <div className="invisible lg:visible lg:w-1/2 lg:relative lg:bg-gray-900 overflow-hidden">
+        <div className="hidden lg:block lg:w-1/2 lg:relative lg:bg-gray-900 overflow-hidden">
             <motion.div
                 initial={{ scale: mv(1.1, 1), opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
