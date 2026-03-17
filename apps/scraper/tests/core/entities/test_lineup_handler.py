@@ -25,10 +25,12 @@ _SCRAPER_ROOT = Path(__file__).parents[3]  # apps/scraper/
 
 
 def _load_module(rel_path: str, module_name: str):
+    if module_name in sys.modules:
+        return sys.modules[module_name]
     path = _SCRAPER_ROOT / rel_path
     spec = importlib.util.spec_from_file_location(module_name, path)
     mod = importlib.util.module_from_spec(spec)
-    sys.modules[module_name] = mod
+    sys.modules.setdefault(module_name, mod)
     _ensure_psycopg2_stubbed()
     spec.loader.exec_module(mod)
     return mod
@@ -44,9 +46,9 @@ def _ensure_psycopg2_stubbed():
         extensions.connection = object
         psycopg2.extras = extras
         psycopg2.extensions = extensions
-        sys.modules["psycopg2"] = psycopg2
-        sys.modules["psycopg2.extras"] = extras
-        sys.modules["psycopg2.extensions"] = extensions
+        sys.modules.setdefault("psycopg2", psycopg2)
+        sys.modules.setdefault("psycopg2.extras", extras)
+        sys.modules.setdefault("psycopg2.extensions", extensions)
 
 
 def _stub(name: str, as_package: bool = False, **attrs):
@@ -234,6 +236,77 @@ class TestGetComediansFromShowNamesEmptyResults:
 
 
 # ---------------------------------------------------------------------------
+# Tests: get_lineup() happy path — mapping logic
+# ---------------------------------------------------------------------------
+
+class TestGetLineupHappyPath:
+    def test_maps_show_id_to_comedian_list(self):
+        """Verify the dict comprehension correctly maps show_id → [Comedian, ...]."""
+        h = _make_lineup_handler()
+        mock_comedian = MagicMock()
+
+        h.execute_with_cursor.return_value = [
+            {"show_id": 42, "lineup": [{"name": "Alice"}, {"name": "Bob"}]},
+        ]
+
+        with patch.object(_lineup_handler_mod.Comedian, "from_db_row", return_value=mock_comedian):
+            result = h.get_lineup([42])
+
+        assert 42 in result
+        assert len(result[42]) == 2
+        assert result[42][0] is mock_comedian
+
+    def test_multiple_shows_returned(self):
+        h = _make_lineup_handler()
+        comedian_a, comedian_b = MagicMock(), MagicMock()
+
+        h.execute_with_cursor.return_value = [
+            {"show_id": 1, "lineup": [{"name": "Alice"}]},
+            {"show_id": 2, "lineup": [{"name": "Bob"}]},
+        ]
+
+        with patch.object(_lineup_handler_mod.Comedian, "from_db_row", side_effect=[comedian_a, comedian_b]):
+            result = h.get_lineup([1, 2])
+
+        assert set(result.keys()) == {1, 2}
+
+
+# ---------------------------------------------------------------------------
+# Tests: get_comedians_from_show_names() happy path — mapping logic
+# ---------------------------------------------------------------------------
+
+class TestGetComediansFromShowNamesHappyPath:
+    def test_maps_show_name_to_comedian_list(self):
+        h = _make_lineup_handler()
+        mock_comedian = MagicMock()
+
+        h.execute_batch_operation.return_value = [
+            {"show_name": "Comedy Night"},
+        ]
+
+        with patch.object(_lineup_handler_mod.Comedian, "from_db_row", return_value=mock_comedian):
+            result = h.get_comedians_from_show_names([("Comedy Night",)])
+
+        assert "Comedy Night" in result
+        assert result["Comedy Night"] == [mock_comedian]
+
+    def test_groups_multiple_comedians_under_same_show_name(self):
+        h = _make_lineup_handler()
+        c1, c2 = MagicMock(), MagicMock()
+
+        h.execute_batch_operation.return_value = [
+            {"show_name": "Late Night"},
+            {"show_name": "Late Night"},
+        ]
+
+        with patch.object(_lineup_handler_mod.Comedian, "from_db_row", side_effect=[c1, c2]):
+            result = h.get_comedians_from_show_names([("Late Night",)])
+
+        assert len(result["Late Night"]) == 2
+        assert result["Late Night"] == [c1, c2]
+
+
+# ---------------------------------------------------------------------------
 # Tests: ShowHandler._update_shows_and_related — calls update_show_lineups
 # ---------------------------------------------------------------------------
 
@@ -274,5 +347,6 @@ class TestUpdateShowsAndRelatedCallsLineup:
             return_value=updated,
         ):
             with patch.object(h, "update_show_lineups") as mock_lineup:
-                h._update_shows_and_related([MagicMock()], [MagicMock()])
+                result = h._update_shows_and_related([MagicMock()], [MagicMock()])
                 mock_lineup.assert_called_once_with(updated)
+                assert result == updated, "_update_shows_and_related must return the updated shows list"

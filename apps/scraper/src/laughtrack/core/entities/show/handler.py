@@ -373,5 +373,4 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             Logger.info(f"Successfully updated lineups for {len(shows)} shows")
 
         except Exception as e:
-            Logger.error(f"Error updating show lineups: {str(e)}")
-            raise
+            Logger.error(f"Error updating show lineups (non-fatal): {str(e)}")
