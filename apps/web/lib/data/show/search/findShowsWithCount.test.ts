@@ -1,7 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+const { mockCount, mockFindMany } = vi.hoisted(() => ({
+    mockCount: vi.fn(),
+    mockFindMany: vi.fn(),
+}));
+
 vi.mock("@/lib/db", () => ({
-    db: { $transaction: vi.fn() },
+    db: { show: { count: mockCount, findMany: mockFindMany } },
 }));
 vi.mock("@/util/imageUtil", () => ({
     buildClubImageUrl: vi.fn(
@@ -16,9 +21,6 @@ vi.mock("@/util/ticket/ticketUtil", () => ({
 }));
 
 import { findShowsWithCount } from "./findShowsWithCount";
-import { db } from "@/lib/db";
-
-const mockTransaction = vi.mocked(db.$transaction);
 
 function makeHelper(
     overrides: Partial<{
@@ -67,29 +69,18 @@ function makeShow(
     };
 }
 
-function makeTx(countValue: number, findManyImpl?: (args: any) => any) {
-    return {
-        show: {
-            count: vi.fn().mockResolvedValue(countValue),
-            findMany: findManyImpl
-                ? vi.fn().mockImplementation(findManyImpl)
-                : vi.fn().mockResolvedValue([]),
-        },
-    };
-}
-
 beforeEach(() => {
     vi.clearAllMocks();
+    mockFindMany.mockResolvedValue([]);
+    mockCount.mockResolvedValue(0);
 });
 
 describe("findShowsWithCount", () => {
     describe("happy path", () => {
-        it("returns totalCount and mapped shows from the transaction", async () => {
+        it("returns totalCount and mapped shows", async () => {
             const fakeShow = makeShow({ id: 42, name: "Friday Night Laughs" });
-
-            mockTransaction.mockImplementation(async (fn: any) =>
-                fn(makeTx(3, () => Promise.resolve([fakeShow]))),
-            );
+            mockCount.mockResolvedValue(3);
+            mockFindMany.mockResolvedValue([fakeShow]);
 
             const result = await findShowsWithCount(makeHelper() as any);
 
@@ -100,9 +91,8 @@ describe("findShowsWithCount", () => {
         });
 
         it("returns empty shows array when count is 0", async () => {
-            mockTransaction.mockImplementation(async (fn: any) =>
-                fn(makeTx(0, () => Promise.resolve([]))),
-            );
+            mockCount.mockResolvedValue(0);
+            mockFindMany.mockResolvedValue([]);
 
             const result = await findShowsWithCount(makeHelper() as any);
 
@@ -114,10 +104,8 @@ describe("findShowsWithCount", () => {
             const fakeShow = makeShow({
                 club: { name: "Laugh Factory", address: "456 Sunset Blvd" },
             });
-
-            mockTransaction.mockImplementation(async (fn: any) =>
-                fn(makeTx(1, () => Promise.resolve([fakeShow]))),
-            );
+            mockCount.mockResolvedValue(1);
+            mockFindMany.mockResolvedValue([fakeShow]);
 
             const result = await findShowsWithCount(makeHelper() as any);
 
@@ -126,13 +114,10 @@ describe("findShowsWithCount", () => {
         });
     });
 
-    describe("pagination — getGenericClauses receives transaction-sourced count", () => {
-        it("calls helper.getGenericClauses with the count from tx.show.count", async () => {
+    describe("pagination — getGenericClauses receives count", () => {
+        it("calls helper.getGenericClauses with the count from db.show.count", async () => {
             const DB_COUNT = 47;
-
-            mockTransaction.mockImplementation(async (fn: any) =>
-                fn(makeTx(DB_COUNT)),
-            );
+            mockCount.mockResolvedValue(DB_COUNT);
 
             const helper = makeHelper() as any;
             await findShowsWithCount(helper);
@@ -141,16 +126,12 @@ describe("findShowsWithCount", () => {
         });
 
         it("spreads the result of getGenericClauses into the findMany call", async () => {
+            mockCount.mockResolvedValue(20);
             let capturedArgs: any;
-
-            mockTransaction.mockImplementation(async (fn: any) =>
-                fn(
-                    makeTx(20, (args: any) => {
-                        capturedArgs = args;
-                        return Promise.resolve([]);
-                    }),
-                ),
-            );
+            mockFindMany.mockImplementation((args: any) => {
+                capturedArgs = args;
+                return Promise.resolve([]);
+            });
 
             const helper = makeHelper() as any;
             await findShowsWithCount(helper);
@@ -163,9 +144,7 @@ describe("findShowsWithCount", () => {
 
     describe("invocation contract — getClubNameClause and getZipCodeClause", () => {
         it("calls getClubNameClause and getZipCodeClause each once when clauses have values", async () => {
-            mockTransaction.mockImplementation(async (fn: any) =>
-                fn(makeTx(3)),
-            );
+            mockCount.mockResolvedValue(3);
 
             const helper = {
                 ...makeHelper(),
@@ -184,10 +163,6 @@ describe("findShowsWithCount", () => {
         });
 
         it("calls getClubNameClause and getZipCodeClause each once when clauses are empty", async () => {
-            mockTransaction.mockImplementation(async (fn: any) =>
-                fn(makeTx(0)),
-            );
-
             const helper = makeHelper() as any;
             await findShowsWithCount(helper);
 
@@ -197,25 +172,17 @@ describe("findShowsWithCount", () => {
     });
 
     describe("error propagation", () => {
-        it("propagates an Error thrown inside the transaction to the caller", async () => {
-            const dbError = new Error("Transaction failed");
-
-            mockTransaction.mockImplementation(async (fn: any) =>
-                fn({
-                    show: {
-                        count: vi.fn().mockRejectedValue(dbError),
-                        findMany: vi.fn(),
-                    },
-                }),
-            );
+        it("propagates an Error thrown by db.show.count to the caller", async () => {
+            const dbError = new Error("DB count failed");
+            mockCount.mockRejectedValue(dbError);
 
             await expect(
                 findShowsWithCount(makeHelper() as any),
-            ).rejects.toThrow("Transaction failed");
+            ).rejects.toThrow("DB count failed");
         });
 
         it("replaces a non-Error rejection with a generic message", async () => {
-            mockTransaction.mockRejectedValue("string error");
+            mockCount.mockRejectedValue("string error");
 
             await expect(
                 findShowsWithCount(makeHelper() as any),
@@ -226,9 +193,8 @@ describe("findShowsWithCount", () => {
     describe("soldOut mapping", () => {
         it("sets soldOut to false when tickets array is empty", async () => {
             const show = makeShow({ tickets: [] });
-            mockTransaction.mockImplementation(async (fn: any) =>
-                fn(makeTx(1, () => Promise.resolve([show]))),
-            );
+            mockCount.mockResolvedValue(1);
+            mockFindMany.mockResolvedValue([show]);
 
             const result = await findShowsWithCount(makeHelper() as any);
 
@@ -239,9 +205,8 @@ describe("findShowsWithCount", () => {
             const show = makeShow({
                 tickets: [{ soldOut: true }, { soldOut: true }],
             });
-            mockTransaction.mockImplementation(async (fn: any) =>
-                fn(makeTx(1, () => Promise.resolve([show]))),
-            );
+            mockCount.mockResolvedValue(1);
+            mockFindMany.mockResolvedValue([show]);
 
             const result = await findShowsWithCount(makeHelper() as any);
 
@@ -252,9 +217,8 @@ describe("findShowsWithCount", () => {
             const show = makeShow({
                 tickets: [{ soldOut: true }, { soldOut: false }],
             });
-            mockTransaction.mockImplementation(async (fn: any) =>
-                fn(makeTx(1, () => Promise.resolve([show]))),
-            );
+            mockCount.mockResolvedValue(1);
+            mockFindMany.mockResolvedValue([show]);
 
             const result = await findShowsWithCount(makeHelper() as any);
 
@@ -262,32 +226,14 @@ describe("findShowsWithCount", () => {
         });
     });
 
-    describe("transaction options", () => {
-        it("calls db.$transaction with RepeatableRead isolation level", async () => {
-            mockTransaction.mockImplementation(async (fn: any) =>
-                fn(makeTx(0)),
-            );
-
-            await findShowsWithCount(makeHelper() as any);
-
-            expect(mockTransaction).toHaveBeenCalledWith(expect.any(Function), {
-                isolationLevel: "RepeatableRead",
-            });
-        });
-    });
-
     describe("favoriteComedians select", () => {
         it("includes favoriteComedians in the comedian select when profileId is set", async () => {
             let capturedSelect: any;
-
-            mockTransaction.mockImplementation(async (fn: any) =>
-                fn(
-                    makeTx(1, (args: any) => {
-                        capturedSelect = args.select;
-                        return Promise.resolve([makeShow()]);
-                    }),
-                ),
-            );
+            mockCount.mockResolvedValue(1);
+            mockFindMany.mockImplementation((args: any) => {
+                capturedSelect = args.select;
+                return Promise.resolve([makeShow()]);
+            });
 
             const helper = makeHelper({ profileId: "profile-123" });
             await findShowsWithCount(helper as any);
@@ -306,15 +252,11 @@ describe("findShowsWithCount", () => {
 
         it("excludes favoriteComedians from the comedian select when profileId is not set", async () => {
             let capturedSelect: any;
-
-            mockTransaction.mockImplementation(async (fn: any) =>
-                fn(
-                    makeTx(1, (args: any) => {
-                        capturedSelect = args.select;
-                        return Promise.resolve([makeShow()]);
-                    }),
-                ),
-            );
+            mockCount.mockResolvedValue(1);
+            mockFindMany.mockImplementation((args: any) => {
+                capturedSelect = args.select;
+                return Promise.resolve([makeShow()]);
+            });
 
             await findShowsWithCount(
                 makeHelper({ profileId: undefined }) as any,

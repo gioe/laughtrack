@@ -97,49 +97,41 @@ export async function findShowsWithCount(
             ...helper.getShowTagsClause(),
         };
 
-        // Run COUNT and findMany under REPEATABLE READ to guarantee a consistent snapshot
-        const [totalCount, filteredShows] = await db.$transaction(
-            async (tx) => {
-                const count = await tx.show.count({
-                    where: whereClause,
-                });
+        const totalCount = await db.show.count({
+            where: whereClause,
+        });
 
-                const shows = await tx.show.findMany({
-                    where: whereClause,
+        const filteredShows = await db.show.findMany({
+            where: whereClause,
+            select: {
+                ...SHOW_SELECT,
+                lineupItems: {
+                    ...SHOW_SELECT.lineupItems,
                     select: {
-                        ...SHOW_SELECT,
-                        lineupItems: {
-                            ...SHOW_SELECT.lineupItems,
+                        comedian: {
                             select: {
-                                comedian: {
-                                    select: {
-                                        ...SHOW_SELECT.lineupItems.select
-                                            .comedian.select,
-                                        ...(helper.getProfileId()
-                                            ? {
-                                                  favoriteComedians: {
-                                                      where: {
-                                                          profileId:
-                                                              helper.getProfileId(),
-                                                      },
-                                                      select: {
-                                                          id: true,
-                                                      },
-                                                  },
-                                              }
-                                            : {}),
-                                    },
-                                },
+                                ...SHOW_SELECT.lineupItems.select.comedian
+                                    .select,
+                                ...(helper.getProfileId()
+                                    ? {
+                                          favoriteComedians: {
+                                              where: {
+                                                  profileId:
+                                                      helper.getProfileId(),
+                                              },
+                                              select: {
+                                                  id: true,
+                                              },
+                                          },
+                                      }
+                                    : {}),
                             },
                         },
                     },
-                    ...helper.getGenericClauses(count),
-                });
-
-                return [count, shows] as const;
+                },
             },
-            { isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead },
-        );
+            ...helper.getGenericClauses(totalCount),
+        });
         return {
             shows: filteredShows.map((show) => ({
                 id: show.id,
