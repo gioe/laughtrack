@@ -12,18 +12,25 @@ const CLUB_SELECT = {
     state: true,
     website: true,
     zipCode: true,
-    _count: {
-        select: {
-            shows: {
-                where: {
-                    date: {
-                        gt: new Date(),
+} as const;
+
+// Built fresh per request to avoid capturing a stale module-load Date
+function buildClubSelect() {
+    return {
+        ...CLUB_SELECT,
+        _count: {
+            select: {
+                shows: {
+                    where: {
+                        date: {
+                            gt: new Date(),
+                        },
                     },
                 },
             },
         },
-    },
-} as const;
+    } as const;
+}
 
 export async function findClubsWithCount(
     queryHelper: QueryHelper,
@@ -44,7 +51,7 @@ export async function findClubsWithCount(
         // Then get filtered clubs with pagination
         const filteredClubs = await db.club.findMany({
             where: whereClause,
-            select: CLUB_SELECT,
+            select: buildClubSelect(),
             ...queryHelper.getGenericClauses(totalCount),
         });
 
