@@ -136,13 +136,14 @@ class ShowHandler(BaseDatabaseHandler[Show]):
         return items, template
 
     def _update_shows_and_related(self, batch: List[Show], results: List[DictRow]) -> List[Show]:
-        """Update shows with DB results and process tickets and tags."""
+        """Update shows with DB results and process tickets, tags, and lineups."""
         # Update shows with database results
         updated_shows = ShowUtils.update_shows_with_results(batch, results)
 
-        # Process tickets and tags through their handlers
+        # Process tickets, tags, and lineups through their handlers
         self.ticket_handler.insert_tickets(updated_shows)
         self.tag_handler.process_show_tags(updated_shows)
+        self.update_show_lineups(updated_shows)
 
         return updated_shows
 
