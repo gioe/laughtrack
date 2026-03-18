@@ -42,9 +42,9 @@ class StMarksScraper(BaseScraper):
 
     key = "st_marks"
 
-    def __init__(self, club: Club):
+    def __init__(self, club: Club, **kwargs):
         """Initialize the scraper with club information."""
-        super().__init__(club)
+        super().__init__(club, **kwargs)
 
         # Initialize TixrClient with monitoring integration (if available)
         self.tixr_client = create_monitored_tixr_client(club)
@@ -71,8 +71,10 @@ class StMarksScraper(BaseScraper):
             # Normalize the URL
             normalized_url = URLUtils.normalize_url(url)
 
-            # Fetch HTML content using BaseScraper's built-in method
-            html_content = await self.fetch_html(normalized_url)
+            # Fetch HTML via TixrClient's headerless method — DataDome blocks requests
+            # that carry application-level headers (Accept-Language + Cache-Control +
+            # Pragma together); curl_cffi impersonation alone avoids the 403.
+            html_content = await self.tixr_client._fetch_tixr_page(normalized_url)
             if not html_content:
                 Logger.warn(f"No HTML content found at {normalized_url}", self.logger_context)
                 return None
@@ -98,7 +100,7 @@ class StMarksScraper(BaseScraper):
 
             # Process Tixr URLs using batch processing for performance
             results = await self.batch_scraper.process_batch(
-                tixr_urls, lambda url: self.tixr_client.get_event_detail(url), "Tixr event extraction"
+                tixr_urls, lambda url: self.tixr_client.get_event_detail_from_url(url), "Tixr event extraction"
             )
 
             # Filter out None results
