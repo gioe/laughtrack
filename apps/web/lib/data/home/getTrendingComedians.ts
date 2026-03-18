@@ -23,6 +23,7 @@ const MAX_COMEDIANS_LIMIT = 100;
 // has enough variety without pulling an unbounded result set.
 const POOL_MULTIPLIER = 4;
 const MAX_POOL_SIZE = 50;
+const MIN_UPCOMING_SHOWS = 3;
 
 export async function getTrendingComedians(
     limit = 8,
@@ -91,27 +92,35 @@ export async function getTrendingComedians(
         )
         SELECT *
         FROM comedian_counts
-        WHERE show_count > 3
+        WHERE show_count > ${MIN_UPCOMING_SHOWS}
         ORDER BY show_count DESC
         LIMIT ${fetchLimit}
         OFFSET ${fetchOffset}
     `;
 
     let selected: TrendingComedianRow[];
-    if (offset === 0) {
-        // For the first page, fetch a larger pool and shuffle to add variety.
-        const poolSize = Math.min(safeLimit * POOL_MULTIPLIER, MAX_POOL_SIZE);
-        const rows = await cteQuery(poolSize, 0);
-        // Shuffle in application code to avoid ORDER BY RANDOM() full sort at the DB layer.
-        for (let i = rows.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [rows[i], rows[j]] = [rows[j], rows[i]];
+    try {
+        if (offset === 0) {
+            // For the first page, fetch a larger pool and shuffle to add variety.
+            const poolSize = Math.min(
+                safeLimit * POOL_MULTIPLIER,
+                MAX_POOL_SIZE,
+            );
+            const rows = await cteQuery(poolSize, 0);
+            // Shuffle in application code to avoid ORDER BY RANDOM() full sort at the DB layer.
+            for (let i = rows.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [rows[i], rows[j]] = [rows[j], rows[i]];
+            }
+            selected = rows.slice(0, safeLimit);
+        } else {
+            // For paginated requests the shuffle is incompatible with stable paging,
+            // so fetch exactly what the caller asked for at the given offset.
+            selected = await cteQuery(safeLimit, offset);
         }
-        selected = rows.slice(0, safeLimit);
-    } else {
-        // For paginated requests the shuffle is incompatible with stable paging,
-        // so fetch exactly what the caller asked for at the given offset.
-        selected = await cteQuery(safeLimit, offset);
+    } catch (err) {
+        console.error("getTrendingComedians: query failed", err);
+        return [];
     }
 
     return selected.map((row) => ({
