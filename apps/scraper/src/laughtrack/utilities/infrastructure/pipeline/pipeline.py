@@ -5,7 +5,7 @@ This module provides the main pipeline class that manages transformers,
 field extractors, and validators.
 """
 
-from typing import Callable, Dict, List
+from typing import Callable, Dict, List, Type
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
@@ -79,38 +79,57 @@ class ShowTransformationPipeline:
         return shows
 
 
+def _discover_transformer_classes() -> List[Type[DataTransformer]]:
+    """
+    Auto-discover all concrete DataTransformer subclasses under
+    laughtrack.scrapers.implementations by importing every *.transformer module
+    and then walking the DataTransformer subclass tree.
+
+    Mirrors the approach used by ScraperMapping for BaseScraper discovery.
+    """
+    import importlib
+    import pkgutil
+
+    # Import all *.transformer modules so their classes are registered as subclasses
+    try:
+        impl_root = importlib.import_module("laughtrack.scrapers.implementations")
+        pkg_path = getattr(impl_root, "__path__", None)
+        pkg_name = getattr(impl_root, "__name__", "laughtrack.scrapers.implementations")
+
+        if pkg_path:
+            for mod in pkgutil.walk_packages(pkg_path, pkg_name + "."):
+                if mod.name.endswith(".transformer"):
+                    try:
+                        importlib.import_module(mod.name)
+                    except Exception as e:
+                        Logger.warn(f"Failed importing transformer module {mod.name}: {e}")
+    except Exception as e:
+        Logger.error(f"Error discovering transformer modules: {e}")
+
+    # Walk the DataTransformer subclass tree and collect all concrete subclasses
+    seen: set = set()
+    classes: List[Type[DataTransformer]] = []
+    stack: List[Type[DataTransformer]] = [DataTransformer]
+
+    while stack:
+        current = stack.pop()
+        for subclass in current.__subclasses__():
+            if subclass in seen:
+                continue
+            seen.add(subclass)
+            stack.append(subclass)
+            classes.append(subclass)
+
+    # Sort for deterministic registration order
+    classes.sort(key=lambda cls: (cls.__module__, cls.__name__))
+    return classes
+
+
 def create_standard_pipeline(club: Club) -> ShowTransformationPipeline:
-    """Create a pipeline with common transformers and validators."""
+    """Create a pipeline with auto-discovered transformers."""
     pipeline = ShowTransformationPipeline(club)
 
-    # Register common transformers
-    # Import transformers lazily to avoid import-time cycles during discovery
-    from laughtrack.scrapers.implementations.json_ld.transformer import JsonLdTransformer
-    from laughtrack.scrapers.implementations.venues.broadway_comedy_club.transformer import (
-        BroadwayEventTransformer,
-    )
-    from laughtrack.scrapers.implementations.venues.bushwick.transformer import BushwickEventTransformer
-    from laughtrack.scrapers.implementations.venues.comedy_cellar.transformer import (
-        ComedyCellarEventTransformer,
-    )
-    from laughtrack.scrapers.implementations.venues.gotham.transformer import GothamEventTransformer
-    from laughtrack.scrapers.implementations.venues.grove_34.transformer import Grove34EventTransformer
-    from laughtrack.scrapers.implementations.venues.uncle_vinnies.transformer import UncleVinniesEventTransformer
-    from laughtrack.scrapers.implementations.venues.west_side.transformer import WestSideEventTransformer
-    from laughtrack.scrapers.implementations.api.eventbrite.transformer import EventbriteEventTransformer
-    from laughtrack.scrapers.implementations.api.ticketmaster.transformer import TicketmasterEventTransformer
-    from laughtrack.scrapers.implementations.api.seatengine.transformer import SeatEngineEventTransformer
-
-    pipeline.register_transformer(JsonLdTransformer(club))
-    pipeline.register_transformer(BroadwayEventTransformer(club))
-    pipeline.register_transformer(BushwickEventTransformer(club))
-    pipeline.register_transformer(ComedyCellarEventTransformer(club))
-    pipeline.register_transformer(GothamEventTransformer(club))
-    pipeline.register_transformer(Grove34EventTransformer(club))
-    pipeline.register_transformer(UncleVinniesEventTransformer(club))
-    pipeline.register_transformer(WestSideEventTransformer(club))
-    pipeline.register_transformer(EventbriteEventTransformer(club))
-    pipeline.register_transformer(TicketmasterEventTransformer(club))
-    pipeline.register_transformer(SeatEngineEventTransformer(club))
+    for cls in _discover_transformer_classes():
+        pipeline.register_transformer(cls(club))
 
     return pipeline
