@@ -141,25 +141,27 @@ class TixrClient(BaseApiClient):
         self.log_info("TixrClient works with specific event IDs/URLs, not general event fetching")
         return []
 
-    async def _fetch_tixr_page(self, url: str) -> Optional[str]:
+    async def _fetch_tixr_page(self, url: str, timeout: int = 30) -> Optional[str]:
         """
-        Fetch a Tixr event page HTML without custom headers.
+        Fetch a Tixr event page HTML without application-level custom headers.
 
         Tixr's DataDome bot-detection blocks requests that carry specific header
         combinations (e.g. Accept-Language + Cache-Control + Pragma together).
-        curl_cffi's Chrome impersonation already sends a correct browser fingerprint
-        on its own — passing *any* custom headers from our API header dict disrupts
-        that fingerprint and produces a 403. This method uses a bare session.get()
-        so the impersonation headers are the only ones sent.
+        curl_cffi's Chrome impersonation sends a browser-consistent fingerprint on
+        its own — passing our API header dict disrupts that fingerprint and triggers
+        403s. This method sends only curl_cffi's built-in impersonation headers
+        (no extra application-level headers from self.headers).
 
         Args:
             url: Tixr event page URL
+            timeout: Request timeout in seconds (default 30)
 
         Returns:
             HTML string on success, None on failure (non-200 or exception)
         """
         try:
-            async with AsyncSession(impersonate=self._get_impersonation_target(url)) as session:
+            await self._apply_rate_limit(url)
+            async with AsyncSession(impersonate=self._get_impersonation_target(url), timeout=timeout) as session:
                 response = await session.get(url)
                 if response.status_code != 200:
                     self.log_warning(f"HTTP {response.status_code} fetching Tixr page {url}")
@@ -179,6 +181,8 @@ class TixrClient(BaseApiClient):
         Returns:
             Parsed JSON-LD dict for the Event, or None if not found
         """
+        _EVENT_TYPES = {"Event", "MusicEvent", "TheaterEvent", "ComedyEvent", "SocialEvent"}
+
         blocks = re.findall(
             r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
             html,
@@ -189,9 +193,17 @@ class TixrClient(BaseApiClient):
                 parsed = json.loads(raw.strip())
             except (json.JSONDecodeError, ValueError):
                 continue
+            # Unwrap @graph wrapper (common JSON-LD variant)
+            if isinstance(parsed, dict) and "@graph" in parsed:
+                parsed = parsed["@graph"]
             items = parsed if isinstance(parsed, list) else [parsed]
             for item in items:
-                if isinstance(item, dict) and item.get("@type") == "Event":
+                if not isinstance(item, dict):
+                    continue
+                item_type = item.get("@type", "")
+                # @type may be a string or a list of type strings
+                types = item_type if isinstance(item_type, list) else [item_type]
+                if any(t in _EVENT_TYPES for t in types):
                     return item
         return None
 
@@ -256,6 +268,7 @@ class TixrClient(BaseApiClient):
                 )
 
             if not tickets:
+                self.log_warning(f"No offers found in JSON-LD for {page_url}; inserting placeholder ticket")
                 tickets.append(Ticket(price=0, purchase_url=show_page_url, sold_out=False, type="General Admission"))
 
             return Show(
