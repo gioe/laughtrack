@@ -54,6 +54,10 @@ const HOME_SHOW_SELECT = {
     },
 } satisfies Prisma.ShowSelect;
 
+/**
+ * Shared query + mapper for home-page show sections.
+ * Callers are responsible for including `club: { visible: true }` in `where`.
+ */
 export async function findShowsForHome(
     where: Prisma.ShowWhereInput,
     orderBy:
