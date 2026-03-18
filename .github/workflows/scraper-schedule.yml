@@ -59,6 +59,7 @@ jobs:
           EMAIL_FROM_NAME: ${{ secrets.EMAIL_FROM_NAME }}
           ALERT_RECIPIENTS: ${{ secrets.ALERT_RECIPIENTS }}
           SEATENGINE_AUTH_TOKEN: ${{ secrets.SEATENGINE_AUTH_TOKEN }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
           python -m scripts.core.scrape_shows --all
 
@@ -70,6 +71,7 @@ jobs:
           DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
           DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
           DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
           python -m scripts.core.update_popularity --comedians
 
