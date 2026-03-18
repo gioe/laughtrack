@@ -107,63 +107,89 @@ async def test_scrape_async_upserts_venues_returns_no_shows(platform_club):
 
 
 # ------------------------------------------------------------------ #
-# _fetch_seatengine_venues — pagination                               #
+# _fetch_seatengine_venues — concurrent per-venue scan                #
 # ------------------------------------------------------------------ #
 
 @pytest.mark.asyncio
-async def test_fetch_venues_paginates_until_last_page(platform_club, monkeypatch):
-    """_fetch_seatengine_venues follows pagination until last_page is reached."""
-    page1 = {"data": [_make_venue_dict(458)], "meta": {"last_page": 2}}
-    page2 = {"data": [_make_venue_dict(457, name="Brokerage")], "meta": {"last_page": 2}}
-
-    call_count = {"n": 0}
-
-    async def fake_fetch_json(url, **kwargs):
-        call_count["n"] += 1
-        return page1 if call_count["n"] == 1 else page2
-
-    monkeypatch.setattr(
-        "laughtrack.infrastructure.config.config_manager.ConfigManager.get_config",
-        lambda *a, **kw: "fake_token",
-    )
+async def test_fetch_venues_returns_named_venues(platform_club):
+    """_fetch_seatengine_venues collects venues that have a non-empty name."""
+    # IDs 1 and 2 have data; ID 3 has null data (empty slot)
+    def _fake_fetch_json(url, **kwargs):
+        vid = int(url.rstrip("/").split("/")[-1])
+        if vid == 1:
+            return {"data": _make_venue_dict(1, name="Helium Comedy Club")}
+        if vid == 2:
+            return {"data": _make_venue_dict(2, name="Stress Factory")}
+        return {"data": None}
 
     with patch("laughtrack.scrapers.implementations.api.seatengine_national.scraper.ConfigManager.get_config", return_value="fake_token"):
         scraper = SeatEngineNationalScraper(platform_club)
-    scraper.fetch_json = fake_fetch_json
+    scraper._VENUE_SCAN_MAX_ID = 3
+    scraper.fetch_json = AsyncMock(side_effect=_fake_fetch_json)
 
     venues = await scraper._fetch_seatengine_venues()
 
     assert len(venues) == 2
-    assert call_count["n"] == 2
+    names = {v["name"] for v in venues}
+    assert names == {"Helium Comedy Club", "Stress Factory"}
 
 
 @pytest.mark.asyncio
-async def test_fetch_venues_exits_on_empty_page(platform_club, monkeypatch):
-    """_fetch_seatengine_venues stops when data list is empty."""
-    page1 = {"data": [_make_venue_dict(458)], "meta": {"last_page": 10}}
-    page2 = {"data": [], "meta": {"last_page": 10}}
-
-    call_count = {"n": 0}
-
-    async def fake_fetch_json(url, **kwargs):
-        call_count["n"] += 1
-        return page1 if call_count["n"] == 1 else page2
-
+async def test_fetch_venues_filters_null_data(platform_club):
+    """_fetch_seatengine_venues skips IDs where data is null."""
     with patch("laughtrack.scrapers.implementations.api.seatengine_national.scraper.ConfigManager.get_config", return_value="fake_token"):
         scraper = SeatEngineNationalScraper(platform_club)
-    scraper.fetch_json = fake_fetch_json
+    scraper._VENUE_SCAN_MAX_ID = 3
+    scraper.fetch_json = AsyncMock(return_value={"data": None})
 
     venues = await scraper._fetch_seatengine_venues()
 
-    assert len(venues) == 1
-    assert call_count["n"] == 2
+    assert venues == []
 
 
 @pytest.mark.asyncio
-async def test_fetch_venues_exits_on_null_response(platform_club):
-    """_fetch_seatengine_venues stops when fetch_json returns None."""
+async def test_fetch_venues_filters_nameless_venues(platform_club):
+    """_fetch_seatengine_venues skips venues where name is empty/None."""
     with patch("laughtrack.scrapers.implementations.api.seatengine_national.scraper.ConfigManager.get_config", return_value="fake_token"):
         scraper = SeatEngineNationalScraper(platform_club)
+    scraper._VENUE_SCAN_MAX_ID = 2
+    scraper.fetch_json = AsyncMock(return_value={"data": {"id": 1, "name": None}})
+
+    venues = await scraper._fetch_seatengine_venues()
+
+    assert venues == []
+
+
+@pytest.mark.asyncio
+async def test_fetch_venues_handles_per_id_error(platform_club):
+    """An exception for one venue ID does not abort the full scan."""
+    call_count = {"n": 0}
+
+    def _side_effect(url, **kwargs):
+        call_count["n"] += 1
+        vid = int(url.rstrip("/").split("/")[-1])
+        if vid == 2:
+            raise RuntimeError("network error")
+        return {"data": _make_venue_dict(vid, name=f"Club {vid}")}
+
+    with patch("laughtrack.scrapers.implementations.api.seatengine_national.scraper.ConfigManager.get_config", return_value="fake_token"):
+        scraper = SeatEngineNationalScraper(platform_club)
+    scraper._VENUE_SCAN_MAX_ID = 3
+    scraper.fetch_json = AsyncMock(side_effect=_side_effect)
+
+    venues = await scraper._fetch_seatengine_venues()
+
+    # IDs 1 and 3 succeed; ID 2 is skipped due to error
+    assert len(venues) == 2
+    assert call_count["n"] == 3
+
+
+@pytest.mark.asyncio
+async def test_fetch_venues_exits_on_null_fetch_response(platform_club):
+    """_fetch_seatengine_venues handles fetch_json returning None gracefully."""
+    with patch("laughtrack.scrapers.implementations.api.seatengine_national.scraper.ConfigManager.get_config", return_value="fake_token"):
+        scraper = SeatEngineNationalScraper(platform_club)
+    scraper._VENUE_SCAN_MAX_ID = 3
     scraper.fetch_json = AsyncMock(return_value=None)
 
     venues = await scraper._fetch_seatengine_venues()

@@ -29,13 +29,18 @@ class SeatEngineNationalScraper(BaseScraper):
     Triggered by a single clubs row with scraper='seatengine_national'.
     Discovers venues via the SeatEngine venues API, upserts club rows for
     newly-seen venues, and returns an empty show list (enumeration only).
+
+    The directory listing endpoint (/api/v1/venues?page=N) returns HTTP 500
+    (Server Error) — a SeatEngine API defect.  This scraper works around it
+    by scanning per-venue IDs 1…_VENUE_SCAN_MAX_ID concurrently.
     """
 
     key = "seatengine_national"
 
     _BASE_API_URL = "https://services.seatengine.com/api/v1"
     _REQUEST_TIMEOUT = 30
-    _MAX_PAGES = 50
+    _VENUE_SCAN_MAX_ID = 700
+    _MAX_CONCURRENT_REQUESTS = 20
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
@@ -88,35 +93,40 @@ class SeatEngineNationalScraper(BaseScraper):
     # ------------------------------------------------------------------ #
 
     async def _fetch_seatengine_venues(self) -> list:
-        """Paginate through SeatEngine's venue directory API."""
-        venues: list = []
-        page = 1
+        """
+        Enumerate SeatEngine venues via concurrent per-venue API calls.
 
-        while page <= self._MAX_PAGES:
-            url = f"{self._BASE_API_URL}/venues?page={page}"
-            data = await self.fetch_json(url, headers=self._headers, timeout=self._REQUEST_TIMEOUT)
-            if not data:
-                break
+        The directory listing endpoint (/api/v1/venues?page=N) always returns
+        HTTP 500 (Server Error) — a SeatEngine API defect.  As a workaround,
+        scan venue IDs 1…_VENUE_SCAN_MAX_ID in parallel and collect any record
+        that has a non-empty ``name`` field.  Unknown IDs return
+        ``{"data": null}`` (HTTP 200) and are silently skipped.
+        """
+        semaphore = asyncio.Semaphore(self._MAX_CONCURRENT_REQUESTS)
 
-            page_venues = data.get("data", [])
-            if not page_venues:
-                break
+        async def _fetch_one(venue_id: int) -> Optional[dict]:
+            async with semaphore:
+                url = f"{self._BASE_API_URL}/venues/{venue_id}"
+                try:
+                    data = await self.fetch_json(
+                        url, headers=self._headers, timeout=self._REQUEST_TIMEOUT
+                    )
+                    if not data:
+                        return None
+                    venue = data.get("data")
+                    if not venue or not venue.get("name"):
+                        return None
+                    return venue
+                except Exception as exc:
+                    Logger.warn(
+                        f"SeatEngineNational: error fetching venue {venue_id}: {exc}",
+                        self.logger_context,
+                    )
+                    return None
 
-            venues.extend(page_venues)
-
-            meta = data.get("meta", {})
-            last_page = (meta or {}).get("last_page", page)
-            if page >= last_page:
-                break
-            page += 1
-
-        if page > self._MAX_PAGES:
-            Logger.warn(
-                f"SeatEngineNational: reached MAX_PAGES ({self._MAX_PAGES}) — pagination truncated",
-                self.logger_context,
-            )
-
-        return venues
+        tasks = [_fetch_one(vid) for vid in range(1, self._VENUE_SCAN_MAX_ID + 1)]
+        results = await asyncio.gather(*tasks)
+        return [v for v in results if v is not None]
 
     async def _upsert_venues(self, venues: list) -> None:
         """Upsert each discovered venue as a clubs row."""
