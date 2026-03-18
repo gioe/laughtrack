@@ -132,3 +132,70 @@ def test_can_transform_returns_false_when_date_time_is_none():
 
 def test_can_transform_returns_false_when_title_is_empty():
     assert _transformer().can_transform(_event(title="")) is False
+
+
+# ---------------------------------------------------------------------------
+# transform_to_show — eventbrite ticket extraction
+# ---------------------------------------------------------------------------
+
+
+def test_transform_to_show_eventbrite_min_max_returns_two_tickets():
+    show = _transformer().transform_to_show(
+        _event(
+            source_type="eventbrite",
+            ticket_info={
+                "min_price": "15.00",
+                "max_price": "40.00",
+                "purchase_url": "https://eventbrite.com/e/123",
+            },
+        )
+    )
+    assert show is not None
+    assert len(show.tickets) == 2
+    types = {t.type for t in show.tickets}
+    assert types == {"Starting at", "Up to"}
+    prices = {t.type: t.price for t in show.tickets}
+    assert prices["Starting at"] == 15.0
+    assert prices["Up to"] == 40.0
+
+
+def test_transform_to_show_eventbrite_equal_min_max_returns_one_ticket():
+    show = _transformer().transform_to_show(
+        _event(
+            source_type="eventbrite",
+            ticket_info={
+                "min_price": "25.00",
+                "max_price": "25.00",
+                "purchase_url": "https://eventbrite.com/e/456",
+            },
+        )
+    )
+    assert show is not None
+    assert len(show.tickets) == 1
+    assert show.tickets[0].type == "Starting at"
+    assert show.tickets[0].price == 25.0
+
+
+# ---------------------------------------------------------------------------
+# transform_to_show — 22rams ticket extraction
+# ---------------------------------------------------------------------------
+
+
+def test_transform_to_show_22rams_returns_correct_prices_and_purchase_url():
+    show = _transformer().transform_to_show(
+        _event(
+            source_type="22rams",
+            ticket_info={
+                "min_price": "10.00",
+                "max_price": "30.00",
+                "purchase_url": "https://22rams.com/events/789",
+            },
+        )
+    )
+    assert show is not None
+    assert len(show.tickets) == 2
+    prices = {t.type: t.price for t in show.tickets}
+    assert prices["Starting at"] == 10.0
+    assert prices["Up to"] == 30.0
+    for ticket in show.tickets:
+        assert ticket.purchase_url == "https://22rams.com/events/789"
