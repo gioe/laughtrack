@@ -145,6 +145,9 @@ class SeatEngineClient(BaseApiClient):
     async def fetch_venue_details(self, venue_id: str) -> Optional[JSONDict]:
         """Fetch venue details from SeatEngine API.
 
+        Called by the dev tool at apps/scraper/web/seatengine_api_tool/app.py
+        for manual API exploration; not part of the production scraping pipeline.
+
         Args:
             venue_id: The venue identifier for SeatEngine
 
