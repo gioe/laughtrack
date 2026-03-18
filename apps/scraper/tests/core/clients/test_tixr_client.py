@@ -332,3 +332,111 @@ class TestCreateShowFromJsonld:
         show = client._create_show_from_jsonld(data, page_url)
         assert show is not None
         assert show.show_page_url == page_url
+
+
+# ---------------------------------------------------------------------------
+# get_event_detail — event_id extraction
+# ---------------------------------------------------------------------------
+
+class TestGetEventDetailEventId:
+    """Tests that get_event_detail populates TixrEvent.event_id correctly."""
+
+    def _client(self, monkeypatch) -> TixrClient:
+        monkeypatch.setattr(BaseApiClient, "__init__", lambda self, club, proxy_pool=None: (
+            setattr(self, "club", club) or setattr(self, "headers", {})
+        ))
+        return TixrClient(_club())
+
+    def _valid_jsonld(self) -> dict:
+        return {
+            "@type": "Event",
+            "name": "Comedy Night",
+            "startDate": "2026-05-01T20:00:00-04:00",
+            "url": "https://tixr.com/groups/comedy/events/test-123",
+            "performer": [{"@type": "Person", "name": "Alice Smith"}],
+            "offers": [
+                {
+                    "price": "25.00",
+                    "availability": "https://schema.org/InStock",
+                    "url": "https://tixr.com/groups/comedy/events/test-123",
+                }
+            ],
+            "location": {"@type": "Place", "name": "Test Club", "address": "123 Main St"},
+        }
+
+    @pytest.mark.asyncio
+    async def test_numeric_suffix_url_extracts_numeric_id(self, monkeypatch):
+        client = self._client(monkeypatch)
+        url = "https://tixr.com/groups/comedy/events/show-name-179551"
+        monkeypatch.setattr(client, "_fetch_tixr_page", lambda u: pytest.approx or None)
+
+        async def fake_fetch(u):
+            return "<html/>"
+
+        monkeypatch.setattr(client, "_fetch_tixr_page", fake_fetch)
+        monkeypatch.setattr(client, "_extract_jsonld_event", lambda html: self._valid_jsonld())
+        monkeypatch.setattr(client, "_create_show_from_jsonld", lambda data, u: object())
+
+        from laughtrack.core.entities.event.tixr import TixrEvent
+        captured = {}
+
+        def fake_from_show(show, source_url, event_id):
+            captured["event_id"] = event_id
+            return object()
+
+        monkeypatch.setattr(TixrEvent, "from_tixr_show", staticmethod(fake_from_show))
+        await client.get_event_detail_from_url(url)
+        assert captured["event_id"] == "179551"
+
+    @pytest.mark.asyncio
+    async def test_slug_only_url_uses_slug_as_event_id(self, monkeypatch):
+        client = self._client(monkeypatch)
+        url = "https://tixr.com/groups/comedy/events/standup-saturday"
+
+        async def fake_fetch(u):
+            return "<html/>"
+
+        monkeypatch.setattr(client, "_fetch_tixr_page", fake_fetch)
+        monkeypatch.setattr(client, "_extract_jsonld_event", lambda html: self._valid_jsonld())
+        monkeypatch.setattr(client, "_create_show_from_jsonld", lambda data, u: object())
+
+        from laughtrack.core.entities.event.tixr import TixrEvent
+        captured = {}
+
+        def fake_from_show(show, source_url, event_id):
+            captured["event_id"] = event_id
+            return object()
+
+        monkeypatch.setattr(TixrEvent, "from_tixr_show", staticmethod(fake_from_show))
+        await client.get_event_detail_from_url(url)
+        assert captured["event_id"] == "standup-saturday"
+        assert captured["event_id"] != ""
+
+    @pytest.mark.asyncio
+    async def test_event_id_never_empty_for_valid_events_path(self, monkeypatch):
+        """event_id must be non-empty for any URL containing /events/."""
+        client = self._client(monkeypatch)
+
+        async def fake_fetch(u):
+            return "<html/>"
+
+        monkeypatch.setattr(client, "_fetch_tixr_page", fake_fetch)
+        monkeypatch.setattr(client, "_extract_jsonld_event", lambda html: self._valid_jsonld())
+        monkeypatch.setattr(client, "_create_show_from_jsonld", lambda data, u: object())
+
+        from laughtrack.core.entities.event.tixr import TixrEvent
+        captured = {}
+
+        def fake_from_show(show, source_url, event_id):
+            captured["event_id"] = event_id
+            return object()
+
+        monkeypatch.setattr(TixrEvent, "from_tixr_show", staticmethod(fake_from_show))
+
+        for url in [
+            "https://tixr.com/groups/comedy/events/standup-saturday",
+            "https://tixr.com/groups/comedy/events/show-179551",
+            "https://tixr.com/groups/comedy/events/179551",
+        ]:
+            await client.get_event_detail_from_url(url)
+            assert captured["event_id"] != "", f"event_id was empty for {url}"

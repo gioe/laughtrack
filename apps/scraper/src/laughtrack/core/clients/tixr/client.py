@@ -5,6 +5,7 @@ Simplified Tixr API client for fetching event details.
 import json
 import re
 from typing import Any, Dict, List, Optional
+from urllib.parse import urlparse
 
 from curl_cffi.requests import AsyncSession
 
@@ -124,7 +125,15 @@ class TixrClient(BaseApiClient):
             self.log_warning(f"Failed to create Show from JSON-LD for {url}")
             return None
 
-        event_id = URLUtils.extract_id_from_url(url, ["/events/"]) or ""
+        event_id = URLUtils.extract_id_from_url(url, ["/events/"])
+        if event_id is None:
+            # Slug-only URL (e.g. /events/standup-saturday) — use full slug as event_id
+            parsed_path = urlparse(url).path
+            if "/events/" in parsed_path:
+                segment = parsed_path.split("/events/", 1)[-1].split("/")[0]
+                event_id = segment or ""
+            else:
+                event_id = ""
         return TixrEvent.from_tixr_show(show=show, source_url=url, event_id=event_id)
 
     async def fetch_events(self, *args, **kwargs) -> List[JSONDict]:
