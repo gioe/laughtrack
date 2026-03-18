@@ -9,6 +9,10 @@ import ShowLocationComponent from "../../../components/area";
 import TextInputComponent from "../../../components/textInput";
 import { DistanceData } from "@/objects/interface";
 
+// Per-entity composers remain separate: each has a distinct filter set
+// (show: location + calendar + comedian + club; club: location + club; comedian: name only).
+// The structural wrapper is already extracted as SearchBarLayout/SearchBarSection.
+// A shared HOC would add indirection without reducing the per-entity JSX sections.
 export default function ClubSearchBar() {
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();

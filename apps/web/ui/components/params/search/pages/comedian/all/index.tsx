@@ -7,6 +7,10 @@ import { QueryProperty } from "@/objects/enum";
 import { useUrlParams } from "@/hooks/useUrlParams";
 import SearchBarLayout, { SearchBarSection } from "../../../components/layout";
 
+// Per-entity composers remain separate: each has a distinct filter set
+// (show: location + calendar + comedian + club; club: location + club; comedian: name only).
+// The structural wrapper is already extracted as SearchBarLayout/SearchBarSection.
+// A shared HOC would add indirection without reducing the per-entity JSX sections.
 export default function ComedianSearchBar() {
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
