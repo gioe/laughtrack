@@ -1,177 +1,125 @@
-"""Grove34 data extraction utilities."""
+"""Grove34 data extraction utilities for the Webflow site."""
 
 import json
 from typing import List, Optional
 
 from laughtrack.core.entities.event.grove34 import Grove34Event
-from laughtrack.foundation.models.types import JSONDict
 from laughtrack.utilities.infrastructure.html.scraper import HtmlScraper
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 
 class Grove34EventExtractor:
-    """Utility class for extracting Grove34 event data from Wix warmup data."""
+    """Utility class for extracting Grove34 event data from the Webflow site."""
+
+    BASE_URL = "https://grove34.com"
 
     @staticmethod
-    def extract_events(html_content: str) -> List[Grove34Event]:
+    def extract_show_urls(html_content: str) -> List[str]:
         """
-        Extract Grove34 events from Wix warmup data script tag.
+        Extract unique show detail page URLs from the Grove34 listing page HTML.
 
         Args:
-            html_content: HTML content containing the warmup data
+            html_content: HTML of the main listing page (grove34.com/)
 
         Returns:
-            List of Grove34Event objects extracted from Wix warmup data
+            Deduplicated list of absolute show detail URLs
         """
         try:
-            # Extract warmup events from HTML
-            warmup_events = Grove34EventExtractor._extract_warmup_events(html_content)
-
-            # Convert raw events to Grove34Event objects
-            grove34_events = []
-            for event_data in warmup_events:
-                event = Grove34EventExtractor._convert_to_grove34_event(event_data)
-                if event:
-                    grove34_events.append(event)
-
-            return grove34_events
-
+            elements = HtmlScraper.find_elements_by_selector(html_content, 'a[href]')
+            seen = set()
+            urls = []
+            for el in elements:
+                href = el.get("href", "")
+                if "/shows/" not in href:
+                    continue
+                # Build absolute URL
+                if href.startswith("http"):
+                    full_url = href
+                elif href.startswith("/"):
+                    full_url = Grove34EventExtractor.BASE_URL + href
+                else:
+                    continue
+                # Remove query params from show URLs (they're slugs, not paginated)
+                if "?" in full_url:
+                    full_url = full_url.split("?")[0]
+                if full_url not in seen:
+                    seen.add(full_url)
+                    urls.append(full_url)
+            return urls
         except Exception as e:
-            Logger.error(f"Error extracting Grove34 events: {e}")
+            Logger.error(f"Error extracting show URLs from listing page: {e}")
             return []
 
     @staticmethod
-    def _extract_warmup_events(html_content: str) -> List[JSONDict]:
+    def get_next_page_url(html_content: str, current_page_url: str) -> Optional[str]:
         """
-        Extract events from Wix warmup data script tag.
+        Find the pagination 'next page' URL in the listing page HTML.
 
         Args:
-            html_content: HTML content containing the warmup data
+            html_content: HTML of the current listing page
+            current_page_url: The URL of the current page (used to build absolute URL)
 
         Returns:
-            List of raw event dictionaries from warmup data
+            Absolute URL of the next page, or None if no more pages
         """
         try:
-            # Find the warmup data script tag
-            script_elements = HtmlScraper.find_elements(
-                html_content, "script", type="application/json", id="wix-warmup-data"
-            )
-            if not script_elements:
-                Logger.warning("Warmup data script tag not found")
-                return []
-
-            warmup_script = script_elements[0]
-
-            # Get script content
-            script_content = warmup_script.get_text()
-
-            if not script_content:
-                Logger.error("Warmup script tag is empty or missing string content")
-                return []
-
-            # Parse JSON content
-            try:
-                warmup_data = json.loads(script_content)
-            except json.JSONDecodeError as e:
-                Logger.error(f"Failed to parse warmup data JSON: {e}")
-                return []
-
-            # Navigate to events data in nested structure
-            apps_data = warmup_data.get("appsWarmupData", {})
-
-            # Find the events widget - the key appears to be a UUID
-            events_data = []
-            for app_key, app_data in apps_data.items():
-                if isinstance(app_data, dict):
-                    for widget_key, widget_data in app_data.items():
-                        if isinstance(widget_data, dict) and "events" in widget_data:
-                            events = widget_data["events"].get("events", [])
-                            if events:
-                                events_data.extend(events)
-
-            Logger.info(f"Found {len(events_data)} events in warmup data")
-            return events_data
-
+            elements = HtmlScraper.find_elements_by_selector(html_content, 'a[href]')
+            base = current_page_url.split("?")[0].rstrip("/")
+            for el in elements:
+                href = el.get("href", "")
+                # Webflow CMS pagination uses a collection-specific query param
+                if "1a7d9b18_page=" in href:
+                    if href.startswith("?"):
+                        return base + "/" + href
+                    elif href.startswith("/"):
+                        return Grove34EventExtractor.BASE_URL + href
+                    else:
+                        return href
+            return None
         except Exception as e:
-            Logger.error(f"Error extracting warmup events: {e}")
-            return []
+            Logger.error(f"Error finding next page URL: {e}")
+            return None
 
     @staticmethod
-    def _convert_to_grove34_event(event_data: JSONDict) -> Optional[Grove34Event]:
+    def extract_event(html_content: str, show_url: str) -> Optional[Grove34Event]:
         """
-        Convert raw warmup event data to Grove34Event object.
+        Extract a Grove34Event from a show detail page using JSON-LD.
 
         Args:
-            event_data: Raw event dictionary from warmup data
+            html_content: HTML of a show detail page
+            show_url: The URL of this show page (stored on the event)
 
         Returns:
-            Grove34Event object or None if conversion fails
+            Grove34Event or None if no valid Event JSON-LD found
         """
         try:
-            # Extract required fields
-            event_id = event_data.get("id")
-            title = event_data.get("title", "").strip()
-            slug = event_data.get("slug", "")
-            description = event_data.get("description", "")
-
-            if not title or not event_id:
-                Logger.warning(f"Event missing required fields: id={event_id}, title='{title}'")
-                return None
-
-            # Extract scheduling information
-            scheduling = event_data.get("scheduling", {})
-            config = scheduling.get("config", {})
-
-            start_date = config.get("startDate")
-            timezone_id = config.get("timeZoneId", "America/New_York")
-
-            if not start_date:
-                Logger.warning(f"Event {event_id} missing start date")
-                return None
-
-            # Extract location information
-            location = event_data.get("location", {})
-            location_name = location.get("name", "")
-
-            # Extract ticketing information
-            registration = event_data.get("registration", {})
-            ticketing = registration.get("ticketing", {})
-
-            sold_out = ticketing.get("soldOut", False)
-            lowest_price = None
-            highest_price = None
-
-            # Parse price information
-            lowest_price_data = ticketing.get("lowestTicketPrice", {})
-            if lowest_price_data and "value" in lowest_price_data:
+            script_contents = HtmlScraper.get_json_ld_script_contents(html_content)
+            for content in script_contents:
                 try:
-                    lowest_price = float(lowest_price_data["value"])
-                except (ValueError, TypeError):
-                    pass
+                    data = json.loads(content)
+                except json.JSONDecodeError:
+                    continue
 
-            highest_price_data = ticketing.get("highestTicketPrice", {})
-            if highest_price_data and "value" in highest_price_data:
-                try:
-                    highest_price = float(highest_price_data["value"])
-                except (ValueError, TypeError):
-                    pass
+                if data.get("@type") != "Event":
+                    continue
 
-            # Create Grove34Event object
-            return Grove34Event(
-                id=event_id,
-                title=title,
-                slug=slug,
-                description=description if description else None,
-                start_date=start_date,
-                timezone_id=timezone_id,
-                location_name=location_name if location_name else None,
-                ticketing_data=ticketing if ticketing else None,
-                sold_out=sold_out,
-                lowest_price=lowest_price,
-                highest_price=highest_price,
-                raw_event_data=event_data,  # Store raw data for debugging
-            )
+                name = data.get("name", "").replace("&amp;", "&").strip()
+                start_date = data.get("startDate", "").strip()
+                description = (data.get("description") or "").strip() or None
 
+                if not name or not start_date:
+                    Logger.warning(f"Grove34 show at {show_url} missing name or startDate in JSON-LD")
+                    return None
+
+                return Grove34Event(
+                    title=name,
+                    start_date=start_date,
+                    show_page_url=show_url,
+                    description=description,
+                )
+
+            Logger.warning(f"No Event JSON-LD found at {show_url}")
+            return None
         except Exception as e:
-            Logger.error(f"Error converting event to Grove34Event: {e}")
+            Logger.error(f"Error extracting Grove34 event from {show_url}: {e}")
             return None
