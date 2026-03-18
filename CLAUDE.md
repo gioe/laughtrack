@@ -1,3 +1,56 @@
+## Scraper Codebase Scope — src/ and web/ Both Count
+
+When auditing scraper methods for unused/dead code, always search **both**:
+- `apps/scraper/src/` — core library code
+- `apps/scraper/web/` — companion Flask/FastAPI tools (e.g., `seatengine_api_tool/`)
+
+Searches scoped only to `src/` will miss callers in `web/` and produce false "unused" findings.
+
+```bash
+# ✗ Wrong — misses web/ callers
+grep -r "fetch_venue_details" apps/scraper/src/
+
+# ✓ Correct — full scraper scope
+grep -r "fetch_venue_details" apps/scraper/src/ apps/scraper/web/
+```
+
+## Scraper Logger — Context Dict Not Visible in Console Output
+
+`Logger.warn(message, context_dict)` passes `context_dict` as `extra` to Python's
+logging module. The console format string is:
+
+    %(levelname)s | ... | %(message)s
+
+Extra fields are **NOT** rendered — they are silently dropped at the terminal.
+Always embed key debugging info directly in the message string:
+
+```python
+# ✗ Wrong — key/class names invisible in console output
+Logger.warn("Duplicate key", {"key": k, "kept": kept_cls, "ignored": ignored_cls})
+
+# ✓ Correct — all info in the message itself
+Logger.warn(f"Duplicate key '{k}': keeping {kept_cls}, ignoring {ignored_cls}")
+```
+
+## Debugging Auth / Env Var Failures in Production
+
+When a production login or OAuth flow silently fails, inspect the **actual values** of
+environment variables — the Vercel dashboard only shows "Encrypted".
+
+```bash
+vercel env pull --environment production /tmp/vercel-prod-env && cat /tmp/vercel-prod-env; rm /tmp/vercel-prod-env
+```
+
+Check for **leading/trailing whitespace** in auth-related vars — especially `AUTH_URL`.
+A trailing space (e.g. `"https://laugh-track.com "`) causes OAuth callback URL mismatches
+that fail silently with no useful error message.
+
+If `AUTH_URL` is wrong, remove and re-add it (Vercel does not support in-place edits):
+```bash
+vercel env rm AUTH_URL production --yes
+echo "https://laugh-track.com" | vercel env add AUTH_URL production
+```
+
 ## VCR Cassette Refresh — Instagram / TikTok Social Tests
 
 Cassette tests in `apps/scraper/tests/core/entities/test_social_refresh_vcr.py`
@@ -19,6 +72,22 @@ IP or VPN may be required if your network is flagged.
 4. Reset `record_mode` back to `"none"`.
 5. Re-run tests to confirm replay-only mode passes, then commit the cassette YAMLs:
    `git add tests/core/entities/cassettes/ && git commit -m "Update VCR cassettes: <reason>"`
+
+## Prisma orderBy Field Names — Verify Against Schema
+
+Invalid field names in `orderBy` arrays cause `PrismaClientKnownRequestError` at runtime
+(not a compile-time error), because helpers like `getGenericClauses` return loosely-typed
+objects rather than `Prisma.*OrderByWithRelationInput`. Before adding a field to any `orderBy`
+clause, verify it exists on the target model in `apps/web/prisma/schema.prisma`.
+
+This applies equally to tiebreaker entries — they receive no extra type-checking:
+```ts
+// ✗ Wrong — Show has no totalShows field; crashes at runtime
+orderBy: [{ popularity: "desc" }, { totalShows: "desc" }, { name: "asc" }]
+
+// ✓ Correct — all fields exist on Show
+orderBy: [{ popularity: "desc" }, { name: "asc" }]
+```
 
 ## Prisma Select Consts — Avoid `new Date()` at Module Level
 
@@ -97,6 +166,16 @@ vi.mock("@/lib/rateLimit", () => ({
     rateLimitResponse: vi.fn(),
 }));
 ```
+
+## Vitest Route Tests — Auth/Authz Coverage
+
+When writing tests for an auth-required route, always include at minimum:
+- A test where `auth()` returns `null` → expect 401
+- A test where `session.profile` is absent → expect 422
+- A test where a user-scoped resource is requested with a mismatched userId → expect 403
+
+Also: `mockAuth.mockResolvedValue(null as any)` — the `as any` cast is required because
+`auth` is typed as `NextMiddleware`, which does not accept `null` directly.
 
 ## Public GET Routes — Rate Limiting
 
@@ -178,6 +257,23 @@ def _stub(name, **attrs):
     return m
 ```
 
+## Scraper Tests — Mock RateLimiter Singleton via monkeypatch
+
+`RateLimiter()` is a singleton. **Never** mock its methods via direct instance assignment:
+
+```python
+# ✗ Wrong — mutates singleton.__dict__, leaks mock to all subsequent tests
+scraper.rate_limiter.await_if_needed = fake_fn
+
+# ✓ Correct — monkeypatch restores the attribute after each test
+monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", fake_fn)
+```
+
+Direct assignment persists after the test ends, causing unrelated test classes to call
+your fake function instead of the real one. Symptom: tests like `TestResetDomain` that
+call `await rl.await_if_needed(...)` find `_sessions` empty and fail with confusing
+`AssertionError: assert 'domain' in {}`.
+
 ## Testing Concurrent asyncio Races
 
 `AsyncMock` operations resolve in a single event-loop turn with no suspension.
@@ -216,3 +312,17 @@ Key mocking patterns:
 
 Do NOT install `@vitejs/plugin-react` for test JSX support — it conflicts with vitest's bundled vite version.
 The `esbuild.jsx: "automatic"` setting in `vitest.config.ts` handles JSX transform without a plugin.
+
+## Vitest `vi.mock` Factories — Use `vi.hoisted()` for Shared Mock Variables
+
+`vi.mock()` factories are hoisted to the top of the file before module-level `const`/`let`
+variables are initialized. If a factory captures a variable defined in the module body,
+it will throw `ReferenceError: Cannot access '<name>' before initialization`.
+
+Fix: declare shared mock state with `vi.hoisted()`, which runs before hoisting:
+
+```ts
+const { mockFn } = vi.hoisted(() => ({ mockFn: vi.fn() }));
+
+vi.mock("some-module", () => ({ fn: mockFn })); // ✓ safe
+```
