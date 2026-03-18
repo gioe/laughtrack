@@ -42,14 +42,6 @@ def _club() -> Club:
     )
 
 
-def _make_client(monkeypatch) -> TixrClient:
-    """Return a TixrClient with BaseApiClient.__init__ stubbed out."""
-    monkeypatch.setattr(BaseApiClient, "__init__", lambda self, club, proxy_pool=None: (
-        setattr(self, "club", club) or setattr(self, "headers", {})
-    ))
-    return TixrClient(_club())
-
-
 # ---------------------------------------------------------------------------
 # _fetch_tixr_page
 # ---------------------------------------------------------------------------
@@ -64,17 +56,11 @@ class TestFetchTixrPage:
             status_code = 200
             text = "<html>hello</html>"
 
-        class FakeSession:
-            def __init__(self, impersonate, timeout):
-                pass
-            async def __aenter__(self):
-                return self
-            async def __aexit__(self, *args):
-                pass
+        class Session(_FakeSession):
             async def get(self, url):
                 return FakeResponse()
 
-        monkeypatch.setattr(tixr_module, "AsyncSession", FakeSession)
+        monkeypatch.setattr(tixr_module, "AsyncSession", Session)
         monkeypatch.setattr(client, "_apply_rate_limit", lambda url: _noop())
         monkeypatch.setattr(client, "_get_impersonation_target", lambda url: "chrome124")
 
@@ -89,17 +75,11 @@ class TestFetchTixrPage:
             status_code = 403
             text = "Forbidden"
 
-        class FakeSession:
-            def __init__(self, impersonate, timeout):
-                pass
-            async def __aenter__(self):
-                return self
-            async def __aexit__(self, *args):
-                pass
+        class Session(_FakeSession):
             async def get(self, url):
                 return FakeResponse()
 
-        monkeypatch.setattr(tixr_module, "AsyncSession", FakeSession)
+        monkeypatch.setattr(tixr_module, "AsyncSession", Session)
         monkeypatch.setattr(client, "_apply_rate_limit", lambda url: _noop())
         monkeypatch.setattr(client, "_get_impersonation_target", lambda url: "chrome124")
 
@@ -110,17 +90,11 @@ class TestFetchTixrPage:
     async def test_exception_returns_none(self, monkeypatch, stub_base_init):
         client = TixrClient(_club())
 
-        class FakeSession:
-            def __init__(self, impersonate, timeout):
-                pass
-            async def __aenter__(self):
-                return self
-            async def __aexit__(self, *args):
-                pass
+        class Session(_FakeSession):
             async def get(self, url):
                 raise ConnectionError("network down")
 
-        monkeypatch.setattr(tixr_module, "AsyncSession", FakeSession)
+        monkeypatch.setattr(tixr_module, "AsyncSession", Session)
         monkeypatch.setattr(client, "_apply_rate_limit", lambda url: _noop())
         monkeypatch.setattr(client, "_get_impersonation_target", lambda url: "chrome124")
 
@@ -131,6 +105,22 @@ class TestFetchTixrPage:
 # Async no-op coroutine used as stub for _apply_rate_limit
 async def _noop(*args, **kwargs):
     pass
+
+
+class _FakeSession:
+    """Reusable async context manager stub for AsyncSession used across _fetch_tixr_page tests."""
+
+    def __init__(self, impersonate, timeout):
+        pass
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *args):
+        pass
+
+    async def get(self, url):
+        raise NotImplementedError("subclass must override get()")
 
 
 # ---------------------------------------------------------------------------
@@ -307,6 +297,8 @@ class TestCreateShowFromJsonld:
     def test_empty_offers_inserts_placeholder(self, monkeypatch):
         warnings = []
         client = self._client(monkeypatch)
+        # Instance-level patch intentionally shadows the class-level silence_logging autouse
+        # fixture so this test can capture warning calls while the others stay silent.
         monkeypatch.setattr(client, "log_warning", lambda msg: warnings.append(msg))
         data = self._valid_data()
         data["offers"] = []
@@ -324,6 +316,13 @@ class TestCreateShowFromJsonld:
         show = client._create_show_from_jsonld(data, "https://tixr.com/x")
         assert show is not None
         assert show.tickets[0].price == 0.0
+
+    def test_unparseable_start_date_returns_none(self, monkeypatch):
+        client = self._client(monkeypatch)
+        data = self._valid_data()
+        data["startDate"] = "not-a-date"
+        result = client._create_show_from_jsonld(data, "https://tixr.com/x")
+        assert result is None
 
     def test_show_page_url_falls_back_to_page_url(self, monkeypatch):
         client = self._client(monkeypatch)
