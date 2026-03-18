@@ -55,17 +55,23 @@ class ShowTransformationPipeline:
         # Process each event in the event_list
         for event_data in raw_data.event_list:
             # Find compatible transformer for this specific event
+            matched = False
             for transformer in self.transformers:
                 try:
                     if transformer.can_transform(event_data):
                         transformer_show = transformer.transform_to_show(event_data)
                         shows.append(transformer_show)
+                        matched = True
                         break
                 except Exception as e:
                     Logger.error(
                         f"Transformer {transformer.__class__.__name__} failed for event: {e}",
                     )
                     continue
+            if not matched:
+                Logger.debug(
+                    f"No transformer matched event of type {type(event_data).__name__} for {self.club.name}"
+                )
 
         if not shows:
             Logger.warn(f"No valid shows found for {self.club.name}")
