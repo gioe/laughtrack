@@ -11,8 +11,6 @@ from laughtrack.utilities.infrastructure.html.scraper import HtmlScraper
 class RodneyEventExtractor:
     """Utility class for extracting Rodney's Comedy Club event data from various sources."""
 
-    BASE_URL: str = "https://rodneysnewyorkcomedyclub.com"
-
     @staticmethod
     def extract_show_links(html_content: str) -> List[str]:
         """
