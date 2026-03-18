@@ -5,8 +5,6 @@ import { buildClubImageUrl } from "@/util/imageUtil";
 import { mapTickets } from "@/util/ticket/ticketUtil";
 import { filterAndMapLineupItems } from "@/util/comedian/comedianUtil";
 
-const LIMIT = 8;
-
 const HOME_SHOW_SELECT = {
     id: true,
     name: true,
@@ -63,12 +61,13 @@ export async function findShowsForHome(
     orderBy:
         | Prisma.ShowOrderByWithRelationInput
         | Prisma.ShowOrderByWithRelationInput[],
+    take = 8,
 ): Promise<ShowDTO[]> {
     const shows = await db.show.findMany({
         where,
         select: HOME_SHOW_SELECT,
         orderBy,
-        take: LIMIT,
+        take,
     });
 
     return shows.map((show) => ({
