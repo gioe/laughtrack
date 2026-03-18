@@ -11,8 +11,11 @@ import {
     rateLimitResponse,
 } from "@/lib/rateLimit";
 
+const PAGE_SIZE = 100;
+
 const querySchema = z.object({
     userId: z.string().min(1),
+    page: z.coerce.number().int().min(0).default(0),
 });
 
 export async function GET(req: NextRequest) {
@@ -53,6 +56,7 @@ export async function GET(req: NextRequest) {
         const { searchParams } = new URL(req.url);
         const parsed = querySchema.safeParse({
             userId: searchParams.get("userId"),
+            page: searchParams.get("page") ?? undefined,
         });
 
         if (!parsed.success) {
@@ -62,7 +66,7 @@ export async function GET(req: NextRequest) {
             );
         }
 
-        const { userId } = parsed.data;
+        const { userId, page } = parsed.data;
 
         if (session.profile.userid !== userId) {
             return new NextResponse(null, {
@@ -71,31 +75,34 @@ export async function GET(req: NextRequest) {
             });
         }
 
-        const favorites = await db.favoriteComedian.findMany({
-            where: {
-                user: {
-                    userid: userId,
-                },
-            },
-            select: {
-                comedian: {
-                    select: {
-                        id: true,
-                        uuid: true,
-                        name: true,
-                        instagramAccount: true,
-                        instagramFollowers: true,
-                        tiktokAccount: true,
-                        tiktokFollowers: true,
-                        youtubeAccount: true,
-                        youtubeFollowers: true,
-                        website: true,
-                        popularity: true,
-                        linktree: true,
+        const where = { user: { userid: userId } };
+
+        const [favorites, total] = await Promise.all([
+            db.favoriteComedian.findMany({
+                where,
+                skip: page * PAGE_SIZE,
+                take: PAGE_SIZE,
+                select: {
+                    comedian: {
+                        select: {
+                            id: true,
+                            uuid: true,
+                            name: true,
+                            instagramAccount: true,
+                            instagramFollowers: true,
+                            tiktokAccount: true,
+                            tiktokFollowers: true,
+                            youtubeAccount: true,
+                            youtubeFollowers: true,
+                            website: true,
+                            popularity: true,
+                            linktree: true,
+                        },
                     },
                 },
-            },
-        });
+            }),
+            db.favoriteComedian.count({ where }),
+        ]);
 
         const comedians = favorites.map((favorite) => ({
             ...favorite.comedian,
@@ -116,7 +123,7 @@ export async function GET(req: NextRequest) {
         }));
 
         return NextResponse.json(
-            { comedians },
+            { comedians, total },
             { headers: rateLimitHeaders(rl) },
         );
     } catch (error) {
