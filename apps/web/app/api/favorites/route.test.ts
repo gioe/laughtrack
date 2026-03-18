@@ -12,6 +12,14 @@ vi.mock("@/lib/rateLimit", () => ({
     RATE_LIMITS: { authenticated: {}, unauthenticated: {} },
     rateLimitHeaders: vi.fn(() => ({})),
     rateLimitResponse: vi.fn(),
+    applyPublicReadRateLimit: vi.fn(() =>
+        Promise.resolve({
+            allowed: true,
+            limit: 60,
+            remaining: 59,
+            resetAt: 0,
+        }),
+    ),
 }));
 vi.mock("@/auth", () => ({
     auth: vi.fn(),
@@ -75,7 +83,8 @@ beforeEach(() => {
 
 describe("GET /api/favorites", () => {
     describe("pagination", () => {
-        it("no params returns { comedians, total } with first 100 results", async () => {
+        // page is 0-indexed: page=0 (default) → skip=0, page=1 → skip=100
+        it("no page param returns first page with skip 0", async () => {
             const comedians = Array.from({ length: 3 }, (_, i) =>
                 makeComedian(i + 1),
             );
@@ -90,6 +99,10 @@ describe("GET /api/favorites", () => {
             expect(res.status).toBe(200);
             expect(body.total).toBe(3);
             expect(body.comedians).toHaveLength(3);
+            expect(body.comedians[0].imageUrl).toBe(
+                "https://cdn.example.com/Comedian 1.jpg",
+            );
+            expect(body.comedians[0].isFavorite).toBe(true);
             expect(mockFindMany).toHaveBeenCalledWith(
                 expect.objectContaining({ skip: 0, take: 100 }),
             );
@@ -122,6 +135,32 @@ describe("GET /api/favorites", () => {
 
             expect(res.status).toBe(200);
             expect(body).toEqual({ comedians: [], total: 10 });
+        });
+    });
+
+    describe("auth and authorization", () => {
+        it("returns 401 when not authenticated", async () => {
+            mockAuth.mockResolvedValue(null);
+
+            const res = await GET(makeRequest({ userId: TEST_USER_ID }));
+
+            expect(res.status).toBe(401);
+        });
+
+        it("returns 422 when session has no profile", async () => {
+            mockAuth.mockResolvedValue({ profile: undefined } as any);
+
+            const res = await GET(makeRequest({ userId: TEST_USER_ID }));
+            const body = await res.json();
+
+            expect(res.status).toBe(422);
+            expect(body.error).toMatch(/profile not found/i);
+        });
+
+        it("returns 403 when userId does not match session profile", async () => {
+            const res = await GET(makeRequest({ userId: "different-user-id" }));
+
+            expect(res.status).toBe(403);
         });
     });
 
