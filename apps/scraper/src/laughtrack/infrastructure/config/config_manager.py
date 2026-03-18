@@ -165,10 +165,19 @@ class ConfigManager:
         }
 
         # API configuration
+        _seatengine_venue_scan_max_id_raw = os.getenv("SEATENGINE_VENUE_SCAN_MAX_ID", "700")
+        try:
+            _seatengine_venue_scan_max_id = int(_seatengine_venue_scan_max_id_raw)
+        except ValueError:
+            raise ValueError(
+                f"SEATENGINE_VENUE_SCAN_MAX_ID must be a valid integer, got: {_seatengine_venue_scan_max_id_raw!r}"
+            )
+
         self._config["api"] = {
             "eventbrite_token": os.getenv("EVENTBRITE_PRIVATE_TOKEN"),
             "ticketmaster_api_key": os.getenv("TICKETMASTER_API_KEY"),
             "seatengine_auth_token": os.getenv("SEATENGINE_AUTH_TOKEN", "your-seatengine-auth-token"),
+            "seatengine_venue_scan_max_id": _seatengine_venue_scan_max_id,
             "songkick_api_key": os.getenv("SONGKICK_API_KEY"),
             "bandsintown_app_id": os.getenv("BANDSINTOWN_APP_ID"),
         }

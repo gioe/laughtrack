@@ -124,7 +124,7 @@ async def test_fetch_venues_returns_named_venues(platform_club):
 
     with patch("laughtrack.scrapers.implementations.api.seatengine_national.scraper.ConfigManager.get_config", return_value="fake_token"):
         scraper = SeatEngineNationalScraper(platform_club)
-    scraper._VENUE_SCAN_MAX_ID = 3
+    scraper._venue_scan_max_id = 3
     scraper.fetch_json = AsyncMock(side_effect=_fake_fetch_json)
 
     venues = await scraper._fetch_seatengine_venues()
@@ -139,7 +139,7 @@ async def test_fetch_venues_filters_null_data(platform_club):
     """_fetch_seatengine_venues skips IDs where data is null."""
     with patch("laughtrack.scrapers.implementations.api.seatengine_national.scraper.ConfigManager.get_config", return_value="fake_token"):
         scraper = SeatEngineNationalScraper(platform_club)
-    scraper._VENUE_SCAN_MAX_ID = 3
+    scraper._venue_scan_max_id = 3
     scraper.fetch_json = AsyncMock(return_value={"data": None})
 
     venues = await scraper._fetch_seatengine_venues()
@@ -152,7 +152,7 @@ async def test_fetch_venues_filters_nameless_venues(platform_club):
     """_fetch_seatengine_venues skips venues where name is empty/None."""
     with patch("laughtrack.scrapers.implementations.api.seatengine_national.scraper.ConfigManager.get_config", return_value="fake_token"):
         scraper = SeatEngineNationalScraper(platform_club)
-    scraper._VENUE_SCAN_MAX_ID = 2
+    scraper._venue_scan_max_id = 2
     scraper.fetch_json = AsyncMock(return_value={"data": {"id": 1, "name": None}})
 
     venues = await scraper._fetch_seatengine_venues()
@@ -174,7 +174,7 @@ async def test_fetch_venues_handles_per_id_error(platform_club):
 
     with patch("laughtrack.scrapers.implementations.api.seatengine_national.scraper.ConfigManager.get_config", return_value="fake_token"):
         scraper = SeatEngineNationalScraper(platform_club)
-    scraper._VENUE_SCAN_MAX_ID = 3
+    scraper._venue_scan_max_id = 3
     scraper.fetch_json = AsyncMock(side_effect=_side_effect)
 
     venues = await scraper._fetch_seatengine_venues()
@@ -189,7 +189,7 @@ async def test_fetch_venues_exits_on_null_fetch_response(platform_club):
     """_fetch_seatengine_venues handles fetch_json returning None gracefully."""
     with patch("laughtrack.scrapers.implementations.api.seatengine_national.scraper.ConfigManager.get_config", return_value="fake_token"):
         scraper = SeatEngineNationalScraper(platform_club)
-    scraper._VENUE_SCAN_MAX_ID = 3
+    scraper._venue_scan_max_id = 3
     scraper.fetch_json = AsyncMock(return_value=None)
 
     venues = await scraper._fetch_seatengine_venues()

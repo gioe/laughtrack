@@ -32,24 +32,22 @@ class SeatEngineNationalScraper(BaseScraper):
 
     The directory listing endpoint (/api/v1/venues?page=N) returns HTTP 500
     (Server Error) — a SeatEngine API defect.  This scraper works around it
-    by scanning per-venue IDs 1…_VENUE_SCAN_MAX_ID concurrently.
+    by scanning per-venue IDs 1…_venue_scan_max_id concurrently.
     """
 
     key = "seatengine_national"
 
     _BASE_API_URL = "https://services.seatengine.com/api/v1"
     _REQUEST_TIMEOUT = 30
-    # Upper bound for the per-venue ID scan.  As of 2026-03 the highest
-    # active SeatEngine venue ID is in the low hundreds; 700 provides
-    # comfortable headroom.  Raise this value if new venues with higher IDs
-    # are discovered during routine runs.
-    _VENUE_SCAN_MAX_ID = 700
     _MAX_CONCURRENT_REQUESTS = 20
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
         self._club_handler = ClubHandler()
         auth_token = ConfigManager.get_config("api", "seatengine_auth_token")
+        self._venue_scan_max_id: int = ConfigManager.get_config(
+            "api", "seatengine_venue_scan_max_id", 700
+        )
         self._headers = BaseHeaders.get_headers(
             base_type="mobile_browser",
             auth_type="seat_engine",
@@ -102,7 +100,7 @@ class SeatEngineNationalScraper(BaseScraper):
 
         The directory listing endpoint (/api/v1/venues?page=N) always returns
         HTTP 500 (Server Error) — a SeatEngine API defect.  As a workaround,
-        scan venue IDs 1…_VENUE_SCAN_MAX_ID in parallel and collect any record
+        scan venue IDs 1…_venue_scan_max_id in parallel and collect any record
         that has a non-empty ``name`` field.  Unknown IDs return
         ``{"data": null}`` (HTTP 200) and are silently skipped.
         """
@@ -128,7 +126,7 @@ class SeatEngineNationalScraper(BaseScraper):
                     )
                     return None
 
-        tasks = [_fetch_one(vid) for vid in range(1, self._VENUE_SCAN_MAX_ID + 1)]
+        tasks = [_fetch_one(vid) for vid in range(1, self._venue_scan_max_id + 1)]
         results = await asyncio.gather(*tasks)
         return [v for v in results if v is not None]
 
