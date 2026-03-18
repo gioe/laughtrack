@@ -2,7 +2,6 @@ from typing import Any, Callable, Dict, List, Optional
 
 from curl_cffi.requests import Response
 
-from laughtrack.foundation.models.request_data import RequestData
 from laughtrack.foundation.models.types import JSONDict
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.comedian.model import Comedian
@@ -156,25 +155,12 @@ class SeatEngineClient(BaseApiClient):
             venue_url = f"https://services.seatengine.com/api/v1/venues/{venue_id}"
             self.log_info(f"Fetching SeatEngine venue details from: {venue_url}")
 
-            request_data = RequestData.get(url=venue_url, headers=self.headers)
-            response = None
-
-            if response:
-                try:
-                    response_json = response.json()
-
-                    if response_json and "data" in response_json:
-                        venue_data = response_json["data"]
-                        return venue_data
-                    else:
-                        return None
-
-                except Exception as json_error:
-                    self.log_error(f"Failed to parse SeatEngine venue response as JSON: {json_error}")
-                    return None
-            else:
+            data = await self.fetch_json(venue_url, headers=self.headers)
+            if not data:
                 self.log_error("No response received from SeatEngine venue API")
                 return None
+
+            return data.get("data", data)
 
         except Exception as e:
             self.log_error(f"Failed to fetch venue details from SeatEngine: {e}")
