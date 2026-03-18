@@ -7,8 +7,8 @@ from typing import List, Optional, cast
 from laughtrack.foundation.models.types import JSONDict
 from laughtrack.infrastructure.config.monitoring_config import MonitoringConfig
 from laughtrack.infrastructure.monitoring.alert_system import (
+    DiscordAlertChannel,
     EmailAlertChannel,
-    SlackAlertChannel,
     WebhookAlertChannel,
 )
 from laughtrack.infrastructure.monitoring.providers.base import FailureMonitorProtocol, MonitoringProvider
@@ -42,11 +42,9 @@ class MonitoringService:
         if self.config.is_email_configured() and self.config.alert_recipients:
             channels.append(EmailAlertChannel(recipients=self.config.alert_recipients))
             Logger.info(f"Email alerts configured for {len(self.config.alert_recipients)} recipients")
-        if self.config.is_slack_configured() and self.config.slack_webhook_url:
-            channels.append(
-                SlackAlertChannel(webhook_url=self.config.slack_webhook_url, channel=self.config.slack_channel)
-            )
-            Logger.info("Slack alerts configured")
+        if self.config.is_discord_configured() and self.config.discord_webhook_url:
+            channels.append(DiscordAlertChannel(webhook_url=self.config.discord_webhook_url))
+            Logger.info("Discord alerts configured")
         if self.config.is_webhook_configured() and self.config.webhook_url:
             channels.append(
                 WebhookAlertChannel(webhook_url=self.config.webhook_url, headers=self.config.webhook_headers or {})

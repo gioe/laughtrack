@@ -48,8 +48,8 @@ SMTP_PASSWORD=your_password
 EMAIL_FROM=alerts@example.com
 ALERT_RECIPIENTS=admin@example.com,ops@example.com
 
-# Slack alerts
-SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
+# Discord alerts
+DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
 
 # Webhook alerts
 MONITORING_WEBHOOK_URL=https://your-webhook.com/alerts
@@ -61,8 +61,8 @@ from .alert_system import (
     Alert,
     AlertChannel,
     AlertSeverity,
+    DiscordAlertChannel,
     EmailAlertChannel,
-    SlackAlertChannel,
     WebhookAlertChannel,
 )
 from .client_integration import (
@@ -82,8 +82,8 @@ __all__ = [
     "AlertSeverity",
     "Alert",
     "AlertChannel",
+    "DiscordAlertChannel",
     "EmailAlertChannel",
-    "SlackAlertChannel",
     "WebhookAlertChannel",
     # Client integration utilities
     "ClientMonitoringIntegration",

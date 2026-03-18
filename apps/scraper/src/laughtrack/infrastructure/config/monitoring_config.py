@@ -30,9 +30,8 @@ class MonitoringConfig:
     smtp_password: Optional[str] = None
     email_from: Optional[str] = None
 
-    # Slack settings
-    slack_webhook_url: Optional[str] = None
-    slack_channel: str = "#alerts"
+    # Discord settings
+    discord_webhook_url: Optional[str] = None
 
     # Webhook settings
     webhook_url: Optional[str] = None
@@ -69,8 +68,8 @@ class MonitoringConfig:
             self.email_from = email_config.get("from_email")
 
         # Monitoring-specific configuration from ConfigManager
-        if not self.slack_webhook_url:
-            self.slack_webhook_url = monitoring_config.get("slack_webhook_url")
+        if not self.discord_webhook_url:
+            self.discord_webhook_url = monitoring_config.get("discord_webhook_url")
         if not self.webhook_url:
             self.webhook_url = monitoring_config.get("monitoring_webhook_url")
         if not self.alert_recipients:
@@ -103,9 +102,9 @@ class MonitoringConfig:
             self.smtp_host and self.smtp_username and self.smtp_password and self.email_from and self.alert_recipients
         )
 
-    def is_slack_configured(self) -> bool:
-        """Check if Slack alerting is properly configured."""
-        return bool(self.slack_webhook_url)
+    def is_discord_configured(self) -> bool:
+        """Check if Discord alerting is properly configured."""
+        return bool(self.discord_webhook_url)
 
     def is_webhook_configured(self) -> bool:
         """Check if webhook alerting is properly configured."""
@@ -116,8 +115,8 @@ class MonitoringConfig:
         channels = []
         if self.is_email_configured():
             channels.append("email")
-        if self.is_slack_configured():
-            channels.append("slack")
+        if self.is_discord_configured():
+            channels.append("discord")
         if self.is_webhook_configured():
             channels.append("webhook")
         return channels
@@ -133,7 +132,7 @@ class MonitoringConfig:
 
         # Check that at least one alert channel is configured
         if not self.get_configured_channels():
-            issues.append("No alert channels configured (email, Slack, or webhook)")
+            issues.append("No alert channels configured (email, Discord, or webhook)")
 
         # Validate thresholds
         if self.failure_rate_warning_threshold >= self.failure_rate_critical_threshold:

@@ -7,8 +7,8 @@ from laughtrack.core.clients.tixr.tixr_failure_monitor import TixrFailureMonitor
 from typing import cast
 from laughtrack.infrastructure.config.monitoring_config import MonitoringConfig
 from laughtrack.infrastructure.monitoring.alert_system import (
+    DiscordAlertChannel,
     EmailAlertChannel,
-    SlackAlertChannel,
     WebhookAlertChannel,
 )
 from laughtrack.infrastructure.monitoring.tixr_alert_system import TixrAlertSystem
@@ -46,9 +46,9 @@ class TixrMonitoringProvider(MonitoringProvider):
         if config.is_email_configured() and config.alert_recipients:
             channels.append(EmailAlertChannel(recipients=config.alert_recipients))
             Logger.info(f"Email alerts configured for {len(config.alert_recipients)} recipients")
-        if config.is_slack_configured() and config.slack_webhook_url:
-            channels.append(SlackAlertChannel(webhook_url=config.slack_webhook_url, channel=config.slack_channel))
-            Logger.info("Slack alerts configured")
+        if config.is_discord_configured() and config.discord_webhook_url:
+            channels.append(DiscordAlertChannel(webhook_url=config.discord_webhook_url))
+            Logger.info("Discord alerts configured")
         if config.is_webhook_configured() and config.webhook_url:
             channels.append(WebhookAlertChannel(webhook_url=config.webhook_url, headers=config.webhook_headers or {}))
             Logger.info("Webhook alerts configured")

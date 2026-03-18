@@ -5,15 +5,15 @@ Provider-specific systems (e.g., Tixr) live in separate modules.
 """
 
 from .alerts import Alert, AlertSeverity
-from .channels import AlertChannel, EmailAlertChannel, SlackAlertChannel, WebhookAlertChannel
+from .channels import AlertChannel, DiscordAlertChannel, EmailAlertChannel, WebhookAlertChannel
 from .base_system import BaseAlertSystem
 
 __all__ = [
     "Alert",
     "AlertSeverity",
     "AlertChannel",
+    "DiscordAlertChannel",
     "EmailAlertChannel",
-    "SlackAlertChannel",
     "WebhookAlertChannel",
     "BaseAlertSystem",
 ]

@@ -198,23 +198,23 @@ class ScrapingService:
             f"{len(failing)} domain(s) below {self.success_rate_threshold}% success threshold: "
             + ", ".join(m.club_name for m in failing)
         )
-        self._send_slack_alert(failing)
+        self._send_discord_alert(failing)
 
-    def _send_slack_alert(self, failing: List[DomainRequestMetrics]) -> None:
+    def _send_discord_alert(self, failing: List[DomainRequestMetrics]) -> None:
         # Import guard is separate from execution guard so misconfigured environments
         # surface a distinct error rather than silently swallowing an ImportError.
         try:
             from laughtrack.infrastructure.config.monitoring_config import MonitoringConfig
-            from laughtrack.infrastructure.monitoring.channels import SlackAlertChannel
+            from laughtrack.infrastructure.monitoring.channels import DiscordAlertChannel
             from laughtrack.infrastructure.monitoring.alerts import Alert, AlertSeverity
         except ImportError as e:  # pragma: no cover
-            Logger.error(f"Monitoring package not available; skipping Slack alert: {e}")
+            Logger.error(f"Monitoring package not available; skipping Discord alert: {e}")
             return
 
         try:
             config = MonitoringConfig.default()
-            if not config.is_slack_configured() or not config.slack_webhook_url:
-                Logger.warn("Slack webhook not configured; skipping scraping success-rate alert")
+            if not config.is_discord_configured() or not config.discord_webhook_url:
+                Logger.warn("Discord webhook not configured; skipping scraping success-rate alert")
                 return
 
             lines = [
@@ -234,10 +234,7 @@ class ScrapingService:
                     "failing_domains": [m.club_name for m in failing],
                 },
             )
-            channel = SlackAlertChannel(
-                webhook_url=config.slack_webhook_url,
-                channel=config.slack_channel,
-            )
+            channel = DiscordAlertChannel(webhook_url=config.discord_webhook_url)
             # Guard against being called from an already-running event loop
             # (e.g. async test runner, FastAPI handler) to avoid RuntimeError.
             try:
@@ -252,7 +249,7 @@ class ScrapingService:
             else:
                 asyncio.run(channel.send_alert(alert))
         except Exception as e:  # pragma: no cover - defensive
-            Logger.error(f"Failed to send Slack scraping alert: {e}")
+            Logger.error(f"Failed to send Discord scraping alert: {e}")
 
 
 __all__ = ["ScrapingService"]

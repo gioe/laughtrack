@@ -63,47 +63,46 @@ Metadata:
             return False
 
 
-class SlackAlertChannel(AlertChannel):
-    """Slack alert channel via incoming webhook."""
+class DiscordAlertChannel(AlertChannel):
+    """Discord alert channel via incoming webhook."""
 
     _SEVERITY_COLORS = {
-        "low": "#36a64f",
-        "medium": "#ffcc00",
-        "high": "#ff8800",
-        "critical": "#cc0000",
+        "low": 0x36A64F,
+        "medium": 0xFFCC00,
+        "high": 0xFF8800,
+        "critical": 0xCC0000,
     }
 
-    def __init__(self, webhook_url: str, channel: str = "#alerts"):
+    def __init__(self, webhook_url: str):
         self.webhook_url = webhook_url
-        self.channel = channel
 
     async def send_alert(self, alert: Alert) -> bool:
         try:
-            color = self._SEVERITY_COLORS.get(alert.severity.value, "#888888")
-            attachment: Dict = {
-                "color": color,
+            color = self._SEVERITY_COLORS.get(alert.severity.value, 0x888888)
+            embed: Dict = {
                 "title": f"[{alert.severity.value.upper()}] {alert.title}",
-                "text": alert.description,
+                "description": alert.description,
+                "color": color,
                 "fields": [
-                    {"title": "Source", "value": alert.source, "short": True},
-                    {"title": "Severity", "value": alert.severity.value, "short": True},
-                    {"title": "Time", "value": alert.timestamp.isoformat(), "short": True},
+                    {"name": "Source", "value": alert.source, "inline": True},
+                    {"name": "Severity", "value": alert.severity.value, "inline": True},
+                    {"name": "Time", "value": alert.timestamp.isoformat(), "inline": True},
                 ],
             }
             if alert.metadata:
-                attachment["footer"] = json.dumps(alert.metadata)
+                embed["footer"] = {"text": json.dumps(alert.metadata)}
 
-            payload = {"attachments": [attachment]}
+            payload = {"embeds": [embed]}
 
             async with AsyncSession(timeout=10) as session:
                 response = await session.post(self.webhook_url, json=payload)
-                if response.status_code == 200:
+                if response.status_code in (200, 204):
                     return True
                 body = response.text
-                Logger.error(f"Slack webhook returned {response.status_code}: {body}")
+                Logger.error(f"Discord webhook returned {response.status_code}: {body}")
                 return False
         except Exception as e:
-            Logger.error(f"Failed to send Slack alert: {e}")
+            Logger.error(f"Failed to send Discord alert: {e}")
             return False
 
 
