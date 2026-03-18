@@ -54,12 +54,17 @@ export async function findClubsWithCount(
             CLUB_SORT_MAP,
         );
         // Inject totalShows tiebreaker after the primary sort so more-active clubs
-        // surface first among ties — valid because Club now has a totalShows column.
-        const clubOrderBy = [
-            orderBy[0],
-            { totalShows: "desc" as const },
-            ...orderBy.slice(1),
-        ];
+        // surface first among ties — skip when already sorting by totalShows to
+        // avoid a duplicate orderBy entry.
+        const primaryField = Object.keys(orderBy[0])[0];
+        const clubOrderBy =
+            primaryField === "totalShows"
+                ? orderBy
+                : [
+                      orderBy[0],
+                      { totalShows: "desc" as const },
+                      ...orderBy.slice(1),
+                  ];
         const filteredClubs = await db.club.findMany({
             where: whereClause,
             select: buildClubSelect(),

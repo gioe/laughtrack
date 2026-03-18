@@ -7,6 +7,10 @@ import {
 } from "./QueryHelper";
 import { SortParamValue } from "@/objects/enum/sortParamValue";
 
+// COMEDIAN_SORT_MAP is used as a representative map for tests that are not
+// entity-specific — it covers popularity, totalShows, name, and activity fields.
+const TEST_SORT_MAP = COMEDIAN_SORT_MAP;
+
 const TIEBREAKER = [{ name: "asc" }];
 
 function makeHelper(sort: string): QueryHelper {
@@ -23,7 +27,7 @@ describe("QueryHelper.getGenericClauses — orderBy output", () => {
         it("sets primary sort to popularity desc with tiebreaker", () => {
             const { orderBy } = makeHelper(
                 SortParamValue.PopularityDesc,
-            ).getGenericClauses(TOTAL);
+            ).getGenericClauses(TOTAL, TEST_SORT_MAP);
             expect(orderBy).toEqual([{ popularity: "desc" }, ...TIEBREAKER]);
         });
     });
@@ -32,7 +36,7 @@ describe("QueryHelper.getGenericClauses — orderBy output", () => {
         it("sets primary sort to totalShows asc with tiebreaker", () => {
             const { orderBy } = makeHelper(
                 SortParamValue.TotalShowsAsc,
-            ).getGenericClauses(TOTAL);
+            ).getGenericClauses(TOTAL, TEST_SORT_MAP);
             expect(orderBy).toEqual([{ totalShows: "asc" }, ...TIEBREAKER]);
         });
     });
@@ -41,7 +45,7 @@ describe("QueryHelper.getGenericClauses — orderBy output", () => {
         it("sets primary sort to totalShows desc with tiebreaker", () => {
             const { orderBy } = makeHelper(
                 SortParamValue.TotalShowsDesc,
-            ).getGenericClauses(TOTAL);
+            ).getGenericClauses(TOTAL, TEST_SORT_MAP);
             expect(orderBy).toEqual([{ totalShows: "desc" }, ...TIEBREAKER]);
         });
     });
@@ -50,7 +54,7 @@ describe("QueryHelper.getGenericClauses — orderBy output", () => {
         it("sets primary sort to totalShows asc with tiebreaker", () => {
             const { orderBy } = makeHelper(
                 SortParamValue.ShowCountAsc,
-            ).getGenericClauses(TOTAL);
+            ).getGenericClauses(TOTAL, CLUB_SORT_MAP);
             expect(orderBy).toEqual([{ totalShows: "asc" }, ...TIEBREAKER]);
         });
     });
@@ -59,7 +63,7 @@ describe("QueryHelper.getGenericClauses — orderBy output", () => {
         it("sets primary sort to totalShows desc with tiebreaker", () => {
             const { orderBy } = makeHelper(
                 SortParamValue.ShowCountDesc,
-            ).getGenericClauses(TOTAL);
+            ).getGenericClauses(TOTAL, CLUB_SORT_MAP);
             expect(orderBy).toEqual([{ totalShows: "desc" }, ...TIEBREAKER]);
         });
     });
@@ -68,15 +72,16 @@ describe("QueryHelper.getGenericClauses — orderBy output", () => {
         it("sets primary sort to name asc with no tiebreaker", () => {
             const { orderBy } = makeHelper(
                 SortParamValue.NameAsc,
-            ).getGenericClauses(TOTAL);
+            ).getGenericClauses(TOTAL, TEST_SORT_MAP);
             expect(orderBy).toEqual([{ name: "asc" }]);
         });
     });
 
     describe("invalid sort param", () => {
         it("falls back to popularity_desc with tiebreaker", () => {
-            const { orderBy } =
-                makeHelper("not_a_valid_sort").getGenericClauses(TOTAL);
+            const { orderBy } = makeHelper(
+                "not_a_valid_sort",
+            ).getGenericClauses(TOTAL, TEST_SORT_MAP);
             expect(orderBy).toEqual([{ popularity: "desc" }, ...TIEBREAKER]);
         });
     });

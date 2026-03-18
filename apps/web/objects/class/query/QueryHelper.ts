@@ -356,55 +356,13 @@ export class QueryHelper {
         };
     }
 
-    getGenericClauses(total: number, sortMap?: SortMap) {
+    getGenericClauses(total: number, sortMap: SortMap) {
         // Default values for pagination
         const defaultSize = 10;
         const defaultPage = 1;
         const defaultSortField = SortParamValue.PopularityDesc;
 
-        // Use the caller-supplied entity-specific sort map when provided; fall
-        // back to the legacy shared map so existing call sites without a map
-        // argument continue to work unchanged.
-        const effectiveSortMap: SortMap = sortMap ?? {
-            [SortParamValue.NameAsc]: { field: "name", direction: "asc" },
-            [SortParamValue.NameDesc]: { field: "name", direction: "desc" },
-            [SortParamValue.ActivityAsc]: {
-                field: "totalShows",
-                direction: "asc",
-            },
-            [SortParamValue.ActivityDesc]: {
-                field: "totalShows",
-                direction: "desc",
-            },
-            [SortParamValue.DateAsc]: { field: "date", direction: "asc" },
-            [SortParamValue.DateDesc]: { field: "date", direction: "desc" },
-            [SortParamValue.PriceAsc]: { field: "price", direction: "asc" },
-            [SortParamValue.PriceDesc]: { field: "price", direction: "desc" },
-            [SortParamValue.PopularityAsc]: {
-                field: "popularity",
-                direction: "asc",
-            },
-            [SortParamValue.PopularityDesc]: {
-                field: "popularity",
-                direction: "desc",
-            },
-            [SortParamValue.TotalShowsAsc]: {
-                field: "totalShows",
-                direction: "asc",
-            },
-            [SortParamValue.TotalShowsDesc]: {
-                field: "totalShows",
-                direction: "desc",
-            },
-            [SortParamValue.ShowCountAsc]: {
-                field: "totalShows",
-                direction: "asc",
-            },
-            [SortParamValue.ShowCountDesc]: {
-                field: "totalShows",
-                direction: "desc",
-            },
-        };
+        const effectiveSortMap = sortMap;
 
         // Handle pagination with proper null checks and defaults
         const size = Math.max(1, Number(this.params.size) || defaultSize);

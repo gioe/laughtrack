@@ -213,12 +213,17 @@ export async function findComediansWithCount(
             COMEDIAN_SORT_MAP,
         );
         // Inject totalShows tiebreaker after the primary sort so more-active comedians
-        // surface first among ties — valid because Comedian has a totalShows column.
-        const comedianOrderBy = [
-            orderBy[0],
-            { totalShows: "desc" as const },
-            ...orderBy.slice(1),
-        ];
+        // surface first among ties — skip when already sorting by totalShows to
+        // avoid a duplicate orderBy entry.
+        const primaryField = Object.keys(orderBy[0])[0];
+        const comedianOrderBy =
+            primaryField === "totalShows"
+                ? orderBy
+                : [
+                      orderBy[0],
+                      { totalShows: "desc" as const },
+                      ...orderBy.slice(1),
+                  ];
 
         const filteredComedians = await db.comedian.findMany({
             where: whereClause,

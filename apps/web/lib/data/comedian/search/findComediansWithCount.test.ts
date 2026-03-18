@@ -17,7 +17,10 @@ vi.mock("@/util/imageUtil", () => ({
 
 import { findComediansWithCount } from "./findComediansWithCount";
 import { db } from "@/lib/db";
-import { QueryHelper } from "@/objects/class/query/QueryHelper";
+import {
+    QueryHelper,
+    COMEDIAN_SORT_MAP,
+} from "@/objects/class/query/QueryHelper";
 import { SortParamValue } from "@/objects/enum/sortParamValue";
 
 const mockCount = vi.mocked(db.comedian.count);
@@ -70,6 +73,28 @@ describe("findComediansWithCount", () => {
     });
 
     describe("regular sort (non show_count_desc)", () => {
+        it("passes COMEDIAN_SORT_MAP as second arg to getGenericClauses", async () => {
+            const DB_COUNT = 5;
+            mockCount.mockResolvedValue(DB_COUNT);
+            mockFindMany.mockResolvedValue([makeComedianRow(1)] as never);
+
+            const capturedArgs: unknown[][] = [];
+            const helper = makeHelper(SortParamValue.PopularityDesc);
+            const originalFn = helper.getGenericClauses.bind(helper);
+            helper.getGenericClauses = vi.fn((...args: unknown[]) => {
+                capturedArgs.push(args);
+                return originalFn(args[0] as number, args[1] as never);
+            }) as unknown as typeof helper.getGenericClauses;
+
+            await findComediansWithCount(helper);
+
+            expect(capturedArgs.length).toBeGreaterThan(0);
+            // Every call must forward COMEDIAN_SORT_MAP as the second argument
+            for (const args of capturedArgs) {
+                expect(args[1]).toBe(COMEDIAN_SORT_MAP);
+            }
+        });
+
         it("returns comedians via Prisma findMany with pagination", async () => {
             const rows = [makeComedianRow(1, 3), makeComedianRow(2, 1)];
             mockCount.mockResolvedValue(2);
