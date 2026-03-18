@@ -3,7 +3,10 @@ Simplified Tixr API client for fetching event details.
 """
 
 import json
+import re
 from typing import Any, Dict, List, Optional
+
+from curl_cffi.requests import AsyncSession
 
 from laughtrack.core.entities.event.tixr import TixrEvent
 from laughtrack.foundation.models.types import JSONDict
@@ -89,20 +92,40 @@ class TixrClient(BaseApiClient):
 
     async def get_event_detail_from_url(self, url: str) -> Optional[TixrEvent]:
         """
-        Extract event ID from URL and fetch event details.
+        Fetch event details by scraping the Tixr event page for JSON-LD structured data.
+
+        The Tixr JSON API (api.tixr.com) requires authentication and returns HTML for
+        unauthenticated requests. Instead, we fetch the public event page and parse the
+        JSON-LD @type=Event block, which Tixr embeds for SEO purposes.
 
         Args:
-            url: Tixr event page URL
+            url: Tixr event page URL (e.g. tixr.com/groups/{group}/events/{slug})
 
         Returns:
             TixrEvent object if successful, None otherwise
         """
-        event_id = URLUtils.extract_event_id_from_url(url)
-        if not event_id:
-            self.log_warning(f"Could not extract event ID from URL: {url}")
+        # Tixr's DataDome protection blocks requests that carry certain header
+        # combinations (e.g. Accept-Language + Cache-Control + Pragma together).
+        # curl_cffi's impersonation sets a clean, browser-consistent fingerprint
+        # on its own — passing *any* custom headers breaks that fingerprint and
+        # triggers the 403. Fetch directly without extra headers.
+        html = await self._fetch_tixr_page(url)
+        if not html:
+            self.log_warning(f"No HTML content returned for {url}")
             return None
 
-        return await self.get_event_detail(event_id)
+        jsonld = self._extract_jsonld_event(html)
+        if not jsonld:
+            self.log_warning(f"No JSON-LD Event block found in page: {url}")
+            return None
+
+        show = self._create_show_from_jsonld(jsonld, url)
+        if not show:
+            self.log_warning(f"Failed to create Show from JSON-LD for {url}")
+            return None
+
+        event_id = URLUtils.extract_id_from_url(url, ["/events/"]) or ""
+        return TixrEvent.from_tixr_show(show=show, source_url=url, event_id=event_id)
 
     async def fetch_events(self, *args, **kwargs) -> List[JSONDict]:
         """
@@ -117,6 +140,140 @@ class TixrClient(BaseApiClient):
         """
         self.log_info("TixrClient works with specific event IDs/URLs, not general event fetching")
         return []
+
+    async def _fetch_tixr_page(self, url: str) -> Optional[str]:
+        """
+        Fetch a Tixr event page HTML without custom headers.
+
+        Tixr's DataDome bot-detection blocks requests that carry specific header
+        combinations (e.g. Accept-Language + Cache-Control + Pragma together).
+        curl_cffi's Chrome impersonation already sends a correct browser fingerprint
+        on its own — passing *any* custom headers from our API header dict disrupts
+        that fingerprint and produces a 403. This method uses a bare session.get()
+        so the impersonation headers are the only ones sent.
+
+        Args:
+            url: Tixr event page URL
+
+        Returns:
+            HTML string on success, None on failure (non-200 or exception)
+        """
+        try:
+            async with AsyncSession(impersonate=self._get_impersonation_target(url)) as session:
+                response = await session.get(url)
+                if response.status_code != 200:
+                    self.log_warning(f"HTTP {response.status_code} fetching Tixr page {url}")
+                    return None
+                return response.text
+        except Exception as e:
+            self.log_error(f"Failed to fetch Tixr page {url}: {e}")
+            return None
+
+    def _extract_jsonld_event(self, html: str) -> Optional[Dict[str, Any]]:
+        """
+        Extract the first @type=Event JSON-LD block from an HTML page.
+
+        Args:
+            html: Full HTML content of a Tixr event page
+
+        Returns:
+            Parsed JSON-LD dict for the Event, or None if not found
+        """
+        blocks = re.findall(
+            r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
+            html,
+            re.DOTALL | re.IGNORECASE,
+        )
+        for raw in blocks:
+            try:
+                parsed = json.loads(raw.strip())
+            except (json.JSONDecodeError, ValueError):
+                continue
+            items = parsed if isinstance(parsed, list) else [parsed]
+            for item in items:
+                if isinstance(item, dict) and item.get("@type") == "Event":
+                    return item
+        return None
+
+    def _create_show_from_jsonld(self, data: Dict[str, Any], page_url: str) -> Optional[Show]:
+        """
+        Create a Show object from a JSON-LD Event schema dict.
+
+        Args:
+            data: JSON-LD Event dict (from _extract_jsonld_event)
+            page_url: The event page URL (used as fallback show_page_url)
+
+        Returns:
+            Show object if successful, None otherwise
+        """
+        try:
+            name = data.get("name", "")
+            start_date = data.get("startDate")
+            if not start_date:
+                self.log_warning(f"JSON-LD Event has no startDate for {page_url}")
+                return None
+
+            try:
+                date = DateTimeUtils.parse_datetime_with_timezone(start_date, None)
+            except Exception as e:
+                self.log_warning(f"Could not parse startDate {start_date!r} for {page_url}: {e}")
+                return None
+
+            show_page_url = data.get("url") or page_url
+            description = data.get("description")
+
+            # Extract lineup from performer array
+            lineup: List[Comedian] = []
+            for performer in data.get("performer", []):
+                if isinstance(performer, dict):
+                    performer_name = performer.get("name", "").strip()
+                elif isinstance(performer, str):
+                    performer_name = performer.strip()
+                else:
+                    continue
+                if performer_name:
+                    lineup.append(Comedian(name=performer_name))
+
+            # Extract tickets from offers array
+            tickets: List[Ticket] = []
+            for offer in data.get("offers", []):
+                if not isinstance(offer, dict):
+                    continue
+                try:
+                    price = float(offer.get("price", 0))
+                except (ValueError, TypeError):
+                    price = 0.0
+                availability = offer.get("availability", "")
+                sold_out = "SoldOut" in availability
+                ticket_type = offer.get("name", "General Admission")
+                tickets.append(
+                    Ticket(
+                        price=price,
+                        purchase_url=offer.get("url", show_page_url),
+                        sold_out=sold_out,
+                        type=ticket_type,
+                    )
+                )
+
+            if not tickets:
+                tickets.append(Ticket(price=0, purchase_url=show_page_url, sold_out=False, type="General Admission"))
+
+            return Show(
+                name=name,
+                club_id=self.club.id,
+                date=date,
+                show_page_url=show_page_url,
+                lineup=lineup,
+                tickets=tickets,
+                supplied_tags=["event"],
+                description=description,
+                timezone=None,
+                room="",
+            )
+
+        except Exception as e:
+            self.log_error(f"Failed to create show from JSON-LD: {e}")
+            return None
 
     def _create_show_from_data(self, data: JSONDict) -> Optional[Show]:
         """
