@@ -83,6 +83,30 @@ jobs:
           path: apps/scraper/logs/
           retention-days: 30
 
+      - name: Ping heartbeat monitor
+        if: always()
+        env:
+          HEALTHCHECKS_PING_URL: ${{ secrets.HEALTHCHECKS_PING_URL }}
+        run: |
+          # Sends a heartbeat ping to an external monitoring service (e.g. Healthchecks.io free tier).
+          # Healthchecks.io alerts via email/Discord if no ping arrives within the grace window,
+          # which catches both failed runs and completely missed scheduled runs.
+          #
+          # Setup:
+          #   1. Create a free account at https://healthchecks.io
+          #   2. Add a check: period=1d, grace=12h, schedule=0 6 * * *
+          #   3. Add the ping URL as a GitHub secret named HEALTHCHECKS_PING_URL
+          #   4. Optionally connect a Discord channel in Healthchecks.io integrations
+          if [ -z "$HEALTHCHECKS_PING_URL" ]; then
+            echo "HEALTHCHECKS_PING_URL not set — skipping heartbeat ping"
+            exit 0
+          fi
+          if [ "${{ job.status }}" = "success" ]; then
+            curl -fsS --retry 3 "$HEALTHCHECKS_PING_URL"
+          else
+            curl -fsS --retry 3 "$HEALTHCHECKS_PING_URL/fail"
+          fi
+
       - name: Notify on failure
         if: failure()
         run: |
