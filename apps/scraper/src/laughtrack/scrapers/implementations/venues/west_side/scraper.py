@@ -35,7 +35,6 @@ class WestSideScraper(BaseScraper):
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
         self.transformer = WestSideEventTransformer(club)
-        self.transformation_pipeline.register_transformer(self.transformer)
 
     async def get_data(self, url: str) -> Optional[WestSidePageData]:
         """

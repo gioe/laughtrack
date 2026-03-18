@@ -194,16 +194,35 @@ class WestSideExtractor:
 
     @staticmethod
     def _extract_balanced(text: str, start: int, open_ch: str, close_ch: str) -> Optional[str]:
-        """Extract a balanced bracket/brace structure starting at position start."""
+        """
+        Extract a balanced bracket/brace structure starting at position start.
+
+        Skips characters inside JSON string values (double-quoted, with backslash-escape
+        awareness) so that brackets or braces in string content do not affect the depth
+        counter and produce a wrong or missing result.
+        """
         depth = 0
-        for i in range(start, len(text)):
+        in_string = False
+        i = start
+        while i < len(text):
             ch = text[i]
-            if ch == open_ch:
-                depth += 1
-            elif ch == close_ch:
-                depth -= 1
-                if depth == 0:
-                    return text[start : i + 1]
+            if in_string:
+                if ch == "\\":
+                    # Skip the escaped character — do not inspect it
+                    i += 2
+                    continue
+                elif ch == '"':
+                    in_string = False
+            else:
+                if ch == '"':
+                    in_string = True
+                elif ch == open_ch:
+                    depth += 1
+                elif ch == close_ch:
+                    depth -= 1
+                    if depth == 0:
+                        return text[start : i + 1]
+            i += 1
         return None
 
     @staticmethod
