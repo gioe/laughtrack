@@ -2,7 +2,7 @@
 Rodney's Comedy Club data transformer for converting RodneyEvent objects to Show objects.
 """
 
-from typing import List
+from typing import List, Optional
 
 from laughtrack.core.entities.event.rodneys import RodneyEvent
 from laughtrack.core.entities.club.model import Club
@@ -34,16 +34,16 @@ class RodneyEventTransformer(DataTransformer[RodneyEvent]):
             and raw_data.date_time is not None
         )
 
-    def transform_to_shows(self, raw_data: RodneyEvent, source_url: str = "") -> List[Show]:
+    def transform_to_show(self, raw_data: RodneyEvent, source_url: str = "") -> Optional[Show]:
         """
-        Transform RodneyEvent to Show objects.
+        Transform RodneyEvent to a single Show object.
 
         Args:
             raw_data: RodneyEvent object to transform
             source_url: URL where the data was extracted from (optional, uses raw_data.source_url)
 
         Returns:
-            List containing single Show object, or empty list if transformation failed
+            Show object, or None if transformation failed
         """
         try:
             # Use the source URL from the RodneyEvent if not provided
@@ -53,13 +53,13 @@ class RodneyEventTransformer(DataTransformer[RodneyEvent]):
             date_str = raw_data.date_time.isoformat() if raw_data.date_time else ""
             if not date_str:
                 Logger.error(f"No date available for event: {raw_data.title}")
-                return []
+                return None
 
             show_date = DateTimeUtils.parse_datetime_with_timezone(date_str, self.club.timezone)
 
             if not show_date:
                 Logger.error(f"Failed to parse date for event: {raw_data.title}")
-                return []
+                return None
 
             # Extract lineup
             lineup = self._extract_lineup(raw_data)
@@ -68,7 +68,7 @@ class RodneyEventTransformer(DataTransformer[RodneyEvent]):
             tickets = self._extract_tickets(raw_data, show_url)
 
             # Create Show object
-            show = Show(
+            return Show(
                 name=raw_data.title,
                 date=show_date,
                 description=raw_data.description or "",
@@ -81,14 +81,11 @@ class RodneyEventTransformer(DataTransformer[RodneyEvent]):
                 room="",  # Rodney's doesn't have separate rooms
             )
 
-            return [show]
-
         except Exception as e:
             Logger.error(
-                f"Failed to transform RodneyEvent data from {source_url}: {e}",
-                {"club": self.club.name, "source_type": raw_data.source_type},
+                f"Failed to transform RodneyEvent data from {source_url}: {e}: club={self.club.name} source_type={raw_data.source_type}"
             )
-            return []
+            return None
 
     def _extract_lineup(self, event: RodneyEvent) -> List[Comedian]:
         """Extract comedian lineup from RodneyEvent."""
