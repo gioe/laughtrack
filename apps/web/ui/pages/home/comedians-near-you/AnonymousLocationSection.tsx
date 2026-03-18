@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import ComedianNearYouSection from "@/ui/pages/home/comedians-near-you";
 import { getComediansByZipAction } from "@/app/actions/getComediansByZipAction";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
+import { removeNonNumbers } from "@/util/primatives/stringUtil";
 
 type Step = "prompt" | "loading" | "zip-entry" | "loaded" | "declined";
 
@@ -155,7 +156,7 @@ export default function AnonymousLocationSection() {
                             pattern="[0-9]*"
                             value={zipInput}
                             onChange={(e) =>
-                                setZipInput(e.target.value.replace(/\D/g, ""))
+                                setZipInput(removeNonNumbers(e.target.value))
                             }
                             placeholder="Enter zip code"
                             maxLength={5}

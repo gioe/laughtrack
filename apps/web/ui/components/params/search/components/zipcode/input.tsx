@@ -1,5 +1,6 @@
 import { ChangeEvent } from "react";
 import { ComponentVariant } from "@/objects/enum";
+import { removeNonNumbers } from "@/util/primatives/stringUtil";
 import {
     FormControl,
     FormField,
@@ -39,7 +40,7 @@ const ZipCodeInput = (props: ZipCodeInputComponentProps) => {
     const handleInputChange =
         (onChange: (value: string) => void) =>
         (event: ChangeEvent<HTMLInputElement>) => {
-            const value = event.target.value.replace(/\D/g, "");
+            const value = removeNonNumbers(event.target.value);
             if (value.length <= 5) {
                 onChange(value);
             }
