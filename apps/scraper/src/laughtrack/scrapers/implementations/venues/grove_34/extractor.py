@@ -1,5 +1,6 @@
 """Grove34 data extraction utilities for the Webflow site."""
 
+import html as html_module
 import json
 from typing import List, Optional
 
@@ -64,17 +65,13 @@ class Grove34EventExtractor:
         """
         try:
             elements = HtmlScraper.find_elements_by_selector(html_content, 'a[href]')
-            base = current_page_url.split("?")[0].rstrip("/")
             for el in elements:
                 href = el.get("href", "")
-                # Webflow CMS pagination uses a collection-specific query param
+                # Webflow CMS pagination uses a collection-specific query param.
+                # "1a7d9b18" is the Webflow collection UUID embedded in pagination hrefs.
+                # If the Grove34 Webflow collection is rebuilt, this ID may change.
                 if "1a7d9b18_page=" in href:
-                    if href.startswith("?"):
-                        return base + "/" + href
-                    elif href.startswith("/"):
-                        return Grove34EventExtractor.BASE_URL + href
-                    else:
-                        return href
+                    return HtmlScraper._build_absolute_url(href, current_page_url)
             return None
         except Exception as e:
             Logger.error(f"Error finding next page URL: {e}")
@@ -103,7 +100,7 @@ class Grove34EventExtractor:
                 if data.get("@type") != "Event":
                     continue
 
-                name = data.get("name", "").replace("&amp;", "&").strip()
+                name = html_module.unescape(data.get("name", "")).strip()
                 start_date = data.get("startDate", "").strip()
                 description = (data.get("description") or "").strip() or None
 

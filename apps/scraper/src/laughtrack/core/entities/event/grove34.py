@@ -22,7 +22,10 @@ class Grove34Event:
     def to_show(self, club: Club, enhanced: bool = True) -> Optional[Show]:
         try:
             # Strip milliseconds and ensure Z suffix (same pattern as old Wix code)
-            clean_date_str = self.start_date.split(".")[0] + "Z"
+            # rstrip("Z") handles dates that already end with "Z" (no milliseconds),
+            # preventing double-Z like "2026-03-18T00:00:00ZZ".
+            # parse_wix_iso_date parses any ISO 8601 UTC string — works for Webflow/JSON-LD dates too
+            clean_date_str = self.start_date.split(".")[0].rstrip("Z") + "Z"
             event_datetime = ShowFactoryUtils.parse_wix_iso_date(clean_date_str, self.timezone_id)
             if not event_datetime:
                 return None

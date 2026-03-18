@@ -45,10 +45,15 @@ class Grove34Scraper(BaseScraper):
         listing_url: Optional[str] = URLUtils.normalize_url(self.club.scraping_url)
         all_urls: List[str] = []
         seen: set = set()
+        visited_listing_urls: set = set()
         pages_fetched = 0
 
         while listing_url and pages_fetched < self._MAX_LISTING_PAGES:
+            if listing_url in visited_listing_urls:
+                break
+            visited_listing_urls.add(listing_url)
             try:
+                await self.rate_limiter.await_if_needed(listing_url)
                 html = await self.fetch_html(listing_url)
                 page_urls = Grove34EventExtractor.extract_show_urls(html)
                 for url in page_urls:
