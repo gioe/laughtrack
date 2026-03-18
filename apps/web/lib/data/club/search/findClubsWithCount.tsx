@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { QueryHelper } from "@/objects/class/query/QueryHelper";
+import { QueryHelper, CLUB_SORT_MAP } from "@/objects/class/query/QueryHelper";
 import { buildClubImageUrl } from "@/util/imageUtil";
 import { Prisma } from "@prisma/client";
 import { ClubsResponse } from "./interface";
@@ -49,8 +49,10 @@ export async function findClubsWithCount(
         });
 
         // Then get filtered clubs with pagination
-        const { orderBy, take, skip } =
-            queryHelper.getGenericClauses(totalCount);
+        const { orderBy, take, skip } = queryHelper.getGenericClauses(
+            totalCount,
+            CLUB_SORT_MAP,
+        );
         // Inject totalShows tiebreaker after the primary sort so more-active clubs
         // surface first among ties — valid because Club now has a totalShows column.
         const clubOrderBy = [

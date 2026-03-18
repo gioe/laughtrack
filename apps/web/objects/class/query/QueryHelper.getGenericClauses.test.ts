@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { QueryHelper } from "./QueryHelper";
+import {
+    QueryHelper,
+    SHOW_SORT_MAP,
+    COMEDIAN_SORT_MAP,
+    CLUB_SORT_MAP,
+} from "./QueryHelper";
 import { SortParamValue } from "@/objects/enum/sortParamValue";
 
 const TIEBREAKER = [{ name: "asc" }];
@@ -72,6 +77,72 @@ describe("QueryHelper.getGenericClauses — orderBy output", () => {
         it("falls back to popularity_desc with tiebreaker", () => {
             const { orderBy } =
                 makeHelper("not_a_valid_sort").getGenericClauses(TOTAL);
+            expect(orderBy).toEqual([{ popularity: "desc" }, ...TIEBREAKER]);
+        });
+    });
+});
+
+describe("QueryHelper.getGenericClauses — per-entity sort maps", () => {
+    const TOTAL = 100;
+
+    describe("SHOW_SORT_MAP", () => {
+        it("allows date_asc sort for shows", () => {
+            const { orderBy } = makeHelper(
+                SortParamValue.DateAsc,
+            ).getGenericClauses(TOTAL, SHOW_SORT_MAP);
+            expect(orderBy).toEqual([{ date: "asc" }, ...TIEBREAKER]);
+        });
+
+        it("falls back to popularity_desc for totalShows sort (not a Show field)", () => {
+            const { orderBy } = makeHelper(
+                SortParamValue.TotalShowsDesc,
+            ).getGenericClauses(TOTAL, SHOW_SORT_MAP);
+            expect(orderBy).toEqual([{ popularity: "desc" }, ...TIEBREAKER]);
+        });
+
+        it("falls back to popularity_desc for show_count sort (not a Show field)", () => {
+            const { orderBy } = makeHelper(
+                SortParamValue.ShowCountAsc,
+            ).getGenericClauses(TOTAL, SHOW_SORT_MAP);
+            expect(orderBy).toEqual([{ popularity: "desc" }, ...TIEBREAKER]);
+        });
+    });
+
+    describe("COMEDIAN_SORT_MAP", () => {
+        it("allows totalShows sort for comedians", () => {
+            const { orderBy } = makeHelper(
+                SortParamValue.TotalShowsDesc,
+            ).getGenericClauses(TOTAL, COMEDIAN_SORT_MAP);
+            expect(orderBy).toEqual([{ totalShows: "desc" }, ...TIEBREAKER]);
+        });
+
+        it("falls back to popularity_desc for date sort (not a Comedian field)", () => {
+            const { orderBy } = makeHelper(
+                SortParamValue.DateAsc,
+            ).getGenericClauses(TOTAL, COMEDIAN_SORT_MAP);
+            expect(orderBy).toEqual([{ popularity: "desc" }, ...TIEBREAKER]);
+        });
+    });
+
+    describe("CLUB_SORT_MAP", () => {
+        it("allows totalShows sort for clubs", () => {
+            const { orderBy } = makeHelper(
+                SortParamValue.TotalShowsAsc,
+            ).getGenericClauses(TOTAL, CLUB_SORT_MAP);
+            expect(orderBy).toEqual([{ totalShows: "asc" }, ...TIEBREAKER]);
+        });
+
+        it("allows show_count sort for clubs", () => {
+            const { orderBy } = makeHelper(
+                SortParamValue.ShowCountDesc,
+            ).getGenericClauses(TOTAL, CLUB_SORT_MAP);
+            expect(orderBy).toEqual([{ totalShows: "desc" }, ...TIEBREAKER]);
+        });
+
+        it("falls back to popularity_desc for date sort (not a Club field)", () => {
+            const { orderBy } = makeHelper(
+                SortParamValue.DateDesc,
+            ).getGenericClauses(TOTAL, CLUB_SORT_MAP);
             expect(orderBy).toEqual([{ popularity: "desc" }, ...TIEBREAKER]);
         });
     });

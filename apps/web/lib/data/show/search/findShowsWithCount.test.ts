@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { SHOW_SORT_MAP } from "@/objects/class/query/QueryHelper";
 
 const { mockCount, mockFindMany } = vi.hoisted(() => ({
     mockCount: vi.fn(),
@@ -122,7 +123,10 @@ describe("findShowsWithCount", () => {
             const helper = makeHelper() as any;
             await findShowsWithCount(helper);
 
-            expect(helper.getGenericClauses).toHaveBeenCalledWith(DB_COUNT);
+            expect(helper.getGenericClauses).toHaveBeenCalledWith(
+                DB_COUNT,
+                SHOW_SORT_MAP,
+            );
         });
 
         it("spreads the result of getGenericClauses into the findMany call", async () => {

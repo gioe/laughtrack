@@ -1,5 +1,8 @@
 import { db } from "@/lib/db";
-import { QueryHelper } from "@/objects/class/query/QueryHelper";
+import {
+    QueryHelper,
+    COMEDIAN_SORT_MAP,
+} from "@/objects/class/query/QueryHelper";
 import {
     containsAliasTag,
     getEffectiveComedian,
@@ -115,7 +118,10 @@ export async function findComediansWithCount(
             helper.params.sort === SortParamValue.ShowCountDesc ||
             helper.params.sort === SortParamValue.ShowCountAsc
         ) {
-            const { take, skip } = helper.getGenericClauses(totalCount);
+            const { take, skip } = helper.getGenericClauses(
+                totalCount,
+                COMEDIAN_SORT_MAP,
+            );
 
             // Build parameterized WHERE conditions mirroring the Prisma whereClause
             const whereConditions: Prisma.Sql[] = [
@@ -202,7 +208,10 @@ export async function findComediansWithCount(
             };
         }
 
-        const { orderBy, take, skip } = helper.getGenericClauses(totalCount);
+        const { orderBy, take, skip } = helper.getGenericClauses(
+            totalCount,
+            COMEDIAN_SORT_MAP,
+        );
         // Inject totalShows tiebreaker after the primary sort so more-active comedians
         // surface first among ties — valid because Comedian has a totalShows column.
         const comedianOrderBy = [

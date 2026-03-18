@@ -5,6 +5,66 @@ import { SearchParams } from "@/objects/interface/showSearch.interface";
 import { toZonedTime, format } from "date-fns-tz";
 import { SortParamValue } from "@/objects/enum/sortParamValue";
 
+type SortEntry = { field: string; direction: "asc" | "desc" };
+type SortMap = Record<string, SortEntry>;
+
+/** Sort fields valid for the Show model (has: name, date, popularity). */
+export const SHOW_SORT_MAP: SortMap = {
+    [SortParamValue.NameAsc]: { field: "name", direction: "asc" },
+    [SortParamValue.NameDesc]: { field: "name", direction: "desc" },
+    [SortParamValue.DateAsc]: { field: "date", direction: "asc" },
+    [SortParamValue.DateDesc]: { field: "date", direction: "desc" },
+    [SortParamValue.PopularityAsc]: { field: "popularity", direction: "asc" },
+    [SortParamValue.PopularityDesc]: {
+        field: "popularity",
+        direction: "desc",
+    },
+};
+
+/**
+ * Sort fields valid for the Comedian model (has: name, popularity, totalShows).
+ * ShowCount sorts are handled via raw SQL in findComediansWithCount.
+ */
+export const COMEDIAN_SORT_MAP: SortMap = {
+    [SortParamValue.NameAsc]: { field: "name", direction: "asc" },
+    [SortParamValue.NameDesc]: { field: "name", direction: "desc" },
+    [SortParamValue.ActivityAsc]: { field: "totalShows", direction: "asc" },
+    [SortParamValue.ActivityDesc]: { field: "totalShows", direction: "desc" },
+    [SortParamValue.PopularityAsc]: { field: "popularity", direction: "asc" },
+    [SortParamValue.PopularityDesc]: {
+        field: "popularity",
+        direction: "desc",
+    },
+    [SortParamValue.TotalShowsAsc]: { field: "totalShows", direction: "asc" },
+    [SortParamValue.TotalShowsDesc]: {
+        field: "totalShows",
+        direction: "desc",
+    },
+};
+
+/** Sort fields valid for the Club model (has: name, popularity, totalShows). */
+export const CLUB_SORT_MAP: SortMap = {
+    [SortParamValue.NameAsc]: { field: "name", direction: "asc" },
+    [SortParamValue.NameDesc]: { field: "name", direction: "desc" },
+    [SortParamValue.ActivityAsc]: { field: "totalShows", direction: "asc" },
+    [SortParamValue.ActivityDesc]: { field: "totalShows", direction: "desc" },
+    [SortParamValue.PopularityAsc]: { field: "popularity", direction: "asc" },
+    [SortParamValue.PopularityDesc]: {
+        field: "popularity",
+        direction: "desc",
+    },
+    [SortParamValue.TotalShowsAsc]: { field: "totalShows", direction: "asc" },
+    [SortParamValue.TotalShowsDesc]: {
+        field: "totalShows",
+        direction: "desc",
+    },
+    [SortParamValue.ShowCountAsc]: { field: "totalShows", direction: "asc" },
+    [SortParamValue.ShowCountDesc]: {
+        field: "totalShows",
+        direction: "desc",
+    },
+};
+
 // This class is meant to capture all of the page parameters that our Page URL contains and converts them into query parameters.
 // These are relevant for DB querying and their existence persists across all pages so we capture it
 // as globally as possible, updating values according to page transitions.
@@ -296,17 +356,16 @@ export class QueryHelper {
         };
     }
 
-    getGenericClauses(total: number) {
+    getGenericClauses(total: number, sortMap?: SortMap) {
         // Default values for pagination
         const defaultSize = 10;
         const defaultPage = 1;
         const defaultSortField = SortParamValue.PopularityDesc;
 
-        // Map full sort param values to database fields and directions
-        const sortMap: Record<
-            string,
-            { field: string; direction: "asc" | "desc" }
-        > = {
+        // Use the caller-supplied entity-specific sort map when provided; fall
+        // back to the legacy shared map so existing call sites without a map
+        // argument continue to work unchanged.
+        const effectiveSortMap: SortMap = sortMap ?? {
             [SortParamValue.NameAsc]: { field: "name", direction: "asc" },
             [SortParamValue.NameDesc]: { field: "name", direction: "desc" },
             [SortParamValue.ActivityAsc]: {
@@ -363,7 +422,8 @@ export class QueryHelper {
 
         // Look up full sort param; invalid values fall back to popularity_desc
         const sortParam = this.params.sort || defaultSortField;
-        const sortEntry = sortMap[sortParam] ?? sortMap[defaultSortField];
+        const sortEntry =
+            effectiveSortMap[sortParam] ?? effectiveSortMap[defaultSortField];
         const { field: mappedField, direction: validDirection } = sortEntry;
 
         return {

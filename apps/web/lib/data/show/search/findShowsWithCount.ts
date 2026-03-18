@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { QueryHelper } from "@/objects/class/query/QueryHelper";
+import { QueryHelper, SHOW_SORT_MAP } from "@/objects/class/query/QueryHelper";
 import { ShowDTO } from "@/objects/class/show/show.interface";
 import { filterAndMapLineupItems } from "@/util/comedian/comedianUtil";
 import { buildClubImageUrl } from "@/util/imageUtil";
@@ -134,7 +134,7 @@ export async function findShowsWithCount(
                     },
                 },
             },
-            ...helper.getGenericClauses(totalCount),
+            ...helper.getGenericClauses(totalCount, SHOW_SORT_MAP),
         });
         return {
             shows: filteredShows.map((show) => ({
