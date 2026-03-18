@@ -12,6 +12,7 @@ from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 from laughtrack.core.clients.base import BaseApiClient
 from laughtrack.foundation.utilities.datetime import DateTimeUtils
 from laughtrack.foundation.utilities.url import URLUtils
+from laughtrack.infrastructure.config.config_manager import ConfigManager
 
 
 class SeatEngineClient(BaseApiClient):
@@ -21,10 +22,11 @@ class SeatEngineClient(BaseApiClient):
         """Initialize the client with club data."""
         super().__init__(club, proxy_pool=proxy_pool)
         domain = URLUtils.get_formatted_domain(club.scraping_url)
+        auth_token = ConfigManager.get_config("api", "seatengine_auth_token")
         self.headers = BaseHeaders.get_headers(
             base_type="mobile_browser",
             auth_type="seat_engine",
-            auth_token="3c7de746-6bc2-4efb-8e91-16da6155edce",
+            auth_token=auth_token,
             domain=domain,
         )
         # Use seatengine_id directly from club if available
