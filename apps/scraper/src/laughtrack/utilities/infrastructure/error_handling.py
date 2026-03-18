@@ -122,7 +122,12 @@ class ErrorHandler:
                     await asyncio.sleep(delay)
 
         # All attempts failed
-        Logger.error(f"All attempts failed for {operation_name}")
+        status_suffix = (
+            f": HTTP {last_error.status_code}"
+            if isinstance(last_error, NetworkError) and last_error.status_code is not None
+            else ""
+        )
+        Logger.error(f"All attempts failed for {operation_name}{status_suffix}")
 
         if last_error:
             raise last_error
