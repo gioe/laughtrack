@@ -95,8 +95,9 @@ class ScraperResolver:
                     dup_list.append(f"{sub.__module__}.{sub.__name__}")
                     # Keep the first discovered class; do not overwrite
                     Logger.warn(
-                        "Duplicate scraper key detected; keeping first mapping and ignoring duplicate",
-                        {"key": key, "kept": f"{prev.__module__}.{prev.__name__}", "ignored": f"{sub.__module__}.{sub.__name__}"},
+                        f"Duplicate scraper key '{key}': keeping "
+                        f"{prev.__module__}.{prev.__name__}, ignoring "
+                        f"{sub.__module__}.{sub.__name__}"
                     )
 
         # Log a summary for visibility

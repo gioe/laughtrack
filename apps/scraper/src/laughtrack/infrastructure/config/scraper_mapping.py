@@ -83,7 +83,15 @@ class ScraperMapping:
             for subclass in current_class.__subclasses__():
                 k = getattr(subclass, "key", None)
                 if isinstance(k, str) and k:
-                    scrapers[k] = subclass
+                    if k in scrapers:
+                        existing = scrapers[k]
+                        Logger.warn(
+                            f"Duplicate scraper key '{k}': keeping "
+                            f"{existing.__module__}.{existing.__name__}, ignoring "
+                            f"{subclass.__module__}.{subclass.__name__}"
+                        )
+                    else:
+                        scrapers[k] = subclass
                 classes_to_check.append(subclass)
 
         return scrapers
