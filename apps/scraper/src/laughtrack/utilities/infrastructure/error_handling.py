@@ -149,6 +149,10 @@ class ErrorHandler:
 
         # Retry network and rate limit errors
         if isinstance(error, (NetworkError, RateLimitError)):
+            # Don't retry 4xx client errors — they are deterministic failures.
+            # (429 is classified as RateLimitError, not NetworkError, so it is unaffected.)
+            if isinstance(error, NetworkError) and error.status_code is not None and 400 <= error.status_code < 500:
+                return False
             return True
 
         # Retry data errors only once
