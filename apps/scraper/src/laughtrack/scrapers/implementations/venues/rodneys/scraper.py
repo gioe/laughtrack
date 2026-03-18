@@ -48,13 +48,13 @@ class RodneysComedyClubScraper(BaseScraper):
 
     key = "rodneys"
 
-    def __init__(self, club: Club):
+    def __init__(self, club: Club, **kwargs):
         """Initialize the scraper with club information."""
-        super().__init__(club)
+        super().__init__(club, **kwargs)
 
         # Headers for scraping - using BaseHeaders for consistency
         self.headers = BaseHeaders.get_headers(
-            base_type="rodneys", host="tickets.rodneycomedy.com", cookies="CAKEPHP=f2f2d75f64ea1f3456aa3a8aaa9b1342"
+            base_type="rodneys", host="rodneysnewyorkcomedyclub.com"
         )
 
     async def discover_urls(self) -> List[str]:

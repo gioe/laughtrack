@@ -11,7 +11,7 @@ from laughtrack.utilities.infrastructure.html.scraper import HtmlScraper
 class RodneyEventExtractor:
     """Utility class for extracting Rodney's Comedy Club event data from various sources."""
 
-    BASE_URL: str = "https://tickets.rodneycomedy.com"
+    BASE_URL: str = "https://rodneysnewyorkcomedyclub.com"
 
     @staticmethod
     def extract_show_links(html_content: str) -> List[str]:
@@ -20,19 +20,22 @@ class RodneyEventExtractor:
 
         Args:
             html_content: HTML content from main page
-            base_url: Base URL for resolving relative links
-            logger_context: Logging context for error reporting
 
         Returns:
             List of show page URLs
         """
         try:
-            # Use shared HTML scraper for event-cta-button class
-            links = HtmlScraper.find_links_by_class(
-                html_content, "event-cta-button", base_url=RodneyEventExtractor.BASE_URL
+            # Extract all links whose href starts with the shows path
+            links = HtmlScraper.extract_links_by_text_pattern(
+                html_content, "rodneysnewyorkcomedyclub.com/shows"
             )
-            # Filter to only include URLs containing "rodneysnewyorkcomedyclub.com/shows"
-            show_links = [link for link in links if "rodneysnewyorkcomedyclub.com/shows" in link]
+            # Deduplicate while preserving order
+            seen: set = set()
+            show_links = []
+            for link in links:
+                if link not in seen:
+                    seen.add(link)
+                    show_links.append(link)
             return show_links
         except Exception as e:
             Logger.error(f"Failed to extract show links: {e}")
