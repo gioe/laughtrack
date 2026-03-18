@@ -89,6 +89,7 @@ def create_standard_pipeline(club: Club) -> ShowTransformationPipeline:
     )
     from laughtrack.scrapers.implementations.venues.gotham.transformer import GothamEventTransformer
     from laughtrack.scrapers.implementations.venues.grove_34.transformer import Grove34EventTransformer
+    from laughtrack.scrapers.implementations.venues.uncle_vinnies.transformer import UncleVinniesEventTransformer
     from laughtrack.scrapers.implementations.api.eventbrite.transformer import EventbriteEventTransformer
     from laughtrack.scrapers.implementations.api.ticketmaster.transformer import TicketmasterEventTransformer
     from laughtrack.scrapers.implementations.api.seatengine.transformer import SeatEngineEventTransformer
@@ -99,6 +100,7 @@ def create_standard_pipeline(club: Club) -> ShowTransformationPipeline:
     pipeline.register_transformer(ComedyCellarEventTransformer(club))
     pipeline.register_transformer(GothamEventTransformer(club))
     pipeline.register_transformer(Grove34EventTransformer(club))
+    pipeline.register_transformer(UncleVinniesEventTransformer(club))
     pipeline.register_transformer(EventbriteEventTransformer(club))
     pipeline.register_transformer(TicketmasterEventTransformer(club))
     pipeline.register_transformer(SeatEngineEventTransformer(club))
