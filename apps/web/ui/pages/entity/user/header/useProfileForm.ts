@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { makeRequest } from "@/util/actions/makeRequest";
 import { APIRoutePath, RestAPIAction } from "@/objects/enum";
@@ -12,6 +13,7 @@ interface EditableFieldsState {
 }
 
 export function useProfileForm(profile: UserProfileInterface) {
+    const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [fields, setFields] = useState<EditableFieldsState>({
         emailOptin: profile.emailOptin ?? false,
@@ -46,10 +48,9 @@ export function useProfileForm(profile: UserProfileInterface) {
                 },
             });
 
-            profile.zipCode = fields.zipCode;
-            profile.emailOptin = fields.emailOptin;
             setDirtyFields({});
             toast.success("Updated successfully");
+            router.refresh();
         } catch (error) {
             console.error("Failed to update profile:", error);
             toast.error("Something went wrong");
