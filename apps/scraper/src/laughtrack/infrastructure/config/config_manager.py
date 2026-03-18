@@ -180,7 +180,7 @@ class ConfigManager:
             "failure_rate_critical_threshold": float(os.getenv("FAILURE_RATE_CRITICAL_THRESHOLD", "50.0")),
             "enable_background_monitoring": os.getenv("ENABLE_BACKGROUND_MONITORING", "true").lower()
             in ("true", "1", "yes", "on"),
-            "slack_webhook_url": os.getenv("SLACK_WEBHOOK_URL"),
+            "discord_webhook_url": os.getenv("DISCORD_WEBHOOK_URL"),
             "monitoring_webhook_url": os.getenv("MONITORING_WEBHOOK_URL"),
         }
 
