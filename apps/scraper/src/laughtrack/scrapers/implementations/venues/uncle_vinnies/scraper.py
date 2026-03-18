@@ -39,8 +39,8 @@ class UncleVinniesScraper(BaseScraper):
 
     key = "uncle_vinnies"
 
-    def __init__(self, club: Club):
-        super().__init__(club)
+    def __init__(self, club: Club, **kwargs):
+        super().__init__(club, **kwargs)
         self.transformer = UncleVinniesEventTransformer(club)
 
     async def discover_urls(self) -> List[str]:
@@ -130,11 +130,23 @@ class UncleVinniesScraper(BaseScraper):
                         Logger.debug(f"Skipping URL without production id: {event_url}", self.logger_context)
                         continue
 
-                    # Query production summary to get next performance
+                    # Query production summary to get next upcoming performance.
+                    # OvationTix returns 404 for productions whose shows have all passed.
+                    # We check the status code directly (bypassing fetch_json's retry logic)
+                    # so we don't waste 4 retry attempts on a deterministic 404.
                     production_url = (
                         f"https://web.ovationtix.com/trs/api/rest/Production({production_id})/performance?"
                     )
-                    production_response = await self.fetch_json(production_url, headers=api_headers)
+                    session = await self.get_session()
+                    production_raw = await session.get(production_url, headers=api_headers)
+                    if production_raw.status_code == 404:
+                        Logger.debug(
+                            f"Production {production_id} has no upcoming performances (404 — past event)",
+                            self.logger_context,
+                        )
+                        continue
+                    production_raw.raise_for_status()
+                    production_response = production_raw.json()
 
                     perf_id, start_date_str = UncleVinniesExtractor.extract_next_performance_info(production_response)
                     if not perf_id:
@@ -150,7 +162,15 @@ class UncleVinniesScraper(BaseScraper):
                         continue
 
                     performance_url = f"https://web.ovationtix.com/trs/api/rest/Performance({perf_id})"
-                    performance_data = await self.fetch_json(performance_url, headers=api_headers)
+                    performance_raw = await session.get(performance_url, headers=api_headers)
+                    if performance_raw.status_code in (403, 404):
+                        Logger.debug(
+                            f"Performance {perf_id} not available (HTTP {performance_raw.status_code}) — skipping",
+                            self.logger_context,
+                        )
+                        continue
+                    performance_raw.raise_for_status()
+                    performance_data = performance_raw.json()
 
                     event = UncleVinniesExtractor.create_event_from_performance_data(
                         performance_data, production_id, event_url
