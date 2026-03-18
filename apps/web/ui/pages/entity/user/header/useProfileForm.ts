@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { makeRequest } from "@/util/actions/makeRequest";
@@ -22,6 +22,14 @@ export function useProfileForm(profile: UserProfileInterface) {
     const [dirtyFields, setDirtyFields] = useState<
         Partial<EditableFieldsState>
     >({});
+
+    useEffect(() => {
+        setFields({
+            emailOptin: profile.emailOptin ?? false,
+            zipCode: profile.zipCode ?? "",
+        });
+        setDirtyFields({});
+    }, [profile]);
 
     const handleFieldChange = (
         field: keyof EditableFieldsState,
