@@ -67,8 +67,7 @@ class TestSendDiscordAlertSkipsWhenNotConfigured:
         mock_config.is_discord_configured.return_value = False
         mock_config.discord_webhook_url = None
 
-        with patch('laughtrack.core.services.scraping.MonitoringConfig', create=True), \
-             patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig:
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig:
             MockConfig.default.return_value = mock_config
             # Should not raise; just logs a warning
             svc._send_discord_alert(failing)  # Would fail at asyncio.run if alert was sent
