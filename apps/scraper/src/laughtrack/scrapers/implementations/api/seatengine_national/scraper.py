@@ -39,6 +39,10 @@ class SeatEngineNationalScraper(BaseScraper):
 
     _BASE_API_URL = "https://services.seatengine.com/api/v1"
     _REQUEST_TIMEOUT = 30
+    # Upper bound for the per-venue ID scan.  As of 2026-03 the highest
+    # active SeatEngine venue ID is in the low hundreds; 700 provides
+    # comfortable headroom.  Raise this value if new venues with higher IDs
+    # are discovered during routine runs.
     _VENUE_SCAN_MAX_ID = 700
     _MAX_CONCURRENT_REQUESTS = 20
 
