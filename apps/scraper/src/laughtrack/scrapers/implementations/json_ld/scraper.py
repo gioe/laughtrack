@@ -43,8 +43,8 @@ class JsonLdScraper(BaseScraper):
 
     key = "json_ld"
 
-    def __init__(self, club: Club):
-        super().__init__(club)
+    def __init__(self, club: Club, **kwargs):
+        super().__init__(club, **kwargs)
         # Lazy import to avoid import-time cycles during scraper discovery
         from laughtrack.scrapers.implementations.json_ld.transformer import JsonLdTransformer
         self.transformer = JsonLdTransformer(club)
@@ -67,6 +67,11 @@ class JsonLdScraper(BaseScraper):
             event_list = EventExtractor.extract_events(html_content)
 
             if not event_list:
+                if html_content:
+                    Logger.warn(
+                        f"Page loaded but contained no JSON-LD events: {normalized_url}",
+                        self.logger_context,
+                    )
                 return None
 
             return JsonLdPageData(event_list)
