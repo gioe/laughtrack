@@ -28,14 +28,14 @@ class TestCheckAndAlert:
     def test_no_alert_when_all_pass(self):
         svc = self._make_service()
         summary = _make_summary(ok=1)
-        with patch.object(svc, '_send_slack_alert') as mock_alert:
+        with patch.object(svc, '_send_discord_alert') as mock_alert:
             svc._check_and_alert(summary)
             mock_alert.assert_not_called()
 
     def test_alert_fired_when_club_below_threshold(self):
         svc = self._make_service(threshold=70.0)
         summary = _make_summary(error=1)  # 0% success rate
-        with patch.object(svc, '_send_slack_alert') as mock_alert:
+        with patch.object(svc, '_send_discord_alert') as mock_alert:
             svc._check_and_alert(summary)
             mock_alert.assert_called_once()
             failing = mock_alert.call_args[0][0]
@@ -46,12 +46,12 @@ class TestCheckAndAlert:
         svc = self._make_service(threshold=70.0)
         # exactly 70% success — should NOT fire (below_threshold uses strict <)
         summary = _make_summary(ok=7, error=3)
-        with patch.object(svc, '_send_slack_alert') as mock_alert:
+        with patch.object(svc, '_send_discord_alert') as mock_alert:
             svc._check_and_alert(summary)
             mock_alert.assert_not_called()
 
 
-class TestSendSlackAlertSkipsWhenNotConfigured:
+class TestSendDiscordAlertSkipsWhenNotConfigured:
     def _make_service(self):
         from laughtrack.core.services.scraping import ScrapingService
         with patch.object(ScrapingService, '__init__', lambda self, *a, **kw: None):
@@ -59,19 +59,19 @@ class TestSendSlackAlertSkipsWhenNotConfigured:
             svc.success_rate_threshold = 70.0
         return svc
 
-    def test_skips_when_slack_not_configured(self):
+    def test_skips_when_discord_not_configured(self):
         svc = self._make_service()
         failing = [DomainRequestMetrics(club_name="X", total=1, error=1)]
 
         mock_config = MagicMock()
-        mock_config.is_slack_configured.return_value = False
-        mock_config.slack_webhook_url = None
+        mock_config.is_discord_configured.return_value = False
+        mock_config.discord_webhook_url = None
 
         with patch('laughtrack.core.services.scraping.MonitoringConfig', create=True), \
              patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig:
             MockConfig.default.return_value = mock_config
             # Should not raise; just logs a warning
-            svc._send_slack_alert(failing)  # Would fail at asyncio.run if alert was sent
+            svc._send_discord_alert(failing)  # Would fail at asyncio.run if alert was sent
 
 
 class TestScrapeClubsWithMetrics:
