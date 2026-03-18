@@ -140,7 +140,7 @@ describe("GET /api/favorites", () => {
 
     describe("auth and authorization", () => {
         it("returns 401 when not authenticated", async () => {
-            mockAuth.mockResolvedValue(null);
+            mockAuth.mockResolvedValue(null as any);
 
             const res = await GET(makeRequest({ userId: TEST_USER_ID }));
 
