@@ -39,6 +39,8 @@ class BushwickComedyClubScraper(BaseScraper):
     4. Separates concerns: extraction vs transformation
     """
 
+    key = "bushwick"
+
     def __init__(self, club: Club):
         super().__init__(club)
         self.transformer = BushwickEventTransformer(club)
