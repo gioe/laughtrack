@@ -102,9 +102,9 @@ jobs:
             exit 0
           fi
           if [ "${{ job.status }}" = "success" ]; then
-            curl -fsS --retry 3 "$HEALTHCHECKS_PING_URL"
+            curl -fsS --retry 3 --max-time 10 "$HEALTHCHECKS_PING_URL"
           else
-            curl -fsS --retry 3 "$HEALTHCHECKS_PING_URL/fail"
+            curl -fsS --retry 3 --max-time 10 "$HEALTHCHECKS_PING_URL/fail"
           fi
 
       - name: Notify on failure
