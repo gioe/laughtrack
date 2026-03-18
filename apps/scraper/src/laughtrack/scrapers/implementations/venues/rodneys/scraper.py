@@ -101,8 +101,8 @@ class RodneysComedyClubScraper(BaseScraper):
         """
         try:
 
-            # Normalize the scraping URL to ensure it has protocol
-            normalized_url = URLUtils.normalize_url(self.club.scraping_url)
+            # Normalize the passed-in show page URL (not the calendar listing URL)
+            normalized_url = URLUtils.normalize_url(url)
 
             # Fetch HTML using built-in method
             html_content = await self.fetch_html(normalized_url)
