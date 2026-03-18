@@ -368,7 +368,6 @@ class TestGetEventDetailEventId:
     async def test_numeric_suffix_url_extracts_numeric_id(self, monkeypatch):
         client = self._client(monkeypatch)
         url = "https://tixr.com/groups/comedy/events/show-name-179551"
-        monkeypatch.setattr(client, "_fetch_tixr_page", lambda u: pytest.approx or None)
 
         async def fake_fetch(u):
             return "<html/>"
