@@ -186,6 +186,10 @@ class TheStandNYCScraper(BaseScraper):
             )
             tixr_events = [r for r in results if r is not None]
 
+            if not tixr_events:
+                Logger.info(f"No TixrEvents returned from {len(tixr_urls)} URLs on {url}", self.logger_context)
+                return None
+
             Logger.info(
                 f"Successfully processed {len(tixr_events)} TixrEvents from {len(tixr_urls)} URLs",
                 self.logger_context,
