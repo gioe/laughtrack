@@ -39,7 +39,7 @@ class UncleVinniesScraper(BaseScraper):
 
     key = "uncle_vinnies"
 
-    def __init__(self, club, **kwargs):
+    def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
         self.transformation_pipeline.register_transformer(UncleVinniesEventTransformer(club))
 

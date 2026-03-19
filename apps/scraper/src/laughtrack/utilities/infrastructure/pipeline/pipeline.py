@@ -5,7 +5,7 @@ This module provides the main pipeline class that manages transformers,
 field extractors, and validators.
 """
 
-from typing import Callable, Dict, List, Type
+from typing import Callable, Dict, List
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
@@ -83,52 +83,6 @@ class ShowTransformationPipeline:
             Logger.warn(f"No valid shows found for {self.club.name}")
 
         return shows
-
-
-def _discover_transformer_classes() -> List[Type[DataTransformer]]:
-    """
-    Auto-discover all concrete DataTransformer subclasses under
-    laughtrack.scrapers.implementations by importing every *.transformer module
-    and then walking the DataTransformer subclass tree.
-
-    Mirrors the approach used by ScraperMapping for BaseScraper discovery.
-    """
-    import importlib
-    import pkgutil
-
-    # Import all *.transformer modules so their classes are registered as subclasses
-    try:
-        impl_root = importlib.import_module("laughtrack.scrapers.implementations")
-        pkg_path = getattr(impl_root, "__path__", None)
-        pkg_name = getattr(impl_root, "__name__", "laughtrack.scrapers.implementations")
-
-        if pkg_path:
-            for mod in pkgutil.walk_packages(pkg_path, pkg_name + "."):
-                if mod.name.endswith(".transformer"):
-                    try:
-                        importlib.import_module(mod.name)
-                    except Exception as e:
-                        Logger.warn(f"Failed importing transformer module {mod.name}: {e}")
-    except Exception as e:
-        Logger.error(f"Error discovering transformer modules: {e}")
-
-    # Walk the DataTransformer subclass tree and collect all concrete subclasses
-    seen: set = set()
-    classes: List[Type[DataTransformer]] = []
-    stack: List[Type[DataTransformer]] = [DataTransformer]
-
-    while stack:
-        current = stack.pop()
-        for subclass in current.__subclasses__():
-            if subclass in seen:
-                continue
-            seen.add(subclass)
-            stack.append(subclass)
-            classes.append(subclass)
-
-    # Sort for deterministic registration order
-    classes.sort(key=lambda cls: (cls.__module__, cls.__name__))
-    return classes
 
 
 def create_standard_pipeline(club: Club) -> ShowTransformationPipeline:
