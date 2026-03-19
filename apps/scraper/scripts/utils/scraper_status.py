@@ -1,9 +1,9 @@
 """Terminal health summary for the most recent scraper run."""
 
 import json
-import os
 import sys
-from datetime import datetime, timezone
+from collections import Counter
+from datetime import datetime
 from pathlib import Path
 
 
@@ -34,7 +34,8 @@ def print_summary(data: dict) -> None:
     if exported_at != "unknown":
         try:
             dt = datetime.fromisoformat(exported_at)
-            exported_at = dt.strftime("%Y-%m-%d %H:%M:%S UTC")
+            # Format without a timezone label — the stored timestamp is naive
+            exported_at = dt.strftime("%Y-%m-%d %H:%M:%S")
         except ValueError:
             pass
 
@@ -57,17 +58,14 @@ def print_summary(data: dict) -> None:
     print(f"  Successful    : {successful}")
     print(f"  Failed        : {failed}")
     if success_rate is not None:
-        print(f"  Success rate  : {success_rate:.1f}%")
+        print(f"  Show save rate: {success_rate:.1f}%")
     print(f"  Shows scraped : {shows_scraped}")
     print(f"  Shows saved   : {shows_saved}")
 
     if error_details:
-        # Group errors by message to surface top errors
-        from collections import Counter
         error_counts: Counter = Counter()
         for entry in error_details:
             msg = str(entry.get("error", "unknown error"))
-            # Truncate long error messages for readability
             short = msg[:120] + "..." if len(msg) > 120 else msg
             error_counts[short] += 1
 
@@ -75,14 +73,13 @@ def print_summary(data: dict) -> None:
         print(f"  TOP ERRORS ({len(error_details)} total failures):")
         print("  " + "-" * 56)
         for msg, count in error_counts.most_common(5):
-            prefix = f"  [{count}x]" if count > 1 else "  [1x] "
-            print(f"{prefix} {msg}")
+            print(f"  [{count}x] {msg}")
 
     print("=" * 60)
 
 
 def main() -> None:
-    repo_root = Path(__file__).resolve().parents[3]  # apps/scraper/scripts/utils -> repo root
+    repo_root = Path(__file__).resolve().parents[4]  # apps/scraper/scripts/utils -> repo root
     metrics_dir = repo_root / "apps" / "scraper" / "metrics"
 
     # Also check relative to cwd for flexibility
@@ -94,9 +91,9 @@ def main() -> None:
     if latest is None:
         print("No metrics files found in", metrics_dir)
         print("Run a scrape first: make scrape-all")
-        sys.exit(0)
+        sys.exit(1)
 
-    with open(latest) as f:
+    with open(latest, encoding="utf-8") as f:
         data = json.load(f)
 
     print_summary(data)
