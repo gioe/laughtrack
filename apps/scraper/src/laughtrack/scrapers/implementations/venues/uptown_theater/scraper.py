@@ -12,6 +12,7 @@ Strategy:
 """
 
 from typing import List, Optional
+from urllib.parse import urljoin
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.event.event import JsonLdEvent
@@ -20,7 +21,6 @@ from laughtrack.foundation.utilities.json.utils import JSONUtils
 from laughtrack.foundation.utilities.url import URLUtils
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.scrapers.implementations.json_ld.extractor import EventExtractor
-from laughtrack.scrapers.implementations.json_ld.transformer import JsonLdTransformer
 from laughtrack.utilities.infrastructure.html.scraper import HtmlScraper
 from laughtrack.utilities.infrastructure.scraper.config import BatchScrapingConfig
 from laughtrack.utilities.infrastructure.scraper.scraper import BatchScraper
@@ -44,7 +44,6 @@ class UptownTheaterScraper(BaseScraper):
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
-        self.transformer = JsonLdTransformer(club)
 
     async def get_data(self, url: str) -> Optional[UptownTheaterPageData]:
         """
@@ -114,15 +113,27 @@ class UptownTheaterScraper(BaseScraper):
                 return []
 
             event_urls: List[str] = []
+            found_collection_page = False
             for obj in json_objects:
                 if obj.get("@type") != "CollectionPage":
                     continue
+                found_collection_page = True
                 main_entity = obj.get("mainEntity", {})
+                if not isinstance(main_entity, dict):
+                    continue
                 items = main_entity.get("itemListElement", [])
                 for item in items:
                     item_url = item.get("url", "")
                     if item_url:
-                        event_urls.append(item_url)
+                        # Resolve relative URLs against the listing page origin
+                        event_urls.append(urljoin(listing_url, item_url))
+
+            if not found_collection_page:
+                types_found = [obj.get("@type") for obj in json_objects]
+                Logger.warn(
+                    f"No CollectionPage found in JSON-LD; @type values present: {types_found}",
+                    self.logger_context,
+                )
 
             return event_urls
 
