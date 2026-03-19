@@ -12,6 +12,10 @@ import { SortParamValue } from "@/objects/enum/sortParamValue";
 const TEST_SORT_MAP = COMEDIAN_SORT_MAP;
 
 const TIEBREAKER = [{ name: "asc" }];
+const SHOW_TIEBREAKER: Record<string, "asc" | "desc">[] = [
+    { date: "asc" },
+    { id: "asc" },
+];
 
 function makeHelper(sort: string): QueryHelper {
     return new QueryHelper({
@@ -91,25 +95,38 @@ describe("QueryHelper.getGenericClauses — per-entity sort maps", () => {
     const TOTAL = 100;
 
     describe("SHOW_SORT_MAP", () => {
-        it("allows date_asc sort for shows", () => {
+        it("allows date_asc sort for shows with date+id tiebreaker", () => {
             const { orderBy } = makeHelper(
                 SortParamValue.DateAsc,
-            ).getGenericClauses(TOTAL, SHOW_SORT_MAP);
-            expect(orderBy).toEqual([{ date: "asc" }, ...TIEBREAKER]);
+            ).getGenericClauses(TOTAL, SHOW_SORT_MAP, SHOW_TIEBREAKER);
+            expect(orderBy).toEqual([{ date: "asc" }, ...SHOW_TIEBREAKER]);
         });
 
         it("falls back to popularity_desc for totalShows sort (not a Show field)", () => {
             const { orderBy } = makeHelper(
                 SortParamValue.TotalShowsDesc,
-            ).getGenericClauses(TOTAL, SHOW_SORT_MAP);
-            expect(orderBy).toEqual([{ popularity: "desc" }, ...TIEBREAKER]);
+            ).getGenericClauses(TOTAL, SHOW_SORT_MAP, SHOW_TIEBREAKER);
+            expect(orderBy).toEqual([
+                { popularity: "desc" },
+                ...SHOW_TIEBREAKER,
+            ]);
         });
 
         it("falls back to popularity_desc for show_count sort (not a Show field)", () => {
             const { orderBy } = makeHelper(
                 SortParamValue.ShowCountAsc,
-            ).getGenericClauses(TOTAL, SHOW_SORT_MAP);
-            expect(orderBy).toEqual([{ popularity: "desc" }, ...TIEBREAKER]);
+            ).getGenericClauses(TOTAL, SHOW_SORT_MAP, SHOW_TIEBREAKER);
+            expect(orderBy).toEqual([
+                { popularity: "desc" },
+                ...SHOW_TIEBREAKER,
+            ]);
+        });
+
+        it("uses date+id tiebreaker even when sorting by name (nullable field)", () => {
+            const { orderBy } = makeHelper(
+                SortParamValue.NameAsc,
+            ).getGenericClauses(TOTAL, SHOW_SORT_MAP, SHOW_TIEBREAKER);
+            expect(orderBy).toEqual([{ name: "asc" }, ...SHOW_TIEBREAKER]);
         });
     });
 

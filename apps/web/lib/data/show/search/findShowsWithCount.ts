@@ -134,7 +134,10 @@ export async function findShowsWithCount(
                     },
                 },
             },
-            ...helper.getGenericClauses(totalCount, SHOW_SORT_MAP),
+            ...helper.getGenericClauses(totalCount, SHOW_SORT_MAP, [
+                { date: "asc" },
+                { id: "asc" },
+            ]),
         });
         return {
             shows: filteredShows.map((show) => ({

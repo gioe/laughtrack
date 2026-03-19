@@ -356,7 +356,11 @@ export class QueryHelper {
         };
     }
 
-    getGenericClauses(total: number, sortMap: SortMap) {
+    getGenericClauses(
+        total: number,
+        sortMap: SortMap,
+        tiebreakers?: Record<string, "asc" | "desc">[],
+    ) {
         // Default values for pagination
         const defaultSize = 10;
         const defaultPage = 1;
@@ -384,11 +388,16 @@ export class QueryHelper {
             effectiveSortMap[sortParam] ?? effectiveSortMap[defaultSortField];
         const { field: mappedField, direction: validDirection } = sortEntry;
 
+        // When tiebreakers are provided explicitly (e.g. shows use date+id to
+        // avoid nullable name), use them unconditionally. Otherwise fall back to
+        // the default name-asc tiebreaker, skipping it when name is already the
+        // primary sort field.
+        const tiebreakerEntries: Record<string, "asc" | "desc">[] =
+            tiebreakers ??
+            (mappedField !== "name" ? [{ name: "asc" as const }] : []);
+
         return {
-            orderBy: [
-                { [mappedField]: validDirection },
-                ...(mappedField !== "name" ? [{ name: "asc" as const }] : []),
-            ],
+            orderBy: [{ [mappedField]: validDirection }, ...tiebreakerEntries],
             take,
             skip,
         };

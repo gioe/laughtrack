@@ -126,6 +126,7 @@ describe("findShowsWithCount", () => {
             expect(helper.getGenericClauses).toHaveBeenCalledWith(
                 DB_COUNT,
                 SHOW_SORT_MAP,
+                [{ date: "asc" }, { id: "asc" }],
             );
         });
 
