@@ -39,11 +39,21 @@ export const RATE_LIMITS = {
 // Upstash Redis — initialised lazily when env vars are present.
 // Falls back to the in-memory store when the vars are absent (local dev).
 // ---------------------------------------------------------------------------
-function buildUpstashLimiter(config: RateLimitConfig): Ratelimit | null {
+
+// Shared Redis client — created once when env vars are present.
+let _redis: Redis | null = null;
+function getRedis(): Redis | null {
+    if (_redis !== null) return _redis;
     const url = process.env.UPSTASH_REDIS_REST_URL;
     const token = process.env.UPSTASH_REDIS_REST_TOKEN;
     if (!url || !token) return null;
-    const redis = new Redis({ url, token });
+    _redis = new Redis({ url, token });
+    return _redis;
+}
+
+function buildUpstashLimiter(config: RateLimitConfig): Ratelimit | null {
+    const redis = getRedis();
+    if (!redis) return null;
     return new Ratelimit({
         redis,
         limiter: Ratelimit.slidingWindow(config.limit, `${config.windowMs} ms`),
@@ -147,13 +157,18 @@ export async function checkRateLimit(
     const limiter = getLimiter(config);
 
     if (limiter) {
-        const result = await limiter.limit(key);
-        return {
-            allowed: result.success,
-            limit: result.limit,
-            remaining: result.remaining,
-            resetAt: result.reset,
-        };
+        try {
+            const result = await limiter.limit(key);
+            return {
+                allowed: result.success,
+                limit: result.limit,
+                remaining: result.remaining,
+                resetAt: result.reset,
+            };
+        } catch {
+            // Upstash unavailable — degrade gracefully to in-memory fallback.
+            return checkRateLimitInMemory(key, config);
+        }
     }
 
     return checkRateLimitInMemory(key, config);
