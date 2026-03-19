@@ -50,11 +50,17 @@ class PathUtils:
         return sql_dir
 
     @staticmethod
-    def get_metrics_dir() -> Path:
-        """Get the metrics directory path."""
+    def get_metrics_dir(create: bool = True) -> Path:
+        """Get the metrics directory path.
+
+        Args:
+            create: If True (default), create the directory if it does not exist.
+                    Pass False for read-only callers that only need the path.
+        """
         project_root = PathUtils.get_project_root()
         metrics_dir = project_root / "metrics"
-        metrics_dir.mkdir(exist_ok=True)  # Ensure directory exists
+        if create:
+            metrics_dir.mkdir(exist_ok=True)
         return metrics_dir
 
     @staticmethod
