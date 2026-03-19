@@ -18,6 +18,7 @@ Fetch strategy:
 - The PunchupExtractor handles both direct JSON and JS-escaped push([1, "..."]) formats.
 """
 
+import dataclasses
 from typing import Optional
 
 from laughtrack.core.clients.punchup.extractor import PunchupExtractor
@@ -26,7 +27,7 @@ from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.url import URLUtils
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 
-from .data import ComedyKeyWestPageData
+from .data import ComedyKeyWestPageData, ComedyKeyWestShow
 
 
 class ComedyKeyWestScraper(BaseScraper):
@@ -60,8 +61,8 @@ class ComedyKeyWestScraper(BaseScraper):
                 )
                 return None
 
-            shows = PunchupExtractor.extract_shows(html_content)
-            if not shows:
+            punchup_shows = PunchupExtractor.extract_shows(html_content)
+            if not punchup_shows:
                 Logger.warn(
                     f"Comedy Key West: no shows found in Punchup hydration data at {url} — "
                     "site may have changed structure or have no upcoming events",
@@ -69,6 +70,10 @@ class ComedyKeyWestScraper(BaseScraper):
                 )
                 return None
 
+            shows = [
+                ComedyKeyWestShow(**{f.name: getattr(s, f.name) for f in dataclasses.fields(s)})
+                for s in punchup_shows
+            ]
             Logger.info(
                 f"Comedy Key West: extracted {len(shows)} shows from {url}",
                 self.logger_context,
