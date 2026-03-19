@@ -83,6 +83,16 @@ jobs:
           path: apps/scraper/logs/
           retention-days: 30
 
+      - name: Upload scraper dashboard and metrics
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: scraper-dashboard-${{ github.run_id }}
+          path: |
+            apps/scraper/dashboard.html
+            apps/scraper/metrics/
+          retention-days: 30
+
       - name: Ping heartbeat monitor
         if: always()
         env:
