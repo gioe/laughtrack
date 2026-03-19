@@ -2,15 +2,12 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
-import pytest
-
 from scripts.utils.visualize_metrics import (
-    _divider,
     _fmt_ts,
     _load_run,
-    _row,
     main,
     print_table,
 )
@@ -103,11 +100,6 @@ def test_print_table_multiple_rows(capsys):
 
 def test_main_missing_dir(tmp_path: Path, capsys, monkeypatch):
     missing = tmp_path / "no_such_dir"
-    monkeypatch.setattr("scripts.utils.visualize_metrics.METRICS_DIR", missing)
-    main.__globals__["METRICS_DIR"] = missing  # patch module-level default
-
-    # Invoke via sys.argv override
-    import sys
     monkeypatch.setattr(sys, "argv", ["visualize_metrics", "--metrics-dir", str(missing)])
     main()
     out = capsys.readouterr().out
@@ -121,7 +113,6 @@ def test_main_missing_dir(tmp_path: Path, capsys, monkeypatch):
 def test_main_empty_dir(tmp_path: Path, capsys, monkeypatch):
     empty = tmp_path / "metrics"
     empty.mkdir()
-    import sys
     monkeypatch.setattr(sys, "argv", ["visualize_metrics", "--metrics-dir", str(empty)])
     main()
     out = capsys.readouterr().out
@@ -143,17 +134,20 @@ def _write_metric_files(directory: Path, count: int) -> None:
         (directory / f"metrics_{i:04d}.json").write_text(json.dumps(data))
 
 
+def _data_lines(out: str) -> list[str]:
+    """Return table data rows (pipe-delimited, excluding header and dividers)."""
+    return [l for l in out.splitlines() if l.strip().startswith("|") and "Timestamp" not in l]
+
+
 def test_main_runs_flag_limits_rows(tmp_path: Path, capsys, monkeypatch):
     mdir = tmp_path / "metrics"
     mdir.mkdir()
     _write_metric_files(mdir, 5)
 
-    import sys
     monkeypatch.setattr(sys, "argv", ["visualize_metrics", "--metrics-dir", str(mdir), "-n", "2"])
     main()
     out = capsys.readouterr().out
-    data_lines = [l for l in out.splitlines() if "|" in l and "Timestamp" not in l and "---" not in l and "+++" not in l and l.strip().startswith("|")]
-    assert len(data_lines) == 2
+    assert len(_data_lines(out)) == 2
 
 
 def test_main_default_runs_all_when_fewer_than_default(tmp_path: Path, capsys, monkeypatch):
@@ -161,12 +155,10 @@ def test_main_default_runs_all_when_fewer_than_default(tmp_path: Path, capsys, m
     mdir.mkdir()
     _write_metric_files(mdir, 3)
 
-    import sys
     monkeypatch.setattr(sys, "argv", ["visualize_metrics", "--metrics-dir", str(mdir)])
     main()
     out = capsys.readouterr().out
-    data_lines = [l for l in out.splitlines() if "|" in l and "Timestamp" not in l and l.strip().startswith("|")]
-    assert len(data_lines) == 3
+    assert len(_data_lines(out)) == 3
 
 
 # ---------------------------------------------------------------------------
@@ -179,9 +171,20 @@ def test_main_skips_malformed_json(tmp_path: Path, capsys, monkeypatch):
     _write_metric_files(mdir, 2)
     (mdir / "metrics_9999.json").write_text("{broken json")
 
-    import sys
     monkeypatch.setattr(sys, "argv", ["visualize_metrics", "--metrics-dir", str(mdir)])
     main()
     out = capsys.readouterr().out
-    # Should still produce table output (the 2 valid files), not crash
-    assert "Timestamp" in out
+    # The 2 valid files should be rendered as data rows; malformed file skipped
+    assert len(_data_lines(out)) == 2
+
+
+def test_main_all_malformed_prints_no_readable_message(tmp_path: Path, capsys, monkeypatch):
+    mdir = tmp_path / "metrics"
+    mdir.mkdir()
+    (mdir / "metrics_0000.json").write_text("{bad")
+    (mdir / "metrics_0001.json").write_text("not json at all")
+
+    monkeypatch.setattr(sys, "argv", ["visualize_metrics", "--metrics-dir", str(mdir)])
+    main()
+    out = capsys.readouterr().out
+    assert "No readable metrics files" in out
