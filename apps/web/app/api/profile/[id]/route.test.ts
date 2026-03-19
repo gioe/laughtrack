@@ -65,6 +65,18 @@ describe("PUT /api/profile/[id]", () => {
         expect(res.status).toBe(401);
     });
 
+    it("returns 403 when authCtx.userId does not match slug id", async () => {
+        mockResolveAuth.mockResolvedValue({
+            profileId: "profile-other",
+            userId: "different-user-id",
+        });
+
+        const [req, ctx] = makeRequest();
+        const res = await PUT(req, ctx);
+
+        expect(res.status).toBe(403);
+    });
+
     it("returns 400 when body is invalid JSON", async () => {
         mockResolveAuth.mockResolvedValue({
             profileId: "profile-1",
