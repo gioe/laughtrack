@@ -1,10 +1,10 @@
 """Unit tests for scripts/utils/scraper_status.py utility functions."""
 from __future__ import annotations
 
+import builtins
 import io
+import unittest.mock as mock
 from pathlib import Path
-
-import pytest
 
 from scripts.utils.scraper_status import find_latest_metrics, format_duration, print_summary
 
@@ -78,14 +78,12 @@ class TestFormatDuration:
 class TestPrintSummary:
     def _capture(self, data: dict) -> str:
         buf = io.StringIO()
-        import builtins
         original_print = builtins.print
 
         def patched_print(*args, **kwargs):
             kwargs.setdefault("file", buf)
             original_print(*args, **kwargs)
 
-        import unittest.mock as mock
         with mock.patch("builtins.print", side_effect=patched_print):
             print_summary(data)
         return buf.getvalue()
