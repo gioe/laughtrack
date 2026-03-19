@@ -74,7 +74,7 @@ class StMarksScraper(BaseScraper):
             # Fetch HTML via TixrClient's headerless method — DataDome blocks requests
             # that carry application-level headers (Accept-Language + Cache-Control +
             # Pragma together); curl_cffi impersonation alone avoids the 403.
-            html_content = await self.tixr_client.fetch_page(normalized_url)
+            html_content = await self.tixr_client._fetch_tixr_page(normalized_url)
             if not html_content:
                 Logger.warn(f"No HTML content found at {normalized_url}", self.logger_context)
                 return None

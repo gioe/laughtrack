@@ -110,7 +110,7 @@ class TixrClient(BaseApiClient):
         # curl_cffi's impersonation sets a clean, browser-consistent fingerprint
         # on its own — passing *any* custom headers breaks that fingerprint and
         # triggers the 403. Fetch directly without extra headers.
-        html = await self.fetch_page(url)
+        html = await self._fetch_tixr_page(url)
         if not html:
             self.log_warning(f"No HTML content returned for {url}")
             return None
@@ -150,7 +150,7 @@ class TixrClient(BaseApiClient):
         self.log_info("TixrClient works with specific event IDs/URLs, not general event fetching")
         return []
 
-    async def fetch_page(self, url: str, timeout: int = 30) -> Optional[str]:
+    async def _fetch_tixr_page(self, url: str, timeout: int = 30) -> Optional[str]:
         """
         Fetch a Tixr event page HTML without application-level custom headers.
 
