@@ -54,10 +54,12 @@ function getRedis(): Redis | null {
 function buildUpstashLimiter(config: RateLimitConfig): Ratelimit | null {
     const redis = getRedis();
     if (!redis) return null;
+    const prefix = process.env.UPSTASH_KEY_PREFIX ?? "laughtrack";
     return new Ratelimit({
         redis,
         limiter: Ratelimit.slidingWindow(config.limit, `${config.windowMs} ms`),
         analytics: false,
+        prefix,
     });
 }
 
