@@ -10,16 +10,18 @@ ticket link of the form https://event.tixologi.com/event/<id>/tickets.
 
 Fetch strategy:
 - The Punchup RSC stream is server-side rendered and accessible via a plain HTTP
-  GET (no browser execution required). curl_cffi impersonation alone is sufficient.
+  GET (no browser execution required). The page is fetched via BaseScraper.fetch_html()
+  which sends curl_cffi impersonation headers. If the site adds DataDome protection
+  in the future, switch to a bare AsyncSession.get(url) with no application headers
+  (see CLAUDE.md DataDome section).
 - Show data lives in the "venuePageCarousel" → "items" key of the RSC payload.
 - The PunchupExtractor handles both direct JSON and JS-escaped push([1, "..."]) formats.
 """
 
-from typing import List, Optional
+from typing import Optional
 
 from laughtrack.core.clients.punchup.extractor import PunchupExtractor, PunchupShow
 from laughtrack.core.entities.club.model import Club
-from laughtrack.core.entities.show.model import Show
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.url import URLUtils
 from laughtrack.scrapers.base.base_scraper import BaseScraper
