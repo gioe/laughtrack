@@ -21,6 +21,7 @@ from laughtrack.foundation.utilities.json.utils import JSONUtils
 from laughtrack.foundation.utilities.url import URLUtils
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.scrapers.implementations.json_ld.extractor import EventExtractor
+from laughtrack.scrapers.implementations.json_ld.transformer import JsonLdTransformer
 from laughtrack.utilities.infrastructure.html.scraper import HtmlScraper
 from laughtrack.utilities.infrastructure.scraper.config import BatchScrapingConfig
 from laughtrack.utilities.infrastructure.scraper.scraper import BatchScraper
@@ -44,6 +45,7 @@ class UptownTheaterScraper(BaseScraper):
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
+        self.transformation_pipeline.register_transformer(JsonLdTransformer(club))
 
     async def get_data(self, url: str) -> Optional[UptownTheaterPageData]:
         """

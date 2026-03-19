@@ -7,6 +7,7 @@ from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.ports.scraping import EventListContainer
 from .extractor import SeatEngineExtractor
+from .transformer import SeatEngineEventTransformer
 
 
 class SeatEngineScraper(BaseScraper):
@@ -20,6 +21,7 @@ class SeatEngineScraper(BaseScraper):
     
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
+        self.transformation_pipeline.register_transformer(SeatEngineEventTransformer(club))
 
         # Validate that club has seatengine_id
         if not club.seatengine_id:

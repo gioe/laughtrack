@@ -19,6 +19,7 @@ from laughtrack.foundation.models.types import JSONDict
 from laughtrack.infrastructure.config.presets import BatchConfigPresets
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.scrapers.implementations.venues.standup_ny.extractor import StandupNYEventExtractor
+from laughtrack.scrapers.implementations.venues.standup_ny.transformer import StandupNYEventTransformer
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.utilities.infrastructure.scraper.scraper import BatchScraper
 from laughtrack.utilities.infrastructure.scraper import log_filter_breakdown
@@ -39,6 +40,7 @@ class StandupNYScraper(BaseScraper):
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
+        self.transformation_pipeline.register_transformer(StandupNYEventTransformer(club))
         self.extractor = StandupNYEventExtractor(self.logger_context)
 
         # Initialize batch scraper for VenuePilot URL processing

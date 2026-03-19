@@ -21,6 +21,7 @@ from laughtrack.core.entities.show.model import Show
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.url import URLUtils
+from .transformer import JsonLdTransformer
 
 if TYPE_CHECKING:
     # Only imported for type hints to avoid heavy imports at module import time
@@ -41,6 +42,10 @@ class JsonLdScraper(BaseScraper):
     """
 
     key = "json_ld"
+
+    def __init__(self, club: Club, **kwargs):
+        super().__init__(club, **kwargs)
+        self.transformation_pipeline.register_transformer(JsonLdTransformer(club))
 
     async def get_data(self, url: str) -> Optional["JsonLdPageData"]:
         """

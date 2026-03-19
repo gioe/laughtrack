@@ -27,6 +27,7 @@ from laughtrack.ports.scraping import EventListContainer
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 
 from .extractor import GothamEventExtractor
+from .transformer import GothamEventTransformer
 
 
 class GothamComedyClubScraper(BaseScraper):
@@ -44,6 +45,7 @@ class GothamComedyClubScraper(BaseScraper):
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
+        self.transformation_pipeline.register_transformer(GothamEventTransformer(club))
         self.extractor = GothamEventExtractor(club, self.get_session, proxy_pool=self.proxy_pool)
 
     async def collect_scraping_targets(self) -> List[ScrapingTarget]:

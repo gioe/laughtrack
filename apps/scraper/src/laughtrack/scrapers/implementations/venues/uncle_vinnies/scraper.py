@@ -23,6 +23,7 @@ from laughtrack.utilities.infrastructure.scraper import log_filter_breakdown
 
 from .data import UncleVinniesPageData
 from .extractor import UncleVinniesExtractor
+from .transformer import UncleVinniesEventTransformer
 
 
 class UncleVinniesScraper(BaseScraper):
@@ -37,6 +38,10 @@ class UncleVinniesScraper(BaseScraper):
     """
 
     key = "uncle_vinnies"
+
+    def __init__(self, club, **kwargs):
+        super().__init__(club, **kwargs)
+        self.transformation_pipeline.register_transformer(UncleVinniesEventTransformer(club))
 
     async def discover_urls(self) -> List[str]:
         """

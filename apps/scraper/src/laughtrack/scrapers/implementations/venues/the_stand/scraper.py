@@ -43,8 +43,9 @@ class TheStandNYCScraper(BaseScraper):
 
     key = "the_stand_nyc"
 
-    def __init__(self, club: Club):
-        super().__init__(club)
+    def __init__(self, club: Club, **kwargs):
+        super().__init__(club, **kwargs)
+        self.transformation_pipeline.register_transformer(TheStandEventTransformer(club))
         # Initialize TixrClient with monitoring integration (if available)
         self.tixr_client = create_monitored_tixr_client(club)
 
@@ -155,13 +156,16 @@ class TheStandNYCScraper(BaseScraper):
 
     async def get_data(self, url: str) -> Optional[TheStandPageData]:
         """
-        Extract Tixr URLs from The Stand NYC webpage.
+        Extract TixrEvent data from The Stand NYC webpage.
+
+        Fetches the page, extracts Tixr URLs, then calls the Tixr API for
+        each URL to retrieve full event details.
 
         Args:
             url: The Stand NYC page URL to extract from
 
         Returns:
-            TheStandPageData containing Tixr URLs found on the page
+            TheStandPageData containing TixrEvent objects, or None if no events found
         """
         try:
             # Use BaseScraper's standardized fetch_html with built-in error handling
@@ -175,7 +179,18 @@ class TheStandNYCScraper(BaseScraper):
                 return None
 
             Logger.info(f"Extracted {len(tixr_urls)} Tixr URLs from {url}", self.logger_context)
-            return TheStandPageData(tixr_urls=tixr_urls)
+
+            # Fetch full event details from the Tixr API for each URL
+            results = await self.batch_scraper.process_batch(
+                tixr_urls, lambda u: self.tixr_client.get_event_detail_from_url(u), "Tixr event extraction"
+            )
+            tixr_events = [r for r in results if r is not None]
+
+            Logger.info(
+                f"Successfully processed {len(tixr_events)} TixrEvents from {len(tixr_urls)} URLs",
+                self.logger_context,
+            )
+            return TheStandPageData(event_list=tixr_events, tixr_urls=tixr_urls)
 
         except Exception as e:
             Logger.error(f"Error extracting data from {url}: {str(e)}", self.logger_context)

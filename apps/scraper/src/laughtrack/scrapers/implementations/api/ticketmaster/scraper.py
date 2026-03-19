@@ -15,6 +15,7 @@ from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.ports.scraping import EventListContainer
 from .extractor import TicketmasterExtractor
+from .transformer import TicketmasterEventTransformer
 
 
 class TicketmasterScraper(BaseScraper):
@@ -32,6 +33,7 @@ class TicketmasterScraper(BaseScraper):
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
+        self.transformation_pipeline.register_transformer(TicketmasterEventTransformer(club))
 
         # Validate that ticketmaster_id is configured
         if not club.ticketmaster_id:

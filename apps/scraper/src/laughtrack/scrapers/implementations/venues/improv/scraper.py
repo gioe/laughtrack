@@ -20,6 +20,7 @@ from laughtrack.utilities.infrastructure.scraper.config import BatchScrapingConf
 
 from .data import ImprovPageData
 from .extractor import ImprovExtractor
+from .transformer import ImprovEventTransformer
 
 
 class ImprovScraper(BaseScraper):
@@ -39,6 +40,7 @@ class ImprovScraper(BaseScraper):
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
+        self.transformation_pipeline.register_transformer(ImprovEventTransformer(club))
         # Use BaseHeaders for consistent mobile browser headers
         self.headers = BaseHeaders.get_venue_headers("improv", domain=club.scraping_url, referer=club.scraping_url)
 

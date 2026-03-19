@@ -51,6 +51,7 @@ class RodneysComedyClubScraper(BaseScraper):
     def __init__(self, club: Club, **kwargs):
         """Initialize the scraper with club information."""
         super().__init__(club, **kwargs)
+        self.transformation_pipeline.register_transformer(RodneyEventTransformer(club))
 
         # Headers for scraping - using BaseHeaders for consistency
         self.headers = BaseHeaders.get_headers(

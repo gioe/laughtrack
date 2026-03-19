@@ -45,6 +45,7 @@ class StMarksScraper(BaseScraper):
     def __init__(self, club: Club, **kwargs):
         """Initialize the scraper with club information."""
         super().__init__(club, **kwargs)
+        self.transformation_pipeline.register_transformer(StMarksEventTransformer(club))
 
         # Initialize TixrClient with monitoring integration (if available)
         self.tixr_client = create_monitored_tixr_client(club)

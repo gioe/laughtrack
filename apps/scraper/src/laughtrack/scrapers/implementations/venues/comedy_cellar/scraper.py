@@ -25,6 +25,7 @@ from laughtrack.scrapers.base.base_scraper import BaseScraper
 
 from .data import ComedyCellarDateData
 from .extractor import ComedyCellarExtractor
+from .transformer import ComedyCellarEventTransformer
 
 
 class ComedyCellarScraper(BaseScraper):
@@ -49,6 +50,7 @@ class ComedyCellarScraper(BaseScraper):
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
+        self.transformation_pipeline.register_transformer(ComedyCellarEventTransformer(club))
         self.api_client = ComedyCellarAPIClient(club, proxy_pool=self.proxy_pool)
 
     async def collect_scraping_targets(self) -> List[str]:

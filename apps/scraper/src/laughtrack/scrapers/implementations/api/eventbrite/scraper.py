@@ -14,6 +14,7 @@ from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.ports.scraping import EventListContainer
 from .extractor import EventbriteExtractor
+from .transformer import EventbriteEventTransformer
 
 
 class EventbriteScraper(BaseScraper):
@@ -28,6 +29,7 @@ class EventbriteScraper(BaseScraper):
     
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
+        self.transformation_pipeline.register_transformer(EventbriteEventTransformer(club))
 
         # Validate that club has eventbrite_id
         if not club.eventbrite_id:

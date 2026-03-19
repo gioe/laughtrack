@@ -27,6 +27,7 @@ from laughtrack.scrapers.utils.tessera_enrichment import TesseraTicketBatchEnric
 
 from .data import BroadwayEventData
 from .extractor import BroadwayEventExtractor
+from .transformer import BroadwayEventTransformer
 
 
 class BroadwayComedyClubScraper(BaseScraper):
@@ -45,6 +46,7 @@ class BroadwayComedyClubScraper(BaseScraper):
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
+        self.transformation_pipeline.register_transformer(BroadwayEventTransformer(club))
         self.tessera_client = BroadwayTesseraClient(club, proxy_pool=self.proxy_pool)
         # Use a factory method for a reusable enrichment pattern across scrapers
         self._tickets = self._make_ticket_enricher()

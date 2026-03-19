@@ -20,6 +20,7 @@ from laughtrack.foundation.models.types import ScrapingTarget
 
 from .data import Grove34PageData
 from .extractor import Grove34EventExtractor
+from .transformer import Grove34EventTransformer
 
 
 class Grove34Scraper(BaseScraper):
@@ -35,6 +36,7 @@ class Grove34Scraper(BaseScraper):
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
+        self.transformation_pipeline.register_transformer(Grove34EventTransformer(club))
 
     async def collect_scraping_targets(self) -> List[ScrapingTarget]:
         """
