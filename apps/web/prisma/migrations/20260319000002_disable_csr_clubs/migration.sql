@@ -8,5 +8,5 @@
 --
 -- Both are set visible=false until a proper scraper is built for each platform.
 
-UPDATE "Club" SET visible = false, scraper = NULL WHERE id = 98;
-UPDATE "Club" SET visible = false, scraper = NULL WHERE id = 80;
+UPDATE clubs SET visible = false, scraper = NULL WHERE id = 98;
+UPDATE clubs SET visible = false, scraper = NULL WHERE id = 80;

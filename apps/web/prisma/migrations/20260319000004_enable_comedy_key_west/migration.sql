@@ -5,7 +5,7 @@
 -- A dedicated scraper (key='comedy_key_west') was built in TASK-447 that parses the
 -- venuePageCarousel RSC hydration data embedded in the Punchup streaming script tags.
 
-UPDATE "Club"
+UPDATE clubs
 SET
     visible = true,
     scraper = 'comedy_key_west',

@@ -6,4 +6,4 @@
 --   2. Fetches each event detail page and extracts ComedyEvent JSON-LD
 --   3. Transforms via JsonLdTransformer
 
-UPDATE "Club" SET visible = true, scraper = 'uptown_theater' WHERE id = 80;
+UPDATE clubs SET visible = true, scraper = 'uptown_theater' WHERE id = 80;
