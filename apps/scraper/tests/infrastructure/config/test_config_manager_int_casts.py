@@ -124,3 +124,24 @@ class TestRateLimitValidation:
         with patch.dict("os.environ", {"RATE_LIMIT": "2.5"}, clear=False):
             cfg = ConfigManager()
             assert cfg.get_scraper_config()["rate_limit"] == 2.5
+
+
+class TestSeatengineVenueScanMaxIdValidation:
+    def test_non_numeric_max_id_raises(self):
+        ConfigManager = _import_config_manager()
+        with patch.dict("os.environ", {"SEATENGINE_VENUE_SCAN_MAX_ID": "many"}, clear=False):
+            with pytest.raises(ValueError, match="SEATENGINE_VENUE_SCAN_MAX_ID must be a valid integer"):
+                ConfigManager()
+
+    def test_float_string_max_id_raises(self):
+        ConfigManager = _import_config_manager()
+        with patch.dict("os.environ", {"SEATENGINE_VENUE_SCAN_MAX_ID": "700.5"}, clear=False):
+            with pytest.raises(ValueError, match="SEATENGINE_VENUE_SCAN_MAX_ID must be a valid integer"):
+                ConfigManager()
+
+    def test_valid_max_id_is_stored_as_int(self):
+        ConfigManager = _import_config_manager()
+        with patch.dict("os.environ", {"SEATENGINE_VENUE_SCAN_MAX_ID": "500"}, clear=False):
+            cfg = ConfigManager()
+            assert cfg.get_api_config()["seatengine_venue_scan_max_id"] == 500
+            assert isinstance(cfg.get_api_config()["seatengine_venue_scan_max_id"], int)
