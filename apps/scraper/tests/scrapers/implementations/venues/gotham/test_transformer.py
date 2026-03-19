@@ -5,8 +5,6 @@ GothamEvent.to_show(club, enhanced=True) without raising a TypeError
 (i.e., respects the ShowConvertible protocol signature).
 """
 
-import pytest
-
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.event.gotham import GothamEvent
 from laughtrack.core.entities.show.model import Show
