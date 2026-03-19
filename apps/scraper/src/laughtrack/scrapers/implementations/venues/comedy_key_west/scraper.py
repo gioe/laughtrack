@@ -58,7 +58,7 @@ class ComedyKeyWestScraper(BaseScraper):
         """
         try:
             normalized_url = URLUtils.normalize_url(url)
-            html_content = await self.fetch_html(normalized_url)
+            html_content = await self.fetch_html_bare(normalized_url)
             if not html_content:
                 Logger.warn(
                     f"Comedy Key West: received empty HTML from {url}",

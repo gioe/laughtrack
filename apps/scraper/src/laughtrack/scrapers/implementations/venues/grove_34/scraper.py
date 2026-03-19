@@ -56,7 +56,7 @@ class Grove34Scraper(BaseScraper):
             visited_listing_urls.add(listing_url)
             try:
                 await self.rate_limiter.await_if_needed(listing_url)
-                html = await self.fetch_html(listing_url)
+                html = await self.fetch_html_bare(listing_url)
                 page_urls = Grove34EventExtractor.extract_show_urls(html)
                 for url in page_urls:
                     if url not in seen:
@@ -84,7 +84,7 @@ class Grove34Scraper(BaseScraper):
         """
         try:
             normalized_url = URLUtils.normalize_url(url)
-            html = await self.fetch_html(normalized_url)
+            html = await self.fetch_html_bare(normalized_url)
             event = Grove34EventExtractor.extract_event(html, normalized_url)
 
             if not event:
