@@ -60,7 +60,8 @@ class ShowTransformationPipeline:
                 try:
                     if transformer.can_transform(event_data):
                         transformer_show = transformer.transform_to_show(event_data)
-                        shows.append(transformer_show)
+                        if transformer_show is not None:
+                            shows.append(transformer_show)
                         matched = True
                         break
                 except Exception as e:
