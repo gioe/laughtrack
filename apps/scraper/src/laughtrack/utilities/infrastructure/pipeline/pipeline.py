@@ -50,6 +50,13 @@ class ShowTransformationPipeline:
         Returns:
             List of validated Show objects
         """
+        if not self.transformers:
+            Logger.error(
+                f"No transformers registered for {self.club.name} — "
+                f"did you forget to call register_transformer in __init__?"
+            )
+            return []
+
         shows = []
 
         # Process each event in the event_list
