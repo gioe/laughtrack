@@ -196,7 +196,7 @@ help-maintain:
 help-analyze:
 	@echo "📈 ANALYSIS & VISUALIZATION:"
 	@echo "  dashboard            - Generate comprehensive HTML analytics dashboard (data/processed/scraper_dashboard.html)"
-	@echo "  visualize-metrics    - Launch interactive Streamlit metrics viewer"
+	@echo "  visualize-metrics    - Print tabular trend summary of recent scraper runs"
 	@echo "  select-metrics       - Pick a metrics JSON and render it to the dashboard"
 	@echo "  scraper-status       - Show current scraper health and status"
 	@echo "  seatengine-api-tool  - Start SeatEngine API testing tool (port 9247)"
@@ -634,9 +634,7 @@ select-metrics:
 
 # Launch interactive metrics visualization - Streamlit-based interactive analytics
 visualize-metrics:
-	@echo "📈 Launching interactive Streamlit metrics viewer..."
-	@echo "   → Interactive charts, filters, and real-time data exploration"
-	@echo "   → Will open browser automatically on available port"
+	@echo "📈 Printing metrics trend summary (last 10 runs)..."
 	$(activate_venv) $(PYTHON) scripts/utils/visualize_metrics.py
 
 # Show current scraper health and status - system health monitoring
