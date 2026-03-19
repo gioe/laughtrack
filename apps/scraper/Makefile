@@ -533,27 +533,27 @@ scrape-club:
 	@echo "🎯 Scraping specific venue by name:"
 	@echo "   Usage: make scrape-club CLUB='Venue Name'"
 	@echo "   Example: make scrape-club CLUB='Comedy Cellar'"
-	@if [ -z "$(CLUB)" ]; then \
-		echo "⚠️  No club specified - launching interactive selection..."; \
-		$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.scrape_shows; \
-	else \
-		echo "🎭 Scraping venue: $(CLUB)"; \
-		$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.scrape_shows --club "$(CLUB)"; \
-	fi
+ifndef CLUB
+	@echo "⚠️  No club specified - launching interactive selection..."
+	$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.scrape_shows
+else
+	@echo "🎭 Scraping venue: $(CLUB)"
+	$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.scrape_shows --club "$(CLUB)"
+endif
 
 # Scrape specific venue by database ID - direct database lookup
 scrape-club-id:
 	@echo "🔢 Scraping venue by database ID:"
 	@echo "   Usage: make scrape-club-id ID=123"
 	@echo "   Example: make scrape-club-id ID=5"
-	@if [ -z "$(ID)" ]; then \
-		echo "❌ Error: ID parameter is required"; \
-		echo "💡 Tip: Run 'make list-clubs' to see all venue IDs"; \
-		exit 1; \
-	else \
-		echo "🎭 Scraping venue ID: $(ID)"; \
-		$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.scrape_shows --club-id $(ID); \
-	fi
+ifndef ID
+	@echo "❌ Error: ID parameter is required"
+	@echo "💡 Tip: Run 'make list-clubs' to see all venue IDs"
+	@exit 1
+else
+	@echo "🎭 Scraping venue ID: $(ID)"
+	$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.scrape_shows --club-id $(ID)
+endif
 
 # Interactive venue selection - guided menu for choosing venues to scrape
 scrape-interactive:
