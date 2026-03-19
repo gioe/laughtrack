@@ -132,10 +132,5 @@ def _discover_transformer_classes() -> List[Type[DataTransformer]]:
 
 
 def create_standard_pipeline(club: Club) -> ShowTransformationPipeline:
-    """Create a pipeline with auto-discovered transformers."""
-    pipeline = ShowTransformationPipeline(club)
-
-    for cls in _discover_transformer_classes():
-        pipeline.register_transformer(cls(club))
-
-    return pipeline
+    """Create an empty pipeline. Each scraper registers its own transformer via __init__."""
+    return ShowTransformationPipeline(club)
