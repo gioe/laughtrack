@@ -10,11 +10,17 @@ import json
 
 import pytest
 
+from laughtrack.core.clients.punchup.extractor import PunchupShow
 from laughtrack.core.entities.club.model import Club
+from laughtrack.scrapers.implementations.venues.comedy_key_west.data import ComedyKeyWestShow
+from laughtrack.scrapers.implementations.venues.comedy_key_west.transformer import (
+    ComedyKeyWestEventTransformer,
+)
 from laughtrack.scrapers.implementations.venues.west_side.extractor import (
     WestSideExtractor,
     WestSideShow,
 )
+from laughtrack.scrapers.implementations.venues.west_side.transformer import WestSideEventTransformer
 
 
 def _club():
@@ -309,3 +315,56 @@ class TestWestSideShowToShow:
         utc = pytz.utc
         show_utc = show.date.astimezone(utc)
         assert show_utc.hour == 1  # EDT offset is -4 in March (EST would be -5, but DST)
+
+
+# ---------------------------------------------------------------------------
+# Transformer dispatch — WestSideShow and ComedyKeyWestShow are distinct types
+# ---------------------------------------------------------------------------
+
+_SHOW_KWARGS = dict(
+    id="x",
+    title="Test",
+    datetime_str="2026-04-01T20:00:00",
+    ticket_link="",
+    tixologi_event_id=None,
+    is_sold_out=False,
+    metadata_text=None,
+    show_comedians=[],
+)
+
+
+class TestTransformerDispatch:
+    def test_westside_show_is_punchup_show_subclass(self):
+        ws = WestSideShow(**_SHOW_KWARGS)
+        assert isinstance(ws, PunchupShow)
+
+    def test_comedy_key_west_show_is_punchup_show_subclass(self):
+        ckw = ComedyKeyWestShow(**_SHOW_KWARGS)
+        assert isinstance(ckw, PunchupShow)
+
+    def test_show_types_are_distinct(self):
+        ws = WestSideShow(**_SHOW_KWARGS)
+        ckw = ComedyKeyWestShow(**_SHOW_KWARGS)
+        assert not isinstance(ws, ComedyKeyWestShow)
+        assert not isinstance(ckw, WestSideShow)
+
+    def test_west_side_transformer_only_matches_west_side_show(self):
+        transformer = WestSideEventTransformer(_club())
+        ws = WestSideShow(**_SHOW_KWARGS)
+        ckw = ComedyKeyWestShow(**_SHOW_KWARGS)
+        assert transformer.can_transform(ws) is True
+        assert transformer.can_transform(ckw) is False
+
+    def test_comedy_key_west_transformer_only_matches_comedy_key_west_show(self):
+        transformer = ComedyKeyWestEventTransformer(_club())
+        ws = WestSideShow(**_SHOW_KWARGS)
+        ckw = ComedyKeyWestShow(**_SHOW_KWARGS)
+        assert transformer.can_transform(ckw) is True
+        assert transformer.can_transform(ws) is False
+
+    def test_west_side_extractor_returns_west_side_show_instances(self):
+        html = _build_html_with_plain_json([_SHOW_ITEM])
+        shows = WestSideExtractor.extract_shows(html)
+        assert len(shows) == 1
+        assert isinstance(shows[0], WestSideShow)
+        assert not isinstance(shows[0], ComedyKeyWestShow)

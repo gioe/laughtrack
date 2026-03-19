@@ -1,6 +1,5 @@
 """Page data model for Comedy Key West scraper."""
 
-import dataclasses
 from dataclasses import dataclass
 from typing import List
 
