@@ -28,6 +28,7 @@ from laughtrack.foundation.utilities.url import URLUtils
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 
 from .data import ComedyKeyWestPageData, ComedyKeyWestShow
+from .transformer import ComedyKeyWestEventTransformer
 
 
 class ComedyKeyWestScraper(BaseScraper):
@@ -40,6 +41,10 @@ class ComedyKeyWestScraper(BaseScraper):
     """
 
     key = "comedy_key_west"
+
+    def __init__(self, club, **kwargs):
+        super().__init__(club, **kwargs)
+        self.transformation_pipeline.register_transformer(ComedyKeyWestEventTransformer(club))
 
     async def get_data(self, url: str) -> Optional[ComedyKeyWestPageData]:
         """

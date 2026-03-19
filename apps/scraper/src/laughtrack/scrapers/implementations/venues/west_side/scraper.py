@@ -19,6 +19,7 @@ from laughtrack.scrapers.base.base_scraper import BaseScraper
 
 from .data import WestSidePageData
 from .extractor import WestSideExtractor
+from .transformer import WestSideEventTransformer
 
 
 class WestSideScraper(BaseScraper):
@@ -30,6 +31,10 @@ class WestSideScraper(BaseScraper):
     """
 
     key = "west_side"
+
+    def __init__(self, club, **kwargs):
+        super().__init__(club, **kwargs)
+        self.transformation_pipeline.register_transformer(WestSideEventTransformer(club))
 
     async def get_data(self, url: str) -> Optional[WestSidePageData]:
         """
