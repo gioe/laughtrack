@@ -12,13 +12,12 @@ from laughtrack.core.entities.comedian.model import Comedian
 from laughtrack.core.entities.event.standup_ny import StandupNYEvent
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.entities.ticket.model import Ticket
-from laughtrack.scrapers.implementations.venues.standup_ny.data import StandupNYPageData
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.utilities.infrastructure.transformer.base import DataTransformer
 from laughtrack.foundation.utilities.datetime import DateTimeUtils
 
 
-class StandupNYEventTransformer(DataTransformer[StandupNYPageData]):
+class StandupNYEventTransformer(DataTransformer[StandupNYEvent]):
     """
     Transform StandUp NY combined event data into Show objects.
 
@@ -31,45 +30,9 @@ class StandupNYEventTransformer(DataTransformer[StandupNYPageData]):
         self.club = club
         self.logger_context = {"club": club.name, "transformer": "standup_ny"}
 
-    def can_transform(self, data: StandupNYPageData) -> bool:
-        """Check if this transformer can handle the given data format."""
-        return isinstance(data, StandupNYPageData)
-
-    def transform_to_shows(self, raw_data: StandupNYPageData, source_url: str = "") -> List[Show]:
-        """Transform StandupNYPageData to Show objects (DataTransformer interface)."""
-        return self.transform(raw_data, source_url)
-
-    def transform(self, data: StandupNYPageData, source_url: str = "") -> List[Show]:
-        """
-        Transform StandupNYPageData to Show objects.
-
-        Args:
-            data: StandupNYPageData containing StandupNYEvent objects
-            source_url: Original source URL (used for show_page_url enhancement)
-
-        Returns:
-            List of Show objects
-        """
-        if not data:
-            Logger.warn("No events to transform", self.logger_context)
-            return []
-
-        shows = []
-
-        for event in data.event_list:
-            try:
-                show = self._transform_single_event(event, source_url)
-                if show:
-                    shows.append(show)
-            except Exception as e:
-                Logger.error(f"Error transforming event {event.id}: {e}", self.logger_context)
-                continue
-
-        Logger.info(
-            f"Successfully transformed {len(shows)} shows from {len(data.event_list)} events", self.logger_context
-        )
-
-        return shows
+    def transform_to_show(self, event: StandupNYEvent) -> Optional[Show]:
+        """Transform a single StandupNYEvent to a Show (pipeline interface)."""
+        return self._transform_single_event(event, "")
 
     def _transform_single_event(self, event: StandupNYEvent, source_url: str) -> Optional[Show]:
         """

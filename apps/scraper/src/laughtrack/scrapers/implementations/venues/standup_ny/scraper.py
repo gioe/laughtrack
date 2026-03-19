@@ -19,7 +19,6 @@ from laughtrack.foundation.models.types import JSONDict
 from laughtrack.infrastructure.config.presets import BatchConfigPresets
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.scrapers.implementations.venues.standup_ny.extractor import StandupNYEventExtractor
-from laughtrack.scrapers.implementations.venues.standup_ny.transformer import StandupNYEventTransformer
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.utilities.infrastructure.scraper.scraper import BatchScraper
 from laughtrack.utilities.infrastructure.scraper import log_filter_breakdown
@@ -38,9 +37,8 @@ class StandupNYScraper(BaseScraper):
 
     key = "standup_ny"
 
-    def __init__(self, club: Club):
-        super().__init__(club)
-        self.transformer = StandupNYEventTransformer(club)
+    def __init__(self, club: Club, **kwargs):
+        super().__init__(club, **kwargs)
         self.extractor = StandupNYEventExtractor(self.logger_context)
 
         # Initialize batch scraper for VenuePilot URL processing
@@ -190,11 +188,7 @@ class StandupNYScraper(BaseScraper):
                 )
 
             # Step 3: Transform all events (enhanced + non-enhanced) to Show objects
-            if not self.transformer.can_transform(self.page_data):
-                Logger.error("Transformer cannot handle page data", self.logger_context)
-                return []
-
-            shows = self.transformer.transform_to_shows(self.page_data, self.club.scraping_url)
+            shows = self.transformation_pipeline.transform(self.page_data)
 
             Logger.info(f"StandUp NY scraping completed. Found {len(shows)} shows", self.logger_context)
 
