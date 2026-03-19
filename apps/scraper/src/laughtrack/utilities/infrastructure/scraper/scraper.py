@@ -108,10 +108,11 @@ class BatchScraper:
                 failed_count += 1
 
         if self.config.enable_logging:
-            Logger.error(
-                f"Completed {description}: {successful_count} successful, {failed_count} failed",
-                self.logger_context,
-            )
+            summary = f"Completed {description}: {successful_count} successful, {failed_count} failed"
+            if failed_count == 0:
+                Logger.info(summary, self.logger_context)
+            else:
+                Logger.error(summary, self.logger_context)
 
         return successful_results
 
