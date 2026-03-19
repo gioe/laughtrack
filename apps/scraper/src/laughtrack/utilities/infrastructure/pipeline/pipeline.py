@@ -62,6 +62,11 @@ class ShowTransformationPipeline:
                         transformer_show = transformer.transform_to_show(event_data)
                         if transformer_show is not None:
                             shows.append(transformer_show)
+                        else:
+                            Logger.debug(
+                                f"{transformer.__class__.__name__} returned None for event "
+                                f"{type(event_data).__name__} at {self.club.name} — skipped"
+                            )
                         matched = True
                         break
                 except Exception as e:
