@@ -673,7 +673,7 @@ daily-scrape:
 	@echo "======================================="
 	@echo "📊 Step 1/3: Scraping all venues for new shows..."
 	@echo "   → Processing all active comedy venues in database"
-	$(activate_venv) $(PYTHON) scripts/core/scrape_shows.py --all
+	$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.scrape_shows --all
 	@echo ""
 	@echo "⭐ Step 2/3: Updating popularity scores..."
 	@echo "   → Recalculating venue/show rankings based on performance"
@@ -702,7 +702,7 @@ full-maintenance:
 	@echo "=============================================="
 	@echo "📊 Step 1/4: Scraping all venues for new shows..."
 	@echo "   → Processing all active comedy venues in database"
-	$(activate_venv) $(PYTHON) scripts/core/scrape_shows.py --all
+	$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.scrape_shows --all
 	@echo ""
 	@echo "⭐ Step 2/4: Updating popularity scores..."
 	@echo "   → Recalculating venue/show rankings based on performance"
