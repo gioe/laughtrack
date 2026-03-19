@@ -42,9 +42,13 @@ class BushwickComedyClubScraper(BaseScraper):
     key = "bushwick"
 
     def __init__(self, club: Club, **kwargs):
+        raw_url = club.scraping_url
+        domain = URLUtils.get_base_domain_with_protocol(raw_url)
+        if not domain or not domain.startswith("http"):
+            raise ValueError("Bushwick: scraping_url is missing or produced an invalid domain")
         super().__init__(club, **kwargs)
         self.transformation_pipeline.register_transformer(BushwickEventTransformer(club))
-        self.domain = URLUtils.get_base_domain_with_protocol(club.scraping_url)
+        self.domain = domain
         self.access_token = None
 
     async def collect_scraping_targets(self) -> List[str]:
