@@ -216,6 +216,18 @@ describe("getTrendingComedians", () => {
             expect(result[0].show_count).toBe(7);
         });
 
+        it("coerces BigInt show_count from Postgres COUNT() to a JS number via Number()", async () => {
+            // Postgres COUNT(*) returns BigInt in the Prisma $queryRaw result; Number() must
+            // convert it to a plain JS number before it reaches the caller.
+            const row = { ...makeRow(), show_count: BigInt(12) } as any;
+            mockQueryRaw.mockResolvedValue([row]);
+
+            const result = await getTrendingComedians(8, 0);
+
+            expect(typeof result[0].show_count).toBe("number");
+            expect(result[0].show_count).toBe(12);
+        });
+
         it("handles null optional social fields", async () => {
             const row = makeRow({
                 instagram_account: null,
@@ -234,6 +246,24 @@ describe("getTrendingComedians", () => {
 
             expect(social_data.instagram_account).toBeNull();
             expect(social_data.website).toBeNull();
+        });
+    });
+
+    describe("error handling", () => {
+        it("returns [] when the DB query throws", async () => {
+            mockQueryRaw.mockRejectedValue(new Error("DB connection error"));
+
+            const result = await getTrendingComedians(8, 0);
+
+            expect(result).toEqual([]);
+        });
+
+        it("returns [] on error for paginated requests too", async () => {
+            mockQueryRaw.mockRejectedValue(new Error("timeout"));
+
+            const result = await getTrendingComedians(8, 10);
+
+            expect(result).toEqual([]);
         });
     });
 
