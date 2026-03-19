@@ -36,7 +36,7 @@ class GothamEvent:
         if self.shows is None:
             self.shows = []
 
-    def to_show(self, club: Club) -> Optional[Show]:
+    def to_show(self, club: Club, enhanced: bool = True) -> Optional[Show]:
         """Factory method to create a Show from a GothamEvent and Club.
 
         Args:
