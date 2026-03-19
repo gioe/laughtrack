@@ -6,6 +6,8 @@ This module provides common HTTP operations with error handling and retry logic.
 
 from typing import Any, Dict, Protocol
 
+from curl_cffi.requests import AsyncSession
+
 from laughtrack.foundation.models.types import JSONDict
 from laughtrack.core.data.mixins.async_http_mixin import AsyncHttpMixin
 
@@ -55,6 +57,26 @@ class HttpConvenienceMixin(AsyncHttpMixin):
             return await error_handler.execute_with_retry(_fetch_html, f"Fetch HTML: {url}")
         else:
             return await _fetch_html()
+
+    async def fetch_html_bare(self, url: str) -> str:
+        """Fetch HTML using a transient AsyncSession with impersonation only — no application headers.
+
+        Use this instead of fetch_html() when the target site uses DataDome or similar
+        bot detection that triggers on application header combinations. curl_cffi's
+        impersonation fingerprint alone is sufficient and does not trigger DataDome.
+        """
+
+        async def _fetch_html_bare():
+            async with AsyncSession(impersonate=self._get_impersonation_target()) as session:
+                response = await session.get(url)
+                response.raise_for_status()
+                return response.text
+
+        error_handler = getattr(self, "error_handler", None)
+        if error_handler and hasattr(error_handler, "execute_with_retry"):
+            return await error_handler.execute_with_retry(_fetch_html_bare, f"Fetch HTML bare: {url}")
+        else:
+            return await _fetch_html_bare()
 
     async def post_json(self, url: str, data: JSONDict, **kwargs) -> JSONDict:
         """Post JSON data and get JSON response with error handling."""
