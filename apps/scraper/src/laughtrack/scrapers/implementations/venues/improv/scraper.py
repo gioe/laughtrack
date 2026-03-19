@@ -13,7 +13,6 @@ from laughtrack.core.entities.event.improv import ImprovEvent
 from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
-from laughtrack.scrapers.implementations.json_ld.transformer import JsonLdTransformer
 from laughtrack.foundation.utilities.url import URLUtils
 from laughtrack.utilities.infrastructure.paginator import Paginator
 from laughtrack.utilities.infrastructure.scraper.scraper import BatchScraper
@@ -38,9 +37,8 @@ class ImprovScraper(BaseScraper):
     MAX_CONCURRENT_REQUESTS = 5  # Limit concurrent requests to be respectful
     REQUEST_DELAY = 0.5  # Delay between batches of requests in seconds
 
-    def __init__(self, club: Club):
-        super().__init__(club)
-        self.transformer = JsonLdTransformer(club)
+    def __init__(self, club: Club, **kwargs):
+        super().__init__(club, **kwargs)
         # Use BaseHeaders for consistent mobile browser headers
         self.headers = BaseHeaders.get_venue_headers("improv", domain=club.scraping_url, referer=club.scraping_url)
 
