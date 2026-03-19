@@ -19,6 +19,27 @@ def _make_club(**kwargs) -> Club:
     return Club(**defaults)
 
 
+class TestClubScrapingDomain:
+    def test_returns_hostname_without_protocol(self):
+        club = _make_club(scraping_url="https://testclub.com/events")
+        assert club.scraping_domain == "testclub.com"
+
+    def test_does_not_mutate_scraping_url(self):
+        club = _make_club(scraping_url="https://testclub.com/events")
+        _ = club.scraping_domain
+        assert club.scraping_url == "https://testclub.com/events"
+
+    def test_idempotent_on_repeated_access(self):
+        club = _make_club(scraping_url="https://testclub.com/events")
+        assert club.scraping_domain == "testclub.com"
+        assert club.scraping_domain == "testclub.com"
+        assert club.scraping_url == "https://testclub.com/events"
+
+    def test_works_without_protocol(self):
+        club = _make_club(scraping_url="testclub.com/events")
+        assert club.scraping_domain == "testclub.com"
+
+
 class TestClubToTuple:
     def test_includes_city_and_state_when_set(self):
         club = _make_club(city="New York", state="NY")

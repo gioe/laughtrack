@@ -114,9 +114,10 @@ class Club(DatabaseEntity):
 
     @property
     def scraping_domain(self) -> str:
-        if "://" in self.scraping_url:
-            self.scraping_url = self.scraping_url.split("://", 1)[1]
-        return self.scraping_url.split("/")[0].lower()
+        url = self.scraping_url
+        if "://" in url:
+            url = url.split("://", 1)[1]
+        return url.split("/")[0].lower()
 
     def as_context(self) -> JSONDict:
         """Return a context dictionary for logging or other purposes."""
