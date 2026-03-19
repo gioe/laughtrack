@@ -26,7 +26,6 @@ if TYPE_CHECKING:
     # Only imported for type hints to avoid heavy imports at module import time
     from .data import JsonLdPageData
     from .extractor import EventExtractor  # noqa: F401
-    from laughtrack.scrapers.implementations.json_ld.transformer import JsonLdTransformer  # noqa: F401
 
 
 class JsonLdScraper(BaseScraper):
@@ -42,12 +41,6 @@ class JsonLdScraper(BaseScraper):
     """
 
     key = "json_ld"
-
-    def __init__(self, club: Club, **kwargs):
-        super().__init__(club, **kwargs)
-        # Lazy import to avoid import-time cycles during scraper discovery
-        from laughtrack.scrapers.implementations.json_ld.transformer import JsonLdTransformer
-        self.transformer = JsonLdTransformer(club)
 
     async def get_data(self, url: str) -> Optional["JsonLdPageData"]:
         """

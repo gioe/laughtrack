@@ -20,18 +20,13 @@ Fetch strategy:
 
 from typing import Optional
 
-from laughtrack.core.clients.punchup.extractor import PunchupExtractor, PunchupShow
+from laughtrack.core.clients.punchup.extractor import PunchupExtractor
 from laughtrack.core.entities.club.model import Club
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.url import URLUtils
 from laughtrack.scrapers.base.base_scraper import BaseScraper
-from laughtrack.utilities.infrastructure.transformer.base import DataTransformer
 
 from .data import ComedyKeyWestPageData
-
-
-class ComedyKeyWestEventTransformer(DataTransformer[PunchupShow]):
-    """Transforms PunchupShow objects into Show entities for Comedy Key West."""
 
 
 class ComedyKeyWestScraper(BaseScraper):
@@ -44,10 +39,6 @@ class ComedyKeyWestScraper(BaseScraper):
     """
 
     key = "comedy_key_west"
-
-    def __init__(self, club: Club, **kwargs):
-        super().__init__(club, **kwargs)
-        self.transformer = ComedyKeyWestEventTransformer(club)
 
     async def get_data(self, url: str) -> Optional[ComedyKeyWestPageData]:
         """

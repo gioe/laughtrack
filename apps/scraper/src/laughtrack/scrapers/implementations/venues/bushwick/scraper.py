@@ -25,7 +25,6 @@ from laughtrack.foundation.utilities.url import URLUtils
 
 from .data import BushwickEventData
 from .extractor import BushwickEventExtractor
-from .transformer import BushwickEventTransformer
 
 
 class BushwickComedyClubScraper(BaseScraper):
@@ -41,9 +40,8 @@ class BushwickComedyClubScraper(BaseScraper):
 
     key = "bushwick"
 
-    def __init__(self, club: Club):
-        super().__init__(club)
-        self.transformer = BushwickEventTransformer(club)
+    def __init__(self, club: Club, **kwargs):
+        super().__init__(club, **kwargs)
         self.domain = URLUtils.get_base_domain_with_protocol(club.scraping_url)
         self.access_token = None
 

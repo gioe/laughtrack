@@ -23,7 +23,6 @@ from laughtrack.utilities.infrastructure.scraper import log_filter_breakdown
 
 from .data import UncleVinniesPageData
 from .extractor import UncleVinniesExtractor
-from .transformer import UncleVinniesEventTransformer
 
 
 class UncleVinniesScraper(BaseScraper):
@@ -38,10 +37,6 @@ class UncleVinniesScraper(BaseScraper):
     """
 
     key = "uncle_vinnies"
-
-    def __init__(self, club: Club, **kwargs):
-        super().__init__(club, **kwargs)
-        self.transformer = UncleVinniesEventTransformer(club)
 
     async def discover_urls(self) -> List[str]:
         """
@@ -122,6 +117,7 @@ class UncleVinniesScraper(BaseScraper):
             )
 
             # Step 2-4: For each event URL, extract production/performance and build events
+            session = await self.get_session()
             events = []
             for event_url in event_urls:
                 try:
@@ -137,7 +133,6 @@ class UncleVinniesScraper(BaseScraper):
                     production_url = (
                         f"https://web.ovationtix.com/trs/api/rest/Production({production_id})/performance?"
                     )
-                    session = await self.get_session()
                     production_raw = await session.get(production_url, headers=api_headers)
                     if production_raw.status_code == 404:
                         Logger.debug(
