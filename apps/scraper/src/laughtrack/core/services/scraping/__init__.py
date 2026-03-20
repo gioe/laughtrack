@@ -40,6 +40,20 @@ class ScrapingService:
             os.environ.get("SCRAPING_SUCCESS_RATE_THRESHOLD", success_rate_threshold)
         )
         self.proxy_pool: Optional[ProxyPool] = ProxyPool.from_env()
+        self._log_configured_alert_channels()
+
+    def _log_configured_alert_channels(self) -> None:
+        try:
+            from laughtrack.infrastructure.config.monitoring_config import MonitoringConfig
+            config = MonitoringConfig.default()
+            channels = config.get_configured_channels()
+        except Exception as e:  # pragma: no cover - defensive
+            Logger.warn(f"Could not determine configured alert channels: {e}")
+            return
+        if channels:
+            Logger.info(f"Alert channels configured: {', '.join(channels)}")
+        else:
+            Logger.warn("No alert channels configured (email, Discord, or webhook) — failures will not be reported")
 
     @property
     def result_processor(self) -> ScrapingResultProcessor:
