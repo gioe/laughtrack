@@ -64,6 +64,65 @@ class TestCheckAndAlert:
             mock_alert.assert_not_called()
 
 
+class TestCheckAndAlertChannelDispatch:
+    """Tests for multi-channel dispatch logic in _check_and_alert."""
+
+    def _make_service(self, threshold=70.0):
+        from laughtrack.core.services.scraping import ScrapingService
+        with patch.object(ScrapingService, '__init__', lambda self, *a, **kw: None):
+            svc = ScrapingService.__new__(ScrapingService)
+            svc.success_rate_threshold = threshold
+        return svc
+
+    def _run_with_channels(self, svc, channels):
+        summary = _make_summary(error=1)
+        mock_config = _make_mock_config(channels=channels)
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig:
+            MockConfig.default.return_value = mock_config
+            with patch.object(svc, '_send_discord_alert') as mock_discord, \
+                 patch.object(svc, '_send_email_alert') as mock_email, \
+                 patch.object(svc, '_send_webhook_alert') as mock_webhook:
+                svc._check_and_alert(summary)
+                return mock_discord, mock_email, mock_webhook
+
+    def test_discord_only_calls_discord(self):
+        svc = self._make_service()
+        mock_discord, mock_email, mock_webhook = self._run_with_channels(svc, ["discord"])
+        mock_discord.assert_called_once()
+        mock_email.assert_not_called()
+        mock_webhook.assert_not_called()
+
+    def test_email_only_calls_email(self):
+        svc = self._make_service()
+        mock_discord, mock_email, mock_webhook = self._run_with_channels(svc, ["email"])
+        mock_discord.assert_not_called()
+        mock_email.assert_called_once()
+        mock_webhook.assert_not_called()
+
+    def test_webhook_only_calls_webhook(self):
+        svc = self._make_service()
+        mock_discord, mock_email, mock_webhook = self._run_with_channels(svc, ["webhook"])
+        mock_discord.assert_not_called()
+        mock_email.assert_not_called()
+        mock_webhook.assert_called_once()
+
+    def test_all_three_channels_calls_all(self):
+        svc = self._make_service()
+        mock_discord, mock_email, mock_webhook = self._run_with_channels(
+            svc, ["discord", "email", "webhook"]
+        )
+        mock_discord.assert_called_once()
+        mock_email.assert_called_once()
+        mock_webhook.assert_called_once()
+
+    def test_empty_channels_calls_none(self):
+        svc = self._make_service()
+        mock_discord, mock_email, mock_webhook = self._run_with_channels(svc, [])
+        mock_discord.assert_not_called()
+        mock_email.assert_not_called()
+        mock_webhook.assert_not_called()
+
+
 class TestClassifyFailing:
     def _make_service(self):
         from laughtrack.core.services.scraping import ScrapingService
