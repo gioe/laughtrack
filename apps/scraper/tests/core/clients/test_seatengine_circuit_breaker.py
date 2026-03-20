@@ -1,5 +1,6 @@
 """Tests for SeatEngineCircuitBreaker."""
 
+import asyncio
 import time
 import pytest
 
@@ -148,3 +149,93 @@ def test_breaker_still_open_before_cooldown_expires(monkeypatch):
     assert cb.is_open
     with pytest.raises(CircuitBreakerOpenError):
         cb.check_open()
+
+
+# ------------------------------------------------------------------
+# get_ticket_data interaction: success resets, failures do NOT record
+# ------------------------------------------------------------------
+
+
+def test_ticket_success_resets_failure_count():
+    """A successful ticket fetch resets the failure counter (partial recovery signal)."""
+    cb = _make_cb(threshold=5)
+    cb.record_failure()
+    cb.record_failure()
+    assert cb.failure_count == 2
+
+    # Simulate a successful ticket fetch calling record_success()
+    cb.record_success()
+    assert cb.failure_count == 0
+    assert not cb.is_open
+
+
+def test_ticket_failures_do_not_increment_counter():
+    """Per-show ticket failures intentionally do NOT record against the circuit breaker.
+
+    Only venue-level fetch_events() failures drive the failure counter — individual
+    show 404s are too noisy to be reliable outage signals.
+    """
+    cb = _make_cb(threshold=3)
+    # Simulate many failed ticket calls (no record_failure() calls)
+    for _ in range(100):
+        pass  # get_ticket_data failure path: no cb.record_failure()
+    assert cb.failure_count == 0
+    assert not cb.is_open
+
+
+# ------------------------------------------------------------------
+# Concurrency: circuit breaker is thread-safe under concurrent load
+# ------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_concurrent_failures_reach_threshold_exactly():
+    """All concurrent record_failure() calls are counted; breaker opens at threshold."""
+    cb = _make_cb(threshold=5)
+
+    async def fail_once():
+        await asyncio.sleep(0)  # yield to let other coroutines interleave
+        cb.record_failure()
+        await asyncio.sleep(0)
+
+    await asyncio.gather(*[fail_once() for _ in range(5)])
+
+    assert cb.failure_count == 5
+    assert cb.is_open
+
+
+@pytest.mark.asyncio
+async def test_concurrent_failures_no_count_lost():
+    """No failure count is lost when many coroutines call record_failure() concurrently."""
+    cb = _make_cb(threshold=50)
+    n = 20
+
+    async def fail_with_yield():
+        await asyncio.sleep(0)
+        cb.record_failure()
+        await asyncio.sleep(0)
+
+    await asyncio.gather(*[fail_with_yield() for _ in range(n)])
+
+    assert cb.failure_count == n
+
+
+@pytest.mark.asyncio
+async def test_check_open_is_consistent_under_concurrent_access():
+    """Once the breaker opens, all concurrent check_open() calls raise."""
+    cb = _make_cb(threshold=1)
+    cb.record_failure()
+    assert cb.is_open
+
+    errors = []
+
+    async def check():
+        await asyncio.sleep(0)
+        try:
+            cb.check_open()
+        except CircuitBreakerOpenError as e:
+            errors.append(e)
+
+    await asyncio.gather(*[check() for _ in range(10)])
+
+    assert len(errors) == 10

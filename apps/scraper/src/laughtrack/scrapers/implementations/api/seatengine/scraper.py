@@ -3,7 +3,6 @@ from typing import List, Optional
 from laughtrack.core.clients.seatengine.client import SeatEngineClient
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
-from laughtrack.foundation.exceptions import CircuitBreakerOpenError, NetworkError  # noqa: F401 — re-exported for callers
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.ports.scraping import EventListContainer

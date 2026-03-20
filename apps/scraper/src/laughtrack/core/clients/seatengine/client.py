@@ -56,6 +56,12 @@ class SeatEngineClient(BaseApiClient):
 
             if data is None:
                 cb.record_failure()
+                # status_code=None because fetch_json() absorbs the status code.
+                # ErrorHandler._should_retry() treats None-status NetworkErrors as
+                # retryable, so each retry attempt records another failure — the
+                # circuit breaker will open after (threshold / max_retries) venues
+                # rather than exactly `threshold` venues. This is intentional: rapid
+                # consecutive failures (retries) are a strong outage signal.
                 raise NetworkError(
                     f"SeatEngine API returned no data for venue {venue_id}",
                     status_code=None,
@@ -93,10 +99,16 @@ class SeatEngineClient(BaseApiClient):
             ticket_url = f"https://services.seatengine.com/api/v1/venues/{self.venue_id}/shows/{show_id}"
             data = await self.fetch_json(ticket_url, headers=self.headers)
             if data is None:
+                # Per-show failures are intentionally NOT recorded against the circuit
+                # breaker — individual show 404s are too noisy to be reliable outage
+                # signals. Only fetch_events() (venue-level) drives the failure counter.
                 raise NetworkError(
                     f"SeatEngine API returned no data for show {show_id}",
                     status_code=None,
                 )
+            # A successful ticket fetch signals the API is reachable — reset the counter
+            # in case a prior fetch_events() failure left the count partially elevated.
+            cb.record_success()
             return data
         except (CircuitBreakerOpenError, NetworkError):
             raise
