@@ -447,9 +447,15 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
     def _get_comedian_uuids(self, comedian_ids: Optional[List[str]] = None) -> List[str]:
         """Get the list of comedian UUIDs to process."""
         if comedian_ids:
+            # Deduplicate while preserving order so the count comparison below is accurate.
+            # collect_comedian_uuids() returns a flat list with duplicates (same comedian
+            # appearing in multiple shows); without deduplication every duplicate triggers
+            # a spurious "UUID not found" warning.
+            unique_ids = list(dict.fromkeys(comedian_ids))
+
             # Verify the provided UUIDs exist
             results = self.execute_with_cursor(
-                ComedianQueries.GET_TARGET_COMEDIAN_IDS, (comedian_ids,), return_results=True
+                ComedianQueries.GET_TARGET_COMEDIAN_IDS, (unique_ids,), return_results=True
             )
 
             if not results:
@@ -457,9 +463,12 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
 
             found_uuids = [row.get("uuid") for row in results]
 
-            if len(found_uuids) != len(comedian_ids):
-                missing_count = len(comedian_ids) - len(found_uuids)
-                Logger.warn(f"Warning: {missing_count} comedian UUIDs not found in database")
+            if len(found_uuids) != len(unique_ids):
+                missing_uuids = set(unique_ids) - set(found_uuids)
+                Logger.warn(
+                    f"Warning: {len(missing_uuids)} comedian UUIDs not found in database "
+                    f"(popularity update only — lineup data was already saved): {missing_uuids}"
+                )
             return found_uuids
         else:
             # Use the extracted reusable function

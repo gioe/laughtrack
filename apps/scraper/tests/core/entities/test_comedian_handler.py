@@ -16,6 +16,7 @@ from typing import Generic as _Generic, TypeVar as _TypeVar
 from unittest.mock import MagicMock
 
 import pytest
+from unittest.mock import patch
 
 
 # ---------------------------------------------------------------------------
@@ -451,3 +452,91 @@ class TestUpdateComedianPopularity:
 
         with pytest.raises(RuntimeError, match="recency DB error"):
             handler.update_comedian_popularity()
+
+
+# ---------------------------------------------------------------------------
+# _get_comedian_uuids — UUID-not-found scenarios
+# ---------------------------------------------------------------------------
+
+class TestGetComedianUuids:
+    """Tests for _get_comedian_uuids, covering duplicate deduplication and missing-UUID warnings."""
+
+    def _make_handler_with_db(self, db_uuids: list) -> ComedianHandler:
+        """Return a handler whose execute_with_cursor simulates GET_TARGET_COMEDIAN_IDS."""
+        handler = _make_handler()
+        handler.execute_with_cursor.return_value = [{"uuid": u} for u in db_uuids]
+        return handler
+
+    def test_duplicate_input_uuids_no_false_positive_warning(self):
+        """Duplicate UUIDs in the input list must NOT trigger a missing-UUID warning.
+
+        collect_comedian_uuids() returns duplicates when the same comedian appears in
+        multiple shows. Before the fix, len(found) != len(input) because the DB returns
+        each UUID once while the input list contained repeats.
+        """
+        # uuid-A appears 3 times (same comedian in 3 shows), uuid-B once
+        comedian_ids = ["uuid-A", "uuid-A", "uuid-A", "uuid-B"]
+        # DB contains both — no UUIDs are genuinely missing
+        handler = self._make_handler_with_db(["uuid-A", "uuid-B"])
+
+        with patch.object(_comedian_handler_mod, "Logger") as mock_logger:
+            result = handler._get_comedian_uuids(comedian_ids)
+
+        # Both unique UUIDs returned; no warning emitted
+        assert set(result) == {"uuid-A", "uuid-B"}
+        mock_logger.warn.assert_not_called()
+
+    def test_genuine_missing_uuid_warns_with_details(self):
+        """When a UUID genuinely doesn't exist in the DB, warn with the missing UUID(s) listed."""
+        comedian_ids = ["uuid-exists", "uuid-missing"]
+        handler = self._make_handler_with_db(["uuid-exists"])  # uuid-missing not in DB
+
+        with patch.object(_comedian_handler_mod, "Logger") as mock_logger:
+            result = handler._get_comedian_uuids(comedian_ids)
+
+        # Only the found UUID is returned
+        assert result == ["uuid-exists"]
+
+        # Warning was emitted and includes the missing UUID
+        mock_logger.warn.assert_called_once()
+        warn_msg = mock_logger.warn.call_args[0][0]
+        assert "uuid-missing" in warn_msg, f"Expected missing UUID in warning, got: {warn_msg}"
+        assert "1" in warn_msg  # count of missing UUIDs
+
+    def test_duplicate_with_genuine_missing_warns_only_once(self):
+        """Duplicate input + 1 missing UUID should produce exactly one warning for the missing one."""
+        # uuid-A duplicated, uuid-ghost is genuinely absent from DB
+        comedian_ids = ["uuid-A", "uuid-A", "uuid-ghost"]
+        handler = self._make_handler_with_db(["uuid-A"])  # uuid-ghost not in DB
+
+        with patch.object(_comedian_handler_mod, "Logger") as mock_logger:
+            result = handler._get_comedian_uuids(comedian_ids)
+
+        assert result == ["uuid-A"]
+        mock_logger.warn.assert_called_once()
+        warn_msg = mock_logger.warn.call_args[0][0]
+        assert "uuid-ghost" in warn_msg
+        # uuid-A must NOT appear in the warning — it's not missing
+        assert "uuid-A" not in warn_msg
+
+    def test_no_comedian_ids_returns_all_from_db(self):
+        """Passing None (no IDs) delegates to get_all_comedian_uuids path."""
+        handler = _make_handler()
+        handler.get_all_comedian_uuids = MagicMock(return_value=["uuid-X", "uuid-Y"])
+
+        result = handler._get_comedian_uuids(None)
+
+        assert result == ["uuid-X", "uuid-Y"]
+        handler.execute_with_cursor.assert_not_called()
+
+    def test_warning_message_mentions_popularity_not_lineup(self):
+        """Warning message should clarify that lineup data is safe — only popularity update is affected."""
+        comedian_ids = ["uuid-absent"]
+        handler = self._make_handler_with_db([])  # no UUIDs in DB
+
+        with patch.object(_comedian_handler_mod, "Logger") as mock_logger:
+            with pytest.raises(ValueError, match="No matching comedians found"):
+                handler._get_comedian_uuids(comedian_ids)
+
+        # When ALL UUIDs are missing, ValueError is raised (not a warning)
+        mock_logger.warn.assert_not_called()
