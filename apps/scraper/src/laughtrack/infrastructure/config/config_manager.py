@@ -84,7 +84,7 @@ class ConfigManager:
 
         # Database configuration
         _db_port_raw = os.getenv("DATABASE_PORT")
-        if _db_port_raw is not None:
+        if _db_port_raw:
             try:
                 _db_port = int(_db_port_raw)
             except ValueError:
@@ -107,7 +107,7 @@ class ConfigManager:
         }
 
         # Email configuration
-        _smtp_port_raw = os.getenv("EMAIL_SMTP_PORT", "587")
+        _smtp_port_raw = os.getenv("EMAIL_SMTP_PORT") or "587"
         try:
             _smtp_port = int(_smtp_port_raw)
         except ValueError:
@@ -133,7 +133,7 @@ class ConfigManager:
         }
 
         # Scraper configuration
-        _request_timeout_raw = os.getenv("REQUEST_TIMEOUT", "30")
+        _request_timeout_raw = os.getenv("REQUEST_TIMEOUT") or "30"
         try:
             _request_timeout = int(_request_timeout_raw)
         except ValueError:
@@ -141,7 +141,7 @@ class ConfigManager:
                 f"REQUEST_TIMEOUT must be a valid integer, got: {_request_timeout_raw!r}"
             )
 
-        _max_retries_raw = os.getenv("MAX_RETRIES", "3")
+        _max_retries_raw = os.getenv("MAX_RETRIES") or "3"
         try:
             _max_retries = int(_max_retries_raw)
         except ValueError:
@@ -149,7 +149,7 @@ class ConfigManager:
                 f"MAX_RETRIES must be a valid integer, got: {_max_retries_raw!r}"
             )
 
-        _rate_limit_raw = os.getenv("RATE_LIMIT", "10")
+        _rate_limit_raw = os.getenv("RATE_LIMIT") or "10"
         try:
             _rate_limit = float(_rate_limit_raw)
         except ValueError:
@@ -165,7 +165,7 @@ class ConfigManager:
         }
 
         # API configuration
-        _seatengine_venue_scan_max_id_raw = os.getenv("SEATENGINE_VENUE_SCAN_MAX_ID", "700")
+        _seatengine_venue_scan_max_id_raw = os.getenv("SEATENGINE_VENUE_SCAN_MAX_ID") or "700"
         try:
             _seatengine_venue_scan_max_id = int(_seatengine_venue_scan_max_id_raw)
         except ValueError:

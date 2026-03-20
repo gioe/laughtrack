@@ -145,3 +145,41 @@ class TestSeatengineVenueScanMaxIdValidation:
             cfg = ConfigManager()
             assert cfg.get_api_config()["seatengine_venue_scan_max_id"] == 500
             assert isinstance(cfg.get_api_config()["seatengine_venue_scan_max_id"], int)
+
+
+class TestEmptyStringFallback:
+    def test_empty_smtp_port_falls_back_to_default(self):
+        ConfigManager = _import_config_manager()
+        with patch.dict("os.environ", {"EMAIL_SMTP_PORT": ""}, clear=False):
+            cfg = ConfigManager()
+            assert cfg.get_email_config()["smtp_port"] == 587
+
+    def test_empty_request_timeout_falls_back_to_default(self):
+        ConfigManager = _import_config_manager()
+        with patch.dict("os.environ", {"REQUEST_TIMEOUT": ""}, clear=False):
+            cfg = ConfigManager()
+            assert cfg.get_scraper_config()["request_timeout"] == 30
+
+    def test_empty_max_retries_falls_back_to_default(self):
+        ConfigManager = _import_config_manager()
+        with patch.dict("os.environ", {"MAX_RETRIES": ""}, clear=False):
+            cfg = ConfigManager()
+            assert cfg.get_scraper_config()["max_retries"] == 3
+
+    def test_empty_rate_limit_falls_back_to_default(self):
+        ConfigManager = _import_config_manager()
+        with patch.dict("os.environ", {"RATE_LIMIT": ""}, clear=False):
+            cfg = ConfigManager()
+            assert cfg.get_scraper_config()["rate_limit"] == 10.0
+
+    def test_empty_seatengine_venue_scan_max_id_falls_back_to_default(self):
+        ConfigManager = _import_config_manager()
+        with patch.dict("os.environ", {"SEATENGINE_VENUE_SCAN_MAX_ID": ""}, clear=False):
+            cfg = ConfigManager()
+            assert cfg.get_api_config()["seatengine_venue_scan_max_id"] == 700
+
+    def test_empty_database_port_falls_back_to_none(self):
+        ConfigManager = _import_config_manager()
+        with patch.dict("os.environ", {"DATABASE_PORT": ""}, clear=False):
+            cfg = ConfigManager()
+            assert cfg.get_database_config()["port"] is None
