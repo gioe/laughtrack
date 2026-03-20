@@ -18,6 +18,21 @@ def _make_summary(ok=0, none_resp=0, error=0, club_name="Test Club", scraper_typ
     return s
 
 
+def _make_metric(name, scraper_type=None, ok=0, error=1, none_resp=0):
+    total = ok + error + none_resp
+    return DomainRequestMetrics(
+        club_name=name, scraper_type=scraper_type,
+        total=total, ok=ok, error=error, none_resp=none_resp,
+    )
+
+
+def _make_multi_club_summary(clubs):
+    """Build a ScrapingRunSummary containing the given DomainRequestMetrics list."""
+    s = ScrapingRunSummary()
+    s.per_club.extend(clubs)
+    return s
+
+
 def _make_mock_config(channels=None):
     """Return a MonitoringConfig mock that reports the given channels."""
     mock_config = MagicMock()
@@ -63,24 +78,11 @@ class TestCheckAndAlert:
             svc._check_and_alert(summary)
             mock_alert.assert_not_called()
 
-    def _make_multi_club_summary(self, clubs):
-        """Build a ScrapingRunSummary containing the given DomainRequestMetrics list."""
-        s = ScrapingRunSummary()
-        s.per_club.extend(clubs)
-        return s
-
-    def _make_metric(self, name, scraper_type=None, ok=0, error=1, none_resp=0):
-        total = ok + error + none_resp
-        return DomainRequestMetrics(
-            club_name=name, scraper_type=scraper_type,
-            total=total, ok=ok, error=error, none_resp=none_resp,
-        )
-
     def test_outage_path_sends_empty_individual_and_nonempty_outage_lines(self):
         """All 5 clubs of a scraper type fail → discord called with empty individual + outage_lines."""
         svc = self._make_service(threshold=70.0)
-        clubs = [self._make_metric(f"Club {i}", scraper_type="seatengine") for i in range(5)]
-        summary = self._make_multi_club_summary(clubs)
+        clubs = [_make_metric(f"Club {i}", scraper_type="seatengine") for i in range(5)]
+        summary = _make_multi_club_summary(clubs)
 
         mock_config = _make_mock_config(channels=["discord"])
         with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig:
@@ -96,9 +98,9 @@ class TestCheckAndAlert:
     def test_partial_failure_sends_individual_with_empty_outage_lines(self):
         """Only 1/4 clubs of a scraper type fail (<80%) → individual entries, empty outage_lines."""
         svc = self._make_service(threshold=70.0)
-        good = [self._make_metric(f"Good {i}", scraper_type="seatengine", ok=1, error=0) for i in range(3)]
-        bad = [self._make_metric("Bad Club", scraper_type="seatengine")]
-        summary = self._make_multi_club_summary(good + bad)
+        good = [_make_metric(f"Good {i}", scraper_type="seatengine", ok=1, error=0) for i in range(3)]
+        bad = [_make_metric("Bad Club", scraper_type="seatengine")]
+        summary = _make_multi_club_summary(good + bad)
 
         mock_config = _make_mock_config(channels=["discord"])
         with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig:
@@ -115,8 +117,8 @@ class TestCheckAndAlert:
     def test_outage_lines_contain_correct_summary_format(self):
         """Outage summary string contains scraper type and N/total count."""
         svc = self._make_service(threshold=70.0)
-        clubs = [self._make_metric(f"Club {i}", scraper_type="tessera") for i in range(5)]
-        summary = self._make_multi_club_summary(clubs)
+        clubs = [_make_metric(f"Club {i}", scraper_type="tessera") for i in range(5)]
+        summary = _make_multi_club_summary(clubs)
 
         mock_config = _make_mock_config(channels=["discord"])
         with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig:
@@ -197,21 +199,11 @@ class TestClassifyFailing:
             svc.success_rate_threshold = 70.0
         return svc
 
-    def _m(self, name, scraper_type=None, ok=0, error=1, none_resp=0):
-        total = ok + error + none_resp
-        return DomainRequestMetrics(club_name=name, scraper_type=scraper_type,
-                                    total=total, ok=ok, error=error, none_resp=none_resp)
-
-    def _summary(self, metrics):
-        s = ScrapingRunSummary()
-        s.per_club.extend(metrics)
-        return s
-
     def test_full_outage_produces_summary_line(self):
         """All 5 clubs of a scraper type fail → single outage summary, no individual entries."""
         svc = self._make_service()
-        clubs = [self._m(f"Club {i}", scraper_type="seatengine") for i in range(5)]
-        summary = self._summary(clubs)
+        clubs = [_make_metric(f"Club {i}", scraper_type="seatengine") for i in range(5)]
+        summary = _make_multi_club_summary(clubs)
 
         outage_lines, individual = svc._classify_failing(clubs, summary)
 
@@ -223,9 +215,9 @@ class TestClassifyFailing:
     def test_partial_outage_produces_individual_alerts(self):
         """Only 1/4 clubs fail (25%) → individual alerts, no outage summary."""
         svc = self._make_service()
-        good = [self._m(f"Good {i}", scraper_type="seatengine", ok=1, error=0) for i in range(3)]
-        bad = [self._m("Bad Club", scraper_type="seatengine")]
-        summary = self._summary(good + bad)
+        good = [_make_metric(f"Good {i}", scraper_type="seatengine", ok=1, error=0) for i in range(3)]
+        bad = [_make_metric("Bad Club", scraper_type="seatengine")]
+        summary = _make_multi_club_summary(good + bad)
 
         outage_lines, individual = svc._classify_failing(bad, summary)
 
@@ -236,9 +228,9 @@ class TestClassifyFailing:
     def test_boundary_exactly_80_percent_is_outage(self):
         """4/5 clubs failing = 80% → triggers outage threshold."""
         svc = self._make_service()
-        good = [self._m("Good", scraper_type="tessera", ok=1, error=0)]
-        bad = [self._m(f"Bad {i}", scraper_type="tessera") for i in range(4)]
-        summary = self._summary(good + bad)
+        good = [_make_metric("Good", scraper_type="tessera", ok=1, error=0)]
+        bad = [_make_metric(f"Bad {i}", scraper_type="tessera") for i in range(4)]
+        summary = _make_multi_club_summary(good + bad)
 
         outage_lines, individual = svc._classify_failing(bad, summary)
 
@@ -249,9 +241,9 @@ class TestClassifyFailing:
     def test_boundary_just_below_80_percent_is_individual(self):
         """3/4 clubs failing = 75% → below threshold, individual alerts."""
         svc = self._make_service()
-        good = [self._m("Good", scraper_type="tessera", ok=1, error=0)]
-        bad = [self._m(f"Bad {i}", scraper_type="tessera") for i in range(3)]
-        summary = self._summary(good + bad)
+        good = [_make_metric("Good", scraper_type="tessera", ok=1, error=0)]
+        bad = [_make_metric(f"Bad {i}", scraper_type="tessera") for i in range(3)]
+        summary = _make_multi_club_summary(good + bad)
 
         outage_lines, individual = svc._classify_failing(bad, summary)
 
@@ -261,10 +253,10 @@ class TestClassifyFailing:
     def test_mixed_provider_outage_and_individual(self):
         """One provider at full outage (5/5), another at partial (1/5)."""
         svc = self._make_service()
-        se_clubs = [self._m(f"SE {i}", scraper_type="seatengine") for i in range(5)]
-        t_good = [self._m(f"TG {i}", scraper_type="tessera", ok=1, error=0) for i in range(4)]
-        t_bad = [self._m("TB", scraper_type="tessera")]
-        summary = self._summary(se_clubs + t_good + t_bad)
+        se_clubs = [_make_metric(f"SE {i}", scraper_type="seatengine") for i in range(5)]
+        t_good = [_make_metric(f"TG {i}", scraper_type="tessera", ok=1, error=0) for i in range(4)]
+        t_bad = [_make_metric("TB", scraper_type="tessera")]
+        summary = _make_multi_club_summary(se_clubs + t_good + t_bad)
 
         outage_lines, individual = svc._classify_failing(se_clubs + t_bad, summary)
 
@@ -276,8 +268,8 @@ class TestClassifyFailing:
     def test_no_scraper_type_treated_as_individual(self):
         """Clubs without scraper_type always go to individual regardless of count."""
         svc = self._make_service()
-        clubs = [self._m(f"No Type {i}", scraper_type=None) for i in range(5)]
-        summary = self._summary(clubs)
+        clubs = [_make_metric(f"No Type {i}", scraper_type=None) for i in range(5)]
+        summary = _make_multi_club_summary(clubs)
 
         outage_lines, individual = svc._classify_failing(clubs, summary)
 
