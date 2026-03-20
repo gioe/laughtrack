@@ -58,6 +58,8 @@ jobs:
           EMAIL_FROM_EMAIL: ${{ secrets.EMAIL_FROM_EMAIL }}
           EMAIL_FROM_NAME: ${{ secrets.EMAIL_FROM_NAME }}
           ALERT_RECIPIENTS: ${{ secrets.ALERT_RECIPIENTS }}
+          TICKETMASTER_API_KEY: ${{ secrets.TICKETMASTER_API_KEY }}
+          EVENTBRITE_PRIVATE_TOKEN: ${{ secrets.EVENTBRITE_PRIVATE_TOKEN }}
           SEATENGINE_AUTH_TOKEN: ${{ secrets.SEATENGINE_AUTH_TOKEN }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
