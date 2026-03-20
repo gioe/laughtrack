@@ -192,7 +192,7 @@ class ConfigManager:
         self._config["api"] = {
             "eventbrite_token": os.getenv("EVENTBRITE_PRIVATE_TOKEN"),
             "ticketmaster_api_key": os.getenv("TICKETMASTER_API_KEY"),
-            "seatengine_auth_token": os.getenv("SEATENGINE_AUTH_TOKEN", "your-seatengine-auth-token"),
+            "seatengine_auth_token": os.getenv("SEATENGINE_AUTH_TOKEN"),
             "seatengine_venue_scan_max_id": _seatengine_venue_scan_max_id,
             "seatengine_cb_threshold": _seatengine_cb_threshold,
             "seatengine_cb_cooldown": _seatengine_cb_cooldown,
