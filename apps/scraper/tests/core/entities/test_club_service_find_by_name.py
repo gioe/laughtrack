@@ -79,22 +79,25 @@ _club_model_mod = _load_module(
     "laughtrack.core.entities.club.model_direct",
 )
 Club = _club_model_mod.Club
-sys.modules["laughtrack.core.entities.club.model"] = _club_model_mod
+sys.modules.setdefault("laughtrack.core.entities.club.model", _club_model_mod)
 
 # Stub ClubHandler so service.py can import it without DB
 _mock_club_handler_cls = MagicMock()
 _club_handler_stub = ModuleType("laughtrack.core.entities.club.handler")
 _club_handler_stub.ClubHandler = _mock_club_handler_cls
-sys.modules["laughtrack.core.entities.club.handler"] = _club_handler_stub
+sys.modules.setdefault("laughtrack.core.entities.club.handler", _club_handler_stub)
 
-# Load ClubService
+# Load ClubService. The module is registered under a dotted name (required for
+# its relative imports to resolve), but all Logger patching below uses
+# patch.object(_club_service_mod, "Logger") rather than a string-based
+# patch("laughtrack.core.entities.club.service_direct.Logger"). This avoids
+# the _dot_lookup walk through the real laughtrack.core.entities package that
+# would fail if a prior test file loaded that package into sys.modules first.
 _club_service_mod = _load_module(
     "src/laughtrack/core/entities/club/service.py",
     "laughtrack.core.entities.club.service_direct",
 )
 ClubService = _club_service_mod.ClubService
-
-_SERVICE_MODULE = "laughtrack.core.entities.club.service_direct"
 
 
 # ---------------------------------------------------------------------------
@@ -175,7 +178,7 @@ class TestFindClubByNameMultipleExactMatches:
         c1 = _make_club(1, "Comedy Club")
         c2 = _make_club(2, "Comedy Club")
         service = _make_service([c1, c2])
-        with patch(f"{_SERVICE_MODULE}.Logger") as mock_logger:
+        with patch.object(_club_service_mod, "Logger") as mock_logger:
             service.find_club_by_name("Comedy Club")
         mock_logger.error.assert_called_once()
         msg = mock_logger.error.call_args[0][0]
@@ -201,7 +204,7 @@ class TestFindClubByNameSinglePartialMatch:
     def test_partial_match_logs_info(self):
         club = _make_club(1, "Comedy Cellar NYC")
         service = _make_service([club])
-        with patch(f"{_SERVICE_MODULE}.Logger") as mock_logger:
+        with patch.object(_club_service_mod, "Logger") as mock_logger:
             service.find_club_by_name("Cellar")
         mock_logger.info.assert_called_once()
         msg = mock_logger.info.call_args[0][0]
@@ -223,18 +226,18 @@ class TestFindClubByNameMultiplePartialMatches:
         c1 = _make_club(1, "Comedy Cellar NYC")
         c2 = _make_club(2, "Comedy Cellar LA")
         service = _make_service([c1, c2])
-        with patch(f"{_SERVICE_MODULE}.Logger") as mock_logger:
+        with patch.object(_club_service_mod, "Logger") as mock_logger:
             service.find_club_by_name("Comedy Cellar")
         mock_logger.error.assert_called_once()
         msg = mock_logger.error.call_args[0][0]
         assert "Ambiguous" in msg
-        assert "2" in msg
+        assert "2 partial" in msg
 
     def test_error_message_lists_matching_clubs(self):
         c1 = _make_club(10, "Comedy Cellar NYC")
         c2 = _make_club(20, "Comedy Cellar LA")
         service = _make_service([c1, c2])
-        with patch(f"{_SERVICE_MODULE}.Logger") as mock_logger:
+        with patch.object(_club_service_mod, "Logger") as mock_logger:
             service.find_club_by_name("Comedy Cellar")
         msg = mock_logger.error.call_args[0][0]
         assert "10" in msg
@@ -253,7 +256,7 @@ class TestFindClubByNameNoMatch:
     def test_no_match_logs_error(self):
         club = _make_club(1, "Comedy Cellar")
         service = _make_service([club])
-        with patch(f"{_SERVICE_MODULE}.Logger") as mock_logger:
+        with patch.object(_club_service_mod, "Logger") as mock_logger:
             service.find_club_by_name("Laugh Factory")
         mock_logger.error.assert_called_once()
         msg = mock_logger.error.call_args[0][0]
@@ -280,7 +283,7 @@ class TestFindClubByNameEmptyInput:
 
     def test_empty_input_logs_error(self):
         service = _make_service([])
-        with patch(f"{_SERVICE_MODULE}.Logger") as mock_logger:
+        with patch.object(_club_service_mod, "Logger") as mock_logger:
             service.find_club_by_name("")
         mock_logger.error.assert_called_once()
 
@@ -302,7 +305,7 @@ class TestFindClubByNameDbError:
 
     def test_db_error_logs_error(self):
         service = _make_service(db_error=RuntimeError("connection refused"))
-        with patch(f"{_SERVICE_MODULE}.Logger") as mock_logger:
+        with patch.object(_club_service_mod, "Logger") as mock_logger:
             service.find_club_by_name("Comedy Cellar")
         mock_logger.error.assert_called_once()
         msg = mock_logger.error.call_args[0][0]
