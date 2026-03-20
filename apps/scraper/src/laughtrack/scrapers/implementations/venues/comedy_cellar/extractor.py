@@ -284,7 +284,7 @@ class ComedyCellarExtractor:
             show_containers = HtmlScraper.find_parent_containers_by_child_class(html, "div", "set-header")
 
             if not show_containers:
-                Logger.warning(f"No valid show containers found for {date_key}")
+                Logger.debug(f"No show containers found for {date_key} (date may have no lineup yet)")
 
             return show_containers
 
