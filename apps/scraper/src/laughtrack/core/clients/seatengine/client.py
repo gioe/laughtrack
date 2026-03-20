@@ -3,6 +3,7 @@ from typing import Any, Callable, Dict, List, Optional
 from curl_cffi.requests import Response
 
 from laughtrack.foundation.models.types import JSONDict
+from laughtrack.foundation.exceptions import CircuitBreakerOpenError, NetworkError
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.comedian.model import Comedian
 from laughtrack.core.entities.show.model import Show
@@ -10,6 +11,7 @@ from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
 from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 from laughtrack.core.clients.base import BaseApiClient
+from laughtrack.core.clients.seatengine.circuit_breaker import SeatEngineCircuitBreaker
 from laughtrack.foundation.utilities.datetime import DateTimeUtils
 from laughtrack.foundation.utilities.url import URLUtils
 from laughtrack.infrastructure.config.config_manager import ConfigManager
@@ -40,39 +42,66 @@ class SeatEngineClient(BaseApiClient):
 
         Returns:
             List of event dictionaries from SeatEngine API
+
+        Raises:
+            CircuitBreakerOpenError: If the shared circuit breaker is open (API is down).
+            NetworkError: If the API returns no data (non-200 response).
         """
+        cb = SeatEngineCircuitBreaker()
+        cb.check_open()
+
         try:
             events_url = f"https://services.seatengine.com/api/v1/venues/{venue_id}/shows"
-
             data = await self.fetch_json(events_url, headers=self.headers)
-            if not data:
-                self.log_error("No response received from SeatEngine API")
-                return []
 
+            if data is None:
+                cb.record_failure()
+                raise NetworkError(
+                    f"SeatEngine API returned no data for venue {venue_id}",
+                    status_code=None,
+                )
+
+            cb.record_success()
             shows = data.get("data", data.get("shows", []))
             self.log_info(f"Extracted {len(shows)} shows from response")
             return shows
 
+        except (CircuitBreakerOpenError, NetworkError):
+            raise
         except Exception as e:
-            self.log_error(f"Failed to fetch events from SeatEngine: {e}")
-            return []
+            cb.record_failure()
+            raise NetworkError(f"Failed to fetch events from SeatEngine: {e}") from e
 
     async def get_ticket_data(self, show_id: str, callback: Optional[Callable[[Response], Any]] = None) -> Optional[JSONDict]:
         """
         Get ticket data from SeatEngine for a given show URL.
 
         Args:
-            url: The show URL to get ticket data for
+            show_id: The show identifier to fetch ticket data for
 
         Returns:
-            Optional[JSONDict]: Dictionary containing ticket data with URL included, or None if failed
+            Optional[JSONDict]: Dictionary containing ticket data, or None if failed
+
+        Raises:
+            CircuitBreakerOpenError: If the shared circuit breaker is open (API is down).
+            NetworkError: If the API returns no data (non-200 response).
         """
+        cb = SeatEngineCircuitBreaker()
+        cb.check_open()
+
         try:
             ticket_url = f"https://services.seatengine.com/api/v1/venues/{self.venue_id}/shows/{show_id}"
-            # For now, just return parsed JSON
-            return await self.fetch_json(ticket_url, headers=self.headers)
+            data = await self.fetch_json(ticket_url, headers=self.headers)
+            if data is None:
+                raise NetworkError(
+                    f"SeatEngine API returned no data for show {show_id}",
+                    status_code=None,
+                )
+            return data
+        except (CircuitBreakerOpenError, NetworkError):
+            raise
         except Exception as e:
-            return None
+            raise NetworkError(f"Failed to fetch ticket data from SeatEngine: {e}") from e
 
     def create_show(self, show_dict: JSONDict) -> Optional[Show]:
         """Create a Show object from the SeatEngine response data."""
