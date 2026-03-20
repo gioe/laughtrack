@@ -249,6 +249,8 @@ class ShowHandler(BaseDatabaseHandler[Show]):
         if not show_ids:
             return []
 
+        show_ids = list(dict.fromkeys(show_ids))
+
         try:
             results = self.execute_with_cursor(ShowQueries.VALIDATE_SHOW_IDS, (show_ids,), return_results=True) or []
             found_ids = [row["id"] for row in results]
@@ -258,8 +260,8 @@ class ShowHandler(BaseDatabaseHandler[Show]):
                 return []
 
             if len(found_ids) != len(show_ids):
-                missing_count = len(show_ids) - len(found_ids)
-                Logger.warn(f"Warning: {missing_count} show IDs not found.")
+                missing_ids = set(show_ids) - set(found_ids)
+                Logger.warn(f"Warning: {len(missing_ids)} show IDs not found: {sorted(missing_ids)}")
 
             Logger.info(f"Validated {len(found_ids)} show IDs")
             return found_ids
