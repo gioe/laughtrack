@@ -111,6 +111,7 @@ class PunchupExtractor:
 
     _CAROUSEL_KEY = "venuePageCarousel"
     _ITEMS_KEY = '"items":'
+    _VENUE_SHOWS_KEY = "venueShows"
 
     @staticmethod
     def extract_shows(html_content: str) -> List[PunchupShow]:
@@ -164,12 +165,15 @@ class PunchupExtractor:
             except (json.JSONDecodeError, Exception):
                 continue
 
-            if PunchupExtractor._CAROUSEL_KEY not in decoded:
-                continue
+            if PunchupExtractor._CAROUSEL_KEY in decoded:
+                shows = PunchupExtractor._extract_items_from_text(decoded)
+                if shows:
+                    return shows
 
-            shows = PunchupExtractor._extract_items_from_text(decoded)
-            if shows:
-                return shows
+            if PunchupExtractor._VENUE_SHOWS_KEY in decoded:
+                shows = PunchupExtractor._extract_venue_shows_from_text(decoded)
+                if shows:
+                    return shows
 
         return []
 
@@ -178,14 +182,19 @@ class PunchupExtractor:
         """
         Find the venuePageCarousel items array in decoded text and parse it.
 
-        Locates the first occurrence of "venuePageCarousel" then finds the nearest
-        "items": key, extracts the balanced JSON array, and parses it.
+        Locates the "venuePageCarousel" anchor then finds the nearest "items": key.
+        Falls back to searching from the beginning of the text when the items array
+        precedes the carousel key (e.g. it lives in the "venue-page-theme" query).
+        Extracts the balanced JSON array and parses it.
         """
         carousel_pos = text.find(PunchupExtractor._CAROUSEL_KEY)
         if carousel_pos == -1:
             return []
 
         items_key_pos = text.find(PunchupExtractor._ITEMS_KEY, carousel_pos)
+        if items_key_pos == -1:
+            # The items array may appear before venuePageCarousel (e.g. in venue-page-theme)
+            items_key_pos = text.find(PunchupExtractor._ITEMS_KEY)
         if items_key_pos == -1:
             return []
 
@@ -270,6 +279,71 @@ class PunchupExtractor:
                 )
             except Exception as e:
                 Logger.warn(f"Punchup: skipping malformed show item: {e}")
+                continue
+
+        return shows
+
+    @staticmethod
+    def _extract_venue_shows_from_text(text: str) -> List[PunchupShow]:
+        """
+        Extract shows from a venueShows React Query state in decoded text.
+
+        The venueShows query uses a flat show format: data is a direct array of show
+        objects (not wrapped in {"type":"show","show":{...}}). The queryKey appears
+        AFTER the state data, so we search backward from the key to find "data":[.
+        """
+        key_pos = text.find('"queryKey":["' + PunchupExtractor._VENUE_SHOWS_KEY)
+        if key_pos == -1:
+            return []
+
+        # Search backward from the queryKey for the "data":[ array
+        data_key = '"data":['
+        data_pos = text.rfind(data_key, 0, key_pos)
+        if data_pos == -1:
+            return []
+
+        array_start = data_pos + len(data_key) - 1  # points at the '['
+        array_json = PunchupExtractor._extract_balanced(text, array_start, "[", "]")
+        if not array_json:
+            return []
+
+        try:
+            items = json.loads(array_json)
+        except json.JSONDecodeError as e:
+            Logger.warn(f"Punchup (venueShows): failed to parse shows JSON: {e}")
+            return []
+
+        return PunchupExtractor._parse_venue_shows_items(items)
+
+    @staticmethod
+    def _parse_venue_shows_items(items: list) -> List[PunchupShow]:
+        """Convert flat venueShows array items into PunchupShow objects."""
+        shows = []
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+
+            title = (item.get("title") or "").strip()
+            datetime_str = (item.get("datetime") or "").strip()
+
+            if not title or not datetime_str:
+                continue
+
+            try:
+                shows.append(
+                    PunchupShow(
+                        id=item.get("id", ""),
+                        title=title,
+                        datetime_str=datetime_str,
+                        ticket_link=item.get("ticket_link", ""),
+                        tixologi_event_id=item.get("tixologi_event_id"),
+                        is_sold_out=bool(item.get("is_sold_out", False)),
+                        metadata_text=item.get("metadata_text") or None,
+                        show_comedians=item.get("show_comedians") or [],
+                    )
+                )
+            except Exception as e:
+                Logger.warn(f"Punchup (venueShows): skipping malformed show item: {e}")
                 continue
 
         return shows
