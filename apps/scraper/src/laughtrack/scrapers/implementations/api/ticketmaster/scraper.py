@@ -55,70 +55,35 @@ class TicketmasterScraper(BaseScraper):
 
     async def get_data(self, url: str) -> Optional[EventListContainer]:
         """
-        Extract event data from Ticketmaster API with detailed event information.
+        Extract event data from Ticketmaster API.
 
-        This method implements a two-step process:
-        1. Fetch initial events list for the venue
-        2. Fetch detailed information for each event using event IDs
+        The Discovery API list endpoint returns full event objects (dates, attractions,
+        venues, priceRanges, sales, etc.) — identical in shape to the detail endpoint.
+        Per-event detail fetches are redundant and cause N+1 request patterns that hit
+        the 5 req/sec rate limit for large venues. We use the list response directly.
 
         Args:
             url: API endpoint URL (for compatibility with base class)
 
         Returns:
-            Dictionary with detailed events data from API
+            EventListContainer with events from the list response
         """
         try:
-            # Use the TicketmasterClient to fetch events
             if not self.ticketmaster_client:
                 self.ticketmaster_client = TicketmasterClient(self.club, proxy_pool=self.proxy_pool)
 
             Logger.info(f"Fetching events for venue {self.venue_id} via Ticketmaster API", self.logger_context)
 
-            # Step 1: Fetch events list with comedy classification
             events = await self.ticketmaster_client.fetch_events(
                 self.venue_id,
-                classificationName="comedy",  # Focus on comedy events
-                size=200,  # Maximum events per request
-                sort="date,asc",  # Sort by date
+                classificationName="comedy",
+                size=200,
+                sort="date,asc",
             )
 
             Logger.info(f"Successfully fetched {len(events)} events from Ticketmaster API", self.logger_context)
 
-            if not events:
-                return TicketmasterExtractor.to_page_data([])
-
-            # Step 2: Extract event IDs and fetch detailed information for each event
-            detailed_events = []
-            event_ids = [event.get("id") for event in events if event.get("id")]
-
-            Logger.info(f"Fetching detailed information for {len(event_ids)} events", self.logger_context)
-
-            # Fetch event details with rate limiting
-            for i, event_id in enumerate(event_ids):
-                try:
-                    if not event_id:
-                        Logger.warn(f"Skipping event with None event_id at index {i}", self.logger_context)
-                        continue
-                    Logger.info(f"Fetching details for event {i+1}/{len(event_ids)}: {event_id}", self.logger_context)
-                    event_details = await self.ticketmaster_client.get_event_details(event_id)
-                    if event_details:
-                        detailed_events.append(event_details)
-                        Logger.info(
-                            f"Successfully fetched details for event: {event_details.get('name', event_id)}",
-                            self.logger_context,
-                        )
-                    else:
-                        Logger.warn(f"Failed to fetch details for event: {event_id}", self.logger_context)
-                except Exception as e:
-                    Logger.error(f"Error fetching details for event {event_id}: {str(e)}", self.logger_context)
-                    continue
-
-            Logger.info(
-                f"Successfully fetched detailed information for {len(detailed_events)} out of {len(event_ids)} events",
-                self.logger_context,
-            )
-
-            return TicketmasterExtractor.to_page_data(detailed_events)
+            return TicketmasterExtractor.to_page_data(events)
 
         except Exception as e:
             Logger.error(f"Error extracting data from Ticketmaster API: {e}", self.logger_context)
