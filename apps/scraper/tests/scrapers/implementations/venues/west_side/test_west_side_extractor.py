@@ -368,3 +368,99 @@ class TestTransformerDispatch:
         assert len(shows) == 1
         assert isinstance(shows[0], WestSideShow)
         assert not isinstance(shows[0], ComedyKeyWestShow)
+
+
+# ---------------------------------------------------------------------------
+# PunchupExtractor — venueShows extraction path
+# ---------------------------------------------------------------------------
+
+
+import json as _json
+
+from laughtrack.core.clients.punchup.extractor import PunchupExtractor
+
+_VENUE_SHOW_ITEM = {
+    "id": "vs-uuid-1",
+    "title": "Jimmy Dunn",
+    "datetime": "2026-03-26T20:00:00",
+    "ticket_link": "https://event.tixologi.com/event/9958/tickets",
+    "tixologi_event_id": "9958",
+    "is_sold_out": False,
+    "metadata_text": "Stand-up comedian from Boston.",
+    "show_comedians": [
+        {"id": "c1", "display_name": "Jimmy Dunn", "ordering": 0},
+    ],
+    "venue_pages": [{"id": "c7284b63-bd3f-40ac-bca0-ddc9592cd87e", "slug": "comedykeywest"}],
+}
+
+
+def _build_venue_shows_push(items):
+    """Build an __next_f.push payload containing a venueShows React Query state.
+
+    Uses compact JSON separators to match the format produced by the real site
+    (no spaces after ':' or ','), since the extractor searches for the compact
+    '"queryKey":["venueShows"' pattern.
+    """
+    payload = {
+        "queries": [
+            {
+                "state": {
+                    "data": items,
+                    "status": "success",
+                    "fetchStatus": "idle",
+                },
+                "queryKey": ["venueShows", "c7284b63-bd3f-40ac-bca0-ddc9592cd87e"],
+                "queryHash": '["venueShows","c7284b63-bd3f-40ac-bca0-ddc9592cd87e"]',
+            }
+        ]
+    }
+    inner = _json.dumps(payload, separators=(",", ":"))
+    escaped = inner.replace("\\", "\\\\").replace('"', '\\"')
+    push_call = f'self.__next_f.push([1,"{escaped}"])'
+    return f"<html><body><script>{push_call}</script></body></html>"
+
+
+class TestVenueShowsExtractionPath:
+    def test_happy_path_extracts_shows(self):
+        html = _build_venue_shows_push([_VENUE_SHOW_ITEM])
+        shows = PunchupExtractor.extract_shows(html)
+        assert len(shows) == 1
+        assert shows[0].title == "Jimmy Dunn"
+        assert shows[0].datetime_str == "2026-03-26T20:00:00"
+        assert shows[0].ticket_link == "https://event.tixologi.com/event/9958/tickets"
+        assert shows[0].tixologi_event_id == "9958"
+        assert shows[0].is_sold_out is False
+        assert len(shows[0].show_comedians) == 1
+        assert shows[0].show_comedians[0]["display_name"] == "Jimmy Dunn"
+
+    def test_multiple_shows_extracted(self):
+        second = dict(_VENUE_SHOW_ITEM, id="vs-uuid-2", title="Second Show",
+                      datetime="2026-03-27T20:00:00", show_comedians=[])
+        html = _build_venue_shows_push([_VENUE_SHOW_ITEM, second])
+        shows = PunchupExtractor.extract_shows(html)
+        assert len(shows) == 2
+
+    def test_absent_querykey_returns_empty(self):
+        """Push payload with no venueShows queryKey should return []."""
+        payload = {"queries": []}
+        inner = _json.dumps(payload)
+        escaped = inner.replace("\\", "\\\\").replace('"', '\\"')
+        html = f'<html><body><script>self.__next_f.push([1,"{escaped}"])</script></body></html>'
+        shows = PunchupExtractor.extract_shows(html)
+        assert shows == []
+
+    def test_malformed_items_skipped_gracefully(self):
+        items = [
+            {"id": "bad-1", "title": "", "datetime": "2026-03-26T20:00:00"},  # empty title
+            {"id": "bad-2", "title": "No Date", "datetime": ""},  # empty datetime
+            _VENUE_SHOW_ITEM,  # valid
+        ]
+        html = _build_venue_shows_push(items)
+        shows = PunchupExtractor.extract_shows(html)
+        assert len(shows) == 1
+        assert shows[0].title == "Jimmy Dunn"
+
+    def test_empty_data_array_returns_empty(self):
+        html = _build_venue_shows_push([])
+        shows = PunchupExtractor.extract_shows(html)
+        assert shows == []

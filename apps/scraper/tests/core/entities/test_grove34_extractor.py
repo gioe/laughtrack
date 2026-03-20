@@ -325,7 +325,7 @@ async def test_collect_scraping_targets_pagination_and_deduplication(monkeypatch
 
     call_count = {"n": 0}
 
-    async def fake_fetch_html(self, url: str) -> str:
+    async def fake_fetch_html_bare(self, url: str) -> str:
         call_count["n"] += 1
         if "1a7d9b18_page=2" in url:
             return page2_html
@@ -335,7 +335,7 @@ async def test_collect_scraping_targets_pagination_and_deduplication(monkeypatch
         pass
 
     scraper = Grove34Scraper(grove34_club)
-    monkeypatch.setattr(Grove34Scraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(Grove34Scraper, "fetch_html_bare", fake_fetch_html_bare)
     monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", fake_rate_limiter_await)
 
     targets = await scraper.collect_scraping_targets()
@@ -363,7 +363,7 @@ async def test_collect_scraping_targets_breaks_on_repeated_listing_url(monkeypat
     # Make ?1a7d9b18_page=1 resolve back to the same base URL for the test
     call_count = {"n": 0}
 
-    async def fake_fetch_html(self, url: str) -> str:
+    async def fake_fetch_html_bare(self, url: str) -> str:
         call_count["n"] += 1
         return looping_html
 
@@ -371,7 +371,7 @@ async def test_collect_scraping_targets_breaks_on_repeated_listing_url(monkeypat
         pass
 
     scraper = Grove34Scraper(grove34_club)
-    monkeypatch.setattr(Grove34Scraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(Grove34Scraper, "fetch_html_bare", fake_fetch_html_bare)
     monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", fake_rate_limiter_await)
 
     # Override get_next_page_url to return the same URL every time
@@ -403,11 +403,11 @@ async def test_get_data_returns_grove34_page_data(monkeypatch, grove34_club):
         description="Stand-up showcase",
     )
 
-    async def fake_fetch_html(self, url: str) -> str:
+    async def fake_fetch_html_bare(self, url: str) -> str:
         return detail_html
 
     scraper = Grove34Scraper(grove34_club)
-    monkeypatch.setattr(Grove34Scraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(Grove34Scraper, "fetch_html_bare", fake_fetch_html_bare)
 
     result = await scraper.get_data("https://grove34.com/shows/comedy-thursday")
 
@@ -421,11 +421,11 @@ async def test_get_data_returns_none_when_no_event(monkeypatch, grove34_club):
     """get_data() returns None when the detail page has no valid Event JSON-LD."""
     from laughtrack.scrapers.implementations.venues.grove_34.scraper import Grove34Scraper
 
-    async def fake_fetch_html(self, url: str) -> str:
+    async def fake_fetch_html_bare(self, url: str) -> str:
         return "<html><body><h1>No events here</h1></body></html>"
 
     scraper = Grove34Scraper(grove34_club)
-    monkeypatch.setattr(Grove34Scraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(Grove34Scraper, "fetch_html_bare", fake_fetch_html_bare)
 
     result = await scraper.get_data("https://grove34.com/shows/empty-page")
     assert result is None

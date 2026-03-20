@@ -2,10 +2,10 @@
 Unit tests for WestSideScraper.get_data() async method.
 
 These tests verify the four key paths in get_data():
- 1. Empty HTML from fetch_html → returns None
+ 1. Empty HTML from fetch_html_bare → returns None
  2. Non-empty HTML with no shows found → returns None with a warning
  3. Successful extraction → returns WestSidePageData with expected shows
- 4. Exception raised by fetch_html → returns None
+ 4. Exception raised by fetch_html_bare → returns None
 """
 
 import importlib.util
@@ -103,10 +103,10 @@ def _build_no_shows_html() -> str:
 async def test_get_data_empty_html_returns_none(monkeypatch):
     scraper = WestSideScraper(_club())
 
-    async def fake_fetch_html(self, url: str):
+    async def fake_fetch_html_bare(self, url: str):
         return ""
 
-    monkeypatch.setattr(WestSideScraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(WestSideScraper, "fetch_html_bare", fake_fetch_html_bare)
 
     result = await scraper.get_data("westsidecomedyclub.com/calendar")
     assert result is None
@@ -116,10 +116,10 @@ async def test_get_data_empty_html_returns_none(monkeypatch):
 async def test_get_data_no_shows_returns_none(monkeypatch):
     scraper = WestSideScraper(_club())
 
-    async def fake_fetch_html(self, url: str):
+    async def fake_fetch_html_bare(self, url: str):
         return _build_no_shows_html()
 
-    monkeypatch.setattr(WestSideScraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(WestSideScraper, "fetch_html_bare", fake_fetch_html_bare)
 
     result = await scraper.get_data("westsidecomedyclub.com/calendar")
     assert result is None
@@ -129,10 +129,10 @@ async def test_get_data_no_shows_returns_none(monkeypatch):
 async def test_get_data_successful_extraction_returns_page_data(monkeypatch):
     scraper = WestSideScraper(_club())
 
-    async def fake_fetch_html(self, url: str):
+    async def fake_fetch_html_bare(self, url: str):
         return _build_show_html()
 
-    monkeypatch.setattr(WestSideScraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(WestSideScraper, "fetch_html_bare", fake_fetch_html_bare)
 
     result = await scraper.get_data("westsidecomedyclub.com/calendar")
     assert isinstance(result, WestSidePageData)
@@ -144,10 +144,10 @@ async def test_get_data_successful_extraction_returns_page_data(monkeypatch):
 async def test_get_data_fetch_exception_returns_none(monkeypatch):
     scraper = WestSideScraper(_club())
 
-    async def fake_fetch_html(self, url: str):
+    async def fake_fetch_html_bare(self, url: str):
         raise RuntimeError("network error")
 
-    monkeypatch.setattr(WestSideScraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(WestSideScraper, "fetch_html_bare", fake_fetch_html_bare)
 
     result = await scraper.get_data("westsidecomedyclub.com/calendar")
     assert result is None

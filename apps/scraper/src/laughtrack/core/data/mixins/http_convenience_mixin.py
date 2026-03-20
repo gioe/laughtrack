@@ -66,8 +66,10 @@ class HttpConvenienceMixin(AsyncHttpMixin):
         impersonation fingerprint alone is sufficient and does not trigger DataDome.
         """
 
+        timeout = getattr(getattr(self, "club", None), "timeout", 30) or 30
+
         async def _fetch_html_bare():
-            async with AsyncSession(impersonate=self._get_impersonation_target()) as session:
+            async with AsyncSession(impersonate=self._get_impersonation_target(), timeout=timeout) as session:
                 response = await session.get(url)
                 response.raise_for_status()
                 return response.text

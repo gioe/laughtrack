@@ -150,6 +150,8 @@ class PunchupExtractor:
 
         Tries two strategies:
         1. Direct text search (for plain JSON embedded in the page).
+           Only the venuePageCarousel path is checked here — venueShows data is always
+           inside a push([1, "..."]) call in practice and is handled in Strategy 2.
         2. Decode JavaScript-escaped string from self.__next_f.push([1, "..."]) calls.
         """
         # Strategy 1: venuePageCarousel appears as plain text in this script
@@ -193,8 +195,12 @@ class PunchupExtractor:
 
         items_key_pos = text.find(PunchupExtractor._ITEMS_KEY, carousel_pos)
         if items_key_pos == -1:
-            # The items array may appear before venuePageCarousel (e.g. in venue-page-theme)
-            items_key_pos = text.find(PunchupExtractor._ITEMS_KEY)
+            # The items array may appear before venuePageCarousel (e.g. in venue-page-theme).
+            # Anchor the backward search to the last '"queryKey"' before the carousel key
+            # to avoid matching an unrelated query's "items": from earlier in the payload.
+            anchor = text.rfind('"queryKey"', 0, carousel_pos)
+            search_from = max(0, anchor) if anchor != -1 else 0
+            items_key_pos = text.find(PunchupExtractor._ITEMS_KEY, search_from)
         if items_key_pos == -1:
             return []
 
@@ -296,13 +302,20 @@ class PunchupExtractor:
         if key_pos == -1:
             return []
 
-        # Search backward from the queryKey for the "data":[ array
-        data_key = '"data":['
-        data_pos = text.rfind(data_key, 0, key_pos)
-        if data_pos == -1:
-            return []
-
-        array_start = data_pos + len(data_key) - 1  # points at the '['
+        # Search backward from the queryKey for the venueShows state's "data":[ array.
+        # Use the more specific '"state":{"data":[' to avoid matching "data":[ from an
+        # unrelated earlier React Query entry in the same payload.
+        state_data_key = '"state":{"data":['
+        state_pos = text.rfind(state_data_key, 0, key_pos)
+        if state_pos == -1:
+            # Fall back to bare "data":[ if the state block uses a different layout
+            data_key = '"data":['
+            state_pos = text.rfind(data_key, 0, key_pos)
+            if state_pos == -1:
+                return []
+            array_start = state_pos + len(data_key) - 1
+        else:
+            array_start = state_pos + len(state_data_key) - 1  # points at the '['
         array_json = PunchupExtractor._extract_balanced(text, array_start, "[", "]")
         if not array_json:
             return []
