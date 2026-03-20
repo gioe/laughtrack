@@ -60,6 +60,7 @@ Examples:
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--all", action="store_true", help="Scrape all configured clubs")
     group.add_argument("--club-id", type=int, help="ID of specific club to scrape")
+    group.add_argument("--club", type=str, help="Name of specific club to scrape (case-insensitive, partial match supported)")
     group.add_argument(
         "--scraper-type", type=str, help="Scrape all clubs using a specific scraper type (e.g., json_ld)"
     )
@@ -109,6 +110,11 @@ Examples:
             scraping_service.scrape_all_clubs(); performed_primary = True
         elif args.club_id:
             scraping_service.scrape_single_club(club_id=args.club_id); performed_primary = True
+        elif args.club:
+            club = club_service.find_club_by_name(args.club)
+            if club is None:
+                sys.exit(1)
+            scraping_service.scrape_single_club(club_id=club.id); performed_primary = True
         elif args.scraper_type:
             scraping_service.scrape_by_scraper_type(args.scraper_type); performed_primary = True
         elif args.scraper_type_interactive:

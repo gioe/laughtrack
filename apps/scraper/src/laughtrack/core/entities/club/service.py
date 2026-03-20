@@ -5,7 +5,7 @@ This service provides functionality for listing available clubs and scraper type
 reading directly from the database.
 """
 
-from typing import List
+from typing import List, Optional
 from .handler import ClubHandler
 from .model import Club
 
@@ -48,6 +48,51 @@ class ClubService:
         )
 
         Logger.info(consolidated_message)
+
+    def find_club_by_name(self, name: str) -> Optional[Club]:
+        """
+        Find a club by name using case-insensitive matching.
+
+        Tries exact match first, then falls back to partial (substring) match.
+        Prints an error and returns None if no match or multiple partial matches
+        are found.
+
+        Args:
+            name: Club name (or partial name) to search for
+
+        Returns:
+            Club if exactly one match found, None otherwise
+        """
+        all_clubs = self.club_handler.get_all_clubs()
+        needle = name.strip().lower()
+
+        # Exact match (case-insensitive)
+        exact = [c for c in all_clubs if c.name.lower() == needle]
+        if len(exact) == 1:
+            return exact[0]
+        if len(exact) > 1:
+            names = ", ".join(c.name for c in exact)
+            Logger.error(f"Ambiguous club name '{name}': multiple exact matches found: {names}")
+            return None
+
+        # Partial/substring match
+        partial = [c for c in all_clubs if needle in c.name.lower()]
+        if len(partial) == 1:
+            Logger.info(f"Partial match: '{name}' → '{partial[0].name}' (ID: {partial[0].id})")
+            return partial[0]
+        if len(partial) > 1:
+            names = "\n  ".join(f"ID {c.id}: {c.name}" for c in partial)
+            Logger.error(
+                f"Ambiguous club name '{name}': {len(partial)} partial matches found:\n  {names}\n"
+                f"Use a more specific name or 'make scrape-club-id ID=<N>'"
+            )
+            return None
+
+        Logger.error(
+            f"No club found matching '{name}'. "
+            f"Run 'make list-clubs' to see available venues."
+        )
+        return None
 
     def get_clubs_for_scraper(self, scraper_type: str) -> List[Club]:
         """
