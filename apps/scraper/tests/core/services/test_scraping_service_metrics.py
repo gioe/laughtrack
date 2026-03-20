@@ -63,6 +63,72 @@ class TestCheckAndAlert:
             svc._check_and_alert(summary)
             mock_alert.assert_not_called()
 
+    def _make_multi_club_summary(self, clubs):
+        """Build a ScrapingRunSummary containing the given DomainRequestMetrics list."""
+        s = ScrapingRunSummary()
+        s.per_club.extend(clubs)
+        return s
+
+    def _make_metric(self, name, scraper_type=None, ok=0, error=1, none_resp=0):
+        total = ok + error + none_resp
+        return DomainRequestMetrics(
+            club_name=name, scraper_type=scraper_type,
+            total=total, ok=ok, error=error, none_resp=none_resp,
+        )
+
+    def test_outage_path_sends_empty_individual_and_nonempty_outage_lines(self):
+        """All 5 clubs of a scraper type fail → discord called with empty individual + outage_lines."""
+        svc = self._make_service(threshold=70.0)
+        clubs = [self._make_metric(f"Club {i}", scraper_type="seatengine") for i in range(5)]
+        summary = self._make_multi_club_summary(clubs)
+
+        mock_config = _make_mock_config(channels=["discord"])
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig:
+            MockConfig.default.return_value = mock_config
+            with patch.object(svc, '_send_discord_alert') as mock_alert:
+                svc._check_and_alert(summary)
+                mock_alert.assert_called_once()
+                individual_arg = mock_alert.call_args[0][0]
+                outage_lines_kwarg = mock_alert.call_args[1].get('outage_lines', [])
+                assert individual_arg == []
+                assert len(outage_lines_kwarg) == 1
+
+    def test_partial_failure_sends_individual_with_empty_outage_lines(self):
+        """Only 1/4 clubs of a scraper type fail (<80%) → individual entries, empty outage_lines."""
+        svc = self._make_service(threshold=70.0)
+        good = [self._make_metric(f"Good {i}", scraper_type="seatengine", ok=1, error=0) for i in range(3)]
+        bad = [self._make_metric("Bad Club", scraper_type="seatengine")]
+        summary = self._make_multi_club_summary(good + bad)
+
+        mock_config = _make_mock_config(channels=["discord"])
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig:
+            MockConfig.default.return_value = mock_config
+            with patch.object(svc, '_send_discord_alert') as mock_alert:
+                svc._check_and_alert(summary)
+                mock_alert.assert_called_once()
+                individual_arg = mock_alert.call_args[0][0]
+                outage_lines_kwarg = mock_alert.call_args[1].get('outage_lines', [])
+                assert len(individual_arg) == 1
+                assert individual_arg[0].club_name == "Bad Club"
+                assert outage_lines_kwarg == []
+
+    def test_outage_lines_contain_correct_summary_format(self):
+        """Outage summary string contains scraper type and N/total count."""
+        svc = self._make_service(threshold=70.0)
+        clubs = [self._make_metric(f"Club {i}", scraper_type="tessera") for i in range(5)]
+        summary = self._make_multi_club_summary(clubs)
+
+        mock_config = _make_mock_config(channels=["discord"])
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig:
+            MockConfig.default.return_value = mock_config
+            with patch.object(svc, '_send_discord_alert') as mock_alert:
+                svc._check_and_alert(summary)
+                outage_lines_kwarg = mock_alert.call_args[1].get('outage_lines', [])
+                assert len(outage_lines_kwarg) == 1
+                line = outage_lines_kwarg[0]
+                assert "tessera" in line
+                assert "5/5" in line
+
 
 class TestCheckAndAlertChannelDispatch:
     """Tests for multi-channel dispatch logic in _check_and_alert."""
