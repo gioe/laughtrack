@@ -67,6 +67,16 @@ class RateLimitError(ScrapingError):
         self.retry_after = retry_after
 
 
+class CircuitBreakerOpenError(ScrapingError):
+    """Raised when a circuit breaker is open, preventing HTTP calls to a downed provider.
+
+    Severity is HIGH so ErrorHandler._should_retry() skips retries immediately.
+    """
+
+    def __init__(self, message: str):
+        super().__init__(message, ErrorSeverity.HIGH)
+
+
 class ErrorClassifier:
     """Classifies exceptions into scraping error types."""
 

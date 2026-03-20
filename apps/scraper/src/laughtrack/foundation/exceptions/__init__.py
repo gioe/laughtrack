@@ -6,6 +6,7 @@ making them reusable across different domains.
 """
 
 from .scraping_errors import (
+    CircuitBreakerOpenError,
     DataError,
     ErrorClassifier,
     ErrorSeverity,
@@ -16,6 +17,7 @@ from .scraping_errors import (
 )
 
 __all__ = [
+    "CircuitBreakerOpenError",
     "DataError",
     "ErrorClassifier",
     "ErrorSeverity",
