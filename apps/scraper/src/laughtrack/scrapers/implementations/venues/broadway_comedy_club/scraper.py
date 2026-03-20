@@ -134,7 +134,20 @@ class BroadwayComedyClubScraper(BaseScraper):
                 f"Successfully enriched {len([e for e in enriched if hasattr(e, '_ticket_data')])} events with ticket data",
                 self.logger_context,
             )
-            return enriched
+
+            # Filter out Tessera events that returned no ticket data — they would otherwise
+            # produce partial shows with a fallback ticket on every subsequent run.
+            output: List[BroadwayEvent] = []
+            for event in enriched:
+                if getattr(event, "isTesseraProduct", False) and not getattr(event, "_ticket_data", None):
+                    Logger.warning(
+                        f"Skipping Tessera event {event.id!r} — _fetch_ticket_data returned None/empty; "
+                        "event may be stale or removed from Broadway's site",
+                        self.logger_context,
+                    )
+                else:
+                    output.append(event)
+            return output
 
         except Exception as e:
             Logger.error(f"Error enriching events with tickets: {str(e)}", self.logger_context)
