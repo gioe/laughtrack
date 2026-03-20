@@ -13,6 +13,7 @@ class DomainRequestMetrics:
 
     club_name: str
     club_id: Optional[int] = None
+    scraper_type: Optional[str] = None  # scraper key (e.g. "seatengine", "tessera")
     total: int = 0
     ok: int = 0          # successful scrape with shows
     none_resp: int = 0   # completed without error but returned no shows

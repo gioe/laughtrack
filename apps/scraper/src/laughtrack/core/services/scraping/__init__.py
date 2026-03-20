@@ -22,6 +22,7 @@ from laughtrack.foundation.models.operation_result import DatabaseOperationResul
 
 _DEFAULT_SUCCESS_RATE_THRESHOLD = 70.0
 _DEFAULT_MAX_CONCURRENT_CLUBS = 5
+_OUTAGE_THRESHOLD = 0.80  # fraction of clubs per scraper type that must fail to trigger a summary alert
 
 
 def _scrape_with_context(scraper: BaseScraper, club: Club) -> ClubScrapingResult:
@@ -143,7 +144,7 @@ class ScrapingService:
                 Logger.warn(f"No scraper found for club '{club.name}' with key '{key}'")
                 return None, None
             async with semaphore:
-                metrics = DomainRequestMetrics(club_name=club.name, club_id=getattr(club, "id", None))
+                metrics = DomainRequestMetrics(club_name=club.name, club_id=getattr(club, "id", None), scraper_type=key)
                 metrics.total += 1
                 try:
                     scraper: BaseScraper = scraper_cls(club, proxy_pool=self.proxy_pool)
@@ -208,9 +209,12 @@ class ScrapingService:
         failing = summary.below_threshold(self.success_rate_threshold)
         if not failing:
             return
+
+        outage_lines, individual_failing = self._classify_failing(failing, summary)
+        warn_parts = outage_lines + [m.club_name for m in individual_failing]
         Logger.warn(
             f"{len(failing)} domain(s) below {self.success_rate_threshold}% success threshold: "
-            + ", ".join(m.club_name for m in failing)
+            + ", ".join(warn_parts)
         )
         try:
             from laughtrack.infrastructure.config.monitoring_config import MonitoringConfig
@@ -222,13 +226,55 @@ class ScrapingService:
 
         for channel in channels:
             if channel == "discord":
-                self._send_discord_alert(failing)
+                self._send_discord_alert(individual_failing, outage_lines=outage_lines)
             elif channel == "email":
-                self._send_email_alert(failing)
+                self._send_email_alert(individual_failing, outage_lines=outage_lines)
             elif channel == "webhook":
-                self._send_webhook_alert(failing)
+                self._send_webhook_alert(individual_failing, outage_lines=outage_lines)
 
-    def _send_discord_alert(self, failing: List[DomainRequestMetrics]) -> None:
+    def _classify_failing(
+        self, failing: List[DomainRequestMetrics], summary: ScrapingRunSummary
+    ) -> tuple[List[str], List[DomainRequestMetrics]]:
+        """Split failing clubs into provider-wide outages and individual failures.
+
+        When >=80% of all clubs sharing a scraper type are below the success-rate
+        threshold, emit one summary line instead of listing each club individually.
+
+        Returns:
+            outage_lines: one summary string per scraper type that crossed the outage threshold
+            individual_failing: remaining failing clubs whose type is below the outage threshold
+        """
+        from collections import defaultdict
+
+        all_by_type: dict[str, list] = defaultdict(list)
+        for m in summary.per_club:
+            if m.scraper_type:
+                all_by_type[m.scraper_type].append(m)
+
+        failing_by_type: dict[str, list] = defaultdict(list)
+        no_type_failing: List[DomainRequestMetrics] = []
+        for m in failing:
+            if m.scraper_type and m.scraper_type in all_by_type:
+                failing_by_type[m.scraper_type].append(m)
+            else:
+                no_type_failing.append(m)
+
+        outage_lines: List[str] = []
+        individual_failing: List[DomainRequestMetrics] = list(no_type_failing)
+
+        for scraper_type, failed_clubs in failing_by_type.items():
+            total_of_type = len(all_by_type[scraper_type])
+            failed_count = len(failed_clubs)
+            if total_of_type > 0 and failed_count / total_of_type >= _OUTAGE_THRESHOLD:
+                outage_lines.append(
+                    f"{scraper_type} appears to be down ({failed_count}/{total_of_type} venues failed)"
+                )
+            else:
+                individual_failing.extend(failed_clubs)
+
+        return outage_lines, individual_failing
+
+    def _send_discord_alert(self, failing: List[DomainRequestMetrics], *, outage_lines: Optional[List[str]] = None) -> None:
         # Import guard is separate from execution guard so misconfigured environments
         # surface a distinct error rather than silently swallowing an ImportError.
         try:
@@ -245,21 +291,26 @@ class ScrapingService:
                 Logger.warn("Discord webhook not configured; skipping scraping success-rate alert")
                 return
 
-            lines = [
+            all_lines: List[str] = []
+            if outage_lines:
+                all_lines.extend(f"⚠️ {l}" for l in outage_lines)
+            all_lines.extend(
                 f"• {m.club_name}: {m.success_rate:.0f}% ({m.ok}/{m.total} ok, "
                 f"{m.none_resp} empty, {m.error} errors)"
                 for m in failing
-            ]
+            )
+            if not all_lines:
+                return
             alert = Alert(
                 id=str(uuid.uuid4()),
                 title=f"Scraping success rate below {self.success_rate_threshold:.0f}% threshold",
-                description="\n".join(lines),
+                description="\n".join(all_lines),
                 severity=AlertSeverity.HIGH,
                 timestamp=datetime.now(timezone.utc),
                 source="ScrapingService",
                 metadata={
                     "threshold_pct": self.success_rate_threshold,
-                    "failing_domains": [m.club_name for m in failing],
+                    "failing_domains": list(outage_lines or []) + [m.club_name for m in failing],
                 },
             )
             channel = DiscordAlertChannel(webhook_url=config.discord_webhook_url)
@@ -279,7 +330,7 @@ class ScrapingService:
         except Exception as e:  # pragma: no cover - defensive
             Logger.error(f"Failed to send Discord scraping alert: {e}")
 
-    def _send_email_alert(self, failing: List[DomainRequestMetrics]) -> None:
+    def _send_email_alert(self, failing: List[DomainRequestMetrics], *, outage_lines: Optional[List[str]] = None) -> None:
         try:
             from laughtrack.infrastructure.config.monitoring_config import MonitoringConfig
             from laughtrack.infrastructure.monitoring.channels import EmailAlertChannel
@@ -294,21 +345,26 @@ class ScrapingService:
                 Logger.warn("Email not configured; skipping scraping success-rate alert")
                 return
 
-            lines = [
+            all_lines: List[str] = []
+            if outage_lines:
+                all_lines.extend(f"⚠️ {l}" for l in outage_lines)
+            all_lines.extend(
                 f"• {m.club_name}: {m.success_rate:.0f}% ({m.ok}/{m.total} ok, "
                 f"{m.none_resp} empty, {m.error} errors)"
                 for m in failing
-            ]
+            )
+            if not all_lines:
+                return
             alert = Alert(
                 id=str(uuid.uuid4()),
                 title=f"Scraping success rate below {self.success_rate_threshold:.0f}% threshold",
-                description="\n".join(lines),
+                description="\n".join(all_lines),
                 severity=AlertSeverity.HIGH,
                 timestamp=datetime.now(timezone.utc),
                 source="ScrapingService",
                 metadata={
                     "threshold_pct": self.success_rate_threshold,
-                    "failing_domains": [m.club_name for m in failing],
+                    "failing_domains": list(outage_lines or []) + [m.club_name for m in failing],
                 },
             )
             channel = EmailAlertChannel(recipients=config.alert_recipients)
@@ -326,7 +382,7 @@ class ScrapingService:
         except Exception as e:  # pragma: no cover - defensive
             Logger.error(f"Failed to send email scraping alert: {e}")
 
-    def _send_webhook_alert(self, failing: List[DomainRequestMetrics]) -> None:
+    def _send_webhook_alert(self, failing: List[DomainRequestMetrics], *, outage_lines: Optional[List[str]] = None) -> None:
         try:
             from laughtrack.infrastructure.config.monitoring_config import MonitoringConfig
             from laughtrack.infrastructure.monitoring.channels import WebhookAlertChannel
@@ -341,21 +397,26 @@ class ScrapingService:
                 Logger.warn("Webhook not configured; skipping scraping success-rate alert")
                 return
 
-            lines = [
+            all_lines: List[str] = []
+            if outage_lines:
+                all_lines.extend(f"⚠️ {l}" for l in outage_lines)
+            all_lines.extend(
                 f"• {m.club_name}: {m.success_rate:.0f}% ({m.ok}/{m.total} ok, "
                 f"{m.none_resp} empty, {m.error} errors)"
                 for m in failing
-            ]
+            )
+            if not all_lines:
+                return
             alert = Alert(
                 id=str(uuid.uuid4()),
                 title=f"Scraping success rate below {self.success_rate_threshold:.0f}% threshold",
-                description="\n".join(lines),
+                description="\n".join(all_lines),
                 severity=AlertSeverity.HIGH,
                 timestamp=datetime.now(timezone.utc),
                 source="ScrapingService",
                 metadata={
                     "threshold_pct": self.success_rate_threshold,
-                    "failing_domains": [m.club_name for m in failing],
+                    "failing_domains": list(outage_lines or []) + [m.club_name for m in failing],
                 },
             )
             channel = WebhookAlertChannel(webhook_url=config.webhook_url, headers=config.webhook_headers)
