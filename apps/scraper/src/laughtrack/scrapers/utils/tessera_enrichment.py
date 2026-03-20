@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.utilities.infrastructure.scraper import BatchScraper
@@ -17,6 +17,33 @@ class TesseraTicketBatchEnricher(BaseTicketBatchEnricher):
         self._client = tessera_client
         self._batch = BatchScraper(logger_context={**self._logger_context, "client": "tessera"})
         self._base_url = URLUtils.get_base_domain_with_protocol(URLUtils.normalize_url(base_url)) if base_url else None
+
+    async def enrich(
+        self,
+        events: List[Any],
+        is_candidate: Callable[[Any], bool],
+        event_id: Callable[[Any], Optional[str]],
+        show_url: Callable[[Any], str],
+        label: str = "Tessera ticket enrichment",
+    ) -> List[Any]:
+        """Enrich events and drop any Tessera candidates that received no ticket data.
+
+        Filtering is performed here — in the enricher — so that every Tessera-backed
+        scraper automatically inherits the protection without per-scraper boilerplate.
+        """
+        enriched = await super().enrich(events, is_candidate, event_id, show_url, label)
+
+        output: List[Any] = []
+        for e in enriched:
+            if is_candidate(e) and not getattr(e, "_ticket_data", None):
+                Logger.warning(
+                    f"Skipping Tessera event {event_id(e)!r} — no ticket data returned; "
+                    "event may be stale or unavailable",
+                    self._logger_context,
+                )
+            else:
+                output.append(e)
+        return output
 
     async def _fetch_tickets(self, event_ids: List[str]) -> Dict[str, List]:
         Logger.info(f"Fetching tickets for {len(event_ids)} Tessera events", self._logger_context)

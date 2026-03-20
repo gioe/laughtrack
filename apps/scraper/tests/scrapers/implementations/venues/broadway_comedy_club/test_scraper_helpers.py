@@ -24,16 +24,18 @@ class FakeEnricher:
     async def enrich(self, events, is_tessera, event_id, show_url):
         self.called = True
         # Track ids of tessera-eligible events passed
-        self.last_ids = [event_id(e) for e in events if is_tessera(e) and event_id(e)]
-        enriched: List = []
+        candidate_ids = {event_id(e) for e in events if is_tessera(e) and event_id(e)}
+        self.last_ids = list(candidate_ids)
         for e in events:
             if is_tessera(e):
                 eid = event_id(e)
                 if eid and isinstance(self.outcome_map.get(eid), list):
-                    # Attach a simple list to mimic _ticket_data presence
                     setattr(e, "_ticket_data", list(self.outcome_map[eid]))
-            enriched.append(e)
-        return enriched
+        # Mirror TesseraTicketBatchEnricher: drop Tessera events with no ticket data
+        return [
+            e for e in events
+            if not (is_tessera(e) and not getattr(e, "_ticket_data", None))
+        ]
 
 
 _UNSET = object()  # sentinel so FakeScraper(enricher=None) means "disabled", not "default"

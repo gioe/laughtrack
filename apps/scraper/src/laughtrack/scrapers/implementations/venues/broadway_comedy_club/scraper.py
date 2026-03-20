@@ -105,21 +105,15 @@ class BroadwayComedyClubScraper(BaseScraper):
         """
         Enrich BroadwayEvent objects with ticket data from Tessera API.
 
-        Args:
-            events: List of BroadwayEvent objects
-
-        Returns:
-            List of BroadwayEvent objects enriched with ticket data, with any Tessera
-            events that returned no ticket data excluded entirely.
+        Tessera events with no ticket data are filtered out by TesseraTicketBatchEnricher.enrich()
+        — no per-scraper filter is needed here.
         """
         try:
-            # 1) Select Tessera-backed event IDs
             event_ids = self._select_tessera_event_ids(events)
             if not event_ids:
                 Logger.info("No Tessera events found to enrich", self.logger_context)
-                return self._filter_unenriched_tessera_events(events)
+                return events
 
-            # 2) Enrich using the configured ticket enricher
             if self._tickets is None:
                 # Enrichment intentionally disabled — pass events through without filtering
                 # so subclasses that disable enrichment don't silently lose Tessera events.
@@ -137,32 +131,11 @@ class BroadwayComedyClubScraper(BaseScraper):
                 f"Successfully enriched {len([e for e in enriched if getattr(e, '_ticket_data', None)])} events with ticket data",
                 self.logger_context,
             )
-            return self._filter_unenriched_tessera_events(enriched)
+            return enriched
 
         except Exception as e:
             Logger.error(f"Error enriching events with tickets: {str(e)}", self.logger_context)
-            # Filter even on failure — any Tessera events that didn't receive data would
-            # otherwise produce partial shows with fallback tickets on every subsequent run.
-            return self._filter_unenriched_tessera_events(events)
-
-    def _filter_unenriched_tessera_events(self, events: List[BroadwayEvent]) -> List[BroadwayEvent]:
-        """Exclude Tessera events with no ticket data to prevent partial shows.
-
-        Events that claim to be Tessera products but carry no _ticket_data are stale or
-        unreachable — including them would result in a fallback-ticket partial show being
-        saved on every subsequent scrape run.
-        """
-        output: List[BroadwayEvent] = []
-        for event in events:
-            if getattr(event, "isTesseraProduct", False) and not getattr(event, "_ticket_data", None):
-                Logger.warning(
-                    f"Skipping Tessera event {event.id!r} — _fetch_ticket_data returned None/empty; "
-                    "event may be stale or removed from Broadway's site",
-                    self.logger_context,
-                )
-            else:
-                output.append(event)
-        return output
+            return events
 
     def _select_tessera_event_ids(self, events: List[BroadwayEvent]) -> List[str]:
         """Filter and return deduped Tessera event IDs with diagnostics logging."""
