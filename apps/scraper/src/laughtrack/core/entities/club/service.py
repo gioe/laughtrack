@@ -63,8 +63,16 @@ class ClubService:
         Returns:
             Club if exactly one match found, None otherwise
         """
-        all_clubs = self.club_handler.get_all_clubs()
         needle = name.strip().lower()
+        if not needle:
+            Logger.error("Club name cannot be empty. Run 'make list-clubs' to see available venues.")
+            return None
+
+        try:
+            all_clubs = self.club_handler.get_all_clubs()
+        except Exception as e:
+            Logger.error(f"Could not fetch clubs from database: {e}")
+            return None
 
         # Exact match (case-insensitive)
         exact = [c for c in all_clubs if c.name.lower() == needle]

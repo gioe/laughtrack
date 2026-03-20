@@ -11,6 +11,7 @@ Usage:
 Examples:
     ./scrape_shows.py --all                          # Scrape all configured clubs
     ./scrape_shows.py --club-id 5                    # Scrape a specific club by ID
+    ./scrape_shows.py --club "Comedy Cellar"         # Scrape by name (partial match supported)
     ./scrape_shows.py --scraper-type json_ld         # Scrape all clubs using json_ld
     ./scrape_shows.py --scraper-type-interactive     # Interactive selection of scraper type(s)
     ./scrape_shows.py --list-scrapers                # List available scraper types
@@ -49,6 +50,7 @@ def main():
 Examples:
   %(prog)s --all                          # Scrape all configured clubs
   %(prog)s --club-id 5                    # Scrape a specific club by ID
+  %(prog)s --club "Comedy Cellar"         # Scrape by name (partial match supported)
   %(prog)s --scraper-type json_ld         # Scrape all clubs using json_ld
   %(prog)s --scraper-type-interactive     # Interactive selection of scraper type(s)
   %(prog)s --list-scrapers                # List available scraper types
