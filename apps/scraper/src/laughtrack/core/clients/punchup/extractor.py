@@ -193,7 +193,10 @@ class PunchupExtractor:
         if carousel_pos == -1:
             return []
 
+        Logger.debug(f"Punchup: carousel key found at pos={carousel_pos}")
+
         items_key_pos = text.find(PunchupExtractor._ITEMS_KEY, carousel_pos)
+        fallback_triggered = False
         if items_key_pos == -1:
             # The items array may appear before venuePageCarousel (e.g. in venue-page-theme).
             # Anchor the backward search to the last '"queryKey"' before the carousel key
@@ -201,7 +204,13 @@ class PunchupExtractor:
             anchor = text.rfind('"queryKey"', 0, carousel_pos)
             search_from = max(0, anchor) if anchor != -1 else 0
             items_key_pos = text.find(PunchupExtractor._ITEMS_KEY, search_from)
+            fallback_triggered = True
+
+        Logger.debug(
+            f"Punchup: items_key_pos={items_key_pos} fallback_triggered={fallback_triggered}"
+        )
         if items_key_pos == -1:
+            Logger.debug("Punchup: carousel found but items array missing — positional mismatch")
             return []
 
         array_start = text.find("[", items_key_pos + len(PunchupExtractor._ITEMS_KEY))
