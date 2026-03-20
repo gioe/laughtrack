@@ -36,12 +36,15 @@ class FakeEnricher:
         return enriched
 
 
+_UNSET = object()  # sentinel so FakeScraper(enricher=None) means "disabled", not "default"
+
+
 class FakeScraper(BroadwayComedyClubScraper):
-    def __init__(self, enricher: FakeEnricher | None = None):  # Don't call super(); keep it lean for unit tests
+    def __init__(self, enricher=_UNSET):  # Don't call super(); keep it lean for unit tests
         # Minimal context expected by logging helpers
         self.logger_context = {"scraper": "broadway", "club": "TEST"}
-        # Provide the fake enricher used by the scraper's enrichment flow
-        self._tickets = enricher or FakeEnricher()
+        # Pass None explicitly to simulate _make_ticket_enricher() returning None (disabled)
+        self._tickets = FakeEnricher() if enricher is _UNSET else enricher
 
 
 def make_event(
@@ -155,3 +158,36 @@ async def test_tessera_event_with_none_ticket_data_not_in_shows():
     result_ids = [e.id for e in result]
     assert "ok" in result_ids, "Successfully enriched event must be present"
     assert "20083" not in result_ids, "Stale Tessera event with no ticket data must be excluded"
+
+
+@pytest.mark.asyncio
+async def test_all_tessera_events_fail_returns_empty():
+    """When every Tessera event fails enrichment, the output list is empty."""
+    enricher = FakeEnricher({})  # no outcomes — all events left with _ticket_data=None
+    s = FakeScraper(enricher)
+
+    events = [
+        make_event(id="a", is_tessera=True, main_artist=["A"]),
+        make_event(id="b", is_tessera=True, main_artist=["B"]),
+    ]
+
+    result = await s._enrich_events_with_tickets(events)
+    assert result == [], "All-fail enrichment must return an empty list, not partial shows"
+
+
+@pytest.mark.asyncio
+async def test_enrichment_disabled_tessera_events_pass_through():
+    """When _tickets is None (enrichment disabled), Tessera events are NOT silently dropped."""
+    s = FakeScraper(enricher=None)  # simulate _make_ticket_enricher() returning None
+
+    events = [
+        make_event(id="t1", is_tessera=True, main_artist=["T1"]),
+        make_event(id="t2", is_tessera=True, main_artist=["T2"]),
+        make_event(id="n1", is_tessera=False, main_artist=["N1"]),
+    ]
+
+    result = await s._enrich_events_with_tickets(events)
+    result_ids = {e.id for e in result}
+    assert result_ids == {"t1", "t2", "n1"}, (
+        "Disabled enrichment must pass all events through — Tessera events must not be dropped"
+    )
