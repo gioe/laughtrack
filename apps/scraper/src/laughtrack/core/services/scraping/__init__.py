@@ -212,7 +212,21 @@ class ScrapingService:
             f"{len(failing)} domain(s) below {self.success_rate_threshold}% success threshold: "
             + ", ".join(m.club_name for m in failing)
         )
-        self._send_discord_alert(failing)
+        try:
+            from laughtrack.infrastructure.config.monitoring_config import MonitoringConfig
+            config = MonitoringConfig.default()
+            channels = config.get_configured_channels()
+        except ImportError as e:  # pragma: no cover
+            Logger.error(f"Monitoring package not available; skipping alerts: {e}")
+            channels = ["discord"]
+
+        for channel in channels:
+            if channel == "discord":
+                self._send_discord_alert(failing)
+            elif channel == "email":
+                self._send_email_alert(failing)
+            elif channel == "webhook":
+                self._send_webhook_alert(failing)
 
     def _send_discord_alert(self, failing: List[DomainRequestMetrics]) -> None:
         # Import guard is separate from execution guard so misconfigured environments
@@ -264,6 +278,100 @@ class ScrapingService:
                 asyncio.run(channel.send_alert(alert))
         except Exception as e:  # pragma: no cover - defensive
             Logger.error(f"Failed to send Discord scraping alert: {e}")
+
+    def _send_email_alert(self, failing: List[DomainRequestMetrics]) -> None:
+        try:
+            from laughtrack.infrastructure.config.monitoring_config import MonitoringConfig
+            from laughtrack.infrastructure.monitoring.channels import EmailAlertChannel
+            from laughtrack.infrastructure.monitoring.alerts import Alert, AlertSeverity
+        except ImportError as e:  # pragma: no cover
+            Logger.error(f"Monitoring package not available; skipping email alert: {e}")
+            return
+
+        try:
+            config = MonitoringConfig.default()
+            if not config.is_email_configured() or not config.alert_recipients:
+                Logger.warn("Email not configured; skipping scraping success-rate alert")
+                return
+
+            lines = [
+                f"• {m.club_name}: {m.success_rate:.0f}% ({m.ok}/{m.total} ok, "
+                f"{m.none_resp} empty, {m.error} errors)"
+                for m in failing
+            ]
+            alert = Alert(
+                id=str(uuid.uuid4()),
+                title=f"Scraping success rate below {self.success_rate_threshold:.0f}% threshold",
+                description="\n".join(lines),
+                severity=AlertSeverity.HIGH,
+                timestamp=datetime.now(timezone.utc),
+                source="ScrapingService",
+                metadata={
+                    "threshold_pct": self.success_rate_threshold,
+                    "failing_domains": [m.club_name for m in failing],
+                },
+            )
+            channel = EmailAlertChannel(recipients=config.alert_recipients)
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                loop = None
+
+            if loop is not None and loop.is_running():
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                    executor.submit(asyncio.run, channel.send_alert(alert)).result()
+            else:
+                asyncio.run(channel.send_alert(alert))
+        except Exception as e:  # pragma: no cover - defensive
+            Logger.error(f"Failed to send email scraping alert: {e}")
+
+    def _send_webhook_alert(self, failing: List[DomainRequestMetrics]) -> None:
+        try:
+            from laughtrack.infrastructure.config.monitoring_config import MonitoringConfig
+            from laughtrack.infrastructure.monitoring.channels import WebhookAlertChannel
+            from laughtrack.infrastructure.monitoring.alerts import Alert, AlertSeverity
+        except ImportError as e:  # pragma: no cover
+            Logger.error(f"Monitoring package not available; skipping webhook alert: {e}")
+            return
+
+        try:
+            config = MonitoringConfig.default()
+            if not config.is_webhook_configured() or not config.webhook_url:
+                Logger.warn("Webhook not configured; skipping scraping success-rate alert")
+                return
+
+            lines = [
+                f"• {m.club_name}: {m.success_rate:.0f}% ({m.ok}/{m.total} ok, "
+                f"{m.none_resp} empty, {m.error} errors)"
+                for m in failing
+            ]
+            alert = Alert(
+                id=str(uuid.uuid4()),
+                title=f"Scraping success rate below {self.success_rate_threshold:.0f}% threshold",
+                description="\n".join(lines),
+                severity=AlertSeverity.HIGH,
+                timestamp=datetime.now(timezone.utc),
+                source="ScrapingService",
+                metadata={
+                    "threshold_pct": self.success_rate_threshold,
+                    "failing_domains": [m.club_name for m in failing],
+                },
+            )
+            channel = WebhookAlertChannel(webhook_url=config.webhook_url, headers=config.webhook_headers)
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                loop = None
+
+            if loop is not None and loop.is_running():
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                    executor.submit(asyncio.run, channel.send_alert(alert)).result()
+            else:
+                asyncio.run(channel.send_alert(alert))
+        except Exception as e:  # pragma: no cover - defensive
+            Logger.error(f"Failed to send webhook scraping alert: {e}")
 
 
 __all__ = ["ScrapingService"]
