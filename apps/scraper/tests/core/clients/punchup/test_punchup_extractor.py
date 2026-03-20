@@ -79,10 +79,11 @@ class TestBuildPunchupShow:
         assert result.is_sold_out is True
 
     def test_missing_optional_fields_use_defaults(self):
-        """ticket_link, tixologi_event_id, metadata_text, show_comedians are optional."""
+        """ticket_link, tixologi_event_id, metadata_text, show_comedians, and id are optional."""
         data = {"title": "Minimal Show", "datetime": "2026-04-01T20:00:00"}
         result = PunchupExtractor._build_punchup_show(data)
         assert result is not None
+        assert result.id == ""
         assert result.ticket_link == ""
         assert result.tixologi_event_id is None
         assert result.metadata_text is None
@@ -90,6 +91,12 @@ class TestBuildPunchupShow:
 
     def test_metadata_text_none_stored_as_none(self):
         result = PunchupExtractor._build_punchup_show(_valid_data(metadata_text=None))
+        assert result is not None
+        assert result.metadata_text is None
+
+    def test_empty_string_metadata_text_stored_as_none(self):
+        """Empty string metadata_text is coerced to None via 'or None'."""
+        result = PunchupExtractor._build_punchup_show(_valid_data(metadata_text=""))
         assert result is not None
         assert result.metadata_text is None
 
@@ -175,6 +182,19 @@ class TestParseItems:
         items = [_carousel_item(datetime="")]
         result = PunchupExtractor._parse_items(items)
         assert result == []
+
+    def test_show_key_absent_skipped(self):
+        """Item with type='show' but no 'show' key is skipped (item.get('show') returns None)."""
+        items = [{"type": "show"}, _carousel_item()]
+        result = PunchupExtractor._parse_items(items)
+        assert len(result) == 1
+        assert result[0].title == "Test Show"
+
+    def test_empty_dict_item_skipped(self):
+        """An empty dict has no 'type' key, so it is skipped."""
+        items = [{}, _carousel_item()]
+        result = PunchupExtractor._parse_items(items)
+        assert len(result) == 1
 
     def test_mixed_valid_and_invalid_items(self):
         items = [
