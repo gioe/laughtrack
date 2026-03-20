@@ -253,6 +253,29 @@ class PunchupExtractor:
         return None
 
     @staticmethod
+    def _build_punchup_show(data: dict) -> Optional[PunchupShow]:
+        """
+        Build a PunchupShow from a raw show data dict.
+
+        Used by both _parse_items (carousel format) and _parse_venue_shows_items
+        (flat venueShows format). Returns None if required fields are missing.
+        """
+        title = (data.get("title") or "").strip()
+        datetime_str = (data.get("datetime") or "").strip()
+        if not title or not datetime_str:
+            return None
+        return PunchupShow(
+            id=data.get("id", ""),
+            title=title,
+            datetime_str=datetime_str,
+            ticket_link=data.get("ticket_link", ""),
+            tixologi_event_id=data.get("tixologi_event_id"),
+            is_sold_out=bool(data.get("is_sold_out", False)),
+            metadata_text=data.get("metadata_text") or None,
+            show_comedians=data.get("show_comedians") or [],
+        )
+
+    @staticmethod
     def _parse_items(items: list) -> List[PunchupShow]:
         """Convert raw carousel item dicts into PunchupShow objects."""
         shows = []
@@ -264,25 +287,10 @@ class PunchupExtractor:
             if not isinstance(show_data, dict):
                 continue
 
-            title = show_data.get("title", "").strip()
-            datetime_str = show_data.get("datetime", "").strip()
-
-            if not title or not datetime_str:
-                continue
-
             try:
-                shows.append(
-                    PunchupShow(
-                        id=show_data.get("id", ""),
-                        title=title,
-                        datetime_str=datetime_str,
-                        ticket_link=show_data.get("ticket_link", ""),
-                        tixologi_event_id=show_data.get("tixologi_event_id"),
-                        is_sold_out=bool(show_data.get("is_sold_out", False)),
-                        metadata_text=show_data.get("metadata_text") or None,
-                        show_comedians=show_data.get("show_comedians") or [],
-                    )
-                )
+                show = PunchupExtractor._build_punchup_show(show_data)
+                if show:
+                    shows.append(show)
             except Exception as e:
                 Logger.warn(f"Punchup: skipping malformed show item: {e}")
                 continue
@@ -336,25 +344,10 @@ class PunchupExtractor:
             if not isinstance(item, dict):
                 continue
 
-            title = (item.get("title") or "").strip()
-            datetime_str = (item.get("datetime") or "").strip()
-
-            if not title or not datetime_str:
-                continue
-
             try:
-                shows.append(
-                    PunchupShow(
-                        id=item.get("id", ""),
-                        title=title,
-                        datetime_str=datetime_str,
-                        ticket_link=item.get("ticket_link", ""),
-                        tixologi_event_id=item.get("tixologi_event_id"),
-                        is_sold_out=bool(item.get("is_sold_out", False)),
-                        metadata_text=item.get("metadata_text") or None,
-                        show_comedians=item.get("show_comedians") or [],
-                    )
-                )
+                show = PunchupExtractor._build_punchup_show(item)
+                if show:
+                    shows.append(show)
             except Exception as e:
                 Logger.warn(f"Punchup (venueShows): skipping malformed show item: {e}")
                 continue
