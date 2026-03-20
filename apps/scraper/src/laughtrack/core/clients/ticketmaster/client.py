@@ -172,38 +172,6 @@ class TicketmasterClient(BaseApiClient):
             self.log_error(f"Error searching venues: {e}")
             return []
 
-    async def get_event_details(self, event_id: str) -> Optional[JSONDict]:
-        """
-        Get detailed information for a specific event.
-
-        Args:
-            event_id: Ticketmaster event ID
-
-        Returns:
-            Event details dictionary or None if not found
-        """
-        try:
-            # Build API parameters
-            params = {"apikey": self.api_key}
-
-            # Enforce rate limiting
-            self._enforce_rate_limit()
-
-            # Make API request
-            url = f"{self.BASE_URL}/events/{event_id}.json"
-
-            full_url = URLUtils.build_url(url, params=params)
-            event_data = await self.fetch_json(full_url, headers=self.headers)
-            if not event_data:
-                self.log_warning(f"Event details unavailable for event {event_id}")
-                return None
-
-            return event_data
-
-        except Exception as e:
-            self.log_error(f"Error fetching event details for {event_id}: {e}")
-            return None
-
     def create_show(self, event_data: JSONDict) -> Optional[Show]:
         """
         Convert Ticketmaster API event data to a Show object.
