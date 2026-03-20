@@ -9,12 +9,22 @@ from laughtrack.core.models.domain_metrics import DomainRequestMetrics, Scraping
 from laughtrack.core.models.results import ClubScrapingResult
 
 
-def _make_summary(ok=0, none_resp=0, error=0, club_name="Test Club"):
+def _make_summary(ok=0, none_resp=0, error=0, club_name="Test Club", scraper_type=None):
     s = ScrapingRunSummary()
-    m = DomainRequestMetrics(club_name=club_name, total=ok + none_resp + error,
+    m = DomainRequestMetrics(club_name=club_name, scraper_type=scraper_type,
+                             total=ok + none_resp + error,
                              ok=ok, none_resp=none_resp, error=error)
     s.per_club.append(m)
     return s
+
+
+def _make_mock_config(channels=None):
+    """Return a MonitoringConfig mock that reports the given channels."""
+    mock_config = MagicMock()
+    mock_config.get_configured_channels.return_value = channels if channels is not None else ["discord"]
+    mock_config.is_discord_configured.return_value = "discord" in (channels or ["discord"])
+    mock_config.discord_webhook_url = "https://discord.example/webhook" if "discord" in (channels or ["discord"]) else None
+    return mock_config
 
 
 class TestCheckAndAlert:
@@ -34,13 +44,16 @@ class TestCheckAndAlert:
 
     def test_alert_fired_when_club_below_threshold(self):
         svc = self._make_service(threshold=70.0)
-        summary = _make_summary(error=1)  # 0% success rate
-        with patch.object(svc, '_send_discord_alert') as mock_alert:
-            svc._check_and_alert(summary)
-            mock_alert.assert_called_once()
-            failing = mock_alert.call_args[0][0]
-            assert len(failing) == 1
-            assert failing[0].club_name == "Test Club"
+        summary = _make_summary(error=1)  # 0% success rate, no scraper_type → individual
+        mock_config = _make_mock_config(channels=["discord"])
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig:
+            MockConfig.default.return_value = mock_config
+            with patch.object(svc, '_send_discord_alert') as mock_alert:
+                svc._check_and_alert(summary)
+                mock_alert.assert_called_once()
+                individual_arg = mock_alert.call_args[0][0]
+                assert len(individual_arg) == 1
+                assert individual_arg[0].club_name == "Test Club"
 
     def test_alert_not_fired_when_exactly_at_threshold(self):
         svc = self._make_service(threshold=70.0)
@@ -49,6 +62,102 @@ class TestCheckAndAlert:
         with patch.object(svc, '_send_discord_alert') as mock_alert:
             svc._check_and_alert(summary)
             mock_alert.assert_not_called()
+
+
+class TestClassifyFailing:
+    def _make_service(self):
+        from laughtrack.core.services.scraping import ScrapingService
+        with patch.object(ScrapingService, '__init__', lambda self, *a, **kw: None):
+            svc = ScrapingService.__new__(ScrapingService)
+            svc.success_rate_threshold = 70.0
+        return svc
+
+    def _m(self, name, scraper_type=None, ok=0, error=1, none_resp=0):
+        total = ok + error + none_resp
+        return DomainRequestMetrics(club_name=name, scraper_type=scraper_type,
+                                    total=total, ok=ok, error=error, none_resp=none_resp)
+
+    def _summary(self, metrics):
+        s = ScrapingRunSummary()
+        s.per_club.extend(metrics)
+        return s
+
+    def test_full_outage_produces_summary_line(self):
+        """All 5 clubs of a scraper type fail → single outage summary, no individual entries."""
+        svc = self._make_service()
+        clubs = [self._m(f"Club {i}", scraper_type="seatengine") for i in range(5)]
+        summary = self._summary(clubs)
+
+        outage_lines, individual = svc._classify_failing(clubs, summary)
+
+        assert len(outage_lines) == 1
+        assert "seatengine" in outage_lines[0]
+        assert "5/5" in outage_lines[0]
+        assert individual == []
+
+    def test_partial_outage_produces_individual_alerts(self):
+        """Only 1/4 clubs fail (25%) → individual alerts, no outage summary."""
+        svc = self._make_service()
+        good = [self._m(f"Good {i}", scraper_type="seatengine", ok=1, error=0) for i in range(3)]
+        bad = [self._m("Bad Club", scraper_type="seatengine")]
+        summary = self._summary(good + bad)
+
+        outage_lines, individual = svc._classify_failing(bad, summary)
+
+        assert outage_lines == []
+        assert len(individual) == 1
+        assert individual[0].club_name == "Bad Club"
+
+    def test_boundary_exactly_80_percent_is_outage(self):
+        """4/5 clubs failing = 80% → triggers outage threshold."""
+        svc = self._make_service()
+        good = [self._m("Good", scraper_type="tessera", ok=1, error=0)]
+        bad = [self._m(f"Bad {i}", scraper_type="tessera") for i in range(4)]
+        summary = self._summary(good + bad)
+
+        outage_lines, individual = svc._classify_failing(bad, summary)
+
+        assert len(outage_lines) == 1
+        assert "4/5" in outage_lines[0]
+        assert individual == []
+
+    def test_boundary_just_below_80_percent_is_individual(self):
+        """3/4 clubs failing = 75% → below threshold, individual alerts."""
+        svc = self._make_service()
+        good = [self._m("Good", scraper_type="tessera", ok=1, error=0)]
+        bad = [self._m(f"Bad {i}", scraper_type="tessera") for i in range(3)]
+        summary = self._summary(good + bad)
+
+        outage_lines, individual = svc._classify_failing(bad, summary)
+
+        assert outage_lines == []
+        assert len(individual) == 3
+
+    def test_mixed_provider_outage_and_individual(self):
+        """One provider at full outage (5/5), another at partial (1/5)."""
+        svc = self._make_service()
+        se_clubs = [self._m(f"SE {i}", scraper_type="seatengine") for i in range(5)]
+        t_good = [self._m(f"TG {i}", scraper_type="tessera", ok=1, error=0) for i in range(4)]
+        t_bad = [self._m("TB", scraper_type="tessera")]
+        summary = self._summary(se_clubs + t_good + t_bad)
+
+        outage_lines, individual = svc._classify_failing(se_clubs + t_bad, summary)
+
+        assert len(outage_lines) == 1
+        assert "seatengine" in outage_lines[0]
+        assert len(individual) == 1
+        assert individual[0].club_name == "TB"
+
+    def test_no_scraper_type_treated_as_individual(self):
+        """Clubs without scraper_type always go to individual regardless of count."""
+        svc = self._make_service()
+        clubs = [self._m(f"No Type {i}", scraper_type=None) for i in range(5)]
+        summary = self._summary(clubs)
+
+        outage_lines, individual = svc._classify_failing(clubs, summary)
+
+        assert outage_lines == []
+        assert len(individual) == 5
 
 
 class TestSendDiscordAlertSkipsWhenNotConfigured:
