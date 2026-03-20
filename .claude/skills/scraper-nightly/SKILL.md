@@ -35,8 +35,8 @@ Parse the JSON array. Take the first entry (most recent). Note its `databaseId`,
 
 **Step 3 — Download the artifact:**
 ```bash
-TMPDIR=$(mktemp -d)
-gh run download <databaseId> --name scraper-dashboard-<databaseId> --dir "$TMPDIR" 2>&1
+ARTIFACTS_DIR=$(mktemp -d)
+gh run download <databaseId> --name scraper-dashboard-<databaseId> --dir "$ARTIFACTS_DIR" 2>&1
 ```
 If download fails (artifact expired, not found) → print:
 > `⚠  Artifact not available for run <databaseId> — falling back to local metrics`
@@ -45,9 +45,9 @@ Then go to **Mode: Local**.
 
 **Step 4 — Locate metrics file:**
 ```bash
-ls "$TMPDIR/apps/scraper/metrics/metrics_"*.json 2>/dev/null | sort | tail -1
+ls "$ARTIFACTS_DIR/apps/scraper/metrics/metrics_"*.json 2>/dev/null | sort | tail -1
 ```
-If no file found → try `ls "$TMPDIR/metrics_"*.json 2>/dev/null | sort | tail -1`.
+If no file found → try `ls "$ARTIFACTS_DIR/metrics_"*.json 2>/dev/null | sort | tail -1`.
 If still none → fall back to **Mode: Local**.
 
 Set `METRICS_FILE` to the found path and go to **Render Report**.
@@ -75,7 +75,7 @@ Run the following inline Python, substituting `$METRICS_FILE` with the actual pa
 ```bash
 python3 - "$METRICS_FILE" << 'PYEOF'
 import sys, json, os, glob
-from datetime import datetime, timezone
+from datetime import datetime
 
 path = sys.argv[1]
 d = json.load(open(path))
