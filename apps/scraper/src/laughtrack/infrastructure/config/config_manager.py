@@ -183,10 +183,10 @@ class ConfigManager:
 
         _seatengine_cb_cooldown_raw = os.getenv("SEATENGINE_CB_COOLDOWN") or "300"
         try:
-            _seatengine_cb_cooldown = int(_seatengine_cb_cooldown_raw)
+            _seatengine_cb_cooldown = float(_seatengine_cb_cooldown_raw)
         except ValueError:
             raise ValueError(
-                f"SEATENGINE_CB_COOLDOWN must be a valid integer, got: {_seatengine_cb_cooldown_raw!r}"
+                f"SEATENGINE_CB_COOLDOWN must be a valid number, got: {_seatengine_cb_cooldown_raw!r}"
             )
 
         self._config["api"] = {
