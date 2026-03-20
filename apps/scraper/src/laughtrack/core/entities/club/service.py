@@ -79,6 +79,9 @@ class ClubService:
         if len(exact) == 1:
             return exact[0]
         if len(exact) > 1:
+            # Defensive: club names are unique in the DB today, but guard against
+            # future duplicates (e.g. after a botched import) rather than silently
+            # returning the wrong club.
             names = ", ".join(c.name for c in exact)
             Logger.error(f"Ambiguous club name '{name}': multiple exact matches found: {names}")
             return None
