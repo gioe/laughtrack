@@ -4,6 +4,7 @@ import asyncio
 import json
 import os
 import uuid
+from collections import defaultdict
 from datetime import datetime, timezone
 from typing import Optional, List
 
@@ -244,8 +245,6 @@ class ScrapingService:
             outage_lines: one summary string per scraper type that crossed the outage threshold
             individual_failing: remaining failing clubs whose type is below the outage threshold
         """
-        from collections import defaultdict
-
         all_by_type: dict[str, list] = defaultdict(list)
         for m in summary.per_club:
             if m.scraper_type:
@@ -310,7 +309,8 @@ class ScrapingService:
                 source="ScrapingService",
                 metadata={
                     "threshold_pct": self.success_rate_threshold,
-                    "failing_domains": list(outage_lines or []) + [m.club_name for m in failing],
+                    "outage_summaries": list(outage_lines or []),
+                    "failing_domains": [m.club_name for m in failing],
                 },
             )
             channel = DiscordAlertChannel(webhook_url=config.discord_webhook_url)
@@ -364,7 +364,8 @@ class ScrapingService:
                 source="ScrapingService",
                 metadata={
                     "threshold_pct": self.success_rate_threshold,
-                    "failing_domains": list(outage_lines or []) + [m.club_name for m in failing],
+                    "outage_summaries": list(outage_lines or []),
+                    "failing_domains": [m.club_name for m in failing],
                 },
             )
             channel = EmailAlertChannel(recipients=config.alert_recipients)
@@ -416,7 +417,8 @@ class ScrapingService:
                 source="ScrapingService",
                 metadata={
                     "threshold_pct": self.success_rate_threshold,
-                    "failing_domains": list(outage_lines or []) + [m.club_name for m in failing],
+                    "outage_summaries": list(outage_lines or []),
+                    "failing_domains": [m.club_name for m in failing],
                 },
             )
             channel = WebhookAlertChannel(webhook_url=config.webhook_url, headers=config.webhook_headers)
