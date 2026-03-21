@@ -32,6 +32,7 @@ class Offer:
     price: str
     availability: str
     valid_from: Optional[datetime] = None
+    name: Optional[str] = None
 
 
 @dataclass
@@ -249,6 +250,7 @@ class JsonLdEvent(ShowConvertible):
                     price=offer.get("price", ""),
                     availability=offer.get("availability", ""),
                     valid_from=valid_from,
+                    name=offer.get("name"),
                 )
             )
 
