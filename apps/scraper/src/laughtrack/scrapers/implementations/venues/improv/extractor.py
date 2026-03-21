@@ -168,7 +168,7 @@ class ImprovExtractor:
     @staticmethod
     def process_ticket_url(
         ticket_html: str, ticket_url: str, logger_context: Optional[Dict] = None
-    ) -> Optional[List[JsonLdEvent]]:
+    ) -> Optional[List[ImprovEvent]]:
         try:
             # Step 1: Extract JSON-LD event data
             json_ld_events = ImprovExtractor.extract_json_ld_events(ticket_html, logger_context)
@@ -176,7 +176,18 @@ class ImprovExtractor:
                 Logger.warning(f"No JSON-LD events found on ticket URL: {ticket_url}", logger_context or {})
                 return None
 
-            return json_ld_events
+            # Step 2: Convert each JsonLdEvent to ImprovEvent
+            improv_events = [
+                ImprovExtractor.create_improv_event(event, ticket_offers=[], source_url=ticket_url, logger_context=logger_context)
+                for event in json_ld_events
+            ]
+            improv_events = [e for e in improv_events if e is not None]
+
+            if not improv_events:
+                Logger.warning(f"No ImprovEvents created from ticket URL: {ticket_url}", logger_context or {})
+                return None
+
+            return improv_events
 
         except Exception as e:
             Logger.error(f"Error processing ticket URL {ticket_url}: {e}", logger_context or {})

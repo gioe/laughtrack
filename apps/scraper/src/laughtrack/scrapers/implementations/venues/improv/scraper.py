@@ -8,7 +8,6 @@ Follows the standardized 5-component architecture pattern.
 from typing import List, Optional
 
 from laughtrack.core.entities.club.model import Club
-from laughtrack.core.entities.event.event import JsonLdEvent
 from laughtrack.core.entities.event.improv import ImprovEvent
 from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
 from laughtrack.foundation.infrastructure.logger.logger import Logger
@@ -106,7 +105,7 @@ class ImprovScraper(BaseScraper):
             )
             batch = BatchScraper(self.logger_context, config=batch_config)
 
-            async def process_ticket(link: str) -> List[JsonLdEvent]:
+            async def process_ticket(link: str) -> List[ImprovEvent]:
                 events = await self._process_single_ticket_url(link, base_url)
                 if not events:
                     # Signal failure so BatchScraper counts it and omits from results
@@ -119,8 +118,8 @@ class ImprovScraper(BaseScraper):
                 description="improv ticket URLs",
             )
 
-            # Flatten the list of lists into a single list of JsonLdEvent
-            event_list: List[JsonLdEvent] = [event for sublist in raw_event_lists if sublist for event in sublist]
+            # Flatten the list of lists into a single list of ImprovEvent
+            event_list: List[ImprovEvent] = [event for sublist in raw_event_lists if sublist for event in sublist]
 
             return ImprovPageData(event_list)
 
@@ -128,7 +127,7 @@ class ImprovScraper(BaseScraper):
             Logger.error(f"Error extracting data from {url}: {e}", self.logger_context)
             return None
 
-    async def _process_single_ticket_url(self, ticket_url: str, source_url: str) -> Optional[List[JsonLdEvent]]:
+    async def _process_single_ticket_url(self, ticket_url: str, source_url: str) -> Optional[List[ImprovEvent]]:
         """
         Process a single ticket URL to extract event data.
 

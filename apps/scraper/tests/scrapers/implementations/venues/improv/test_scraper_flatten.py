@@ -10,10 +10,11 @@ pytestmark = pytest.mark.skipif(
 )
 
 from laughtrack.core.entities.club.model import Club
-from laughtrack.core.entities.event.event import JsonLdEvent, Place, PostalAddress
+from laughtrack.core.entities.event.improv import ImprovEvent
 from laughtrack.scrapers.implementations.venues.improv import scraper as improv_scraper_module
 from laughtrack.scrapers.implementations.venues.improv.scraper import ImprovScraper
 from laughtrack.scrapers.implementations.venues.improv.data import ImprovPageData
+from laughtrack.scrapers.implementations.venues.improv.transformer import ImprovEventTransformer
 
 
 class FakeBatchScraper:
@@ -30,21 +31,10 @@ class FakeBatchScraper:
         ]
 
 
-def _make_event(label: str) -> JsonLdEvent:
-    return JsonLdEvent(
+def _make_event(label: str) -> ImprovEvent:
+    return ImprovEvent(
         name=f"Event {label}",
         start_date=datetime(2025, 1, 1, tzinfo=timezone.utc),
-        location=Place(
-            name="Test Venue",
-            address=PostalAddress(
-                street_address="123 St",
-                address_locality="City",
-                address_region="ST",
-                postal_code="00000",
-                address_country="US",
-            ),
-        ),
-        offers=[],
         url=f"https://example.com/{label}",
         description="desc",
     )
@@ -102,5 +92,31 @@ async def test_improv_scraper_flattens_batch_results(monkeypatch):
     # Assert
     assert isinstance(result, ImprovPageData)
     assert len(result.event_list) == 3
-    assert all(isinstance(e, JsonLdEvent) for e in result.event_list)
+    assert all(isinstance(e, ImprovEvent) for e in result.event_list)
     assert [e.name for e in result.event_list] == ["Event E1", "Event E2", "Event E3"]
+
+
+def test_improv_event_transformer_can_transform_improv_event():
+    """Regression: ImprovEventTransformer.can_transform() must return True for ImprovEvent."""
+    club = Club(
+        id=1,
+        name="Test Club",
+        address="123 St",
+        website="https://example.com",
+        scraping_url="https://improv.test/calendar",
+        popularity=0,
+        zip_code="00000",
+        phone_number="000-0000",
+        visible=True,
+        timezone="UTC",
+        scraper="improv",
+        eventbrite_id=None,
+        ticketmaster_id=None,
+        seatengine_id=None,
+        rate_limit=1.0,
+        max_retries=1,
+        timeout=5,
+    )
+    transformer = ImprovEventTransformer(club)
+    event = _make_event("X")
+    assert transformer.can_transform(event), "ImprovEventTransformer must accept ImprovEvent instances"
