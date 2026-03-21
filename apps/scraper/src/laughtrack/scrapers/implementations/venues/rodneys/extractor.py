@@ -83,9 +83,9 @@ class RodneyEventExtractor:
 
         The current rodneysnewyorkcomedyclub.com show pages embed event data
         in specific CSS-classed elements rather than JSON-LD:
-          - Title: <h4 class="bg-darkGray ...">
-          - Date:  <h4> inside a parent with class "bg-sampleDark", containing " | "
-          - Ticket URL: first <a href="...parde.app...">
+          - Title: <h4 class="uppercase ...">
+          - Date:  <h4 class="mb-5 ..."> containing " | "
+          - Ticket URL: first <a href="https://parde.app/...">
 
         Args:
             html_content: Raw HTML from a show page
@@ -121,7 +121,7 @@ class RodneyEventExtractor:
             # Ticket URL (parde.app checkout link)
             ticket_url: Optional[str] = None
             for a in soup.find_all("a", href=True):
-                if "parde.app" in a["href"]:
+                if a["href"].startswith("https://parde.app"):
                     ticket_url = a["href"]
                     break
 
@@ -153,7 +153,9 @@ class RodneyEventExtractor:
             date_str: Raw date string from the h4 element
 
         Returns:
-            datetime object, or None if parsing fails
+            Naive datetime in the venue's local timezone (America/New_York).
+            Timezone localization is applied downstream by the transformer.
+            Returns None if parsing fails.
         """
         # Strip weekday prefix ("Sat | " etc.)
         m = re.search(r"\|\s*(.+)", date_str)
