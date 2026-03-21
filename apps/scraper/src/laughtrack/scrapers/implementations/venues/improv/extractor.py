@@ -177,10 +177,15 @@ class ImprovExtractor:
                 return None
 
             # Step 2: Convert each JsonLdEvent to ImprovEvent
-            improv_events = [
-                ImprovExtractor.create_improv_event(event, ticket_offers=[], source_url=ticket_url, logger_context=logger_context)
-                for event in json_ld_events
-            ]
+            improv_events = []
+            for event in json_ld_events:
+                ticket_offers = [
+                    {"url": offer.url, "price": offer.price, "name": "General Admission"}
+                    for offer in (event.offers or [])
+                ]
+                improv_events.append(
+                    ImprovExtractor.create_improv_event(event, ticket_offers=ticket_offers, source_url=ticket_url, logger_context=logger_context)
+                )
             improv_events = [e for e in improv_events if e is not None]
 
             if not improv_events:
