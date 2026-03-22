@@ -148,17 +148,23 @@ class ShowHandler(BaseDatabaseHandler[Show]):
         template = BatchTemplateGenerator.generate_dynamic_template(items)
         return items, template
 
-    def _update_shows_and_related(self, batch: List[Show], results: List[DictRow]) -> List[Show]:
-        """Update shows with DB results and process tickets, tags, and lineups."""
+    def _update_shows_and_related(
+        self, batch: List[Show], results: List[DictRow]
+    ) -> Tuple[List[Show], int, int]:
+        """Update shows with DB results and process tickets, tags, and lineups.
+
+        Returns:
+            Tuple of (updated_shows, comedians_inserted, lineup_items_added).
+        """
         # Update shows with database results
         updated_shows = ShowUtils.update_shows_with_results(batch, results)
 
         # Process tickets, tags, and lineups through their handlers
         self.ticket_handler.insert_tickets(updated_shows)
         self.tag_handler.process_show_tags(updated_shows)
-        self.update_show_lineups(updated_shows)
+        comedians_inserted, lineup_items_added = self.update_show_lineups(updated_shows)
 
-        return updated_shows
+        return updated_shows, comedians_inserted, lineup_items_added
 
     def _summarize_and_log(self, updated_shows: List[Show], batch_len: int) -> Tuple[int, int, List[Dict]]:
         """Create results payload, count operations, and log metrics."""
@@ -199,7 +205,7 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             raise ValueError("No shows were inserted or updated")
 
         # Update shows and related entities, then summarize
-        updated_shows = self._update_shows_and_related(batch, results)
+        updated_shows, comedians_inserted, lineup_items_added = self._update_shows_and_related(batch, results)
         inserts, updates, show_results = self._summarize_and_log(updated_shows, len(batch))
 
         return DatabaseOperationResult(
@@ -207,6 +213,8 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             updates=updates,
             total=len(show_results),
             duplicate_details=duplicate_details,
+            comedians_inserted=comedians_inserted,
+            lineup_items_added=lineup_items_added,
         )
 
     def get_show_details(self, show_ids: List[int]) -> List[DictRow]:
@@ -347,18 +355,21 @@ class ShowHandler(BaseDatabaseHandler[Show]):
                 if novel_comedians:
                     show.lineup.extend(novel_comedians)
 
-    def update_show_lineups(self, shows: List[Show]) -> None:
+    def update_show_lineups(self, shows: List[Show]) -> Tuple[int, int]:
         """Update lineups for shows with full processing including comedian popularity updates.
 
         Args:
             shows: List of shows to update
+
+        Returns:
+            Tuple of (comedians_inserted, lineup_items_added).
 
         Raises:
             Exception: If database operations fail
         """
         if not shows:
             Logger.info("No shows provided for lineup update")
-            return
+            return 0, 0
 
         try:
             # Extract valid show IDs
@@ -374,8 +385,15 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             # Process comedian additions in memory
             self._process_comedian_additions(shows, show_name_comedians_map)
 
+            # Insert any new comedians before updating lineup links
+            all_comedians = list({comedian for show in shows for comedian in show.lineup})
+            comedians_inserted = 0
+            if all_comedians:
+                inserted_rows = self.comedian_handler.insert_comedians(all_comedians)
+                comedians_inserted = len(inserted_rows)
+
             # Batch update all lineups at once
-            self.lineup_handler.batch_update_lineups(shows, db_lineups, self.comedian_handler)
+            lineup_items_added, _ = self.lineup_handler.batch_update_lineups(shows, db_lineups)
 
             # Collect all comedian UUIDs and update popularity
             comedian_uuids = ShowUtils.collect_comedian_uuids(shows)
@@ -386,6 +404,8 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             self.calculate_and_update_popularity(show_ids)
 
             Logger.info(f"Successfully updated lineups for {len(shows)} shows")
+            return comedians_inserted, lineup_items_added
 
         except Exception as e:
             Logger.error(f"Error updating show lineups (non-fatal): {str(e)}")
+            return 0, 0
