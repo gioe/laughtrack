@@ -76,7 +76,6 @@ class TicketmasterScraper(BaseScraper):
 
             events = await self.ticketmaster_client.fetch_events(
                 self.venue_id,
-                classificationName="comedy",
                 size=200,
                 sort="date,asc",
             )
