@@ -199,3 +199,33 @@ def test_transform_to_show_22rams_returns_correct_prices_and_purchase_url():
     assert prices["Up to"] == 30.0
     for ticket in show.tickets:
         assert ticket.purchase_url == "https://22rams.com/events/789"
+
+
+def test_transform_to_show_eventbrite_empty_string_prices_returns_no_tickets():
+    show = _transformer().transform_to_show(
+        _event(
+            source_type="eventbrite",
+            ticket_info={
+                "min_price": "",
+                "max_price": "",
+                "purchase_url": "https://eventbrite.com/e/999",
+            },
+        )
+    )
+    assert show is not None
+    assert show.tickets == []
+
+
+def test_transform_to_show_eventbrite_none_prices_returns_no_tickets():
+    show = _transformer().transform_to_show(
+        _event(
+            source_type="eventbrite",
+            ticket_info={
+                "min_price": None,
+                "max_price": None,
+                "purchase_url": "https://eventbrite.com/e/999",
+            },
+        )
+    )
+    assert show is not None
+    assert show.tickets == []

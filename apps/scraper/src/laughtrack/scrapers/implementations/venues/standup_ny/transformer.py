@@ -195,7 +195,7 @@ class StandupNYEventTransformer(DataTransformer[StandupNYEvent]):
                 price = breakdown.get("price", 0.0)
 
                 ticket = Ticket(
-                    price=float(price) if price is not None else 0.0,
+                    price=float(price) if price else 0.0,
                     purchase_url=ticket_url,
                     sold_out=ticket_data.get("soldOut", False),
                     type=ticket_data.get("type", "General Admission"),

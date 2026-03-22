@@ -110,23 +110,32 @@ class RodneyEventTransformer(DataTransformer[RodneyEvent]):
 
         # Handle different ticket info structures based on source type
         if event.source_type == "html":
-            # JSON-LD tickets
+            purchase_url = ticket_info.get("purchase_url", source_url)
             price = ticket_info.get("price")
+            sold_out = ticket_info.get("availability", "").lower() == "soldout"
             if price:
                 try:
-                    # Clean up price string and convert to float
                     price_value = float(str(price).replace("$", "").replace(",", ""))
-                    sold_out = ticket_info.get("availability", "").lower() == "soldout"
                     tickets.append(
                         Ticket(
                             price=price_value,
                             type="General Admission",
-                            purchase_url=ticket_info.get("purchase_url", source_url),
+                            purchase_url=purchase_url,
                             sold_out=sold_out,
                         )
                     )
                 except (ValueError, TypeError):
                     pass
+            elif purchase_url:
+                # No price in HTML — create a ticket with the purchase URL only
+                tickets.append(
+                    Ticket(
+                        price=0.0,
+                        type="General Admission",
+                        purchase_url=purchase_url,
+                        sold_out=sold_out,
+                    )
+                )
 
         elif event.source_type in ["eventbrite", "22rams"]:
             # API-based tickets with min/max pricing
@@ -134,12 +143,12 @@ class RodneyEventTransformer(DataTransformer[RodneyEvent]):
             max_price = ticket_info.get("max_price")
             purchase_url = ticket_info.get("purchase_url", source_url)
 
-            if min_price is not None:
+            if min_price:
                 tickets.append(
                     Ticket(price=float(min_price), type="Starting at", purchase_url=purchase_url, sold_out=False)
                 )
 
-            if max_price is not None and max_price != min_price:
+            if max_price and max_price != min_price:
                 tickets.append(Ticket(price=float(max_price), type="Up to", purchase_url=purchase_url, sold_out=False))
 
         return tickets
