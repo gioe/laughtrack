@@ -73,7 +73,7 @@ class ScrapingService:
         results, summary, db_result = self._scrape_clubs_with_metrics(clubs)
         self._emit_summary(summary)
         self._check_and_alert(summary)
-        self._send_discord_run_summary(summary, db_result)
+        self._send_run_summary(summary, db_result)
         self.result_processor.process_results(results, db_result)
         self.club_handler.refresh_club_total_shows()
         return results
@@ -331,6 +331,24 @@ class ScrapingService:
         except Exception as e:  # pragma: no cover - defensive
             Logger.error(f"Failed to send Discord scraping alert: {e}")
 
+    def _send_run_summary(self, summary: ScrapingRunSummary, db_result: "DatabaseOperationResult") -> None:
+        """Dispatch the post-run summary to all configured alert channels."""
+        try:
+            from laughtrack.infrastructure.config.monitoring_config import MonitoringConfig
+            config = MonitoringConfig.default()
+            channels = config.get_configured_channels()
+        except ImportError as e:  # pragma: no cover
+            Logger.error(f"Monitoring package not available; skipping run summary: {e}")
+            channels = ["discord"]
+
+        for channel in channels:
+            if channel == "discord":
+                self._send_discord_run_summary(summary, db_result)
+            elif channel == "email":
+                self._send_email_run_summary(summary, db_result)
+            elif channel == "webhook":
+                self._send_webhook_run_summary(summary, db_result)
+
     def _send_discord_run_summary(self, summary: ScrapingRunSummary, db_result: "DatabaseOperationResult") -> None:
         """Post an unconditional run summary to Discord after every scrape_all_clubs run."""
         try:
@@ -392,6 +410,128 @@ class ScrapingService:
                 asyncio.run(channel.send_alert(alert))
         except Exception as e:  # pragma: no cover - defensive
             Logger.error(f"Failed to send Discord run summary: {e}")
+
+    def _send_email_run_summary(self, summary: ScrapingRunSummary, db_result: "DatabaseOperationResult") -> None:
+        """Post an unconditional run summary to the email channel after every scrape_all_clubs run."""
+        try:
+            from laughtrack.infrastructure.config.monitoring_config import MonitoringConfig
+            from laughtrack.infrastructure.monitoring.channels import EmailAlertChannel
+            from laughtrack.infrastructure.monitoring.alerts import Alert, AlertSeverity
+        except ImportError as e:  # pragma: no cover
+            Logger.error(f"Monitoring package not available; skipping email run summary: {e}")
+            return
+
+        try:
+            config = MonitoringConfig.default()
+            if not config.is_email_configured() or not config.alert_recipients:
+                Logger.warn("Email not configured; skipping run summary")
+                return
+
+            title = f"Scrape run: {summary.clubs_ok}/{summary.total_clubs} clubs OK"
+            body_lines = [
+                f"Shows scraped: {db_result.total}",
+                f"Shows inserted: {db_result.inserts}",
+                f"Shows updated: {db_result.updates}",
+                "",
+                "Per-club breakdown:",
+            ]
+            for m in summary.per_club:
+                icon = "OK" if m.success_rate >= self.success_rate_threshold else "WARN"
+                body_lines.append(
+                    f"[{icon}] {m.club_name}: {m.success_rate:.0f}% ({m.ok}/{m.total} ok, "
+                    f"{m.none_resp} empty, {m.error} errors)"
+                )
+
+            alert = Alert(
+                id=str(uuid.uuid4()),
+                title=title,
+                description="\n".join(body_lines),
+                severity=AlertSeverity.LOW,
+                timestamp=datetime.now(timezone.utc),
+                source="ScrapingService",
+                metadata={
+                    "clubs_ok": summary.clubs_ok,
+                    "total_clubs": summary.total_clubs,
+                    "shows_total": db_result.total,
+                    "shows_inserted": db_result.inserts,
+                    "shows_updated": db_result.updates,
+                },
+            )
+            channel = EmailAlertChannel(recipients=config.alert_recipients)
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                loop = None
+
+            if loop is not None and loop.is_running():
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                    executor.submit(asyncio.run, channel.send_alert(alert)).result()
+            else:
+                asyncio.run(channel.send_alert(alert))
+        except Exception as e:  # pragma: no cover - defensive
+            Logger.error(f"Failed to send email run summary: {e}")
+
+    def _send_webhook_run_summary(self, summary: ScrapingRunSummary, db_result: "DatabaseOperationResult") -> None:
+        """Post an unconditional run summary to the webhook channel after every scrape_all_clubs run."""
+        try:
+            from laughtrack.infrastructure.config.monitoring_config import MonitoringConfig
+            from laughtrack.infrastructure.monitoring.channels import WebhookAlertChannel
+            from laughtrack.infrastructure.monitoring.alerts import Alert, AlertSeverity
+        except ImportError as e:  # pragma: no cover
+            Logger.error(f"Monitoring package not available; skipping webhook run summary: {e}")
+            return
+
+        try:
+            config = MonitoringConfig.default()
+            if not config.is_webhook_configured() or not config.webhook_url:
+                Logger.warn("Webhook not configured; skipping run summary")
+                return
+
+            title = f"Scrape run: {summary.clubs_ok}/{summary.total_clubs} clubs OK"
+            body_lines = [
+                f"Shows scraped: {db_result.total}",
+                f"Shows inserted: {db_result.inserts}",
+                f"Shows updated: {db_result.updates}",
+                "",
+                "Per-club breakdown:",
+            ]
+            for m in summary.per_club:
+                icon = "OK" if m.success_rate >= self.success_rate_threshold else "WARN"
+                body_lines.append(
+                    f"[{icon}] {m.club_name}: {m.success_rate:.0f}% ({m.ok}/{m.total} ok, "
+                    f"{m.none_resp} empty, {m.error} errors)"
+                )
+
+            alert = Alert(
+                id=str(uuid.uuid4()),
+                title=title,
+                description="\n".join(body_lines),
+                severity=AlertSeverity.LOW,
+                timestamp=datetime.now(timezone.utc),
+                source="ScrapingService",
+                metadata={
+                    "clubs_ok": summary.clubs_ok,
+                    "total_clubs": summary.total_clubs,
+                    "shows_total": db_result.total,
+                    "shows_inserted": db_result.inserts,
+                    "shows_updated": db_result.updates,
+                },
+            )
+            channel = WebhookAlertChannel(webhook_url=config.webhook_url, headers=config.webhook_headers)
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                loop = None
+
+            if loop is not None and loop.is_running():
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                    executor.submit(asyncio.run, channel.send_alert(alert)).result()
+            else:
+                asyncio.run(channel.send_alert(alert))
+        except Exception as e:  # pragma: no cover - defensive
+            Logger.error(f"Failed to send webhook run summary: {e}")
 
     def _send_email_alert(self, failing: List[DomainRequestMetrics], *, outage_lines: Optional[List[str]] = None) -> None:
         try:
