@@ -50,7 +50,7 @@ def create_connection(autocommit: bool = True) -> psycopg2.extensions.connection
         last_error: psycopg2.OperationalError | None = None
         for attempt, delay in enumerate([0] + _CONNECT_RETRY_DELAYS, start=1):
             if delay:
-                Logger.warn(f"DB connection attempt {attempt} failed ({last_error}); retrying in {delay}s")
+                Logger.warn(f"DB connection attempt {attempt - 1} failed ({last_error}); retrying in {delay}s")
                 time.sleep(delay)
             try:
                 conn = psycopg2.connect(
@@ -68,7 +68,8 @@ def create_connection(autocommit: bool = True) -> psycopg2.extensions.connection
                 last_error = e
 
         Logger.error(f"Failed to create database connection: {str(last_error)}")
-        raise last_error  # type: ignore[misc]
+        assert last_error is not None
+        raise last_error
 
     except (psycopg2.Error, ValueError):
         raise

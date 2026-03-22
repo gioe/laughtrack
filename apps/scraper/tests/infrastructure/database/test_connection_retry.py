@@ -85,6 +85,16 @@ class TestCreateConnectionRetry:
 
         mock_sleep.assert_not_called()
 
+    def test_non_operational_psycopg2_error_not_retried(self):
+        """InterfaceError and other non-OperationalError psycopg2.Error subclasses propagate immediately."""
+        err = psycopg2.InterfaceError("connection already closed")
+
+        with _patch_config(), _patch_sleep() as mock_sleep, patch("psycopg2.connect", side_effect=err):
+            with pytest.raises(psycopg2.InterfaceError):
+                create_connection()
+
+        mock_sleep.assert_not_called()
+
     def test_autocommit_set_on_connection(self):
         mock_conn = MagicMock()
         with _patch_config(), _patch_sleep(), patch("psycopg2.connect", return_value=mock_conn):
