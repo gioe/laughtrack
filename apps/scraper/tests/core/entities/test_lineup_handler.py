@@ -329,7 +329,7 @@ class TestUpdateShowsAndRelatedCallsLineup:
             return_value=shows,
         ):
             with patch.object(h, "update_show_lineups") as mock_lineup:
-                mock_lineup.side_effect = lambda *a, **kw: call_order.append("lineups")
+                mock_lineup.side_effect = lambda *a, **kw: (call_order.append("lineups"), (0, 0))[1]
                 h._update_shows_and_related(shows, results)
 
         assert "lineups" in call_order, "update_show_lineups was not called"
@@ -347,82 +347,14 @@ class TestUpdateShowsAndRelatedCallsLineup:
             "update_shows_with_results",
             return_value=updated,
         ):
-            with patch.object(h, "update_show_lineups") as mock_lineup:
-                result = h._update_shows_and_related([MagicMock()], [MagicMock()])
+            with patch.object(h, "update_show_lineups", return_value=(3, 7)) as mock_lineup:
+                result_shows, comedians_inserted, lineup_items_added = h._update_shows_and_related(
+                    [MagicMock()], [MagicMock()]
+                )
                 mock_lineup.assert_called_once_with(updated)
-                assert result == updated, "_update_shows_and_related must return the updated shows list"
-
-
-# ---------------------------------------------------------------------------
-# Tests: LineupHandler.batch_update_lineups — comedian_handler injection
-# ---------------------------------------------------------------------------
-
-class TestBatchUpdateLineupsComedianHandlerInjection:
-    def _make_handler(self):
-        h = _make_lineup_handler()
-        # batch ops are no-ops (batch_update_lineups uses execute_batch_operation for add/remove)
-        h.execute_batch_operation.return_value = None
-        return h
-
-    def test_insert_comedians_called_with_all_comedians_when_shows_have_lineup(self):
-        """inject_handler.insert_comedians() is called with all comedians from shows."""
-        h = self._make_handler()
-        comedian_handler = MagicMock()
-
-        c1, c2 = MagicMock(), MagicMock()
-        show1 = MagicMock()
-        show1.id = 1
-        show1.lineup = [c1]
-        show2 = MagicMock()
-        show2.id = 2
-        show2.lineup = [c2]
-
-        h.batch_update_lineups(
-            shows=[show1, show2],
-            current_lineups={},
-            comedian_handler=comedian_handler,
-        )
-
-        comedian_handler.insert_comedians.assert_called_once()
-        args, _ = comedian_handler.insert_comedians.call_args
-        inserted = set(args[0])
-        assert inserted == {c1, c2}
-
-    def test_insert_comedians_not_called_when_all_shows_have_empty_lineups(self):
-        """insert_comedians() must NOT be called when all shows have no lineup members."""
-        h = self._make_handler()
-        comedian_handler = MagicMock()
-
-        show = MagicMock()
-        show.id = 10
-        show.lineup = []
-
-        h.batch_update_lineups(
-            shows=[show],
-            current_lineups={},
-            comedian_handler=comedian_handler,
-        )
-
-        comedian_handler.insert_comedians.assert_not_called()
-
-    def test_passed_in_comedian_handler_is_used_not_a_new_one(self):
-        """The exact comedian_handler object passed in is the one invoked."""
-        h = self._make_handler()
-        my_handler = MagicMock()
-        other_handler = MagicMock()
-
-        show = MagicMock()
-        show.id = 20
-        show.lineup = [MagicMock()]
-
-        h.batch_update_lineups(
-            shows=[show],
-            current_lineups={},
-            comedian_handler=my_handler,
-        )
-
-        my_handler.insert_comedians.assert_called_once()
-        other_handler.insert_comedians.assert_not_called()
+                assert result_shows == updated, "_update_shows_and_related must return the updated shows list"
+                assert comedians_inserted == 3
+                assert lineup_items_added == 7
 
 
 # ---------------------------------------------------------------------------
@@ -439,7 +371,6 @@ class TestBatchUpdateLineupsLineupMutation:
     def test_batch_add_lineup_items_called_with_correct_items_when_comedian_added(self):
         """batch_add_lineup_items receives the LineupItem for each newly added comedian."""
         h = self._make_handler()
-        comedian_handler = MagicMock()
 
         new_comedian = MagicMock()
         new_comedian.uuid = "uuid-new"
@@ -450,20 +381,19 @@ class TestBatchUpdateLineupsLineupMutation:
 
         sentinel = object()
         with patch.object(_lineup_handler_mod.LineupItem, "create_lineup_item", return_value=sentinel) as mock_create:
-            h.batch_update_lineups(
+            result = h.batch_update_lineups(
                 shows=[show],
                 current_lineups={},  # empty — comedian is new
-                comedian_handler=comedian_handler,
             )
 
         mock_create.assert_called_once_with(1, "uuid-new")
         h.batch_add_lineup_items.assert_called_once_with([sentinel])
         h.batch_delete_lineup_items.assert_not_called()
+        assert result == (1, 0), "should return (items_added=1, items_removed=0)"
 
     def test_batch_delete_lineup_items_called_with_correct_items_when_comedian_removed(self):
         """batch_delete_lineup_items receives the LineupItem for each departed comedian."""
         h = self._make_handler()
-        comedian_handler = MagicMock()
 
         old_comedian = MagicMock()
         old_comedian.uuid = "uuid-old"
@@ -474,20 +404,19 @@ class TestBatchUpdateLineupsLineupMutation:
 
         sentinel = object()
         with patch.object(_lineup_handler_mod.LineupItem, "create_lineup_item", return_value=sentinel) as mock_create:
-            h.batch_update_lineups(
+            result = h.batch_update_lineups(
                 shows=[show],
                 current_lineups={5: [old_comedian]},
-                comedian_handler=comedian_handler,
             )
 
         mock_create.assert_called_once_with(5, "uuid-old")
         h.batch_delete_lineup_items.assert_called_once_with([sentinel])
         h.batch_add_lineup_items.assert_not_called()
+        assert result == (0, 1), "should return (items_added=0, items_removed=1)"
 
     def test_neither_add_nor_delete_called_when_lineup_unchanged(self):
         """No mutation calls when the new lineup matches the current lineup exactly."""
         h = self._make_handler()
-        comedian_handler = MagicMock()
 
         comedian = MagicMock()
         comedian.uuid = "uuid-same"
@@ -499,11 +428,56 @@ class TestBatchUpdateLineupsLineupMutation:
         show.id = 9
         show.lineup = [comedian]
 
-        h.batch_update_lineups(
+        result = h.batch_update_lineups(
             shows=[show],
             current_lineups={9: [current_comedian]},
-            comedian_handler=comedian_handler,
         )
 
         h.batch_add_lineup_items.assert_not_called()
         h.batch_delete_lineup_items.assert_not_called()
+        assert result == (0, 0), "should return (items_added=0, items_removed=0)"
+
+
+# ---------------------------------------------------------------------------
+# Tests: DatabaseOperationResult — new comedian/lineup count fields
+# ---------------------------------------------------------------------------
+
+# Stubs needed for operation_result.py's transitive imports
+_stub("laughtrack.foundation.models.types", DuplicateKeyDetails=MagicMock())
+_stub("laughtrack.foundation.models", DuplicateKeyDetails=MagicMock(), as_package=True)
+
+_operation_result_mod = _load_module(
+    "src/laughtrack/foundation/models/operation_result.py",
+    "laughtrack.foundation.models.operation_result_direct",
+)
+_RealDatabaseOperationResult = _operation_result_mod.DatabaseOperationResult
+
+
+class TestDatabaseOperationResultComedianLineupFields:
+    def test_comedians_inserted_defaults_to_zero(self):
+        r = _RealDatabaseOperationResult()
+        assert r.comedians_inserted == 0
+
+    def test_lineup_items_added_defaults_to_zero(self):
+        r = _RealDatabaseOperationResult()
+        assert r.lineup_items_added == 0
+
+    def test_add_sums_comedians_inserted(self):
+        a = _RealDatabaseOperationResult(comedians_inserted=3)
+        b = _RealDatabaseOperationResult(comedians_inserted=5)
+        result = a + b
+        assert result.comedians_inserted == 8
+
+    def test_add_sums_lineup_items_added(self):
+        a = _RealDatabaseOperationResult(lineup_items_added=10)
+        b = _RealDatabaseOperationResult(lineup_items_added=7)
+        result = a + b
+        assert result.lineup_items_added == 17
+
+    def test_add_preserves_existing_fields(self):
+        a = _RealDatabaseOperationResult(inserts=2, comedians_inserted=1, lineup_items_added=4)
+        b = _RealDatabaseOperationResult(inserts=3, comedians_inserted=2, lineup_items_added=6)
+        result = a + b
+        assert result.inserts == 5
+        assert result.comedians_inserted == 3
+        assert result.lineup_items_added == 10
