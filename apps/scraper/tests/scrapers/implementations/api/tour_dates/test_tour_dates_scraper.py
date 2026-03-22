@@ -372,6 +372,42 @@ def test_persist_shows_and_lineups_links_lineups(platform_club):
     assert called_shows[0].id == 99
 
 
+def test_persist_shows_and_lineups_does_not_insert_comedians(platform_club):
+    """_persist_shows_and_lineups must NOT call comedian_handler.insert_comedians.
+
+    TourDates comedians are pre-seeded in the DB (they are sourced from
+    _get_comedians_with_tour_ids which queries rows that already exist).
+    Calling insert_comedians here would be incorrect — it could create
+    incomplete comedian rows or overwrite fields set by admin tooling.
+    """
+    from laughtrack.core.entities.comedian.model import Comedian
+
+    future_date = datetime(2027, 9, 1, 20, 0, tzinfo=timezone.utc)
+    comedian = Comedian(name="Pre-seeded Comic", uuid="pre-seeded-uuid")
+    show = Show(
+        name="Pre-seeded Comic at Venue",
+        club_id=1,
+        date=future_date,
+        show_page_url="https://www.songkick.com/concerts/99",
+        lineup=[comedian],
+    )
+
+    def fake_insert_shows(shows):
+        for s in shows:
+            s.id = 77
+
+    scraper = TourDatesScraper(platform_club)
+
+    with patch.object(scraper._show_handler, "insert_shows", side_effect=fake_insert_shows):
+        with patch.object(scraper._lineup_handler, "batch_update_lineups", return_value=(1, 0)):
+            with patch.object(
+                scraper._comedian_handler, "insert_comedians"
+            ) as mock_insert_comedians:
+                scraper._persist_shows_and_lineups([show])
+
+    mock_insert_comedians.assert_not_called()
+
+
 def test_persist_shows_and_lineups_skips_lineup_when_no_ids(platform_club):
     """If insert_shows() fails to set IDs, lineup insertion is skipped gracefully."""
     future_date = datetime(2027, 9, 2, 20, 0, tzinfo=timezone.utc)

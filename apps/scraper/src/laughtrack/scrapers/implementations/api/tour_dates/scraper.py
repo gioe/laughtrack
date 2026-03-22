@@ -373,7 +373,19 @@ class TourDatesScraper(BaseScraper):
     # ------------------------------------------------------------------ #
 
     def _persist_shows_and_lineups(self, shows: List[Show]) -> None:
-        """Upsert shows and link comedians as LineupItems."""
+        """Upsert shows and link comedians as LineupItems.
+
+        Comedian insertion invariant: this method calls batch_update_lineups()
+        directly, without inserting comedians first.  That is intentional and
+        safe because every comedian in show.lineup originated from
+        _get_comedians_with_tour_ids(), which queries the ``comedians`` table
+        for rows that already have a songkick_id or bandsintown_id.  Those
+        comedians are pre-seeded in the database by the admin tooling before
+        TourDatesScraper runs; they are never first-created here.  If a
+        comedian UUID is not yet in the DB the lineup link will silently be
+        skipped by batch_update_lineups (foreign-key miss), which is the
+        desired behaviour rather than accidentally inserting an incomplete row.
+        """
         try:
             # insert_shows() upserts shows and populates their .id fields
             self._show_handler.insert_shows(shows)
@@ -385,6 +397,7 @@ class TourDatesScraper(BaseScraper):
 
             # batch_update_lineups needs the current DB state as the baseline;
             # pass empty dict so it only adds (never removes).
+            # NOTE: No comedian insertion is needed here — see docstring.
             self._lineup_handler.batch_update_lineups(shows_with_ids, {})
 
             Logger.info(
