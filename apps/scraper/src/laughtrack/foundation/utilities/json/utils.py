@@ -162,9 +162,52 @@ class JSONUtils:
         return cleaned
 
     @staticmethod
+    def extract_json_variable(html_content: str, variable_name: str) -> Optional[Any]:
+        """
+        Extract a JSON object assigned to a JavaScript variable in HTML.
+
+        Looks for patterns like:
+            var EVENT = {"event_id": "123", ...};
+
+        Uses json.JSONDecoder.raw_decode() so semicolons and closing braces
+        inside string values (e.g. HTML entities, formatted text) never
+        terminate the extraction early.
+
+        Args:
+            html_content: HTML content containing JavaScript
+            variable_name: JavaScript variable name (e.g. "EVENT")
+
+        Returns:
+            Parsed Python object (dict, list, etc.) or None if not found /
+            not parseable.
+        """
+        import json as _json
+
+        marker = f"var {variable_name} = {{"
+        idx = html_content.find(marker)
+        if idx == -1:
+            return None
+
+        start = idx + len(marker) - 1  # position of the opening '{'
+        try:
+            obj, _ = _json.JSONDecoder().raw_decode(html_content, start)
+            return obj
+        except (_json.JSONDecodeError, ValueError):
+            return None
+
+    @staticmethod
     def extract_variable_assignments(html_content: str, variable_name: str) -> List[str]:
         """
         Extract variable assignments from JavaScript code.
+
+        .. deprecated::
+            Use :meth:`extract_json_variable` instead.
+            This method uses a semicolon-terminated non-greedy regex
+            (``(.+?);``) that truncates the match at the first ``;`` inside
+            the value — breaking on HTML entities (``&amp;``) and any other
+            embedded semicolons.  ``extract_json_variable`` uses
+            ``json.JSONDecoder.raw_decode()`` and handles all JSON-legal
+            content correctly.
 
         Args:
             html_content: HTML content containing JavaScript
