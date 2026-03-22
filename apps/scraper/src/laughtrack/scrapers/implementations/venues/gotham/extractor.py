@@ -217,33 +217,18 @@ class GothamEventExtractor:
         Looks for JavaScript variable assignment like:
         var EVENT = {"event_id":"10081681", ...};
 
-        Uses json.JSONDecoder.raw_decode() to extract the full JSON object
-        starting at the opening brace, so semicolons and curly braces inside
-        string values (e.g. HTML entities, formatted text) do not truncate
-        the match.
-
         Args:
             html_content: HTML content from Showclix event page
 
         Returns:
             event_id string if found, None otherwise
         """
-        import json as _json
-
         try:
-            # Find the EVENT variable assignment — locate the opening brace
-            marker = "var EVENT = {"
-            idx = html_content.find(marker)
-            if idx == -1:
+            event_data = JSONUtils.extract_json_variable(html_content, "EVENT")
+
+            if event_data is None:
                 Logger.warn("No EVENT variable found in HTML", self.logger_context)
                 return None
-
-            start = idx + len(marker) - 1  # position of the opening '{'
-
-            # raw_decode parses from 'start' and returns (obj, end_index),
-            # correctly handling any JSON-legal content inside string values.
-            decoder = _json.JSONDecoder()
-            event_data, _ = decoder.raw_decode(html_content, start)
 
             if isinstance(event_data, dict):
                 event_id = event_data.get("event_id")
