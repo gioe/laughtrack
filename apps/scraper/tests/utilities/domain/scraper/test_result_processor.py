@@ -32,8 +32,34 @@ class TestInsertClubResult:
         result = _make_result("Comedy Club", num_shows=3)
         outcome = proc.insert_club_result(result)
 
-        proc.show_service.insert_shows.assert_called_once_with(result.shows)
+        proc.show_service.insert_shows.assert_called_once_with(result.shows, club_name="Comedy Club")
         assert outcome.inserts == 3
+
+    def test_error_entries_propagated_from_db_errors(self):
+        proc = _make_processor()
+        db_result = DatabaseOperationResult(
+            db_errors=1,
+            error_entries=[("Comedy Club", "DB error batch 1/1: connection reset")],
+        )
+        proc.show_service.insert_shows.return_value = db_result
+
+        result = _make_result("Comedy Club", num_shows=5)
+        outcome = proc.insert_club_result(result)
+
+        assert outcome.db_errors == 1
+        assert len(outcome.error_entries) == 1
+        assert outcome.error_entries[0][0] == "Comedy Club"
+        assert "DB error" in outcome.error_entries[0][1]
+
+    def test_no_error_entries_on_success(self):
+        proc = _make_processor()
+        db_result = DatabaseOperationResult(inserts=2)
+        proc.show_service.insert_shows.return_value = db_result
+
+        result = _make_result("Happy Club", num_shows=2)
+        outcome = proc.insert_club_result(result)
+
+        assert outcome.error_entries == []
 
     def test_returns_empty_result_when_no_shows(self):
         proc = _make_processor()

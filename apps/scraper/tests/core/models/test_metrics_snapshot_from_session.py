@@ -75,3 +75,57 @@ def test_from_session_with_duplicates():
     assert d.room == "Main"
     assert d.kept.name == "Kept"
     assert len(d.dropped) == 2
+
+
+def test_from_session_db_error_entries_appear_in_error_details():
+    """error_entries on DatabaseOperationResult must populate snapshot.error_details."""
+    session = ScrapingSessionResult(shows=[], errors=[], per_club_stats=[])
+    db_ops = DatabaseOperationResult(
+        db_errors=1,
+        error_entries=[("Comedy Club", "DB error batch 1/1: connection reset by peer")],
+    )
+
+    snap = ScrapingMetricsSnapshot.from_session(session, db_ops, dt=datetime.now(timezone.utc))
+
+    assert len(snap.error_details) == 1
+    detail = snap.error_details[0]
+    assert detail.club == "Comedy Club"
+    assert "DB error" in (detail.error or "")
+
+
+def test_from_session_scraping_and_db_errors_merged():
+    """Scraping-phase errors and DB-persistence errors are both in error_details."""
+    session = ScrapingSessionResult(
+        shows=[],
+        errors=[ErrorDetail(club="Scrape Fail Club", error="timeout", execution_time=5.0)],
+        per_club_stats=[],
+    )
+    db_ops = DatabaseOperationResult(
+        validation_errors=2,
+        error_entries=[
+            ("Persist Club", "Validation error batch 1/2: missing date"),
+            ("Persist Club", "Validation error batch 2/2: missing title"),
+        ],
+    )
+
+    snap = ScrapingMetricsSnapshot.from_session(session, db_ops, dt=datetime.now(timezone.utc))
+
+    assert len(snap.error_details) == 3
+    clubs = [d.club for d in snap.error_details]
+    assert "Scrape Fail Club" in clubs
+    assert clubs.count("Persist Club") == 2
+
+
+def test_from_session_no_db_errors_leaves_error_details_from_scraping_only():
+    """When db_ops has no error_entries, error_details matches scraping errors only."""
+    session = ScrapingSessionResult(
+        shows=[],
+        errors=[ErrorDetail(club="Club X", error="HTTP 503", execution_time=1.2)],
+        per_club_stats=[],
+    )
+    db_ops = DatabaseOperationResult(inserts=5)
+
+    snap = ScrapingMetricsSnapshot.from_session(session, db_ops, dt=datetime.now(timezone.utc))
+
+    assert len(snap.error_details) == 1
+    assert snap.error_details[0].club == "Club X"
