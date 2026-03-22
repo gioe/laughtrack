@@ -17,6 +17,7 @@ Processed message IDs are persisted in a `processed_emails` PostgreSQL table so
 the same email is never ingested twice across runs.
 """
 
+import asyncio
 from abc import abstractmethod
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
@@ -58,8 +59,8 @@ class EmailBaseScraper(BaseScraper):
 
     sender_domain: str  # Must be overridden by every concrete subclass
 
-    def __init__(self, club: Club) -> None:
-        super().__init__(club)
+    def __init__(self, club: Club, **kwargs) -> None:
+        super().__init__(club, **kwargs)
         if not getattr(self, "sender_domain", None):
             raise TypeError(
                 f"{type(self).__name__} must set a non-empty 'sender_domain' class attribute."
@@ -149,10 +150,11 @@ class EmailBaseScraper(BaseScraper):
         remaining GmailMessage objects by ID, and returns the IDs as scraping
         targets.
         """
-        self._ensure_processed_table()
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(None, self._ensure_processed_table)
 
         emails: List[GmailMessage] = self._inbox_client.list_unread_emails(self.sender_domain)
-        processed: Set[str] = self._load_processed_ids()
+        processed: Set[str] = await loop.run_in_executor(None, self._load_processed_ids)
 
         targets: List[ScrapingTarget] = []
         for email in emails:
@@ -191,9 +193,11 @@ class EmailBaseScraper(BaseScraper):
             )
             return None
 
+        loop = asyncio.get_running_loop()
+
         if not message.html_body:
             # Mark so we do not keep retrying a text-only or empty email.
-            self._mark_processed(target)
+            await loop.run_in_executor(None, self._mark_processed, target)
             return None
 
         try:
@@ -208,7 +212,7 @@ class EmailBaseScraper(BaseScraper):
                 f"[EmailBaseScraper] parse_email_html raised for {target}: {parse_exc}",
                 self.logger_context,
             )
-            self._mark_processed(target)
+            await loop.run_in_executor(None, self._mark_processed, target)
             return None
 
         page_data = EmailPageData(
@@ -217,7 +221,7 @@ class EmailBaseScraper(BaseScraper):
             received_at=received_at,
             event_list=events,
         )
-        self._mark_processed(target)
+        await loop.run_in_executor(None, self._mark_processed, target)
         return page_data
 
     # ------------------------------------------------------------------
