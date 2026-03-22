@@ -324,6 +324,27 @@ class TestCreateShowFromJsonld:
         result = client._create_show_from_jsonld(data, "https://tixr.com/x")
         assert result is None
 
+    def test_html_entities_decoded_in_all_string_fields(self, monkeypatch):
+        client = self._client(monkeypatch)
+        data = self._valid_data()
+        data["name"] = "Comedy &amp; Friends"
+        data["description"] = "A night of laughs &amp; fun with Dave&#39;s crew"
+        data["performer"] = [{"@type": "Person", "name": "Dave &amp; Friends"}]
+        data["offers"] = [
+            {
+                "price": "20.00",
+                "availability": "https://schema.org/InStock",
+                "url": "https://tixr.com/x",
+                "name": "GA &amp; VIP Combo",
+            }
+        ]
+        show = client._create_show_from_jsonld(data, "https://tixr.com/x")
+        assert show is not None
+        assert show.name == "Comedy & Friends"
+        assert show.description == "A night of laughs & fun with Dave's crew"
+        assert show.lineup[0].name == "Dave & Friends"
+        assert show.tickets[0].type == "GA & VIP Combo"
+
     def test_show_page_url_falls_back_to_page_url(self, monkeypatch):
         client = self._client(monkeypatch)
         data = self._valid_data()

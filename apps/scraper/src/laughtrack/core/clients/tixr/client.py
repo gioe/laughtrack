@@ -242,15 +242,16 @@ class TixrClient(BaseApiClient):
                 return None
 
             show_page_url = data.get("url") or page_url
-            description = data.get("description")
+            raw_description = data.get("description")
+            description = html.unescape(raw_description) if raw_description else raw_description
 
             # Extract lineup from performer array
             lineup: List[Comedian] = []
             for performer in data.get("performer", []):
                 if isinstance(performer, dict):
-                    performer_name = performer.get("name", "").strip()
+                    performer_name = html.unescape(performer.get("name", "").strip())
                 elif isinstance(performer, str):
-                    performer_name = performer.strip()
+                    performer_name = html.unescape(performer.strip())
                 else:
                     continue
                 if performer_name:
@@ -267,7 +268,7 @@ class TixrClient(BaseApiClient):
                     price = 0.0
                 availability = offer.get("availability", "")
                 sold_out = "SoldOut" in availability
-                ticket_type = offer.get("name", "General Admission")
+                ticket_type = html.unescape(offer.get("name", "General Admission"))
                 tickets.append(
                     Ticket(
                         price=price,
