@@ -2,6 +2,7 @@
 Simplified Tixr API client for fetching event details.
 """
 
+import html
 import json
 import re
 from typing import Any, Dict, List, Optional
@@ -228,7 +229,7 @@ class TixrClient(BaseApiClient):
             Show object if successful, None otherwise
         """
         try:
-            name = data.get("name", "")
+            name = html.unescape(data.get("name", ""))
             start_date = data.get("startDate")
             if not start_date:
                 self.log_warning(f"JSON-LD Event has no startDate for {page_url}")
