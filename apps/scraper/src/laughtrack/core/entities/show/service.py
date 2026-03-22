@@ -15,12 +15,14 @@ class ShowService:
         """Initialize the show service."""
         self.show_handler = ShowHandler()
 
-    def insert_shows(self, 
-                     shows: List[Show]) -> DatabaseOperationResult:
+    def insert_shows(self,
+                     shows: List[Show],
+                     club_name: Optional[str] = None) -> DatabaseOperationResult:
         """Save shows to database in batches with automatic validation and error handling.
 
         Args:
             shows: List of shows to save
+            club_name: Optional club name for error reporting in metrics
 
         Returns:
             DatabaseOperationResult with operation counts
@@ -32,7 +34,7 @@ class ShowService:
         else:
             # Save shows to database
             Logger.info(f"Saving {len(shows)} shows to database...")
-            return self.show_handler.insert_shows(shows)
+            return self.show_handler.insert_shows(shows, club_name=club_name)
             
     def update_show_popularity(self, show_ids: Optional[List[int]] = None) -> None:
         """

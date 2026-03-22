@@ -1,6 +1,6 @@
 """Show database handler for show-specific operations."""
 
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from laughtrack.core.data.base_handler import BaseDatabaseHandler
 from laughtrack.core.entities.comedian.handler import ComedianHandler
@@ -44,15 +44,17 @@ class ShowHandler(BaseDatabaseHandler[Show]):
         """Return the Show class for instantiation."""
         return Show
 
-    def insert_shows(self, 
-                     shows: List[Show], 
-                     batch_size: int = DEFAULT_BATCH_SIZE) -> DatabaseOperationResult:
+    def insert_shows(self,
+                     shows: List[Show],
+                     batch_size: int = DEFAULT_BATCH_SIZE,
+                     club_name: Optional[str] = None) -> DatabaseOperationResult:
         """Save shows to database with full processing including tickets and tags.
         Processes shows in batches for optimal performance.
 
         Args:
             shows: List of shows to save
             batch_size: Size of each batch for processing
+            club_name: Optional club name for error reporting in metrics
 
         Returns:
             DatabaseOperationResult with operation counts
@@ -79,20 +81,31 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             except psycopg2.DatabaseError as e:
                 failed_batches += 1
                 Logger.error(f"Database error processing batch {batch_num}/{total_batches}: {e}")
-                # Count as DB error
                 total_result.db_errors += 1
+                if club_name:
+                    total_result.error_entries.append(
+                        (club_name, f"DB error batch {batch_num}/{total_batches}: {e}")
+                    )
                 continue
             except ValueError as e:
                 failed_batches += 1
                 Logger.error(f"Validation error in batch {batch_num}/{total_batches}: {e}")
                 total_result.validation_errors += 1
+                if club_name:
+                    total_result.error_entries.append(
+                        (club_name, f"Validation error batch {batch_num}/{total_batches}: {e}")
+                    )
                 continue
             except Exception as e:
                 failed_batches += 1
                 Logger.error(f"Unexpected error processing batch {batch_num}/{total_batches}: {e}")
                 total_result.errors += 1
+                if club_name:
+                    total_result.error_entries.append(
+                        (club_name, f"Unexpected error batch {batch_num}/{total_batches}: {e}")
+                    )
                 continue
-            
+
         return total_result
 
     def _create_show_results(self, updated_shows: List[Show]) -> List[Dict]:
