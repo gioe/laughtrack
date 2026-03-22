@@ -1,8 +1,7 @@
 """Improv Asylum data transformation utilities."""
 
-from laughtrack.core.entities.event.tixr import TixrEvent
-from laughtrack.utilities.infrastructure.transformer.base import DataTransformer
+from laughtrack.core.clients.tixr import TixrVenueEventTransformer
 
 
-class ImprovAsylumEventTransformer(DataTransformer[TixrEvent]):
+class ImprovAsylumEventTransformer(TixrVenueEventTransformer):
     pass
