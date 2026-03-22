@@ -98,7 +98,6 @@ class TicketmasterClient(BaseApiClient):
             params = {
                 "apikey": self.api_key,
                 "venueId": venue_id,
-                "classificationName": "comedy",  # Focus on comedy events
                 "size": 200,  # Maximum events per request
                 "sort": "date,asc",  # Sort by date
                 **kwargs,
