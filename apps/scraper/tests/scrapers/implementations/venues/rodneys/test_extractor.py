@@ -6,6 +6,7 @@ from datetime import datetime
 
 import pytest
 
+from laughtrack.core.entities.event.rodneys import RodneyEvent
 from laughtrack.scrapers.implementations.venues.rodneys.extractor import RodneyEventExtractor
 
 
@@ -122,3 +123,17 @@ class TestExtractEventFromHtmlPage:
     def test_empty_html_returns_empty(self):
         events = RodneyEventExtractor._extract_event_from_html_page("<html></html>", SOURCE_URL)
         assert events == []
+
+
+class TestGenerateIdFromUrl:
+    def test_normal_url(self):
+        assert RodneyEvent._generate_id_from_url("https://example.com/shows/my-show") == "my-show"
+
+    def test_trailing_slash_matches_non_trailing_slash(self):
+        without = RodneyEvent._generate_id_from_url("https://example.com/shows/my-show")
+        with_slash = RodneyEvent._generate_id_from_url("https://example.com/shows/my-show/")
+        assert without == with_slash == "my-show"
+
+    def test_no_path_raises(self):
+        with pytest.raises(ValueError, match="no path segments"):
+            RodneyEvent._generate_id_from_url("")
