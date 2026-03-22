@@ -217,6 +217,10 @@ class GothamEventExtractor:
         Looks for JavaScript variable assignment like:
         var EVENT = {"event_id":"10081681", ...};
 
+        Uses brace-counting to extract the full JSON object, so semicolons
+        inside string values (e.g. HTML entities like &amp; in description)
+        do not truncate the match.
+
         Args:
             html_content: HTML content from Showclix event page
 
@@ -224,15 +228,27 @@ class GothamEventExtractor:
             event_id string if found, None otherwise
         """
         try:
-            # Use JSONUtils to extract the EVENT variable assignment
-            event_assignments = JSONUtils.extract_variable_assignments(html_content, "EVENT")
-
-            if not event_assignments:
+            # Find the EVENT variable assignment — match up to the opening brace
+            marker = "var EVENT = {"
+            idx = html_content.find(marker)
+            if idx == -1:
                 Logger.warn("No EVENT variable found in HTML", self.logger_context)
                 return None
 
-            # Parse the first EVENT assignment found
-            event_json_str = event_assignments[0].strip()
+            # Count braces to find the full JSON object
+            start = idx + len(marker) - 1  # position of the opening '{'
+            depth = 0
+            end = start
+            for i, ch in enumerate(html_content[start:], start):
+                if ch == "{":
+                    depth += 1
+                elif ch == "}":
+                    depth -= 1
+                    if depth == 0:
+                        end = i
+                        break
+
+            event_json_str = html_content[start : end + 1]
 
             # Clean and parse the JSON
             cleaned_json = JSONUtils.comprehensive_clean(event_json_str)
