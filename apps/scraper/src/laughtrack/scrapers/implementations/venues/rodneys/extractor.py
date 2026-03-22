@@ -83,7 +83,7 @@ class RodneyEventExtractor:
 
         The current rodneysnewyorkcomedyclub.com show pages embed event data
         in specific CSS-classed elements rather than JSON-LD:
-          - Title: <h4 class="uppercase ...">
+          - Title: <h4 class="uppercase ..."> (primary); falls back to og:title meta tag
           - Date:  <h4 class="mb-5 ..."> containing " | "
           - Ticket URL: first <a href="https://parde.app/...">
 
@@ -99,10 +99,19 @@ class RodneyEventExtractor:
 
             # Title — h4 with class "uppercase" (show title heading)
             title_tag = soup.find("h4", class_="uppercase")
-            if not title_tag:
-                Logger.warn(f"No title h4.uppercase found on {source_url}")
-                return []
-            title = title_tag.get_text(strip=True)
+            if title_tag:
+                title = title_tag.get_text(strip=True)
+            else:
+                # Fallback: og:title meta tag (more stable across HTML redesigns).
+                # Format: "Show Name - Rodney's Comedy Club THE NEW YORK CITY COMEDY CLUB"
+                og_title_tag = soup.find("meta", {"property": "og:title"})
+                raw_og = og_title_tag.get("content", "").strip() if og_title_tag else ""
+                if raw_og:
+                    title = raw_og.split(" - Rodney's")[0].strip()
+                    Logger.warn(f"h4.uppercase not found; using og:title fallback on {source_url}")
+                else:
+                    Logger.warn(f"No title h4.uppercase found on {source_url}")
+                    return []
             if not title:
                 return []
 

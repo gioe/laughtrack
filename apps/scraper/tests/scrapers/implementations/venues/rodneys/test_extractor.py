@@ -124,6 +124,36 @@ class TestExtractEventFromHtmlPage:
         events = RodneyEventExtractor._extract_event_from_html_page("<html></html>", SOURCE_URL)
         assert events == []
 
+    def test_og_title_fallback_when_no_uppercase_h4(self):
+        """When h4.uppercase is absent, extract title from og:title meta tag."""
+        html = """<html><head>
+<meta property="og:title" content="Friday Night Stand-Up - Rodney's Comedy Club THE NEW YORK CITY COMEDY CLUB">
+</head><body>
+<h4 class="no-margin text-bold mb-5">Fri | March 27, 2026 - 9:00PM</h4>
+</body></html>"""
+        events = RodneyEventExtractor._extract_event_from_html_page(html, SOURCE_URL)
+        assert len(events) == 1
+        assert events[0].title == "Friday Night Stand-Up"
+
+    def test_og_title_fallback_strips_venue_suffix(self):
+        """og:title fallback correctly strips the '- Rodney's ...' suffix."""
+        html = """<html><head>
+<meta property="og:title" content="Josh Johnson Headlines! - Rodney's Comedy Club">
+</head><body>
+<h4 class="no-margin text-bold mb-5">Sat | March 28, 2026 - 8:00PM</h4>
+</body></html>"""
+        events = RodneyEventExtractor._extract_event_from_html_page(html, SOURCE_URL)
+        assert len(events) == 1
+        assert events[0].title == "Josh Johnson Headlines!"
+
+    def test_missing_title_no_og_fallback_returns_empty(self):
+        """No h4.uppercase and no og:title → empty list."""
+        html = """<html><body>
+<h4 class="no-margin text-bold mb-5">Sat | March 21, 2026 - 8:30PM</h4>
+</body></html>"""
+        events = RodneyEventExtractor._extract_event_from_html_page(html, SOURCE_URL)
+        assert events == []
+
 
 class TestGenerateIdFromUrl:
     def test_normal_url(self):
