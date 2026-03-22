@@ -93,7 +93,10 @@ class RodneyEvent:
     @staticmethod
     def _generate_id_from_url(url: str) -> str:
         """Generate a unique ID from URL when no ID is available."""
-        return url.split("/")[-1] or url.split("/")[-2]
+        segments = [s for s in url.rstrip("/").split("/") if s]
+        if not segments:
+            raise ValueError(f"Cannot generate ID: no path segments in URL '{url}'")
+        return segments[-1]
 
     @staticmethod
     def _extract_ticket_info_from_offers(offers: List[Any]) -> Optional[Dict[str, Any]]:
