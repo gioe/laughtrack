@@ -43,7 +43,7 @@ case "$1" in
       echo "error: --types requires a value (e.g. ./bin/scrape --types json_ld,broadway)" >&2
       exit 1
     fi
-    "$PYTHON" -m scripts.core.scrape_shows --scraper-types "$2"
+    "$PYTHON" -m scripts.core.scrape_shows --scraper-type "$2"
     ;;
   -*)
     echo "error: unknown flag '$1'" >&2
