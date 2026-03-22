@@ -78,8 +78,10 @@ class ImprovEvent(ShowConvertible):
 
             for offer in self.offers:
                 # Create basic ticket from offer dict
+                raw_price = offer.get("price", "")
+                price = float(raw_price) if raw_price else None
                 ticket = Ticket(
-                    price=offer.get("price", 0.0),
+                    price=price,
                     purchase_url=offer.get("url", ""),
                     type=offer.get("name", "General Admission"),
                     sold_out=False,  # Default for now

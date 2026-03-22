@@ -106,3 +106,29 @@ def test_transformation_pipeline_preserves_event_names():
 
     assert len(shows) == 1
     assert shows[0].name == "Comedians on a Thursday"
+
+
+def test_empty_price_coerced_to_none():
+    """
+    Regression: empty string price must become None (not '') on the Ticket,
+    so psycopg2 sends NULL instead of '' for the numeric column.
+    Previously caused 'invalid input syntax for type numeric: ""' DB errors.
+    """
+    club = _club()
+    scraper = ImprovScraper(club)
+
+    events = [
+        ImprovEvent(
+            name="Free Night",
+            start_date=datetime(2026, 6, 15, 20, 0, tzinfo=timezone.utc),
+            url="https://improv.test/show/99",
+            offers=[{"url": "https://improv.test/tickets/99", "price": "", "name": "General Admission"}],
+        )
+    ]
+    page_data = ImprovPageData(event_list=events)
+
+    shows = scraper.transformation_pipeline.transform(page_data)
+
+    assert len(shows) == 1
+    ticket = shows[0].tickets[0]
+    assert ticket.price is None, f"Expected price=None for empty string offer, got {ticket.price!r}"

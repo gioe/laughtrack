@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 class Ticket(DatabaseEntity):
     """Data model for a ticket to a show."""
 
-    price: float
+    price: Optional[float]
     purchase_url: str
     sold_out: bool = False
     type: str = "General Admission"
@@ -45,7 +45,7 @@ class Ticket(DatabaseEntity):
     def from_db_row(cls, row: DictRow) -> "Ticket":
         """Create Ticket entity from database row."""
         return cls(
-            price=float(row["price"]),
+            price=float(row["price"]) if row["price"] is not None else None,
             purchase_url=row["purchase_url"],
             sold_out=bool(row.get("sold_out", False)),
             type=row.get("type", "General Admission"),
