@@ -53,14 +53,20 @@ class GoofsEvent(ShowConvertible):
     @classmethod
     def from_dict(cls, data: dict) -> "GoofsEvent":
         """Create a GoofsEvent from a raw show dict from the RSC payload."""
+        raw_id = data.get("id", 0)
+        try:
+            parsed_id = int(raw_id)
+        except (ValueError, TypeError):
+            parsed_id = 0
+        raw_price = data.get("priceGaCents")
         return cls(
-            id=int(data.get("id", 0)),
+            id=parsed_id,
             slug=str(data.get("slug", data.get("id", ""))),
             date=data.get("date", ""),
             time=_normalize_time(data.get("time", "")),
             display_title=data.get("computedDisplayTitle") or data.get("title") or "",
             headliner_name=data.get("headlinerName") or None,
-            price_ga_cents=data.get("priceGaCents") or None,
+            price_ga_cents=int(raw_price) if raw_price is not None else None,
         )
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None):

@@ -33,9 +33,6 @@ class GoofsComedyClubScraper(BaseScraper):
         super().__init__(club, **kwargs)
         self.transformation_pipeline.register_transformer(GoofsEventTransformer(club))
 
-    def can_transform(self, raw_data) -> bool:
-        return True
-
     async def get_data(self, url: str) -> Optional[GoofsPageData]:
         """Fetch the /p/shows listing page and extract all upcoming shows."""
         try:

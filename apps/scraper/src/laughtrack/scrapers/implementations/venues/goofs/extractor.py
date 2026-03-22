@@ -61,7 +61,8 @@ class GoofsEventExtractor:
                         events.append(event)
                 except Exception as e:
                     Logger.warn(f"GoofsEventExtractor: skipping show {item.get('id')}: {e}")
-            return events
+            if events:
+                return events
 
         Logger.warn("GoofsEventExtractor: no initialShows array found in page HTML")
         return []
@@ -87,7 +88,7 @@ class GoofsEventExtractor:
             return None
 
         depth = 0
-        arr_end = arr_start
+        arr_end = -1
         for i, ch in enumerate(text[arr_start:]):
             if ch == "[":
                 depth += 1
@@ -96,6 +97,10 @@ class GoofsEventExtractor:
                 if depth == 0:
                     arr_end = arr_start + i + 1
                     break
+
+        if arr_end < 0:
+            Logger.warn("GoofsEventExtractor: unmatched bracket in initialShows array")
+            return None
 
         try:
             return json.loads(text[arr_start:arr_end])
