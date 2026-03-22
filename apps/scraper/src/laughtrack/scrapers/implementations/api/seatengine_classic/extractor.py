@@ -21,6 +21,7 @@ Each extracted show is a dict with keys:
   name, date_str, show_url, sold_out
 """
 
+import json
 import re
 from typing import List, Optional
 
@@ -35,6 +36,10 @@ class SeatEngineClassicExtractor:
     def extract_shows(html: str, base_url: str) -> List[JSONDict]:
         """
         Parse HTML and return a flat list of show dicts.
+
+        Tries HTML extraction first (event-list-item divs).
+        Falls back to JSON-LD extraction for *.seatengine.com/calendar pages
+        that embed events only in a JSON-LD Place schema.
 
         Args:
             html: Raw HTML of the events page.
@@ -64,11 +69,49 @@ class SeatEngineClassicExtractor:
                 if show:
                     shows.append(show)
 
+        if not shows:
+            shows = SeatEngineClassicExtractor._extract_json_ld(soup)
+
         return shows
 
     # ------------------------------------------------------------------ #
     # Private helpers                                                      #
     # ------------------------------------------------------------------ #
+
+    @staticmethod
+    def _extract_json_ld(soup: BeautifulSoup) -> List[JSONDict]:
+        """
+        Extract shows from a JSON-LD Place schema embedded in the page.
+
+        Used by *.seatengine.com/calendar pages which do not render
+        event-list-item divs but do embed events in a JSON-LD script.
+        """
+        shows: List[JSONDict] = []
+        for script in soup.find_all("script", type="application/ld+json"):
+            try:
+                data = json.loads(script.string or "")
+            except (json.JSONDecodeError, TypeError):
+                continue
+            if data.get("@type") != "Place":
+                continue
+            for event in data.get("Events", []):
+                if event.get("@type") != "Event":
+                    continue
+                name = event.get("name") or ""
+                date_str = event.get("startDate") or ""
+                url = event.get("url") or None
+                if name and date_str:
+                    shows.append(
+                        {
+                            "name": name,
+                            "date_str": date_str,
+                            "show_url": url,
+                            "sold_out": False,
+                        }
+                    )
+            if shows:
+                break
+        return shows
 
     @staticmethod
     def _event_name(item: Tag) -> Optional[str]:
