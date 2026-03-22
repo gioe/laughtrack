@@ -6,6 +6,7 @@ ConfigManager pattern. All database connections should go through this module
 to ensure consistency and proper resource management.
 """
 
+import time
 from contextlib import contextmanager
 from typing import Generator
 
@@ -14,13 +15,15 @@ import psycopg2
 from laughtrack.infrastructure.config.config_manager import ConfigManager
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
+_CONNECT_RETRY_DELAYS = [1, 2, 4]  # seconds between attempts; total max wait ~7s
+
 
 def create_connection(autocommit: bool = True) -> psycopg2.extensions.connection:
     """
     Create a database connection using the singleton ConfigManager.
 
-    This function eliminates the need to inject ConfigManager instances
-    by leveraging the singleton pattern.
+    Retries up to 3 times on OperationalError (e.g. Neon auto-suspend wakeup)
+    with exponential backoff (1s, 2s, 4s).
 
     Args:
         autocommit: Whether to enable autocommit mode (default: True)
@@ -30,7 +33,7 @@ def create_connection(autocommit: bool = True) -> psycopg2.extensions.connection
 
     Raises:
         ValueError: If database configuration is not found
-        psycopg2.Error: If connection fails
+        psycopg2.Error: If connection fails after all retries
 
     Example:
         with create_connection() as conn:
@@ -39,28 +42,35 @@ def create_connection(autocommit: bool = True) -> psycopg2.extensions.connection
                 results = cursor.fetchall()
     """
     try:
-        # Use singleton ConfigManager - no instantiation needed
         db_config = ConfigManager.get_database_configuration()
 
         if not db_config or not all(db_config.get(key) for key in ["name", "user", "host", "password", "port"]):
             raise ValueError("Database configuration not found or incomplete")
 
-        conn = psycopg2.connect(
-            database=db_config["name"],
-            user=db_config["user"],
-            host=db_config["host"],
-            password=db_config["password"],
-            port=db_config["port"],
-        )
+        last_error: psycopg2.OperationalError | None = None
+        for attempt, delay in enumerate([0] + _CONNECT_RETRY_DELAYS, start=1):
+            if delay:
+                Logger.warn(f"DB connection attempt {attempt} failed ({last_error}); retrying in {delay}s")
+                time.sleep(delay)
+            try:
+                conn = psycopg2.connect(
+                    database=db_config["name"],
+                    user=db_config["user"],
+                    host=db_config["host"],
+                    password=db_config["password"],
+                    port=db_config["port"],
+                )
+                if autocommit:
+                    conn.autocommit = True
+                Logger.info("Database connection created successfully")
+                return conn
+            except psycopg2.OperationalError as e:
+                last_error = e
 
-        if autocommit:
-            conn.autocommit = True
+        Logger.error(f"Failed to create database connection: {str(last_error)}")
+        raise last_error  # type: ignore[misc]
 
-        Logger.info("Database connection created successfully")
-        return conn
-
-    except psycopg2.Error as e:
-        Logger.error(f"Failed to create database connection: {str(e)}")
+    except (psycopg2.Error, ValueError):
         raise
     except Exception as e:
         Logger.error(f"Unexpected error creating database connection: {str(e)}")
