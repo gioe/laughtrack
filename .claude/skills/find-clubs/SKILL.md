@@ -21,7 +21,7 @@ Wait for the user to respond before continuing.
 Fetch all club names currently in the database:
 
 ```bash
-cd /Users/mattgioe/Desktop/projects/laughtrack/apps/scraper && .venv/bin/python3 -c "
+cd apps/scraper && .venv/bin/python3 -c "
 import sys
 sys.path.insert(0, 'src')
 from dotenv import load_dotenv
@@ -108,7 +108,7 @@ Then stop.
 For each confirmed new club, invoke the `/create-task` skill by reading and following:
 
 ```
-Read file: /Users/mattgioe/Desktop/projects/laughtrack/.claude/skills/create-task/SKILL.md
+Read file: <base_directory>/../create-task/SKILL.md
 ```
 
 Pass the following task description for each club (one at a time):
