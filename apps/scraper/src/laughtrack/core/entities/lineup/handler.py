@@ -1,14 +1,11 @@
 """Lineup database handler for lineup-specific operations."""
 
-from typing import TYPE_CHECKING, Dict, List
+from typing import Dict, List, Tuple
 
 from laughtrack.core.data.base_handler import BaseDatabaseHandler
 from sql.lineup_queries import LineupQueries
 
 from laughtrack.core.entities.comedian.model import Comedian
-
-if TYPE_CHECKING:
-    from laughtrack.core.entities.comedian.handler import ComedianHandler
 from laughtrack.core.entities.show.model import Show
 from laughtrack.foundation.infrastructure.database.template import BatchTemplateGenerator
 from laughtrack.foundation.infrastructure.logger.logger import Logger
@@ -31,15 +28,19 @@ class LineupHandler(BaseDatabaseHandler[LineupItem]):
         self,
         shows: List[Show],
         current_lineups: Dict[int, List[Comedian]],
-        comedian_handler: "ComedianHandler",
-    ) -> None:
+    ) -> Tuple[int, int]:
         """
         Update lineups for multiple shows in batch.
+
+        Callers are responsible for inserting any new comedians into the database
+        before calling this method.
 
         Args:
             shows: List of shows to update
             current_lineups: Dictionary mapping show IDs to their current lineups
-            comedian_handler: Handler used to insert any new comedians before updating lineups
+
+        Returns:
+            Tuple of (items_added, items_removed) counts.
         """
         # Collect all lineup changes
         to_add = []
@@ -68,16 +69,13 @@ class LineupHandler(BaseDatabaseHandler[LineupItem]):
                 [LineupItem.create_lineup_item(show_id, uuid) for uuid in remove_uuids if uuid is not None]
             )
 
-        # First insert any new comedians into the database
-        all_comedians = list({comedian for show in shows for comedian in show.lineup})
-        if all_comedians:
-            comedian_handler.insert_comedians(all_comedians)
-
-        # Then perform batch lineup updates
+        # Perform batch lineup updates
         if to_remove:
             self.batch_delete_lineup_items(to_remove)
         if to_add:
             self.batch_add_lineup_items(to_add)
+
+        return len(to_add), len(to_remove)
 
     def get_lineup(self, show_ids: List[int]) -> Dict[int, List[Comedian]]:
         """
