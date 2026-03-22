@@ -8,7 +8,6 @@ Components:
  - aggregator (pure transformations)
  - repository (snapshot loading)
  - reporter (email notifications)
- - recorder (session lifecycle & counters)
  - dashboard (legacy HTML generator retained for reference)
 """
 
