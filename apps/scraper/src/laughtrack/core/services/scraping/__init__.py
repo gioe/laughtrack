@@ -73,6 +73,7 @@ class ScrapingService:
         results, summary, db_result = self._scrape_clubs_with_metrics(clubs)
         self._emit_summary(summary)
         self._check_and_alert(summary)
+        self._send_discord_run_summary(summary, db_result)
         self.result_processor.process_results(results, db_result)
         self.club_handler.refresh_club_total_shows()
         return results
@@ -329,6 +330,68 @@ class ScrapingService:
                 asyncio.run(channel.send_alert(alert))
         except Exception as e:  # pragma: no cover - defensive
             Logger.error(f"Failed to send Discord scraping alert: {e}")
+
+    def _send_discord_run_summary(self, summary: ScrapingRunSummary, db_result: "DatabaseOperationResult") -> None:
+        """Post an unconditional run summary to Discord after every scrape_all_clubs run."""
+        try:
+            from laughtrack.infrastructure.config.monitoring_config import MonitoringConfig
+            from laughtrack.infrastructure.monitoring.channels import DiscordAlertChannel
+            from laughtrack.infrastructure.monitoring.alerts import Alert, AlertSeverity
+        except ImportError as e:  # pragma: no cover
+            Logger.error(f"Monitoring package not available; skipping Discord run summary: {e}")
+            return
+
+        try:
+            config = MonitoringConfig.default()
+            if not config.is_discord_configured() or not config.discord_webhook_url:
+                Logger.warn("Discord webhook not configured; skipping run summary")
+                return
+
+            title = f"Scrape run: {summary.clubs_ok}/{summary.total_clubs} clubs OK"
+
+            body_lines = [
+                f"Shows scraped: {db_result.total}",
+                f"Shows inserted: {db_result.inserts}",
+                f"Shows updated: {db_result.updates}",
+                "",
+                "**Per-club breakdown:**",
+            ]
+            for m in summary.per_club:
+                icon = "✅" if m.success_rate >= self.success_rate_threshold else "⚠️"
+                body_lines.append(
+                    f"{icon} {m.club_name}: {m.success_rate:.0f}% ({m.ok}/{m.total} ok, "
+                    f"{m.none_resp} empty, {m.error} errors)"
+                )
+
+            alert = Alert(
+                id=str(uuid.uuid4()),
+                title=title,
+                description="\n".join(body_lines),
+                severity=AlertSeverity.LOW,
+                timestamp=datetime.now(timezone.utc),
+                source="ScrapingService",
+                metadata={
+                    "clubs_ok": summary.clubs_ok,
+                    "total_clubs": summary.total_clubs,
+                    "shows_total": db_result.total,
+                    "shows_inserted": db_result.inserts,
+                    "shows_updated": db_result.updates,
+                },
+            )
+            channel = DiscordAlertChannel(webhook_url=config.discord_webhook_url)
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                loop = None
+
+            if loop is not None and loop.is_running():
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                    executor.submit(asyncio.run, channel.send_alert(alert)).result()
+            else:
+                asyncio.run(channel.send_alert(alert))
+        except Exception as e:  # pragma: no cover - defensive
+            Logger.error(f"Failed to send Discord run summary: {e}")
 
     def _send_email_alert(self, failing: List[DomainRequestMetrics], *, outage_lines: Optional[List[str]] = None) -> None:
         try:

@@ -478,3 +478,160 @@ class TestScrapeClubsWithMetrics:
         with patch.dict(os.environ, {}, clear=False):
             os.environ.pop("MAX_CONCURRENT_CLUBS", None)
             assert svc._max_concurrent_clubs == 5  # default
+
+
+class TestSendDiscordRunSummary:
+    """Tests for _send_discord_run_summary — unconditional post-run Discord message."""
+
+    def _make_service(self, threshold=70.0):
+        from laughtrack.core.services.scraping import ScrapingService
+        with patch.object(ScrapingService, '__init__', lambda self, *a, **kw: None):
+            svc = ScrapingService.__new__(ScrapingService)
+            svc.success_rate_threshold = threshold
+        return svc
+
+    def _make_db_result(self, total=10, inserts=8, updates=2):
+        from laughtrack.foundation.models.operation_result import DatabaseOperationResult
+        return DatabaseOperationResult(total=total, inserts=inserts, updates=updates)
+
+    def test_fires_on_clean_run_with_no_failures(self):
+        """Summary is posted even when all clubs succeed (zero failures)."""
+        svc = self._make_service()
+        summary = _make_summary(ok=1)
+        db_result = self._make_db_result()
+
+        mock_config = _make_mock_config(channels=["discord"])
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
+             patch('laughtrack.infrastructure.monitoring.alerts.Alert'), \
+             patch('laughtrack.infrastructure.monitoring.channels.DiscordAlertChannel'), \
+             patch('asyncio.run') as mock_run:
+            MockConfig.default.return_value = mock_config
+            svc._send_discord_run_summary(summary, db_result)
+            mock_run.assert_called_once()
+
+    def test_title_contains_clubs_ok_and_total(self):
+        """Alert title shows clubs_ok/total_clubs count."""
+        svc = self._make_service()
+        clubs = [
+            _make_metric("Club A", ok=1, error=0),
+            _make_metric("Club B", ok=1, error=0),
+            _make_metric("Club C", ok=0, error=1),
+        ]
+        summary = _make_multi_club_summary(clubs)
+        db_result = self._make_db_result()
+
+        mock_config = _make_mock_config(channels=["discord"])
+        mock_alert_cls = MagicMock(return_value=MagicMock())
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
+             patch('laughtrack.infrastructure.monitoring.alerts.Alert', mock_alert_cls), \
+             patch('laughtrack.infrastructure.monitoring.channels.DiscordAlertChannel'), \
+             patch('asyncio.run'):
+            MockConfig.default.return_value = mock_config
+            svc._send_discord_run_summary(summary, db_result)
+
+        title = mock_alert_cls.call_args.kwargs.get('title', '')
+        assert "2/3" in title
+        assert "clubs OK" in title
+
+    def test_body_includes_shows_counts(self):
+        """Description includes shows scraped, inserted, and updated."""
+        svc = self._make_service()
+        summary = _make_summary(ok=1)
+        db_result = self._make_db_result(total=15, inserts=12, updates=3)
+
+        mock_config = _make_mock_config(channels=["discord"])
+        mock_alert_cls = MagicMock(return_value=MagicMock())
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
+             patch('laughtrack.infrastructure.monitoring.alerts.Alert', mock_alert_cls), \
+             patch('laughtrack.infrastructure.monitoring.channels.DiscordAlertChannel'), \
+             patch('asyncio.run'):
+            MockConfig.default.return_value = mock_config
+            svc._send_discord_run_summary(summary, db_result)
+
+        desc = mock_alert_cls.call_args.kwargs.get('description', '')
+        assert "15" in desc  # total scraped
+        assert "12" in desc  # inserted
+        assert "3" in desc   # updated
+
+    def test_per_club_breakdown_uses_checkmark_for_passing_clubs(self):
+        """✅ icon appears for clubs at or above the success threshold."""
+        svc = self._make_service(threshold=70.0)
+        clubs = [_make_metric("Good Club", ok=1, error=0, none_resp=0)]
+        summary = _make_multi_club_summary(clubs)
+        db_result = self._make_db_result()
+
+        mock_config = _make_mock_config(channels=["discord"])
+        mock_alert_cls = MagicMock(return_value=MagicMock())
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
+             patch('laughtrack.infrastructure.monitoring.alerts.Alert', mock_alert_cls), \
+             patch('laughtrack.infrastructure.monitoring.channels.DiscordAlertChannel'), \
+             patch('asyncio.run'):
+            MockConfig.default.return_value = mock_config
+            svc._send_discord_run_summary(summary, db_result)
+
+        desc = mock_alert_cls.call_args.kwargs.get('description', '')
+        assert "✅" in desc
+        assert "Good Club" in desc
+
+    def test_per_club_breakdown_uses_warning_for_failing_clubs(self):
+        """⚠️ icon appears for clubs below the success threshold."""
+        svc = self._make_service(threshold=70.0)
+        clubs = [_make_metric("Bad Club", ok=0, error=1, none_resp=0)]
+        summary = _make_multi_club_summary(clubs)
+        db_result = self._make_db_result()
+
+        mock_config = _make_mock_config(channels=["discord"])
+        mock_alert_cls = MagicMock(return_value=MagicMock())
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
+             patch('laughtrack.infrastructure.monitoring.alerts.Alert', mock_alert_cls), \
+             patch('laughtrack.infrastructure.monitoring.channels.DiscordAlertChannel'), \
+             patch('asyncio.run'):
+            MockConfig.default.return_value = mock_config
+            svc._send_discord_run_summary(summary, db_result)
+
+        desc = mock_alert_cls.call_args.kwargs.get('description', '')
+        assert "⚠️" in desc
+        assert "Bad Club" in desc
+
+    def test_skips_when_discord_not_configured(self):
+        """No alert is sent when Discord is not configured."""
+        svc = self._make_service()
+        summary = _make_summary(ok=1)
+        db_result = self._make_db_result()
+
+        mock_config = MagicMock()
+        mock_config.is_discord_configured.return_value = False
+        mock_config.discord_webhook_url = None
+
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
+             patch('asyncio.run') as mock_run:
+            MockConfig.default.return_value = mock_config
+            svc._send_discord_run_summary(summary, db_result)
+            mock_run.assert_not_called()
+
+    def test_scrape_all_clubs_calls_summary_with_db_result(self):
+        """scrape_all_clubs passes db_result to _send_discord_run_summary."""
+        from laughtrack.core.services.scraping import ScrapingService
+        from laughtrack.foundation.models.operation_result import DatabaseOperationResult
+
+        with patch.object(ScrapingService, '__init__', lambda self, *a, **kw: None):
+            svc = ScrapingService.__new__(ScrapingService)
+            svc.success_rate_threshold = 70.0
+            svc.proxy_pool = None
+
+        expected_db_result = DatabaseOperationResult(total=5, inserts=3, updates=2)
+        summary = _make_summary(ok=1)
+
+        svc.club_handler = MagicMock()
+        svc.club_handler.get_all_clubs.return_value = [MagicMock()]
+        svc.club_handler.refresh_club_total_shows.return_value = None
+        svc._result_processor = MagicMock()
+        svc._result_processor.process_results.return_value = None
+
+        with patch.object(svc, '_try_validate_scraper_keys'), \
+             patch.object(svc, '_scrape_clubs_with_metrics', return_value=([], summary, expected_db_result)), \
+             patch.object(svc, '_emit_summary'), \
+             patch.object(svc, '_check_and_alert'), \
+             patch.object(svc, '_send_discord_run_summary') as mock_summary:
+            svc.scrape_all_clubs()
+            mock_summary.assert_called_once_with(summary, expected_db_result)
