@@ -610,7 +610,7 @@ class TestSendDiscordRunSummary:
             mock_run.assert_not_called()
 
     def test_scrape_all_clubs_calls_summary_with_db_result(self):
-        """scrape_all_clubs passes db_result to _send_discord_run_summary."""
+        """scrape_all_clubs passes db_result to _send_run_summary."""
         from laughtrack.core.services.scraping import ScrapingService
         from laughtrack.foundation.models.operation_result import DatabaseOperationResult
 
@@ -632,6 +632,173 @@ class TestSendDiscordRunSummary:
              patch.object(svc, '_scrape_clubs_with_metrics', return_value=([], summary, expected_db_result)), \
              patch.object(svc, '_emit_summary'), \
              patch.object(svc, '_check_and_alert'), \
-             patch.object(svc, '_send_discord_run_summary') as mock_summary:
+             patch.object(svc, '_send_run_summary') as mock_summary:
             svc.scrape_all_clubs()
             mock_summary.assert_called_once_with(summary, expected_db_result)
+
+
+class TestSendRunSummary:
+    """Tests for _send_run_summary channel dispatch."""
+
+    def _make_service(self, threshold=70.0):
+        from laughtrack.core.services.scraping import ScrapingService
+        with patch.object(ScrapingService, '__init__', lambda self, *a, **kw: None):
+            svc = ScrapingService.__new__(ScrapingService)
+            svc.success_rate_threshold = threshold
+        return svc
+
+    def _make_db_result(self, total=10, inserts=8, updates=2):
+        from laughtrack.foundation.models.operation_result import DatabaseOperationResult
+        return DatabaseOperationResult(total=total, inserts=inserts, updates=updates)
+
+    def _run_with_channels(self, svc, channels):
+        summary = _make_summary(ok=1)
+        db_result = self._make_db_result()
+        mock_config = MagicMock()
+        mock_config.get_configured_channels.return_value = channels
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
+             patch.object(svc, '_send_discord_run_summary') as mock_discord, \
+             patch.object(svc, '_send_email_run_summary') as mock_email, \
+             patch.object(svc, '_send_webhook_run_summary') as mock_webhook:
+            MockConfig.default.return_value = mock_config
+            svc._send_run_summary(summary, db_result)
+        return mock_discord, mock_email, mock_webhook
+
+    def test_email_only_calls_email_run_summary(self):
+        svc = self._make_service()
+        mock_discord, mock_email, mock_webhook = self._run_with_channels(svc, ["email"])
+        mock_discord.assert_not_called()
+        mock_email.assert_called_once()
+        mock_webhook.assert_not_called()
+
+    def test_webhook_only_calls_webhook_run_summary(self):
+        svc = self._make_service()
+        mock_discord, mock_email, mock_webhook = self._run_with_channels(svc, ["webhook"])
+        mock_discord.assert_not_called()
+        mock_email.assert_not_called()
+        mock_webhook.assert_called_once()
+
+    def test_email_without_discord_skips_discord(self):
+        """When only email is configured (Discord absent), Discord summary is not sent."""
+        svc = self._make_service()
+        mock_discord, mock_email, mock_webhook = self._run_with_channels(svc, ["email"])
+        mock_discord.assert_not_called()
+        mock_email.assert_called_once()
+
+    def test_webhook_without_discord_skips_discord(self):
+        """When only webhook is configured (Discord absent), Discord summary is not sent."""
+        svc = self._make_service()
+        mock_discord, mock_email, mock_webhook = self._run_with_channels(svc, ["webhook"])
+        mock_discord.assert_not_called()
+        mock_webhook.assert_called_once()
+
+    def test_all_channels_dispatches_all(self):
+        svc = self._make_service()
+        mock_discord, mock_email, mock_webhook = self._run_with_channels(
+            svc, ["discord", "email", "webhook"]
+        )
+        mock_discord.assert_called_once()
+        mock_email.assert_called_once()
+        mock_webhook.assert_called_once()
+
+    def test_no_channels_dispatches_none(self):
+        svc = self._make_service()
+        mock_discord, mock_email, mock_webhook = self._run_with_channels(svc, [])
+        mock_discord.assert_not_called()
+        mock_email.assert_not_called()
+        mock_webhook.assert_not_called()
+
+
+class TestSendEmailRunSummary:
+    """Tests for _send_email_run_summary."""
+
+    def _make_service(self, threshold=70.0):
+        from laughtrack.core.services.scraping import ScrapingService
+        with patch.object(ScrapingService, '__init__', lambda self, *a, **kw: None):
+            svc = ScrapingService.__new__(ScrapingService)
+            svc.success_rate_threshold = threshold
+        return svc
+
+    def _make_db_result(self, total=10, inserts=8, updates=2):
+        from laughtrack.foundation.models.operation_result import DatabaseOperationResult
+        return DatabaseOperationResult(total=total, inserts=inserts, updates=updates)
+
+    def test_fires_when_email_configured(self):
+        svc = self._make_service()
+        summary = _make_summary(ok=1)
+        db_result = self._make_db_result()
+
+        mock_config = MagicMock()
+        mock_config.is_email_configured.return_value = True
+        mock_config.alert_recipients = ["ops@example.com"]
+
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
+             patch('laughtrack.infrastructure.monitoring.alerts.Alert'), \
+             patch('laughtrack.infrastructure.monitoring.channels.EmailAlertChannel'), \
+             patch('asyncio.run') as mock_run:
+            MockConfig.default.return_value = mock_config
+            svc._send_email_run_summary(summary, db_result)
+            mock_run.assert_called_once()
+
+    def test_skips_when_email_not_configured(self):
+        svc = self._make_service()
+        summary = _make_summary(ok=1)
+        db_result = self._make_db_result()
+
+        mock_config = MagicMock()
+        mock_config.is_email_configured.return_value = False
+        mock_config.alert_recipients = []
+
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
+             patch('asyncio.run') as mock_run:
+            MockConfig.default.return_value = mock_config
+            svc._send_email_run_summary(summary, db_result)
+            mock_run.assert_not_called()
+
+
+class TestSendWebhookRunSummary:
+    """Tests for _send_webhook_run_summary."""
+
+    def _make_service(self, threshold=70.0):
+        from laughtrack.core.services.scraping import ScrapingService
+        with patch.object(ScrapingService, '__init__', lambda self, *a, **kw: None):
+            svc = ScrapingService.__new__(ScrapingService)
+            svc.success_rate_threshold = threshold
+        return svc
+
+    def _make_db_result(self, total=10, inserts=8, updates=2):
+        from laughtrack.foundation.models.operation_result import DatabaseOperationResult
+        return DatabaseOperationResult(total=total, inserts=inserts, updates=updates)
+
+    def test_fires_when_webhook_configured(self):
+        svc = self._make_service()
+        summary = _make_summary(ok=1)
+        db_result = self._make_db_result()
+
+        mock_config = MagicMock()
+        mock_config.is_webhook_configured.return_value = True
+        mock_config.webhook_url = "https://hooks.example.com/run"
+        mock_config.webhook_headers = {}
+
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
+             patch('laughtrack.infrastructure.monitoring.alerts.Alert'), \
+             patch('laughtrack.infrastructure.monitoring.channels.WebhookAlertChannel'), \
+             patch('asyncio.run') as mock_run:
+            MockConfig.default.return_value = mock_config
+            svc._send_webhook_run_summary(summary, db_result)
+            mock_run.assert_called_once()
+
+    def test_skips_when_webhook_not_configured(self):
+        svc = self._make_service()
+        summary = _make_summary(ok=1)
+        db_result = self._make_db_result()
+
+        mock_config = MagicMock()
+        mock_config.is_webhook_configured.return_value = False
+        mock_config.webhook_url = None
+
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
+             patch('asyncio.run') as mock_run:
+            MockConfig.default.return_value = mock_config
+            svc._send_webhook_run_summary(summary, db_result)
+            mock_run.assert_not_called()
