@@ -108,9 +108,9 @@ class RodneyEventExtractor:
                 raw_og = og_title_tag.get("content", "").strip() if og_title_tag else ""
                 if raw_og:
                     title = raw_og.split(" - Rodney's")[0].strip()
-                    Logger.warn(f"h4.uppercase not found; using og:title fallback on {source_url}")
+                    Logger.warn(f"h4.uppercase not found; using og:title fallback on {source_url} (html[:200]={html_content[:200]!r})")
                 else:
-                    Logger.warn(f"No title h4.uppercase found on {source_url}")
+                    Logger.warn(f"No title h4.uppercase found on {source_url} (html[:200]={html_content[:200]!r})")
                     return []
             if not title:
                 return []
