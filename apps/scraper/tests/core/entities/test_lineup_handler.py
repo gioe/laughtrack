@@ -54,7 +54,8 @@ def _ensure_psycopg2_stubbed():
 def _stub(name: str, as_package: bool = False, **attrs):
     m = ModuleType(name)
     if as_package:
-        m.__path__ = []  # makes Python treat it as a package
+        pkg_path = str(_SCRAPER_ROOT / "src" / name.replace(".", "/"))
+        m.__path__ = [pkg_path]
         m.__package__ = name
     for k, v in attrs.items():
         setattr(m, k, v)

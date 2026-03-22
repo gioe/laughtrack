@@ -54,8 +54,12 @@ def _ensure_psycopg2_stubbed():
 
 
 # Stub foundation modules that comedian model needs
-def _stub(name: str, **attrs):
+def _stub(name: str, as_package: bool = False, **attrs):
     m = ModuleType(name)
+    if as_package:
+        pkg_path = str(_SCRAPER_ROOT / "src" / name.replace(".", "/"))
+        m.__path__ = [pkg_path]
+        m.__package__ = name
     for k, v in attrs.items():
         setattr(m, k, v)
     sys.modules.setdefault(name, m)
@@ -129,7 +133,7 @@ class _BaseDatabaseHandlerStub(_Generic[_T_stub], _ABC):
 _stub("laughtrack.core.data.base_handler", BaseDatabaseHandler=_BaseDatabaseHandlerStub)
 _stub("laughtrack.core.data", BaseDatabaseHandler=_BaseDatabaseHandlerStub)
 _stub("laughtrack.core", BaseDatabaseHandler=_BaseDatabaseHandlerStub)
-_stub("laughtrack.core.entities", Comedian=None)
+_stub("laughtrack.core.entities", as_package=True, Comedian=None)
 _stub("laughtrack.core.entities.comedian", Comedian=None)
 
 # Load ComedianHandler
