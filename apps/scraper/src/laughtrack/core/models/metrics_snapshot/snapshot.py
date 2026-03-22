@@ -241,7 +241,13 @@ class ScrapingMetricsSnapshot:
             success_rate=success_rate,
             execution_times=exec_times,
             per_club_stats=per_club_stats,
-            error_details=list(getattr(session_result, "errors", []) or []),
+            error_details=(
+                list(getattr(session_result, "errors", []) or [])
+                + [
+                    ErrorDetail(club=club, error=msg, execution_time=0.0)
+                    for club, msg in (getattr(db_operation_result, "error_entries", []) or [])
+                ]
+            ),
             duplicate_show_details=typed_duplicates,
         )
 
