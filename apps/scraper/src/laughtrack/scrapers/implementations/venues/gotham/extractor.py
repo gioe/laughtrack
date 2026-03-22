@@ -217,9 +217,10 @@ class GothamEventExtractor:
         Looks for JavaScript variable assignment like:
         var EVENT = {"event_id":"10081681", ...};
 
-        Uses brace-counting to extract the full JSON object, so semicolons
-        inside string values (e.g. HTML entities like &amp; in description)
-        do not truncate the match.
+        Uses json.JSONDecoder.raw_decode() to extract the full JSON object
+        starting at the opening brace, so semicolons and curly braces inside
+        string values (e.g. HTML entities, formatted text) do not truncate
+        the match.
 
         Args:
             html_content: HTML content from Showclix event page
@@ -227,34 +228,24 @@ class GothamEventExtractor:
         Returns:
             event_id string if found, None otherwise
         """
+        import json as _json
+
         try:
-            # Find the EVENT variable assignment — match up to the opening brace
+            # Find the EVENT variable assignment — locate the opening brace
             marker = "var EVENT = {"
             idx = html_content.find(marker)
             if idx == -1:
                 Logger.warn("No EVENT variable found in HTML", self.logger_context)
                 return None
 
-            # Count braces to find the full JSON object
             start = idx + len(marker) - 1  # position of the opening '{'
-            depth = 0
-            end = start
-            for i, ch in enumerate(html_content[start:], start):
-                if ch == "{":
-                    depth += 1
-                elif ch == "}":
-                    depth -= 1
-                    if depth == 0:
-                        end = i
-                        break
 
-            event_json_str = html_content[start : end + 1]
+            # raw_decode parses from 'start' and returns (obj, end_index),
+            # correctly handling any JSON-legal content inside string values.
+            decoder = _json.JSONDecoder()
+            event_data, _ = decoder.raw_decode(html_content, start)
 
-            # Clean and parse the JSON
-            cleaned_json = JSONUtils.comprehensive_clean(event_json_str)
-            event_data = JSONUtils.safe_json_loads(cleaned_json, logger_context=self.logger_context)
-
-            if event_data and isinstance(event_data, dict):
+            if isinstance(event_data, dict):
                 event_id = event_data.get("event_id")
                 if event_id:
                     return str(event_id)

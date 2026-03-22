@@ -1,5 +1,6 @@
 """Unit tests for GothamEventExtractor._extract_event_id_from_html."""
 
+import json
 from unittest.mock import MagicMock
 
 from laughtrack.scrapers.implementations.venues.gotham.extractor import GothamEventExtractor
@@ -12,9 +13,10 @@ def _extractor() -> GothamEventExtractor:
 
 
 def _html(description: str = "A great show") -> str:
+    desc_json = json.dumps(description)  # handles quotes, backslashes, etc.
     return f"""<html><head></head><body>
 <script>
-var EVENT = {{"event_id":"10187110","event":"The Gotham All-Stars","venue_id":"69725","seller_id":"30025","event_type":"2","description":"{description}","currency":"USD"}};
+var EVENT = {{"event_id":"10187110","event":"The Gotham All-Stars","venue_id":"69725","seller_id":"30025","event_type":"2","description":{desc_json},"currency":"USD"}};
 var EVENT_ID = '10187110';
 </script>
 </body></html>"""
@@ -44,6 +46,14 @@ def test_extracts_event_id_when_description_contains_html_entities():
 def test_extracts_event_id_when_description_contains_multiple_semicolons():
     """Multiple semicolons in description (e.g. multiple HTML entities) must not truncate."""
     description = "Show &amp; Tell &lt;p&gt; and more &amp; stuff"
+    ext = _extractor()
+    result = ext._extract_event_id_from_html(_html(description))
+    assert result == "10187110"
+
+
+def test_extracts_event_id_when_description_contains_closing_brace():
+    """Literal '}' in description must not terminate extraction prematurely."""
+    description = "Show {feat.} comedian &amp; friends"
     ext = _extractor()
     result = ext._extract_event_id_from_html(_html(description))
     assert result == "10187110"
