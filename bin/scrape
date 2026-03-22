@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+# bin/scrape — root-level wrapper for the laughtrack scraper
+#
+# Usage:
+#   ./bin/scrape "comedy cellar"    # fuzzy club name
+#   ./bin/scrape --all              # all venues
+#   ./bin/scrape --id 5             # by DB ID
+#   ./bin/scrape --types "json_ld,broadway"  # by scraper type(s)
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRAPER_DIR="$SCRIPT_DIR/../apps/scraper"
+
+export LAUGHTRACK_LOG_CONSOLE_LEVEL="${LAUGHTRACK_LOG_CONSOLE_LEVEL:-INFO}"
+
+PYTHON="$SCRAPER_DIR/.venv/bin/python"
+if [ ! -x "$PYTHON" ]; then
+  echo "error: venv not found at $SCRAPER_DIR/.venv — run 'cd apps/scraper && make setup-venv'" >&2
+  exit 1
+fi
+
+cd "$SCRAPER_DIR"
+
+if [ $# -eq 0 ]; then
+  "$PYTHON" -m scripts.core.scrape_shows
+  exit $?
+fi
+
+case "$1" in
+  --all)
+    "$PYTHON" -m scripts.core.scrape_shows --all
+    ;;
+  --id)
+    if [ -z "${2:-}" ]; then
+      echo "error: --id requires a value (e.g. ./bin/scrape --id 5)" >&2
+      exit 1
+    fi
+    "$PYTHON" -m scripts.core.scrape_shows --club-id "$2"
+    ;;
+  --types)
+    if [ -z "${2:-}" ]; then
+      echo "error: --types requires a value (e.g. ./bin/scrape --types json_ld,broadway)" >&2
+      exit 1
+    fi
+    "$PYTHON" -m scripts.core.scrape_shows --scraper-types "$2"
+    ;;
+  -*)
+    echo "error: unknown flag '$1'" >&2
+    echo "usage: ./bin/scrape [\"club name\" | --all | --id N | --types \"type1,type2\"]" >&2
+    exit 1
+    ;;
+  *)
+    "$PYTHON" -m scripts.core.scrape_shows --club "$1"
+    ;;
+esac
