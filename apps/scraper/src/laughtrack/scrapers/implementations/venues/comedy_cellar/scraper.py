@@ -20,6 +20,7 @@ from laughtrack.core.clients.comedy_cellar.client import ComedyCellarAPIClient
 from laughtrack.core.entities.club.model import Club
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.models.types import ScrapingTarget
+from laughtrack.foundation.protocols.event_list_container import EventListContainer
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 # Client ensures Comedy Cellar API response validity and raises on errors
 
@@ -104,3 +105,34 @@ class ComedyCellarScraper(BaseScraper):
         except Exception as e:
             Logger.error(f"Error extracting data for {target}: {str(e)}", self.logger_context)
             return None
+
+    async def _fetch_all_raw_data(
+        self, targets: List[ScrapingTarget]
+    ) -> List[tuple[Optional[EventListContainer], ScrapingTarget]]:
+        """
+        Override to process dates sequentially.
+
+        Comedy Cellar's lineup API returns HTTP 503 when requests arrive in a burst.
+        Processing one date at a time eliminates the concurrency pressure.
+        """
+        count = len(targets)
+        Logger.info(f"Starting sequential fetch of {count} targets (Comedy Cellar rate limit)", self.logger_context)
+
+        results = []
+        for target in targets:
+            try:
+                await self.rate_limiter.await_if_needed(target)
+
+                async def _fetch_with_retry(t=target) -> Optional[EventListContainer]:
+                    return await self.get_data(t)
+
+                raw_data = await self.error_handler.execute_with_retry(_fetch_with_retry, f"Fetch Data: {target}")
+                Logger.debug(f"Fetched data from {target}", self.logger_context)
+                results.append((raw_data, target))
+            except Exception as e:
+                Logger.error(f"Failed to fetch data from {target}: {e}", self.logger_context)
+                results.append((None, target))
+
+        successful_fetches = sum(1 for raw_data, _ in results if raw_data is not None)
+        Logger.info(f"Successfully fetched data from {successful_fetches}/{count} targets", self.logger_context)
+        return results
