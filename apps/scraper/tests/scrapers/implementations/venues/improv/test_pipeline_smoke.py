@@ -108,6 +108,46 @@ def test_transformation_pipeline_preserves_event_names():
     assert shows[0].name == "Comedians on a Thursday"
 
 
+def test_sold_out_availability_propagated():
+    """Ticket with schema.org SoldOut availability must produce sold_out=True."""
+    club = _club()
+    scraper = ImprovScraper(club)
+
+    events = [
+        ImprovEvent(
+            name="Sold Out Show",
+            start_date=datetime(2026, 6, 15, 20, 0, tzinfo=timezone.utc),
+            url="https://improv.test/show/sold",
+            offers=[{"url": "https://improv.test/tickets/sold", "price": "25", "name": "General Admission", "availability": "https://schema.org/SoldOut"}],
+        )
+    ]
+    page_data = ImprovPageData(event_list=events)
+    shows = scraper.transformation_pipeline.transform(page_data)
+
+    assert len(shows) == 1
+    assert shows[0].tickets[0].sold_out is True
+
+
+def test_in_stock_availability_not_sold_out():
+    """Ticket with schema.org InStock availability must produce sold_out=False."""
+    club = _club()
+    scraper = ImprovScraper(club)
+
+    events = [
+        ImprovEvent(
+            name="Available Show",
+            start_date=datetime(2026, 6, 15, 20, 0, tzinfo=timezone.utc),
+            url="https://improv.test/show/avail",
+            offers=[{"url": "https://improv.test/tickets/avail", "price": "20", "name": "General Admission", "availability": "https://schema.org/InStock"}],
+        )
+    ]
+    page_data = ImprovPageData(event_list=events)
+    shows = scraper.transformation_pipeline.transform(page_data)
+
+    assert len(shows) == 1
+    assert shows[0].tickets[0].sold_out is False
+
+
 def test_empty_price_coerced_to_none():
     """
     Regression: empty string price must become None (not '') on the Ticket,

@@ -180,7 +180,7 @@ class ImprovExtractor:
             improv_events = []
             for event in json_ld_events:
                 ticket_offers = [
-                    {"url": offer.url, "price": offer.price, "name": offer.name or "General Admission"}
+                    {"url": offer.url, "price": offer.price, "name": offer.name or "General Admission", "availability": offer.availability}
                     for offer in (event.offers or [])
                 ]
                 improv_events.append(
