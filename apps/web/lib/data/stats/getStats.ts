@@ -12,8 +12,9 @@ export async function getStats(): Promise<StatsDTO> {
         const [clubCount, comedianCount, showCount] = await Promise.all([
             db.club.count({
                 where: {
-                    visible: true
-                }
+                    visible: true,
+                    status: "active",
+                },
             }),
             db.comedian.count({
                 where: {
@@ -24,38 +25,38 @@ export async function getStats(): Promise<StatsDTO> {
                             },
                         },
                     },
-                }
+                },
             }),
             db.show.count({
                 where: {
                     date: {
-                        gt: new Date()
-                    }
-                }
-            })
+                        gt: new Date(),
+                    },
+                },
+            }),
         ]);
 
         const stats: StatsDTO = {
             clubCount,
             comedianCount,
-            showCount
+            showCount,
         };
 
         // Validate the response data
         if (!isValidStatsDTO(stats)) {
-            throw new Error('Invalid stats data received from database');
+            throw new Error("Invalid stats data received from database");
         }
 
         return stats;
     } catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
-            console.error('Database error in getStats:', error);
+            console.error("Database error in getStats:", error);
             throw new Error(`Database error: ${error.message}`);
         }
         if (error instanceof Error) {
-            console.error('Error in getStats:', error);
+            console.error("Error in getStats:", error);
             throw error;
         }
-        throw new Error('An unknown error occurred while fetching statistics');
+        throw new Error("An unknown error occurred while fetching statistics");
     }
 }
