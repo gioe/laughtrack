@@ -1,13 +1,28 @@
-## Prisma Schema Changes — Regenerate Client Before Pushing
+## Makefile Multi-line Python — Use printf Pipe, Not -c with Backslash Continuations
 
-After adding or modifying fields in `apps/web/prisma/schema.prisma`, always run:
+Make collapses backslash-continued lines into a single line before passing them to the shell.
+This means any Python with indented blocks (`with`, `if`, `for`, `def`) **cannot** be written
+via `-c "line1 \\\n    line2"` — it produces a `SyntaxError` at runtime.
 
-    cd apps/web && npx prisma generate
+Use `printf '%s\n'` piped to the Python binary instead:
 
-The pre-push hook runs `tsc -b`, which will fail with confusing errors like
-`'status' does not exist in type 'ClubWhereInput'` if the generated Prisma
-client is stale. `prisma generate` is safe to run locally — it only regenerates
-TypeScript types and does not touch the database.
+```makefile
+# ✗ Wrong — Make collapses continuations; 'with' block becomes one unindented line
+	@$(PYTHON) -c "\
+import sys; ...; \
+with get_connection() as conn: \
+    with conn.cursor() as cur: \
+        cur.execute(...)"
+
+# ✓ Correct — printf emits a real newline per argument; indentation is preserved
+	@printf '%s\n' \
+		'import sys; ...' \
+		'with get_connection() as conn:' \
+		'    with conn.cursor() as cur:' \
+		'        cur.execute(...)' \
+		| $(PYTHON)
+```
+
 
 ## Scraper Entity `from_dict()` — Test Compact Time/Date Formats Upfront
 
