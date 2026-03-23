@@ -158,7 +158,7 @@ class VenuePilotClient(BaseApiClient):
 
     def _initialize_headers(self) -> JSONDict:
         """Override to initialize VenuePilot-specific headers."""
-        domain = URLUtils.get_formatted_domain(self.club.scraping_url)
+        domain = URLUtils.get_formatted_domain(URLUtils.normalize_url(self.club.scraping_url))
         from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
         return BaseHeaders.get_headers(
             base_type="mobile_browser", domain=domain, additional_headers={"content-type": "application/json"}
