@@ -288,6 +288,54 @@ class TestNicksEventToShow:
         assert show is not None
         assert len(show.tickets) > 0
 
+    def test_sold_out_flag_propagated_when_ticketing_sold_out(self):
+        """to_show() sets sold_out=True on tickets when Wix API reports soldOut=True."""
+        event = NicksEvent(
+            id="evt-soldout",
+            title="Sold Out Show",
+            description="",
+            slug="sold-out-show",
+            scheduling={
+                "config": {
+                    "startDate": "2026-04-10T23:00:00.000Z",
+                    "timeZoneId": "America/New_York",
+                }
+            },
+            registration={
+                "ticketing": {
+                    "soldOut": True,
+                    "lowestTicketPrice": {"amount": "25.00"},
+                }
+            },
+        )
+        show = event.to_show(_club())
+        assert show is not None
+        assert len(show.tickets) == 1
+        assert show.tickets[0].sold_out is True
+
+    def test_sold_out_false_when_not_sold_out(self):
+        """to_show() sets sold_out=False when soldOut is absent or False."""
+        event = NicksEvent(
+            id="evt-available",
+            title="Available Show",
+            description="",
+            slug="available-show",
+            scheduling={
+                "config": {
+                    "startDate": "2026-04-10T23:00:00.000Z",
+                    "timeZoneId": "America/New_York",
+                }
+            },
+            registration={
+                "ticketing": {
+                    "lowestTicketPrice": {"amount": "20.00"},
+                }
+            },
+        )
+        show = event.to_show(_club())
+        assert show is not None
+        assert show.tickets[0].sold_out is False
+
 
 # ---------------------------------------------------------------------------
 # parse_lineup_from_description

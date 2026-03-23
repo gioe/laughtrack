@@ -43,17 +43,18 @@ class NicksEvent(ShowConvertible):
         # Extract ticket price from Wix native ticketing
         tickets = []
         ticketing = self.registration.get("ticketing", {})
+        is_sold_out = bool(ticketing.get("soldOut", False))
         if ticketing and show_page_url:
             lowest = ticketing.get("lowestTicketPrice", {})
             amount = lowest.get("amount", "")
             if amount:
                 try:
                     price = float(amount)
-                    tickets.append(ShowFactoryUtils.create_fallback_ticket(show_page_url, price=price))
+                    tickets.append(ShowFactoryUtils.create_fallback_ticket(show_page_url, price=price, sold_out=is_sold_out))
                 except (ValueError, TypeError):
                     pass
         if not tickets and show_page_url:
-            tickets.append(ShowFactoryUtils.create_fallback_ticket(show_page_url))
+            tickets.append(ShowFactoryUtils.create_fallback_ticket(show_page_url, sold_out=is_sold_out))
 
         name = self.title.strip() if self.title else "Comedy Show"
 
