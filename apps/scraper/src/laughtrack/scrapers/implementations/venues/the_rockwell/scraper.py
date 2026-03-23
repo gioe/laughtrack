@@ -11,7 +11,7 @@ Pipeline:
   3. transformation_pipeline    → RockwellEvent.to_show() → Show objects
 """
 
-from typing import List, Optional
+from typing import Optional
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.foundation.infrastructure.logger.logger import Logger
@@ -22,6 +22,7 @@ from .extractor import RockwellEventExtractor
 from .transformer import RockwellEventTransformer
 
 _PER_PAGE = 50
+_MAX_PAGES = 20
 
 
 class TheRockwellScraper(BaseScraper):
@@ -62,6 +63,12 @@ class TheRockwellScraper(BaseScraper):
                     self.logger_context,
                 )
                 if page >= total_pages:
+                    break
+                if page >= _MAX_PAGES:
+                    Logger.warn(
+                        f"TheRockwellScraper: reached max pages ({_MAX_PAGES}), stopping early",
+                        self.logger_context,
+                    )
                     break
                 page += 1
 

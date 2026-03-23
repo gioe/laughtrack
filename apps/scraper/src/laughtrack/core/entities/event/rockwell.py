@@ -40,7 +40,7 @@ class RockwellEvent(ShowConvertible):
             start_date = ShowFactoryUtils.parse_datetime_with_timezone_fallback(
                 self.start_date, self.timezone or club.timezone
             )
-        except (ValueError, Exception):
+        except Exception:
             return None
 
         show_url = url or self.url
