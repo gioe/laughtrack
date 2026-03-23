@@ -209,25 +209,6 @@ Logger.warn("Duplicate key", {"key": k, "kept": kept_cls, "ignored": ignored_cls
 Logger.warn(f"Duplicate key '{k}': keeping {kept_cls}, ignoring {ignored_cls}")
 ```
 
-## Debugging Auth / Env Var Failures in Production
-
-When a production login or OAuth flow silently fails, inspect the **actual values** of
-environment variables — the Vercel dashboard only shows "Encrypted".
-
-```bash
-cd apps/web && vercel link --yes --project laughtrack 2>/dev/null; vercel env pull --environment production /tmp/vercel-prod-env && cat /tmp/vercel-prod-env; rm /tmp/vercel-prod-env
-```
-
-Check for **leading/trailing whitespace** in auth-related vars — especially `AUTH_URL`.
-A trailing space (e.g. `"https://laugh-track.com "`) causes OAuth callback URL mismatches
-that fail silently with no useful error message.
-
-If `AUTH_URL` is wrong, remove and re-add it (Vercel does not support in-place edits):
-```bash
-vercel env rm AUTH_URL production --yes
-echo "https://laugh-track.com" | vercel env add AUTH_URL production
-```
-
 ## VCR Cassette Refresh — Instagram / TikTok Social Tests
 
 Cassette tests in `apps/scraper/tests/core/entities/test_social_refresh_vcr.py`
