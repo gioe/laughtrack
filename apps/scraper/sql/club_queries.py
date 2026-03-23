@@ -79,6 +79,7 @@ class ClubQueries:
         ON CONFLICT (name) DO UPDATE SET
             seatengine_id = COALESCE(clubs.seatengine_id, EXCLUDED.seatengine_id),
             scraper       = COALESCE(clubs.scraper,       EXCLUDED.scraper),
+            scraping_url  = COALESCE(NULLIF(clubs.scraping_url, ''), EXCLUDED.scraping_url),
             city          = COALESCE(clubs.city,          EXCLUDED.city),
             state         = COALESCE(clubs.state,         EXCLUDED.state)
         RETURNING *
