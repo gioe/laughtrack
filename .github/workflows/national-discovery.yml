@@ -44,6 +44,7 @@ jobs:
           pip install -e .
 
       - name: Discover SeatEngine v3 venues
+        id: seatengine_v3
         continue-on-error: true
         env:
           DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
@@ -57,6 +58,7 @@ jobs:
           python -m scripts.core.scrape_shows --scraper-type seatengine_v3_national
 
       - name: Discover SeatEngine v1 venues
+        id: seatengine_v1
         continue-on-error: true
         env:
           DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
@@ -70,6 +72,7 @@ jobs:
           python -m scripts.core.scrape_shows --scraper-type seatengine_national
 
       - name: Discover Ticketmaster venues
+        id: ticketmaster
         continue-on-error: true
         env:
           DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
@@ -90,8 +93,19 @@ jobs:
           path: apps/scraper/logs/
           retention-days: 30
 
-      - name: Notify on failure
-        if: failure()
+      - name: Alert on total discovery failure
+        if: always()
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
-          echo "::error::National venue discovery failed. Check the logs artifact for details."
-          echo "GitHub will send an email notification to repository administrators."
+          if [[ "${{ steps.seatengine_v3.outcome }}" == "failure" && \
+                "${{ steps.seatengine_v1.outcome }}" == "failure" && \
+                "${{ steps.ticketmaster.outcome }}" == "failure" ]]; then
+            echo "::error::All national discovery scrapers failed."
+            if [ -n "$DISCORD_WEBHOOK_URL" ]; then
+              curl -s -X POST "$DISCORD_WEBHOOK_URL" \
+                -H "Content-Type: application/json" \
+                -d "{\"content\": \"🚨 **National Discovery: All scrapers failed** — SeatEngine v3, SeatEngine v1, and Ticketmaster all failed. [View run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})\"}"
+            fi
+            exit 1
+          fi
