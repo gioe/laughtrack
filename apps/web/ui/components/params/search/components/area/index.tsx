@@ -12,6 +12,7 @@ import { allDistanceOptions } from "@/objects/enum/distanceValues";
 import { DistanceData } from "@/objects/interface";
 import { useLocationParams } from "../../hooks/useLocationParams";
 import { useGeolocation, GeolocationError } from "@/hooks/useGeolocation";
+import { resolveLocationAction } from "@/app/actions/resolveLocationAction";
 
 const selectableDistances = allDistanceOptions.map(
     (distance: string, index: number) => ({
@@ -51,9 +52,12 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
     const { updateDistance, updateZipCode } = useLocationParams();
     const [showTooltip, setShowTooltip] = useState(false);
     const tooltipTimerRef = useRef<ReturnType<typeof setTimeout>>();
+    const [locationError, setLocationError] = useState<string | null>(null);
+    const validateTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
     const handleGeoSuccess = useCallback(
         (zip: string) => {
+            setLocationError(null);
             if (props.variant === ComponentVariant.Standalone) {
                 const handler = props.onZipcodeInput ?? updateZipCode;
                 handler(zip);
@@ -88,6 +92,28 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
         return () => clearTimeout(tooltipTimerRef.current);
     }, [error]);
 
+    // Handles zip input for the Standalone variant: passes value upstream and
+    // schedules async city-name validation to show an inline error if the city
+    // cannot be resolved.
+    const handleStandaloneZipInput = useCallback(
+        (value: string, upstream: (v: string) => void) => {
+            clearTimeout(validateTimerRef.current);
+            setLocationError(null);
+            upstream(value);
+
+            if (!value || /^\d{5}$/.test(value)) return;
+
+            // Non-zip text: validate after the user pauses typing
+            validateTimerRef.current = setTimeout(async () => {
+                const result = await resolveLocationAction(value);
+                if (!result.ok) {
+                    setLocationError(result.error);
+                }
+            }, 600);
+        },
+        [],
+    );
+
     const buildDropdownComponent = (props: ShowLocationComponentProps) => {
         if (props.variant === ComponentVariant.Form) {
             return (
@@ -116,7 +142,7 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
                 <ZipCodeInput
                     variant={props.variant}
                     form={props.form}
-                    placeholder="Zip code"
+                    placeholder="City or zip code"
                     disabled={false}
                     name="distance.zipCode"
                     id={props.inputId}
@@ -124,12 +150,13 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
             );
         }
 
+        const upstream = props.onZipcodeInput ?? updateZipCode;
         return (
             <ZipCodeInput
                 variant={props.variant}
                 value={props.value?.zipCode ?? ""}
-                onChange={props.onZipcodeInput ?? updateZipCode}
-                placeholder="Where"
+                onChange={(v) => handleStandaloneZipInput(v, upstream)}
+                placeholder="City or zip code"
                 disabled={false}
                 id={props.inputId}
             />
@@ -179,6 +206,11 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
                         )}
                     </div>
                 </div>
+                {locationError && (
+                    <p className="absolute left-0 top-full mt-1 text-xs text-red-500 whitespace-nowrap">
+                        {locationError}
+                    </p>
+                )}
             </div>
         </div>
     );

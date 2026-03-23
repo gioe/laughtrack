@@ -113,7 +113,9 @@ export const paramConfigs: {
         },
         stringify: (value: string) => value,
         validate: (value: string) => {
-            return (value.length > 0 && value.length < 6) || value == "";
+            // Accept 5-digit zip codes, city names (e.g. "Chicago" or "Chicago, IL"),
+            // or empty string. Max 60 chars to prevent excessively long inputs.
+            return value.length <= 60;
         },
     },
     distance: {
