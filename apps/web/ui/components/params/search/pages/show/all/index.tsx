@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { Theater, Users } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import { ComponentVariant, QueryProperty } from "@/objects/enum";
 import { getDateRangeFromParams } from "@/util/search/util";
@@ -20,6 +22,8 @@ export default function ShowSearchBar() {
     const styleConfig = getCurrentStyles();
     const { getTypedParam, setTypedParam, setMultipleTypedParams } =
         useUrlParams();
+    const session = useSession();
+    const hasSeeded = useRef(false);
 
     const state = {
         comedian: getTypedParam(QueryProperty.Comedian),
@@ -33,6 +37,23 @@ export default function ShowSearchBar() {
             to: getTypedParam(QueryProperty.ToDate),
         }),
     };
+
+    useEffect(() => {
+        if (hasSeeded.current || session.status === "loading") return;
+        hasSeeded.current = true;
+        if (state.distance.zipCode) return;
+        const zip =
+            session.data?.profile?.zipCode ??
+            (typeof window !== "undefined"
+                ? localStorage.getItem("laughtrack_zip")
+                : null);
+        if (zip) setMultipleTypedParams({ zip, distance: "10" });
+    }, [
+        session.status,
+        session.data,
+        state.distance.zipCode,
+        setMultipleTypedParams,
+    ]);
 
     const handleComedianSearch = (value: string) =>
         setTypedParam(QueryProperty.Comedian, value);

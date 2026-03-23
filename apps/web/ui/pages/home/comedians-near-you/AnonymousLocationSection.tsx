@@ -31,6 +31,9 @@ export default function AnonymousLocationSection() {
         setError(null);
         const result = await getComediansByZipAction(zip);
         if (result.length > 0) {
+            if (typeof window !== "undefined") {
+                localStorage.setItem("laughtrack_zip", zip);
+            }
             setComedians(result);
             setZipCode(zip);
             setStep("loaded");
