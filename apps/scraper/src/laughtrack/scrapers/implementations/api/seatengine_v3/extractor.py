@@ -9,6 +9,13 @@ from typing import Any, Dict, List
 
 from laughtrack.foundation.models.types import JSONDict
 
+# Pagination note (verified 2026-03-22 via GraphQL introspection):
+# The eventsList query has NO limit/offset/cursor arguments — the schema exposes
+# only: endDate, search, startDate, status, talentId, venueUuid.
+# The EventsList return type has no pageInfo or hasNextPage fields, only:
+#   events, statuses, totalCount (totalCount returns null in practice).
+# The API performs a full dump in a single response. At 147 events for The Comedy
+# Studio, no truncation was observed. Pagination is not needed.
 _GRAPHQL_QUERY = """
 query GetEvents($venueUuid: UUID4!) {
     eventsList(venueUuid: $venueUuid) {
