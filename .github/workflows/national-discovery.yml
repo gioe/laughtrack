@@ -44,6 +44,7 @@ jobs:
           pip install -e .
 
       - name: Discover SeatEngine v3 venues
+        continue-on-error: true
         env:
           DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
           DATABASE_USER: ${{ secrets.DATABASE_USER }}
@@ -56,6 +57,7 @@ jobs:
           python -m scripts.core.scrape_shows --scraper-type seatengine_v3_national
 
       - name: Discover SeatEngine v1 venues
+        continue-on-error: true
         env:
           DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
           DATABASE_USER: ${{ secrets.DATABASE_USER }}
@@ -68,6 +70,7 @@ jobs:
           python -m scripts.core.scrape_shows --scraper-type seatengine_national
 
       - name: Discover Ticketmaster venues
+        continue-on-error: true
         env:
           DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
           DATABASE_USER: ${{ secrets.DATABASE_USER }}
