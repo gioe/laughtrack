@@ -77,7 +77,7 @@ class ComedyCellarEvent(ShowConvertible):
                     purchase_url=self.ticket_link,
                     price=ticket_price,
                     ticket_type="General Admission",
-                    sold_out=False,  # Could be enhanced to check API status
+                    sold_out=self.ticket_data.soldout,
                 )
             )
 
