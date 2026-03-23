@@ -69,13 +69,18 @@ const ShowCard: React.FC<ShowCardProps> = ({ show }: ShowCardProps) => {
                         {parsedShow.tickets.length > 0 && (
                             <div className="sm:self-start">
                                 <FullRoundedButton
-                                    href={parsedShow.tickets[0].purchaseUrl}
+                                    href={
+                                        stillOnSale
+                                            ? parsedShow.tickets[0].purchaseUrl
+                                            : null
+                                    }
                                     label={
                                         stillOnSale ? "Get Tickets" : "Sold Out"
                                     }
                                     color={
                                         stillOnSale ? "bg-copper" : "bg-red-500"
                                     }
+                                    disabled={!stillOnSale}
                                 />
                             </div>
                         )}

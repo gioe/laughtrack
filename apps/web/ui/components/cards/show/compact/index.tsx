@@ -92,9 +92,9 @@ const CompactShowCard: React.FC<CompactShowCardProps> = ({ show }) => {
                             {ticketLabel || "Get Tickets"}
                         </Link>
                     ) : (
-                        <p className="text-[13px] text-red-500 font-dmSans font-semibold">
+                        <span className="inline-block text-[11px] font-bold text-white bg-red-500 px-2.5 py-0.5 rounded-full font-dmSans">
                             Sold Out
-                        </p>
+                        </span>
                     )}
                 </div>
             )}
