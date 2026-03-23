@@ -22,9 +22,6 @@ from .extractor import LaughBostonEventExtractor
 from .page_data import LaughBostonPageData
 from .transformer import LaughBostonEventTransformer
 
-_PIXL_CALENDAR_API_URL = "https://pixlcalendar.com/api/events/laugh-boston"
-
-
 class LaughBostonScraper(BaseScraper):
     """
     Scraper for Laugh Boston comedy club.
@@ -48,15 +45,14 @@ class LaughBostonScraper(BaseScraper):
         """
         Fetch events from the Pixl Calendar API and return TixrEvent objects.
 
-        The ``url`` argument (the club's scraping_url) is not used for fetching;
-        the Pixl Calendar API endpoint is fixed for Laugh Boston. It is kept in
-        the signature to conform to the BaseScraper interface.
+        ``url`` is the club's scraping_url, which should point to the Pixl Calendar
+        API endpoint (e.g. https://pixlcalendar.com/api/events/laugh-boston).
 
         Returns:
             LaughBostonPageData containing TixrEvent objects, or None if no events found
         """
         try:
-            data = await self.fetch_json(_PIXL_CALENDAR_API_URL)
+            data = await self.fetch_json(url)
             tixr_urls = LaughBostonEventExtractor.extract_tixr_urls_from_pixl(data or {})
 
             if not tixr_urls:
