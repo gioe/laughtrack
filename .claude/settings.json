@@ -177,6 +177,17 @@
             "timeout": 30
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'f=$(jq -r \".tool_input.file_path // empty\" 2>/dev/null); echo \"$f\" | grep -qE \"apps/web/.*\\.test\\.tsx?$\" || exit 0; R=$(git rev-parse --show-toplevel 2>/dev/null); cd \"${R}/apps/web\" && npx tsc --noEmit'",
+            "timeout": 60,
+            "statusMessage": "Type-checking test file..."
+          }
+        ]
       }
     ],
     "Stop": [

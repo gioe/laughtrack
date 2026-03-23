@@ -285,12 +285,6 @@ function buildSelect() {
 }
 ```
 
-## TypeScript Check After Writing Test Files
-
-After writing any new `.test.ts` / `.test.tsx` file, run `tsc --noEmit` before committing.
-Test files are not compiled by Vitest (it transpiles without type-checking), so TypeScript
-errors in tests are only caught by the type-checker — not by `npx vitest run`.
-
 ## Scraper `.env` Location
 
 The scraper's environment file lives at `apps/scraper/.env` — not the repo root.
