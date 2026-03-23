@@ -71,6 +71,26 @@ _LINEUP_NAME_BLOCKLIST = frozenset({
     # Filler / "and more" variants
     "plus more",
     "and more",
+    # Music genre labels (false-positive comedians from scraper output)
+    "rap",
+    "r&b",
+    "jazz",
+    "hip-hop",
+    "hip hop",
+    "blues",
+    "soul",
+    "country",
+    "rock",
+    "pop",
+    "funk",
+    "reggae",
+    "classical",
+    "electronic",
+    "edm",
+    "metal",
+    "punk",
+    "folk",
+    "gospel",
 })
 
 _LINEUP_NAME_MIN_LENGTH = 2
