@@ -69,6 +69,21 @@ class ClubQueries:
         RETURNING *
     '''
 
+    UPSERT_CLUB_BY_SEATENGINE_V3_VENUE = '''
+        INSERT INTO clubs (
+            name, address, website, scraping_url,
+            seatengine_id, scraper, visible,
+            zip_code, city, state, phone_number, popularity, timezone
+        )
+        VALUES (%s, %s, %s, %s, %s, 'seatengine_v3', true, %s, %s, %s, '', 0, NULL)
+        ON CONFLICT (name) DO UPDATE SET
+            seatengine_id = COALESCE(clubs.seatengine_id, EXCLUDED.seatengine_id),
+            scraper       = COALESCE(clubs.scraper,       EXCLUDED.scraper),
+            city          = COALESCE(clubs.city,          EXCLUDED.city),
+            state         = COALESCE(clubs.state,         EXCLUDED.state)
+        RETURNING *
+    '''
+
     GET_CLUBS_WITH_NULL_TIMEZONE = '''
         SELECT * FROM clubs
         WHERE scraper = %s AND timezone IS NULL

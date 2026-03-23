@@ -175,6 +175,52 @@ class ClubHandler(BaseDatabaseHandler[Club]):
             Logger.error(f"Error upserting club for SeatEngine venue {venue_id}: {e}")
             raise
 
+    def upsert_for_seatengine_v3_venue(self, venue: dict) -> Optional[Club]:
+        """
+        Upsert a clubs row for a SeatEngine v3 venue discovered via the national
+        discovery job.  On conflict (name), preserves any existing seatengine_id
+        and scraper values rather than overwriting them.
+
+        Args:
+            venue: dict with at minimum 'uuid' and 'name' keys from the v3 GraphQL API.
+                   Optional keys: 'address', 'website', 'zipCode'/'zip_code', 'city', 'state'.
+
+        Returns:
+            Club: the upserted (or existing) club, or None on invalid input
+        """
+        venue_uuid = (venue.get("uuid") or "").strip()
+        name = (venue.get("name") or "").strip()
+        if not venue_uuid or not name:
+            return None
+
+        address = (venue.get("address") or "").strip()
+        website = (venue.get("website") or "").strip()
+        zip_code = (venue.get("zipCode") or venue.get("zip_code") or venue.get("zip") or "").strip()
+        # v3 venues are served from v-{uuid}.seatengine.net
+        scraping_url = f"https://v-{venue_uuid}.seatengine.net"
+
+        # Prefer explicit city/state from the API; fall back to address parsing.
+        city = (venue.get("city") or "").strip() or None
+        state = (venue.get("state") or "").strip() or None
+        if not city or not state:
+            from laughtrack.utilities.domain.club.timezone_lookup import parse_city_state_from_address  # noqa: PLC0415
+            parsed_city, parsed_state = parse_city_state_from_address(address)
+            city = city or parsed_city
+            state = state or parsed_state
+
+        try:
+            results = self.execute_with_cursor(
+                ClubQueries.UPSERT_CLUB_BY_SEATENGINE_V3_VENUE,
+                (name, address, website, scraping_url, venue_uuid, zip_code, city, state),
+                return_results=True,
+            )
+            if not results:
+                return None
+            return Club.from_db_row(results[0])
+        except Exception as e:
+            Logger.error(f"Error upserting club for SeatEngine v3 venue {venue_uuid}: {e}")
+            raise
+
     def upsert_for_ticketmaster_venue(self, venue: dict) -> Optional[Club]:
         """
         Upsert a clubs row for a Ticketmaster venue discovered via the national
