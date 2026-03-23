@@ -5,6 +5,8 @@ Covers:
   - extract_events() with a minimal JSON fixture (happy path)
   - extract_events() edge cases: empty events list, missing keys, bad data
   - NicksEvent.to_show() UTC → America/New_York date/timezone parsing
+  - parse_lineup_from_description() headliner and supporting act extraction
+  - lineup propagation through extract_events() → to_show()
 """
 
 import pytest
@@ -285,3 +287,106 @@ class TestNicksEventToShow:
         show = event.to_show(_club())
         assert show is not None
         assert len(show.tickets) > 0
+
+
+# ---------------------------------------------------------------------------
+# parse_lineup_from_description
+# ---------------------------------------------------------------------------
+
+
+class TestParseLineupFromDescription:
+    def test_headliner_extracted(self):
+        desc = "headliner Jeremy Scippio headlines NICKS COMEDY STOP at 7:30pm"
+        lineup = NicksEventExtractor.parse_lineup_from_description(desc)
+        assert "Jeremy Scippio" in lineup
+
+    def test_supporting_acts_extracted(self):
+        desc = "headliner Jeremy Scippio headlines NICKS COMEDY STOP at 7:30pm with April O'Connor and Jay Delgadillo"
+        lineup = NicksEventExtractor.parse_lineup_from_description(desc)
+        assert "April O'Connor" in lineup
+        assert "Jay Delgadillo" in lineup
+
+    def test_full_description_all_three_performers(self):
+        desc = "headliner Jeremy Scippio headlines NICKS COMEDY STOP at 7:30pm with April O'Connor and Jay Delgadillo"
+        lineup = NicksEventExtractor.parse_lineup_from_description(desc)
+        assert len(lineup) == 3
+        assert lineup[0] == "Jeremy Scippio"
+
+    def test_no_parseable_lineup_returns_empty(self):
+        desc = "A great Friday night of comedy at Nick's!"
+        lineup = NicksEventExtractor.parse_lineup_from_description(desc)
+        assert lineup == []
+
+    def test_empty_description_returns_empty(self):
+        assert NicksEventExtractor.parse_lineup_from_description("") == []
+
+    def test_case_insensitive_headliner(self):
+        desc = "HEADLINER John Smith headlines the show"
+        lineup = NicksEventExtractor.parse_lineup_from_description(desc)
+        assert "John Smith" in lineup
+
+    def test_headliner_only_no_supporting(self):
+        desc = "headliner Jane Doe headlines NICKS COMEDY STOP"
+        lineup = NicksEventExtractor.parse_lineup_from_description(desc)
+        assert "Jane Doe" in lineup
+        assert len(lineup) == 1
+
+
+# ---------------------------------------------------------------------------
+# lineup propagation via extract_events → to_show
+# ---------------------------------------------------------------------------
+
+
+class TestLineupPropagation:
+    def test_lineup_in_extracted_event(self):
+        desc = "headliner Jeremy Scippio headlines NICKS COMEDY STOP at 7:30pm with April O'Connor and Jay Delgadillo"
+        response = _api_response([_raw_event(description=desc)])
+        events = NicksEventExtractor.extract_events(response)
+        assert events[0].lineup == ["Jeremy Scippio", "April O'Connor", "Jay Delgadillo"]
+
+    def test_no_description_lineup_empty(self):
+        response = _api_response([_raw_event(description="Just a show")])
+        events = NicksEventExtractor.extract_events(response)
+        assert events[0].lineup == []
+
+    def test_to_show_passes_lineup(self):
+        desc = "headliner Jeremy Scippio headlines NICKS COMEDY STOP at 7:30pm with April O'Connor and Jay Delgadillo"
+        event = NicksEvent(
+            id="evt-lineup",
+            title="Friday Show",
+            description=desc,
+            slug="friday-show",
+            scheduling={
+                "config": {
+                    "startDate": "2026-04-10T23:00:00.000Z",
+                    "timeZoneId": "America/New_York",
+                }
+            },
+            registration={},
+            lineup=["Jeremy Scippio", "April O'Connor", "Jay Delgadillo"],
+        )
+        show = event.to_show(_club())
+        assert show is not None
+        lineup_names = [p.name for p in show.lineup]
+        assert "Jeremy Scippio" in lineup_names
+        assert "April O'Connor" in lineup_names
+        assert "Jay Delgadillo" in lineup_names
+
+    def test_to_show_empty_lineup_still_valid(self):
+        event = NicksEvent(
+            id="evt-nolineup",
+            title="Friday Show",
+            description="A great show",
+            slug="friday-show",
+            scheduling={
+                "config": {
+                    "startDate": "2026-04-10T23:00:00.000Z",
+                    "timeZoneId": "America/New_York",
+                }
+            },
+            registration={},
+            lineup=[],
+        )
+        show = event.to_show(_club())
+        assert show is not None
+        assert show.lineup == []
