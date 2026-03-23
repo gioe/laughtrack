@@ -22,7 +22,7 @@ export async function GET(
 
     try {
         const club = await db.club.findUnique({
-            where: { id: numericId },
+            where: { id: numericId, status: "active" },
             select: {
                 id: true,
                 name: true,
