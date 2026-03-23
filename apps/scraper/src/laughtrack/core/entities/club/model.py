@@ -31,6 +31,7 @@ class Club(DatabaseEntity):
     eventbrite_id: Optional[str] = None
     ticketmaster_id: Optional[str] = None
     seatengine_id: Optional[str] = None
+    status: str = "active"
     rate_limit: float = 1.0
     max_retries: int = 3
     timeout: int = 30
@@ -107,6 +108,7 @@ class Club(DatabaseEntity):
             eventbrite_id=row.get("eventbrite_id"),
             ticketmaster_id=row.get("ticketmaster_id"),
             seatengine_id=row.get("seatengine_id"),
+            status=row.get("status", "active"),
             rate_limit=row.get("rate_limit", 1.0),
             max_retries=row.get("max_retries", 3),
             timeout=row.get("timeout", 30),

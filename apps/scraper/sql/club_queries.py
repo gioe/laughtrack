@@ -5,7 +5,7 @@ class ClubQueries:
     """SQL queries for club operations."""
     
     GET_ALL_CLUBS = '''
-        SELECT * FROM clubs WHERE scraper IS NOT NULL and visible = True ORDER BY id
+        SELECT * FROM clubs WHERE scraper IS NOT NULL AND visible = True AND status = 'active' ORDER BY id
     '''
     
     GET_CLUB_BY_ID = '''
@@ -25,9 +25,9 @@ class ClubQueries:
     GET_SPECIFIC_CLUBS = GET_CLUB_BY_IDS
     
     GET_CLUBS_BY_SCRAPER = '''
-        SELECT * 
-        FROM clubs 
-        WHERE scraper = %s AND scraper IS NOT NULL
+        SELECT *
+        FROM clubs
+        WHERE scraper = %s AND scraper IS NOT NULL AND status = 'active'
         ORDER BY id
     '''
     
