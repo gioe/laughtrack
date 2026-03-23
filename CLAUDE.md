@@ -285,26 +285,6 @@ function buildSelect() {
 }
 ```
 
-## Scraper `.env` Location
-
-The scraper's environment file lives at `apps/scraper/.env` — not the repo root.
-When running ad-hoc DB queries or Python snippets against the scraper's database,
-load it with `load_dotenv('apps/scraper/.env')` or use the absolute path.
-The root `.env` (if present) contains web app vars and does not have `DATABASE_HOST`.
-
-## Scraper DB Connection
-
-Import from `laughtrack.infrastructure.database.connection` — there is no `db` singleton. Use `get_connection()` as a context manager:
-
-```python
-from laughtrack.infrastructure.database.connection import get_connection
-
-with get_connection() as conn:          # autocommit=True by default
-    with conn.cursor() as cur:
-        cur.execute("SELECT ...")        # commits immediately; no conn.commit() needed
-```
-
-Use `get_transaction()` (same module) when you need multi-statement atomicity.
 
 ## Prisma DIRECT_URL — Migration-Only, Not a Runtime Dependency
 
