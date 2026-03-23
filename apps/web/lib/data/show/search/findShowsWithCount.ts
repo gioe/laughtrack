@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { QueryHelper, SHOW_SORT_MAP } from "@/objects/class/query/QueryHelper";
 import { ShowDTO } from "@/objects/class/show/show.interface";
 import { filterAndMapLineupItems } from "@/util/comedian/comedianUtil";
+import { computeDistanceMiles } from "@/util/distanceUtil";
 import { buildClubImageUrl } from "@/util/imageUtil";
 import { mapTickets } from "@/util/ticket/ticketUtil";
 import { Prisma } from "@prisma/client";
@@ -29,6 +30,7 @@ const SHOW_SELECT = {
         select: {
             name: true,
             address: true,
+            zipCode: true,
         },
     },
     lineupItems: {
@@ -139,6 +141,7 @@ export async function findShowsWithCount(
                 { id: "asc" },
             ]),
         });
+        const searchedZip = helper.params.zip;
         return {
             shows: filteredShows.map((show) => ({
                 id: show.id,
@@ -156,6 +159,10 @@ export async function findShowsWithCount(
                     helper.getUserId(),
                 ),
                 tickets: mapTickets(show.tickets),
+                distanceMiles: computeDistanceMiles(
+                    searchedZip,
+                    show.club.zipCode,
+                ),
             })),
             totalCount,
         };

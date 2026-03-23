@@ -35,6 +35,7 @@ interface ShowCardProps {
 }
 
 const ShowCard: React.FC<ShowCardProps> = ({ show }: ShowCardProps) => {
+    const distanceMiles = show.distanceMiles ?? null;
     const { mv, mp } = useMotionProps();
     const parsedShow = new Show(show);
     const stillOnSale =
@@ -63,7 +64,10 @@ const ShowCard: React.FC<ShowCardProps> = ({ show }: ShowCardProps) => {
                 <div className="flex-1 lg:w-[35%] flex flex-col gap-4">
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                         <div className="flex-1">
-                            <ShowCardHeader show={parsedShow} />
+                            <ShowCardHeader
+                                show={parsedShow}
+                                distanceMiles={distanceMiles}
+                            />
                         </div>
 
                         {parsedShow.tickets.length > 0 && (

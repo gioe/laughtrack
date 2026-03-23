@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { QueryHelper, CLUB_SORT_MAP } from "@/objects/class/query/QueryHelper";
+import { computeDistanceMiles } from "@/util/distanceUtil";
 import { buildClubImageUrl } from "@/util/imageUtil";
 import { Prisma } from "@prisma/client";
 import { ClubsResponse } from "./interface";
@@ -74,6 +75,7 @@ export async function findClubsWithCount(
             skip,
         });
 
+        const searchedZip = queryHelper.params.zip;
         return {
             clubs: filteredClubs.map((club) => ({
                 id: club.id,
@@ -84,6 +86,7 @@ export async function findClubsWithCount(
                 zipCode: club.zipCode,
                 imageUrl: buildClubImageUrl(club.name),
                 show_count: club._count.shows,
+                distanceMiles: computeDistanceMiles(searchedZip, club.zipCode),
             })),
             totalCount,
         };

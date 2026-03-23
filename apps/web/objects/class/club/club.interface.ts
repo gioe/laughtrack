@@ -28,6 +28,7 @@ export interface ClubDTO {
     show_count?: number;
     active_comedian_count?: number;
     phone_number?: string;
+    distanceMiles?: number | null;
 }
 
 export interface PaginatedClubResponseDTO {

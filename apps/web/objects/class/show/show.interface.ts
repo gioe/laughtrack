@@ -31,6 +31,7 @@ export interface ShowDTO {
     address?: string;
     imageUrl: string;
     soldOut?: boolean;
+    distanceMiles?: number | null;
 }
 
 export interface PaginatedShowResponseDTO {

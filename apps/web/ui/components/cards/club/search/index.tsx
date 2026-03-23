@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { MapPin } from "lucide-react";
 import { useMotionProps } from "@/hooks";
 import { Club } from "@/objects/class/club/Club";
 import { ClubDTO } from "@/objects/class/club/club.interface";
@@ -58,6 +59,14 @@ const ClubSearchCard: React.FC<ClubSearchCardProps> = ({ club }) => {
                         {`${parsedClub.showCount ?? 0} upcoming shows`}
                     </span>
                 </div>
+                {club.distanceMiles != null && (
+                    <p className="flex items-center justify-center gap-1 text-xs text-gray-500 font-dmSans">
+                        <MapPin size={11} />
+                        {club.distanceMiles < 1
+                            ? "< 1 mile away"
+                            : `${Math.round(club.distanceMiles)} miles away`}
+                    </p>
+                )}
             </div>
         </motion.div>
     );
