@@ -1,37 +1,37 @@
 """Laugh Boston data extraction utilities."""
 
-from typing import List
+from typing import Any, Dict, List
 
-from laughtrack.utilities.infrastructure.html.scraper import HtmlScraper
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 
 class LaughBostonEventExtractor:
-    """Utility class for extracting Laugh Boston event data from HTML content."""
+    """Utility class for extracting Laugh Boston event data."""
 
     @staticmethod
-    def extract_tixr_urls(html_content: str) -> List[str]:
+    def extract_tixr_urls_from_pixl(data: Dict[str, Any]) -> List[str]:
         """
-        Extract all Tixr event URLs from the Laugh Boston homepage.
+        Extract Tixr event URLs from a Pixl Calendar API response.
 
-        The Laugh Boston homepage lists upcoming shows as direct Tixr links
-        (tixr.com/groups/laughboston/events/*).
+        The Pixl Calendar API returns events with a ``ticketUrl`` field pointing
+        to tixr.com. This method collects all such URLs for downstream fetching
+        via TixrClient.
 
         Args:
-            html_content: HTML content of the Laugh Boston homepage
+            data: Parsed JSON from https://pixlcalendar.com/api/events/{slug}
 
         Returns:
-            List of unique Tixr event URLs found in the page
+            List of unique Tixr event URLs, in response order
         """
         try:
-            urls = HtmlScraper.extract_links_by_regex_patterns(
-                html=html_content,
-                patterns=[
-                    r"https?://[^\s\"']*tixr\.com/groups/[^\s\"']*/events/[^\s\"']*",
-                ],
-            )
-            return [u for u in urls if "tixr.com" in u and "/events/" in u]
-
+            events = data.get("events", [])
+            urls = []
+            for event in events:
+                ticket_url = event.get("ticketUrl", "")
+                if ticket_url and "tixr.com" in ticket_url and "/events/" in ticket_url:
+                    urls.append(ticket_url)
+            # Preserve order, deduplicate
+            return list(dict.fromkeys(urls))
         except Exception as e:
-            Logger.error(f"Error extracting Tixr URLs from Laugh Boston HTML: {e}")
+            Logger.error(f"Error extracting Tixr URLs from Pixl Calendar response: {e}")
             return []

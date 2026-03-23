@@ -1,17 +1,18 @@
 """
 Laugh Boston scraper implementation.
 
-Laugh Boston (laughboston.com) lists upcoming shows directly on its homepage
-as Tixr links (tixr.com/groups/laughboston/events/*). The scraper:
-1. Fetches the homepage and extracts all Tixr event URLs
-2. Uses TixrClient to fetch full event details for each URL via JSON-LD parsing
+Laugh Boston shows are fetched via the Pixl Calendar API
+(pixlcalendar.com/api/events/laugh-boston), which returns the full event
+catalogue with Tixr ticket URLs. The scraper:
+1. Fetches all events from the Pixl Calendar API
+2. Extracts the Tixr event URLs from the response
+3. Uses TixrClient to fetch full event details for each URL via JSON-LD parsing
 """
 
 from typing import List, Optional
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.foundation.infrastructure.logger.logger import Logger
-from laughtrack.foundation.utilities.url import URLUtils
 from laughtrack.infrastructure.config.presets import BatchConfigPresets
 from laughtrack.infrastructure.monitoring import create_monitored_tixr_client
 from laughtrack.scrapers.base.base_scraper import BaseScraper
@@ -21,13 +22,15 @@ from .extractor import LaughBostonEventExtractor
 from .page_data import LaughBostonPageData
 from .transformer import LaughBostonEventTransformer
 
+_PIXL_CALENDAR_API_URL = "https://pixlcalendar.com/api/events/laugh-boston"
+
 
 class LaughBostonScraper(BaseScraper):
     """
     Scraper for Laugh Boston comedy club.
 
-    Extracts Tixr event URLs from the Laugh Boston homepage, then fetches
-    full event details via TixrClient's JSON-LD parsing.
+    Fetches events from the Pixl Calendar API, extracts Tixr event URLs,
+    then retrieves full event details via TixrClient's JSON-LD parsing.
     """
 
     key = "laugh_boston"
@@ -43,23 +46,26 @@ class LaughBostonScraper(BaseScraper):
 
     async def get_data(self, url: str) -> Optional[LaughBostonPageData]:
         """
-        Fetch the Laugh Boston homepage and extract TixrEvent objects.
+        Fetch events from the Pixl Calendar API and return TixrEvent objects.
 
-        Args:
-            url: The Laugh Boston homepage URL
+        The ``url`` argument (the club's scraping_url) is not used for fetching;
+        the Pixl Calendar API endpoint is fixed for Laugh Boston. It is kept in
+        the signature to conform to the BaseScraper interface.
 
         Returns:
             LaughBostonPageData containing TixrEvent objects, or None if no events found
         """
         try:
-            html_content = await self.fetch_html(URLUtils.normalize_url(url))
-            tixr_urls = LaughBostonEventExtractor.extract_tixr_urls(html_content)
+            data = await self.fetch_json(_PIXL_CALENDAR_API_URL)
+            tixr_urls = LaughBostonEventExtractor.extract_tixr_urls_from_pixl(data or {})
 
             if not tixr_urls:
-                Logger.info(f"No Tixr URLs found on {url}", self.logger_context)
+                Logger.info("No Tixr URLs found in Pixl Calendar response", self.logger_context)
                 return None
 
-            Logger.info(f"Extracted {len(tixr_urls)} Tixr URLs from {url}", self.logger_context)
+            Logger.info(
+                f"Extracted {len(tixr_urls)} Tixr URLs from Pixl Calendar", self.logger_context
+            )
 
             results = await self.batch_scraper.process_batch(
                 tixr_urls,
@@ -70,7 +76,7 @@ class LaughBostonScraper(BaseScraper):
 
             if not tixr_events:
                 Logger.info(
-                    f"No TixrEvents returned from {len(tixr_urls)} URLs on {url}",
+                    f"No TixrEvents returned from {len(tixr_urls)} Pixl Calendar URLs",
                     self.logger_context,
                 )
                 return None
@@ -82,5 +88,7 @@ class LaughBostonScraper(BaseScraper):
             return LaughBostonPageData(event_list=tixr_events, tixr_urls=tixr_urls)
 
         except Exception as e:
-            Logger.error(f"Error extracting data from {url}: {str(e)}", self.logger_context)
+            Logger.error(
+                f"Error fetching data from Pixl Calendar: {str(e)}", self.logger_context
+            )
             return None
