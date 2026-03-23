@@ -12,48 +12,39 @@ Run any command with --help for full usage details.
 
 from __future__ import annotations
 
-import argparse
 import sys
+
+_COMMANDS = {
+    "audit-show": "laughtrack.app.commands.audit_show",
+    "manage-subscriptions": "laughtrack.app.commands.manage_subscriptions",
+}
+
+_HELP = {
+    "audit-show": "Dry-run lineup comparison for a specific show.",
+    "manage-subscriptions": "Manage email subscription tracking for clubs.",
+}
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        prog="laughtrack.app.cli",
-        description="LaughTrack scraper CLI.",
-    )
-    subparsers = parser.add_subparsers(dest="command")
-    subparsers.required = True
+    args = sys.argv[1:]
 
-    # --- audit-show ---
-    audit_parser = subparsers.add_parser(
-        "audit-show",
-        help="Dry-run lineup comparison for a specific show.",
-    )
-    audit_parser.add_argument(
-        "--show-id",
-        type=int,
-        required=True,
-        metavar="N",
-        help="Database ID of the show to audit.",
-    )
+    if not args or args[0] in ("-h", "--help"):
+        print("usage: laughtrack.app.cli <command> [args...]\n")
+        print("Commands:")
+        for name, desc in _HELP.items():
+            print(f"  {name:<26}{desc}")
+        print("\nRun any command with --help for full usage details.")
+        sys.exit(0)
 
-    # --- manage-subscriptions (passthrough) ---
-    subparsers.add_parser(
-        "manage-subscriptions",
-        help="Manage email subscription tracking for clubs.",
-        add_help=False,  # delegate help to the sub-command's own parser
-    )
+    command = args[0]
+    if command not in _COMMANDS:
+        print(f"error: unknown command '{command}'", file=sys.stderr)
+        print(f"Available commands: {', '.join(_COMMANDS)}", file=sys.stderr)
+        sys.exit(2)
 
-    # Parse only the top-level command; leave the rest for sub-command parsers.
-    args, remaining = parser.parse_known_args()
-
-    if args.command == "audit-show":
-        from laughtrack.app.commands.audit_show import main as _audit_main
-        _audit_main(["--show-id", str(args.show_id)] + remaining)
-
-    elif args.command == "manage-subscriptions":
-        from laughtrack.app.commands.manage_subscriptions import main as _subs_main
-        _subs_main(remaining)
+    import importlib
+    mod = importlib.import_module(_COMMANDS[command])
+    mod.main(sys.argv[2:])
 
 
 if __name__ == "__main__":
