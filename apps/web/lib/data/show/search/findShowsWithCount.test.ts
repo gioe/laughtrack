@@ -27,9 +27,11 @@ function makeHelper(
     overrides: Partial<{
         profileId: string | undefined;
         userId: string | undefined;
+        zip: string | undefined;
     }> = {},
 ) {
     return {
+        params: { zip: overrides.zip ?? undefined },
         getDateClause: vi.fn(() => ({})),
         getClubNameClause: vi.fn(() => ({})),
         getZipCodeClause: vi.fn(() => ({})),
