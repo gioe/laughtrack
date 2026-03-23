@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { ParameterizedRequestData } from "@/objects/interface";
 import { SearchParams } from "@/objects/interface/showSearch.interface";
 import { toZonedTime, format } from "date-fns-tz";
+import { resolveLocationInput } from "@/util/location/resolveLocation";
 import { SortParamValue } from "@/objects/enum/sortParamValue";
 
 type SortEntry = { field: string; direction: "asc" | "desc" };
@@ -263,39 +264,52 @@ export class QueryHelper {
     }
 
     getZipCodeClause() {
-        const providedZip = this.params.zip;
+        const input = this.params.zip;
         const radius = this.params.distance;
 
-        // Return empty object if no zip code or invalid zip code
-        if (!providedZip || !/^\d{5}$/.test(providedZip)) {
-            return {};
+        if (!input) return {};
+
+        const resolution = resolveLocationInput(input);
+
+        // City name not found — return a clause that matches nothing
+        if (!resolution.found) {
+            return { zipCode: { equals: "" } };
         }
 
-        // If no valid radius, fall back to exact zip match so zip always scopes results
+        const { startingZips } = resolution;
         const radiusNum = Number(radius);
+
+        // No valid radius — exact match on the starting zip(s)
         if (!radius || isNaN(radiusNum) || radiusNum < 1 || radiusNum > 500) {
-            return { zipCode: { equals: providedZip } };
+            return startingZips.length === 1
+                ? { zipCode: { equals: startingZips[0] } }
+                : { zipCode: { in: startingZips } };
         }
 
+        // Expand each starting zip by the radius and combine results.
+        // For ambiguous city names (e.g. "Portland" → OR, ME, TN …) this
+        // returns zips from every matching metro area.
         try {
-            const zipResults = zipcodes.radius(providedZip, Number(radius));
-            if (!zipResults || zipResults.length === 0) {
-                return { zipCode: { equals: providedZip } };
+            const allNearbyZips = new Set<string>();
+            for (const startZip of startingZips) {
+                const zipResults = zipcodes.radius(startZip, radiusNum);
+                if (zipResults) {
+                    zipResults.forEach((zip: string | zipcodes.ZipCode) => {
+                        allNearbyZips.add(
+                            typeof zip === "string" ? zip : zip.zip,
+                        );
+                    });
+                }
             }
 
-            const nearbyZips = zipResults.map(
-                (zip: string | zipcodes.ZipCode) =>
-                    typeof zip === "string" ? zip : zip.zip,
-            );
+            if (allNearbyZips.size === 0) {
+                return { zipCode: { in: startingZips } };
+            }
 
-            return {
-                zipCode: {
-                    in: nearbyZips,
-                },
-            };
+            return { zipCode: { in: Array.from(allNearbyZips) } };
         } catch (error) {
             console.error("Error in zip code radius calculation:", error);
-            return { zipCode: { equals: providedZip } };
+            return { zipCode: { in: startingZips } };
         }
     }
 
