@@ -20,6 +20,46 @@ from laughtrack.utilities.domain.show.utils import ShowUtils
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.datetime import DateTimeUtils
 
+# Names that are placeholder/generic strings and should not be treated as real comedians
+_LINEUP_NAME_BLOCKLIST = frozenset({
+    "tba",
+    "to be announced",
+    "to be determined",
+    "tbd",
+    "special guest",
+    "special guests",
+    "surprise guest",
+    "surprise guests",
+    "surprise",
+    "headliner tbd",
+    "various",
+    "various artists",
+    "comedian",
+    "comedians",
+    "comic",
+    "comics",
+    "host",
+    "emcee",
+    "mc",
+    "opener",
+    "openers",
+    "opening act",
+})
+
+_LINEUP_NAME_MIN_LENGTH = 2
+
+
+def _is_valid_lineup_name(name: str) -> bool:
+    """Return True if name is a real comedian name, False if it is a placeholder."""
+    stripped = name.strip()
+    if len(stripped) < _LINEUP_NAME_MIN_LENGTH:
+        return False
+    if stripped.lower() in _LINEUP_NAME_BLOCKLIST:
+        return False
+    if not any(c.isalpha() for c in stripped):
+        return False
+    return True
+
 
 class ShowFactoryUtils:
     """Utilities for standardizing Show creation from various event types."""
@@ -126,7 +166,7 @@ class ShowFactoryUtils:
                     Logger.warning(f"Unknown performer format: {performer}")
                     continue
 
-                if name and name.strip():
+                if name and _is_valid_lineup_name(name):
                     lineup.append(Comedian(name=name.strip()))
             except Exception as e:
                 Logger.warning(f"Error processing performer {performer}: {e}")
