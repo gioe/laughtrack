@@ -55,6 +55,18 @@ jobs:
         run: |
           python -m scripts.core.scrape_shows --scraper-type seatengine_v3_national
 
+      - name: Discover SeatEngine v1 venues
+        env:
+          DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+          DATABASE_USER: ${{ secrets.DATABASE_USER }}
+          DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
+          DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+          DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
+          SEATENGINE_AUTH_TOKEN: ${{ secrets.SEATENGINE_AUTH_TOKEN }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          python -m scripts.core.scrape_shows --scraper-type seatengine_national
+
       - name: Discover Ticketmaster venues
         env:
           DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
