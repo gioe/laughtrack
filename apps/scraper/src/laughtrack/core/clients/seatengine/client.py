@@ -23,7 +23,7 @@ class SeatEngineClient(BaseApiClient):
     def __init__(self, club: Club, proxy_pool: Optional[ProxyPool] = None):
         """Initialize the client with club data."""
         super().__init__(club, proxy_pool=proxy_pool)
-        domain = URLUtils.get_formatted_domain(club.scraping_url)
+        domain = URLUtils.get_formatted_domain(URLUtils.normalize_url(club.scraping_url))
         auth_token = ConfigManager.get_config("api", "seatengine_auth_token")
         self.headers = BaseHeaders.get_headers(
             base_type="mobile_browser",
