@@ -4,6 +4,7 @@ import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { buildClubImageUrl } from "@/util/imageUtil";
 import { Prisma } from "@prisma/client";
 import { NotFoundError } from "@/objects/NotFoundError";
+import { ClosedClubError } from "@/objects/ClosedClubError";
 
 const CLUB_SELECT = {
     id: true,
@@ -13,6 +14,8 @@ const CLUB_SELECT = {
     city: true,
     state: true,
     zipCode: true,
+    status: true,
+    closedAt: true,
 } as const;
 
 export async function findClubByName(helper: QueryHelper): Promise<ClubDTO> {
@@ -28,13 +31,16 @@ export async function findClubByName(helper: QueryHelper): Promise<ClubDTO> {
                     equals: name,
                     mode: Prisma.QueryMode.insensitive,
                 },
-                status: "active",
             },
             select: CLUB_SELECT,
         });
 
         if (!clubData) {
             throw new NotFoundError(`Club with name "${name}" not found`);
+        }
+
+        if (clubData.status === "closed") {
+            throw new ClosedClubError(clubData.name, clubData.closedAt);
         }
         return {
             name: clubData.name,
