@@ -197,6 +197,141 @@ async def test_fetch_all_events_returns_empty_if_no_venue_id(monkeypatch, stub_b
 
 
 @pytest.mark.asyncio
+async def test_fetch_all_events_falls_back_to_organizer_on_venue_404(monkeypatch, stub_base_init):
+    """When venues endpoint returns None (404/error), organizer endpoint is tried."""
+    stub_base_init()
+    club = _club(eventbrite_id="ORG123")
+    c = EventbriteClient(club)
+
+    class Page:
+        def __init__(self, events, has_more, continuation=None):
+            self.events = events
+            self.pagination = type("P", (), {"has_more_items": has_more, "continuation": continuation})()
+
+    async def fake_venue_list(venue_id, continuation=None):
+        return None  # 404 / error
+
+    async def fake_organizer_list(organizer_id, continuation=None):
+        return Page([{"id": 10}], False)
+
+    def fake_convert(api_event):
+        return f"E{api_event['id']}"
+
+    monkeypatch.setattr(c, "fetch_eventbrite_event_list", fake_venue_list)
+    monkeypatch.setattr(c, "fetch_organizer_event_list", fake_organizer_list)
+    monkeypatch.setattr(eb_client_module.EventbriteEvent, "from_api_model", staticmethod(fake_convert))
+
+    events = await c.fetch_all_events()
+    assert events == ["E10"]
+
+
+@pytest.mark.asyncio
+async def test_fetch_all_events_no_fallback_when_venue_is_empty(monkeypatch, stub_base_init):
+    """A valid venue with no scheduled shows returns [] without calling organizer endpoint."""
+    stub_base_init()
+    club = _club(eventbrite_id="VENUE42")
+    c = EventbriteClient(club)
+
+    class Page:
+        def __init__(self, events, has_more):
+            self.events = events
+            self.pagination = type("P", (), {"has_more_items": has_more, "continuation": None})()
+
+    async def fake_venue_list(venue_id, continuation=None):
+        return Page([], False)  # valid response, just no events
+
+    organizer_called = {"called": False}
+
+    async def fake_organizer_list(organizer_id, continuation=None):
+        organizer_called["called"] = True
+        return Page([{"id": 99}], False)
+
+    def fake_convert(api_event):
+        return f"E{api_event['id']}"
+
+    monkeypatch.setattr(c, "fetch_eventbrite_event_list", fake_venue_list)
+    monkeypatch.setattr(c, "fetch_organizer_event_list", fake_organizer_list)
+    monkeypatch.setattr(eb_client_module.EventbriteEvent, "from_api_model", staticmethod(fake_convert))
+
+    events = await c.fetch_all_events()
+    assert events == []
+    assert not organizer_called["called"], "organizer endpoint should not be called for empty-but-valid venue"
+
+
+@pytest.mark.asyncio
+async def test_fetch_all_events_both_endpoints_empty(monkeypatch, stub_base_init):
+    """Both venue (404) and organizer (no events) return empty → []."""
+    stub_base_init()
+    club = _club(eventbrite_id="BAD_ID")
+    c = EventbriteClient(club)
+
+    async def fake_venue_list(venue_id, continuation=None):
+        return None  # 404
+
+    class Page:
+        def __init__(self):
+            self.events = []
+            self.pagination = type("P", (), {"has_more_items": False, "continuation": None})()
+
+    async def fake_organizer_list(organizer_id, continuation=None):
+        return Page()
+
+    monkeypatch.setattr(c, "fetch_eventbrite_event_list", fake_venue_list)
+    monkeypatch.setattr(c, "fetch_organizer_event_list", fake_organizer_list)
+
+    events = await c.fetch_all_events()
+    assert events == []
+
+
+@pytest.mark.asyncio
+async def test_fetch_organizer_event_list_url_format(monkeypatch, stub_base_init):
+    """fetch_organizer_event_list calls /organizers/{id}/events/ with correct params."""
+    stub_base_init()
+    club = _club(eventbrite_id="ORG999")
+    c = EventbriteClient(club)
+    c.headers = {}
+
+    called = {}
+
+    async def fake_fetch_json(url, headers, timeout, logger_context):
+        called["url"] = url
+        called["logger_context"] = logger_context
+        return {"ok": True}
+
+    sentinel_resp = object()
+    monkeypatch.setattr(c, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(eb_client_module, "EventbriteListEventsResponse", type("R", (), {"from_dict": staticmethod(lambda d: sentinel_resp)})())
+
+    resp = await c.fetch_organizer_event_list(organizer_id="ORG999")
+
+    assert resp is sentinel_resp
+    assert called["url"].startswith(f"{c.BASE_URL}/organizers/ORG999/events/?")
+    assert "status=live" in called["url"]
+    assert "continuation=" not in called["url"]
+    assert called["logger_context"] == {"organizer_id": "ORG999"}
+
+
+@pytest.mark.asyncio
+async def test_fetch_organizer_event_list_url_with_continuation(monkeypatch, stub_base_init):
+    stub_base_init()
+    club = _club(eventbrite_id="ORG999")
+    c = EventbriteClient(club)
+    c.headers = {}
+
+    called = {}
+
+    async def fake_fetch_json(url, headers, timeout, logger_context):
+        called["url"] = url
+        return {"ok": True}
+
+    monkeypatch.setattr(c, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(eb_client_module, "EventbriteListEventsResponse", type("R", (), {"from_dict": staticmethod(lambda d: object())})())
+
+    await c.fetch_organizer_event_list(organizer_id="ORG999", continuation="tok1")
+    assert "continuation=tok1" in called["url"]
+
+
+@pytest.mark.asyncio
 async def test_retrieve_event_success_and_not_found(monkeypatch, stub_base_init):
     stub_base_init()
     club = _club(eventbrite_id="VENUE")

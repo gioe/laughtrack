@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Literal, Optional
 from urllib.parse import urlencode
 
 from laughtrack.utilities.infrastructure import RateLimiter
@@ -88,26 +88,39 @@ class EventbriteClient(BaseApiClient):
     async def fetch_all_events(self) -> List[EventbriteEvent]:
         """Fetch all live events for the configured venue, handling pagination.
 
-        Tries the /venues/{id}/events/ endpoint first.  If that returns no
-        events (e.g. because the stored ID is an organizer ID that 404s on the
-        venue endpoint), falls back to /organizers/{id}/events/.
+        Tries /venues/{id}/events/ first.  If that endpoint fails (e.g. returns
+        a 404 because the stored ID is an organizer ID), falls back to
+        /organizers/{id}/events/.
+
+        A venue that is valid but has no scheduled events returns an empty list
+        without triggering the organizer fallback — the fallback is only
+        triggered when the venues endpoint itself fails (returns None).
 
         Returns
         - list[EventbriteEvent]: Flattened list across all pages; ``[]`` on
-          no id, no data, or error paths where pages produce no events.
+          no id, valid-but-empty venue, or all-endpoints-failed paths.
         """
         if not self.club.eventbrite_id:
             return []
 
         events = await self._fetch_paginated("venues", self.club.eventbrite_id)
-        if not events:
-            events = await self._fetch_paginated("organizers", self.club.eventbrite_id)
+        if events is None:
+            # Venue endpoint failed (404/error) — try organizer endpoint
+            events = await self._fetch_paginated("organizers", self.club.eventbrite_id) or []
         return events
 
-    async def _fetch_paginated(self, endpoint_type: str, entity_id: str) -> List[EventbriteEvent]:
-        """Paginated fetch from /venues/{id}/events/ or /organizers/{id}/events/."""
-        events = []
+    async def _fetch_paginated(
+        self, endpoint_type: Literal["venues", "organizers"], entity_id: str
+    ) -> Optional[List[EventbriteEvent]]:
+        """Paginated fetch from /venues/{id}/events/ or /organizers/{id}/events/.
+
+        Returns None if the first API call fails (e.g. 404) — callers use this
+        to distinguish an endpoint failure from a valid-but-empty event list.
+        Returns [] when the endpoint responds successfully with no events.
+        """
+        events: List[EventbriteEvent] = []
         continuation = None
+        first_call = True
         while True:
             if endpoint_type == "organizers":
                 response = await self.fetch_organizer_event_list(
@@ -117,11 +130,19 @@ class EventbriteClient(BaseApiClient):
                 response = await self.fetch_eventbrite_event_list(
                     venue_id=entity_id, continuation=continuation
                 )
-            if not response or not response.events:
+            if response is None:
+                if first_call:
+                    return None  # Endpoint failed — signal to caller
+                break
+            first_call = False
+            if not response.events:
                 break
             events.extend(
                 EventbriteEvent.from_api_model(api_event) for api_event in response.events
             )
+            # EventbriteListEventsResponse.from_dict always constructs a valid
+            # EventbritePagination (defaults to has_more_items=False) so this
+            # access is safe even when the API omits the pagination key.
             if not response.pagination.has_more_items:
                 break
             continuation = response.pagination.continuation
@@ -221,6 +242,19 @@ class EventbriteClient(BaseApiClient):
         query_string = urlencode(req_params)
         full_url = f"{fetch_events_url}?{query_string}"
 
+        try:
+            Logger.debug(
+                "Requesting Eventbrite organizer event list",
+                context={
+                    "club_name": getattr(self.club, "name", "-"),
+                    "organizer_id": organizer_id,
+                    "url": full_url,
+                    "has_continuation": bool(continuation),
+                },
+            )
+        except Exception:
+            pass
+
         req_headers = dict(self.headers)
         req_headers.pop("Content-Type", None)
 
@@ -234,7 +268,20 @@ class EventbriteClient(BaseApiClient):
         if not data:
             return None
 
-        return EventbriteListEventsResponse.from_dict(data)
+        resp = EventbriteListEventsResponse.from_dict(data)
+        try:
+            Logger.debug(
+                "Parsed Eventbrite organizer event list page",
+                context={
+                    "club_name": getattr(self.club, "name", "-"),
+                    "organizer_id": organizer_id,
+                    "events": len(resp.events) if resp and resp.events else 0,
+                    "has_more": bool(resp and resp.pagination and resp.pagination.has_more_items),
+                },
+            )
+        except Exception:
+            pass
+        return resp
 
     async def retrieve_event(self, event_id: str) -> Optional[EventbriteSingleEventResponse]:
         """Retrieve details for a single Eventbrite event by id.
