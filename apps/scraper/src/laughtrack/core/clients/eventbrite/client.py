@@ -88,89 +88,43 @@ class EventbriteClient(BaseApiClient):
     async def fetch_all_events(self) -> List[EventbriteEvent]:
         """Fetch all live events for the configured venue, handling pagination.
 
-        Behavior
-        - If ``self.club.eventbrite_id`` is falsy, returns ``[]`` immediately.
-        - Iteratively calls :meth:`fetch_eventbrite_event_list` following
-          continuation tokens until no further pages are available.
-        - Converts API models to domain ``EventbriteEvent`` instances via
-          ``EventbriteEvent.from_api_model``.
+        Tries the /venues/{id}/events/ endpoint first.  If that returns no
+        events (e.g. because the stored ID is an organizer ID that 404s on the
+        venue endpoint), falls back to /organizers/{id}/events/.
 
         Returns
         - list[EventbriteEvent]: Flattened list across all pages; ``[]`` on
           no id, no data, or error paths where pages produce no events.
-
-        Verification checklist
-        - Pagination proceeds while ``pagination.has_more_items`` is true.
-        - Accumulated event count equals the sum of page event counts.
-        - Logging emits debug entries for start, each page, and completion.
-
-        Edge cases
-        - Network/API failures cause a page to return ``None`` which stops the
-          loop; function returns whatever was collected so far (possibly ``[]``).
-        - If a page contains ``events=[]`` but indicates more pages, current
-          logic will break; validate upstream API expectations in tests.
         """
-        events = []
-        continuation = None
-
         if not self.club.eventbrite_id:
             return []
 
-        try:
-            Logger.debug(
-                "Fetching all Eventbrite events (paginated)",
-                context={
-                    "club_name": getattr(self.club, "name", "-"),
-                    "venue_id": getattr(self.club, "eventbrite_id", None),
-                },
-            )
-        except Exception:
-            pass
+        events = await self._fetch_paginated("venues", self.club.eventbrite_id)
+        if not events:
+            events = await self._fetch_paginated("organizers", self.club.eventbrite_id)
+        return events
 
+    async def _fetch_paginated(self, endpoint_type: str, entity_id: str) -> List[EventbriteEvent]:
+        """Paginated fetch from /venues/{id}/events/ or /organizers/{id}/events/."""
+        events = []
+        continuation = None
         while True:
-            # Fetch a page of events
-            response = await self.fetch_eventbrite_event_list(
-                venue_id=self.club.eventbrite_id,
-                continuation=continuation,
-            )
-
+            if endpoint_type == "organizers":
+                response = await self.fetch_organizer_event_list(
+                    organizer_id=entity_id, continuation=continuation
+                )
+            else:
+                response = await self.fetch_eventbrite_event_list(
+                    venue_id=entity_id, continuation=continuation
+                )
             if not response or not response.events:
                 break
-
-            # Convert API events to domain events
-            domain_events = [EventbriteEvent.from_api_model(api_event) for api_event in response.events]
-            events.extend(domain_events)
-
-            # Check if more pages exist
-            try:
-                Logger.debug(
-                    "Fetched Eventbrite page",
-                    context={
-                        "club_name": getattr(self.club, "name", "-"),
-                        "venue_id": getattr(self.club, "eventbrite_id", None),
-                        "page_events": len(response.events) if response else 0,
-                        "has_more": bool(response and response.pagination and response.pagination.has_more_items),
-                    },
-                )
-            except Exception:
-                pass
-
+            events.extend(
+                EventbriteEvent.from_api_model(api_event) for api_event in response.events
+            )
             if not response.pagination.has_more_items:
                 break
             continuation = response.pagination.continuation
-
-        try:
-            Logger.debug(
-                "Completed Eventbrite pagination",
-                context={
-                    "club_name": getattr(self.club, "name", "-"),
-                    "venue_id": getattr(self.club, "eventbrite_id", None),
-                    "total_events": len(events),
-                },
-            )
-        except Exception:
-            pass
-
         return events
 
     async def fetch_eventbrite_event_list(
@@ -249,6 +203,38 @@ class EventbriteClient(BaseApiClient):
         except Exception:
             pass
         return resp
+
+    async def fetch_organizer_event_list(
+        self, organizer_id: str, continuation: Optional[str] = None
+    ) -> Optional[EventbriteListEventsResponse]:
+        """Fetch a single page of live events for an Eventbrite organizer.
+
+        Mirrors :meth:`fetch_eventbrite_event_list` but calls the
+        /organizers/{organizer_id}/events/ endpoint instead of /venues/.
+        Used as a fallback when the stored eventbrite_id is an organizer ID.
+        """
+        fetch_events_url = f"{self.BASE_URL}/organizers/{organizer_id}/events/"
+
+        req_params = self.params.copy()
+        if continuation:
+            req_params["continuation"] = continuation
+        query_string = urlencode(req_params)
+        full_url = f"{fetch_events_url}?{query_string}"
+
+        req_headers = dict(self.headers)
+        req_headers.pop("Content-Type", None)
+
+        data = await self.fetch_json(
+            url=full_url,
+            headers=req_headers,
+            timeout=self.REQUEST_TIMEOUT,
+            logger_context={"organizer_id": organizer_id},
+        )
+
+        if not data:
+            return None
+
+        return EventbriteListEventsResponse.from_dict(data)
 
     async def retrieve_event(self, event_id: str) -> Optional[EventbriteSingleEventResponse]:
         """Retrieve details for a single Eventbrite event by id.
