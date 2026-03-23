@@ -1,3 +1,4 @@
+import "server-only";
 import zipcodes from "zipcodes";
 
 export type LocationResolution =

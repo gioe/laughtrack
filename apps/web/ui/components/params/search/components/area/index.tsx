@@ -54,6 +54,13 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
     const tooltipTimerRef = useRef<ReturnType<typeof setTimeout>>();
     const [locationError, setLocationError] = useState<string | null>(null);
     const validateTimerRef = useRef<ReturnType<typeof setTimeout>>();
+    // Incremented each time a new validation is initiated; stale responses are
+    // discarded by comparing against the current value before calling setState.
+    const validateCallIdRef = useRef(0);
+
+    // Cancel the pending debounce timer on unmount to prevent state updates on
+    // an unmounted component.
+    React.useEffect(() => () => clearTimeout(validateTimerRef.current), []);
 
     const handleGeoSuccess = useCallback(
         (zip: string) => {
@@ -103,9 +110,16 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
 
             if (!value || /^\d{5}$/.test(value)) return;
 
+            // Capture the current call ID so stale responses (e.g. when the
+            // user clears the field while a server action is still in-flight)
+            // are silently discarded.
+            validateCallIdRef.current += 1;
+            const callId = validateCallIdRef.current;
+
             // Non-zip text: validate after the user pauses typing
             validateTimerRef.current = setTimeout(async () => {
                 const result = await resolveLocationAction(value);
+                if (callId !== validateCallIdRef.current) return;
                 if (!result.ok) {
                     setLocationError(result.error);
                 }
@@ -207,7 +221,10 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
                     </div>
                 </div>
                 {locationError && (
-                    <p className="absolute left-0 top-full mt-1 text-xs text-red-500 whitespace-nowrap">
+                    <p
+                        role="alert"
+                        className="absolute left-0 top-full mt-1 text-xs text-red-500 whitespace-nowrap"
+                    >
                         {locationError}
                     </p>
                 )}
