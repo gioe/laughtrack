@@ -9,29 +9,38 @@ registered venues on the next scraping run.
 
 Triggered by a single clubs row with scraper='seatengine_v3_national'.
 
-Discovery approach — BLOCKED (2026-03-23)
------------------------------------------
+Discovery approach — Wayback Machine CDX + GraphQL venue query
+--------------------------------------------------------------
 The v3 GraphQL API at services.seatengine.com/api/v3/public does NOT expose
-a ``venuesList`` query.  Introspection confirmed the full query list is:
+a ``venuesList`` query (confirmed via introspection 2026-03-23).  The full
+query list is:
 
     cart, checkout, currentUser, event, eventsList, getPaymentIntent,
     healthcheck, purchase, purchaseTransaction, seatmap, venue, venueCustomer
 
-The closest candidates for venue lookup are:
-- ``venue(venueUuid: UUID4!)``       — single-venue lookup, UUID required
-- ``venueCustomer(venueId: UUID4)``  — customer-facing details, UUID required
+All venue-specific queries require a known UUID.
 
-Neither supports listing all venues without a known UUID.  The ``eventsList``
-query also requires a non-null ``venueUuid``.
+Strategy implemented here:
+1. Query the Wayback Machine CDX API (web.archive.org) for all URLs under
+   the ``seatengine.net`` domain.  Each SeatEngine v3 venue is served from a
+   ``v-{uuid}.seatengine.net`` subdomain, so the CDX results yield a set of
+   known UUIDs.
+2. For each discovered UUID, call the v3 GraphQL ``venue`` query to retrieve
+   the full venue record (name, website, address, city, state, zipcode via the
+   ``settings`` subfield).
+3. Return the collected venue dicts for the existing upsert pipeline.
 
-Until a national discovery strategy is implemented (e.g. web scraping a
-SeatEngine venue directory, or harvesting UUIDs from the v1 platform), this
-scraper will always log a GraphQL error and return 0 venues.
-
-See follow-up task for alternative discovery approaches.
+Limitations:
+- Only venues crawled and archived by the Wayback Machine are discoverable.
+  New venues appear in the CDX index after their first Wayback Machine crawl,
+  which may lag by days to weeks.  Running this scraper periodically (e.g.
+  weekly) ensures newly indexed venues are picked up.
+- The CDX API wildcard query (matchType=domain) covers the entire seatengine.net
+  domain tree; results are filtered to the ``v-{uuid}`` pattern.
 """
 
 import asyncio
+import re
 from typing import Any, Dict, List, Optional
 
 from laughtrack.core.entities.club.handler import ClubHandler
@@ -41,28 +50,38 @@ from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 
 _V3_API_URL = "https://services.seatengine.com/api/v3/public"
+_CDX_API_URL = "https://web.archive.org/cdx/search/cdx"
 
-# GraphQL query to list all venues registered in the SeatEngine v3 platform.
-# Field selection follows the pattern of the eventsList query; optional fields
-# (city, state, zipCode) are requested speculatively — missing fields are
-# handled gracefully in the upsert handler.
-_VENUES_LIST_QUERY = """
-query GetVenuesList {
-    venuesList {
-        venues {
-            uuid
-            name
+# Matches https?://v-{uuid}.seatengine.net  (group 1 = UUID)
+_V3_SUBDOMAIN_RE = re.compile(
+    r"https?://v-([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\.seatengine\.net",
+    re.IGNORECASE,
+)
+
+# v3 GraphQL query — fetches all fields needed by the upsert handler.
+# The ``settings`` object contains address, city, state, and zipcode.
+_VENUE_QUERY = """
+query GetVenue($venueUuid: UUID4!) {
+    venue(venueUuid: $venueUuid) {
+        uuid
+        name
+        website
+        settings {
             address
-            website
-            zipCode
             city
             state
+            zipcode
         }
     }
 }
 """
 
 _MAX_CONCURRENT_UPSERTS = 10
+_MAX_CONCURRENT_VENUE_FETCHES = 5
+# Maximum number of CDX result rows to retrieve per request.
+# The seatengine.net domain has O(10) known v3 subdomains as of 2026-03;
+# 1000 is a generous ceiling that avoids truncation.
+_CDX_LIMIT = 1000
 
 
 class SeatEngineV3NationalScraper(BaseScraper):
@@ -70,9 +89,9 @@ class SeatEngineV3NationalScraper(BaseScraper):
     Platform-level scraper that discovers SeatEngine v3 venues nationally.
 
     Triggered by a single clubs row with scraper='seatengine_v3_national'.
-    Discovers venues via the v3 GraphQL ``venuesList`` query, upserts club
-    rows for newly-seen venues, and returns an empty show list (discovery
-    only).
+    Discovers venues via Wayback Machine CDX + v3 GraphQL ``venue`` query,
+    upserts club rows for newly-seen venues, and returns an empty show list
+    (discovery only).
 
     Newly discovered clubs get:
       - scraper = 'seatengine_v3'
@@ -106,7 +125,7 @@ class SeatEngineV3NationalScraper(BaseScraper):
             venues = await self._fetch_v3_venues()
             if not venues:
                 Logger.info(
-                    "SeatEngineV3National: no venues returned from venuesList query",
+                    "SeatEngineV3National: no venues returned from discovery",
                     self.logger_context,
                 )
                 return []
@@ -129,12 +148,103 @@ class SeatEngineV3NationalScraper(BaseScraper):
 
     async def _fetch_v3_venues(self) -> List[Dict[str, Any]]:
         """
-        POST the ``venuesList`` GraphQL query to the v3 endpoint.
+        Discover SeatEngine v3 venues via Wayback Machine CDX + GraphQL.
+
+        Step 1: Query the CDX API for all archived seatengine.net URLs and
+        extract unique ``v-{uuid}`` subdomains.
+        Step 2: For each UUID, call the v3 GraphQL ``venue`` query to retrieve
+        the full venue record.
 
         Returns:
-            List of venue dicts from the API, or [] on failure.
+            List of venue dicts ready for upsert, or [] on total failure.
         """
-        payload: Dict[str, Any] = {"query": _VENUES_LIST_QUERY}
+        uuids = await self._discover_uuids_from_cdx()
+        if not uuids:
+            Logger.warn(
+                "SeatEngineV3National: CDX discovery returned no v3 venue UUIDs",
+                self.logger_context,
+            )
+            return []
+
+        Logger.info(
+            f"SeatEngineV3National: CDX found {len(uuids)} unique v3 venue UUID(s)",
+            self.logger_context,
+        )
+
+        semaphore = asyncio.Semaphore(_MAX_CONCURRENT_VENUE_FETCHES)
+
+        async def _fetch_one(uuid: str) -> Optional[Dict[str, Any]]:
+            async with semaphore:
+                return await self._fetch_venue_by_uuid(uuid)
+
+        tasks = [_fetch_one(u) for u in uuids]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        venues = []
+        for uuid, result in zip(uuids, results):
+            if isinstance(result, Exception):
+                Logger.warn(
+                    f"SeatEngineV3National: venue fetch failed for {uuid}: {result}",
+                    self.logger_context,
+                )
+            elif result:
+                venues.append(result)
+
+        return venues
+
+    async def _discover_uuids_from_cdx(self) -> List[str]:
+        """
+        Query the Wayback Machine CDX API for seatengine.net URLs and extract
+        unique v3 venue UUIDs from ``v-{uuid}.seatengine.net`` subdomains.
+
+        Returns:
+            Deduplicated list of UUIDs, or [] on failure.
+        """
+        cdx_url = (
+            f"{_CDX_API_URL}"
+            f"?url=seatengine.net"
+            f"&matchType=domain"
+            f"&output=json"
+            f"&fl=original"
+            f"&limit={_CDX_LIMIT}"
+        )
+        try:
+            response = await self.fetch_json(cdx_url, timeout=self._REQUEST_TIMEOUT)
+        except Exception as exc:
+            Logger.warn(
+                f"SeatEngineV3National: CDX API request failed: {exc}",
+                self.logger_context,
+            )
+            return []
+
+        if not response or not isinstance(response, list):
+            return []
+
+        uuids: set = set()
+        for row in response[1:]:  # row[0] is the header
+            if row:
+                url_str = row[0] if isinstance(row, list) else ""
+                match = _V3_SUBDOMAIN_RE.match(url_str)
+                if match:
+                    uuids.add(match.group(1).lower())
+
+        return list(uuids)
+
+    async def _fetch_venue_by_uuid(self, uuid: str) -> Optional[Dict[str, Any]]:
+        """
+        Fetch a single v3 venue record via the GraphQL ``venue`` query.
+
+        Args:
+            uuid: The venue's UUID4 string.
+
+        Returns:
+            Venue dict with keys: uuid, name, website, address, city, state,
+            zipCode — or None on API error / missing data.
+        """
+        payload: Dict[str, Any] = {
+            "query": _VENUE_QUERY,
+            "variables": {"venueUuid": uuid},
+        }
         headers = {"Content-Type": "application/json"}
         try:
             response = await self.post_json(
@@ -145,31 +255,35 @@ class SeatEngineV3NationalScraper(BaseScraper):
             )
         except Exception as exc:
             Logger.warn(
-                f"SeatEngineV3National: venuesList request failed: {exc}",
+                f"SeatEngineV3National: venue GraphQL request failed for {uuid}: {exc}",
                 self.logger_context,
             )
-            return []
+            return None
 
         if not response:
-            Logger.warn(
-                "SeatEngineV3National: empty response from venuesList query",
-                self.logger_context,
-            )
-            return []
+            return None
 
         if "errors" in response:
             Logger.warn(
-                f"SeatEngineV3National: GraphQL errors from venuesList: {response['errors']}",
+                f"SeatEngineV3National: GraphQL errors for venue {uuid}: {response['errors']}",
                 self.logger_context,
             )
-            return []
+            return None
 
-        venues = (
-            response.get("data", {})
-            .get("venuesList", {})
-            .get("venues", [])
-        )
-        return venues if isinstance(venues, list) else []
+        venue = (response.get("data") or {}).get("venue")
+        if not venue or not venue.get("uuid") or not venue.get("name"):
+            return None
+
+        settings = venue.get("settings") or {}
+        return {
+            "uuid": venue["uuid"],
+            "name": venue["name"],
+            "website": venue.get("website") or "",
+            "address": settings.get("address") or "",
+            "city": settings.get("city") or "",
+            "state": settings.get("state") or "",
+            "zipCode": settings.get("zipcode") or "",
+        }
 
     async def _upsert_venues(self, venues: List[Dict[str, Any]]) -> None:
         """Upsert each discovered venue as a clubs row (with scraper='seatengine_v3')."""
