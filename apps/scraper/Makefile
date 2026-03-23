@@ -93,7 +93,7 @@ setup-venv:
 		echo "✅ Virtual environment already exists at $(VENV_DIR)/"; \
 	fi
 
-.PHONY: test test-all test-venues test-core test-infrastructure test-utils test-critical help help-full help-install help-test help-lint hdiscover help-clean help-linting help-testing help-scraping help-setup help-analysis help-viz help-maintenance help-update help-updates help-workflows help-discovery help-info help-cleanup scrape-all scrape-club scrape-club-id scrape-interactive scrape-types list-scrapers list-clubs update-popularity update-comedian-stats dashboard visualize-metrics scraper-status daily-scrape full-maintenance install install-dev install-optional seatengine-api-tool clean lint lint-check format format-check lint-fix lint-fix-imports lint-fix-whitespace check-venv setup-venv arch-lint
+.PHONY: test test-all test-venues test-core test-infrastructure test-utils test-critical help help-full help-install help-test help-lint hdiscover help-clean help-linting help-testing help-scraping help-setup help-analysis help-viz help-maintenance help-update help-updates help-workflows help-discovery help-info help-cleanup scrape-all scrape-club scrape-club-id diagnose-club scrape-interactive scrape-types list-scrapers list-clubs update-popularity update-comedian-stats dashboard visualize-metrics scraper-status daily-scrape full-maintenance install install-dev install-optional seatengine-api-tool clean lint lint-check format format-check lint-fix lint-fix-imports lint-fix-whitespace check-venv setup-venv arch-lint
 
 # =============================================================================
 # HELP & DOCUMENTATION
@@ -185,6 +185,7 @@ help-scrape:
 	@echo "  scrape-all                      - Scrape all configured venues"
 	@echo "  scrape-club CLUB='Name'         - Scrape specific venue by name"
 	@echo "  scrape-club-id ID=123           - Scrape specific venue by database ID"
+	@echo "  diagnose-club ID=123            - Check why --id N returns 'No clubs found' (scraper NULL?)"
 	@echo "  scrape-types TYPES='type1,type2' - Scrape multiple scraper types in parallel"
 	@echo "  scrape-interactive              - Interactive venue selection menu"
 
@@ -553,6 +554,33 @@ ifndef ID
 else
 	@echo "🎭 Scraping venue ID: $(ID)"
 	$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.scrape_shows --club-id $(ID)
+endif
+
+# Diagnose why ./bin/scrape --id N returns 'No clubs found' (scraper IS NULL check)
+diagnose-club:
+ifndef ID
+	@echo "Error: ID parameter is required"
+	@echo "Usage: make diagnose-club ID=123"
+	@exit 1
+else
+	@printf '%s\n' \
+		'import sys; sys.path.insert(0, "src")' \
+		'from dotenv import load_dotenv; load_dotenv(".env")' \
+		'from laughtrack.infrastructure.database.connection import get_connection' \
+		'id_ = int("$(ID)")' \
+		'with get_connection() as conn:' \
+		'    with conn.cursor() as cur:' \
+		'        cur.execute("SELECT id, name, scraper FROM clubs WHERE id = %s", (id_,))' \
+		'        row = cur.fetchone()' \
+		'if not row:' \
+		'    print("No club with id=%d found in the database" % id_)' \
+		'elif row[2] is None:' \
+		'    print("Club %d: %r  scraper=NULL" % (row[0], row[1]))' \
+		'    print("  -> scraper is NULL: cannot be scraped via --id until scraper is configured")' \
+		'else:' \
+		'    print("Club %d: %r  scraper=%r" % (row[0], row[1], row[2]))' \
+		'    print("  -> scraper is configured; check other causes")' \
+		| $(PYTHON)
 endif
 
 # Interactive venue selection - guided menu for choosing venues to scrape

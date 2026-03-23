@@ -96,6 +96,26 @@ curl -s "https://app.ticketmaster.com/discovery/v2/venues.json?apikey=<KEY>&keyw
 Only investigate `classificationName` filters *after* confirming the venue ID returns
 events at all (query without any classification filter first).
 
+## Eventbrite Scraper — Organizer ID vs Venue ID
+
+When onboarding a new Eventbrite venue, check whether the Eventbrite ID is a
+**venue ID** (typically 8–9 digits, e.g. `253402413`) or an **organizer ID**
+(typically 11 digits, e.g. `30460267696`).
+
+The `eventbrite_id` field stores both types. The `EventbriteClient` tries
+`/venues/{id}/events/` first; if that returns 404 (None), it automatically falls
+back to `/organizers/{id}/events/`.
+
+**Finding the ID:**
+- Organizer ID: from the Eventbrite organizer page URL —
+  `https://www.eventbrite.com/o/<slug>-<organizer_id>`
+- Venue ID: inspect an individual event's JSON — look for `"venue_id"` in the
+  page source or Eventbrite API response.
+
+**Diagnosis:** If a scrape returns 0 events with a 404 warning on the venues
+endpoint, the stored ID is likely an organizer ID — but the auto-fallback should
+handle it transparently. Verify by checking the Eventbrite URL format.
+
 ## SeatEngine v3 Platform — Identifying UUID-Based Venues
 
 When onboarding a new SeatEngine venue, check the subdomain before scanning
@@ -265,7 +285,17 @@ The root `.env` (if present) contains web app vars and does not have `DATABASE_H
 
 ## Scraper DB Connection
 
-`db.get_connection()` (and `db.get_connection(autocommit=True)`) opens a psycopg2 connection with `autocommit=True` by default. Each `cur.execute()` commits immediately — no explicit `conn.commit()` is required. Use `db.get_transaction()` only when you need multi-statement atomicity.
+Import from `laughtrack.infrastructure.database.connection` — there is no `db` singleton. Use `get_connection()` as a context manager:
+
+```python
+from laughtrack.infrastructure.database.connection import get_connection
+
+with get_connection() as conn:          # autocommit=True by default
+    with conn.cursor() as cur:
+        cur.execute("SELECT ...")        # commits immediately; no conn.commit() needed
+```
+
+Use `get_transaction()` (same module) when you need multi-statement atomicity.
 
 ## Prisma DIRECT_URL — Migration-Only, Not a Runtime Dependency
 
