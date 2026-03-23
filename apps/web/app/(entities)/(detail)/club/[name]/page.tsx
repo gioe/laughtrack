@@ -1,6 +1,7 @@
 import { CACHE } from "@/util/constants/cacheConstants";
 import { notFound } from "next/navigation";
 import { NotFoundError } from "@/objects/NotFoundError";
+import { ClosedClubError } from "@/objects/ClosedClubError";
 import { auth } from "@/auth";
 import ClubDetailHeader from "@/ui/pages/entity/club/header";
 import FilterBar from "@/ui/pages/search/filterBar";
@@ -91,16 +92,45 @@ export default async function ClubDetailPage(props: {
         );
 
     let result;
+    let closedClub: { clubName: string; closedAt: Date | null } | null = null;
     try {
         result = await getCachedDetailPageData(requestData)();
     } catch (error) {
-        if (error instanceof NotFoundError) {
+        if (error instanceof ClosedClubError) {
+            closedClub = { clubName: error.clubName, closedAt: error.closedAt };
+        } else if (error instanceof NotFoundError) {
             notFound();
+        } else {
+            throw error;
         }
-        throw error;
     }
 
-    const { data, shows, total, filters } = result;
+    if (closedClub) {
+        const { clubName, closedAt } = closedClub;
+        const closedDate = closedAt
+            ? new Date(closedAt).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+              })
+            : null;
+
+        return (
+            <div className="max-w-7xl mx-auto px-4 py-16 text-center">
+                <h1 className="text-3xl font-bold mb-4">{clubName}</h1>
+                <p className="text-lg text-base-content/70">
+                    {clubName} has permanently closed.
+                </p>
+                {closedDate && (
+                    <p className="mt-2 text-sm text-base-content/50">
+                        Closed on {closedDate}
+                    </p>
+                )}
+            </div>
+        );
+    }
+
+    const { data, shows, total, filters } = result!;
 
     return (
         <>
