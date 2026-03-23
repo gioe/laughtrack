@@ -9,15 +9,26 @@ registered venues on the next scraping run.
 
 Triggered by a single clubs row with scraper='seatengine_v3_national'.
 
-Discovery approach
-------------------
-The v3 GraphQL API at services.seatengine.com/api/v3/public exposes a
-``venuesList`` query that returns all registered venues.  This mirrors the
-naming convention of the ``eventsList`` query used by the per-venue scraper.
+Discovery approach — BLOCKED (2026-03-23)
+-----------------------------------------
+The v3 GraphQL API at services.seatengine.com/api/v3/public does NOT expose
+a ``venuesList`` query.  Introspection confirmed the full query list is:
 
-If the query returns GraphQL errors (e.g. the field name has changed), the
-scraper logs the error and returns an empty list rather than raising — safe
-to run alongside other scrapers.
+    cart, checkout, currentUser, event, eventsList, getPaymentIntent,
+    healthcheck, purchase, purchaseTransaction, seatmap, venue, venueCustomer
+
+The closest candidates for venue lookup are:
+- ``venue(venueUuid: UUID4!)``       — single-venue lookup, UUID required
+- ``venueCustomer(venueId: UUID4)``  — customer-facing details, UUID required
+
+Neither supports listing all venues without a known UUID.  The ``eventsList``
+query also requires a non-null ``venueUuid``.
+
+Until a national discovery strategy is implemented (e.g. web scraping a
+SeatEngine venue directory, or harvesting UUIDs from the v1 platform), this
+scraper will always log a GraphQL error and return 0 venues.
+
+See follow-up task for alternative discovery approaches.
 """
 
 import asyncio
