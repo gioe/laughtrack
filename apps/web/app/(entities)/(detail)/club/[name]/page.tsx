@@ -126,6 +126,9 @@ export default async function ClubDetailPage(props: {
                         Closed on {closedDate}
                     </p>
                 )}
+                <a href="/club/search" className="btn btn-primary mt-8">
+                    Browse other venues
+                </a>
             </div>
         );
     }
