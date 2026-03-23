@@ -65,6 +65,7 @@ class SeatEngineV3EventTransformer(DataTransformer[JSONDict]):
             if not inv.get("active"):
                 continue
             raw_price = inv.get("price")
+            # SeatEngine v3 API returns prices in integer cents (e.g. 2000 = $20.00)
             price = float(raw_price) / 100.0 if raw_price is not None else 0.0
             title = inv.get("title") or inv.get("name") or "General Admission"
             tickets.append(

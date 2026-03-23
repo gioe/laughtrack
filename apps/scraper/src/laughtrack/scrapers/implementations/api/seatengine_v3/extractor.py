@@ -80,7 +80,7 @@ class SeatEngineV3Extractor:
                         "show_page_url": show_page_url,
                         "show_uuid": show.get("uuid"),
                         "start_datetime": show.get("startDateTime"),
-                        "sold_out": show.get("soldOut", False),
+                        "sold_out": event.get("soldOut", False) or show.get("soldOut", False),
                         "show_status": show.get("status"),
                         "talents": talents,
                         "inventories": show.get("inventories", []),

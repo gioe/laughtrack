@@ -42,15 +42,15 @@ class SeatEngineV3Scraper(BaseScraper):
     key = "seatengine_v3"
 
     def __init__(self, club: Club, **kwargs):
-        super().__init__(club, **kwargs)
-        self.transformation_pipeline.register_transformer(
-            SeatEngineV3EventTransformer(club)
-        )
-
         if not club.seatengine_id:
             raise ValueError(
                 f"Club {club.name!r} is missing seatengine_id (venue UUID)"
             )
+
+        super().__init__(club, **kwargs)
+        self.transformation_pipeline.register_transformer(
+            SeatEngineV3EventTransformer(club)
+        )
 
         self.venue_uuid = club.seatengine_id
         self.base_url = URLUtils.normalize_url(club.scraping_url)

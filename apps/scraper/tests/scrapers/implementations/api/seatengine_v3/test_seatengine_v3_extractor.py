@@ -133,6 +133,21 @@ class TestFlattenEvents:
         )
         assert records[0]["show_page_url"] == f"{BASE_URL}/events/test"
 
+    def test_no_page_field_falls_back_to_base_url(self):
+        """Events without a page key should use base_url as the show_page_url."""
+        show = _make_show("2026-04-01T20:00:00")
+        event = _make_event("Pageless Show", [show])
+        event["page"] = None  # no page data returned
+        records = SeatEngineV3Extractor.flatten_events(_make_response([event]), BASE_URL)
+        assert records[0]["show_page_url"] == BASE_URL
+
+    def test_missing_page_key_falls_back_to_base_url(self):
+        show = _make_show("2026-04-01T20:00:00")
+        event = _make_event("No Page Key", [show])
+        del event["page"]
+        records = SeatEngineV3Extractor.flatten_events(_make_response([event]), BASE_URL)
+        assert records[0]["show_page_url"] == BASE_URL
+
     def test_build_query_payload_contains_venue_uuid(self):
         payload = SeatEngineV3Extractor.build_query_payload(VENUE_UUID)
         assert payload["variables"]["venueUuid"] == VENUE_UUID
