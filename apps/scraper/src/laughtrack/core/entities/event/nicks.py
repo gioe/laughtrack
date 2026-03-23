@@ -1,5 +1,5 @@
-from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
@@ -22,6 +22,7 @@ class NicksEvent(ShowConvertible):
     slug: str
     scheduling: Dict[str, Any]
     registration: Dict[str, Any]
+    lineup: List[str] = field(default_factory=list)
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None) -> Optional[Show]:
         """Convert a NicksEvent to a Show."""
@@ -61,7 +62,7 @@ class NicksEvent(ShowConvertible):
             club=club,
             date=start_date,
             show_page_url=show_page_url,
-            lineup=[],
+            lineup=ShowFactoryUtils.create_lineup_from_performers(self.lineup),
             tickets=tickets,
             description=self.description if self.description else None,
             room="",
