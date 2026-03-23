@@ -17,6 +17,7 @@ VALUES (
     'closed',
     '2020-03-13 00:00:00+00'
 )
+-- ON CONFLICT relies on the existing UNIQUE constraint on clubs.name
 ON CONFLICT (name) DO UPDATE SET
     status    = 'closed',
     closed_at = COALESCE(clubs.closed_at, EXCLUDED.closed_at);

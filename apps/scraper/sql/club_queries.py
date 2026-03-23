@@ -9,15 +9,15 @@ class ClubQueries:
     '''
     
     GET_CLUB_BY_ID = '''
-        SELECT * 
-        FROM clubs 
-        WHERE id = %s AND scraper IS NOT NULL
+        SELECT *
+        FROM clubs
+        WHERE id = %s AND scraper IS NOT NULL AND status = 'active'
     '''
-    
+
     GET_CLUB_BY_IDS = '''
-        SELECT * 
-        FROM clubs 
-        WHERE id = ANY(%s::int[]) AND scraper IS NOT NULL
+        SELECT *
+        FROM clubs
+        WHERE id = ANY(%s::int[]) AND scraper IS NOT NULL AND status = 'active'
         ORDER BY id
     '''
     
@@ -34,7 +34,7 @@ class ClubQueries:
     GET_DISTINCT_SCRAPER_TYPES = '''
         SELECT scraper, COUNT(*) as club_count
         FROM clubs
-        WHERE scraper IS NOT NULL
+        WHERE scraper IS NOT NULL AND status = 'active'
         GROUP BY scraper
         ORDER BY scraper
     '''

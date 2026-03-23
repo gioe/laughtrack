@@ -8,6 +8,7 @@ export async function getClubs(limit = 8, offset = 0): Promise<ClubDTO[]> {
     const safeLimit = Math.min(Math.max(1, limit), MAX_CLUBS_LIMIT);
     return db.club
         .findMany({
+            where: { status: "active" },
             orderBy: { id: "asc" }, // stable insertion-order sort for offset pagination
             select: {
                 id: true,

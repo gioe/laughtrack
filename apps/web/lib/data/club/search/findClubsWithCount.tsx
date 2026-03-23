@@ -39,6 +39,7 @@ export async function findClubsWithCount(
         // Common where clause for both count and find
         const whereClause: Prisma.ClubWhereInput = {
             visible: true,
+            status: "active",
             ...queryHelper.getClubNameClause(),
             ...queryHelper.getClubFiltersClause(),
         };

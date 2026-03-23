@@ -28,6 +28,7 @@ export async function findClubByName(helper: QueryHelper): Promise<ClubDTO> {
                     equals: name,
                     mode: Prisma.QueryMode.insensitive,
                 },
+                status: "active",
             },
             select: CLUB_SELECT,
         });
