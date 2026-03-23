@@ -1,26 +1,13 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import ComedianNearYouSection from "@/ui/pages/home/comedians-near-you";
 import { getComediansByZipAction } from "@/app/actions/getComediansByZipAction";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { removeNonNumbers } from "@/util/primatives/stringUtil";
+import { useGeolocation } from "@/hooks/useGeolocation";
 
 type Step = "prompt" | "loading" | "zip-entry" | "loaded" | "declined";
-
-async function reverseGeocodeToZip(
-    lat: number,
-    lng: number,
-): Promise<string | null> {
-    try {
-        const res = await fetch(`/api/geocode?lat=${lat}&lng=${lng}`);
-        if (!res.ok) return null;
-        const data = await res.json();
-        return data?.zip ?? null;
-    } catch {
-        return null;
-    }
-}
 
 const DISMISSED_KEY = "laughtrack_location_dismissed";
 
@@ -53,33 +40,23 @@ export default function AnonymousLocationSection() {
         }
     }, []);
 
-    const handleGeolocate = useCallback(() => {
-        if (!navigator.geolocation) {
+    const {
+        status: geoStatus,
+        error: geoError,
+        requestLocation,
+    } = useGeolocation(fetchComedians);
+
+    useEffect(() => {
+        if (geoStatus === "loading") {
+            setStep("loading");
+            setError(null);
+        } else if (geoStatus === "error") {
+            if (geoError === "no_zip") {
+                setError("Could not determine zip code from your location.");
+            }
             setStep("zip-entry");
-            return;
         }
-        setStep("loading");
-        navigator.geolocation.getCurrentPosition(
-            async (pos) => {
-                const zip = await reverseGeocodeToZip(
-                    pos.coords.latitude,
-                    pos.coords.longitude,
-                );
-                if (zip) {
-                    await fetchComedians(zip);
-                } else {
-                    setError(
-                        "Could not determine zip code from your location.",
-                    );
-                    setStep("zip-entry");
-                }
-            },
-            () => {
-                setStep("zip-entry");
-            },
-            { timeout: 10000 },
-        );
-    }, [fetchComedians]);
+    }, [geoStatus, geoError]);
 
     const handleZipSubmit = useCallback(
         async (e: React.FormEvent) => {
@@ -128,7 +105,7 @@ export default function AnonymousLocationSection() {
                 <div className="flex flex-col items-center gap-6 max-w-sm mx-auto">
                     {step === "prompt" && (
                         <button
-                            onClick={handleGeolocate}
+                            onClick={requestLocation}
                             className="w-full bg-[#2D1810] text-white px-8 py-4 rounded-full
                             transform transition-all duration-300 ease-in-out
                             hover:scale-105 hover:shadow-lg hover:bg-copper
