@@ -49,8 +49,10 @@ _LINEUP_NAME_BLOCKLIST = frozenset({
 _LINEUP_NAME_MIN_LENGTH = 2
 
 
-def _is_valid_lineup_name(name: str) -> bool:
-    """Return True if name is a real comedian name, False if it is a placeholder."""
+def _is_valid_lineup_name(name: Optional[str]) -> bool:
+    """Return True if name is a real comedian name, False if it is a placeholder or None."""
+    if not name:
+        return False
     stripped = name.strip()
     if len(stripped) < _LINEUP_NAME_MIN_LENGTH:
         return False

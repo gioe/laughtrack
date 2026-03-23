@@ -3,7 +3,6 @@
 import pytest
 
 from laughtrack.utilities.domain.show.factory import (
-    _LINEUP_NAME_BLOCKLIST,
     _is_valid_lineup_name,
     ShowFactoryUtils,
 )
@@ -45,12 +44,16 @@ class TestIsValidLineupName:
         "various artists",
         "Comedian",
         "comedian",
+        "Comedians",
+        "Comic",
         "Comics",
         "Host",
         "Emcee",
         "MC",
         "Opener",
+        "Openers",
         "Opening Act",
+        "To Be Determined",
     ])
     def test_blocklist_name_rejected(self, name):
         assert _is_valid_lineup_name(name) is False
@@ -88,6 +91,19 @@ class TestIsValidLineupName:
 
     def test_valid_name_with_surrounding_spaces(self):
         assert _is_valid_lineup_name("  Amy Schumer  ") is True
+
+    def test_none_rejected(self):
+        assert _is_valid_lineup_name(None) is False
+
+    # --- exact-match semantics: partial blocklist words in longer names pass ---
+
+    def test_compound_containing_blocked_word_passes(self):
+        # "The Comedian" contains "comedian" but is not an exact match
+        assert _is_valid_lineup_name("The Comedian") is True
+
+    def test_compound_containing_tba_passes(self):
+        # "Headliner: TBA" is not an exact match for any blocklist entry
+        assert _is_valid_lineup_name("Headliner: TBA") is True
 
 
 # ---------------------------------------------------------------------------
