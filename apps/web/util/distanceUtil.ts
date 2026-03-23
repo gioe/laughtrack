@@ -1,3 +1,4 @@
+import "server-only";
 import zipcodes from "zipcodes";
 
 const EARTH_RADIUS_MILES = 3958.8;

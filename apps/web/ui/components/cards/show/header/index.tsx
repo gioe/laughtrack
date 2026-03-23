@@ -47,7 +47,7 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
                 </p>
                 {distanceMiles != null && (
                     <p className="flex items-center gap-1 text-sm text-copper font-dmSans mt-0.5">
-                        <MapPin size={13} />
+                        <MapPin size={13} aria-hidden="true" />
                         {distanceMiles < 1
                             ? "< 1 mile away"
                             : `${Math.round(distanceMiles)} miles away`}

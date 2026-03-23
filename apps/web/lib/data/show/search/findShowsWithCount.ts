@@ -141,6 +141,8 @@ export async function findShowsWithCount(
                 { id: "asc" },
             ]),
         });
+        // distanceMiles is null whenever zip is absent (e.g. club detail page, comedian page).
+        // Cards hide the distance label when distanceMiles is null — this is intentional.
         const searchedZip = helper.params.zip;
         return {
             shows: filteredShows.map((show) => ({

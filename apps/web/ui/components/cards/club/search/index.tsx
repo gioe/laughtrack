@@ -61,7 +61,7 @@ const ClubSearchCard: React.FC<ClubSearchCardProps> = ({ club }) => {
                 </div>
                 {club.distanceMiles != null && (
                     <p className="flex items-center justify-center gap-1 text-xs text-gray-500 font-dmSans">
-                        <MapPin size={11} />
+                        <MapPin size={11} aria-hidden="true" />
                         {club.distanceMiles < 1
                             ? "< 1 mile away"
                             : `${Math.round(club.distanceMiles)} miles away`}
