@@ -16,22 +16,6 @@
             "command": "bash -c 'R=$(git rev-parse --show-toplevel 2>/dev/null); [ -z \"$R\" ] && exit 0; exec \"$R/.claude/hooks/inject-task-context.sh\"'"
           }
         ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/setup-path.sh"
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/inject-task-context.sh"
-          }
-        ]
       }
     ],
     "PreToolUse": [
@@ -89,61 +73,6 @@
             "command": "bash -c 'R=$(git rev-parse --show-toplevel 2>/dev/null); [ -z \"$R\" ] && exit 0; exec \"$R/.claude/hooks/version-bump-check.sh\"'"
           }
         ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/block-raw-sqlite.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/dupe-gate.sh",
-            "timeout": 15
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/block-sql-neq.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/commit-msg-format.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/branch-naming.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/version-bump-check.sh"
-          }
-        ]
       }
     ],
     "PostToolUse": [
@@ -173,16 +102,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/auto-lint.sh",
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
             "command": "bash -c 'f=$(jq -r \".tool_input.file_path // empty\" 2>/dev/null); echo \"$f\" | grep -qE \"apps/web/.*\\.test\\.tsx?$\" || exit 0; R=$(git rev-parse --show-toplevel 2>/dev/null); cd \"${R}/apps/web\" && npx tsc --noEmit'",
             "timeout": 60,
             "statusMessage": "Type-checking test file..."
@@ -196,15 +115,6 @@
           {
             "type": "command",
             "command": "bash -c 'R=$(git rev-parse --show-toplevel 2>/dev/null); [ -z \"$R\" ] && exit 0; exec \"$R/.claude/hooks/check-criteria-on-stop.sh\"'",
-            "timeout": 10
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/check-criteria-on-stop.sh",
             "timeout": 10
           }
         ]
