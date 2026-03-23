@@ -6,6 +6,8 @@ import { findShowsWithCount } from "../../show/search/findShowsWithCount";
 import { getFilters } from "../../filters/getFilters";
 import { ParameterizedRequestData } from "@/objects/interface";
 import { ClubDetailResponse } from "./interface";
+import { ClosedClubError } from "@/objects/ClosedClubError";
+import { NotFoundError } from "@/objects/NotFoundError";
 
 export async function getClubDetailPageData(
     requestData: ParameterizedRequestData,
@@ -26,6 +28,12 @@ export async function getClubDetailPageData(
             filters,
         };
     } catch (error) {
+        if (
+            error instanceof ClosedClubError ||
+            error instanceof NotFoundError
+        ) {
+            throw error;
+        }
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             console.error("Database error in getClubDetailPageData:", error);
             throw new Error(`Database error: ${error.message}`);

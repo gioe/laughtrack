@@ -53,6 +53,12 @@ export async function findClubByName(helper: QueryHelper): Promise<ClubDTO> {
             zipCode: clubData.zipCode,
         };
     } catch (error) {
+        if (
+            error instanceof ClosedClubError ||
+            error instanceof NotFoundError
+        ) {
+            throw error;
+        }
         if (error instanceof Error) {
             console.error("Error in findClubByName:", error);
             throw error;
