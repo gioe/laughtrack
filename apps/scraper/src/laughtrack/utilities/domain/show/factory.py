@@ -22,28 +22,55 @@ from laughtrack.foundation.utilities.datetime import DateTimeUtils
 
 # Names that are placeholder/generic strings and should not be treated as real comedians
 _LINEUP_NAME_BLOCKLIST = frozenset({
+    # TBA / TBD variants
     "tba",
     "to be announced",
     "to be determined",
     "tbd",
+    "headliner tbd",
+    "lineup tba",
+    "more tba",
+    "comedian tba",
+    "comedian tbd",
+    "comics tba",
+    "comics tbd",
+    "opener tbd",
+    # Guest / surprise variants
     "special guest",
     "special guests",
+    "and special guests",
     "surprise guest",
     "surprise guests",
     "surprise",
-    "headliner tbd",
+    "surprise act",
+    "mystery guest",
+    "guest",
+    "guest comedian",
+    # Generic show/artist labels
     "various",
     "various artists",
+    "comedy show",
+    "open mic",
+    # Role labels
     "comedian",
     "comedians",
+    "featured comedian",
+    "local comedian",
     "comic",
     "comics",
     "host",
+    "hosts",
+    "co-host",
     "emcee",
     "mc",
+    "headliner",
+    "featured",
     "opener",
     "openers",
     "opening act",
+    # Filler / "and more" variants
+    "plus more",
+    "and more",
 })
 
 _LINEUP_NAME_MIN_LENGTH = 2
