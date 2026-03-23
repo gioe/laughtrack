@@ -108,7 +108,7 @@ export default async function ClubDetailPage(props: {
     if (closedClub) {
         const { clubName, closedAt } = closedClub;
         const closedDate = closedAt
-            ? new Date(closedAt).toLocaleDateString("en-US", {
+            ? closedAt.toLocaleDateString("en-US", {
                   year: "numeric",
                   month: "long",
                   day: "numeric",
