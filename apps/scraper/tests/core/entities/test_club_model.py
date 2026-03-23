@@ -59,3 +59,31 @@ class TestClubToTuple:
         t = club.to_tuple()
         assert t[-2] == "Chicago"
         assert t[-1] == "IL"
+
+
+class TestClubFromDbRow:
+    def _base_row(self, **kwargs):
+        row = {
+            "id": 1,
+            "name": "Test Club",
+            "address": "123 Main St",
+            "website": "https://testclub.com",
+            "scraping_url": "https://testclub.com/events",
+            "popularity": 5,
+            "zip_code": "10001",
+            "phone_number": "555-1234",
+            "visible": True,
+        }
+        row.update(kwargs)
+        return row
+
+    def test_defaults_status_to_active_when_key_absent(self):
+        row = self._base_row()
+        assert "status" not in row
+        club = Club.from_db_row(row)
+        assert club.status == "active"
+
+    def test_reads_explicit_status_value(self):
+        row = self._base_row(status="closed")
+        club = Club.from_db_row(row)
+        assert club.status == "closed"
