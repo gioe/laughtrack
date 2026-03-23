@@ -53,8 +53,9 @@ _V3_API_URL = "https://services.seatengine.com/api/v3/public"
 _CDX_API_URL = "https://web.archive.org/cdx/search/cdx"
 
 # Matches https?://v-{uuid}.seatengine.net  (group 1 = UUID)
+# End anchor (?:[/?#]|$) prevents spurious matches on seatengine.net.evil.com.
 _V3_SUBDOMAIN_RE = re.compile(
-    r"https?://v-([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\.seatengine\.net",
+    r"https?://v-([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\.seatengine\.net(?:[/?#]|$)",
     re.IGNORECASE,
 )
 
@@ -206,6 +207,7 @@ class SeatEngineV3NationalScraper(BaseScraper):
             f"&matchType=domain"
             f"&output=json"
             f"&fl=original"
+            f"&collapse=urlkey"
             f"&limit={_CDX_LIMIT}"
         )
         try:
