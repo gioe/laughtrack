@@ -93,19 +93,45 @@ jobs:
           path: apps/scraper/logs/
           retention-days: 30
 
-      - name: Alert on total discovery failure
+      - name: Report discovery results
         if: always()
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
-          if [[ "${{ steps.seatengine_v3.outcome }}" == "failure" && \
-                "${{ steps.seatengine_v1.outcome }}" == "failure" && \
-                "${{ steps.ticketmaster.outcome }}" == "failure" ]]; then
+          FAILED_STEPS=()
+          PASSED_STEPS=()
+
+          [[ "${{ steps.seatengine_v3.outcome }}" == "failure" ]] && FAILED_STEPS+=("SeatEngine v3") || PASSED_STEPS+=("SeatEngine v3")
+          [[ "${{ steps.seatengine_v1.outcome }}" == "failure" ]] && FAILED_STEPS+=("SeatEngine v1") || PASSED_STEPS+=("SeatEngine v1")
+          [[ "${{ steps.ticketmaster.outcome }}"  == "failure" ]] && FAILED_STEPS+=("Ticketmaster")  || PASSED_STEPS+=("Ticketmaster")
+
+          if [ ${#FAILED_STEPS[@]} -eq 0 ]; then
+            echo "All discovery scrapers passed."
+            exit 0
+          fi
+
+          FAILED_LIST=$(IFS=", "; echo "${FAILED_STEPS[*]}")
+          PASSED_LIST=$(IFS=", "; echo "${PASSED_STEPS[*]}")
+
+          if [ ${#FAILED_STEPS[@]} -eq 3 ]; then
+            TITLE="🚨 National Discovery: All scrapers failed"
             echo "::error::All national discovery scrapers failed."
-            if [ -n "$DISCORD_WEBHOOK_URL" ]; then
-              curl -s -X POST "$DISCORD_WEBHOOK_URL" \
-                -H "Content-Type: application/json" \
-                -d "{\"content\": \"🚨 **National Discovery: All scrapers failed** — SeatEngine v3, SeatEngine v1, and Ticketmaster all failed. [View run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})\"}"
-            fi
+          else
+            TITLE="⚠️ National Discovery: Partial failure"
+            echo "::warning::Some national discovery scrapers failed: ${FAILED_LIST}"
+          fi
+
+          MSG="**Failed:** ${FAILED_LIST}"
+          if [ ${#PASSED_STEPS[@]} -gt 0 ]; then
+            MSG="${MSG} | **Passed:** ${PASSED_LIST}"
+          fi
+
+          if [ -n "$DISCORD_WEBHOOK_URL" ]; then
+            curl -s -X POST "$DISCORD_WEBHOOK_URL" \
+              -H "Content-Type: application/json" \
+              -d "{\"content\": \"${TITLE} — ${MSG}. [View run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})\"}"
+          fi
+
+          if [ ${#FAILED_STEPS[@]} -eq 3 ]; then
             exit 1
           fi
