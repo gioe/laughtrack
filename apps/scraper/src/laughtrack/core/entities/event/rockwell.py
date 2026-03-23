@@ -34,6 +34,7 @@ class RockwellEvent(ShowConvertible):
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None) -> Optional[Show]:
         """Convert a RockwellEvent to a Show domain object."""
+        is_sold_out = bool(_SOLD_OUT_RE.match(self.title))
         name = _SOLD_OUT_RE.sub("", self.title).strip() or "Comedy Show"
 
         try:
@@ -49,11 +50,11 @@ class RockwellEvent(ShowConvertible):
         if self.cost_values:
             try:
                 price = float(self.cost_values[0])
-                tickets.append(ShowFactoryUtils.create_fallback_ticket(show_url, price=price))
+                tickets.append(ShowFactoryUtils.create_fallback_ticket(show_url, price=price, sold_out=is_sold_out))
             except (ValueError, TypeError):
                 pass
         if not tickets and show_url:
-            tickets.append(ShowFactoryUtils.create_fallback_ticket(show_url))
+            tickets.append(ShowFactoryUtils.create_fallback_ticket(show_url, sold_out=is_sold_out))
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=name,

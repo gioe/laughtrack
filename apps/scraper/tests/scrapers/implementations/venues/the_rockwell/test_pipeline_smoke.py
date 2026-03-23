@@ -240,3 +240,23 @@ def test_to_show_returns_none_on_unparseable_date():
     show = event.to_show(_club())
 
     assert show is None
+
+
+def test_to_show_sets_sold_out_on_ticket_when_prefix_present():
+    """to_show() sets sold_out=True on tickets when SOLD OUT prefix is in title."""
+    event = _make_event(title="SOLD OUT! Clown Class with Deby Xiadani")
+    show = event.to_show(_club())
+
+    assert show is not None
+    assert len(show.tickets) == 1
+    assert show.tickets[0].sold_out is True
+
+
+def test_to_show_ticket_not_sold_out_for_normal_title():
+    """to_show() sets sold_out=False on tickets for a normal (non-SOLD-OUT) title."""
+    event = _make_event(title="Jack Bensinger")
+    show = event.to_show(_club())
+
+    assert show is not None
+    assert len(show.tickets) == 1
+    assert show.tickets[0].sold_out is False
