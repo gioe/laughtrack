@@ -1,3 +1,145 @@
+## Prisma Schema Changes — Regenerate Client Before Pushing
+
+After adding or modifying fields in `apps/web/prisma/schema.prisma`, always run:
+
+    cd apps/web && npx prisma generate
+
+The pre-push hook runs `tsc -b`, which will fail with confusing errors like
+`'status' does not exist in type 'ClubWhereInput'` if the generated Prisma
+client is stale. `prisma generate` is safe to run locally — it only regenerates
+TypeScript types and does not touch the database.
+
+## Scraper Entity `from_dict()` — Test Compact Time/Date Formats Upfront
+
+When implementing `from_dict()` for a scraper entity that normalizes time or date
+strings, write unit tests for compact formats (e.g., `"9PM"`, `"11AM"` — no colon
+or space separator) **before** running a live scrape. Sites frequently store time
+data in non-standard forms that only surface when hitting the real endpoint; a unit
+test for the normalization function catches this without a round-trip to production.
+
+```python
+# Example: always test both canonical and compact forms
+def test_compact_time_normalised():
+    html = _make_rsc_html([_show(time="9PM")])
+    events = MyExtractor.extract_shows(html)
+    assert events[0].time == "9:00 PM"
+```
+
+## Scraper Alerting Tests — Mock MonitoringConfig
+
+Any test that exercises `_check_and_alert` (or any method that calls
+`MonitoringConfig.default()` internally) must mock `MonitoringConfig.default()`
+— otherwise the test will silently pass or fail depending on whether Discord is
+configured in the local environment.
+
+Pattern:
+```python
+mock_config = MagicMock()
+mock_config.get_configured_channels.return_value = ["discord"]
+mock_config.is_discord_configured.return_value = True
+mock_config.discord_webhook_url = "https://discord.example/webhook"
+with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig:
+    MockConfig.default.return_value = mock_config
+    svc._check_and_alert(summary)
+```
+
+## Scraper pytest PATH — Pre-existing Failure Checks
+
+`pytest` is not in PATH in the scraper project. When running pre-existing failure checks
+in `apps/scraper/`, use the venv-local binary with an absolute path:
+
+```bash
+cd /Users/mattgioe/Desktop/projects/laughtrack/apps/scraper && .venv/bin/pytest --tb=no -q
+```
+
+Do not use `python3 -m pytest` — it also fails without venv activation.
+
+## Wix Events Scraper — Finding the Events Widget compId
+
+When onboarding a new Wix venue, the events widget `compId` is NOT in the page
+source directly. Find it via Playwright browser evaluation:
+
+1. Navigate to the venue homepage in Playwright.
+2. Run this JS to walk up from an event's "More info" button to its `comp-` container:
+
+```js
+(() => {
+  const btn = document.querySelector('[data-hook^="more-info-link-"]');
+  let el = btn;
+  const ids = [];
+  while (el && el !== document.body) {
+    const id = el.id || el.getAttribute('data-comp-id') || '';
+    if (id.startsWith('comp-')) ids.push({ id, cls: el.className.substring(0, 60) });
+    el = el.parentElement;
+  }
+  return ids;
+})()
+```
+
+3. The innermost `comp-xxxx` result is the events widget compId. Use it as `compId=<value>`
+   in the `collect_scraping_targets()` params.
+
+Note: `categoryId` is NOT required if the venue has no Wix event categories configured.
+Applying a Bushwick-specific `categoryId` to a different Wix site returns HTTP 400.
+
+## Ticketmaster Scraper — 0 Events Diagnosis
+
+When a Ticketmaster-backed scraper returns 0 events, the first thing to check is
+whether the stored `ticketmaster_id` is the correct **Discovery API venue ID** (format:
+alphanumeric, e.g. `KovZ917ARvk`) — NOT a numeric ID from another system.
+
+Verify by searching the Discovery API directly:
+```bash
+curl -s "https://app.ticketmaster.com/discovery/v2/venues.json?apikey=<KEY>&keyword=<venue name>&countryCode=US" | python3 -c "import sys,json; [print(v['id'], v['name']) for v in json.load(sys.stdin).get('_embedded',{}).get('venues',[])]"
+```
+
+Only investigate `classificationName` filters *after* confirming the venue ID returns
+events at all (query without any classification filter first).
+
+## SeatEngine v3 Platform — Identifying UUID-Based Venues
+
+When onboarding a new SeatEngine venue, check the subdomain before scanning
+numeric IDs. The `v-{uuid}.seatengine.net` subdomain pattern (e.g.
+`v-cf2b1561-bf36-40b8-8380-9c2a3bd0e4e3.seatengine.net`) means the venue
+is on the **v3 platform** — a GraphQL API with UUID venue identifiers.
+Scanning numeric IDs 1–700 will find nothing.
+
+**Identification checklist:**
+1. Check the page footer for "Powered by Seat Engine" + the banner/contact link.
+2. If the linked domain matches `v-*.seatengine.net` → v3 platform (UUID).
+3. If there is no `v-` subdomain → v1 platform (numeric ID, REST API).
+
+**v3 setup:** use `scraper='seatengine_v3'` and store the UUID in `seatengine_id`.
+The venue UUID is in the page's JSON-LD `<script>` as `"identifier": "..."`.
+
+**v1 setup:** use `scraper='seatengine'` and store the numeric ID in `seatengine_id`.
+Use `seatengine_national` to discover v1 venue IDs via enumeration.
+
+## curl_cffi + DataDome — Header Fingerprint Debugging
+
+When a curl_cffi request with `impersonate='chrome124'` succeeds with no custom headers
+but returns 403 with your application headers, DataDome is detecting a specific header
+combination. The trigger is never a single header — it's a combination (commonly
+`Accept-Language + Cache-Control + Pragma` together).
+
+**Diagnostic approach:**
+1. Test with no headers → confirm 200
+2. Binary search: split your header dict in half and test each half
+3. Narrow down to the triggering combo (usually 2–3 headers together)
+
+**Fix pattern:** bypass `BaseApiClient.fetch_html` (which always sends `self.headers`)
+and use a bare `AsyncSession.get(url)` — curl_cffi's impersonation fingerprint alone
+is enough and does not trigger DataDome:
+
+```python
+async with AsyncSession(impersonate=self._get_impersonation_target(url)) as session:
+    response = await session.get(url)  # no extra headers
+```
+
+Note: `BaseApiClient.fetch_html(headers=None)` falls back to `self.headers` (via
+`headers or self.headers`) — passing `None` or `{}` both result in API headers being
+sent. A separate fetch method is needed to send zero application headers.
+
 ## Scraper Codebase Scope — src/ and web/ Both Count
 
 When auditing scraper methods for unused/dead code, always search **both**:
@@ -38,7 +180,7 @@ When a production login or OAuth flow silently fails, inspect the **actual value
 environment variables — the Vercel dashboard only shows "Encrypted".
 
 ```bash
-vercel env pull --environment production /tmp/vercel-prod-env && cat /tmp/vercel-prod-env; rm /tmp/vercel-prod-env
+cd apps/web && vercel link --yes --project laughtrack 2>/dev/null; vercel env pull --environment production /tmp/vercel-prod-env && cat /tmp/vercel-prod-env; rm /tmp/vercel-prod-env
 ```
 
 Check for **leading/trailing whitespace** in auth-related vars — especially `AUTH_URL`.
@@ -114,6 +256,13 @@ After writing any new `.test.ts` / `.test.tsx` file, run `tsc --noEmit` before c
 Test files are not compiled by Vitest (it transpiles without type-checking), so TypeScript
 errors in tests are only caught by the type-checker — not by `npx vitest run`.
 
+## Scraper `.env` Location
+
+The scraper's environment file lives at `apps/scraper/.env` — not the repo root.
+When running ad-hoc DB queries or Python snippets against the scraper's database,
+load it with `load_dotenv('apps/scraper/.env')` or use the absolute path.
+The root `.env` (if present) contains web app vars and does not have `DATABASE_HOST`.
+
 ## Scraper DB Connection
 
 `db.get_connection()` (and `db.get_connection(autocommit=True)`) opens a psycopg2 connection with `autocommit=True` by default. Each `cur.execute()` commits immediately — no explicit `conn.commit()` is required. Use `db.get_transaction()` only when you need multi-statement atomicity.
@@ -150,6 +299,8 @@ db.$transaction(async (tx) => { ... }, {
 2. The shadow database validation fails on migration `20260308000000_set_email_scraper_fields` which contains a data-dependent operation requiring "Gotham Comedy Club" to exist.
 
 **Workaround for new migrations**: Write the migration SQL manually, create the migration directory under `prisma/migrations/<timestamp>_<name>/migration.sql`, and commit both the schema and the migration file. The migration will be applied to the real DB via `prisma migrate deploy` in the deployment environment.
+
+**After deploying UPDATE migrations**: `prisma migrate deploy` exits 0 even when a WHERE clause matches 0 rows — always verify the row count was non-zero after applying any migration that uses `UPDATE ... WHERE ...`. Query the DB or check the scraper behavior immediately after deploy to confirm the update took effect.
 
 ## Vitest Route Tests — Mocking the rateLimit Chain
 
@@ -257,6 +408,59 @@ def _stub(name, **attrs):
     return m
 ```
 
+## Scraper Test Stubs — as_package=True Requires Real __path__
+
+When a `_stub()` helper supports `as_package=True`, setting `__path__ = []` (empty list)
+causes the same submodule-blocking problem as a plain module without `__path__`. Python
+cannot find subpackages in an empty path, so later imports like
+`from laughtrack.core.entities.tag.model import Tag` fail with `ModuleNotFoundError`
+even though the stub is correctly registered via `setdefault`.
+
+Always compute `__path__` from the real source directory:
+
+```python
+# ✗ Wrong — empty __path__ blocks submodule discovery for ALL later tests
+def _stub(name, as_package=False, **attrs):
+    m = ModuleType(name)
+    if as_package:
+        m.__path__ = []   # ← never do this
+
+# ✓ Correct — real path lets Python find submodules on disk
+def _stub(name, as_package=False, **attrs):
+    m = ModuleType(name)
+    if as_package:
+        m.__path__ = [str(_SCRAPER_ROOT / "src" / name.replace(".", "/"))]
+        m.__package__ = name
+```
+
+This is especially important for namespace packages (no `__init__.py`, e.g.
+`laughtrack.core.entities`) and for any package whose submodules may be needed by
+later test files in the same pytest run.
+
+## Scraper Tests — patch.object for Dynamically Loaded Modules
+
+When patching an attribute (e.g. `Logger`) on a module loaded via `_load_module()` /
+`importlib.util.spec_from_file_location()`, always use `patch.object(module_obj, "attr")`
+— **never** the string form `patch("laughtrack.core.entities.club.service_direct.attr")`.
+
+The string form resolves the dotted path by walking the real `laughtrack.core.entities`
+package. If any prior test in the session has imported that real package, Python finds it
+in `sys.modules` and looks for a `club` attribute on it — which doesn't exist — raising
+`AttributeError`. The isolated test run passes; the full suite run fails.
+
+```python
+# ✗ Wrong — breaks when the real laughtrack.core.entities package is in sys.modules
+with patch("laughtrack.core.entities.club.service_direct.Logger") as mock_logger:
+    service.find_club_by_name("...")
+
+# ✓ Correct — patches the attribute directly on the loaded module object
+with patch.object(_club_service_mod, "Logger") as mock_logger:
+    service.find_club_by_name("...")
+```
+
+This applies to any attribute on any module loaded under a dotted name that shares a
+prefix with a real package in the codebase.
+
 ## Scraper Tests — Mock RateLimiter Singleton via monkeypatch
 
 `RateLimiter()` is a singleton. **Never** mock its methods via direct instance assignment:
@@ -325,4 +529,25 @@ Fix: declare shared mock state with `vi.hoisted()`, which runs before hoisting:
 const { mockFn } = vi.hoisted(() => ({ mockFn: vi.fn() }));
 
 vi.mock("some-module", () => ({ fn: mockFn })); // ✓ safe
+```
+
+## `tusk commit` With New Test Directories — Verify Files Are Staged
+
+When creating a new test directory (e.g., `tests/scrapers/.../the_rockwell/`) and calling
+`tusk commit` with specific file paths, the commit output can be obscured by grep filters or
+truncated output. If the files are untracked (not yet `git add`-ed), `tusk commit` may fail
+silently on the `git add` step while still marking criteria done.
+
+**Before calling `tusk criteria done --skip-verify`**, always verify all intended files are
+either staged or committed:
+
+```bash
+git status --short apps/scraper/tests/   # confirms untracked test files
+```
+
+If files show as `??` (untracked) after a `tusk commit` call, stage and commit them manually:
+
+```bash
+git add <file1> <file2> && git commit -m "[TASK-<id>] <message>" \
+  --trailer "Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 ```
