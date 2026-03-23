@@ -386,18 +386,6 @@ module names (e.g., a directory named `email/` under `tests/`). pytest's rootdir
 import mode works without `__init__.py`; adding it causes the test package to shadow
 the stdlib module, producing `ModuleNotFoundError` at import time.
 
-## npm audit fix in apps/web
-
-Due to next-auth beta's strict peer dependency declarations, `npm audit fix`
-will fail with ERESOLVE unless you pass `--legacy-peer-deps`:
-
-    npm audit fix --legacy-peer-deps
-
-Also: lockfile regeneration can silently bump transitive beta deps (e.g.,
-next-auth beta.25 → beta.30). After running audit fix, check `git diff
-apps/web/package-lock.json` for implicit version bumps in packages listed
-in package.json and update the pinned versions there to match.
-
 ## Testing RateLimiter Delay Calculations
 
 When patching `random.uniform` in tests for `_calculate_anti_detection_delay`,
