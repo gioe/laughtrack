@@ -148,45 +148,35 @@ class EventbriteClient(BaseApiClient):
             continuation = response.pagination.continuation
         return events
 
-    async def fetch_eventbrite_event_list(
-        self, venue_id: str, continuation: Optional[str] = None
+    async def _fetch_event_list_page(
+        self,
+        url: str,
+        id_label: str,
+        id_value: str,
+        continuation: Optional[str] = None,
     ) -> Optional[EventbriteListEventsResponse]:
-        """Fetch a single page of events for a venue.
+        """Shared helper: fetch one page of events from a venues or organizers URL.
 
         Args:
-        - venue_id: The Eventbrite venue ID to fetch events for.
-        - continuation: Pagination token for next page (as returned by the API).
+        - url: Full base URL for the endpoint (e.g. ``{BASE_URL}/venues/{id}/events/``).
+        - id_label: Key name used in log context (``"venue_id"`` or ``"organizer_id"``).
+        - id_value: The entity ID value, used in log context and ``logger_context``.
+        - continuation: Optional pagination token.
 
         Returns:
-        - EventbriteListEventsResponse with events and pagination info, or ``None``
-          when the HTTP request fails or returns no data.
-
-        Verification checklist
-        - Request URL format: ``{BASE_URL}/venues/{venue_id}/events/?<query>`` where
-          query includes status=live, order_by=start_asc, only_public=true,
-          expand=ticket_availability, and optional continuation.
-        - Response parsing uses ``EventbriteListEventsResponse.from_dict``.
-        - ``resp.pagination.continuation`` is used by callers for next page.
-
-        Edge cases
-        - If API returns unexpected schema, ``from_dict`` may raise; upstream
-          caller relies on ``fetch_json`` returning ``None`` on errors to avoid
-          raising here. Consider adding stricter guards if needed.
+        - Parsed ``EventbriteListEventsResponse``, or ``None`` on HTTP failure.
         """
-        fetch_events_url = f"{self.BASE_URL}/venues/{venue_id}/events/"
-
-        # Fetch single page only
         req_params = self.params.copy()
         if continuation:
             req_params["continuation"] = continuation
-        query_string = urlencode(req_params)
-        full_url = f"{fetch_events_url}?{query_string}"
+        full_url = f"{url}?{urlencode(req_params)}"
+
         try:
             Logger.debug(
                 "Requesting Eventbrite event list",
                 context={
                     "club_name": getattr(self.club, "name", "-"),
-                    "venue_id": venue_id,
+                    id_label: id_value,
                     "url": full_url,
                     "has_continuation": bool(continuation),
                 },
@@ -194,8 +184,6 @@ class EventbriteClient(BaseApiClient):
         except Exception:
             pass
 
-        # Use base client's convenience method
-        # For Eventbrite list endpoints, remove Content-Type so query params aren't ignored
         req_headers = dict(self.headers)
         req_headers.pop("Content-Type", None)
 
@@ -203,20 +191,19 @@ class EventbriteClient(BaseApiClient):
             url=full_url,
             headers=req_headers,
             timeout=self.REQUEST_TIMEOUT,
-            logger_context={"venue_id": venue_id},
+            logger_context={id_label: id_value},
         )
 
         if not data:
             return None
 
-        # Return single page response
         resp = EventbriteListEventsResponse.from_dict(data)
         try:
             Logger.debug(
                 "Parsed Eventbrite event list page",
                 context={
                     "club_name": getattr(self.club, "name", "-"),
-                    "venue_id": venue_id,
+                    id_label: id_value,
                     "events": len(resp.events) if resp and resp.events else 0,
                     "has_more": bool(resp and resp.pagination and resp.pagination.has_more_items),
                 },
@@ -224,64 +211,28 @@ class EventbriteClient(BaseApiClient):
         except Exception:
             pass
         return resp
+
+    async def fetch_eventbrite_event_list(
+        self, venue_id: str, continuation: Optional[str] = None
+    ) -> Optional[EventbriteListEventsResponse]:
+        """Fetch a single page of events for a venue (/venues/{id}/events/)."""
+        return await self._fetch_event_list_page(
+            f"{self.BASE_URL}/venues/{venue_id}/events/", "venue_id", venue_id, continuation
+        )
 
     async def fetch_organizer_event_list(
         self, organizer_id: str, continuation: Optional[str] = None
     ) -> Optional[EventbriteListEventsResponse]:
-        """Fetch a single page of live events for an Eventbrite organizer.
+        """Fetch a single page of events for an organizer (/organizers/{id}/events/).
 
-        Mirrors :meth:`fetch_eventbrite_event_list` but calls the
-        /organizers/{organizer_id}/events/ endpoint instead of /venues/.
         Used as a fallback when the stored eventbrite_id is an organizer ID.
         """
-        fetch_events_url = f"{self.BASE_URL}/organizers/{organizer_id}/events/"
-
-        req_params = self.params.copy()
-        if continuation:
-            req_params["continuation"] = continuation
-        query_string = urlencode(req_params)
-        full_url = f"{fetch_events_url}?{query_string}"
-
-        try:
-            Logger.debug(
-                "Requesting Eventbrite organizer event list",
-                context={
-                    "club_name": getattr(self.club, "name", "-"),
-                    "organizer_id": organizer_id,
-                    "url": full_url,
-                    "has_continuation": bool(continuation),
-                },
-            )
-        except Exception:
-            pass
-
-        req_headers = dict(self.headers)
-        req_headers.pop("Content-Type", None)
-
-        data = await self.fetch_json(
-            url=full_url,
-            headers=req_headers,
-            timeout=self.REQUEST_TIMEOUT,
-            logger_context={"organizer_id": organizer_id},
+        return await self._fetch_event_list_page(
+            f"{self.BASE_URL}/organizers/{organizer_id}/events/",
+            "organizer_id",
+            organizer_id,
+            continuation,
         )
-
-        if not data:
-            return None
-
-        resp = EventbriteListEventsResponse.from_dict(data)
-        try:
-            Logger.debug(
-                "Parsed Eventbrite organizer event list page",
-                context={
-                    "club_name": getattr(self.club, "name", "-"),
-                    "organizer_id": organizer_id,
-                    "events": len(resp.events) if resp and resp.events else 0,
-                    "has_more": bool(resp and resp.pagination and resp.pagination.has_more_items),
-                },
-            )
-        except Exception:
-            pass
-        return resp
 
     async def retrieve_event(self, event_id: str) -> Optional[EventbriteSingleEventResponse]:
         """Retrieve details for a single Eventbrite event by id.
