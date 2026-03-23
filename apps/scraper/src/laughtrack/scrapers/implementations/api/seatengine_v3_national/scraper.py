@@ -230,7 +230,7 @@ class SeatEngineV3NationalScraper(BaseScraper):
                 if match:
                     uuids.add(match.group(1).lower())
 
-        return list(uuids)
+        return sorted(uuids)
 
     async def _fetch_venue_by_uuid(self, uuid: str) -> Optional[Dict[str, Any]]:
         """
