@@ -167,6 +167,7 @@ class EventbriteEvent(ShowConvertible):
 
             # If no ticket offers, create a basic ticket
             if not tickets:
+                # No per-ticket availability data when ticket_offers is absent; default to not sold out
                 tickets.append(Ticket(price=0.0, purchase_url=self.event_url, type="General Admission", sold_out=False))
 
             # Create show object

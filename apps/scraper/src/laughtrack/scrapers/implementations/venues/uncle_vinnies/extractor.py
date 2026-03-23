@@ -90,6 +90,7 @@ class UncleVinniesExtractor:
                 return None
 
             sections = performance_data.get("sections", []) or production.get("sections", []) or []
+            tickets_available = bool(performance_data.get("ticketsAvailable", True))
 
             return UncleVinniesEvent(
                 production_id=production_id,
@@ -100,6 +101,7 @@ class UncleVinniesExtractor:
                 sections=sections,
                 ticket_types=[],
                 event_url=event_url,
+                tickets_available=tickets_available,
                 _raw_performance_data=performance_data,
             )
         except Exception as e:

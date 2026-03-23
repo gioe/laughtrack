@@ -138,7 +138,10 @@ class RodneyEventTransformer(DataTransformer[RodneyEvent]):
                 )
 
         elif event.source_type in ["eventbrite", "22rams"]:
-            # API-based tickets with min/max pricing
+            # API-based tickets with min/max pricing.
+            # Neither the Eventbrite nor 22Rams ticket_info dicts include a sold_out signal;
+            # the source_type="eventbrite"/"22rams" paths are also not currently produced by
+            # the extractor (which always sets source_type="html"), so this branch is dead code.
             min_price = ticket_info.get("min_price")
             max_price = ticket_info.get("max_price")
             purchase_url = ticket_info.get("purchase_url", source_url)

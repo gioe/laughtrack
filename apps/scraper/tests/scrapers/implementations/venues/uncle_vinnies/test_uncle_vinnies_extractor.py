@@ -322,3 +322,59 @@ class TestUncleVinniesEventToShow:
 
         assert show is not None
         assert show.tickets == []
+
+    def test_to_show_sold_out_when_tickets_not_available(self):
+        """tickets_available=False propagates sold_out=True to all tickets."""
+        event = self._make_event()
+        event.tickets_available = False
+        show = event.to_show(_club(), enhanced=False)
+
+        assert show is not None
+        assert len(show.tickets) == 2
+        assert all(t.sold_out for t in show.tickets)
+
+    def test_to_show_not_sold_out_when_tickets_available(self):
+        """tickets_available=True (default) propagates sold_out=False to all tickets."""
+        event = self._make_event()
+        show = event.to_show(_club(), enhanced=False)
+
+        assert show is not None
+        assert all(not t.sold_out for t in show.tickets)
+
+
+# ---------------------------------------------------------------------------
+# create_event_from_performance_data — ticketsAvailable propagation
+# ---------------------------------------------------------------------------
+
+
+class TestCreateEventFromPerformanceDataTicketsAvailable:
+    def _base(self):
+        return {
+            "id": "perf-20",
+            "startDate": "2026-08-15 19:30",
+            "production": {"productionName": "Sold-Out Night"},
+            "sections": [{"ticketTypeViews": [{"name": "General Admission", "price": 20.0}]}],
+        }
+
+    def test_tickets_available_false_propagated(self):
+        data = {**self._base(), "ticketsAvailable": False}
+        event = UncleVinniesExtractor.create_event_from_performance_data(
+            data, "prod-20", "https://example.com"
+        )
+        assert event is not None
+        assert event.tickets_available is False
+
+    def test_tickets_available_true_propagated(self):
+        data = {**self._base(), "ticketsAvailable": True}
+        event = UncleVinniesExtractor.create_event_from_performance_data(
+            data, "prod-21", "https://example.com"
+        )
+        assert event is not None
+        assert event.tickets_available is True
+
+    def test_tickets_available_defaults_to_true_when_absent(self):
+        event = UncleVinniesExtractor.create_event_from_performance_data(
+            self._base(), "prod-22", "https://example.com"
+        )
+        assert event is not None
+        assert event.tickets_available is True

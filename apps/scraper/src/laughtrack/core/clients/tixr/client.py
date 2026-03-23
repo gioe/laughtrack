@@ -280,6 +280,7 @@ class TixrClient(BaseApiClient):
 
             if not tickets:
                 self.log_warning(f"No offers found in JSON-LD for {page_url}; inserting placeholder ticket")
+                # No offers means no availability signal; default to not sold out
                 tickets.append(Ticket(price=0, purchase_url=show_page_url, sold_out=False, type="General Admission"))
 
             return Show(

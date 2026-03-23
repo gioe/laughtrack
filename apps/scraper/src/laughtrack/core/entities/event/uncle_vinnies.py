@@ -32,6 +32,7 @@ class UncleVinniesEvent:
     sections: Optional[List[Dict[str, Any]]] = None
     ticket_types: Optional[List[Dict[str, Any]]] = None
     event_url: Optional[str] = None
+    tickets_available: bool = True  # OvationTix "ticketsAvailable" field from performance API
 
     # Raw data preservation for debugging
     _raw_performance_data: Optional[JSONDict] = None
@@ -145,7 +146,7 @@ class UncleVinniesEvent:
                                 Ticket(
                                     price=float(price),
                                     purchase_url=self.event_url or "",
-                                    sold_out=False,
+                                    sold_out=not self.tickets_available,
                                     type=ticket_type,
                                 )
                             )

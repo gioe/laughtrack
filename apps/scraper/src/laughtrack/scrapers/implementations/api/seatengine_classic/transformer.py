@@ -64,6 +64,7 @@ class SeatEngineClassicTransformer(DataTransformer[JSONDict]):
 
             tickets = []
             if show_url and not sold_out:
+                # sold_out is False in this branch by the condition above — not a hardcoded omission
                 tickets.append(
                     Ticket(
                         price=0.0,
