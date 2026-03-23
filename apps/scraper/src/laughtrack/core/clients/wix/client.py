@@ -22,7 +22,7 @@ class WixEventsClient(BaseApiClient):
         super().__init__(club, proxy_pool=proxy_pool)
         # Domain without scheme for header context, base_url with scheme for requests
         self.domain = URLUtils.get_formatted_domain(self.club.scraping_url)
-        self.base_url = URLUtils.get_base_domain_with_protocol(self.club.scraping_url)
+        self.base_url = URLUtils.get_base_domain_with_protocol(URLUtils.normalize_url(self.club.scraping_url))
 
         # Initialize token headers using mobile browser base and add required custom header
         self.token_headers = BaseHeaders.get_headers(base_type="mobile_browser", domain=self.domain)
