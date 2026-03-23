@@ -38,7 +38,9 @@ class NicksComedyStopScraper(BaseScraper):
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
         self.transformation_pipeline.register_transformer(NicksEventTransformer(club))
-        self.domain = URLUtils.get_base_domain_with_protocol(club.scraping_url)
+        self.domain = URLUtils.get_base_domain_with_protocol(
+            URLUtils.normalize_url(club.scraping_url)
+        )
         self._access_token: Optional[str] = None
 
     async def collect_scraping_targets(self) -> List[str]:
