@@ -11,11 +11,13 @@ interface ShowSearchClientProps {
     initialData: ShowDTO[];
     initialTotal: number;
     initialFilters: FilterDTO[];
+    initialZipCapTriggered?: boolean;
 }
 
 const ShowSearchClient = ({
     initialData,
     initialTotal,
+    initialZipCapTriggered,
 }: ShowSearchClientProps) => {
     const searchParams = useSearchParams();
 
@@ -36,6 +38,7 @@ const ShowSearchClient = ({
         isError,
         errorMessage,
         hasMore,
+        zipCapTriggered,
         sentinelRef,
         retry,
     } = useInfiniteSearch<ShowDTO>({
@@ -45,18 +48,29 @@ const ShowSearchClient = ({
         initialTotal,
     });
 
+    const showZipCapHint = initialZipCapTriggered || zipCapTriggered;
+
     return (
-        <SearchClientShell
-            isLoading={isLoading}
-            isError={isError}
-            errorMessage={errorMessage}
-            hasMore={hasMore}
-            dataLength={data.length}
-            retry={retry}
-            sentinelRef={sentinelRef}
-        >
-            <ShowTable shows={data} />
-        </SearchClientShell>
+        <>
+            {showZipCapHint && (
+                <p className="px-4 pt-2 text-sm text-amber-700">
+                    Too many locations matched. Try a more specific search like{" "}
+                    <strong>&quot;Portland, OR&quot;</strong> for better
+                    results.
+                </p>
+            )}
+            <SearchClientShell
+                isLoading={isLoading}
+                isError={isError}
+                errorMessage={errorMessage}
+                hasMore={hasMore}
+                dataLength={data.length}
+                retry={retry}
+                sentinelRef={sentinelRef}
+            >
+                <ShowTable shows={data} />
+            </SearchClientShell>
+        </>
     );
 };
 

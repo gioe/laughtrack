@@ -10,6 +10,7 @@ import { Prisma } from "@prisma/client";
 interface ShowsResponse {
     shows: ShowDTO[];
     totalCount: number;
+    zipCapTriggered: boolean;
 }
 
 const SHOW_SELECT = {
@@ -145,6 +146,7 @@ export async function findShowsWithCount(
         // Cards hide the distance label when distanceMiles is null — this is intentional.
         const searchedZip = helper.params.zip;
         return {
+            zipCapTriggered: helper.isZipCapTriggered(),
             shows: filteredShows.map((show) => ({
                 id: show.id,
                 date: show.date,

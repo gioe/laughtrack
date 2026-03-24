@@ -78,6 +78,7 @@ export class QueryHelper {
     profileId?: string;
     userId?: string;
     timezone: string;
+    private _zipCapTriggered = false;
 
     constructor(requestData: ParameterizedRequestData) {
         this.timezone = requestData.timezone;
@@ -315,6 +316,7 @@ export class QueryHelper {
                         `Try including a state abbreviation (e.g. "Portland, OR") for a more precise result.`,
                 );
                 zips = zips.slice(0, QueryHelper.ZIP_CAP);
+                this._zipCapTriggered = true;
             }
 
             return { zipCode: { in: zips } };
@@ -322,6 +324,10 @@ export class QueryHelper {
             console.error("Error in zip code radius calculation:", error);
             return { zipCode: { in: startingZips } };
         }
+    }
+
+    isZipCapTriggered(): boolean {
+        return this._zipCapTriggered;
     }
 
     getDateClause() {

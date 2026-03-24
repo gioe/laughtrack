@@ -18,6 +18,7 @@ interface UseInfiniteSearchResult<T> {
     isError: boolean;
     errorMessage?: string;
     hasMore: boolean;
+    zipCapTriggered: boolean;
     /** Attach this ref to the sentinel div at the bottom of the list. */
     sentinelRef: (el: Element | null) => void;
     /** Re-triggers loadMore from the current page after an error. */
@@ -42,6 +43,7 @@ export function useInfiniteSearch<T>({
         undefined,
     );
     const [hasMore, setHasMore] = useState(initialData.length < initialTotal);
+    const [zipCapTriggered, setZipCapTriggered] = useState(false);
 
     // Refs avoid stale closure issues inside the observer callback
     const nextPageRef = useRef(1); // page 0 already served by SSR
@@ -78,7 +80,11 @@ export function useInfiniteSearch<T>({
             });
             if (!res.ok) throw new Error(`${res.status}`);
 
-            const json = (await res.json()) as { data: T[]; total: number };
+            const json = (await res.json()) as {
+                data: T[];
+                total: number;
+                zipCapTriggered?: boolean;
+            };
 
             const newCount =
                 page === 0
@@ -91,6 +97,7 @@ export function useInfiniteSearch<T>({
             setTotal(json.total);
             hasMoreRef.current = newCount < json.total;
             setHasMore(newCount < json.total);
+            setZipCapTriggered(json.zipCapTriggered ?? false);
             setIsError(false);
             setErrorMessage(undefined);
 
@@ -153,6 +160,7 @@ export function useInfiniteSearch<T>({
         isError,
         errorMessage,
         hasMore,
+        zipCapTriggered,
         sentinelRef,
         retry: loadMore,
     };

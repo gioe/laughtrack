@@ -76,7 +76,12 @@ export async function GET(req: NextRequest) {
         });
 
         return NextResponse.json(
-            { data: result.data, total: result.total, filters: result.filters },
+            {
+                data: result.data,
+                total: result.total,
+                filters: result.filters,
+                zipCapTriggered: result.zipCapTriggered,
+            },
             { headers: rateLimitHeaders(rl) },
         );
     } catch (error) {

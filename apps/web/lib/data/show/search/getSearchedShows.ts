@@ -11,6 +11,7 @@ interface ShowSearchResponse {
     total: number;
     data: ShowDTO[];
     filters: FilterDTO[];
+    zipCapTriggered: boolean;
 }
 
 export async function getSearchedShows(
@@ -28,6 +29,7 @@ export async function getSearchedShows(
             total: showsWithCount.totalCount,
             data: showsWithCount.shows,
             filters,
+            zipCapTriggered: showsWithCount.zipCapTriggered,
         };
     } catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {

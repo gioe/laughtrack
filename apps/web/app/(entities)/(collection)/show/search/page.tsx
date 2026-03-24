@@ -107,7 +107,7 @@ export default async function ShowSearchPage(props: any) {
             },
         );
 
-    const { data, total, filters } =
+    const { data, total, filters, zipCapTriggered } =
         await getCachedSearchPageData(requestData)();
 
     return (
@@ -123,6 +123,7 @@ export default async function ShowSearchPage(props: any) {
                     initialData={data}
                     initialTotal={total}
                     initialFilters={filters}
+                    initialZipCapTriggered={zipCapTriggered}
                 />
             </Suspense>
         </>
