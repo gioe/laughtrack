@@ -481,3 +481,124 @@ class TestDatabaseOperationResultComedianLineupFields:
         assert result.inserts == 5
         assert result.comedians_inserted == 3
         assert result.lineup_items_added == 10
+
+
+# ---------------------------------------------------------------------------
+# Tests: update_show_lineups — denied comedians stripped from show.lineup
+# ---------------------------------------------------------------------------
+
+def _make_comedian_stub(name: str, uuid: str):
+    """Return a minimal comedian-like object with name and uuid."""
+    c = MagicMock()
+    c.name = name
+    c.uuid = uuid
+    return c
+
+
+def _make_show_stub(show_id: int, comedians):
+    """Return a minimal show-like object with id, name, and lineup list."""
+    s = MagicMock()
+    s.id = show_id
+    s.name = f"Show {show_id}"
+    s.lineup = list(comedians)
+    return s
+
+
+class TestUpdateShowLineupsStripsdeniedComedians:
+    """update_show_lineups must remove deny-listed comedians from show.lineup
+    before calling batch_update_lineups to prevent FK violations."""
+
+    def _make_handler_for_lineup_update(self):
+        h = _make_show_handler()
+        h.lineup_handler.get_lineup.return_value = {}
+        h.lineup_handler.get_comedians_from_show_names.return_value = {}
+        h.lineup_handler.batch_update_lineups.return_value = (0, 0)
+        h.comedian_handler.insert_comedians.return_value = []
+        h.calculate_and_update_popularity = MagicMock()
+        return h
+
+    def test_denied_comedian_absent_from_lineup_when_batch_update_called(self):
+        """show.lineup must not contain the denied comedian when batch_update_lineups runs."""
+        allowed = _make_comedian_stub("Allowed Comic", "uuid-allowed")
+        denied = _make_comedian_stub("Denied Comic", "uuid-denied")
+        show = _make_show_stub(1, [allowed, denied])
+
+        h = self._make_handler_for_lineup_update()
+        h._extract_valid_show_ids = MagicMock(return_value=[1])
+        h._process_comedian_additions = MagicMock()
+
+        # _filter_denied_comedians returns only the allowed comedian
+        h.comedian_handler._filter_denied_comedians.return_value = [allowed]
+
+        lineup_at_call_time = []
+
+        def capture_lineup(shows, db_lineups):
+            lineup_at_call_time.extend(list(shows[0].lineup))
+            return (1, 0)
+
+        h.lineup_handler.batch_update_lineups.side_effect = capture_lineup
+
+        with patch.object(_show_handler_mod.ShowUtils, "collect_comedian_uuids", return_value=[]):
+            h.update_show_lineups([show])
+
+        names_at_call = [c.name for c in lineup_at_call_time]
+        assert "Denied Comic" not in names_at_call, (
+            "Denied comedian must be stripped from show.lineup before batch_update_lineups"
+        )
+        assert "Allowed Comic" in names_at_call, (
+            "Allowed comedian must still be present in show.lineup"
+        )
+
+    def test_non_denied_comedians_still_linked_when_some_denied(self):
+        """batch_update_lineups is still called with non-denied comedians intact."""
+        allowed_a = _make_comedian_stub("Comic A", "uuid-a")
+        allowed_b = _make_comedian_stub("Comic B", "uuid-b")
+        denied = _make_comedian_stub("Junk Token", "uuid-junk")
+        show = _make_show_stub(2, [allowed_a, denied, allowed_b])
+
+        h = self._make_handler_for_lineup_update()
+        h._extract_valid_show_ids = MagicMock(return_value=[2])
+        h._process_comedian_additions = MagicMock()
+        h.comedian_handler._filter_denied_comedians.return_value = [allowed_a, allowed_b]
+        h.comedian_handler.insert_comedians.return_value = [{"uuid": "uuid-a"}]
+
+        lineup_names = []
+
+        def capture(shows, db_lineups):
+            lineup_names.extend(c.name for c in shows[0].lineup)
+            return (2, 0)
+
+        h.lineup_handler.batch_update_lineups.side_effect = capture
+
+        with patch.object(_show_handler_mod.ShowUtils, "collect_comedian_uuids", return_value=[]):
+            h.update_show_lineups([show])
+
+        assert "Comic A" in lineup_names
+        assert "Comic B" in lineup_names
+        assert "Junk Token" not in lineup_names
+
+    def test_no_lineup_stripping_when_no_comedians_denied(self):
+        """When all comedians are allowed, batch_update_lineups sees the full lineup unchanged."""
+        c1 = _make_comedian_stub("Comic One", "uuid-1")
+        c2 = _make_comedian_stub("Comic Two", "uuid-2")
+        show = _make_show_stub(3, [c1, c2])
+
+        h = self._make_handler_for_lineup_update()
+        h._extract_valid_show_ids = MagicMock(return_value=[3])
+        h._process_comedian_additions = MagicMock()
+        # All comedians allowed — filter returns the same list
+        h.comedian_handler._filter_denied_comedians.return_value = [c1, c2]
+
+        lineup_names = []
+
+        def capture(shows, db_lineups):
+            lineup_names.extend(c.name for c in shows[0].lineup)
+            return (2, 0)
+
+        h.lineup_handler.batch_update_lineups.side_effect = capture
+
+        with patch.object(_show_handler_mod.ShowUtils, "collect_comedian_uuids", return_value=[]):
+            h.update_show_lineups([show])
+
+        assert "Comic One" in lineup_names
+        assert "Comic Two" in lineup_names
