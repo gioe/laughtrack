@@ -129,15 +129,35 @@ def _la_jolla_club() -> Club:
 
 
 def _la_jolla_day_html(shows: list[dict]) -> str:
-    """Like _day_html but hrefs use the /la-jolla/calendar/show/ prefix."""
+    """Like _day_html but hrefs use the /la-jolla/calendar/show/ prefix.
+
+    Each dict may include:
+      slug      - e.g. "2026-04-01t200000-0700-my-show"
+      title     - e.g. "My Show"
+      room      - e.g. "Showroom" (optional)
+      ticket    - showclix URL (optional; omit to simulate sold-out / no ticket)
+      sold_out  - bool (optional)
+    """
     items_html = ""
     for s in shows:
         slug = s["slug"]
         title = s.get("title", "Test Show")
+        room = s.get("room", "")
         ticket = s.get("ticket", "")
+        sold_out_html = (
+            '<div class="alert-container"><h3 class="text-store-yellow fw-bold">SOLD OUT</h3></div>'
+            if s.get("sold_out")
+            else ""
+        )
         ticket_html = (
             f'<a href="{ticket}" class="btn btn-store mt-3 fw-bold slidebutton">Buy Tickets</a>'
             if ticket
+            else ""
+        )
+        room_html = (
+            f'<h3 class="text-white text-uppercase fw-bold fs-6 my-2 align-middle">'
+            f'<span aria-hidden="true">SR</span>{room}</h3>'
+            if room
             else ""
         )
         items_html += f"""
@@ -151,9 +171,20 @@ def _la_jolla_day_html(shows: list[dict]) -> str:
               </div>
             </div>
             <div class="d-none d-sm-block col-sm-9">
+              {sold_out_html}
               <h2 class="font-cooper display-6 show-title">
                 <a href="/la-jolla/calendar/show/100/{slug}">{title}</a>
               </h2>
+              <div class="d-none d-md-block">
+                <div class="col-12">
+                  <div class="d-flex align-items-center">
+                    <div class="me-5">
+                      <span>April 1</span> | <span>7:00 PM</span>
+                    </div>
+                    {room_html}
+                  </div>
+                </div>
+              </div>
               {ticket_html}
             </div>
           </div>
@@ -431,3 +462,62 @@ async def test_la_jolla_get_data_extracts_title_and_datetime(monkeypatch):
     assert ev.title == "Tuesday Night Potluck"
     assert ev.datetime_slug == "2026-04-01t190000-0700"
     assert "showclix.com/event/potluck-la-jolla" in ev.ticket_url
+
+
+@pytest.mark.asyncio
+async def test_la_jolla_get_data_concurrent_shows_same_time_different_rooms(monkeypatch):
+    """La Jolla concurrent shows at the same time in different rooms must both be extracted.
+
+    Verifies the /la-jolla/ href prefix does not break the full-slug dedup logic.
+    """
+    scraper = ComedyStoreScraper(_la_jolla_club())
+    html = _la_jolla_day_html([
+        {
+            "slug": "2026-04-01t200000-0700-show-a",
+            "title": "Show A",
+            "room": "Showroom",
+            "ticket": "https://www.showclix.com/event/show-a-lj",
+        },
+        {
+            "slug": "2026-04-01t200000-0700-show-b",
+            "title": "Show B",
+            "room": "Bar Stage",
+            "ticket": "https://www.showclix.com/event/show-b-lj",
+        },
+    ])
+
+    async def fake_fetch(self, url: str) -> str:
+        return html
+
+    monkeypatch.setattr(ComedyStoreScraper, "fetch_html", fake_fetch)
+
+    result = await scraper.get_data(f"{LA_JOLLA_CALENDAR_BASE}/2026-04-01")
+    assert result is not None
+    assert len(result.event_list) == 2, (
+        "Both concurrent La Jolla shows must be extracted — one was silently dropped by dedup"
+    )
+    titles = {e.title for e in result.event_list}
+    assert "Show A" in titles
+    assert "Show B" in titles
+
+
+@pytest.mark.asyncio
+async def test_la_jolla_get_data_sold_out_show(monkeypatch):
+    """La Jolla sold-out shows must use the /la-jolla/ show-page URL as fallback."""
+    scraper = ComedyStoreScraper(_la_jolla_club())
+    html = _la_jolla_day_html([{
+        "slug": "2026-04-01t200000-0700-big-show",
+        "title": "Big Show",
+        "sold_out": True,
+    }])
+
+    async def fake_fetch(self, url: str) -> str:
+        return html
+
+    monkeypatch.setattr(ComedyStoreScraper, "fetch_html", fake_fetch)
+
+    result = await scraper.get_data(f"{LA_JOLLA_CALENDAR_BASE}/2026-04-01")
+    assert result is not None
+    ev = result.event_list[0]
+    assert ev.sold_out is True
+    assert ev.ticket_url.startswith("https://thecomedystore.com/la-jolla/calendar/show/")
