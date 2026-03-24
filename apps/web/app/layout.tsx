@@ -95,7 +95,7 @@ export default async function RootLayout({
                 lang="en"
                 className={`${bebas.variable} ${oswald.variable} ${inter.variable} ${fjalla.variable} ${chivo.variable} ${dmSams.variable} ${outfit.variable}`}
             >
-                <body>
+                <body className="flex flex-col min-h-screen">
                     <HeroUIProvider>
                         <TimezoneProvider>
                             <ScrollPositionManager />

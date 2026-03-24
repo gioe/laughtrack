@@ -18,7 +18,7 @@ export default async function EntityDetailLayout({
             <Navbar currentUser={session?.profile} />
             <ErrorBoundary>
                 <Suspense>
-                    <main className="min-h-screen w-full bg-coconut-cream px-4 sm:px-6 md:px-8">
+                    <main className="flex-1 w-full bg-coconut-cream px-4 sm:px-6 md:px-8">
                         {children}
                     </main>
                 </Suspense>
