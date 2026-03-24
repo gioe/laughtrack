@@ -2,7 +2,6 @@ import { auth } from "@/auth";
 import { StyleContextProvider } from "@/contexts/StyleProvider";
 import { StyleContextKey } from "@/objects/enum";
 import Navbar from "@/ui/components/navbar";
-import FooterComponent from "@/ui/pages/home/footer";
 import { Suspense } from "react";
 import ErrorBoundary from "@/ui/components/errorBoundary";
 
@@ -23,7 +22,6 @@ export default async function EntityDetailLayout({
                     </main>
                 </Suspense>
             </ErrorBoundary>
-            <FooterComponent />
         </StyleContextProvider>
     );
 }
