@@ -22,7 +22,7 @@ from laughtrack.core.entities.event.comedy_store import ComedyStoreEvent
 
 _SHOWCLIX_RE = re.compile(r"showclix\.com/event/", re.IGNORECASE)
 _SHOW_HREF_RE = re.compile(r"^(?:/[^/]+)?/calendar/show/\d+/(.+)$")
-_SLUG_DT_RE = re.compile(r"^\d{4}-\d{2}-\d{2}[tT]\d{6}[+-]\d{4}")
+_SLUG_DT_RE = re.compile(r"^\d{4}-\d{2}-\d{2}[tT]\d{6}(?:[+-]\d{4}|Z)")
 
 
 class ComedyStoreEventExtractor:
@@ -66,7 +66,7 @@ class ComedyStoreEventExtractor:
             dt_m = _SLUG_DT_RE.match(slug)
             if not dt_m:
                 continue
-            datetime_slug = dt_m.group(0)
+            datetime_slug = dt_m.group(0).replace("Z", "+0000")
 
             # Dedup by full slug (unique per show) — not datetime only, because
             # multiple shows can start at the same time in different rooms.

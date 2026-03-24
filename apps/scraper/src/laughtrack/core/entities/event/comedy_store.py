@@ -28,9 +28,11 @@ def _parse_slug_datetime(slug: str) -> Optional[datetime]:
     """Parse a Comedy Store datetime slug into an aware datetime.
 
     slug format: "2026-03-25t200000-0700[-title-words]"
+    'Z' UTC offsets are normalised to '+0000' before parsing.
     Returned datetime has the UTC offset from the slug applied.
     Returns None if the slug does not match the expected format.
     """
+    slug = slug.replace("Z", "+0000")
     m = _SLUG_DT_RE.match(slug)
     if not m:
         return None

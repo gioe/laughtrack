@@ -422,6 +422,41 @@ async def test_full_pipeline_produces_events(monkeypatch):
 
 
 # ---------------------------------------------------------------------------
+# Z UTC offset — slug with 'Z' must not be silently dropped
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_get_data_z_utc_offset_slug(monkeypatch):
+    """A slug with a 'Z' UTC offset must be extracted and normalised to '+0000'.
+
+    Regression: _SLUG_DT_RE previously only matched [+-]\\d{4} offsets, so any
+    show whose slug ended in 'Z' was silently dropped (dt_m was None → continue).
+    """
+    scraper = ComedyStoreScraper(_club())
+    html = _day_html([{
+        "slug": "2026-04-01t200000Z-z-offset-show",
+        "title": "Z Offset Show",
+        "ticket": "https://www.showclix.com/event/z-show",
+    }])
+
+    async def fake_fetch(self, url: str) -> str:
+        return html
+
+    monkeypatch.setattr(ComedyStoreScraper, "fetch_html", fake_fetch)
+
+    result = await scraper.get_data(f"{CALENDAR_BASE}/2026-04-01")
+
+    assert result is not None, "Event with Z offset was silently dropped"
+    assert len(result.event_list) == 1
+    ev = result.event_list[0]
+    assert ev.title == "Z Offset Show"
+    assert ev.datetime_slug == "2026-04-01t200000+0000", (
+        f"Z should be normalised to +0000, got: {ev.datetime_slug!r}"
+    )
+
+
+# ---------------------------------------------------------------------------
 # La Jolla location — /la-jolla/calendar/show/ href prefix
 # ---------------------------------------------------------------------------
 
