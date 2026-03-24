@@ -17,7 +17,8 @@ Placeholder detection criteria (OR):
      Special Guest, Surprise Guest, Surprise Act, Mystery Guest, Comedy Show, Various Artists,
      Headliner, Featured Comedian, Local Comedian, Guest Comedian, Open Mic, Host, MC,
      Emcee, Opener, Headliner TBD, Lineup TBA, More TBA, Plus More, And More, And Special Guests
-  2. Name length < 4 characters (single-name tokens that are almost never real comedian names)
+  2. Name contains a placeholder substring: "open mic", "open-mic"
+  3. Name length < 4 characters (single-name tokens that are almost never real comedian names)
 
 Structural detection criteria (OR):
   1. Name contains a pipe character (|)
@@ -37,6 +38,9 @@ Flags:
     --csv <path>        Write all findings (placeholder + structural) to a CSV file with columns:
                         comedian_name, detection_type, lineup_count, all_show_ids,
                         club_name, club_id, affected_shows
+    --merge             Show merge candidates — false positives whose name contains exactly one
+                        real two-word comedian name as a substring. Dry-run unless --confirm
+                        is also passed.
     --deny-list-add <name>    Insert a name directly into comedian_deny_list with added_by='manual'.
                               No-op if the name already exists.
     --deny-list-reason <txt>  Reason string stored alongside the name (default: 'manual_entry').
@@ -55,31 +59,30 @@ load_dotenv(os.path.join(os.path.dirname(__file__), '../../.env'))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../src'))
 
 from laughtrack.infrastructure.database.connection import get_connection, get_transaction  # noqa: E402
-
-
-_PLACEHOLDER_NAMES = """
-    'tba', 'tbd', 'to be announced', 'to be determined',
-    'special guest', 'special guests',
-    'surprise guest', 'surprise act', 'mystery guest',
-    'comedy show', 'various artists',
-    'headliner', 'featured comedian', 'local comedian',
-    'guest comedian', 'guest',
-    'open mic', 'host', 'mc', 'emcee',
-    'opener', 'opener tbd',
-    'headliner tbd', 'lineup tba',
-    'more tba', 'plus more', 'and more', 'and special guests',
-    'comedian tba', 'comedian tbd',
-    'comics tba', 'comics tbd'
-"""
-
-_STRUCTURAL_KEYWORDS = (
-    'revue', 'burlesque', 'variety', 'showcase', 'production',
-    'presents', 'festival', 'extravaganza', 'theatre', 'theater', 'entertainment',
+from laughtrack.core.entities.comedian.false_positive_detector import (  # noqa: E402
+    PLACEHOLDER_NAMES,
+    PLACEHOLDER_SUBSTRINGS,
+    STRUCTURAL_KEYWORDS,
 )
+
+# Build SQL fragments from the shared Python constants so detection criteria
+# are defined in exactly one place (false_positive_detector.py).
+_PLACEHOLDER_NAMES = "\n    ".join(f"'{n}'" for n in sorted(PLACEHOLDER_NAMES))
+
+_PLACEHOLDER_SUBSTRINGS = PLACEHOLDER_SUBSTRINGS
+
+_PLACEHOLDER_SUBSTRING_CONDITIONS = "\n        OR ".join(
+    f"lower(c.name) LIKE '%{s}%'" for s in _PLACEHOLDER_SUBSTRINGS
+)
+
+_STRUCTURAL_KEYWORDS = STRUCTURAL_KEYWORDS
 
 _STRUCTURAL_KEYWORD_CONDITIONS = "\n        OR ".join(
     f"lower(c.name) LIKE '%{kw}%'" for kw in _STRUCTURAL_KEYWORDS
 )
+
+# Non-keyword structural patterns (checked separately from keyword substring conditions)
+_STRUCTURAL_PATTERN_CONDITIONS = "c.name LIKE '%***%'"
 
 AUDIT_QUERY = f"""
 WITH placeholder_comedians AS (
@@ -92,6 +95,9 @@ WITH placeholder_comedians AS (
         lower(c.name) = ANY(ARRAY[
             {_PLACEHOLDER_NAMES}
         ])
+        OR
+        -- Placeholder substrings (e.g. "KRACKPOTS Open Mic Night")
+        {_PLACEHOLDER_SUBSTRING_CONDITIONS}
         OR
         -- Short names (< 4 chars) — almost never a real comedian name
         length(trim(c.name)) < 4
@@ -125,12 +131,14 @@ WITH structural_comedians AS (
         CASE
             WHEN c.name LIKE '%|%' THEN 'pipe_in_name'
             WHEN length(trim(c.name)) > 60 THEN 'length_gt_60'
+            WHEN {_STRUCTURAL_PATTERN_CONDITIONS} THEN 'decoration_pattern'
             ELSE 'non_person_keyword'
         END AS structural_reason
     FROM comedians c
     WHERE
         c.name LIKE '%|%'
         OR length(trim(c.name)) > 60
+        OR {_STRUCTURAL_PATTERN_CONDITIONS}
         OR {_STRUCTURAL_KEYWORD_CONDITIONS}
 )
 SELECT
@@ -163,6 +171,7 @@ WITH placeholder_comedians AS (
         lower(c.name) = ANY(ARRAY[
             {_PLACEHOLDER_NAMES}
         ])
+        OR {_PLACEHOLDER_SUBSTRING_CONDITIONS}
         OR length(trim(c.name)) < 4
 )
 SELECT
@@ -187,10 +196,12 @@ WHERE
     lower(c.name) = ANY(ARRAY[
         {_PLACEHOLDER_NAMES}
     ])
+    OR {_PLACEHOLDER_SUBSTRING_CONDITIONS}
     OR length(trim(c.name)) < 4
     -- Structural patterns
     OR c.name LIKE '%|%'
     OR length(trim(c.name)) > 60
+    OR {_STRUCTURAL_PATTERN_CONDITIONS}
     OR {_STRUCTURAL_KEYWORD_CONDITIONS}
 """
 
@@ -202,17 +213,21 @@ WITH identified_comedians AS (
         c.name,
         CASE
             WHEN lower(c.name) = ANY(ARRAY[{_PLACEHOLDER_NAMES}]) THEN 'placeholder'
+            WHEN {_PLACEHOLDER_SUBSTRING_CONDITIONS} THEN 'placeholder'
             WHEN length(trim(c.name)) < 4 THEN 'short_name'
             WHEN c.name LIKE '%|%' THEN 'structural'
             WHEN length(trim(c.name)) > 60 THEN 'structural'
+            WHEN {_STRUCTURAL_PATTERN_CONDITIONS} THEN 'structural'
             ELSE 'structural'
         END AS detection_type
     FROM comedians c
     WHERE
         lower(c.name) = ANY(ARRAY[{_PLACEHOLDER_NAMES}])
+        OR {_PLACEHOLDER_SUBSTRING_CONDITIONS}
         OR length(trim(c.name)) < 4
         OR c.name LIKE '%|%'
         OR length(trim(c.name)) > 60
+        OR {_STRUCTURAL_PATTERN_CONDITIONS}
         OR {_STRUCTURAL_KEYWORD_CONDITIONS}
 )
 SELECT
@@ -231,6 +246,63 @@ LEFT JOIN clubs cl ON cl.id = s.club_id
 GROUP BY ic.uuid, ic.name, ic.detection_type, cl.id, cl.name
 HAVING COUNT(li.show_id) > 0
 ORDER BY ic.name, cl.name;
+"""
+
+
+MERGE_CANDIDATES_QUERY = f"""
+WITH false_positives AS (
+    SELECT c.uuid, c.name
+    FROM comedians c
+    WHERE
+        lower(c.name) = ANY(ARRAY[{_PLACEHOLDER_NAMES}])
+        OR {_PLACEHOLDER_SUBSTRING_CONDITIONS}
+        OR length(trim(c.name)) < 4
+        OR c.name LIKE '%|%'
+        OR length(trim(c.name)) > 60
+        OR {_STRUCTURAL_PATTERN_CONDITIONS}
+        OR {_STRUCTURAL_KEYWORD_CONDITIONS}
+),
+real_comedians AS (
+    SELECT c.uuid, c.name
+    FROM comedians c
+    WHERE NOT (
+        lower(c.name) = ANY(ARRAY[{_PLACEHOLDER_NAMES}])
+        OR {_PLACEHOLDER_SUBSTRING_CONDITIONS}
+        OR length(trim(c.name)) < 4
+        OR c.name LIKE '%|%'
+        OR length(trim(c.name)) > 60
+        OR {_STRUCTURAL_PATTERN_CONDITIONS}
+        OR {_STRUCTURAL_KEYWORD_CONDITIONS}
+    )
+    AND array_length(regexp_split_to_array(trim(c.name), '\\s+'), 1) = 2
+),
+all_matches AS (
+    SELECT
+        fp.uuid  AS fp_uuid,
+        fp.name  AS fp_name,
+        real.uuid AS real_uuid,
+        real.name AS real_name
+    FROM false_positives fp
+    JOIN real_comedians real
+        ON lower(fp.name) LIKE '%' || lower(real.name) || '%'
+),
+single_matches AS (
+    SELECT fp_uuid, fp_name, real_uuid, real_name
+    FROM all_matches
+    WHERE fp_uuid IN (
+        SELECT fp_uuid FROM all_matches GROUP BY fp_uuid HAVING COUNT(*) = 1
+    )
+)
+SELECT
+    sm.fp_uuid,
+    sm.fp_name,
+    sm.real_uuid,
+    sm.real_name,
+    COUNT(li.show_id) AS lineup_count
+FROM single_matches sm
+LEFT JOIN lineup_items li ON li.comedian_id = sm.fp_uuid
+GROUP BY sm.fp_uuid, sm.fp_name, sm.real_uuid, sm.real_name
+ORDER BY lineup_count DESC, sm.fp_name;
 """
 
 
@@ -408,7 +480,102 @@ def _write_csv(cur, csv_path: str) -> None:
     print(f"\nCSV written to: {csv_path} ({len(rows)} row(s))")
 
 
-def run_audit(delete: bool = False, confirm: bool = False, csv_path: str | None = None) -> None:
+def _print_merge_candidates_section(cur) -> list:
+    """Print false positives that contain exactly one real two-word comedian name."""
+    print("\n" + "=" * 72)
+    print("SECTION 4: MERGE CANDIDATES")
+    print("(false positives containing exactly one real two-word comedian name)")
+    print("=" * 72)
+    cur.execute(MERGE_CANDIDATES_QUERY)
+    rows = cur.fetchall()
+    if not rows:
+        print("No merge candidates found.")
+    else:
+        print(f"Found {len(rows)} merge candidate(s).\n")
+        print(f"{'False Positive Name':<50} {'Real Comedian':<30} {'Lineup Count':>12}")
+        print("-" * 96)
+        for _fp_uuid, fp_name, _real_uuid, real_name, lineup_count in rows:
+            print(f"{fp_name:<50} {real_name:<30} {lineup_count:>12}")
+    return rows
+
+
+def _handle_merge_delete(cur, dry_run: bool, merge_rows: list) -> None:
+    """Re-point lineup_items to real comedians where possible, then delete all false positives.
+
+    merge_rows: output of MERGE_CANDIDATES_QUERY — false positives with exactly one
+    two-word real comedian match. Their lineup_items are re-pointed before deletion.
+    False positives with zero or multiple matches are straight-deleted.
+    All deleted names are added to comedian_deny_list.
+    """
+    merge_map = {row[0]: (row[2], row[3]) for row in merge_rows}  # fp_uuid -> (real_uuid, real_name)
+
+    cur.execute(DELETABLE_UUIDS_QUERY)
+    all_uuids = [r[0] for r in cur.fetchall()]
+
+    if not all_uuids:
+        print("\nNo records to delete.")
+        return
+
+    delete_only_uuids = [u for u in all_uuids if u not in merge_map]
+
+    if dry_run:
+        print(f"\n{'=' * 72}")
+        print("DRY-RUN MERGE+DELETE PREVIEW")
+        print(f"{'=' * 72}")
+        print(f"Would merge {len(merge_map)} comedian(s) → re-point lineup_items to real comedian.")
+        print(f"Would straight-delete {len(delete_only_uuids)} comedian(s) with no real-name match.")
+        print("Pass --merge --confirm to execute.\n")
+        for fp_uuid, (real_uuid, real_name) in merge_map.items():
+            fp_name = next(r[1] for r in merge_rows if r[0] == fp_uuid)
+            print(f"  MERGE: '{fp_name}' → '{real_name}'")
+    else:
+        # Fetch names before deletion for deny list
+        cur.execute("SELECT name FROM comedians WHERE uuid = ANY(%s)", (all_uuids,))
+        names = [r[0] for r in cur.fetchall()]
+
+        # Re-point lineup_items for merge candidates
+        merged_items = 0
+        for fp_uuid, (real_uuid, _real_name) in merge_map.items():
+            cur.execute(
+                "UPDATE lineup_items SET comedian_id = %s WHERE comedian_id = %s",
+                (real_uuid, fp_uuid),
+            )
+            merged_items += cur.rowcount
+
+        # Delete remaining lineup_items (non-merged false positives)
+        if delete_only_uuids:
+            cur.execute(
+                "DELETE FROM lineup_items WHERE comedian_id = ANY(%s)",
+                (delete_only_uuids,),
+            )
+        deleted_items = cur.rowcount if delete_only_uuids else 0
+
+        # Delete all false positive comedian records
+        cur.execute("DELETE FROM comedians WHERE uuid = ANY(%s)", (all_uuids,))
+        deleted_comedians = cur.rowcount
+
+        # Add all deleted names to deny list
+        from psycopg2.extras import execute_values
+        deny_rows = [(name, 'deleted_false_positive', 'audit_script') for name in names]
+        execute_values(
+            cur,
+            """
+            INSERT INTO comedian_deny_list (name, reason, added_by)
+            VALUES %s
+            ON CONFLICT (name) DO NOTHING
+            """,
+            deny_rows,
+        )
+
+        print(
+            f"\nMerged {len(merge_map)} comedian(s) ({merged_items} lineup_item(s) re-pointed). "
+            f"Deleted {deleted_comedians} comedian record(s) and {deleted_items} lineup_item(s). "
+            f"Added {len(deny_rows)} name(s) to comedian_deny_list."
+        )
+
+
+def run_audit(delete: bool = False, confirm: bool = False, merge: bool = False, csv_path: str | None = None) -> None:
+    merge_rows = []
     with get_connection() as conn:
         with conn.cursor() as cur:
             print("=" * 72)
@@ -418,20 +585,28 @@ def run_audit(delete: bool = False, confirm: bool = False, csv_path: str | None 
             _print_placeholder_section(cur)
             _print_structural_section(cur)
             _print_club_impact(cur)
+            merge_rows = _print_merge_candidates_section(cur)
 
             if csv_path:
                 _write_csv(cur, csv_path)
 
-    if delete:
+    if merge:
         dry_run = not confirm
         if dry_run:
-            # Dry-run only needs a read connection to fetch the UUIDs preview
+            with get_connection() as conn:
+                with conn.cursor() as cur:
+                    _handle_merge_delete(cur, dry_run=True, merge_rows=merge_rows)
+        else:
+            with get_transaction() as conn:
+                with conn.cursor() as cur:
+                    _handle_merge_delete(cur, dry_run=False, merge_rows=merge_rows)
+    elif delete:
+        dry_run = not confirm
+        if dry_run:
             with get_connection() as conn:
                 with conn.cursor() as cur:
                     _handle_delete(cur, dry_run=True)
         else:
-            # Actual deletion: wrap both DELETEs in a single transaction so an
-            # interruption between them cannot leave orphaned comedian rows.
             with get_transaction() as conn:
                 with conn.cursor() as cur:
                     _handle_delete(cur, dry_run=False)
@@ -443,7 +618,9 @@ def run_audit(delete: bool = False, confirm: bool = False, csv_path: str | None 
     print("2. Note the club IDs with the most affected shows.")
     print("3. After TASK-603 is deployed, re-scrape the affected clubs so that")
     print("   lineup_items are healed (placeholders will be filtered on ingestion).")
-    if delete and not confirm:
+    if merge and not confirm:
+        print("4. Re-run with --merge --confirm to merge and delete in one pass.")
+    elif delete and not confirm:
         print("4. Re-run with --delete --confirm to permanently remove identified records.")
 
 
@@ -468,6 +645,12 @@ def _parse_args() -> argparse.Namespace:
         help="Write all findings to a CSV file at PATH.",
     )
     parser.add_argument(
+        "--merge",
+        action="store_true",
+        help="Re-point lineup_items to real comedians where a unique two-word name match "
+             "exists, then delete all false positives. Dry-run unless --confirm is also passed.",
+    )
+    parser.add_argument(
         "--deny-list-add",
         metavar="NAME",
         dest="deny_list_add",
@@ -487,8 +670,11 @@ def _parse_args() -> argparse.Namespace:
 
 if __name__ == "__main__":
     args = _parse_args()
-    if args.confirm and not args.delete:
-        print("Error: --confirm requires --delete.", file=sys.stderr)
+    if args.confirm and not args.delete and not args.merge:
+        print("Error: --confirm requires --delete or --merge.", file=sys.stderr)
+        sys.exit(1)
+    if args.delete and args.merge:
+        print("Error: --delete and --merge are mutually exclusive.", file=sys.stderr)
         sys.exit(1)
     if args.deny_list_add:
         _handle_deny_list_add(args.deny_list_add, args.deny_list_reason)
@@ -496,5 +682,6 @@ if __name__ == "__main__":
     run_audit(
         delete=args.delete,
         confirm=args.confirm,
+        merge=args.merge,
         csv_path=args.csv_path,
     )

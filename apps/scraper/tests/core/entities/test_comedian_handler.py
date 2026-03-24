@@ -136,6 +136,12 @@ _stub("laughtrack.core", BaseDatabaseHandler=_BaseDatabaseHandlerStub)
 _stub("laughtrack.core.entities", as_package=True, Comedian=None)
 _stub("laughtrack.core.entities.comedian", Comedian=None)
 
+# Load false_positive_detector directly (no deps) — required by handler.py's relative import
+_fp_detector_mod = _load_module(
+    "src/laughtrack/core/entities/comedian/false_positive_detector.py",
+    "laughtrack.core.entities.comedian.false_positive_detector",
+)
+
 # Load ComedianHandler
 _comedian_handler_mod = _load_module(
     "src/laughtrack/core/entities/comedian/handler.py",
@@ -543,4 +549,114 @@ class TestGetComedianUuids:
                 handler._get_comedian_uuids(comedian_ids)
 
         # When ALL UUIDs are missing, ValueError is raised (not a warning)
+        mock_logger.warn.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# _filter_false_positive_comedians
+# ---------------------------------------------------------------------------
+
+class TestFilterFalsePositiveComedians:
+    """Tests for ComedianHandler._filter_false_positive_comedians.
+
+    Verifies that placeholder names, open-mic substrings, structural keywords,
+    decoration patterns, pipe characters, and length extremes are all rejected
+    with a WARN log, while real comedian names pass through.
+    """
+
+    def test_real_name_passes_through(self):
+        handler = _make_handler()
+        comedians = [_make_stub("Dave Chappelle")]
+        with patch.object(_comedian_handler_mod, "Logger") as mock_logger:
+            result = handler._filter_false_positive_comedians(comedians)
+        assert len(result) == 1
+        assert result[0].name == "Dave Chappelle"
+        mock_logger.warn.assert_not_called()
+
+    def test_placeholder_name_rejected(self):
+        handler = _make_handler()
+        comedians = [_make_stub("TBA")]
+        with patch.object(_comedian_handler_mod, "Logger") as mock_logger:
+            result = handler._filter_false_positive_comedians(comedians)
+        assert result == []
+        mock_logger.warn.assert_called_once()
+        assert "TBA" in mock_logger.warn.call_args[0][0]
+
+    def test_open_mic_substring_rejected(self):
+        handler = _make_handler()
+        comedians = [_make_stub("KRACKPOTS Open Mic Night")]
+        with patch.object(_comedian_handler_mod, "Logger") as mock_logger:
+            result = handler._filter_false_positive_comedians(comedians)
+        assert result == []
+        mock_logger.warn.assert_called_once()
+
+    def test_structural_keyword_rejected(self):
+        handler = _make_handler()
+        comedians = [_make_stub("Comedy Showcase")]
+        with patch.object(_comedian_handler_mod, "Logger") as mock_logger:
+            result = handler._filter_false_positive_comedians(comedians)
+        assert result == []
+        mock_logger.warn.assert_called_once()
+
+    def test_decoration_pattern_rejected(self):
+        handler = _make_handler()
+        comedians = [_make_stub("***Special Event***")]
+        with patch.object(_comedian_handler_mod, "Logger") as mock_logger:
+            result = handler._filter_false_positive_comedians(comedians)
+        assert result == []
+        mock_logger.warn.assert_called_once()
+
+    def test_pipe_in_name_rejected(self):
+        handler = _make_handler()
+        comedians = [_make_stub("Comedy | Standup")]
+        with patch.object(_comedian_handler_mod, "Logger") as mock_logger:
+            result = handler._filter_false_positive_comedians(comedians)
+        assert result == []
+        mock_logger.warn.assert_called_once()
+
+    def test_name_gt_60_chars_rejected(self):
+        handler = _make_handler()
+        comedians = [_make_stub("A" * 61)]
+        with patch.object(_comedian_handler_mod, "Logger") as mock_logger:
+            result = handler._filter_false_positive_comedians(comedians)
+        assert result == []
+        mock_logger.warn.assert_called_once()
+
+    def test_short_name_rejected(self):
+        handler = _make_handler()
+        comedians = [_make_stub("Al")]
+        with patch.object(_comedian_handler_mod, "Logger") as mock_logger:
+            result = handler._filter_false_positive_comedians(comedians)
+        assert result == []
+        mock_logger.warn.assert_called_once()
+
+    def test_mixed_list_filters_only_false_positives(self):
+        handler = _make_handler()
+        comedians = [
+            _make_stub("Dave Chappelle"),
+            _make_stub("TBA"),
+            _make_stub("Amy Schumer"),
+            _make_stub("Comedy Showcase"),
+        ]
+        with patch.object(_comedian_handler_mod, "Logger") as mock_logger:
+            result = handler._filter_false_positive_comedians(comedians)
+        assert [c.name for c in result] == ["Dave Chappelle", "Amy Schumer"]
+        assert mock_logger.warn.call_count == 2
+
+    def test_warn_log_includes_detection_reason(self):
+        """Logged WARN message must include the detection reason for diagnosability."""
+        handler = _make_handler()
+        comedians = [_make_stub("Comedy Showcase")]
+        with patch.object(_comedian_handler_mod, "Logger") as mock_logger:
+            handler._filter_false_positive_comedians(comedians)
+        warn_msg = mock_logger.warn.call_args[0][0]
+        # Should contain the name and the reason
+        assert "Comedy Showcase" in warn_msg
+        assert "structural_keyword" in warn_msg
+
+    def test_empty_input_returns_empty(self):
+        handler = _make_handler()
+        with patch.object(_comedian_handler_mod, "Logger") as mock_logger:
+            result = handler._filter_false_positive_comedians([])
+        assert result == []
         mock_logger.warn.assert_not_called()
