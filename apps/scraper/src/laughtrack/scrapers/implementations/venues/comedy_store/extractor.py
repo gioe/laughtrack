@@ -1,10 +1,11 @@
 """
 HTML extractor for The Comedy Store calendar pages.
 
-Each day page at thecomedystore.com/calendar/YYYY-MM-DD renders a list of
-show-item divs.  For each item the extractor reads:
+Each day page at thecomedystore.com/{location}/calendar/YYYY-MM-DD renders a
+list of show-item divs.  Supported locations: West Hollywood (no prefix) and
+La Jolla (/la-jolla).  For each item the extractor reads:
   - title            from h2.show-title > a  (desktop section)
-  - datetime_slug    from that anchor's href: /calendar/show/{id}/{slug}
+  - datetime_slug    from that anchor's href: /{location}/calendar/show/{id}/{slug}
   - room             from h3.text-white.text-uppercase (excluding the aria-hidden abbreviation)
   - ticket_url       from the first showclix.com/event/ anchor; falls back to the
                      comedy store show-page URL when the show is sold out or free
@@ -20,7 +21,7 @@ from laughtrack.core.entities.event.comedy_store import ComedyStoreEvent
 
 
 _SHOWCLIX_RE = re.compile(r"showclix\.com/event/", re.IGNORECASE)
-_SHOW_HREF_RE = re.compile(r"^/calendar/show/\d+/(.+)$")
+_SHOW_HREF_RE = re.compile(r"^(?:/[^/]+)?/calendar/show/\d+/(.+)$")
 _SLUG_DT_RE = re.compile(r"^\d{4}-\d{2}-\d{2}[tT]\d{6}[+-]\d{4}")
 
 

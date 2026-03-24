@@ -29,6 +29,7 @@ from laughtrack.scrapers.implementations.venues.comedy_store.data import ComedyS
 
 
 CALENDAR_BASE = "https://thecomedystore.com/calendar"
+LA_JOLLA_CALENDAR_BASE = "https://thecomedystore.com/la-jolla/calendar"
 
 
 def _club() -> Club:
@@ -104,6 +105,55 @@ def _day_html(shows: list[dict]) -> str:
                   </div>
                 </div>
               </div>
+              {ticket_html}
+            </div>
+          </div>
+        </div>
+        """
+    return f"<html><body>{items_html}</body></html>"
+
+
+def _la_jolla_club() -> Club:
+    return Club(
+        id=200,
+        name="The Comedy Store La Jolla",
+        address="8971 Villa La Jolla Dr",
+        website="https://thecomedystore.com/la-jolla",
+        scraping_url=LA_JOLLA_CALENDAR_BASE,
+        popularity=0,
+        zip_code="92037",
+        phone_number="",
+        visible=True,
+        timezone="America/Los_Angeles",
+    )
+
+
+def _la_jolla_day_html(shows: list[dict]) -> str:
+    """Like _day_html but hrefs use the /la-jolla/calendar/show/ prefix."""
+    items_html = ""
+    for s in shows:
+        slug = s["slug"]
+        title = s.get("title", "Test Show")
+        ticket = s.get("ticket", "")
+        ticket_html = (
+            f'<a href="{ticket}" class="btn btn-store mt-3 fw-bold slidebutton">Buy Tickets</a>'
+            if ticket
+            else ""
+        )
+        items_html += f"""
+        <div class="bg-black show-item">
+          <div class="row gx-3 h-100 show_row">
+            <div class="col-12 col-sm-3 show_image">
+              <div class="col-6 d-sm-none">
+                <h2 class="font-cooper display-6 show-title">
+                  <a href="/la-jolla/calendar/show/100/{slug}">{title}</a>
+                </h2>
+              </div>
+            </div>
+            <div class="d-none d-sm-block col-sm-9">
+              <h2 class="font-cooper display-6 show-title">
+                <a href="/la-jolla/calendar/show/100/{slug}">{title}</a>
+              </h2>
               {ticket_html}
             </div>
           </div>
@@ -338,3 +388,46 @@ async def test_full_pipeline_produces_events(monkeypatch):
     titles = {e.title for e in all_events}
     assert "Show A" in titles
     assert "Show B" in titles
+
+
+# ---------------------------------------------------------------------------
+# La Jolla location — /la-jolla/calendar/show/ href prefix
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_la_jolla_collect_scraping_targets_returns_date_based_urls():
+    """La Jolla collect_scraping_targets() must return date-based URLs under /la-jolla/calendar."""
+    scraper = ComedyStoreScraper(_la_jolla_club())
+    targets = await scraper.collect_scraping_targets()
+
+    assert len(targets) == _SCRAPE_WINDOW_DAYS
+    for url in targets:
+        assert url.startswith(f"{LA_JOLLA_CALENDAR_BASE}/20"), (
+            f"URL does not look like a La Jolla date-based calendar URL: {url}"
+        )
+
+
+@pytest.mark.asyncio
+async def test_la_jolla_get_data_extracts_title_and_datetime(monkeypatch):
+    """La Jolla get_data() must parse shows from /la-jolla/calendar/show/ hrefs."""
+    scraper = ComedyStoreScraper(_la_jolla_club())
+    html = _la_jolla_day_html([{
+        "slug": "2026-04-01t190000-0700-tuesday-night-potluck",
+        "title": "Tuesday Night Potluck",
+        "ticket": "https://www.showclix.com/event/potluck-la-jolla",
+    }])
+
+    async def fake_fetch(self, url: str) -> str:
+        return html
+
+    monkeypatch.setattr(ComedyStoreScraper, "fetch_html", fake_fetch)
+
+    result = await scraper.get_data(f"{LA_JOLLA_CALENDAR_BASE}/2026-04-01")
+
+    assert isinstance(result, ComedyStorePageData)
+    assert len(result.event_list) == 1
+    ev = result.event_list[0]
+    assert ev.title == "Tuesday Night Potluck"
+    assert ev.datetime_slug == "2026-04-01t190000-0700"
+    assert "showclix.com/event/potluck-la-jolla" in ev.ticket_url
