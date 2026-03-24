@@ -289,6 +289,7 @@ export class QueryHelper {
         // Expand each starting zip by the radius and combine results.
         // For ambiguous city names (e.g. "Portland" → OR, ME, TN …) this
         // returns zips from every matching metro area.
+        const ZIP_CAP = 500;
         try {
             const allNearbyZips = new Set<string>();
             for (const startZip of startingZips) {
@@ -306,7 +307,16 @@ export class QueryHelper {
                 return { zipCode: { in: startingZips } };
             }
 
-            return { zipCode: { in: Array.from(allNearbyZips) } };
+            let zips = Array.from(allNearbyZips);
+            if (zips.length > ZIP_CAP) {
+                console.warn(
+                    `[QueryHelper] zip IN clause capped at ${ZIP_CAP} (city="${input}", raw count=${zips.length}). ` +
+                        `Try including a state abbreviation (e.g. "Portland, OR") for a more precise result.`,
+                );
+                zips = zips.slice(0, ZIP_CAP);
+            }
+
+            return { zipCode: { in: zips } };
         } catch (error) {
             console.error("Error in zip code radius calculation:", error);
             return { zipCode: { in: startingZips } };

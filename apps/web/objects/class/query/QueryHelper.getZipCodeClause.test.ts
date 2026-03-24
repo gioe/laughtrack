@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { QueryHelper } from "./QueryHelper";
+import zipcodes from "zipcodes";
 
 function makeHelper(zip?: string, distance?: string): QueryHelper {
     return new QueryHelper({
@@ -88,6 +89,63 @@ describe("QueryHelper.getZipCodeClause", () => {
                     ("equals" in (clause as any).zipCode ||
                         "in" in (clause as any).zipCode),
             ).toBe(true);
+        });
+    });
+
+    describe("zip cap enforcement", () => {
+        let radiusSpy: ReturnType<typeof vi.spyOn>;
+        let warnSpy: ReturnType<typeof vi.spyOn>;
+
+        beforeEach(() => {
+            warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+        });
+
+        afterEach(() => {
+            radiusSpy?.mockRestore();
+            warnSpy.mockRestore();
+        });
+
+        it("caps the IN clause at 500 when the union exceeds the limit", () => {
+            // Mock radius to return 600 unique zips for any starting zip
+            const bigList = Array.from({ length: 600 }, (_, i) =>
+                String(10000 + i).padStart(5, "0"),
+            );
+            radiusSpy = vi
+                .spyOn(zipcodes, "radius")
+                .mockReturnValue(bigList as any);
+
+            const clause = makeHelper("10001", "25").getZipCodeClause();
+            const zips = (clause as any).zipCode.in as string[];
+            expect(zips.length).toBe(500);
+        });
+
+        it("logs a warning with city and zip count when the cap is hit", () => {
+            const bigList = Array.from({ length: 600 }, (_, i) =>
+                String(10000 + i).padStart(5, "0"),
+            );
+            radiusSpy = vi
+                .spyOn(zipcodes, "radius")
+                .mockReturnValue(bigList as any);
+
+            makeHelper("Portland", "25").getZipCodeClause();
+
+            expect(warnSpy).toHaveBeenCalledOnce();
+            const msg = warnSpy.mock.calls[0][0] as string;
+            expect(msg).toContain("Portland");
+            expect(msg).toContain("500");
+            expect(msg).toContain("600");
+        });
+
+        it("does not warn when the zip count is at or below the cap", () => {
+            const normalList = Array.from({ length: 100 }, (_, i) =>
+                String(10000 + i).padStart(5, "0"),
+            );
+            radiusSpy = vi
+                .spyOn(zipcodes, "radius")
+                .mockReturnValue(normalList as any);
+
+            makeHelper("10001", "25").getZipCodeClause();
+            expect(warnSpy).not.toHaveBeenCalled();
         });
     });
 });
