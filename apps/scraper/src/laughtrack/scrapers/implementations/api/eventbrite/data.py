@@ -1,5 +1,5 @@
 """
-Data model for scraped page data from Comedy Cellar.
+Data model for scraped event data from the Eventbrite API.
 """
 
 from dataclasses import dataclass
@@ -12,12 +12,9 @@ from laughtrack.ports.scraping import EventListContainer
 @dataclass
 class EventbriteVenueData(EventListContainer[EventbriteEvent]):
     """
-    Data model representing raw extracted data from Comedy Cellar API responses.
+    Generic container for events returned by the Eventbrite API for a venue or organizer.
 
-    This contains the combined data from Comedy Cellar's multi-step API workflow:
-    - lineup_data: HTML lineup data from the lineup API endpoint
-    - shows_data: Structured show data from the getShows API endpoint
-    - date: The date key for which this data was extracted
+    Holds the list of EventbriteEvent objects extracted from an Eventbrite API response.
     """
 
     event_list: List[EventbriteEvent]
