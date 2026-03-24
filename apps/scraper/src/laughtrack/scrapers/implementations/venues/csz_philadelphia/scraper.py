@@ -90,6 +90,15 @@ class CszPhiladelphiaScraper(BaseScraper):
                 Logger.warn("CszPhilly: empty response from showevents endpoint", self.logger_context)
                 return []
 
+            if not self._is_valid_events_page(html):
+                Logger.warn(
+                    f"CszPhilly: showevents response missing expected structure "
+                    f"('CurrentEvents' / 'EventListWrapper') — "
+                    f"session key may be stale (s={self._session_key}). "
+                    f"Refresh scraping_url to resolve."
+                )
+                return []
+
             comedy_events = CszPhillyEventExtractor.parse_comedy_events(html)
             targets = [
                 f"{eid}{_TARGET_SEP}{edid}{_TARGET_SEP}{title}"
@@ -142,6 +151,18 @@ class CszPhiladelphiaScraper(BaseScraper):
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
+
+    @staticmethod
+    def _is_valid_events_page(html: str) -> bool:
+        """
+        Return True if the showevents HTML looks like a genuine events page.
+
+        A stale or invalid session key typically causes VBO to return a redirect
+        page or an empty shell that lacks the expected structural markers.
+        We accept the page if it contains either the outer ``CurrentEvents``
+        container or at least one ``EventListWrapper`` item div.
+        """
+        return "CurrentEvents" in html or "EventListWrapper" in html
 
     @staticmethod
     def _extract_session_key(scraping_url: str) -> str:

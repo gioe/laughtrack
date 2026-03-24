@@ -231,6 +231,31 @@ async def test_collect_scraping_targets_returns_comedy_shows(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_collect_scraping_targets_stale_session_key(monkeypatch, caplog):
+    """
+    When showevents returns HTML without 'CurrentEvents' or 'EventListWrapper',
+    collect_scraping_targets() must log a stale-session-key warning and return [].
+    """
+    import logging
+    scraper = CszPhiladelphiaScraper(_club())
+
+    async def fake_fetch_html(self, url: str) -> str:
+        # Simulate a VBO redirect / error page — no expected structural markers
+        return "<html><body><p>Session expired. Please reload.</p></body></html>"
+
+    monkeypatch.setattr(CszPhiladelphiaScraper, "fetch_html", fake_fetch_html)
+
+    with caplog.at_level(logging.WARNING):
+        targets = await scraper.collect_scraping_targets()
+
+    assert targets == [], f"Expected empty list for stale session, got {targets}"
+    assert any(
+        "session key may be stale" in record.message
+        for record in caplog.records
+    ), f"Expected stale-session warning in logs; got: {[r.message for r in caplog.records]}"
+
+
+@pytest.mark.asyncio
 async def test_get_data_returns_page_data_with_instances(monkeypatch):
     """get_data() must parse all date-slider entries into CszPhillyShowInstances."""
     scraper = CszPhiladelphiaScraper(_club())
