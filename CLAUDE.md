@@ -1,3 +1,55 @@
+## Venue Scraper Discovery — Playwright Network Inspection for JS-Heavy Sites
+
+When a venue's show listing is powered by a JavaScript widget (e.g., embedded
+Fourthwall/Crowdwork, SeatGeek, or similar), WebFetch may return misleading
+results (e.g., claiming a domain blocks 403, or missing the actual API calls).
+Use Playwright browser navigation + `browser_network_requests` instead:
+
+1. Navigate to the venue homepage with `browser_navigate`.
+2. Wait 2–3 seconds for JS to execute (`browser_wait_for time: 3`).
+3. Capture `browser_network_requests (includeStatic: false)`.
+4. Look for non-static, non-analytics API calls — the show-data API is usually
+   a GET to a JSON endpoint that returns event data.
+
+This pattern discovered the PHIT Crowdwork API:
+  `https://crowdwork.com/api/v2/{theatre}/shows`
+where `{theatre}` comes from a `data-theatre` attribute on the embed script tag.
+
+## Loading Extension-Less Bin Scripts in Tests — Use SourceFileLoader
+
+`importlib.util.spec_from_file_location()` returns `None` for files without a
+`.py` extension (e.g. `bin/migrate`). Use `SourceFileLoader` directly instead:
+
+```python
+import importlib.machinery, importlib.util
+
+loader = importlib.machinery.SourceFileLoader("bin_migrate", str(_BIN_PATH))
+spec   = importlib.util.spec_from_loader("bin_migrate", loader)
+mod    = importlib.util.module_from_spec(spec)
+loader.exec_module(mod)
+```
+
+Do NOT use `spec_from_file_location(name, path)` for extension-less scripts —
+it silently returns `None`, causing `AttributeError` on `spec.loader`.
+
+## React SSR `initial*` Props — Seed useState, Don't OR with State
+
+When a Server Component passes an `initial*` value (e.g. `initialZipCapTriggered`) to a Client
+Component that tracks derived state, always seed `useState(initialValue)` — never combine the
+prop with mutable state via `||` in render:
+
+```tsx
+// ✗ Wrong — initialProp never changes after mount, so the hint permanently stays on
+const showHint = initialZipCapTriggered || zipCapTriggered;
+
+// ✓ Correct — seed useState with the initial value; state is updated by subsequent fetches
+const [zipCapTriggered, setZipCapTriggered] = useState(initialZipCapTriggered ?? false);
+```
+
+This applies to any `useInfiniteSearch`-style hook that accepts an `initial*` option:
+pass the SSR value into the hook so it can seed its own state, reset on param change,
+and overwrite on each fetch — rather than leaving a static prop to dominate the render.
+
 ## Makefile Multi-line Python — Use printf Pipe, Not -c with Backslash Continuations
 
 Make collapses backslash-continued lines into a single line before passing them to the shell.
@@ -23,6 +75,49 @@ with get_connection() as conn: \
 		| $(PYTHON)
 ```
 
+
+## Scraper `bin/migrate` — Assemble DATABASE_URL from .env Components Locally
+
+`bin/migrate` requires a full `DATABASE_URL` env var, but `apps/scraper/.env` stores
+the connection as individual components (`DATABASE_HOST`, `DATABASE_USER`,
+`DATABASE_PASSWORD`, `DATABASE_NAME`, `DATABASE_PORT`).  When `DATABASE_URL` is not
+set, assemble it from components and pass it inline:
+
+```bash
+cd apps/scraper && DATABASE_URL="postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT:-5432}/${DATABASE_NAME}?sslmode=require" \
+  .venv/bin/python bin/migrate
+```
+
+Or with a one-liner using Python to read the .env:
+
+```bash
+cd apps/scraper && DATABASE_URL=$(python3 -c "
+from dotenv import dotenv_values
+v = dotenv_values('.env')
+print(f\"postgresql://{v['DATABASE_USER']}:{v['DATABASE_PASSWORD']}@{v['DATABASE_HOST']}:{v.get('DATABASE_PORT','5432')}/{v['DATABASE_NAME']}?sslmode=require\")
+") .venv/bin/python bin/migrate
+```
+
+## Scraper Venue Scrapers — Test Concurrent Shows for Multi-Room Venues
+
+When scraping a venue with multiple rooms (e.g., Main Room, Belly Room, Original Room),
+always include a test that exercises **two shows starting at the same time in different
+rooms**.  A dedup bug that keys on date/time only — rather than the full unique show
+identifier — will silently drop one show with no error.
+
+```python
+# Example: two concurrent shows at 8 PM in different rooms
+async def test_concurrent_shows_same_time_different_rooms(monkeypatch):
+    html = _day_html([
+        {"slug": "2026-04-01t200000-0700-show-a", "title": "Show A", "room": "Main Room", ...},
+        {"slug": "2026-04-01t200000-0700-show-b", "title": "Show B", "room": "Belly Room", ...},
+    ])
+    result = await scraper.get_data(url)
+    assert len(result.event_list) == 2, "Both concurrent shows must be extracted"
+```
+
+This applies to any extractor that uses a set or dict to deduplicate extracted events.
+Always use the full unique show identifier as the dedup key — not just the datetime portion.
 
 ## Scraper Entity `from_dict()` — Test Compact Time/Date Formats Upfront
 
@@ -342,10 +437,16 @@ applyPublicReadRateLimit: vi.fn(() => Promise.resolve({ allowed: true, limit: 60
 
 ## Python Test Directory Naming
 
+Venue scraper test directories (under `tests/scrapers/implementations/venues/<venue>/`)
+**must** have an `__init__.py`. Every existing venue directory has one; without it pytest
+throws `import file mismatch` when multiple `test_pipeline_smoke.py` files exist across
+venues. Always create it (empty is fine) alongside the test file.
+
 Do NOT add `__init__.py` to test directories whose path segments match Python stdlib
-module names (e.g., a directory named `email/` under `tests/`). pytest's rootdir-based
-import mode works without `__init__.py`; adding it causes the test package to shadow
-the stdlib module, producing `ModuleNotFoundError` at import time.
+module names OR source package names (e.g., a directory named `email/` or `scripts/`
+under `tests/`). pytest's rootdir-based import mode works without `__init__.py`; adding
+it causes the test package to shadow the real package, producing `ModuleNotFoundError`
+at collection time for any test that imports from that package.
 
 ## Testing RateLimiter Delay Calculations
 
@@ -539,3 +640,16 @@ If files show as `??` (untracked) after a `tusk commit` call, stage and commit t
 git add <file1> <file2> && git commit -m "[TASK-<id>] <message>" \
   --trailer "Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 ```
+
+## Scraper Extractor Regexes — Generalize for Multi-Location Venues
+
+When reusing an existing scraper for a second venue location (e.g., Comedy Store
+La Jolla reusing `comedy_store`), check the extractor's URL pattern regexes for
+hard-coded path prefixes that may differ between locations.
+
+For example, `^/calendar/show/\d+/(.+)$` only matches West Hollywood hrefs —
+it must be generalized to `^(?:/[^/]+)?/calendar/show/\d+/(.+)$` before it can
+handle `/la-jolla/calendar/show/...`.
+
+Before implementing a second location, fetch one day's HTML from the new location
+and verify that every regex in the extractor matches the new URL structure.
