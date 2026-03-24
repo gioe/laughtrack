@@ -295,7 +295,11 @@ def _print_club_impact(cur) -> list:
 
 
 def _handle_delete(cur, dry_run: bool) -> list[str]:
-    """Return list of UUIDs to delete; if not dry_run, perform the deletion atomically."""
+    """Return list of UUIDs to delete; if not dry_run, perform the deletion atomically.
+
+    On actual deletion, the comedian names are inserted into comedian_deny_list within
+    the same transaction so that future scrapes cannot re-insert them.
+    """
     cur.execute(DELETABLE_UUIDS_QUERY)
     uuids = [r[0] for r in cur.fetchall()]
     if not uuids:
@@ -311,6 +315,13 @@ def _handle_delete(cur, dry_run: bool) -> list[str]:
         for uuid in uuids:
             print(f"  {uuid}")
     else:
+        # Fetch names before deletion so they can be written to the deny list.
+        cur.execute(
+            "SELECT name FROM comedians WHERE uuid = ANY(%s)",
+            (uuids,),
+        )
+        names = [r[0] for r in cur.fetchall()]
+
         # Delete lineup_items first (FK constraint), then comedians — both in the
         # same transaction (get_transaction) so an interruption between them cannot
         # leave orphaned comedian rows.
@@ -324,8 +335,25 @@ def _handle_delete(cur, dry_run: bool) -> list[str]:
             (uuids,),
         )
         deleted_comedians = cur.rowcount
+
+        # Record deleted names in the deny list so future scrapes skip them.
+        # ON CONFLICT DO NOTHING means re-deleting a name is a no-op.
+        from psycopg2.extras import execute_values
+        deny_rows = [(name, 'deleted_false_positive', 'audit_script') for name in names]
+        execute_values(
+            cur,
+            """
+            INSERT INTO comedian_deny_list (name, reason, added_by)
+            VALUES %s
+            ON CONFLICT (name) DO NOTHING
+            """,
+            deny_rows,
+        )
+        denied_count = len(deny_rows)
+
         print(f"\nDeleted {deleted_comedians} comedian record(s) "
-              f"and {deleted_items} lineup_item(s).")
+              f"and {deleted_items} lineup_item(s). "
+              f"Added {denied_count} name(s) to comedian_deny_list.")
 
     return uuids
 
