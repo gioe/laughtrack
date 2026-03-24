@@ -95,7 +95,8 @@ class CszPhiladelphiaScraper(BaseScraper):
                     f"CszPhilly: showevents response missing expected structure "
                     f"('CurrentEvents' / 'EventListWrapper') — "
                     f"session key may be stale (s={self._session_key}). "
-                    f"Refresh scraping_url to resolve."
+                    f"Refresh scraping_url to resolve.",
+                    self.logger_context,
                 )
                 return []
 
