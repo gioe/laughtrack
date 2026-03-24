@@ -50,6 +50,9 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
         the return value to detect pre-existing comedians; an empty list means all
         provided comedians were already present.
 
+        Names present in comedian_deny_list are skipped before insertion and logged
+        at warn level.
+
         Args:
             comedians: List of comedians to insert
 
@@ -60,6 +63,11 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
             raise ValueError("No comedians to insert")
 
         try:
+            comedians = self._filter_denied_comedians(comedians)
+            if not comedians:
+                Logger.info("insert_comedians: all candidates were on the deny list; nothing inserted")
+                return []
+
             items = [comedian.to_insert_tuple() for comedian in comedians]
             template = BatchTemplateGenerator.generate_dynamic_template(items)
             results = self.execute_batch_operation(
@@ -76,6 +84,31 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
         except Exception as e:
             Logger.error(f"Error inserting comedians: {str(e)}")
             raise
+
+    def _filter_denied_comedians(self, comedians: List[Comedian]) -> List[Comedian]:
+        """Return comedians whose names are NOT on the deny list.
+
+        Names that are denied are logged at warn level and excluded from the result.
+        """
+        names = [c.name for c in comedians]
+        try:
+            rows = self.execute_with_cursor(
+                ComedianQueries.GET_DENIED_NAMES, (names,), return_results=True
+            ) or []
+        except Exception as e:
+            # If the deny-list table is unavailable (e.g. migration not yet applied),
+            # log and proceed rather than blocking all ingestion.
+            Logger.warn(f"_filter_denied_comedians: deny-list query failed, skipping filter: {e}")
+            return comedians
+
+        denied = {row["name"] for row in rows}
+        if not denied:
+            return comedians
+
+        allowed = [c for c in comedians if c.name not in denied]
+        for name in denied:
+            Logger.warn(f"insert_comedians: skipping deny-listed name '{name}'")
+        return allowed
 
     def update_comedian_popularity(self, comedian_ids: Optional[List[str]] = None) -> None:
         """

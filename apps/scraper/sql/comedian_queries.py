@@ -140,3 +140,16 @@ class ComedianQueries:
         FROM (VALUES %s) AS v(uuid, followers)
         WHERE c.uuid = v.uuid::text
     '''
+
+    # Deny-list: insert names of deleted false-positive comedians so ingestion can skip them.
+    # ON CONFLICT DO NOTHING prevents duplicate entries when the same name is deleted again.
+    UPSERT_DENY_LIST_NAMES = '''
+        INSERT INTO comedian_deny_list (name, reason, added_by)
+        VALUES %s
+        ON CONFLICT (name) DO NOTHING
+    '''
+
+    # Check which names in a given list are on the deny list.
+    GET_DENIED_NAMES = '''
+        SELECT name FROM comedian_deny_list WHERE name = ANY(%s)
+    '''
