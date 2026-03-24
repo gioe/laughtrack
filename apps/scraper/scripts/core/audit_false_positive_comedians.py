@@ -67,7 +67,7 @@ from laughtrack.core.entities.comedian.false_positive_detector import (  # noqa:
 
 # Build SQL fragments from the shared Python constants so detection criteria
 # are defined in exactly one place (false_positive_detector.py).
-_PLACEHOLDER_NAMES = "\n    ".join(f"'{n}'" for n in sorted(PLACEHOLDER_NAMES))
+_PLACEHOLDER_NAMES = ",\n    ".join(f"'{n}'" for n in sorted(PLACEHOLDER_NAMES))
 
 _PLACEHOLDER_SUBSTRINGS = PLACEHOLDER_SUBSTRINGS
 
