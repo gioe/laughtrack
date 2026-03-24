@@ -94,6 +94,26 @@ _LINEUP_NAME_BLOCKLIST = frozenset({
 })
 
 _LINEUP_NAME_MIN_LENGTH = 2
+_LINEUP_NAME_MAX_LENGTH = 60
+
+# Keywords that indicate a show/event title rather than a person name
+_LINEUP_TITLE_KEYWORD_BLOCKLIST = frozenset({
+    "revue",
+    "burlesque",
+    "variety",
+    "showcase",
+    "production",
+    "presents",
+    "festival",
+    "extravaganza",
+    "theatre",
+    "theater",
+    "entertainment",
+    "brigade",
+})
+
+import re as _re
+_VENUE_CODE_PREFIX_RE = _re.compile(r"^\([A-Z]\)")
 
 
 def _is_valid_lineup_name(name: Optional[str]) -> bool:
@@ -103,9 +123,18 @@ def _is_valid_lineup_name(name: Optional[str]) -> bool:
     stripped = name.strip()
     if len(stripped) < _LINEUP_NAME_MIN_LENGTH:
         return False
+    if len(stripped) > _LINEUP_NAME_MAX_LENGTH:
+        return False
     if stripped.lower() in _LINEUP_NAME_BLOCKLIST:
         return False
     if not any(c.isalpha() for c in stripped):
+        return False
+    if "|" in stripped:
+        return False
+    words = set(w.lower() for w in _re.split(r"\W+", stripped) if w)
+    if words & _LINEUP_TITLE_KEYWORD_BLOCKLIST:
+        return False
+    if _VENUE_CODE_PREFIX_RE.match(stripped):
         return False
     return True
 
