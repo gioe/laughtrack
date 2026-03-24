@@ -122,7 +122,6 @@ export default async function ShowSearchPage(props: any) {
                 <ShowSearchClient
                     initialData={data}
                     initialTotal={total}
-                    initialFilters={filters}
                     initialZipCapTriggered={zipCapTriggered}
                 />
             </Suspense>

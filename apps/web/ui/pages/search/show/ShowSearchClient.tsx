@@ -2,7 +2,6 @@
 
 import { useSearchParams } from "next/navigation";
 import { ShowDTO } from "@/objects/class/show/show.interface";
-import { FilterDTO } from "@/objects/interface";
 import { useInfiniteSearch } from "@/hooks/useInfiniteSearch";
 import ShowTable from "@/ui/pages/search/table";
 import SearchClientShell from "@/ui/pages/search/SearchClientShell";
@@ -10,7 +9,6 @@ import SearchClientShell from "@/ui/pages/search/SearchClientShell";
 interface ShowSearchClientProps {
     initialData: ShowDTO[];
     initialTotal: number;
-    initialFilters: FilterDTO[];
     initialZipCapTriggered?: boolean;
 }
 
