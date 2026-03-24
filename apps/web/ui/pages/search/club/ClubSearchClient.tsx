@@ -2,7 +2,6 @@
 
 import { useSearchParams } from "next/navigation";
 import { ClubDTO } from "@/objects/class/club/club.interface";
-import { FilterDTO } from "@/objects/interface";
 import { useInfiniteSearch } from "@/hooks/useInfiniteSearch";
 import ClubGrid from "@/ui/components/grid/club";
 import SearchClientShell from "@/ui/pages/search/SearchClientShell";
@@ -10,7 +9,6 @@ import SearchClientShell from "@/ui/pages/search/SearchClientShell";
 interface ClubSearchClientProps {
     initialData: ClubDTO[];
     initialTotal: number;
-    initialFilters: FilterDTO[];
 }
 
 const ClubSearchClient = ({

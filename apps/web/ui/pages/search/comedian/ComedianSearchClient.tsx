@@ -2,7 +2,6 @@
 
 import { useSearchParams } from "next/navigation";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
-import { FilterDTO } from "@/objects/interface";
 import { useInfiniteSearch } from "@/hooks/useInfiniteSearch";
 import ComedianGrid from "@/ui/components/grid/comedian";
 import SearchClientShell from "@/ui/pages/search/SearchClientShell";
@@ -10,7 +9,6 @@ import SearchClientShell from "@/ui/pages/search/SearchClientShell";
 interface ComedianSearchClientProps {
     initialData: ComedianDTO[];
     initialTotal: number;
-    initialFilters: FilterDTO[];
 }
 
 const ComedianSearchClient = ({

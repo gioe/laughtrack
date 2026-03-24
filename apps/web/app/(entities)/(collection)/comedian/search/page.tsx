@@ -111,11 +111,7 @@ export default async function ComedianSearchPage(
             />
 
             <Suspense>
-                <ComedianSearchClient
-                    initialData={data}
-                    initialTotal={total}
-                    initialFilters={filters}
-                />
+                <ComedianSearchClient initialData={data} initialTotal={total} />
             </Suspense>
         </>
     );
