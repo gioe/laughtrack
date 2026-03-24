@@ -13,6 +13,7 @@ from sql.comedian_queries import ComedianQueries
 from laughtrack.foundation.infrastructure.database.template import BatchTemplateGenerator
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
+from .false_positive_detector import detect_false_positive
 from .model import Comedian
 
 _YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3/channels"
@@ -63,6 +64,11 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
             raise ValueError("No comedians to insert")
 
         try:
+            comedians = self._filter_false_positive_comedians(comedians)
+            if not comedians:
+                Logger.info("insert_comedians: all candidates were false positives; nothing inserted")
+                return []
+
             comedians = self._filter_denied_comedians(comedians)
             if not comedians:
                 Logger.info("insert_comedians: all candidates were on the deny list; nothing inserted")
@@ -84,6 +90,21 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
         except Exception as e:
             Logger.error(f"Error inserting comedians: {str(e)}")
             raise
+
+    def _filter_false_positive_comedians(self, comedians: List[Comedian]) -> List[Comedian]:
+        """Return comedians whose names are NOT false positives (placeholder, structural, etc.).
+
+        Detected names are logged at warn level with the detection reason and excluded
+        from the returned list so they are never inserted into the database.
+        """
+        allowed = []
+        for c in comedians:
+            reason = detect_false_positive(c.name)
+            if reason:
+                Logger.warn(f"insert_comedians: skipping false-positive '{c.name}' — {reason}")
+            else:
+                allowed.append(c)
+        return allowed
 
     def _filter_denied_comedians(self, comedians: List[Comedian]) -> List[Comedian]:
         """Return comedians whose names are NOT on the deny list.
