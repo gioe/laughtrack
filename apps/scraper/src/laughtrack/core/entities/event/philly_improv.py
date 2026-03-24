@@ -1,6 +1,7 @@
 """Data model for a single performance from the Philly Improv Theater (PHIT) Crowdwork API."""
 
-from dataclasses import dataclass, field
+import re
+from dataclasses import dataclass
 from typing import Optional
 
 from laughtrack.core.entities.club.model import Club
@@ -86,7 +87,6 @@ def _parse_price(cost_formatted: str) -> float:
     """
     if not cost_formatted or cost_formatted.strip().lower() in ("free", ""):
         return 0.0
-    import re
     matches = re.findall(r"\d+(?:\.\d+)?", cost_formatted)
     if matches:
         try:

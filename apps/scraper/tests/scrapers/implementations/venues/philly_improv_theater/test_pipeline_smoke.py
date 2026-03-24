@@ -186,6 +186,20 @@ async def test_get_data_handles_list_data_format(monkeypatch):
     assert len(result.event_list) == 1
 
 
+@pytest.mark.asyncio
+async def test_get_data_returns_none_on_error_response(monkeypatch):
+    """get_data() returns None when the API returns a non-success status or type."""
+    scraper = PhillyImprovTheaterScraper(_club())
+
+    async def fake_fetch_json(self, url: str, **kwargs) -> dict:
+        return {"status": 404, "type": "error", "data": None}
+
+    monkeypatch.setattr(PhillyImprovTheaterScraper, "fetch_json", fake_fetch_json)
+
+    result = await scraper.get_data(API_URL)
+    assert result is None
+
+
 # ---------------------------------------------------------------------------
 # PhillyImprovShow.to_show() unit tests
 # ---------------------------------------------------------------------------
@@ -255,3 +269,12 @@ def test_to_show_returns_none_on_unparseable_date():
     result = show.to_show(_club())
 
     assert result is None
+
+
+def test_to_show_price_range_takes_lower_bound():
+    """to_show() extracts the lower bound from a '$10 – $20' cost string."""
+    show = _make_show(cost_formatted="$10 – $20")
+    result = show.to_show(_club())
+
+    assert result is not None
+    assert result.tickets[0].price == 10.0

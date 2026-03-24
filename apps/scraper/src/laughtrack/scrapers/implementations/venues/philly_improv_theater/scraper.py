@@ -66,7 +66,15 @@ class PhillyImprovTheaterScraper(BaseScraper):
         try:
             response = await self.fetch_json(url)
             if not response:
-                Logger.warn("PHIT: empty response from Crowdwork API", self.logger_context)
+                Logger.warn(f"PHIT: empty response from Crowdwork API ({url})", self.logger_context)
+                return None
+
+            if response.get("type") == "error" or response.get("status", 200) != 200:
+                Logger.warn(
+                    f"PHIT: Crowdwork API returned non-success response "
+                    f"(status={response.get('status')}, type={response.get('type')}) at {url}",
+                    self.logger_context,
+                )
                 return None
 
             data = response.get("data")
@@ -108,13 +116,13 @@ def _extract_performances(show: dict) -> List[PhillyImprovShow]:
     timezone = show.get("timezone") or "America/New_York"
 
     cost_obj = show.get("cost") or {}
-    cost_formatted = cost_obj.get("formatted") or "" if isinstance(cost_obj, dict) else ""
+    cost_formatted = (cost_obj.get("formatted") or "") if isinstance(cost_obj, dict) else ""
 
     desc_obj = show.get("description") or {}
-    description = desc_obj.get("body") or "" if isinstance(desc_obj, dict) else ""
+    description = (desc_obj.get("body") or "") if isinstance(desc_obj, dict) else ""
 
     badges_obj = show.get("badges") or {}
-    spots = badges_obj.get("spots") or "" if isinstance(badges_obj, dict) else ""
+    spots = (badges_obj.get("spots") or "") if isinstance(badges_obj, dict) else ""
     sold_out = "sold" in spots.lower() if spots else False
 
     dates = show.get("dates") or []
