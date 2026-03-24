@@ -46,17 +46,15 @@ const ShowSearchClient = ({
         params,
         initialData,
         initialTotal,
+        initialZipCapTriggered,
     });
-
-    const showZipCapHint = initialZipCapTriggered || zipCapTriggered;
 
     return (
         <>
-            {showZipCapHint && (
+            {zipCapTriggered && (
                 <p className="px-4 pt-2 text-sm text-amber-700">
                     Too many locations matched. Try a more specific search like{" "}
-                    <strong>&quot;Portland, OR&quot;</strong> for better
-                    results.
+                    <strong>&quot;City, ST&quot;</strong> for better results.
                 </p>
             )}
             <SearchClientShell

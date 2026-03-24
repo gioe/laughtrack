@@ -9,6 +9,7 @@ interface UseInfiniteSearchOptions<T> {
     initialData: T[];
     initialTotal: number;
     pageSize?: number;
+    initialZipCapTriggered?: boolean;
 }
 
 interface UseInfiniteSearchResult<T> {
@@ -31,6 +32,7 @@ export function useInfiniteSearch<T>({
     initialData,
     initialTotal,
     pageSize = 25,
+    initialZipCapTriggered = false,
 }: UseInfiniteSearchOptions<T>): UseInfiniteSearchResult<T> {
     const paramsKey = JSON.stringify(params);
     const prevParamsKey = useRef(paramsKey);
@@ -43,7 +45,9 @@ export function useInfiniteSearch<T>({
         undefined,
     );
     const [hasMore, setHasMore] = useState(initialData.length < initialTotal);
-    const [zipCapTriggered, setZipCapTriggered] = useState(false);
+    const [zipCapTriggered, setZipCapTriggered] = useState(
+        initialZipCapTriggered,
+    );
 
     // Refs avoid stale closure issues inside the observer callback
     const nextPageRef = useRef(1); // page 0 already served by SSR
@@ -129,6 +133,7 @@ export function useInfiniteSearch<T>({
         setData([]);
         setTotal(0);
         setHasMore(true);
+        setZipCapTriggered(false);
 
         loadMore();
     }, [paramsKey, loadMore]);
