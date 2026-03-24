@@ -23,7 +23,7 @@ from .extractor import ComedyStoreEventExtractor
 from .transformer import ComedyStoreEventTransformer
 
 # Number of days ahead to scrape (inclusive of today)
-_SCRAPE_WINDOW_DAYS = 30
+_SCRAPE_WINDOW_DAYS = 60
 
 
 class ComedyStoreScraper(BaseScraper):
