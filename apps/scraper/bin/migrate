@@ -74,16 +74,18 @@ def get_pending(applied: set[str]) -> list[Path]:
     return [f for f in files if f.name not in applied]
 
 
-def apply_migration(cur, path: Path) -> None:
+def apply_migration(cur, path: Path) -> bool:
+    """Apply a single migration. Returns True if applied, False if skipped (empty file)."""
     sql = path.read_text(encoding="utf-8").strip()
     if not sql:
         print(f"Warning: {path.name} is empty — skipping", file=sys.stderr)
-        return
+        return False
     cur.execute(sql)
     cur.execute(
         "INSERT INTO migrations_log (filename) VALUES (%s) ON CONFLICT DO NOTHING",
         (path.name,),
     )
+    return True
 
 
 def main() -> None:
@@ -128,7 +130,9 @@ def main() -> None:
             print(f"  Applying {path.name}...", end=" ", flush=True)
             try:
                 with conn.cursor() as cur:
-                    apply_migration(cur, path)
+                    applied = apply_migration(cur, path)
+                if not applied:
+                    continue
                 conn.commit()
                 applied_names.append(path.name)
                 print("ok")

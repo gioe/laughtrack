@@ -107,8 +107,9 @@ class TestApplyMigration:
         f.write_text("CREATE TABLE foo (id SERIAL);")
         cur = MagicMock()
 
-        _mod.apply_migration(cur, f)
+        result = _mod.apply_migration(cur, f)
 
+        assert result is True
         calls = cur.execute.call_args_list
         assert len(calls) == 2
         assert "CREATE TABLE foo" in calls[0].args[0]
@@ -120,8 +121,9 @@ class TestApplyMigration:
         f.write_text("  \n  ")
         cur = MagicMock()
 
-        _mod.apply_migration(cur, f)
+        result = _mod.apply_migration(cur, f)
 
+        assert result is False
         cur.execute.assert_not_called()
         err = capsys.readouterr().err
         assert "empty" in err.lower()
@@ -199,6 +201,7 @@ class TestMainRollbackOnError:
             call_count[0] += 1
             if call_count[0] > 1:
                 raise Exception("syntax error at or near 'INVALID'")
+            return True
 
         with patch.object(_mod, "connect_with_retry", return_value=conn), \
              patch.object(_mod, "apply_migration", side_effect=apply_side_effect), \
@@ -249,5 +252,7 @@ class TestMainEmptyFileGuard:
         ]
         assert insert_calls == [], "empty .sql file must not be logged to migrations_log"
 
-        err = capsys.readouterr().err
-        assert "empty" in err.lower()
+        captured = capsys.readouterr()
+        assert "empty" in captured.err.lower()
+        assert "Applied 1 migration" not in captured.out, \
+            "empty .sql file must not appear in 'Applied N migration(s)' output"
