@@ -10,6 +10,7 @@ import { ComponentVariant } from "@/objects/enum";
 import CalendarComponent from "../../components/calendar";
 import ShowLocationComponent from "../../components/area";
 import { useUrlParams } from "@/hooks/useUrlParams";
+import { resolveLocationAction } from "@/app/actions/resolveLocationAction";
 
 export default function ShowSearchForm() {
     const { setMultipleTypedParams } = useUrlParams();
@@ -37,6 +38,20 @@ export default function ShowSearchForm() {
                     validationResult.error.errors,
                 );
                 return;
+            }
+
+            // If the input looks like a city name (not a 5-digit zip), verify it
+            // exists in the zipcodes dataset before navigating.
+            if (!/^\d{5}$/.test(data.distance.zipCode)) {
+                const locationResult = await resolveLocationAction(
+                    data.distance.zipCode,
+                );
+                if (!locationResult.ok) {
+                    form.setError("distance.zipCode", {
+                        message: locationResult.error,
+                    });
+                    return;
+                }
             }
 
             setMultipleTypedParams(
