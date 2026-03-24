@@ -316,11 +316,11 @@ class TicketmasterClient(BaseApiClient):
                         self.log_warning(f"Error parsing Ticketmaster price range: {e}")
                         continue
             else:
-                # No price info available, create a generic ticket
+                # No price info available, create a generic ticket with price=None
                 sold_out = public_sales.get("startDateTime") is None
                 tickets.append(
                     Ticket(
-                        price=0.0, purchase_url=event_data.get("url", ""), sold_out=sold_out, type="General Admission"
+                        price=None, purchase_url=event_data.get("url", ""), sold_out=sold_out, type="General Admission"
                     )
                 )
 

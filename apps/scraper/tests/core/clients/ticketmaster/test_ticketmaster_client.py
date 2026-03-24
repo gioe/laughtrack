@@ -65,3 +65,15 @@ async def test_fetch_events_params_do_not_contain_classification_name(client, mo
     assert "classificationName" not in captured_params, (
         f"classificationName found in API params: {captured_params}"
     )
+
+
+def test_extract_ticket_data_no_price_ranges_produces_price_none(client):
+    """Events with no priceRanges key must produce Ticket(price=None), not price=0.0."""
+    event_data = {
+        "url": "https://ticketmaster.com/event/123",
+        "sales": {"public": {"startDateTime": "2026-04-01T19:00:00Z"}},
+        # no 'priceRanges' key
+    }
+    tickets = client._extract_ticket_data_from_api(event_data)
+    assert len(tickets) == 1
+    assert tickets[0].price is None, f"Expected price=None, got price={tickets[0].price}"
