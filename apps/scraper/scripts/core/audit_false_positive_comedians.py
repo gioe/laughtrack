@@ -50,7 +50,7 @@ load_dotenv(os.path.join(os.path.dirname(__file__), '../../.env'))
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../src'))
 
-from laughtrack.infrastructure.database.connection import get_connection  # noqa: E402
+from laughtrack.infrastructure.database.connection import get_connection, get_transaction  # noqa: E402
 
 
 _PLACEHOLDER_NAMES = """
@@ -295,7 +295,7 @@ def _print_club_impact(cur) -> list:
 
 
 def _handle_delete(cur, dry_run: bool) -> list[str]:
-    """Return list of UUIDs to delete; if not dry_run, perform the deletion."""
+    """Return list of UUIDs to delete; if not dry_run, perform the deletion atomically."""
     cur.execute(DELETABLE_UUIDS_QUERY)
     uuids = [r[0] for r in cur.fetchall()]
     if not uuids:
@@ -311,7 +311,9 @@ def _handle_delete(cur, dry_run: bool) -> list[str]:
         for uuid in uuids:
             print(f"  {uuid}")
     else:
-        # Delete lineup_items first (FK constraint)
+        # Delete lineup_items first (FK constraint), then comedians — both in the
+        # same transaction (get_transaction) so an interruption between them cannot
+        # leave orphaned comedian rows.
         cur.execute(
             "DELETE FROM lineup_items WHERE comedian_id = ANY(%s)",
             (uuids,),
@@ -362,24 +364,32 @@ def run_audit(delete: bool = False, confirm: bool = False, csv_path: str | None 
             _print_structural_section(cur)
             _print_club_impact(cur)
 
-            if delete:
-                dry_run = not confirm
-                _handle_delete(cur, dry_run=dry_run)
-                if not dry_run:
-                    conn.commit()
-
             if csv_path:
                 _write_csv(cur, csv_path)
 
-            print("\n" + "=" * 72)
-            print("NEXT STEPS")
-            print("=" * 72)
-            print("1. Review the above — confirm the names listed are indeed false positives.")
-            print("2. Note the club IDs with the most affected shows.")
-            print("3. After TASK-603 is deployed, re-scrape the affected clubs so that")
-            print("   lineup_items are healed (placeholders will be filtered on ingestion).")
-            if delete and not confirm:
-                print("4. Re-run with --delete --confirm to permanently remove identified records.")
+    if delete:
+        dry_run = not confirm
+        if dry_run:
+            # Dry-run only needs a read connection to fetch the UUIDs preview
+            with get_connection() as conn:
+                with conn.cursor() as cur:
+                    _handle_delete(cur, dry_run=True)
+        else:
+            # Actual deletion: wrap both DELETEs in a single transaction so an
+            # interruption between them cannot leave orphaned comedian rows.
+            with get_transaction() as conn:
+                with conn.cursor() as cur:
+                    _handle_delete(cur, dry_run=False)
+
+    print("\n" + "=" * 72)
+    print("NEXT STEPS")
+    print("=" * 72)
+    print("1. Review the above — confirm the names listed are indeed false positives.")
+    print("2. Note the club IDs with the most affected shows.")
+    print("3. After TASK-603 is deployed, re-scrape the affected clubs so that")
+    print("   lineup_items are healed (placeholders will be filtered on ingestion).")
+    if delete and not confirm:
+        print("4. Re-run with --delete --confirm to permanently remove identified records.")
 
 
 def _parse_args() -> argparse.Namespace:
