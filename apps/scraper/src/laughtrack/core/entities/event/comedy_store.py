@@ -11,7 +11,7 @@ thecomedystore.com/calendar/YYYY-MM-DD.  Each show item provides:
 """
 
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
 

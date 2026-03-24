@@ -67,9 +67,11 @@ class ComedyStoreEventExtractor:
                 continue
             datetime_slug = dt_m.group(0)
 
-            if datetime_slug in seen_slugs:
+            # Dedup by full slug (unique per show) — not datetime only, because
+            # multiple shows can start at the same time in different rooms.
+            if slug in seen_slugs:
                 continue
-            seen_slugs.add(datetime_slug)
+            seen_slugs.add(slug)
 
             title = title_a.get_text(strip=True)
             if not title:

@@ -38,8 +38,9 @@ class ComedyStoreScraper(BaseScraper):
     async def collect_scraping_targets(self) -> List[str]:
         """Return one calendar URL per day for the next _SCRAPE_WINDOW_DAYS days."""
         today = date.today()
+        base = self.club.scraping_url.rstrip("/")
         targets = [
-            f"https://thecomedystore.com/calendar/{(today + timedelta(days=i)).strftime('%Y-%m-%d')}"
+            f"{base}/{(today + timedelta(days=i)).strftime('%Y-%m-%d')}"
             for i in range(_SCRAPE_WINDOW_DAYS)
         ]
         Logger.info(

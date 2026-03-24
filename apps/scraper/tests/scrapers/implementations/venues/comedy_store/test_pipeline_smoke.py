@@ -167,6 +167,45 @@ async def test_get_data_extracts_title_and_datetime(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_get_data_concurrent_shows_same_time_different_rooms(monkeypatch):
+    """Shows starting at the same time in different rooms must both be extracted.
+
+    Regression test for the datetime-only dedup bug: two shows at 8:00 PM share
+    the same datetime_slug prefix but have different full slugs.  Both must appear
+    in the result.
+    """
+    scraper = ComedyStoreScraper(_club())
+    html = _day_html([
+        {
+            "slug": "2026-04-01t200000-0700-bassem-friends",
+            "title": "Bassem & Friends",
+            "room": "Belly Room",
+            "ticket": "https://www.showclix.com/event/bassem-2026-april",
+        },
+        {
+            "slug": "2026-04-01t200000-0700-tippy-top-tier",
+            "title": "Tippy Top Tier Comedy",
+            "room": "Main Room",
+            "ticket": "https://www.showclix.com/event/tier-2026-april",
+        },
+    ])
+
+    async def fake_fetch(self, url: str) -> str:
+        return html
+
+    monkeypatch.setattr(ComedyStoreScraper, "fetch_html", fake_fetch)
+
+    result = await scraper.get_data(f"{CALENDAR_BASE}/2026-04-01")
+    assert result is not None
+    assert len(result.event_list) == 2, (
+        "Both concurrent shows must be extracted — one was silently dropped by dedup"
+    )
+    titles = {e.title for e in result.event_list}
+    assert "Bassem & Friends" in titles
+    assert "Tippy Top Tier Comedy" in titles
+
+
+@pytest.mark.asyncio
 async def test_get_data_extracts_room(monkeypatch):
     """get_data() must include the room name, stripping the abbreviation span."""
     scraper = ComedyStoreScraper(_club())
@@ -227,6 +266,35 @@ async def test_get_data_empty_day_returns_none(monkeypatch):
 # ---------------------------------------------------------------------------
 # Full pipeline
 # ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_transformation_pipeline_produces_shows(monkeypatch):
+    """ComedyStoreEvent.to_show() must produce valid Show objects via the transformer."""
+    scraper = ComedyStoreScraper(_club())
+    html = _day_html([{
+        "slug": "2026-04-01t200000-0700-bassem-friends",
+        "title": "Bassem & Friends",
+        "ticket": "https://www.showclix.com/event/bassem-2026-april",
+    }])
+
+    async def fake_fetch(self, url: str) -> str:
+        return html
+
+    monkeypatch.setattr(ComedyStoreScraper, "fetch_html", fake_fetch)
+
+    page_data = await scraper.get_data(f"{CALENDAR_BASE}/2026-04-01")
+    assert page_data is not None
+
+    shows = scraper.transformation_pipeline.transform(page_data)
+    assert len(shows) == 1, f"Expected 1 Show from to_show(), got {len(shows)}"
+    show = shows[0]
+    assert show.name == "Bassem & Friends"
+    assert show.club_id == 99
+    assert show.date is not None
+    assert show.date.year == 2026
+    assert show.date.month == 4
+    assert show.date.day == 1
 
 
 @pytest.mark.asyncio
