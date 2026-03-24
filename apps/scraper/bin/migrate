@@ -7,11 +7,13 @@ Usage:
     cd apps/scraper && python bin/migrate --dry-run  # show what would run
 
 Reads DATABASE_URL from apps/scraper/.env. Tracks applied migrations in a
-migrations_log table so re-running is idempotent.
+migrations_log table (auto-created on first run) so re-running is idempotent.
+Uses an advisory lock to serialize concurrent invocations.
 """
 import argparse
 import os
 import sys
+import time
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
@@ -27,6 +29,9 @@ try:
 except ImportError:
     print("Error: python-dotenv is not installed. Run: pip install python-dotenv", file=sys.stderr)
     sys.exit(1)
+
+if not ENV_FILE.exists():
+    print(f"Warning: .env not found at {ENV_FILE} — falling back to environment variables")
 
 load_dotenv(ENV_FILE)
 
@@ -52,6 +57,22 @@ CREATE TABLE IF NOT EXISTS migrations_log (
 );
 """
 
+# Arbitrary stable key for the advisory lock (must be a bigint)
+_ADVISORY_LOCK_KEY = 658_000_000
+
+
+def connect_with_retry(dsn: str, retries: tuple = (1, 2, 4)) -> "psycopg2.extensions.connection":
+    """Connect to PostgreSQL with exponential-backoff retries for Neon auto-suspend wakeups."""
+    last_err: Exception | None = None
+    for delay in (None, *retries):
+        if delay is not None:
+            time.sleep(delay)
+        try:
+            return psycopg2.connect(dsn)
+        except psycopg2.OperationalError as exc:
+            last_err = exc
+    raise last_err  # type: ignore[misc]
+
 
 def get_applied(cur) -> set[str]:
     cur.execute("SELECT filename FROM migrations_log ORDER BY filename")
@@ -64,7 +85,10 @@ def get_pending(applied: set[str]) -> list[Path]:
 
 
 def apply_migration(cur, path: Path) -> None:
-    sql = path.read_text(encoding="utf-8")
+    sql = path.read_text(encoding="utf-8").strip()
+    if not sql:
+        print(f"Warning: {path.name} is empty — skipping", file=sys.stderr)
+        return
     cur.execute(sql)
     cur.execute(
         "INSERT INTO migrations_log (filename) VALUES (%s) ON CONFLICT DO NOTHING",
@@ -85,10 +109,13 @@ def main() -> None:
         print(f"Error: migrations directory not found at {MIGRATIONS_DIR}", file=sys.stderr)
         sys.exit(1)
 
-    conn = psycopg2.connect(DATABASE_URL)
+    conn = connect_with_retry(DATABASE_URL)
     try:
         conn.autocommit = False
         with conn.cursor() as cur:
+            # Serialize concurrent invocations — blocks until the lock is acquired
+            cur.execute("SELECT pg_advisory_lock(%s)", (_ADVISORY_LOCK_KEY,))
+
             # Ensure the log table exists (idempotent)
             cur.execute(CREATE_LOG_TABLE)
             conn.commit()
