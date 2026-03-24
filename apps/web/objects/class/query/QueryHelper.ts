@@ -71,6 +71,8 @@ export const CLUB_SORT_MAP: SortMap = {
 // as globally as possible, updating values according to page transitions.
 // It is almost certainly too bloated.
 export class QueryHelper {
+    private static readonly ZIP_CAP = 500;
+
     params: SearchParams;
     slug?: string;
     profileId?: string;
@@ -289,7 +291,6 @@ export class QueryHelper {
         // Expand each starting zip by the radius and combine results.
         // For ambiguous city names (e.g. "Portland" → OR, ME, TN …) this
         // returns zips from every matching metro area.
-        const ZIP_CAP = 500;
         try {
             const allNearbyZips = new Set<string>();
             for (const startZip of startingZips) {
@@ -308,12 +309,12 @@ export class QueryHelper {
             }
 
             let zips = Array.from(allNearbyZips);
-            if (zips.length > ZIP_CAP) {
+            if (zips.length > QueryHelper.ZIP_CAP) {
                 console.warn(
-                    `[QueryHelper] zip IN clause capped at ${ZIP_CAP} (city="${input}", raw count=${zips.length}). ` +
+                    `[QueryHelper] zip IN clause capped at ${QueryHelper.ZIP_CAP} (city="${input}", raw count=${zips.length}). ` +
                         `Try including a state abbreviation (e.g. "Portland, OR") for a more precise result.`,
                 );
-                zips = zips.slice(0, ZIP_CAP);
+                zips = zips.slice(0, QueryHelper.ZIP_CAP);
             }
 
             return { zipCode: { in: zips } };
