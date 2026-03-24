@@ -23,6 +23,7 @@ export class Show implements ShowInterface {
     isFavorite: boolean;
     lastScrapedDate?: Date;
     description?: string;
+    room?: string | null;
     imageUrl: string;
     soldOut?: boolean;
 
@@ -45,6 +46,7 @@ export class Show implements ShowInterface {
             : [];
         this.id = input.id ?? 0;
         this.description = input.description;
+        this.room = input.room;
         this.address = input.address;
         this.imageUrl = input.imageUrl;
         this.soldOut = input.soldOut;

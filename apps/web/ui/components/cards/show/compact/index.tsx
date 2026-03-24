@@ -60,6 +60,11 @@ const CompactShowCard: React.FC<CompactShowCardProps> = ({ show }) => {
                             {parsedShow.name}
                         </p>
                     )}
+                    {parsedShow.room && (
+                        <p className="text-xs text-gray-400 font-dmSans truncate">
+                            {parsedShow.room}
+                        </p>
+                    )}
                 </div>
             </div>
 

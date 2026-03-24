@@ -29,6 +29,7 @@ export interface ShowDTO {
     lineup?: ComedianLineupDTO[];
     description?: string;
     address?: string;
+    room?: string | null;
     imageUrl: string;
     soldOut?: boolean;
     distanceMiles?: number | null;

@@ -18,6 +18,7 @@ const SHOW_SELECT = {
     name: true,
     date: true,
     description: true,
+    room: true,
     popularity: true,
     tickets: {
         select: {
@@ -152,6 +153,7 @@ export async function findShowsWithCount(
                 date: show.date,
                 name: show.name,
                 description: show.description ?? undefined,
+                room: show.room,
                 address: show.club.address,
                 clubName: show.club.name,
                 imageUrl: buildClubImageUrl(show.club.name),

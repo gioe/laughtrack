@@ -42,6 +42,11 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
                         {`${show.name}`}
                     </p>
                 )}
+                {show.room && (
+                    <p className="text-sm text-gray-500 font-dmSans mb-1">
+                        {show.room}
+                    </p>
+                )}
                 <p className="text-base sm:text-lg md:text-[18px] text-gray-600 font-dmSans">
                     {formatShowDate(show.date.toString())} · {`${show.address}`}
                 </p>
