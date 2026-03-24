@@ -37,6 +37,10 @@ Flags:
     --csv <path>        Write all findings (placeholder + structural) to a CSV file with columns:
                         comedian_name, detection_type, lineup_count, all_show_ids,
                         club_name, club_id, affected_shows
+    --deny-list-add <name>    Insert a name directly into comedian_deny_list with added_by='manual'.
+                              No-op if the name already exists.
+    --deny-list-reason <txt>  Reason string stored alongside the name (default: 'manual_entry').
+                              Only used with --deny-list-add.
 """
 
 import argparse
@@ -358,6 +362,29 @@ def _handle_delete(cur, dry_run: bool) -> list[str]:
     return uuids
 
 
+def _handle_deny_list_add(name: str, reason: str) -> None:
+    """Insert *name* into comedian_deny_list with added_by='manual'.
+
+    Prints a clear message whether the insert succeeded or was a no-op.
+    """
+    with get_transaction() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO comedian_deny_list (name, reason, added_by)
+                VALUES (%s, %s, 'manual')
+                ON CONFLICT (name) DO NOTHING
+                """,
+                (name, reason),
+            )
+            inserted = cur.rowcount
+
+    if inserted:
+        print(f"Added '{name}' to comedian_deny_list (reason: {reason!r}).")
+    else:
+        print(f"'{name}' is already in comedian_deny_list — no change.")
+
+
 def _write_csv(cur, csv_path: str) -> None:
     cur.execute(CSV_DETAIL_QUERY)
     rows = cur.fetchall()
@@ -440,6 +467,21 @@ def _parse_args() -> argparse.Namespace:
         dest="csv_path",
         help="Write all findings to a CSV file at PATH.",
     )
+    parser.add_argument(
+        "--deny-list-add",
+        metavar="NAME",
+        dest="deny_list_add",
+        help="Insert NAME directly into comedian_deny_list (added_by='manual'). "
+             "No-op if the name already exists.",
+    )
+    parser.add_argument(
+        "--deny-list-reason",
+        metavar="REASON",
+        dest="deny_list_reason",
+        default="manual_entry",
+        help="Reason string stored with the deny-list entry (default: 'manual_entry'). "
+             "Only used with --deny-list-add.",
+    )
     return parser.parse_args()
 
 
@@ -448,6 +490,9 @@ if __name__ == "__main__":
     if args.confirm and not args.delete:
         print("Error: --confirm requires --delete.", file=sys.stderr)
         sys.exit(1)
+    if args.deny_list_add:
+        _handle_deny_list_add(args.deny_list_add, args.deny_list_reason)
+        sys.exit(0)
     run_audit(
         delete=args.delete,
         confirm=args.confirm,
