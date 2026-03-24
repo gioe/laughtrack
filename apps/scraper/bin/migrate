@@ -13,7 +13,6 @@ Uses an advisory lock to serialize concurrent invocations.
 import argparse
 import os
 import sys
-import time
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
@@ -46,6 +45,10 @@ except ImportError:
     print("Error: psycopg2 is not installed. Run: pip install psycopg2-binary", file=sys.stderr)
     sys.exit(1)
 
+# Add scraper src to path so standalone scripts can import from laughtrack.foundation
+sys.path.insert(0, str(SCRAPER_ROOT / "src"))
+from laughtrack.foundation.db_util import connect_with_retry  # noqa: E402
+
 # ---------------------------------------------------------------------------
 # DDL for the migrations log table
 # ---------------------------------------------------------------------------
@@ -59,19 +62,6 @@ CREATE TABLE IF NOT EXISTS migrations_log (
 
 # Arbitrary stable key for the advisory lock (must be a bigint)
 _ADVISORY_LOCK_KEY = 658_000_000
-
-
-def connect_with_retry(dsn: str, retries: tuple = (1, 2, 4)) -> "psycopg2.extensions.connection":
-    """Connect to PostgreSQL with exponential-backoff retries for Neon auto-suspend wakeups."""
-    last_err: Exception | None = None
-    for delay in (None, *retries):
-        if delay is not None:
-            time.sleep(delay)
-        try:
-            return psycopg2.connect(dsn)
-        except psycopg2.OperationalError as exc:
-            last_err = exc
-    raise last_err  # type: ignore[misc]
 
 
 def get_applied(cur) -> set[str]:
