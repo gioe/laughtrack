@@ -9,6 +9,7 @@ const HOME_SHOW_SELECT = {
     id: true,
     name: true,
     date: true,
+    room: true,
     tickets: {
         select: {
             price: true,
@@ -82,5 +83,6 @@ export async function findShowsForHome(
             show.tickets.every((t) => t.soldOut === true),
         lineup: filterAndMapLineupItems(show.lineupItems),
         tickets: mapTickets(show.tickets),
+        room: show.room ?? undefined,
     }));
 }
