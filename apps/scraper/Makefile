@@ -630,6 +630,19 @@ list-clubs:
 # DATA MAINTENANCE & UPDATES
 # =============================================================================
 
+# Apply pending SQL migrations - reads DATABASE_URL from .env, tracks applied
+# migrations in migrations_log, and applies any unapplied .sql files in order.
+migrate:
+	@echo "🗄️  Applying pending SQL migrations..."
+	@echo "   → Migrations directory: apps/scraper/migrations/"
+	@echo "   → Tracking applied migrations in migrations_log table"
+	$(activate_venv) $(PYTHON) bin/migrate
+
+# Preview pending migrations without applying them
+migrate-dry-run:
+	@echo "🔍 Dry run — showing pending migrations (no changes made)..."
+	$(activate_venv) $(PYTHON) bin/migrate --dry-run
+
 # Update popularity scores - recalculate venue and show popularity based on performance metrics
 update-popularity:
 	@echo "⭐ Updating popularity scores..."
