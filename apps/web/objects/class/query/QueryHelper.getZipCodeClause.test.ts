@@ -147,5 +147,31 @@ describe("QueryHelper.getZipCodeClause", () => {
             makeHelper("10001", "25").getZipCodeClause();
             expect(warnSpy).not.toHaveBeenCalled();
         });
+
+        it("isZipCapTriggered() returns true after a cap-triggering call", () => {
+            const bigList = Array.from({ length: 600 }, (_, i) =>
+                String(10000 + i).padStart(5, "0"),
+            );
+            radiusSpy = vi
+                .spyOn(zipcodes, "radius")
+                .mockReturnValue(bigList as any);
+
+            const helper = makeHelper("10001", "25");
+            helper.getZipCodeClause();
+            expect(helper.isZipCapTriggered()).toBe(true);
+        });
+
+        it("isZipCapTriggered() returns false when the cap is not hit", () => {
+            const normalList = Array.from({ length: 100 }, (_, i) =>
+                String(10000 + i).padStart(5, "0"),
+            );
+            radiusSpy = vi
+                .spyOn(zipcodes, "radius")
+                .mockReturnValue(normalList as any);
+
+            const helper = makeHelper("10001", "25");
+            helper.getZipCodeClause();
+            expect(helper.isZipCapTriggered()).toBe(false);
+        });
     });
 });

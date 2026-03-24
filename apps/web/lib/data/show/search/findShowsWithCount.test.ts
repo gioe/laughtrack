@@ -44,6 +44,7 @@ function makeHelper(
         })),
         getProfileId: vi.fn(() => overrides.profileId ?? undefined),
         getUserId: vi.fn(() => overrides.userId ?? undefined),
+        isZipCapTriggered: vi.fn(() => false),
     };
 }
 
@@ -282,6 +283,25 @@ describe("findShowsWithCount", () => {
             const comedianSelect =
                 capturedSelect.lineupItems.select.comedian.select;
             expect(comedianSelect.favoriteComedians).toBeUndefined();
+        });
+    });
+
+    describe("zipCapTriggered in ShowsResponse", () => {
+        it("returns zipCapTriggered: true when helper.isZipCapTriggered() returns true", async () => {
+            const helper = {
+                ...makeHelper(),
+                isZipCapTriggered: vi.fn(() => true),
+            };
+
+            const result = await findShowsWithCount(helper as any);
+
+            expect(result.zipCapTriggered).toBe(true);
+        });
+
+        it("returns zipCapTriggered: false when helper.isZipCapTriggered() returns false", async () => {
+            const result = await findShowsWithCount(makeHelper() as any);
+
+            expect(result.zipCapTriggered).toBe(false);
         });
     });
 });
