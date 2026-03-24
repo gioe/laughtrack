@@ -31,15 +31,6 @@ export default function ShowSearchForm() {
 
     async function submitForm(data: z.infer<typeof showSearchFormSchema>) {
         try {
-            const validationResult = showSearchFormSchema.safeParse(data);
-            if (!validationResult.success) {
-                console.log(
-                    "Validation errors:",
-                    validationResult.error.errors,
-                );
-                return;
-            }
-
             // If the input looks like a city name (not a 5-digit zip), verify it
             // exists in the zipcodes dataset before navigating.
             if (!/^\d{5}$/.test(data.distance.zipCode)) {
