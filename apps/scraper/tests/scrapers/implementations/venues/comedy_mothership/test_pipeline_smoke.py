@@ -20,7 +20,7 @@ from laughtrack.core.entities.event.comedy_mothership import ComedyMothershipEve
 from laughtrack.scrapers.implementations.venues.comedy_mothership.extractor import (
     ComedyMothershipEventExtractor,
 )
-from laughtrack.scrapers.implementations.venues.comedy_mothership.page_data import (
+from laughtrack.scrapers.implementations.venues.comedy_mothership.data import (
     ComedyMothershipPageData,
 )
 from laughtrack.scrapers.implementations.venues.comedy_mothership.scraper import (

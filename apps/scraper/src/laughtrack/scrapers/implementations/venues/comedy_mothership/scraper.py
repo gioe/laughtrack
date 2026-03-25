@@ -25,7 +25,7 @@ from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 
 from .extractor import ComedyMothershipEventExtractor
-from .page_data import ComedyMothershipPageData
+from .data import ComedyMothershipPageData
 from .transformer import ComedyMothershipEventTransformer
 
 _MAX_PAGES = 10
