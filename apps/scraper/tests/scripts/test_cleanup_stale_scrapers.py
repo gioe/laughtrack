@@ -12,7 +12,7 @@ import os
 import sys
 from pathlib import Path
 from types import ModuleType
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -215,7 +215,8 @@ class TestOrphanDetection:
 
         out = capsys.readouterr().out
         assert "stale_venue" in out
-        assert "active_venue" not in out.split("Orphaned")[1] if "Orphaned" in out else True
+        assert "Orphaned" in out
+        assert "active_venue" not in out.split("Orphaned")[1]
         assert "--apply" in out
 
     def test_report_does_not_delete(self, tmp_path, monkeypatch):
