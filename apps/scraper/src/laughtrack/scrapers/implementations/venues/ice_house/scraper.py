@@ -1,17 +1,20 @@
 """
-Ice House Comedy Club scraper implementation.
+Tockify scraper implementation.
 
-Ice House Comedy Club (Pasadena, CA) publishes its calendar via the Tockify
-embedded calendar widget (tockify.com/theicehouse). Events are fetched from
-the Tockify REST API:
+Venues publishing their calendar via the Tockify embedded calendar widget
+(tockify.com) store the full API URL in club.scraping_url, e.g.:
 
-  GET https://tockify.com/api/ngevent?calname=theicehouse&max=200&startms={now_ms}
+  https://tockify.com/api/ngevent?calname=theicehouse&max=200
 
+The scraper appends a startms timestamp so only upcoming events are returned.
 Each event includes a title, start timestamp (milliseconds), and a ShowClix
 ticket URL in the customButtonLink field. The scraper normalizes embed URLs
 (embed.showclix.com) to public URLs (www.showclix.com).
 
 No authentication or special headers are required for the Tockify API.
+
+Currently used by: Ice House Comedy Club (Pasadena, CA).
+A second Tockify venue can be onboarded with only a DB row — no Python changes.
 """
 
 import time
@@ -26,19 +29,17 @@ from .data import IceHousePageData
 from .extractor import IceHouseExtractor
 from .transformer import IceHouseEventTransformer
 
-_TOCKIFY_BASE_URL = "https://tockify.com/api/ngevent?calname=theicehouse&max=200"
-
 
 class IceHouseScraper(BaseScraper):
     """
-    Scraper for Ice House Comedy Club (icehousecomedy.com).
+    Generic Tockify scraper — reads club.scraping_url for the API base URL.
 
     Fetches upcoming events from the Tockify calendar API.
     The startms parameter is set to the current time so only upcoming events
     are returned.
     """
 
-    key = "ice_house"
+    key = "tockify"
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
@@ -47,7 +48,7 @@ class IceHouseScraper(BaseScraper):
     async def collect_scraping_targets(self) -> List[ScrapingTarget]:
         """Return the Tockify API URL with the current timestamp as startms."""
         now_ms = int(time.time() * 1000)
-        return [f"{_TOCKIFY_BASE_URL}&startms={now_ms}"]
+        return [f"{self.club.scraping_url}&startms={now_ms}"]
 
     async def get_data(self, url: str) -> Optional[IceHousePageData]:
         """
@@ -64,24 +65,24 @@ class IceHouseScraper(BaseScraper):
 
             response = await self.fetch_json(url)
             if not response:
-                Logger.info(f"IceHouseScraper: no response from {url}", self.logger_context)
+                Logger.info(f"TockifyScraper: no response from {url}", self.logger_context)
                 return None
 
             events = IceHouseExtractor.extract_events(response)
 
             if not events:
-                Logger.info(f"IceHouseScraper: no events found at {url}", self.logger_context)
+                Logger.info(f"TockifyScraper: no events found at {url}", self.logger_context)
                 return None
 
             Logger.info(
-                f"IceHouseScraper: extracted {len(events)} events from {url}",
+                f"TockifyScraper: extracted {len(events)} events from {url}",
                 self.logger_context,
             )
             return IceHousePageData(event_list=events)
 
         except Exception as e:
             Logger.error(
-                f"IceHouseScraper: error fetching events from {url}: {e}",
+                f"TockifyScraper: error fetching events from {url}: {e}",
                 self.logger_context,
             )
             return None
