@@ -18,7 +18,6 @@ Corresponding test directories (tests/scrapers/implementations/venues/<name>/) a
 deleted alongside the implementation directory when --apply is passed.
 """
 import argparse
-import ast
 import os
 import re
 import shutil
@@ -142,10 +141,19 @@ def main() -> None:
 
     # Step 1 — query DB
     conn = connect_with_retry(DATABASE_URL)
+    conn.autocommit = True
     try:
         db_keys = get_db_scraper_keys(conn)
     finally:
         conn.close()
+
+    if not db_keys:
+        print(
+            "Error: DB returned zero scraper keys — clubs table may be empty or DATABASE_URL "
+            "may point to the wrong database. Aborting to avoid false positives.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
 
     print(f"DB scraper keys ({len(db_keys)}): {', '.join(sorted(db_keys))}\n")
 
