@@ -386,9 +386,10 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             self._process_comedian_additions(shows, show_name_comedians_map)
 
             # Insert any new comedians before updating lineup links.
-            # Determine denied names first so we can strip them from show.lineup
-            # too — denied comedians are never inserted, so their UUIDs would cause
-            # FK violations in batch_update_lineups if left in the lineup lists.
+            # Determine denied and false-positive names first so we can strip them
+            # from show.lineup too — these comedians are never inserted, so their
+            # UUIDs would cause FK violations in batch_update_lineups if left in
+            # the lineup lists.
             all_comedians = list({comedian for show in shows for comedian in show.lineup})
             comedians_inserted = 0
             if all_comedians:
@@ -397,6 +398,15 @@ class ShowHandler(BaseDatabaseHandler[Show]):
                 if denied_names:
                     for show in shows:
                         show.lineup = [c for c in show.lineup if c.name not in denied_names]
+
+                # False-positive comedians are also skipped by insert_comedians()
+                # internally, so strip them from show.lineup for the same reason.
+                fp_allowed = self.comedian_handler._filter_false_positive_comedians(allowed_comedians)
+                fp_names = {c.name for c in allowed_comedians} - {c.name for c in fp_allowed}
+                if fp_names:
+                    for show in shows:
+                        show.lineup = [c for c in show.lineup if c.name not in fp_names]
+
                 inserted_rows = self.comedian_handler.insert_comedians(all_comedians)
                 comedians_inserted = len(inserted_rows)
 

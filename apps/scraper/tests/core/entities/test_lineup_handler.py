@@ -529,6 +529,8 @@ class TestUpdateShowLineupsStripsdeniedComedians:
 
         # _filter_denied_comedians returns only the allowed comedian
         h.comedian_handler._filter_denied_comedians.return_value = [allowed]
+        # false-positive filter passes allowed through unchanged
+        h.comedian_handler._filter_false_positive_comedians.return_value = [allowed]
 
         lineup_at_call_time = []
 
@@ -560,6 +562,7 @@ class TestUpdateShowLineupsStripsdeniedComedians:
         h._extract_valid_show_ids = MagicMock(return_value=[2])
         h._process_comedian_additions = MagicMock()
         h.comedian_handler._filter_denied_comedians.return_value = [allowed_a, allowed_b]
+        h.comedian_handler._filter_false_positive_comedians.return_value = [allowed_a, allowed_b]
         h.comedian_handler.insert_comedians.return_value = [{"uuid": "uuid-a"}]
 
         lineup_names = []
@@ -588,6 +591,7 @@ class TestUpdateShowLineupsStripsdeniedComedians:
         h._process_comedian_additions = MagicMock()
         # All comedians allowed — filter returns the same list
         h.comedian_handler._filter_denied_comedians.return_value = [c1, c2]
+        h.comedian_handler._filter_false_positive_comedians.return_value = [c1, c2]
 
         lineup_names = []
 
@@ -602,3 +606,88 @@ class TestUpdateShowLineupsStripsdeniedComedians:
 
         assert "Comic One" in lineup_names
         assert "Comic Two" in lineup_names
+
+
+# ---------------------------------------------------------------------------
+# Tests: update_show_lineups — false-positive comedians stripped from show.lineup
+# ---------------------------------------------------------------------------
+
+class TestUpdateShowLineupsStripsFalsePositiveComedians:
+    """update_show_lineups must remove false-positive comedians from show.lineup
+    before calling batch_update_lineups to prevent FK violations.
+
+    Regression test for comedian_id=99d0c876e6d2827b8c565659651c8233:
+    the comedian was filtered by insert_comedians() internally (false positive)
+    but not stripped from show.lineup, causing a lineup_items FK violation on
+    every Eventbrite scrape run.
+    """
+
+    def _make_handler_for_lineup_update(self):
+        h = _make_show_handler()
+        h.lineup_handler.get_lineup.return_value = {}
+        h.lineup_handler.get_comedians_from_show_names.return_value = {}
+        h.lineup_handler.batch_update_lineups.return_value = (0, 0)
+        h.comedian_handler.insert_comedians.return_value = []
+        h.calculate_and_update_popularity = MagicMock()
+        return h
+
+    def test_false_positive_comedian_absent_from_lineup_when_batch_update_called(self):
+        """show.lineup must not contain the false-positive comedian when batch_update_lineups runs."""
+        allowed = _make_comedian_stub("Real Comedian", "uuid-real")
+        fp = _make_comedian_stub("Improv Showcase", "uuid-fp")  # contains structural keyword
+        show = _make_show_stub(1, [allowed, fp])
+
+        h = self._make_handler_for_lineup_update()
+        h._extract_valid_show_ids = MagicMock(return_value=[1])
+        h._process_comedian_additions = MagicMock()
+        # deny filter passes both through
+        h.comedian_handler._filter_denied_comedians.return_value = [allowed, fp]
+        # false-positive filter removes the structural-keyword name
+        h.comedian_handler._filter_false_positive_comedians.return_value = [allowed]
+
+        lineup_at_call_time = []
+
+        def capture_lineup(shows, db_lineups):
+            lineup_at_call_time.extend(list(shows[0].lineup))
+            return (1, 0)
+
+        h.lineup_handler.batch_update_lineups.side_effect = capture_lineup
+
+        with patch.object(_show_handler_mod.ShowUtils, "collect_comedian_uuids", return_value=[]):
+            h.update_show_lineups([show])
+
+        names_at_call = [c.name for c in lineup_at_call_time]
+        assert "Improv Showcase" not in names_at_call, (
+            "False-positive comedian must be stripped from show.lineup before batch_update_lineups"
+        )
+        assert "Real Comedian" in names_at_call, (
+            "Real comedian must still be present in show.lineup"
+        )
+
+    def test_real_comedians_intact_when_some_false_positive(self):
+        """batch_update_lineups is called with non-false-positive comedians intact."""
+        c1 = _make_comedian_stub("Comic A", "uuid-a")
+        c2 = _make_comedian_stub("Comic B", "uuid-b")
+        fp = _make_comedian_stub("Westside Comedy Theater", "uuid-fp")  # theater keyword
+        show = _make_show_stub(2, [c1, fp, c2])
+
+        h = self._make_handler_for_lineup_update()
+        h._extract_valid_show_ids = MagicMock(return_value=[2])
+        h._process_comedian_additions = MagicMock()
+        h.comedian_handler._filter_denied_comedians.return_value = [c1, fp, c2]
+        h.comedian_handler._filter_false_positive_comedians.return_value = [c1, c2]
+
+        lineup_names = []
+
+        def capture(shows, db_lineups):
+            lineup_names.extend(c.name for c in shows[0].lineup)
+            return (2, 0)
+
+        h.lineup_handler.batch_update_lineups.side_effect = capture
+
+        with patch.object(_show_handler_mod.ShowUtils, "collect_comedian_uuids", return_value=[]):
+            h.update_show_lineups([show])
+
+        assert "Comic A" in lineup_names
+        assert "Comic B" in lineup_names
+        assert "Westside Comedy Theater" not in lineup_names
