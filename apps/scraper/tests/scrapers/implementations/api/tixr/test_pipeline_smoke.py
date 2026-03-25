@@ -134,6 +134,20 @@ def test_extractor_deduplicates_urls():
     assert urls == ["https://tixr.com/e/12345", "https://tixr.com/e/99999"]
 
 
+def test_extractor_deduplicates_cross_form():
+    """extract_tixr_urls() returns at most one URL per event when both short and
+    long forms for the same event ID appear on the same page."""
+    short_url = "https://tixr.com/e/177558"
+    long_url = "https://www.tixr.com/groups/venue/events/comedy-show-177558"
+    html = (
+        f'<a href="{short_url}">Buy Short</a>'
+        f'<a href="{long_url}">Buy Long</a>'
+    )
+    urls = TixrExtractor.extract_tixr_urls(html)
+    # Only the short form should appear; the long form is the same event.
+    assert urls == [short_url]
+
+
 def test_extractor_returns_empty_for_no_tixr_urls():
     """extract_tixr_urls() returns [] when no Tixr links are present."""
     html = "<html><body><p>No shows</p></body></html>"
