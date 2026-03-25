@@ -1,3 +1,28 @@
+## Tixologi — No Public Events API (HTML Scraping Required)
+
+Tixologi (tixologi.com) is a ticketing platform used by Laugh Factory Reno
+(partner ID 690).  The Tixologi **public** API has no events endpoint:
+
+- `GET https://api-v2.tixologi.com/public/users/partners/690` → partner metadata
+  (name, punchup_id UUID) — works without auth
+- `GET https://api-v2.tixologi.com/public/users/partners/690/events` → 401 Unauthorized
+- `GET https://api-v2.tixologi.com/public/users/partners/690/embed-script` → embed JS
+  (looks for `.tixologi-button[data-event-id]` DOM elements, but LF Reno does NOT
+  use this — it uses a custom `.reno-ticket-button[data-punchupid]` system)
+
+**Workaround**: Scrape shows from the Laugh Factory CMS page
+(`https://www.laughfactory.com/reno`).  Shows are server-rendered as
+`.show-sec.jokes` divs.  Ticket links follow the pattern:
+  `https://www.laughfactory.club/checkout/show/{punchup_id}`
+
+The `TixologiClient` fetches the CMS HTML page; `LaughFactoryRenoEventExtractor`
+parses the `.show-sec.jokes` divs (date span, timing span, ticket anchor, title h4,
+figcaption comedian names).  See `apps/scraper/src/laughtrack/core/clients/tixologi/`.
+
+**Date format**: The `.shedule span.date` contains a non-breaking space (`\xa0`)
+between the weekday abbreviation and the "Mon DD" string, e.g. `"Wed\xa0Apr 10"`.
+Strip the weekday prefix on `\xa0`, then infer year (current if future, else next).
+
 ## Tixr `--{id}` URL Format — No JSON-LD, Won't-Fix
 
 Tixr uses two distinct SSR page templates:
