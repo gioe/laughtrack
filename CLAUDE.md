@@ -1,3 +1,27 @@
+## Tixr `--{id}` URL Format — No JSON-LD, Won't-Fix
+
+Tixr uses two distinct SSR page templates:
+
+1. **Single-dash format** (`/events/{slug}-{id}`): Server-renders a full JSON-LD
+   `@type=Event` block. `TixrClient.get_event_detail_from_url()` extracts it correctly.
+2. **Double-dash format** (`/events/{slug}--{id}`): The SSR HTML only embeds
+   `window.pageSetup = { eventId: {id} }` — no JSON-LD, no date, no performers.
+   The event data is loaded client-side from `https://www.tixr.com/api/events/{id}`.
+
+The `www.tixr.com/api/events/{id}` endpoint requires a DataDome CAPTCHA-solved JS
+session (cookie set by running JS challenge on page load). curl_cffi's Chrome
+impersonation passes the TLS fingerprint check for page HTML fetches but NOT for
+the API endpoint — even with the DataDome cookie from a prior page fetch, the API
+returns a CAPTCHA redirect (HTTP 403).
+
+**Won't-fix**: No practical fallback without running a full Playwright browser per
+event (not feasible for nightly batch scrapers). The `--{id}` events are silently
+skipped. `TixrClient` logs a specific warning distinguishing these from genuine
+extraction failures:
+> "Tixr special-event page (--ID format) has no JSON-LD; data requires JS execution — skipping: {url}"
+
+Affects: Laugh Factory Covina and potentially other Tixr venues.
+
 ## rhp-events WordPress Plugin — All Pagination URLs Serve Identical Content
 
 The `rhp-events` WordPress plugin (used by venues like The Comedy & Magic Club)
