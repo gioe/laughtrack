@@ -27,7 +27,7 @@ from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.models.types import ScrapingTarget
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 
-from .page_data import CreekAndCavePageData
+from .data import CreekAndCavePageData
 from .extractor import CreekAndCaveEventExtractor
 from .transformer import CreekAndCaveEventTransformer
 

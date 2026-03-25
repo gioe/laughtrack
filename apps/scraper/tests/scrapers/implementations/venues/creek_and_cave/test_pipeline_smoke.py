@@ -11,7 +11,7 @@ import pytest
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.event.creek_and_cave import CreekAndCaveEvent, _infer_comedian_name
 from laughtrack.scrapers.implementations.venues.creek_and_cave.scraper import CreekAndCaveScraper
-from laughtrack.scrapers.implementations.venues.creek_and_cave.page_data import CreekAndCavePageData
+from laughtrack.scrapers.implementations.venues.creek_and_cave.data import CreekAndCavePageData
 
 
 _S3_URL = "https://creekandcaveevents.s3.amazonaws.com/events/month/2026-04.json"
