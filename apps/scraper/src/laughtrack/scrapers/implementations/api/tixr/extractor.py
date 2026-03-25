@@ -27,7 +27,8 @@ class TixrExtractor:
 
         Handles both short form (tixr.com/e/{id}) and long form
         (tixr.com/groups/*/events/*-{id}). Results are deduplicated
-        while preserving order of first occurrence.
+        within each form. Short-form URLs are returned first (in document
+        order), followed by long-form URLs.
 
         Args:
             html_content: HTML content of a venue calendar page

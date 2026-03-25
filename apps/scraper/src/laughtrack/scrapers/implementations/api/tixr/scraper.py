@@ -81,7 +81,7 @@ class TixrScraper(BaseScraper):
                 lambda u: self.tixr_client.get_event_detail_from_url(u),
                 "Tixr event extraction",
             )
-            tixr_events = [r for r in results if r is not None]
+            tixr_events = results
 
             if not tixr_events:
                 Logger.info(

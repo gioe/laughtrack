@@ -243,3 +243,17 @@ async def test_get_data_returns_none_when_tixr_client_returns_nothing(monkeypatc
 
     result = await scraper.get_data(CALENDAR_URL)
     assert result is None
+
+
+@pytest.mark.asyncio
+async def test_get_data_returns_none_on_fetch_error(monkeypatch):
+    """get_data() returns None (and logs) when fetch_html raises an exception."""
+    scraper = TixrScraper(_club())
+
+    async def fake_fetch_html(self, url, **kwargs):
+        raise RuntimeError("connection timeout")
+
+    monkeypatch.setattr(TixrScraper, "fetch_html", fake_fetch_html)
+
+    result = await scraper.get_data(CALENDAR_URL)
+    assert result is None
