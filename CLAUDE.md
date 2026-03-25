@@ -1,3 +1,29 @@
+## rhp-events WordPress Plugin — All Pagination URLs Serve Identical Content
+
+The `rhp-events` WordPress plugin (used by venues like The Comedy & Magic Club)
+emits `/events/page/2/`, `/events/page/3/`, etc. links in its HTML, but every
+pagination URL returns the **same set of events** as page 1. Do NOT implement
+multi-page pagination for venues using this plugin — only fetch the base
+`/events/` URL. Deduplication via upsert handles accidental double-fetches, but
+unnecessary pages waste HTTP requests.
+
+Identification: look for CSS classes `rhpSingleEvent`, `eventWrapper`, and
+`rhp-event__title--list` in the page HTML.
+
+## Playwright MCP — Chrome Already Open Conflict
+
+When the Playwright MCP browser fails with:
+  "Opening in existing browser session" / process exits immediately
+
+Chrome is already running with a conflicting profile. Options:
+1. Close Chrome manually, then retry `browser_navigate`.
+2. Fall back to WebFetch if the page is server-rendered (not a JS widget).
+   Playwright is only needed when WebFetch returns misleading/empty results —
+   e.g., a 403, missing API calls, or content that requires JS execution.
+
+The Playwright pattern below is specifically for JS-heavy embedded widgets
+(Crowdwork, SeatGeek, Wix). For standard HTML pages, WebFetch is sufficient.
+
 ## Venue Scraper Discovery — Playwright Network Inspection for JS-Heavy Sites
 
 When a venue's show listing is powered by a JavaScript widget (e.g., embedded
@@ -222,6 +248,14 @@ back to `/organizers/{id}/events/`.
 - Venue ID: inspect an individual event's JSON — look for `"venue_id"` in the
   page source or Eventbrite API response.
 
+**For multi-location chains:** guessing the organizer page URL using a known
+sibling location's ID always redirects to the primary organizer. Instead:
+1. Fetch the venue's show listing page (e.g. `laughfactory.com/long-beach`).
+2. Grab any Eventbrite event ID from the embedded widget JS
+   (look for `eventId: '<digits>'` in the page source).
+3. Fetch `https://www.eventbrite.com/e/<event_id>` — the organizer URL
+   (`/o/<slug>-<organizer_id>`) appears in the page data.
+
 **Diagnosis:** If a scrape returns 0 events with a 404 warning on the venues
 endpoint, the stored ID is likely an organizer ID — but the auto-fallback should
 handle it transparently. Verify by checking the Eventbrite URL format.
@@ -269,6 +303,73 @@ async with AsyncSession(impersonate=self._get_impersonation_target(url)) as sess
 Note: `BaseApiClient.fetch_html(headers=None)` falls back to `self.headers` (via
 `headers or self.headers`) — passing `None` or `{}` both result in API headers being
 sent. A separate fetch method is needed to send zero application headers.
+
+## Tixr Venue Scrapers — Short URL Format
+
+Tixr event pages appear in two URL formats:
+
+1. **Long form**: `https://www.tixr.com/groups/{group}/events/{slug}-{id}`
+   (e.g., The Stand links use this format)
+2. **Short form**: `https://tixr.com/e/{id}`
+   (e.g., HAHA Comedy Club links use this format)
+
+`TixrClient.get_event_detail_from_url()` handles **both formats** transparently —
+curl_cffi follows the redirect from the short URL to the full event page, then
+extracts JSON-LD structured data. No redirect pre-resolution is needed.
+
+When writing an extractor for a new Tixr venue, check which format its calendar
+page uses. The short form regex is: `r"https?://(?:www\.)?tixr\.com/e/(\d+)"`.
+The long form regex (used by The Stand) is: `r"https?://[^\s\"]*tixr\.com/[^\s\"]*/events/[^\s\"]*"`.
+
+## Squarespace Venues — GetItemsByMonth API Pattern
+
+When onboarding a venue whose site is built on Squarespace, event data is served by:
+  `GET /api/open/GetItemsByMonth?month=MM-YYYY&collectionId=<id>`
+
+**Key non-obvious details:**
+1. The response is a **JSON array** at the root level (`[{...}, ...]`), not a dict.
+   `fetch_json()` will return a `list` — handle accordingly in the extractor.
+2. The `collectionId` is NOT in the page source. Find it via Playwright network
+   inspection: navigate to the `/shows-calendar` (or events) page, wait 3s, then
+   capture `browser_network_requests` and look for a `GetItemsByMonth` call.
+3. The `crumb` query parameter seen in browser requests is **not required** for the
+   `/api/open/` endpoint — omit it in the scraper.
+4. The API only returns events for one calendar month. The scraper must iterate over
+   the current month + N months ahead to collect upcoming shows.
+5. Each event's `startDate` and `endDate` are Unix timestamps in **milliseconds**.
+6. Ticket URLs: Squarespace venues often use embedded ticketing widgets (e.g.,
+   SquadUp). There is no external ticket URL — use the event's `fullUrl` (prepend
+   the base domain) as the show page URL and ticket fallback.
+
+**Identification:** `WebFetch` on the events page returns a Squarespace HTML shell
+with no event data (JavaScript-rendered). When `browser_network_requests` shows a
+`GetItemsByMonth` call, the venue is on Squarespace.
+
+## Tockify Calendar Venues — API Discovery and Event Data Structure
+
+When a venue's show listing is powered by a **Tockify** embedded calendar widget,
+the event data is available via the Tockify REST API — no Playwright needed after
+initial discovery.
+
+**Identification:** `browser_network_requests` will show a GET to
+  `https://tockify.com/api/tagoptions/<calname>`
+The `<calname>` is the venue's Tockify calendar identifier (e.g., `theicehouse`).
+
+**API endpoint:**
+  `GET https://tockify.com/api/ngevent?calname=<calname>&max=200&startms=<now_ms>`
+
+**Key response fields per event:**
+- `eid.uid` — unique event identifier
+- `content.summary.text` — event title
+- `when.start.millis` — start timestamp in **milliseconds** (not seconds)
+- `when.start.tzid` — timezone string (e.g., `"America/Los_Angeles"`)
+- `content.customButtonLink` — ticket URL (often `embed.showclix.com/event/...`)
+- `content.tagset.tags.default[0]` — room name (e.g., `"California-Room"`)
+
+**URL normalization:** `embed.showclix.com/event/slug` → `www.showclix.com/event/slug`
+
+**Pagination:** `metaData.hasNext` signals more results. Use `max=200` for single-request
+fetches; add `startms=<now_ms>` (current Unix milliseconds) to filter to upcoming events only.
 
 ## Scraper Codebase Scope — src/ and web/ Both Count
 
