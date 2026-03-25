@@ -131,6 +131,9 @@ def find_stale_references(dirname: str) -> list[tuple[Path, int, str]]:
     pattern = re.compile(re.escape(dirname))
     matches: list[tuple[Path, int, str]] = []
     for py_file in SCRAPER_ROOT.rglob("*.py"):
+        # Skip virtual-env and hidden directories (e.g. .venv/, .tox/)
+        if any(part.startswith(".") for part in py_file.parts[len(SCRAPER_ROOT.parts):]):
+            continue
         # Skip the deleted directory itself (already gone, but guard anyway)
         try:
             py_file.relative_to(VENUES_DIR / dirname)
