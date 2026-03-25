@@ -213,9 +213,9 @@ GET https://tockify.com/api/ngevent?calname=<calname>&max=200&startms=<now_ms>
 
 | | |
 |---|---|
-| **Scraper key** | Venue-specific (e.g. `elysian_theater`) |
-| **DB field** | `scraping_url` (the GetItemsByMonth API URL with collectionId) |
-| **Generic?** | ❌ Requires parameterization — `collectionId` is hardcoded per venue |
+| **Scraper key** | `squarespace` |
+| **DB field** | `scraping_url` (full GetItemsByMonth URL including `collectionId` query param) |
+| **Generic?** | ✅ Generic — a second venue needs only a DB row |
 
 **Detection signals:**
 - `WebFetch` returns an HTML shell with no event data (JS-rendered)
@@ -235,8 +235,8 @@ GET https://tockify.com/api/ngevent?calname=<calname>&max=200&startms=<now_ms>
 **To onboard a new Squarespace venue:**
 1. Navigate in Playwright → capture `browser_network_requests` → find `GetItemsByMonth` call
 2. Extract `collectionId` from the network request URL
-3. Create a new scraper directory (copy `elysian_theater/`) and replace the collectionId
-4. Set `scraping_url` = `https://<venue-domain>/api/open/GetItemsByMonth` in the DB
+3. Insert a DB row with `scraper='squarespace'` and `scraping_url='https://<domain>/api/open/GetItemsByMonth?collectionId=<id>'`
+4. No Python changes needed
 
 ---
 
@@ -272,7 +272,8 @@ The innermost `comp-xxxx` result is the `compId`.
 
 **Key implementation details:**
 - `categoryId` is NOT required unless the venue uses Wix event categories
-- API: `GET /api/open/GetItemsByMonth?month=MM-YYYY&collectionId=<id>` — one month at a time
+- API: `POST /_api/wix-one-events-server/web/paginated-events/viewer?compId=<compId>` — paginated event list
+- Requires an OAuth access token fetched first from `/_api/v1/access-tokens`
 
 ---
 

@@ -1,9 +1,11 @@
 """
-The Elysian Theater scraper implementation.
+Squarespace scraper implementation (generic, venue-agnostic).
 
-The Elysian Theater (1944 Riverside Drive, Los Angeles, CA) uses Squarespace
-for its website. Events are fetched from:
+Venues on Squarespace serve event data from:
   /api/open/GetItemsByMonth?month=MM-YYYY&collectionId=<id>
+
+The collectionId and base domain are encoded in club.scraping_url:
+  https://<domain>/api/open/GetItemsByMonth?collectionId=<id>
 
 Pipeline:
   1. collect_scraping_targets() → returns month API URLs for current + next N months
@@ -13,6 +15,7 @@ Pipeline:
 
 from datetime import date
 from typing import List, Optional
+from urllib.parse import parse_qs, urlparse
 
 from dateutil.relativedelta import relativedelta
 
@@ -25,14 +28,13 @@ from .data import ElysianPageData
 from .extractor import ElysianEventExtractor
 from .transformer import ElysianEventTransformer
 
-_COLLECTION_ID = "613af44feffe2b7f78a46b63"
 _MONTHS_AHEAD = 3
 
 
 class ElysianTheaterScraper(BaseScraper):
-    """Scraper for The Elysian Theater (Los Angeles, CA) via Squarespace GetItemsByMonth API."""
+    """Generic Squarespace GetItemsByMonth scraper. Reads collectionId from club.scraping_url."""
 
-    key = "elysian_theater"
+    key = "squarespace"
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
@@ -42,16 +44,24 @@ class ElysianTheaterScraper(BaseScraper):
         """
         Generate month API URLs for the current month through _MONTHS_AHEAD months ahead.
 
+        Expects club.scraping_url to be the full GetItemsByMonth URL including collectionId,
+        e.g. https://<domain>/api/open/GetItemsByMonth?collectionId=<id>
+
         Returns URLs of the form:
-          {base_url}?month=MM-YYYY&collectionId=613af44feffe2b7f78a46b63
+          {base_url_without_qs}?month=MM-YYYY&collectionId=<id>
         """
-        base_url = self.club.scraping_url or "https://www.elysiantheater.com/api/open/GetItemsByMonth"
+        scraping_url = self.club.scraping_url or ""
+        parsed = urlparse(scraping_url)
+        qs = parse_qs(parsed.query)
+        collection_id = (qs.get("collectionId") or [""])[0]
+        base_url = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
+
         today = date.today()
         urls = []
         for offset in range(_MONTHS_AHEAD + 1):
             target_month = today + relativedelta(months=offset)
             month_str = target_month.strftime("%m-%Y")
-            url = f"{base_url}?month={month_str}&collectionId={_COLLECTION_ID}"
+            url = f"{base_url}?month={month_str}&collectionId={collection_id}"
             urls.append(url)
         return urls
 
@@ -70,7 +80,7 @@ class ElysianTheaterScraper(BaseScraper):
 
             response = await self.fetch_json(url)
             if not response:
-                Logger.info(f"ElysianTheaterScraper: no response from {url}", self.logger_context)
+                Logger.info(f"SquarespaceScraper: no response from {url}", self.logger_context)
                 return None
 
             # The API returns a JSON array; fetch_json returns whatever response.json() yields
@@ -79,15 +89,15 @@ class ElysianTheaterScraper(BaseScraper):
             events = ElysianEventExtractor.extract_events(api_list)
 
             if not events:
-                Logger.info(f"ElysianTheaterScraper: no events found at {url}", self.logger_context)
+                Logger.info(f"SquarespaceScraper: no events found at {url}", self.logger_context)
                 return None
 
             Logger.info(
-                f"ElysianTheaterScraper: extracted {len(events)} events from {url}",
+                f"SquarespaceScraper: extracted {len(events)} events from {url}",
                 self.logger_context,
             )
             return ElysianPageData(event_list=events)
 
         except Exception as e:
-            Logger.error(f"ElysianTheaterScraper: error fetching events from {url}: {e}", self.logger_context)
+            Logger.error(f"SquarespaceScraper: error fetching events from {url}: {e}", self.logger_context)
             return None

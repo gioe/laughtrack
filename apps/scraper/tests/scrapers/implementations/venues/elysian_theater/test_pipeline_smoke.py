@@ -16,6 +16,7 @@ from laughtrack.scrapers.implementations.venues.elysian_theater.extractor import
 
 API_BASE_URL = "https://www.elysiantheater.com/api/open/GetItemsByMonth"
 COLLECTION_ID = "613af44feffe2b7f78a46b63"
+SCRAPING_URL = f"{API_BASE_URL}?collectionId={COLLECTION_ID}"
 
 
 def _club() -> Club:
@@ -24,7 +25,7 @@ def _club() -> Club:
         name="The Elysian Theater",
         address="1944 Riverside Drive",
         website="https://www.elysiantheater.com",
-        scraping_url=API_BASE_URL,
+        scraping_url=SCRAPING_URL,
         popularity=0,
         zip_code="90039",
         phone_number="",
@@ -247,12 +248,13 @@ async def test_collect_scraping_targets_includes_collection_id():
 
 @pytest.mark.asyncio
 async def test_collect_scraping_targets_uses_club_scraping_url_as_base():
-    """collect_scraping_targets() uses club.scraping_url as the base URL."""
+    """collect_scraping_targets() derives the base URL from club.scraping_url."""
     scraper = ElysianTheaterScraper(_club())
     targets = await scraper.collect_scraping_targets()
 
     for url in targets:
         assert url.startswith(API_BASE_URL)
+        assert COLLECTION_ID in url
 
 
 @pytest.mark.asyncio

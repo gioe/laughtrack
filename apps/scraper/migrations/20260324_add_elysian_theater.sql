@@ -10,8 +10,8 @@ VALUES (
     'CA',
     '90039',
     'America/Los_Angeles',
-    'elysian_theater',
+    'squarespace',
     TRUE,
     'https://www.elysiantheater.com',
-    'https://www.elysiantheater.com/api/open/GetItemsByMonth'
+    'https://www.elysiantheater.com/api/open/GetItemsByMonth?collectionId=613af44feffe2b7f78a46b63'
 );
