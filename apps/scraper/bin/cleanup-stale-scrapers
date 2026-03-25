@@ -120,6 +120,32 @@ def delete_directory(path: Path) -> None:
         print(f"  (not found, skipped) {path.relative_to(SCRAPER_ROOT)}")
 
 
+def find_stale_references(dirname: str) -> list[tuple[Path, int, str]]:
+    """
+    Search apps/scraper/ for remaining references to a deleted scraper directory.
+
+    Walks all .py files and looks for the directory name as a path component in
+    import/from statements or string literals.  Returns a list of
+    (file_path, line_number, line_text) tuples for every match.
+    """
+    pattern = re.compile(re.escape(dirname))
+    matches: list[tuple[Path, int, str]] = []
+    for py_file in SCRAPER_ROOT.rglob("*.py"):
+        # Skip the deleted directory itself (already gone, but guard anyway)
+        try:
+            py_file.relative_to(VENUES_DIR / dirname)
+            continue
+        except ValueError:
+            pass
+        try:
+            for lineno, line in enumerate(py_file.read_text(encoding="utf-8", errors="replace").splitlines(), 1):
+                if pattern.search(line):
+                    matches.append((py_file, lineno, line.rstrip()))
+        except OSError:
+            continue
+    return matches
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -191,6 +217,20 @@ def main() -> None:
         delete_directory(test_path)
 
     print(f"\nDone — removed {len(orphaned)} orphaned scraper(s).")
+
+    # Post-deletion: warn about any remaining references to deleted modules
+    print("\nChecking for stale references to deleted scrapers...")
+    stale_found = False
+    for key, dirname in sorted(orphaned.items()):
+        refs = find_stale_references(dirname)
+        if refs:
+            stale_found = True
+            print(f"\n  WARNING: {len(refs)} reference(s) to '{dirname}' still exist in the codebase:")
+            for file_path, lineno, line_text in refs:
+                rel = file_path.relative_to(SCRAPER_ROOT)
+                print(f"    {rel}:{lineno}: {line_text}")
+    if not stale_found:
+        print("  No stale references found.")
 
 
 if __name__ == "__main__":
