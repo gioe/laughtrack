@@ -101,7 +101,7 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
         for c in comedians:
             reason = detect_false_positive(c.name)
             if reason:
-                Logger.warn(f"insert_comedians: skipping false-positive '{c.name}' — {reason}")
+                Logger.warn(f"lineup_filter: skipping false-positive '{c.name}' — {reason}")
             else:
                 allowed.append(c)
         return allowed

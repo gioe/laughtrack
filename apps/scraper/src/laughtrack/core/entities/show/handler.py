@@ -407,7 +407,7 @@ class ShowHandler(BaseDatabaseHandler[Show]):
                     for show in shows:
                         show.lineup = [c for c in show.lineup if c.name not in fp_names]
 
-                inserted_rows = self.comedian_handler.insert_comedians(all_comedians)
+                inserted_rows = self.comedian_handler.insert_comedians(fp_allowed)
                 comedians_inserted = len(inserted_rows)
 
             # Batch update all lineups at once
