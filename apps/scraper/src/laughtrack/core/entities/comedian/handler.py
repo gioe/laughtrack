@@ -128,7 +128,7 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
 
         allowed = [c for c in comedians if c.name not in denied]
         for name in denied:
-            Logger.warn(f"insert_comedians: skipping deny-listed name '{name}'")
+            Logger.warn(f"lineup_filter: skipping deny-listed name '{name}'")
         return allowed
 
     def update_comedian_popularity(self, comedian_ids: Optional[List[str]] = None) -> None:
