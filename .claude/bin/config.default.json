@@ -26,5 +26,21 @@
   "merge": {
     "mode": "local"
   },
-  "test_command": ""
+  "issue_scoring": {
+    "factors": {
+      "test_present":   { "yes": 2, "no": -1 },
+      "pillar_aligned": { "yes": 2, "no": -3 },
+      "duplicate":      { "yes": -5, "no": 0 },
+      "in_scope":       { "yes": 1, "no": -3 },
+      "severity_high":  { "yes": 3, "no": 0 },
+      "issue_quality":  { "good": 1, "poor": -2 }
+    },
+    "thresholds": { "address": 4, "decline": 0 }
+  },
+  "test_command": "",
+  "project_type": null,
+  "project_libs": {
+    "python_service": { "repo": "gioe/python-libs", "ref": "main" },
+    "ios_app": { "repo": "gioe/ios-libs", "ref": "main" }
+  }
 }

@@ -80,6 +80,12 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
    ```
    This detects the default branch (remote HEAD → gh fallback → main), checks it out, pulls latest, and creates `feature/TASK-<id>-<slug>`. It prints the created branch name on success.
 
+   **Partial-criteria + no-commits diagnostic:** After creating or switching to the feature branch, if the `criteria` from step 1 show at least one completed criterion but `git log --oneline $(tusk git-default-branch)..HEAD` returns no commits, prior work may be stranded on another branch. Before exploring the codebase, run:
+   ```bash
+   git log --all --oneline --grep="\[TASK-<id>\]"
+   ```
+   (Replace `<id>` with the actual task ID.) This searches all branches for commits referencing the task. If commits appear on another branch (e.g., a recycled or prior branch), that branch contains the prior work — switch to it or cherry-pick the relevant commits before proceeding to Explore. If no commits appear anywhere, the criteria completions were marked without corresponding code — proceed normally and implement from scratch.
+
 3. **Determine the best subagent(s)** based on:
    - Task domain
    - Task assignee field (often indicates the right agent type)
@@ -115,23 +121,30 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
     1. Implement the changes that satisfy it
     2. Commit and mark the criterion done atomically using `tusk commit --criteria`:
        ```bash
-       tusk commit <id> "<message>" <file1> [file2 ...] --criteria <cid>
+       tusk commit <id> "<message>" "<file1>" ["<file2>" ...] --criteria <cid>
        ```
        This runs `tusk lint` (advisory — never blocks), stages the listed files, commits with the `[TASK-<id>] <message>` format and Co-Authored-By trailer, and marks the criterion done — all in one call. The criterion is bound to the new commit hash automatically.
 
+       **Always quote file paths** — zsh expands unquoted brackets (`[id]`, `[slug]`) as glob patterns before the shell passes arguments to `tusk commit`. Any path component containing `[`, `]`, `*`, `?`, or spaces must be wrapped in double quotes (e.g., `"apps/api/[id]/route.ts"`).
+
        **Grouping criteria:** 2–3 genuinely co-located criteria (e.g., a schema change and its migration) may share one commit — use one `--criteria` flag per ID:
        ```bash
-       tusk commit <id> "<message>" <file1> [file2 ...] --criteria <cid1> --criteria <cid2>
+       tusk commit <id> "<message>" "<file1>" ["<file2>" ...] --criteria <cid1> --criteria <cid2>
        ```
        Always include a brief rationale in the commit message when grouping. **Never** bundle all criteria onto a single end-of-task commit.
 
-    **If `tusk commit` fails with `pathspec did not match any files`** (exit code 3, git-add error), first check whether the file was already committed in a prior `tusk commit` call for this task (e.g., when all changes go into a single file committed with earlier criteria). In that case, `git add && git commit` would also fail — just mark the remaining criteria done directly:
+    **If the task has no git-trackable file changes** (e.g., a venv install, a runtime config change, an OS-level operation), skip `tusk commit` entirely — it requires at least one file argument and will fail with exit code 1 (usage error) if none are provided. Mark criteria done directly:
+    ```bash
+    tusk criteria done <cid> --skip-verify
+    ```
+
+    **If `tusk commit` fails with `pathspec did not match any files`** (exit code 3, git-add error), first check whether the file was already committed in a prior `tusk commit` call for this task (e.g., when all changes go into a single file committed with earlier criteria), or whether the file was removed via `git rm` (which stages the deletion — `tusk commit` then can't find the path to re-add). In either case, `git add && git commit` would also fail — just mark the remaining criteria done directly:
     ```bash
     tusk criteria done <cid> --skip-verify
     ```
     If the error is a genuine pathspec mismatch (not an already-committed file), always pass file paths relative to the repo root (e.g., `ios/SomeFile.swift`, not `SomeFile.swift` from inside `ios/`). If the error persists, fall back to:
     ```bash
-    git add <file1> [file2 ...] && git commit -m "[TASK-<id>] <message>" --trailer "Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+    git add "<file1>" ["<file2>" ...] && git commit -m "[TASK-<id>] <message>" --trailer "Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
     ```
     Then mark criteria done with `tusk criteria done <cid> --skip-verify` as usual.
 
