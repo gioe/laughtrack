@@ -33,6 +33,7 @@ class IceHouseEvent(ShowConvertible):
       start_ms   ← when.start.millis (Unix milliseconds)
       ticket_url ← content.customButtonLink (ShowClix embed URL, normalized to www)
       timezone   ← when.start.tzid
+      room       ← content.tagset.tags.default[0] (e.g. 'California-Room')
     """
 
     uid: str
@@ -40,6 +41,7 @@ class IceHouseEvent(ShowConvertible):
     start_ms: int          # Unix milliseconds
     ticket_url: str        # ShowClix URL (may need embed → www normalization)
     timezone: str = "America/Los_Angeles"
+    room: str = ""
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None) -> Optional[Show]:
         """Convert an IceHouseEvent to a Show domain object."""
@@ -61,7 +63,7 @@ class IceHouseEvent(ShowConvertible):
             lineup=[],
             tickets=tickets,
             description=None,
-            room="",
+            room=self.room,
             supplied_tags=["event"],
             enhanced=enhanced,
         )

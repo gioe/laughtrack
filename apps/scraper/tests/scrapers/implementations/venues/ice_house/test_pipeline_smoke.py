@@ -37,7 +37,9 @@ def _raw_event(
     start_ms=1775097000000,
     ticket_url="https://www.showclix.com/event/comedy-night-4-1-26",
     tzid="America/Los_Angeles",
+    room: str = "",
 ) -> dict:
+    tags = {"default": [room]} if room else {}
     return {
         "eid": {"uid": uid, "seq": 0, "tid": start_ms, "rid": 0},
         "when": {
@@ -51,7 +53,7 @@ def _raw_event(
             "customButtonText": "GET TICKETS",
             "customButtonLink": ticket_url,
             "noDetail": True,
-            "tagset": {"tags": {}},
+            "tagset": {"tags": tags},
             "imageId": "",
             "attachments": [],
             "version": 1,
@@ -170,21 +172,24 @@ def test_extract_events_preserves_start_ms():
 
 
 def test_extract_events_two_concurrent_shows():
-    """extract_events() returns both shows when two events start at the same time.
+    """extract_events() returns both shows when two events start at the same time in different rooms.
 
     The Tockify API uses uid as the unique identifier, not the timestamp — so
-    two events at the same start_ms but different uids must both be extracted.
+    two events at the same start_ms but different uids and rooms must both be extracted
+    with their correct room names.
     """
     raw = _api_response([
-        _raw_event(uid="10", title="Show A", start_ms=1775097000000),
-        _raw_event(uid="11", title="Show B", start_ms=1775097000000),
+        _raw_event(uid="10", title="Show A", start_ms=1775097000000, room="California-Room"),
+        _raw_event(uid="11", title="Show B", start_ms=1775097000000, room="Legendary-Room"),
     ])
     events = IceHouseExtractor.extract_events(raw)
 
     assert len(events) == 2, "Both concurrent shows must be extracted"
-    titles = {e.title for e in events}
-    assert "Show A" in titles
-    assert "Show B" in titles
+    by_title = {e.title: e for e in events}
+    assert "Show A" in by_title
+    assert "Show B" in by_title
+    assert by_title["Show A"].room == "California-Room"
+    assert by_title["Show B"].room == "Legendary-Room"
 
 
 # ---------------------------------------------------------------------------

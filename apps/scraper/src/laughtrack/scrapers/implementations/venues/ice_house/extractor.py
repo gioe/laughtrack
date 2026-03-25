@@ -49,10 +49,16 @@ class IceHouseExtractor:
         ticket_url = (content.get("customButtonLink") or "").strip()
         tzid = start.get("tzid") or "America/Los_Angeles"
 
+        tagset = content.get("tagset") or {}
+        tags = tagset.get("tags") or {}
+        default_tags = tags.get("default") or []
+        room = default_tags[0] if default_tags else ""
+
         return IceHouseEvent(
             uid=uid,
             title=title,
             start_ms=int(start_ms),
             ticket_url=ticket_url,
             timezone=tzid,
+            room=room,
         )
