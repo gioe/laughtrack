@@ -29,7 +29,6 @@ from laughtrack.scrapers.implementations.venues.standup_ny.scraper import Standu
 from laughtrack.scrapers.implementations.venues.the_stand.scraper import TheStandNYCScraper
 from laughtrack.scrapers.implementations.venues.uncle_vinnies.scraper import UncleVinniesScraper
 from laughtrack.scrapers.implementations.venues.uptown_theater.scraper import UptownTheaterScraper
-from laughtrack.scrapers.implementations.venues.elysian_theater.scraper import ElysianTheaterScraper
 from laughtrack.scrapers.implementations.venues.west_side.scraper import WestSideScraper
 
 # ---------------------------------------------------------------------------
@@ -76,7 +75,6 @@ PIPELINE_SCRAPERS = [
     (TheStandNYCScraper, {}),
     (UncleVinniesScraper, {}),
     (UptownTheaterScraper, {}),
-    (ElysianTheaterScraper, {}),
     (WestSideScraper, {}),
 ]
 
