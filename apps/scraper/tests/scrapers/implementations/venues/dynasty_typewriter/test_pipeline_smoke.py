@@ -45,6 +45,7 @@ def _raw_event(
     start_at="2026-04-01T19:30:00-07:00",
     url="https://squadup.com/events/the-ultimate-improv-show-30",
     timezone_name="America/Los_Angeles",
+    location_name="Dynasty Typewriter",
 ) -> dict:
     return {
         "id": id_,
@@ -55,7 +56,7 @@ def _raw_event(
         "timezone_name": timezone_name,
         "sold_out": False,
         "ticketed": True,
-        "location": {"name": "Dynasty Typewriter"},
+        "location": {"name": location_name},
     }
 
 
@@ -127,6 +128,34 @@ def test_extract_events_preserves_event_url():
 
     assert len(events) == 1
     assert events[0].url == "https://squadup.com/events/some-show-123"
+
+
+def test_extract_events_captures_location_name():
+    """extract_events() captures location.name from the API response."""
+    raw = _api_response([_raw_event(id_=1, location_name="Dynasty Typewriter At The Hayworth")])
+    events = DynastyTypewriterExtractor.extract_events(raw)
+
+    assert len(events) == 1
+    assert events[0].location_name == "Dynasty Typewriter At The Hayworth"
+
+
+def test_extract_events_includes_hayworth_location_events():
+    """Events with 'Dynasty Typewriter At The Hayworth' location are NOT filtered out.
+
+    Both 'Dynasty Typewriter' and 'Dynasty Typewriter At The Hayworth' refer to
+    the same physical venue at 2511 Wilshire Blvd, Los Angeles. All events from
+    either location.name are included under the single club record.
+    """
+    raw = _api_response([
+        _raw_event(id_=1, title="Main Show", location_name="Dynasty Typewriter"),
+        _raw_event(id_=2, title="Hayworth Show", location_name="Dynasty Typewriter At The Hayworth"),
+    ])
+    events = DynastyTypewriterExtractor.extract_events(raw)
+
+    assert len(events) == 2
+    titles = {e.title for e in events}
+    assert "Main Show" in titles
+    assert "Hayworth Show" in titles
 
 
 # ---------------------------------------------------------------------------

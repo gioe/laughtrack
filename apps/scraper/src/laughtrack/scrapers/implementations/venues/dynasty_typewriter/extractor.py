@@ -1,4 +1,13 @@
-"""Dynasty Typewriter event extraction from SquadUp API response."""
+"""Dynasty Typewriter event extraction from SquadUp API response.
+
+The SquadUp API returns events under two location.name values:
+  - "Dynasty Typewriter"
+  - "Dynasty Typewriter At The Hayworth"
+
+Both refer to the same building at 2511 Wilshire Blvd, Los Angeles, CA 90057.
+All events are extracted regardless of location.name — no filtering by location
+is applied since there is only one physical venue.
+"""
 
 from typing import Any, Dict, List
 
@@ -43,6 +52,8 @@ class DynastyTypewriterExtractor:
 
         url = raw.get("url", "")
         timezone_name = raw.get("timezone_name", "America/Los_Angeles")
+        location = raw.get("location") or {}
+        location_name = location.get("name", "") if isinstance(location, dict) else ""
 
         return DynastyTypewriterEvent(
             id=event_id,
@@ -50,4 +61,5 @@ class DynastyTypewriterExtractor:
             start_at=start_at,
             url=url,
             timezone_name=timezone_name,
+            location_name=location_name,
         )

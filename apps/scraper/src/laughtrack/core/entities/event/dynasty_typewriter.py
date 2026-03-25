@@ -1,6 +1,6 @@
 """Data model for a single event from Dynasty Typewriter's SquadUp API."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional
 from zoneinfo import ZoneInfo
@@ -19,6 +19,14 @@ class DynastyTypewriterEvent(ShowConvertible):
     The API endpoint is:
       https://www.squadup.com/api/v3/events?user_ids=7408591
 
+    The API returns events with two location.name values:
+      - "Dynasty Typewriter"
+      - "Dynasty Typewriter At The Hayworth"
+
+    Both names refer to the same physical venue at 2511 Wilshire Blvd,
+    Los Angeles, CA 90057 — "The Hayworth" is the historic theater building
+    that Dynasty Typewriter operates within. A single club record covers both.
+
     Fields map directly from the API response.
     """
 
@@ -27,6 +35,7 @@ class DynastyTypewriterEvent(ShowConvertible):
     start_at: str  # ISO 8601 with tz offset, e.g. "2026-03-13T19:30:00-07:00"
     url: str  # SquadUp event page URL (also the ticket URL)
     timezone_name: str = "America/Los_Angeles"
+    location_name: str = ""  # location.name from SquadUp API (informational only)
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None) -> Optional[Show]:
         """Convert a DynastyTypewriterEvent to a Show domain object."""
