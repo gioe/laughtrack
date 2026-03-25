@@ -314,3 +314,117 @@ class TestApplyDeletion:
         # impl dir deleted; test dir not passed to rmtree (doesn't exist)
         assert impl_dir / "stale_venue" in deleted_paths
         assert test_dir / "stale_venue" not in deleted_paths
+
+
+# ---------------------------------------------------------------------------
+# find_stale_references
+# ---------------------------------------------------------------------------
+
+class TestFindStaleReferences:
+    def test_finds_match_in_py_file(self, tmp_path, monkeypatch):
+        """Returns (path, lineno, line) for every line containing the dirname."""
+        py_file = tmp_path / "transformer_registry.py"
+        py_file.write_text("from laughtrack.scrapers.implementations.venues.old_venue import S\n")
+        monkeypatch.setattr(_mod, "SCRAPER_ROOT", tmp_path)
+        monkeypatch.setattr(_mod, "VENUES_DIR", tmp_path / "venues")
+
+        results = _mod.find_stale_references("old_venue")
+
+        assert len(results) == 1
+        path, lineno, line = results[0]
+        assert path == py_file
+        assert lineno == 1
+        assert "old_venue" in line
+
+    def test_excludes_files_inside_deleted_directory(self, tmp_path, monkeypatch):
+        """Files under VENUES_DIR/<dirname>/ are skipped (deleted dir guard)."""
+        venues_dir = tmp_path / "venues"
+        deleted_dir = venues_dir / "old_venue"
+        deleted_dir.mkdir(parents=True)
+        (deleted_dir / "scraper.py").write_text("    key = 'old_venue'\n")
+        monkeypatch.setattr(_mod, "SCRAPER_ROOT", tmp_path)
+        monkeypatch.setattr(_mod, "VENUES_DIR", venues_dir)
+
+        results = _mod.find_stale_references("old_venue")
+
+        assert results == []
+
+    def test_skips_dot_venv_directory(self, tmp_path, monkeypatch):
+        """Files under .venv/ (hidden dir) are not scanned."""
+        venv_dir = tmp_path / ".venv" / "lib" / "site-packages"
+        venv_dir.mkdir(parents=True)
+        (venv_dir / "something.py").write_text("# old_venue\n")
+        monkeypatch.setattr(_mod, "SCRAPER_ROOT", tmp_path)
+        monkeypatch.setattr(_mod, "VENUES_DIR", tmp_path / "venues")
+
+        results = _mod.find_stale_references("old_venue")
+
+        assert results == []
+
+    def test_skips_other_hidden_directories(self, tmp_path, monkeypatch):
+        """Files under any directory starting with '.' are excluded (.tox, .git, etc.)."""
+        tox_dir = tmp_path / ".tox" / "py311"
+        tox_dir.mkdir(parents=True)
+        (tox_dir / "conftest.py").write_text("import old_venue\n")
+        monkeypatch.setattr(_mod, "SCRAPER_ROOT", tmp_path)
+        monkeypatch.setattr(_mod, "VENUES_DIR", tmp_path / "venues")
+
+        results = _mod.find_stale_references("old_venue")
+
+        assert results == []
+
+    def test_handles_oserror_gracefully(self, tmp_path, monkeypatch):
+        """An OSError reading a file is swallowed; other matching files still returned."""
+        good_file = tmp_path / "good_module.py"
+        good_file.write_text("from old_venue import X\n")
+        bad_file = tmp_path / "unreadable.py"
+        bad_file.write_text("")
+        monkeypatch.setattr(_mod, "SCRAPER_ROOT", tmp_path)
+        monkeypatch.setattr(_mod, "VENUES_DIR", tmp_path / "venues")
+
+        _real_read_text = Path.read_text
+
+        def _patched_read_text(self, *args, **kwargs):
+            if self.name == "unreadable.py":
+                raise OSError("Permission denied")
+            return _real_read_text(self, *args, **kwargs)
+
+        with patch.object(Path, "read_text", _patched_read_text):
+            results = _mod.find_stale_references("old_venue")
+
+        assert len(results) == 1
+        assert results[0][0] == good_file
+
+    def test_returns_empty_when_no_matches(self, tmp_path, monkeypatch):
+        """Returns [] when the dirname does not appear in any .py file."""
+        (tmp_path / "unrelated.py").write_text("x = 1\n")
+        monkeypatch.setattr(_mod, "SCRAPER_ROOT", tmp_path)
+        monkeypatch.setattr(_mod, "VENUES_DIR", tmp_path / "venues")
+
+        assert _mod.find_stale_references("old_venue") == []
+
+    def test_returns_multiple_matches_across_files(self, tmp_path, monkeypatch):
+        """Collects matches from multiple files."""
+        (tmp_path / "file_a.py").write_text("from old_venue.scraper import S\n")
+        (tmp_path / "file_b.py").write_text("# see old_venue docs\nx = 1\n")
+        monkeypatch.setattr(_mod, "SCRAPER_ROOT", tmp_path)
+        monkeypatch.setattr(_mod, "VENUES_DIR", tmp_path / "venues")
+
+        results = _mod.find_stale_references("old_venue")
+
+        assert len(results) == 2
+        matched_files = {r[0] for r in results}
+        assert tmp_path / "file_a.py" in matched_files
+        assert tmp_path / "file_b.py" in matched_files
+
+    def test_correct_line_numbers_returned(self, tmp_path, monkeypatch):
+        """Line numbers in results match actual file positions."""
+        py_file = tmp_path / "registry.py"
+        py_file.write_text("# line 1\n# line 2\nfrom old_venue import X\n# line 4\n")
+        monkeypatch.setattr(_mod, "SCRAPER_ROOT", tmp_path)
+        monkeypatch.setattr(_mod, "VENUES_DIR", tmp_path / "venues")
+
+        results = _mod.find_stale_references("old_venue")
+
+        assert len(results) == 1
+        assert results[0][1] == 3
