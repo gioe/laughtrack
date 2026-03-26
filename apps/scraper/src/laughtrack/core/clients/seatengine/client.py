@@ -33,6 +33,8 @@ class SeatEngineClient(BaseApiClient):
         )
         # Use seatengine_id directly from club if available
         self.venue_id = club.seatengine_id
+        # Populated by fetch_events from GET /api/v1/venues/{id} — used for public show URLs
+        self.venue_website: Optional[str] = None
 
     async def fetch_events(self, venue_id: str) -> List[JSONDict]:
         """Fetch events from SeatEngine API.
@@ -70,6 +72,13 @@ class SeatEngineClient(BaseApiClient):
             cb.record_success()
             shows = data.get("data", data.get("shows", []))
             self.log_info(f"Extracted {len(shows)} shows from response")
+
+            # Fetch venue website once per scrape run for public show URL construction
+            if self.venue_website is None:
+                venue = await self.fetch_venue_details(venue_id)
+                if venue:
+                    self.venue_website = (venue.get("website") or "").rstrip("/") or None
+
             return shows
 
         except (CircuitBreakerOpenError, NetworkError):
@@ -143,28 +152,40 @@ class SeatEngineClient(BaseApiClient):
                 self.log_error(f"Failed to parse date '{date_str}': {e}")
                 parsed_date = None
 
+        show_id = show_dict.get("id")
+        if self.venue_website:
+            show_page_url = f"{self.venue_website}/shows/{show_id}"
+        else:
+            show_page_url = f"https://services.seatengine.com/api/v1/venues/{self.venue_id}/shows/{show_id}"
+
         return {
             "name": event_data.get("name"),
             "date": parsed_date,
-            "show_page_url": f"https://services.seatengine.com/api/v1/venues/{self.venue_id}/shows/{show_dict.get('id')}",
+            "show_page_url": show_page_url,
             "description": event_data.get("description"),
             "tickets": self._extract_ticket_data(show_dict),
         }
 
     def _extract_ticket_data(self, show_dict: JSONDict) -> List[Ticket]:
         """Extract ticket information from the SeatEngine show data."""
-        # For SeatEngine, we create a basic ticket with show URL for now
-        # In a real implementation, you might need to make an additional API call
-        # to get detailed pricing information
+        show_id = show_dict.get("id")
+        if self.venue_website:
+            purchase_url = f"{self.venue_website}/shows/{show_id}"
+        else:
+            purchase_url = f"https://services.seatengine.com/api/v1/venues/{self.venue_id}/shows/{show_id}"
 
-        event_data = show_dict.get("event", {})
         tickets = []
 
-        # Create a basic ticket entry if the show is available
         if not show_dict.get("sold_out", False):
+            # Extract price from inventories if present (integer cents → float dollars)
+            inventories = show_dict.get("inventories", [])
+            price = 0.0
+            if inventories:
+                price = (inventories[0].get("price") or 0) / 100
+
             ticket = Ticket(
-                price=0.0,  # Would need additional API call for actual pricing
-                purchase_url=f"https://services.seatengine.com/api/v1/venues/{self.venue_id}/shows/{show_dict.get('id')}",
+                price=price,
+                purchase_url=purchase_url,
                 sold_out=show_dict.get("sold_out", False),
                 type="General Admission",
             )
@@ -188,8 +209,8 @@ class SeatEngineClient(BaseApiClient):
     async def fetch_venue_details(self, venue_id: str) -> Optional[JSONDict]:
         """Fetch venue details from SeatEngine API.
 
-        Called by the dev tool at apps/scraper/web/seatengine_api_tool/app.py
-        for manual API exploration; not part of the production scraping pipeline.
+        Called by fetch_events to cache venue_website for public show URL construction,
+        and by the dev tool at apps/scraper/web/seatengine_api_tool/app.py.
 
         Args:
             venue_id: The venue identifier for SeatEngine
