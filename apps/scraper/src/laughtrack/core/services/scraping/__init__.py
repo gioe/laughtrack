@@ -85,6 +85,9 @@ class ScrapingService:
             raise ValueError(f"Club with ID {club_id} not found" if club_id else "No club selected")
         results, _, db_result = self._scrape_clubs_with_metrics(clubs)
         self.result_processor.process_results(results, db_result)
+        total_shows = sum(r.num_shows for r in results)
+        club_label = clubs[0].name if len(clubs) == 1 else f"{len(clubs)} clubs"
+        Logger.info(f"Scraped {total_shows} shows for {club_label}")
 
     def scrape_by_scraper_type(self, scraper_type: Optional[str] = None) -> None:
         Logger.info(f"Starting scrape of all clubs using scraper type: {scraper_type}")
@@ -367,19 +370,21 @@ class ScrapingService:
 
             title = f"Scrape run: {summary.clubs_ok}/{summary.total_clubs} clubs OK"
 
+            failing = [m for m in summary.per_club if m.success_rate < self.success_rate_threshold]
             body_lines = [
                 f"Shows scraped: {db_result.total}",
                 f"Shows inserted: {db_result.inserts}",
                 f"Shows updated: {db_result.updates}",
-                "",
-                "**Per-club breakdown:**",
             ]
-            for m in summary.per_club:
-                icon = "✅" if m.success_rate >= self.success_rate_threshold else "⚠️"
-                body_lines.append(
-                    f"{icon} {m.club_name}: {m.success_rate:.0f}% ({m.ok}/{m.total} ok, "
-                    f"{m.none_resp} empty, {m.error} errors)"
-                )
+            if failing:
+                body_lines += ["", f"**{len(failing)} club(s) below threshold:**"]
+                for m in failing:
+                    body_lines.append(
+                        f"⚠️ {m.club_name}: {m.success_rate:.0f}% ({m.ok}/{m.total} ok, "
+                        f"{m.none_resp} empty, {m.error} errors)"
+                    )
+            else:
+                body_lines.append("All clubs at or above threshold ✅")
 
             alert = Alert(
                 id=str(uuid.uuid4()),

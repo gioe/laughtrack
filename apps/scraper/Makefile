@@ -539,7 +539,7 @@ ifndef CLUB
 	$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.scrape_shows
 else
 	@echo "🎭 Scraping venue: $(CLUB)"
-	$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.scrape_shows --club "$(CLUB)"
+	$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.scrape_shows --club "$(CLUB)" -v
 endif
 
 # Scrape specific venue by database ID - direct database lookup
@@ -553,7 +553,7 @@ ifndef ID
 	@exit 1
 else
 	@echo "🎭 Scraping venue ID: $(ID)"
-	$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.scrape_shows --club-id $(ID)
+	$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.scrape_shows --club-id $(ID) -v
 endif
 
 # Diagnose why ./bin/scrape --id N returns 'No clubs found' (scraper IS NULL check)
