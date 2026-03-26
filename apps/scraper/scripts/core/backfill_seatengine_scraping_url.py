@@ -16,15 +16,21 @@ Usage:
 """
 
 import argparse
-import os
 import sys
 import time
+from pathlib import Path
 from typing import Optional
+
+_repo_root = Path(__file__).resolve().parents[2]
+_src_path = _repo_root / "src"
+if str(_src_path) not in sys.path:
+    sys.path.insert(0, str(_src_path))
+
+import os
 
 from dotenv import load_dotenv
 
-load_dotenv(os.path.join(os.path.dirname(__file__), "../../.env"))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../src"))
+load_dotenv(_repo_root / ".env")
 
 import requests
 from laughtrack.adapters.db import get_connection
@@ -46,25 +52,24 @@ def _build_headers(auth_token: str) -> dict:
 
 def _fetch_clubs(club_id: Optional[int] = None) -> list[dict]:
     with get_connection() as conn:
-        cur = conn.cursor()
-        if club_id:
-            cur.execute(
-                "SELECT id, name, seatengine_id, scraping_url FROM clubs "
-                "WHERE scraper = 'seatengine' AND seatengine_id IS NOT NULL "
-                "AND seatengine_id != '' AND id = %s",
-                (club_id,),
-            )
-        else:
-            cur.execute(
-                "SELECT id, name, seatengine_id, scraping_url FROM clubs "
-                "WHERE scraper = 'seatengine' "
-                "AND scraping_url = %s "
-                "AND seatengine_id IS NOT NULL AND seatengine_id != '' "
-                "ORDER BY id",
-                (_LEGACY_PLACEHOLDER,),
-            )
-        rows = cur.fetchall()
-        cur.close()
+        with conn.cursor() as cur:
+            if club_id:
+                cur.execute(
+                    "SELECT id, name, seatengine_id, scraping_url FROM clubs "
+                    "WHERE scraper = 'seatengine' AND seatengine_id IS NOT NULL "
+                    "AND seatengine_id != '' AND id = %s",
+                    (club_id,),
+                )
+            else:
+                cur.execute(
+                    "SELECT id, name, seatengine_id, scraping_url FROM clubs "
+                    "WHERE scraper = 'seatengine' "
+                    "AND scraping_url = %s "
+                    "AND seatengine_id IS NOT NULL AND seatengine_id != '' "
+                    "ORDER BY id",
+                    (_LEGACY_PLACEHOLDER,),
+                )
+            rows = cur.fetchall()
     return [
         {"id": r[0], "name": r[1], "seatengine_id": r[2], "scraping_url": r[3]}
         for r in rows
@@ -82,19 +87,21 @@ def _fetch_venue_website(seatengine_id: str, headers: dict, timeout: int = 15) -
         data = body.get("data", body)
         website = (data.get("website") or "").strip().rstrip("/")
         return website if website else None
-    except Exception:
+    except Exception as exc:
+        print(f"  WARNING: API request failed for seatengine_id={seatengine_id}: {exc}", file=sys.stderr)
         return None
 
 
 def _update_scraping_url(club_id: int, scraping_url: str) -> None:
+    # get_connection() uses autocommit=True — no explicit commit needed.
+    # The WHERE guard ensures this is a no-op if the club already has a real URL.
     with get_connection() as conn:
-        cur = conn.cursor()
-        cur.execute(
-            "UPDATE clubs SET scraping_url = %s WHERE id = %s",
-            (scraping_url, club_id),
-        )
-        conn.commit()
-        cur.close()
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE clubs SET scraping_url = %s "
+                "WHERE id = %s AND scraping_url = %s",
+                (scraping_url, club_id, _LEGACY_PLACEHOLDER),
+            )
 
 
 def main(dry_run: bool = False, club_id: Optional[int] = None) -> None:
@@ -153,8 +160,9 @@ def main(dry_run: bool = False, club_id: Optional[int] = None) -> None:
             time.sleep(0.3)
 
     print(f"\n{'─' * 70}")
-    print(f"Updated : {len(updated)}")
-    print(f"Skipped : {len(skipped)}  (API returned no website)")
+    updated_label = "Would update" if dry_run else "Updated"
+    print(f"{updated_label} : {len(updated)}")
+    print(f"Skipped  : {len(skipped)}  (API returned no website)")
     if already_ok:
         print(f"Already OK: {len(already_ok)}")
 
