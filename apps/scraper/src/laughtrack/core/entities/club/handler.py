@@ -165,7 +165,7 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         try:
             results = self.execute_with_cursor(
                 ClubQueries.UPSERT_CLUB_BY_SEATENGINE_VENUE,
-                (name, address, website, venue_id, zip_code, city, state),
+                (name, address, website, website, venue_id, zip_code, city, state),
                 return_results=True,
             )
             if not results:

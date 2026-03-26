@@ -60,10 +60,11 @@ class ClubQueries:
             seatengine_id, scraper, visible,
             zip_code, city, state, phone_number, popularity, timezone
         )
-        VALUES (%s, %s, %s, 'www.seatengine.com', %s, 'seatengine', true, %s, %s, %s, '', 0, NULL)
+        VALUES (%s, %s, %s, %s, %s, 'seatengine', true, %s, %s, %s, '', 0, NULL)
         ON CONFLICT (name) DO UPDATE SET
             seatengine_id = COALESCE(clubs.seatengine_id, EXCLUDED.seatengine_id),
             scraper       = COALESCE(clubs.scraper,       EXCLUDED.scraper),
+            scraping_url  = COALESCE(NULLIF(clubs.scraping_url, 'www.seatengine.com'), EXCLUDED.scraping_url),
             city          = COALESCE(clubs.city,          EXCLUDED.city),
             state         = COALESCE(clubs.state,         EXCLUDED.state)
         RETURNING *
