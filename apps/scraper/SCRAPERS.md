@@ -134,6 +134,34 @@ UPDATE clubs SET scraper = 'seatengine', seatengine_id = '123' WHERE name = 'My 
 
 ---
 
+### SeatEngine Classic (Legacy)
+
+| | |
+|---|---|
+| **Scraper key** | `seatengine_classic` |
+| **DB field** | `scraping_url` (runtime) · `seatengine_id` (metadata only) |
+| **Value format** | `scraping_url`: full venue calendar URL · `seatengine_id`: numeric (may be NULL) |
+| **Generic?** | ✅ Already generic — no code needed for new venues |
+
+**⚠️ Important: `seatengine_id` is NOT used at runtime.**
+`seatengine_classic` fetches events from `scraping_url` directly — `seatengine_id` is stored for
+record-keeping only and never appears in any URL or API call. The field name is misleading; do NOT
+enumerate or look up numeric IDs for `seatengine_classic` venues. If `seatengine_id` is NULL, the
+scraper still works correctly as long as `scraping_url` is set.
+
+**Detection signals:**
+- Same as SeatEngine v1, but the venue's calendar is served at a custom URL path rather than via
+  the standard SeatEngine REST API
+- `scraping_url` is set; `seatengine_id` may be NULL or present as a reference value
+
+**DB setup:**
+```sql
+UPDATE clubs SET scraper = 'seatengine_classic', scraping_url = 'https://myvenue.seatengine.net/shows' WHERE name = 'My Club';
+-- seatengine_id may be set for record-keeping but is ignored at runtime
+```
+
+---
+
 ### SeatEngine v3
 
 | | |
