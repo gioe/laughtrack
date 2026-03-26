@@ -235,3 +235,18 @@ def test_create_show_price_defaults_to_zero_without_inventories(monkeypatch, stu
 
     assert show is not None
     assert show.tickets[0].price == 0.0
+
+
+def test_create_show_sold_out_produces_ticket_with_sold_out_true(monkeypatch, stub_base_init):
+    """Sold-out shows produce a single Ticket with sold_out=True and correct purchase_url."""
+    client = _make_client(monkeypatch)
+    client.venue_website = "https://comedyzoneclt.seatengine.com"
+    _patch_dates(monkeypatch)
+
+    show = client.create_show(_make_show_dict(show_id=42, sold_out=True))
+
+    assert show is not None
+    assert len(show.tickets) == 1
+    ticket = show.tickets[0]
+    assert ticket.sold_out is True
+    assert ticket.purchase_url == "https://comedyzoneclt.seatengine.com/shows/42"

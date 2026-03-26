@@ -181,24 +181,28 @@ class SeatEngineClient(BaseApiClient):
         else:
             purchase_url = f"https://services.seatengine.com/api/v1/venues/{self.venue_id}/shows/{show_id}"
 
-        tickets = []
+        sold_out = show_dict.get("sold_out", False)
 
-        if not show_dict.get("sold_out", False):
-            # Extract price from inventories if present (integer cents → float dollars)
-            inventories = show_dict.get("inventories", [])
-            price = 0.0
-            if inventories:
-                price = (inventories[0].get("price") or 0) / 100
-
-            ticket = Ticket(
-                price=price,
+        if sold_out:
+            return [Ticket(
+                price=0.0,
                 purchase_url=purchase_url,
-                sold_out=show_dict.get("sold_out", False),
+                sold_out=True,
                 type="General Admission",
-            )
-            tickets.append(ticket)
+            )]
 
-        return tickets
+        # Extract price from inventories if present (integer cents → float dollars)
+        inventories = show_dict.get("inventories", [])
+        price = 0.0
+        if inventories:
+            price = (inventories[0].get("price") or 0) / 100
+
+        return [Ticket(
+            price=price,
+            purchase_url=purchase_url,
+            sold_out=False,
+            type="General Admission",
+        )]
 
     def _check_room(self, event_data: JSONDict) -> Optional[str]:
         """Check if the show is in a specific room based on event labels."""
