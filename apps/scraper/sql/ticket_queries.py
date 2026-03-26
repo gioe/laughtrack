@@ -18,7 +18,8 @@ class TicketQueries:
         ) 
         VALUES %s 
         ON CONFLICT (show_id, type) 
-        DO UPDATE SET 
+        DO UPDATE SET
+            purchase_url = EXCLUDED.purchase_url,
             price = EXCLUDED.price,
             sold_out = EXCLUDED.sold_out
         RETURNING 
