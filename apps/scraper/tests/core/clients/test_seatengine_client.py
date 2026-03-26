@@ -108,6 +108,66 @@ def _make_show_dict(show_id: int = 337633, sold_out: bool = False, inventories=N
     }
 
 
+@pytest.mark.asyncio
+async def test_fetch_events_populates_venue_website(monkeypatch, stub_base_init):
+    """fetch_events calls fetch_venue_details and caches venue_website."""
+    client = _make_client(monkeypatch)
+    shows_payload = {"data": [{"id": 1, "event": {}}]}
+    venue_payload = {"data": {"website": "https://comedyzoneclt.seatengine.com"}}
+
+    call_urls = []
+
+    async def fake_fetch_json(url, headers=None):
+        call_urls.append(url)
+        if "shows" in url and url.endswith("/shows"):
+            return shows_payload
+        return venue_payload
+
+    monkeypatch.setattr(client, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(client, "log_info", lambda *a, **k: None)
+
+    from laughtrack.core.clients.seatengine.circuit_breaker import SeatEngineCircuitBreaker
+    monkeypatch.setattr(SeatEngineCircuitBreaker, "check_open", lambda self: None)
+    monkeypatch.setattr(SeatEngineCircuitBreaker, "record_success", lambda self: None)
+    monkeypatch.setattr(SeatEngineCircuitBreaker, "record_failure", lambda self: None)
+
+    assert client.venue_website is None
+    await client.fetch_events("venue-abc")
+    assert client.venue_website == "https://comedyzoneclt.seatengine.com"
+
+    # Second call must NOT re-fetch venue details (only one venue API call per run)
+    prev_len = len(call_urls)
+    await client.fetch_events("venue-abc")
+    venue_calls = [u for u in call_urls[prev_len:] if "shows" not in u.split("/")[-1]]
+    assert len(venue_calls) == 0, "venue endpoint should not be re-fetched on second call"
+
+
+@pytest.mark.asyncio
+async def test_fetch_events_venue_website_failure_degrades_gracefully(monkeypatch, stub_base_init):
+    """A fetch_venue_details failure inside fetch_events returns shows without setting venue_website."""
+    client = _make_client(monkeypatch)
+    shows_payload = {"data": [{"id": 1, "event": {}}]}
+
+    async def fake_fetch_json(url, headers=None):
+        if url.endswith("/shows"):
+            return shows_payload
+        raise RuntimeError("venue detail exploded")
+
+    monkeypatch.setattr(client, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(client, "log_info", lambda *a, **k: None)
+    monkeypatch.setattr(client, "log_warning", lambda *a, **k: None)
+    monkeypatch.setattr(client, "log_error", lambda *a, **k: None)
+
+    from laughtrack.core.clients.seatengine.circuit_breaker import SeatEngineCircuitBreaker
+    monkeypatch.setattr(SeatEngineCircuitBreaker, "check_open", lambda self: None)
+    monkeypatch.setattr(SeatEngineCircuitBreaker, "record_success", lambda self: None)
+    monkeypatch.setattr(SeatEngineCircuitBreaker, "record_failure", lambda self: None)
+
+    shows = await client.fetch_events("venue-abc")
+    assert shows == shows_payload["data"]
+    assert client.venue_website == ""  # sentinel: fetched, no website (failure path)
+
+
 _FAKE_DATE = "2026-04-01T20:00:00+00:00"
 
 

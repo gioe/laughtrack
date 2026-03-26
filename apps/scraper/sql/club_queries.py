@@ -64,6 +64,8 @@ class ClubQueries:
         ON CONFLICT (name) DO UPDATE SET
             seatengine_id = COALESCE(clubs.seatengine_id, EXCLUDED.seatengine_id),
             scraper       = COALESCE(clubs.scraper,       EXCLUDED.scraper),
+            -- Migrate the exact legacy placeholder inserted before this fix;
+            -- 'www.seatengine.com' is the only variant ever written by this query.
             scraping_url  = COALESCE(NULLIF(clubs.scraping_url, 'www.seatengine.com'), EXCLUDED.scraping_url),
             city          = COALESCE(clubs.city,          EXCLUDED.city),
             state         = COALESCE(clubs.state,         EXCLUDED.state)

@@ -73,11 +73,18 @@ class SeatEngineClient(BaseApiClient):
             shows = data.get("data", data.get("shows", []))
             self.log_info(f"Extracted {len(shows)} shows from response")
 
-            # Fetch venue website once per scrape run for public show URL construction
+            # Fetch venue website once per scrape run for public show URL construction.
+            # Isolated try/except prevents any failure here from contaminating the
+            # circuit breaker (which should only track shows-endpoint health).
             if self.venue_website is None:
-                venue = await self.fetch_venue_details(venue_id)
-                if venue:
-                    self.venue_website = (venue.get("website") or "").rstrip("/") or None
+                try:
+                    venue = await self.fetch_venue_details(venue_id)
+                    # Use "" as a sentinel for "fetched but no website" so we don't
+                    # re-fetch on retries when the API returns no website field.
+                    self.venue_website = (venue.get("website") or "").rstrip("/") if venue else ""
+                except Exception as e:
+                    self.log_warning(f"Failed to fetch venue website for {venue_id}: {e}")
+                    self.venue_website = ""
 
             return shows
 
