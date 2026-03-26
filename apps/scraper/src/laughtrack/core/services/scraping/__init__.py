@@ -97,6 +97,8 @@ class ScrapingService:
         clubs = self.club_handler.get_clubs_for_scraper(scraper_type)
         results, _, db_result = self._scrape_clubs_with_metrics(clubs)
         self.result_processor.process_results(results, db_result)
+        total_shows = sum(r.num_shows for r in results)
+        Logger.info(f"Scraped {total_shows} shows for {scraper_type}")
 
     # --- Internal helpers ---
     @property
