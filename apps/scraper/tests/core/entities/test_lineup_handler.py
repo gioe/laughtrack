@@ -67,24 +67,24 @@ def _stub(name: str, as_package: bool = False, **attrs):
 # Stubs required for loading lineup/handler.py and show/handler.py
 # ---------------------------------------------------------------------------
 _stub("laughtrack.foundation.protocols.database_entity", DatabaseEntity=object)
-_stub("laughtrack.foundation.protocols", DatabaseEntity=object)
+_stub("laughtrack.foundation.protocols", as_package=True, DatabaseEntity=object)
 _stub("laughtrack.foundation.infrastructure.logger.logger", Logger=MagicMock())
-_stub("laughtrack.foundation.infrastructure.logger", Logger=MagicMock())
-_stub("laughtrack.foundation.infrastructure", Logger=MagicMock())
+_stub("laughtrack.foundation.infrastructure.logger", as_package=True, Logger=MagicMock())
+_stub("laughtrack.foundation.infrastructure", as_package=True, Logger=MagicMock())
 _stub("laughtrack.foundation.utilities.popularity.scorer", PopularityScorer=MagicMock())
-_stub("laughtrack.foundation.utilities.popularity", PopularityScorer=MagicMock())
+_stub("laughtrack.foundation.utilities.popularity", as_package=True, PopularityScorer=MagicMock())
 _stub("laughtrack.foundation.utilities.string", StringUtils=MagicMock())
-_stub("laughtrack.foundation.utilities", StringUtils=MagicMock())
-_stub("laughtrack.foundation", DatabaseEntity=object)
+_stub("laughtrack.foundation.utilities", as_package=True, StringUtils=MagicMock())
+_stub("laughtrack.foundation", as_package=True, DatabaseEntity=object)
 _stub("laughtrack.foundation.infrastructure.database.template", BatchTemplateGenerator=MagicMock())
 _stub("laughtrack.foundation.infrastructure.database.operation", DatabaseOperationLogger=MagicMock())
 _stub("laughtrack.foundation.models.operation_result", DatabaseOperationResult=MagicMock)
 _stub("laughtrack.utilities.domain.comedian.utils", ComedianUtils=MagicMock())
-_stub("laughtrack.utilities.domain.comedian", ComedianUtils=MagicMock())
+_stub("laughtrack.utilities.domain.comedian", as_package=True, ComedianUtils=MagicMock())
 _stub("laughtrack.utilities.domain.show.utils", ShowUtils=MagicMock())
-_stub("laughtrack.utilities.domain.show", ShowUtils=MagicMock())
-_stub("laughtrack.utilities.domain", ComedianUtils=MagicMock())
-_stub("laughtrack.utilities", ComedianUtils=MagicMock())
+_stub("laughtrack.utilities.domain.show", as_package=True, ShowUtils=MagicMock())
+_stub("laughtrack.utilities.domain", as_package=True, ComedianUtils=MagicMock())
+_stub("laughtrack.utilities", as_package=True, ComedianUtils=MagicMock())
 
 # Stub BaseDatabaseHandler
 _T_stub = _TypeVar("_T_stub")
@@ -111,8 +111,8 @@ class _BaseDatabaseHandlerStub(_Generic[_T_stub], _ABC):
 
 
 _stub("laughtrack.core.data.base_handler", BaseDatabaseHandler=_BaseDatabaseHandlerStub)
-_stub("laughtrack.core.data", BaseDatabaseHandler=_BaseDatabaseHandlerStub)
-_stub("laughtrack.core", BaseDatabaseHandler=_BaseDatabaseHandlerStub)
+_stub("laughtrack.core.data", as_package=True, BaseDatabaseHandler=_BaseDatabaseHandlerStub)
+_stub("laughtrack.core", as_package=True, BaseDatabaseHandler=_BaseDatabaseHandlerStub)
 
 # Comedian model and handler stubs — must be package-style so submodule imports work
 _comedian_pkg = _stub("laughtrack.core.entities.comedian", Comedian=MagicMock())

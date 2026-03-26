@@ -47,8 +47,12 @@ def _ensure_psycopg2_stubbed():
         sys.modules["psycopg2.extensions"] = extensions
 
 
-def _stub(name: str, **attrs):
+def _stub(name: str, as_package: bool = False, **attrs):
     m = ModuleType(name)
+    if as_package:
+        pkg_path = str(_SCRAPER_ROOT / "src" / name.replace(".", "/"))
+        m.__path__ = [pkg_path]
+        m.__package__ = name
     for k, v in attrs.items():
         setattr(m, k, v)
     sys.modules.setdefault(name, m)
@@ -57,19 +61,19 @@ def _stub(name: str, **attrs):
 
 # Foundation stubs
 _stub("laughtrack.foundation.protocols.database_entity", DatabaseEntity=object)
-_stub("laughtrack.foundation.protocols", DatabaseEntity=object)
+_stub("laughtrack.foundation.protocols", as_package=True, DatabaseEntity=object)
 _stub("laughtrack.foundation.infrastructure.logger.logger", Logger=MagicMock())
-_stub("laughtrack.foundation.infrastructure.logger", Logger=MagicMock())
+_stub("laughtrack.foundation.infrastructure.logger", as_package=True, Logger=MagicMock())
 _stub("laughtrack.foundation.infrastructure.database.operation", DatabaseOperationLogger=MagicMock())
-_stub("laughtrack.foundation.infrastructure.database", DatabaseOperationLogger=MagicMock())
-_stub("laughtrack.foundation.infrastructure", Logger=MagicMock())
+_stub("laughtrack.foundation.infrastructure.database", as_package=True, DatabaseOperationLogger=MagicMock())
+_stub("laughtrack.foundation.infrastructure", as_package=True, Logger=MagicMock())
 from typing import TypeVar as _TypeVar
 _T = _TypeVar("T")
 _stub("laughtrack.foundation.models.types", T=_T, JSONDict=dict)
-_stub("laughtrack.foundation.models", T=_T)
-_stub("laughtrack.foundation", DatabaseEntity=object)
+_stub("laughtrack.foundation.models", as_package=True, T=_T)
+_stub("laughtrack.foundation", as_package=True, DatabaseEntity=object)
 _stub("laughtrack.adapters.db", create_connection=MagicMock())
-_stub("laughtrack.adapters", create_connection=MagicMock())
+_stub("laughtrack.adapters", as_package=True, create_connection=MagicMock())
 
 # Load Club model directly (bypasses club __init__.py which may pull in handler)
 _club_model_mod = _load_module(
