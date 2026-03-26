@@ -93,7 +93,7 @@ setup-venv:
 		echo "✅ Virtual environment already exists at $(VENV_DIR)/"; \
 	fi
 
-.PHONY: test test-all test-venues test-core test-infrastructure test-utils test-critical help help-full help-install help-test help-lint hdiscover help-clean help-linting help-testing help-scraping help-setup help-analysis help-viz help-maintenance help-update help-updates help-workflows help-discovery help-info help-cleanup scrape-all scrape-club scrape-club-id diagnose-club scrape-interactive scrape-types list-scrapers list-clubs update-popularity update-comedian-stats migrate migrate-dry-run dashboard visualize-metrics scraper-status daily-scrape full-maintenance install install-dev install-optional seatengine-api-tool clean lint lint-check format format-check lint-fix lint-fix-imports lint-fix-whitespace check-venv setup-venv arch-lint
+.PHONY: test test-all test-venues test-core test-infrastructure test-utils test-critical help help-full help-install help-test help-lint hdiscover help-clean help-linting help-testing help-scraping help-setup help-analysis help-viz help-maintenance help-update help-updates help-workflows help-discovery help-info help-cleanup scrape-all scrape-club scrape-club-id diagnose-club scrape-interactive scrape-types list-scrapers list-clubs update-popularity update-comedian-stats migrate migrate-dry-run dashboard visualize-metrics scraper-status daily-scrape full-maintenance install install-dev install-optional seatengine-api-tool clean lint lint-check format format-check lint-fix lint-fix-imports lint-fix-whitespace check-venv setup-venv arch-lint run-script
 
 # =============================================================================
 # HELP & DOCUMENTATION
@@ -196,6 +196,8 @@ help-maintain:
 
 help-analyze:
 	@echo "📈 ANALYSIS & VISUALIZATION:"
+	@echo "  run-script SCRIPT=path/to/script.py [ARGS='...']"
+	@echo "                       - Run a one-off Python script using the scraper venv"
 	@echo "  dashboard            - Generate comprehensive HTML analytics dashboard (data/processed/scraper_dashboard.html)"
 	@echo "  visualize-metrics    - Print tabular trend summary of recent scraper runs"
 	@echo "  select-metrics       - Pick a metrics JSON and render it to the dashboard"
@@ -554,6 +556,18 @@ ifndef ID
 else
 	@echo "🎭 Scraping venue ID: $(ID)"
 	$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.scrape_shows --club-id $(ID) -v
+endif
+
+# Run a one-off Python script from the repo root using the scraper venv
+run-script:
+	@echo "🐍 Running script with scraper venv:"
+	@echo "   Usage: make run-script SCRIPT=path/to/script.py [ARGS='...']"
+	@echo "   Example: make run-script SCRIPT=audit_seatengine_classic_ids.py"
+ifndef SCRIPT
+	@echo "❌ Error: SCRIPT parameter is required"
+	@exit 1
+else
+	$(activate_venv) $(RUN_ENV) $(PYTHON) $(SCRIPT) $(ARGS)
 endif
 
 # Diagnose why ./bin/scrape --id N returns 'No clubs found' (scraper IS NULL check)
