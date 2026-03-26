@@ -20,6 +20,12 @@ class SeatEngineExtractor:
 
 
 class SeatEngineEventTransformer(DataTransformer[JSONDict]):
+	def __init__(self, club, client: Optional["SeatEngineClient"] = None):
+		super().__init__(club)
+		# Reuse a pre-built client (e.g., from the scraper) so that venue_website
+		# cached during fetch_events is available when create_show is called.
+		self._client = client
+
 	def can_transform(self, raw_data: JSONDict) -> bool:  # type: ignore[override]
 		# Basic shape: SeatEngine events usually have id and event object
 		return isinstance(raw_data, dict) and ("id" in raw_data or "event" in raw_data)
@@ -30,7 +36,7 @@ class SeatEngineEventTransformer(DataTransformer[JSONDict]):
 		source_url: Optional[str] = None,
 	) -> Optional[Show]:  # type: ignore[override]
 		try:
-			client = SeatEngineClient(self.club)
+			client = self._client or SeatEngineClient(self.club)
 			return client.create_show(raw_data)
 		except Exception as e:
 			Logger.error(f"SeatEngine transformer failed: {e}")

@@ -21,7 +21,6 @@ class SeatEngineScraper(BaseScraper):
     
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
-        self.transformation_pipeline.register_transformer(SeatEngineEventTransformer(club))
 
         # Validate that club has seatengine_id
         if not club.seatengine_id:
@@ -30,8 +29,12 @@ class SeatEngineScraper(BaseScraper):
         # Store the venue_id (seatengine_id)
         self.venue_id = club.seatengine_id
 
-        # Initialize the SeatEngine client
+        # Initialize the SeatEngine client; pass it to the transformer so that
+        # venue_website cached during fetch_events is shared with create_show.
         self.seatengine_client = SeatEngineClient(club, proxy_pool=self.proxy_pool)
+        self.transformation_pipeline.register_transformer(
+            SeatEngineEventTransformer(club, client=self.seatengine_client)
+        )
 
         self.logger_context = club.as_context()
 
