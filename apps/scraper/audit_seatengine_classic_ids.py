@@ -3,7 +3,7 @@ One-off audit: verify all SeatEngine Classic seatengine_id mappings against the 
 
 Usage:
   cd apps/scraper
-  .venv/bin/python audit_seatengine_ids.py [--fix-sql]
+  .venv/bin/python audit_seatengine_classic_ids.py [--fix-sql]
 
 Prints a table comparing DB club name to SeatEngine API venue name.
 Flags mismatches with *** MISMATCH ***.
@@ -59,7 +59,7 @@ async def fetch_venue(session: AsyncSession, venue_id: str, token: str) -> dict 
             data = resp.json()
             return data.get("data", data)
         return None
-    except Exception as e:
+    except Exception:
         return None
 
 
@@ -69,13 +69,15 @@ async def run_audit(fix_sql: bool = False):
     db_url = build_db_url(v)
 
     conn = psycopg2.connect(db_url)
-    cur = conn.cursor()
-    cur.execute(
-        "SELECT id, name, seatengine_id FROM clubs WHERE scraper = 'seatengine_classic' ORDER BY id"
-    )
-    clubs = cur.fetchall()
-    cur.close()
-    conn.close()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT id, name, seatengine_id FROM clubs WHERE scraper = 'seatengine_classic' ORDER BY id"
+        )
+        clubs = cur.fetchall()
+        cur.close()
+    finally:
+        conn.close()
 
     print(f"Auditing {len(clubs)} SeatEngine Classic clubs...\n")
     print(f"{'ClubID':>6}  {'DB Name':<40}  {'SE ID':>6}  {'API Venue Name':<40}  {'Status'}")

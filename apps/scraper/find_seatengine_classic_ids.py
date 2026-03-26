@@ -12,7 +12,6 @@ Usage:
 import asyncio
 import json
 import re
-import sys
 from pathlib import Path
 
 from dotenv import dotenv_values
@@ -124,12 +123,12 @@ async def run():
     if CACHE_PATH.exists():
         print(f"Loading cached full map from {CACHE_PATH}...")
         full_map = json.loads(CACHE_PATH.read_text())
-        id_to_info = {int(k): v for k, v in full_map.items()}
+        id_to_info = {int(k): info for k, info in full_map.items()}
     else:
         print("Enumerating SeatEngine IDs 1–700 (may take ~45s)...")
         async with AsyncSession(impersonate="chrome124") as session:
             id_to_info = await enumerate_venues(session, list(range(1, 701)), token)
-        CACHE_PATH.write_text(json.dumps({str(k): v for k, v in sorted(id_to_info.items())}, indent=2))
+        CACHE_PATH.write_text(json.dumps({str(k): info for k, info in sorted(id_to_info.items())}, indent=2))
         print(f"Saved {len(id_to_info)} entries to {CACHE_PATH}\n")
 
     id_to_name = {vid: info["name"] for vid, info in id_to_info.items()}
@@ -153,6 +152,9 @@ async def run():
 
         print(f"\n[{club_id}] {club_name}  (current_id={current_id})")
         shown = set()
+        # Union of token matches and website matches (both are sets of (vid, name) tuples).
+        # If a vid appears in both, set deduplication keeps one entry; the [WEBSITE MATCH]
+        # tag is then applied based on website_matches membership.
         for vid, name in sorted(set(matches) | set(website_matches.items())):
             ws = id_to_website.get(vid, "")
             tag = " [WEBSITE MATCH]" if vid in website_matches else ""

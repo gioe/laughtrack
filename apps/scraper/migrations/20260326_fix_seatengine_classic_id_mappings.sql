@@ -24,6 +24,8 @@
 --     126 | Snappers Fort Myers                  |    159 |    160 | API: 'Snappers Fort Myers' snapperscomedyclub.com
 --     128 | Spokane Comedy Club                  |    151 |    152 | API: 'Spokane Comedy Club' spokanecomedyclub.com
 
+BEGIN;
+
 UPDATE clubs SET seatengine_id = '158' WHERE id = 64;
 UPDATE clubs SET seatengine_id = '245' WHERE id = 65;
 UPDATE clubs SET seatengine_id = '218' WHERE id = 66;
@@ -80,3 +82,5 @@ UPDATE clubs SET seatengine_id = NULL WHERE id IN (
     130,  -- Stress Factory - Valley Forge
     134   -- Helium Comedy Club - Atlanta
 );
+
+COMMIT;
