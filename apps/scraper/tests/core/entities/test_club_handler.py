@@ -387,7 +387,7 @@ class TestUpsertForSeatEngineVenueHappyPath:
         assert result.name == "McGuire's Comedy Club"
 
     def test_passes_correct_params_to_execute(self):
-        """execute_with_cursor receives (name, address, website, venue_id, zip_code)."""
+        """execute_with_cursor receives (name, address, website, scraping_url, venue_id, zip_code)."""
         venue = {"id": 457, "name": "Brokerage Comedy Club", "address": "200 Elm St", "zip": "11795", "website": "https://brokerage.com"}
         row = _make_seatengine_club_row(name="Brokerage Comedy Club", seatengine_id="457")
 
@@ -400,8 +400,9 @@ class TestUpsertForSeatEngineVenueHappyPath:
         assert params[0] == "Brokerage Comedy Club"   # name
         assert params[1] == "200 Elm St"              # address
         assert params[2] == "https://brokerage.com"   # website
-        assert params[3] == "457"                     # venue_id (stringified)
-        assert params[4] == "11795"                   # zip_code
+        assert params[3] == "https://brokerage.com"   # scraping_url (same as website)
+        assert params[4] == "457"                     # venue_id (stringified)
+        assert params[5] == "11795"                   # zip_code
 
     def test_venue_id_stringified(self):
         """Numeric id in the dict is converted to string for the DB param."""
@@ -413,7 +414,7 @@ class TestUpsertForSeatEngineVenueHappyPath:
             handler.upsert_for_seatengine_venue(venue)
 
         params = mock_exec.call_args[0][1]
-        assert params[3] == "325"
+        assert params[4] == "325"
 
     def test_postal_code_fallback(self):
         """zip_code is read from 'postal_code' key when 'zip' is absent."""
@@ -425,7 +426,7 @@ class TestUpsertForSeatEngineVenueHappyPath:
             handler.upsert_for_seatengine_venue(venue)
 
         params = mock_exec.call_args[0][1]
-        assert params[4] == "11520"
+        assert params[5] == "11520"
 
 
 class TestUpsertForSeatEngineVenueConflict:
@@ -571,8 +572,8 @@ class TestSeatEngineVenueCityStateExtraction:
             handler.upsert_for_seatengine_venue(venue)
 
         params = mock_exec.call_args[0][1]
-        assert params[5] == "Newark"  # city
-        assert params[6] == "NJ"      # state
+        assert params[6] == "Newark"  # city
+        assert params[7] == "NJ"      # state
 
     def test_city_state_none_when_address_unparseable(self):
         """No city/state when address has only one segment."""
@@ -583,8 +584,8 @@ class TestSeatEngineVenueCityStateExtraction:
             handler.upsert_for_seatengine_venue(venue)
 
         params = mock_exec.call_args[0][1]
-        assert params[5] is None  # city
-        assert params[6] is None  # state
+        assert params[6] is None  # city
+        assert params[7] is None  # state
 
 
 # ---------------------------------------------------------------------------
