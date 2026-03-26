@@ -14,7 +14,7 @@ from abc import ABC as _ABC, abstractmethod as _abstractmethod
 from pathlib import Path
 from types import ModuleType
 from typing import Generic as _Generic, TypeVar as _TypeVar
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -62,16 +62,19 @@ def _stub(name: str, as_package: bool = False, **attrs):
     return m
 
 
-# Foundation stubs
+# Foundation stubs — use as_package=True for all intermediate packages so that submodule
+# imports (e.g. laughtrack.foundation.infrastructure.database.template) still resolve via
+# the real filesystem when this test file is collected before other test files that load
+# real packages. Leaf modules (files, not directories) do not need as_package.
 _stub("laughtrack.foundation.protocols.database_entity", DatabaseEntity=object)
-_stub("laughtrack.foundation.protocols", DatabaseEntity=object)
+_stub("laughtrack.foundation.protocols", as_package=True, DatabaseEntity=object)
 _stub("laughtrack.foundation.infrastructure.logger.logger", Logger=MagicMock())
-_stub("laughtrack.foundation.infrastructure.logger", Logger=MagicMock())
+_stub("laughtrack.foundation.infrastructure.logger", as_package=True, Logger=MagicMock())
 _stub("laughtrack.foundation.infrastructure.database.operation", DatabaseOperationLogger=MagicMock())
-_stub("laughtrack.foundation.infrastructure.database", DatabaseOperationLogger=MagicMock())
-_stub("laughtrack.foundation.infrastructure", Logger=MagicMock())
+_stub("laughtrack.foundation.infrastructure.database", as_package=True, DatabaseOperationLogger=MagicMock())
+_stub("laughtrack.foundation.infrastructure", as_package=True, Logger=MagicMock())
 _stub("laughtrack.adapters.db", create_connection=MagicMock())
-_stub("laughtrack.adapters", create_connection=MagicMock())
+_stub("laughtrack.adapters", as_package=True, create_connection=MagicMock())
 
 _T_stub = _TypeVar("_T_stub")
 
@@ -97,8 +100,8 @@ class _BaseDatabaseHandlerStub(_Generic[_T_stub], _ABC):
 
 
 _stub("laughtrack.core.data.base_handler", BaseDatabaseHandler=_BaseDatabaseHandlerStub)
-_stub("laughtrack.core.data", BaseDatabaseHandler=_BaseDatabaseHandlerStub)
-_stub("laughtrack.core", BaseDatabaseHandler=_BaseDatabaseHandlerStub)
+_stub("laughtrack.core.data", as_package=True, BaseDatabaseHandler=_BaseDatabaseHandlerStub)
+_stub("laughtrack.core", as_package=True, BaseDatabaseHandler=_BaseDatabaseHandlerStub)
 
 # Load PriceRange (required by Ticket.price_tag property)
 _price_range_mod = _load_module(
@@ -107,11 +110,9 @@ _price_range_mod = _load_module(
 )
 sys.modules.setdefault("laughtrack.foundation.models.price_range", _price_range_mod)
 
-_stub_fm = ModuleType("laughtrack.foundation.models")
-_stub_fm.price_range = _price_range_mod
-_stub_fm.PriceRange = _price_range_mod.PriceRange
-sys.modules.setdefault("laughtrack.foundation.models", _stub_fm)
-sys.modules.setdefault("laughtrack.foundation", _stub_fm)
+_stub_fm = _stub("laughtrack.foundation.models", as_package=True,
+                 price_range=_price_range_mod, PriceRange=_price_range_mod.PriceRange)
+_stub("laughtrack.foundation", as_package=True)
 
 # Load Ticket model
 _ticket_model_mod = _load_module(
@@ -136,7 +137,8 @@ _stub("laughtrack.utilities", as_package=True, TicketUtils=_ticket_utils_stub)
 _ticket_queries_mod = _load_module("sql/ticket_queries.py", "sql.ticket_queries_direct")
 TicketQueries = _ticket_queries_mod.TicketQueries
 sys.modules.setdefault("sql.ticket_queries", _ticket_queries_mod)
-sys.modules.setdefault("sql", _ticket_queries_mod)
+# Do NOT register "sql" as a plain module — it is a real package on the pythonpath
+# (apps/scraper/sql/) and must remain importable for sibling test files.
 
 # Load TicketHandler
 _ticket_handler_mod = _load_module(
