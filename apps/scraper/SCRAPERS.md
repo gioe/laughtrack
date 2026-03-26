@@ -35,10 +35,14 @@ Check browser network requests (browser_navigate + browser_network_requests):
                                                 → new venue-specific scraper required
   └── plugin.vbotickets.com                  → platform: VBO Tickets
                                                 → new venue-specific scraper required
+  └── /.netlify/functions/availability       → platform: Netlify Functions
+                                                → new venue-specific scraper required
   └── /wp-json/tribe/events/v1/events        → platform: Tribe Events Calendar (WordPress)
                                                 → scraper: the_rockwell (generic; set scraping_url)
 
 Check page source:
+  └── squadup = { userId: [<id>] ... } in page JS
+        → platform: SquadUP → new venue-specific scraper required
   └── <script type="application/ld+json"> with "@type": "Event"
         → platform: JSON-LD → scraper: json_ld (generic; set scraping_url)
   └── CSS classes: rhpSingleEvent / eventWrapper / rhp-event__title--list
@@ -302,17 +306,42 @@ The `<theatre>` value comes from the `data-theatre` attribute on the embedded sc
 
 | | |
 |---|---|
-| **Scraper key** | Venue-specific (e.g. `csz_philadelphia`) |
-| **DB field** | `scraping_url` (full VBO plugin URL with `s=` UUID param) |
-| **Generic?** | ❌ Requires parameterization — session key UUID is venue-specific |
+| **Scraper key** | Venue-specific (e.g. `esthers_follies`) |
+| **DB field** | `scraping_url` (venue tickets page URL) |
+| **Generic?** | ❌ Requires a new venue-specific scraper |
 
 **Detection signals:**
-- Network requests to `plugin.vbotickets.com/Plugin/events`
-- Page embeds `plugin.vbotickets.com/Plugin/events?s=<uuid>`
+- Network requests to `plugin.vbotickets.com`
+- Ticketing iframe loads `plugin.vbotickets.com/plugin/loadplugin?siteid=<UUID>`
 
-**DB setup:** Store the full plugin URL including the `s=` param:
-```
-scraping_url = https://plugin.vbotickets.com/Plugin/events?s=4610c334-...
+**Session flow:** VBO uses a session-based iframe — there is no unauthenticated public JSON API.
+The scraper must:
+1. `GET plugin.vbotickets.com/plugin/loadplugin?siteid=<SITE_ID>&page=ListEvents`
+   → Returns a small HTML page with the session UUID embedded in inline JS
+2. Extract the UUID — VBO uses **unquoted JS object keys**, not JSON:
+   ```python
+   _SESSION_RE = re.compile(
+       r'value["\s:]+([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})',
+       re.IGNORECASE,
+   )
+   ```
+   A quoted-key regex (`"value"\s*:\s*"uuid"`) will silently return no match.
+3. `GET plugin.vbotickets.com/v5.0/controls/events.asp?a=load_eventdate_slider&eid=<EID>&s=<SESSION>`
+   → Returns server-rendered HTML with upcoming show dates (~6 week window)
+
+**Finding `SITE_ID` and `EID`:** `SITE_ID` is in the loadplugin URL. `EID` is in the seatmap inline JS (`LoadEvent('<EID>', ...)` onclick handlers).
+
+**Ticket URLs:** Per-show VBO URLs are session-dependent and non-shareable. Use the venue's stable tickets page as the ticket URL fallback.
+
+**Esther's Follies (Austin, TX) — venue-specific constants:**
+- `SITE_ID`: `5D695E7C-1246-4F54-BF57-B1D92D1E6B83`
+- `EID`: `39242`
+- Stable ticket URL: `https://www.esthersfollies.com/tickets`
+- Shows run **Thu–Sat nights** at 7 PM and 9 PM (~6 week window returned by date slider)
+
+**DB setup:**
+```sql
+INSERT INTO clubs (..., scraper, scraping_url, ...) VALUES (..., 'esthers_follies', 'https://www.esthersfollies.com/tickets', ...);
 ```
 
 ---
@@ -380,6 +409,41 @@ UPDATE clubs SET scraper = 'json_ld', scraping_url = 'https://myvenue.com/events
 
 ---
 
+### SquadUP
+
+| | |
+|---|---|
+| **Scraper key** | venue-specific (e.g. `sunset_strip`) |
+| **DB field** | `scraping_url` (display URL only; API URL is hard-coded in scraper) |
+| **Generic?** | ❌ Venue-specific — `user_id` differs per venue |
+
+**Detection signals:**
+- Page JS contains `squadup = { userId: [<id>], ... }` (inline script on the events page)
+- SquadUP embed CSS/JS loaded from `embed.squadup.com`
+- Ticket links go to `squadup.com/events/<slug>`
+
+**API endpoint:**
+```
+GET https://www.squadup.com/api/v3/events
+    ?user_ids=<id>&page_size=100&include=custom_fields&page=<N>
+```
+
+**Key non-obvious details:**
+1. The `userId` array in the page JS (e.g. `userId: [9086799]`) is the value to pass as `user_ids`.
+2. The API is Cloudflare-protected. Use a **bare `AsyncSession.get(url)`** with `impersonate="chrome124"` and **no extra headers** — adding application headers triggers a 403.
+3. Pagination: `meta.paging.total_pages` in the first response tells you how many pages to fetch.
+4. `start_at` is ISO 8601 with UTC offset (e.g. `"2026-03-26T20:00:00-05:00"`). Parse directly with `datetime.fromisoformat()`.
+5. Ticket URL: use the `url` field (e.g. `"https://squadup.com/events/comedy-gold-51"`).
+6. Shows at SquadUP venues are often recurring showcases with rotating lineups — comedian names are typically not pre-announced in the API data. Use the show title heuristic (generic title regex → `[]` performers) rather than expecting a dedicated performers field.
+
+**To onboard a new SquadUP venue:**
+1. Fetch the venue events page and search the HTML for `userId:` to extract the numeric ID.
+2. Create a new scraper dir under `scrapers/implementations/venues/<venue>/`.
+3. Hard-code `_SQUADUP_USER_ID` in the scraper; set `scraper='<key>'` in the DB.
+4. Use bare `AsyncSession(impersonate="chrome124")` with no extra headers in `_fetch_events_page()`.
+
+---
+
 ### Tixologi (Laugh Factory CMS)
 
 | | |
@@ -392,6 +456,44 @@ UPDATE clubs SET scraper = 'json_ld', scraping_url = 'https://myvenue.com/events
 - Ticket links follow the pattern `laughfactory.club/checkout/show/{punchup_id}`
 - Shows are server-rendered as `.show-sec.jokes` divs on a Laugh Factory CMS page
 - Note: `api-v2.tixologi.com/public/users/{partner_id}/events` returns 401 — HTML scraping required
+
+---
+
+### Netlify Functions (East Austin Comedy)
+
+| | |
+|---|---|
+| **Scraper key** | `east_austin_comedy` |
+| **DB field** | `scraping_url` (venue homepage, unused at runtime) |
+| **Generic?** | ❌ Venue-specific — API endpoints are hardcoded |
+
+**Detection signals:**
+- Network requests to `eastaustincomedy.com/.netlify/functions/availability`
+- Ticket purchase is handled via an embedded Square modal on the homepage (no per-show URL)
+
+**API endpoints:** One endpoint per weekday name — 7 total calls per scrape run:
+```
+GET https://eastaustincomedy.com/.netlify/functions/availability?showDay={day}&offset=0
+```
+where `{day}` is one of: `monday tuesday wednesday thursday friday saturday sunday`.
+
+Each response is a JSON array of upcoming dates for that day-of-week with show times and seat
+availability. The scraper queries all 7 endpoints and deduplicates on `(date, time)`.
+
+**Key non-obvious details:**
+1. **No comedian lineups** — the website never publishes performer names. All shows are titled
+   "Live Stand-Up Comedy"; the lineup is always an empty list.
+2. **No per-show ticket URL** — tickets are sold via an embedded Square modal on the homepage.
+   The ticket URL is always the homepage anchor: `https://eastaustincomedy.com/#shows`.
+3. **Show volume:** weekday evenings typically have 1–2 shows; Fri/Sat/Sun have up to 3 shows
+   (e.g. 6 PM / 8 PM / 10 PM).
+4. The `scraping_url` DB field is unused at runtime — the scraper ignores it and always hits
+   the Netlify function directly.
+
+**DB setup:**
+```sql
+INSERT INTO clubs (..., scraper, scraping_url, ...) VALUES (..., 'east_austin_comedy', 'https://eastaustincomedy.com/#shows', ...);
+```
 
 ---
 
@@ -413,6 +515,8 @@ UPDATE clubs SET scraper = 'json_ld', scraping_url = 'https://myvenue.com/events
 | Wix Events | venue-specific | **Yes** — replace compId | `scraping_url` |
 | Crowdwork | venue-specific | **Yes** — replace theatre slug | `scraping_url` |
 | VBO Tickets | venue-specific | **Yes** — replace UUID | `scraping_url` |
+| SquadUP | venue-specific | **Yes** — replace user_id | `scraping_url` |
+| Netlify Functions | venue-specific | **Yes** — new scraper dir | `scraping_url` (unused) |
 
 ---
 
@@ -476,4 +580,5 @@ Confirm shows are scraped with correct dates (timestamps ÷ 1000 → seconds), t
 | `the_rockwell` | `scraping_url` (Tribe Events REST API base URL) |
 | `comedy_magic_club` | `scraping_url` (base `/events/` URL — no pagination) |
 | `json_ld` | `scraping_url` (events page with JSON-LD markup) |
+| `east_austin_comedy` | `scraping_url` (homepage anchor; unused at runtime) |
 | All venue-specific | `scraping_url` (venue calendar page or API URL) |
