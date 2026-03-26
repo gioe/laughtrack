@@ -149,6 +149,13 @@ record-keeping only and never appears in any URL or API call. The field name is 
 enumerate or look up numeric IDs for `seatengine_classic` venues. If `seatengine_id` is NULL, the
 scraper still works correctly as long as `scraping_url` is set.
 
+**⚠️ CDN file IDs ≠ API venue IDs.**
+`files.seatengine.com/styles/logos/{ID}/` CDN URLs embed a numeric ID, but this is the
+classic-platform **file storage ID** — it is NOT the same namespace as the new-platform API
+(`services.seatengine.com/api/v1/venues/{id}`). The new platform recycles numeric IDs as venues
+migrate or deactivate, so the same number may point to a completely different venue in the API.
+Do not use CDN URL extraction to recover or verify SeatEngine API venue IDs.
+
 **Detection signals:**
 - Same as SeatEngine v1, but the venue's calendar is served at a custom URL path rather than via
   the standard SeatEngine REST API
