@@ -152,7 +152,7 @@ def test_extract_events_stores_base_domain():
 def _make_event(
     event_id="abc123",
     title="Comedy Night",
-    start_date_ms=1775260800000,  # 2026-04-02T00:00:00Z in ms → 2026-04-01T19:00:00-05:00 CDT
+    start_date_ms=1775260800000,  # 2026-04-04T00:00:00Z in ms → 2026-04-03T19:00:00-05:00 CDT
     full_url="/calendar/2026/4/2/comedy-night",
     base_domain=BASE_DOMAIN,
     excerpt="",
@@ -283,6 +283,21 @@ async def test_collect_scraping_targets_urls_use_correct_base_domain():
         assert url.startswith(BASE_DOMAIN), f"Expected URL to start with {BASE_DOMAIN}, got {url}"
 
 
+@pytest.mark.asyncio
+async def test_collect_scraping_targets_returns_three_distinct_months():
+    """collect_scraping_targets() returns three URLs with distinct month values.
+
+    Guards against off-by-one regressions in the (today.month + i - 1) % 12 + 1
+    formula that would produce duplicate month values (e.g. [03-2026, 03-2026, 04-2026]).
+    """
+    scraper = SquarespaceScraper(_club())
+    targets = await scraper.collect_scraping_targets()
+
+    assert len(set(targets)) == 3, (
+        f"Expected 3 distinct URLs (one per month), got duplicates: {targets}"
+    )
+
+
 # ---------------------------------------------------------------------------
 # get_data() tests
 # ---------------------------------------------------------------------------
@@ -311,6 +326,28 @@ async def test_get_data_returns_page_data_with_events(monkeypatch):
     titles = {e.title for e in result.event_list}
     assert "Show A" in titles
     assert "Show B" in titles
+
+
+@pytest.mark.asyncio
+async def test_get_data_returns_none_when_all_events_malformed(monkeypatch):
+    """get_data() returns None when the API returns events but all fail extraction.
+
+    Covers the branch where fetch_json returns a non-empty array but
+    SquarespaceExtractor.extract_events() yields [] (e.g. all items missing id/title/startDate).
+    """
+    scraper = SquarespaceScraper(_club())
+
+    async def fake_fetch_json(self, url: str, **kwargs):
+        return [_raw_event()]  # non-empty array
+
+    monkeypatch.setattr(SquarespaceScraper, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(SquarespaceExtractor, "extract_events", staticmethod(lambda resp, domain: []))
+    monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
+
+    result = await scraper.get_data(
+        f"{BASE_DOMAIN}/api/open/GetItemsByMonth?month=04-2026&collectionId={COLLECTION_ID}"
+    )
+    assert result is None
 
 
 @pytest.mark.asyncio

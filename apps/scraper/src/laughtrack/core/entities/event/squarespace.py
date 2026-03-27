@@ -44,7 +44,7 @@ class SquarespaceEvent(ShowConvertible):
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None) -> Optional[Show]:
         """Convert a SquarespaceEvent to a Show domain object."""
         try:
-            tz = ZoneInfo(club.timezone or "America/Chicago")
+            tz = ZoneInfo(club.timezone or "UTC")
             start_date = datetime.fromtimestamp(
                 self.start_date_ms / 1000, tz=timezone.utc
             ).astimezone(tz)
