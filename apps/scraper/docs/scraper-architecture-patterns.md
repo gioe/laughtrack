@@ -34,7 +34,7 @@ scraper_name/
 ├── scraper.py          # Main orchestration class
 ├── extractor.py        # Raw data extraction logic
 ├── transformer.py      # Data transformation to Show objects
-└── page_data.py        # Data models for extracted data
+└── data.py             # Data models for extracted data
 ```
 
 ### 2. Single Responsibility Principle
@@ -487,7 +487,7 @@ async def test_extract_data(venue_scraper, mock_venue_response):
    ├── scraper.py        # Main orchestration
    ├── extractor.py      # Data extraction logic
    ├── transformer.py    # Data transformation
-   └── page_data.py      # Data models
+   └── data.py           # Data models
    ```
 
 2. **Choose appropriate pattern:**
