@@ -99,6 +99,27 @@ async def test_get_data_returns_page_data_with_events():
 
 
 @pytest.mark.asyncio
+async def test_get_data_returns_none_on_exception():
+    """get_data() returns None when TicketmasterClient.fetch_events() raises."""
+    scraper = TicketmasterScraper(_club())
+    api_url = f"https://app.ticketmaster.com/discovery/v2/events.json?venueId={VENUE_ID}"
+
+    async def raise_error(*_args, **_kwargs):
+        raise RuntimeError("API unreachable")
+
+    with patch(
+        "laughtrack.core.clients.ticketmaster.client.TicketmasterClient.fetch_events",
+        side_effect=raise_error,
+    ):
+        result = await scraper.get_data(api_url)
+
+    assert result is None, (
+        "get_data() should return None when TicketmasterClient raises — "
+        "check exception handling in TicketmasterScraper.get_data()"
+    )
+
+
+@pytest.mark.asyncio
 async def test_get_data_returns_none_when_api_returns_empty():
     """get_data() returns None when TicketmasterClient.fetch_events() returns []."""
     scraper = TicketmasterScraper(_club())
