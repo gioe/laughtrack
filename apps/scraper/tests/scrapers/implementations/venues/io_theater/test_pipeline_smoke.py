@@ -53,7 +53,9 @@ def _show_entry(
         "url": url,
         "timezone": timezone,
         "dates": dates if dates is not None else ["2026-04-10T19:00:00.000-05:00"],
-        "next_date": (dates or ["2026-04-10T19:00:00.000-05:00"])[0],
+        # next_date mirrors the first date when present; None when dates is empty
+        # (the scraper falls back to next_date only when dates is absent/empty)
+        "next_date": dates[0] if dates else None,
         "cost": {"formatted": cost_formatted},
         "description": {"body": description_body},
         "badges": {"spots": spots},
@@ -188,6 +190,26 @@ async def test_get_data_falls_back_to_next_date_when_dates_absent(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_get_data_falls_back_to_next_date_when_dates_key_absent(monkeypatch):
+    """get_data() uses next_date when the 'dates' key is completely absent from the show dict."""
+    scraper = IOTheaterScraper(_club())
+
+    entry = _show_entry()
+    del entry["dates"]
+    entry["next_date"] = "2026-04-10T19:00:00.000-05:00"
+
+    async def fake_fetch_json(self, url: str, **kwargs) -> dict:
+        return _api_response([entry])
+
+    monkeypatch.setattr(IOTheaterScraper, "fetch_json", fake_fetch_json)
+
+    result = await scraper.get_data(API_URL)
+    assert result is not None
+    assert len(result.event_list) == 1
+    assert result.event_list[0].date_str == "2026-04-10T19:00:00.000-05:00"
+
+
+@pytest.mark.asyncio
 async def test_get_data_handles_dict_data_format(monkeypatch):
     """get_data() handles data as a slug-keyed dict for forward-compatibility."""
     scraper = IOTheaterScraper(_club())
@@ -217,6 +239,22 @@ async def test_get_data_returns_none_on_error_response(monkeypatch):
 
     result = await scraper.get_data(API_URL)
     assert result is None
+
+
+@pytest.mark.asyncio
+async def test_get_data_passes_unknown_timezone_through(monkeypatch):
+    """get_data() passes unrecognised timezone strings through unchanged (no KeyError)."""
+    scraper = IOTheaterScraper(_club())
+
+    async def fake_fetch_json(self, url: str, **kwargs) -> dict:
+        return _api_response([_show_entry(timezone="Bogota Time")])
+
+    monkeypatch.setattr(IOTheaterScraper, "fetch_json", fake_fetch_json)
+
+    result = await scraper.get_data(API_URL)
+    assert result is not None
+    # Unknown timezone string passes through _RAILS_TO_IANA.get() unchanged
+    assert result.event_list[0].timezone == "Bogota Time"
 
 
 # ---------------------------------------------------------------------------
