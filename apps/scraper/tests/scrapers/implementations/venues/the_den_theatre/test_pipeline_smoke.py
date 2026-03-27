@@ -202,13 +202,37 @@ def test_to_show_constructs_show_page_url_from_base_domain_and_full_url():
 
 
 def test_to_show_uses_show_page_url_as_ticket_url():
-    """to_show() uses the show page URL as the ticket fallback."""
+    """to_show() uses the show page URL as the ticket fallback when ticketing_url is absent."""
     event = _make_event(full_url="/calendar/2026/4/3/sammy-obeid-the-den-theatre")
     show = event.to_show(_club())
 
     assert show is not None
     assert len(show.tickets) == 1
     assert "thedentheatre.com" in show.tickets[0].purchase_url
+
+
+def test_to_show_uses_ticketing_url_when_set():
+    """to_show() uses ticketing_url as the ticket purchase URL when present."""
+    event = _make_event(full_url="/calendar/2026/4/3/sammy-obeid-the-den-theatre")
+    event.ticketing_url = "https://tickets.thedentheatre.com/event/sammy-obeid"
+    show = event.to_show(_club())
+
+    assert show is not None
+    assert len(show.tickets) == 1
+    assert show.tickets[0].purchase_url == "https://tickets.thedentheatre.com/event/sammy-obeid"
+
+
+def test_to_show_falls_back_to_show_page_url_when_ticketing_url_empty():
+    """to_show() falls back to show_page_url when ticketing_url is empty string."""
+    event = _make_event(
+        full_url="/calendar/2026/4/3/sammy-obeid-the-den-theatre",
+        base_domain=BASE_DOMAIN,
+    )
+    event.ticketing_url = ""
+    show = event.to_show(_club())
+
+    assert show is not None
+    assert show.tickets[0].purchase_url == f"{BASE_DOMAIN}/calendar/2026/4/3/sammy-obeid-the-den-theatre"
 
 
 def test_to_show_strips_html_from_excerpt():
@@ -382,6 +406,125 @@ async def test_get_data_returns_none_on_null_response(monkeypatch):
         f"{BASE_DOMAIN}/api/open/GetItemsByMonth?month=04-2026&collectionId={COLLECTION_ID}"
     )
     assert result is None
+
+
+# ---------------------------------------------------------------------------
+# _enrich_with_ticket_urls() tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_enrich_with_ticket_urls_sets_ticketing_url_from_top_level(monkeypatch):
+    """_enrich_with_ticket_urls() populates ticketing_url from top-level ticketingUrl."""
+    scraper = SquarespaceScraper(_club())
+    event = _make_event(full_url="/calendar/2026/4/3/sammy-obeid")
+
+    async def fake_fetch_json(self, url: str, **kwargs):
+        return {"ticketingUrl": "https://tickets.thedentheatre.com/event/sammy-obeid"}
+
+    monkeypatch.setattr(SquarespaceScraper, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
+
+    await scraper._enrich_with_ticket_urls([event])
+
+    assert event.ticketing_url == "https://tickets.thedentheatre.com/event/sammy-obeid"
+
+
+@pytest.mark.asyncio
+async def test_enrich_with_ticket_urls_sets_ticketing_url_from_item_key(monkeypatch):
+    """_enrich_with_ticket_urls() populates ticketing_url from item-nested ticketingUrl."""
+    scraper = SquarespaceScraper(_club())
+    event = _make_event(full_url="/calendar/2026/4/3/sammy-obeid")
+
+    async def fake_fetch_json(self, url: str, **kwargs):
+        return {"item": {"ticketingUrl": "https://tickets.thedentheatre.com/event/sammy-obeid"}}
+
+    monkeypatch.setattr(SquarespaceScraper, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
+
+    await scraper._enrich_with_ticket_urls([event])
+
+    assert event.ticketing_url == "https://tickets.thedentheatre.com/event/sammy-obeid"
+
+
+@pytest.mark.asyncio
+async def test_enrich_with_ticket_urls_leaves_ticketing_url_empty_when_absent(monkeypatch):
+    """_enrich_with_ticket_urls() leaves ticketing_url empty when detail page has no ticketingUrl."""
+    scraper = SquarespaceScraper(_club())
+    event = _make_event(full_url="/calendar/2026/4/3/sammy-obeid")
+
+    async def fake_fetch_json(self, url: str, **kwargs):
+        return {"id": "abc123", "title": "Sammy Obeid"}  # no ticketingUrl
+
+    monkeypatch.setattr(SquarespaceScraper, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
+
+    await scraper._enrich_with_ticket_urls([event])
+
+    assert event.ticketing_url == ""
+
+
+@pytest.mark.asyncio
+async def test_enrich_with_ticket_urls_skips_events_with_no_full_url(monkeypatch):
+    """_enrich_with_ticket_urls() skips events with an empty full_url."""
+    scraper = SquarespaceScraper(_club())
+    event = _make_event(full_url="")
+
+    fetch_called = []
+
+    async def fake_fetch_json(self, url: str, **kwargs):
+        fetch_called.append(url)
+        return {"ticketingUrl": "https://tickets.thedentheatre.com/event/x"}
+
+    monkeypatch.setattr(SquarespaceScraper, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
+
+    await scraper._enrich_with_ticket_urls([event])
+
+    assert fetch_called == []
+    assert event.ticketing_url == ""
+
+
+@pytest.mark.asyncio
+async def test_enrich_with_ticket_urls_survives_fetch_error(monkeypatch):
+    """_enrich_with_ticket_urls() continues gracefully when a detail fetch raises."""
+    scraper = SquarespaceScraper(_club())
+    event = _make_event(full_url="/calendar/2026/4/3/sammy-obeid")
+
+    async def fake_fetch_json(self, url: str, **kwargs):
+        raise RuntimeError("connection error")
+
+    monkeypatch.setattr(SquarespaceScraper, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
+
+    await scraper._enrich_with_ticket_urls([event])  # must not raise
+
+    assert event.ticketing_url == ""
+
+
+@pytest.mark.asyncio
+async def test_get_data_enriches_events_with_vivenu_ticket_url(monkeypatch):
+    """get_data() enriches events with ticketing_url from per-event detail pages."""
+    scraper = SquarespaceScraper(_club())
+
+    VIVENU_URL = "https://tickets.thedentheatre.com/event/sammy-obeid"
+
+    async def fake_fetch_json(self, url: str, **kwargs):
+        if "GetItemsByMonth" in url:
+            return _api_response([_raw_event(event_id="1", title="Sammy Obeid")])
+        # detail page fetch
+        return {"ticketingUrl": VIVENU_URL}
+
+    monkeypatch.setattr(SquarespaceScraper, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
+
+    result = await scraper.get_data(
+        f"{BASE_DOMAIN}/api/open/GetItemsByMonth?month=04-2026&collectionId={COLLECTION_ID}"
+    )
+
+    assert isinstance(result, SquarespacePageData)
+    assert len(result.event_list) == 1
+    assert result.event_list[0].ticketing_url == VIVENU_URL
 
 
 # ---------------------------------------------------------------------------

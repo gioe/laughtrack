@@ -32,6 +32,9 @@ class SquarespaceEvent(ShowConvertible):
 
     Note: ticketingUrl is not present in the bulk GetItemsByMonth response.
     The show_page_url (base_domain + full_url) serves as the ticket fallback.
+    ticketing_url is optionally populated by fetching the per-event detail page
+    ({full_url}?format=json); when present it takes precedence over show_page_url
+    as the ticket purchase URL.
     """
 
     id: str
@@ -40,6 +43,7 @@ class SquarespaceEvent(ShowConvertible):
     full_url: str          # Relative path, e.g. "/calendar/2026/4/3/..."
     base_domain: str       # e.g. "https://thedentheatre.com"
     excerpt: str = ""
+    ticketing_url: str = ""  # Direct ticket URL from per-event detail page, if fetched
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None) -> Optional[Show]:
         """Convert a SquarespaceEvent to a Show domain object."""
@@ -55,7 +59,8 @@ class SquarespaceEvent(ShowConvertible):
 
         description = _HTML_TAG_RE.sub("", self.excerpt).strip() or None
 
-        tickets = [ShowFactoryUtils.create_fallback_ticket(show_page_url)]
+        ticket_purchase_url = self.ticketing_url or show_page_url
+        tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_purchase_url)]
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=self.title or "Comedy Show",

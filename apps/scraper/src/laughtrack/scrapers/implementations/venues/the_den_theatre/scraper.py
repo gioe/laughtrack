@@ -96,6 +96,8 @@ class SquarespaceScraper(BaseScraper):
                 )
                 return None
 
+            await self._enrich_with_ticket_urls(events)
+
             Logger.info(
                 f"SquarespaceScraper: extracted {len(events)} events from {url}",
                 self.logger_context,
@@ -108,3 +110,36 @@ class SquarespaceScraper(BaseScraper):
                 self.logger_context,
             )
             return None
+
+    async def _enrich_with_ticket_urls(self, events) -> None:
+        """
+        Fetch per-event detail pages to populate ticketing_url where available.
+
+        The Squarespace bulk API (GetItemsByMonth) does not include ticketingUrl.
+        The individual event detail page at {full_url}?format=json returns a JSON
+        object that may contain a top-level or item-nested ticketingUrl field
+        (e.g. tickets.thedentheatre.com/event/*).
+
+        Events without a full_url, or where the detail fetch fails, retain the
+        show_page_url fallback set in to_show().
+        """
+        for event in events:
+            if not event.full_url:
+                continue
+            detail_url = self.base_domain.rstrip("/") + event.full_url + "?format=json"
+            try:
+                await self.rate_limiter.await_if_needed(detail_url)
+                detail = await self.fetch_json(detail_url)
+                if not isinstance(detail, dict):
+                    continue
+                ticketing_url = (
+                    detail.get("ticketingUrl")
+                    or detail.get("item", {}).get("ticketingUrl")
+                    or ""
+                )
+                if ticketing_url:
+                    event.ticketing_url = ticketing_url
+            except Exception as e:
+                Logger.warn(
+                    f"SquarespaceScraper: failed to fetch detail for {detail_url}: {e}"
+                )
