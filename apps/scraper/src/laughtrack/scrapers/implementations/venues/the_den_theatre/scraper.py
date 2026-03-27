@@ -25,6 +25,8 @@ from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.shared.types import ScrapingTarget
 
+from laughtrack.core.entities.event.squarespace import SquarespaceEvent
+
 from .data import SquarespacePageData
 from .extractor import SquarespaceExtractor
 from .transformer import SquarespaceEventTransformer
@@ -111,7 +113,7 @@ class SquarespaceScraper(BaseScraper):
             )
             return None
 
-    async def _enrich_with_ticket_urls(self, events) -> None:
+    async def _enrich_with_ticket_urls(self, events: List[SquarespaceEvent]) -> None:
         """
         Fetch per-event detail pages to populate ticketing_url where available.
 
@@ -141,5 +143,6 @@ class SquarespaceScraper(BaseScraper):
                     event.ticketing_url = ticketing_url
             except Exception as e:
                 Logger.warn(
-                    f"SquarespaceScraper: failed to fetch detail for {detail_url}: {e}"
+                    f"SquarespaceScraper: failed to fetch detail for {detail_url}: {e}",
+                    self.logger_context,
                 )

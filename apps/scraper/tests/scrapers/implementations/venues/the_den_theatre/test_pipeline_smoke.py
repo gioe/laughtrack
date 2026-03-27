@@ -338,7 +338,11 @@ async def test_get_data_returns_page_data_with_events(monkeypatch):
             _raw_event(event_id="2", title="Show B"),
         ])
 
+    async def noop_enrich(self, events):
+        pass
+
     monkeypatch.setattr(SquarespaceScraper, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(SquarespaceScraper, "_enrich_with_ticket_urls", noop_enrich)
     monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
 
     result = await scraper.get_data(
