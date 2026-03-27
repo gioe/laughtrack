@@ -25,7 +25,7 @@ from laughtrack.utilities.infrastructure.scraper.scraper import BatchScraper
 from laughtrack.foundation.utilities.url import URLUtils
 
 from .extractor import TheStandEventExtractor
-from .page_data import TheStandPageData
+from .data import TheStandPageData
 from .transformer import TheStandEventTransformer
 
 

@@ -20,7 +20,7 @@ from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.event.tixr import TixrEvent
 from laughtrack.core.entities.show.model import Show
 from laughtrack.scrapers.implementations.venues.the_stand.scraper import TheStandNYCScraper
-from laughtrack.scrapers.implementations.venues.the_stand.page_data import TheStandPageData
+from laughtrack.scrapers.implementations.venues.the_stand.data import TheStandPageData
 
 
 SCRAPING_URL = "thestandnyc.com"

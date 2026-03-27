@@ -2,7 +2,7 @@
 
 # Import all scraper components following standardized architecture
 from .extractor import TheStandEventExtractor
-from .page_data import TheStandPageData
+from .data import TheStandPageData
 from .transformer import TheStandEventTransformer
 
 __all__ = [
