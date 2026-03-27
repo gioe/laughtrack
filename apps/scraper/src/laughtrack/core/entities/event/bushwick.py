@@ -46,7 +46,7 @@ class BushwickEvent(ShowConvertible):
             scheduling_config = self.scheduling.get("config", {})
             date_str = scheduling_config.get("startDate")
             if date_str:
-                start_date = ShowFactoryUtils.parse_wix_iso_date(date_str, "America/New_York")
+                start_date = ShowFactoryUtils.parse_wix_iso_date(date_str, club.timezone or "UTC")
 
         if not start_date:
             raise ValueError("No valid start_date found for Bushwick event")
