@@ -32,6 +32,7 @@ class AnnoyancePerformance(ShowConvertible):
     start_dt: str       # raw datetime string, e.g. "2026-03-24 20:00:00 -0500"
     ticket_url: str     # full URL: base_url + order_products_url
     show_page_url: str  # full URL: base_url + truncated_url
+    is_sold_out: bool = False
 
     @classmethod
     def from_api_response(cls, data: dict, base_url: str) -> "AnnoyancePerformance":
@@ -45,6 +46,7 @@ class AnnoyancePerformance(ShowConvertible):
             start_dt=data.get("start") or "",
             ticket_url=f"{base_url}{order_products_url}",
             show_page_url=f"{base_url}{truncated_url}",
+            is_sold_out=bool(data.get("is_sold_out", False)),
         )
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None):
@@ -60,7 +62,7 @@ class AnnoyancePerformance(ShowConvertible):
             return None
 
         ticket_url = url or self.ticket_url
-        tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url)]
+        tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url, sold_out=self.is_sold_out)]
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=self.title,

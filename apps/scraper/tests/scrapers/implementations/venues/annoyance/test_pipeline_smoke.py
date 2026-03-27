@@ -122,6 +122,30 @@ async def test_get_data_filters_class_events(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_get_data_filters_non_public_events(monkeypatch):
+    """get_data() must filter out events where publicly_available is False."""
+    scraper = AnnoyanceTheatreScraper(_club())
+
+    api_fixture = [
+        _performance_dict(event_id=1, performance_id=101, title="Public Show", publicly_available=True),
+        _performance_dict(event_id=2, performance_id=102, title="Private Event", publicly_available=False),
+    ]
+
+    async def fake_fetch_json(self, url: str):
+        return api_fixture
+
+    monkeypatch.setattr(AnnoyanceTheatreScraper, "fetch_json", fake_fetch_json)
+
+    result = await scraper.get_data(CALENDAR_URL)
+
+    assert isinstance(result, AnnoyancePageData), "get_data() did not return AnnoyancePageData"
+    assert len(result.event_list) == 1, (
+        f"Expected 1 event after filtering non-public, got {len(result.event_list)}"
+    )
+    assert result.event_list[0].title == "Public Show"
+
+
+@pytest.mark.asyncio
 async def test_get_data_returns_none_on_empty_response(monkeypatch):
     """get_data() returns None when the API returns an empty array."""
     scraper = AnnoyanceTheatreScraper(_club())

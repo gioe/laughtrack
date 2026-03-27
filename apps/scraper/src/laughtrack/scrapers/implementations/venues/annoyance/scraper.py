@@ -90,7 +90,7 @@ class AnnoyanceTheatreScraper(BaseScraper):
         """
         try:
             response = await self.fetch_json(url)
-            if not response:
+            if response is None:
                 Logger.info(
                     f"Annoyance Theatre: empty response from API ({url})",
                     self.logger_context,
@@ -118,6 +118,13 @@ class AnnoyanceTheatreScraper(BaseScraper):
                     continue
 
                 performances.append(AnnoyancePerformance.from_api_response(item, _BASE_URL))
+
+            if not response:
+                Logger.info(
+                    f"Annoyance Theatre: no shows scheduled for this window ({url})",
+                    self.logger_context,
+                )
+                return None
 
             if not performances:
                 Logger.info(
