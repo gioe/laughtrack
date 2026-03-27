@@ -18,6 +18,7 @@ from typing import Optional
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.protocols.show_convertible import ShowConvertible
+from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 
 # Regex to pull the show time out of "Doors: 6 pm Show: 7 pm" strings.
@@ -98,6 +99,10 @@ class ZaniesEvent(ShowConvertible):
         # --- time ---
         show_time = _extract_show_time(self.time_str)
         if not show_time:
+            Logger.debug(
+                f"ZaniesEvent: no parseable show time in {self.time_str!r} "
+                f"for '{self.title}' on {self.date_str} — skipping"
+            )
             return None
 
         datetime_str = (

@@ -332,5 +332,9 @@ def test_to_show_infers_future_year():
         date_str="Thursday, January 01",
         time_str="Doors: 9 pm Show: 9:30 pm",
     ).to_show(_club())
-    if show is not None:
-        assert show.date.date() >= date.today()
+    assert show is not None
+    assert show.date.date() >= date.today()
+
+
+def test_to_show_returns_none_when_time_unparseable():
+    assert _make_event(time_str="").to_show(_club()) is None
