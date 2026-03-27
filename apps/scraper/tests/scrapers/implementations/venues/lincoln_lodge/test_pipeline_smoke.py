@@ -32,7 +32,7 @@ EVENT_URL = "https://www.eventbrite.com/e/the-lincoln-lodge-comedy-showcase-tick
 
 def _club() -> Club:
     return Club(
-        id=181,
+        id=999,
         name="The Lincoln Lodge",
         address="2040 N Milwaukee Ave",
         website="https://www.thelincolnlodge.com",

@@ -2,7 +2,8 @@
 -- Website: https://www.thelincolnlodge.com
 -- Located at 2040 N Milwaukee Ave, Chicago, IL 60647 (Logan Square).
 -- Nation's longest-running independent comedy showcase. Non-profit, no drink minimum.
--- Shows are listed via an Eventbrite-backed "Events Calendar" Wix widget.
+-- The venue website is built on Wix, with an embedded Eventbrite calendar widget.
+-- The scraper queries the Eventbrite /organizers/ API directly using the organizer ID.
 -- Organizer: "The Lincoln Lodge" (organizer ID: 31159352271)
 
 INSERT INTO clubs (name, address, city, state, zip_code, timezone, eventbrite_id, scraper, visible, website, scraping_url)
