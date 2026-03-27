@@ -2,8 +2,9 @@
 Smoke tests for The Comedy Bar Chicago using EventbriteScraper.
 
 Verifies that the EventbriteScraper pipeline works correctly for The Comedy Bar
-Chicago's organizer ID (17584944942) — an 11-digit Eventbrite organizer ID that
-the client automatically routes to the /organizers/{id}/events/ endpoint.
+Chicago's organizer ID (17584944942) — an 11-digit Eventbrite organizer ID. The
+client tries /venues/{id}/events/ first, then falls back to /organizers/{id}/events/
+on 404, which is the path taken for organizer IDs.
 
 Catches regressions where:
 - get_data() silently returns None despite a valid organizer ID
