@@ -11,6 +11,7 @@ from laughtrack.core.entities.event.rodneys import RodneyEvent
 from laughtrack.core.entities.event.standup_ny import StandupNYEvent
 from laughtrack.core.entities.event.tixr import TixrEvent
 from laughtrack.core.entities.event.twenty_two_rams import TwentyTwoRamsEvent
+from laughtrack.core.entities.event.red_room import RedRoomEvent
 from laughtrack.core.entities.event.uncle_vinnies import UncleVinniesEvent
 
 __all__ = [
@@ -23,6 +24,7 @@ __all__ = [
     "GothamEvent",
     "Grove34Event",
     "ImprovEvent",
+    "RedRoomEvent",
     "RodneyEvent",
     "StandupNYEvent",
     "TixrEvent",

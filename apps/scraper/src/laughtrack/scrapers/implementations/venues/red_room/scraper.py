@@ -86,7 +86,7 @@ class RedRoomComedyClubScraper(BaseScraper):
             headers = self._build_auth_headers()
             api_response = await self.fetch_json(url, headers=headers)
 
-            if not api_response:
+            if api_response is None:
                 return None
 
             typed_response = WixResponseFactory.create_wix_events_response(api_response)
