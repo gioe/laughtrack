@@ -43,7 +43,11 @@ def _club() -> Club:
 
 
 def _token_response() -> Dict[str, Any]:
-    """Wix access-token API response with app intId=24."""
+    """Wix access-token API response with app intId=24.
+
+    The top-level key ("comedy_events") is arbitrary — WixAccessTokenResponse
+    looks up the token by intId, not by key name.
+    """
     return {
         "apps": {
             "comedy_events": {"intId": 24, "instance": "fake-token-abc123"}
@@ -94,7 +98,7 @@ async def test_get_data_returns_events_from_wix_api(monkeypatch):
     fake_event = _fake_bushwick_event()
 
     async def fake_fetch_json(self, url: str, headers: Dict = None) -> Dict:
-        return {"events": [], "hasMore": False, "total": 1}  # raw Wix JSON
+        return {"events": [], "hasMore": False, "total": 0}  # raw Wix JSON; extractor is mocked below
 
     monkeypatch.setattr(BushwickComedyClubScraper, "fetch_json", fake_fetch_json)
     monkeypatch.setattr(BushwickEventExtractor, "extract_events", staticmethod(lambda r: [fake_event]))
