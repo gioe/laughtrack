@@ -1,3 +1,92 @@
+## Wix Sites with "Events Calendar" Widget — Eventbrite Backend
+
+Some Wix-hosted venues embed the "Events Calendar" widget (inffuse.eventscalendar.co)
+rather than Wix's native events app. This widget is backed by Eventbrite — the event
+data comes from the Eventbrite organizer, not from a Wix API.
+
+**Identification via Playwright network inspection:**
+Look for a POST to `https://inffuse.eventscalendar.co/js/v0.1/calendar/data` and
+a GET to `https://broker.eventscalendar.co/api/eventbrite/events?calendar=<id>`.
+The `calendar=` parameter **is the Eventbrite organizer ID**.
+
+**Implementation:** use `scraper='eventbrite'` with the organizer ID — no Wix access
+token needed. The `EventbriteClient` routes 11-digit IDs to `/organizers/{id}/events/`
+automatically.
+
+## Scraper Smoke Tests — Check for Unstaged Source Changes Before Committing
+
+Before committing a `test_pipeline_smoke.py`, run:
+
+```bash
+git status --short apps/scraper/src/
+```
+
+Unstaged source changes (e.g. a new field on a PageData class) that a test
+imports will be flagged as a must_fix during code review rather than caught
+pre-commit.
+
+## Scraper Smoke Tests — Mock Complex HTML Extractors Directly
+
+When an extractor requires specific CSS classes or container structure (e.g.
+Comedy Cellar's `set-header` divs), do NOT build a minimal HTML fixture and
+pass it through the real extractor — the fixture will miss required elements
+and the extractor will return `None`. Instead, patch `extract_events` directly:
+
+```python
+monkeypatch.setattr(MyExtractor, "extract_events", staticmethod(lambda *a: [fake_event]))
+```
+
+This bypasses fragile HTML construction while still exercising the full
+scraper → extractor call path.
+
+## Scraper Manual Run — Use `make scrape-club`, Not `bin/scrape`
+
+Use `make scrape-club CLUB='<venue name>'` to run a scrape for a specific club.
+`bin/scrape` does not exist — the `bin/` directory only contains `migrate` and
+`cleanup-stale-scrapers`. Task criteria and next-steps that say "run bin/scrape"
+should be interpreted as `make scrape-club CLUB='<name>'`.
+
+```bash
+make scrape-club CLUB="Esther's Follies"
+make scrape-club CLUB="Comedy Cellar"
+```
+
+## Scraper Venue PageData — Module Must Be Named `data.py`
+
+All venue scraper PageData modules must be named `data.py` (not `page_data.py`
+or any other name). Every existing venue scraper (Gotham, St. Marks, Rockwell, etc.)
+follows this convention. Importing from `.data` in `scraper.py` will fail if the
+file is named differently.
+
+```python
+# In scraper.py — always import from .data
+from .data import MyVenuePageData   # ✓ file is data.py
+# from .page_data import ...        # ✗ breaks the import
+```
+
+## Scraper Bin Tests — Monkeypatch SCRAPER_ROOT for --apply Tests
+
+Scripts that call `path.relative_to(SCRAPER_ROOT)` in print/display code (e.g., `delete_directory()`)
+will raise `ValueError` in tests when paths are in `tmp_path`, because `tmp_path` is not under
+`SCRAPER_ROOT`. Always monkeypatch `SCRAPER_ROOT` to an ancestor of your test paths:
+
+```python
+monkeypatch.setattr(_mod, "SCRAPER_ROOT", tmp_path)
+```
+
+This applies to any bin script test that uses `tmp_path` for directories that the script displays
+relative to the project root.
+
+## Scraper Documentation — Verify API Endpoints from Client Source
+
+When writing or updating SCRAPERS.md (or any documentation about scraper API
+endpoints), always read the actual client file directly:
+  apps/scraper/src/laughtrack/core/clients/{platform}/client.py
+
+Do NOT rely on explore-agent summaries for endpoint URLs — agents can conflate
+platform details (e.g., Squarespace GetItemsByMonth vs. Wix paginated-events).
+A 30-second file read avoids a review-cycle correction.
+
 ## Tixologi — No Public Events API (HTML Scraping Required)
 
 Tixologi (tixologi.com) is a ticketing platform used by Laugh Factory Reno
@@ -58,6 +147,11 @@ unnecessary pages waste HTTP requests.
 
 Identification: look for CSS classes `rhpSingleEvent`, `eventWrapper`, and
 `rhp-event__title--list` in the page HTML.
+
+**Single-show page quirk**: The `class = "eventStDate"` attribute on
+single-show detail pages uses spaces around `=` (i.e. `class = "..."`, not
+`class="..."`). Regex patterns targeting class attributes on these pages must
+use `class\s*=\s*"` rather than `class="` to match correctly.
 
 ## Playwright MCP — Chrome Already Open Conflict
 
@@ -238,6 +332,21 @@ cd /Users/mattgioe/Desktop/projects/laughtrack/apps/scraper && .venv/bin/pytest 
 ```
 
 Do not use `python3 -m pytest` — it also fails without venv activation.
+
+**`tusk commit` test context:** `tusk commit` runs its test suite as `cd apps/scraper && python3 -m pytest`.
+When reproducing a `tusk commit` test failure manually, always run from `apps/scraper/` — not from
+the repo root. Running `python3 -m pytest` from the repo root uses `apps/scraper/` as a path prefix,
+which doubles it in collection paths and produces spurious errors (e.g., 122 errors instead of 0).
+
+## Creating New Files — Always Use Absolute Paths or the Write Tool
+
+When creating new files (e.g., `__init__.py`, test stubs, migration files), always use either:
+- The **Write tool** with an absolute `file_path` argument, or
+- `touch /absolute/path/to/file` in Bash
+
+Never use `touch relative/path` when the shell's CWD might be a subdirectory (e.g., `apps/scraper/`).
+Using a path like `touch apps/scraper/tests/...` from within `apps/scraper/` silently creates the file
+at `apps/scraper/apps/scraper/tests/...` — the doubled path is invisible until a later step fails.
 
 ## Wix Events Scraper — Finding the Events Widget compId
 
@@ -597,6 +706,15 @@ module names OR source package names (e.g., a directory named `email/` or `scrip
 under `tests/`). pytest's rootdir-based import mode works without `__init__.py`; adding
 it causes the test package to shadow the real package, producing `ModuleNotFoundError`
 at collection time for any test that imports from that package.
+
+Also check for same-name collisions across test subtrees before adding `__init__.py`.
+If two directories in different parts of `tests/` share the same leaf name (e.g.
+`tests/core/clients/ticketmaster/` and `tests/scrapers/.../api/ticketmaster/`), adding
+`__init__.py` to both causes pytest to assign the same package name `ticketmaster` to
+both → `ModuleNotFoundError: No module named 'ticketmaster.test_pipeline_smoke'` in
+the full suite. Fix: leave the second directory without `__init__.py`. If the missing
+`__init__.py` would cause an `import file mismatch` collision, add `__init__.py` only
+to the *other* directories involved in the collision (e.g. the `*_national` sibling).
 
 ## Testing RateLimiter Delay Calculations
 
