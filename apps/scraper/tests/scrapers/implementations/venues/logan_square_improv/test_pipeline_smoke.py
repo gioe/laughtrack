@@ -140,7 +140,7 @@ async def test_get_data_returns_none_on_empty_data(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_get_data_returns_none_on_empty_response(monkeypatch):
-    """get_data() returns None when fetch_json returns falsy."""
+    """get_data() returns None when fetch_json returns an empty dict (no keys)."""
     scraper = LoganSquareImprovScraper(_club())
 
     async def fake_fetch_json(self, url: str, **kwargs) -> dict:
@@ -165,6 +165,56 @@ async def test_get_data_handles_sold_out_show(monkeypatch):
     result = await scraper.get_data(API_URL)
     assert result is not None
     assert result.event_list[0].sold_out is True
+
+
+@pytest.mark.asyncio
+async def test_get_data_not_sold_out_when_spots_show_remaining(monkeypatch):
+    """get_data() does NOT mark sold_out when badges.spots shows remaining capacity (e.g. 'Only 2 spots left')."""
+    scraper = LoganSquareImprovScraper(_club())
+
+    async def fake_fetch_json(self, url: str, **kwargs) -> dict:
+        return _api_response([_show_entry(spots="Only 2 spots left")])
+
+    monkeypatch.setattr(LoganSquareImprovScraper, "fetch_json", fake_fetch_json)
+
+    result = await scraper.get_data(API_URL)
+    assert result is not None
+    assert result.event_list[0].sold_out is False
+
+
+@pytest.mark.asyncio
+async def test_get_data_falls_back_to_next_date_when_dates_key_absent(monkeypatch):
+    """get_data() uses next_date when the 'dates' key is completely absent from the show dict."""
+    scraper = LoganSquareImprovScraper(_club())
+
+    entry = _show_entry()
+    del entry["dates"]
+    entry["next_date"] = "2026-03-28T20:00:00.000-05:00"
+
+    async def fake_fetch_json(self, url: str, **kwargs) -> dict:
+        return _api_response([entry])
+
+    monkeypatch.setattr(LoganSquareImprovScraper, "fetch_json", fake_fetch_json)
+
+    result = await scraper.get_data(API_URL)
+    assert result is not None
+    assert len(result.event_list) == 1
+    assert result.event_list[0].date_str == "2026-03-28T20:00:00.000-05:00"
+
+
+@pytest.mark.asyncio
+async def test_get_data_passes_unknown_timezone_through(monkeypatch):
+    """get_data() passes unrecognised timezone strings through unchanged (no KeyError)."""
+    scraper = LoganSquareImprovScraper(_club())
+
+    async def fake_fetch_json(self, url: str, **kwargs) -> dict:
+        return _api_response([_show_entry(timezone="Bogota Time")])
+
+    monkeypatch.setattr(LoganSquareImprovScraper, "fetch_json", fake_fetch_json)
+
+    result = await scraper.get_data(API_URL)
+    assert result is not None
+    assert result.event_list[0].timezone == "Bogota Time"
 
 
 @pytest.mark.asyncio
