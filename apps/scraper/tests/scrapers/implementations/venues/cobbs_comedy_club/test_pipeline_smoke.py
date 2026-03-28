@@ -10,7 +10,8 @@ events but the transformation pipeline drops them due to can_transform() failure
 """
 
 import importlib.util
-from unittest.mock import AsyncMock, patch
+from datetime import datetime, timezone
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -25,7 +26,7 @@ from laughtrack.scrapers.implementations.api.ticketmaster.page_data import Ticke
 from laughtrack.scrapers.implementations.api.ticketmaster.scraper import TicketmasterScraper
 
 VENUE_ID = "KovZpZAEkFEA"
-EVENT_URL = "https://www.ticketmaster.com/event/1C00639017D58A85"
+EVENT_URL = "https://www.ticketmaster.com/event/FAKE0000COBBS001"
 
 
 def _club() -> Club:
@@ -51,7 +52,7 @@ def _make_api_event(
 ) -> dict:
     """Minimal Ticketmaster Discovery API event dict for Cobb's Comedy Club."""
     return {
-        "id": "1C00639017D58A85",
+        "id": "FAKE0000COBBS001",
         "name": name,
         "url": EVENT_URL,
         "dates": {
@@ -120,8 +121,8 @@ async def test_get_data_returns_none_on_exception():
 
 
 @pytest.mark.asyncio
-async def test_get_data_returns_none_when_api_returns_empty():
-    """get_data() returns None when TicketmasterClient.fetch_events() returns []."""
+async def test_get_data_returns_non_transformable_when_api_returns_empty():
+    """get_data() returns a non-transformable TicketmasterPageData when fetch_events() returns []."""
     scraper = TicketmasterScraper(_club())
     api_url = f"https://app.ticketmaster.com/discovery/v2/events.json?venueId={VENUE_ID}"
 
@@ -132,9 +133,19 @@ async def test_get_data_returns_none_when_api_returns_empty():
     ):
         result = await scraper.get_data(api_url)
 
-    assert result is None or (
-        isinstance(result, TicketmasterPageData) and not result.is_transformable()
-    ), "get_data() should return None or empty page data when the API returns 0 events"
+    assert isinstance(result, TicketmasterPageData) and not result.is_transformable(), (
+        "get_data() should return a non-transformable TicketmasterPageData when the API returns 0 events"
+    )
+
+
+def _fake_show(name: str = "Sam Tallent") -> Show:
+    """Minimal Show for use in transformer mocks."""
+    return Show(
+        name=name,
+        club_id=999,
+        date=datetime(2026, 4, 5, 19, 0, tzinfo=timezone.utc),
+        show_page_url=EVENT_URL,
+    )
 
 
 def test_transformation_pipeline_produces_shows():
@@ -144,11 +155,21 @@ def test_transformation_pipeline_produces_shows():
 
     Catches type-mismatch regressions where can_transform() returns False
     for Ticketmaster API dicts, silently dropping all events.
+
+    TicketmasterClient.__init__ raises ValueError when TICKETMASTER_API_KEY is
+    absent (e.g. CI). Patch the client in the transformer module so this test
+    runs hermetically without a live API key.
     """
     scraper = TicketmasterScraper(_club())
     page_data = TicketmasterPageData(event_list=[_make_api_event()])
 
-    shows = scraper.transformation_pipeline.transform(page_data)
+    mock_client = MagicMock()
+    mock_client.create_show.return_value = _fake_show()
+    with patch(
+        "laughtrack.scrapers.implementations.api.ticketmaster.transformer.TicketmasterClient",
+        return_value=mock_client,
+    ):
+        shows = scraper.transformation_pipeline.transform(page_data)
 
     assert len(shows) > 0, (
         "transformation_pipeline.transform() returned 0 Shows from TicketmasterPageData — "
@@ -163,7 +184,13 @@ def test_transformation_pipeline_preserves_event_name():
     event = _make_api_event(name="Mo Amer")
     page_data = TicketmasterPageData(event_list=[event])
 
-    shows = scraper.transformation_pipeline.transform(page_data)
+    mock_client = MagicMock()
+    mock_client.create_show.return_value = _fake_show(name="Mo Amer")
+    with patch(
+        "laughtrack.scrapers.implementations.api.ticketmaster.transformer.TicketmasterClient",
+        return_value=mock_client,
+    ):
+        shows = scraper.transformation_pipeline.transform(page_data)
 
     assert len(shows) == 1
     assert shows[0].name == "Mo Amer"
