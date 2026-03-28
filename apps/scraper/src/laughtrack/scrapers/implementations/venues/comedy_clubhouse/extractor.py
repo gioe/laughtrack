@@ -1,12 +1,13 @@
 """HTML extraction for The Comedy Clubhouse TicketSource listing page."""
 
 from typing import List, Optional
+from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
 
 from laughtrack.core.entities.event.comedy_clubhouse import (
     ComedyClubhouseEvent,
-    _TICKETSOURCE_BASE,
+    TICKETSOURCE_BASE,
 )
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
@@ -51,14 +52,13 @@ class ComedyClubhouseExtractor:
             return None
         title = title_tag.get_text(strip=True)
 
-        # Show page URL (relative path on ticketsource.com)
+        # Show page URL — urljoin handles both relative and absolute hrefs safely
         title_link = row.find("div", class_="eventTitle")
-        show_path = ""
+        show_url = ""
         if title_link:
             a_tag = title_link.find("a", itemprop="url")
             if a_tag and a_tag.get("href"):
-                show_path = a_tag["href"]
-        show_url = _TICKETSOURCE_BASE + show_path if show_path else ""
+                show_url = urljoin(TICKETSOURCE_BASE, a_tag["href"])
 
         # ISO start datetime from content= attribute
         datetime_div = row.find("div", class_="dateTime")
@@ -74,7 +74,7 @@ class ComedyClubhouseExtractor:
             )
             return None
 
-        # Ticket purchase URL
+        # Ticket purchase URL — urljoin handles both relative and absolute hrefs safely
         btn_div = row.find("div", class_="event-btn")
         if not btn_div:
             Logger.debug(
@@ -82,15 +82,13 @@ class ComedyClubhouseExtractor:
             )
             return None
         btn_a = btn_div.find("a")
-        if not btn_a or not btn_a.get("href"):
+        ticket_href = (btn_a.get("href") or "").strip() if btn_a else ""
+        if not ticket_href:
             Logger.debug(
                 f"ComedyClubhouseExtractor: skipping '{title}' — no ticket href"
             )
             return None
-        ticket_url = _TICKETSOURCE_BASE + btn_a["href"]
-
-        if not title or not start_iso or not ticket_url:
-            return None
+        ticket_url = urljoin(TICKETSOURCE_BASE, ticket_href)
 
         return ComedyClubhouseEvent(
             title=title,

@@ -285,3 +285,48 @@ def test_extractor_skips_row_without_datetime():
 </div>"""
     events = ComedyClubhouseExtractor.extract_events(f"<html><body>{bad_row}</body></html>")
     assert len(events) == 0
+
+
+def test_extractor_skips_row_with_empty_ticket_href():
+    """Extractor skips event cards where the ticket anchor has an empty href."""
+    from laughtrack.scrapers.implementations.venues.comedy_clubhouse.extractor import (
+        ComedyClubhouseExtractor,
+    )
+
+    bad_row = """
+<div class="grid-x align-middle padding-1 eventRow">
+  <div class="eventTitle"><a href="/x" itemprop="url"><span itemprop="name">Test Show</span></a></div>
+  <div class="dateTime" content="2026-04-03T19:30"><time>Fri, Apr 3 2026</time></div>
+  <div class="event-btn"><a href="">Book Now</a></div>
+</div>"""
+    events = ComedyClubhouseExtractor.extract_events(f"<html><body>{bad_row}</body></html>")
+    assert len(events) == 0
+
+
+@pytest.mark.asyncio
+async def test_get_data_returns_none_on_extractor_exception(monkeypatch):
+    """get_data() returns None and does not propagate when extract_events() raises."""
+    from laughtrack.scrapers.implementations.venues.comedy_clubhouse.extractor import (
+        ComedyClubhouseExtractor,
+    )
+
+    scraper = ComedyClubhouseScraper(_club())
+
+    async def fake_fetch_html(self, url: str, **kwargs) -> str:
+        return "<html><body>some content</body></html>"
+
+    def raising_extract(html: str):
+        raise RuntimeError("parse failure")
+
+    monkeypatch.setattr(ComedyClubhouseScraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(ComedyClubhouseExtractor, "extract_events", staticmethod(raising_extract))
+
+    result = await scraper.get_data(LISTING_URL)
+    assert result is None
+
+
+def test_to_show_returns_none_when_start_iso_empty():
+    """to_show() returns None when start_iso is an empty string."""
+    event = _make_event(start_iso="")
+    show = event.to_show(_club())
+    assert show is None

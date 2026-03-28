@@ -11,6 +11,8 @@ Each event card (div.eventRow) provides:
 - ticket purchase URL via div.event-btn > a[href] (relative, base=ticketsource.com)
 """
 
+import pytz
+
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
@@ -18,7 +20,7 @@ from typing import Optional
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.protocols.show_convertible import ShowConvertible
 
-_TICKETSOURCE_BASE = "https://www.ticketsource.com"
+TICKETSOURCE_BASE = "https://www.ticketsource.com"
 
 
 def _parse_iso_local(dt_str: str, timezone_name: str) -> Optional[datetime]:
@@ -28,8 +30,6 @@ def _parse_iso_local(dt_str: str, timezone_name: str) -> Optional[datetime]:
 
     Returns None if parsing fails.
     """
-    import pytz
-
     try:
         naive = datetime.strptime(dt_str, "%Y-%m-%dT%H:%M")
         tz = pytz.timezone(timezone_name)
