@@ -570,8 +570,7 @@ class TestSendDiscordRunSummary:
             svc._send_discord_run_summary(summary, db_result)
 
         desc = mock_alert_cls.call_args.kwargs.get('description', '')
-        assert "✅" in desc
-        assert "Good Club" in desc
+        assert "All clubs at or above threshold ✅" in desc
 
     def test_per_club_breakdown_uses_warning_for_failing_clubs(self):
         """⚠️ icon appears for clubs below the success threshold."""
