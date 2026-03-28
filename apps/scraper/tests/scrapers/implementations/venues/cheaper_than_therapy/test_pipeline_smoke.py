@@ -119,6 +119,25 @@ async def test_get_data_returns_none_when_api_returns_empty():
     )
 
 
+@pytest.mark.asyncio
+async def test_get_data_returns_none_on_client_exception():
+    """get_data() returns None when EventbriteClient raises an exception."""
+    scraper = EventbriteScraper(_club())
+
+    class _BrokenClient:
+        async def fetch_all_events(self):
+            raise RuntimeError("API unreachable")
+
+    scraper.eventbrite_client = _BrokenClient()  # type: ignore[assignment]
+
+    result = await scraper.get_data(ORGANIZER_ID)
+
+    assert result is None, (
+        "get_data() should catch exceptions and return None — "
+        "check exception handling in EventbriteScraper.get_data()"
+    )
+
+
 def test_transformation_pipeline_produces_shows():
     """
     transformation_pipeline.transform() returns at least one Show
