@@ -220,6 +220,24 @@ async def test_get_data_returns_page_data_with_events(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_get_data_returns_none_when_all_instances_malformed(monkeypatch):
+    """get_data() returns None when every instance is missing required fields."""
+    scraper = UPComedyClubScraper(_club())
+    malformed = [
+        {"soldOut": 0, "formattedDates": {"ISO8601": ""}, "purchaseUrl": "", "eventName": ""},
+        {"soldOut": 0, "formattedDates": {}, "purchaseUrl": "https://example.com", "eventName": ""},
+    ]
+
+    async def fake_fetch_json(self, url: str, **kwargs) -> Dict:
+        return _entity_resolver_response(malformed)
+
+    monkeypatch.setattr(UPComedyClubScraper, "fetch_json", fake_fetch_json)
+
+    result = await scraper.get_data("https://www.secondcity.com/api/entityResolver?uri=%2Fshows%2Fchicago%2Ftest&isPreview=false")
+    assert result is None, "Expected None when all instances are malformed"
+
+
+@pytest.mark.asyncio
 async def test_get_data_returns_none_when_no_instances(monkeypatch):
     """get_data() returns None when patronticketData has an empty instances list."""
     scraper = UPComedyClubScraper(_club())
@@ -299,6 +317,33 @@ def test_to_show_falls_back_to_utc_when_timezone_is_none():
     # UTC fallback: 2026-06-15T01:00:00 UTC
     assert show.date.hour == 1
     assert show.date.day == 15
+
+
+def test_to_show_sold_out_propagated_to_ticket():
+    """to_show() forwards sold_out=True to the ticket so sold-out shows are flagged correctly."""
+    event = UPComedyClubEvent(
+        title="The Best of The Second City: Chicago Style",
+        date_utc="2026-05-29T00:00:00Z",
+        ticket_url="https://secondcityus.my.salesforce-sites.com/ticket/#/instances/abc123",
+        sold_out=True,
+    )
+    show = event.to_show(_club())
+    assert show is not None
+    assert len(show.tickets) == 1
+    assert show.tickets[0].sold_out is True
+
+
+def test_to_show_not_sold_out_by_default():
+    """to_show() correctly reflects sold_out=False for available performances."""
+    event = UPComedyClubEvent(
+        title="The Best of The Second City: Chicago Style",
+        date_utc="2026-05-29T00:00:00Z",
+        ticket_url="https://secondcityus.my.salesforce-sites.com/ticket/#/instances/abc123",
+        sold_out=False,
+    )
+    show = event.to_show(_club())
+    assert show is not None
+    assert show.tickets[0].sold_out is False
 
 
 def test_to_show_returns_none_for_missing_fields():

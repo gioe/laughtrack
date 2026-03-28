@@ -58,7 +58,7 @@ class UPComedyClubEvent(ShowConvertible):
             return None
 
         ticket_url = url or self.ticket_url
-        tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url)]
+        tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url, sold_out=self.sold_out)]
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=self.title,
