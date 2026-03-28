@@ -373,6 +373,48 @@ def test_to_show_ticket_url_in_show():
 
 
 # ---------------------------------------------------------------------------
+# Past-instance filtering
+# ---------------------------------------------------------------------------
+
+@pytest.mark.asyncio
+async def test_get_data_filters_past_instances(monkeypatch):
+    """get_data() skips instances whose ISO8601 datetime is in the past."""
+    scraper = UPComedyClubScraper(_club())
+    instances = [
+        _make_instance("2020-01-01T00:00:00Z"),  # past — must be skipped
+        _make_instance("2026-05-29T00:00:00Z", ticket_url="https://secondcityus.my.salesforce-sites.com/ticket/#/instances/FUTURE"),  # future
+    ]
+
+    async def fake_fetch_json(self, url: str, **kwargs) -> Dict:
+        return _entity_resolver_response(instances)
+
+    monkeypatch.setattr(UPComedyClubScraper, "fetch_json", fake_fetch_json)
+
+    result = await scraper.get_data("https://www.secondcity.com/api/entityResolver?uri=%2Fshows%2Fchicago%2Ftest&isPreview=false")
+    assert result is not None, "Expected result with one future instance"
+    assert len(result.event_list) == 1, f"Expected 1 event (past filtered), got {len(result.event_list)}"
+    assert "FUTURE" in result.event_list[0].ticket_url
+
+
+@pytest.mark.asyncio
+async def test_get_data_returns_none_when_all_instances_are_past(monkeypatch):
+    """get_data() returns None when every instance is in the past."""
+    scraper = UPComedyClubScraper(_club())
+    instances = [
+        _make_instance("2020-01-01T00:00:00Z", ticket_url="https://secondcityus.my.salesforce-sites.com/ticket/#/instances/PAST1"),
+        _make_instance("2021-06-01T12:00:00Z", ticket_url="https://secondcityus.my.salesforce-sites.com/ticket/#/instances/PAST2"),
+    ]
+
+    async def fake_fetch_json(self, url: str, **kwargs) -> Dict:
+        return _entity_resolver_response(instances)
+
+    monkeypatch.setattr(UPComedyClubScraper, "fetch_json", fake_fetch_json)
+
+    result = await scraper.get_data("https://www.secondcity.com/api/entityResolver?uri=%2Fshows%2Fchicago%2Ftest&isPreview=false")
+    assert result is None, "Expected None when all instances are in the past"
+
+
+# ---------------------------------------------------------------------------
 # Full pipeline
 # ---------------------------------------------------------------------------
 

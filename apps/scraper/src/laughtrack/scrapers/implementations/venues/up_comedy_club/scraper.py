@@ -34,6 +34,7 @@ Pipeline:
 import base64
 import json
 import urllib.parse
+from datetime import datetime, timezone
 from typing import List, Optional
 
 from laughtrack.core.entities.club.model import Club
@@ -200,6 +201,13 @@ class UPComedyClubScraper(BaseScraper):
             sold_out = bool(inst.get("soldOut", 0))
 
             if not date_utc or not ticket_url or not title:
+                continue
+
+            try:
+                instance_dt = datetime.fromisoformat(date_utc.replace("Z", "+00:00"))
+            except ValueError:
+                continue
+            if instance_dt < datetime.now(timezone.utc):
                 continue
 
             events.append(
