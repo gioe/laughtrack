@@ -26,7 +26,7 @@ from laughtrack.scrapers.implementations.api.ticketmaster.page_data import Ticke
 from laughtrack.scrapers.implementations.api.ticketmaster.scraper import TicketmasterScraper
 
 VENUE_ID = "KovZpZAE6e7A"
-EVENT_URL = "https://www.ticketmaster.com/ivan-decker-san-francisco-california-03-28-2026/event/1C006390D815C785"
+EVENT_URL = "https://www.ticketmaster.com/ivan-decker-san-francisco-california/event/FAKE0000PLSF001"
 
 
 def _club() -> Club:
@@ -52,7 +52,7 @@ def _make_api_event(
 ) -> dict:
     """Minimal Ticketmaster Discovery API event dict for Punch Line SF."""
     return {
-        "id": "1C006390D815C785",
+        "id": "FAKE0000PLSF001",
         "name": name,
         "url": EVENT_URL,
         "dates": {
@@ -100,7 +100,7 @@ async def test_get_data_returns_page_data_with_events():
 
 
 @pytest.mark.asyncio
-async def test_get_data_returns_none_on_exception():
+async def test_get_data_returns_none_on_client_exception():
     """get_data() returns None when TicketmasterClient.fetch_events() raises."""
     scraper = TicketmasterScraper(_club())
     api_url = f"https://app.ticketmaster.com/discovery/v2/events.json?venueId={VENUE_ID}"
