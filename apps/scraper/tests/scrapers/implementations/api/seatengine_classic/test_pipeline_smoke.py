@@ -6,6 +6,10 @@ wire together correctly for the classic (HTML-based) SeatEngine platform.
 
 Classic SeatEngine venues serve server-rendered HTML rather than the REST API
 used by the newer platform — shows are extracted from event-list-item divs.
+
+Includes venue-specific tests for The Function SF (seatengine_id=540,
+the-function.seatengine-sites.com), which uses Layout 1 HTML (event-times-group
+with multiple show times per event).
 """
 
 import importlib.util
@@ -135,3 +139,90 @@ async def test_transform_data_returns_empty_for_empty_page_data():
     shows = scraper.transform_data(page_data, source_url=SCRAPING_URL)
 
     assert shows == []
+
+
+# ---------------------------------------------------------------------------
+# The Function SF — Layout 1 (event-times-group) venue-specific tests
+# ---------------------------------------------------------------------------
+
+THE_FUNCTION_URL = "https://the-function.seatengine-sites.com/events"
+THE_FUNCTION_BASE = "https://the-function.seatengine-sites.com"
+
+
+def _the_function_club() -> Club:
+    return Club(
+        id=192,
+        name="The Function SF",
+        address="1414 Market Street",
+        website="https://www.thefunctionsf.com",
+        scraping_url=THE_FUNCTION_URL,
+        popularity=0,
+        zip_code="94102",
+        phone_number="",
+        visible=True,
+        timezone="America/Los_Angeles",
+        seatengine_id="540",
+        scraper="seatengine_classic",
+    )
+
+
+def _the_function_html() -> str:
+    """Layout 1 HTML: event-times-group with two show times under one event."""
+    return """
+    <html><body>
+    <div class="event-list-item">
+      <div class="el-content el-column">
+        <h3 class="el-header"><a href="/events/101284">HellaDesi Comedy Night</a></h3>
+        <div class="event-times-group">
+          <h6 class="event-date align-right">Sat, Mar 28, 2026</h6>
+          <div class="event-list-button-group">
+            <div class="event-divider">
+              <a class="event-btn-inline" href="/shows/361339"> 7:00 PM</a>
+              <a class="event-btn-inline" href="/shows/361338"> 9:00 PM</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </body></html>
+    """
+
+
+@pytest.mark.asyncio
+async def test_the_function_sf_collect_scraping_targets():
+    """collect_scraping_targets() returns The Function SF's events URL."""
+    scraper = SeatEngineClassicScraper(_the_function_club())
+    targets = await scraper.collect_scraping_targets()
+    assert targets == [THE_FUNCTION_URL]
+
+
+@pytest.mark.asyncio
+async def test_the_function_sf_get_data_layout1_returns_two_shows():
+    """get_data() extracts both show times from a Layout 1 event-times-group block."""
+    scraper = SeatEngineClassicScraper(_the_function_club())
+    scraper.fetch_html = AsyncMock(return_value=_the_function_html())
+
+    result = await scraper.get_data(THE_FUNCTION_URL)
+
+    assert isinstance(result, SeatEngineClassicPageData)
+    assert result.is_transformable()
+    assert len(result.event_list) == 2, (
+        "Layout 1 event-times-group with two times must yield 2 shows"
+    )
+    assert result.event_list[0]["name"] == "HellaDesi Comedy Night"
+    assert result.event_list[1]["name"] == "HellaDesi Comedy Night"
+
+
+@pytest.mark.asyncio
+async def test_the_function_sf_transform_data_produces_shows_with_ticket_urls():
+    """transform_data() produces Show objects with correct ticket URLs for The Function SF."""
+    scraper = SeatEngineClassicScraper(_the_function_club())
+    scraper.fetch_html = AsyncMock(return_value=_the_function_html())
+
+    page_data = await scraper.get_data(THE_FUNCTION_URL)
+    shows = scraper.transform_data(page_data, source_url=THE_FUNCTION_URL)
+
+    assert len(shows) == 2
+    urls = {s.tickets[0].purchase_url for s in shows}
+    assert f"{THE_FUNCTION_BASE}/shows/361339" in urls
+    assert f"{THE_FUNCTION_BASE}/shows/361338" in urls
