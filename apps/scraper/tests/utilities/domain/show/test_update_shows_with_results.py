@@ -9,7 +9,6 @@ every downstream ticket insert had show_id=NULL.
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
 
-import pytest
 import pytz
 
 from laughtrack.utilities.domain.show.utils import ShowUtils
@@ -58,8 +57,7 @@ class TestUpdateShowsWithResultsDateNormalization:
         """show.date with a non-UTC offset (e.g. US/Central) must match the
         UTC-normalized DB date."""
         central = pytz.timezone("America/Chicago")
-        # 7 PM Central = midnight UTC next day? No: 7 PM CST = 1 AM UTC next day
-        # actually 7 PM CST (UTC-6) = 1 AM UTC next day
+        # April 18 is CDT (UTC-5): 7 PM CDT = midnight UTC next day
         aware_central = central.localize(datetime(2026, 4, 18, 19, 0, 0))
         utc_aware = aware_central.astimezone(timezone.utc)
 

@@ -224,15 +224,15 @@ class ShowUtils:
         show_map = {}
         for i, show in enumerate(shows):
             norm_date = ShowUtils._normalize_date_for_key(show.date)
-            key = (show.club_id, norm_date, show.room)
+            key = (show.club_id, norm_date, show.room or "")
             show_map[key] = i
 
         # Update shows with database results
         updated_shows = shows.copy()
 
         for result in db_results:
-            # Try to match database result to show using the same unique key tuple
-            # as Show.to_unique_key(): (club_id, date, room)
+            # Key mirrors (club_id, date, room) from Show.to_unique_key(), with date
+            # normalized to UTC-naive so psycopg2 TIMESTAMPTZ results match in-memory dates.
             result_key = (
                 result.get("club_id"),
                 ShowUtils._normalize_date_for_key(result.get("date")),
