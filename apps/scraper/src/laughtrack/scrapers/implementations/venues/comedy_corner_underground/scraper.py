@@ -125,7 +125,7 @@ class ComedyCornerScraper(BaseScraper):
                             start_time_utc=start_time_utc,
                             timezone=timezone,
                             ticket_url=ticket_url,
-                            performers=performers,
+                            performers=list(performers),
                         )
                     )
 

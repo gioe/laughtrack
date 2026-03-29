@@ -179,6 +179,8 @@ class ComedyCornerExtractor:
             offers = jsonld_info.get("offers", {})
             if isinstance(offers, dict):
                 ticket_url = offers.get("url", "")
+            elif isinstance(offers, list) and offers:
+                ticket_url = offers[0].get("url", "") if isinstance(offers[0], dict) else ""
 
         # Fallback ticket URL from slug
         if not ticket_url:

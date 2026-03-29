@@ -307,6 +307,29 @@ async def test_get_data_returns_none_on_empty_html(monkeypatch):
     assert result is None
 
 
+@pytest.mark.asyncio
+async def test_get_data_returns_none_when_all_events_are_open_mic(monkeypatch):
+    """get_data() returns None when every event on the listing page is open mic / no_advance_sales."""
+    listing = _listing_html(["open-mic-1", "open-mic-2"])
+    pages = {
+        LISTING_URL: listing,
+        f"{LISTING_URL}/e/open-mic-1": _event_page_html(
+            "The Thursday Mic", "open-mic-1", True, "no_advance_sales", ["2026-04-03T00:00:00.000Z"]
+        ),
+        f"{LISTING_URL}/e/open-mic-2": _event_page_html(
+            "Friday Mic", "open-mic-2", True, "no_advance_sales", ["2026-04-04T00:00:00.000Z"]
+        ),
+    }
+
+    async def fake_fetch_html(self, url: str, **kwargs) -> str:
+        return pages.get(url, "")
+
+    monkeypatch.setattr(ComedyCornerScraper, "fetch_html", fake_fetch_html)
+
+    result = await ComedyCornerScraper(_club()).get_data(LISTING_URL)
+    assert result is None
+
+
 # ---------------------------------------------------------------------------
 # Extractor unit tests
 # ---------------------------------------------------------------------------
@@ -353,6 +376,58 @@ def test_extract_event_data_returns_none_on_shell_html():
     """extract_event_data() returns None when no RSC push segments are present."""
     html = "<html><body><p>No RSC data</p></body></html>"
     assert ComedyCornerExtractor.extract_event_data(html) is None
+
+
+def test_extract_event_data_excludes_non_published_occurrences():
+    """extract_event_data() only includes occurrences with status='published'."""
+    html = _event_page_html(
+        name="Test Show",
+        slug="test-show",
+        is_open_mic=False,
+        admission_type="paid",
+        occurrences=["2026-04-04T01:00:00.000Z", "2026-04-05T01:00:00.000Z"],
+    )
+    # Inject a cancelled occurrence into the fixture
+    import json as _json
+    cancelled_occ = {
+        "id": "occ-cancelled",
+        "startTime": "2026-04-06T01:00:00.000Z",
+        "endTime": "2026-04-06T02:30:00.000Z",
+        "doorsTime": None,
+        "nameOverride": None,
+        "maxCapacity": 75,
+        "ticketsSold": 0,
+        "isSoldOut": False,
+        "status": "cancelled",
+        "soldByTicketType": {},
+    }
+    # Patch the HTML to include the cancelled occurrence
+    html_with_cancelled = html.replace(
+        '"status": "published"}, {"id": "occ-1"',
+        '"status": "published"}, {"id": "occ-cancelled", "startTime": "2026-04-06T01:00:00.000Z", "endTime": "2026-04-06T02:30:00.000Z", "doorsTime": null, "nameOverride": null, "maxCapacity": 75, "ticketsSold": 0, "isSoldOut": false, "status": "cancelled", "soldByTicketType": {}}, {"id": "occ-1"',
+    )
+
+    data = ComedyCornerExtractor.extract_event_data(html)
+    assert data is not None
+    assert "2026-04-04T01:00:00.000Z" in data["occurrences"]
+    assert "2026-04-05T01:00:00.000Z" in data["occurrences"]
+
+    # Verify the extractor filters cancelled if present in the data
+    # Build an HTML where one occurrence has status=cancelled directly
+    html_cancelled = _event_page_html(
+        name="Test Show",
+        slug="test-show",
+        is_open_mic=False,
+        admission_type="paid",
+        occurrences=["2026-04-04T01:00:00.000Z"],
+    )
+    # The status field is double-escaped in the RSC push string: \\"status\\": \\"published\\"
+    html_cancelled = html_cancelled.replace('\\"status\\": \\"published\\"', '\\"status\\": \\"cancelled\\"', 1)
+    data_cancelled = ComedyCornerExtractor.extract_event_data(html_cancelled)
+    assert data_cancelled is not None
+    assert data_cancelled["occurrences"] == [], (
+        "Cancelled occurrences should be excluded from the extracted list"
+    )
 
 
 # ---------------------------------------------------------------------------
