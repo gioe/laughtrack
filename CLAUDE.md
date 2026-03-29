@@ -1,3 +1,36 @@
+## StageTime Venues — Custom RSC Scraper
+
+StageTime (stageti.me) is a Next.js ticketing platform used by venues like
+The Comedy Corner Underground. Venues have a subdomain: `{slug}.stageti.me`.
+
+**No generic scraper exists.** Build a custom venue scraper:
+- `scraper = 'comedy_corner_underground'` (venue-specific key)
+- `scraping_url = 'https://{slug}.stageti.me'`
+
+**Data extraction approach:**
+1. Fetch the listing page `https://{slug}.stageti.me/` — extract event slugs from
+   `href="/v/{slug}/e/{event-slug}"` anchor links (BeautifulSoup).
+2. For each event slug, fetch `https://{slug}.stageti.me/e/{event-slug}`.
+   Event pages embed data in `self.__next_f.push([1,"..."])` RSC wire format segments:
+   - JSON-decode the quoted string content
+   - Split by newlines — each line is one RSC chunk (`XX:[...]` format)
+   - Chunk containing `"occurrences":[` has: event name, isOpenMic, admissionType,
+     occurrences[].startTime (UTC ISO), venue.timezone
+   - Chunk with `"id":"event-jsonld"` has: performer names and ticket URL
+     (in `dangerouslySetInnerHTML.__html` as a doubly-escaped JSON-LD string)
+3. One `ComedyCornerEvent` per occurrence; skip `isOpenMic=true` and
+   `admissionType='no_advance_sales'` events.
+
+**Occurrence start times** are UTC ISO strings (`"2026-04-04T01:00:00.000Z"`).
+Convert to local time via pytz: parse with `%Y-%m-%dT%H:%M:%S.%fZ`, localize to UTC,
+then convert to `venue.timezone` (e.g. `"America/Chicago"`).
+
+**Test fixtures:** RSC status fields are double-escaped in push segments. To patch
+a published occurrence to cancelled in a test, use:
+`html.replace('\\"status\\": \\"published\\"', '\\"status\\": \\"cancelled\\"', 1)`
+
+**See:** `apps/scraper/src/laughtrack/scrapers/implementations/venues/comedy_corner_underground/`
+
 ## Prekindle Venues — Use Existing `json_ld` Scraper
 
 When a venue sells tickets via **Prekindle** (`prekindle.com`), the events listing page
@@ -37,6 +70,28 @@ pattern `https://events.humanitix.com/{event-slug}/tickets`.
 **Note:** Humanitix has no public REST API for event listings — the host page
 HTML is the only data source. No `humanitix_id` column exists; store the full
 host URL in `scraping_url`.
+
+## Tixr Venues — Use Existing `tixr` Scraper
+
+When a venue's calendar page (its own website **or** a Tixr group page like
+`tixr.com/groups/<slug>`) embeds Tixr event links in server-rendered HTML,
+use the generic `tixr` scraper — no custom Python code needed:
+- `scraper = 'tixr'`
+- `scraping_url = '<venue calendar page URL>'`
+
+The `TixrScraper` fetches the page, extracts all Tixr URLs (both short-form
+`tixr.com/e/{id}` and long-form `tixr.com/groups/*/events/*-{id}`) via
+`TixrExtractor`, then batch-resolves each to a `TixrEvent` via `TixrClient`.
+
+**When to use a custom scraper instead:** If the venue's Tixr group page
+triggers DataDome bot-detection (returns 403 or empty results when fetched
+via `fetch_html`), use a Covina-style venue scraper that calls
+`tixr_client._fetch_tixr_page(url)` instead — this uses a bare curl_cffi
+session with no application headers, bypassing DataDome.
+
+**Smoke test pattern:** venue-specific smoke tests for `tixr` scraper venues
+instantiate `TixrScraper(club)`, mock `TixrScraper.fetch_html` (not
+`_fetch_tixr_page`), and verify `TixrPageData` is returned with ≥1 event.
 
 ## Wix Sites with "Events Calendar" Widget — Eventbrite Backend
 
@@ -268,6 +323,53 @@ Chrome is already running with a conflicting profile. Options:
 
 The Playwright pattern below is specifically for JS-heavy embedded widgets
 (Crowdwork, SeatGeek, Wix). For standard HTML pages, WebFetch is sufficient.
+
+## Scraper Implementation — JS-Rendered Pages Returning HTTP 200 with Shell Content
+
+When a ticketing page returns **HTTP 200** but only a JavaScript shell (no event rows in
+the HTML), `BaseScraper.fetch_html()` will NOT trigger the automatic Playwright fallback —
+that fallback only activates on 403 / empty response / bot-block signatures. The scraper
+will silently extract zero events with no error.
+
+**Identification:** curl_cffi returns 200 with a large HTML payload (~100–200KB) but
+BeautifulSoup finds no event containers. Playwright browser inspection shows the event rows
+populated after DOMContentLoaded — they are injected by JS, not server-rendered into the
+initial payload.
+
+**Implementation pattern:** override `get_data()` and add a `_fetch_html_with_js()` method
+that uses the shared `_get_js_browser()` singleton — never instantiate `PlaywrightBrowser()`
+directly (it leaks a Chromium process on every call):
+
+```python
+async def _fetch_html_with_js(self, url: str) -> Optional[str]:
+    try:
+        from laughtrack.foundation.infrastructure.http.client import _get_js_browser
+        browser = _get_js_browser()
+        if browser is None:
+            Logger.warn(f"MyScraper: Playwright unavailable for {url}", self.logger_context)
+            return None
+        return await browser.fetch_html(url)
+    except Exception as e:
+        Logger.warn(f"MyScraper: Playwright fetch failed for {url}: {e}", self.logger_context)
+        return None
+
+async def get_data(self, url: str) -> Optional[MyPageData]:
+    html = await self._fetch_html_with_js(url)
+    if not html:
+        return None
+    events = MyExtractor.extract_events(html)
+    ...
+```
+
+**Note on wait strategy:** `PlaywrightBrowser` uses `wait_until='domcontentloaded'`. If event
+rows are server-side rendered into the initial JS bundle (common with AudienceView/Theatre
+Manager), this is sufficient — verify with a live scrape. Only use `networkidle` if events
+are loaded via a post-DOMContentLoaded XHR.
+
+**Playwright install:** ensure Chromium is available before the first scrape:
+```bash
+cd apps/scraper && .venv/bin/playwright install chromium
+```
 
 ## Venue Scraper Discovery — Playwright Network Inspection for JS-Heavy Sites
 
