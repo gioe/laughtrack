@@ -35,12 +35,11 @@ class TicketHandler(BaseDatabaseHandler[Ticket]):
         """
 
         # Collect all tickets from shows
-        all_tickets = [
-            ticket
-            for show in shows
-            for ticket in show.tickets
-            if setattr(ticket, "show_id", show.id) or True  # Ensure show_id is set
-        ]
+        all_tickets = []
+        for show in shows:
+            for ticket in show.tickets:
+                ticket.show_id = show.id
+                all_tickets.append(ticket)
 
         if not all_tickets:
             raise ValueError("No tickets found in provided shows")
