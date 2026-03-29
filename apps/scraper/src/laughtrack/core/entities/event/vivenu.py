@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Optional
-from urllib.parse import urljoin
+from zoneinfo import ZoneInfo
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
@@ -38,7 +38,6 @@ class VivenuEvent(ShowConvertible):
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None) -> Optional[Show]:
         """Convert a VivenuEvent to a Show domain object."""
         try:
-            from zoneinfo import ZoneInfo
             tz = ZoneInfo(self.tz or club.timezone or "America/Chicago")
             # Parse ISO 8601 UTC string (may end with Z or +00:00)
             start_str = self.start_utc.replace("Z", "+00:00")

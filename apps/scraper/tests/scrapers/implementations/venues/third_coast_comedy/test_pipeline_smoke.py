@@ -6,7 +6,6 @@ __NEXT_DATA__ JSON, and unit-tests the VivenuEvent.to_show() transformation path
 """
 
 import json
-from datetime import datetime, timezone, timedelta
 
 import pytest
 
@@ -293,3 +292,28 @@ async def test_get_data_returns_none_on_null_response(monkeypatch):
 
     result = await scraper.get_data("https://tickets.thirdcoastcomedy.club/")
     assert result is None
+
+
+# ---------------------------------------------------------------------------
+# Full pipeline smoke test
+# ---------------------------------------------------------------------------
+
+
+def test_transformation_pipeline_produces_shows():
+    """Full pipeline: VivenuPageData → transformation_pipeline → Show objects.
+
+    Guards against silent failures in VivenuEventTransformer.can_transform() —
+    if generic parameter type matching fails, transform() returns 0 Shows with
+    no error. The to_show() unit tests cover conversion logic but do not exercise
+    the pipeline dispatch path.
+    """
+    scraper = VivenuScraper(_club())
+    page_data = VivenuPageData(event_list=[_make_event(name="Comedy Night")])
+
+    shows = scraper.transformation_pipeline.transform(page_data)
+
+    assert len(shows) > 0, (
+        "transformation_pipeline.transform() returned 0 Shows — "
+        "check VivenuEventTransformer and Club timezone"
+    )
+    assert shows[0].name == "Comedy Night"
