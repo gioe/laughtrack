@@ -163,6 +163,21 @@ async def test_get_data_extracts_multiple_shows(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_get_data_returns_none_when_no_json_ld(monkeypatch):
+    """get_data() returns None when the page has no JSON-LD Event blocks."""
+    scraper = JsonLdScraper(_club())
+
+    async def fake_fetch_html(self, url: str) -> str:
+        return "<html><body><h1>No events yet</h1></body></html>"
+
+    monkeypatch.setattr(JsonLdScraper, "fetch_html", fake_fetch_html)
+
+    result = await scraper.get_data(SCRAPING_URL)
+
+    assert result is None, "get_data() should return None when the page has no JSON-LD events"
+
+
+@pytest.mark.asyncio
 async def test_transformation_pipeline_produces_shows(monkeypatch):
     """transformation_pipeline.transform() returns Shows from JsonLdPageData."""
     from laughtrack.core.entities.show.model import Show
