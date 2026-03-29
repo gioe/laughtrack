@@ -27,6 +27,10 @@ class SetupSFExtractor:
         if today is None:
             today = date.today()
 
+        # Strip UTF-8 BOM if present — Google Sheets can export BOM-prefixed CSV,
+        # which would corrupt the first column header (e.g. '\ufeffdate' ≠ 'date').
+        csv_text = csv_text.lstrip('\ufeff')
+
         events: List[SetupSFEvent] = []
         try:
             reader = csv.DictReader(io.StringIO(csv_text))
@@ -50,7 +54,7 @@ class SetupSFExtractor:
         venue = (row.get("venue") or "").strip()
         ticket_url = (row.get("ticket_url") or "").strip()
 
-        if not raw_date or not raw_time or not title or not ticket_url:
+        if not raw_date or not raw_time or not title or not venue or not ticket_url:
             return None
 
         try:

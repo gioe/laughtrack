@@ -11,6 +11,17 @@ from laughtrack.core.protocols.show_convertible import ShowConvertible
 from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
 
 
+# Time formats accepted from the CSV's `time` column, tried in order.
+# Handles standard "9:00 PM", compact "9PM" / "9 PM", and 24-hour "21:00".
+_TIME_FMTS = [
+    "%I:%M %p",   # "9:00 PM"  (canonical Google Sheets format)
+    "%I:%M%p",    # "9:00PM"
+    "%I %p",      # "9 PM"
+    "%I%p",       # "9PM"
+    "%H:%M",      # "21:00"
+]
+
+
 @dataclass
 class SetupSFEvent(ShowConvertible):
     """
@@ -23,7 +34,7 @@ class SetupSFEvent(ShowConvertible):
 
     Fields:
       date       ← date column (YYYY-MM-DD)
-      time       ← time column (e.g. "9:00 PM")
+      time       ← time column (e.g. "9:00 PM", "9PM")
       title      ← title column
       venue      ← venue column (e.g. "The Palace Theater", "The Lost Church")
       ticket_url ← ticket_url column (Squarespace product page URL)
@@ -31,7 +42,7 @@ class SetupSFEvent(ShowConvertible):
     """
 
     date: str        # "YYYY-MM-DD"
-    time: str        # "9:00 PM" / "8:00 PM"
+    time: str        # "9:00 PM" / "9PM" / "21:00"
     title: str
     venue: str
     ticket_url: str
@@ -41,7 +52,15 @@ class SetupSFEvent(ShowConvertible):
         """Convert a SetupSFEvent to a Show domain object."""
         try:
             tz = ZoneInfo(club.timezone or "America/Los_Angeles")
-            naive = datetime.strptime(f"{self.date} {self.time}", "%Y-%m-%d %I:%M %p")
+            naive = None
+            for fmt in _TIME_FMTS:
+                try:
+                    naive = datetime.strptime(f"{self.date} {self.time}", f"%Y-%m-%d {fmt}")
+                    break
+                except ValueError:
+                    continue
+            if naive is None:
+                return None
             start_date = naive.replace(tzinfo=tz)
         except Exception:
             return None

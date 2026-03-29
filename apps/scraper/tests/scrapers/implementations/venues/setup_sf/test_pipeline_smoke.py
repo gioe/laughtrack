@@ -98,7 +98,7 @@ def test_extract_events_filters_past_events():
         ("2099-12-31", "9:00 PM", "Future Show", "The Palace Theater",
          "https://setupcomedy.com/tickets-3/future-show"),
     )
-    events = SetupSFExtractor.extract_events(csv_text, today=date.today())
+    events = SetupSFExtractor.extract_events(csv_text, today=date(2026, 1, 1))
 
     assert len(events) == 1
     assert events[0].title == "Future Show"
@@ -230,6 +230,43 @@ def test_to_show_returns_none_for_invalid_date():
     show = event.to_show(_club())
 
     assert show is None
+
+
+def test_to_show_returns_none_for_unsupported_time_format():
+    """to_show() returns None when the time string matches no known format."""
+    event = _make_event(date_str="2099-04-03", time_str="quarter past nine")
+    show = event.to_show(_club())
+
+    assert show is None
+
+
+def test_compact_time_normalised_9pm():
+    """to_show() correctly parses compact time format '9PM' (no colon, no space)."""
+    event = _make_event(date_str="2099-04-03", time_str="9PM")
+    show = event.to_show(_club())
+
+    assert show is not None
+    assert show.date.hour == 21
+    assert show.date.minute == 0
+
+
+def test_compact_time_normalised_9_pm_with_space():
+    """to_show() correctly parses compact time format '9 PM' (no colon)."""
+    event = _make_event(date_str="2099-04-03", time_str="9 PM")
+    show = event.to_show(_club())
+
+    assert show is not None
+    assert show.date.hour == 21
+
+
+def test_compact_time_normalised_24hr():
+    """to_show() correctly parses 24-hour time format '21:00'."""
+    event = _make_event(date_str="2099-04-03", time_str="21:00")
+    show = event.to_show(_club())
+
+    assert show is not None
+    assert show.date.hour == 21
+    assert show.date.minute == 0
 
 
 def test_to_show_marks_sold_out_ticket():
