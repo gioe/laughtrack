@@ -38,6 +38,7 @@ from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.event.philly_improv import PhillyImprovShow
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
+from laughtrack.scrapers.implementations.api.crowdwork.utils import extract_performances
 
 from .page_data import PhillyImprovPageData
 from .transformer import PhillyImprovTransformer
@@ -90,7 +91,7 @@ class PhillyImprovTheaterScraper(BaseScraper):
             for show in shows_iterable:
                 if not isinstance(show, dict):
                     continue
-                extracted = _extract_performances(show)
+                extracted = extract_performances(show, default_timezone="America/New_York")
                 performances.extend(extracted)
 
             if not performances:
@@ -104,48 +105,3 @@ class PhillyImprovTheaterScraper(BaseScraper):
             Logger.error(f"PHIT: get_data failed: {e}", self.logger_context)
             return None
 
-
-def _extract_performances(show: dict) -> List[PhillyImprovShow]:
-    """
-    Convert one Crowdwork show dict into one PhillyImprovShow per performance date.
-
-    A single show may have multiple performance dates in its ``dates`` array.
-    """
-    name = show.get("name") or "Comedy Show"
-    url = show.get("url") or ""
-    timezone = show.get("timezone") or "America/New_York"
-
-    cost_obj = show.get("cost") or {}
-    cost_formatted = (cost_obj.get("formatted") or "") if isinstance(cost_obj, dict) else ""
-
-    desc_obj = show.get("description") or {}
-    description = (desc_obj.get("body") or "") if isinstance(desc_obj, dict) else ""
-
-    badges_obj = show.get("badges") or {}
-    spots = (badges_obj.get("spots") or "") if isinstance(badges_obj, dict) else ""
-    sold_out = "sold" in spots.lower() if spots else False
-
-    dates = show.get("dates") or []
-    if not dates:
-        # Fall back to next_date if dates array is absent
-        next_date = show.get("next_date")
-        if next_date:
-            dates = [next_date]
-
-    performances = []
-    for date_str in dates:
-        if not date_str:
-            continue
-        performances.append(
-            PhillyImprovShow(
-                name=name,
-                date_str=str(date_str),
-                timezone=timezone,
-                url=url,
-                cost_formatted=cost_formatted,
-                sold_out=sold_out,
-                description=description,
-            )
-        )
-
-    return performances
