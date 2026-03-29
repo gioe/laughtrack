@@ -1,0 +1,63 @@
+"""Data model for a single event from The Setup SF (Google Sheets CSV)."""
+
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Optional
+from zoneinfo import ZoneInfo
+
+from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.show.model import Show
+from laughtrack.core.protocols.show_convertible import ShowConvertible
+from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
+
+
+@dataclass
+class SetupSFEvent(ShowConvertible):
+    """
+    Data model for a single event from The Setup SF's Google Sheets CSV calendar.
+
+    The CSV is published at:
+      https://docs.google.com/spreadsheets/d/e/2PACX-1v.../pub?gid=495747966&single=true&output=csv
+
+    CSV columns: date,day,time,title,venue,city,ticket_url,urgency_tag,sold_out
+
+    Fields:
+      date       ← date column (YYYY-MM-DD)
+      time       ← time column (e.g. "9:00 PM")
+      title      ← title column
+      venue      ← venue column (e.g. "The Palace Theater", "The Lost Church")
+      ticket_url ← ticket_url column (Squarespace product page URL)
+      sold_out   ← sold_out column (truthy string = sold out)
+    """
+
+    date: str        # "YYYY-MM-DD"
+    time: str        # "9:00 PM" / "8:00 PM"
+    title: str
+    venue: str
+    ticket_url: str
+    sold_out: bool = False
+
+    def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None) -> Optional[Show]:
+        """Convert a SetupSFEvent to a Show domain object."""
+        try:
+            tz = ZoneInfo(club.timezone or "America/Los_Angeles")
+            naive = datetime.strptime(f"{self.date} {self.time}", "%Y-%m-%d %I:%M %p")
+            start_date = naive.replace(tzinfo=tz)
+        except Exception:
+            return None
+
+        ticket_url = url or self.ticket_url
+        tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url, sold_out=self.sold_out)]
+
+        return ShowFactoryUtils.create_enhanced_show_base(
+            name=self.title or "Comedy Show",
+            club=club,
+            date=start_date,
+            show_page_url=ticket_url,
+            lineup=[],
+            tickets=tickets,
+            description=None,
+            room=self.venue,
+            supplied_tags=["event"],
+            enhanced=enhanced,
+        )
