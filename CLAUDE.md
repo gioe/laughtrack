@@ -1,3 +1,43 @@
+## Prekindle Venues — Use Existing `json_ld` Scraper
+
+When a venue sells tickets via **Prekindle** (`prekindle.com`), the events listing page
+(`https://www.prekindle.com/events/{venue-slug}`) is server-rendered and embeds all
+upcoming events as a single JSON array in a `<script type="application/ld+json">` block
+with `@type=ComedyEvent`. The block may include a `wicketpath` attribute (Java Wicket
+framework) which BeautifulSoup handles correctly.
+
+**No new scraper code is needed.** Use the generic `json_ld` scraper:
+- `scraper = 'json_ld'`
+- `scraping_url = 'https://www.prekindle.com/events/{venue-slug}'`
+  (the `{venue-slug}` appears in the venue's Prekindle events page URL)
+
+**Rate-limiting:** Prekindle throttles rapid successive requests from the same IP —
+repeated scrapes within a short window (< ~60s) return valid HTML but without the
+JSON-LD block, triggering the "Page loaded but contained no JSON-LD events" warning.
+This is expected under load testing or rapid review-agent runs. Nightly single-run
+scrapes are unaffected. When investigating scraper reliability from logs, verify that
+failures are not caused by rapid successive test runs before treating them as genuine
+scraping failures.
+
+## Humanitix Venues — Use Existing `json_ld` Scraper
+
+When a venue sells tickets via **Humanitix** (`events.humanitix.com`), the host
+page is server-rendered and embeds all upcoming events as
+`<script type="application/ld+json">` blocks with `@type=Event`.
+
+**No new scraper code is needed.** Use the generic `json_ld` scraper:
+- `scraper = 'json_ld'`
+- `scraping_url = 'https://events.humanitix.com/host/<slug>'`
+  (the `<slug>` appears in the Humanitix host page URL)
+
+The existing `JsonLdScraper` fetches the host page and extracts all events in
+a single request — no per-event page visits needed. Ticket URLs follow the
+pattern `https://events.humanitix.com/{event-slug}/tickets`.
+
+**Note:** Humanitix has no public REST API for event listings — the host page
+HTML is the only data source. No `humanitix_id` column exists; store the full
+host URL in `scraping_url`.
+
 ## Wix Sites with "Events Calendar" Widget — Eventbrite Backend
 
 Some Wix-hosted venues embed the "Events Calendar" widget (inffuse.eventscalendar.co)
@@ -12,6 +52,66 @@ The `calendar=` parameter **is the Eventbrite organizer ID**.
 **Implementation:** use `scraper='eventbrite'` with the organizer ID — no Wix access
 token needed. The `EventbriteClient` routes 11-digit IDs to `/organizers/{id}/events/`
 automatically.
+
+## Scraper Smoke Tests — Ticketmaster Venues: Patch TicketmasterClient in Sync Pipeline Tests
+
+`TicketmasterEventTransformer.transform_to_show()` instantiates `TicketmasterClient(self.club)`
+on every event, and the constructor raises `ValueError` when `TICKETMASTER_API_KEY` is absent.
+CI (`scraper-ci.yml`) does **not** set this env var, so the sync pipeline tests
+(`test_transformation_pipeline_produces_shows`, `test_transformation_pipeline_preserves_event_name`)
+will pass locally but fail in every CI run — producing 0 shows and failing the `len(shows) > 0`
+assertion.
+
+**Fix**: patch `TicketmasterClient` in the transformer module for those two tests:
+
+```python
+from unittest.mock import MagicMock, patch
+
+mock_client = MagicMock()
+mock_client.create_show.return_value = _fake_show()
+with patch(
+    "laughtrack.scrapers.implementations.api.ticketmaster.transformer.TicketmasterClient",
+    return_value=mock_client,
+):
+    shows = scraper.transformation_pipeline.transform(page_data)
+```
+
+This applies to **all** `live_nation` venue smoke test files. Do not copy the unpatched
+Second City pattern — it has the same bug.
+
+**Event IDs in smoke tests must be fake.** Use a clearly synthetic ID like `FAKE0000COBBS001`
+or `FAKE0000PLSF001` — never a real Ticketmaster event ID. Real IDs are tied to specific show
+dates and look stale once the event passes. The canonical pattern is `FAKE0000<VENUE_CODE>001`
+where `<VENUE_CODE>` is a short uppercase abbreviation of the venue name (e.g. `COBBS`, `PLSF`,
+`2CTY`).
+
+## Scraper Smoke Tests — Always Include `test_transformation_pipeline_produces_shows`
+
+Every venue smoke test file (`test_pipeline_smoke.py`) **must** include a
+`test_transformation_pipeline_produces_shows` test. This test catches regressions where
+`can_transform()` returns `False` for the venue's event type (e.g., due to a generic type
+mismatch on `DataTransformer[T]`), causing `transform()` to silently return an empty list
+with no error.
+
+```python
+def test_transformation_pipeline_produces_shows():
+    club = _club()
+    scraper = MyVenueScraper(club)
+    events = [_make_event("Show A"), _make_event("Show B")]
+    page_data = MyVenuePageData(event_list=events)
+
+    shows = scraper.transformation_pipeline.transform(page_data)
+
+    assert len(shows) > 0, (
+        "transformation_pipeline.transform() returned 0 Shows — "
+        "check can_transform() and that the transformer is registered "
+        "with the correct generic type"
+    )
+    assert all(isinstance(s, Show) for s in shows)
+```
+
+This test must be present even when other `to_show()` unit tests exist — those tests
+call `event.to_show()` directly and bypass the transformer registry entirely.
 
 ## Scraper Smoke Tests — Check for Unstaged Source Changes Before Committing
 
@@ -46,9 +146,11 @@ Use `make scrape-club CLUB='<venue name>'` to run a scrape for a specific club.
 `cleanup-stale-scrapers`. Task criteria and next-steps that say "run bin/scrape"
 should be interpreted as `make scrape-club CLUB='<name>'`.
 
+The Makefile lives in `apps/scraper/` — always run from that directory:
+
 ```bash
-make scrape-club CLUB="Esther's Follies"
-make scrape-club CLUB="Comedy Cellar"
+cd apps/scraper && make scrape-club CLUB="Esther's Follies"
+cd apps/scraper && make scrape-club CLUB="Comedy Cellar"
 ```
 
 ## Scraper Venue PageData — Module Must Be Named `data.py`
@@ -376,6 +478,21 @@ source directly. Find it via Playwright browser evaluation:
 Note: `categoryId` is NOT required if the venue has no Wix event categories configured.
 Applying a Bushwick-specific `categoryId` to a different Wix site returns HTTP 400.
 
+## Venue Onboarding — Always Use HTTPS for Website URL
+
+When writing a migration for a new venue, always use `https://` for the `website`
+column — even if the task description or source page shows `http://`. Most modern
+venues serve over HTTPS, and storing `http://` causes a redirect (or mixed-content
+warning) in production.
+
+Quick check before writing the migration:
+```bash
+curl -sI https://www.example.com | head -1   # should return 200, not 301
+```
+
+The migration runs before code review; a stale `http://` URL requires a corrective
+UPDATE migration that cannot be merged until after the original one lands.
+
 ## Ticketmaster Scraper — 0 Events Diagnosis
 
 When a Ticketmaster-backed scraper returns 0 events, the first thing to check is
@@ -405,6 +522,11 @@ back to `/organizers/{id}/events/`.
   `https://www.eventbrite.com/o/<slug>-<organizer_id>`
 - Venue ID: inspect an individual event's JSON — look for `"venue_id"` in the
   page source or Eventbrite API response.
+
+**Migration `scraping_url`:** Always use the full organizer URL including the slug:
+  `'https://www.eventbrite.com/o/<slug>-<organizer_id>'`
+not just `'https://www.eventbrite.com/o/<organizer_id>'` — the slug is required
+for consistency with existing venues.
 
 **For multi-location chains:** guessing the organizer page URL using a known
 sibling location's ID always redirects to the primary organizer. Instead:
@@ -436,6 +558,16 @@ The venue UUID is in the page's JSON-LD `<script>` as `"identifier": "..."`.
 
 **v1 setup:** use `scraper='seatengine'` and store the numeric ID in `seatengine_id`.
 Use `seatengine_national` to discover v1 venue IDs via enumeration.
+
+**Classic setup:** some SeatEngine venues use the legacy HTML-rendered platform
+(`cdn.seatengine.com` assets, domains like `*.seatengine-sites.com` or
+`*.seatengine.com/calendar`). These do **not** respond to the REST API — use
+`scraper='seatengine_classic'` with `scraping_url` pointing to the events page.
+The numeric venue ID (for `seatengine_id`) is embedded in the logo URL:
+`https://files.seatengine.com/styles/logos/{id}/original/` — check the page
+source for this pattern rather than scanning via `seatengine_national`.
+Identification: `cdn.seatengine.com/assets/application` in the page's `<script>`
+tags (vs. `cdn-new.seatengine.com` for v1/v3).
 
 ## curl_cffi + DataDome — Header Fingerprint Debugging
 
@@ -487,9 +619,17 @@ When onboarding a venue whose site is built on Squarespace, event data is served
 **Key non-obvious details:**
 1. The response is a **JSON array** at the root level (`[{...}, ...]`), not a dict.
    `fetch_json()` will return a `list` — handle accordingly in the extractor.
-2. The `collectionId` is NOT in the page source. Find it via Playwright network
-   inspection: navigate to the `/shows-calendar` (or events) page, wait 3s, then
-   capture `browser_network_requests` and look for a `GetItemsByMonth` call.
+2. The `collectionId` may be in the SSR HTML: check `Static.SQUARESPACE_CONTEXT`
+   in the page source — WebFetch on the events page often includes it embedded as
+   a JSON blob. If not found there, fall back to Playwright network inspection:
+   navigate to the events page, wait 3s, then capture `browser_network_requests`
+   and look for a `GetItemsByMonth` call.
+   **Two-collection trap:** Some Squarespace sites have a calendar-block collection
+   (type 10, e.g. `/shows`) separate from the actual event-items collection
+   (e.g. `/all-shows`). If `GetItemsByMonth` returns `[]` for the ID found on the
+   listing page, fetch an individual event's page (`/all-shows/<slug>`) and read
+   its `Static.SQUARESPACE_CONTEXT` — the `collection.id` there is the correct ID
+   to use in the scraping URL.
 3. The `crumb` query parameter seen in browser requests is **not required** for the
    `/api/open/` endpoint — omit it in the scraper.
 4. The API only returns events for one calendar month. The scraper must iterate over
@@ -908,6 +1048,115 @@ If files show as `??` (untracked) after a `tusk commit` call, stage and commit t
 git add <file1> <file2> && git commit -m "[TASK-<id>] <message>" \
   --trailer "Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 ```
+
+## OvationTix Venues — Two Scraper Patterns
+
+OvationTix venues use `https://web.ovationtix.com/trs/api/rest/Production({id})/performance?`
+(with `clientId` header) to fetch performance data. Two patterns exist based on how the
+venue organizes its OvationTix productions:
+
+**Pattern 1 — Calendar-based (e.g. Uncle Vinnies)**
+- Many production IDs, each representing a single recurring show series
+- Discover production IDs by scraping the venue's HTML calendar pages (look for
+  anchor links like `class="tickets-button"` pointing to `ci.ovationtix.com/.../production/{id}`)
+- For each production, fetch only `performanceSummary.nextPerformance` (one upcoming date)
+- `scraper = 'uncle_vinnies'`
+
+**Pattern 2 — Direct productions (e.g. Four Day Weekend Comedy)**
+- Few production IDs on a static buy-tickets page, each with many upcoming performances
+- Discover production IDs by fetching the venue's buy-tickets page and extracting
+  `ci.ovationtix.com/{clientId}/production/{id}` links
+- For each production, use the full `performances[]` array (all upcoming dates)
+- `scraper = 'four_day_weekend'` (reuse this key for new venues following this pattern)
+
+**Both patterns** use `Production({id})/performance?` with `clientId` and `newCIRequest: true`
+headers. The client/org ID appears in the production URL on the venue's buy page.
+Ticket pricing requires a separate `Performance({id})` call per show — currently deferred
+for the Four Day Weekend scraper (only ticket purchase URLs are stored).
+
+## OpenDate Venues — SSR HTML Scraping Pattern
+
+When a venue sells tickets via **OpenDate** (`app.opendate.io`), the listing page is
+server-rendered HTML — no public API is available.
+
+**Listing URL format:**
+  `https://app.opendate.io/v/{venue-slug}?per_page=500`
+
+The `?per_page=500` parameter is **required** — the default returns only ~50 events per
+page and does not paginate automatically. With `per_page=500` all upcoming events load
+in a single request.
+
+**Identification:** Playwright network inspection shows only analytics/Stripe requests —
+no JSON API calls. WebFetch on the listing page returns full event HTML.
+
+**HTML structure per event card (`div.confirm-card`):**
+
+```html
+<div class="card confirm-card">
+  <div class="card-body">
+    <!-- title + ticket URL -->
+    <p class="mb-0 text-dark">
+      <a class="text-dark stretched-link" href="https://app.opendate.io/e/{slug}">
+        <strong>{Title}</strong>
+      </a>
+    </p>
+    <!-- date string, e.g. "March 29, 2026" -->
+    <p class="mb-0" style="color: #1982c4; ...">April 03, 2026</p>
+    <!-- time string, e.g. "Doors: 6:30 PM - Show: 7:00 PM" -->
+    <p class="mb-0" style="color: #1982c4; ...">Doors: 6:30 PM - Show: 7:00 PM</p>
+    <!-- venue name line -->
+    <p class="mb-0 text-truncate" ...>VENUE NAME • City, ST</p>
+  </div>
+</div>
+```
+
+**Key extraction notes:**
+1. The stretched-link `<a>` gives both the event URL (for tickets) and the title (via `<strong>`).
+2. The blue `p.mb-0` paragraphs are identified by the `color: #1982c4` inline style — the first
+   is the date string, the second is the time string. Exclude `text-dark` and `text-truncate`
+   paragraphs to avoid false matches.
+3. Extract the **show time** from the time string via regex: `Show:\s*(\d{1,2}:\d{2}\s*[AP]M)`.
+   Normalize compact format (`"8:30PM"`) to spaced format (`"8:30 PM"`) before `strptime`.
+4. Date format: `"%B %d, %Y"` (e.g. `"March 29, 2026"`).
+5. The event URL doubles as the ticket purchase URL — no separate ticket endpoint needed.
+6. Use `per_page=500` as the single scraping target; `collect_scraping_targets()` returns only
+   this one URL.
+
+**Scraper key:** use `scraper = 'sports_drink'` as a reference implementation for new OpenDate
+venues, adapting the venue slug and club details.
+
+## TicketSource Venues — HTML Scraping Pattern
+
+When a venue sells tickets via **TicketSource** (`ticketsource.com/{venue}`), the listing
+page is server-rendered HTML — no JS widget or API needed.
+
+**Identification:** The venue's website links to `ticketsource.us/{slug}` or
+`ticketsource.com/{slug}`. WebFetch returns full event HTML (not a JS shell).
+
+**HTML structure per event card (`div.eventRow`):**
+
+```
+div.eventRow[data-id="..."]
+  div.eventTitle > a[itemprop="url", href="/slug/event-title/e-XXXXX"]
+    span[itemprop="name"]                      ← show title
+  div.dateTime[content="2026-03-28T19:30"]     ← ISO local datetime (no timezone)
+    time                                       ← human-readable fallback (not used)
+  div.event-btn > a[href="/booking/init/XXXX"] ← ticket purchase path
+```
+
+**Key implementation notes:**
+1. Use `div.dateTime[content]` attribute for datetime — it gives a clean ISO string
+   (`"YYYY-MM-DDTHH:MM"`) that can be parsed with `strptime(dt_str, "%Y-%m-%dT%H:%M")`
+   and localized with `pytz.timezone(club.timezone).localize(naive)`.
+2. Use `urllib.parse.urljoin(TICKETSOURCE_BASE, href)` — not string concatenation —
+   for all URL construction. TicketSource hrefs are relative paths; `urljoin` handles
+   both relative and absolute hrefs safely.
+3. The `scraping_url` for the club should point to `https://www.ticketsource.com/{slug}`.
+4. No pagination — all upcoming events appear on a single page.
+
+**WebFetch rate-limiting:** TicketSource returns HTTP 429 on rapid WebFetch calls.
+Use `browser_evaluate` to extract the raw HTML from an already-loaded Playwright page
+if you need to inspect the DOM structure during discovery.
 
 ## Scraper Extractor Regexes — Generalize for Multi-Location Venues
 
