@@ -21,9 +21,6 @@ from typing import Optional
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.protocols.show_convertible import ShowConvertible
 
-OPENDATE_BASE = "https://app.opendate.io"
-
-
 def _parse_opendate_datetime(
     date_str: str, time_str: str, timezone_name: str
 ) -> Optional[datetime]:
@@ -31,18 +28,20 @@ def _parse_opendate_datetime(
     Parse a date like "March 29, 2026" and a time string like
     "Doors: 7:30 PM - Show: 8:30 PM" and localize to *timezone_name*.
 
-    Extracts the show time (after "Show: ") from time_str.
+    Extracts the show time (after "Show: ") from time_str.  Handles both
+    spaced ("8:30 PM") and compact ("8:30PM") AM/PM formats.
     Returns None if parsing fails.
     """
     try:
         date_str = date_str.strip()
         naive_date = datetime.strptime(date_str, "%B %d, %Y")
 
-        # Extract "8:30 PM" from "Doors: 7:30 PM - Show: 8:30 PM"
+        # Extract "8:30 PM" (or "8:30PM") from "Doors: 7:30 PM - Show: 8:30 PM"
         match = re.search(r"Show:\s*(\d{1,2}:\d{2}\s*[AP]M)", time_str, re.IGNORECASE)
         if not match:
             return None
-        show_time_str = match.group(1).strip()
+        # Normalise compact format ("8:30PM" → "8:30 PM") so strptime succeeds
+        show_time_str = re.sub(r"\s*([AP]M)\s*$", r" \1", match.group(1).strip(), flags=re.IGNORECASE)
         naive_time = datetime.strptime(show_time_str, "%I:%M %p")
 
         naive = naive_date.replace(

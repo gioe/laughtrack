@@ -10,6 +10,7 @@ import pytest
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.event.sports_drink import SportsDrinkEvent
+from laughtrack.core.entities.show.model import Show
 from laughtrack.scrapers.implementations.venues.sports_drink.scraper import (
     SportsDrinkScraper,
 )
@@ -320,3 +321,41 @@ async def test_get_data_returns_none_on_extractor_exception(monkeypatch):
 
     result = await scraper.get_data(LISTING_URL)
     assert result is None
+
+
+def test_transformation_pipeline_produces_shows():
+    """
+    Core regression: transformation_pipeline.transform() must return at least one Show
+    when given SportsDrinkPageData with real SportsDrinkEvent objects.
+
+    If can_transform() returns False for SportsDrinkEvent (e.g., due to a type mismatch
+    between the transformer's generic parameter and the event type), transform()
+    silently returns an empty list with no error.
+    """
+    club = _club()
+    scraper = SportsDrinkScraper(club)
+
+    events = [
+        _make_event("Ian Lara at SPORTS DRINK (Friday, 7:00p)"),
+        _make_event("Jake Cornell at SPORTS DRINK (Saturday, 9:00p)"),
+    ]
+    page_data = SportsDrinkPageData(event_list=events)
+
+    shows = scraper.transformation_pipeline.transform(page_data)
+
+    assert len(shows) > 0, (
+        "transformation_pipeline.transform() returned 0 Shows from SportsDrinkPageData — "
+        "check SportsDrinkEventTransformer.can_transform() and that the transformer is "
+        "registered with the correct generic type"
+    )
+    assert all(isinstance(s, Show) for s in shows)
+
+
+def test_to_show_handles_compact_time_format():
+    """to_show() parses compact AM/PM format ('7:00PM' with no space) correctly."""
+    event = _make_event(time_str="Doors: 6:30PM - Show: 7:00PM")
+    show = event.to_show(_club())
+
+    assert show is not None, "Compact time format 'Show: 7:00PM' should not return None"
+    assert show.date.hour == 19
+    assert show.date.minute == 0
