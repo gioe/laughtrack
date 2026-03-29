@@ -12,6 +12,7 @@ from laughtrack.core.entities.event.standup_ny import StandupNYEvent
 from laughtrack.core.entities.event.tixr import TixrEvent
 from laughtrack.core.entities.event.twenty_two_rams import TwentyTwoRamsEvent
 from laughtrack.core.entities.event.red_room import RedRoomEvent
+from laughtrack.core.entities.event.four_day_weekend import FourDayWeekendEvent
 from laughtrack.core.entities.event.uncle_vinnies import UncleVinniesEvent
 from laughtrack.core.entities.event.up_comedy_club import UPComedyClubEvent
 
@@ -22,6 +23,7 @@ __all__ = [
     "BushwickEvent",
     "ComedyCellarEvent",
     "EventbriteEvent",
+    "FourDayWeekendEvent",
     "GothamEvent",
     "Grove34Event",
     "ImprovEvent",
