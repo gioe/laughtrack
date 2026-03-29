@@ -44,7 +44,7 @@ class ComedyStoreScraper(BaseScraper):
             for i in range(_SCRAPE_WINDOW_DAYS)
         ]
         Logger.info(
-            f"Comedy Store: generated {len(targets)} daily calendar URLs "
+            f"{self.__class__.__name__} [{self._club.name}]: generated {len(targets)} daily calendar URLs "
             f"({today} – {today + timedelta(days=_SCRAPE_WINDOW_DAYS - 1)})",
             self.logger_context,
         )
@@ -55,7 +55,7 @@ class ComedyStoreScraper(BaseScraper):
         try:
             html = await self.fetch_html(url)
             if not html:
-                Logger.warn(f"Comedy Store: empty response from {url}", self.logger_context)
+                Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: empty response from {url}", self.logger_context)
                 return None
 
             events = ComedyStoreEventExtractor.extract_shows(html)
@@ -64,11 +64,11 @@ class ComedyStoreScraper(BaseScraper):
                 return None
 
             Logger.info(
-                f"Comedy Store: extracted {len(events)} show(s) from {url}",
+                f"{self.__class__.__name__} [{self._club.name}]: extracted {len(events)} show(s) from {url}",
                 self.logger_context,
             )
             return ComedyStorePageData(event_list=events)
 
         except Exception as e:
-            Logger.error(f"Comedy Store: error scraping {url}: {e}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: error scraping {url}: {e}", self.logger_context)
             return None

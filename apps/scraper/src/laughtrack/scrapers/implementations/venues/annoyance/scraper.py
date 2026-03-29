@@ -73,7 +73,7 @@ class AnnoyanceTheatreScraper(BaseScraper):
             url = f"{_BASE_URL}{_CALENDAR_PATH}?week=0&start={start}&end={end}"
             urls.append(url)
         Logger.info(
-            f"Annoyance Theatre: generated {len(urls)} weekly API URLs",
+            f"{self.__class__.__name__} [{self._club.name}]: generated {len(urls)} weekly API URLs",
             self.logger_context,
         )
         return urls
@@ -92,14 +92,14 @@ class AnnoyanceTheatreScraper(BaseScraper):
             response = await self.fetch_json(url)
             if response is None:
                 Logger.info(
-                    f"Annoyance Theatre: empty response from API ({url})",
+                    f"{self.__class__.__name__} [{self._club.name}]: empty response from API ({url})",
                     self.logger_context,
                 )
                 return None
 
             if not isinstance(response, list):
                 Logger.warn(
-                    f"Annoyance Theatre: unexpected API response shape (not a list) at {url}",
+                    f"{self.__class__.__name__} [{self._club.name}]: unexpected API response shape (not a list) at {url}",
                     self.logger_context,
                 )
                 return None
@@ -121,24 +121,24 @@ class AnnoyanceTheatreScraper(BaseScraper):
 
             if not response:
                 Logger.info(
-                    f"Annoyance Theatre: no shows scheduled for this window ({url})",
+                    f"{self.__class__.__name__} [{self._club.name}]: no shows scheduled for this window ({url})",
                     self.logger_context,
                 )
                 return None
 
             if not performances:
                 Logger.info(
-                    f"Annoyance Theatre: no public performances found for window ({url})",
+                    f"{self.__class__.__name__} [{self._club.name}]: no public performances found for window ({url})",
                     self.logger_context,
                 )
                 return None
 
             Logger.info(
-                f"Annoyance Theatre: extracted {len(performances)} performance(s) from {url}",
+                f"{self.__class__.__name__} [{self._club.name}]: extracted {len(performances)} performance(s) from {url}",
                 self.logger_context,
             )
             return AnnoyancePageData(event_list=performances)
 
         except Exception as e:
-            Logger.error(f"Annoyance Theatre: get_data failed for {url}: {e}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: get_data failed for {url}: {e}", self.logger_context)
             return None

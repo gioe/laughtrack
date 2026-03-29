@@ -37,21 +37,21 @@ class GoofsComedyClubScraper(BaseScraper):
         """Fetch the /p/shows listing page and extract all upcoming shows."""
         try:
             normalized_url = URLUtils.normalize_url(url)
-            Logger.info(f"Fetching Goofs shows page: {normalized_url}", self.logger_context)
+            Logger.info(f"{self.__class__.__name__} [{self._club.name}]: fetching shows page: {normalized_url}", self.logger_context)
 
             html = await self.fetch_html(normalized_url)
             if not html:
-                Logger.warn("Empty HTML from Goofs shows page", self.logger_context)
+                Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: empty HTML from shows page", self.logger_context)
                 return None
 
             events = GoofsEventExtractor.extract_shows(html)
             if not events:
-                Logger.warn("No shows extracted from Goofs page", self.logger_context)
+                Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: no shows extracted from page", self.logger_context)
                 return None
 
-            Logger.info(f"Extracted {len(events)} Goofs shows", self.logger_context)
+            Logger.info(f"{self.__class__.__name__} [{self._club.name}]: extracted {len(events)} shows", self.logger_context)
             return GoofsPageData(event_list=events)
 
         except Exception as e:
-            Logger.error(f"Error scraping Goofs page {url}: {e}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: error scraping page {url}: {e}", self.logger_context)
             return None

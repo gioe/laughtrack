@@ -87,12 +87,12 @@ class CszPhiladelphiaScraper(BaseScraper):
             url = _SHOWEVENTS_URL.format(session_key=self._session_key)
             html = await self.fetch_html(url)
             if not html:
-                Logger.warn("CszPhilly: empty response from showevents endpoint", self.logger_context)
+                Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: empty response from showevents endpoint", self.logger_context)
                 return []
 
             if not self._is_valid_events_page(html):
                 Logger.warn(
-                    f"CszPhilly: showevents response missing expected structure "
+                    f"{self.__class__.__name__} [{self._club.name}]: showevents response missing expected structure "
                     f"('CurrentEvents' / 'EventListWrapper') — "
                     f"session key may be stale (s={self._session_key}). "
                     f"Refresh scraping_url to resolve.",
@@ -105,11 +105,11 @@ class CszPhiladelphiaScraper(BaseScraper):
                 f"{eid}{_TARGET_SEP}{edid}{_TARGET_SEP}{title}"
                 for eid, edid, title in comedy_events
             ]
-            Logger.info(f"CszPhilly: discovered {len(targets)} comedy show(s)", self.logger_context)
+            Logger.info(f"{self.__class__.__name__} [{self._club.name}]: discovered {len(targets)} comedy show(s)", self.logger_context)
             return targets
 
         except Exception as e:
-            Logger.error(f"CszPhilly: collect_scraping_targets failed: {e}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: collect_scraping_targets failed: {e}", self.logger_context)
             return []
 
     async def get_data(self, target: str) -> Optional[CszPhillyPageData]:
@@ -125,7 +125,7 @@ class CszPhiladelphiaScraper(BaseScraper):
         try:
             eid, edid, title = self._parse_target(target)
         except ValueError as e:
-            Logger.error(f"CszPhilly: malformed target '{target}': {e}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: malformed target '{target}': {e}", self.logger_context)
             return None
 
         try:
@@ -134,19 +134,19 @@ class CszPhiladelphiaScraper(BaseScraper):
             )
             html = await self.fetch_html(url)
             if not html:
-                Logger.warn(f"CszPhilly: empty date-slider response for eid={eid}", self.logger_context)
+                Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: empty date-slider response for eid={eid}", self.logger_context)
                 return None
 
             instances = CszPhillyEventExtractor.parse_show_dates(html, eid, title)
             if not instances:
-                Logger.warn(f"CszPhilly: no upcoming dates for '{title}' (eid={eid})", self.logger_context)
+                Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: no upcoming dates for '{title}' (eid={eid})", self.logger_context)
                 return CszPhillyPageData(event_list=[])
 
-            Logger.info(f"CszPhilly: {len(instances)} upcoming date(s) for '{title}'", self.logger_context)
+            Logger.info(f"{self.__class__.__name__} [{self._club.name}]: {len(instances)} upcoming date(s) for '{title}'", self.logger_context)
             return CszPhillyPageData(event_list=instances)
 
         except Exception as e:
-            Logger.error(f"CszPhilly: get_data failed for target '{target}': {e}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: get_data failed for target '{target}': {e}", self.logger_context)
             return None
 
     # ------------------------------------------------------------------

@@ -81,14 +81,14 @@ class LoganSquareImprovScraper(BaseScraper):
             response = await self.fetch_json(url)
             if not response:
                 Logger.warn(
-                    f"Logan Square Improv: empty response from Crowdwork API ({url})",
+                    f"{self.__class__.__name__} [{self._club.name}]: empty response from Crowdwork API ({url})",
                     self.logger_context,
                 )
                 return None
 
             if response.get("type") == "error" or response.get("status", 200) != 200:
                 Logger.warn(
-                    f"Logan Square Improv: Crowdwork API returned non-success response "
+                    f"{self.__class__.__name__} [{self._club.name}]: Crowdwork API returned non-success response "
                     f"(status={response.get('status')}, type={response.get('type')}) at {url}",
                     self.logger_context,
                 )
@@ -97,7 +97,7 @@ class LoganSquareImprovScraper(BaseScraper):
             data = response.get("data")
             if not data:
                 Logger.info(
-                    "Logan Square Improv: no shows currently listed on Crowdwork API",
+                    f"{self.__class__.__name__} [{self._club.name}]: no shows currently listed on Crowdwork API",
                     self.logger_context,
                 )
                 return None
@@ -115,18 +115,18 @@ class LoganSquareImprovScraper(BaseScraper):
 
             if not performances:
                 Logger.info(
-                    "Logan Square Improv: no upcoming performances parsed from Crowdwork API",
+                    f"{self.__class__.__name__} [{self._club.name}]: no upcoming performances parsed from Crowdwork API",
                     self.logger_context,
                 )
                 return None
 
             Logger.info(
-                f"Logan Square Improv: extracted {len(performances)} performance(s)",
+                f"{self.__class__.__name__} [{self._club.name}]: extracted {len(performances)} performance(s)",
                 self.logger_context,
             )
             return LoganSquareImprovPageData(event_list=performances)
 
         except Exception as e:
-            Logger.error(f"Logan Square Improv: get_data failed: {e}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: get_data failed: {e}", self.logger_context)
             return None
 

@@ -61,24 +61,24 @@ class SetupSFScraper(BaseScraper):
 
             csv_text = await self.fetch_html(url)
             if not csv_text:
-                Logger.info(f"SetupSFScraper: no response from {url}", self.logger_context)
+                Logger.info(f"{self.__class__.__name__} [{self._club.name}]: no response from {url}", self.logger_context)
                 return None
 
             events = SetupSFExtractor.extract_events(csv_text)
 
             if not events:
-                Logger.info(f"SetupSFScraper: no upcoming events found at {url}", self.logger_context)
+                Logger.info(f"{self.__class__.__name__} [{self._club.name}]: no upcoming events found at {url}", self.logger_context)
                 return None
 
             Logger.info(
-                f"SetupSFScraper: extracted {len(events)} events from {url}",
+                f"{self.__class__.__name__} [{self._club.name}]: extracted {len(events)} events from {url}",
                 self.logger_context,
             )
             return SetupSFPageData(event_list=events)
 
         except Exception as e:
             Logger.error(
-                f"SetupSFScraper: error fetching events from {url}: {e}",
+                f"{self.__class__.__name__} [{self._club.name}]: error fetching events from {url}: {e}",
                 self.logger_context,
             )
             return None

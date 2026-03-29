@@ -65,7 +65,7 @@ class VivenuScraper(BaseScraper):
 
             html = await self.fetch_html_bare(url)
             if not html:
-                Logger.info(f"VivenuScraper: no response from {url}", self.logger_context)
+                Logger.info(f"{self.__class__.__name__} [{self._club.name}]: no response from {url}", self.logger_context)
                 return None
 
             parsed = urlparse(url)
@@ -74,18 +74,18 @@ class VivenuScraper(BaseScraper):
             events = VivenuExtractor.extract_events(html, ticket_base_url)
 
             if not events:
-                Logger.info(f"VivenuScraper: no upcoming events found at {url}", self.logger_context)
+                Logger.info(f"{self.__class__.__name__} [{self._club.name}]: no upcoming events found at {url}", self.logger_context)
                 return None
 
             Logger.info(
-                f"VivenuScraper: extracted {len(events)} upcoming events from {url}",
+                f"{self.__class__.__name__} [{self._club.name}]: extracted {len(events)} upcoming events from {url}",
                 self.logger_context,
             )
             return VivenuPageData(event_list=events)
 
         except Exception as e:
             Logger.error(
-                f"VivenuScraper: error fetching events from {url}: {e}",
+                f"{self.__class__.__name__} [{self._club.name}]: error fetching events from {url}: {e}",
                 self.logger_context,
             )
             return None

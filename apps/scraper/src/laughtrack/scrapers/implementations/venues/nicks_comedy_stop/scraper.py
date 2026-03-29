@@ -70,7 +70,7 @@ class NicksComedyStopScraper(BaseScraper):
             return [f"{api_url}?{query}"]
 
         except Exception as e:
-            Logger.error(f"NicksComedyStopScraper: failed to build target URL: {e}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: failed to build target URL: {e}", self.logger_context)
             return []
 
     async def get_data(self, url: str) -> Optional[NicksPageData]:
@@ -79,19 +79,19 @@ class NicksComedyStopScraper(BaseScraper):
             headers = self._build_auth_headers()
             response = await self.fetch_json(url, headers=headers)
             if not response:
-                Logger.warn("NicksComedyStopScraper: empty response from Wix Events API", self.logger_context)
+                Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: empty response from Wix Events API", self.logger_context)
                 return None
 
             events = NicksEventExtractor.extract_events(response)
             if not events:
-                Logger.warn("NicksComedyStopScraper: no events extracted", self.logger_context)
+                Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: no events extracted", self.logger_context)
                 return None
 
-            Logger.info(f"NicksComedyStopScraper: extracted {len(events)} events", self.logger_context)
+            Logger.info(f"{self.__class__.__name__} [{self._club.name}]: extracted {len(events)} events", self.logger_context)
             return NicksPageData(event_list=events)
 
         except Exception as e:
-            Logger.error(f"NicksComedyStopScraper: error fetching events: {e}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: error fetching events: {e}", self.logger_context)
             return None
 
     async def _ensure_authenticated(self) -> None:
@@ -109,20 +109,20 @@ class NicksComedyStopScraper(BaseScraper):
         try:
             data = await self.fetch_json(token_url, headers=token_headers)
             if not data:
-                Logger.error("NicksComedyStopScraper: no data from access-tokens endpoint", self.logger_context)
+                Logger.error(f"{self.__class__.__name__} [{self._club.name}]: no data from access-tokens endpoint", self.logger_context)
                 return
 
             apps = data.get("apps", {})
             for app_data in apps.values():
                 if app_data.get("intId") == 24:
                     self._access_token = app_data.get("instance")
-                    Logger.info("NicksComedyStopScraper: access token obtained", self.logger_context)
+                    Logger.info(f"{self.__class__.__name__} [{self._club.name}]: access token obtained", self.logger_context)
                     return
 
-            Logger.error("NicksComedyStopScraper: app intId=24 not found in access-tokens response", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: app intId=24 not found in access-tokens response", self.logger_context)
 
         except Exception as e:
-            Logger.error(f"NicksComedyStopScraper: failed to fetch access token: {e}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: failed to fetch access token: {e}", self.logger_context)
 
     def _build_auth_headers(self) -> Dict[str, str]:
         """Build Wix API request headers with the bearer token."""
