@@ -254,6 +254,13 @@ class ShowUtils:
             else:
                 Logger.warn(f"Could not match database result to show: {result_key}")
 
+        unmatched = [show for show in updated_shows if show.id is None]
+        if unmatched:
+            Logger.warn(
+                f"{len(unmatched)}/{len(updated_shows)} shows have id=None after DB result matching "
+                f"— ticket insertions will fail. Check date timezone representation."
+            )
+
         return updated_shows
 
     # Deduplication helpers
