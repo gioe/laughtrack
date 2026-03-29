@@ -12,7 +12,7 @@ collectionId query parameter, e.g.:
 The scraper fetches the current month and the next two months to capture all
 upcoming shows.
 
-Currently used by: The Den Theatre Chicago (IL), The Elysian Theater (CA).
+Currently used by: The Den Theatre Chicago (IL), The Elysian Theater (CA), Nashville Improv (TN).
 A new Squarespace venue can be onboarded with only a DB row — no Python changes.
 """
 

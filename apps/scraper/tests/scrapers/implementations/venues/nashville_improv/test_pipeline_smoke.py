@@ -78,6 +78,31 @@ async def test_collect_scraping_targets_urls_contain_collection_id():
 
 
 @pytest.mark.asyncio
+async def test_collect_scraping_targets_urls_contain_month_param():
+    """collect_scraping_targets() URLs include a month= query parameter."""
+    scraper = SquarespaceScraper(_club())
+    targets = await scraper.collect_scraping_targets()
+
+    for url in targets:
+        assert "month=" in url, f"Expected month= param in {url}"
+
+
+@pytest.mark.asyncio
+async def test_collect_scraping_targets_returns_three_distinct_months():
+    """collect_scraping_targets() returns three URLs with distinct month values.
+
+    Guards against off-by-one regressions in the (today.month + i - 1) % 12 + 1
+    formula that would produce duplicate month values.
+    """
+    scraper = SquarespaceScraper(_club())
+    targets = await scraper.collect_scraping_targets()
+
+    assert len(set(targets)) == 3, (
+        f"Expected 3 distinct URLs (one per month), got duplicates: {targets}"
+    )
+
+
+@pytest.mark.asyncio
 async def test_collect_scraping_targets_urls_use_nashvilleimprov_domain():
     """collect_scraping_targets() uses nashvilleimprov.com as the base domain."""
     scraper = SquarespaceScraper(_club())
@@ -149,7 +174,11 @@ async def test_full_pipeline_transformation_produces_shows(monkeypatch):
     async def fake_fetch_json(self, url: str, **kwargs):
         return [_raw_event()]
 
+    async def noop_enrich(self, events):
+        pass
+
     monkeypatch.setattr(SquarespaceScraper, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(SquarespaceScraper, "_enrich_with_ticket_urls", noop_enrich)
     monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
 
     page_data = await scraper.get_data(
@@ -188,7 +217,11 @@ async def test_show_page_url_uses_nashvilleimprov_domain(monkeypatch):
     async def fake_fetch_json(self, url: str, **kwargs):
         return [_raw_event()]
 
+    async def noop_enrich(self, events):
+        pass
+
     monkeypatch.setattr(SquarespaceScraper, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(SquarespaceScraper, "_enrich_with_ticket_urls", noop_enrich)
     monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
 
     page_data = await scraper.get_data(
