@@ -57,7 +57,7 @@ def _prekindle_html(events: list[dict] | None = None) -> str:
                 "name": "Patrick Warburton",
                 "startDate": "2026-04-08",
                 "endDate": "2026-04-08",
-                "url": "http://www.prekindle.com/event/34217-patrick-warburton-dallas",
+                "url": "http://www.prekindle.com/event/00001-test-show-dallas",
                 "description": "Patrick Warburton",
                 "image": "https://d1yf68t7nbxlyn.cloudfront.net/image/id/fake001",
                 "organizer": {
@@ -79,7 +79,7 @@ def _prekindle_html(events: list[dict] | None = None) -> str:
                 "offers": {
                     "@type": "AggregateOffer",
                     "name": "Ticket",
-                    "url": "http://www.prekindle.com/event/34217-patrick-warburton-dallas",
+                    "url": "http://www.prekindle.com/event/00001-test-show-dallas",
                     "price": "25.00",
                     "lowPrice": "25.00",
                     "highPrice": "35.00",
@@ -201,3 +201,7 @@ async def test_transformation_pipeline_produces_shows(monkeypatch):
     assert len(shows) > 0, "transformation_pipeline.transform() returned 0 Shows"
     assert all(isinstance(s, Show) for s in shows)
     assert shows[0].name == "Patrick Warburton"
+    # Verify Prekindle's date-only startDate ("2026-04-08") is preserved correctly
+    assert shows[0].date.year == 2026
+    assert shows[0].date.month == 4
+    assert shows[0].date.day == 8
