@@ -100,7 +100,7 @@ async def test_get_data_returns_page_data_with_events():
 
 
 @pytest.mark.asyncio
-async def test_get_data_returns_none_on_exception():
+async def test_get_data_returns_none_on_client_exception():
     """get_data() returns None when TicketmasterClient.fetch_events() raises."""
     scraper = TicketmasterScraper(_club())
     api_url = f"https://app.ticketmaster.com/discovery/v2/events.json?venueId={VENUE_ID}"
