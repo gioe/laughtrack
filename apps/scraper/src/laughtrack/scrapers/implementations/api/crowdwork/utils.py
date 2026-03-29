@@ -59,7 +59,7 @@ def extract_performances(
 
     badges_obj = show.get("badges") or {}
     spots = (badges_obj.get("spots") or "") if isinstance(badges_obj, dict) else ""
-    sold_out = "sold" in spots.lower() if spots else False
+    sold_out = spots.lower().startswith("sold out") if spots else False
 
     dates = show.get("dates") or []
     if not dates:
