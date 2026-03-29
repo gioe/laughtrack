@@ -83,7 +83,7 @@ class StandupNYEventExtractor:
                 event_list=events
             )
 
-            Logger.info(f"Extracted {len(events)} events from GraphQL endpoint {graphql_endpoint}", self.logger_context)
+            Logger.info(f"{self.__class__.__name__}: Extracted {len(events)} events from GraphQL endpoint {graphql_endpoint}", self.logger_context)
 
             return page_data
 
@@ -121,7 +121,7 @@ class StandupNYEventExtractor:
             return False
 
         except Exception as e:
-            Logger.error(f"Error enhancing event {event.id} with VenuePilot data: {e}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__}: Error enhancing event {event.id} with VenuePilot data: {e}", self.logger_context)
             return False
 
     async def _discover_graphql_endpoint(self, session, club_url: str) -> Optional[str]:
@@ -138,11 +138,11 @@ class StandupNYEventExtractor:
         try:
             # Check if URL is already a GraphQL endpoint
             if "graphql" in club_url.lower():
-                Logger.info(f"Direct GraphQL endpoint detected: {club_url}", self.logger_context)
+                Logger.info(f"{self.__class__.__name__}: Direct GraphQL endpoint detected: {club_url}", self.logger_context)
                 return URLUtils.normalize_url(club_url)
 
             # Calendar page - discover GraphQL endpoint
-            Logger.info(f"Discovering GraphQL endpoint from calendar page: {club_url}", self.logger_context)
+            Logger.info(f"{self.__class__.__name__}: Discovering GraphQL endpoint from calendar page: {club_url}", self.logger_context)
 
             html_content = await HttpClient.fetch_html(
                 session, club_url, logger_context=self.logger_context
@@ -179,20 +179,20 @@ class StandupNYEventExtractor:
                 matches = re.findall(graphql_pattern, script_content)
                 if matches:
                     endpoint = matches[0]
-                    Logger.info(f"Discovered GraphQL endpoint: {endpoint}", self.logger_context)
+                    Logger.info(f"{self.__class__.__name__}: Discovered GraphQL endpoint: {endpoint}", self.logger_context)
                     return endpoint
 
         # Fallback logic based on club domain
         if "standupny.com" in club_url.lower():
             fallback_endpoint = "https://api.showtix4u.com/graphql"
             Logger.warn(
-                f"Could not discover GraphQL endpoint from calendar page, using ShowTix4U fallback: {fallback_endpoint}",
+                f"{self.__class__.__name__}: Could not discover GraphQL endpoint from calendar page, using ShowTix4U fallback: {fallback_endpoint}",
                 self.logger_context,
             )
             return fallback_endpoint
 
         Logger.error(
-            f"Could not discover GraphQL endpoint from {club_url} and no suitable fallback available",
+            f"{self.__class__.__name__}: Could not discover GraphQL endpoint from {club_url} and no suitable fallback available",
             self.logger_context,
         )
         return None
@@ -214,13 +214,13 @@ class StandupNYEventExtractor:
             response = await session.post(endpoint_url, headers=self.graphql_headers, json=payload)
             if response.status_code != 200:
                 Logger.error(
-                    f"GraphQL POST request to {endpoint_url} failed with status {response.status_code}",
+                    f"{self.__class__.__name__}: GraphQL POST request to {endpoint_url} failed with status {response.status_code}",
                     self.logger_context,
                 )
                 # Log response for debugging
                 try:
                     Logger.error(
-                        f"Response body: {response.text[:500]}...",  # First 500 chars
+                        f"{self.__class__.__name__}: Response body: {response.text[:500]}...",  # First 500 chars
                         self.logger_context,
                     )
                 except:
@@ -289,7 +289,7 @@ class StandupNYEventExtractor:
         else:
             # Default to ShowTix4U/VenuePilot format for unknown endpoints
             Logger.warn(
-                f"Unknown GraphQL endpoint format: {endpoint_url}, using ShowTix4U/VenuePilot format as fallback",
+                f"{self.__class__.__name__}: Unknown GraphQL endpoint format: {endpoint_url}, using ShowTix4U/VenuePilot format as fallback",
                 self.logger_context,
             )
             return self._build_graphql_payload("https://api.showtix4u.com/graphql")

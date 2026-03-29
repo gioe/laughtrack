@@ -380,12 +380,12 @@ class BaseScraper(HttpConvenienceMixin, ABC):
         # Ensure all logs in this scrape carry club/scraper context
         with Logger.use_context(self.logger_context):
             try:
-                Logger.info(f"Starting scrape for {self.club.name}", self.logger_context)
+                Logger.info(f"{self.__class__.__name__} [{self.club.name}]: Starting scrape", self.logger_context)
                 shows = self.scrape()
                 execution_time = (datetime.now() - start_time).total_seconds()
 
                 Logger.info(
-                    f"Successfully scraped {len(shows)} shows from {self.club.name} in {execution_time:.2f}s",
+                    f"{self.__class__.__name__} [{self.club.name}]: Successfully scraped {len(shows)} shows in {execution_time:.2f}s",
                     self.logger_context,
                 )
 
@@ -395,7 +395,7 @@ class BaseScraper(HttpConvenienceMixin, ABC):
                 error_msg = str(e)
 
                 Logger.error(
-                    f"Failed to scrape {self.club.name} after {execution_time:.2f}s: {error_msg}", self.logger_context
+                    f"{self.__class__.__name__} [{self.club.name}]: Failed to scrape after {execution_time:.2f}s: {error_msg}", self.logger_context
                 )
 
                 return ClubScrapingResult(
