@@ -89,11 +89,11 @@ class ImprovScraper(BaseScraper):
                 page_count += 1
 
             if not all_ticket_links:
-                Logger.warning(f"No ticket links found on {start_url}", self.logger_context)
+                Logger.warning(f"{self.__class__.__name__} [{self._club.name}]: No ticket links found on {start_url}", self.logger_context)
                 return None
 
             Logger.info(
-                f"Found {len(all_ticket_links)} ticket links across {page_count + 1} page(s)",
+                f"{self.__class__.__name__} [{self._club.name}]: Found {len(all_ticket_links)} ticket links across {page_count + 1} page(s)",
                 self.logger_context,
             )
 
@@ -124,7 +124,7 @@ class ImprovScraper(BaseScraper):
             return ImprovPageData(event_list)
 
         except Exception as e:
-            Logger.error(f"Error extracting data from {url}: {e}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error extracting data from {url}: {e}", self.logger_context)
             return None
 
     async def _process_single_ticket_url(self, ticket_url: str, source_url: str) -> Optional[List[ImprovEvent]]:
@@ -139,18 +139,18 @@ class ImprovScraper(BaseScraper):
             ImprovEvent object or None if processing fails
         """
         try:
-            Logger.debug(f"Fetching ticket URL: {ticket_url}", self.logger_context)
+            Logger.debug(f"{self.__class__.__name__} [{self._club.name}]: Fetching ticket URL: {ticket_url}", self.logger_context)
 
             # Fetch HTML from the ticket URL
             ticket_url = URLUtils.normalize_url(ticket_url)
             ticket_html = await self.fetch_html(ticket_url)
             if not ticket_html:
-                Logger.warning(f"Failed to fetch HTML from ticket URL: {ticket_url}", self.logger_context)
+                Logger.warning(f"{self.__class__.__name__} [{self._club.name}]: Failed to fetch HTML from ticket URL: {ticket_url}", self.logger_context)
                 return None
 
             # Process ticket URL through extractor (handles all extraction logic)
             return ImprovExtractor.process_ticket_url(ticket_html, ticket_url, self.logger_context)
 
         except Exception as e:
-            Logger.error(f"Error processing ticket URL {ticket_url}: {e}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error processing ticket URL {ticket_url}: {e}", self.logger_context)
             return None

@@ -63,7 +63,7 @@ class StandupNYScraper(BaseScraper):
             self.page_data = await self.extractor.extract_events(session, self.club.scraping_url)
 
             if not self.page_data:
-                Logger.warn("No events found during GraphQL discovery", self.logger_context)
+                Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: No events found during GraphQL discovery", self.logger_context)
                 return []
 
             # Get VenuePilot URLs that need enhancement
@@ -78,7 +78,7 @@ class StandupNYScraper(BaseScraper):
             return venuepilot_urls
 
         except Exception as e:
-            Logger.error(f"Error in discover_urls: {e}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error in discover_urls: {e}", self.logger_context)
             self.page_data = None
             return []
 
@@ -93,13 +93,13 @@ class StandupNYScraper(BaseScraper):
             Enhanced event data or None if enhancement failed
         """
         if not hasattr(self, "page_data") or not self.page_data:
-            Logger.error("No page data available for VenuePilot enhancement", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: No page data available for VenuePilot enhancement", self.logger_context)
             return None
 
         # Find the event for this URL
         event = self.page_data.find_event_by_ticket_url(url)
         if not event:
-            Logger.warn(f"No event found for ticket URL: {url}", self.logger_context)
+            Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: No event found for ticket URL: {url}", self.logger_context)
             return None
 
         session = await self.get_session()
@@ -108,10 +108,10 @@ class StandupNYScraper(BaseScraper):
         success = await self.extractor.enhance_event_with_venue_pilot(session, event)
 
         if success:
-            Logger.debug(f"Successfully enhanced event {event.id} with VenuePilot data", self.logger_context)
+            Logger.debug(f"{self.__class__.__name__} [{self._club.name}]: Successfully enhanced event {event.id} with VenuePilot data", self.logger_context)
             return {"enhanced_event": event, "url": url}
         else:
-            Logger.warn(f"Failed to enhance event {event.id} with VenuePilot data", self.logger_context)
+            Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: Failed to enhance event {event.id} with VenuePilot data", self.logger_context)
             return None
 
     async def transform_data(self, raw_data: JSONDict, source_url: str) -> List[Show]:
@@ -143,12 +143,12 @@ class StandupNYScraper(BaseScraper):
             venuepilot_urls = await self.discover_urls()
 
             if not hasattr(self, "page_data") or not self.page_data:
-                Logger.warn("No base event data available", self.logger_context)
+                Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: No base event data available", self.logger_context)
                 return []
 
             # Step 2: Enhance VenuePilot events in parallel if any URLs found
             if venuepilot_urls:
-                Logger.info(f"Enhancing {len(venuepilot_urls)} VenuePilot events", self.logger_context)
+                Logger.info(f"{self.__class__.__name__} [{self._club.name}]: Enhancing {len(venuepilot_urls)} VenuePilot events", self.logger_context)
 
                 # Diagnostics: log breakdown of VenuePilot slugs prior to enhancement
                 def _extract_slug(u: str) -> Optional[str]:
@@ -185,19 +185,19 @@ class StandupNYScraper(BaseScraper):
                 # Log enhancement results
                 enhanced_count = sum(1 for result in results if result is not None)
                 Logger.info(
-                    f"Successfully enhanced {enhanced_count}/{len(venuepilot_urls)} VenuePilot events",
+                    f"{self.__class__.__name__} [{self._club.name}]: Successfully enhanced {enhanced_count}/{len(venuepilot_urls)} VenuePilot events",
                     self.logger_context,
                 )
 
             # Step 3: Transform all events (enhanced + non-enhanced) to Show objects
             shows = self.transformation_pipeline.transform(self.page_data)
 
-            Logger.info(f"StandUp NY scraping completed. Found {len(shows)} shows", self.logger_context)
+            Logger.info(f"{self.__class__.__name__} [{self._club.name}]: StandUp NY scraping completed. Found {len(shows)} shows", self.logger_context)
 
             return shows
 
         except Exception as e:
-            Logger.error(f"Scraping failed: {e}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Scraping failed: {e}", self.logger_context)
             raise
         finally:
             # Ensure proper session cleanup in all code paths
@@ -214,4 +214,4 @@ class StandupNYScraper(BaseScraper):
                 self.page_data = None
 
         except Exception as e:
-            Logger.warn(f"Error during cleanup: {e}", self.logger_context)
+            Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: Error during cleanup: {e}", self.logger_context)

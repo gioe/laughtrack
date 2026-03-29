@@ -52,7 +52,7 @@ class LaughFactoryRenoScraper(BaseScraper):
         try:
             html_content = await self.tixologi_client.fetch_shows_page(url)
             if not html_content:
-                Logger.info(f"No HTML content returned from {url}", self.logger_context)
+                Logger.info(f"{self.__class__.__name__} [{self._club.name}]: No HTML content returned from {url}", self.logger_context)
                 return None
 
             events = LaughFactoryRenoEventExtractor.extract_shows(
@@ -62,15 +62,15 @@ class LaughFactoryRenoScraper(BaseScraper):
             )
 
             if not events:
-                Logger.info(f"No shows found on {url}", self.logger_context)
+                Logger.info(f"{self.__class__.__name__} [{self._club.name}]: No shows found on {url}", self.logger_context)
                 return None
 
             Logger.info(
-                f"Extracted {len(events)} shows from {url}",
+                f"{self.__class__.__name__} [{self._club.name}]: Extracted {len(events)} shows from {url}",
                 self.logger_context,
             )
             return LaughFactoryRenoPageData(event_list=events)
 
         except Exception as e:
-            Logger.error(f"Error extracting data from {url}: {str(e)}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error extracting data from {url}: {str(e)}", self.logger_context)
             return None

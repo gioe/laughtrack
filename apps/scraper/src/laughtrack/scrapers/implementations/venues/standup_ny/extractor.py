@@ -88,7 +88,7 @@ class StandupNYEventExtractor:
             return page_data
 
         except Exception as e:
-            Logger.error(f"Error extracting events: {e}", self.logger_context)
+            Logger.error(f"StandupNYEventExtractor: Error extracting events: {e}", self.logger_context)
             return None
 
     async def enhance_event_with_venue_pilot(self, session, event: StandupNYEvent) -> bool:
@@ -148,13 +148,13 @@ class StandupNYEventExtractor:
                 session, club_url, logger_context=self.logger_context
             )
             if not html_content:
-                Logger.error("Failed to access calendar page", self.logger_context)
+                Logger.error("StandupNYEventExtractor: Failed to access calendar page", self.logger_context)
                 return None
 
             return self._extract_graphql_endpoint_from_html(html_content, club_url)
 
         except Exception as e:
-            Logger.error(f"Error discovering GraphQL endpoint: {e}", self.logger_context)
+            Logger.error(f"StandupNYEventExtractor: Error discovering GraphQL endpoint: {e}", self.logger_context)
             return None
 
     def _extract_graphql_endpoint_from_html(self, html_content: str, club_url: str) -> Optional[str]:
@@ -231,7 +231,7 @@ class StandupNYEventExtractor:
             return data.get("data", {}).get("publicEvents", [])
 
         except Exception as e:
-            Logger.error(f"Error querying GraphQL endpoint: {e}", self.logger_context)
+            Logger.error(f"StandupNYEventExtractor: Error querying GraphQL endpoint: {e}", self.logger_context)
             return None
 
     def _build_graphql_payload(self, endpoint_url: str) -> JSONDict:
@@ -317,7 +317,7 @@ class StandupNYEventExtractor:
                 event = StandupNYEvent.from_graphql_event(event_data, source)
                 events.append(event)
             except Exception as e:
-                Logger.warn(f"Failed to create event from GraphQL data: {e}", self.logger_context)
+                Logger.warn(f"StandupNYEventExtractor: Failed to create event from GraphQL data: {e}", self.logger_context)
                 continue
 
         return events
@@ -382,5 +382,5 @@ class StandupNYEventExtractor:
             return None
 
         except Exception as e:
-            Logger.error(f"Error extracting VenuePilot data: {e}", self.logger_context)
+            Logger.error(f"StandupNYEventExtractor: Error extracting VenuePilot data: {e}", self.logger_context)
             return None

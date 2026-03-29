@@ -56,11 +56,11 @@ class LaughBostonScraper(BaseScraper):
             tixr_urls = LaughBostonEventExtractor.extract_tixr_urls_from_pixl(data or {})
 
             if not tixr_urls:
-                Logger.info("No Tixr URLs found in Pixl Calendar response", self.logger_context)
+                Logger.info(f"{self.__class__.__name__} [{self._club.name}]: No Tixr URLs found in Pixl Calendar response", self.logger_context)
                 return None
 
             Logger.info(
-                f"Extracted {len(tixr_urls)} Tixr URLs from Pixl Calendar", self.logger_context
+                f"{self.__class__.__name__} [{self._club.name}]: Extracted {len(tixr_urls)} Tixr URLs from Pixl Calendar", self.logger_context
             )
 
             results = await self.batch_scraper.process_batch(
@@ -72,19 +72,19 @@ class LaughBostonScraper(BaseScraper):
 
             if not tixr_events:
                 Logger.info(
-                    f"No TixrEvents returned from {len(tixr_urls)} Pixl Calendar URLs",
+                    f"{self.__class__.__name__} [{self._club.name}]: No TixrEvents returned from {len(tixr_urls)} Pixl Calendar URLs",
                     self.logger_context,
                 )
                 return None
 
             Logger.info(
-                f"Successfully processed {len(tixr_events)} TixrEvents from {len(tixr_urls)} URLs",
+                f"{self.__class__.__name__} [{self._club.name}]: Successfully processed {len(tixr_events)} TixrEvents from {len(tixr_urls)} URLs",
                 self.logger_context,
             )
             return LaughBostonPageData(event_list=tixr_events, tixr_urls=tixr_urls)
 
         except Exception as e:
             Logger.error(
-                f"Error fetching data from Pixl Calendar: {str(e)}", self.logger_context
+                f"{self.__class__.__name__} [{self._club.name}]: Error fetching data from Pixl Calendar: {str(e)}", self.logger_context
             )
             return None

@@ -81,7 +81,7 @@ class BushwickComedyClubScraper(BaseScraper):
             return [f"{api_url}?{query_string}"]
 
         except Exception as e:
-            Logger.error(f"Failed to discover URLs: {e}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Failed to discover URLs: {e}", self.logger_context)
             return []
 
     async def get_data(self, url: str) -> Optional[BushwickEventData]:
@@ -98,7 +98,7 @@ class BushwickComedyClubScraper(BaseScraper):
             return BushwickEventData(event_list) if event_list else None
 
         except Exception as e:
-            Logger.error(f"Error extracting data from {url}: {str(e)}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error extracting data from {url}: {str(e)}", self.logger_context)
             return None
 
     async def _ensure_authenticated(self) -> None:
@@ -122,12 +122,12 @@ class BushwickComedyClubScraper(BaseScraper):
             access_token = token_response.get_access_token_for_app(24)
             if access_token:
                 self.access_token = access_token
-                Logger.info("Successfully obtained access token", self.logger_context)
+                Logger.info(f"{self.__class__.__name__} [{self._club.name}]: Successfully obtained access token", self.logger_context)
                 return
 
-            Logger.error("Failed to get access token", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Failed to get access token", self.logger_context)
         except Exception as e:
-            Logger.error(f"Error fetching access token: {e}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error fetching access token: {e}", self.logger_context)
 
     def _build_auth_headers(self) -> Dict[str, str]:
         """Build headers with authorization token using BaseHeaders."""

@@ -98,12 +98,12 @@ class ComedyCellarScraper(BaseScraper):
             event_list = ComedyCellarExtractor.extract_events(target, processed_lineup_data, processed_shows_data)
             
             if not event_list:
-                Logger.info("No events found on page", self.logger_context)
+                Logger.info(f"{self.__class__.__name__} [{self._club.name}]: No events found on page", self.logger_context)
                 return None
             return ComedyCellarDateData(event_list)
 
         except Exception as e:
-            Logger.error(f"Error extracting data for {target}: {str(e)}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error extracting data for {target}: {str(e)}", self.logger_context)
             return None
 
     async def _fetch_all_raw_data(
@@ -116,7 +116,7 @@ class ComedyCellarScraper(BaseScraper):
         Processing one date at a time eliminates the concurrency pressure.
         """
         count = len(targets)
-        Logger.info(f"Starting sequential fetch of {count} targets (Comedy Cellar rate limit)", self.logger_context)
+        Logger.info(f"{self.__class__.__name__} [{self._club.name}]: Starting sequential fetch of {count} targets (Comedy Cellar rate limit)", self.logger_context)
 
         results = []
         for target in targets:
@@ -127,12 +127,12 @@ class ComedyCellarScraper(BaseScraper):
                     return await self.get_data(t)
 
                 raw_data = await self.error_handler.execute_with_retry(_fetch_with_retry, f"Fetch Data: {target}")
-                Logger.debug(f"Fetched data from {target}", self.logger_context)
+                Logger.debug(f"{self.__class__.__name__} [{self._club.name}]: Fetched data from {target}", self.logger_context)
                 results.append((raw_data, target))
             except Exception as e:
-                Logger.error(f"Failed to fetch data from {target}: {e}", self.logger_context)
+                Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Failed to fetch data from {target}: {e}", self.logger_context)
                 results.append((None, target))
 
         successful_fetches = sum(1 for raw_data, _ in results if raw_data is not None)
-        Logger.info(f"Successfully fetched data from {successful_fetches}/{count} targets", self.logger_context)
+        Logger.info(f"{self.__class__.__name__} [{self._club.name}]: Successfully fetched data from {successful_fetches}/{count} targets", self.logger_context)
         return results

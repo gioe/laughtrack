@@ -71,10 +71,10 @@ class TixrScraper(BaseScraper):
             tixr_urls = TixrExtractor.extract_tixr_urls(html_content)
 
             if not tixr_urls:
-                Logger.info(f"No Tixr URLs found on {url}", self.logger_context)
+                Logger.info(f"{self.__class__.__name__} [{self._club.name}]: No Tixr URLs found on {url}", self.logger_context)
                 return None
 
-            Logger.info(f"Extracted {len(tixr_urls)} Tixr URLs from {url}", self.logger_context)
+            Logger.info(f"{self.__class__.__name__} [{self._club.name}]: Extracted {len(tixr_urls)} Tixr URLs from {url}", self.logger_context)
 
             results = await self.batch_scraper.process_batch(
                 tixr_urls,
@@ -85,17 +85,17 @@ class TixrScraper(BaseScraper):
 
             if not tixr_events:
                 Logger.info(
-                    f"No TixrEvents returned from {len(tixr_urls)} URLs on {url}",
+                    f"{self.__class__.__name__} [{self._club.name}]: No TixrEvents returned from {len(tixr_urls)} URLs on {url}",
                     self.logger_context,
                 )
                 return None
 
             Logger.info(
-                f"Successfully processed {len(tixr_events)} TixrEvents from {len(tixr_urls)} URLs",
+                f"{self.__class__.__name__} [{self._club.name}]: Successfully processed {len(tixr_events)} TixrEvents from {len(tixr_urls)} URLs",
                 self.logger_context,
             )
             return TixrPageData(event_list=tixr_events)
 
         except Exception as e:
-            Logger.error(f"Error extracting data from {url}: {str(e)}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error extracting data from {url}: {str(e)}", self.logger_context)
             return None

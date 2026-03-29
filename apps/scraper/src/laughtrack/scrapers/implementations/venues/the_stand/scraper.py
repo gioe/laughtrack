@@ -88,13 +88,13 @@ class TheStandNYCScraper(BaseScraper):
                     break
 
             Logger.info(
-                f"Discovered {len(all_urls)} URLs across {months_processed} months",
+                f"{self.__class__.__name__} [{self._club.name}]: Discovered {len(all_urls)} URLs across {months_processed} months",
                 self.logger_context,
             )
             return all_urls
 
         except Exception as e:
-            Logger.error(f"URL discovery failed: {e}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: URL discovery failed: {e}", self.logger_context)
             return [start_url]  # Fallback to just the start URL
 
     async def _discover_month_horizontal_urls(self, start_url: str) -> List[str]:
@@ -126,10 +126,10 @@ class TheStandNYCScraper(BaseScraper):
                     break
 
             except Exception as e:
-                Logger.error(f"Error processing horizontal page: {e}", self.logger_context)
+                Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error processing horizontal page: {e}", self.logger_context)
                 break
 
-        Logger.info(f"Found {len(month_urls)} URLs in month via horizontal pagination", self.logger_context)
+        Logger.info(f"{self.__class__.__name__} [{self._club.name}]: Found {len(month_urls)} URLs in month via horizontal pagination", self.logger_context)
         return month_urls
 
     async def _get_next_month_url(self, current_url: str) -> Optional[str]:
@@ -151,7 +151,7 @@ class TheStandNYCScraper(BaseScraper):
             return next_url if next_url else None
 
         except Exception as e:
-            Logger.error(f"Error finding next month URL from {current_url}: {e}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error finding next month URL from {current_url}: {e}", self.logger_context)
             return None
 
     async def get_data(self, url: str) -> Optional[TheStandPageData]:
@@ -175,10 +175,10 @@ class TheStandNYCScraper(BaseScraper):
             tixr_urls = TheStandEventExtractor.extract_tixr_urls(html_content)
 
             if not tixr_urls:
-                Logger.info(f"No Tixr URLs found on {url}", self.logger_context)
+                Logger.info(f"{self.__class__.__name__} [{self._club.name}]: No Tixr URLs found on {url}", self.logger_context)
                 return None
 
-            Logger.info(f"Extracted {len(tixr_urls)} Tixr URLs from {url}", self.logger_context)
+            Logger.info(f"{self.__class__.__name__} [{self._club.name}]: Extracted {len(tixr_urls)} Tixr URLs from {url}", self.logger_context)
 
             # Fetch full event details from the Tixr API for each URL
             results = await self.batch_scraper.process_batch(
@@ -187,15 +187,15 @@ class TheStandNYCScraper(BaseScraper):
             tixr_events = [r for r in results if r is not None]
 
             if not tixr_events:
-                Logger.info(f"No TixrEvents returned from {len(tixr_urls)} URLs on {url}", self.logger_context)
+                Logger.info(f"{self.__class__.__name__} [{self._club.name}]: No TixrEvents returned from {len(tixr_urls)} URLs on {url}", self.logger_context)
                 return None
 
             Logger.info(
-                f"Successfully processed {len(tixr_events)} TixrEvents from {len(tixr_urls)} URLs",
+                f"{self.__class__.__name__} [{self._club.name}]: Successfully processed {len(tixr_events)} TixrEvents from {len(tixr_urls)} URLs",
                 self.logger_context,
             )
             return TheStandPageData(event_list=tixr_events, tixr_urls=tixr_urls)
 
         except Exception as e:
-            Logger.error(f"Error extracting data from {url}: {str(e)}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error extracting data from {url}: {str(e)}", self.logger_context)
             return None

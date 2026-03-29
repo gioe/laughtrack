@@ -59,12 +59,12 @@ class FourDayWeekendScraper(BaseScraper):
             client_id, production_ids = FourDayWeekendExtractor.extract_client_and_production_ids(html)
 
             if not production_ids:
-                Logger.warn("No OvationTix production IDs found on buy-tickets page", self.logger_context)
+                Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: No OvationTix production IDs found on buy-tickets page", self.logger_context)
                 return None
 
             client_id = client_id or _DEFAULT_CLIENT_ID
             Logger.info(
-                f"Discovered {len(production_ids)} production(s): {production_ids}",
+                f"{self.__class__.__name__} [{self._club.name}]: Discovered {len(production_ids)} production(s): {production_ids}",
                 self.logger_context,
             )
 
@@ -110,19 +110,19 @@ class FourDayWeekendScraper(BaseScraper):
                 ]
 
                 Logger.info(
-                    f"Production {prod_id}: {len(upcoming)} upcoming event(s) "
+                    f"{self.__class__.__name__} [{self._club.name}]: Production {prod_id}: {len(upcoming)} upcoming event(s) "
                     f"(of {len(events)} total)",
                     self.logger_context,
                 )
                 all_events.extend(upcoming)
 
             if not all_events:
-                Logger.warn("No upcoming events found", self.logger_context)
+                Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: No upcoming events found", self.logger_context)
                 return None
 
-            Logger.info(f"Extracted {len(all_events)} total event(s)", self.logger_context)
+            Logger.info(f"{self.__class__.__name__} [{self._club.name}]: Extracted {len(all_events)} total event(s)", self.logger_context)
             return FourDayWeekendPageData(event_list=all_events)
 
         except Exception as e:
-            Logger.error(f"Error in FourDayWeekendScraper.get_data: {e}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error in FourDayWeekendScraper.get_data: {e}", self.logger_context)
             return None

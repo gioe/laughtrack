@@ -77,28 +77,28 @@ class BroadwayComedyClubScraper(BaseScraper):
         try:
             # Use BaseScraper's standardized fetch_html with built-in error handling
             normalized_url = URLUtils.normalize_url(url)
-            Logger.info(f"Processing URL: {normalized_url}", self.logger_context)
+            Logger.info(f"{self.__class__.__name__} [{self._club.name}]: Processing URL: {normalized_url}", self.logger_context)
             html_content = await self.fetch_html(normalized_url)
 
             # Parse HTML and extract Broadway events as BroadwayEvent objects
             event_list = BroadwayEventExtractor.extract_events(html_content)
 
             if not event_list:
-                Logger.info("No events found on page", self.logger_context)
+                Logger.info(f"{self.__class__.__name__} [{self._club.name}]: No events found on page", self.logger_context)
                 return None
 
-            Logger.info(f"Extracted {len(event_list)} raw events", self.logger_context)
+            Logger.info(f"{self.__class__.__name__} [{self._club.name}]: Extracted {len(event_list)} raw events", self.logger_context)
             # Enrich events with ticket data from Tessera API
             event_list = await self._enrich_events_with_tickets(event_list)
             enriched_count = sum(1 for e in event_list if hasattr(e, "_ticket_data"))
             Logger.info(
-                f"Post-enrichment: {len(event_list)} events, {enriched_count} with ticket data",
+                f"{self.__class__.__name__} [{self._club.name}]: Post-enrichment: {len(event_list)} events, {enriched_count} with ticket data",
                 self.logger_context,
             )
             return BroadwayEventData(event_list) if event_list else None
 
         except Exception as e:
-            Logger.error(f"Error extracting data from {url}: {str(e)}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error extracting data from {url}: {str(e)}", self.logger_context)
             return None
 
     async def _enrich_events_with_tickets(self, events: List[BroadwayEvent]) -> List[BroadwayEvent]:
@@ -111,13 +111,13 @@ class BroadwayComedyClubScraper(BaseScraper):
         try:
             event_ids = self._select_tessera_event_ids(events)
             if not event_ids:
-                Logger.info("No Tessera events found to enrich", self.logger_context)
+                Logger.info(f"{self.__class__.__name__} [{self._club.name}]: No Tessera events found to enrich", self.logger_context)
                 return events
 
             if self._tickets is None:
                 # Enrichment intentionally disabled — pass events through without filtering
                 # so subclasses that disable enrichment don't silently lose Tessera events.
-                Logger.info("Ticket enrichment disabled for this scraper", self.logger_context)
+                Logger.info(f"{self.__class__.__name__} [{self._club.name}]: Ticket enrichment disabled for this scraper", self.logger_context)
                 return events
 
             enriched = await self._tickets.enrich(
@@ -128,13 +128,13 @@ class BroadwayComedyClubScraper(BaseScraper):
             )
 
             Logger.info(
-                f"Successfully enriched {len([e for e in enriched if getattr(e, '_ticket_data', None)])} events with ticket data",
+                f"{self.__class__.__name__} [{self._club.name}]: Successfully enriched {len([e for e in enriched if getattr(e, '_ticket_data', None)])} events with ticket data",
                 self.logger_context,
             )
             return enriched
 
         except Exception as e:
-            Logger.error(f"Error enriching events with tickets: {str(e)}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error enriching events with tickets: {str(e)}", self.logger_context)
             return events
 
     def _select_tessera_event_ids(self, events: List[BroadwayEvent]) -> List[str]:
@@ -157,7 +157,7 @@ class BroadwayComedyClubScraper(BaseScraper):
         try:
             await super().close()
         except Exception as e:
-            Logger.error(f"Error closing HTTP session: {e}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error closing HTTP session: {e}", self.logger_context)
 
         # Always attempt to close the Tessera client as well, independently of the HTTP session result
         try:
@@ -165,4 +165,4 @@ class BroadwayComedyClubScraper(BaseScraper):
             if client and hasattr(client, "cleanup") and callable(getattr(client, "cleanup")):
                 await client.cleanup()
         except Exception as e:
-            Logger.error(f"Error closing Tessera client: {e}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error closing Tessera client: {e}", self.logger_context)

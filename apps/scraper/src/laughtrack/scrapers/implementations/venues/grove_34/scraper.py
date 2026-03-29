@@ -66,10 +66,10 @@ class Grove34Scraper(BaseScraper):
                 listing_url = Grove34EventExtractor.get_next_page_url(html, listing_url)
                 pages_fetched += 1
             except Exception as e:
-                Logger.error(f"Error fetching Grove34 listing page {listing_url}: {e}", self.logger_context)
+                Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error fetching Grove34 listing page {listing_url}: {e}", self.logger_context)
                 break
 
-        Logger.info(f"Discovered {len(all_urls)} Grove34 show URLs across {pages_fetched} listing page(s)", self.logger_context)
+        Logger.info(f"{self.__class__.__name__} [{self._club.name}]: Discovered {len(all_urls)} Grove34 show URLs across {pages_fetched} listing page(s)", self.logger_context)
         return all_urls
 
     async def get_data(self, url: ScrapingTarget) -> Optional[Grove34PageData]:
@@ -88,11 +88,11 @@ class Grove34Scraper(BaseScraper):
             event = Grove34EventExtractor.extract_event(html, normalized_url)
 
             if not event:
-                Logger.warning(f"No event extracted from {url}", self.logger_context)
+                Logger.warning(f"{self.__class__.__name__} [{self._club.name}]: No event extracted from {url}", self.logger_context)
                 return None
 
             return Grove34PageData([event])
 
         except Exception as e:
-            Logger.error(f"Error extracting data from {url}: {e}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error extracting data from {url}: {e}", self.logger_context)
             return None

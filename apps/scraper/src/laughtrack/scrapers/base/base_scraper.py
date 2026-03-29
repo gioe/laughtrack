@@ -234,11 +234,11 @@ class BaseScraper(HttpConvenienceMixin, ABC):
             targets = await self.collect_scraping_targets()
             count = len(targets)
             if count > 1:
-                Logger.info(f"Found {count} targets to process", self.logger_context)
+                Logger.info(f"{self.__class__.__name__} [{self._club.name}]: Found {count} targets to process", self.logger_context)
             elif count == 1:
-                Logger.info("Found target to process", self.logger_context)
+                Logger.info(f"{self.__class__.__name__} [{self._club.name}]: Found target to process", self.logger_context)
             else:
-                Logger.info("Found 0 targets to process", self.logger_context)
+                Logger.info(f"{self.__class__.__name__} [{self._club.name}]: Found 0 targets to process", self.logger_context)
 
             # Step 2: Phase 1 - Concurrent async data fetching
             raw_data_results = await self._fetch_all_raw_data(targets)
@@ -246,11 +246,11 @@ class BaseScraper(HttpConvenienceMixin, ABC):
             # Step 3: Phase 2 - Sync transformation of all raw data
             all_shows = self._transform_all_raw_data(raw_data_results)
 
-            Logger.info(f"Scraped {len(all_shows)} total shows", self.logger_context)
+            Logger.info(f"{self.__class__.__name__} [{self._club.name}]: Scraped {len(all_shows)} total shows", self.logger_context)
             return all_shows
 
         except Exception as e:
-            Logger.error(f"Scraping failed: {e}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Scraping failed: {e}", self.logger_context)
             raise
         finally:
             # Clean up resources
@@ -263,7 +263,7 @@ class BaseScraper(HttpConvenienceMixin, ABC):
             if hasattr(self, "close") and callable(getattr(self, "close")):
                 await getattr(self, "close")()
         except Exception as cleanup_error:
-            Logger.error(f"Error during cleanup: {cleanup_error}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error during cleanup: {cleanup_error}", self.logger_context)
 
     async def _fetch_all_raw_data(
         self, targets: List[ScrapingTarget]
@@ -294,25 +294,25 @@ class BaseScraper(HttpConvenienceMixin, ABC):
 
                 raw_data = await self.error_handler.execute_with_retry(_fetch_with_retry, f"Fetch Data: {target}")
 
-                Logger.debug(f"Fetched data from {target}", self.logger_context)
+                Logger.debug(f"{self.__class__.__name__} [{self._club.name}]: Fetched data from {target}", self.logger_context)
                 return raw_data, target
 
             except Exception as e:
-                Logger.error(f"Failed to fetch data from {target}: {e}", self.logger_context)
+                Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Failed to fetch data from {target}: {e}", self.logger_context)
                 return None, target
 
         # Fetch all targets concurrently
         count = len(targets)
         if count > 1:
-            Logger.info(f"Starting concurrent fetch of {count} targets", self.logger_context)
+            Logger.info(f"{self.__class__.__name__} [{self._club.name}]: Starting concurrent fetch of {count} targets", self.logger_context)
         elif count == 1:
-            Logger.info("Starting concurrent fetch of target", self.logger_context)
+            Logger.info(f"{self.__class__.__name__} [{self._club.name}]: Starting concurrent fetch of target", self.logger_context)
         else:
-            Logger.info("Starting concurrent fetch of 0 targets", self.logger_context)
+            Logger.info(f"{self.__class__.__name__} [{self._club.name}]: Starting concurrent fetch of 0 targets", self.logger_context)
         results = await asyncio.gather(*[fetch_single_target(target) for target in targets])
 
         successful_fetches = sum(1 for raw_data, _ in results if raw_data is not None)
-        Logger.info(f"Successfully fetched data from {successful_fetches}/{len(targets)} targets", self.logger_context)
+        Logger.info(f"{self.__class__.__name__} [{self._club.name}]: Successfully fetched data from {successful_fetches}/{len(targets)} targets", self.logger_context)
 
         return results
 
@@ -343,13 +343,13 @@ class BaseScraper(HttpConvenienceMixin, ABC):
                 shows = self.transform_data(raw_data, target)
                 all_shows.extend(shows)
                 successful_transforms += 1
-                Logger.debug(f"Transformed {len(shows)} shows from {target}", self.logger_context)
+                Logger.debug(f"{self.__class__.__name__} [{self._club.name}]: Transformed {len(shows)} shows from {target}", self.logger_context)
             except Exception as e:
-                Logger.error(f"Failed to transform data from {target}: {e}", self.logger_context)
+                Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Failed to transform data from {target}: {e}", self.logger_context)
                 continue
 
         Logger.info(
-            f"Successfully transformed data from {successful_transforms} targets into {len(all_shows)} shows",
+            f"{self.__class__.__name__} [{self._club.name}]: Successfully transformed data from {successful_transforms} targets into {len(all_shows)} shows",
             self.logger_context,
         )
         return all_shows
@@ -440,7 +440,7 @@ class BaseScraper(HttpConvenienceMixin, ABC):
         session = await self.get_session()
         targets = await self.url_discovery.discover_urls(self.club.scraping_url, session)
 
-        Logger.debug(f"Discovered {len(targets)} scraping targets", self.logger_context)
+        Logger.debug(f"{self.__class__.__name__} [{self._club.name}]: Discovered {len(targets)} scraping targets", self.logger_context)
         return targets
 
     async def process_target(self, target: ScrapingTarget) -> List[Show]:
@@ -568,7 +568,7 @@ class BaseScraper(HttpConvenienceMixin, ABC):
             # Verify the data implements the EventListContainer protocol
             if not hasattr(raw_data, "event_list"):
                 Logger.error(
-                    f"Raw data does not implement EventListContainer protocol. "
+                    f"{self.__class__.__name__} [{self._club.name}]: Raw data does not implement EventListContainer protocol. "
                     f"Missing 'event_list' attribute. Type: {type(raw_data)}",
                     self.logger_context,
                 )
@@ -577,18 +577,18 @@ class BaseScraper(HttpConvenienceMixin, ABC):
             # Check if the data is transformable (has events)
             if hasattr(raw_data, "is_transformable") and not raw_data.is_transformable():
                 Logger.debug(
-                    f"No transformable events in raw data from {source_url_or_identifier}", self.logger_context
+                    f"{self.__class__.__name__} [{self._club.name}]: No transformable events in raw data from {source_url_or_identifier}", self.logger_context
                 )
                 return []
 
             # Apply the transformation pipeline
             shows = self.transformation_pipeline.transform(raw_data)
-            Logger.debug(f"Successfully transformed {len(shows)} shows", self.logger_context)
+            Logger.debug(f"{self.__class__.__name__} [{self._club.name}]: Successfully transformed {len(shows)} shows", self.logger_context)
             return shows
 
         except Exception as e:
             Logger.error(
-                f"Transformation pipeline failed for {source_url_or_identifier}: {str(e)}", self.logger_context
+                f"{self.__class__.__name__} [{self._club.name}]: Transformation pipeline failed for {source_url_or_identifier}: {str(e)}", self.logger_context
             )
             return []
 
@@ -635,12 +635,12 @@ class BaseScraper(HttpConvenienceMixin, ABC):
             )
         """
         if not targets:
-            Logger.info("No targets to process in batch", self.logger_context)
+            Logger.info(f"{self.__class__.__name__} [{self._club.name}]: No targets to process in batch", self.logger_context)
             return []
 
         # If no custom function provided, use optimized two-phase approach
         if process_function is None:
-            Logger.info(f"Using optimized two-phase batch processing for {len(targets)} targets", self.logger_context)
+            Logger.info(f"{self.__class__.__name__} [{self._club.name}]: Using optimized two-phase batch processing for {len(targets)} targets", self.logger_context)
             raw_data_results = await self._fetch_all_raw_data(targets)
             return self._transform_all_raw_data(raw_data_results)
 
@@ -648,7 +648,7 @@ class BaseScraper(HttpConvenienceMixin, ABC):
         processor = process_function
 
         Logger.info(
-            f"Starting batch processing of {len(targets)} targets "
+            f"{self.__class__.__name__} [{self._club.name}]: Starting batch processing of {len(targets)} targets "
             f"(batch_size={batch_size}, max_concurrent={max_concurrent})",
             self.logger_context,
         )
@@ -658,7 +658,7 @@ class BaseScraper(HttpConvenienceMixin, ABC):
         # Process targets in batches
         for i in range(0, len(targets), batch_size):
             batch = targets[i : i + batch_size]
-            Logger.debug(f"Processing batch {i//batch_size + 1}: {len(batch)} targets", self.logger_context)
+            Logger.debug(f"{self.__class__.__name__} [{self._club.name}]: Processing batch {i//batch_size + 1}: {len(batch)} targets", self.logger_context)
 
             # Create semaphore for concurrency control
             semaphore = asyncio.Semaphore(max_concurrent)
@@ -668,7 +668,7 @@ class BaseScraper(HttpConvenienceMixin, ABC):
                     try:
                         return await processor(target)
                     except Exception as e:
-                        Logger.error(f"Error processing target {target}: {e}", self.logger_context)
+                        Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error processing target {target}: {e}", self.logger_context)
                         return []
 
             # Process batch concurrently
@@ -679,16 +679,16 @@ class BaseScraper(HttpConvenienceMixin, ABC):
             # Aggregate results from this batch
             for result in batch_results:
                 if isinstance(result, Exception):
-                    Logger.error(f"Batch processing exception: {result}", self.logger_context)
+                    Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Batch processing exception: {result}", self.logger_context)
                     continue
 
                 if result is not None and isinstance(result, list):
                     all_shows.extend(result)
 
-            Logger.debug(f"Batch completed. Total shows so far: {len(all_shows)}", self.logger_context)
+            Logger.debug(f"{self.__class__.__name__} [{self._club.name}]: Batch completed. Total shows so far: {len(all_shows)}", self.logger_context)
 
         Logger.info(
-            f"Batch processing complete. Processed {len(targets)} targets, " f"found {len(all_shows)} total shows",
+            f"{self.__class__.__name__} [{self._club.name}]: Batch processing complete. Processed {len(targets)} targets, found {len(all_shows)} total shows",
             self.logger_context,
         )
 

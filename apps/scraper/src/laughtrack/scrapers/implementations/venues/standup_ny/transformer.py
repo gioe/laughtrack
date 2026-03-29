@@ -49,13 +49,13 @@ class StandupNYEventTransformer(DataTransformer[StandupNYEvent]):
             # Get the effective values from the event (prefers VenuePilot data)
             name = event.get_effective_name()
             if not name:
-                Logger.warn(f"Event {event.id} missing name", self.logger_context)
+                Logger.warn(f"StandupNYEventTransformer [{self.club.name}]: Event {event.id} missing name", self.logger_context)
                 return None
 
             # Parse the event datetime
             formatted_datetime = self._parse_event_datetime(event)
             if not formatted_datetime:
-                Logger.warn(f"Event {event.id} missing valid datetime", self.logger_context)
+                Logger.warn(f"StandupNYEventTransformer [{self.club.name}]: Event {event.id} missing valid datetime", self.logger_context)
                 return None
 
             # Get effective description and ticket URL
@@ -83,7 +83,7 @@ class StandupNYEventTransformer(DataTransformer[StandupNYEvent]):
             )
 
         except Exception as e:
-            Logger.error(f"Error creating show from event {event.id}: {e}", self.logger_context)
+            Logger.error(f"StandupNYEventTransformer [{self.club.name}]: Error creating show from event {event.id}: {e}", self.logger_context)
             return None
 
     def _parse_event_datetime(self, event: StandupNYEvent) -> Optional[Any]:
@@ -114,7 +114,7 @@ class StandupNYEventTransformer(DataTransformer[StandupNYEvent]):
                     return DateTimeUtils.parse_datetime_with_timezone(combined_datetime, self.club.timezone)
                 else:
                     Logger.warn(
-                        f"Time-only string {date_str} found but no date available for event {event.id}",
+                        f"StandupNYEventTransformer [{self.club.name}]: Time-only string {date_str} found but no date available for event {event.id}",
                         self.logger_context,
                     )
                     return None
@@ -123,7 +123,7 @@ class StandupNYEventTransformer(DataTransformer[StandupNYEvent]):
                 return DateTimeUtils.parse_datetime_with_timezone(date_str, self.club.timezone)
 
         except Exception as e:
-            Logger.warn(f"Error parsing date for event {event.id}: {e}", self.logger_context)
+            Logger.warn(f"StandupNYEventTransformer [{self.club.name}]: Error parsing date for event {event.id}: {e}", self.logger_context)
             return None
 
     def _extract_lineup(self, event: StandupNYEvent) -> List[Comedian]:
@@ -170,7 +170,7 @@ class StandupNYEventTransformer(DataTransformer[StandupNYEvent]):
             return tickets
 
         except Exception as e:
-            Logger.error(f"Error extracting tickets for event {event.id}: {e}", self.logger_context)
+            Logger.error(f"StandupNYEventTransformer [{self.club.name}]: Error extracting tickets for event {event.id}: {e}", self.logger_context)
             return []
 
     def _extract_venue_pilot_tickets(self, event: StandupNYEvent) -> List[Ticket]:
@@ -206,5 +206,5 @@ class StandupNYEventTransformer(DataTransformer[StandupNYEvent]):
             return tickets
 
         except Exception as e:
-            Logger.error(f"Error extracting VenuePilot tickets for event {event.id}: {e}", self.logger_context)
+            Logger.error(f"StandupNYEventTransformer [{self.club.name}]: Error extracting VenuePilot tickets for event {event.id}: {e}", self.logger_context)
             return []

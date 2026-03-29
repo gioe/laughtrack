@@ -91,12 +91,12 @@ class UncleVinniesScraper(BaseScraper):
                 try:
                     html = await self.fetch_html(calendar_url, headers=calendar_headers)
                 except Exception as e:
-                    Logger.warn(f"Failed to fetch calendar {calendar_url}: {e}", self.logger_context)
+                    Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: Failed to fetch calendar {calendar_url}: {e}", self.logger_context)
                     continue
 
                 month_urls = UncleVinniesExtractor.extract_event_urls_from_calendar_html(html, base_url=base_url)
                 all_event_urls.extend(month_urls)
-                Logger.info(f"Found {len(month_urls)} events on {calendar_url}", self.logger_context)
+                Logger.info(f"{self.__class__.__name__} [{self._club.name}]: Found {len(month_urls)} events on {calendar_url}", self.logger_context)
 
             # Deduplicate while preserving order
             seen = set()
@@ -107,7 +107,7 @@ class UncleVinniesScraper(BaseScraper):
                     event_urls.append(u)
 
             if not event_urls:
-                Logger.warn("No event URLs discovered", self.logger_context)
+                Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: No event URLs discovered", self.logger_context)
                 return None
 
             # Diagnostics: which URLs yield OvationTix production IDs prior to API calls
@@ -178,16 +178,16 @@ class UncleVinniesScraper(BaseScraper):
                     if event:
                         events.append(event)
                 except Exception as e:
-                    Logger.error(f"Failed processing {event_url}: {e}", self.logger_context)
+                    Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Failed processing {event_url}: {e}", self.logger_context)
                     continue
 
             if not events:
-                Logger.warn("No events extracted from workflow", self.logger_context)
+                Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: No events extracted from workflow", self.logger_context)
                 return None
 
-            Logger.info(f"Extracted {len(events)} events", self.logger_context)
+            Logger.info(f"{self.__class__.__name__} [{self._club.name}]: Extracted {len(events)} events", self.logger_context)
             return UncleVinniesPageData(events)
 
         except Exception as e:
-            Logger.error(f"Error extracting data: {e}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error extracting data: {e}", self.logger_context)
             return None

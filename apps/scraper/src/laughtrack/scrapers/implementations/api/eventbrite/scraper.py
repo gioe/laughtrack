@@ -49,11 +49,11 @@ class EventbriteScraper(BaseScraper):
         try:
             if not target:
                 return None
-            Logger.info(f"Fetching Eventbrite events for venue {target}", self.logger_context)
+            Logger.info(f"{self.__class__.__name__} [{self._club.name}]: Fetching Eventbrite events for venue {target}", self.logger_context)
             events = await self.eventbrite_client.fetch_all_events()
             if not events:
                 return None
             return EventbriteExtractor.to_page_data(events)
         except Exception as e:
-            Logger.error(f"Error fetching Eventbrite data: {e}", self.logger_context)
+            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error fetching Eventbrite data: {e}", self.logger_context)
             return None

@@ -45,6 +45,8 @@ class FakeScraper(BroadwayComedyClubScraper):
     def __init__(self, enricher=_UNSET):  # Don't call super(); keep it lean for unit tests
         # Minimal context expected by logging helpers
         self.logger_context = {"scraper": "broadway", "club": "TEST"}
+        # Minimal _club stub so Logger calls using self._club.name don't raise AttributeError
+        self._club = SimpleNamespace(name="TEST")
         # Pass None explicitly to simulate _make_ticket_enricher() returning None (disabled)
         self._tickets = FakeEnricher() if enricher is _UNSET else enricher
 
