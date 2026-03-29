@@ -170,14 +170,14 @@ class BaseScraper(HttpConvenienceMixin, ABC):
             browser = _get_js_browser()
             if browser is None:
                 Logger.warn(
-                    f"{self.__class__.__name__}: Playwright unavailable for {url}",
+                    f"{self.__class__.__name__} [{self._club.name}]: Playwright unavailable for {url}",
                     self.logger_context,
                 )
                 return None
             return await browser.fetch_html(url)
         except Exception as e:
             Logger.warn(
-                f"{self.__class__.__name__}: Playwright fetch failed for {url}: {e}",
+                f"{self.__class__.__name__} [{self._club.name}]: Playwright fetch failed for {url}: {e}",
                 self.logger_context,
             )
             return None
