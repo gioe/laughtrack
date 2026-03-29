@@ -44,12 +44,28 @@ class StevieRaysScraper(BaseScraper):
         )
 
     async def _fetch_html_with_js(self, url: str) -> Optional[str]:
-        """Fetch page HTML using PlaywrightBrowser (required for JS-rendered content)."""
+        """Fetch page HTML using the shared PlaywrightBrowser singleton.
+
+        The tickets.chanhassendt.com page requires JavaScript execution —
+        curl_cffi returns only the page shell without event rows.
+        Uses the shared browser instance managed by _get_js_browser() to
+        avoid leaking Chromium processes.
+
+        PlaywrightBrowser uses wait_until='domcontentloaded'. The event rows
+        (.result-box-item divs) are verified to be synchronously rendered
+        server-side into the initial HTML payload — no post-DOMContentLoaded
+        XHR is needed to populate them (confirmed via live scrape, 50 shows
+        returned). networkidle is not required.
+        """
         try:
-            from laughtrack.foundation.infrastructure.http.playwright_browser import (
-                PlaywrightBrowser,
-            )
-            browser = PlaywrightBrowser()
+            from laughtrack.foundation.infrastructure.http.client import _get_js_browser
+            browser = _get_js_browser()
+            if browser is None:
+                Logger.warn(
+                    f"StevieRaysScraper: Playwright unavailable for {url}",
+                    self.logger_context,
+                )
+                return None
             return await browser.fetch_html(url)
         except Exception as e:
             Logger.warn(
