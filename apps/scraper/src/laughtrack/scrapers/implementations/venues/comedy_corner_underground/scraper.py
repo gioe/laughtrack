@@ -1,0 +1,150 @@
+"""
+The Comedy Corner Underground scraper (Minneapolis, MN).
+
+The Comedy Corner Underground is an artist-run comedy room inside Whitey's
+Old Town Saloon in NE Minneapolis. It uses the StageTime platform
+(https://ccu.stageti.me) for ticketing.
+
+StageTime is a Next.js app; all event data is embedded in the server-rendered
+HTML as React Server Component (RSC) wire format payloads.
+
+Pipeline:
+  1. collect_scraping_targets() → [club.scraping_url]  (https://ccu.stageti.me/)
+  2. get_data(url):
+       a. Fetch the venue listing page → extract event slugs
+       b. For each slug (skipping open mics / no-advance-sales):
+          - Fetch https://ccu.stageti.me/e/{slug}
+          - Parse RSC payload → name, occurrences, timezone, performers, ticket URL
+          - Expand into one ComedyCornerEvent per occurrence
+  3. transformation_pipeline → ComedyCornerEvent.to_show() → Show objects
+"""
+
+from typing import List, Optional
+
+from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.event.comedy_corner_underground import ComedyCornerEvent
+from laughtrack.foundation.infrastructure.logger.logger import Logger
+from laughtrack.scrapers.base.base_scraper import BaseScraper
+
+from .data import ComedyCornerPageData
+from .extractor import ComedyCornerExtractor
+from .transformer import ComedyCornerEventTransformer
+
+_BASE_URL = "https://ccu.stageti.me"
+
+
+class ComedyCornerScraper(BaseScraper):
+    """Scraper for The Comedy Corner Underground (Minneapolis) via StageTime."""
+
+    key = "comedy_corner_underground"
+
+    def __init__(self, club: Club, **kwargs):
+        super().__init__(club, **kwargs)
+        self.transformation_pipeline.register_transformer(
+            ComedyCornerEventTransformer(club)
+        )
+
+    async def get_data(self, url: str) -> Optional[ComedyCornerPageData]:
+        """
+        Fetch the StageTime venue listing page and then each individual event
+        page to extract all upcoming show occurrences.
+
+        Args:
+            url: The StageTime venue listing URL (from club.scraping_url).
+
+        Returns:
+            ComedyCornerPageData with extracted events, or None on failure.
+        """
+        try:
+            # Step 1: Fetch listing page to get event slugs
+            listing_html = await self.fetch_html(url)
+            if not listing_html:
+                Logger.warn(
+                    f"ComedyCornerScraper: empty listing page for {url}",
+                    self.logger_context,
+                )
+                return None
+
+            slugs = ComedyCornerExtractor.extract_event_slugs(listing_html)
+            if not slugs:
+                Logger.info(
+                    f"ComedyCornerScraper: no event slugs found on {url}",
+                    self.logger_context,
+                )
+                return None
+
+            Logger.info(
+                f"ComedyCornerScraper: found {len(slugs)} event slugs on listing page",
+                self.logger_context,
+            )
+
+            # Step 2: Fetch each individual event page and expand occurrences
+            all_events: List[ComedyCornerEvent] = []
+
+            for slug in slugs:
+                event_url = f"{_BASE_URL}/e/{slug}"
+                event_html = await self.fetch_html(event_url)
+                if not event_html:
+                    Logger.warn(
+                        f"ComedyCornerScraper: empty response for event {slug}",
+                        self.logger_context,
+                    )
+                    continue
+
+                data = ComedyCornerExtractor.extract_event_data(event_html)
+                if data is None:
+                    Logger.warn(
+                        f"ComedyCornerScraper: failed to extract data for {slug}",
+                        self.logger_context,
+                    )
+                    continue
+
+                # Skip open mic events and events with no advance sales
+                if data.get("is_open_mic") or data.get("admission_type") == "no_advance_sales":
+                    Logger.debug(
+                        f"ComedyCornerScraper: skipping open mic / no-advance-sales event: {slug}"
+                    )
+                    continue
+
+                name = data.get("name", "")
+                ticket_url = data.get("ticket_url", "")
+                timezone = data.get("timezone", "America/Chicago")
+                performers = data.get("performers", [])
+                occurrences = data.get("occurrences", [])
+
+                if not name or not occurrences:
+                    Logger.debug(
+                        f"ComedyCornerScraper: skipping {slug} — missing name or occurrences"
+                    )
+                    continue
+
+                for start_time_utc in occurrences:
+                    all_events.append(
+                        ComedyCornerEvent(
+                            title=name,
+                            start_time_utc=start_time_utc,
+                            timezone=timezone,
+                            ticket_url=ticket_url,
+                            performers=performers,
+                        )
+                    )
+
+            if not all_events:
+                Logger.info(
+                    "ComedyCornerScraper: no ticketed events found",
+                    self.logger_context,
+                )
+                return None
+
+            Logger.info(
+                f"ComedyCornerScraper: extracted {len(all_events)} show occurrences",
+                self.logger_context,
+            )
+            return ComedyCornerPageData(event_list=all_events)
+
+        except Exception as e:
+            Logger.error(
+                f"ComedyCornerScraper: error fetching {url}: {e}",
+                self.logger_context,
+            )
+            return None
