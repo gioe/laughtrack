@@ -1,7 +1,7 @@
 """Show-specific utility functions for the Laughtrack domain."""
 
 from typing import Any, Dict, List, Optional, Set, Tuple, cast
-from datetime import datetime
+from datetime import datetime, timezone
 
 from psycopg2.extras import DictRow
 
@@ -188,6 +188,21 @@ class ShowUtils:
         return name.strip()
 
     @staticmethod
+    def _normalize_date_for_key(dt: Optional[datetime]) -> Optional[datetime]:
+        """Return a UTC-naive datetime for use as a dict key.
+
+        psycopg2 returns TIMESTAMPTZ columns as timezone-aware UTC datetimes,
+        but show.date may be naive (no tzinfo) or aware with a non-UTC offset.
+        Stripping tzinfo after converting to UTC makes the comparison consistent
+        regardless of how the date was originally parsed.
+        """
+        if dt is None:
+            return None
+        if dt.tzinfo is not None:
+            return dt.astimezone(timezone.utc).replace(tzinfo=None)
+        return dt
+
+    @staticmethod
     def update_shows_with_results(shows: List[Show], db_results: List[DictRow]) -> List[Show]:
         """
         Update show objects with database results (IDs and operation types).
@@ -203,10 +218,13 @@ class ShowUtils:
             Logger.warn("No shows or database results to process")
             return shows
 
-        # Create a mapping of shows by their standardized key
+        # Create a mapping of shows by their standardized key.
+        # Normalize date to UTC-naive so that naive show dates and the
+        # UTC-aware dates returned by psycopg2 from TIMESTAMPTZ columns compare equal.
         show_map = {}
         for i, show in enumerate(shows):
-            key = show.to_unique_key()
+            norm_date = ShowUtils._normalize_date_for_key(show.date)
+            key = (show.club_id, norm_date, show.room)
             show_map[key] = i
 
         # Update shows with database results
@@ -217,7 +235,7 @@ class ShowUtils:
             # as Show.to_unique_key(): (club_id, date, room)
             result_key = (
                 result.get("club_id"),
-                result.get("date"),
+                ShowUtils._normalize_date_for_key(result.get("date")),
                 result.get("room", "") or "",
             )
 
