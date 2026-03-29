@@ -10,5 +10,5 @@ VALUES (
     'eventbrite',
     TRUE,
     'https://www.comedyinn.com',
-    'https://www.eventbrite.com/o/3390989926'
+    'https://www.eventbrite.com/o/comedy-inn-3390989926'
 );

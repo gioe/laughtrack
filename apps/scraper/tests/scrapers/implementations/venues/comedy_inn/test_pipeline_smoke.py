@@ -11,8 +11,6 @@ Catches regressions where:
 """
 
 import importlib.util
-from unittest.mock import AsyncMock
-
 import pytest
 
 pytestmark = pytest.mark.skipif(
