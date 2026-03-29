@@ -153,6 +153,9 @@ def test_transformation_pipeline_produces_shows():
     transformation_pipeline.transform() returns at least one Show
     when given TicketmasterPageData with a valid event dict.
 
+    Catches type-mismatch regressions where can_transform() returns False
+    for Ticketmaster API dicts, silently dropping all events.
+
     TicketmasterClient.__init__ raises ValueError when TICKETMASTER_API_KEY is
     absent (e.g. CI). Patch the client in the transformer module so this test
     runs hermetically without a live API key.

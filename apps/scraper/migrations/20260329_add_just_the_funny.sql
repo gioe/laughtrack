@@ -18,6 +18,6 @@ VALUES (
     'KovZpZAFJEvA',
     'live_nation',
     TRUE,
-    'http://www.justthefunny.com',
+    'https://www.justthefunny.com',
     'ticketmaster/KovZpZAFJEvA'
 );
