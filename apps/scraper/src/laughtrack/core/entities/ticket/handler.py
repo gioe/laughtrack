@@ -50,7 +50,7 @@ class TicketHandler(BaseDatabaseHandler[Ticket]):
         try:
             # Convert tickets to tuples for batch operation
             ticket_tuples = [ticket.to_tuple() for ticket in deduplicated_tickets]
-            results = self.execute_batch_operation(TicketQueries.BATCH_ADD_TICKETS, ticket_tuples)
+            results = self.execute_batch_operation(TicketQueries.BATCH_ADD_TICKETS, ticket_tuples, return_results=True)
             result_count = len(results) if results else 0
             Logger.info(f"Successfully processed {result_count} ticket operations")
 
