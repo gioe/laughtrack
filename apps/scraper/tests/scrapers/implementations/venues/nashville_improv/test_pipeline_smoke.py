@@ -11,9 +11,9 @@ import pytest
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.event.squarespace import SquarespaceEvent
-from laughtrack.scrapers.implementations.venues.the_den_theatre.scraper import SquarespaceScraper
-from laughtrack.scrapers.implementations.venues.the_den_theatre.data import SquarespacePageData
-from laughtrack.scrapers.implementations.venues.the_den_theatre.extractor import SquarespaceExtractor
+from laughtrack.scrapers.implementations.api.squarespace.scraper import SquarespaceScraper
+from laughtrack.scrapers.implementations.api.squarespace.data import SquarespacePageData
+from laughtrack.scrapers.implementations.api.squarespace.extractor import SquarespaceExtractor
 
 
 BASE_DOMAIN = "https://www.nashvilleimprov.com"
