@@ -26,7 +26,7 @@ from laughtrack.scrapers.implementations.api.eventbrite.scraper import Eventbrit
 
 
 ORGANIZER_ID = "109625487101"
-EVENT_URL = "https://www.eventbrite.com/e/play-in-my-box-comedy-show-tickets-1599205299099"
+EVENT_URL = "https://www.eventbrite.com/e/play-in-my-box-comedy-show-tickets-1234567890"
 
 
 def _club() -> Club:
