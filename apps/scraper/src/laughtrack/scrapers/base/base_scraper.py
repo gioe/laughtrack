@@ -148,6 +148,40 @@ class BaseScraper(HttpConvenienceMixin, ABC):
             proxy_url = self.proxy_pool.get_proxy()
         return await super().get_session(headers=headers, proxy_url=proxy_url)
 
+    async def _fetch_html_with_js(self, url: str) -> Optional[str]:
+        """Fetch page HTML using the shared PlaywrightBrowser singleton.
+
+        Use this instead of fetch_html() when the target page requires JavaScript
+        execution to render event data (i.e. curl_cffi returns only the page shell).
+        Uses the shared browser instance managed by _get_js_browser() to avoid
+        leaking Chromium processes.
+
+        PlaywrightBrowser uses wait_until='domcontentloaded'. This is sufficient
+        for pages where event rows are server-side rendered into the initial HTML
+        payload. Only override with networkidle if events load via a post-DOMContent
+        XHR.
+
+        Returns:
+            The rendered HTML string, or None if Playwright is unavailable or the
+            fetch fails.
+        """
+        try:
+            from laughtrack.foundation.infrastructure.http.client import _get_js_browser
+            browser = _get_js_browser()
+            if browser is None:
+                Logger.warn(
+                    f"{self.__class__.__name__}: Playwright unavailable for {url}",
+                    self.logger_context,
+                )
+                return None
+            return await browser.fetch_html(url)
+        except Exception as e:
+            Logger.warn(
+                f"{self.__class__.__name__}: Playwright fetch failed for {url}: {e}",
+                self.logger_context,
+            )
+            return None
+
     def scrape(self) -> List[Show]:
         """
         Synchronously scrape shows from the venue.
