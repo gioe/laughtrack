@@ -58,8 +58,48 @@ def _buy_tickets_html() -> str:
     )
 
 
+def _fake_production_response_with_past() -> MagicMock:
+    """Fake response: two future performances + one past performance."""
+    resp = MagicMock()
+    resp.status_code = 200
+    resp.raise_for_status = MagicMock()
+    resp.json.return_value = {
+        "id": int(PRODUCTION_ID),
+        "productionName": "Four Day Weekend Dallas",
+        "description": "Audience-driven improv comedy",
+        "performances": [
+            {
+                "id": int(PERFORMANCE_ID),
+                "startDate": "2030-04-03 20:00",
+                "ticketsAvailable": True,
+                "availableToPurchaseOnWeb": True,
+                "availability": {"webAvailable": "A"},
+            },
+            {
+                "id": int(PERFORMANCE_ID) + 1,
+                "startDate": "2030-04-04 19:00",
+                "ticketsAvailable": True,
+                "availableToPurchaseOnWeb": True,
+                "availability": {"webAvailable": "A"},
+            },
+            {
+                "id": int(PERFORMANCE_ID) + 2,
+                "startDate": "2020-01-01 20:00",  # clearly in the past
+                "ticketsAvailable": True,
+                "availableToPurchaseOnWeb": True,
+                "availability": {"webAvailable": "A"},
+            },
+        ],
+        "performanceSummary": {
+            "count": 2,
+            "nextPerformance": {"id": int(PERFORMANCE_ID), "startDate": "2030-04-03 20:00"},
+        },
+    }
+    return resp
+
+
 def _fake_production_response() -> MagicMock:
-    """Fake OvationTix Production/performance? response with two performances."""
+    """Fake OvationTix Production/performance? response with two future performances."""
     resp = MagicMock()
     resp.status_code = 200
     resp.raise_for_status = MagicMock()
@@ -91,11 +131,11 @@ def _fake_production_response() -> MagicMock:
     return resp
 
 
-def _make_fake_session() -> MagicMock:
+def _make_fake_session(with_past: bool = False) -> MagicMock:
     session = MagicMock()
 
     async def fake_get(url: str, headers: Dict = None) -> MagicMock:
-        return _fake_production_response()
+        return _fake_production_response_with_past() if with_past else _fake_production_response()
 
     session.get = fake_get
     return session
@@ -136,6 +176,25 @@ async def test_get_data_returns_events_from_api(monkeypatch):
     assert event.start_date == "2030-04-03 20:00"
     assert f"production/{PRODUCTION_ID}" in event.event_url
     assert f"performanceId={PERFORMANCE_ID}" in event.event_url
+
+
+@pytest.mark.asyncio
+async def test_past_events_are_filtered_out(monkeypatch):
+    """get_data() drops performances whose start_date is in the past."""
+    scraper = FourDayWeekendScraper(_club())
+
+    async def fake_fetch_html(self, url: str, headers: Dict = None) -> str:
+        return _buy_tickets_html()
+
+    monkeypatch.setattr(FourDayWeekendScraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(scraper, "get_session", AsyncMock(return_value=_make_fake_session(with_past=True)))
+
+    result = await scraper.get_data(SCRAPING_URL)
+
+    assert isinstance(result, FourDayWeekendPageData)
+    assert len(result.event_list) == 2, (
+        f"Expected 2 upcoming events (past one filtered out), got {len(result.event_list)}"
+    )
 
 
 @pytest.mark.asyncio

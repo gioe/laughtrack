@@ -12,7 +12,7 @@ class FourDayWeekendPageData:
 
     event_list: List[FourDayWeekendEvent]
 
-    def has_json_ld_data(self) -> bool:
+    def has_data(self) -> bool:
         return bool(self.event_list)
 
     def get_event_count(self) -> int:

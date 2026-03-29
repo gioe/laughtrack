@@ -49,27 +49,26 @@ class FourDayWeekendScraper(BaseScraper):
         try:
             base_url = URLUtils.normalize_url(url)
 
-            # Step 1: fetch the buy-tickets page and extract production IDs
+            # Step 1: fetch the buy-tickets page and extract production IDs + client ID
             page_headers = BaseHeaders.get_headers(
                 base_type="desktop_browser",
                 domain=base_url,
                 referer=base_url,
             )
             html = await self.fetch_html(base_url, headers=page_headers)
-            production_ids = FourDayWeekendExtractor.extract_production_ids(html)
+            client_id, production_ids = FourDayWeekendExtractor.extract_client_and_production_ids(html)
 
             if not production_ids:
                 Logger.warn("No OvationTix production IDs found on buy-tickets page", self.logger_context)
                 return None
 
+            client_id = client_id or _DEFAULT_CLIENT_ID
             Logger.info(
                 f"Discovered {len(production_ids)} production(s): {production_ids}",
                 self.logger_context,
             )
 
             # Step 2: query the OvationTix API for each production
-            # The client ID is parsed from the production URL; fall back to the known default.
-            client_id = self._extract_client_id(html) or _DEFAULT_CLIENT_ID
             api_headers = BaseHeaders.get_headers(
                 base_type="json",
                 domain="https://web.ovationtix.com",
@@ -127,13 +126,3 @@ class FourDayWeekendScraper(BaseScraper):
         except Exception as e:
             Logger.error(f"Error in FourDayWeekendScraper.get_data: {e}", self.logger_context)
             return None
-
-    @staticmethod
-    def _extract_client_id(html: str) -> Optional[str]:
-        """
-        Parse the OvationTix client/org ID from the first production URL found in the HTML.
-        Returns None if no URL is found.
-        """
-        import re
-        m = re.search(r"https://ci\.ovationtix\.com/(\d+)/production/\d+", html, re.IGNORECASE)
-        return m.group(1) if m else None

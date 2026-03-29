@@ -6,7 +6,7 @@ Pure parsing helpers — no HTTP calls.  All network I/O is handled by the scrap
 
 import re
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import pytz
 
@@ -25,19 +25,23 @@ class FourDayWeekendExtractor:
     """Pure parsing utilities for Four Day Weekend Comedy responses."""
 
     @staticmethod
-    def extract_production_ids(html: str) -> List[str]:
+    def extract_client_and_production_ids(html: str) -> Tuple[Optional[str], List[str]]:
         """
-        Extract OvationTix production IDs from the buy-tickets page HTML.
+        Extract the OvationTix client ID and deduplicated production IDs from HTML.
 
-        Returns a deduplicated list of production ID strings, preserving order.
+        Returns:
+            (client_id, production_ids) — client_id is None if no URLs were found.
         """
+        client_id: Optional[str] = None
         seen: set = set()
         ids: List[str] = []
-        for _client_id, prod_id in _PRODUCTION_URL_RE.findall(html):
+        for cid, prod_id in _PRODUCTION_URL_RE.findall(html):
+            if client_id is None:
+                client_id = cid
             if prod_id not in seen:
                 seen.add(prod_id)
                 ids.append(prod_id)
-        return ids
+        return client_id, ids
 
     @staticmethod
     def extract_events_from_production(
@@ -71,8 +75,10 @@ class FourDayWeekendExtractor:
             if not perf_id or not start_date:
                 continue
 
-            tickets_available = bool(perf.get("ticketsAvailable", True))
-            available_to_purchase = bool(perf.get("availableToPurchaseOnWeb", True))
+            # Default False (unavailable) when the key is absent — avoids treating
+            # sold-out or disabled performances as purchasable.
+            tickets_available = bool(perf.get("ticketsAvailable", False))
+            available_to_purchase = bool(perf.get("availableToPurchaseOnWeb", False))
 
             event_url = (
                 f"https://ci.ovationtix.com/{client_id}/production/{production_id}"
@@ -88,7 +94,6 @@ class FourDayWeekendExtractor:
                     tickets_available=tickets_available and available_to_purchase,
                     event_url=event_url,
                     description=description,
-                    sections=[],
                 )
             )
 
@@ -100,7 +105,7 @@ class FourDayWeekendExtractor:
         try:
             tz = pytz.timezone(timezone)
             naive = datetime.strptime(start_date_str, "%Y-%m-%d %H:%M")
-            event_dt = tz.localize(naive, is_dst=None)
+            event_dt = tz.localize(naive, is_dst=False)
             return event_dt < datetime.now(tz)
         except Exception:
             return False

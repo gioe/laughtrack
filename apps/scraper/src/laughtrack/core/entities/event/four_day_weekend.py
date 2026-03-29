@@ -8,13 +8,12 @@ not a production — productions group multiple recurring performances.
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Optional
 
 import pytz
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
-from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
@@ -27,6 +26,13 @@ class FourDayWeekendEvent:
     One production (e.g. "Four Day Weekend Dallas") has many performances — one per
     show date/time.  This model represents a single performance entry from the
     `performances` array in the `Production({id})/performance?` response.
+
+    Ticket pricing data is NOT available from the production listing endpoint.
+    The OvationTix `Performance({id})` endpoint would provide `sections` with
+    pricing, but fetching it per-performance (18+ API calls per run) is deferred.
+    Shows are saved with the ticket purchase URL so users can buy on the OvationTix
+    site even without pre-fetched pricing.
+    # TODO: fetch per-performance sections for ticket pricing data
     """
 
     production_id: str
@@ -36,11 +42,6 @@ class FourDayWeekendEvent:
     tickets_available: bool
     event_url: str
     description: Optional[str] = None
-    sections: Optional[List[Dict[str, Any]]] = None
-
-    def __post_init__(self):
-        if self.sections is None:
-            self.sections = []
 
     def to_show(self, club: Club, enhanced: bool = True) -> Optional[Show]:
         """Transform this performance into a Show object."""
@@ -53,14 +54,13 @@ class FourDayWeekendEvent:
                 )
                 return None
 
-            tickets = self._extract_tickets()
             return ShowFactoryUtils.create_enhanced_show_base(
                 name=self.production_name,
                 club=club,
                 date=start_dt,
                 show_page_url=self.event_url,
                 lineup=[],
-                tickets=tickets,
+                tickets=[],
                 description=self.description,
                 room="",
                 supplied_tags=["event"],
@@ -75,27 +75,9 @@ class FourDayWeekendEvent:
         try:
             tz = pytz.timezone(timezone)
             naive = datetime.strptime(self.start_date, "%Y-%m-%d %H:%M")
-            return tz.localize(naive, is_dst=None)
+            # is_dst=False picks the post-transition (standard time) interpretation
+            # for ambiguous times during DST fall-back, rather than raising AmbiguousTimeError.
+            return tz.localize(naive, is_dst=False)
         except Exception as e:
             Logger.error(f"Error parsing start_date '{self.start_date}': {e}")
             return None
-
-    def _extract_tickets(self) -> List[Ticket]:
-        tickets: List[Ticket] = []
-        try:
-            for section in (self.sections or []):
-                for ticket_view in section.get("ticketTypeViews", []):
-                    price = ticket_view.get("price")
-                    name = ticket_view.get("name", "General Admission")
-                    if price is not None:
-                        tickets.append(
-                            Ticket(
-                                price=float(price),
-                                purchase_url=self.event_url,
-                                sold_out=not self.tickets_available,
-                                type=name,
-                            )
-                        )
-        except Exception as e:
-            Logger.error(f"Failed to extract tickets for perf {self.performance_id}: {e}")
-        return tickets
