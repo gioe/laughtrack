@@ -19,6 +19,7 @@ Pipeline:
   3. transformation_pipeline → ComedyCornerEvent.to_show() → Show objects
 """
 
+import asyncio
 from typing import List, Optional
 
 from laughtrack.core.entities.club.model import Club
@@ -78,18 +79,20 @@ class ComedyCornerScraper(BaseScraper):
                 self.logger_context,
             )
 
-            # Step 2: Fetch each individual event page and expand occurrences
+            # Step 2: Fetch each individual event page concurrently and expand occurrences
             all_events: List[ComedyCornerEvent] = []
+            semaphore = asyncio.Semaphore(5)
 
-            for slug in slugs:
+            async def _fetch_slug(slug: str) -> List[ComedyCornerEvent]:
                 event_url = f"{_BASE_URL}/e/{slug}"
-                event_html = await self.fetch_html(event_url)
+                async with semaphore:
+                    event_html = await self.fetch_html(event_url)
                 if not event_html:
                     Logger.warn(
                         f"ComedyCornerScraper: empty response for event {slug}",
                         self.logger_context,
                     )
-                    continue
+                    return []
 
                 data = ComedyCornerExtractor.extract_event_data(event_html)
                 if data is None:
@@ -97,14 +100,14 @@ class ComedyCornerScraper(BaseScraper):
                         f"ComedyCornerScraper: failed to extract data for {slug}",
                         self.logger_context,
                     )
-                    continue
+                    return []
 
                 # Skip open mic events and events with no advance sales
                 if data.get("is_open_mic") or data.get("admission_type") == "no_advance_sales":
                     Logger.debug(
                         f"ComedyCornerScraper: skipping open mic / no-advance-sales event: {slug}"
                     )
-                    continue
+                    return []
 
                 name = data.get("name", "")
                 ticket_url = data.get("ticket_url", "")
@@ -116,18 +119,22 @@ class ComedyCornerScraper(BaseScraper):
                     Logger.debug(
                         f"ComedyCornerScraper: skipping {slug} — missing name or occurrences"
                     )
-                    continue
+                    return []
 
-                for start_time_utc in occurrences:
-                    all_events.append(
-                        ComedyCornerEvent(
-                            title=name,
-                            start_time_utc=start_time_utc,
-                            timezone=timezone,
-                            ticket_url=ticket_url,
-                            performers=list(performers),
-                        )
+                return [
+                    ComedyCornerEvent(
+                        title=name,
+                        start_time_utc=start_time_utc,
+                        timezone=timezone,
+                        ticket_url=ticket_url,
+                        performers=list(performers),
                     )
+                    for start_time_utc in occurrences
+                ]
+
+            slug_results = await asyncio.gather(*(_fetch_slug(slug) for slug in slugs))
+            for events in slug_results:
+                all_events.extend(events)
 
             if not all_events:
                 Logger.info(
