@@ -81,15 +81,20 @@ class RedRoomComedyClubScraper(BaseScraper):
             )
             return []
 
+    _MAX_PAGES = 20
+
     async def get_data(self, url: str) -> Optional[RedRoomPageData]:
         """Fetch all events from the Wix paginated-events API, following hasMore pagination."""
         try:
             headers = self._build_auth_headers()
             all_events = []
             current_url = url
-            limit = 50
 
-            while True:
+            parsed = urlparse(current_url)
+            params = parse_qs(parsed.query, keep_blank_values=True)
+            limit = int(params.get("limit", ["50"])[0])
+
+            for page in range(self._MAX_PAGES):
                 api_response = await self.fetch_json(current_url, headers=headers)
                 if api_response is None:
                     break
@@ -105,6 +110,11 @@ class RedRoomComedyClubScraper(BaseScraper):
                 current_offset = int(params.get("offset", ["0"])[0])
                 params["offset"] = [str(current_offset + limit)]
                 current_url = urlunparse(parsed._replace(query=urlencode({k: v[0] for k, v in params.items()})))
+            else:
+                Logger.warn(
+                    f"RedRoomComedyClubScraper: reached MAX_PAGES ({self._MAX_PAGES}) — pagination stopped early",
+                    self.logger_context,
+                )
 
             return RedRoomPageData(event_list=all_events) if all_events else None
 

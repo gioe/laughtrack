@@ -85,17 +85,22 @@ class BushwickComedyClubScraper(BaseScraper):
             Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Failed to discover URLs: {e}", self.logger_context)
             return []
 
+    _MAX_PAGES = 20
+
     async def get_data(self, url: str) -> Optional[BushwickEventData]:
         """Extract all Bushwick event data from Wix API, following hasMore pagination."""
         try:
             headers = self._build_auth_headers()
             all_events = []
             current_url = url
-            limit = 50
 
-            while True:
+            parsed = urlparse(current_url)
+            params = parse_qs(parsed.query, keep_blank_values=True)
+            limit = int(params.get("limit", ["50"])[0])
+
+            for page in range(self._MAX_PAGES):
                 api_response = await self.fetch_json(current_url, headers=headers)
-                if not api_response:
+                if api_response is None:
                     break
 
                 typed_response = WixResponseFactory.create_wix_events_response(api_response)
@@ -109,6 +114,11 @@ class BushwickComedyClubScraper(BaseScraper):
                 current_offset = int(params.get("offset", ["0"])[0])
                 params["offset"] = [str(current_offset + limit)]
                 current_url = urlunparse(parsed._replace(query=urlencode({k: v[0] for k, v in params.items()})))
+            else:
+                Logger.warn(
+                    f"{self.__class__.__name__} [{self._club.name}]: reached MAX_PAGES ({self._MAX_PAGES}) — pagination stopped early",
+                    self.logger_context,
+                )
 
             return BushwickEventData(all_events) if all_events else None
 
