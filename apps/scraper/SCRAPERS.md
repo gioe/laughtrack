@@ -22,6 +22,10 @@ Is there a SeatEngine buy link?
       (no v- prefix)          → scraper: seatengine  (or seatengine_classic for legacy)
                                  DB: seatengine_id = numeric venue ID (1–700 range)
 
+Is there a buy link to `{venue}.thundertix.com`?
+  └── YES → platform: ThunderTix → new venue-specific scraper required
+              (see ThunderTix section — use annoyance scraper as reference)
+
 Is there a tixr.com buy link?
   └── YES → platform: Tixr → new venue-specific scraper required
               (see Tixr section — short/long URL format matters)
@@ -49,6 +53,9 @@ Check page source:
         → platform: rhp-events (WordPress) → scraper: comedy_magic_club (generic; set scraping_url)
   └── data-compId on Wix event widget / wixstatic.com assets
         → platform: Wix Events → new venue-specific scraper required
+  └── CSS classes: eventRow / dateTime (with content attr) / event-btn
+        → platform: TicketSource → new venue-specific scraper required
+              (see TicketSource section — use comedy_clubhouse scraper as reference)
 
 None of the above → custom HTML scraper required
 ```
@@ -600,6 +607,99 @@ WHERE name = 'Hyena''s Comedy Nightclub';
 
 ---
 
+### ThunderTix
+
+| | |
+|---|---|
+| **Scraper key** | venue-specific (e.g. `annoyance`) |
+| **DB field** | `scraping_url` |
+| **Value format** | `https://{venue-slug}.thundertix.com` |
+| **Generic?** | ❌ New venue-specific scraper required |
+
+**Detection signals:**
+- Buy links or calendar pages at `{venue-slug}.thundertix.com`
+- Network requests to `{venue-slug}.thundertix.com/reports/calendar`
+
+**API pattern:**
+```
+GET https://{venue-slug}.thundertix.com/reports/calendar?week=0&start={ts}&end={ts+7d}
+```
+Returns a JSON array of performance objects, one per show. A single request covers a 7-day window.
+The `annoyance` scraper generates 12 weekly URLs starting from the current Sunday.
+
+**Key fields in each performance object:**
+- `title` — show name
+- `start_at` — ISO datetime string (localize using club timezone)
+- `ticket_url` — direct ticket purchase URL
+- `publicly_available` — skip when `False`
+
+**Filtering rules (verify per venue):**
+- Skip events where `publicly_available` is `False`
+- Skip events whose title starts with training/class prefixes (venue-specific — check live data)
+
+**Reference implementation:** `apps/scraper/src/laughtrack/scrapers/implementations/venues/annoyance/`
+
+**To onboard a new ThunderTix venue:**
+1. Confirm the venue slug from the buy page URL: `{slug}.thundertix.com` (e.g. `theannoyance`)
+2. Copy the `annoyance/` scraper directory as the reference implementation
+3. Update `_BASE_URL`, `_TITLE_SKIP_PREFIXES`, scraper `key`, and class names
+4. Add a DB migration setting `scraper` and `scraping_url`
+
+**DB setup:**
+```sql
+INSERT INTO clubs (name, scraper, scraping_url, ...)
+VALUES ('My Venue', 'my_venue', 'https://myslug.thundertix.com', ...);
+```
+
+---
+
+### TicketSource
+
+| | |
+|---|---|
+| **Scraper key** | venue-specific (e.g. `comedy_clubhouse`) |
+| **DB field** | `scraping_url` |
+| **Value format** | `https://www.ticketsource.com/{venue-slug}` |
+| **Generic?** | ❌ New venue-specific scraper required |
+
+**Detection signals:**
+- Buy links or redirects to `ticketsource.com/{slug}` or `ticketsource.us/{slug}`
+- Page source contains CSS classes `eventRow`, `dateTime`, `event-btn`
+- Server-rendered HTML — no JS required; `WebFetch` returns full event data
+
+**HTML structure per event card:**
+```
+div.eventRow[data-id="..."]
+  div.eventTitle > a[itemprop="url", href="/slug/event-title/e-XXXXX"]
+    span[itemprop="name"]                      ← show title
+  div.dateTime[content="2026-03-28T19:30"]     ← ISO local datetime (no timezone)
+  div.event-btn > a[href="/booking/init/XXXX"] ← ticket purchase path
+```
+
+**Key implementation details:**
+- Use `div.dateTime[content]` for datetime — parse with `strptime(dt_str, "%Y-%m-%dT%H:%M")`
+  and localize with `pytz.timezone(club.timezone).localize(naive_dt)`
+- Use `urllib.parse.urljoin(TICKETSOURCE_BASE, href)` for all URL construction — TicketSource
+  hrefs are relative paths; `urljoin` handles both relative and absolute hrefs safely
+- All upcoming events appear on a single page — no pagination needed
+- **Rate-limiting:** TicketSource returns HTTP 429 on rapid successive WebFetch calls
+
+**Reference implementation:** `apps/scraper/src/laughtrack/scrapers/implementations/venues/comedy_clubhouse/`
+
+**To onboard a new TicketSource venue:**
+1. Confirm the venue slug from the buy page URL: `ticketsource.com/{slug}`
+2. Copy the `comedy_clubhouse/` scraper directory as the reference implementation
+3. Update `SCRAPING_URL` constant, scraper `key`, and class names
+4. Add a DB migration setting `scraper` and `scraping_url`
+
+**DB setup:**
+```sql
+INSERT INTO clubs (name, scraper, scraping_url, ...)
+VALUES ('My Venue', 'my_venue', 'https://www.ticketsource.com/my-venue', ...);
+```
+
+---
+
 ## Generic vs. Parameterized Summary
 
 | Platform | Scraper Key | Needs Code? | Just set DB fields |
@@ -622,6 +722,8 @@ WHERE name = 'Hyena''s Comedy Nightclub';
 | VBO Tickets | venue-specific | **Yes** — replace UUID | `scraping_url` |
 | SquadUP | venue-specific | **Yes** — replace user_id | `scraping_url` |
 | Netlify Functions | venue-specific | **Yes** — new scraper dir | `scraping_url` (unused) |
+| ThunderTix | venue-specific | **Yes** — new scraper dir (ref: `annoyance`) | `scraping_url` |
+| TicketSource | venue-specific | **Yes** — new scraper dir (ref: `comedy_clubhouse`) | `scraping_url` |
 
 ---
 
