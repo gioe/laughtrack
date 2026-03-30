@@ -127,10 +127,11 @@ async def test_get_data_returns_non_transformable_when_api_returns_empty():
     scraper = TicketmasterScraper(_club())
     api_url = f"https://app.ticketmaster.com/discovery/v2/events.json?venueId={VENUE_ID}"
 
+    mock_client = MagicMock()
+    mock_client.fetch_events = AsyncMock(return_value=[])
     with patch(
-        "laughtrack.core.clients.ticketmaster.client.TicketmasterClient.fetch_events",
-        new_callable=AsyncMock,
-        return_value=[],
+        "laughtrack.scrapers.implementations.api.ticketmaster.scraper.TicketmasterClient",
+        return_value=mock_client,
     ):
         result = await scraper.get_data(api_url)
 
