@@ -57,11 +57,16 @@ def _infer_date(date_str: str) -> Optional[date]:
     The listing pages only show upcoming events, so we try the current
     year first.  If that date has already passed (by more than one day)
     we use the following year instead.
+
+    The weekday prefix is stripped before parsing — Python's strptime with
+    %A does not validate that the weekday matches the computed date, so a
+    mismatched label would silently produce the wrong year inference.
     """
     today = date.today()
+    date_part = date_str.split(", ", 1)[-1]
     for year in (today.year, today.year + 1):
         try:
-            parsed = datetime.strptime(f"{date_str} {year}", "%A, %B %d %Y").date()
+            parsed = datetime.strptime(f"{date_part} {year}", "%B %d %Y").date()
             if parsed >= today - timedelta(days=1):
                 return parsed
         except ValueError:

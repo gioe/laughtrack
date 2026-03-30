@@ -338,3 +338,15 @@ def test_to_show_infers_future_year():
 
 def test_to_show_returns_none_when_time_unparseable():
     assert _make_event(time_str="").to_show(_club()) is None
+
+
+def test_to_show_mismatched_weekday_still_parses():
+    """Weekday label is stripped before parsing, so a wrong label is ignored."""
+    # "Wednesday, April 03" — April 3, 2026 is a Friday, not a Wednesday.
+    # Old code (with %A) would accept this without error but the mismatch is
+    # irrelevant to year inference.  New code strips the weekday entirely, so
+    # the correct date is produced regardless of the label.
+    show = _make_event(date_str="Wednesday, April 03").to_show(_club())
+    assert show is not None
+    assert show.date.month == 4
+    assert show.date.day == 3

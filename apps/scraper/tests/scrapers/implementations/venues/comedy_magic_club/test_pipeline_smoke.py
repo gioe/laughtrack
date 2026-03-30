@@ -250,3 +250,15 @@ def test_to_show_infers_future_year():
     # January 1 with year inference should always be >= today (current year or next)
     if show is not None:
         assert show.date.date() >= date.today()
+
+
+def test_to_show_mismatched_weekday_still_parses():
+    """Weekday label is stripped before parsing, so a wrong label is ignored."""
+    # "Mon, Apr 05" — April 5, 2026 is a Sunday, not a Monday.
+    # Old code (with %a) would accept this without error; new code strips the
+    # weekday entirely and parses only the month+day, producing the correct date.
+    event = _make_event(date_str="Mon, Apr 05", time_str="Doors: 5 pm Show: 7 pm")
+    show = event.to_show(_club())
+    assert show is not None
+    assert show.date.month == 4
+    assert show.date.day == 5
