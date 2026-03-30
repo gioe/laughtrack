@@ -211,7 +211,7 @@ class SeatEngineV3NationalScraper(BaseScraper):
             f"&limit={_CDX_LIMIT}"
         )
         try:
-            response = await self.fetch_json(cdx_url, timeout=self._REQUEST_TIMEOUT)
+            response = await self.fetch_json_list(cdx_url, timeout=self._REQUEST_TIMEOUT)
         except Exception as exc:
             Logger.warn(
                 f"SeatEngineV3National: CDX API request failed: {exc}",
@@ -219,7 +219,7 @@ class SeatEngineV3NationalScraper(BaseScraper):
             )
             return []
 
-        if not response or not isinstance(response, list):
+        if not response:
             return []
 
         uuids: set = set()

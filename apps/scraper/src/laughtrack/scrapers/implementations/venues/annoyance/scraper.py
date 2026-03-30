@@ -89,17 +89,10 @@ class AnnoyanceTheatreScraper(BaseScraper):
             AnnoyancePageData with filtered performances, or None if none found.
         """
         try:
-            response = await self.fetch_json(url)
+            response = await self.fetch_json_list(url)
             if response is None:
                 Logger.info(
-                    f"{self.__class__.__name__} [{self._club.name}]: empty response from API ({url})",
-                    self.logger_context,
-                )
-                return None
-
-            if not isinstance(response, list):
-                Logger.warn(
-                    f"{self.__class__.__name__} [{self._club.name}]: unexpected API response shape (not a list) at {url}",
+                    f"{self.__class__.__name__} [{self._club.name}]: empty or non-list response from API ({url})",
                     self.logger_context,
                 )
                 return None

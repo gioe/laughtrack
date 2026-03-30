@@ -42,10 +42,10 @@ class NinkashiClient(BaseApiClient):
         while True:
             qs = urlencode({"url_site": url_site, "page": page, "per_page": self.PER_PAGE})
             url = f"{self.BASE_URL}?{qs}"
-            response = await self.fetch_json(url)
-            if not isinstance(response, list):
+            response = await self.fetch_json_list(url)
+            if response is None:
                 Logger.warn(
-                    f"NinkashiClient: unexpected response type on page {page} for {url_site} — stopping pagination",
+                    f"NinkashiClient: no list response on page {page} for {url_site} — stopping pagination",
                     self.logger_context,
                 )
                 break

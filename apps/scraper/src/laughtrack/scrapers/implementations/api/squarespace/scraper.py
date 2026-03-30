@@ -77,7 +77,7 @@ class SquarespaceScraper(BaseScraper):
         try:
             await self.rate_limiter.await_if_needed(url)
 
-            response = await self.fetch_json(url)
+            response = await self.fetch_json_list(url)
             if response is None:
                 Logger.info(
                     f"SquarespaceScraper: empty response from {url}",

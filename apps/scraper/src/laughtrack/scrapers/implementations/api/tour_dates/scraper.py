@@ -285,7 +285,7 @@ class TourDatesScraper(BaseScraper):
         url = f"{self._BANDSINTOWN_BASE_URL}/artists/{artist_id}/events?{urlencode(params)}"
 
         try:
-            data = await self.fetch_json(url, timeout=self._REQUEST_TIMEOUT)
+            data = await self.fetch_json_list(url, timeout=self._REQUEST_TIMEOUT)
         except Exception as e:
             Logger.error(
                 f"TourDates/BandsInTown: error fetching events for artist {artist_id}: {e}",
@@ -293,7 +293,7 @@ class TourDatesScraper(BaseScraper):
             )
             return []
 
-        if not data or not isinstance(data, list):
+        if not data:
             return []
 
         shows: List[Show] = []
