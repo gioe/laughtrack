@@ -294,6 +294,7 @@ class TestRateLimiterConcurrency:
                 rl.await_if_needed(f"https://{domain}/page2"),
             )
 
-        # _last_request was advanced beyond the pre-seeded value, confirming
-        # that both coroutines reserved a slot (not just a no-op pass-through).
-        assert rl._last_request[domain] > seeded_time
+        # Both coroutines reserved a slot: _last_request should have been advanced
+        # by at least 2 × min_interval (one slot per concurrent caller).
+        min_interval = 1.0 / 2.0  # rps=2.0
+        assert rl._last_request[domain] >= seeded_time + 2 * min_interval

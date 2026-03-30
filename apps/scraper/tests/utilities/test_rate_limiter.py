@@ -8,7 +8,7 @@ Covers:
 - record_request_error / record_request_success
 - reset_domain clears _last_request and _sessions
 - get_domain_user_agent before and after session creation
-- Concurrent anti-detection callers serialized by _session_locks
+- Concurrent anti-detection callers serialized by _sessions_write_lock (threading.Lock)
 """
 
 import asyncio
@@ -441,7 +441,7 @@ class TestGetDomainUserAgent:
 
 
 # ---------------------------------------------------------------------------
-# Concurrent anti-detection callers serialized by _session_locks
+# Concurrent anti-detection callers serialized by _sessions_write_lock (threading.Lock)
 # ---------------------------------------------------------------------------
 
 
@@ -503,7 +503,8 @@ class TestAntiDetectionConcurrency:
                 rl.await_if_needed(f"https://{domain_b}/page"),
             )
 
-        # With separate locks, both sleeps should interleave freely
+        # Both coroutines share _sessions_write_lock, but it's released before sleep,
+        # so both sleeps proceed concurrently (interleaved enter/exit is expected)
         assert len(events) == 4
         assert events.count("enter") == 2
         assert events.count("exit") == 2

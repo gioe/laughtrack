@@ -93,7 +93,11 @@ class RateLimiter:
 
         # Anti-detection session state
         self._sessions: Dict[str, _RequestSession] = {}
-        self._sessions_write_lock = threading.Lock()  # guards all writes to _sessions
+        # Global lock (not per-domain) — guards all writes to _sessions/_sessions_write_lock.
+        # The critical section is pure Python (dict lookup, dataclass creation,
+        # random.uniform) so lock contention is negligible (< 0.1 ms per call).
+        # Do NOT add any I/O or slow operations inside the critical section.
+        self._sessions_write_lock = threading.Lock()
 
         self._initialized = True
 
