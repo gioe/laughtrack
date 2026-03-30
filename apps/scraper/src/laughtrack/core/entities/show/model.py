@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 
 from laughtrack.core.entities.comedian.model import Comedian
@@ -123,5 +123,13 @@ class Show(DatabaseEntity):
         )
 
     def to_unique_key(self) -> tuple:
-        """Generate a unique key for the Show entity."""
-        return (self.club_id, self.date, self.room)
+        """Generate a unique key for the Show entity.
+
+        Normalizes self.date to UTC-naive so that naive show dates and the
+        UTC-aware datetimes returned by psycopg2 from TIMESTAMPTZ columns
+        compare equal in dict/set keys.
+        """
+        date = self.date
+        if date is not None and date.tzinfo is not None:
+            date = date.astimezone(timezone.utc).replace(tzinfo=None)
+        return (self.club_id, date, self.room)
