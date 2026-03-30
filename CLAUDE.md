@@ -71,6 +71,30 @@ pattern `https://events.humanitix.com/{event-slug}/tickets`.
 HTML is the only data source. No `humanitix_id` column exists; store the full
 host URL in `scraping_url`.
 
+## Ninkashi Venues — Use Existing `ninkashi` Scraper
+
+When a venue sells tickets via **Ninkashi** (typically a subdomain like
+`tickets.{venue}.com`), use the generic `ninkashi` scraper — no custom Python
+code needed:
+- `scraper = 'ninkashi'`
+- `scraping_url = '<url_site>'` (the subdomain, e.g. `tickets.cttcomedy.com`)
+
+**API endpoint** (no auth required):
+  `GET https://api.ninkashi.com/public_access/events/find_by_url_site?url_site=<url_site>&page=1&per_page=100`
+
+Response is a **root-level JSON array** of events. Key fields: `id`, `title`,
+`starts_at` (ISO 8601 with UTC offset, e.g. `"2026-04-01T19:45:00.000-07:00"`),
+`time_zone` (IANA string), `tickets_attributes` (array with `name`, `price`,
+`sold_out`, `remaining_tickets`).
+
+Ticket URL is constructed as `https://{url_site}/events/{id}`.
+
+**Identification:** Look for a `tickets.{venue}.com` subdomain on the venue's
+website. Playwright network inspection during TASK-746 identified this pattern
+for Cheaper Than Therapy.
+
+**See:** `apps/scraper/src/laughtrack/scrapers/implementations/api/ninkashi/`
+
 ## Tixr Venues — Use Existing `tixr` Scraper
 
 When a venue's calendar page (its own website **or** a Tixr group page like
@@ -134,6 +158,27 @@ with patch(
 This applies to **all** `live_nation` venue smoke test files. Do not copy the unpatched
 Second City pattern — it has the same bug.
 
+**`get_data` tests also need a separate patch.** `test_get_data_returns_page_data_with_events`
+and `test_get_data_returns_non_transformable_when_api_returns_empty` call `get_data()`, which
+instantiates `TicketmasterClient` directly in the scraper module (not the transformer). Patching
+`TicketmasterClient.fetch_events` at the class level does not prevent the constructor from running.
+**Fix**: patch `TicketmasterClient` at the **scraper** module level and configure `fetch_events`
+as an `AsyncMock` on the returned instance:
+
+```python
+mock_client = MagicMock()
+mock_client.fetch_events = AsyncMock(return_value=[_make_api_event()])
+with patch(
+    "laughtrack.scrapers.implementations.api.ticketmaster.scraper.TicketmasterClient",
+    return_value=mock_client,
+):
+    result = await scraper.get_data(api_url)
+```
+
+Two patch targets, two test groups — never mix them:
+- `transformer.TicketmasterClient` → `test_transformation_pipeline_*` tests
+- `scraper.TicketmasterClient` → `test_get_data_*` tests
+
 **Event IDs in smoke tests must be fake.** Use a clearly synthetic ID like `FAKE0000COBBS001`
 or `FAKE0000PLSF001` — never a real Ticketmaster event ID. Real IDs are tied to specific show
 dates and look stale once the event passes. The canonical pattern is `FAKE0000<VENUE_CODE>001`
@@ -179,6 +224,21 @@ git status --short apps/scraper/src/
 Unstaged source changes (e.g. a new field on a PageData class) that a test
 imports will be flagged as a must_fix during code review rather than caught
 pre-commit.
+
+## Scraper Smoke Tests — Verify SCRAPING_URL Against Current Migration for Existing Venues
+
+When writing a `test_pipeline_smoke.py` for an **existing** venue (one that already has a
+migration in `prisma/migrations/`), always verify the `DOMAIN`/`SCRAPING_URL` test constants
+match the venue's current production `scraping_url`. A prior migration may have updated it
+(e.g., `20260319000006_fix_bushwick_scraping_url` changed Bushwick to `bushwickcomedy.com`).
+
+Quick check:
+```bash
+grep -r "scraping_url" apps/web/prisma/migrations/ | grep "<venue_scraper_key>"
+```
+
+A stale domain in a test constant is a silent bug — the test passes locally but exercises a
+URL that no longer matches the DB record, and will be flagged as a must_fix in code review.
 
 ## Scraper Smoke Tests — Mock Complex HTML Extractors Directly
 
@@ -1173,8 +1233,10 @@ venue organizes its OvationTix productions:
 
 **Both patterns** use `Production({id})/performance?` with `clientId` and `newCIRequest: true`
 headers. The client/org ID appears in the production URL on the venue's buy page.
-Ticket pricing requires a separate `Performance({id})` call per show — currently deferred
-for the Four Day Weekend scraper (only ticket purchase URLs are stored).
+Ticket pricing is fetched via a separate `Performance({id})` call per upcoming show.
+The response `sections[].ticketTypeViews` provides per-tier pricing. Format the ticket
+`type` field as `f"{ticketGroupName} - {name}"` (e.g. `"General - Adult"`) to match
+`OvationTixClient._extract_ticket_data()` and avoid dedup key mismatches.
 
 ## OpenDate Venues — SSR HTML Scraping Pattern
 
