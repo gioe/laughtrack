@@ -156,7 +156,6 @@ def reset_rate_limiter():
     for domain in list(rl._sessions.keys()):
         rl.reset_domain(domain)
     rl._last_request.clear()
-    rl._async_domain_locks.clear()
 
 
 def _fast_anti_detection_domain(rl: RateLimiter, name: str) -> str:
@@ -264,51 +263,37 @@ class TestRateLimiterProfileRotation:
 
 class TestRateLimiterConcurrency:
     @pytest.mark.asyncio
-    async def test_two_concurrent_rps_calls_serialized_by_domain_lock(self):
-        """Two concurrent coroutines for the same domain must be serialized.
+    async def test_two_concurrent_rps_calls_both_complete(self):
+        """Two concurrent coroutines for the same domain must both complete.
 
-        We patch asyncio.sleep inside rate_limiter to (a) avoid real delays and
-        (b) record the order of enter/exit events.  With the per-domain
-        asyncio.Lock the second coroutine cannot enter the critical section
-        until the first has finished, so the events must be strictly
-        interleaved: enter→exit→enter→exit.  Without the lock both sleeps
-        would overlap and we'd see enter→enter→exit→exit instead.
+        With the threading.Lock fix, slot-reservation (updating _last_request)
+        is atomic but the sleep happens outside the lock, so sleeps may overlap.
+        The key invariant is that both calls complete and _last_request is
+        advanced to a future time reflecting both reserved slots.
+
+        NOTE: The old asyncio.Lock serialized sleeps but was unsafe across event
+        loops in separate threads — asyncio.Lock.release() calls call_soon() on
+        the waiting loop's Future from the wrong thread, never waking that loop's
+        selector.select() — causing indefinite hangs in production.
         """
         rl = RateLimiter()
         domain = "rps-concurrency-test.example.com"
         # 2 RPS → 0.5 s min interval; both callers launched at t=0 will wait.
         rl.set_domain_config(domain, DomainConfig(requests_per_second=2.0))
 
-        # Pre-seed slightly in the past so both coroutines still need to wait
-        # but there is no risk of elapsed >= min_interval before they start.
+        # Pre-seed slightly in the past so both coroutines still need to wait.
         seeded_time = time.time() - 0.01
         rl._last_request[domain] = seeded_time
 
-        events: list[str] = []
-        original_sleep = asyncio.sleep
-
-        async def tracked_sleep(delay: float) -> None:
-            events.append("enter_sleep")
-            await original_sleep(0)  # Real yield without real delay
-            events.append("exit_sleep")
-
         with patch(
             "laughtrack.utilities.infrastructure.rate_limiter.asyncio.sleep",
-            side_effect=tracked_sleep,
+            return_value=None,  # suppress real sleeping; both calls must still complete
         ):
             await asyncio.gather(
                 rl.await_if_needed(f"https://{domain}/page1"),
                 rl.await_if_needed(f"https://{domain}/page2"),
             )
 
-        # Serialized: each sleep fully completes before the next one begins.
-        assert events == [
-            "enter_sleep",
-            "exit_sleep",
-            "enter_sleep",
-            "exit_sleep",
-        ], f"Expected serialized sleeps, got: {events}"
-
         # _last_request was advanced beyond the pre-seeded value, confirming
-        # that both coroutines updated it (not just a no-op pass-through).
+        # that both coroutines reserved a slot (not just a no-op pass-through).
         assert rl._last_request[domain] > seeded_time

@@ -39,7 +39,6 @@ def reset_rate_limiter():
     for domain in list(rl._sessions.keys()):
         rl.reset_domain(domain)
     rl._last_request.clear()
-    rl._async_domain_locks.clear()
 
 
 def _fast_anti(rl: RateLimiter, name: str, **kwargs) -> str:
@@ -448,44 +447,37 @@ class TestGetDomainUserAgent:
 
 class TestAntiDetectionConcurrency:
     @pytest.mark.asyncio
-    async def test_concurrent_callers_serialized_by_session_lock(self):
-        """Two concurrent anti-detection requests for the same domain must be
-        serialized by _session_locks (analogous to _async_domain_locks for RPS).
+    async def test_concurrent_callers_both_complete(self):
+        """Two concurrent anti-detection requests for the same domain must both
+        complete without hanging and must each update session state correctly.
 
-        We track asyncio.sleep enter/exit events: if the lock is held correctly,
-        one coroutine fully completes before the other begins — enter→exit→enter→exit.
-        Without the lock we'd see enter→enter→exit→exit.
+        NOTE: With the threading.Lock fix, state (last_request, request_count) is
+        updated atomically before sleeping — not held across a suspension point.
+        This is safe across event loops in separate threads. The old asyncio.Lock
+        pattern was unsafe cross-thread: asyncio.Lock.release() uses call_soon()
+        on the waiting loop's Future from the wrong thread, never waking that
+        loop's selector.select() — causing indefinite hangs.
         """
         rl = RateLimiter()
-        domain = _fast_anti(rl, "anti-conc.example.com", min_delay=0.001, max_delay=0.001)
+        # Zero-delay so calls complete immediately; we just verify both finish
+        # and that session state reflects exactly 2 increments.
+        domain = _fast_anti(rl, "anti-conc.example.com", min_delay=0.0, max_delay=0.0)
 
-        # Pre-create the session so both coroutines skip creation and go straight
-        # to delay calculation (where the sleep happens).
+        # Pre-create the session.
         await rl.await_if_needed(f"https://{domain}/page0")
-
-        events: list[str] = []
-        original_sleep = asyncio.sleep
-
-        async def tracked_sleep(delay: float) -> None:
-            events.append("enter_sleep")
-            await original_sleep(0)  # yield without real delay
-            events.append("exit_sleep")
+        count_after_first = rl._sessions[domain].request_count
 
         with patch(
             "laughtrack.utilities.infrastructure.rate_limiter.asyncio.sleep",
-            side_effect=tracked_sleep,
+            return_value=None,  # suppress real sleeping; both calls must still complete
         ):
             await asyncio.gather(
                 rl.await_if_needed(f"https://{domain}/page1"),
                 rl.await_if_needed(f"https://{domain}/page2"),
             )
 
-        assert events == [
-            "enter_sleep",
-            "exit_sleep",
-            "enter_sleep",
-            "exit_sleep",
-        ], f"Expected serialized sleeps, got: {events}"
+        # Both calls completed; request_count must reflect exactly 2 more increments.
+        assert rl._sessions[domain].request_count == count_after_first + 2
 
     @pytest.mark.asyncio
     async def test_different_domains_run_concurrently(self):

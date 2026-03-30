@@ -89,13 +89,11 @@ class RateLimiter:
         # RPS-mode state
         self._last_request: Dict[str, float] = {}
         self._domain_locks: Dict[str, threading.Lock] = defaultdict(threading.Lock)
-        self._async_domain_locks: Dict[str, asyncio.Lock] = {}
         self._global_lock = threading.Lock()
 
         # Anti-detection session state
         self._sessions: Dict[str, _RequestSession] = {}
-        self._session_locks: Dict[str, asyncio.Lock] = {}
-        self._sessions_write_lock = threading.Lock()  # guards sync writes to _sessions
+        self._sessions_write_lock = threading.Lock()  # guards all writes to _sessions
 
         self._initialized = True
 
@@ -224,11 +222,15 @@ class RateLimiter:
     # ------------------------------------------------------------------
 
     async def _rps_wait(self, domain: str, config: DomainConfig) -> None:
-        async with self._get_async_lock(domain):
+        # Use threading.Lock (not asyncio.Lock) so this is safe when called from
+        # different threads, each running their own asyncio event loop.
+        # Slot-reservation: advance _last_request by wait_time inside the lock so
+        # concurrent callers each claim a distinct slot, then sleep outside the lock.
+        with self._domain_locks[domain]:
             wait_time = self._rps_wait_time(domain, config)
-            if wait_time:
-                await asyncio.sleep(wait_time)
-            self._last_request[domain] = time.time()
+            self._last_request[domain] = time.time() + (wait_time or 0)
+        if wait_time:
+            await asyncio.sleep(wait_time)
 
     def _rps_wait_time(self, domain: str, config: DomainConfig) -> Optional[float]:
         min_interval = 1.0 / config.requests_per_second
@@ -239,29 +241,24 @@ class RateLimiter:
             return min_interval - elapsed
         return None
 
-    def _get_async_lock(self, domain: str) -> asyncio.Lock:
-        return self._async_domain_locks.setdefault(domain, asyncio.Lock())
-
     # ------------------------------------------------------------------
     # Anti-detection mode internals
     # ------------------------------------------------------------------
 
     async def _anti_detection_wait(self, domain: str, config: DomainConfig) -> None:
-        async with self._get_session_lock(domain):
+        # Use threading.Lock (not asyncio.Lock) so this is safe when called from
+        # different threads, each running their own asyncio event loop.
+        # All session state is updated atomically inside the lock; sleep happens
+        # outside so the lock is never held across a suspension point.
+        with self._sessions_write_lock:
             session = self._get_or_create_session(domain, config)
             delay = self._calculate_anti_detection_delay(session, config)
-
             time_since_last = (datetime.now() - session.last_request).total_seconds()
             actual_delay = max(0.0, delay - time_since_last)
-
-            if actual_delay > 0:
-                await asyncio.sleep(actual_delay)
-
             session.last_request = datetime.now()
             session.request_count += 1
-
-    def _get_session_lock(self, domain: str) -> asyncio.Lock:
-        return self._session_locks.setdefault(domain, asyncio.Lock())
+        if actual_delay > 0:
+            await asyncio.sleep(actual_delay)
 
     def _get_or_create_session(self, domain: str, config: DomainConfig) -> _RequestSession:
         now = datetime.now()
