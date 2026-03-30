@@ -4,14 +4,18 @@ Pipeline smoke tests for NinkashiScraper and NinkashiEvent.
 Covers:
 - NinkashiEvent.from_dict() parsing
 - NinkashiEvent.to_show() transformation
-- NinkashiClient.fetch_events() pagination and error handling
 - NinkashiScraper.collect_scraping_targets()
 - NinkashiScraper.get_data() with mocked client
 - Full transformation pipeline (PageData → Show objects)
+
+Note: NinkashiClient.fetch_events() pagination is tested separately in the
+client tests below (test_fetch_events_paginates, test_fetch_events_stops_on_empty,
+test_fetch_events_warns_on_non_list_page2).
 """
 
 import pytest
 
+from laughtrack.core.clients.ninkashi.client import NinkashiClient
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.event.ninkashi import NinkashiEvent, NinkashiTicket
 from laughtrack.core.entities.show.model import Show
@@ -328,3 +332,76 @@ def test_transformation_pipeline_produces_shows():
         "with the correct generic type"
     )
     assert all(isinstance(s, Show) for s in shows)
+
+
+# ---------------------------------------------------------------------------
+# NinkashiClient.fetch_events() unit tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_fetch_events_paginates_until_partial_page(monkeypatch):
+    """fetch_events() accumulates events across pages and stops when a page is smaller than PER_PAGE."""
+    client = NinkashiClient(_club())
+    per_page = NinkashiClient.PER_PAGE
+
+    # Page 1: full page (per_page events), page 2: partial (2 events) → stop after page 2
+    page_1 = [_raw_event(event_id=i, title=f"Show {i}") for i in range(per_page)]
+    page_2 = [_raw_event(event_id=per_page), _raw_event(event_id=per_page + 1)]
+    pages = [page_1, page_2]
+    call_count = [0]
+
+    async def fake_fetch_json(self, url, **kwargs):
+        idx = call_count[0]
+        call_count[0] += 1
+        return pages[idx] if idx < len(pages) else []
+
+    monkeypatch.setattr(NinkashiClient, "fetch_json", fake_fetch_json)
+
+    events = await client.fetch_events(URL_SITE)
+
+    assert len(events) == per_page + 2
+    assert call_count[0] == 2
+
+
+@pytest.mark.asyncio
+async def test_fetch_events_stops_on_empty_page(monkeypatch):
+    """fetch_events() stops pagination when an empty list is returned."""
+    client = NinkashiClient(_club())
+    call_count = [0]
+
+    async def fake_fetch_json(self, url, **kwargs):
+        call_count[0] += 1
+        return []
+
+    monkeypatch.setattr(NinkashiClient, "fetch_json", fake_fetch_json)
+
+    events = await client.fetch_events(URL_SITE)
+
+    assert events == []
+    assert call_count[0] == 1
+
+
+@pytest.mark.asyncio
+async def test_fetch_events_warns_on_non_list_mid_pagination(monkeypatch):
+    """fetch_events() logs a warning and returns partial results when page 2 returns a non-list."""
+    client = NinkashiClient(_club())
+    per_page = NinkashiClient.PER_PAGE
+
+    page_1 = [_raw_event(event_id=i) for i in range(per_page)]
+    call_count = [0]
+
+    async def fake_fetch_json(self, url, **kwargs):
+        idx = call_count[0]
+        call_count[0] += 1
+        if idx == 0:
+            return page_1
+        return {"error": "rate limit exceeded"}  # non-list on page 2
+
+    monkeypatch.setattr(NinkashiClient, "fetch_json", fake_fetch_json)
+
+    events = await client.fetch_events(URL_SITE)
+
+    # Should return the events from page 1 and stop
+    assert len(events) == per_page
+    assert call_count[0] == 2

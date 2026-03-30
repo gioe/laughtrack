@@ -12,6 +12,7 @@ Response: a root-level JSON array of event objects.
 """
 
 from typing import List, Optional
+from urllib.parse import urlencode
 
 from laughtrack.core.clients.base import BaseApiClient
 from laughtrack.core.entities.club.model import Club
@@ -39,17 +40,14 @@ class NinkashiClient(BaseApiClient):
         events: List[NinkashiEvent] = []
         page = 1
         while True:
-            url = (
-                f"{self.BASE_URL}"
-                f"?url_site={url_site}&page={page}&per_page={self.PER_PAGE}"
-            )
+            qs = urlencode({"url_site": url_site, "page": page, "per_page": self.PER_PAGE})
+            url = f"{self.BASE_URL}?{qs}"
             response = await self.fetch_json(url)
             if not isinstance(response, list):
-                if page == 1:
-                    Logger.warn(
-                        f"NinkashiClient: unexpected response type for {url_site} page {page}",
-                        self.logger_context,
-                    )
+                Logger.warn(
+                    f"NinkashiClient: unexpected response type on page {page} for {url_site} — stopping pagination",
+                    self.logger_context,
+                )
                 break
 
             if not response:
