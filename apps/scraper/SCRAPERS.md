@@ -629,9 +629,11 @@ The `annoyance` scraper generates 12 weekly URLs starting from the current Sunda
 
 **Key fields in each performance object:**
 - `title` — show name
-- `start_at` — ISO datetime string (localize using club timezone)
-- `ticket_url` — direct ticket purchase URL
+- `start` — datetime string with UTC offset (e.g. `"2026-03-24 20:00:00 -0500"`)
+- `order_products_url` — relative ticket purchase path (prepend base URL)
+- `truncated_url` — relative show page path (prepend base URL)
 - `publicly_available` — skip when `False`
+- `is_sold_out` — mark ticket as sold out when `True`
 
 **Filtering rules (verify per venue):**
 - Skip events where `publicly_available` is `False`
