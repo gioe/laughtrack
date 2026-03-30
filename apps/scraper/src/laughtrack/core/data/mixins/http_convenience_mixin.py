@@ -27,7 +27,7 @@ class HttpConvenienceMixin(AsyncHttpMixin):
     with an execute_with_retry method.
     """
 
-    async def fetch_json(self, url: str, **kwargs) -> Dict[str, Any]:
+    async def fetch_json(self, url: str, **kwargs) -> Any:
         """Fetch and parse JSON from URL with error handling."""
 
         async def _fetch_json():

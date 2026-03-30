@@ -45,7 +45,7 @@ class HttpConvenience(Protocol):
     inherit these methods.
     """
 
-    async def fetch_json(self, url: str, /, **kwargs) -> Dict[str, Any]:
+    async def fetch_json(self, url: str, /, **kwargs) -> Any:
         ...
 
     async def fetch_html(self, url: str, /, **kwargs) -> str:
