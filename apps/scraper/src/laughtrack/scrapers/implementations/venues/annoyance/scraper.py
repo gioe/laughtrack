@@ -92,7 +92,7 @@ class AnnoyanceTheatreScraper(BaseScraper):
             response = await self.fetch_json_list(url)
             if response is None:
                 Logger.info(
-                    f"{self.__class__.__name__} [{self._club.name}]: empty or non-list response from API ({url})",
+                    f"{self.__class__.__name__} [{self._club.name}]: empty response from API ({url})",
                     self.logger_context,
                 )
                 return None

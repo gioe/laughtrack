@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional, Protocol
 
 from curl_cffi.requests import AsyncSession
 
+from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.models.types import JSONDict
 from laughtrack.core.data.mixins.async_http_mixin import AsyncHttpMixin
 
@@ -47,10 +48,13 @@ class HttpConvenienceMixin(AsyncHttpMixin):
 
         Use this instead of fetch_json() when the API is known to return a JSON
         array at the root level (e.g. Squarespace GetItemsByMonth, Ninkashi).
-        Returns None on network failure or when the response is not a list.
+
+        Network failures raise exceptions (propagated from fetch_json). Returns
+        None only when the parsed response is not a JSON array.
         """
         data = await self.fetch_json(url, **kwargs)
         if not isinstance(data, list):
+            Logger.warn(f"fetch_json_list: expected list from {url}, got {type(data).__name__}")
             return None
         return data
 
