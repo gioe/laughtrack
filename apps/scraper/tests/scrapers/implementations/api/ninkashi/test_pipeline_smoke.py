@@ -143,6 +143,21 @@ def test_from_dict_handles_none_tickets():
     assert event.tickets_attributes == []
 
 
+def test_from_dict_handles_missing_event_dates():
+    """from_dict() sets starts_at to '' when event_dates_attributes is absent or empty."""
+    raw_absent = {k: v for k, v in _raw_event().items() if k != "event_dates_attributes"}
+    event_absent = NinkashiEvent.from_dict(raw_absent, URL_SITE)
+    assert event_absent.starts_at == ""
+
+    raw_empty = {**_raw_event(), "event_dates_attributes": []}
+    event_empty = NinkashiEvent.from_dict(raw_empty, URL_SITE)
+    assert event_empty.starts_at == ""
+
+    # to_show() must return None for both cases (empty starts_at fails parsing)
+    assert event_absent.to_show(_club()) is None
+    assert event_empty.to_show(_club()) is None
+
+
 # ---------------------------------------------------------------------------
 # NinkashiEvent.to_show() tests
 # ---------------------------------------------------------------------------

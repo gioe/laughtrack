@@ -8,9 +8,12 @@ Show data is fetched from the Ninkashi public JSON API:
 Key response fields per event:
 - id              — unique integer event ID
 - title           — event name
-- starts_at       — ISO 8601 datetime string with TZ offset (e.g. "2026-04-01T19:45:00.000-07:00")
 - time_zone       — IANA timezone string (e.g. "America/Los_Angeles")
-- tickets_attributes — array of ticket tier objects (price, sold_out, remaining_tickets, name)
+- event_dates_attributes — array with one entry; its starts_at field holds the event
+                           datetime as "YYYY-MM-DD HH:MM:SS ±HHMM" (space-separated,
+                           4-digit offset, e.g. "2026-04-01 19:45:00 -0700")
+- tickets_attributes — array of ticket tier objects; price is in cents (2500 = $25.00),
+                       tier name is in the "description" field (not "name")
 
 Ticket purchase URL is constructed as https://{url_site}/events/{id}.
 """
@@ -76,7 +79,8 @@ class NinkashiEvent(ShowConvertible):
 
     id: int
     title: str
-    starts_at: str           # ISO 8601 string with offset, e.g. "2026-04-01T19:45:00.000-07:00"
+    starts_at: str           # extracted from event_dates_attributes[0].starts_at,
+                             # format: "YYYY-MM-DD HH:MM:SS ±HHMM" e.g. "2026-04-01 19:45:00 -0700"
     time_zone: str           # IANA timezone, e.g. "America/Los_Angeles"
     url_site: str            # The url_site used to fetch this event, e.g. "tickets.cttcomedy.com"
     tickets_attributes: List[NinkashiTicket] = field(default_factory=list)
