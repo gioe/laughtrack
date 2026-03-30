@@ -50,19 +50,19 @@ class NinkashiScraper(BaseScraper):
             events = await self.ninkashi_client.fetch_events(url_site)
             if not events:
                 Logger.info(
-                    f"NinkashiScraper: no events returned for {url_site}",
+                    f"{self._log_prefix}: no events returned for {url_site}",
                     self.logger_context,
                 )
                 return None
 
             Logger.info(
-                f"NinkashiScraper: fetched {len(events)} events for {url_site}",
+                f"{self._log_prefix}: fetched {len(events)} events for {url_site}",
                 self.logger_context,
             )
             return NinkashiExtractor.to_page_data(events)
         except Exception as e:
             Logger.error(
-                f"NinkashiScraper: error fetching events for {url_site}: {e}",
+                f"{self._log_prefix}: error fetching events for {url_site}: {e}",
                 self.logger_context,
             )
             return None

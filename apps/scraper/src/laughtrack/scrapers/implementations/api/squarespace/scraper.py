@@ -81,13 +81,13 @@ class SquarespaceScraper(BaseScraper):
             response = await self.fetch_json_list(url)
             if response is None:
                 Logger.info(
-                    f"SquarespaceScraper: empty response from {url}",
+                    f"{self._log_prefix}: empty response from {url}",
                     self.logger_context,
                 )
                 return None
             if not response:
                 Logger.info(
-                    f"SquarespaceScraper: no shows scheduled for {url}",
+                    f"{self._log_prefix}: no shows scheduled for {url}",
                     self.logger_context,
                 )
                 return None
@@ -95,7 +95,7 @@ class SquarespaceScraper(BaseScraper):
             events = SquarespaceExtractor.extract_events(response, self.base_domain)
             if not events:
                 Logger.info(
-                    f"SquarespaceScraper: no events extracted from {url}",
+                    f"{self._log_prefix}: no events extracted from {url}",
                     self.logger_context,
                 )
                 return None
@@ -103,14 +103,14 @@ class SquarespaceScraper(BaseScraper):
             await self._enrich_with_ticket_urls(events)
 
             Logger.info(
-                f"SquarespaceScraper: extracted {len(events)} events from {url}",
+                f"{self._log_prefix}: extracted {len(events)} events from {url}",
                 self.logger_context,
             )
             return SquarespacePageData(event_list=events)
 
         except Exception as e:
             Logger.error(
-                f"SquarespaceScraper: error fetching events from {url}: {e}",
+                f"{self._log_prefix}: error fetching events from {url}: {e}",
                 self.logger_context,
             )
             return None
@@ -163,7 +163,7 @@ class SquarespaceScraper(BaseScraper):
                         event.ticketing_url = ticketing_url
                 except Exception as e:
                     Logger.warn(
-                        f"SquarespaceScraper: failed to fetch detail for {detail_url}: {e}",
+                        f"{self._log_prefix}: failed to fetch detail for {detail_url}: {e}",
                         self.logger_context,
                     )
 

@@ -72,7 +72,7 @@ class TicketmasterScraper(BaseScraper):
             if not self.ticketmaster_client:
                 self.ticketmaster_client = TicketmasterClient(self.club, proxy_pool=self.proxy_pool)
 
-            Logger.info(f"{self.__class__.__name__} [{self._club.name}]: Fetching events for venue {self.venue_id} via Ticketmaster API", self.logger_context)
+            Logger.info(f"{self._log_prefix}: Fetching events for venue {self.venue_id} via Ticketmaster API", self.logger_context)
 
             events = await self.ticketmaster_client.fetch_events(
                 self.venue_id,
@@ -80,12 +80,12 @@ class TicketmasterScraper(BaseScraper):
                 sort="date,asc",
             )
 
-            Logger.info(f"{self.__class__.__name__} [{self._club.name}]: Successfully fetched {len(events)} events from Ticketmaster API", self.logger_context)
+            Logger.info(f"{self._log_prefix}: Successfully fetched {len(events)} events from Ticketmaster API", self.logger_context)
 
             return TicketmasterExtractor.to_page_data(events)
 
         except Exception as e:
-            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error extracting data from Ticketmaster API: {e}", self.logger_context)
+            Logger.error(f"{self._log_prefix}: Error extracting data from Ticketmaster API: {e}", self.logger_context)
             return None
 
     def transform_data(self, raw_data: EventListContainer, source_url: str) -> List[Show]:

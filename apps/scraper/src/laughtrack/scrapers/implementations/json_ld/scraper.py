@@ -67,7 +67,7 @@ class JsonLdScraper(BaseScraper):
             if not event_list:
                 if html_content:
                     Logger.warn(
-                        f"{self.__class__.__name__} [{self._club.name}]: Page loaded but contained no JSON-LD events: {normalized_url}",
+                        f"{self._log_prefix}: Page loaded but contained no JSON-LD events: {normalized_url}",
                         self.logger_context,
                     )
                 return None
@@ -75,5 +75,5 @@ class JsonLdScraper(BaseScraper):
             return JsonLdPageData(event_list)
 
         except Exception as e:
-            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error extracting data from {url}: {str(e)}", self.logger_context)
+            Logger.error(f"{self._log_prefix}: Error extracting data from {url}: {str(e)}", self.logger_context)
             return None
