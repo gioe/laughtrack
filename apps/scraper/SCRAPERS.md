@@ -532,6 +532,74 @@ INSERT INTO clubs (..., scraper, scraping_url, ...) VALUES (..., 'east_austin_co
 
 ---
 
+### Vivenu
+
+| | |
+|---|---|
+| **Scraper key** | `vivenu` |
+| **DB field** | `scraping_url` (Vivenu seller page root URL) |
+| **Generic?** | ✅ Already generic — no code needed for new venues |
+
+**Detection signals:**
+- Venue sells tickets through a custom subdomain (e.g. `tickets.thirdcoastcomedy.club`)
+- The seller page is a Next.js app — page source contains `<script id="__NEXT_DATA__" type="application/json">`
+- `__NEXT_DATA__` has `props.pageProps.sellerPage.events[]`
+
+**Key implementation details:**
+- Event data path: `props.pageProps.sellerPage.events[]` in `__NEXT_DATA__` JSON
+- Ticket URL pattern: `{base_url}/event/{event.url}` where `base_url` is derived from `scraping_url`
+- Start times: ISO 8601 UTC strings (e.g. `"2026-04-15T00:00:00.000Z"`) — convert via the event's `timezone` field
+- HTTP: uses `fetch_html_bare` (no application headers) to avoid Cloudflare bot-detection
+- Only upcoming events are returned (start > now)
+
+**DB setup:**
+```sql
+INSERT INTO clubs (..., scraper, scraping_url, ...)
+VALUES (..., 'vivenu', 'https://tickets.thirdcoastcomedy.club/', ...);
+```
+
+**Example — Third Coast Comedy Club (Nashville, TN):**
+```sql
+UPDATE clubs SET scraper = 'vivenu', scraping_url = 'https://tickets.thirdcoastcomedy.club/'
+WHERE name = 'Third Coast Comedy Club';
+```
+
+---
+
+### Prekindle
+
+| | |
+|---|---|
+| **Scraper key** | `json_ld` |
+| **DB field** | `scraping_url` (full Prekindle events page URL) |
+| **Generic?** | ✅ Already generic — no code needed for new venues |
+
+**Detection signals:**
+- Venue's website links to `prekindle.com/events/{slug}`
+- The Prekindle events page is server-rendered HTML with a `<script type="application/ld+json">` block
+- JSON-LD `@type` is `ComedyEvent`
+
+**Key implementation details:**
+- Uses the existing `json_ld` scraper — no new code needed
+- The `{venue-slug}` appears in the venue's Prekindle events page URL: `prekindle.com/events/{slug}`
+- All upcoming events are embedded in a single JSON-LD block on the listing page
+- **Rate-limiting:** rapid successive fetches (< ~60s) return HTML without the JSON-LD block,
+  triggering "Page loaded but contained no JSON-LD events". Nightly single-run scrapes are unaffected.
+
+**DB setup:**
+```sql
+INSERT INTO clubs (..., scraper, scraping_url, ...)
+VALUES (..., 'json_ld', 'https://www.prekindle.com/events/{venue-slug}', ...);
+```
+
+**Example — Hyena's Comedy Nightclub:**
+```sql
+UPDATE clubs SET scraper = 'json_ld', scraping_url = 'https://www.prekindle.com/events/hyenas-comedy-nightclub'
+WHERE name = 'Hyena''s Comedy Nightclub';
+```
+
+---
+
 ## Generic vs. Parameterized Summary
 
 | Platform | Scraper Key | Needs Code? | Just set DB fields |
@@ -544,6 +612,8 @@ INSERT INTO clubs (..., scraper, scraping_url, ...) VALUES (..., 'east_austin_co
 | Tribe Events (WordPress) | `the_rockwell` | No | `scraping_url` |
 | rhp-events (WordPress) | `comedy_magic_club` | No | `scraping_url` |
 | JSON-LD (generic) | `json_ld` | No | `scraping_url` |
+| Prekindle | `json_ld` | No | `scraping_url` |
+| Vivenu | `vivenu` | No | `scraping_url` |
 | Tixr | venue-specific | **Yes** — new scraper dir | `scraping_url` |
 | Tockify | venue-specific | **Yes** — replace calname | `scraping_url` |
 | Squarespace | venue-specific | **Yes** — replace collectionId | `scraping_url` |
@@ -614,6 +684,7 @@ Confirm shows are scraped with correct dates (timestamps ÷ 1000 → seconds), t
 | `seatengine_v3` | `seatengine_id` (UUID) |
 | `the_rockwell` | `scraping_url` (Tribe Events REST API base URL) |
 | `comedy_magic_club` | `scraping_url` (base `/events/` URL — no pagination) |
-| `json_ld` | `scraping_url` (events page with JSON-LD markup) |
+| `json_ld` | `scraping_url` (events page with JSON-LD markup, e.g. Prekindle, Humanitix) |
+| `vivenu` | `scraping_url` (Vivenu seller page root URL) |
 | `east_austin_comedy` | `scraping_url` (homepage anchor; unused at runtime) |
 | All venue-specific | `scraping_url` (venue calendar page or API URL) |
