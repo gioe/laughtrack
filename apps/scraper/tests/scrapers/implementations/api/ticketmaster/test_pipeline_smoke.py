@@ -88,10 +88,11 @@ async def test_get_data_returns_page_data_with_events():
     scraper = TicketmasterScraper(_club())
     api_url = f"https://app.ticketmaster.com/discovery/v2/events.json?venueId={VENUE_ID}"
 
+    mock_client = MagicMock()
+    mock_client.fetch_events = AsyncMock(return_value=[_make_api_event()])
     with patch(
-        "laughtrack.core.clients.ticketmaster.client.TicketmasterClient.fetch_events",
-        new_callable=AsyncMock,
-        return_value=[_make_api_event()],
+        "laughtrack.scrapers.implementations.api.ticketmaster.scraper.TicketmasterClient",
+        return_value=mock_client,
     ):
         result = await scraper.get_data(api_url)
 
