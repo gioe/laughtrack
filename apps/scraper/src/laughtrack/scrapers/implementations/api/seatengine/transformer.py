@@ -26,6 +26,10 @@ class SeatEngineEventTransformer(DataTransformer[JSONDict]):
 		# cached during fetch_events is available when create_show is called.
 		self._client = client
 
+	@property
+	def _log_prefix(self) -> str:
+		return f"{self.__class__.__name__} [{self.club.name}]"
+
 	def can_transform(self, raw_data: JSONDict) -> bool:  # type: ignore[override]
 		# Basic shape: SeatEngine events usually have id and event object
 		return isinstance(raw_data, dict) and ("id" in raw_data or "event" in raw_data)
@@ -39,5 +43,5 @@ class SeatEngineEventTransformer(DataTransformer[JSONDict]):
 			client = self._client or SeatEngineClient(self.club)
 			return client.create_show(raw_data)
 		except Exception as e:
-			Logger.error(f"SeatEngine transformer failed: {e}")
+			Logger.error(f"{self._log_prefix}: failed: {e}")
 			return None

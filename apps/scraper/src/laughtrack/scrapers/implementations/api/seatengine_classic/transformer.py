@@ -41,6 +41,10 @@ def _parse_seatengine_classic_date(date_str: str, timezone: str) -> Optional[str
 
 class SeatEngineClassicTransformer(DataTransformer[JSONDict]):
 
+    @property
+    def _log_prefix(self) -> str:
+        return f"{self.__class__.__name__} [{self.club.name}]"
+
     def can_transform(self, raw_data: JSONDict) -> bool:  # type: ignore[override]
         return isinstance(raw_data, dict) and "name" in raw_data and "date_str" in raw_data
 
@@ -99,5 +103,5 @@ class SeatEngineClassicTransformer(DataTransformer[JSONDict]):
                 room=None,
             )
         except Exception as e:
-            Logger.error(f"SeatEngineClassic transformer failed: {e}")
+            Logger.error(f"{self._log_prefix}: failed: {e}")
             return None

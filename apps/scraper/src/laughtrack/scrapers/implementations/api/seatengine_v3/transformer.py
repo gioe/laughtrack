@@ -18,6 +18,10 @@ from laughtrack.utilities.infrastructure.transformer.base import DataTransformer
 class SeatEngineV3EventTransformer(DataTransformer[JSONDict]):
     """Transforms a SeatEngine v3 (event, show) dict into a Show."""
 
+    @property
+    def _log_prefix(self) -> str:
+        return f"{self.__class__.__name__} [{self.club.name}]"
+
     def can_transform(self, raw_data: JSONDict) -> bool:
         return (
             isinstance(raw_data, dict)
@@ -51,7 +55,7 @@ class SeatEngineV3EventTransformer(DataTransformer[JSONDict]):
                 timezone=self.club.timezone,
             )
         except Exception as exc:
-            Logger.error(f"SeatEngineV3Transformer failed: {exc}")
+            Logger.error(f"{self._log_prefix}: failed: {exc}")
             return None
 
     def _build_tickets(
