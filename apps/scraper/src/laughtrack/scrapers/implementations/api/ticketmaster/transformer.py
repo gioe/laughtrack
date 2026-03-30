@@ -14,10 +14,6 @@ from laughtrack.core.clients.ticketmaster.client import TicketmasterClient
 
 
 class TicketmasterEventTransformer(DataTransformer[JSONDict]):
-    @property
-    def _log_prefix(self) -> str:
-        return f"{self.__class__.__name__} [{self.club.name}]"
-
     def can_transform(self, raw_data: JSONDict) -> bool:  # type: ignore[override]
         # Basic shape check for Ticketmaster API events
         return isinstance(raw_data, dict) and ("id" in raw_data or "dates" in raw_data)

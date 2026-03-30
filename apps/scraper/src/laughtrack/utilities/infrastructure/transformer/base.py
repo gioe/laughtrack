@@ -26,6 +26,11 @@ class DataTransformer(ABC, Generic[T]):
     def __init__(self, club: Club):
         self.club = club
 
+    @property
+    def _log_prefix(self) -> str:
+        """Logging prefix shared by all Logger calls in this transformer."""
+        return f"{self.__class__.__name__} [{self.club.name}]"
+
     def can_transform(self, raw_data: T) -> bool:
         """Check if this transformer can handle the given data format.
 

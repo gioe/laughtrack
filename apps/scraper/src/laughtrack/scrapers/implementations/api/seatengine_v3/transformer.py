@@ -18,10 +18,6 @@ from laughtrack.utilities.infrastructure.transformer.base import DataTransformer
 class SeatEngineV3EventTransformer(DataTransformer[JSONDict]):
     """Transforms a SeatEngine v3 (event, show) dict into a Show."""
 
-    @property
-    def _log_prefix(self) -> str:
-        return f"{self.__class__.__name__} [{self.club.name}]"
-
     def can_transform(self, raw_data: JSONDict) -> bool:
         return (
             isinstance(raw_data, dict)
