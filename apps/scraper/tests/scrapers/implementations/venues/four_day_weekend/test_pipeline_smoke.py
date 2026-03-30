@@ -265,6 +265,37 @@ async def test_ticket_data_flows_through_pipeline(monkeypatch):
     shows = scraper.transformation_pipeline.transform(result)
     assert len(shows) > 0
     show = shows[0]
-    assert len(show.tickets) > 0, "Show must have ticket data from Performance API"
+    assert len(show.tickets) == 2, "Both ticket tiers (Adult + Student) must be extracted"
     assert show.tickets[0].price == 25.0
+    assert show.tickets[0].type == "General - Adult"
+    assert show.tickets[1].price == 15.0
+    assert show.tickets[1].type == "General - Student"
     assert show.tickets[0].purchase_url == event.event_url
+
+
+@pytest.mark.asyncio
+async def test_performance_fetch_failure_produces_show_with_no_tickets(monkeypatch):
+    """When the Performance({id}) API call fails, shows are still produced with 0 tickets."""
+    scraper = FourDayWeekendScraper(_club())
+
+    async def fake_fetch_html(self, url: str, headers: Dict = None) -> str:
+        return _buy_tickets_html()
+
+    session = MagicMock()
+
+    async def fake_get(url: str, headers: Dict = None) -> MagicMock:
+        if "Performance(" in url:
+            raise Exception("Connection timeout")
+        return _fake_production_response()
+
+    session.get = fake_get
+
+    monkeypatch.setattr(FourDayWeekendScraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(scraper, "get_session", AsyncMock(return_value=session))
+
+    result = await scraper.get_data(SCRAPING_URL)
+
+    assert isinstance(result, FourDayWeekendPageData)
+    shows = scraper.transformation_pipeline.transform(result)
+    assert len(shows) > 0, "Shows must still be produced when pricing fetch fails"
+    assert all(len(s.tickets) == 0 for s in shows), "Shows must have 0 tickets when pricing fetch fails"

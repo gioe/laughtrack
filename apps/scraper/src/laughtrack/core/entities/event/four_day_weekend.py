@@ -74,15 +74,18 @@ class FourDayWeekendEvent:
         tickets: List[Ticket] = []
         try:
             for section in self.sections:
+                group_name = section.get("ticketGroupName", "")
                 for ticket_view in section.get("ticketTypeViews") or []:
                     price = ticket_view.get("price")
                     if price is not None:
+                        tier_name = ticket_view.get("name", "General Admission")
+                        ticket_type = f"{group_name} - {tier_name}" if group_name else tier_name
                         tickets.append(
                             Ticket(
                                 price=float(price),
                                 purchase_url=self.event_url,
                                 sold_out=not self.tickets_available,
-                                type=ticket_view.get("name", "General Admission"),
+                                type=ticket_type,
                             )
                         )
         except Exception as e:
