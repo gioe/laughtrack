@@ -49,7 +49,7 @@ class SportsDrinkScraper(BaseScraper):
             html = await self.fetch_html(url)
             if not html:
                 Logger.warn(
-                    f"SportsDrinkScraper: empty response for {url}",
+                    f"{self._log_prefix}: empty response for {url}",
                     self.logger_context,
                 )
                 return None
@@ -57,20 +57,20 @@ class SportsDrinkScraper(BaseScraper):
             events = SportsDrinkExtractor.extract_events(html)
             if not events:
                 Logger.info(
-                    f"SportsDrinkScraper: no events found on {url}",
+                    f"{self._log_prefix}: no events found on {url}",
                     self.logger_context,
                 )
                 return None
 
             Logger.info(
-                f"SportsDrinkScraper: extracted {len(events)} events from {url}",
+                f"{self._log_prefix}: extracted {len(events)} events from {url}",
                 self.logger_context,
             )
             return SportsDrinkPageData(event_list=events)
 
         except Exception as e:
             Logger.error(
-                f"SportsDrinkScraper: error fetching {url}: {e}",
+                f"{self._log_prefix}: error fetching {url}: {e}",
                 self.logger_context,
             )
             return None

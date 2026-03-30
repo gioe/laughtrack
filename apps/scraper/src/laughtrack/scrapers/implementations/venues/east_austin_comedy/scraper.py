@@ -70,14 +70,14 @@ class EastAustinComedyScraper(BaseScraper):
                 data = await self.fetch_json(api_url)
             except Exception as e:
                 Logger.warn(
-                    f"EastAustinComedyScraper: error fetching {day}: {e}",
+                    f"{self._log_prefix}: error fetching {day}: {e}",
                     self.logger_context,
                 )
                 continue
 
             if not data:
                 Logger.info(
-                    f"EastAustinComedyScraper: no data for {day}",
+                    f"{self._log_prefix}: no data for {day}",
                     self.logger_context,
                 )
                 continue
@@ -92,19 +92,19 @@ class EastAustinComedyScraper(BaseScraper):
                     all_events.append(event)
 
             Logger.debug(
-                f"EastAustinComedyScraper: {day}: {len(events)} slots",
+                f"{self._log_prefix}: {day}: {len(events)} slots",
                 self.logger_context,
             )
 
         if not all_events:
             Logger.info(
-                "EastAustinComedyScraper: no show slots found across all weekdays",
+                f"{self._log_prefix}: no show slots found across all weekdays",
                 self.logger_context,
             )
             return None
 
         Logger.info(
-            f"EastAustinComedyScraper: {len(all_events)} total show slots",
+            f"{self._log_prefix}: {len(all_events)} total show slots",
             self.logger_context,
         )
         return EastAustinComedyPageData(event_list=all_events)

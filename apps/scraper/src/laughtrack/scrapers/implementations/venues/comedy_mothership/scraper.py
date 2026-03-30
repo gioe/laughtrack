@@ -59,14 +59,14 @@ class ComedyMothershipScraper(BaseScraper):
                 response = await session.get(url)
                 if response.status_code != 200:
                     Logger.warn(
-                        f"ComedyMothershipScraper: HTTP {response.status_code} fetching {url}",
+                        f"{self._log_prefix}: HTTP {response.status_code} fetching {url}",
                         self.logger_context,
                     )
                     return None
                 return response.text
         except Exception as e:
             Logger.error(
-                f"ComedyMothershipScraper: error fetching {url}: {e}",
+                f"{self._log_prefix}: error fetching {url}: {e}",
                 self.logger_context,
             )
             return None
@@ -96,7 +96,7 @@ class ComedyMothershipScraper(BaseScraper):
 
             events = ComedyMothershipEventExtractor.extract_shows(html, timezone)
             Logger.debug(
-                f"ComedyMothershipScraper: page {page}: {len(events)} events extracted",
+                f"{self._log_prefix}: page {page}: {len(events)} events extracted",
                 self.logger_context,
             )
 
@@ -110,13 +110,13 @@ class ComedyMothershipScraper(BaseScraper):
 
         if not all_events:
             Logger.info(
-                f"ComedyMothershipScraper: no events found at {url}",
+                f"{self._log_prefix}: no events found at {url}",
                 self.logger_context,
             )
             return None
 
         Logger.info(
-            f"ComedyMothershipScraper: extracted {len(all_events)} events total",
+            f"{self._log_prefix}: extracted {len(all_events)} events total",
             self.logger_context,
         )
         return ComedyMothershipPageData(event_list=all_events)

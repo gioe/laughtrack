@@ -61,7 +61,7 @@ class ComedyCornerScraper(BaseScraper):
             listing_html = await self.fetch_html(url)
             if not listing_html:
                 Logger.warn(
-                    f"ComedyCornerScraper: empty listing page for {url}",
+                    f"{self._log_prefix}: empty listing page for {url}",
                     self.logger_context,
                 )
                 return None
@@ -69,13 +69,13 @@ class ComedyCornerScraper(BaseScraper):
             slugs = ComedyCornerExtractor.extract_event_slugs(listing_html)
             if not slugs:
                 Logger.info(
-                    f"ComedyCornerScraper: no event slugs found on {url}",
+                    f"{self._log_prefix}: no event slugs found on {url}",
                     self.logger_context,
                 )
                 return None
 
             Logger.info(
-                f"ComedyCornerScraper: found {len(slugs)} event slugs on listing page",
+                f"{self._log_prefix}: found {len(slugs)} event slugs on listing page",
                 self.logger_context,
             )
 
@@ -89,7 +89,7 @@ class ComedyCornerScraper(BaseScraper):
                     event_html = await self.fetch_html(event_url)
                 if not event_html:
                     Logger.warn(
-                        f"ComedyCornerScraper: empty response for event {slug}",
+                        f"{self._log_prefix}: empty response for event {slug}",
                         self.logger_context,
                     )
                     return []
@@ -97,7 +97,7 @@ class ComedyCornerScraper(BaseScraper):
                 data = ComedyCornerExtractor.extract_event_data(event_html)
                 if data is None:
                     Logger.warn(
-                        f"ComedyCornerScraper: failed to extract data for {slug}",
+                        f"{self._log_prefix}: failed to extract data for {slug}",
                         self.logger_context,
                     )
                     return []
@@ -105,7 +105,7 @@ class ComedyCornerScraper(BaseScraper):
                 # Skip open mic events and events with no advance sales
                 if data.get("is_open_mic") or data.get("admission_type") == "no_advance_sales":
                     Logger.debug(
-                        f"ComedyCornerScraper: skipping open mic / no-advance-sales event: {slug}"
+                        f"{self._log_prefix}: skipping open mic / no-advance-sales event: {slug}"
                     )
                     return []
 
@@ -117,7 +117,7 @@ class ComedyCornerScraper(BaseScraper):
 
                 if not name or not occurrences:
                     Logger.debug(
-                        f"ComedyCornerScraper: skipping {slug} — missing name or occurrences"
+                        f"{self._log_prefix}: skipping {slug} — missing name or occurrences"
                     )
                     return []
 
@@ -138,20 +138,20 @@ class ComedyCornerScraper(BaseScraper):
 
             if not all_events:
                 Logger.info(
-                    "ComedyCornerScraper: no ticketed events found",
+                    f"{self._log_prefix}: no ticketed events found",
                     self.logger_context,
                 )
                 return None
 
             Logger.info(
-                f"ComedyCornerScraper: extracted {len(all_events)} show occurrences",
+                f"{self._log_prefix}: extracted {len(all_events)} show occurrences",
                 self.logger_context,
             )
             return ComedyCornerPageData(event_list=all_events)
 
         except Exception as e:
             Logger.error(
-                f"ComedyCornerScraper: error fetching {url}: {e}",
+                f"{self._log_prefix}: error fetching {url}: {e}",
                 self.logger_context,
             )
             return None

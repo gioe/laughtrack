@@ -86,14 +86,14 @@ class EsthersFolliesScraper(BaseScraper):
             loadplugin_html = await self.fetch_html(_VBO_LOADPLUGIN_URL)
         except Exception as e:
             Logger.error(
-                f"EsthersFolliesScraper: failed to fetch VBO loadplugin: {e}",
+                f"{self._log_prefix}: failed to fetch VBO loadplugin: {e}",
                 self.logger_context,
             )
             return None
 
         if not loadplugin_html:
             Logger.warn(
-                "EsthersFolliesScraper: empty response from VBO loadplugin",
+                f"{self._log_prefix}: empty response from VBO loadplugin",
                 self.logger_context,
             )
             return None
@@ -101,14 +101,14 @@ class EsthersFolliesScraper(BaseScraper):
         m = _SESSION_RE.search(loadplugin_html)
         if not m:
             Logger.warn(
-                "EsthersFolliesScraper: could not extract session UUID from loadplugin response",
+                f"{self._log_prefix}: could not extract session UUID from loadplugin response",
                 self.logger_context,
             )
             return None
 
         session = m.group(1)
         Logger.debug(
-            f"EsthersFolliesScraper: acquired VBO session {session[:8]}...",
+            f"{self._log_prefix}: acquired VBO session {session[:8]}...",
             self.logger_context,
         )
 
@@ -118,14 +118,14 @@ class EsthersFolliesScraper(BaseScraper):
             slider_html = await self.fetch_html(slider_url)
         except Exception as e:
             Logger.error(
-                f"EsthersFolliesScraper: failed to fetch VBO date slider: {e}",
+                f"{self._log_prefix}: failed to fetch VBO date slider: {e}",
                 self.logger_context,
             )
             return None
 
         if not slider_html:
             Logger.warn(
-                "EsthersFolliesScraper: empty date slider response from VBO",
+                f"{self._log_prefix}: empty date slider response from VBO",
                 self.logger_context,
             )
             return None
@@ -137,13 +137,13 @@ class EsthersFolliesScraper(BaseScraper):
 
         if not events:
             Logger.info(
-                "EsthersFolliesScraper: no upcoming show slots found",
+                f"{self._log_prefix}: no upcoming show slots found",
                 self.logger_context,
             )
             return None
 
         Logger.info(
-            f"EsthersFolliesScraper: {len(events)} upcoming show slots",
+            f"{self._log_prefix}: {len(events)} upcoming show slots",
             self.logger_context,
         )
         return EsthersFolliesPageData(event_list=events)

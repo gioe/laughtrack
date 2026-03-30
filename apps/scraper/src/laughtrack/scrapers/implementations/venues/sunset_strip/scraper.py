@@ -78,14 +78,14 @@ class SunsetStripScraper(BaseScraper):
                 response = await session.get(url)
                 if response.status_code != 200:
                     Logger.warn(
-                        f"SunsetStripScraper: HTTP {response.status_code} fetching page {page}",
+                        f"{self._log_prefix}: HTTP {response.status_code} fetching page {page}",
                         self.logger_context,
                     )
                     return None
                 return response.json()
         except Exception as e:
             Logger.error(
-                f"SunsetStripScraper: error fetching page {page}: {e}",
+                f"{self._log_prefix}: error fetching page {page}: {e}",
                 self.logger_context,
             )
             return None
@@ -130,7 +130,7 @@ class SunsetStripScraper(BaseScraper):
 
             events = SunsetStripEventExtractor.extract_shows(raw_events)
             Logger.debug(
-                f"SunsetStripScraper: page {page}/{total_pages}: "
+                f"{self._log_prefix}: page {page}/{total_pages}: "
                 f"{len(events)} events extracted",
                 self.logger_context,
             )
@@ -142,13 +142,13 @@ class SunsetStripScraper(BaseScraper):
 
         if not all_events:
             Logger.info(
-                f"SunsetStripScraper: no events found (user_id={_SQUADUP_USER_ID})",
+                f"{self._log_prefix}: no events found (user_id={_SQUADUP_USER_ID})",
                 self.logger_context,
             )
             return None
 
         Logger.info(
-            f"SunsetStripScraper: extracted {len(all_events)} events total",
+            f"{self._log_prefix}: extracted {len(all_events)} events total",
             self.logger_context,
         )
         return SunsetStripPageData(event_list=all_events)

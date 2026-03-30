@@ -91,12 +91,12 @@ class UncleVinniesScraper(BaseScraper):
                 try:
                     html = await self.fetch_html(calendar_url, headers=calendar_headers)
                 except Exception as e:
-                    Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: Failed to fetch calendar {calendar_url}: {e}", self.logger_context)
+                    Logger.warn(f"{self._log_prefix}: Failed to fetch calendar {calendar_url}: {e}", self.logger_context)
                     continue
 
                 month_urls = UncleVinniesExtractor.extract_event_urls_from_calendar_html(html, base_url=base_url)
                 all_event_urls.extend(month_urls)
-                Logger.info(f"{self.__class__.__name__} [{self._club.name}]: Found {len(month_urls)} events on {calendar_url}", self.logger_context)
+                Logger.info(f"{self._log_prefix}: Found {len(month_urls)} events on {calendar_url}", self.logger_context)
 
             # Deduplicate while preserving order
             seen = set()
@@ -107,7 +107,7 @@ class UncleVinniesScraper(BaseScraper):
                     event_urls.append(u)
 
             if not event_urls:
-                Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: No event URLs discovered", self.logger_context)
+                Logger.warn(f"{self._log_prefix}: No event URLs discovered", self.logger_context)
                 return None
 
             # Diagnostics: which URLs yield OvationTix production IDs prior to API calls
@@ -128,7 +128,7 @@ class UncleVinniesScraper(BaseScraper):
                 try:
                     production_id = UncleVinniesExtractor.extract_production_id(event_url)
                     if not production_id:
-                        Logger.debug(f"Skipping URL without production id: {event_url}", self.logger_context)
+                        Logger.debug(f"{self._log_prefix}: Skipping URL without production id: {event_url}", self.logger_context)
                         continue
 
                     # Query production summary to get next upcoming performance.
@@ -141,7 +141,7 @@ class UncleVinniesScraper(BaseScraper):
                     production_raw = await session.get(production_url, headers=api_headers)
                     if production_raw.status_code == 404:
                         Logger.debug(
-                            f"Production {production_id} has no upcoming performances (404 — past event)",
+                            f"{self._log_prefix}: Production {production_id} has no upcoming performances (404 — past event)",
                             self.logger_context,
                         )
                         continue
@@ -151,13 +151,13 @@ class UncleVinniesScraper(BaseScraper):
                     perf_id, start_date_str = UncleVinniesExtractor.extract_next_performance_info(production_response)
                     if not perf_id:
                         Logger.debug(
-                            f"No upcoming performance for production {production_id}", self.logger_context
+                            f"{self._log_prefix}: No upcoming performance for production {production_id}", self.logger_context
                         )
                         continue
 
                     if start_date_str and UncleVinniesExtractor.is_past_event(start_date_str, self.club.timezone):
                         Logger.debug(
-                            f"Skipping past event for production {production_id}", self.logger_context
+                            f"{self._log_prefix}: Skipping past event for production {production_id}", self.logger_context
                         )
                         continue
 
@@ -165,7 +165,7 @@ class UncleVinniesScraper(BaseScraper):
                     performance_raw = await session.get(performance_url, headers=api_headers)
                     if performance_raw.status_code in (403, 404):
                         Logger.debug(
-                            f"Performance {perf_id} not available (HTTP {performance_raw.status_code}) — skipping",
+                            f"{self._log_prefix}: Performance {perf_id} not available (HTTP {performance_raw.status_code}) — skipping",
                             self.logger_context,
                         )
                         continue
@@ -178,16 +178,16 @@ class UncleVinniesScraper(BaseScraper):
                     if event:
                         events.append(event)
                 except Exception as e:
-                    Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Failed processing {event_url}: {e}", self.logger_context)
+                    Logger.error(f"{self._log_prefix}: Failed processing {event_url}: {e}", self.logger_context)
                     continue
 
             if not events:
-                Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: No events extracted from workflow", self.logger_context)
+                Logger.warn(f"{self._log_prefix}: No events extracted from workflow", self.logger_context)
                 return None
 
-            Logger.info(f"{self.__class__.__name__} [{self._club.name}]: Extracted {len(events)} events", self.logger_context)
+            Logger.info(f"{self._log_prefix}: Extracted {len(events)} events", self.logger_context)
             return UncleVinniesPageData(events)
 
         except Exception as e:
-            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error extracting data: {e}", self.logger_context)
+            Logger.error(f"{self._log_prefix}: Error extracting data: {e}", self.logger_context)
             return None

@@ -50,21 +50,21 @@ class WestSideScraper(BaseScraper):
             normalized_url = URLUtils.normalize_url(url)
             html_content = await self.fetch_html_bare(normalized_url)
             if not html_content:
-                Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: received empty HTML from {url}", self.logger_context)
+                Logger.warn(f"{self._log_prefix}: received empty HTML from {url}", self.logger_context)
                 return None
 
             shows = WestSideExtractor.extract_shows(html_content)
             if not shows:
                 Logger.warn(
-                    f"{self.__class__.__name__} [{self._club.name}]: no shows found in Punchup hydration data at {url} — "
+                    f"{self._log_prefix}: no shows found in Punchup hydration data at {url} — "
                     "site may have changed structure or have no upcoming events",
                     self.logger_context,
                 )
                 return None
 
-            Logger.info(f"{self.__class__.__name__} [{self._club.name}]: extracted {len(shows)} shows from {url}", self.logger_context)
+            Logger.info(f"{self._log_prefix}: extracted {len(shows)} shows from {url}", self.logger_context)
             return WestSidePageData(event_list=shows)
 
         except Exception as e:
-            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: error fetching data from {url}: {e}", self.logger_context)
+            Logger.error(f"{self._log_prefix}: error fetching data from {url}: {e}", self.logger_context)
             return None

@@ -61,7 +61,7 @@ class ComedyKeyWestScraper(BaseScraper):
             html_content = await self.fetch_html_bare(normalized_url)
             if not html_content:
                 Logger.warn(
-                    f"Comedy Key West: received empty HTML from {url}",
+                    f"{self._log_prefix}: received empty HTML from {url}",
                     self.logger_context,
                 )
                 return None
@@ -69,7 +69,7 @@ class ComedyKeyWestScraper(BaseScraper):
             punchup_shows = PunchupExtractor.extract_shows(html_content)
             if not punchup_shows:
                 Logger.warn(
-                    f"Comedy Key West: no shows found in Punchup hydration data at {url} — "
+                    f"{self._log_prefix}: no shows found in Punchup hydration data at {url} — "
                     "site may have changed structure or have no upcoming events",
                     self.logger_context,
                 )
@@ -80,14 +80,14 @@ class ComedyKeyWestScraper(BaseScraper):
                 for s in punchup_shows
             ]
             Logger.info(
-                f"Comedy Key West: extracted {len(shows)} shows from {url}",
+                f"{self._log_prefix}: extracted {len(shows)} shows from {url}",
                 self.logger_context,
             )
             return ComedyKeyWestPageData(event_list=shows)
 
         except Exception as e:
             Logger.error(
-                f"Comedy Key West: error fetching data from {url}: {e}",
+                f"{self._log_prefix}: error fetching data from {url}: {e}",
                 self.logger_context,
             )
             return None

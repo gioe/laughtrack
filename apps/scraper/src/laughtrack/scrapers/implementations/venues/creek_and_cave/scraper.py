@@ -59,7 +59,7 @@ class CreekAndCaveScraper(BaseScraper):
             targets.append(f"{_S3_BASE_URL}{year:04d}-{month:02d}.json")
 
         Logger.info(
-            f"CreekAndCaveScraper: generated {len(targets)} monthly S3 targets",
+            f"{self._log_prefix}: generated {len(targets)} monthly S3 targets",
             self.logger_context,
         )
         return targets
@@ -79,7 +79,7 @@ class CreekAndCaveScraper(BaseScraper):
             data = await self.fetch_json(url)
             if not data:
                 Logger.info(
-                    f"CreekAndCaveScraper: no data at {url} (future month or empty)",
+                    f"{self._log_prefix}: no data at {url} (future month or empty)",
                     self.logger_context,
                 )
                 return None
@@ -89,20 +89,20 @@ class CreekAndCaveScraper(BaseScraper):
             )
             if not events:
                 Logger.info(
-                    f"CreekAndCaveScraper: no events parsed from {url}",
+                    f"{self._log_prefix}: no events parsed from {url}",
                     self.logger_context,
                 )
                 return None
 
             Logger.info(
-                f"CreekAndCaveScraper: {len(events)} show slots from {url}",
+                f"{self._log_prefix}: {len(events)} show slots from {url}",
                 self.logger_context,
             )
             return CreekAndCavePageData(event_list=events)
 
         except Exception as e:
             Logger.error(
-                f"CreekAndCaveScraper: error fetching {url}: {e}",
+                f"{self._log_prefix}: error fetching {url}: {e}",
                 self.logger_context,
             )
             return None

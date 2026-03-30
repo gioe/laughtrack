@@ -67,12 +67,12 @@ class PhillyImprovTheaterScraper(BaseScraper):
         try:
             response = await self.fetch_json(url)
             if not response:
-                Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: empty response from Crowdwork API ({url})", self.logger_context)
+                Logger.warn(f"{self._log_prefix}: empty response from Crowdwork API ({url})", self.logger_context)
                 return None
 
             if response.get("type") == "error" or response.get("status", 200) != 200:
                 Logger.warn(
-                    f"{self.__class__.__name__} [{self._club.name}]: Crowdwork API returned non-success response "
+                    f"{self._log_prefix}: Crowdwork API returned non-success response "
                     f"(status={response.get('status')}, type={response.get('type')}) at {url}",
                     self.logger_context,
                 )
@@ -80,7 +80,7 @@ class PhillyImprovTheaterScraper(BaseScraper):
 
             data = response.get("data")
             if not data:
-                Logger.info(f"{self.__class__.__name__} [{self._club.name}]: no shows currently listed on Crowdwork API", self.logger_context)
+                Logger.info(f"{self._log_prefix}: no shows currently listed on Crowdwork API", self.logger_context)
                 return None
 
             # ``data`` is an object keyed by show slug when shows are present;
@@ -95,13 +95,13 @@ class PhillyImprovTheaterScraper(BaseScraper):
                 performances.extend(extracted)
 
             if not performances:
-                Logger.info(f"{self.__class__.__name__} [{self._club.name}]: no upcoming performances parsed from Crowdwork API", self.logger_context)
+                Logger.info(f"{self._log_prefix}: no upcoming performances parsed from Crowdwork API", self.logger_context)
                 return None
 
-            Logger.info(f"{self.__class__.__name__} [{self._club.name}]: extracted {len(performances)} performance(s)", self.logger_context)
+            Logger.info(f"{self._log_prefix}: extracted {len(performances)} performance(s)", self.logger_context)
             return PhillyImprovPageData(event_list=performances)
 
         except Exception as e:
-            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: get_data failed: {e}", self.logger_context)
+            Logger.error(f"{self._log_prefix}: get_data failed: {e}", self.logger_context)
             return None
 

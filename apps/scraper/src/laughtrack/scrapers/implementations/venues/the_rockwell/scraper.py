@@ -58,7 +58,7 @@ class TheRockwellScraper(BaseScraper):
 
                 total_pages = RockwellEventExtractor.get_total_pages(response)
                 Logger.debug(
-                    f"TheRockwellScraper: page {page}/{total_pages}, "
+                    f"{self._log_prefix}: page {page}/{total_pages}, "
                     f"{len(events)} events",
                     self.logger_context,
                 )
@@ -66,22 +66,22 @@ class TheRockwellScraper(BaseScraper):
                     break
                 if page >= _MAX_PAGES:
                     Logger.warn(
-                        f"TheRockwellScraper: reached max pages ({_MAX_PAGES}), stopping early",
+                        f"{self._log_prefix}: reached max pages ({_MAX_PAGES}), stopping early",
                         self.logger_context,
                     )
                     break
                 page += 1
 
             if not all_events:
-                Logger.info(f"TheRockwellScraper: no events found at {url}", self.logger_context)
+                Logger.info(f"{self._log_prefix}: no events found at {url}", self.logger_context)
                 return None
 
             Logger.info(
-                f"TheRockwellScraper: extracted {len(all_events)} events total",
+                f"{self._log_prefix}: extracted {len(all_events)} events total",
                 self.logger_context,
             )
             return RockwellPageData(event_list=all_events)
 
         except Exception as e:
-            Logger.error(f"TheRockwellScraper: error fetching events: {e}", self.logger_context)
+            Logger.error(f"{self._log_prefix}: error fetching events: {e}", self.logger_context)
             return None

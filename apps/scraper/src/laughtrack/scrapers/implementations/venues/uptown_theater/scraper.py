@@ -55,15 +55,15 @@ class UptownTheaterScraper(BaseScraper):
             listing_url = URLUtils.normalize_url(url)
             html = await self.fetch_html(listing_url)
             if not html:
-                Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: Failed to fetch events listing page: {listing_url}", self.logger_context)
+                Logger.warn(f"{self._log_prefix}: Failed to fetch events listing page: {listing_url}", self.logger_context)
                 return None
 
             event_urls = self._extract_event_urls(html, listing_url)
             if not event_urls:
-                Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: No event URLs found on listing page: {listing_url}", self.logger_context)
+                Logger.warn(f"{self._log_prefix}: No event URLs found on listing page: {listing_url}", self.logger_context)
                 return None
 
-            Logger.info(f"{self.__class__.__name__} [{self._club.name}]: Found {len(event_urls)} event URLs on listing page", self.logger_context)
+            Logger.info(f"{self._log_prefix}: Found {len(event_urls)} event URLs on listing page", self.logger_context)
 
             batch_config = BatchScrapingConfig(
                 max_concurrent=self.MAX_CONCURRENT_REQUESTS,
@@ -89,13 +89,13 @@ class UptownTheaterScraper(BaseScraper):
             ]
 
             if not event_list:
-                Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: No events extracted from any event page", self.logger_context)
+                Logger.warn(f"{self._log_prefix}: No events extracted from any event page", self.logger_context)
                 return None
 
             return UptownTheaterPageData(event_list)
 
         except Exception as e:
-            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error scraping Uptown Theater listing: {e}", self.logger_context)
+            Logger.error(f"{self._log_prefix}: Error scraping Uptown Theater listing: {e}", self.logger_context)
             return None
 
     def _extract_event_urls(self, html: str, listing_url: str) -> List[str]:
@@ -133,14 +133,14 @@ class UptownTheaterScraper(BaseScraper):
             if not found_collection_page:
                 types_found = [obj.get("@type") for obj in json_objects]
                 Logger.warn(
-                    f"{self.__class__.__name__} [{self._club.name}]: No CollectionPage found in JSON-LD; @type values present: {types_found}",
+                    f"{self._log_prefix}: No CollectionPage found in JSON-LD; @type values present: {types_found}",
                     self.logger_context,
                 )
 
             return event_urls
 
         except Exception as e:
-            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error extracting event URLs from listing page: {e}", self.logger_context)
+            Logger.error(f"{self._log_prefix}: Error extracting event URLs from listing page: {e}", self.logger_context)
             return []
 
     async def _scrape_event_page(self, event_url: str) -> Optional[List[JsonLdEvent]]:
@@ -149,16 +149,16 @@ class UptownTheaterScraper(BaseScraper):
             normalized_url = URLUtils.normalize_url(event_url)
             html = await self.fetch_html(normalized_url)
             if not html:
-                Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: Failed to fetch event page: {normalized_url}", self.logger_context)
+                Logger.warn(f"{self._log_prefix}: Failed to fetch event page: {normalized_url}", self.logger_context)
                 return None
 
             events = EventExtractor.extract_events(html)
             if not events:
-                Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: No JSON-LD events found on event page: {normalized_url}", self.logger_context)
+                Logger.warn(f"{self._log_prefix}: No JSON-LD events found on event page: {normalized_url}", self.logger_context)
                 return None
 
             return events
 
         except Exception as e:
-            Logger.error(f"Error scraping event page {event_url}: {e}", self.logger_context)
+            Logger.error(f"{self._log_prefix}: Error scraping event page {event_url}: {e}", self.logger_context)
             return None

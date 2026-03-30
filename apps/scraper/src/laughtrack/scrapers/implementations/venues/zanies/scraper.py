@@ -61,7 +61,7 @@ class ZaniesScraper(BaseScraper):
         html = await self.fetch_html(homepage_url)
         if not html:
             Logger.warn(
-                f"ZaniesScraper: empty response for homepage {homepage_url}",
+                f"{self._log_prefix}: empty response for homepage {homepage_url}",
                 self.logger_context,
             )
             return []
@@ -71,7 +71,7 @@ class ZaniesScraper(BaseScraper):
         targets = series_urls + show_urls
 
         Logger.info(
-            f"ZaniesScraper: discovered {len(series_urls)} series URLs and "
+            f"{self._log_prefix}: discovered {len(series_urls)} series URLs and "
             f"{len(show_urls)} single-show URLs from homepage",
             self.logger_context,
         )
@@ -89,7 +89,7 @@ class ZaniesScraper(BaseScraper):
             html = await self.fetch_html(URLUtils.normalize_url(url))
             if not html:
                 Logger.warn(
-                    f"ZaniesScraper: empty response for {url}",
+                    f"{self._log_prefix}: empty response for {url}",
                     self.logger_context,
                 )
                 return None
@@ -101,20 +101,20 @@ class ZaniesScraper(BaseScraper):
 
             if not events:
                 Logger.info(
-                    f"ZaniesScraper: no events found on {url}",
+                    f"{self._log_prefix}: no events found on {url}",
                     self.logger_context,
                 )
                 return None
 
             Logger.info(
-                f"ZaniesScraper: extracted {len(events)} events from {url}",
+                f"{self._log_prefix}: extracted {len(events)} events from {url}",
                 self.logger_context,
             )
             return ZaniesPageData(event_list=events)
 
         except Exception as e:
             Logger.error(
-                f"ZaniesScraper: error fetching {url}: {e}",
+                f"{self._log_prefix}: error fetching {url}: {e}",
                 self.logger_context,
             )
             return None

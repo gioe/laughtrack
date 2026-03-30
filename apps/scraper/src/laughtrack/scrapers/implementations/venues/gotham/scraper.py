@@ -59,7 +59,7 @@ class GothamComedyClubScraper(BaseScraper):
         targets = self._generate_monthly_urls(base_url, num_months=10)
 
         Logger.info(
-            f"Generated {len(targets)} monthly URLs for Gotham Comedy Club",
+            f"{self._log_prefix}: generated {len(targets)} monthly URLs",
             self.logger_context,
         )
 

@@ -61,12 +61,12 @@ class FourDayWeekendScraper(BaseScraper):
             client_id, production_ids = FourDayWeekendExtractor.extract_client_and_production_ids(html)
 
             if not production_ids:
-                Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: No OvationTix production IDs found on buy-tickets page", self.logger_context)
+                Logger.warn(f"{self._log_prefix}: No OvationTix production IDs found on buy-tickets page", self.logger_context)
                 return None
 
             client_id = client_id or _DEFAULT_CLIENT_ID
             Logger.info(
-                f"{self.__class__.__name__} [{self._club.name}]: Discovered {len(production_ids)} production(s): {production_ids}",
+                f"{self._log_prefix}: Discovered {len(production_ids)} production(s): {production_ids}",
                 self.logger_context,
             )
 
@@ -93,7 +93,7 @@ class FourDayWeekendScraper(BaseScraper):
                         event.sections = perf_data.get("sections") or []
                     except Exception as e:
                         Logger.warn(
-                            f"{self.__class__.__name__} [{self._club.name}]: Could not fetch pricing for "
+                            f"{self._log_prefix}: Could not fetch pricing for "
                             f"performance {event.performance_id}: {e}",
                             self.logger_context,
                         )
@@ -106,7 +106,7 @@ class FourDayWeekendScraper(BaseScraper):
                     response = await session.get(prod_url, headers=api_headers)
                     if response.status_code == 404:
                         Logger.debug(
-                            f"Production {prod_id} returned 404 — skipping",
+                            f"{self._log_prefix}: Production {prod_id} returned 404 — skipping",
                             self.logger_context,
                         )
                         continue
@@ -114,7 +114,7 @@ class FourDayWeekendScraper(BaseScraper):
                     production_data = response.json()
                 except Exception as e:
                     Logger.error(
-                        f"Failed to fetch production {prod_id}: {e}", self.logger_context
+                        f"{self._log_prefix}: Failed to fetch production {prod_id}: {e}", self.logger_context
                     )
                     continue
 
@@ -129,7 +129,7 @@ class FourDayWeekendScraper(BaseScraper):
                 ]
 
                 Logger.info(
-                    f"{self.__class__.__name__} [{self._club.name}]: Production {prod_id}: {len(upcoming)} upcoming event(s) "
+                    f"{self._log_prefix}: Production {prod_id}: {len(upcoming)} upcoming event(s) "
                     f"(of {len(events)} total)",
                     self.logger_context,
                 )
@@ -140,12 +140,12 @@ class FourDayWeekendScraper(BaseScraper):
                 all_events.extend(upcoming)
 
             if not all_events:
-                Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: No upcoming events found", self.logger_context)
+                Logger.warn(f"{self._log_prefix}: No upcoming events found", self.logger_context)
                 return None
 
-            Logger.info(f"{self.__class__.__name__} [{self._club.name}]: Extracted {len(all_events)} total event(s)", self.logger_context)
+            Logger.info(f"{self._log_prefix}: Extracted {len(all_events)} total event(s)", self.logger_context)
             return FourDayWeekendPageData(event_list=all_events)
 
         except Exception as e:
-            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error in FourDayWeekendScraper.get_data: {e}", self.logger_context)
+            Logger.error(f"{self._log_prefix}: Error in get_data: {e}", self.logger_context)
             return None

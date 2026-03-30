@@ -64,24 +64,24 @@ class DynastyTypewriterScraper(BaseScraper):
 
             response = await self.fetch_json(url, headers={"Referer": _REFERER})
             if not response:
-                Logger.info(f"{self.__class__.__name__} [{self._club.name}]: no response from {url}", self.logger_context)
+                Logger.info(f"{self._log_prefix}: no response from {url}", self.logger_context)
                 return None
 
             events = DynastyTypewriterExtractor.extract_events(response)
 
             if not events:
-                Logger.info(f"{self.__class__.__name__} [{self._club.name}]: no events found at {url}", self.logger_context)
+                Logger.info(f"{self._log_prefix}: no events found at {url}", self.logger_context)
                 return None
 
             Logger.info(
-                f"{self.__class__.__name__} [{self._club.name}]: extracted {len(events)} events from {url}",
+                f"{self._log_prefix}: extracted {len(events)} events from {url}",
                 self.logger_context,
             )
             return DynastyTypewriterPageData(event_list=events)
 
         except Exception as e:
             Logger.error(
-                f"{self.__class__.__name__} [{self._club.name}]: error fetching events from {url}: {e}",
+                f"{self._log_prefix}: error fetching events from {url}: {e}",
                 self.logger_context,
             )
             return None

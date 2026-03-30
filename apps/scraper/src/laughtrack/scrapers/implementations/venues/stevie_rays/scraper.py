@@ -60,7 +60,7 @@ class StevieRaysScraper(BaseScraper):
             html = await self._fetch_html_with_js(url)
             if not html:
                 Logger.warn(
-                    f"StevieRaysScraper: empty response for {url}",
+                    f"{self._log_prefix}: empty response for {url}",
                     self.logger_context,
                 )
                 return None
@@ -68,20 +68,20 @@ class StevieRaysScraper(BaseScraper):
             events = StevieRaysExtractor.extract_events(html, listing_url=url)
             if not events:
                 Logger.info(
-                    f"StevieRaysScraper: no events found on {url}",
+                    f"{self._log_prefix}: no events found on {url}",
                     self.logger_context,
                 )
                 return None
 
             Logger.info(
-                f"StevieRaysScraper: extracted {len(events)} events from {url}",
+                f"{self._log_prefix}: extracted {len(events)} events from {url}",
                 self.logger_context,
             )
             return StevieRaysPageData(event_list=events)
 
         except Exception as e:
             Logger.error(
-                f"StevieRaysScraper: error fetching {url}: {e}",
+                f"{self._log_prefix}: error fetching {url}: {e}",
                 self.logger_context,
             )
             return None

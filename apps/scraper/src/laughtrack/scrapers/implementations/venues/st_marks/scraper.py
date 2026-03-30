@@ -77,16 +77,16 @@ class StMarksScraper(BaseScraper):
             # Pragma together); curl_cffi impersonation alone avoids the 403.
             html_content = await self.tixr_client._fetch_tixr_page(normalized_url)
             if not html_content:
-                Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: No HTML content found at {normalized_url}", self.logger_context)
+                Logger.warn(f"{self._log_prefix}: No HTML content found at {normalized_url}", self.logger_context)
                 return None
 
             # Extract Tixr URLs from the HTML
             tixr_urls = StMarksEventExtractor.extract_tixr_urls(html_content, self.logger_context)
             if not tixr_urls:
-                Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: No Tixr URLs found at {normalized_url}", self.logger_context)
+                Logger.warn(f"{self._log_prefix}: No Tixr URLs found at {normalized_url}", self.logger_context)
                 return None
 
-            Logger.info(f"{self.__class__.__name__} [{self._club.name}]: Found {len(tixr_urls)} Tixr URLs to process", self.logger_context)
+            Logger.info(f"{self._log_prefix}: Found {len(tixr_urls)} Tixr URLs to process", self.logger_context)
 
             # Diagnostics: log which URLs appear to contain Tixr event IDs before enrichment/API calls
             log_filter_breakdown(
@@ -108,11 +108,11 @@ class StMarksScraper(BaseScraper):
             tixr_events = [result for result in results if result is not None]
 
             Logger.info(
-                f"{self.__class__.__name__} [{self._club.name}]: Successfully processed {len(tixr_events)} TixrEvents from {len(tixr_urls)} URLs", self.logger_context
+                f"{self._log_prefix}: Successfully processed {len(tixr_events)} TixrEvents from {len(tixr_urls)} URLs", self.logger_context
             )
 
             return StMarksPageData(event_list=tixr_events, source_url=normalized_url)
 
         except Exception as e:
-            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error extracting data from {url}: {e}", self.logger_context)
+            Logger.error(f"{self._log_prefix}: Error extracting data from {url}: {e}", self.logger_context)
             return None

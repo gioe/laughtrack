@@ -76,7 +76,7 @@ class RedRoomComedyClubScraper(BaseScraper):
 
         except Exception as e:
             Logger.error(
-                f"RedRoomComedyClubScraper: failed to build API URL: {e}",
+                f"{self._log_prefix}: failed to build API URL: {e}",
                 self.logger_context,
             )
             return []
@@ -112,7 +112,7 @@ class RedRoomComedyClubScraper(BaseScraper):
                 current_url = urlunparse(parsed._replace(query=urlencode({k: v[0] for k, v in params.items()})))
             else:
                 Logger.warn(
-                    f"RedRoomComedyClubScraper: reached MAX_PAGES ({self._MAX_PAGES}) — pagination stopped early",
+                    f"{self._log_prefix}: reached MAX_PAGES ({self._MAX_PAGES}) — pagination stopped early",
                     self.logger_context,
                 )
 
@@ -120,7 +120,7 @@ class RedRoomComedyClubScraper(BaseScraper):
 
         except Exception as e:
             Logger.error(
-                f"RedRoomComedyClubScraper: error fetching {url}: {e}",
+                f"{self._log_prefix}: error fetching {url}: {e}",
                 self.logger_context,
             )
             return None
@@ -143,17 +143,17 @@ class RedRoomComedyClubScraper(BaseScraper):
             if access_token:
                 self.access_token = access_token
                 Logger.info(
-                    "RedRoomComedyClubScraper: access token obtained",
+                    f"{self._log_prefix}: access token obtained",
                     self.logger_context,
                 )
                 return
             Logger.error(
-                "RedRoomComedyClubScraper: intId=24 app not found in token response",
+                f"{self._log_prefix}: intId=24 app not found in token response",
                 self.logger_context,
             )
         except Exception as e:
             Logger.error(
-                f"RedRoomComedyClubScraper: error fetching access token: {e}",
+                f"{self._log_prefix}: error fetching access token: {e}",
                 self.logger_context,
             )
 

@@ -73,7 +73,7 @@ class AnnoyanceTheatreScraper(BaseScraper):
             url = f"{_BASE_URL}{_CALENDAR_PATH}?week=0&start={start}&end={end}"
             urls.append(url)
         Logger.info(
-            f"{self.__class__.__name__} [{self._club.name}]: generated {len(urls)} weekly API URLs",
+            f"{self._log_prefix}: generated {len(urls)} weekly API URLs",
             self.logger_context,
         )
         return urls
@@ -92,7 +92,7 @@ class AnnoyanceTheatreScraper(BaseScraper):
             response = await self.fetch_json_list(url)
             if response is None:
                 Logger.info(
-                    f"{self.__class__.__name__} [{self._club.name}]: empty response from API ({url})",
+                    f"{self._log_prefix}: empty response from API ({url})",
                     self.logger_context,
                 )
                 return None
@@ -114,24 +114,24 @@ class AnnoyanceTheatreScraper(BaseScraper):
 
             if not response:
                 Logger.info(
-                    f"{self.__class__.__name__} [{self._club.name}]: no shows scheduled for this window ({url})",
+                    f"{self._log_prefix}: no shows scheduled for this window ({url})",
                     self.logger_context,
                 )
                 return None
 
             if not performances:
                 Logger.info(
-                    f"{self.__class__.__name__} [{self._club.name}]: no public performances found for window ({url})",
+                    f"{self._log_prefix}: no public performances found for window ({url})",
                     self.logger_context,
                 )
                 return None
 
             Logger.info(
-                f"{self.__class__.__name__} [{self._club.name}]: extracted {len(performances)} performance(s) from {url}",
+                f"{self._log_prefix}: extracted {len(performances)} performance(s) from {url}",
                 self.logger_context,
             )
             return AnnoyancePageData(event_list=performances)
 
         except Exception as e:
-            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: get_data failed for {url}: {e}", self.logger_context)
+            Logger.error(f"{self._log_prefix}: get_data failed for {url}: {e}", self.logger_context)
             return None

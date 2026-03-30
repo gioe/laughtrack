@@ -82,7 +82,7 @@ class BushwickComedyClubScraper(BaseScraper):
             return [f"{api_url}?{query_string}"]
 
         except Exception as e:
-            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Failed to discover URLs: {e}", self.logger_context)
+            Logger.error(f"{self._log_prefix}: Failed to discover URLs: {e}", self.logger_context)
             return []
 
     _MAX_PAGES = 20
@@ -116,14 +116,14 @@ class BushwickComedyClubScraper(BaseScraper):
                 current_url = urlunparse(parsed._replace(query=urlencode({k: v[0] for k, v in params.items()})))
             else:
                 Logger.warn(
-                    f"{self.__class__.__name__} [{self._club.name}]: reached MAX_PAGES ({self._MAX_PAGES}) — pagination stopped early",
+                    f"{self._log_prefix}: reached MAX_PAGES ({self._MAX_PAGES}) — pagination stopped early",
                     self.logger_context,
                 )
 
             return BushwickEventData(all_events) if all_events else None
 
         except Exception as e:
-            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error extracting data from {url}: {str(e)}", self.logger_context)
+            Logger.error(f"{self._log_prefix}: Error extracting data from {url}: {str(e)}", self.logger_context)
             return None
 
     async def _ensure_authenticated(self) -> None:
@@ -147,12 +147,12 @@ class BushwickComedyClubScraper(BaseScraper):
             access_token = token_response.get_access_token_for_app(24)
             if access_token:
                 self.access_token = access_token
-                Logger.info(f"{self.__class__.__name__} [{self._club.name}]: Successfully obtained access token", self.logger_context)
+                Logger.info(f"{self._log_prefix}: Successfully obtained access token", self.logger_context)
                 return
 
-            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Failed to get access token", self.logger_context)
+            Logger.error(f"{self._log_prefix}: Failed to get access token", self.logger_context)
         except Exception as e:
-            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error fetching access token: {e}", self.logger_context)
+            Logger.error(f"{self._log_prefix}: Error fetching access token: {e}", self.logger_context)
 
     def _build_auth_headers(self) -> Dict[str, str]:
         """Build headers with authorization token using BaseHeaders."""

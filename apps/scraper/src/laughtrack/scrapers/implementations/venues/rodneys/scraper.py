@@ -78,11 +78,11 @@ class RodneysComedyClubScraper(BaseScraper):
             # Extract show links using extractor
             links = RodneyEventExtractor.extract_show_links(html_content)
 
-            Logger.info(f"{self.__class__.__name__} [{self._club.name}]: Discovered {len(links)} show URLs", self.logger_context)
+            Logger.info(f"{self._log_prefix}: Discovered {len(links)} show URLs", self.logger_context)
             return links
 
         except Exception as e:
-            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error discovering URLs: {e}", self.logger_context)
+            Logger.error(f"{self._log_prefix}: Error discovering URLs: {e}", self.logger_context)
             return []
 
     async def get_data(self, url: str) -> Optional[RodneyPageData]:
@@ -113,5 +113,5 @@ class RodneysComedyClubScraper(BaseScraper):
             return RodneyPageData(event_list=event_list)
 
         except Exception as e:
-            Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error extracting data from {url}: {e}", self.logger_context)
+            Logger.error(f"{self._log_prefix}: Error extracting data from {url}: {e}", self.logger_context)
             return None

@@ -87,14 +87,14 @@ class UPComedyClubScraper(BaseScraper):
             response = await self.fetch_json(graphql_url)
         except Exception as exc:
             Logger.error(
-                f"UPComedyClubScraper: GraphQL request failed: {exc}",
+                f"{self._log_prefix}: GraphQL request failed: {exc}",
                 self.logger_context,
             )
             return []
 
         if response is None:
             Logger.warn(
-                "UPComedyClubScraper: empty response from GraphQL API",
+                f"{self._log_prefix}: empty response from GraphQL API",
                 self.logger_context,
             )
             return []
@@ -133,7 +133,7 @@ class UPComedyClubScraper(BaseScraper):
             targets.append(resolver_url)
 
         Logger.info(
-            f"UPComedyClubScraper: discovered {len(targets)} UP Comedy Club show(s)",
+            f"{self._log_prefix}: discovered {len(targets)} UP Comedy Club show(s)",
             self.logger_context,
         )
         return targets
@@ -149,14 +149,14 @@ class UPComedyClubScraper(BaseScraper):
             response = await self.fetch_json(url)
         except Exception as exc:
             Logger.error(
-                f"UPComedyClubScraper: entity resolver request failed for {url}: {exc}",
+                f"{self._log_prefix}: entity resolver request failed for {url}: {exc}",
                 self.logger_context,
             )
             return None
 
         if response is None:
             Logger.warn(
-                f"UPComedyClubScraper: empty response from entity resolver: {url}",
+                f"{self._log_prefix}: empty response from entity resolver: {url}",
                 self.logger_context,
             )
             return None
@@ -167,7 +167,7 @@ class UPComedyClubScraper(BaseScraper):
 
         if not encoded:
             Logger.info(
-                f"UPComedyClubScraper: no patronticketData for {url}",
+                f"{self._log_prefix}: no patronticketData for {url}",
                 self.logger_context,
             )
             return None
@@ -177,7 +177,7 @@ class UPComedyClubScraper(BaseScraper):
             ticket_data = json.loads(decoded_bytes.decode("utf-8"))
         except Exception as exc:
             Logger.warn(
-                f"UPComedyClubScraper: failed to decode patronticketData for {url}: {exc}",
+                f"{self._log_prefix}: failed to decode patronticketData for {url}: {exc}",
                 self.logger_context,
             )
             return None
@@ -185,7 +185,7 @@ class UPComedyClubScraper(BaseScraper):
         instances = ticket_data.get("instances") or []
         if not instances:
             Logger.info(
-                f"UPComedyClubScraper: no instances in patronticketData for {url}",
+                f"{self._log_prefix}: no instances in patronticketData for {url}",
                 self.logger_context,
             )
             return None
@@ -221,13 +221,13 @@ class UPComedyClubScraper(BaseScraper):
 
         if not events:
             Logger.info(
-                f"UPComedyClubScraper: no valid performance instances for {url}",
+                f"{self._log_prefix}: no valid performance instances for {url}",
                 self.logger_context,
             )
             return None
 
         Logger.info(
-            f"UPComedyClubScraper: extracted {len(events)} performance(s) from {url}",
+            f"{self._log_prefix}: extracted {len(events)} performance(s) from {url}",
             self.logger_context,
         )
         return UPComedyClubPageData(event_list=events)
