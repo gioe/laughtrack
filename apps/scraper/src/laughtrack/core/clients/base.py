@@ -1,7 +1,7 @@
 """Base API client class providing common functionality for all API clients."""
 
 from abc import ABC
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from curl_cffi.requests import AsyncSession
 
@@ -218,6 +218,37 @@ class BaseApiClient(ABC):
                 self.proxy_pool.report_failure(proxy_url)
             self.log_error(f"Failed to fetch JSON from {url}: {e}")
             return None
+
+    async def fetch_json_list(
+        self,
+        url: str,
+        headers: Optional[Dict[str, str]] = None,
+        timeout: int = 30,
+        logger_context: Optional[Dict[str, Any]] = None,
+    ) -> Optional[List[Any]]:
+        """
+        Fetch a root-level JSON array from a URL.
+
+        Use this instead of fetch_json() when the API is known to return a JSON
+        array at the root level (e.g. Ninkashi). Returns None on network failure
+        or when the response is not a list.
+
+        Args:
+            url: URL to fetch from
+            headers: Optional headers to include (defaults to self.headers)
+            timeout: Request timeout in seconds
+            logger_context: Context for logging
+
+        Returns:
+            JSON array, or None if fetch failed or response was not a list
+        """
+        data = await self.fetch_json(url, headers=headers, timeout=timeout, logger_context=logger_context)
+        if data is None:
+            return None
+        if not isinstance(data, list):
+            self.log_warning(f"fetch_json_list: expected list from {url}, got {type(data).__name__}")
+            return None
+        return data
 
     async def fetch_html(
         self,

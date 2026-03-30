@@ -4,7 +4,7 @@ HTTP convenience methods mixin for scrapers.
 This module provides common HTTP operations with error handling and retry logic.
 """
 
-from typing import Any, Dict, Protocol
+from typing import Any, Dict, List, Optional, Protocol
 
 from curl_cffi.requests import AsyncSession
 
@@ -41,6 +41,18 @@ class HttpConvenienceMixin(AsyncHttpMixin):
             return await error_handler.execute_with_retry(_fetch_json, f"fetch_json_{url}")
         else:
             return await _fetch_json()
+
+    async def fetch_json_list(self, url: str, **kwargs) -> Optional[List[Any]]:
+        """Fetch and parse a root-level JSON array from URL with error handling.
+
+        Use this instead of fetch_json() when the API is known to return a JSON
+        array at the root level (e.g. Squarespace GetItemsByMonth, Ninkashi).
+        Returns None on network failure or when the response is not a list.
+        """
+        data = await self.fetch_json(url, **kwargs)
+        if not isinstance(data, list):
+            return None
+        return data
 
     async def fetch_html(self, url: str, **kwargs) -> str:
         """Fetch HTML content from URL with error handling."""
