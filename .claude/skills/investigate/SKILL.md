@@ -47,13 +47,13 @@ tusk setup
 
 Parse the returned JSON. Hold `config` (domains, agents, task_types, priorities, complexity) and `backlog` (open tasks) in context. You'll need both during investigation — `backlog` lets you catch tasks that already cover the same ground, which is also a first-class reason to conclude "no action needed."
 
-If `docs/PILLARS.md` exists in the project root, read it now:
+Fetch project pillars from the DB:
 
-```
-Read file: <project_root>/docs/PILLARS.md
+```bash
+tusk pillars list
 ```
 
-Hold the pillar definitions in context — you will use them in Step 5 to evaluate whether proposed tasks align with the project's design values.
+This returns a JSON array `[{id, name, core_claim}]` (empty array `[]` if none are defined). Hold the pillar definitions in context — you will use them in Step 5 to evaluate whether proposed tasks align with the project's design values. If the array is empty, skip the pillar filter in Step 5.
 
 ## Step 4: Investigate
 
@@ -91,15 +91,16 @@ Before drafting the report, apply the **Decision Criteria** filter to each poten
 
 ### Decision Criteria
 
-A finding belongs in **Proposed Remediation** only if it passes all five filters. If it fails any filter, move it to **Out of Scope** and note which filter it failed and why.
+A finding belongs in **Proposed Remediation** only if it passes all six filters. If it fails any filter, move it to **Out of Scope** and note which filter it failed and why. Exception: a finding that fails only the **Convention redirect** filter is not moved out of scope — it is kept in Proposed Remediation as an inline `tusk conventions add` action (see below).
 
 | Filter | Question to ask |
 |--------|-----------------|
-| **Pillar impact** | Does acting on this finding align with at least one project pillar (from PILLARS.md, if loaded)? Findings that conflict with core design values belong out of scope regardless of severity. *(Skip this filter if PILLARS.md was not loaded — projects without one have no pillar constraints to check.)* |
+| **Pillar impact** | Does acting on this finding align with at least one project pillar (from `tusk pillars list`, loaded in Step 3)? Findings that conflict with core design values belong out of scope regardless of severity. *(Skip this filter if the pillars array was empty — projects without pillars have no pillar constraints to check.)* |
 | **Root cause vs. symptom** | Is this the root cause, or a downstream symptom of another finding already in scope? Symptoms should reference their root-cause task rather than get their own. |
 | **Actionability** | Can a task be written with clear, verifiable acceptance criteria? Vague concerns without a concrete "done" condition belong in Open Questions, not Proposed Remediation. |
 | **Cost of inaction** | If left unfixed, does this finding cause measurable harm (data loss, user-facing breakage, security risk, compounding tech debt)? Low-stakes cosmetic issues that are "nice to fix" belong out of scope. |
 | **Backlog coverage** | Is an open backlog task already addressing this? If yes, note the existing task ID and exclude it from Proposed Remediation. |
+| **Convention redirect** | Does this finding state a rule, heuristic, or invariant that belongs in the conventions DB rather than in CLAUDE.md or a task? If yes, do not propose a task — instead, include the exact `tusk conventions add` command as an inline action in Proposed Remediation. Any finding whose sole actionable outcome is a CLAUDE.md bullet point fails this filter. |
 
 ---
 
@@ -120,13 +121,17 @@ Detailed explanation. Include relevant code snippets inline (do not re-read file
 
 ### Proposed Remediation *(omit this section if investigation finds nothing actionable)*
 
-> Zero tasks is a valid outcome. Only include tasks that passed all five Decision Criteria filters above.
+> Zero tasks is a valid outcome. Only include tasks that passed all six Decision Criteria filters above, plus convention redirects.
 
 **<imperative summary>** (Priority · Domain · Type · Complexity)
 > What needs to be done and why. Include acceptance criteria ideas.
 
 **<imperative summary>** (Priority · Domain · Type · Complexity)
 > ...
+
+**Convention redirect: <one-line description of the rule>**
+> `tusk conventions add --topic <topic> --text "<rule text>" --source investigate`
+> *(This finding states a rule/heuristic that belongs in the conventions DB — no task needed.)*
 
 *If no remediation is warranted, replace this section with a brief explanation of why no action is needed.*
 

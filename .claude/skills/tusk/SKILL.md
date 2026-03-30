@@ -138,6 +138,8 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
     tusk criteria done <cid> --skip-verify
     ```
 
+    **After each `tusk commit` in foreground mode**, run `git status --short` to confirm your files were staged and committed — a zero-exit commit that produced no diff (e.g. all files were already tracked with no changes) will silently succeed without staging anything.
+
     **If `tusk commit` fails with `pathspec did not match any files`** (exit code 3, git-add error), first check whether the file was already committed in a prior `tusk commit` call for this task (e.g., when all changes go into a single file committed with earlier criteria), or whether the file was removed via `git rm` (which stages the deletion — `tusk commit` then can't find the path to re-add). In either case, `git add && git commit` would also fail — just mark the remaining criteria done directly:
     ```bash
     tusk criteria done <cid> --skip-verify
@@ -147,6 +149,23 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
     git add "<file1>" ["<file2>" ...] && git commit -m "[TASK-<id>] <message>" --trailer "Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
     ```
     Then mark criteria done with `tusk criteria done <cid> --skip-verify` as usual.
+
+    **Exit code 3 also occurs when a formatter (e.g. `black`, `prettier`) modifies a staged file during the pre-commit hook's stash/unstash cycle.** In this case the commit is rejected because the working tree now differs from the staged snapshot after the hook runs. To resolve, stage the reformatted file and retry:
+    ```bash
+    git add "<file>" && tusk commit <task_id> "<message>" "<file>"
+    ```
+    If you cannot or do not want to stage the reformatted output, bypass the hook entirely:
+    ```bash
+    tusk commit <task_id> "<message>" "<file>" --skip-verify
+    ```
+
+    **If the commit removes a file from git tracking** (i.e., the staged change is a `git rm --cached` deletion, not a file modification), do NOT use `tusk commit` — it retries gitignored paths with `git add -f`, which re-adds the file and defeats the deletion. Use `git commit` directly:
+    ```bash
+    git commit -m "[TASK-<id>] <message>" --trailer "Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+    ```
+    Then mark criteria done with `tusk criteria done <cid> --skip-verify`.
+
+    **If `tusk commit` exits 4 (advisory lint warnings)** — the commit **succeeded**. Exit code 4 means lint ran and emitted advisory-only warnings, but the commit was made. No fallback or retry is needed. Use `git log --oneline -1` to confirm the commit is present, then continue to the next criterion.
 
     **If `tusk commit` hard-fails because tests fail** (exit code 2 — `test_command` is set and returned non-zero), **first verify the failure is not pre-existing** before entering the diagnosis loop:
 
