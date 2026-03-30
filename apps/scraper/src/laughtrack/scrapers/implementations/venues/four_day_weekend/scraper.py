@@ -12,6 +12,7 @@ The org/client ID (36367) is embedded in the production URLs on the buy-tickets 
 and re-used in both the API clientId header and the per-performance ticket URLs.
 """
 
+import asyncio
 from typing import List, Optional
 
 from laughtrack.core.entities.club.model import Club
@@ -26,6 +27,7 @@ from .transformer import FourDayWeekendEventTransformer
 
 _OVATIONTIX_API_BASE = "https://web.ovationtix.com/trs/api/rest"
 _DEFAULT_CLIENT_ID = "36367"
+_PRICING_CONCURRENCY = 5
 
 
 class FourDayWeekendScraper(BaseScraper):
@@ -79,6 +81,23 @@ class FourDayWeekendScraper(BaseScraper):
             )
 
             session = await self.get_session()
+            semaphore = asyncio.Semaphore(_PRICING_CONCURRENCY)
+
+            async def fetch_pricing(event, _session=session, _headers=api_headers) -> None:
+                async with semaphore:
+                    perf_detail_url = f"{_OVATIONTIX_API_BASE}/Performance({event.performance_id})"
+                    try:
+                        perf_resp = await _session.get(perf_detail_url, headers=_headers)
+                        perf_resp.raise_for_status()
+                        perf_data = perf_resp.json()
+                        event.sections = perf_data.get("sections") or []
+                    except Exception as e:
+                        Logger.warn(
+                            f"{self.__class__.__name__} [{self._club.name}]: Could not fetch pricing for "
+                            f"performance {event.performance_id}: {e}",
+                            self.logger_context,
+                        )
+
             all_events = []
 
             for prod_id in production_ids:
@@ -115,20 +134,8 @@ class FourDayWeekendScraper(BaseScraper):
                     self.logger_context,
                 )
 
-                # Fetch per-performance pricing from Performance({id}) endpoint
-                for event in upcoming:
-                    perf_detail_url = f"{_OVATIONTIX_API_BASE}/Performance({event.performance_id})"
-                    try:
-                        perf_resp = await session.get(perf_detail_url, headers=api_headers)
-                        perf_resp.raise_for_status()
-                        perf_data = perf_resp.json()
-                        event.sections = perf_data.get("sections") or []
-                    except Exception as e:
-                        Logger.warn(
-                            f"{self.__class__.__name__} [{self._club.name}]: Could not fetch pricing for "
-                            f"performance {event.performance_id}: {e}",
-                            self.logger_context,
-                        )
+                # Fetch per-performance pricing concurrently (bounded by semaphore)
+                await asyncio.gather(*[fetch_pricing(e) for e in upcoming])
 
                 all_events.extend(upcoming)
 
