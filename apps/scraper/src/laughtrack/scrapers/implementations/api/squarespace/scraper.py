@@ -16,6 +16,7 @@ Currently used by: The Den Theatre Chicago (IL), The Elysian Theater (CA), Nashv
 A new Squarespace venue can be onboarded with only a DB row — no Python changes.
 """
 
+import asyncio
 from datetime import date
 from typing import List, Optional
 from urllib.parse import parse_qs, urlparse
@@ -124,25 +125,33 @@ class SquarespaceScraper(BaseScraper):
 
         Events without a full_url, or where the detail fetch fails, retain the
         show_page_url fallback set in to_show().
+
+        Detail fetches run concurrently (up to 5 at a time) via asyncio.gather()
+        with a semaphore to avoid hammering the Squarespace CDN.
         """
-        for event in events:
+        semaphore = asyncio.Semaphore(5)
+
+        async def _fetch_one(event: SquarespaceEvent) -> None:
             if not event.full_url:
-                continue
+                return
             detail_url = self.base_domain.rstrip("/") + event.full_url + "?format=json"
-            try:
-                await self.rate_limiter.await_if_needed(detail_url)
-                detail = await self.fetch_json(detail_url)
-                if not isinstance(detail, dict):
-                    continue
-                ticketing_url = (
-                    detail.get("ticketingUrl")
-                    or detail.get("item", {}).get("ticketingUrl")
-                    or ""
-                )
-                if ticketing_url:
-                    event.ticketing_url = ticketing_url
-            except Exception as e:
-                Logger.warn(
-                    f"SquarespaceScraper: failed to fetch detail for {detail_url}: {e}",
-                    self.logger_context,
-                )
+            async with semaphore:
+                try:
+                    await self.rate_limiter.await_if_needed(detail_url)
+                    detail = await self.fetch_json(detail_url)
+                    if not isinstance(detail, dict):
+                        return
+                    ticketing_url = (
+                        detail.get("ticketingUrl")
+                        or detail.get("item", {}).get("ticketingUrl")
+                        or ""
+                    )
+                    if ticketing_url:
+                        event.ticketing_url = ticketing_url
+                except Exception as e:
+                    Logger.warn(
+                        f"SquarespaceScraper: failed to fetch detail for {detail_url}: {e}",
+                        self.logger_context,
+                    )
+
+        await asyncio.gather(*(_fetch_one(e) for e in events))
