@@ -9,7 +9,8 @@ events but the transformation pipeline drops them due to can_transform() failure
 """
 
 import importlib.util
-from unittest.mock import AsyncMock, patch
+from datetime import datetime, timezone
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -61,6 +62,16 @@ def _make_api_event(name: str = "Devon Walker", date: str = "2026-04-03") -> dic
             "attractions": [{"name": name}],
         },
     }
+
+
+def _fake_show(name: str = "Devon Walker") -> Show:
+    """Minimal Show for use in transformer mocks."""
+    return Show(
+        name=name,
+        club_id=999,
+        date=datetime(2026, 4, 3, 19, 0, tzinfo=timezone.utc),
+        show_page_url=EVENT_URL,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -140,11 +151,21 @@ def test_transformation_pipeline_produces_shows_from_ticketmaster_events():
 
     Catches type-mismatch regressions where can_transform() returns False
     for Ticketmaster API dicts, silently dropping all events.
+
+    TicketmasterClient.__init__ raises ValueError when TICKETMASTER_API_KEY is
+    absent (e.g. CI). Patch the client in the transformer module so this test
+    runs hermetically without a live API key.
     """
     scraper = TicketmasterScraper(_club())
     page_data = TicketmasterPageData(event_list=[_make_api_event()])
 
-    shows = scraper.transformation_pipeline.transform(page_data)
+    mock_client = MagicMock()
+    mock_client.create_show.return_value = _fake_show()
+    with patch(
+        "laughtrack.scrapers.implementations.api.ticketmaster.transformer.TicketmasterClient",
+        return_value=mock_client,
+    ):
+        shows = scraper.transformation_pipeline.transform(page_data)
 
     assert len(shows) > 0, (
         "transformation_pipeline.transform() returned 0 Shows from TicketmasterPageData — "
@@ -159,7 +180,13 @@ def test_transformation_pipeline_preserves_event_name():
     event = _make_api_event(name="Chris Redd")
     page_data = TicketmasterPageData(event_list=[event])
 
-    shows = scraper.transformation_pipeline.transform(page_data)
+    mock_client = MagicMock()
+    mock_client.create_show.return_value = _fake_show(name="Chris Redd")
+    with patch(
+        "laughtrack.scrapers.implementations.api.ticketmaster.transformer.TicketmasterClient",
+        return_value=mock_client,
+    ):
+        shows = scraper.transformation_pipeline.transform(page_data)
 
     assert len(shows) == 1
     assert shows[0].name == "Chris Redd"
