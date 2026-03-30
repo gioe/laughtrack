@@ -161,6 +161,45 @@ async def test_get_data_returns_events_from_wix_api(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_get_data_follows_has_more_pagination(monkeypatch):
+    """get_data() follows hasMore pagination and accumulates events across all pages."""
+    scraper = BushwickComedyClubScraper(_club())
+    scraper.access_token = "fake-token-abc123"
+
+    call_count = {"n": 0}
+
+    async def fake_fetch_json(self, url: str, headers: Dict = None) -> Dict:
+        call_count["n"] += 1
+        if call_count["n"] == 1:
+            return {"events": [], "hasMore": True, "total": 2}
+        return {"events": [], "hasMore": False, "total": 2}
+
+    page_events = [
+        [BushwickEvent(id="bwk-p1", title="Page 1 Show", description="", scheduling={"startDate": "2026-04-15T20:00:00.000Z", "endDate": "2026-04-15T22:00:00.000Z"}, location={}, registration_form={}, created_date="", updated_date="", status="PUBLISHED")],
+        [BushwickEvent(id="bwk-p2", title="Page 2 Show", description="", scheduling={"startDate": "2026-04-16T20:00:00.000Z", "endDate": "2026-04-16T22:00:00.000Z"}, location={}, registration_form={}, created_date="", updated_date="", status="PUBLISHED")],
+    ]
+    extract_call = {"n": 0}
+
+    def fake_extract(r):
+        idx = extract_call["n"]
+        extract_call["n"] += 1
+        return page_events[idx] if idx < len(page_events) else []
+
+    monkeypatch.setattr(BushwickComedyClubScraper, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(BushwickEventExtractor, "extract_events", staticmethod(fake_extract))
+
+    result = await scraper.get_data(
+        f"{DOMAIN}/_api/wix-one-events-server/web/paginated-events/viewer?limit=50&offset=0"
+    )
+
+    assert result is not None
+    assert len(result.event_list) == 2, (
+        f"Expected 2 events (one per page), got {len(result.event_list)}"
+    )
+    assert call_count["n"] == 2, f"Expected 2 fetch_json calls, got {call_count['n']}"
+
+
+@pytest.mark.asyncio
 async def test_full_pipeline_discover_then_get_data(monkeypatch):
     """Full pipeline: collect_scraping_targets() feeds into get_data()."""
     scraper = BushwickComedyClubScraper(_club())

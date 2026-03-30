@@ -14,6 +14,7 @@ Clean single-responsibility architecture:
 """
 
 from typing import Dict, List, Optional
+from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
 from laughtrack.core.clients.wix.response_models.wix_access_token_response import WixAccessTokenResponse
 from laughtrack.core.entities.club.model import Club
@@ -85,17 +86,31 @@ class BushwickComedyClubScraper(BaseScraper):
             return []
 
     async def get_data(self, url: str) -> Optional[BushwickEventData]:
-        """Extract Bushwick event data from Wix API using standardized fetch methods."""
+        """Extract all Bushwick event data from Wix API, following hasMore pagination."""
         try:
             headers = self._build_auth_headers()
-            api_response = await self.fetch_json(url, headers=headers)
+            all_events = []
+            current_url = url
+            limit = 50
 
-            if not api_response:
-                return None
+            while True:
+                api_response = await self.fetch_json(current_url, headers=headers)
+                if not api_response:
+                    break
 
-            typed_response = WixResponseFactory.create_wix_events_response(api_response)
-            event_list = BushwickEventExtractor.extract_events(typed_response)
-            return BushwickEventData(event_list) if event_list else None
+                typed_response = WixResponseFactory.create_wix_events_response(api_response)
+                all_events.extend(BushwickEventExtractor.extract_events(typed_response))
+
+                if not typed_response.hasMore:
+                    break
+
+                parsed = urlparse(current_url)
+                params = parse_qs(parsed.query, keep_blank_values=True)
+                current_offset = int(params.get("offset", ["0"])[0])
+                params["offset"] = [str(current_offset + limit)]
+                current_url = urlunparse(parsed._replace(query=urlencode({k: v[0] for k, v in params.items()})))
+
+            return BushwickEventData(all_events) if all_events else None
 
         except Exception as e:
             Logger.error(f"{self.__class__.__name__} [{self._club.name}]: Error extracting data from {url}: {str(e)}", self.logger_context)

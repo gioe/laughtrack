@@ -11,6 +11,7 @@ event categories configured.
 """
 
 from typing import Dict, List, Optional
+from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
 from laughtrack.core.clients.wix.response_models.wix_access_token_response import WixAccessTokenResponse
 from laughtrack.core.entities.club.model import Club
@@ -81,17 +82,31 @@ class RedRoomComedyClubScraper(BaseScraper):
             return []
 
     async def get_data(self, url: str) -> Optional[RedRoomPageData]:
-        """Fetch events from the Wix paginated-events API."""
+        """Fetch all events from the Wix paginated-events API, following hasMore pagination."""
         try:
             headers = self._build_auth_headers()
-            api_response = await self.fetch_json(url, headers=headers)
+            all_events = []
+            current_url = url
+            limit = 50
 
-            if api_response is None:
-                return None
+            while True:
+                api_response = await self.fetch_json(current_url, headers=headers)
+                if api_response is None:
+                    break
 
-            typed_response = WixResponseFactory.create_wix_events_response(api_response)
-            event_list = RedRoomEventExtractor.extract_events(typed_response)
-            return RedRoomPageData(event_list=event_list) if event_list else None
+                typed_response = WixResponseFactory.create_wix_events_response(api_response)
+                all_events.extend(RedRoomEventExtractor.extract_events(typed_response))
+
+                if not typed_response.hasMore:
+                    break
+
+                parsed = urlparse(current_url)
+                params = parse_qs(parsed.query, keep_blank_values=True)
+                current_offset = int(params.get("offset", ["0"])[0])
+                params["offset"] = [str(current_offset + limit)]
+                current_url = urlunparse(parsed._replace(query=urlencode({k: v[0] for k, v in params.items()})))
+
+            return RedRoomPageData(event_list=all_events) if all_events else None
 
         except Exception as e:
             Logger.error(

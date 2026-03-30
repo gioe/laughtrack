@@ -265,6 +265,45 @@ def test_to_show_falls_back_to_utc_when_timezone_missing():
 # ---------------------------------------------------------------------------
 
 @pytest.mark.asyncio
+async def test_get_data_follows_has_more_pagination(monkeypatch):
+    """get_data() follows hasMore pagination and accumulates events across all pages."""
+    scraper = RedRoomComedyClubScraper(_club())
+    scraper.access_token = "fake-token-xyz789"
+
+    call_count = {"n": 0}
+
+    async def fake_fetch_json(self, url: str, headers: Dict = None) -> Dict:
+        call_count["n"] += 1
+        if call_count["n"] == 1:
+            return {"events": [], "hasMore": True, "total": 2}
+        return {"events": [], "hasMore": False, "total": 2}
+
+    page_events = [
+        [RedRoomEvent(id="rr-p1", title="Page 1 Show", description="", scheduling={"config": {"startDate": "2026-04-20T20:00:00.000Z"}}, location={}, registration_form={}, created_date="", updated_date="", status="PUBLISHED")],
+        [RedRoomEvent(id="rr-p2", title="Page 2 Show", description="", scheduling={"config": {"startDate": "2026-04-21T20:00:00.000Z"}}, location={}, registration_form={}, created_date="", updated_date="", status="PUBLISHED")],
+    ]
+    extract_call = {"n": 0}
+
+    def fake_extract(r):
+        idx = extract_call["n"]
+        extract_call["n"] += 1
+        return page_events[idx] if idx < len(page_events) else []
+
+    monkeypatch.setattr(RedRoomComedyClubScraper, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(RedRoomEventExtractor, "extract_events", staticmethod(fake_extract))
+
+    result = await scraper.get_data(
+        f"{DOMAIN}/_api/wix-one-events-server/web/paginated-events/viewer?compId=comp-j9ny0yyr&limit=50&offset=0"
+    )
+
+    assert result is not None
+    assert len(result.event_list) == 2, (
+        f"Expected 2 events (one per page), got {len(result.event_list)}"
+    )
+    assert call_count["n"] == 2, f"Expected 2 fetch_json calls, got {call_count['n']}"
+
+
+@pytest.mark.asyncio
 async def test_full_pipeline_discover_then_get_data(monkeypatch):
     """Full pipeline: collect_scraping_targets() feeds into get_data()."""
     scraper = RedRoomComedyClubScraper(_club())
