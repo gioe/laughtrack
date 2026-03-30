@@ -1,4 +1,4 @@
-"""Tests for HttpConvenienceMixin.fetch_html_bare."""
+"""Tests for HttpConvenienceMixin.fetch_html_bare and fetch_json_list."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -124,3 +124,49 @@ class TestFetchHtmlBare:
             result = await mixin.fetch_html_bare("https://example.com/page")
 
         assert result == "<html>direct</html>"
+
+
+# ---------------------------------------------------------------------------
+# fetch_json_list — narrow wrapper around fetch_json
+# ---------------------------------------------------------------------------
+
+
+class TestFetchJsonList:
+    @pytest.mark.asyncio
+    async def test_returns_list_on_list_response(self):
+        """When fetch_json returns a list, fetch_json_list returns it as-is."""
+        expected = [{"id": 1}, {"id": 2}]
+        mixin = _ConcreteMixin()
+        mixin.fetch_json = AsyncMock(return_value=expected)
+
+        result = await mixin.fetch_json_list("https://example.com/api")
+
+        assert result == expected
+
+    @pytest.mark.asyncio
+    async def test_returns_none_on_dict_response(self):
+        """When fetch_json returns a dict, fetch_json_list returns None and logs a warning."""
+        mixin = _ConcreteMixin()
+        mixin.fetch_json = AsyncMock(return_value={"events": []})
+
+        with patch(
+            "laughtrack.core.data.mixins.http_convenience_mixin.Logger"
+        ) as MockLogger:
+            result = await mixin.fetch_json_list("https://example.com/api")
+
+        assert result is None
+        MockLogger.warn.assert_called_once()
+        warning_msg = MockLogger.warn.call_args[0][0]
+        assert "expected list" in warning_msg
+        assert "dict" in warning_msg
+
+    @pytest.mark.asyncio
+    async def test_returns_none_when_fetch_json_returns_none(self):
+        """When fetch_json returns None (e.g. error_handler returning None), result is None."""
+        mixin = _ConcreteMixin()
+        mixin.fetch_json = AsyncMock(return_value=None)
+
+        with patch("laughtrack.core.data.mixins.http_convenience_mixin.Logger"):
+            result = await mixin.fetch_json_list("https://example.com/api")
+
+        assert result is None
