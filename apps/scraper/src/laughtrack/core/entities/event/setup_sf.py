@@ -61,7 +61,7 @@ class SetupSFEvent(ShowConvertible):
                     continue
             if naive is None:
                 return None
-            start_date = naive.replace(tzinfo=tz)
+            start_date = naive.replace(tzinfo=tz, fold=0)  # fold=0: first occurrence during DST fall-back
         except Exception:
             return None
 
