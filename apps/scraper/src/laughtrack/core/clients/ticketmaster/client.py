@@ -11,6 +11,7 @@ This client uses the official Ticketmaster Discovery API for legitimate API acce
 Documentation: https://developer.ticketmaster.com/products-and-docs/apis/discovery-api/v2/
 """
 
+import asyncio
 import time
 from datetime import datetime, timedelta
 from typing import List, Optional
@@ -66,7 +67,7 @@ class TicketmasterClient(BaseApiClient):
 
     # Use BaseApiClient session-less helpers; no custom session lifecycle needed
 
-    def _enforce_rate_limit(self) -> None:
+    async def _enforce_rate_limit(self) -> None:
         """
         Enforce API rate limiting (5 requests per second).
 
@@ -78,7 +79,7 @@ class TicketmasterClient(BaseApiClient):
 
         if time_since_last < self.min_delay:
             sleep_time = self.min_delay - time_since_last
-            time.sleep(sleep_time)
+            await asyncio.sleep(sleep_time)
 
         self.last_request_time = time.time()
 
@@ -111,7 +112,7 @@ class TicketmasterClient(BaseApiClient):
                 params["endDateTime"] = end_date.strftime("%Y-%m-%dT%H:%M:%SZ")
 
             # Enforce rate limiting
-            self._enforce_rate_limit()
+            await self._enforce_rate_limit()
 
             # Make API request
             url = f"{self.BASE_URL}/events.json"
@@ -150,7 +151,7 @@ class TicketmasterClient(BaseApiClient):
             params = {"apikey": self.api_key, "keyword": keyword, "size": 50, **kwargs}  # Maximum venues per request
 
             # Enforce rate limiting
-            self._enforce_rate_limit()
+            await self._enforce_rate_limit()
 
             # Make API request
             url = f"{self.BASE_URL}/venues.json"
