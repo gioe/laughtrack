@@ -87,7 +87,7 @@ _VENUES = [
         venue_id="KovZpZAFJEvA",
         name="Just the Funny",
         address="3119 Coral Way",
-        website="http://www.justthefunny.com",
+        website="https://www.justthefunny.com",
         zip_code="33145",
         tz="America/New_York",
         event_id="FAKE0000JTFNY001",
@@ -194,12 +194,11 @@ async def test_get_data_returns_none_on_exception(v):
     scraper = TicketmasterScraper(_club(v))
     api_url = f"https://app.ticketmaster.com/discovery/v2/events.json?venueId={v.venue_id}"
 
-    async def raise_error(*_args, **_kwargs):
-        raise RuntimeError("API unreachable")
-
+    mock_client = MagicMock()
+    mock_client.fetch_events = AsyncMock(side_effect=RuntimeError("API unreachable"))
     with patch(
-        "laughtrack.core.clients.ticketmaster.client.TicketmasterClient.fetch_events",
-        side_effect=raise_error,
+        "laughtrack.scrapers.implementations.api.ticketmaster.scraper.TicketmasterClient",
+        return_value=mock_client,
     ):
         result = await scraper.get_data(api_url)
 
