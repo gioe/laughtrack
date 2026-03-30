@@ -6,14 +6,15 @@ Each FourDayWeekendEvent maps to one performance (date/time slot),
 not a production — productions group multiple recurring performances.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
 import pytz
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
+from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
@@ -27,12 +28,9 @@ class FourDayWeekendEvent:
     show date/time.  This model represents a single performance entry from the
     `performances` array in the `Production({id})/performance?` response.
 
-    Ticket pricing data is NOT available from the production listing endpoint.
-    The OvationTix `Performance({id})` endpoint would provide `sections` with
-    pricing, but fetching it per-performance (18+ API calls per run) is deferred.
-    Shows are saved with the ticket purchase URL so users can buy on the OvationTix
-    site even without pre-fetched pricing.
-    # TODO: fetch per-performance sections for ticket pricing data
+    Ticket pricing is populated from the `Performance({id})` endpoint after the
+    production listing is fetched — each performance's `sections` array contains
+    `ticketTypeViews` with per-tier pricing.
     """
 
     production_id: str
@@ -42,6 +40,7 @@ class FourDayWeekendEvent:
     tickets_available: bool
     event_url: str
     description: Optional[str] = None
+    sections: List[Dict[str, Any]] = field(default_factory=list)
 
     def to_show(self, club: Club, enhanced: bool = True) -> Optional[Show]:
         """Transform this performance into a Show object."""
@@ -60,7 +59,7 @@ class FourDayWeekendEvent:
                 date=start_dt,
                 show_page_url=self.event_url,
                 lineup=[],
-                tickets=[],
+                tickets=self._extract_tickets(),
                 description=self.description,
                 room="",
                 supplied_tags=["event"],
@@ -69,6 +68,26 @@ class FourDayWeekendEvent:
         except Exception as e:
             Logger.error(f"Failed to transform FourDayWeekendEvent: {e}")
             return None
+
+    def _extract_tickets(self) -> List[Ticket]:
+        """Extract Ticket objects from the Performance sections data."""
+        tickets: List[Ticket] = []
+        try:
+            for section in self.sections:
+                for ticket_view in section.get("ticketTypeViews") or []:
+                    price = ticket_view.get("price")
+                    if price is not None:
+                        tickets.append(
+                            Ticket(
+                                price=float(price),
+                                purchase_url=self.event_url,
+                                sold_out=not self.tickets_available,
+                                type=ticket_view.get("name", "General Admission"),
+                            )
+                        )
+        except Exception as e:
+            Logger.error(f"Failed to extract ticket data for performance {self.performance_id}: {e}")
+        return tickets
 
     def _parse_start_date(self, timezone: str) -> Optional[datetime]:
         """Parse 'YYYY-MM-DD HH:MM' local-time string into an aware datetime."""

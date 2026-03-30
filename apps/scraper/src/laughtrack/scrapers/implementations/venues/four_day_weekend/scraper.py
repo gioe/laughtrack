@@ -114,6 +114,22 @@ class FourDayWeekendScraper(BaseScraper):
                     f"(of {len(events)} total)",
                     self.logger_context,
                 )
+
+                # Fetch per-performance pricing from Performance({id}) endpoint
+                for event in upcoming:
+                    perf_detail_url = f"{_OVATIONTIX_API_BASE}/Performance({event.performance_id})"
+                    try:
+                        perf_resp = await session.get(perf_detail_url, headers=api_headers)
+                        perf_resp.raise_for_status()
+                        perf_data = perf_resp.json()
+                        event.sections = perf_data.get("sections") or []
+                    except Exception as e:
+                        Logger.warn(
+                            f"{self.__class__.__name__} [{self._club.name}]: Could not fetch pricing for "
+                            f"performance {event.performance_id}: {e}",
+                            self.logger_context,
+                        )
+
                 all_events.extend(upcoming)
 
             if not all_events:
