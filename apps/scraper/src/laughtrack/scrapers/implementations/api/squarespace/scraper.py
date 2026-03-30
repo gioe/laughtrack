@@ -17,6 +17,7 @@ A new Squarespace venue can be onboarded with only a DB row — no Python change
 """
 
 import asyncio
+import re
 from datetime import date
 from typing import List, Optional
 from urllib.parse import parse_qs, urlparse
@@ -146,6 +147,18 @@ class SquarespaceScraper(BaseScraper):
                         or detail.get("item", {}).get("ticketingUrl")
                         or ""
                     )
+                    if not ticketing_url:
+                        body_html = (
+                            detail.get("body")
+                            or detail.get("item", {}).get("body")
+                            or ""
+                        )
+                        eb_match = re.search(
+                            r"https://www\.eventbrite\.com/e/[^\s\"'<>]+",
+                            body_html,
+                        )
+                        if eb_match:
+                            ticketing_url = eb_match.group(0)
                     if ticketing_url:
                         event.ticketing_url = ticketing_url
                 except Exception as e:

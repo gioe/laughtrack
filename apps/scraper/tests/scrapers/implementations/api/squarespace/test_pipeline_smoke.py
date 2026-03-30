@@ -490,6 +490,67 @@ async def test_enrich_with_ticket_urls_skips_events_with_no_full_url(monkeypatch
 
 
 @pytest.mark.asyncio
+async def test_enrich_with_ticket_urls_extracts_eventbrite_url_from_body(monkeypatch):
+    """_enrich_with_ticket_urls() falls back to Eventbrite URL from body HTML when ticketingUrl absent."""
+    scraper = SquarespaceScraper(_club())
+    event = _make_event(full_url="/calendar/2026/4/3/villain-show")
+
+    async def fake_fetch_json(self, url: str, **kwargs):
+        return {
+            "id": "abc123",
+            "body": '<p>Get your <a href="https://www.eventbrite.com/e/villain-show-tickets-123456789">tickets here</a>.</p>',
+        }
+
+    monkeypatch.setattr(SquarespaceScraper, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
+
+    await scraper._enrich_with_ticket_urls([event])
+
+    assert event.ticketing_url == "https://www.eventbrite.com/e/villain-show-tickets-123456789"
+
+
+@pytest.mark.asyncio
+async def test_enrich_with_ticket_urls_extracts_eventbrite_url_from_item_body(monkeypatch):
+    """_enrich_with_ticket_urls() finds Eventbrite URL in item-nested body HTML."""
+    scraper = SquarespaceScraper(_club())
+    event = _make_event(full_url="/calendar/2026/4/3/villain-show")
+
+    async def fake_fetch_json(self, url: str, **kwargs):
+        return {
+            "item": {
+                "body": '<a href="https://www.eventbrite.com/e/nested-show-tickets-987">Buy</a>',
+            }
+        }
+
+    monkeypatch.setattr(SquarespaceScraper, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
+
+    await scraper._enrich_with_ticket_urls([event])
+
+    assert event.ticketing_url == "https://www.eventbrite.com/e/nested-show-tickets-987"
+
+
+@pytest.mark.asyncio
+async def test_enrich_with_ticket_urls_prefers_ticketing_url_over_body_eventbrite(monkeypatch):
+    """_enrich_with_ticket_urls() uses ticketingUrl when present, ignoring body Eventbrite URL."""
+    scraper = SquarespaceScraper(_club())
+    event = _make_event(full_url="/calendar/2026/4/3/villain-show")
+
+    async def fake_fetch_json(self, url: str, **kwargs):
+        return {
+            "ticketingUrl": "https://tickets.thedentheatre.com/event/sammy-obeid",
+            "body": '<a href="https://www.eventbrite.com/e/should-not-use-123">ignored</a>',
+        }
+
+    monkeypatch.setattr(SquarespaceScraper, "fetch_json", fake_fetch_json)
+    monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
+
+    await scraper._enrich_with_ticket_urls([event])
+
+    assert event.ticketing_url == "https://tickets.thedentheatre.com/event/sammy-obeid"
+
+
+@pytest.mark.asyncio
 async def test_enrich_with_ticket_urls_survives_fetch_error(monkeypatch):
     """_enrich_with_ticket_urls() continues gracefully when a detail fetch raises."""
     scraper = SquarespaceScraper(_club())
