@@ -173,6 +173,26 @@ async def test_get_data_returns_none_when_api_returns_empty(monkeypatch):
 # RedRoomEvent.to_show — timezone handling
 # ---------------------------------------------------------------------------
 
+def test_to_show_no_slug_returns_show_without_ticket():
+    """to_show() with no eventSlug produces a Show with empty show_page_url and no tickets."""
+    event = RedRoomEvent(
+        id="rr-no-slug",
+        title="No Slug Show",
+        description="",
+        scheduling={"config": {"startDate": "2026-05-10T00:00:00.000Z"}},
+        location={},
+        registration_form={},
+        created_date="",
+        updated_date="",
+        status="PUBLISHED",
+    )
+    club = _club()
+    show = event.to_show(club)
+    assert show is not None
+    assert show.show_page_url == ""
+    assert show.tickets == []
+
+
 def test_to_show_uses_club_timezone():
     """to_show() uses club.timezone (America/Chicago) for the event start time."""
     event = RedRoomEvent(

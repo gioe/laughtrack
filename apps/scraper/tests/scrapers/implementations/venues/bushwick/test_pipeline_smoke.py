@@ -23,8 +23,8 @@ from laughtrack.scrapers.implementations.venues.bushwick.data import BushwickEve
 from laughtrack.scrapers.implementations.venues.bushwick.extractor import BushwickEventExtractor
 
 
-DOMAIN = "https://www.bushwickcomedyclub.com"
-SCRAPING_URL = "https://www.bushwickcomedyclub.com"
+DOMAIN = "https://www.bushwickcomedy.com"
+SCRAPING_URL = "https://www.bushwickcomedy.com"
 
 
 def _club() -> Club:
@@ -87,12 +87,34 @@ def test_to_show_populates_ticket_url_from_slug():
     club = _club()
     show = event.to_show(club)
     assert show is not None
-    expected_url = "https://www.bushwickcomedyclub.com/events/slug-test-night"
+    expected_url = "https://www.bushwickcomedy.com/events/slug-test-night"
     assert show.show_page_url == expected_url, (
         f"show_page_url should be {expected_url!r}, got {show.show_page_url!r}"
     )
     assert len(show.tickets) > 0, "to_show() should produce a ticket when eventSlug is set"
     assert show.tickets[0].purchase_url == expected_url
+
+
+def test_to_show_no_slug_returns_show_without_ticket():
+    """to_show() with no eventSlug produces a Show with empty show_page_url and no tickets."""
+    from laughtrack.core.entities.event.bushwick import BushwickEvent
+
+    event = BushwickEvent(
+        id="bwk-no-slug",
+        title="No Slug Show",
+        description="",
+        scheduling={"config": {"startDate": "2026-05-10T00:00:00.000Z"}},
+        location={},
+        registration_form={},
+        created_date="",
+        updated_date="",
+        status="PUBLISHED",
+    )
+    club = _club()
+    show = event.to_show(club)
+    assert show is not None
+    assert show.show_page_url == ""
+    assert show.tickets == []
 
 
 @pytest.mark.asyncio

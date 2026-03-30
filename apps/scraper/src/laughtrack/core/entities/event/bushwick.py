@@ -28,13 +28,11 @@ class BushwickEvent(ShowConvertible):
     _raw_data: Optional[Dict[str, Any]] = None
 
     def to_show(self, club: Club, enhanced: bool = True) -> Optional[Show]:
-        """Factory method to create a Show from a BushwickEvent and Club.
+        """Convert a BushwickEvent to a Show domain object.
 
         Args:
-            bushwick_event: The BushwickEvent instance to convert
             club: The Club instance for the show
             enhanced: Whether to use enhanced processing for tickets and tags
-            source_url: Optional source URL for enhanced URL processing
 
         Returns:
             Show: A new Show instance created from the BushwickEvent
