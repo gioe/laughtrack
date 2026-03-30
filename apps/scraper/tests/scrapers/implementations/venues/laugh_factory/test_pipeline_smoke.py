@@ -103,8 +103,8 @@ async def test_get_data_returns_page_data_with_events():
 
 
 @pytest.mark.asyncio
-async def test_get_data_returns_none_when_api_returns_empty():
-    """get_data() returns None when EventbriteClient returns an empty event list."""
+async def test_get_data_returns_empty_page_data_when_api_returns_empty():
+    """get_data() returns empty EventbriteVenueData when EventbriteClient returns an empty event list."""
     scraper = EventbriteScraper(_club())
 
     class _EmptyClient:
@@ -115,9 +115,10 @@ async def test_get_data_returns_none_when_api_returns_empty():
 
     result = await scraper.get_data(ORGANIZER_ID)
 
-    assert result is None, (
-        "get_data() should return None when the API returns 0 events"
+    assert result is not None, (
+        "get_data() should return empty EventbriteVenueData, not None, when API returns 0 events"
     )
+    assert result.event_list == []
 
 
 @pytest.mark.asyncio

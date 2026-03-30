@@ -131,9 +131,10 @@ async def test_get_data_uses_organizer_fallback_when_venue_endpoint_fails():
 
 
 @pytest.mark.asyncio
-async def test_get_data_returns_none_when_both_endpoints_fail():
+async def test_get_data_returns_empty_page_data_when_both_endpoints_fail():
     """
-    get_data() returns None when both venue and organizer endpoints return None.
+    get_data() returns empty EventbriteVenueData when both venue and organizer
+    endpoints return None — fetch_all_events() normalizes all-fail to [].
     """
     scraper = EventbriteScraper(_club())
 
@@ -144,6 +145,7 @@ async def test_get_data_returns_none_when_both_endpoints_fail():
 
     result = await scraper.get_data(EVENTBRITE_ID)
 
-    assert result is None, (
-        "get_data() should return None when all Eventbrite endpoints fail"
+    assert result is not None, (
+        "get_data() should return empty EventbriteVenueData, not None, when all endpoints fail"
     )
+    assert result.event_list == []

@@ -74,10 +74,11 @@ async def test_get_data_wraps_events_and_handles_empty(monkeypatch, club):
     data = await s.get_data("VENUE123")
     assert data and len(data.event_list) == 1
 
-    # Now return empty list
+    # Now return empty list — should return empty PageData, not None
     s.eventbrite_client = _FakeClient(events=[])  # type: ignore[assignment]
     data2 = await s.get_data("VENUE123")
-    assert data2 is None
+    assert data2 is not None
+    assert data2.event_list == []
 
 
 @pytest.mark.asyncio
