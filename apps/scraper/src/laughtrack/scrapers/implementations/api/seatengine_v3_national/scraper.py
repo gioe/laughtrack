@@ -126,19 +126,19 @@ class SeatEngineV3NationalScraper(BaseScraper):
             venues = await self._fetch_v3_venues()
             if not venues:
                 Logger.info(
-                    "SeatEngineV3National: no venues returned from discovery",
+                    f"{self._log_prefix}: no venues returned from discovery",
                     self.logger_context,
                 )
                 return []
 
             Logger.info(
-                f"SeatEngineV3National: discovered {len(venues)} venues",
+                f"{self._log_prefix}: discovered {len(venues)} venues",
                 self.logger_context,
             )
             await self._upsert_venues(venues)
             return []
         except Exception as e:
-            Logger.error(f"SeatEngineV3NationalScraper failed: {e}", self.logger_context)
+            Logger.error(f"{self._log_prefix}: failed: {e}", self.logger_context)
             raise
         finally:
             await self._cleanup_resources()
@@ -162,13 +162,13 @@ class SeatEngineV3NationalScraper(BaseScraper):
         uuids = await self._discover_uuids_from_cdx()
         if not uuids:
             Logger.warn(
-                "SeatEngineV3National: CDX discovery returned no v3 venue UUIDs",
+                f"{self._log_prefix}: CDX discovery returned no v3 venue UUIDs",
                 self.logger_context,
             )
             return []
 
         Logger.info(
-            f"SeatEngineV3National: CDX found {len(uuids)} unique v3 venue UUID(s)",
+            f"{self._log_prefix}: CDX found {len(uuids)} unique v3 venue UUID(s)",
             self.logger_context,
         )
 
@@ -185,7 +185,7 @@ class SeatEngineV3NationalScraper(BaseScraper):
         for uuid, result in zip(uuids, results):
             if isinstance(result, Exception):
                 Logger.warn(
-                    f"SeatEngineV3National: venue fetch failed for {uuid}: {result}",
+                    f"{self._log_prefix}: venue fetch failed for {uuid}: {result}",
                     self.logger_context,
                 )
             elif result:
@@ -214,7 +214,7 @@ class SeatEngineV3NationalScraper(BaseScraper):
             response = await self.fetch_json_list(cdx_url, timeout=self._REQUEST_TIMEOUT)
         except Exception as exc:
             Logger.warn(
-                f"SeatEngineV3National: CDX API request failed: {exc}",
+                f"{self._log_prefix}: CDX API request failed: {exc}",
                 self.logger_context,
             )
             return []
@@ -257,7 +257,7 @@ class SeatEngineV3NationalScraper(BaseScraper):
             )
         except Exception as exc:
             Logger.warn(
-                f"SeatEngineV3National: venue GraphQL request failed for {uuid}: {exc}",
+                f"{self._log_prefix}: venue GraphQL request failed for {uuid}: {exc}",
                 self.logger_context,
             )
             return None
@@ -267,7 +267,7 @@ class SeatEngineV3NationalScraper(BaseScraper):
 
         if "errors" in response:
             Logger.warn(
-                f"SeatEngineV3National: GraphQL errors for venue {uuid}: {response['errors']}",
+                f"{self._log_prefix}: GraphQL errors for venue {uuid}: {response['errors']}",
                 self.logger_context,
             )
             return None
@@ -307,7 +307,7 @@ class SeatEngineV3NationalScraper(BaseScraper):
             venue_uuid = (venue.get("uuid") or "").strip()
             if isinstance(result, Exception):
                 Logger.error(
-                    f"SeatEngineV3National: failed to upsert venue {venue_uuid}: {result}",
+                    f"{self._log_prefix}: failed to upsert venue {venue_uuid}: {result}",
                     self.logger_context,
                 )
                 skipped += 1
@@ -316,11 +316,11 @@ class SeatEngineV3NationalScraper(BaseScraper):
             else:
                 inserted += 1
                 Logger.info(
-                    f"SeatEngineV3National: upserted club '{result.name}' (uuid={venue_uuid})",
+                    f"{self._log_prefix}: upserted club '{result.name}' (uuid={venue_uuid})",
                     self.logger_context,
                 )
 
         Logger.info(
-            f"SeatEngineV3National: discovery complete — {inserted} upserted, {skipped} skipped",
+            f"{self._log_prefix}: discovery complete — {inserted} upserted, {skipped} skipped",
             self.logger_context,
         )

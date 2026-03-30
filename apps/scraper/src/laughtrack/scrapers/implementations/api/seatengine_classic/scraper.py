@@ -49,7 +49,7 @@ class SeatEngineClassicScraper(BaseScraper):
         html = await self.fetch_html(url)
         if not html:
             Logger.warn(
-                f"SeatEngineClassic: no HTML returned for {url}",
+                f"{self._log_prefix}: no HTML returned for {url}",
                 self.logger_context,
             )
             return SeatEngineClassicPageData(event_list=[])
@@ -57,7 +57,7 @@ class SeatEngineClassicScraper(BaseScraper):
         base_url = URLUtils.get_base_domain_with_protocol(url)
         shows = SeatEngineClassicExtractor.extract_shows(html, base_url)
         Logger.info(
-            f"SeatEngineClassic: extracted {len(shows)} shows from {url}",
+            f"{self._log_prefix}: extracted {len(shows)} shows from {url}",
             self.logger_context,
         )
         return SeatEngineClassicPageData(event_list=shows)

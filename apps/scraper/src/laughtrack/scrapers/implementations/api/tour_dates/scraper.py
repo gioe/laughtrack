@@ -94,11 +94,11 @@ class TourDatesScraper(BaseScraper):
         try:
             comedian_rows = self._get_comedians_with_tour_ids()
             if not comedian_rows:
-                Logger.info("TourDates: no comedians with Songkick/BandsInTown IDs found", self.logger_context)
+                Logger.info(f"{self._log_prefix}: no comedians with Songkick/BandsInTown IDs found", self.logger_context)
                 return []
 
             Logger.info(
-                f"TourDates: fetching tour dates for {len(comedian_rows)} comedians",
+                f"{self._log_prefix}: fetching tour dates for {len(comedian_rows)} comedians",
                 self.logger_context,
             )
 
@@ -109,7 +109,7 @@ class TourDatesScraper(BaseScraper):
             all_shows: List[Show] = [show for shows in results for show in shows]
 
             Logger.info(
-                f"TourDates: discovered {len(all_shows)} total tour-date shows",
+                f"{self._log_prefix}: discovered {len(all_shows)} total tour-date shows",
                 self.logger_context,
             )
 
@@ -121,7 +121,7 @@ class TourDatesScraper(BaseScraper):
             return all_shows
 
         except Exception as e:
-            Logger.error(f"TourDatesScraper failed: {e}", self.logger_context)
+            Logger.error(f"{self._log_prefix}: failed: {e}", self.logger_context)
             raise
         finally:
             await self._cleanup_resources()
@@ -143,7 +143,7 @@ class TourDatesScraper(BaseScraper):
                 return shows
             except Exception as e:
                 Logger.error(
-                    f"TourDates: skipping comedian '{comedian.name}' due to error: {e}",
+                    f"{self._log_prefix}: skipping comedian '{comedian.name}' due to error: {e}",
                     self.logger_context,
                 )
                 return []
@@ -169,7 +169,7 @@ class TourDatesScraper(BaseScraper):
                 data = await self.fetch_json(url, timeout=self._REQUEST_TIMEOUT)
             except Exception as e:
                 Logger.error(
-                    f"TourDates/Songkick: error fetching page {page} for artist {artist_id}: {e}",
+                    f"{self._log_prefix}/Songkick: error fetching page {page} for artist {artist_id}: {e}",
                     self.logger_context,
                 )
                 break
@@ -180,7 +180,7 @@ class TourDatesScraper(BaseScraper):
             results_page = data.get("resultsPage", {})
             if results_page.get("status") == "error":
                 Logger.warn(
-                    f"TourDates/Songkick: API error for artist {artist_id}: {results_page.get('error')}",
+                    f"{self._log_prefix}/Songkick: API error for artist {artist_id}: {results_page.get('error')}",
                     self.logger_context,
                 )
                 break
@@ -263,7 +263,7 @@ class TourDatesScraper(BaseScraper):
 
         except Exception as e:
             Logger.error(
-                f"TourDates/Songkick: error converting event to show: {e}",
+                f"{self._log_prefix}/Songkick: error converting event to show: {e}",
                 self.logger_context,
             )
             return None
@@ -288,7 +288,7 @@ class TourDatesScraper(BaseScraper):
             data = await self.fetch_json_list(url, timeout=self._REQUEST_TIMEOUT)
         except Exception as e:
             Logger.error(
-                f"TourDates/BandsInTown: error fetching events for artist {artist_id}: {e}",
+                f"{self._log_prefix}/BandsInTown: error fetching events for artist {artist_id}: {e}",
                 self.logger_context,
             )
             return []
@@ -363,7 +363,7 @@ class TourDatesScraper(BaseScraper):
 
         except Exception as e:
             Logger.error(
-                f"TourDates/BandsInTown: error converting event to show: {e}",
+                f"{self._log_prefix}/BandsInTown: error converting event to show: {e}",
                 self.logger_context,
             )
             return None
@@ -401,11 +401,11 @@ class TourDatesScraper(BaseScraper):
             self._lineup_handler.batch_update_lineups(shows_with_ids, {})
 
             Logger.info(
-                f"TourDates: persisted {len(shows_with_ids)} shows with lineup links",
+                f"{self._log_prefix}: persisted {len(shows_with_ids)} shows with lineup links",
                 self.logger_context,
             )
         except Exception as e:
-            Logger.error(f"TourDates: error persisting shows/lineups: {e}", self.logger_context)
+            Logger.error(f"{self._log_prefix}: error persisting shows/lineups: {e}", self.logger_context)
             raise
 
     # ------------------------------------------------------------------ #

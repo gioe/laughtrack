@@ -67,21 +67,21 @@ class TicketmasterNationalScraper(BaseScraper):
         try:
             api_events = await self._fetch_national_comedy_events()
             if not api_events:
-                Logger.info("TicketmasterNational: no comedy events returned", self.logger_context)
+                Logger.info(f"{self._log_prefix}: no comedy events returned", self.logger_context)
                 return []
 
             Logger.info(
-                f"TicketmasterNational: fetched {len(api_events)} comedy events",
+                f"{self._log_prefix}: fetched {len(api_events)} comedy events",
                 self.logger_context,
             )
             shows = await self._process_events(api_events)
             Logger.info(
-                f"TicketmasterNational: produced {len(shows)} shows",
+                f"{self._log_prefix}: produced {len(shows)} shows",
                 self.logger_context,
             )
             return shows
         except Exception as e:
-            Logger.error(f"TicketmasterNationalScraper failed: {e}", self.logger_context)
+            Logger.error(f"{self._log_prefix}: failed: {e}", self.logger_context)
             raise
         finally:
             await self._cleanup_resources()
@@ -136,7 +136,7 @@ class TicketmasterNationalScraper(BaseScraper):
 
         if page >= self._MAX_PAGES:
             Logger.warn(
-                f"TicketmasterNational: reached MAX_PAGES ({self._MAX_PAGES}) — pagination truncated",
+                f"{self._log_prefix}: reached MAX_PAGES ({self._MAX_PAGES}) — pagination truncated",
                 self.logger_context,
             )
 
@@ -163,14 +163,14 @@ class TicketmasterNationalScraper(BaseScraper):
                 )
             except Exception as exc:
                 Logger.error(
-                    f"TicketmasterNational: failed to upsert club for venue {venue_id}: {exc}",
+                    f"{self._log_prefix}: failed to upsert club for venue {venue_id}: {exc}",
                     self.logger_context,
                 )
                 continue
 
             if club is None:
                 Logger.warn(
-                    f"TicketmasterNational: upsert returned None for venue {venue_id}",
+                    f"{self._log_prefix}: upsert returned None for venue {venue_id}",
                     self.logger_context,
                 )
                 continue

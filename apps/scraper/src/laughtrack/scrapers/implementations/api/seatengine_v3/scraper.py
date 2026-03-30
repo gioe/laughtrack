@@ -76,28 +76,28 @@ class SeatEngineV3Scraper(BaseScraper):
             response = await self.post_json(_V3_API_URL, data=payload, headers=headers)
         except Exception as exc:
             Logger.warn(
-                f"SeatEngineV3: GraphQL request failed for venue {self.venue_uuid}: {exc}",
+                f"{self._log_prefix}: GraphQL request failed for venue {self.venue_uuid}: {exc}",
                 self.logger_context,
             )
             return SeatEngineV3PageData(event_list=[])
 
         if not response:
             Logger.warn(
-                f"SeatEngineV3: no response from GraphQL API for venue {self.venue_uuid}",
+                f"{self._log_prefix}: no response from GraphQL API for venue {self.venue_uuid}",
                 self.logger_context,
             )
             return SeatEngineV3PageData(event_list=[])
 
         if "errors" in response:
             Logger.warn(
-                f"SeatEngineV3: GraphQL errors for venue {self.venue_uuid}: {response['errors']}",
+                f"{self._log_prefix}: GraphQL errors for venue {self.venue_uuid}: {response['errors']}",
                 self.logger_context,
             )
             return SeatEngineV3PageData(event_list=[])
 
         records = SeatEngineV3Extractor.flatten_events(response, self.base_url)
         Logger.info(
-            f"SeatEngineV3: extracted {len(records)} (event, show) pairs for venue {self.venue_uuid}",
+            f"{self._log_prefix}: extracted {len(records)} (event, show) pairs for venue {self.venue_uuid}",
             self.logger_context,
         )
         return SeatEngineV3PageData(event_list=records)

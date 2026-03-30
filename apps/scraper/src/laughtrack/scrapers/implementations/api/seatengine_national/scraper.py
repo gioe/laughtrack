@@ -73,19 +73,19 @@ class SeatEngineNationalScraper(BaseScraper):
             venues = await self._fetch_seatengine_venues()
             if not venues:
                 Logger.info(
-                    "SeatEngineNational: no venues returned from directory",
+                    f"{self._log_prefix}: no venues returned from directory",
                     self.logger_context,
                 )
                 return []
 
             Logger.info(
-                f"SeatEngineNational: discovered {len(venues)} venues",
+                f"{self._log_prefix}: discovered {len(venues)} venues",
                 self.logger_context,
             )
             await self._upsert_venues(venues)
             return []
         except Exception as e:
-            Logger.error(f"SeatEngineNationalScraper failed: {e}", self.logger_context)
+            Logger.error(f"{self._log_prefix}: failed: {e}", self.logger_context)
             raise
         finally:
             await self._cleanup_resources()
@@ -121,7 +121,7 @@ class SeatEngineNationalScraper(BaseScraper):
                     return venue
                 except Exception as exc:
                     Logger.warn(
-                        f"SeatEngineNational: error fetching venue {venue_id}: {exc}",
+                        f"{self._log_prefix}: error fetching venue {venue_id}: {exc}",
                         self.logger_context,
                     )
                     return None
@@ -148,19 +148,19 @@ class SeatEngineNationalScraper(BaseScraper):
                 if club:
                     inserted += 1
                     Logger.info(
-                        f"SeatEngineNational: upserted club '{club.name}' (seatengine_id={venue_id})",
+                        f"{self._log_prefix}: upserted club '{club.name}' (seatengine_id={venue_id})",
                         self.logger_context,
                     )
                 else:
                     skipped += 1
             except Exception as exc:
                 Logger.error(
-                    f"SeatEngineNational: failed to upsert venue {venue_id}: {exc}",
+                    f"{self._log_prefix}: failed to upsert venue {venue_id}: {exc}",
                     self.logger_context,
                 )
                 skipped += 1
 
         Logger.info(
-            f"SeatEngineNational: enumeration complete — {inserted} upserted, {skipped} skipped",
+            f"{self._log_prefix}: enumeration complete — {inserted} upserted, {skipped} skipped",
             self.logger_context,
         )

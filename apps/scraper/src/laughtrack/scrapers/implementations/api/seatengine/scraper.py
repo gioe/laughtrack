@@ -54,7 +54,7 @@ class SeatEngineScraper(BaseScraper):
         events_data = await self.seatengine_client.fetch_events(self.venue_id)
         if not events_data:
             Logger.warn(
-                f"No events found for SeatEngine venue {self.club.seatengine_id}",
+                f"{self._log_prefix}: no events found for venue {self.club.seatengine_id}",
                 self.logger_context,
             )
             return SeatEngineExtractor.to_page_data([])
@@ -77,7 +77,7 @@ class SeatEngineScraper(BaseScraper):
             True if configuration is valid, False otherwise
         """
         if not self.venue_id:
-            Logger.error(f"Club {self.club.name} missing seatengine_id", self.logger_context)
+            Logger.error(f"{self._log_prefix}: missing seatengine_id", self.logger_context)
             return False
 
         return True
