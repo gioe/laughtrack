@@ -69,6 +69,32 @@ def _fake_bushwick_event() -> BushwickEvent:
     )
 
 
+def test_to_show_populates_ticket_url_from_slug():
+    """to_show() constructs show_page_url and ticket URL from eventSlug + club.scraping_url."""
+    from laughtrack.core.entities.event.bushwick import BushwickEvent
+
+    event = BushwickEvent(
+        id="bwk-slug-1",
+        title="Slug Test Night",
+        description="",
+        scheduling={"config": {"startDate": "2026-05-10T00:00:00.000Z"}},
+        location={},
+        registration_form={"eventSlug": "slug-test-night"},
+        created_date="",
+        updated_date="",
+        status="PUBLISHED",
+    )
+    club = _club()
+    show = event.to_show(club)
+    assert show is not None
+    expected_url = "https://www.bushwickcomedyclub.com/events/slug-test-night"
+    assert show.show_page_url == expected_url, (
+        f"show_page_url should be {expected_url!r}, got {show.show_page_url!r}"
+    )
+    assert len(show.tickets) > 0, "to_show() should produce a ticket when eventSlug is set"
+    assert show.tickets[0].purchase_url == expected_url
+
+
 @pytest.mark.asyncio
 async def test_collect_scraping_targets_returns_wix_api_url(monkeypatch):
     """collect_scraping_targets() authenticates and returns a Wix events API URL."""

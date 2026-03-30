@@ -102,6 +102,7 @@ class BushwickEventExtractor:
                     "currency": event_data.registration.ticketing.currency,
                     "soldOut": event_data.registration.ticketing.soldOut,
                 },
+                "eventSlug": event_data.slug,
             }
 
             return BushwickEvent(

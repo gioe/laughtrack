@@ -43,15 +43,14 @@ class RedRoomEvent(ShowConvertible):
         if not start_date:
             raise ValueError("No valid start_date found for RED ROOM event")
 
-        tickets = []
-        if self.registration_form:
-            external_url = self.registration_form.get("externalRegistrationUrl", "")
-            if external_url:
-                tickets.append(ShowFactoryUtils.create_fallback_ticket(external_url))
+        # Construct event URL from slug — Wix event pages follow {base_url}/events/{slug}
+        event_slug = self.registration_form.get("eventSlug", "") if self.registration_form else ""
+        show_page_url = f"{club.scraping_url.rstrip('/')}/events/{event_slug}" if event_slug else ""
 
-        show_page_url = ""
-        if self.registration_form:
-            show_page_url = self.registration_form.get("externalRegistrationUrl", "")
+        # Extract tickets from event URL
+        tickets = []
+        if show_page_url:
+            tickets.append(ShowFactoryUtils.create_fallback_ticket(show_page_url))
 
         name = self.title.strip() if self.title else "Comedy Show"
 

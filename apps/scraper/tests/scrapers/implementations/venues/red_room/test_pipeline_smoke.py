@@ -195,6 +195,30 @@ def test_to_show_uses_club_timezone():
     assert show.date.day == 30
 
 
+def test_to_show_populates_ticket_url_from_slug():
+    """to_show() constructs show_page_url and ticket URL from eventSlug + club.scraping_url."""
+    event = RedRoomEvent(
+        id="rr-3",
+        title="Slug Test Show",
+        description="",
+        scheduling={"config": {"startDate": "2026-05-10T00:00:00.000Z"}},
+        location={},
+        registration_form={"eventSlug": "slug-test-show"},
+        created_date="",
+        updated_date="",
+        status="PUBLISHED",
+    )
+    club = _club()
+    show = event.to_show(club)
+    assert show is not None
+    expected_url = "https://www.redroomcomedyclub.com/events/slug-test-show"
+    assert show.show_page_url == expected_url, (
+        f"show_page_url should be {expected_url!r}, got {show.show_page_url!r}"
+    )
+    assert len(show.tickets) > 0, "to_show() should produce a ticket when eventSlug is set"
+    assert show.tickets[0].purchase_url == expected_url
+
+
 def test_to_show_falls_back_to_utc_when_timezone_missing():
     """to_show() falls back to UTC when club.timezone is None or empty."""
     event = RedRoomEvent(
