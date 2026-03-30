@@ -82,10 +82,15 @@ code needed:
 **API endpoint** (no auth required):
   `GET https://api.ninkashi.com/public_access/events/find_by_url_site?url_site=<url_site>&page=1&per_page=100`
 
-Response is a **root-level JSON array** of events. Key fields: `id`, `title`,
-`starts_at` (ISO 8601 with UTC offset, e.g. `"2026-04-01T19:45:00.000-07:00"`),
-`time_zone` (IANA string), `tickets_attributes` (array with `name`, `price`,
-`sold_out`, `remaining_tickets`).
+Response is a **root-level JSON array** of events. Key fields at the top level:
+`id`, `title`, `time_zone` (IANA string), `tickets_attributes`, `event_dates_attributes`.
+
+**Important API quirks (verified against live API 2026-03-30):**
+- `starts_at` is **NOT** at the top level — it is nested under
+  `event_dates_attributes[0].starts_at` (format: `"2026-04-01 19:45:00 -0700"`,
+  space-separated with a 4-digit offset, no colon). Parse with `strptime("%Y-%m-%d %H:%M:%S %z")`.
+- Ticket tier name is in the `description` field (not `name`) of each `tickets_attributes` entry.
+- Ticket `price` is in **cents** (e.g. `2500` = $25.00) — divide by 100 to get dollars.
 
 Ticket URL is constructed as `https://{url_site}/events/{id}`.
 
@@ -1334,3 +1339,25 @@ handle `/la-jolla/calendar/show/...`.
 
 Before implementing a second location, fetch one day's HTML from the new location
 and verify that every regex in the extractor matches the new URL structure.
+
+## HttpConvenienceMixin — Helper Methods Must Delegate to self.fetch_json()
+
+When adding a new method to `HttpConvenienceMixin` that narrows the return type
+of an existing method (e.g. `fetch_json_list` wrapping `fetch_json`), always
+delegate to `self.fetch_json()` rather than duplicating the HTTP call:
+
+```python
+# ✓ Correct — delegates; tests that mock instance.fetch_json are intercepted
+async def fetch_json_list(self, url, **kwargs):
+    data = await self.fetch_json(url, **kwargs)
+    ...
+
+# ✗ Wrong — duplicate HTTP call bypasses instance-level AsyncMock patches
+async def fetch_json_list(self, url, **kwargs):
+    session = await self.get_session()
+    response = await session.get(url, **kwargs)
+    ...
+```
+
+Tests mock `scraper.fetch_json = AsyncMock(return_value=data)` at the instance
+level — a duplicate implementation bypasses the mock and hits the real network.

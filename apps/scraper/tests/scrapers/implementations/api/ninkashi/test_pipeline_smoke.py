@@ -45,19 +45,25 @@ def _club() -> Club:
 def _raw_event(
     event_id=1001,
     title="Tuesday Night Comedy",
-    starts_at="2026-04-07T19:45:00.000-07:00",
+    starts_at="2026-04-07 19:45:00 -0700",
     time_zone="America/Los_Angeles",
     tickets=None,
 ) -> dict:
     if tickets is None:
         tickets = [
-            {"name": "General Admission", "price": "15.00", "sold_out": False, "remaining_tickets": 50}
+            # Actual Ninkashi API: price is in cents, tier name is in "description"
+            {"description": "General Admission", "price": 1500, "sold_out": False, "remaining_tickets": 50}
         ]
     return {
         "id": event_id,
         "title": title,
-        "starts_at": starts_at,
-        "ends_at": "2026-04-07T21:00:00.000-07:00",
+        # starts_at is nested under event_dates_attributes in the real Ninkashi API
+        "event_dates_attributes": [
+            {
+                "starts_at": starts_at,
+                "ends_at": "2026-04-07 21:00:00 -0700",
+            }
+        ],
         "time_zone": time_zone,
         "tickets_attributes": tickets,
         "venue_name": "Shelton Theater",
@@ -70,7 +76,7 @@ def _raw_event(
 def _make_event(
     event_id=1001,
     title="Tuesday Night Comedy",
-    starts_at="2026-04-07T19:45:00.000-07:00",
+    starts_at="2026-04-07 19:45:00 -0700",
     time_zone="America/Los_Angeles",
     tickets=None,
 ) -> NinkashiEvent:
@@ -94,24 +100,28 @@ def _make_event(
 
 
 def test_from_dict_parses_required_fields():
-    """from_dict() correctly parses id, title, starts_at, time_zone."""
+    """from_dict() correctly parses id, title, starts_at from event_dates_attributes, time_zone."""
     event = NinkashiEvent.from_dict(_raw_event(), URL_SITE)
 
     assert event.id == 1001
     assert event.title == "Tuesday Night Comedy"
-    assert event.starts_at == "2026-04-07T19:45:00.000-07:00"
+    # starts_at is extracted from event_dates_attributes[0]
+    assert event.starts_at == "2026-04-07 19:45:00 -0700"
     assert event.time_zone == "America/Los_Angeles"
     assert event.url_site == URL_SITE
 
 
 def test_from_dict_parses_ticket_attributes():
-    """from_dict() converts tickets_attributes into NinkashiTicket objects."""
+    """from_dict() converts tickets_attributes into NinkashiTicket objects.
+
+    Ninkashi API quirks: price is in cents (1500 → $15.00), tier name is in "description".
+    """
     event = NinkashiEvent.from_dict(_raw_event(), URL_SITE)
 
     assert len(event.tickets_attributes) == 1
     ticket = event.tickets_attributes[0]
     assert ticket.name == "General Admission"
-    assert ticket.price == 15.0
+    assert ticket.price == 15.0   # 1500 cents → $15.00
     assert ticket.sold_out is False
     assert ticket.remaining_tickets == 50
 
@@ -148,9 +158,9 @@ def test_to_show_returns_show_with_correct_name():
 
 
 def test_to_show_parses_iso_datetime_in_venue_timezone():
-    """to_show() correctly parses the ISO offset datetime into the venue timezone."""
-    # 2026-04-07T19:45:00-07:00 is 19:45 PDT
-    event = _make_event(starts_at="2026-04-07T19:45:00.000-07:00", time_zone="America/Los_Angeles")
+    """to_show() correctly parses the Ninkashi datetime string into the venue timezone."""
+    # "2026-04-07 19:45:00 -0700" is 19:45 PDT
+    event = _make_event(starts_at="2026-04-07 19:45:00 -0700", time_zone="America/Los_Angeles")
     show = event.to_show(_club())
 
     assert show is not None

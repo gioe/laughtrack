@@ -29,16 +29,16 @@ from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
 
 def _parse_ninkashi_datetime(starts_at: str, time_zone: str) -> Optional[datetime]:
     """
-    Parse a Ninkashi starts_at ISO string and return a timezone-aware datetime.
+    Parse a Ninkashi starts_at string and return a timezone-aware datetime.
 
-    starts_at is an ISO 8601 string with UTC offset (e.g. "2026-04-01T19:45:00.000-07:00").
+    The Ninkashi API returns starts_at inside event_dates_attributes in the format
+    "2026-04-01 19:45:00 -0700" (space-separated, no colon in offset).
     We parse the offset-aware datetime and convert it to the venue's IANA timezone.
     Returns None if parsing fails.
     """
     try:
         tz = pytz.timezone(time_zone)
-        # Python's fromisoformat handles "+HH:MM" offsets; strip trailing milliseconds if needed
-        dt = datetime.fromisoformat(starts_at)
+        dt = datetime.strptime(starts_at, "%Y-%m-%d %H:%M:%S %z")
         return dt.astimezone(tz)
     except Exception:
         return None
@@ -57,13 +57,15 @@ class NinkashiTicket:
     def from_dict(cls, data: dict) -> "NinkashiTicket":
         raw_price = data.get("price")
         try:
-            price = float(raw_price) if raw_price is not None else 0.0
+            # Ninkashi API returns price in cents (e.g. 2500 = $25.00)
+            price = float(raw_price) / 100.0 if raw_price is not None else 0.0
         except (ValueError, TypeError):
             price = 0.0
         return cls(
             price=price,
             sold_out=bool(data.get("sold_out", False)),
-            name=str(data.get("name", "General Admission")),
+            # Ninkashi uses "description" for the ticket tier name
+            name=str(data.get("description") or data.get("name") or "General Admission"),
             remaining_tickets=data.get("remaining_tickets"),
         )
 
@@ -83,10 +85,14 @@ class NinkashiEvent(ShowConvertible):
     def from_dict(cls, data: dict, url_site: str) -> "NinkashiEvent":
         raw_tickets = data.get("tickets_attributes") or []
         tickets = [NinkashiTicket.from_dict(t) for t in raw_tickets if isinstance(t, dict)]
+        # starts_at is nested under event_dates_attributes[0], not at the top level
+        event_dates = data.get("event_dates_attributes") or []
+        first_date = event_dates[0] if event_dates else {}
+        starts_at = str(first_date.get("starts_at", ""))
         return cls(
             id=int(data["id"]),
             title=str(data.get("title", "")),
-            starts_at=str(data.get("starts_at", "")),
+            starts_at=starts_at,
             time_zone=str(data.get("time_zone", "UTC")),
             url_site=url_site,
             tickets_attributes=tickets,
