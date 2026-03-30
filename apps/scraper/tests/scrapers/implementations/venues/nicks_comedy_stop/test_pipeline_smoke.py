@@ -165,6 +165,35 @@ async def test_get_data_returns_none_when_no_events(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_get_data_follows_has_more_pagination(monkeypatch):
+    """get_data() follows hasMore pagination and accumulates events across all pages."""
+    scraper = NicksComedyStopScraper(_club())
+
+    call_count = {"n": 0}
+
+    async def fake_fetch_json(self, url: str, **kwargs) -> dict:
+        call_count["n"] += 1
+        if call_count["n"] == 1:
+            return {"events": [_raw_event(id_="1", title="Page 1 Show")], "hasMore": True, "total": 2}
+        return {"events": [_raw_event(id_="2", title="Page 2 Show")], "hasMore": False, "total": 2}
+
+    monkeypatch.setattr(NicksComedyStopScraper, "fetch_json", fake_fetch_json)
+
+    result = await scraper.get_data(
+        f"{EVENTS_URL}?compId=comp-m4t1prev&limit=50&offset=0"
+    )
+
+    assert result is not None
+    assert len(result.event_list) == 2, (
+        f"Expected 2 events (one per page), got {len(result.event_list)}"
+    )
+    assert call_count["n"] == 2, f"Expected 2 fetch_json calls, got {call_count['n']}"
+    titles = {e.title for e in result.event_list}
+    assert "Page 1 Show" in titles
+    assert "Page 2 Show" in titles
+
+
+@pytest.mark.asyncio
 async def test_can_transform_not_defined_on_scraper():
     """NicksComedyStopScraper must not define can_transform() — transformation is handled by the pipeline."""
     assert "can_transform" not in NicksComedyStopScraper.__dict__, (

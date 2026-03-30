@@ -12,6 +12,7 @@ Pipeline:
 """
 
 from typing import Dict, List, Optional
+from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
@@ -34,6 +35,7 @@ class NicksComedyStopScraper(BaseScraper):
     """Scraper for Nick's Comedy Stop (Boston, MA) via Wix Events API."""
 
     key = "nicks_comedy_stop"
+    _MAX_PAGES = 20
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
@@ -74,21 +76,43 @@ class NicksComedyStopScraper(BaseScraper):
             return []
 
     async def get_data(self, url: str) -> Optional[NicksPageData]:
-        """Fetch the Wix Events API and extract NicksEvent objects."""
+        """Fetch all events from the Wix Events API, following hasMore pagination."""
         try:
             headers = self._build_auth_headers()
-            response = await self.fetch_json(url, headers=headers)
-            if not response:
-                Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: empty response from Wix Events API", self.logger_context)
-                return None
+            all_events = []
+            current_url = url
 
-            events = NicksEventExtractor.extract_events(response)
-            if not events:
+            parsed = urlparse(current_url)
+            params = parse_qs(parsed.query, keep_blank_values=True)
+            limit = int(params.get("limit", ["50"])[0])
+
+            for page in range(self._MAX_PAGES):
+                response = await self.fetch_json(current_url, headers=headers)
+                if response is None:
+                    break
+
+                all_events.extend(NicksEventExtractor.extract_events(response))
+
+                if not response.get("hasMore", False):
+                    break
+
+                parsed = urlparse(current_url)
+                params = parse_qs(parsed.query, keep_blank_values=True)
+                current_offset = int(params.get("offset", ["0"])[0])
+                params["offset"] = [str(current_offset + limit)]
+                current_url = urlunparse(parsed._replace(query=urlencode({k: v[0] for k, v in params.items()})))
+            else:
+                Logger.warn(
+                    f"{self.__class__.__name__} [{self._club.name}]: reached MAX_PAGES ({self._MAX_PAGES}) — pagination stopped early",
+                    self.logger_context,
+                )
+
+            if not all_events:
                 Logger.warn(f"{self.__class__.__name__} [{self._club.name}]: no events extracted", self.logger_context)
                 return None
 
-            Logger.info(f"{self.__class__.__name__} [{self._club.name}]: extracted {len(events)} events", self.logger_context)
-            return NicksPageData(event_list=events)
+            Logger.info(f"{self.__class__.__name__} [{self._club.name}]: extracted {len(all_events)} events", self.logger_context)
+            return NicksPageData(event_list=all_events)
 
         except Exception as e:
             Logger.error(f"{self.__class__.__name__} [{self._club.name}]: error fetching events: {e}", self.logger_context)
