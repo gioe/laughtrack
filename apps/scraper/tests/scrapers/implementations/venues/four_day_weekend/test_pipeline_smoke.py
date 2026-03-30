@@ -131,10 +131,32 @@ def _fake_production_response() -> MagicMock:
     return resp
 
 
+def _fake_performance_response() -> MagicMock:
+    """Fake OvationTix Performance({id}) response with two ticket tiers."""
+    resp = MagicMock()
+    resp.status_code = 200
+    resp.raise_for_status = MagicMock()
+    resp.json.return_value = {
+        "id": int(PERFORMANCE_ID),
+        "sections": [
+            {
+                "ticketGroupName": "General",
+                "ticketTypeViews": [
+                    {"name": "Adult", "price": 25.0},
+                    {"name": "Student", "price": 15.0},
+                ],
+            }
+        ],
+    }
+    return resp
+
+
 def _make_fake_session(with_past: bool = False) -> MagicMock:
     session = MagicMock()
 
     async def fake_get(url: str, headers: Dict = None) -> MagicMock:
+        if "Performance(" in url:
+            return _fake_performance_response()
         return _fake_production_response_with_past() if with_past else _fake_production_response()
 
     session.get = fake_get
@@ -221,3 +243,28 @@ async def test_transformation_pipeline_produces_shows(monkeypatch):
     )
     show = all_shows[0]
     assert show.name == "Four Day Weekend Dallas"
+
+
+@pytest.mark.asyncio
+async def test_ticket_data_flows_through_pipeline(monkeypatch):
+    """Per-performance sections are fetched and tickets appear in Show objects."""
+    scraper = FourDayWeekendScraper(_club())
+
+    async def fake_fetch_html(self, url: str, headers: Dict = None) -> str:
+        return _buy_tickets_html()
+
+    monkeypatch.setattr(FourDayWeekendScraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(scraper, "get_session", AsyncMock(return_value=_make_fake_session()))
+
+    result = await scraper.get_data(SCRAPING_URL)
+
+    assert isinstance(result, FourDayWeekendPageData)
+    event = result.event_list[0]
+    assert event.sections, "sections must be populated from Performance({id}) API"
+
+    shows = scraper.transformation_pipeline.transform(result)
+    assert len(shows) > 0
+    show = shows[0]
+    assert len(show.tickets) > 0, "Show must have ticket data from Performance API"
+    assert show.tickets[0].price == 25.0
+    assert show.tickets[0].purchase_url == event.event_url
