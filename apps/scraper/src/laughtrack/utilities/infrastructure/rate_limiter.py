@@ -165,8 +165,10 @@ class RateLimiter:
         on outgoing requests, ensuring the rotated agent is actually applied.
         Returns None when the domain has no active anti-detection session.
         """
-        session = self._sessions.get(domain)
-        return session.user_agent if session is not None else None
+        with self._sessions_write_lock[domain]:
+            session = self._sessions.get(domain)
+            user_agent = session.user_agent if session is not None else None
+        return user_agent
 
     def get_domain_profile(self, domain: str) -> Optional[BrowserProfile]:
         """
@@ -177,8 +179,10 @@ class RateLimiter:
         (curl-cffi impersonation target) selected for this session.
         Returns None when the domain has no active anti-detection session.
         """
-        session = self._sessions.get(domain)
-        return session.profile if session is not None else None
+        with self._sessions_write_lock[domain]:
+            session = self._sessions.get(domain)
+            profile = session.profile if session is not None else None
+        return profile
 
     # ------------------------------------------------------------------
     # Main rate-limiting interface

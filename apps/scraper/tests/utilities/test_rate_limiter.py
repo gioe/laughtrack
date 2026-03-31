@@ -619,3 +619,70 @@ class TestGetStats:
         rotator.join(timeout=2.0)
 
         assert errors == [], f"get_stats() raised under concurrent rotation: {errors}"
+
+
+# ---------------------------------------------------------------------------
+# get_domain_user_agent / get_domain_profile — concurrent rotation safety
+# ---------------------------------------------------------------------------
+
+
+class TestGetDomainReaderConcurrency:
+    def test_get_domain_user_agent_does_not_raise_under_concurrent_rotation(self):
+        """get_domain_user_agent() called concurrently with session rotation must not raise."""
+        import threading
+
+        rl = RateLimiter()
+        domain = _fast_anti(rl, "ua-conc.example.com", min_delay=0.0, max_delay=0.0)
+        asyncio.run(rl.await_if_needed(f"https://{domain}/page"))
+
+        errors: list[Exception] = []
+        stop = threading.Event()
+
+        def rotate_sessions():
+            while not stop.is_set():
+                asyncio.run(rl.await_if_needed(f"https://{domain}/page"))
+
+        def call_get_ua():
+            for _ in range(20):
+                try:
+                    rl.get_domain_user_agent(domain)
+                except Exception as exc:
+                    errors.append(exc)
+
+        rotator = threading.Thread(target=rotate_sessions, daemon=True)
+        rotator.start()
+        call_get_ua()
+        stop.set()
+        rotator.join(timeout=2.0)
+
+        assert errors == [], f"get_domain_user_agent() raised under concurrent rotation: {errors}"
+
+    def test_get_domain_profile_does_not_raise_under_concurrent_rotation(self):
+        """get_domain_profile() called concurrently with session rotation must not raise."""
+        import threading
+
+        rl = RateLimiter()
+        domain = _fast_anti(rl, "profile-conc.example.com", min_delay=0.0, max_delay=0.0)
+        asyncio.run(rl.await_if_needed(f"https://{domain}/page"))
+
+        errors: list[Exception] = []
+        stop = threading.Event()
+
+        def rotate_sessions():
+            while not stop.is_set():
+                asyncio.run(rl.await_if_needed(f"https://{domain}/page"))
+
+        def call_get_profile():
+            for _ in range(20):
+                try:
+                    rl.get_domain_profile(domain)
+                except Exception as exc:
+                    errors.append(exc)
+
+        rotator = threading.Thread(target=rotate_sessions, daemon=True)
+        rotator.start()
+        call_get_profile()
+        stop.set()
+        rotator.join(timeout=2.0)
+
+        assert errors == [], f"get_domain_profile() raised under concurrent rotation: {errors}"
