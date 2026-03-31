@@ -72,11 +72,10 @@ class DiscordAlertChannel(AlertChannel):
         "high": 0xFF8800,
         "critical": 0xCC0000,
     }
+    _EMBED_DESCRIPTION_LIMIT = 2048
 
     def __init__(self, webhook_url: str):
         self.webhook_url = webhook_url
-
-    _EMBED_DESCRIPTION_LIMIT = 2048
 
     async def send_alert(self, alert: Alert) -> bool:
         try:
