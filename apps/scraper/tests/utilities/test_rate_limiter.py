@@ -543,3 +543,79 @@ class TestAntiDetectionConcurrency:
         assert len(events) == 4
         assert events.count("enter") == 2
         assert events.count("exit") == 2
+
+
+# ---------------------------------------------------------------------------
+# get_stats — snapshot correctness and thread safety
+# ---------------------------------------------------------------------------
+
+
+class TestGetStats:
+    @pytest.mark.asyncio
+    async def test_rps_domain_appears_in_stats(self):
+        rl = RateLimiter()
+        domain = "stats-rps.example.com"
+        rl.set_domain_config(domain, DomainConfig(requests_per_second=2.0))
+        await rl.await_if_needed(f"https://{domain}/page")
+
+        stats = rl.get_stats()
+
+        assert domain in stats
+        assert stats[domain]["mode"] == "rps"
+        assert stats[domain]["requests_per_second"] == 2.0
+        assert stats[domain]["last_request"] is not None
+
+    @pytest.mark.asyncio
+    async def test_anti_detection_domain_includes_session_fields(self):
+        rl = RateLimiter()
+        domain = _fast_anti(rl, "stats-anti.example.com")
+        await rl.await_if_needed(f"https://{domain}/page")
+
+        stats = rl.get_stats()
+
+        assert domain in stats
+        assert stats[domain]["mode"] == "anti_detection"
+        assert "session_id" in stats[domain]
+        assert stats[domain]["session_requests"] >= 1
+
+    def test_returns_empty_dict_when_no_domains_configured(self):
+        rl = RateLimiter()
+        # Reset to a clean slate (remove built-in defaults)
+        with rl._global_lock:
+            rl._domain_configs.clear()
+
+        stats = rl.get_stats()
+
+        assert stats == {}
+
+    @pytest.mark.asyncio
+    async def test_concurrent_session_rotation_does_not_raise(self):
+        """get_stats() called concurrently with session rotation must not raise."""
+        import threading
+
+        rl = RateLimiter()
+        domain = _fast_anti(rl, "stats-conc.example.com", min_delay=0.0, max_delay=0.0)
+        # Create an initial session
+        await rl.await_if_needed(f"https://{domain}/page")
+
+        errors: list[Exception] = []
+        stop = threading.Event()
+
+        def rotate_sessions():
+            while not stop.is_set():
+                asyncio.run(rl.await_if_needed(f"https://{domain}/page"))
+
+        def call_get_stats():
+            for _ in range(20):
+                try:
+                    rl.get_stats()
+                except Exception as exc:
+                    errors.append(exc)
+
+        rotator = threading.Thread(target=rotate_sessions, daemon=True)
+        rotator.start()
+        call_get_stats()
+        stop.set()
+        rotator.join(timeout=2.0)
+
+        assert errors == [], f"get_stats() raised under concurrent rotation: {errors}"
