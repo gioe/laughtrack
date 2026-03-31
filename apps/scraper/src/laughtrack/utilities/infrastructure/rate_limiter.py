@@ -19,6 +19,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Dict, Optional
 
+from gioe_libs.rate_limiter import RateLimiter as _BaseRateLimiter
 from laughtrack.foundation.infrastructure.http.browser_profile import (
     BUILTIN_PROFILES,
     BrowserProfile,
@@ -82,20 +83,25 @@ class RateLimiter:
         if self._initialized:
             return
 
-        # Per-domain configs (seeded from built-in defaults)
+        # Base RPS limiter from gioe_libs — handles timing, slot-reservation, and locking.
+        self._base = _BaseRateLimiter()
+
+        # Per-domain configs (seeded from built-in defaults).
+        # Kept for anti-detection metadata and the enable_anti_detection flag.
         self._domain_configs: Dict[str, DomainConfig] = dict(DEFAULT_DOMAIN_CONFIGS)
         self._default_config = DomainConfig()  # fallback
 
-        # RPS-mode state
-        self._last_request: Dict[str, float] = {}
-        self._domain_locks: Dict[str, threading.Lock] = defaultdict(threading.Lock)
+        # Seed base limiter from defaults so RPS domains are ready immediately.
+        for domain, config in self._domain_configs.items():
+            self._base.configure(domain, config.requests_per_second)
+
+        # Guards _domain_configs writes
         self._global_lock = threading.Lock()
 
         # Anti-detection session state
         self._sessions: Dict[str, _RequestSession] = {}
-        # Per-domain locks — mirrors _domain_locks used by the RPS path.
-        # Each domain serialises its own session writes independently so different
-        # domains can proceed concurrently without blocking each other.
+        # Per-domain locks — each domain serialises its own session writes
+        # independently so different domains can proceed concurrently.
         self._sessions_write_lock: Dict[str, threading.Lock] = defaultdict(threading.Lock)
 
         self._initialized = True
@@ -108,6 +114,7 @@ class RateLimiter:
         """Register or replace the full DomainConfig for a domain."""
         with self._global_lock:
             self._domain_configs[domain] = config
+        self._base.configure(domain, config.requests_per_second)
 
     def set_domain_limit(self, domain: str, requests_per_second: float) -> None:
         """
@@ -133,6 +140,7 @@ class RateLimiter:
                     peak_hour_multiplier=existing.peak_hour_multiplier,
                     browser_profiles=existing.browser_profiles,
                 )
+        self._base.configure(domain, requests_per_second)
 
     def get_domain_limit(self, domain: str) -> float:
         """Return the configured RPS for a domain."""
@@ -203,7 +211,7 @@ class RateLimiter:
         if config.enable_anti_detection:
             await self._anti_detection_wait(domain, config)
         else:
-            await self._rps_wait(domain, config)
+            await self._rps_wait(domain)
 
     def wait_if_needed(self, url: str) -> None:
         """
@@ -216,37 +224,16 @@ class RateLimiter:
             return
 
         domain = self._extract_domain(url)
-        config = self._get_config(domain)
-
-        with self._domain_locks[domain]:
-            wait_time = self._rps_wait_time(domain, config)
-            if wait_time:
-                time.sleep(wait_time)
-            self._last_request[domain] = time.time()
+        self._base.wait_if_needed(domain)
 
     # ------------------------------------------------------------------
     # RPS mode internals
     # ------------------------------------------------------------------
 
-    async def _rps_wait(self, domain: str, config: DomainConfig) -> None:
-        # Use threading.Lock (not asyncio.Lock) so this is safe when called from
-        # different threads, each running their own asyncio event loop.
-        # Slot-reservation: advance _last_request by wait_time inside the lock so
-        # concurrent callers each claim a distinct slot, then sleep outside the lock.
-        with self._domain_locks[domain]:
-            wait_time = self._rps_wait_time(domain, config)
-            self._last_request[domain] = time.time() + (wait_time or 0)
-        if wait_time:
-            await asyncio.sleep(wait_time)
-
-    def _rps_wait_time(self, domain: str, config: DomainConfig) -> Optional[float]:
-        min_interval = 1.0 / config.requests_per_second
-        now = time.time()
-        last = self._last_request.get(domain, 0)
-        elapsed = now - last
-        if elapsed < min_interval:
-            return min_interval - elapsed
-        return None
+    async def _rps_wait(self, domain: str) -> None:
+        # Delegate RPS enforcement to the gioe_libs base limiter, which handles
+        # slot-reservation and asyncio.sleep internally.
+        await self._base.await_if_needed(domain)
 
     # ------------------------------------------------------------------
     # Anti-detection mode internals
@@ -346,23 +333,22 @@ class RateLimiter:
 
     def get_stats(self) -> Dict[str, Dict]:
         """Return rate-limiting statistics for all known domains."""
-        # Snapshot mutable shared state under the appropriate locks.
-        # _domain_configs and _last_request are guarded by _global_lock;
-        # _sessions is guarded by per-domain _sessions_write_lock.
-        # Take the two snapshots separately to avoid holding _global_lock
-        # while acquiring per-domain locks (prevents lock-order inversion).
+        # Snapshot _domain_configs under its own lock, then read per-domain
+        # session state separately to avoid lock-order inversion.
         with self._global_lock:
             domain_configs = list(self._domain_configs.items())
-            last_requests = dict(self._last_request)
+
+        # Pull timing data from the base limiter (covers RPS-mode domains).
+        base_stats = self._base.get_stats()
 
         stats = {}
         for domain, config in domain_configs:
-            last = last_requests.get(domain, 0)
+            base = base_stats.get(domain, {})
             entry: Dict = {
                 "mode": "anti_detection" if config.enable_anti_detection else "rps",
                 "requests_per_second": config.requests_per_second,
-                "last_request": datetime.fromtimestamp(last) if last else None,
-                "time_since_last": time.time() - last if last else None,
+                "last_request": base.get("last_request"),
+                "time_since_last": base.get("time_since_last"),
             }
             if config.enable_anti_detection:
                 with self._sessions_write_lock[domain]:
@@ -376,7 +362,6 @@ class RateLimiter:
 
     def reset_domain(self, domain: str) -> None:
         """Reset all rate-limiting state for a domain."""
-        with self._domain_locks[domain]:
-            self._last_request.pop(domain, None)
+        self._base.reset(domain)
         with self._sessions_write_lock[domain]:
             self._sessions.pop(domain, None)

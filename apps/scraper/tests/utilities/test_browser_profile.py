@@ -155,7 +155,7 @@ def reset_rate_limiter():
     rl._domain_configs = saved_configs
     for domain in list(rl._sessions.keys()):
         rl.reset_domain(domain)
-    rl._last_request.clear()
+    rl._base._last_request.clear()
 
 
 def _fast_anti_detection_domain(rl: RateLimiter, name: str) -> str:
@@ -283,7 +283,7 @@ class TestRateLimiterConcurrency:
 
         # Pre-seed slightly in the past so both coroutines still need to wait.
         seeded_time = time.time() - 0.01
-        rl._last_request[domain] = seeded_time
+        rl._base._last_request[domain] = seeded_time
 
         with patch(
             "laughtrack.utilities.infrastructure.rate_limiter.asyncio.sleep",
@@ -297,4 +297,4 @@ class TestRateLimiterConcurrency:
         # Both coroutines reserved a slot: _last_request should have been advanced
         # by at least 2 × min_interval (one slot per concurrent caller).
         min_interval = 1.0 / 2.0  # rps=2.0
-        assert rl._last_request[domain] >= seeded_time + 2 * min_interval
+        assert rl._base._last_request[domain] >= seeded_time + 2 * min_interval

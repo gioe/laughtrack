@@ -38,7 +38,7 @@ def reset_rate_limiter():
     rl._domain_configs = saved_configs
     for domain in list(rl._sessions.keys()):
         rl.reset_domain(domain)
-    rl._last_request.clear()
+    rl._base._last_request.clear()
 
 
 def _fast_anti(rl: RateLimiter, name: str, **kwargs) -> str:
@@ -123,7 +123,7 @@ class TestRateLimiterModes:
         rl.set_domain_config(domain, DomainConfig(enable_anti_detection=False, requests_per_second=100.0))
         before = time.time()
         await rl.await_if_needed(f"https://{domain}/page")
-        assert rl._last_request.get(domain, 0) >= before
+        assert rl._base._last_request.get(domain, 0) >= before
 
     def test_set_domain_limit_updates_rps(self):
         rl = RateLimiter()
@@ -365,9 +365,9 @@ class TestResetDomain:
         rl = RateLimiter()
         domain = _fast_anti(rl, "reset-lr.example.com")
         await rl.await_if_needed(f"https://{domain}/page")
-        assert domain in rl._last_request or domain in rl._sessions
+        assert domain in rl._base._last_request or domain in rl._sessions
         rl.reset_domain(domain)
-        assert domain not in rl._last_request
+        assert domain not in rl._base._last_request
 
     @pytest.mark.asyncio
     async def test_reset_clears_session(self):
