@@ -363,5 +363,8 @@ class RateLimiter:
     def reset_domain(self, domain: str) -> None:
         """Reset all rate-limiting state for a domain."""
         self._base.reset(domain)
+        # base.reset() removes the RPS config from _base._rps; re-apply so the
+        # next request uses the correct configured rate rather than the default 1.0.
+        self._base.configure(domain, self._get_config(domain).requests_per_second)
         with self._sessions_write_lock[domain]:
             self._sessions.pop(domain, None)
