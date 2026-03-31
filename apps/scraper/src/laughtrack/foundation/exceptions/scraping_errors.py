@@ -86,6 +86,10 @@ class ErrorClassifier:
         if not HAS_CURL_CFFI:
             return NetworkError("HTTP error (curl_cffi not available)", None, exception)
 
+        # If no response was passed, try to extract it from the exception itself.
+        # curl_cffi raises HTTPError with a .response attribute on raise_for_status().
+        if response is None and hasattr(exception, "response") and exception.response is not None:
+            response = exception.response
         status_code = response.status_code if response else None
 
         # Check aiohttp exception types if available
