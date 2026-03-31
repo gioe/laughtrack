@@ -93,11 +93,10 @@ class RateLimiter:
 
         # Anti-detection session state
         self._sessions: Dict[str, _RequestSession] = {}
-        # Global lock (not per-domain) — guards all writes to _sessions/_sessions_write_lock.
-        # The critical section is pure Python (dict lookup, dataclass creation,
-        # random.uniform) so lock contention is negligible (< 0.1 ms per call).
-        # Do NOT add any I/O or slow operations inside the critical section.
-        self._sessions_write_lock = threading.Lock()
+        # Per-domain locks — mirrors _domain_locks used by the RPS path.
+        # Each domain serialises its own session writes independently so different
+        # domains can proceed concurrently without blocking each other.
+        self._sessions_write_lock: Dict[str, threading.Lock] = defaultdict(threading.Lock)
 
         self._initialized = True
 
@@ -146,14 +145,14 @@ class RateLimiter:
         Call this after an HTTP error (e.g. 429, 5xx) so that exponential backoff
         in _calculate_anti_detection_delay takes effect on the next request.
         """
-        with self._sessions_write_lock:
+        with self._sessions_write_lock[domain]:
             session = self._sessions.get(domain)
             if session is not None:
                 session.consecutive_errors += 1
 
     def record_request_success(self, domain: str) -> None:
         """Reset the consecutive error counter for a domain after a successful request."""
-        with self._sessions_write_lock:
+        with self._sessions_write_lock[domain]:
             session = self._sessions.get(domain)
             if session is not None:
                 session.consecutive_errors = 0
@@ -254,7 +253,7 @@ class RateLimiter:
         # different threads, each running their own asyncio event loop.
         # All session state is updated atomically inside the lock; sleep happens
         # outside so the lock is never held across a suspension point.
-        with self._sessions_write_lock:
+        with self._sessions_write_lock[domain]:
             session = self._get_or_create_session(domain, config)
             delay = self._calculate_anti_detection_delay(session, config)
             time_since_last = (datetime.now() - session.last_request).total_seconds()
@@ -365,5 +364,5 @@ class RateLimiter:
         """Reset all rate-limiting state for a domain."""
         with self._domain_locks[domain]:
             self._last_request.pop(domain, None)
-        with self._sessions_write_lock:
+        with self._sessions_write_lock[domain]:
             self._sessions.pop(domain, None)

@@ -8,7 +8,7 @@ Covers:
 - record_request_error / record_request_success
 - reset_domain clears _last_request and _sessions
 - get_domain_user_agent before and after session creation
-- Concurrent anti-detection callers serialized by _sessions_write_lock (threading.Lock)
+- Concurrent anti-detection callers serialized by per-domain _sessions_write_lock (defaultdict(threading.Lock))
 """
 
 import asyncio
@@ -451,8 +451,8 @@ class TestAntiDetectionConcurrency:
         """Two concurrent anti-detection requests for the same domain must both
         complete without hanging and must each update session state correctly.
 
-        NOTE: With the threading.Lock fix, state (last_request, request_count) is
-        updated atomically before sleeping — not held across a suspension point.
+        NOTE: With the per-domain threading.Lock fix, state (last_request, request_count)
+        is updated atomically before sleeping — not held across a suspension point.
         This is safe across event loops in separate threads. The old asyncio.Lock
         pattern was unsafe cross-thread: asyncio.Lock.release() uses call_soon()
         on the waiting loop's Future from the wrong thread, never waking that
@@ -503,7 +503,7 @@ class TestAntiDetectionConcurrency:
                 rl.await_if_needed(f"https://{domain_b}/page"),
             )
 
-        # Both coroutines share _sessions_write_lock, but it's released before sleep,
+        # Each coroutine holds its own per-domain lock and releases before sleep,
         # so both sleeps proceed concurrently (interleaved enter/exit is expected)
         assert len(events) == 4
         assert events.count("enter") == 2
