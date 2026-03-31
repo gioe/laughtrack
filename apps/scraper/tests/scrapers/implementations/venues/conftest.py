@@ -10,7 +10,7 @@ any other file registers the same stubs first; no-op if already present.
 """
 
 import sys
-import threading
+import asyncio
 import time as _time_mod
 from pathlib import Path
 from types import ModuleType
@@ -27,14 +27,14 @@ class _FakeBaseRateLimiter:
     def __init__(self) -> None:
         self._last_request: dict = {}
         self._rps: dict = {}
-        self._lock = threading.Lock()
+        self._lock = asyncio.Lock()
 
     def configure(self, domain: str, rps: float) -> None:
         self._rps[domain] = rps
 
     async def await_if_needed(self, domain: str) -> None:
         min_interval = 1.0 / self._rps.get(domain, 1.0)
-        with self._lock:
+        async with self._lock:
             now = _time_mod.time()
             last = self._last_request.get(domain, now - min_interval)
             next_slot = max(now, last + min_interval)
@@ -44,8 +44,7 @@ class _FakeBaseRateLimiter:
         pass
 
     def reset(self, domain: str) -> None:
-        with self._lock:
-            self._last_request.pop(domain, None)
+        self._last_request.pop(domain, None)
 
     def get_stats(self) -> dict:
         now = _time_mod.time()
