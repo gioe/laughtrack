@@ -45,7 +45,9 @@ def _truncate_description_lines(lines: List[str], limit: int = _DISCORD_DESCRIPT
             break
     omitted = len(lines) - len(kept)
     if omitted > 0:
-        return "\n".join(kept) + f"\n...and {omitted} more"
+        prefix = "\n".join(kept)
+        suffix = f"...and {omitted} more"
+        return f"{prefix}\n{suffix}" if prefix else suffix
     return "\n".join(kept)
 
 

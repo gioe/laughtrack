@@ -837,8 +837,8 @@ class TestTruncateDescriptionLines:
         lines = [f"line {i}" for i in range(100)]
         result = self._fn(lines, limit=200)
         # Extract suffix count
-        kept_lines = [l for l in result.split("\n") if not l.startswith("...and")]
-        suffix_line = [l for l in result.split("\n") if l.startswith("...and")]
+        kept_lines = [line for line in result.split("\n") if not line.startswith("...and")]
+        suffix_line = [line for line in result.split("\n") if line.startswith("...and")]
         assert len(suffix_line) == 1
         omitted_count = int(suffix_line[0].split()[1])
         assert len(kept_lines) + omitted_count == 100
