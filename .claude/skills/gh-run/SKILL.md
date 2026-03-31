@@ -224,7 +224,7 @@ for line in lines:
 
 for line in meaningful:
     ll = line.lower()
-    if re.search(r"assert(ion)?error|tests? (failed|error)|fail(ed|ure)|FAILED\b", line):
+    if re.search(r"assert(ion)?error|tests? (failed|error)|fail(ed|ure)|FAILED\b", ll):
         categories["test_failure"].append(line)
     elif re.search(r"importerror|modulenotfounderror|cannot import|no module named", ll):
         categories["import_error"].append(line)
