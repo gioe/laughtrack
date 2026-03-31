@@ -8,7 +8,7 @@ Provides comprehensive validation of show data integrity.
 from typing import Any, List, Optional, Tuple
 from laughtrack.core.entities.show.model import Show
 from laughtrack.foundation.utilities.number.utils import NumberUtils
-from laughtrack.foundation.utilities.string.utils import StringUtils
+from gioe_libs.string_utils import StringUtils
 from laughtrack.utilities.domain.show.utils import ShowUtils
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.datetime import DateTimeUtils

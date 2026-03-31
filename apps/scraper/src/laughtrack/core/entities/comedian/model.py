@@ -7,7 +7,7 @@ from psycopg2.extras import DictRow
 from laughtrack.foundation.protocols.database_entity import DatabaseEntity
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.popularity.scorer import PopularityScorer
-from laughtrack.foundation.utilities.string import StringUtils
+from gioe_libs.string_utils import StringUtils
 
 
 @dataclass

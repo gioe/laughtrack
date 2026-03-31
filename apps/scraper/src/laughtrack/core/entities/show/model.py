@@ -11,7 +11,7 @@ from laughtrack.foundation.models.types import JSONDict
 from laughtrack.foundation.protocols.database_entity import DatabaseEntity
 from laughtrack.foundation.utilities.datetime import DateTimeUtils
 from laughtrack.foundation.utilities.number.utils import NumberUtils
-from laughtrack.foundation.utilities.string.utils import StringUtils
+from gioe_libs.string_utils import StringUtils
 from laughtrack.foundation.utilities.url.utils import URLUtils
 
 

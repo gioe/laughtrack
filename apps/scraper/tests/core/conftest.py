@@ -56,9 +56,28 @@ class _FakeBaseRateLimiter:
 
 _gioe_rl = ModuleType("gioe_libs.rate_limiter")
 _gioe_rl.RateLimiter = _FakeBaseRateLimiter  # type: ignore[attr-defined]
+
+from unittest.mock import MagicMock as _MagicMock
+_gioe_su = ModuleType("gioe_libs.string_utils")
+_gioe_su.StringUtils = _MagicMock()  # type: ignore[attr-defined]
+
+# Load real StringUtils before registering gioe_libs stub (gioe_libs.string_utils is pure stdlib)
+import importlib.util as _ilu
+_su_spec = _ilu.find_spec("gioe_libs.string_utils")
+if _su_spec:
+    _su_mod = _ilu.module_from_spec(_su_spec)
+    _su_spec.loader.exec_module(_su_mod)
+    _RealStringUtils = _su_mod.StringUtils
+else:
+    from unittest.mock import MagicMock as _MagicMock
+    _RealStringUtils = _MagicMock
+_gioe_su = ModuleType("gioe_libs.string_utils")
+_gioe_su.StringUtils = _RealStringUtils  # type: ignore[attr-defined]
 _gioe_mod = ModuleType("gioe_libs")
 sys.modules.setdefault("gioe_libs", _gioe_mod)
 sys.modules.setdefault("gioe_libs.rate_limiter", _gioe_rl)
+sys.modules.setdefault("gioe_libs.string_utils", _gioe_su)
+sys.modules.setdefault("gioe_libs.string_utils", _gioe_su)
 
 # ---------------------------------------------------------------------------
 # Pre-stub laughtrack.utilities.infrastructure so __init__.py doesn't run.

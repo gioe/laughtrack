@@ -38,6 +38,9 @@ pandas>=2.0.0           # Required by pgeocode
 google-auth>=2.0.0             # OAuth2 authentication for Google APIs
 google-api-python-client>=2.0.0 # Google API client library (Gmail, etc.)
 
+# Internal Libraries
+gioe-libs @ git+https://github.com/gioe/python-libs.git  # Shared infrastructure utilities
+
 # System/Build Dependencies
 wheel                   # Python wheel package format
 pathlib>=1.0.1         # Path handling (usually built-in in Python 3.4+)

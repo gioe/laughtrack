@@ -7,7 +7,7 @@ from typing import Any, List, Optional, Union
 
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.models.types import JSONDict, JSONValue, T
-from laughtrack.foundation.utilities.string import StringUtils
+from gioe_libs.string_utils import StringUtils
 
 
 class JSONUtils:

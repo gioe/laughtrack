@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup as bs
 from bs4.element import Tag
 
 from laughtrack.foundation.models.types import JSONDict
-from laughtrack.foundation.utilities.string import StringUtils
+from gioe_libs.string_utils import StringUtils
 from laughtrack.foundation.utilities.url import URLUtils
 from urllib.parse import urlsplit, urlunsplit
 

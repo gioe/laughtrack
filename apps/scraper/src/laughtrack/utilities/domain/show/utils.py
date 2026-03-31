@@ -8,7 +8,7 @@ from psycopg2.extras import DictRow
 from laughtrack.core.entities.show.model import Show
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.datetime import DateTimeUtils
-from laughtrack.foundation.utilities.string import StringUtils
+from gioe_libs.string_utils import StringUtils
 from laughtrack.foundation.models.types import DuplicateKeyDetails, DuplicateShowRef
 from laughtrack.foundation.utilities.entity.validation import deduplicate_entities_with_details
 

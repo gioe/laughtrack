@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, Set
 from laughtrack.core.entities.comedian.model import Comedian
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.popularity.scorer import PopularityScorer
-from laughtrack.foundation.utilities.string import StringUtils
+from gioe_libs.string_utils import StringUtils
 
 
 class ComedianUtils:

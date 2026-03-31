@@ -12,7 +12,7 @@ from laughtrack.core.entities.show.model import Show
 from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.utilities.domain.show.utils import ShowUtils
 from laughtrack.foundation.infrastructure.logger.logger import Logger
-from laughtrack.foundation.utilities.string import StringUtils
+from gioe_libs.string_utils import StringUtils
 
 
 class ShowEnhancement:
