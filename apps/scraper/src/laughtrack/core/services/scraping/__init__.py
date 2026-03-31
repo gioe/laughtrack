@@ -24,6 +24,29 @@ from laughtrack.foundation.models.operation_result import DatabaseOperationResul
 _DEFAULT_SUCCESS_RATE_THRESHOLD = 70.0
 _DEFAULT_MAX_CONCURRENT_CLUBS = 5
 _OUTAGE_THRESHOLD = 0.80  # fraction of clubs per scraper type that must fail to trigger a summary alert
+_DISCORD_DESCRIPTION_LIMIT = 2048  # conservative limit; Discord's actual embed description cap is 4096
+
+
+def _truncate_description_lines(lines: List[str], limit: int = _DISCORD_DESCRIPTION_LIMIT) -> str:
+    """Join lines into a Discord embed description, truncating with a count suffix if over limit."""
+    if not lines:
+        return ""
+    full = "\n".join(lines)
+    if len(full) <= limit:
+        return full
+    kept: List[str] = []
+    for i, line in enumerate(lines):
+        body_with_line = "\n".join(kept + [line])
+        remaining = len(lines) - i - 1
+        suffix = f"\n...and {remaining} more" if remaining > 0 else ""
+        if len(body_with_line) + len(suffix) <= limit:
+            kept.append(line)
+        else:
+            break
+    omitted = len(lines) - len(kept)
+    if omitted > 0:
+        return "\n".join(kept) + f"\n...and {omitted} more"
+    return "\n".join(kept)
 
 
 def _scrape_with_context(scraper: BaseScraper, club: Club) -> ClubScrapingResult:
@@ -309,7 +332,7 @@ class ScrapingService:
             alert = Alert(
                 id=str(uuid.uuid4()),
                 title=f"Scraping success rate below {self.success_rate_threshold:.0f}% threshold",
-                description="\n".join(all_lines),
+                description=_truncate_description_lines(all_lines),
                 severity=AlertSeverity.HIGH,
                 timestamp=datetime.now(timezone.utc),
                 source="ScrapingService",
@@ -391,7 +414,7 @@ class ScrapingService:
             alert = Alert(
                 id=str(uuid.uuid4()),
                 title=title,
-                description="\n".join(body_lines),
+                description=_truncate_description_lines(body_lines),
                 severity=AlertSeverity.LOW,
                 timestamp=datetime.now(timezone.utc),
                 source="ScrapingService",
