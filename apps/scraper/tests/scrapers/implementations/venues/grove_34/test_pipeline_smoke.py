@@ -103,6 +103,35 @@ async def test_get_data_returns_event_from_json_ld(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_get_data_skips_past_events(monkeypatch):
+    """get_data() returns None for events whose start_date is in the past."""
+    scraper = Grove34Scraper(_club())
+
+    async def fake_fetch(self, url: str) -> str:
+        return _show_detail_html(start_date="2025-12-12T02:00:00.000Z")
+
+    monkeypatch.setattr(Grove34Scraper, "fetch_html_bare", fake_fetch)
+
+    result = await scraper.get_data(SHOW_URL)
+    assert result is None, "get_data() should return None for a past event"
+
+
+@pytest.mark.asyncio
+async def test_get_data_includes_future_events(monkeypatch):
+    """get_data() returns data for events whose start_date is in the future."""
+    scraper = Grove34Scraper(_club())
+
+    async def fake_fetch(self, url: str) -> str:
+        return _show_detail_html(start_date="2099-01-01T20:00:00.000Z")
+
+    monkeypatch.setattr(Grove34Scraper, "fetch_html_bare", fake_fetch)
+
+    result = await scraper.get_data(SHOW_URL)
+    assert result is not None, "get_data() should return data for a future event"
+    assert len(result.event_list) == 1
+
+
+@pytest.mark.asyncio
 async def test_full_pipeline_discover_then_get_data(monkeypatch):
     """Full pipeline: collect_scraping_targets() → get_data() produces at least one event."""
     scraper = Grove34Scraper(_club())

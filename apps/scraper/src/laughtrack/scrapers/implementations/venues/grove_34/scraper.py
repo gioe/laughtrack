@@ -10,6 +10,7 @@ Scraping strategy:
 2. get_data(show_url): fetch each show detail page, extract JSON-LD event
 """
 
+from datetime import datetime, timezone
 from typing import List, Optional
 
 from laughtrack.core.entities.club.model import Club
@@ -90,6 +91,20 @@ class Grove34Scraper(BaseScraper):
             if not event:
                 Logger.warning(f"{self._log_prefix}: No event extracted from {url}", self.logger_context)
                 return None
+
+            # Skip events whose start_date has already passed — the listing page
+            # retains links to past shows, which either 404 or contain stale data.
+            try:
+                clean = event.start_date.split(".")[0].rstrip("Z") + "Z"
+                event_dt = datetime.strptime(clean, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+                if event_dt < datetime.now(timezone.utc):
+                    Logger.info(
+                        f"{self._log_prefix}: Skipping past event '{event.title}' (started {event.start_date}) at {url}",
+                        self.logger_context,
+                    )
+                    return None
+            except Exception:
+                pass  # Unparseable date — include the event conservatively
 
             return Grove34PageData([event])
 
