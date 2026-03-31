@@ -4,8 +4,9 @@ Usage:
     python -m laughtrack.app.cli <command> [args...]
 
 Commands:
-    audit-show    Dry-run lineup comparison for a specific show.
-    manage-subscriptions  Manage email subscription tracking for clubs.
+    audit-show                  Dry-run lineup comparison for a specific show.
+    manage-subscriptions        Manage email subscription tracking for clubs.
+    notify-comedian-arrivals    Send notification emails when followed comedians have nearby shows.
 
 Run any command with --help for full usage details.
 """
@@ -17,11 +18,13 @@ import sys
 _COMMANDS = {
     "audit-show": "laughtrack.app.commands.audit_show",
     "manage-subscriptions": "laughtrack.app.commands.manage_subscriptions",
+    "notify-comedian-arrivals": "laughtrack.app.commands.notify_comedian_arrivals",
 }
 
 _HELP = {
     "audit-show": "Dry-run lineup comparison for a specific show.",
     "manage-subscriptions": "Manage email subscription tracking for clubs.",
+    "notify-comedian-arrivals": "Send notification emails when followed comedians have nearby shows.",
 }
 
 

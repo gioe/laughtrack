@@ -82,6 +82,24 @@ jobs:
         run: |
           python -m scripts.core.update_popularity --comedians
 
+      - name: Send comedian arrival notifications
+        if: always()
+        env:
+          DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+          DATABASE_USER: ${{ secrets.DATABASE_USER }}
+          DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
+          DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+          DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
+          EMAIL_SMTP_SERVER: ${{ secrets.EMAIL_SMTP_SERVER }}
+          EMAIL_SMTP_PORT: ${{ secrets.EMAIL_SMTP_PORT }}
+          EMAIL_SMTP_USERNAME: ${{ secrets.EMAIL_SMTP_USERNAME }}
+          EMAIL_SMTP_PASSWORD: ${{ secrets.EMAIL_SMTP_PASSWORD }}
+          EMAIL_SMTP_USE_TLS: ${{ secrets.EMAIL_SMTP_USE_TLS }}
+          EMAIL_FROM_EMAIL: ${{ secrets.EMAIL_FROM_EMAIL }}
+          EMAIL_FROM_NAME: ${{ secrets.EMAIL_FROM_NAME }}
+        run: |
+          python -m laughtrack.app.cli notify-comedian-arrivals --radius 50 --days-ahead 30
+
       - name: Upload scraper logs
         uses: actions/upload-artifact@v4
         if: always()
