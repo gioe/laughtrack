@@ -801,3 +801,88 @@ class TestSendWebhookRunSummary:
             MockConfig.default.return_value = mock_config
             svc._send_webhook_run_summary(summary, db_result)
             mock_run.assert_not_called()
+
+
+class TestTruncateDescriptionLines:
+    """Unit tests for _truncate_description_lines embed-body helper."""
+
+    def _fn(self, lines, limit):
+        from laughtrack.core.services.scraping import _truncate_description_lines
+        return _truncate_description_lines(lines, limit=limit)
+
+    def test_short_list_is_returned_unchanged(self):
+        lines = ["line one", "line two", "line three"]
+        result = self._fn(lines, limit=2048)
+        assert result == "\n".join(lines)
+
+    def test_empty_list_returns_empty_string(self):
+        assert self._fn([], limit=2048) == ""
+
+    def test_result_never_exceeds_limit(self):
+        # 337 domains each with a realistic line length (~60 chars)
+        lines = [
+            f"• Club {i}: 0% (0/1 ok, 0 empty, 1 errors)"
+            for i in range(337)
+        ]
+        result = self._fn(lines, limit=2048)
+        assert len(result) <= 2048
+
+    def test_truncated_result_contains_and_more_suffix(self):
+        lines = [f"• Club {i}: 0% (0/1 ok, 0 empty, 1 errors)" for i in range(337)]
+        result = self._fn(lines, limit=2048)
+        assert "...and " in result
+        assert "more" in result
+
+    def test_truncated_suffix_count_is_accurate(self):
+        lines = [f"line {i}" for i in range(100)]
+        result = self._fn(lines, limit=200)
+        # Extract suffix count
+        kept_lines = [l for l in result.split("\n") if not l.startswith("...and")]
+        suffix_line = [l for l in result.split("\n") if l.startswith("...and")]
+        assert len(suffix_line) == 1
+        omitted_count = int(suffix_line[0].split()[1])
+        assert len(kept_lines) + omitted_count == 100
+
+    def test_outage_lines_appear_before_individual_clubs(self):
+        """Platform-wide outage summaries (first in list) must not be dropped when truncating."""
+        outage = ["⚠️ eventbrite appears to be down (50/50 venues failed)"]
+        clubs = [f"• Club {i}: 0% (0/1 ok, 0 empty, 1 errors)" for i in range(200)]
+        lines = outage + clubs
+        result = self._fn(lines, limit=2048)
+        assert outage[0] in result
+
+    def test_discord_alert_description_never_exceeds_limit_with_many_failing(self):
+        """Integration-style: _send_discord_alert must not produce an embed body > 2048 chars."""
+        from laughtrack.core.services.scraping import ScrapingService
+        from unittest.mock import AsyncMock
+
+        with patch.object(ScrapingService, '__init__', lambda self, *a, **kw: None):
+            svc = ScrapingService.__new__(ScrapingService)
+            svc.success_rate_threshold = 70.0
+
+        # Build 337 failing metrics (mirrors the real incident)
+        failing = [
+            DomainRequestMetrics(club_name=f"Club {i}", total=1, ok=0, error=1)
+            for i in range(337)
+        ]
+
+        sent_alerts = []
+
+        async def fake_send(alert):
+            sent_alerts.append(alert)
+            return True
+
+        mock_channel = MagicMock()
+        mock_channel.send_alert = fake_send
+
+        mock_config = MagicMock()
+        mock_config.is_discord_configured.return_value = True
+        mock_config.discord_webhook_url = "https://discord.example/webhook"
+
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
+             patch('laughtrack.infrastructure.monitoring.channels.DiscordAlertChannel', return_value=mock_channel):
+            MockConfig.default.return_value = mock_config
+            svc._send_discord_alert(failing)
+
+        assert len(sent_alerts) == 1
+        assert len(sent_alerts[0].description) <= 2048
