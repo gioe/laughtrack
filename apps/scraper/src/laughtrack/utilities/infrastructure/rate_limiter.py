@@ -342,23 +342,33 @@ class RateLimiter:
 
     def get_stats(self) -> Dict[str, Dict]:
         """Return rate-limiting statistics for all known domains."""
+        # Snapshot mutable shared state under the appropriate locks.
+        # _domain_configs and _last_request are guarded by _global_lock;
+        # _sessions is guarded by per-domain _sessions_write_lock.
+        # Take the two snapshots separately to avoid holding _global_lock
+        # while acquiring per-domain locks (prevents lock-order inversion).
         with self._global_lock:
-            stats = {}
-            for domain, config in self._domain_configs.items():
-                last = self._last_request.get(domain, 0)
-                entry: Dict = {
-                    "mode": "anti_detection" if config.enable_anti_detection else "rps",
-                    "requests_per_second": config.requests_per_second,
-                    "last_request": datetime.fromtimestamp(last) if last else None,
-                    "time_since_last": time.time() - last if last else None,
-                }
-                if config.enable_anti_detection and domain in self._sessions:
-                    s = self._sessions[domain]
-                    entry["session_id"] = s.session_id
-                    entry["session_requests"] = s.request_count
-                    entry["consecutive_errors"] = s.consecutive_errors
-                stats[domain] = entry
-            return stats
+            domain_configs = list(self._domain_configs.items())
+            last_requests = dict(self._last_request)
+
+        stats = {}
+        for domain, config in domain_configs:
+            last = last_requests.get(domain, 0)
+            entry: Dict = {
+                "mode": "anti_detection" if config.enable_anti_detection else "rps",
+                "requests_per_second": config.requests_per_second,
+                "last_request": datetime.fromtimestamp(last) if last else None,
+                "time_since_last": time.time() - last if last else None,
+            }
+            if config.enable_anti_detection:
+                with self._sessions_write_lock[domain]:
+                    s = self._sessions.get(domain)
+                    if s is not None:
+                        entry["session_id"] = s.session_id
+                        entry["session_requests"] = s.request_count
+                        entry["consecutive_errors"] = s.consecutive_errors
+            stats[domain] = entry
+        return stats
 
     def reset_domain(self, domain: str) -> None:
         """Reset all rate-limiting state for a domain."""
