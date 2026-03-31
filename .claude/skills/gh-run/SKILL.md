@@ -175,10 +175,10 @@ print(f"\n── Failure Analysis {'─'*46}")
 sys.stdout.flush()
 PYEOF
 
-# Fetch failure logs only for failed/cancelled runs
+# Fetch failure logs only for failed/cancelled/timed_out runs
 CONCLUSION=$(python3 -c "import json,sys; d=json.load(open(sys.argv[1])); print(d.get('conclusion',''))" "$TMPFILE")
 
-if [ "$CONCLUSION" = "failure" ] || [ "$CONCLUSION" = "cancelled" ]; then
+if [ "$CONCLUSION" = "failure" ] || [ "$CONCLUSION" = "cancelled" ] || [ "$CONCLUSION" = "timed_out" ]; then
     echo "  Fetching failure logs..."
     LOGFILE=$(mktemp /tmp/gh-run-logs-XXXXXX.txt)
     gh run view RUNID --repo OWNER/REPO --log-failed > "$LOGFILE" 2>&1
