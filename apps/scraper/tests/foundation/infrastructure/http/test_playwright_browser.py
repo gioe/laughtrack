@@ -380,6 +380,39 @@ class TestPlaywrightBrowser:
         new_loop.run_until_complete.assert_called_once_with(close_coro)
         mock_rcts.assert_not_called()
 
+    def test_atexit_close_calls_close_when_browser_is_none_but_pw_cm_is_set(self):
+        """_atexit_close still calls close() when _browser is None but _pw_cm is set.
+
+        This is the partial-launch scenario: async_playwright().__aenter__() succeeded
+        but chromium.launch() failed, leaving _pw_cm non-None and _browser None.
+        The old guard 'if browser is None or browser._browser is None: return' would
+        have skipped close(), leaking the _pw_cm resource.
+        """
+        import weakref
+        from laughtrack.foundation.infrastructure.http.playwright_browser import _atexit_close
+
+        mock_browser_obj = MagicMock()
+        mock_browser_obj._browser = None          # launch failed / not yet launched
+        mock_browser_obj._pw_cm = MagicMock()     # context manager was entered
+        mock_browser_obj._launch_loop = None
+
+        close_coro = MagicMock()
+        mock_browser_obj.close = MagicMock(return_value=close_coro)
+
+        new_loop = MagicMock()
+
+        with (
+            patch("asyncio.new_event_loop", return_value=new_loop),
+            patch("asyncio.run_coroutine_threadsafe") as mock_rcts,
+        ):
+            ref = weakref.ref(mock_browser_obj)
+            _atexit_close(ref)
+
+        # close() must be called so _pw_cm.__aexit__ has a chance to run
+        mock_browser_obj.close.assert_called_once()
+        new_loop.run_until_complete.assert_called_once_with(close_coro)
+        mock_rcts.assert_not_called()
+
     def test_atexit_close_does_not_raise_when_future_times_out(self):
         """_atexit_close silently absorbs a TimeoutError from future.result()."""
         import weakref
