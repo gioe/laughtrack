@@ -16,6 +16,8 @@ pytestmark = pytest.mark.skipif(
 )
 
 from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.show.model import Show
+from laughtrack.core.entities.event.grove34 import Grove34Event
 from laughtrack.scrapers.implementations.venues.grove_34.scraper import Grove34Scraper
 from laughtrack.scrapers.implementations.venues.grove_34.data import Grove34PageData
 
@@ -67,6 +69,31 @@ def _make_fake_fetch_html_bare(listing_html: str, show_html: str):
             return show_html
         return listing_html
     return fake_fetch
+
+
+def _make_event(title: str = "Comedy Night") -> Grove34Event:
+    return Grove34Event(
+        title=title,
+        start_date="2099-01-01T20:00:00.000Z",
+        show_page_url=SHOW_URL,
+        timezone_id="America/New_York",
+    )
+
+
+def test_transformation_pipeline_produces_shows():
+    club = _club()
+    scraper = Grove34Scraper(club)
+    events = [_make_event("Show A"), _make_event("Show B")]
+    page_data = Grove34PageData(event_list=events)
+
+    shows = scraper.transformation_pipeline.transform(page_data)
+
+    assert len(shows) > 0, (
+        "transformation_pipeline.transform() returned 0 Shows — "
+        "check can_transform() and that the transformer is registered "
+        "with the correct generic type"
+    )
+    assert all(isinstance(s, Show) for s in shows)
 
 
 @pytest.mark.asyncio
