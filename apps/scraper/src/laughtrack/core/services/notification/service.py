@@ -7,6 +7,7 @@ emails, and records sent notifications to prevent duplicates.
 
 from __future__ import annotations
 
+import html as html_module
 from typing import Dict
 
 from laughtrack.core.data.db_connection import get_connection
@@ -71,21 +72,23 @@ def _build_email_html(
     show_page_url: str,
 ) -> str:
     date_str = show_date.strftime("%A, %B %-d, %Y at %-I:%M %p") if hasattr(show_date, "strftime") else str(show_date)
-    location = ", ".join(filter(None, [club_city, club_state]))
+    e_comedian = html_module.escape(comedian_name)
+    e_club = html_module.escape(club_name)
+    e_location = html_module.escape(", ".join(filter(None, [club_city, club_state])))
     ticket_line = (
-        f'<p><a href="{show_page_url}" style="color:#1a73e8;">View show and buy tickets</a></p>'
+        f'<p><a href="{html_module.escape(show_page_url)}" style="color:#1a73e8;">View show and buy tickets</a></p>'
         if show_page_url
         else ""
     )
     return f"""<!DOCTYPE html>
 <html>
 <body style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <h2 style="color: #1a1a1a;">{comedian_name} is performing near you!</h2>
+  <h2 style="color: #1a1a1a;">{e_comedian} is performing near you!</h2>
   <p>Great news — one of your favorite comedians has an upcoming show in your area.</p>
   <table style="width:100%; border-collapse:collapse; margin: 16px 0;">
     <tr>
       <td style="padding: 8px 0; font-weight: bold; width: 120px;">Comedian:</td>
-      <td style="padding: 8px 0;">{comedian_name}</td>
+      <td style="padding: 8px 0;">{e_comedian}</td>
     </tr>
     <tr>
       <td style="padding: 8px 0; font-weight: bold;">Date:</td>
@@ -93,17 +96,17 @@ def _build_email_html(
     </tr>
     <tr>
       <td style="padding: 8px 0; font-weight: bold;">Venue:</td>
-      <td style="padding: 8px 0;">{club_name}</td>
+      <td style="padding: 8px 0;">{e_club}</td>
     </tr>
     <tr>
       <td style="padding: 8px 0; font-weight: bold;">Location:</td>
-      <td style="padding: 8px 0;">{location}</td>
+      <td style="padding: 8px 0;">{e_location}</td>
     </tr>
   </table>
   {ticket_line}
   <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;">
   <p style="color: #666; font-size: 12px;">
-    You're receiving this email because you follow {comedian_name} on LaughTrack and have
+    You're receiving this email because you follow {e_comedian} on LaughTrack and have
     enabled show notifications. To unsubscribe, visit your account settings at
     <a href="https://laugh-track.com">laugh-track.com</a>.
   </p>
