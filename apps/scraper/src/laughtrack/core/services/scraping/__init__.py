@@ -25,6 +25,7 @@ _DEFAULT_SUCCESS_RATE_THRESHOLD = 70.0
 _DEFAULT_MAX_CONCURRENT_CLUBS = 5
 _OUTAGE_THRESHOLD = 0.80  # fraction of clubs per scraper type that must fail to trigger a summary alert
 _DISCORD_DESCRIPTION_LIMIT = 2048  # conservative limit; Discord's actual embed description cap is 4096
+_TEXT_CHANNEL_BODY_LIMIT = 8000  # soft cap for email/webhook channels; no hard limit but avoids huge payloads
 
 
 def _truncate_description_lines(lines: List[str], limit: int = _DISCORD_DESCRIPTION_LIMIT) -> str:
@@ -593,7 +594,7 @@ class ScrapingService:
             alert = Alert(
                 id=str(uuid.uuid4()),
                 title=f"Scraping success rate below {self.success_rate_threshold:.0f}% threshold",
-                description="\n".join(all_lines),
+                description=_truncate_description_lines(all_lines, limit=_TEXT_CHANNEL_BODY_LIMIT),
                 severity=AlertSeverity.HIGH,
                 timestamp=datetime.now(timezone.utc),
                 source="ScrapingService",
@@ -646,7 +647,7 @@ class ScrapingService:
             alert = Alert(
                 id=str(uuid.uuid4()),
                 title=f"Scraping success rate below {self.success_rate_threshold:.0f}% threshold",
-                description="\n".join(all_lines),
+                description=_truncate_description_lines(all_lines, limit=_TEXT_CHANNEL_BODY_LIMIT),
                 severity=AlertSeverity.HIGH,
                 timestamp=datetime.now(timezone.utc),
                 source="ScrapingService",
