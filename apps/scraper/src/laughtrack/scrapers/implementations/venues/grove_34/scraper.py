@@ -103,8 +103,11 @@ class Grove34Scraper(BaseScraper):
                         self.logger_context,
                     )
                     return None
-            except Exception:
-                pass  # Unparseable date — include the event conservatively
+            except Exception as date_err:
+                Logger.warning(
+                    f"{self._log_prefix}: Could not parse start_date '{event.start_date}' for past-event filter at {url}: {date_err}",
+                    self.logger_context,
+                )
 
             return Grove34PageData([event])
 
