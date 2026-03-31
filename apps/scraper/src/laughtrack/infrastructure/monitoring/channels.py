@@ -76,12 +76,17 @@ class DiscordAlertChannel(AlertChannel):
     def __init__(self, webhook_url: str):
         self.webhook_url = webhook_url
 
+    _EMBED_DESCRIPTION_LIMIT = 2048
+
     async def send_alert(self, alert: Alert) -> bool:
         try:
             color = self._SEVERITY_COLORS.get(alert.severity.value, 0x888888)
+            description = alert.description
+            if len(description) > self._EMBED_DESCRIPTION_LIMIT:
+                description = description[: self._EMBED_DESCRIPTION_LIMIT - 3] + "..."
             embed: Dict = {
                 "title": f"[{alert.severity.value.upper()}] {alert.title}",
-                "description": alert.description,
+                "description": description,
                 "color": color,
                 "fields": [
                     {"name": "Source", "value": alert.source, "inline": True},

@@ -113,3 +113,26 @@ async def test_send_alert_includes_footer_when_metadata_present(alert, channel):
     embed = call_kwargs["json"]["embeds"][0]
     assert "footer" in embed
     assert "club_id" in embed["footer"]["text"]
+
+
+@pytest.mark.asyncio
+async def test_send_alert_truncates_long_description_and_delivers(channel):
+    """A >2048-char description must be truncated, not silently dropped (HTTP 400)."""
+    long_description = "x" * 4000
+    oversized_alert = Alert(
+        id="test-big",
+        title="Big Alert",
+        description=long_description,
+        severity=AlertSeverity.HIGH,
+        timestamp=datetime(2026, 3, 31, 12, 0, 0),
+        source="scraper",
+        metadata={},
+    )
+    session = _mock_session(200)
+    with patch("laughtrack.infrastructure.monitoring.channels.AsyncSession", return_value=session):
+        result = await channel.send_alert(oversized_alert)
+
+    assert result is True
+    embed = session.post.call_args.kwargs["json"]["embeds"][0]
+    assert len(embed["description"]) <= 2048
+    assert embed["description"].endswith("...")
