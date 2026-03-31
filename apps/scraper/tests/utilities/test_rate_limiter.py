@@ -479,6 +479,41 @@ class TestAntiDetectionConcurrency:
         # Both calls completed; request_count must reflect exactly 2 more increments.
         assert rl._sessions[domain].request_count == count_after_first + 2
 
+    def test_cross_thread_no_deadlock(self):
+        """Two threads each running asyncio.run(rl.await_if_needed(url)) on the same
+        domain must both complete within 2 seconds.
+
+        Regression test for TASK-824: the old asyncio.Lock implementation deadlocked
+        in this scenario because lock.release() schedules on the acquiring loop's
+        Future via call_soon(), but that call_soon() runs on the *releasing* thread's
+        loop — the waiting thread's selector.select() never wakes up.  The fix uses
+        a per-domain threading.Lock (defaultdict(threading.Lock)) which is
+        thread-safe by design and does not involve event-loop scheduling.
+        """
+        import threading
+
+        rl = RateLimiter()
+        domain = _fast_anti(rl, "cross-thread.example.com", min_delay=0.0, max_delay=0.0)
+
+        errors: list[Exception] = []
+
+        def run_in_thread():
+            try:
+                asyncio.run(rl.await_if_needed(f"https://{domain}/page"))
+            except Exception as exc:
+                errors.append(exc)
+
+        t1 = threading.Thread(target=run_in_thread, daemon=True)
+        t2 = threading.Thread(target=run_in_thread, daemon=True)
+        t1.start()
+        t2.start()
+        t1.join(timeout=2.0)
+        t2.join(timeout=2.0)
+
+        assert not t1.is_alive(), "Thread 1 hung — possible asyncio.Lock cross-thread deadlock regression"
+        assert not t2.is_alive(), "Thread 2 hung — possible asyncio.Lock cross-thread deadlock regression"
+        assert errors == [], f"Thread raised an exception: {errors}"
+
     @pytest.mark.asyncio
     async def test_different_domains_run_concurrently(self):
         """Requests for different domains must NOT block each other."""
