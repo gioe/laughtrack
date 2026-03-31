@@ -754,6 +754,73 @@ class TestSendEmailRunSummary:
             svc._send_email_run_summary(summary, db_result)
             mock_run.assert_not_called()
 
+    def test_run_summary_body_never_exceeds_text_channel_limit(self):
+        """Email run summary body must be capped at _TEXT_CHANNEL_BODY_LIMIT chars."""
+        from laughtrack.core.services.scraping import ScrapingService, _TEXT_CHANNEL_BODY_LIMIT
+        from laughtrack.infrastructure.monitoring.alerts import Alert, AlertSeverity
+
+        svc = self._make_service()
+        # Build a summary with enough clubs to blow past 8000 chars
+        s = ScrapingRunSummary()
+        for i in range(300):
+            s.per_club.append(_make_metric(f"Club {i}", ok=1, error=0))
+        db_result = self._make_db_result()
+
+        captured_alerts = []
+
+        def fake_Alert(**kwargs):
+            a = MagicMock()
+            a.description = kwargs.get("description", "")
+            captured_alerts.append(a)
+            return a
+
+        mock_config = MagicMock()
+        mock_config.is_email_configured.return_value = True
+        mock_config.alert_recipients = ["ops@example.com"]
+
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
+             patch('laughtrack.infrastructure.monitoring.alerts.Alert', side_effect=fake_Alert), \
+             patch('laughtrack.infrastructure.monitoring.channels.EmailAlertChannel'), \
+             patch('asyncio.run'):
+            MockConfig.default.return_value = mock_config
+            svc._send_email_run_summary(s, db_result)
+
+        assert len(captured_alerts) == 1
+        assert len(captured_alerts[0].description) <= _TEXT_CHANNEL_BODY_LIMIT
+
+    def test_run_summary_body_includes_omitted_count_when_truncated(self):
+        """Email run summary truncation suffix must count omitted lines."""
+        from laughtrack.core.services.scraping import ScrapingService
+
+        svc = self._make_service()
+        s = ScrapingRunSummary()
+        for i in range(300):
+            s.per_club.append(_make_metric(f"Club {i}", ok=1, error=0))
+        db_result = self._make_db_result()
+
+        captured_alerts = []
+
+        def fake_Alert(**kwargs):
+            a = MagicMock()
+            a.description = kwargs.get("description", "")
+            captured_alerts.append(a)
+            return a
+
+        mock_config = MagicMock()
+        mock_config.is_email_configured.return_value = True
+        mock_config.alert_recipients = ["ops@example.com"]
+
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
+             patch('laughtrack.infrastructure.monitoring.alerts.Alert', side_effect=fake_Alert), \
+             patch('laughtrack.infrastructure.monitoring.channels.EmailAlertChannel'), \
+             patch('asyncio.run'):
+            MockConfig.default.return_value = mock_config
+            svc._send_email_run_summary(s, db_result)
+
+        assert len(captured_alerts) == 1
+        assert "...and " in captured_alerts[0].description
+        assert "more" in captured_alerts[0].description
+
 
 class TestSendWebhookRunSummary:
     """Tests for _send_webhook_run_summary."""
@@ -801,6 +868,73 @@ class TestSendWebhookRunSummary:
             MockConfig.default.return_value = mock_config
             svc._send_webhook_run_summary(summary, db_result)
             mock_run.assert_not_called()
+
+    def test_run_summary_body_never_exceeds_text_channel_limit(self):
+        """Webhook run summary body must be capped at _TEXT_CHANNEL_BODY_LIMIT chars."""
+        from laughtrack.core.services.scraping import ScrapingService, _TEXT_CHANNEL_BODY_LIMIT
+
+        svc = self._make_service()
+        s = ScrapingRunSummary()
+        for i in range(300):
+            s.per_club.append(_make_metric(f"Club {i}", ok=1, error=0))
+        db_result = self._make_db_result()
+
+        captured_alerts = []
+
+        def fake_Alert(**kwargs):
+            a = MagicMock()
+            a.description = kwargs.get("description", "")
+            captured_alerts.append(a)
+            return a
+
+        mock_config = MagicMock()
+        mock_config.is_webhook_configured.return_value = True
+        mock_config.webhook_url = "https://hooks.example.com/run"
+        mock_config.webhook_headers = {}
+
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
+             patch('laughtrack.infrastructure.monitoring.alerts.Alert', side_effect=fake_Alert), \
+             patch('laughtrack.infrastructure.monitoring.channels.WebhookAlertChannel'), \
+             patch('asyncio.run'):
+            MockConfig.default.return_value = mock_config
+            svc._send_webhook_run_summary(s, db_result)
+
+        assert len(captured_alerts) == 1
+        assert len(captured_alerts[0].description) <= _TEXT_CHANNEL_BODY_LIMIT
+
+    def test_run_summary_body_includes_omitted_count_when_truncated(self):
+        """Webhook run summary truncation suffix must count omitted lines."""
+        from laughtrack.core.services.scraping import ScrapingService
+
+        svc = self._make_service()
+        s = ScrapingRunSummary()
+        for i in range(300):
+            s.per_club.append(_make_metric(f"Club {i}", ok=1, error=0))
+        db_result = self._make_db_result()
+
+        captured_alerts = []
+
+        def fake_Alert(**kwargs):
+            a = MagicMock()
+            a.description = kwargs.get("description", "")
+            captured_alerts.append(a)
+            return a
+
+        mock_config = MagicMock()
+        mock_config.is_webhook_configured.return_value = True
+        mock_config.webhook_url = "https://hooks.example.com/run"
+        mock_config.webhook_headers = {}
+
+        with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
+             patch('laughtrack.infrastructure.monitoring.alerts.Alert', side_effect=fake_Alert), \
+             patch('laughtrack.infrastructure.monitoring.channels.WebhookAlertChannel'), \
+             patch('asyncio.run'):
+            MockConfig.default.return_value = mock_config
+            svc._send_webhook_run_summary(s, db_result)
+
+        assert len(captured_alerts) == 1
+        assert "...and " in captured_alerts[0].description
+        assert "more" in captured_alerts[0].description
 
 
 class TestTruncateDescriptionLines:

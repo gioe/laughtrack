@@ -478,7 +478,7 @@ class ScrapingService:
             alert = Alert(
                 id=str(uuid.uuid4()),
                 title=title,
-                description="\n".join(body_lines),
+                description=_truncate_description_lines(body_lines, limit=_TEXT_CHANNEL_BODY_LIMIT),
                 severity=AlertSeverity.LOW,
                 timestamp=datetime.now(timezone.utc),
                 source="ScrapingService",
@@ -539,7 +539,7 @@ class ScrapingService:
             alert = Alert(
                 id=str(uuid.uuid4()),
                 title=title,
-                description="\n".join(body_lines),
+                description=_truncate_description_lines(body_lines, limit=_TEXT_CHANNEL_BODY_LIMIT),
                 severity=AlertSeverity.LOW,
                 timestamp=datetime.now(timezone.utc),
                 source="ScrapingService",
