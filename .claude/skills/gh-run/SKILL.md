@@ -1,6 +1,6 @@
 ---
 name: gh-run
-description: Inspect a GitHub Actions run — prints header, per-job breakdown, and categorized failure insights. Usage: /gh-run [run-id]
+description: Inspect a GitHub Actions run — prints header, per-job breakdown, and categorized failure insights. Usage: /gh-run [run-id] [--level error|warning|notice|debug]
 allowed-tools: Bash
 ---
 
@@ -11,9 +11,18 @@ an inline structured report.
 
 ## Arguments
 
-Parse `ARGUMENTS`:
-- If a numeric run ID is present (e.g. `/gh-run 12345678`) → go to **Mode: Single Run**
-- If empty → go to **Mode: List Runs**
+Parse `ARGUMENTS` (the text after `/gh-run`):
+
+1. Extract optional `--level <value>` flag — valid values: `error`, `warning`, `notice`, `debug`.
+   Store as `LOG_LEVEL` (empty string if absent). Remove the flag and its value from ARGUMENTS before further parsing.
+2. If a numeric run ID remains → go to **Mode: Single Run**
+3. If nothing remains → go to **Mode: List Runs**
+
+Example invocations:
+- `/gh-run` → list recent runs
+- `/gh-run 12345678` → inspect run, all log lines
+- `/gh-run 12345678 --level error` → inspect run, filter log lines to error-level only
+- `/gh-run --level warning 12345678` → same (flag order doesn't matter)
 
 ---
 
@@ -184,11 +193,12 @@ if [ "$CONCLUSION" = "failure" ] || [ "$CONCLUSION" = "cancelled" ] || [ "$CONCL
     gh run view RUNID --repo OWNER/REPO --log-failed > "$LOGFILE" 2>&1
     LOG_EXIT=$?
 
-    python3 - "$LOGFILE" "$LOG_EXIT" << 'PYEOF2'
+    python3 - "$LOGFILE" "$LOG_EXIT" "LOG_LEVEL" << 'PYEOF2'
 import sys, re
 
-logfile = sys.argv[1]
-log_exit = int(sys.argv[2])
+logfile   = sys.argv[1]
+log_exit  = int(sys.argv[2])
+log_level = sys.argv[3].strip().lower() if len(sys.argv) > 3 else ""
 
 try:
     raw = open(logfile).read()
@@ -221,6 +231,23 @@ for line in lines:
     content = parts[-1].strip() if parts else line.strip()
     if content:
         meaningful.append(content)
+
+# ── Apply log level filter (if --level was provided) ─────────────────────────
+if log_level:
+    # Match GitHub Actions annotation syntax (::error::, ::warning::, etc.)
+    # and common log prefixes ([ERROR], ERROR:, [error], error:)
+    level_pattern = re.compile(
+        rf"::{re.escape(log_level)}::|"
+        rf"\[{re.escape(log_level)}\]|"
+        rf"\b{re.escape(log_level)}[:\s]",
+        re.IGNORECASE,
+    )
+    filtered = [l for l in meaningful if level_pattern.search(l)]
+    if not filtered:
+        print(f"  ⚠  No log lines matched level '{log_level}' — showing unfiltered output")
+    else:
+        print(f"  Filtering to '{log_level}' level ({len(filtered)} of {len(meaningful)} lines matched)")
+        meaningful = filtered
 
 for line in meaningful:
     ll = line.lower()
