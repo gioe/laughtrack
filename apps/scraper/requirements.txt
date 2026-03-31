@@ -29,6 +29,11 @@ pyclean>=2.2.0         # Utility for cleaning Python cache files
 # plotly>=6.1.1         # Interactive plotting library
 # pandas>=2.2.3         # Data analysis and manipulation
 
+# Notification distance filtering
+pgeocode>=0.4.0         # Zip code to lat/lon lookup for notification distance filtering
+numpy>=1.24.0           # Required by pgeocode
+pandas>=2.0.0           # Required by pgeocode
+
 # Gmail API (email inbox client)
 google-auth>=2.0.0             # OAuth2 authentication for Google APIs
 google-api-python-client>=2.0.0 # Google API client library (Gmail, etc.)
