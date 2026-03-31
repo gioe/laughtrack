@@ -128,7 +128,7 @@ def _atexit_close(browser_ref: "weakref.ref[PlaywrightBrowser]") -> None:
     original loop is no longer running.
     """
     browser = browser_ref()
-    if browser is None or browser._browser is None:
+    if browser is None:
         return
     try:
         launch_loop = browser._launch_loop
