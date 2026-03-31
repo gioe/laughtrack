@@ -1,8 +1,22 @@
 """Unit tests for ShowTransformationPipeline None-filtering behaviour."""
 
+import sys
+from pathlib import Path
+from types import ModuleType
 from unittest.mock import MagicMock
 
 import pytest
+
+# ---------------------------------------------------------------------------
+# Pre-stub laughtrack.utilities.infrastructure so __init__.py does not run
+# (it imports RateLimiter → gioe_libs, an optional dep not installed here).
+# Setting __path__ lets Python find submodules (pipeline/, transformer/) on disk.
+# ---------------------------------------------------------------------------
+_SCRAPER_SRC = Path(__file__).parents[3] / "src"
+_infra_stub = ModuleType("laughtrack.utilities.infrastructure")
+_infra_stub.__path__ = [str(_SCRAPER_SRC / "laughtrack/utilities/infrastructure")]
+_infra_stub.__package__ = "laughtrack.utilities.infrastructure"
+sys.modules.setdefault("laughtrack.utilities.infrastructure", _infra_stub)
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.utilities.infrastructure.pipeline import ShowTransformationPipeline

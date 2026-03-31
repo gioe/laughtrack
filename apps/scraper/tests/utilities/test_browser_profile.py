@@ -2,11 +2,68 @@
 
 import asyncio
 import re
+import sys
+import threading
 import time
+import time as _time_mod
 from dataclasses import FrozenInstanceError
+from pathlib import Path
+from types import ModuleType
 from unittest.mock import patch
 
 import pytest
+
+# ---------------------------------------------------------------------------
+# Stub gioe_libs (optional private dep not in requirements.txt) so that
+# rate_limiter.py can be imported.  Must be registered before any laughtrack
+# import that transitively loads rate_limiter.py.
+# ---------------------------------------------------------------------------
+
+
+class _FakeBaseRateLimiter:
+    """Minimal RPS slot-reservation stub; no real sleep required."""
+
+    def __init__(self) -> None:
+        self._last_request: dict = {}
+        self._rps: dict = {}
+        self._lock = threading.Lock()
+
+    def configure(self, domain: str, rps: float) -> None:
+        self._rps[domain] = rps
+
+    async def await_if_needed(self, domain: str) -> None:
+        min_interval = 1.0 / self._rps.get(domain, 1.0)
+        with self._lock:
+            now = _time_mod.time()
+            last = self._last_request.get(domain, now - min_interval)
+            next_slot = max(now, last + min_interval)
+            self._last_request[domain] = next_slot
+
+    def wait_if_needed(self, domain: str) -> None:
+        pass
+
+    def reset(self, domain: str) -> None:
+        with self._lock:
+            self._last_request.pop(domain, None)
+
+    def get_stats(self) -> dict:
+        now = _time_mod.time()
+        return {d: {"last_request": t, "time_since_last": now - t} for d, t in self._last_request.items()}
+
+
+_gioe_rl = ModuleType("gioe_libs.rate_limiter")
+_gioe_rl.RateLimiter = _FakeBaseRateLimiter  # type: ignore[attr-defined]
+_gioe_mod = ModuleType("gioe_libs")
+sys.modules.setdefault("gioe_libs", _gioe_mod)
+sys.modules.setdefault("gioe_libs.rate_limiter", _gioe_rl)
+
+# Pre-stub the infrastructure package so __init__.py doesn't run.
+# __path__ lets Python find submodules (domain_config, rate_limiter, etc.) on disk.
+_SCRAPER_SRC = Path(__file__).parents[2] / "src"
+_infra_stub = ModuleType("laughtrack.utilities.infrastructure")
+_infra_stub.__path__ = [str(_SCRAPER_SRC / "laughtrack/utilities/infrastructure")]
+_infra_stub.__package__ = "laughtrack.utilities.infrastructure"
+sys.modules.setdefault("laughtrack.utilities.infrastructure", _infra_stub)
 
 from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
 from laughtrack.foundation.infrastructure.http.browser_profile import (

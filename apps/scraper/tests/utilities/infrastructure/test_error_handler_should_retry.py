@@ -2,10 +2,39 @@
 Tests for ErrorHandler._should_retry — 4xx errors must not be retried.
 """
 
+import importlib.machinery
+import importlib.util
+import sys
+from pathlib import Path
+from types import ModuleType
+
 import pytest
 
 from laughtrack.foundation.exceptions import DataError, NetworkError, RateLimitError
-from laughtrack.utilities.infrastructure.error_handling import ErrorHandler, RetryConfig
+
+# ---------------------------------------------------------------------------
+# Load error_handling.py directly via SourceFileLoader so we bypass the
+# package __init__.py (which imports RateLimiter → gioe_libs, an optional dep
+# not installed in this environment).
+# ---------------------------------------------------------------------------
+_SCRAPER_SRC = Path(__file__).parents[3] / "src"
+
+
+def _load_module(dotted_name: str) -> ModuleType:
+    path = _SCRAPER_SRC / dotted_name.replace(".", "/")
+    if not path.suffix:
+        path = path.with_suffix(".py")
+    loader = importlib.machinery.SourceFileLoader(dotted_name, str(path))
+    spec = importlib.util.spec_from_loader(dotted_name, loader)
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules.setdefault(dotted_name, mod)
+    loader.exec_module(mod)
+    return mod
+
+
+_error_handling = _load_module("laughtrack.utilities.infrastructure.error_handling")
+ErrorHandler = _error_handling.ErrorHandler
+RetryConfig = _error_handling.RetryConfig
 
 
 @pytest.fixture
