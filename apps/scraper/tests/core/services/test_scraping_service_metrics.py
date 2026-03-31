@@ -757,7 +757,6 @@ class TestSendEmailRunSummary:
     def test_run_summary_body_never_exceeds_text_channel_limit(self):
         """Email run summary body must be capped at _TEXT_CHANNEL_BODY_LIMIT chars."""
         from laughtrack.core.services.scraping import ScrapingService, _TEXT_CHANNEL_BODY_LIMIT
-        from laughtrack.infrastructure.monitoring.alerts import Alert, AlertSeverity
 
         svc = self._make_service()
         # Build a summary with enough clubs to blow past 8000 chars
