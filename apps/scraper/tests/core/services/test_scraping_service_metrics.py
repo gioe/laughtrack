@@ -984,6 +984,21 @@ class TestTruncateDescriptionLines:
         result = self._fn(lines, limit=2048)
         assert outage[0] in result
 
+    def test_greedy_packing_includes_short_lines_after_long_line(self):
+        """A long line that doesn't fit should not cause all subsequent shorter lines to be dropped."""
+        long_line = "X" * 150
+        short_lines = [f"• Club {i}: short" for i in range(5)]
+        # limit=200: long_line alone (150 chars) fits, but with a newline + short_line + suffix it may not.
+        # The key assertion: short lines after a skipped long line must still appear.
+        lines = ["header"] + [long_line] + short_lines
+        result = self._fn(lines, limit=200)
+        assert len(result) <= 200
+        # At least one short line should be included (greedy packing, not early break)
+        short_lines_in_result = [l for l in short_lines if l in result]
+        assert len(short_lines_in_result) > 0, (
+            "Greedy packing should include short lines that follow a skipped long line"
+        )
+
     def test_discord_alert_description_never_exceeds_limit_with_many_failing(self):
         """Integration-style: _send_discord_alert must not produce an embed body > 2048 chars."""
         from laughtrack.core.services.scraping import ScrapingService

@@ -29,7 +29,11 @@ _TEXT_CHANNEL_BODY_LIMIT = 8000  # soft cap for email/webhook channels; no hard 
 
 
 def _truncate_description_lines(lines: List[str], limit: int = _DISCORD_DESCRIPTION_LIMIT) -> str:
-    """Join lines into a Discord embed description, truncating with a count suffix if over limit."""
+    """Join lines into a Discord embed description, truncating with a count suffix if over limit.
+
+    Uses greedy packing: skips lines that don't fit but continues checking subsequent (shorter)
+    lines, so a single long line doesn't silently drop all remaining content.
+    """
     if not lines:
         return ""
     full = "\n".join(lines)
@@ -38,12 +42,13 @@ def _truncate_description_lines(lines: List[str], limit: int = _DISCORD_DESCRIPT
     kept: List[str] = []
     for i, line in enumerate(lines):
         body_with_line = "\n".join(kept + [line])
-        remaining = len(lines) - i - 1
-        suffix = f"\n...and {remaining} more" if remaining > 0 else ""
-        if len(body_with_line) + len(suffix) <= limit:
+        # Conservatively estimate the suffix as if all remaining lines are omitted,
+        # so we never overshoot the limit when the real suffix is computed at the end.
+        omitted_estimate = len(lines) - len(kept) - 1  # lines after this one + this one if skipped
+        suffix_estimate = f"\n...and {omitted_estimate} more" if omitted_estimate > 0 else ""
+        if len(body_with_line) + len(suffix_estimate) <= limit:
             kept.append(line)
-        else:
-            break
+        # else: skip this line and try the next one (greedy packing)
     omitted = len(lines) - len(kept)
     if omitted > 0:
         prefix = "\n".join(kept)
