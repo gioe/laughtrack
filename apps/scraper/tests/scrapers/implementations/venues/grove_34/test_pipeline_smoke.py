@@ -188,6 +188,49 @@ async def test_get_data_returns_none_on_5xx(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_collect_scraping_targets_4xx_logs_warning_not_error(monkeypatch, caplog):
+    """collect_scraping_targets() logs WARNING (not ERROR) when listing page returns HTTP 4xx."""
+    import logging
+    scraper = Grove34Scraper(_club())
+
+    async def fake_fetch_404(self, url: str) -> str:
+        raise NetworkError("Client error (HTTP 404)", status_code=404)
+
+    monkeypatch.setattr(Grove34Scraper, "fetch_html_bare", fake_fetch_404)
+
+    with caplog.at_level(logging.WARNING):
+        urls = await scraper.collect_scraping_targets()
+
+    assert urls == [], f"Expected empty list on 4xx, got {urls}"
+    assert any(
+        record.levelno == logging.WARNING for record in caplog.records
+    ), f"Expected WARNING log for 4xx; got: {[(r.levelname, r.message) for r in caplog.records]}"
+    assert not any(
+        record.levelno == logging.ERROR for record in caplog.records
+    ), f"Expected no ERROR log for 4xx; got: {[(r.levelname, r.message) for r in caplog.records]}"
+
+
+@pytest.mark.asyncio
+async def test_collect_scraping_targets_5xx_logs_error(monkeypatch, caplog):
+    """collect_scraping_targets() logs ERROR when listing page returns HTTP 5xx."""
+    import logging
+    scraper = Grove34Scraper(_club())
+
+    async def fake_fetch_500(self, url: str) -> str:
+        raise NetworkError("Server error (HTTP 500)", status_code=500)
+
+    monkeypatch.setattr(Grove34Scraper, "fetch_html_bare", fake_fetch_500)
+
+    with caplog.at_level(logging.ERROR):
+        urls = await scraper.collect_scraping_targets()
+
+    assert urls == [], f"Expected empty list on 5xx, got {urls}"
+    assert any(
+        record.levelno == logging.ERROR for record in caplog.records
+    ), f"Expected ERROR log for 5xx; got: {[(r.levelname, r.message) for r in caplog.records]}"
+
+
+@pytest.mark.asyncio
 async def test_full_pipeline_discover_then_get_data(monkeypatch):
     """Full pipeline: collect_scraping_targets() → get_data() produces at least one event."""
     scraper = Grove34Scraper(_club())
