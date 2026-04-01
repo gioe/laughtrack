@@ -18,6 +18,7 @@ pytestmark = pytest.mark.skipif(
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.entities.event.grove34 import Grove34Event
+from laughtrack.foundation.exceptions import NetworkError
 from laughtrack.scrapers.implementations.venues.grove_34.scraper import Grove34Scraper
 from laughtrack.scrapers.implementations.venues.grove_34.data import Grove34PageData
 
@@ -156,6 +157,34 @@ async def test_get_data_includes_future_events(monkeypatch):
     result = await scraper.get_data(SHOW_URL)
     assert result is not None, "get_data() should return data for a future event"
     assert len(result.event_list) == 1
+
+
+@pytest.mark.asyncio
+async def test_get_data_returns_none_on_404(monkeypatch):
+    """get_data() returns None (no raise) when fetch raises NetworkError with 404."""
+    scraper = Grove34Scraper(_club())
+
+    async def fake_fetch_404(self, url: str) -> str:
+        raise NetworkError("Client error (HTTP 404)", status_code=404)
+
+    monkeypatch.setattr(Grove34Scraper, "fetch_html_bare", fake_fetch_404)
+
+    result = await scraper.get_data(SHOW_URL)
+    assert result is None, "get_data() should return None on HTTP 404, not raise"
+
+
+@pytest.mark.asyncio
+async def test_get_data_returns_none_on_5xx(monkeypatch):
+    """get_data() returns None (no raise) when fetch raises NetworkError with 500."""
+    scraper = Grove34Scraper(_club())
+
+    async def fake_fetch_500(self, url: str) -> str:
+        raise NetworkError("Server error (HTTP 500)", status_code=500)
+
+    monkeypatch.setattr(Grove34Scraper, "fetch_html_bare", fake_fetch_500)
+
+    result = await scraper.get_data(SHOW_URL)
+    assert result is None, "get_data() should return None on HTTP 500, not raise"
 
 
 @pytest.mark.asyncio

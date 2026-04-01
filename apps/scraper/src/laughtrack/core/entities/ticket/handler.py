@@ -42,6 +42,7 @@ class TicketHandler(BaseDatabaseHandler[Ticket]):
                 all_tickets.append(ticket)
 
         if not all_tickets:
+            Logger.info("insert_tickets: no tickets to insert (shows have no ticket data)")
             return
 
         # Deduplicate tickets based on unique constraint (show_id, type)

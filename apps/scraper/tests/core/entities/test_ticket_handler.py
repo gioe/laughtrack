@@ -230,6 +230,16 @@ class TestInsertTicketsPurchaseUrlUpsert:
         for c in handler.execute_batch_operation.call_args_list:
             assert c.args[0] == TicketQueries.BATCH_ADD_TICKETS
 
+    def test_no_op_when_shows_have_no_tickets(self):
+        """insert_tickets should return without calling execute_batch_operation when all shows have empty ticket lists."""
+        handler = TicketHandler()
+        handler.execute_batch_operation = MagicMock(return_value=None)
+
+        show = _FakeShow(42, [])
+        handler.insert_tickets([show])
+
+        handler.execute_batch_operation.assert_not_called()
+
     def test_tuple_order_matches_query_columns(self):
         """to_tuple() must emit (show_id, purchase_url, price, sold_out, type) — matching INSERT column order."""
         ticket = _make_ticket("https://example.com/t", price=30.0, sold_out=True)

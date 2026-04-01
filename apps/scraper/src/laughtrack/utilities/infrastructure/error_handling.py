@@ -129,7 +129,7 @@ class ErrorHandler:
         )
         # 4xx errors are deterministic (resource doesn't exist or is forbidden) — downgrade to WARNING
         if isinstance(last_error, NetworkError) and last_error.status_code is not None and 400 <= last_error.status_code < 500:
-            Logger.warn(f"All attempts failed for {operation_name}{status_suffix}")
+            Logger.warn(f"Not retrying {operation_name} — deterministic failure{status_suffix}")
         else:
             Logger.error(f"All attempts failed for {operation_name}{status_suffix}")
 
