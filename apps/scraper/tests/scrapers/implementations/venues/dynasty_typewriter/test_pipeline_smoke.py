@@ -248,18 +248,37 @@ async def test_collect_scraping_targets_url_contains_user_id():
 # ---------------------------------------------------------------------------
 
 
+def _make_fake_session(status_code: int, payload: dict):
+    """Return a fake AsyncSession context manager that returns *payload* as JSON."""
+
+    class _FakeResponse:
+        def __init__(self):
+            self.status_code = status_code
+
+        def json(self):
+            return payload
+
+    class _FakeSession:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+        async def get(self, url, **kwargs):
+            return _FakeResponse()
+
+    return _FakeSession
+
+
 @pytest.mark.asyncio
 async def test_get_data_returns_page_data_with_events(monkeypatch):
     """get_data() fetches the API and returns DynastyTypewriterPageData with events."""
     scraper = DynastyTypewriterScraper(_club())
+    payload = _api_response([_raw_event(id_=1, title="Show A"), _raw_event(id_=2, title="Show B")])
 
-    async def fake_fetch_json(self, url: str, **kwargs):
-        return _api_response([
-            _raw_event(id_=1, title="Show A"),
-            _raw_event(id_=2, title="Show B"),
-        ])
-
-    monkeypatch.setattr(DynastyTypewriterScraper, "fetch_json", fake_fetch_json)
+    import laughtrack.scrapers.implementations.venues.dynasty_typewriter.scraper as mod
+    monkeypatch.setattr(mod, "AsyncSession", lambda **kw: _make_fake_session(200, payload)())
     monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
 
     result = await scraper.get_data(_SQUADUP_API_URL)
@@ -275,11 +294,10 @@ async def test_get_data_returns_page_data_with_events(monkeypatch):
 async def test_get_data_returns_none_on_empty_events(monkeypatch):
     """get_data() returns None when the API returns an empty events list."""
     scraper = DynastyTypewriterScraper(_club())
+    payload = _api_response([])
 
-    async def fake_fetch_json(self, url: str, **kwargs):
-        return _api_response([])
-
-    monkeypatch.setattr(DynastyTypewriterScraper, "fetch_json", fake_fetch_json)
+    import laughtrack.scrapers.implementations.venues.dynasty_typewriter.scraper as mod
+    monkeypatch.setattr(mod, "AsyncSession", lambda **kw: _make_fake_session(200, payload)())
     monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
 
     result = await scraper.get_data(_SQUADUP_API_URL)
@@ -287,14 +305,12 @@ async def test_get_data_returns_none_on_empty_events(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_get_data_returns_none_on_null_response(monkeypatch):
-    """get_data() returns None when fetch_json returns None."""
+async def test_get_data_returns_none_on_403(monkeypatch):
+    """get_data() returns None when the API returns HTTP 403."""
     scraper = DynastyTypewriterScraper(_club())
 
-    async def fake_fetch_json(self, url: str, **kwargs):
-        return None
-
-    monkeypatch.setattr(DynastyTypewriterScraper, "fetch_json", fake_fetch_json)
+    import laughtrack.scrapers.implementations.venues.dynasty_typewriter.scraper as mod
+    monkeypatch.setattr(mod, "AsyncSession", lambda **kw: _make_fake_session(403, {})())
     monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
 
     result = await scraper.get_data(_SQUADUP_API_URL)
@@ -302,19 +318,34 @@ async def test_get_data_returns_none_on_null_response(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_get_data_sends_referer_header(monkeypatch):
-    """get_data() passes Referer header to fetch_json so SquadUp accepts the request."""
+async def test_get_data_uses_bare_chrome_impersonation(monkeypatch):
+    """get_data() uses AsyncSession(impersonate='chrome124') with no extra headers."""
     scraper = DynastyTypewriterScraper(_club())
-    captured_kwargs = {}
+    captured_kwargs: dict = {}
 
-    async def fake_fetch_json(self, url: str, **kwargs):
-        captured_kwargs.update(kwargs)
-        return _api_response([_raw_event()])
+    class _FakeResponse:
+        status_code = 200
 
-    monkeypatch.setattr(DynastyTypewriterScraper, "fetch_json", fake_fetch_json)
+        def json(self):
+            return _api_response([_raw_event()])
+
+    class _FakeSession:
+        def __init__(self, **kw):
+            captured_kwargs.update(kw)
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+        async def get(self, url, **kwargs):
+            return _FakeResponse()
+
+    import laughtrack.scrapers.implementations.venues.dynasty_typewriter.scraper as mod
+    monkeypatch.setattr(mod, "AsyncSession", _FakeSession)
     monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
 
     await scraper.get_data(_SQUADUP_API_URL)
 
-    assert "headers" in captured_kwargs
-    assert captured_kwargs["headers"].get("Referer") == "https://www.dynastytypewriter.com/"
+    assert captured_kwargs.get("impersonate") == "chrome124"

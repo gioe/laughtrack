@@ -5,11 +5,14 @@ Dynasty Typewriter (Los Angeles, CA) lists shows via the SquadUp ticketing platf
 Events are fetched directly from the SquadUp JSON API using the venue's user ID (7408591).
 The API returns all upcoming events in a single response — no pagination needed.
 
-The request requires a Referer header pointing to the Dynasty Typewriter website so
-the SquadUp API accepts the cross-origin request.
+The SquadUp API is protected by Cloudflare.  A bare curl_cffi Chrome impersonation
+request (no application-level headers) passes the TLS fingerprint check.  Adding
+headers such as Referer or Accept triggers a 403.
 """
 
 from typing import List, Optional
+
+from curl_cffi.requests import AsyncSession
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.foundation.infrastructure.logger.logger import Logger
@@ -28,7 +31,6 @@ _SQUADUP_API_URL = (
     "&additional_attr=sold_out"
     "&include=custom_fields"
 )
-_REFERER = "https://www.dynastytypewriter.com/"
 
 
 class DynastyTypewriterScraper(BaseScraper):
@@ -36,7 +38,7 @@ class DynastyTypewriterScraper(BaseScraper):
     Scraper for Dynasty Typewriter (dynastytypewriter.com).
 
     Fetches upcoming events from the SquadUp API using the venue's user ID.
-    A Referer header is required for the API to accept requests.
+    Uses bare Chrome impersonation (no extra headers) to bypass Cloudflare protection.
     """
 
     key = "dynasty_typewriter"
@@ -53,6 +55,9 @@ class DynastyTypewriterScraper(BaseScraper):
         """
         Fetch events from the SquadUp API and return extracted DynastyTypewriterEvents.
 
+        Uses a bare AsyncSession with Chrome impersonation and no application-level
+        headers to pass Cloudflare's TLS fingerprint check.
+
         Args:
             url: The SquadUp API URL (from collect_scraping_targets)
 
@@ -62,12 +67,18 @@ class DynastyTypewriterScraper(BaseScraper):
         try:
             await self.rate_limiter.await_if_needed(url)
 
-            response = await self.fetch_json(url, headers={"Referer": _REFERER})
-            if not response:
-                Logger.info(f"{self._log_prefix}: no response from {url}", self.logger_context)
+            async with AsyncSession(impersonate="chrome124") as session:
+                response = await session.get(url)
+
+            if response.status_code != 200:
+                Logger.warn(
+                    f"{self._log_prefix}: HTTP {response.status_code} from {url}",
+                    self.logger_context,
+                )
                 return None
 
-            events = DynastyTypewriterExtractor.extract_events(response)
+            data = response.json()
+            events = DynastyTypewriterExtractor.extract_events(data)
 
             if not events:
                 Logger.info(f"{self._log_prefix}: no events found at {url}", self.logger_context)
