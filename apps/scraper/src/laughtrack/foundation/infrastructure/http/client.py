@@ -230,4 +230,8 @@ class HttpClient:
             Logger.warn(f"HTTP {response.status_code} when fetching {normalized_url}", logger_context)
             return None
 
+        if not response.text or not response.text.strip():
+            Logger.warn(f"HTTP 200 with empty body when fetching {normalized_url}", logger_context)
+            return None
+
         return response.json()
