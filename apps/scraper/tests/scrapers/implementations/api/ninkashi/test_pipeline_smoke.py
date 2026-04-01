@@ -366,7 +366,7 @@ def test_transformation_pipeline_produces_shows():
 
 @pytest.mark.asyncio
 async def test_fetch_events_paginates_until_partial_page(monkeypatch):
-    """fetch_events() accumulates events across pages and stops when a page is smaller than PER_PAGE."""
+    """fetch_events() accumulates events across pages and stops when a page is smaller than the first-page size."""
     client = NinkashiClient(_club())
     per_page = NinkashiClient.PER_PAGE
 
@@ -430,3 +430,78 @@ async def test_fetch_events_warns_on_non_list_mid_pagination(monkeypatch):
     # Should return the events from page 1 and stop
     assert len(events) == per_page
     assert call_count[0] == 2
+
+
+@pytest.mark.asyncio
+async def test_fetch_events_uses_actual_page_size_not_per_page(monkeypatch):
+    """fetch_events() stops when a page is smaller than the actual first-page response size.
+
+    Regression test: the Ninkashi API for Cheaper Than Therapy returns 105 events per page,
+    not 100 (PER_PAGE). The old code compared len(response) < PER_PAGE (105 < 100 = False),
+    causing infinite pagination. The fix records page_size from the first response.
+    """
+    client = NinkashiClient(_club())
+    actual_api_page_size = 105  # API returns more than PER_PAGE=100
+
+    # Page 1: 105 events (full API page), page 2: 3 events (partial) → stop after page 2
+    page_1 = [_raw_event(event_id=i, title=f"Show {i}") for i in range(actual_api_page_size)]
+    page_2 = [_raw_event(event_id=actual_api_page_size + i) for i in range(3)]
+    pages = [page_1, page_2]
+    call_count = [0]
+
+    async def fake_fetch_json(self, url, **kwargs):
+        idx = call_count[0]
+        call_count[0] += 1
+        return pages[idx] if idx < len(pages) else []
+
+    monkeypatch.setattr(NinkashiClient, "fetch_json", fake_fetch_json)
+
+    events = await client.fetch_events(URL_SITE)
+
+    assert len(events) == actual_api_page_size + 3
+    assert call_count[0] == 2
+
+
+@pytest.mark.asyncio
+async def test_fetch_events_stops_at_max_pages(monkeypatch):
+    """fetch_events() stops at MAX_PAGES even if the API keeps returning full pages."""
+    client = NinkashiClient(_club())
+    per_page = NinkashiClient.PER_PAGE
+    max_pages = NinkashiClient.MAX_PAGES
+    call_count = [0]
+
+    async def fake_fetch_json(self, url, **kwargs):
+        call_count[0] += 1
+        # always return a full page so the partial-page stop condition never fires
+        return [_raw_event(event_id=call_count[0] * 1000 + i) for i in range(per_page)]
+
+    monkeypatch.setattr(NinkashiClient, "fetch_json", fake_fetch_json)
+
+    events = await client.fetch_events(URL_SITE)
+
+    assert call_count[0] == max_pages
+    assert len(events) == per_page * max_pages
+
+
+@pytest.mark.asyncio
+async def test_fetch_events_filters_past_events(monkeypatch):
+    """fetch_events() excludes events whose starts_at is in the past."""
+    client = NinkashiClient(_club())
+
+    past_event = _raw_event(event_id=1, title="Old Show", starts_at="2020-01-01 19:00:00 +0000")
+    future_event = _raw_event(event_id=2, title="Future Show", starts_at="2027-01-01 19:00:00 +0000")
+    call_count = [0]
+
+    async def fake_fetch_json(self, url, **kwargs):
+        call_count[0] += 1
+        # Page 1: mixed past/future; page 2: empty → stops pagination
+        if call_count[0] == 1:
+            return [past_event, future_event]
+        return []
+
+    monkeypatch.setattr(NinkashiClient, "fetch_json", fake_fetch_json)
+
+    events = await client.fetch_events(URL_SITE)
+
+    assert len(events) == 1
+    assert events[0].title == "Future Show"
