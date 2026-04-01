@@ -28,7 +28,12 @@ class HttpConvenienceMixin(AsyncHttpMixin):
     """
 
     async def fetch_json(self, url: str, **kwargs) -> Any:
-        """Fetch and parse JSON from URL with error handling."""
+        """Fetch and parse JSON from URL with error handling.
+
+        Returns:
+            Parsed JSON data, or None if the response body is empty or
+            whitespace-only (HTTP 200 with no content).
+        """
 
         async def _fetch_json():
             session = await self.get_session()
