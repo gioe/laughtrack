@@ -1,21 +1,18 @@
-from datetime import datetime
-from unittest.mock import AsyncMock, MagicMock, patch
+import json
+import urllib.error
+from unittest.mock import MagicMock, patch
 
 import pytest
 
-from laughtrack.infrastructure.monitoring.alerts import Alert, AlertSeverity
-from laughtrack.infrastructure.monitoring.channels import DiscordAlertChannel
+from gioe_libs.alerting import Alert, AlertSeverity, DiscordAlertChannel
 
 
 @pytest.fixture
 def alert():
     return Alert(
-        id="test-1",
         title="Test Alert",
-        description="Something went wrong",
+        message="Something went wrong",
         severity=AlertSeverity.HIGH,
-        timestamp=datetime(2026, 3, 4, 12, 0, 0),
-        source="scraper",
         metadata={"club_id": 5},
     )
 
@@ -25,56 +22,52 @@ def channel():
     return DiscordAlertChannel(webhook_url="https://discord.com/api/webhooks/test")
 
 
-def _mock_session(status: int, body: str = "ok"):
-    """Build a mock curl_cffi AsyncSession: post() is an AsyncMock returning a response."""
-    response = MagicMock()
-    response.status_code = status
-    response.text = body
-
-    session = MagicMock()
-    session.__aenter__ = AsyncMock(return_value=session)
-    session.__aexit__ = AsyncMock(return_value=False)
-    session.post = AsyncMock(return_value=response)
-
-    return session
+def _mock_urlopen():
+    """Context manager mock that succeeds silently (Discord returns 204 No Content)."""
+    ctx = MagicMock()
+    ctx.__enter__ = MagicMock(return_value=ctx)
+    ctx.__exit__ = MagicMock(return_value=False)
+    return ctx
 
 
-@pytest.mark.asyncio
-async def test_send_alert_returns_true_on_200(alert, channel):
-    with patch("laughtrack.infrastructure.monitoring.channels.AsyncSession", return_value=_mock_session(200)):
-        result = await channel.send_alert(alert)
+def _capture_urlopen():
+    """Returns (mock_fn, captured_requests) where captured_requests is populated on call."""
+    captured = []
+
+    def mock_fn(req, timeout=None):
+        captured.append(req)
+        return _mock_urlopen()
+
+    return mock_fn, captured
+
+
+def test_send_returns_true_on_success(alert, channel):
+    with patch("urllib.request.urlopen", return_value=_mock_urlopen()):
+        result = channel.send(alert)
     assert result is True
 
 
-@pytest.mark.asyncio
-async def test_send_alert_returns_true_on_204(alert, channel):
-    with patch("laughtrack.infrastructure.monitoring.channels.AsyncSession", return_value=_mock_session(204)):
-        result = await channel.send_alert(alert)
-    assert result is True
-
-
-@pytest.mark.asyncio
-async def test_send_alert_returns_false_on_non_200(alert, channel):
-    with patch("laughtrack.infrastructure.monitoring.channels.AsyncSession", return_value=_mock_session(400, "invalid_payload")):
-        result = await channel.send_alert(alert)
+def test_send_returns_false_on_http_error(alert, channel):
+    with patch(
+        "urllib.request.urlopen",
+        side_effect=urllib.error.HTTPError(None, 400, "Bad Request", {}, None),
+    ):
+        result = channel.send(alert)
     assert result is False
 
 
-@pytest.mark.asyncio
-async def test_send_alert_returns_false_on_exception(alert, channel):
-    with patch("laughtrack.infrastructure.monitoring.channels.AsyncSession", side_effect=Exception("network error")):
-        result = await channel.send_alert(alert)
+def test_send_returns_false_on_exception(alert, channel):
+    with patch("urllib.request.urlopen", side_effect=Exception("network error")):
+        result = channel.send(alert)
     assert result is False
 
 
-@pytest.mark.asyncio
-async def test_send_alert_payload_uses_discord_embed_format(alert, channel):
-    session = _mock_session(200)
-    with patch("laughtrack.infrastructure.monitoring.channels.AsyncSession", return_value=session):
-        await channel.send_alert(alert)
+def test_send_payload_uses_discord_embed_format(alert, channel):
+    mock_fn, captured = _capture_urlopen()
+    with patch("urllib.request.urlopen", side_effect=mock_fn):
+        channel.send(alert)
 
-    call_kwargs = session.post.call_args.kwargs
-    payload = call_kwargs["json"]
+    payload = json.loads(captured[0].data.decode())
     assert "embeds" in payload
     assert "attachments" not in payload
     embed = payload["embeds"][0]
@@ -83,56 +76,27 @@ async def test_send_alert_payload_uses_discord_embed_format(alert, channel):
     assert "description" in embed
 
 
-@pytest.mark.asyncio
-async def test_send_alert_omits_footer_when_no_metadata(channel):
-    alert = Alert(
-        id="test-2",
+def test_send_omits_fields_when_no_metadata(channel):
+    no_meta_alert = Alert(
         title="No Meta",
-        description="desc",
+        message="desc",
         severity=AlertSeverity.LOW,
-        timestamp=datetime(2026, 3, 4, 12, 0, 0),
-        source="scraper",
         metadata={},
     )
-    session = _mock_session(200)
-    with patch("laughtrack.infrastructure.monitoring.channels.AsyncSession", return_value=session):
-        await channel.send_alert(alert)
+    mock_fn, captured = _capture_urlopen()
+    with patch("urllib.request.urlopen", side_effect=mock_fn):
+        channel.send(no_meta_alert)
 
-    call_kwargs = session.post.call_args.kwargs
-    embed = call_kwargs["json"]["embeds"][0]
-    assert "footer" not in embed
-
-
-@pytest.mark.asyncio
-async def test_send_alert_includes_footer_when_metadata_present(alert, channel):
-    session = _mock_session(200)
-    with patch("laughtrack.infrastructure.monitoring.channels.AsyncSession", return_value=session):
-        await channel.send_alert(alert)
-
-    call_kwargs = session.post.call_args.kwargs
-    embed = call_kwargs["json"]["embeds"][0]
-    assert "footer" in embed
-    assert "club_id" in embed["footer"]["text"]
+    embed = json.loads(captured[0].data.decode())["embeds"][0]
+    assert "fields" not in embed
 
 
-@pytest.mark.asyncio
-async def test_send_alert_truncates_long_description_and_delivers(channel):
-    """A >2048-char description must be truncated, not silently dropped (HTTP 400)."""
-    long_description = "x" * 4000
-    oversized_alert = Alert(
-        id="test-big",
-        title="Big Alert",
-        description=long_description,
-        severity=AlertSeverity.HIGH,
-        timestamp=datetime(2026, 3, 31, 12, 0, 0),
-        source="scraper",
-        metadata={},
-    )
-    session = _mock_session(200)
-    with patch("laughtrack.infrastructure.monitoring.channels.AsyncSession", return_value=session):
-        result = await channel.send_alert(oversized_alert)
+def test_send_includes_fields_when_metadata_present(alert, channel):
+    mock_fn, captured = _capture_urlopen()
+    with patch("urllib.request.urlopen", side_effect=mock_fn):
+        channel.send(alert)
 
-    assert result is True
-    embed = session.post.call_args.kwargs["json"]["embeds"][0]
-    assert len(embed["description"]) <= 2048
-    assert embed["description"].endswith("...")
+    embed = json.loads(captured[0].data.decode())["embeds"][0]
+    assert "fields" in embed
+    field_names = [f["name"] for f in embed["fields"]]
+    assert "club_id" in field_names

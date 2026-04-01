@@ -502,12 +502,10 @@ class TestSendDiscordRunSummary:
 
         mock_config = _make_mock_config(channels=["discord"])
         with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
-             patch('laughtrack.infrastructure.monitoring.alerts.Alert'), \
-             patch('laughtrack.infrastructure.monitoring.channels.DiscordAlertChannel'), \
-             patch('asyncio.run') as mock_run:
+             patch('gioe_libs.alerting.DiscordAlertChannel') as MockChannel:
             MockConfig.default.return_value = mock_config
             svc._send_discord_run_summary(summary, db_result)
-            mock_run.assert_called_once()
+            MockChannel.return_value.send.assert_called_once()
 
     def test_title_contains_clubs_ok_and_total(self):
         """Alert title shows clubs_ok/total_clubs count."""
@@ -523,9 +521,8 @@ class TestSendDiscordRunSummary:
         mock_config = _make_mock_config(channels=["discord"])
         mock_alert_cls = MagicMock(return_value=MagicMock())
         with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
-             patch('laughtrack.infrastructure.monitoring.alerts.Alert', mock_alert_cls), \
-             patch('laughtrack.infrastructure.monitoring.channels.DiscordAlertChannel'), \
-             patch('asyncio.run'):
+             patch('gioe_libs.alerting.Alert', mock_alert_cls), \
+             patch('gioe_libs.alerting.DiscordAlertChannel'):
             MockConfig.default.return_value = mock_config
             svc._send_discord_run_summary(summary, db_result)
 
@@ -542,13 +539,12 @@ class TestSendDiscordRunSummary:
         mock_config = _make_mock_config(channels=["discord"])
         mock_alert_cls = MagicMock(return_value=MagicMock())
         with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
-             patch('laughtrack.infrastructure.monitoring.alerts.Alert', mock_alert_cls), \
-             patch('laughtrack.infrastructure.monitoring.channels.DiscordAlertChannel'), \
-             patch('asyncio.run'):
+             patch('gioe_libs.alerting.Alert', mock_alert_cls), \
+             patch('gioe_libs.alerting.DiscordAlertChannel'):
             MockConfig.default.return_value = mock_config
             svc._send_discord_run_summary(summary, db_result)
 
-        desc = mock_alert_cls.call_args.kwargs.get('description', '')
+        desc = mock_alert_cls.call_args.kwargs.get('message', '')
         assert "15" in desc  # total scraped
         assert "12" in desc  # inserted
         assert "3" in desc   # updated
@@ -563,13 +559,12 @@ class TestSendDiscordRunSummary:
         mock_config = _make_mock_config(channels=["discord"])
         mock_alert_cls = MagicMock(return_value=MagicMock())
         with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
-             patch('laughtrack.infrastructure.monitoring.alerts.Alert', mock_alert_cls), \
-             patch('laughtrack.infrastructure.monitoring.channels.DiscordAlertChannel'), \
-             patch('asyncio.run'):
+             patch('gioe_libs.alerting.Alert', mock_alert_cls), \
+             patch('gioe_libs.alerting.DiscordAlertChannel'):
             MockConfig.default.return_value = mock_config
             svc._send_discord_run_summary(summary, db_result)
 
-        desc = mock_alert_cls.call_args.kwargs.get('description', '')
+        desc = mock_alert_cls.call_args.kwargs.get('message', '')
         assert "All clubs at or above threshold ✅" in desc
 
     def test_per_club_breakdown_uses_warning_for_failing_clubs(self):
@@ -582,13 +577,12 @@ class TestSendDiscordRunSummary:
         mock_config = _make_mock_config(channels=["discord"])
         mock_alert_cls = MagicMock(return_value=MagicMock())
         with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
-             patch('laughtrack.infrastructure.monitoring.alerts.Alert', mock_alert_cls), \
-             patch('laughtrack.infrastructure.monitoring.channels.DiscordAlertChannel'), \
-             patch('asyncio.run'):
+             patch('gioe_libs.alerting.Alert', mock_alert_cls), \
+             patch('gioe_libs.alerting.DiscordAlertChannel'):
             MockConfig.default.return_value = mock_config
             svc._send_discord_run_summary(summary, db_result)
 
-        desc = mock_alert_cls.call_args.kwargs.get('description', '')
+        desc = mock_alert_cls.call_args.kwargs.get('message', '')
         assert "⚠️" in desc
         assert "Bad Club" in desc
 
@@ -603,10 +597,10 @@ class TestSendDiscordRunSummary:
         mock_config.discord_webhook_url = None
 
         with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
-             patch('asyncio.run') as mock_run:
+             patch('gioe_libs.alerting.DiscordAlertChannel') as MockChannel:
             MockConfig.default.return_value = mock_config
             svc._send_discord_run_summary(summary, db_result)
-            mock_run.assert_not_called()
+            MockChannel.return_value.send.assert_not_called()
 
     def test_scrape_all_clubs_calls_summary_with_db_result(self):
         """scrape_all_clubs passes db_result to _send_run_summary."""
@@ -732,12 +726,10 @@ class TestSendEmailRunSummary:
         mock_config.alert_recipients = ["ops@example.com"]
 
         with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
-             patch('laughtrack.infrastructure.monitoring.alerts.Alert'), \
-             patch('laughtrack.infrastructure.monitoring.channels.EmailAlertChannel'), \
-             patch('asyncio.run') as mock_run:
+             patch('laughtrack.infrastructure.monitoring.channels.EmailAlertChannel') as MockChannel:
             MockConfig.default.return_value = mock_config
             svc._send_email_run_summary(summary, db_result)
-            mock_run.assert_called_once()
+            MockChannel.return_value.send.assert_called_once()
 
     def test_skips_when_email_not_configured(self):
         svc = self._make_service()
@@ -749,10 +741,10 @@ class TestSendEmailRunSummary:
         mock_config.alert_recipients = []
 
         with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
-             patch('asyncio.run') as mock_run:
+             patch('laughtrack.infrastructure.monitoring.channels.EmailAlertChannel') as MockChannel:
             MockConfig.default.return_value = mock_config
             svc._send_email_run_summary(summary, db_result)
-            mock_run.assert_not_called()
+            MockChannel.return_value.send.assert_not_called()
 
     def test_run_summary_body_never_exceeds_text_channel_limit(self):
         """Email run summary body must be capped at _TEXT_CHANNEL_BODY_LIMIT chars."""
@@ -769,7 +761,7 @@ class TestSendEmailRunSummary:
 
         def fake_Alert(**kwargs):
             a = MagicMock()
-            a.description = kwargs.get("description", "")
+            a.message = kwargs.get("message", "")
             captured_alerts.append(a)
             return a
 
@@ -778,14 +770,13 @@ class TestSendEmailRunSummary:
         mock_config.alert_recipients = ["ops@example.com"]
 
         with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
-             patch('laughtrack.infrastructure.monitoring.alerts.Alert', side_effect=fake_Alert), \
-             patch('laughtrack.infrastructure.monitoring.channels.EmailAlertChannel'), \
-             patch('asyncio.run'):
+             patch('gioe_libs.alerting.Alert', side_effect=fake_Alert), \
+             patch('laughtrack.infrastructure.monitoring.channels.EmailAlertChannel'):
             MockConfig.default.return_value = mock_config
             svc._send_email_run_summary(s, db_result)
 
         assert len(captured_alerts) == 1
-        assert len(captured_alerts[0].description) <= _TEXT_CHANNEL_BODY_LIMIT
+        assert len(captured_alerts[0].message) <= _TEXT_CHANNEL_BODY_LIMIT
 
     def test_run_summary_body_includes_omitted_count_when_truncated(self):
         """Email run summary truncation suffix must count omitted lines."""
@@ -801,7 +792,7 @@ class TestSendEmailRunSummary:
 
         def fake_Alert(**kwargs):
             a = MagicMock()
-            a.description = kwargs.get("description", "")
+            a.message = kwargs.get("message", "")
             captured_alerts.append(a)
             return a
 
@@ -810,15 +801,14 @@ class TestSendEmailRunSummary:
         mock_config.alert_recipients = ["ops@example.com"]
 
         with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
-             patch('laughtrack.infrastructure.monitoring.alerts.Alert', side_effect=fake_Alert), \
-             patch('laughtrack.infrastructure.monitoring.channels.EmailAlertChannel'), \
-             patch('asyncio.run'):
+             patch('gioe_libs.alerting.Alert', side_effect=fake_Alert), \
+             patch('laughtrack.infrastructure.monitoring.channels.EmailAlertChannel'):
             MockConfig.default.return_value = mock_config
             svc._send_email_run_summary(s, db_result)
 
         assert len(captured_alerts) == 1
-        assert "...and " in captured_alerts[0].description
-        assert "more" in captured_alerts[0].description
+        assert "...and " in captured_alerts[0].message
+        assert "more" in captured_alerts[0].message
 
 
 class TestSendWebhookRunSummary:
@@ -846,12 +836,10 @@ class TestSendWebhookRunSummary:
         mock_config.webhook_headers = {}
 
         with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
-             patch('laughtrack.infrastructure.monitoring.alerts.Alert'), \
-             patch('laughtrack.infrastructure.monitoring.channels.WebhookAlertChannel'), \
-             patch('asyncio.run') as mock_run:
+             patch('gioe_libs.alerting.WebhookAlertChannel') as MockChannel:
             MockConfig.default.return_value = mock_config
             svc._send_webhook_run_summary(summary, db_result)
-            mock_run.assert_called_once()
+            MockChannel.return_value.send.assert_called_once()
 
     def test_skips_when_webhook_not_configured(self):
         svc = self._make_service()
@@ -863,10 +851,10 @@ class TestSendWebhookRunSummary:
         mock_config.webhook_url = None
 
         with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
-             patch('asyncio.run') as mock_run:
+             patch('gioe_libs.alerting.WebhookAlertChannel') as MockChannel:
             MockConfig.default.return_value = mock_config
             svc._send_webhook_run_summary(summary, db_result)
-            mock_run.assert_not_called()
+            MockChannel.return_value.send.assert_not_called()
 
     def test_run_summary_body_never_exceeds_text_channel_limit(self):
         """Webhook run summary body must be capped at _TEXT_CHANNEL_BODY_LIMIT chars."""
@@ -882,7 +870,7 @@ class TestSendWebhookRunSummary:
 
         def fake_Alert(**kwargs):
             a = MagicMock()
-            a.description = kwargs.get("description", "")
+            a.message = kwargs.get("message", "")
             captured_alerts.append(a)
             return a
 
@@ -892,14 +880,13 @@ class TestSendWebhookRunSummary:
         mock_config.webhook_headers = {}
 
         with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
-             patch('laughtrack.infrastructure.monitoring.alerts.Alert', side_effect=fake_Alert), \
-             patch('laughtrack.infrastructure.monitoring.channels.WebhookAlertChannel'), \
-             patch('asyncio.run'):
+             patch('gioe_libs.alerting.Alert', side_effect=fake_Alert), \
+             patch('gioe_libs.alerting.WebhookAlertChannel'):
             MockConfig.default.return_value = mock_config
             svc._send_webhook_run_summary(s, db_result)
 
         assert len(captured_alerts) == 1
-        assert len(captured_alerts[0].description) <= _TEXT_CHANNEL_BODY_LIMIT
+        assert len(captured_alerts[0].message) <= _TEXT_CHANNEL_BODY_LIMIT
 
     def test_run_summary_body_includes_omitted_count_when_truncated(self):
         """Webhook run summary truncation suffix must count omitted lines."""
@@ -915,7 +902,7 @@ class TestSendWebhookRunSummary:
 
         def fake_Alert(**kwargs):
             a = MagicMock()
-            a.description = kwargs.get("description", "")
+            a.message = kwargs.get("message", "")
             captured_alerts.append(a)
             return a
 
@@ -925,15 +912,14 @@ class TestSendWebhookRunSummary:
         mock_config.webhook_headers = {}
 
         with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
-             patch('laughtrack.infrastructure.monitoring.alerts.Alert', side_effect=fake_Alert), \
-             patch('laughtrack.infrastructure.monitoring.channels.WebhookAlertChannel'), \
-             patch('asyncio.run'):
+             patch('gioe_libs.alerting.Alert', side_effect=fake_Alert), \
+             patch('gioe_libs.alerting.WebhookAlertChannel'):
             MockConfig.default.return_value = mock_config
             svc._send_webhook_run_summary(s, db_result)
 
         assert len(captured_alerts) == 1
-        assert "...and " in captured_alerts[0].description
-        assert "more" in captured_alerts[0].description
+        assert "...and " in captured_alerts[0].message
+        assert "more" in captured_alerts[0].message
 
 
 class TestTruncateDescriptionLines:
@@ -1002,7 +988,6 @@ class TestTruncateDescriptionLines:
     def test_discord_alert_description_never_exceeds_limit_with_many_failing(self):
         """Integration-style: _send_discord_alert must not produce an embed body > 2048 chars."""
         from laughtrack.core.services.scraping import ScrapingService
-        from unittest.mock import AsyncMock
 
         with patch.object(ScrapingService, '__init__', lambda self, *a, **kw: None):
             svc = ScrapingService.__new__(ScrapingService)
@@ -1014,23 +999,23 @@ class TestTruncateDescriptionLines:
             for i in range(337)
         ]
 
-        sent_alerts = []
+        sent_messages = []
 
-        async def fake_send(alert):
-            sent_alerts.append(alert)
+        def fake_send(alert):
+            sent_messages.append(alert.message)
             return True
 
         mock_channel = MagicMock()
-        mock_channel.send_alert = fake_send
+        mock_channel.send = fake_send
 
         mock_config = MagicMock()
         mock_config.is_discord_configured.return_value = True
         mock_config.discord_webhook_url = "https://discord.example/webhook"
 
         with patch('laughtrack.infrastructure.config.monitoring_config.MonitoringConfig') as MockConfig, \
-             patch('laughtrack.infrastructure.monitoring.channels.DiscordAlertChannel', return_value=mock_channel):
+             patch('gioe_libs.alerting.DiscordAlertChannel', return_value=mock_channel):
             MockConfig.default.return_value = mock_config
             svc._send_discord_alert(failing)
 
-        assert len(sent_alerts) == 1
-        assert len(sent_alerts[0].description) <= 2048
+        assert len(sent_messages) == 1
+        assert len(sent_messages[0]) <= 2048

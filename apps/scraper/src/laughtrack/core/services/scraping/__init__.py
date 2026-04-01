@@ -315,8 +315,7 @@ class ScrapingService:
         # surface a distinct error rather than silently swallowing an ImportError.
         try:
             from laughtrack.infrastructure.config.monitoring_config import MonitoringConfig
-            from laughtrack.infrastructure.monitoring.channels import DiscordAlertChannel
-            from laughtrack.infrastructure.monitoring.alerts import Alert, AlertSeverity
+            from gioe_libs.alerting import DiscordAlertChannel, Alert as GioeAlert, AlertSeverity as GioeSeverity
         except ImportError as e:  # pragma: no cover
             Logger.error(f"Monitoring package not available; skipping Discord alert: {e}")
             return
@@ -337,13 +336,10 @@ class ScrapingService:
             )
             if not all_lines:
                 return
-            alert = Alert(
-                id=str(uuid.uuid4()),
+            gioe_alert = GioeAlert(
                 title=f"Scraping success rate below {self.success_rate_threshold:.0f}% threshold",
-                description=_truncate_description_lines(all_lines),
-                severity=AlertSeverity.HIGH,
-                timestamp=datetime.now(timezone.utc),
-                source="ScrapingService",
+                message=_truncate_description_lines(all_lines),
+                severity=GioeSeverity.HIGH,
                 metadata={
                     "threshold_pct": self.success_rate_threshold,
                     "outage_summaries": list(outage_lines or []),
@@ -351,19 +347,7 @@ class ScrapingService:
                 },
             )
             channel = DiscordAlertChannel(webhook_url=config.discord_webhook_url)
-            # Guard against being called from an already-running event loop
-            # (e.g. async test runner, FastAPI handler) to avoid RuntimeError.
-            try:
-                loop = asyncio.get_running_loop()
-            except RuntimeError:
-                loop = None
-
-            if loop is not None and loop.is_running():
-                import concurrent.futures
-                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-                    executor.submit(asyncio.run, channel.send_alert(alert)).result()
-            else:
-                asyncio.run(channel.send_alert(alert))
+            channel.send(gioe_alert)
         except Exception as e:  # pragma: no cover - defensive
             Logger.error(f"Failed to send Discord scraping alert: {e}")
 
@@ -389,8 +373,7 @@ class ScrapingService:
         """Post an unconditional run summary to Discord after every scrape_all_clubs run."""
         try:
             from laughtrack.infrastructure.config.monitoring_config import MonitoringConfig
-            from laughtrack.infrastructure.monitoring.channels import DiscordAlertChannel
-            from laughtrack.infrastructure.monitoring.alerts import Alert, AlertSeverity
+            from gioe_libs.alerting import DiscordAlertChannel, Alert as GioeAlert, AlertSeverity as GioeSeverity
         except ImportError as e:  # pragma: no cover
             Logger.error(f"Monitoring package not available; skipping Discord run summary: {e}")
             return
@@ -419,13 +402,10 @@ class ScrapingService:
             else:
                 body_lines.append("All clubs at or above threshold ✅")
 
-            alert = Alert(
-                id=str(uuid.uuid4()),
+            gioe_alert = GioeAlert(
                 title=title,
-                description=_truncate_description_lines(body_lines),
-                severity=AlertSeverity.LOW,
-                timestamp=datetime.now(timezone.utc),
-                source="ScrapingService",
+                message=_truncate_description_lines(body_lines),
+                severity=GioeSeverity.LOW,
                 metadata={
                     "clubs_ok": summary.clubs_ok,
                     "total_clubs": summary.total_clubs,
@@ -435,17 +415,7 @@ class ScrapingService:
                 },
             )
             channel = DiscordAlertChannel(webhook_url=config.discord_webhook_url)
-            try:
-                loop = asyncio.get_running_loop()
-            except RuntimeError:
-                loop = None
-
-            if loop is not None and loop.is_running():
-                import concurrent.futures
-                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-                    executor.submit(asyncio.run, channel.send_alert(alert)).result()
-            else:
-                asyncio.run(channel.send_alert(alert))
+            channel.send(gioe_alert)
         except Exception as e:  # pragma: no cover - defensive
             Logger.error(f"Failed to send Discord run summary: {e}")
 
@@ -454,7 +424,7 @@ class ScrapingService:
         try:
             from laughtrack.infrastructure.config.monitoring_config import MonitoringConfig
             from laughtrack.infrastructure.monitoring.channels import EmailAlertChannel
-            from laughtrack.infrastructure.monitoring.alerts import Alert, AlertSeverity
+            from gioe_libs.alerting import Alert as GioeAlert, AlertSeverity as GioeSeverity
         except ImportError as e:  # pragma: no cover
             Logger.error(f"Monitoring package not available; skipping email run summary: {e}")
             return
@@ -480,13 +450,10 @@ class ScrapingService:
                     f"{m.none_resp} empty, {m.error} errors)"
                 )
 
-            alert = Alert(
-                id=str(uuid.uuid4()),
+            gioe_alert = GioeAlert(
                 title=title,
-                description=_truncate_description_lines(body_lines, limit=_TEXT_CHANNEL_BODY_LIMIT),
-                severity=AlertSeverity.LOW,
-                timestamp=datetime.now(timezone.utc),
-                source="ScrapingService",
+                message=_truncate_description_lines(body_lines, limit=_TEXT_CHANNEL_BODY_LIMIT),
+                severity=GioeSeverity.LOW,
                 metadata={
                     "clubs_ok": summary.clubs_ok,
                     "total_clubs": summary.total_clubs,
@@ -496,17 +463,7 @@ class ScrapingService:
                 },
             )
             channel = EmailAlertChannel(recipients=config.alert_recipients)
-            try:
-                loop = asyncio.get_running_loop()
-            except RuntimeError:
-                loop = None
-
-            if loop is not None and loop.is_running():
-                import concurrent.futures
-                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-                    executor.submit(asyncio.run, channel.send_alert(alert)).result()
-            else:
-                asyncio.run(channel.send_alert(alert))
+            channel.send(gioe_alert)
         except Exception as e:  # pragma: no cover - defensive
             Logger.error(f"Failed to send email run summary: {e}")
 
@@ -514,8 +471,7 @@ class ScrapingService:
         """Post an unconditional run summary to the webhook channel after every scrape_all_clubs run."""
         try:
             from laughtrack.infrastructure.config.monitoring_config import MonitoringConfig
-            from laughtrack.infrastructure.monitoring.channels import WebhookAlertChannel
-            from laughtrack.infrastructure.monitoring.alerts import Alert, AlertSeverity
+            from gioe_libs.alerting import WebhookAlertChannel, Alert as GioeAlert, AlertSeverity as GioeSeverity
         except ImportError as e:  # pragma: no cover
             Logger.error(f"Monitoring package not available; skipping webhook run summary: {e}")
             return
@@ -541,13 +497,10 @@ class ScrapingService:
                     f"{m.none_resp} empty, {m.error} errors)"
                 )
 
-            alert = Alert(
-                id=str(uuid.uuid4()),
+            gioe_alert = GioeAlert(
                 title=title,
-                description=_truncate_description_lines(body_lines, limit=_TEXT_CHANNEL_BODY_LIMIT),
-                severity=AlertSeverity.LOW,
-                timestamp=datetime.now(timezone.utc),
-                source="ScrapingService",
+                message=_truncate_description_lines(body_lines, limit=_TEXT_CHANNEL_BODY_LIMIT),
+                severity=GioeSeverity.LOW,
                 metadata={
                     "clubs_ok": summary.clubs_ok,
                     "total_clubs": summary.total_clubs,
@@ -556,18 +509,8 @@ class ScrapingService:
                     "shows_updated": db_result.updates,
                 },
             )
-            channel = WebhookAlertChannel(webhook_url=config.webhook_url, headers=config.webhook_headers)
-            try:
-                loop = asyncio.get_running_loop()
-            except RuntimeError:
-                loop = None
-
-            if loop is not None and loop.is_running():
-                import concurrent.futures
-                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-                    executor.submit(asyncio.run, channel.send_alert(alert)).result()
-            else:
-                asyncio.run(channel.send_alert(alert))
+            channel = WebhookAlertChannel(url=config.webhook_url, headers=config.webhook_headers)
+            channel.send(gioe_alert)
         except Exception as e:  # pragma: no cover - defensive
             Logger.error(f"Failed to send webhook run summary: {e}")
 
@@ -575,7 +518,7 @@ class ScrapingService:
         try:
             from laughtrack.infrastructure.config.monitoring_config import MonitoringConfig
             from laughtrack.infrastructure.monitoring.channels import EmailAlertChannel
-            from laughtrack.infrastructure.monitoring.alerts import Alert, AlertSeverity
+            from gioe_libs.alerting import Alert as GioeAlert, AlertSeverity as GioeSeverity
         except ImportError as e:  # pragma: no cover
             Logger.error(f"Monitoring package not available; skipping email alert: {e}")
             return
@@ -596,13 +539,10 @@ class ScrapingService:
             )
             if not all_lines:
                 return
-            alert = Alert(
-                id=str(uuid.uuid4()),
+            gioe_alert = GioeAlert(
                 title=f"Scraping success rate below {self.success_rate_threshold:.0f}% threshold",
-                description=_truncate_description_lines(all_lines, limit=_TEXT_CHANNEL_BODY_LIMIT),
-                severity=AlertSeverity.HIGH,
-                timestamp=datetime.now(timezone.utc),
-                source="ScrapingService",
+                message=_truncate_description_lines(all_lines, limit=_TEXT_CHANNEL_BODY_LIMIT),
+                severity=GioeSeverity.HIGH,
                 metadata={
                     "threshold_pct": self.success_rate_threshold,
                     "outage_summaries": list(outage_lines or []),
@@ -610,25 +550,14 @@ class ScrapingService:
                 },
             )
             channel = EmailAlertChannel(recipients=config.alert_recipients)
-            try:
-                loop = asyncio.get_running_loop()
-            except RuntimeError:
-                loop = None
-
-            if loop is not None and loop.is_running():
-                import concurrent.futures
-                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-                    executor.submit(asyncio.run, channel.send_alert(alert)).result()
-            else:
-                asyncio.run(channel.send_alert(alert))
+            channel.send(gioe_alert)
         except Exception as e:  # pragma: no cover - defensive
             Logger.error(f"Failed to send email scraping alert: {e}")
 
     def _send_webhook_alert(self, failing: List[DomainRequestMetrics], *, outage_lines: Optional[List[str]] = None) -> None:
         try:
             from laughtrack.infrastructure.config.monitoring_config import MonitoringConfig
-            from laughtrack.infrastructure.monitoring.channels import WebhookAlertChannel
-            from laughtrack.infrastructure.monitoring.alerts import Alert, AlertSeverity
+            from gioe_libs.alerting import WebhookAlertChannel, Alert as GioeAlert, AlertSeverity as GioeSeverity
         except ImportError as e:  # pragma: no cover
             Logger.error(f"Monitoring package not available; skipping webhook alert: {e}")
             return
@@ -649,31 +578,18 @@ class ScrapingService:
             )
             if not all_lines:
                 return
-            alert = Alert(
-                id=str(uuid.uuid4()),
+            gioe_alert = GioeAlert(
                 title=f"Scraping success rate below {self.success_rate_threshold:.0f}% threshold",
-                description=_truncate_description_lines(all_lines, limit=_TEXT_CHANNEL_BODY_LIMIT),
-                severity=AlertSeverity.HIGH,
-                timestamp=datetime.now(timezone.utc),
-                source="ScrapingService",
+                message=_truncate_description_lines(all_lines, limit=_TEXT_CHANNEL_BODY_LIMIT),
+                severity=GioeSeverity.HIGH,
                 metadata={
                     "threshold_pct": self.success_rate_threshold,
                     "outage_summaries": list(outage_lines or []),
                     "failing_domains": [m.club_name for m in failing],
                 },
             )
-            channel = WebhookAlertChannel(webhook_url=config.webhook_url, headers=config.webhook_headers)
-            try:
-                loop = asyncio.get_running_loop()
-            except RuntimeError:
-                loop = None
-
-            if loop is not None and loop.is_running():
-                import concurrent.futures
-                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-                    executor.submit(asyncio.run, channel.send_alert(alert)).result()
-            else:
-                asyncio.run(channel.send_alert(alert))
+            channel = WebhookAlertChannel(url=config.webhook_url, headers=config.webhook_headers)
+            channel.send(gioe_alert)
         except Exception as e:  # pragma: no cover - defensive
             Logger.error(f"Failed to send webhook scraping alert: {e}")
 

@@ -4,6 +4,9 @@ from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 
+from gioe_libs.alerting import Alert as GioeAlert
+from gioe_libs.alerting import AlertSeverity as GioeSeverity
+
 from .alerts import Alert
 from .channels import AlertChannel
 
@@ -106,9 +109,16 @@ class BaseAlertSystem(ABC):
     async def _trigger_alert(self, alert: Alert) -> None:
         self.active_alerts[alert.id] = alert
 
+        gioe_alert = GioeAlert(
+            title=alert.title,
+            message=alert.description,
+            severity=GioeSeverity(alert.severity.value),
+            metadata=alert.metadata,
+        )
+
         for channel in self.channels:
             try:
-                success = await channel.send_alert(alert)
+                success = channel.send(gioe_alert)
                 if success:
                     self._log_info(f"Alert {alert.id} sent successfully via {type(channel).__name__}")
                 else:

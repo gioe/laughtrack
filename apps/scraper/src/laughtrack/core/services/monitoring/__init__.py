@@ -47,7 +47,7 @@ class MonitoringService:
             Logger.info("Discord alerts configured")
         if self.config.is_webhook_configured() and self.config.webhook_url:
             channels.append(
-                WebhookAlertChannel(webhook_url=self.config.webhook_url, headers=self.config.webhook_headers or {})
+                WebhookAlertChannel(url=self.config.webhook_url, headers=self.config.webhook_headers or {})
             )
             Logger.info("Webhook alerts configured")
         if not channels:

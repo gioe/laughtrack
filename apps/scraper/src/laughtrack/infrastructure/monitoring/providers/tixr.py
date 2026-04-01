@@ -50,6 +50,6 @@ class TixrMonitoringProvider(MonitoringProvider):
             channels.append(DiscordAlertChannel(webhook_url=config.discord_webhook_url))
             Logger.info("Discord alerts configured")
         if config.is_webhook_configured() and config.webhook_url:
-            channels.append(WebhookAlertChannel(webhook_url=config.webhook_url, headers=config.webhook_headers or {}))
+            channels.append(WebhookAlertChannel(url=config.webhook_url, headers=config.webhook_headers or {}))
             Logger.info("Webhook alerts configured")
         return channels
