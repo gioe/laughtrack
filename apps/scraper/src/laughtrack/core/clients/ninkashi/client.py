@@ -65,11 +65,11 @@ class NinkashiClient(BaseApiClient):
         Fetch all upcoming events for the given url_site, paginating as needed.
 
         Stops when a page is smaller than the first page (actual page size), when
-        MAX_PAGES is reached, when an empty/non-list page is returned, or when an
-        event beyond DATE_HORIZON_DAYS is encountered (early-stop heuristic for
-        venues like CTT that pre-book years of recurring open-mic slots). Events
-        beyond the horizon are skipped to avoid DB bloat. Only future events within
-        the horizon are included in the result.
+        MAX_PAGES is reached, when an empty/non-list page is returned, when a
+        duplicate page is detected (API ignores the 'page' param and returns the
+        same event IDs every time — stops on page 2), or when an event beyond
+        DATE_HORIZON_DAYS is encountered. Events beyond the horizon are skipped to
+        avoid DB bloat. Only future events within the horizon are included.
 
         Returns an empty list on network failure or unexpected response format.
         """
@@ -78,6 +78,7 @@ class NinkashiClient(BaseApiClient):
         page_size: Optional[int] = None  # actual page size learned from first response
         now = datetime.now(timezone.utc)
         horizon = now + timedelta(days=self.DATE_HORIZON_DAYS)
+        seen_ids: set = set()  # event IDs accumulated across pages for duplicate-page detection
 
         while True:
             if page > self.MAX_PAGES:
@@ -102,6 +103,16 @@ class NinkashiClient(BaseApiClient):
 
             if page_size is None:
                 page_size = len(response)
+
+            # Detect duplicate pages (API ignores 'page' param and returns same events every time).
+            current_page_ids = {raw["id"] for raw in response if isinstance(raw, dict) and "id" in raw}
+            if current_page_ids and current_page_ids.issubset(seen_ids):
+                Logger.info(
+                    f"NinkashiClient: stopping pagination — page {page} is a duplicate of previous pages for {url_site}",
+                    self.logger_context,
+                )
+                break
+            seen_ids.update(current_page_ids)
 
             beyond_horizon_on_page = False
             for raw in response:

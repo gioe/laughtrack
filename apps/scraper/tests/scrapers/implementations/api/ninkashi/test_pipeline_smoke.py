@@ -517,6 +517,36 @@ async def test_fetch_events_filters_past_events(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_fetch_events_stops_on_duplicate_page(monkeypatch):
+    """fetch_events() stops when page 2 returns the same event IDs as page 1.
+
+    Regression test for CTT (tickets.cttcomedy.com): the Ninkashi API for this
+    venue ignores the 'page' parameter and returns identical event IDs on every
+    page. Without deduplication the loop runs to MAX_PAGES=50, making 50 HTTP
+    requests and ingesting 5250 duplicate records. The fix detects a fully-duplicate
+    page and stops immediately.
+    """
+    client = NinkashiClient(_club())
+    per_page = NinkashiClient.PER_PAGE
+
+    # Simulate an API that returns the same page regardless of the page param.
+    same_page = [_raw_event(event_id=i, starts_at=_WITHIN_HORIZON) for i in range(per_page)]
+    call_count = [0]
+
+    async def fake_fetch_json(self, url, **kwargs):
+        call_count[0] += 1
+        return same_page
+
+    monkeypatch.setattr(NinkashiClient, "fetch_json", fake_fetch_json)
+
+    events = await client.fetch_events(URL_SITE)
+
+    # Page 1 events are included; page 2 is detected as duplicate and stops pagination
+    assert len(events) == per_page
+    assert call_count[0] == 2  # fetched page 1, detected dupe on page 2, stopped
+
+
+@pytest.mark.asyncio
 async def test_fetch_events_stops_at_date_horizon(monkeypatch):
     """fetch_events() stops pagination and excludes events beyond DATE_HORIZON_DAYS.
 
