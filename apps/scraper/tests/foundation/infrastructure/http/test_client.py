@@ -1,5 +1,6 @@
 """Unit tests for HttpClient.fetch_html and fetch_json."""
 
+import json as _json
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -10,7 +11,6 @@ from laughtrack.foundation.infrastructure.http.client import HttpClient, _bot_bl
 
 def _make_response(status_code: int, text: str = "", json_data=None):
     """Build a mock curl_cffi response."""
-    import json as _json
     resp = MagicMock()
     resp.status_code = status_code
     resp.text = _json.dumps(json_data) if json_data is not None and not text else text
@@ -410,3 +410,16 @@ class TestFetchJson:
         mock_warn.assert_called_once()
         call_msg = mock_warn.call_args[0][0]
         assert "empty body" in call_msg
+
+    @pytest.mark.asyncio
+    async def test_200_empty_body_passes_logger_context_to_warn(self):
+        session = AsyncMock()
+        session.get.return_value = _make_response(200, text="")
+        context = {"club": "test_club", "endpoint": "/api/shows"}
+
+        with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn:
+            await HttpClient.fetch_json(session, "https://example.com/api", logger_context=context)
+
+        mock_warn.assert_called_once()
+        call_context = mock_warn.call_args[0][1]
+        assert call_context == context

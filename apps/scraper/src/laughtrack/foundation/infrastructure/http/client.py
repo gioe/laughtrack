@@ -213,7 +213,8 @@ class HttpClient:
                 provided the request is routed through that proxy.
 
         Returns:
-            JSON data as dictionary, or None if the response status is not 200.
+            JSON data as dictionary, or None if the response status is not 200
+            or the body is empty/whitespace-only.
 
         Raises:
             Exception: Any network or connection error is re-raised so callers
