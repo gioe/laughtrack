@@ -1,4 +1,4 @@
-"""Tests for HttpConvenienceMixin.fetch_html_bare and fetch_json_list."""
+"""Tests for HttpConvenienceMixin.fetch_json, fetch_html_bare, and fetch_json_list."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -22,6 +22,75 @@ class _ConcreteMixin(HttpConvenienceMixin):
     @property
     def club(self):
         return self._club
+
+
+# ---------------------------------------------------------------------------
+# fetch_json — empty-body guard
+# ---------------------------------------------------------------------------
+
+
+class TestFetchJson:
+    @pytest.mark.asyncio
+    async def test_returns_none_and_warns_on_empty_body(self):
+        """HTTP 200 with empty body returns None and logs a warning."""
+        mock_response = MagicMock()
+        mock_response.text = ""
+        mock_response.raise_for_status = MagicMock()
+
+        mock_session = AsyncMock()
+        mock_session.get.return_value = mock_response
+
+        mixin = _ConcreteMixin()
+        mixin.get_session = AsyncMock(return_value=mock_session)
+
+        with patch(
+            "laughtrack.core.data.mixins.http_convenience_mixin.Logger"
+        ) as MockLogger:
+            result = await mixin.fetch_json("https://example.com/api")
+
+        assert result is None
+        MockLogger.warn.assert_called_once()
+        warning_msg = MockLogger.warn.call_args[0][0]
+        assert "empty body" in warning_msg
+
+    @pytest.mark.asyncio
+    async def test_returns_none_and_warns_on_whitespace_body(self):
+        """HTTP 200 with whitespace-only body is treated as empty."""
+        mock_response = MagicMock()
+        mock_response.text = "   "
+        mock_response.raise_for_status = MagicMock()
+
+        mock_session = AsyncMock()
+        mock_session.get.return_value = mock_response
+
+        mixin = _ConcreteMixin()
+        mixin.get_session = AsyncMock(return_value=mock_session)
+
+        with patch(
+            "laughtrack.core.data.mixins.http_convenience_mixin.Logger"
+        ) as MockLogger:
+            result = await mixin.fetch_json("https://example.com/api")
+
+        assert result is None
+        MockLogger.warn.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_returns_parsed_json_on_valid_body(self):
+        """HTTP 200 with valid JSON body returns parsed data."""
+        mock_response = MagicMock()
+        mock_response.text = '{"events": []}'
+        mock_response.json.return_value = {"events": []}
+        mock_response.raise_for_status = MagicMock()
+
+        mock_session = AsyncMock()
+        mock_session.get.return_value = mock_response
+
+        mixin = _ConcreteMixin()
+        mixin.get_session = AsyncMock(return_value=mock_session)
+
+        result = await mixin.fetch_json("https://example.com/api")
+
+        assert result == {"events": []}
 
 
 # ---------------------------------------------------------------------------

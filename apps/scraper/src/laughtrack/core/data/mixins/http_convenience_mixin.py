@@ -34,6 +34,9 @@ class HttpConvenienceMixin(AsyncHttpMixin):
             session = await self.get_session()
             response = await session.get(url, **kwargs)
             response.raise_for_status()
+            if not response.text or not response.text.strip():
+                Logger.warn(f"HTTP 200 with empty body when fetching {url}")
+                return None
             return response.json()
 
         # Use error handler if available, otherwise execute directly
