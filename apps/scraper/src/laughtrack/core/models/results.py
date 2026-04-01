@@ -22,6 +22,7 @@ class ClubScrapingResult:
     execution_time: float
     error: Optional[str] = None
     club_id: Optional[int] = None
+    error_log_count: int = 0
 
     @property
     def num_shows(self) -> int:

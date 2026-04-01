@@ -33,6 +33,7 @@ class MetricsAggregator:
                     success=result.success,
                     error=(result.error if result.error is not None else None),
                     club_id=result.club_id,
+                    errors=result.error_log_count,
                 )
             )
         return ScrapingSessionResult(shows=all_shows, errors=errors, per_club_stats=per_club_stats)

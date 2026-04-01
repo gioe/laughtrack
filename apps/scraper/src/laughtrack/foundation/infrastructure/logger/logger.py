@@ -9,6 +9,7 @@ Noise reduction goals:
 import logging
 import os
 import sys
+import threading
 from logging.handlers import TimedRotatingFileHandler
 from datetime import datetime
 from typing import Dict, Optional
@@ -17,6 +18,24 @@ from contextlib import contextmanager
 
 from laughtrack.foundation.models.log_level import LogLevel
 from laughtrack.foundation.models.types import JSONDict
+
+
+# Per-thread storage for ERROR-level log counting (used by _ErrorCountingHandler).
+_thread_error_counts = threading.local()
+
+
+class _ErrorCountingHandler(logging.Handler):
+    """Counts ERROR+ log records per thread.
+
+    A single instance is attached to the root logger once in Logger.configure().
+    Call Logger.reset_error_count() before a timed window, then
+    Logger.get_error_count() afterward to read how many ERROR+ records were
+    emitted on the current thread during that window.
+    """
+
+    def emit(self, record: logging.LogRecord) -> None:
+        if record.levelno >= logging.ERROR and getattr(_thread_error_counts, "active", False):
+            _thread_error_counts.count = getattr(_thread_error_counts, "count", 0) + 1
 
 
 class SafeExtraFormatter(logging.Formatter):
@@ -55,6 +74,8 @@ class Logger:
     _configured = False
     # Context variable holding current default logging context (per task)
     _context: contextvars.ContextVar = contextvars.ContextVar("lt_log_context", default={})
+    # Singleton error counting handler (attached once in configure())
+    _error_counting_handler: Optional["_ErrorCountingHandler"] = None
 
     class _ContextInjectFilter(logging.Filter):
         """Filter that injects task-local context into every LogRecord."""
@@ -143,6 +164,11 @@ class Logger:
             fallback_logger = logging.getLogger(__name__)
             fallback_logger.warning(f"File logging disabled due to error: {e}")
 
+        # Per-thread error counter (used by scraping service for per-venue ERROR metrics)
+        cls._error_counting_handler = _ErrorCountingHandler()
+        cls._error_counting_handler.setLevel(logging.ERROR)
+        root.addHandler(cls._error_counting_handler)
+
         cls._configured = True
 
     @classmethod
@@ -197,6 +223,31 @@ class Logger:
             yield
         finally:
             cls.pop_context(token)
+
+    # ---- Per-thread ERROR counting -----------------------------------------
+    @classmethod
+    def reset_error_count(cls) -> None:
+        """Reset the ERROR log counter for the current thread.
+
+        Call this before a timed window (e.g. scraping one club) to begin
+        counting ERROR+ records emitted on this thread.
+        """
+        if not cls._configured:
+            cls.configure()
+        _thread_error_counts.count = 0
+        _thread_error_counts.active = True
+
+    @classmethod
+    def get_error_count(cls) -> int:
+        """Return and stop the ERROR log counter for the current thread.
+
+        Returns the number of ERROR+ records logged since the last
+        reset_error_count() call on this thread, then deactivates counting.
+        """
+        count = getattr(_thread_error_counts, "count", 0)
+        _thread_error_counts.active = False
+        _thread_error_counts.count = 0
+        return count
 
     @classmethod
     def debug(cls, message: str, context: Optional[JSONDict] = None, logger_name: str = __name__) -> None:
