@@ -104,14 +104,21 @@ class BaseDatabaseHandler(Generic[T], ABC):
                     # Log operation summary if requested
                     if log_summary:
                         operation_type = self._determine_operation_type(query)
-                        if return_results and results:
-                            # For operations that return results (like INSERT...RETURNING)
-                            processed_count = len(results)
-                            DatabaseOperationLogger.log_simple_batch_operation(
-                                operation=operation_type, items_count=processed_count, entity_type=entity_name
-                            )
+                        if return_results:
+                            # RETURNING query — count newly inserted/updated rows.
+                            # An empty list means all rows were skipped (ON CONFLICT DO NOTHING),
+                            # which is normal when records already exist — log at INFO, not WARNING.
+                            processed_count = len(results) if results else 0
+                            if processed_count > 0:
+                                DatabaseOperationLogger.log_simple_batch_operation(
+                                    operation=operation_type, items_count=processed_count, entity_type=entity_name
+                                )
+                            else:
+                                Logger.info(
+                                    f"{operation_type} operation: 0 new {entity_name} inserted — all already existed"
+                                )
                         else:
-                            # For operations that don't return results (like UPDATE/DELETE)
+                            # UPDATE/DELETE — use cursor.rowcount (no RETURNING clause)
                             affected_rows = cursor.rowcount
                             DatabaseOperationLogger.log_simple_batch_operation(
                                 operation=operation_type, items_count=affected_rows, entity_type=entity_name
