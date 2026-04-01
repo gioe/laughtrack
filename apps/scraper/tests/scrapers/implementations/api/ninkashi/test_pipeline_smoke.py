@@ -26,6 +26,14 @@ from laughtrack.scrapers.implementations.api.ninkashi.extractor import NinkashiE
 
 URL_SITE = "tickets.cttcomedy.com"
 
+# A starts_at value within the 730-day horizon (~14 months from April 2026).
+# Client pagination tests that don't care about the horizon use this so the
+# date-horizon early-stop doesn't interfere with what the test is verifying.
+_WITHIN_HORIZON = "2027-06-01 19:00:00 +0000"
+
+# A starts_at value clearly beyond the 730-day horizon.
+_BEYOND_HORIZON = "2099-01-01 19:00:00 +0000"
+
 
 def _club() -> Club:
     return Club(
@@ -371,8 +379,8 @@ async def test_fetch_events_paginates_until_partial_page(monkeypatch):
     per_page = NinkashiClient.PER_PAGE
 
     # Page 1: full page (per_page events), page 2: partial (2 events) → stop after page 2
-    page_1 = [_raw_event(event_id=i, title=f"Show {i}") for i in range(per_page)]
-    page_2 = [_raw_event(event_id=per_page), _raw_event(event_id=per_page + 1)]
+    page_1 = [_raw_event(event_id=i, title=f"Show {i}", starts_at=_WITHIN_HORIZON) for i in range(per_page)]
+    page_2 = [_raw_event(event_id=per_page, starts_at=_WITHIN_HORIZON), _raw_event(event_id=per_page + 1, starts_at=_WITHIN_HORIZON)]
     pages = [page_1, page_2]
     call_count = [0]
 
@@ -413,7 +421,7 @@ async def test_fetch_events_warns_on_non_list_mid_pagination(monkeypatch):
     client = NinkashiClient(_club())
     per_page = NinkashiClient.PER_PAGE
 
-    page_1 = [_raw_event(event_id=i) for i in range(per_page)]
+    page_1 = [_raw_event(event_id=i, starts_at=_WITHIN_HORIZON) for i in range(per_page)]
     call_count = [0]
 
     async def fake_fetch_json(self, url, **kwargs):
@@ -444,8 +452,8 @@ async def test_fetch_events_uses_actual_page_size_not_per_page(monkeypatch):
     actual_api_page_size = 105  # API returns more than PER_PAGE=100
 
     # Page 1: 105 events (full API page), page 2: 3 events (partial) → stop after page 2
-    page_1 = [_raw_event(event_id=i, title=f"Show {i}") for i in range(actual_api_page_size)]
-    page_2 = [_raw_event(event_id=actual_api_page_size + i) for i in range(3)]
+    page_1 = [_raw_event(event_id=i, title=f"Show {i}", starts_at=_WITHIN_HORIZON) for i in range(actual_api_page_size)]
+    page_2 = [_raw_event(event_id=actual_api_page_size + i, starts_at=_WITHIN_HORIZON) for i in range(3)]
     pages = [page_1, page_2]
     call_count = [0]
 
@@ -472,8 +480,9 @@ async def test_fetch_events_stops_at_max_pages(monkeypatch):
 
     async def fake_fetch_json(self, url, **kwargs):
         call_count[0] += 1
-        # always return a full page so the partial-page stop condition never fires
-        return [_raw_event(event_id=call_count[0] * 1000 + i) for i in range(per_page)]
+        # always return a full page so the partial-page stop condition never fires;
+        # use _WITHIN_HORIZON so the date-horizon stop condition also doesn't fire
+        return [_raw_event(event_id=call_count[0] * 1000 + i, starts_at=_WITHIN_HORIZON) for i in range(per_page)]
 
     monkeypatch.setattr(NinkashiClient, "fetch_json", fake_fetch_json)
 
@@ -505,3 +514,38 @@ async def test_fetch_events_filters_past_events(monkeypatch):
 
     assert len(events) == 1
     assert events[0].title == "Future Show"
+
+
+@pytest.mark.asyncio
+async def test_fetch_events_stops_at_date_horizon(monkeypatch):
+    """fetch_events() stops pagination and excludes events beyond DATE_HORIZON_DAYS.
+
+    Regression test for CTT (tickets.cttcomedy.com): the venue pre-books hundreds
+    of recurring open-mic slots years in advance. MAX_PAGES=50 fired on every run
+    because the API keeps returning full pages of distant-future events. The fix
+    stops paginating as soon as any event on a page exceeds the horizon, and those
+    events are excluded from the result.
+    """
+    client = NinkashiClient(_club())
+
+    within_horizon = _raw_event(event_id=1, title="Near Show", starts_at=_WITHIN_HORIZON)
+    beyond_horizon = _raw_event(event_id=2, title="Far Show", starts_at=_BEYOND_HORIZON)
+    call_count = [0]
+
+    async def fake_fetch_json(self, url, **kwargs):
+        call_count[0] += 1
+        # Page 1: one within-horizon + one beyond-horizon event.
+        # If horizon stop works, there should be no page 2 request.
+        if call_count[0] == 1:
+            return [within_horizon, beyond_horizon]
+        return [_raw_event(event_id=99, title="Should Not Appear", starts_at=_WITHIN_HORIZON)]
+
+    monkeypatch.setattr(NinkashiClient, "fetch_json", fake_fetch_json)
+
+    events = await client.fetch_events(URL_SITE)
+
+    # Beyond-horizon event excluded; within-horizon event included
+    assert len(events) == 1
+    assert events[0].title == "Near Show"
+    # Pagination stopped after page 1 — no page 2 requested
+    assert call_count[0] == 1
