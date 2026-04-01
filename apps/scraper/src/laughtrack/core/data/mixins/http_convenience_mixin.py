@@ -104,13 +104,21 @@ class HttpConvenienceMixin(AsyncHttpMixin):
         else:
             return await _fetch_html_bare()
 
-    async def post_json(self, url: str, data: JSONDict, **kwargs) -> JSONDict:
-        """Post JSON data and get JSON response with error handling."""
+    async def post_json(self, url: str, data: JSONDict, **kwargs) -> Optional[JSONDict]:
+        """Post JSON data and get JSON response with error handling.
+
+        Returns:
+            Parsed JSON data, or None if the response body is empty or
+            whitespace-only (HTTP 200 with no content).
+        """
         session = await self.get_session()
 
         async def _post_json():
             response = await session.post(url, json=data, **kwargs)
             response.raise_for_status()
+            if not response.text or not response.text.strip():
+                Logger.warn(f"HTTP 200 with empty body when posting to {url}")
+                return None
             return response.json()
 
         # Use error handler if available, otherwise execute directly
