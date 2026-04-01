@@ -106,12 +106,18 @@ class BaseAlertSystem(ABC):
 
         return True
 
+    _DISCORD_EMBED_LIMIT = 2048
+
     async def _trigger_alert(self, alert: Alert) -> None:
         self.active_alerts[alert.id] = alert
 
+        description = alert.description
+        if len(description) > self._DISCORD_EMBED_LIMIT:
+            description = description[: self._DISCORD_EMBED_LIMIT - 3] + "..."
+
         gioe_alert = GioeAlert(
             title=alert.title,
-            message=alert.description,
+            message=description,
             severity=GioeSeverity(alert.severity.value),
             metadata=alert.metadata,
         )

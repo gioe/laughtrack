@@ -100,3 +100,22 @@ def test_send_includes_fields_when_metadata_present(alert, channel):
     assert "fields" in embed
     field_names = [f["name"] for f in embed["fields"]]
     assert "club_id" in field_names
+
+
+def test_send_with_long_message_passes_full_content_to_discord(channel):
+    """gioe_libs does not truncate; callers are responsible for length limits."""
+    long_message = "x" * 3000
+    long_alert = Alert(
+        title="Long Alert",
+        message=long_message,
+        severity=AlertSeverity.LOW,
+        metadata={},
+    )
+    mock_fn, captured = _capture_urlopen()
+    with patch("urllib.request.urlopen", side_effect=mock_fn):
+        result = channel.send(long_alert)
+
+    assert result is True
+    embed = json.loads(captured[0].data.decode())["embeds"][0]
+    # gioe_libs passes the message through as-is; Discord may reject >2048 chars
+    assert embed["description"] == long_message
