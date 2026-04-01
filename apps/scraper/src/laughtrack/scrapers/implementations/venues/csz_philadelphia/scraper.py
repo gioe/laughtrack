@@ -14,7 +14,8 @@ The plugin exposes two server-rendered HTML endpoints that we exploit directly:
 Pipeline
 --------
   1. collect_scraping_targets()
-       → fetch showevents HTML
+       → fetch fresh VBO session key from loadplugin endpoint
+       → fetch showevents HTML using the fresh key
        → return one target string per comedy-show event:
          ``"{eid}|{initial_edid}|{title}"``
 
@@ -27,13 +28,18 @@ Pipeline
   3. transformation_pipeline (CszPhillyEventTransformer)
        → CszPhillyShowInstance → Show
 
-Configuration
--------------
-The ``club.scraping_url`` field stores the full VBO plugin URL including the
-venue-specific session key (``s=`` parameter), e.g.:
-  ``https://plugin.vbotickets.com/Plugin/events?s=4610c334-...``
+Session Key
+-----------
+The VBO session key (``s=`` parameter) is fetched dynamically on each run by
+calling ``plugin.vbotickets.com/plugin/loadplugin?siteid=<SITE_ID>``.  This
+makes the scraper self-healing: it acquires the current key from VBO rather
+than relying on a static value stored in ``club.scraping_url``.  If the
+loadplugin call fails, the scraper falls back to the key stored in
+``club.scraping_url`` so that a transient network error does not silence the
+venue entirely.
 """
 
+import re
 from typing import List, Optional
 from urllib.parse import parse_qs, urlparse
 
@@ -46,6 +52,12 @@ from .page_data import CszPhillyPageData
 from .transformer import CszPhillyEventTransformer
 
 
+_SITE_ID = "50F7AC53-FC8E-4EB7-9C09-810A40F1181A"
+
+_VBO_LOADPLUGIN_URL = (
+    f"https://plugin.vbotickets.com/plugin/loadplugin?siteid={_SITE_ID}&page=ListEvents"
+)
+
 _SHOWEVENTS_URL = (
     "https://plugin.vbotickets.com/Plugin/events/showevents"
     "?ViewType=list&EventType=current&day=&s={session_key}"
@@ -54,6 +66,13 @@ _SHOWEVENTS_URL = (
 _DATE_SLIDER_URL = (
     "https://plugin.vbotickets.com/v5.0/controls/events.asp"
     "?a=load_eventdate_slider&eid={eid}&edid={edid}&tza=3&s={session_key}"
+)
+
+# Regex to extract the UUID session from the VBO loadplugin JS response.
+# VBO embeds the session as an unquoted JS object key: `value: "uuid"`.
+_SESSION_RE = re.compile(
+    r'value["\s:]+([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})',
+    re.IGNORECASE,
 )
 
 _TARGET_SEP = "|"
@@ -68,10 +87,11 @@ class CszPhiladelphiaScraper(BaseScraper):
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
+        # Seed with the static key from scraping_url as a fallback.  The real
+        # key is refreshed dynamically in collect_scraping_targets().
         self._session_key = self._extract_session_key(club.scraping_url or "")
-        self.transformation_pipeline.register_transformer(
-            CszPhillyEventTransformer(club, session_key=self._session_key)
-        )
+        self._csz_transformer = CszPhillyEventTransformer(club, session_key=self._session_key)
+        self.transformation_pipeline.register_transformer(self._csz_transformer)
 
     # ------------------------------------------------------------------
     # Public pipeline methods
@@ -81,8 +101,23 @@ class CszPhiladelphiaScraper(BaseScraper):
         """
         Fetch the VBO events list and return one target per comedy show.
 
+        Acquires a fresh VBO session key from the loadplugin endpoint before
+        fetching events.  Falls back to the static key from ``scraping_url``
+        if the loadplugin call fails.
+
         Each target is ``"{eid}|{edid}|{title}"``.
         """
+        fresh_key = await self._acquire_session_key()
+        if fresh_key:
+            self._session_key = fresh_key
+            self._csz_transformer._session_key = fresh_key
+        else:
+            Logger.warn(
+                f"{self._log_prefix}: loadplugin did not return a session key — "
+                f"falling back to static scraping_url key (s={self._session_key[:8]}...)",
+                self.logger_context,
+            )
+
         try:
             url = _SHOWEVENTS_URL.format(session_key=self._session_key)
             html = await self.fetch_html(url)
@@ -94,8 +129,8 @@ class CszPhiladelphiaScraper(BaseScraper):
                 Logger.warn(
                     f"{self._log_prefix}: showevents response missing expected structure "
                     f"('CurrentEvents' / 'EventListWrapper') — "
-                    f"session key may be stale (s={self._session_key}). "
-                    f"Refresh scraping_url to resolve.",
+                    f"session key may be stale (s={self._session_key[:8]}...). "
+                    f"VBO loadplugin may be returning an unexpected response.",
                     self.logger_context,
                 )
                 return []
@@ -152,6 +187,44 @@ class CszPhiladelphiaScraper(BaseScraper):
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
+
+    async def _acquire_session_key(self) -> str:
+        """
+        Fetch a fresh VBO session key from the loadplugin endpoint.
+
+        Returns the UUID string on success, or an empty string if the
+        loadplugin call fails or does not contain a recognisable UUID.
+        """
+        try:
+            html = await self.fetch_html(_VBO_LOADPLUGIN_URL)
+        except Exception as e:
+            Logger.error(
+                f"{self._log_prefix}: failed to fetch VBO loadplugin: {e}",
+                self.logger_context,
+            )
+            return ""
+
+        if not html:
+            Logger.warn(
+                f"{self._log_prefix}: empty response from VBO loadplugin",
+                self.logger_context,
+            )
+            return ""
+
+        m = _SESSION_RE.search(html)
+        if not m:
+            Logger.warn(
+                f"{self._log_prefix}: could not extract session UUID from loadplugin response",
+                self.logger_context,
+            )
+            return ""
+
+        session_key = m.group(1)
+        Logger.debug(
+            f"{self._log_prefix}: acquired VBO session {session_key[:8]}...",
+            self.logger_context,
+        )
+        return session_key
 
     @staticmethod
     def _is_valid_events_page(html: str) -> bool:
