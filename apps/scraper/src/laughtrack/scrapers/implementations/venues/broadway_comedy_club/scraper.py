@@ -88,6 +88,8 @@ class BroadwayComedyClubScraper(BaseScraper):
                 return None
 
             Logger.info(f"{self._log_prefix}: Extracted {len(event_list)} raw events", self.logger_context)
+            # Refresh Tessera session before enrichment to avoid stale-session empty responses
+            await self.tessera_client.refresh_session_id()
             # Enrich events with ticket data from Tessera API
             event_list = await self._enrich_events_with_tickets(event_list)
             enriched_count = sum(1 for e in event_list if hasattr(e, "_ticket_data"))

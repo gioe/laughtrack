@@ -8,6 +8,8 @@ Refactored to inherit from BaseApiClient to unify HTTP and logging behavior.
 
 from typing import Any, Dict, List, Optional
 
+from curl_cffi.requests import AsyncSession
+
 from laughtrack.core.clients.tessera.models.response import TesseraAPIResponse
 from laughtrack.core.clients.base import BaseApiClient
 from laughtrack.core.entities.club.model import Club
@@ -50,7 +52,49 @@ class TesseraClient(BaseApiClient):
 
         self.base_domain = base_domain
         self.api_base_url = api_base_url
+        # Root API URL (strips the resource-specific path suffix, e.g. "/products")
+        # Used for auth endpoints like /authorization/session.
+        self.api_root_url = api_base_url.rstrip("/").rsplit("/", 1)[0]
     # No per-client concurrency management; batching lives in scrapers
+
+    async def refresh_session_id(self) -> bool:
+        """Fetch a fresh session ID from the Tessera authorization endpoint.
+
+        The Tessera API returns HTTP 200 + empty body when the session ID is
+        expired.  Call this once per scrape run to avoid silent failures.
+
+        Returns:
+            True if a new session ID was acquired and applied, False otherwise.
+        """
+        auth_url = f"{self.api_root_url}/authorization/session"
+        try:
+            async with AsyncSession(
+                impersonate=self._get_impersonation_target(auth_url)
+            ) as session:
+                response = await session.post(
+                    auth_url,
+                    headers={
+                        "Content-Type": "application/json",
+                        "Origin": self.origin_url,
+                    },
+                )
+            if response.status_code != 200 or not response.text.strip():
+                self.log_warning(
+                    f"Tessera session refresh failed: HTTP {response.status_code}"
+                    f" | url={auth_url}"
+                )
+                return False
+            data = response.json()
+            session_id = data.get("sessionId") if isinstance(data, dict) else None
+            if not session_id:
+                self.log_warning(f"Tessera session refresh returned no sessionId | url={auth_url}")
+                return False
+            self.headers["sessionid"] = session_id
+            self.log_info(f"Tessera session refreshed successfully")
+            return True
+        except Exception as e:
+            self.log_warning(f"Tessera session refresh error: {e} | url={auth_url}")
+            return False
 
     def _initialize_headers(self) -> Dict[str, str]:
         """Initialize default headers for Tessera API using BaseHeaders."""
@@ -67,28 +111,42 @@ class TesseraClient(BaseApiClient):
         """
         Fetch raw ticket data from Tessera API.
 
+        The Tessera API returns HTTP 200 with an empty body for expired/stale
+        events.  Using a raw session here (rather than fetch_json) lets us
+        detect that case and log at WARNING rather than ERROR.
+
         Args:
             event_id: Event ID for API call
 
         Returns:
             TesseraAPIResponse dictionary or None if failed
         """
+        api_url = f"{self.api_base_url}/{event_id}"
+        normalized_url = URLUtils.normalize_url(api_url)
+
         try:
-            api_url = f"{self.api_base_url}/{event_id}"
-            # Normalize URL to ensure it has protocol
-            normalized_url = URLUtils.normalize_url(api_url)
+            await self._apply_rate_limit(normalized_url)
+            async with AsyncSession(
+                impersonate=self._get_impersonation_target(normalized_url)
+            ) as session:
+                response = await session.get(normalized_url, headers=self.headers)
 
-            # Use BaseApiClient helper to fetch JSON
-            parsed_response = await self.fetch_json(normalized_url, headers=self.headers)
-
-            # Validate that the response has the expected structure
-            if not parsed_response or not isinstance(parsed_response, dict):
+            body = response.text.strip() if response.text else ""
+            if not body:
                 self.log_warning(
-                    f"Invalid or empty response for event {event_id}: expected dict, got {type(parsed_response)} | url={normalized_url}"
+                    f"Empty response for event {event_id} — event may be stale or expired"
+                    f" | url={normalized_url}"
                 )
                 return None
 
-            # Convert dict response to TesseraAPIResponse dataclass
+            parsed_response = response.json()
+            if not parsed_response or not isinstance(parsed_response, dict):
+                self.log_warning(
+                    f"Invalid response for event {event_id}: expected dict,"
+                    f" got {type(parsed_response)} | url={normalized_url}"
+                )
+                return None
+
             return TesseraAPIResponse.from_dict(parsed_response)
 
         except Exception as e:

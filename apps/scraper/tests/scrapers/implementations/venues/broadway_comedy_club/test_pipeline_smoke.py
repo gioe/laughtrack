@@ -74,8 +74,13 @@ async def test_get_data_returns_events_from_fixture_html(monkeypatch):
     async def fake_enrich(self, events):
         return events
 
+    async def fake_refresh_session_id(self) -> bool:
+        return True
+
     monkeypatch.setattr(BroadwayComedyClubScraper, "fetch_html", fake_fetch_html)
     monkeypatch.setattr(BroadwayComedyClubScraper, "_enrich_events_with_tickets", fake_enrich)
+    from laughtrack.core.clients.tessera.client import TesseraClient
+    monkeypatch.setattr(TesseraClient, "refresh_session_id", fake_refresh_session_id)
 
     result = await scraper.get_data(f"https://{SCRAPING_URL}")
 
@@ -97,8 +102,13 @@ async def test_full_pipeline_discover_then_get_data(monkeypatch):
     async def fake_enrich(self, events):
         return events
 
+    async def fake_refresh_session_id(self) -> bool:
+        return True
+
     monkeypatch.setattr(BroadwayComedyClubScraper, "fetch_html", fake_fetch_html)
     monkeypatch.setattr(BroadwayComedyClubScraper, "_enrich_events_with_tickets", fake_enrich)
+    from laughtrack.core.clients.tessera.client import TesseraClient
+    monkeypatch.setattr(TesseraClient, "refresh_session_id", fake_refresh_session_id)
 
     urls = await scraper.collect_scraping_targets()
     assert len(urls) > 0, "collect_scraping_targets() returned 0 URLs"
