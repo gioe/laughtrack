@@ -366,6 +366,9 @@ class BaseApiClient(ABC):
                     if proxy_url and self.proxy_pool is not None:
                         self.proxy_pool.report_failure(proxy_url)
                     return None
+                if not response.text or not response.text.strip():
+                    Logger.warning(f"HTTP 200 with empty body when POSTing {url}")
+                    return None
                 obj = response.json()
                 # DEBUG summary of response
                 try:

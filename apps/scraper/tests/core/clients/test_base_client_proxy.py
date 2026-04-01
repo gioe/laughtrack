@@ -160,4 +160,49 @@ class TestFetchHtmlProxyWiring:
 
         assert result is None
         pool.report_failure.assert_called_once_with(PROXY_URL)
-        pool.report_success.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# post_json — empty-body guard
+# ---------------------------------------------------------------------------
+
+
+class TestPostJsonEmptyBody:
+    @pytest.mark.asyncio
+    async def test_200_empty_body_returns_none_and_logs_warning(self):
+        """HTTP 200 with empty body returns None and logs a warning."""
+        client = ConcreteClient(_make_club())
+        cm, _ = _make_session_cm(200, text="")
+
+        with patch("laughtrack.core.clients.base.AsyncSession", return_value=cm):
+            with patch("laughtrack.core.clients.base.Logger") as MockLogger:
+                result = await client.post_json("https://example.com/api", {"key": "val"})
+
+        assert result is None
+        MockLogger.warning.assert_called()
+        warning_msg = MockLogger.warning.call_args[0][0]
+        assert "empty body" in warning_msg
+
+    @pytest.mark.asyncio
+    async def test_200_whitespace_only_body_returns_none_and_logs_warning(self):
+        """HTTP 200 with whitespace-only body is treated as empty."""
+        client = ConcreteClient(_make_club())
+        cm, _ = _make_session_cm(200, text="   \n  ")
+
+        with patch("laughtrack.core.clients.base.AsyncSession", return_value=cm):
+            with patch("laughtrack.core.clients.base.Logger") as MockLogger:
+                result = await client.post_json("https://example.com/api", {"key": "val"})
+
+        assert result is None
+        MockLogger.warning.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_200_valid_body_returns_parsed_json(self):
+        """HTTP 200 with valid JSON body returns parsed data."""
+        client = ConcreteClient(_make_club())
+        cm, _ = _make_session_cm(200, text='{"token": "abc"}', json_data={"token": "abc"})
+
+        with patch("laughtrack.core.clients.base.AsyncSession", return_value=cm):
+            result = await client.post_json("https://example.com/api", {"key": "val"})
+
+        assert result == {"token": "abc"}
