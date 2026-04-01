@@ -1102,7 +1102,7 @@ VALUES ('The Comedy Loft', 'comedy_loft', 'https://thecomedyloft.com/shows', ...
 
 **Step 5 — Verify**
 ```bash
-bin/scrape 'The Comedy Loft'
+cd apps/scraper && make scrape-club CLUB='The Comedy Loft'
 ```
 Confirm shows are scraped with correct dates (timestamps ÷ 1000 → seconds), ticket URLs, and comedian names.
 
