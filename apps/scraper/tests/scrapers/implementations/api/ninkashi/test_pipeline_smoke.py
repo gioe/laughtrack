@@ -45,7 +45,7 @@ def _club() -> Club:
 def _raw_event(
     event_id=1001,
     title="Tuesday Night Comedy",
-    starts_at="2026-04-07 19:45:00 -0700",
+    starts_at="2099-01-01 19:00:00 +0000",
     time_zone="America/Los_Angeles",
     tickets=None,
 ) -> dict:
@@ -101,12 +101,12 @@ def _make_event(
 
 def test_from_dict_parses_required_fields():
     """from_dict() correctly parses id, title, starts_at from event_dates_attributes, time_zone."""
-    event = NinkashiEvent.from_dict(_raw_event(), URL_SITE)
+    event = NinkashiEvent.from_dict(_raw_event(starts_at="2026-06-15 19:45:00 -0700"), URL_SITE)
 
     assert event.id == 1001
     assert event.title == "Tuesday Night Comedy"
     # starts_at is extracted from event_dates_attributes[0]
-    assert event.starts_at == "2026-04-07 19:45:00 -0700"
+    assert event.starts_at == "2026-06-15 19:45:00 -0700"
     assert event.time_zone == "America/Los_Angeles"
     assert event.url_site == URL_SITE
 
