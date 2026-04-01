@@ -14,6 +14,7 @@ test_fetch_events_warns_on_non_list_page2).
 """
 
 import pytest
+from datetime import datetime, timedelta, timezone
 
 from laughtrack.core.clients.ninkashi.client import NinkashiClient
 from laughtrack.core.entities.club.model import Club
@@ -26,10 +27,13 @@ from laughtrack.scrapers.implementations.api.ninkashi.extractor import NinkashiE
 
 URL_SITE = "tickets.cttcomedy.com"
 
-# A starts_at value within the 730-day horizon (~14 months from April 2026).
-# Client pagination tests that don't care about the horizon use this so the
-# date-horizon early-stop doesn't interfere with what the test is verifying.
-_WITHIN_HORIZON = "2027-06-01 19:00:00 +0000"
+# A starts_at value within the 730-day horizon, computed dynamically so tests
+# don't fail once a hardcoded date becomes past or crosses the horizon cutoff.
+# Client pagination tests that don't care about the horizon use this constant so
+# the date-horizon early-stop doesn't interfere with what the test is verifying.
+_WITHIN_HORIZON = (
+    datetime.now(timezone.utc) + timedelta(days=365)
+).strftime("%Y-%m-%d 19:00:00 +0000")
 
 # A starts_at value clearly beyond the 730-day horizon.
 _BEYOND_HORIZON = "2099-01-01 19:00:00 +0000"
@@ -579,3 +583,35 @@ async def test_fetch_events_stops_at_date_horizon(monkeypatch):
     assert events[0].title == "Near Show"
     # Pagination stopped after page 1 — no page 2 requested
     assert call_count[0] == 1
+
+
+@pytest.mark.asyncio
+async def test_fetch_events_includes_all_within_horizon_events_from_horizon_page(monkeypatch):
+    """All within-horizon events on a page are included even if a beyond-horizon event is present.
+
+    The loop processes every event on the page before checking the horizon flag — it does
+    not short-circuit on the first beyond-horizon event. This test places the beyond-horizon
+    event in the middle of the page to verify events after it are still collected.
+    """
+    client = NinkashiClient(_club())
+
+    page = [
+        _raw_event(event_id=1, title="Near A", starts_at=_WITHIN_HORIZON),
+        _raw_event(event_id=2, title="Far",    starts_at=_BEYOND_HORIZON),
+        _raw_event(event_id=3, title="Near B", starts_at=_WITHIN_HORIZON),
+    ]
+    call_count = [0]
+
+    async def fake_fetch_json(self, url, **kwargs):
+        call_count[0] += 1
+        return page if call_count[0] == 1 else []
+
+    monkeypatch.setattr(NinkashiClient, "fetch_json", fake_fetch_json)
+
+    events = await client.fetch_events(URL_SITE)
+
+    titles = {e.title for e in events}
+    assert "Near A" in titles
+    assert "Near B" in titles
+    assert "Far" not in titles
+    assert call_count[0] == 1  # stopped after page 1
