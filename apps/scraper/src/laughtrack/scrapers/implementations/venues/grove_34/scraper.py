@@ -18,6 +18,7 @@ from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.url import URLUtils
 from laughtrack.foundation.models.types import ScrapingTarget
+from laughtrack.foundation.exceptions import NetworkError
 
 from .data import Grove34PageData
 from .extractor import Grove34EventExtractor
@@ -111,6 +112,12 @@ class Grove34Scraper(BaseScraper):
 
             return Grove34PageData([event])
 
+        except NetworkError as e:
+            if e.status_code is not None and 400 <= e.status_code < 500:
+                Logger.warning(f"{self._log_prefix}: Skipping {url} — HTTP {e.status_code} (stale URL)", self.logger_context)
+            else:
+                Logger.error(f"{self._log_prefix}: Network error fetching {url}: {e}", self.logger_context)
+            return None
         except Exception as e:
             Logger.error(f"{self._log_prefix}: Error extracting data from {url}: {e}", self.logger_context)
             return None

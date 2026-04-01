@@ -127,7 +127,11 @@ class ErrorHandler:
             if isinstance(last_error, NetworkError) and last_error.status_code is not None
             else ""
         )
-        Logger.error(f"All attempts failed for {operation_name}{status_suffix}")
+        # 4xx errors are deterministic (resource doesn't exist or is forbidden) — downgrade to WARNING
+        if isinstance(last_error, NetworkError) and last_error.status_code is not None and 400 <= last_error.status_code < 500:
+            Logger.warn(f"All attempts failed for {operation_name}{status_suffix}")
+        else:
+            Logger.error(f"All attempts failed for {operation_name}{status_suffix}")
 
         if last_error:
             raise last_error

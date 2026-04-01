@@ -42,7 +42,7 @@ class TicketHandler(BaseDatabaseHandler[Ticket]):
                 all_tickets.append(ticket)
 
         if not all_tickets:
-            raise ValueError("No tickets found in provided shows")
+            return
 
         # Deduplicate tickets based on unique constraint (show_id, type)
         deduplicated_tickets = TicketUtils.deduplicate_tickets(all_tickets)
