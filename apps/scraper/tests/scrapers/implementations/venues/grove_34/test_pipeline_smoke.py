@@ -7,6 +7,7 @@ Exercises collect_scraping_targets() (listing page → show URLs) → get_data()
 
 import importlib.util
 import json
+import logging
 
 import pytest
 
@@ -190,7 +191,6 @@ async def test_get_data_returns_none_on_5xx(monkeypatch):
 @pytest.mark.asyncio
 async def test_collect_scraping_targets_4xx_logs_warning_not_error(monkeypatch, caplog):
     """collect_scraping_targets() logs WARNING (not ERROR) when listing page returns HTTP 4xx."""
-    import logging
     scraper = Grove34Scraper(_club())
 
     async def fake_fetch_404(self, url: str) -> str:
@@ -213,7 +213,6 @@ async def test_collect_scraping_targets_4xx_logs_warning_not_error(monkeypatch, 
 @pytest.mark.asyncio
 async def test_collect_scraping_targets_5xx_logs_error(monkeypatch, caplog):
     """collect_scraping_targets() logs ERROR when listing page returns HTTP 5xx."""
-    import logging
     scraper = Grove34Scraper(_club())
 
     async def fake_fetch_500(self, url: str) -> str:
