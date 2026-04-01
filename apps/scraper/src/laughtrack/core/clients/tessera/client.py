@@ -68,6 +68,7 @@ class TesseraClient(BaseApiClient):
         """
         auth_url = f"{self.api_root_url}/authorization/session"
         try:
+            await self._apply_rate_limit(auth_url)
             async with AsyncSession(
                 impersonate=self._get_impersonation_target(auth_url)
             ) as session:
@@ -78,9 +79,15 @@ class TesseraClient(BaseApiClient):
                         "Origin": self.origin_url,
                     },
                 )
-            if response.status_code != 200 or not response.text.strip():
+            if response.status_code != 200:
                 self.log_warning(
                     f"Tessera session refresh failed: HTTP {response.status_code}"
+                    f" | url={auth_url}"
+                )
+                return False
+            if not response.text.strip():
+                self.log_warning(
+                    f"Tessera session refresh returned empty body (HTTP 200)"
                     f" | url={auth_url}"
                 )
                 return False
@@ -90,7 +97,7 @@ class TesseraClient(BaseApiClient):
                 self.log_warning(f"Tessera session refresh returned no sessionId | url={auth_url}")
                 return False
             self.headers["sessionid"] = session_id
-            self.log_info(f"Tessera session refreshed successfully")
+            self.log_info("Tessera session refreshed successfully")
             return True
         except Exception as e:
             self.log_warning(f"Tessera session refresh error: {e} | url={auth_url}")
