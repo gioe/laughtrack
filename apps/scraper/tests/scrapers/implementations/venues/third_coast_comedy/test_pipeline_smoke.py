@@ -17,8 +17,8 @@ from laughtrack.scrapers.implementations.venues.third_coast_comedy.extractor imp
 
 _TICKET_BASE = "https://tickets.thirdcoastcomedy.club"
 
-# Future timestamp: 2026-04-01T02:00:00.000Z
-_FUTURE_START = "2026-04-01T02:00:00.000Z"
+# Future timestamp: far enough ahead that it won't go stale
+_FUTURE_START = "2099-01-01T00:00:00.000Z"
 # Past timestamp: 2020-01-01T00:00:00.000Z
 _PAST_START = "2020-01-01T00:00:00.000Z"
 
@@ -50,7 +50,7 @@ def _raw_event(
         "url": event_url,
         "name": name,
         "start": start,
-        "end": "2026-04-01T04:00:00.000Z",
+        "end": "2099-01-01T02:00:00.000Z",
         "sellerId": "66a3fea4b429c081d0c729df",
         "timezone": tz,
         "saleStatus": "onSale",
