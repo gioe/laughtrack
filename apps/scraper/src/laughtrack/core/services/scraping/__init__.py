@@ -60,8 +60,12 @@ def _truncate_description_lines(lines: List[str], limit: int = _DISCORD_DESCRIPT
 def _scrape_with_context(scraper: BaseScraper, club: Club) -> ClubScrapingResult:
     """Run scrape_with_result() inside the club's log context (thread-safe)."""
     Logger.reset_error_count()
-    with Logger.use_context(club.as_context()):
-        result = scraper.scrape_with_result()
+    try:
+        with Logger.use_context(club.as_context()):
+            result = scraper.scrape_with_result()
+    except Exception:
+        Logger.get_error_count()  # deactivate counter even when scrape raises
+        raise
     result.error_log_count = Logger.get_error_count()
     return result
 
