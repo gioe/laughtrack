@@ -63,6 +63,21 @@ def _club() -> Club:
     )
 
 
+_FRESH_SESSION_KEY = "a1b2c3d4-0000-0000-0000-111122223333"
+
+
+def _loadplugin_html() -> str:
+    """
+    Minimal VBO loadplugin JS response containing a session UUID.
+    VBO embeds the session key as `value: "uuid"` in a JS config object.
+    """
+    return f"""
+<html><body><script>
+var VBOConfig = {{ siteid: "50F7AC53-FC8E-4EB7-9C09-810A40F1181A", value: "{_FRESH_SESSION_KEY}" }};
+</script></body></html>
+""".strip()
+
+
 def _showevents_html() -> str:
     """
     Minimal VBO showevents HTML containing two comedy shows and one class.
@@ -216,6 +231,8 @@ async def test_collect_scraping_targets_returns_comedy_shows(monkeypatch):
     scraper = CszPhiladelphiaScraper(_club())
 
     async def fake_fetch_html(self, url: str) -> str:
+        if "loadplugin" in url:
+            return _loadplugin_html()
         return _showevents_html()
 
     monkeypatch.setattr(CszPhiladelphiaScraper, "fetch_html", fake_fetch_html)
@@ -228,6 +245,8 @@ async def test_collect_scraping_targets_returns_comedy_shows(monkeypatch):
     assert "What If?" in names
     # Classes must be excluded
     assert all("CSz 101" not in n for n in names)
+    # The fresh session key from loadplugin must be used
+    assert scraper._session_key == _FRESH_SESSION_KEY
 
 
 @pytest.mark.asyncio
@@ -288,6 +307,8 @@ async def test_full_pipeline_discover_then_get_data(monkeypatch):
     }
 
     async def fake_fetch_html(self, url: str) -> str:
+        if "loadplugin" in url:
+            return _loadplugin_html()
         if "showevents" in url:
             return _showevents_html()
         # Date-slider requests include eid= in the URL

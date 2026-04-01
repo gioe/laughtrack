@@ -198,8 +198,8 @@ class CszPhiladelphiaScraper(BaseScraper):
         try:
             html = await self.fetch_html(_VBO_LOADPLUGIN_URL)
         except Exception as e:
-            Logger.error(
-                f"{self._log_prefix}: failed to fetch VBO loadplugin: {e}",
+            Logger.warn(
+                f"{self._log_prefix}: failed to fetch VBO loadplugin: {e} — will fall back to static key",
                 self.logger_context,
             )
             return ""
