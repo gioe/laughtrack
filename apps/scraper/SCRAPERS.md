@@ -439,6 +439,13 @@ The scraper must:
 
 **Ticket URLs:** Per-show VBO URLs are session-dependent and non-shareable. Use the venue's stable tickets page as the ticket URL fallback.
 
+**Troubleshooting HTTP 401 errors:** When a VBO scraper returns 401, the session key stored in `scraping_url` has rotated. The static page JS (e.g. Squarespace `var s = "..."`) shows the **old** key. The real working key only appears in live Playwright network requests — skip static inspection and go straight to:
+```bash
+# Use Playwright MCP: navigate to the venue's /calendar page, then call browser_network_requests
+# Look for: GET plugin.vbotickets.com/Plugin/events/showevents?...&s=<NEW_KEY>
+# Update clubs SET scraping_url = '...?s=<NEW_KEY>' WHERE name = '<Venue>';
+```
+
 **Esther's Follies (Austin, TX) — venue-specific constants:**
 - `SITE_ID`: `5D695E7C-1246-4F54-BF57-B1D92D1E6B83`
 - `EID`: `39242`
@@ -826,6 +833,12 @@ GET https://api.ninkashi.com/public_access/events/find_by_url_site?url_site=<url
 ```
 
 Response is a **root-level JSON array** of events. Key fields: `id`, `title`, `time_zone` (IANA string), `tickets_attributes`, `event_dates_attributes`.
+
+**Pagination behavior:**
+- The client requests `per_page=100` per page and increments `page` until a stop condition is met.
+- **Stop condition:** a page whose length is less than the first page's actual response size (not the hardcoded `PER_PAGE=100`). This handles APIs that return fewer items on the first page and ensures the loop terminates correctly even if the first page is a partial page.
+- **Hard cap:** `MAX_PAGES=50` — pagination stops regardless of page size once 50 pages have been fetched, with a warning logged.
+- **Past-event filtering:** The client filters events client-side using `_is_future_event()`. Each event's `event_dates_attributes[0].starts_at` is compared to `datetime.now(UTC)`. Events with a start time in the past are discarded before returning. Events with a missing or unparseable start time are included (fail-open to avoid silent drops).
 
 **Important API quirks:**
 - `starts_at` is **NOT** at the top level — it is nested under `event_dates_attributes[0].starts_at` (format: `"2026-04-01 19:45:00 -0700"`, space-separated with 4-digit offset, no colon). Parse with `strptime("%Y-%m-%d %H:%M:%S %z")`.
