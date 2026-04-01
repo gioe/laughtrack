@@ -168,7 +168,18 @@ if failed_list:
     if len(failed_list) > 10:
         print(f"    … and {len(failed_list)-10} more")
 
-# ── 4. ZERO-SHOW CLUBS ────────────────────────────────────────────────────────
+# ── 4. PER-VENUE ERRORS ───────────────────────────────────────────────────────
+clubs_with_errors = [c for c in per_club if (c.get("errors") or 0) > 0]
+print(f"\n── Per-Venue ERROR Counts {'─'*38}")
+if clubs_with_errors:
+    clubs_with_errors_sorted = sorted(clubs_with_errors, key=lambda c: c.get("errors") or 0, reverse=True)
+    for c in clubs_with_errors_sorted:
+        n = c.get("errors") or 0
+        print(f"  !! {c['club']}: {n} ERROR{'s' if n != 1 else ''}")
+else:
+    print("  ✓ No ERROR logs recorded for any venue")
+
+# ── 5. ZERO-SHOW CLUBS ────────────────────────────────────────────────────────
 zero_show = [c for c in per_club if c.get("success", True) and c.get("num_shows", 0) == 0]
 print(f"\n── Zero-Show Clubs (potential regressions) {'─'*20}")
 if zero_show:
@@ -177,14 +188,14 @@ if zero_show:
 else:
     print("  ✓ All successful clubs returned shows")
 
-# ── 5. SLOW CLUBS ─────────────────────────────────────────────────────────────
+# ── 6. SLOW CLUBS ─────────────────────────────────────────────────────────────
 print(f"\n── Slow Clubs (top 5 by execution time) {'─'*23}")
 slowest = sorted(per_club, key=lambda c: c.get("execution_time", 0), reverse=True)[:5]
 for c in slowest:
     t = c.get("execution_time", 0)
     print(f"  {fmt_dur(t):>8}  {c['club']}")
 
-# ── 6. ERROR DETAILS ──────────────────────────────────────────────────────────
+# ── 7. ERROR DETAILS ──────────────────────────────────────────────────────────
 print(f"\n── Error Details {'─'*46}")
 if err_details:
     for e in err_details[:15]:
@@ -197,7 +208,7 @@ if err_details:
 else:
     print("  ✓ No errors recorded")
 
-# ── 7. TREND ──────────────────────────────────────────────────────────────────
+# ── 8. TREND ──────────────────────────────────────────────────────────────────
 print(f"\n── Trend vs Previous Run {'─'*38}")
 if prior:
     p_shows = prior.get("shows", {})
