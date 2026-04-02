@@ -13,6 +13,8 @@ Key assertions:
 """
 
 import importlib.util
+from datetime import date
+
 import pytest
 
 pytestmark = pytest.mark.skipif(
@@ -396,9 +398,11 @@ async def test_full_pipeline_produces_events(monkeypatch):
         },
     ])
 
+    today_str = date.today().strftime("%Y-%m-%d")
+
     async def fake_fetch(self, url: str) -> str:
-        # Return shows for the first date URL, empty for all others
-        if url.endswith("2026-04-01"):
+        # Return shows for today's date URL, empty for all others
+        if url.endswith(today_str):
             return shows_for_day_1
         return _empty_day_html()
 
