@@ -1,8 +1,10 @@
 """Scraping service package (public path preserved)."""
 
 import asyncio
+import concurrent.futures
 import json
 import os
+import threading
 import uuid
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -172,6 +174,8 @@ class ScrapingService:
         Logger.warn(f"Scraping {len(clubs)} clubs with max_concurrent_clubs={max_concurrent}")
         semaphore = asyncio.Semaphore(max_concurrent)
         loop = asyncio.get_running_loop()
+        executor = concurrent.futures.ThreadPoolExecutor(thread_name_prefix="scraper-club")
+        loop.set_default_executor(executor)
         total_db_result = DatabaseOperationResult()
         # db_lock serializes all DB writes: only one club writes at a time,
         # which keeps ShowService thread-safe regardless of its internals.
@@ -266,6 +270,9 @@ class ScrapingService:
             task_results = await asyncio.gather(*[scrape_one(club) for club in clubs])
         finally:
             await close_js_browser()
+            alive = [t.name for t in threading.enumerate() if t.name.startswith("scraper-club")]
+            if alive:
+                Logger.warn(f"scraper-club threads still alive after gather: {alive}")
 
         results: List[ClubScrapingResult] = []
         summary = ScrapingRunSummary()
