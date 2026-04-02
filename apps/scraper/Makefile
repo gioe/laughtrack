@@ -62,7 +62,7 @@ else ifeq ($(DEBUG),1)
 else ifeq ($(DEBUG),true)
 	LOG_CONSOLE_LEVEL := DEBUG
 else
-	LOG_CONSOLE_LEVEL := WARNING
+	LOG_CONSOLE_LEVEL := INFO
 endif
 
 # Prefix env for commands that should honor console log level
