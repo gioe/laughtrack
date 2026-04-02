@@ -3,31 +3,32 @@ Laugh Boston scraper implementation.
 
 Laugh Boston shows are fetched via the Pixl Calendar API
 (pixlcalendar.com/api/events/laugh-boston), which returns the full event
-catalogue with Tixr ticket URLs. The scraper:
-1. Fetches all events from the Pixl Calendar API
-2. Extracts the Tixr event URLs from the response
-3. Uses TixrClient to fetch full event details for each URL via JSON-LD parsing
+catalogue with Tixr ticket URLs plus all the data needed to build Show objects
+(title, start datetime, timezone, sales/ticket details, description).
+
+The scraper builds TixrEvent objects directly from the Pixl API response
+without fetching individual Tixr event pages. This avoids Tixr's DataDome
+WAF, which blocks GitHub Actions IP ranges and caused ~50% of per-event
+fetches to return HTTP 403 in the 2026-04-01 run.
 """
 
 from typing import List, Optional
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.foundation.infrastructure.logger.logger import Logger
-from laughtrack.infrastructure.config.presets import BatchConfigPresets
-from laughtrack.infrastructure.monitoring import create_monitored_tixr_client
 from laughtrack.scrapers.base.base_scraper import BaseScraper
-from laughtrack.utilities.infrastructure.scraper.scraper import BatchScraper
 
 from .extractor import LaughBostonEventExtractor
 from .page_data import LaughBostonPageData
 from .transformer import LaughBostonEventTransformer
 
+
 class LaughBostonScraper(BaseScraper):
     """
     Scraper for Laugh Boston comedy club.
 
-    Fetches events from the Pixl Calendar API, extracts Tixr event URLs,
-    then retrieves full event details via TixrClient's JSON-LD parsing.
+    Fetches events from the Pixl Calendar API and builds TixrEvent objects
+    directly from the API response — no per-event Tixr page fetches required.
     """
 
     key = "laugh_boston"
@@ -35,11 +36,6 @@ class LaughBostonScraper(BaseScraper):
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
         self.transformation_pipeline.register_transformer(LaughBostonEventTransformer(club))
-        self.tixr_client = create_monitored_tixr_client(club)
-        self.batch_scraper = BatchScraper(
-            config=BatchConfigPresets.get_comedy_venue_config(),
-            logger_context=club.as_context(),
-        )
 
     async def get_data(self, url: str) -> Optional[LaughBostonPageData]:
         """
@@ -53,32 +49,21 @@ class LaughBostonScraper(BaseScraper):
         """
         try:
             data = await self.fetch_json(url)
-            tixr_urls = LaughBostonEventExtractor.extract_tixr_urls_from_pixl(data or {})
-
-            if not tixr_urls:
-                Logger.info(f"{self._log_prefix}: No Tixr URLs found in Pixl Calendar response", self.logger_context)
+            if not data:
+                Logger.info(f"{self._log_prefix}: No data returned from Pixl Calendar", self.logger_context)
                 return None
 
-            Logger.info(
-                f"{self._log_prefix}: Extracted {len(tixr_urls)} Tixr URLs from Pixl Calendar", self.logger_context
-            )
-
-            results = await self.batch_scraper.process_batch(
-                tixr_urls,
-                lambda u: self.tixr_client.get_event_detail_from_url(u),
-                "Tixr event extraction",
-            )
-            tixr_events = [r for r in results if r is not None]
+            tixr_events = LaughBostonEventExtractor.parse_events_from_pixl(data, self.club)
+            tixr_urls = LaughBostonEventExtractor.extract_tixr_urls_from_pixl(data)
 
             if not tixr_events:
                 Logger.info(
-                    f"{self._log_prefix}: No TixrEvents returned from {len(tixr_urls)} Pixl Calendar URLs",
-                    self.logger_context,
+                    f"{self._log_prefix}: No events parsed from Pixl Calendar response", self.logger_context
                 )
                 return None
 
             Logger.info(
-                f"{self._log_prefix}: Successfully processed {len(tixr_events)} TixrEvents from {len(tixr_urls)} URLs",
+                f"{self._log_prefix}: Parsed {len(tixr_events)} events from Pixl Calendar",
                 self.logger_context,
             )
             return LaughBostonPageData(event_list=tixr_events, tixr_urls=tixr_urls)

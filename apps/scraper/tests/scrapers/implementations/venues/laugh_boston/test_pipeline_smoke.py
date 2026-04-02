@@ -2,10 +2,10 @@
 Smoke tests for the Laugh Boston scraper pipeline.
 
 Verifies that get_data() returns LaughBostonPageData with at least one event
-when the Pixl Calendar API returns events and TixrClient resolves them.
+when the Pixl Calendar API returns events.
 
-This catches silent empty-result regressions where URL extraction succeeds
-but downstream event fetching returns nothing.
+The scraper now parses TixrEvent objects directly from the Pixl API response
+without fetching individual Tixr pages (no tixr_client attribute).
 """
 
 import importlib.util
@@ -62,14 +62,17 @@ def _tixr_event() -> TixrEvent:
 
 
 def _pixl_response() -> dict:
-    """Minimal Pixl Calendar API response containing one Tixr event URL."""
+    """Pixl Calendar API response with a complete event record."""
     return {
         "events": [
             {
                 "id": "abc-123",
                 "title": "Comedy Night",
+                "start": "2026-04-04T23:00:00.000Z",
+                "timezone": "America/New_York",
                 "ticketUrl": EVENT_URL,
                 "status": "available",
+                "sales": [{"name": "General Admission", "currentPrice": 30, "state": "OPEN"}],
             }
         ]
     }
@@ -84,7 +87,8 @@ def _pixl_response() -> dict:
 async def test_get_data_returns_page_data_with_events(monkeypatch):
     """
     get_data() returns LaughBostonPageData with at least one TixrEvent
-    when the Pixl Calendar API returns events and TixrClient resolves them.
+    when the Pixl Calendar API returns events with complete event data.
+    Events are built directly from the Pixl response — no Tixr page fetches.
     """
     scraper = LaughBostonScraper(_club())
 
@@ -92,11 +96,6 @@ async def test_get_data_returns_page_data_with_events(monkeypatch):
         scraper,
         "fetch_json",
         AsyncMock(return_value=_pixl_response()),
-    )
-    monkeypatch.setattr(
-        scraper.tixr_client,
-        "get_event_detail_from_url",
-        AsyncMock(return_value=_tixr_event()),
     )
 
     result = await scraper.get_data(GROUP_URL)
@@ -106,7 +105,7 @@ async def test_get_data_returns_page_data_with_events(monkeypatch):
     )
     assert result.get_event_count() > 0, (
         "get_data() returned 0 events from valid Pixl Calendar response — "
-        "check extract_tixr_urls_from_pixl() or batch_scraper processing"
+        "check parse_events_from_pixl() in extractor"
     )
     assert result.tixr_urls == [EVENT_URL]
 
@@ -128,7 +127,7 @@ async def test_get_data_returns_none_when_api_fails(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_get_data_returns_none_when_no_event_urls(monkeypatch):
-    """get_data() returns None when the Pixl Calendar response contains no Tixr URLs."""
+    """get_data() returns None when the Pixl Calendar response contains no events."""
     scraper = LaughBostonScraper(_club())
 
     monkeypatch.setattr(
@@ -142,19 +141,15 @@ async def test_get_data_returns_none_when_no_event_urls(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_get_data_returns_none_when_all_events_fail(monkeypatch):
-    """get_data() returns None when all TixrClient calls return None."""
+async def test_get_data_returns_none_when_all_events_malformed(monkeypatch):
+    """get_data() returns None when all Pixl events are missing required fields."""
     scraper = LaughBostonScraper(_club())
 
+    # Events with no 'start' field cannot be parsed into TixrEvents
     monkeypatch.setattr(
         scraper,
         "fetch_json",
-        AsyncMock(return_value=_pixl_response()),
-    )
-    monkeypatch.setattr(
-        scraper.tixr_client,
-        "get_event_detail_from_url",
-        AsyncMock(return_value=None),
+        AsyncMock(return_value={"events": [{"id": "x", "title": "Bad Event", "ticketUrl": EVENT_URL}]}),
     )
 
     result = await scraper.get_data(GROUP_URL)
