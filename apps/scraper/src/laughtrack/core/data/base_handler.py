@@ -115,7 +115,7 @@ class BaseDatabaseHandler(Generic[T], ABC):
                                 )
                             else:
                                 Logger.info(
-                                    f"{operation_type} operation: 0 new {entity_name} inserted — all already existed"
+                                    f"{operation_type} operation: 0 new {entity_name} processed — all already existed"
                                 )
                         else:
                             # UPDATE/DELETE — use cursor.rowcount (no RETURNING clause)

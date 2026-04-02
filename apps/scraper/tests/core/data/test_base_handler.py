@@ -14,9 +14,7 @@ import importlib.util
 import sys
 from pathlib import Path
 from types import ModuleType
-from unittest.mock import MagicMock, patch, call
-
-import pytest
+from unittest.mock import MagicMock, patch
 
 # ---------------------------------------------------------------------------
 # Bootstrap helpers — load source without triggering __init__.py chains
@@ -186,17 +184,17 @@ class TestExecuteBatchOperationLogging:
         _mock_db_op_logger.log_simple_batch_operation.assert_not_called()
         _mock_logger.warn.assert_not_called()
 
-        # Must log at INFO level with an explanatory message
-        _mock_logger.info.assert_called()
-        info_calls = [str(c) for c in _mock_logger.info.call_args_list]
-        assert any("all already existed" in msg for msg in info_calls), (
-            f"Expected 'all already existed' INFO log; got: {info_calls}"
+        # Must log at INFO level with an explanatory message from the zero-row branch
+        _mock_logger.info.assert_called_once_with(
+            "insert operation: 0 new widget processed — all already existed"
         )
 
     # --- Case 3: Non-RETURNING query (UPDATE/DELETE) -------------------------
 
     def test_non_returning_uses_rowcount(self):
-        """UPDATE/DELETE (return_results=False) still routes through log_simple_batch_operation."""
+        """return_results=False routes through log_simple_batch_operation using cursor.rowcount.
+        The helper always passes an INSERT query, so operation='insert' in the assertion.
+        The UPDATE/DELETE distinction is in the caller — the rowcount path is the same."""
         self._run(return_results=False, execute_values_return=None, rowcount=3)
 
         _mock_db_op_logger.log_simple_batch_operation.assert_called_once_with(
@@ -209,4 +207,16 @@ class TestExecuteBatchOperationLogging:
 
         _mock_db_op_logger.log_simple_batch_operation.assert_called_once_with(
             operation="insert", items_count=0, entity_type="widget"
+        )
+
+    # --- Case 2b: RETURNING query, execute_values returns None ---------------
+
+    def test_returning_none_logs_info_not_warning(self):
+        """When execute_values returns None with return_results=True, treat as 0 rows."""
+        self._run(return_results=True, execute_values_return=None)
+
+        _mock_db_op_logger.log_simple_batch_operation.assert_not_called()
+        _mock_logger.warn.assert_not_called()
+        _mock_logger.info.assert_called_once_with(
+            "insert operation: 0 new widget processed — all already existed"
         )
