@@ -321,6 +321,61 @@ class TestGetJsBrowser:
 
 
 # ---------------------------------------------------------------------------
+# close_js_browser
+# ---------------------------------------------------------------------------
+
+
+class TestCloseJsBrowser:
+    def setup_method(self):
+        client_module._js_browser = None
+
+    def teardown_method(self):
+        client_module._js_browser = None
+
+    @pytest.mark.asyncio
+    async def test_returns_early_when_browser_is_none(self):
+        """close_js_browser() is a no-op when no browser has been created."""
+        client_module._js_browser = None
+        from laughtrack.foundation.infrastructure.http.client import close_js_browser
+        await close_js_browser()  # must not raise
+        assert client_module._js_browser is None
+
+    @pytest.mark.asyncio
+    async def test_returns_early_when_browser_unavailable(self):
+        """close_js_browser() is a no-op when Playwright is unavailable."""
+        client_module._js_browser = client_module._BROWSER_UNAVAILABLE
+        from laughtrack.foundation.infrastructure.http.client import close_js_browser
+        await close_js_browser()
+        assert client_module._js_browser is client_module._BROWSER_UNAVAILABLE
+
+    @pytest.mark.asyncio
+    async def test_closes_browser_and_clears_singleton(self):
+        """close_js_browser() calls browser.close() and sets _js_browser to None."""
+        mock_browser = MagicMock()
+        mock_browser.close = AsyncMock()
+        client_module._js_browser = mock_browser
+
+        from laughtrack.foundation.infrastructure.http.client import close_js_browser
+        await close_js_browser()
+
+        mock_browser.close.assert_awaited_once()
+        assert client_module._js_browser is None
+
+    @pytest.mark.asyncio
+    async def test_double_call_is_noop(self):
+        """Calling close_js_browser() twice only closes the browser once."""
+        mock_browser = MagicMock()
+        mock_browser.close = AsyncMock()
+        client_module._js_browser = mock_browser
+
+        from laughtrack.foundation.infrastructure.http.client import close_js_browser
+        await close_js_browser()
+        await close_js_browser()  # second call: _js_browser is None, early return
+
+        mock_browser.close.assert_awaited_once()
+
+
+# ---------------------------------------------------------------------------
 # fetch_json
 # ---------------------------------------------------------------------------
 

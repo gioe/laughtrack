@@ -343,16 +343,22 @@ class TestPlaywrightBrowser:
         mock_browser_obj.close = MagicMock(return_value=close_coro)
 
         new_loop = MagicMock()
+        wait_for_sentinel = MagicMock()
+        # Use new= to force MagicMock instead of AsyncMock (asyncio.wait_for is async,
+        # so patch() would auto-create AsyncMock whose call returns a coroutine, not the sentinel)
+        mock_wf = MagicMock(return_value=wait_for_sentinel)
 
         with (
             patch("asyncio.new_event_loop", return_value=new_loop) as mock_nel,
+            patch("asyncio.wait_for", new=mock_wf),
             patch("asyncio.run_coroutine_threadsafe") as mock_rcts,
         ):
             ref = weakref.ref(mock_browser_obj)
             _atexit_close(ref)
 
         mock_nel.assert_called_once()
-        new_loop.run_until_complete.assert_called_once()
+        mock_wf.assert_called_once_with(close_coro, timeout=10)
+        new_loop.run_until_complete.assert_called_once_with(wait_for_sentinel)
         new_loop.close.assert_called_once()
         mock_rcts.assert_not_called()
 
@@ -369,15 +375,19 @@ class TestPlaywrightBrowser:
         mock_browser_obj.close = MagicMock(return_value=close_coro)
 
         new_loop = MagicMock()
+        wait_for_sentinel = MagicMock()
+        mock_wf = MagicMock(return_value=wait_for_sentinel)
 
         with (
             patch("asyncio.new_event_loop", return_value=new_loop),
+            patch("asyncio.wait_for", new=mock_wf),
             patch("asyncio.run_coroutine_threadsafe") as mock_rcts,
         ):
             ref = weakref.ref(mock_browser_obj)
             _atexit_close(ref)
 
-        new_loop.run_until_complete.assert_called_once()
+        mock_wf.assert_called_once_with(close_coro, timeout=10)
+        new_loop.run_until_complete.assert_called_once_with(wait_for_sentinel)
         mock_rcts.assert_not_called()
 
     def test_atexit_close_calls_close_when_browser_is_none_but_pw_cm_is_set(self):
@@ -400,9 +410,12 @@ class TestPlaywrightBrowser:
         mock_browser_obj.close = MagicMock(return_value=close_coro)
 
         new_loop = MagicMock()
+        wait_for_sentinel = MagicMock()
+        mock_wf = MagicMock(return_value=wait_for_sentinel)
 
         with (
             patch("asyncio.new_event_loop", return_value=new_loop),
+            patch("asyncio.wait_for", new=mock_wf),
             patch("asyncio.run_coroutine_threadsafe") as mock_rcts,
         ):
             ref = weakref.ref(mock_browser_obj)
@@ -410,7 +423,8 @@ class TestPlaywrightBrowser:
 
         # close() must be called so _pw_cm.__aexit__ has a chance to run
         mock_browser_obj.close.assert_called_once()
-        new_loop.run_until_complete.assert_called_once()
+        mock_wf.assert_called_once_with(close_coro, timeout=10)
+        new_loop.run_until_complete.assert_called_once_with(wait_for_sentinel)
         mock_rcts.assert_not_called()
 
     def test_atexit_close_else_branch_tolerates_timeout(self):

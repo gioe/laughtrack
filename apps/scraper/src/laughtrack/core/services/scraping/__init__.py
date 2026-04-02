@@ -228,7 +228,15 @@ class ScrapingService:
                     metrics.error += 1
                     return result, metrics
 
-        task_results = await asyncio.gather(*[scrape_one(club) for club in clubs])
+        # Close the shared Playwright browser while the event loop is still running
+        # so Playwright objects are torn down on the correct loop — making the
+        # atexit handler a safe no-op and preventing the 90-minute CI timeout.
+        # The finally block ensures teardown even if gather raises unexpectedly.
+        from laughtrack.foundation.infrastructure.http.client import close_js_browser  # noqa: PLC0415
+        try:
+            task_results = await asyncio.gather(*[scrape_one(club) for club in clubs])
+        finally:
+            await close_js_browser()
 
         results: List[ClubScrapingResult] = []
         summary = ScrapingRunSummary()
@@ -242,12 +250,6 @@ class ScrapingService:
                 skipped += 1
         if skipped > 0:
             Logger.warn(f"{skipped} club(s) skipped: no scraper key or no matching scraper class")
-
-        # Close the shared Playwright browser while the event loop is still running
-        # so Playwright objects are torn down on the correct loop — making the
-        # atexit handler a safe no-op and preventing the 90-minute CI timeout.
-        from laughtrack.foundation.infrastructure.http.client import close_js_browser  # noqa: PLC0415
-        await close_js_browser()
 
         return results, summary, total_db_result
 
