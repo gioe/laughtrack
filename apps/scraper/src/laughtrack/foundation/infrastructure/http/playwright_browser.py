@@ -148,7 +148,9 @@ def _atexit_close(browser_ref: "weakref.ref[PlaywrightBrowser]") -> None:
             # Original loop is done; a fresh loop is safe to use.
             loop = asyncio.new_event_loop()
             try:
-                loop.run_until_complete(browser.close())
+                loop.run_until_complete(asyncio.wait_for(browser.close(), timeout=10))
+            except asyncio.TimeoutError:
+                pass
             finally:
                 loop.close()
     except Exception:
