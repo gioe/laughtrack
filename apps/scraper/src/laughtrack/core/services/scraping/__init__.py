@@ -222,15 +222,25 @@ class ScrapingService:
                     # Persist immediately after this club completes scraping.
                     # db_lock serializes writes so insert_club_result() is called
                     # from at most one thread at a time, ensuring ShowService thread safety.
+                    _DB_WRITE_TIMEOUT = 60  # seconds; unblocks db_lock if Neon connection drops
                     try:
                         async with db_lock:
                             # Push club context before run_in_executor so the thread
                             # inherits it via contextvars copy — ensures DB log lines
                             # show the correct club name/id instead of club=-.
                             with Logger.use_context(club.as_context()):
-                                club_db_result = await loop.run_in_executor(
-                                    None, self.result_processor.insert_club_result, result
-                                )
+                                try:
+                                    club_db_result = await asyncio.wait_for(
+                                        loop.run_in_executor(
+                                            None, self.result_processor.insert_club_result, result
+                                        ),
+                                        timeout=_DB_WRITE_TIMEOUT,
+                                    )
+                                except asyncio.TimeoutError:
+                                    Logger.warn(
+                                        f"scrape_one: DB write for club '{club.name}' timed out after {_DB_WRITE_TIMEOUT}s — skipping persist"
+                                    )
+                                    club_db_result = DatabaseOperationResult()
                             total_db_result = total_db_result + club_db_result
                     except Exception as insert_err:
                         Logger.error(f"Failed to persist shows for club '{club.name}': {insert_err}")
