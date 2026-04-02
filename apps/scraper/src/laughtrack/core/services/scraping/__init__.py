@@ -168,7 +168,9 @@ class ScrapingService:
     async def _scrape_clubs_concurrently(
         self, clubs: List[Club]
     ) -> tuple[List[ClubScrapingResult], ScrapingRunSummary, DatabaseOperationResult]:
-        semaphore = asyncio.Semaphore(self._max_concurrent_clubs)
+        max_concurrent = self._max_concurrent_clubs
+        Logger.info(f"Scraping {len(clubs)} clubs with max_concurrent_clubs={max_concurrent}")
+        semaphore = asyncio.Semaphore(max_concurrent)
         loop = asyncio.get_running_loop()
         total_db_result = DatabaseOperationResult()
         # db_lock serializes all DB writes: only one club writes at a time,
