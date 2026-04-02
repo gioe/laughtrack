@@ -193,9 +193,26 @@ class ScrapingService:
             async with semaphore:
                 metrics = DomainRequestMetrics(club_name=club.name, club_id=getattr(club, "id", None), scraper_type=key)
                 metrics.total += 1
+                _PER_CLUB_TIMEOUT = 300  # seconds; unblocks gather if a thread stalls on network
                 try:
                     scraper: BaseScraper = scraper_cls(club, proxy_pool=self.proxy_pool)
-                    result = await loop.run_in_executor(None, _scrape_with_context, scraper, club)
+                    try:
+                        result = await asyncio.wait_for(
+                            loop.run_in_executor(None, _scrape_with_context, scraper, club),
+                            timeout=_PER_CLUB_TIMEOUT,
+                        )
+                    except asyncio.TimeoutError:
+                        Logger.warn(
+                            f"scrape_one: club '{club.name}' timed out after {_PER_CLUB_TIMEOUT}s — skipping"
+                        )
+                        metrics.error += 1
+                        return ClubScrapingResult(
+                            club_name=club.name,
+                            shows=[],
+                            execution_time=float(_PER_CLUB_TIMEOUT),
+                            error=f"timed out after {_PER_CLUB_TIMEOUT}s",
+                            club_id=club.id,
+                        ), metrics
                     if result.error:
                         metrics.error += 1
                     elif result.num_shows == 0:
