@@ -102,6 +102,21 @@ def _get_js_browser() -> Optional[Any]:
     return _js_browser
 
 
+async def close_js_browser() -> None:
+    """Close and clear the shared PlaywrightBrowser singleton.
+
+    Call this while the event loop is still running (e.g., at the end of
+    _scrape_clubs_concurrently) so Playwright objects are closed on the same
+    loop that created them — making the atexit handler a safe no-op.
+    """
+    global _js_browser
+    browser = _js_browser
+    if browser is None or browser is _BROWSER_UNAVAILABLE:
+        return
+    _js_browser = None
+    await browser.close()
+
+
 # ---------------------------------------------------------------------------
 # HttpClient
 # ---------------------------------------------------------------------------
