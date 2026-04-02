@@ -171,6 +171,7 @@ class BaseScraper(HttpConvenienceMixin, ABC):
             fetch fails.
         """
         try:
+            import asyncio
             from laughtrack.foundation.infrastructure.http.client import _get_js_browser
             browser = _get_js_browser()
             if browser is None:
@@ -179,7 +180,13 @@ class BaseScraper(HttpConvenienceMixin, ABC):
                     self.logger_context,
                 )
                 return None
-            return await browser.fetch_html(url)
+            return await asyncio.wait_for(browser.fetch_html(url), timeout=60)
+        except asyncio.TimeoutError:
+            Logger.warn(
+                f"{self._log_prefix}: Playwright fetch timed out after 60s for {url}",
+                self.logger_context,
+            )
+            return None
         except Exception as e:
             Logger.warn(
                 f"{self._log_prefix}: Playwright fetch failed for {url}: {e}",
