@@ -352,7 +352,7 @@ class TestPlaywrightBrowser:
             _atexit_close(ref)
 
         mock_nel.assert_called_once()
-        new_loop.run_until_complete.assert_called_once_with(close_coro)
+        new_loop.run_until_complete.assert_called_once()
         new_loop.close.assert_called_once()
         mock_rcts.assert_not_called()
 
@@ -377,7 +377,7 @@ class TestPlaywrightBrowser:
             ref = weakref.ref(mock_browser_obj)
             _atexit_close(ref)
 
-        new_loop.run_until_complete.assert_called_once_with(close_coro)
+        new_loop.run_until_complete.assert_called_once()
         mock_rcts.assert_not_called()
 
     def test_atexit_close_calls_close_when_browser_is_none_but_pw_cm_is_set(self):
@@ -410,7 +410,33 @@ class TestPlaywrightBrowser:
 
         # close() must be called so _pw_cm.__aexit__ has a chance to run
         mock_browser_obj.close.assert_called_once()
-        new_loop.run_until_complete.assert_called_once_with(close_coro)
+        new_loop.run_until_complete.assert_called_once()
+        mock_rcts.assert_not_called()
+
+    def test_atexit_close_else_branch_tolerates_timeout(self):
+        """_atexit_close else branch does not hang when close() exceeds 10s timeout."""
+        import weakref
+        from laughtrack.foundation.infrastructure.http.playwright_browser import _atexit_close
+
+        mock_browser_obj = MagicMock()
+        mock_browser_obj._browser = MagicMock()
+        mock_browser_obj._launch_loop = MagicMock()
+        mock_browser_obj._launch_loop.is_running.return_value = False
+
+        close_coro = MagicMock()
+        mock_browser_obj.close = MagicMock(return_value=close_coro)
+
+        new_loop = MagicMock()
+        new_loop.run_until_complete.side_effect = asyncio.TimeoutError()
+
+        with (
+            patch("asyncio.new_event_loop", return_value=new_loop),
+            patch("asyncio.run_coroutine_threadsafe") as mock_rcts,
+        ):
+            ref = weakref.ref(mock_browser_obj)
+            _atexit_close(ref)  # must not raise
+
+        new_loop.close.assert_called_once()  # finally block always runs
         mock_rcts.assert_not_called()
 
     def test_atexit_close_does_not_raise_when_future_times_out(self):
