@@ -205,9 +205,13 @@ class ScrapingService:
                     # from at most one thread at a time, ensuring ShowService thread safety.
                     try:
                         async with db_lock:
-                            club_db_result = await loop.run_in_executor(
-                                None, self.result_processor.insert_club_result, result
-                            )
+                            # Push club context before run_in_executor so the thread
+                            # inherits it via contextvars copy — ensures DB log lines
+                            # show the correct club name/id instead of club=-.
+                            with Logger.use_context(club.as_context()):
+                                club_db_result = await loop.run_in_executor(
+                                    None, self.result_processor.insert_club_result, result
+                                )
                             total_db_result = total_db_result + club_db_result
                     except Exception as insert_err:
                         Logger.error(f"Failed to persist shows for club '{club.name}': {insert_err}")
