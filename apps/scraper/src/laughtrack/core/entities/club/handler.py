@@ -159,6 +159,10 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         website = (venue.get("website") or "").strip()
         zip_code = (venue.get("zip") or venue.get("postal_code") or "").strip()
 
+        from laughtrack.utilities.domain.club.quality_filter import is_junk_venue  # noqa: PLC0415
+        if is_junk_venue(name, website):
+            return None
+
         from laughtrack.utilities.domain.club.timezone_lookup import parse_city_state_from_address  # noqa: PLC0415
         city, state = parse_city_state_from_address(address)
 
@@ -198,6 +202,10 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         zip_code = (venue.get("zipCode") or venue.get("zip_code") or venue.get("zip") or "").strip()
         # v3 venues are served from v-{uuid}.seatengine.net
         scraping_url = f"https://v-{venue_uuid}.seatengine.net"
+
+        from laughtrack.utilities.domain.club.quality_filter import is_junk_venue  # noqa: PLC0415
+        if is_junk_venue(name, website):
+            return None
 
         # Prefer explicit city/state from the API; fall back to address parsing.
         city = (venue.get("city") or "").strip() or None

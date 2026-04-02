@@ -1,0 +1,23 @@
+# Club quality deny rules — add new patterns here without a code change.
+# All rules are evaluated before any new club is inserted via the discovery pipeline.
+
+# Reject clubs whose name starts with any of these prefixes (case-sensitive).
+name_prefix_deny:
+  - "Demo -"
+  - "Event #"
+  - "Test "
+  - "Demo "
+
+# Reject clubs whose website matches one of these exact strings (after stripping whitespace).
+website_deny_exact:
+  - "#"
+  - ""
+
+# Reject clubs whose website hostname matches one of these exact hostnames or
+# fnmatch-style glob patterns (evaluated after parsing the URL).
+website_hostname_deny:
+  exact:
+    - "testcenter.seatengine.com"
+    - "developmenttestsite.seatengine.com"
+  glob:
+    - "demo-*.seatengine.com"
