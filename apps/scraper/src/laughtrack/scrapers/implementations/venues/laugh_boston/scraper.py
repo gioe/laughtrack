@@ -54,7 +54,6 @@ class LaughBostonScraper(BaseScraper):
                 return None
 
             tixr_events = LaughBostonEventExtractor.parse_events_from_pixl(data, self.club)
-            tixr_urls = LaughBostonEventExtractor.extract_tixr_urls_from_pixl(data)
 
             if not tixr_events:
                 Logger.info(
@@ -66,7 +65,10 @@ class LaughBostonScraper(BaseScraper):
                 f"{self._log_prefix}: Parsed {len(tixr_events)} events from Pixl Calendar",
                 self.logger_context,
             )
-            return LaughBostonPageData(event_list=tixr_events, tixr_urls=tixr_urls)
+            return LaughBostonPageData(
+                event_list=tixr_events,
+                tixr_urls=[e.source_url for e in tixr_events],
+            )
 
         except Exception as e:
             Logger.error(
