@@ -33,10 +33,11 @@ class BaseDatabaseHandler(Generic[T], ABC):
         Create a database connection using standardized utility.
 
         Returns:
-            psycopg2 connection object with autocommit enabled
+            psycopg2 connection object with autocommit=False (explicit transaction
+            control). Used as a context manager: commits on clean __exit__, rolls
+            back on exception.
         """
         conn = create_connection()
-        # Optimize connection settings for better performance
         conn.autocommit = False  # Explicit transaction control
         return conn
 
