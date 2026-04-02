@@ -100,6 +100,14 @@ _base_handler_mod = _load_module(
     "src/laughtrack/core/data/base_handler.py",
     "laughtrack.core.data.base_handler_test_isolated",
 )
+# Patch at the point of use: overwrite the names bound in the isolated module's
+# namespace. sys.modules stubs registered above may have been skipped by
+# setdefault if a prior test file already loaded the real modules, so the
+# imports inside exec_module() would have resolved to the real classes. By
+# overwriting the module attributes here we guarantee the mocks are used
+# without polluting sys.modules for downstream test files.
+_base_handler_mod.Logger = _mock_logger
+_base_handler_mod.DatabaseOperationLogger = _mock_db_op_logger
 BaseDatabaseHandler = _base_handler_mod.BaseDatabaseHandler
 
 
