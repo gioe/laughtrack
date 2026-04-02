@@ -169,7 +169,7 @@ class ScrapingService:
         self, clubs: List[Club]
     ) -> tuple[List[ClubScrapingResult], ScrapingRunSummary, DatabaseOperationResult]:
         max_concurrent = self._max_concurrent_clubs
-        Logger.info(f"Scraping {len(clubs)} clubs with max_concurrent_clubs={max_concurrent}")
+        Logger.warn(f"Scraping {len(clubs)} clubs with max_concurrent_clubs={max_concurrent}")
         semaphore = asyncio.Semaphore(max_concurrent)
         loop = asyncio.get_running_loop()
         total_db_result = DatabaseOperationResult()
