@@ -966,3 +966,55 @@ class TestUpsertForSeatEngineV3VenueInvalidInput:
         with patch.object(handler, "execute_with_cursor", return_value=[]):
             result = handler.upsert_for_seatengine_v3_venue(venue)
         assert result is None
+
+
+# ---------------------------------------------------------------------------
+# Tests: is_junk_venue filter across upsert paths (TASK-885)
+# ---------------------------------------------------------------------------
+
+_JUNK_FILTER = "laughtrack.utilities.domain.club.quality_filter.is_junk_venue"
+
+
+class TestUpsertForEventbriteVenueJunkFilter:
+    """is_junk_venue returning True causes upsert_for_eventbrite_venue to return None."""
+
+    def test_junk_name_returns_none(self):
+        venue = _FakeVenue(id="v-junk", name="Demo Comedy Club")
+        handler = ClubHandler()
+        with patch(_JUNK_FILTER, return_value=True) as mock_filter, \
+             patch.object(handler, "execute_with_cursor") as mock_exec:
+            result = handler.upsert_for_eventbrite_venue(venue)
+
+        assert result is None
+        mock_filter.assert_called_once_with("Demo Comedy Club", "")
+        mock_exec.assert_not_called()
+
+
+class TestUpsertForTicketmasterVenueJunkFilter:
+    """is_junk_venue returning True causes upsert_for_ticketmaster_venue to return None."""
+
+    def test_junk_name_returns_none(self):
+        venue = {"id": "tm-junk", "name": "Demo Comedy Club"}
+        handler = ClubHandler()
+        with patch(_JUNK_FILTER, return_value=True) as mock_filter, \
+             patch.object(handler, "execute_with_cursor") as mock_exec:
+            result = handler.upsert_for_ticketmaster_venue(venue)
+
+        assert result is None
+        mock_filter.assert_called_once_with("Demo Comedy Club", "")
+        mock_exec.assert_not_called()
+
+
+class TestUpsertForTourDateVenueJunkFilter:
+    """is_junk_venue returning True causes upsert_for_tour_date_venue to return None."""
+
+    def test_junk_name_returns_none(self):
+        venue = {"name": "Demo Comedy Club"}
+        handler = ClubHandler()
+        with patch(_JUNK_FILTER, return_value=True) as mock_filter, \
+             patch.object(handler, "execute_with_cursor") as mock_exec:
+            result = handler.upsert_for_tour_date_venue(venue)
+
+        assert result is None
+        mock_filter.assert_called_once_with("Demo Comedy Club", "")
+        mock_exec.assert_not_called()
