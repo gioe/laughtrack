@@ -40,12 +40,6 @@ from laughtrack.shared.types import ScrapingTarget
 # HAHA Comedy Club is in North Hollywood, CA
 _TIMEZONE = "America/Los_Angeles"
 
-# Matches the event-item blocks in the Webflow calendar HTML
-_EVENT_BLOCK_RE = re.compile(
-    r'class="event-item[^"]*".*?(?=class="event-item|$)',
-    re.DOTALL,
-)
-
 # Matches <script type="application/ld+json">…</script>
 _JSONLD_RE = re.compile(
     r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
@@ -57,10 +51,6 @@ _TIME_RE = re.compile(r'class="month day time"[^>]*>\s*([^<]+)', re.IGNORECASE)
 
 # Date formats produced by the HAHA calendar JSON-LD (e.g. "Apr 01, 2026")
 _DATE_FMTS = ["%b %d, %Y", "%B %d, %Y"]
-
-# Time formats (e.g. "6:00 pm", "10:30 pm")
-_TIME_FMT_12 = "%I:%M %p"
-_TIME_FMT_12_ALT = "%-I:%M %p"  # no leading zero (Linux only)
 
 
 class HahaComedyClubScraper(BaseScraper):

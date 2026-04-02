@@ -1,10 +1,8 @@
 """Laugh Boston data extraction utilities."""
 
 import html
-from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from laughtrack.core.entities.comedian.model import Comedian
 from laughtrack.core.entities.event.tixr import TixrEvent
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.entities.ticket.model import Ticket
@@ -22,8 +20,8 @@ class LaughBostonEventExtractor:
         Extract Tixr event URLs from a Pixl Calendar API response.
 
         The Pixl Calendar API returns events with a ``ticketUrl`` field pointing
-        to tixr.com. This method collects all such URLs for downstream fetching
-        via TixrClient.
+        to tixr.com. These URLs are preserved in ``LaughBostonPageData.tixr_urls``
+        for reference and debugging.
 
         Args:
             data: Parsed JSON from https://pixlcalendar.com/api/events/{slug}
@@ -90,9 +88,9 @@ class LaughBostonEventExtractor:
                 return None
 
             start_str = event.get("start")
-            timezone_str = event.get("timezone")
+            timezone_str = event.get("timezone") or "America/New_York"
             if not start_str:
-                Logger.error(f"Pixl event '{name}' has no start date; skipping")
+                Logger.warning(f"Pixl event '{name}' has no start date; skipping")
                 return None
 
             try:
