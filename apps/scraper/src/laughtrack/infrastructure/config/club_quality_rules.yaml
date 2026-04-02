@@ -1,9 +1,10 @@
 # Club quality deny rules — add new patterns here without a code change.
 # All rules are evaluated before any new club is inserted via the discovery pipeline.
 
-# Reject clubs whose name starts with any of these prefixes (case-sensitive).
+# Reject clubs whose name starts with any of these prefixes (case-sensitive —
+# add lowercase variants explicitly if needed, e.g. "test ").
+# "Demo " covers both "Demo Comedy Club" and "Demo - Austin", so "Demo -" is omitted.
 name_prefix_deny:
-  - "Demo -"
   - "Event #"
   - "Test "
   - "Demo "

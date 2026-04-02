@@ -15,8 +15,15 @@ _RULES_PATH = Path(__file__).resolve().parents[3] / "infrastructure" / "config" 
 
 
 def _load_rules() -> dict:
-    with open(_RULES_PATH, encoding="utf-8") as fh:
-        return yaml.safe_load(fh) or {}
+    try:
+        with open(_RULES_PATH, encoding="utf-8") as fh:
+            return yaml.safe_load(fh) or {}
+    except FileNotFoundError:
+        Logger.warn(f"Club quality rules file not found at {_RULES_PATH} — filter disabled (pass-through)")
+        return {}
+    except Exception as exc:
+        Logger.warn(f"Failed to load club quality rules from {_RULES_PATH}: {exc} — filter disabled (pass-through)")
+        return {}
 
 
 # Rules are loaded once at module import so the file is read a single time per

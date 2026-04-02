@@ -12,7 +12,7 @@ from laughtrack.utilities.domain.club.quality_filter import is_junk_venue
 # ---------------------------------------------------------------------------
 
 _GOOD_RULES = {
-    "name_prefix_deny": ["Demo -", "Event #", "Test ", "Demo "],
+    "name_prefix_deny": ["Event #", "Test ", "Demo "],
     "website_deny_exact": ["#", ""],
     "website_hostname_deny": {
         "exact": ["testcenter.seatengine.com", "developmenttestsite.seatengine.com"],
@@ -114,8 +114,12 @@ def test_legitimate_venue_passes(name, website):
 # ---------------------------------------------------------------------------
 
 
-def test_rejection_emits_warning(capfd):
-    """Smoke-test that a rejection produces a log message (Logger.warn writes to stderr)."""
-    is_junk_venue("Demo - My Venue", "https://legit.com")
-    # We can't easily assert logger output format without mocking Logger,
-    # but we can verify the call doesn't raise.
+def test_rejection_emits_warning():
+    """Rejected venue calls Logger.warn with the club name and matched rule."""
+    with patch.object(_filter_mod.Logger, "warn") as mock_warn:
+        result = is_junk_venue("Demo - My Venue", "https://legit.com")
+    assert result is True
+    mock_warn.assert_called_once()
+    call_msg = mock_warn.call_args[0][0]
+    assert "Demo - My Venue" in call_msg
+    assert "Demo " in call_msg  # matched prefix reported in message
