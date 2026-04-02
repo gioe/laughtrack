@@ -14,6 +14,8 @@ from pathlib import Path
 from types import ModuleType
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 
 # ---------------------------------------------------------------------------
 # Bootstrap: load modules directly, bypassing package __init__.py chains that
@@ -112,6 +114,17 @@ _club_handler_mod = _load_module(
     "laughtrack.core.entities.club.handler_direct",
 )
 ClubHandler = _club_handler_mod.ClubHandler
+
+
+# ---------------------------------------------------------------------------
+# Default: treat every venue as non-junk so happy-path tests see a Club result.
+# Junk-filter test classes override this with return_value=True inside each method.
+# ---------------------------------------------------------------------------
+
+@pytest.fixture(autouse=True)
+def _mock_is_junk_venue():
+    with patch("laughtrack.utilities.domain.club.quality_filter.is_junk_venue", return_value=False):
+        yield
 
 
 # ---------------------------------------------------------------------------
