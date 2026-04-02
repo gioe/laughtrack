@@ -111,6 +111,10 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         if not venue or not getattr(venue, "id", None) or not getattr(venue, "name", None):
             return None
 
+        from laughtrack.utilities.domain.club.quality_filter import is_junk_venue  # noqa: PLC0415
+        if is_junk_venue(venue.name, ""):
+            return None
+
         address = ""
         zip_code = ""
         city = None
@@ -246,6 +250,10 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         if not venue_id or not name:
             return None
 
+        from laughtrack.utilities.domain.club.quality_filter import is_junk_venue  # noqa: PLC0415
+        if is_junk_venue(name, ""):
+            return None
+
         address_obj = venue.get("address") or {}
         street = address_obj.get("line1", "")
         city = (venue.get("city") or {}).get("name", "") or None
@@ -282,6 +290,10 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         """
         name = (venue.get("name") or "").strip()
         if not name:
+            return None
+
+        from laughtrack.utilities.domain.club.quality_filter import is_junk_venue  # noqa: PLC0415
+        if is_junk_venue(name, ""):
             return None
 
         address = (venue.get("address") or "").strip()
