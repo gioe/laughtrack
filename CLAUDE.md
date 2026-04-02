@@ -1,3 +1,24 @@
+## Investigating API Responses — Use Direct HTTP Calls, Not WebFetch
+
+WebFetch summarizes JSON content via an AI model — it may report fewer array items
+than the actual response (e.g., "30 events" when the API returned 105). This can
+produce wrong initial hypotheses when investigating API behavior.
+
+When inspecting API response structure, item counts, or cross-page consistency, use
+a direct Python call instead:
+
+```python
+# In apps/scraper/ where ssl cert issues apply, disable cert verification:
+import ssl, urllib.request, json
+ctx = ssl.create_default_context()
+ctx.check_hostname = False; ctx.verify_mode = ssl.CERT_NONE
+with urllib.request.urlopen(url, context=ctx) as r:
+    data = json.loads(r.read())
+print(len(data), data[0])  # actual count and first item
+```
+
+WebFetch remains appropriate for reading human-readable HTML pages or docs.
+
 ## Scraper Platform Reference
 
 For platform-specific venue onboarding guides (StageTime, Prekindle, Humanitix, Ninkashi, Tixr, Eventbrite, SeatEngine, Squarespace, Tockify, OvationTix, OpenDate, TicketSource, and more), see `apps/scraper/SCRAPERS.md`.
@@ -5,6 +26,26 @@ For platform-specific venue onboarding guides (StageTime, Prekindle, Humanitix, 
 ## Scraper Testing Patterns
 
 For testing patterns when writing scraper tests (smoke tests, module loading, mocking, async, VCR cassettes, etc.), see `apps/scraper/CONTRIBUTING.md`.
+
+## Scraper Tests — Patching `execute_values`
+
+`base_handler.py` imports `execute_values` directly:
+
+```python
+from psycopg2.extras import execute_values
+```
+
+To mock it in tests, patch the name in the **module's namespace** — NOT on `psycopg2.extras`:
+
+```python
+# ✗ Wrong — patches the original; base_handler already holds a reference to the old name
+patch.object(_base_handler_mod.psycopg2.extras, "execute_values", ...)
+
+# ✓ Correct — patches the name as bound in the loaded module
+patch.object(_base_handler_mod, "execute_values", ...)
+```
+
+This applies to any function imported with `from X import Y` — always patch at the usage site.
 
 ## Scraper Manual Run — Use `make scrape-club`, Not `bin/scrape`
 
