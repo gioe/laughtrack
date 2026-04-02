@@ -399,7 +399,7 @@ async def test_get_data_returns_grove34_page_data(monkeypatch, grove34_club):
 
     detail_html = _make_detail_html(
         name="Comedy Thursday",
-        start_date="2026-04-02T01:00:00.000Z",
+        start_date="2099-04-02T01:00:00.000Z",
         description="Stand-up showcase",
     )
 

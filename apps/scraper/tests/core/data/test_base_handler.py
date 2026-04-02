@@ -81,8 +81,17 @@ _stub("laughtrack.foundation.models.types", T=None, JSONDict=dict)
 _stub("laughtrack.foundation.models", as_package=True)
 _stub("laughtrack.foundation", as_package=True)
 
-# Stub adapters.db so base_handler.py's import resolves
-_stub("laughtrack.adapters.db", create_connection=MagicMock())
+# Stub adapters.db so base_handler.py's import resolves — include all names
+# re-exported by the real module so downstream collectors (e.g. grove34) don't
+# get an ImportError when this stub is already in sys.modules.
+_stub(
+    "laughtrack.adapters.db",
+    create_connection=MagicMock(),
+    create_connection_with_transaction=MagicMock(),
+    get_connection=MagicMock(),
+    get_transaction=MagicMock(),
+    db=MagicMock(),
+)
 _stub("laughtrack.adapters", as_package=True)
 _stub("laughtrack", as_package=True)
 
