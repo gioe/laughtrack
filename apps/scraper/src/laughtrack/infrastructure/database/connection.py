@@ -59,6 +59,8 @@ def create_connection(autocommit: bool = True) -> psycopg2.extensions.connection
                     host=db_config["host"],
                     password=db_config["password"],
                     port=db_config["port"],
+                    connect_timeout=10,
+                    options="-c statement_timeout=30000",
                 )
                 if autocommit:
                     conn.autocommit = True
