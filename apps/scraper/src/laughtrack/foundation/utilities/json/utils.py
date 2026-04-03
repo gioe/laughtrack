@@ -390,7 +390,13 @@ class JSONUtils:
 
                 # Handle both single objects and arrays
                 if isinstance(data, list):
-                    json_ld_objects.extend(data)
+                    for item in data:
+                        if isinstance(item, dict) and isinstance(item.get("@graph"), list):
+                            json_ld_objects.extend(item["@graph"])
+                        else:
+                            json_ld_objects.append(item)
+                elif isinstance(data, dict) and isinstance(data.get("@graph"), list):
+                    json_ld_objects.extend(data["@graph"])
                 else:
                     json_ld_objects.append(data)
 
