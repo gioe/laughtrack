@@ -39,6 +39,7 @@ interface FilterBarProps {
     variant: SearchVariant;
     total: number;
     filters: number;
+    isAdmin?: boolean;
 }
 
 const getSearchBar = (variant: SearchVariant) => {
@@ -46,13 +47,13 @@ const getSearchBar = (variant: SearchVariant) => {
     return SearchBarComponent ? <SearchBarComponent /> : null;
 };
 
-const getSortOptions = (variant: SearchVariant) => {
+const getSortOptions = (variant: SearchVariant, isAdmin = false) => {
     const entityType = VARIANT_TO_ENTITY_TYPE_MAP[variant] ?? EntityType.Show;
-    const sortOptions = getSortOptionsForEntityType(entityType);
+    const sortOptions = getSortOptionsForEntityType(entityType, isAdmin);
     return <SortParamComponent sortOptions={sortOptions} />;
 };
 
-const FilterBar = ({ variant, total, filters }: FilterBarProps) => {
+const FilterBar = ({ variant, total, filters, isAdmin }: FilterBarProps) => {
     return (
         <div className="sticky top-0 z-20 w-full bg-coconut-cream border-b border-black/5">
             <div
@@ -69,7 +70,7 @@ const FilterBar = ({ variant, total, filters }: FilterBarProps) => {
                         {/* Search controls cluster */}
                         <div className="flex items-center gap-3">
                             <div className="text-copper">
-                                {getSortOptions(variant)}
+                                {getSortOptions(variant, isAdmin)}
                             </div>
 
                             {filters > 0 && (

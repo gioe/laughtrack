@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSearchedComedians } from "@/lib/data/comedian/search/getSearchedComedians";
 import { applyPublicReadRateLimit, rateLimitHeaders } from "@/lib/rateLimit";
 import { auth } from "@/auth";
+import { UserRole } from "@/objects/enum/userRole";
 
 export async function GET(req: NextRequest) {
     const rl = await applyPublicReadRateLimit(req, "comedians-search");
@@ -20,6 +21,7 @@ export async function GET(req: NextRequest) {
         const session = await auth();
         const profileId = session?.profile?.id;
         const userId = session?.profile?.userid;
+        const isAdmin = session?.profile?.role === UserRole.Admin;
 
         const result = await getSearchedComedians({
             params: {
@@ -35,6 +37,7 @@ export async function GET(req: NextRequest) {
             },
             timezone,
             ...(profileId ? { profileId, userId } : {}),
+            isAdmin,
         });
 
         return NextResponse.json(

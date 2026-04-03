@@ -1,6 +1,7 @@
 import { CACHE } from "@/util/constants/cacheConstants";
 import { auth } from "@/auth";
 import { SearchVariant } from "@/objects/enum/searchVariant";
+import { UserRole } from "@/objects/enum/userRole";
 import { getSearchedComedians } from "@/lib/data/comedian/search/getSearchedComedians";
 import { unstable_cache } from "next/cache";
 import SearchDetailHeader from "@/ui/pages/search/header";
@@ -61,11 +62,14 @@ export default async function ComedianSearchPage(
     const theme =
         typeof searchParams.theme === "string" ? searchParams.theme : undefined;
 
+    const isAdmin = session?.profile?.role === UserRole.Admin;
+
     const requestData = {
         params: toSearchParams(searchParams),
         timezone: cookieStore.get("timezone")?.value || "UTC",
         userId: session?.profile?.userid,
         profileId: session?.profile?.id,
+        isAdmin,
     };
 
     const getCachedSearchPageData = (requestData: ParameterizedRequestData) => {
@@ -108,6 +112,7 @@ export default async function ComedianSearchPage(
                 variant={SearchVariant.AllComedians}
                 total={total}
                 filters={filters.length}
+                isAdmin={isAdmin}
             />
 
             <Suspense>

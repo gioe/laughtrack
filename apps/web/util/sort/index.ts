@@ -4,6 +4,7 @@ import { SortParamValue } from "../../objects/enum";
 
 export const getSortOptionsForEntityType = (
     type: EntityType,
+    isAdmin = false,
 ): SortOptionInterface[] => {
     switch (type) {
         case EntityType.Club:
@@ -13,8 +14,8 @@ export const getSortOptionsForEntityType = (
                 // { name: "Most Popular", value: SortParamValue.Popularity, direction: DirectionParamValue.Descending },
                 // { name: "Least Popular", value: SortParamValue.Popularity, direction: DirectionParamValue.Ascending },
             ];
-        case EntityType.Comedian:
-            return [
+        case EntityType.Comedian: {
+            const base: SortOptionInterface[] = [
                 { name: "Most Popular", value: SortParamValue.PopularityDesc },
                 { name: "Least Popular", value: SortParamValue.PopularityAsc },
                 {
@@ -30,6 +31,20 @@ export const getSortOptionsForEntityType = (
                 { name: "Most Active", value: SortParamValue.ActivityDesc },
                 { name: "Least Active", value: SortParamValue.ActivityAsc },
             ];
+            if (isAdmin) {
+                base.push(
+                    {
+                        name: "Newest First",
+                        value: SortParamValue.InsertedAtDesc,
+                    },
+                    {
+                        name: "Oldest First",
+                        value: SortParamValue.InsertedAtAsc,
+                    },
+                );
+            }
+            return base;
+        }
         default:
             return [
                 { name: "Earliest Date", value: SortParamValue.DateAsc },
