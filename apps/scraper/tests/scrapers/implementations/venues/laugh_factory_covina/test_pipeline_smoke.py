@@ -195,6 +195,52 @@ async def test_get_data_filters_by_org_jsonld_when_present(monkeypatch):
     scraper.tixr_client.get_event_detail_from_url.assert_called_once_with(EVENT_URL)
 
 
+@pytest.mark.asyncio
+async def test_get_data_filters_by_event_id_when_url_forms_differ(monkeypatch):
+    """
+    get_data() matches JSON-LD URLs against HTML URLs by numeric event ID, not
+    by string equality.  When the JSON-LD block uses a short-form URL (tixr.com/e/{id})
+    and the HTML contains a long-form URL for the same event, the long-form URL should
+    still pass the filter (string equality would produce an empty intersection).
+    """
+    scraper = LaughFactoryCovinaScraper(_club())
+
+    long_url_in_html = "https://www.tixr.com/groups/laughfactorycovina/events/comedy-night-12345"
+    short_url_in_jsonld = "https://www.tixr.com/e/12345"
+    dropped_url = "https://www.tixr.com/groups/laughfactorycovina/events/other--99999"
+
+    html_with_jsonld = f"""<html><head>
+<script type="application/ld+json">
+{{
+  "@type": "Organization",
+  "events": [{{"url": "{short_url_in_jsonld}"}}]
+}}
+</script>
+</head><body>
+<a href="{long_url_in_html}">Comedy Night</a>
+<a href="{dropped_url}">Dropped Show</a>
+</body></html>"""
+
+    monkeypatch.setattr(
+        scraper.tixr_client,
+        "_fetch_tixr_page",
+        AsyncMock(return_value=html_with_jsonld),
+    )
+    monkeypatch.setattr(
+        scraper.tixr_client,
+        "get_event_detail_from_url",
+        AsyncMock(return_value=_tixr_event()),
+    )
+
+    result = await scraper.get_data(GROUP_URL)
+
+    assert isinstance(result, LaughFactoryCovinaPageData)
+    assert len(result.event_list) == 1
+    # Only the long-form URL matching event ID 12345 should be processed;
+    # dropped_url (double-dash format, no parseable ID) should be excluded.
+    scraper.tixr_client.get_event_detail_from_url.assert_called_once_with(long_url_in_html)
+
+
 def test_can_transform_accepts_tixr_event():
     """
     Transformation pipeline accepts TixrEvent — catches type-mismatch regressions

@@ -84,8 +84,13 @@ class LaughFactoryCovinaScraper(BaseScraper):
             org_jsonld_urls = TixrExtractor.extract_org_jsonld_event_urls(html_content)
 
             if org_jsonld_urls:
-                org_url_set = set(org_jsonld_urls)
-                tixr_urls = [u for u in all_tixr_urls if u in org_url_set]
+                org_event_ids = {
+                    TixrExtractor.get_event_id(u) for u in org_jsonld_urls
+                } - {None}
+                tixr_urls = [
+                    u for u in all_tixr_urls
+                    if TixrExtractor.get_event_id(u) in org_event_ids
+                ]
                 skipped = len(all_tixr_urls) - len(tixr_urls)
                 if skipped > 0:
                     Logger.info(
