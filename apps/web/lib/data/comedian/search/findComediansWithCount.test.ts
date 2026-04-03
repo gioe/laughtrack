@@ -20,6 +20,7 @@ import { db } from "@/lib/db";
 import {
     QueryHelper,
     COMEDIAN_SORT_MAP,
+    COMEDIAN_SORT_MAP_ADMIN,
 } from "@/objects/class/query/QueryHelper";
 import { SortParamValue } from "@/objects/enum/sortParamValue";
 
@@ -32,9 +33,11 @@ function makeHelper(
     comedian?: string,
     filters?: string,
     profileId?: string,
+    isAdmin = false,
 ): QueryHelper {
     return {
         params: { sort, comedian, filters },
+        isAdmin,
         getProfileId: () => profileId,
         getComedianNameClause: () => ({}),
         getComedianFiltersClause: () => ({}),
@@ -238,6 +241,55 @@ describe("findComediansWithCount", () => {
             // No orderBy or take/skip in the findMany call (ordering handled by raw SQL)
             expect(call).not.toHaveProperty("take");
             expect(call).not.toHaveProperty("skip");
+        });
+    });
+
+    describe("admin sort gating", () => {
+        it("passes COMEDIAN_SORT_MAP (not admin) to getGenericClauses for non-admin with InsertedAtDesc", async () => {
+            mockCount.mockResolvedValue(1);
+            mockFindMany.mockResolvedValue([makeComedianRow(1)] as never);
+
+            const capturedMaps: unknown[] = [];
+            const helper = makeHelper(
+                SortParamValue.InsertedAtDesc,
+                undefined,
+                undefined,
+                undefined,
+                false,
+            );
+            const originalFn = helper.getGenericClauses.bind(helper);
+            helper.getGenericClauses = vi.fn((...args: unknown[]) => {
+                capturedMaps.push(args[1]);
+                return originalFn(args[0] as number, args[1] as never);
+            }) as unknown as typeof helper.getGenericClauses;
+
+            await findComediansWithCount(helper);
+
+            expect(capturedMaps[0]).toBe(COMEDIAN_SORT_MAP);
+            expect(capturedMaps[0]).not.toBe(COMEDIAN_SORT_MAP_ADMIN);
+        });
+
+        it("passes COMEDIAN_SORT_MAP_ADMIN to getGenericClauses for admin with InsertedAtDesc", async () => {
+            mockCount.mockResolvedValue(1);
+            mockFindMany.mockResolvedValue([makeComedianRow(1)] as never);
+
+            const capturedMaps: unknown[] = [];
+            const helper = makeHelper(
+                SortParamValue.InsertedAtDesc,
+                undefined,
+                undefined,
+                undefined,
+                true,
+            );
+            const originalFn = helper.getGenericClauses.bind(helper);
+            helper.getGenericClauses = vi.fn((...args: unknown[]) => {
+                capturedMaps.push(args[1]);
+                return originalFn(args[0] as number, args[1] as never);
+            }) as unknown as typeof helper.getGenericClauses;
+
+            await findComediansWithCount(helper);
+
+            expect(capturedMaps[0]).toBe(COMEDIAN_SORT_MAP_ADMIN);
         });
     });
 });
