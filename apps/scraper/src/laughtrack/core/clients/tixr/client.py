@@ -19,6 +19,7 @@ from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.core.clients.base import BaseApiClient
 from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 from laughtrack.foundation.utilities.datetime import DateTimeUtils
+from laughtrack.foundation.utilities.json.utils import JSONUtils
 from laughtrack.foundation.utilities.url import URLUtils
 
 
@@ -211,32 +212,14 @@ class TixrClient(BaseApiClient):
             html,
             re.DOTALL | re.IGNORECASE,
         )
-        for raw in blocks:
-            try:
-                parsed = json.loads(raw.strip())
-            except (json.JSONDecodeError, ValueError):
+        for item in JSONUtils.parse_json_ld_contents(blocks):
+            if not isinstance(item, dict):
                 continue
-            # Unwrap @graph wrapper (common JSON-LD variant)
-            if isinstance(parsed, dict) and "@graph" in parsed:
-                parsed = parsed["@graph"]
-            # Also unwrap array-wrapped @graph: [{"@graph": [...]}]
-            if isinstance(parsed, list):
-                expanded = []
-                for item in parsed:
-                    if isinstance(item, dict) and isinstance(item.get("@graph"), list):
-                        expanded.extend(item["@graph"])
-                    else:
-                        expanded.append(item)
-                parsed = expanded
-            items = parsed if isinstance(parsed, list) else [parsed]
-            for item in items:
-                if not isinstance(item, dict):
-                    continue
-                item_type = item.get("@type", "")
-                # @type may be a string or a list of type strings
-                types = item_type if isinstance(item_type, list) else [item_type]
-                if any(t in _EVENT_TYPES for t in types):
-                    return item
+            item_type = item.get("@type", "")
+            # @type may be a string or a list of type strings
+            types = item_type if isinstance(item_type, list) else [item_type]
+            if any(t in _EVENT_TYPES for t in types):
+                return item
         return None
 
     def _create_show_from_jsonld(self, data: Dict[str, Any], page_url: str) -> Optional[Show]:
