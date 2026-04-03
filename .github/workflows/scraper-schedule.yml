@@ -49,6 +49,7 @@ jobs:
           playwright install chromium --with-deps
 
       - name: Run scraper
+        id: run_scraper
         env:
           DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
           DATABASE_USER: ${{ secrets.DATABASE_USER }}
@@ -69,6 +70,17 @@ jobs:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
           python -m scripts.core.scrape_shows --all
+
+      - name: Revalidate home page cache
+        if: steps.run_scraper.outcome == 'success'
+        env:
+          REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
+        run: |
+          curl -fsS --retry 3 --max-time 15 \
+            -X POST https://laugh-track.com/api/revalidate \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $REVALIDATE_SECRET" \
+            -d '{"tags": ["home-page-data"]}'
 
       - name: Update comedian popularity scores
         if: always()
