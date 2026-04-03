@@ -1,13 +1,16 @@
 """
-EventbriteNationalScraper: queries the Eventbrite comedy category at the
-national US level — no per-venue org ID required.
+EventbriteNationalScraper — RETIRED (2026-04-03)
 
-For each event returned:
-- Upserts a clubs row for the venue (storing eventbrite_id, scraper='eventbrite').
-- Converts the event to a Show via EventbriteEvent.to_show().
+The Eventbrite /events/search/ endpoint that powered this scraper has been
+deprecated and returns HTTP 404. No equivalent replacement endpoint exists
+in the Eventbrite v3 API for national comedy discovery by subcategory.
 
-The scraper is triggered by a single clubs row with scraper='eventbrite_national';
-ScrapingService orchestration is unchanged.
+This scraper was never activated in production (no clubs row with
+scraper='eventbrite_national' was ever inserted). It is retained for
+reference only. Any attempt to run it will raise immediately.
+
+Per-venue Eventbrite scrapers (scraper='eventbrite') remain operational
+via the /organizers/{id}/events/ and /venues/{id}/events/ endpoints.
 """
 
 import asyncio
@@ -27,12 +30,11 @@ from laughtrack.scrapers.base.base_scraper import BaseScraper
 
 class EventbriteNationalScraper(BaseScraper):
     """
-    Platform-level Eventbrite scraper that queries the comedy category
-    nationally (no per-venue org ID required).
+    RETIRED — do not activate.
 
-    Triggered by a single clubs row with scraper='eventbrite_national'.
-    Discovers venues via the Eventbrite search API, upserts club rows for
-    newly-seen venues, and returns Shows for all discovered events.
+    The Eventbrite /events/search/ endpoint returned HTTP 404 as of 2026-04-03.
+    No replacement national-discovery endpoint is available in the v3 API.
+    scrape_async() raises immediately to surface this clearly if triggered.
     """
 
     key = "eventbrite_national"
@@ -60,7 +62,15 @@ class EventbriteNationalScraper(BaseScraper):
         return None  # pragma: no cover
 
     async def scrape_async(self) -> List[Show]:
-        """Override: discover venues nationally, upsert clubs, produce Shows."""
+        """Raises immediately — the Eventbrite /events/search/ endpoint is retired (HTTP 404)."""
+        raise RuntimeError(
+            "EventbriteNationalScraper is retired: the Eventbrite /events/search/ endpoint "
+            "returned HTTP 404 as of 2026-04-03 and has no known replacement. "
+            "Remove the trigger clubs row (scraper='eventbrite_national') if one exists."
+        )
+
+    async def _scrape_async_impl(self) -> List[Show]:
+        """Unreachable — retained for reference only."""
         try:
             api_events = await self._fetch_national_comedy_events()
             if not api_events:
