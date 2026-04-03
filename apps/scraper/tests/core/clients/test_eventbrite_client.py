@@ -24,13 +24,13 @@ def stub_base_init(monkeypatch):
     return _stub
 
 
-def _club(eventbrite_id: str | None = None) -> Club:
+def _club(eventbrite_id: str | None = None, scraping_url: str = "example.com") -> Club:
     return Club(
         id=1,
         name="Test Club",
         address="123 St",
         website="https://example.com",
-        scraping_url="example.com",
+        scraping_url=scraping_url,
         popularity=1,
         zip_code="00000",
         phone_number="000-000-0000",
@@ -362,3 +362,79 @@ async def test_retrieve_event_success_and_not_found(monkeypatch, stub_base_init)
     got = await c.retrieve_event("EVT2")
     assert got is None
     assert warnings["msg"] and "EVT2" in warnings["msg"]
+
+
+@pytest.mark.asyncio
+async def test_fetch_all_events_organizer_url_skips_venue_endpoint(monkeypatch, stub_base_init):
+    """When scraping_url contains /o/, organizer endpoint is used directly (no venue call)."""
+    stub_base_init()
+    club = _club(
+        eventbrite_id="ORG456",
+        scraping_url="https://www.eventbrite.com/o/laugh-factory-hollywood-18525142576",
+    )
+    c = EventbriteClient(club)
+
+    class Page:
+        def __init__(self, events, has_more):
+            self.events = events
+            self.pagination = type("P", (), {"has_more_items": has_more, "continuation": None})()
+
+    venue_called = {"called": False}
+
+    async def fake_venue_list(venue_id, continuation=None):
+        venue_called["called"] = True
+        return Page([{"id": 99}], False)
+
+    async def fake_organizer_list(organizer_id, continuation=None):
+        return Page([{"id": 7}], False)
+
+    def fake_convert(api_event):
+        return f"E{api_event['id']}"
+
+    monkeypatch.setattr(c, "fetch_eventbrite_event_list", fake_venue_list)
+    monkeypatch.setattr(c, "fetch_organizer_event_list", fake_organizer_list)
+    monkeypatch.setattr(eb_client_module.EventbriteEvent, "from_api_model", staticmethod(fake_convert))
+
+    events = await c.fetch_all_events()
+    assert events == ["E7"]
+    assert not venue_called["called"], "venue endpoint must not be called for organizer-URL clubs"
+
+
+@pytest.mark.asyncio
+async def test_fetch_all_events_non_organizer_url_tries_venue_first(monkeypatch, stub_base_init):
+    """When scraping_url has no /o/, venue endpoint is tried first (backward compat)."""
+    stub_base_init()
+    club = _club(
+        eventbrite_id="VENUE42",
+        scraping_url="www.eventbrite.com",
+    )
+    c = EventbriteClient(club)
+
+    class Page:
+        def __init__(self, events, has_more):
+            self.events = events
+            self.pagination = type("P", (), {"has_more_items": has_more, "continuation": None})()
+
+    venue_called = {"called": False}
+
+    async def fake_venue_list(venue_id, continuation=None):
+        venue_called["called"] = True
+        return Page([{"id": 5}], False)
+
+    organizer_called = {"called": False}
+
+    async def fake_organizer_list(organizer_id, continuation=None):
+        organizer_called["called"] = True
+        return Page([{"id": 9}], False)
+
+    def fake_convert(api_event):
+        return f"E{api_event['id']}"
+
+    monkeypatch.setattr(c, "fetch_eventbrite_event_list", fake_venue_list)
+    monkeypatch.setattr(c, "fetch_organizer_event_list", fake_organizer_list)
+    monkeypatch.setattr(eb_client_module.EventbriteEvent, "from_api_model", staticmethod(fake_convert))
+
+    events = await c.fetch_all_events()
+    assert events == ["E5"]
+    assert venue_called["called"], "venue endpoint must be tried first for non-organizer-URL clubs"
+    assert not organizer_called["called"], "organizer endpoint should not be called when venue succeeds"

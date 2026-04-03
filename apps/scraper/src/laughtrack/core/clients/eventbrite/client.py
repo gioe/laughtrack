@@ -88,13 +88,14 @@ class EventbriteClient(BaseApiClient):
     async def fetch_all_events(self) -> List[EventbriteEvent]:
         """Fetch all live events for the configured venue, handling pagination.
 
-        Tries /venues/{id}/events/ first.  If that endpoint fails (e.g. returns
-        a 404 because the stored ID is an organizer ID), falls back to
-        /organizers/{id}/events/.
+        If the club's scraping_url contains ``/o/`` (Eventbrite organizer URL
+        pattern), the organizer endpoint is used directly — skipping the venue
+        endpoint that would otherwise generate a noisy 404 warning before
+        falling back.
 
-        A venue that is valid but has no scheduled events returns an empty list
-        without triggering the organizer fallback — the fallback is only
-        triggered when the venues endpoint itself fails (returns None).
+        For clubs whose scraping_url does not contain ``/o/`` (i.e. they store
+        an actual Eventbrite venue ID), the venue endpoint is tried first with
+        the organizer endpoint as fallback.
 
         Returns
         - list[EventbriteEvent]: Flattened list across all pages; ``[]`` on
@@ -102,6 +103,11 @@ class EventbriteClient(BaseApiClient):
         """
         if not self.club.eventbrite_id:
             return []
+
+        scraping_url = getattr(self.club, "scraping_url", "") or ""
+        if "/o/" in scraping_url:
+            # Stored ID is an organizer ID — use organizer endpoint directly
+            return await self._fetch_paginated("organizers", self.club.eventbrite_id) or []
 
         events = await self._fetch_paginated("venues", self.club.eventbrite_id)
         if events is None:
