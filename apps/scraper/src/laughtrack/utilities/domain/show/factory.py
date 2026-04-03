@@ -71,6 +71,7 @@ _LINEUP_NAME_BLOCKLIST = frozenset({
     # Filler / "and more" variants
     "plus more",
     "and more",
+    "more",
     # Music genre labels (false-positive comedians from scraper output)
     "rap",
     "r&b",
@@ -110,10 +111,19 @@ _LINEUP_TITLE_KEYWORD_BLOCKLIST = frozenset({
     "theater",
     "entertainment",
     "brigade",
+    "trivia",
 })
 
 import re as _re
 _VENUE_CODE_PREFIX_RE = _re.compile(r"^\([A-Z]\)")
+_DJ_SET_RE = _re.compile(r"\bDJ\b", _re.IGNORECASE)
+
+
+def is_dj_set_show(name: Optional[str]) -> bool:
+    """Return True if the show name indicates a DJ set rather than a comedy show."""
+    if not name:
+        return False
+    return bool(_DJ_SET_RE.search(name))
 
 
 def _is_valid_lineup_name(name: Optional[str]) -> bool:

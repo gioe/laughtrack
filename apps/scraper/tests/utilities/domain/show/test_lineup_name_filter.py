@@ -4,6 +4,7 @@ import pytest
 
 from laughtrack.utilities.domain.show.factory import (
     _is_valid_lineup_name,
+    is_dj_set_show,
     ShowFactoryUtils,
 )
 
@@ -105,6 +106,12 @@ class TestIsValidLineupName:
         # "Headliner: TBA" is not an exact match for any blocklist entry
         assert _is_valid_lineup_name("Headliner: TBA") is True
 
+    def test_trivia_keyword_rejected(self):
+        assert _is_valid_lineup_name('"Everything" Trivia w/ Greg!') is False
+
+    def test_trivia_standalone_rejected(self):
+        assert _is_valid_lineup_name("Trivia Night") is False
+
 
 # ---------------------------------------------------------------------------
 # create_lineup_from_performers — integration
@@ -153,3 +160,51 @@ class TestCreateLineupFromPerformers:
         lineup = ShowFactoryUtils.create_lineup_from_performers(["---", "John Mulaney"])
         assert len(lineup) == 1
         assert lineup[0].name == "John Mulaney"
+
+
+# ---------------------------------------------------------------------------
+# _is_valid_lineup_name — "more" blocklist entry
+# ---------------------------------------------------------------------------
+
+class TestMoreBlocklisted:
+    def test_more_rejected(self):
+        assert _is_valid_lineup_name("more") is False
+
+    def test_more_case_insensitive(self):
+        assert _is_valid_lineup_name("More") is False
+
+    def test_more_filtered_from_performers(self):
+        lineup = ShowFactoryUtils.create_lineup_from_performers(["John Mulaney", "more"])
+        assert len(lineup) == 1
+        assert lineup[0].name == "John Mulaney"
+
+
+# ---------------------------------------------------------------------------
+# is_dj_set_show
+# ---------------------------------------------------------------------------
+
+class TestIsDjSetShow:
+    @pytest.mark.parametrize("name", [
+        "Triplet Threat with DJ Mariko: Lady Gaga, Charli XCX, Chappell Roan & more",
+        "DJ Night at the Club",
+        "Friday with DJ Steve",
+        "dj set featuring various artists",
+        "DJ",
+    ])
+    def test_dj_set_detected(self, name):
+        assert is_dj_set_show(name) is True
+
+    @pytest.mark.parametrize("name", [
+        "John Mulaney Live",
+        "Comedy Night with Special Guests",
+        "Dave Chappelle: For What It's Worth",
+        "The Daily Show Live",
+        None,
+        "",
+    ])
+    def test_non_dj_show_passes(self, name):
+        assert is_dj_set_show(name) is False
+
+    def test_adjacent_letters_not_matched(self):
+        # "DJango" should not trigger — not a word boundary
+        assert is_dj_set_show("DJango Unchained Comedy Show") is False

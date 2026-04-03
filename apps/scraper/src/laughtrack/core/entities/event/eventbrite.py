@@ -15,6 +15,7 @@ from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.core.protocols.show_convertible import ShowConvertible
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.datetime import DateTimeUtils
+from laughtrack.utilities.domain.show.factory import is_dj_set_show
 
 
 @dataclass
@@ -122,6 +123,10 @@ class EventbriteEvent(ShowConvertible):
     def to_show(self, club: Club, enhanced: bool = True, url: str | None = None):
         """Transform EventbriteEvent object to Show objects with EventBrite-specific processing."""
         try:
+            if is_dj_set_show(self.name):
+                Logger.info(f"Skipping DJ set show: {self.name!r}")
+                return None
+
             # Parse the date
             if self.start_date:
                 try:
