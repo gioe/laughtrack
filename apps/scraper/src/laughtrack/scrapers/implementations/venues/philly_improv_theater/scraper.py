@@ -42,7 +42,7 @@ from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.scrapers.implementations.api.crowdwork.utils import extract_performances
 
-from .page_data import PhillyImprovPageData
+from .data import PhillyImprovPageData
 from .transformer import PhillyImprovTransformer
 
 

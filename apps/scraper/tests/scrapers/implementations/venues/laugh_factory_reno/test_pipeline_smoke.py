@@ -21,7 +21,7 @@ pytestmark = pytest.mark.skipif(
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.event.tixologi import TixologiEvent
 from laughtrack.scrapers.implementations.venues.laugh_factory_reno.scraper import LaughFactoryRenoScraper
-from laughtrack.scrapers.implementations.venues.laugh_factory_reno.page_data import LaughFactoryRenoPageData
+from laughtrack.scrapers.implementations.venues.laugh_factory_reno.data import LaughFactoryRenoPageData
 from laughtrack.scrapers.implementations.venues.laugh_factory_reno.extractor import LaughFactoryRenoEventExtractor
 
 

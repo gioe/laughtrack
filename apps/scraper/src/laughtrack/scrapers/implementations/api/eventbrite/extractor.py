@@ -13,6 +13,6 @@ from laughtrack.core.entities.event.eventbrite import EventbriteEvent
 class EventbriteExtractor:
     @staticmethod
     def to_page_data(events: List[EventbriteEvent]):
-        from .page_data import EventbriteVenueData
+        from .data import EventbriteVenueData
 
         return EventbriteVenueData(event_list=events)

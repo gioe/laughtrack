@@ -30,7 +30,7 @@ from laughtrack.scrapers.implementations.venues.csz_philadelphia.scraper import 
 from laughtrack.scrapers.implementations.venues.csz_philadelphia.extractor import (
     CszPhillyEventExtractor,
 )
-from laughtrack.scrapers.implementations.venues.csz_philadelphia.page_data import (
+from laughtrack.scrapers.implementations.venues.csz_philadelphia.data import (
     CszPhillyPageData,
     CszPhillyShowInstance,
 )

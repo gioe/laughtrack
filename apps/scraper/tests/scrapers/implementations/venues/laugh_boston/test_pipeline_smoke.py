@@ -24,7 +24,7 @@ from laughtrack.core.entities.event.tixr import TixrEvent
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.scrapers.implementations.venues.laugh_boston.scraper import LaughBostonScraper
-from laughtrack.scrapers.implementations.venues.laugh_boston.page_data import LaughBostonPageData
+from laughtrack.scrapers.implementations.venues.laugh_boston.data import LaughBostonPageData
 
 GROUP_URL = "https://laughboston.com"
 EVENT_URL = "https://www.tixr.com/groups/laughboston/events/comedy-night-12345"

@@ -16,7 +16,7 @@ from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.ports.scraping import EventListContainer
 
 from .extractor import SeatEngineClassicExtractor
-from .page_data import SeatEngineClassicPageData
+from .data import SeatEngineClassicPageData
 from .transformer import SeatEngineClassicTransformer
 
 

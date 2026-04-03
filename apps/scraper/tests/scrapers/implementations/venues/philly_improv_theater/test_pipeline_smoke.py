@@ -13,7 +13,7 @@ from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.event.philly_improv import PhillyImprovShow
 from laughtrack.foundation.exceptions import NetworkError
 from laughtrack.scrapers.implementations.venues.philly_improv_theater.scraper import PhillyImprovTheaterScraper
-from laughtrack.scrapers.implementations.venues.philly_improv_theater.page_data import PhillyImprovPageData
+from laughtrack.scrapers.implementations.venues.philly_improv_theater.data import PhillyImprovPageData
 
 
 API_URL = "https://crowdwork.com/api/v2/phillyimprovtheater/shows"

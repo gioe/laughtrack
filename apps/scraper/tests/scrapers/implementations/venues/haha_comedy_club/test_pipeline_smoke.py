@@ -23,7 +23,7 @@ pytestmark = pytest.mark.skipif(
 )
 
 from laughtrack.core.entities.club.model import Club
-from laughtrack.scrapers.implementations.api.tixr.page_data import TixrPageData
+from laughtrack.scrapers.implementations.api.tixr.data import TixrPageData
 from laughtrack.scrapers.implementations.venues.haha_comedy_club.scraper import HahaComedyClubScraper
 
 CALENDAR_URL = "https://www.hahacomedyclub.com/calendar"

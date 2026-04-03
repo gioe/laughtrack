@@ -63,7 +63,7 @@ async def test_get_data_wraps_events_and_handles_empty(monkeypatch, club):
 
     # Patch extractor to just echo into page data
     from laughtrack.scrapers.implementations.api.eventbrite import extractor as extractor_mod
-    from laughtrack.scrapers.implementations.api.eventbrite.page_data import EventbriteVenueData
+    from laughtrack.scrapers.implementations.api.eventbrite.data import EventbriteVenueData
 
     def fake_to_page_data(items):
         # Return container as scraper expects

@@ -26,7 +26,7 @@ pytestmark = pytest.mark.skipif(
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
-from laughtrack.scrapers.implementations.api.ticketmaster.page_data import TicketmasterPageData
+from laughtrack.scrapers.implementations.api.ticketmaster.data import TicketmasterPageData
 from laughtrack.scrapers.implementations.api.ticketmaster.scraper import TicketmasterScraper
 
 

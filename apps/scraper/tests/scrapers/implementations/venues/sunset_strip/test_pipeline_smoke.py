@@ -20,7 +20,7 @@ from laughtrack.core.entities.event.squadup import SquadUpEvent
 from laughtrack.scrapers.implementations.venues.sunset_strip.extractor import (
     SunsetStripEventExtractor,
 )
-from laughtrack.scrapers.implementations.venues.sunset_strip.page_data import (
+from laughtrack.scrapers.implementations.venues.sunset_strip.data import (
     SunsetStripPageData,
 )
 from laughtrack.scrapers.implementations.venues.sunset_strip.scraper import (

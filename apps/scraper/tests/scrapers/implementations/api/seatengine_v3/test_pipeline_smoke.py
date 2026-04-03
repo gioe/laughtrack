@@ -20,7 +20,7 @@ pytestmark = pytest.mark.skipif(
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.scrapers.implementations.api.seatengine_v3.scraper import SeatEngineV3Scraper
-from laughtrack.scrapers.implementations.api.seatengine_v3.page_data import SeatEngineV3PageData
+from laughtrack.scrapers.implementations.api.seatengine_v3.data import SeatEngineV3PageData
 
 
 VENUE_UUID = "cf2b1561-bf36-40b8-8380-9c2a3bd0e4e3"

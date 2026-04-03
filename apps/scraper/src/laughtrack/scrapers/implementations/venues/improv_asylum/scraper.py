@@ -18,7 +18,7 @@ from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.utilities.infrastructure.scraper.scraper import BatchScraper
 
 from .extractor import ImprovAsylumEventExtractor
-from .page_data import ImprovAsylumPageData
+from .data import ImprovAsylumPageData
 from .transformer import ImprovAsylumEventTransformer
 
 

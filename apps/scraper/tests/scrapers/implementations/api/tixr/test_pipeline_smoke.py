@@ -22,7 +22,7 @@ from laughtrack.core.entities.event.tixr import TixrEvent
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.scrapers.implementations.api.tixr.scraper import TixrScraper
-from laughtrack.scrapers.implementations.api.tixr.page_data import TixrPageData
+from laughtrack.scrapers.implementations.api.tixr.data import TixrPageData
 from laughtrack.scrapers.implementations.api.tixr.extractor import TixrExtractor
 
 CALENDAR_URL = "https://www.hahacomedyclub.com/calendar"

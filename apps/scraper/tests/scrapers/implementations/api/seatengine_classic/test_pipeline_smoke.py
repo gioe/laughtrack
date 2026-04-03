@@ -24,7 +24,7 @@ pytestmark = pytest.mark.skipif(
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.scrapers.implementations.api.seatengine_classic.scraper import SeatEngineClassicScraper
-from laughtrack.scrapers.implementations.api.seatengine_classic.page_data import SeatEngineClassicPageData
+from laughtrack.scrapers.implementations.api.seatengine_classic.data import SeatEngineClassicPageData
 
 
 SCRAPING_URL = "https://newbrunswick.stressfactory.com/events"

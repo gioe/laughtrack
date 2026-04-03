@@ -28,7 +28,7 @@ from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 
 from .extractor import SunsetStripEventExtractor
-from .page_data import SunsetStripPageData
+from .data import SunsetStripPageData
 from .transformer import SunsetStripEventTransformer
 
 _SQUADUP_EVENTS_URL = "https://www.squadup.com/api/v3/events"

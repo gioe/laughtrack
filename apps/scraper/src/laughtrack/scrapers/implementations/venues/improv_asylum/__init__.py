@@ -1,6 +1,6 @@
 from .extractor import ImprovAsylumEventExtractor
 from .transformer import ImprovAsylumEventTransformer
-from .page_data import ImprovAsylumPageData
+from .data import ImprovAsylumPageData
 
 __all__ = [
     "ImprovAsylumEventExtractor",

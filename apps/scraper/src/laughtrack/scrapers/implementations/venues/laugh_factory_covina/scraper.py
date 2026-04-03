@@ -27,7 +27,7 @@ from laughtrack.scrapers.implementations.api.tixr.extractor import TixrExtractor
 from laughtrack.utilities.infrastructure.scraper.scraper import BatchScraper
 
 from .extractor import LaughFactoryCovinaEventExtractor
-from .page_data import LaughFactoryCovinaPageData
+from .data import LaughFactoryCovinaPageData
 from .transformer import LaughFactoryCovinaEventTransformer
 
 

@@ -24,7 +24,7 @@ from laughtrack.core.entities.event.tixr import TixrEvent
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.scrapers.implementations.venues.laugh_factory_covina.scraper import LaughFactoryCovinaScraper
-from laughtrack.scrapers.implementations.venues.laugh_factory_covina.page_data import LaughFactoryCovinaPageData
+from laughtrack.scrapers.implementations.venues.laugh_factory_covina.data import LaughFactoryCovinaPageData
 
 
 GROUP_URL = "https://www.tixr.com/groups/laughfactorycovina"

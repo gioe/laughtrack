@@ -48,7 +48,7 @@ from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 
 from .extractor import CszPhillyEventExtractor
-from .page_data import CszPhillyPageData
+from .data import CszPhillyPageData
 from .transformer import CszPhillyEventTransformer
 
 

@@ -11,7 +11,7 @@ from typing import List, Tuple
 
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
-from .page_data import CszPhillyShowInstance
+from .data import CszPhillyShowInstance
 
 
 # Regex: match the outer div for each event in the showevents HTML.

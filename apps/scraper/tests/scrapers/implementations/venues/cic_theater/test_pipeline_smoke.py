@@ -24,7 +24,7 @@ from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.event.eventbrite import EventbriteEvent
 from laughtrack.core.entities.show.model import Show
 from laughtrack.scrapers.implementations.api.eventbrite.scraper import EventbriteScraper
-from laughtrack.scrapers.implementations.api.eventbrite.page_data import EventbriteVenueData
+from laughtrack.scrapers.implementations.api.eventbrite.data import EventbriteVenueData
 
 
 ORGANIZER_ID = "34074498445"

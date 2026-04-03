@@ -23,7 +23,7 @@ pytestmark = pytest.mark.skipif(
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.scrapers.implementations.api.seatengine.scraper import SeatEngineScraper
-from laughtrack.scrapers.implementations.api.seatengine.page_data import SeatEnginePageData
+from laughtrack.scrapers.implementations.api.seatengine.data import SeatEnginePageData
 
 
 VENUE_ID = "42"

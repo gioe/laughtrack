@@ -36,7 +36,7 @@ from laughtrack.foundation.exceptions import NetworkError
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.url import URLUtils
 from laughtrack.scrapers.base.base_scraper import BaseScraper
-from laughtrack.scrapers.implementations.api.tixr.page_data import TixrPageData
+from laughtrack.scrapers.implementations.api.tixr.data import TixrPageData
 from laughtrack.shared.types import ScrapingTarget
 
 # HAHA Comedy Club is in North Hollywood, CA

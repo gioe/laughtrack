@@ -29,7 +29,7 @@ from laughtrack.shared.types import ScrapingTarget
 from laughtrack.utilities.infrastructure.scraper.scraper import BatchScraper
 
 from .extractor import TixrExtractor
-from .page_data import TixrPageData
+from .data import TixrPageData
 
 
 class TixrScraper(BaseScraper):

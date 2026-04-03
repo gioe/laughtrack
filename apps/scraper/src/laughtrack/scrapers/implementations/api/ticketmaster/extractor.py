@@ -10,6 +10,6 @@ from laughtrack.foundation.models.types import JSONDict
 class TicketmasterExtractor:
     @staticmethod
     def to_page_data(events: List[JSONDict]):
-        from .page_data import TicketmasterPageData
+        from .data import TicketmasterPageData
 
         return TicketmasterPageData(event_list=events)

@@ -24,7 +24,7 @@ from laughtrack.core.entities.event.tixr import TixrEvent
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.scrapers.implementations.venues.improv_asylum.scraper import ImprovAsylumScraper
-from laughtrack.scrapers.implementations.venues.improv_asylum.page_data import ImprovAsylumPageData
+from laughtrack.scrapers.implementations.venues.improv_asylum.data import ImprovAsylumPageData
 
 
 GROUP_URL = "https://www.tixr.com/groups/improvasylum"
@@ -160,7 +160,7 @@ def test_can_transform_accepts_tixr_event():
     Transformation pipeline accepts TixrEvent — catches type-mismatch regressions
     where the transformer's can_transform() silently rejects all events.
     """
-    from laughtrack.scrapers.implementations.venues.improv_asylum.page_data import ImprovAsylumPageData
+    from laughtrack.scrapers.implementations.venues.improv_asylum.data import ImprovAsylumPageData
 
     scraper = ImprovAsylumScraper(_club())
     event = _tixr_event()

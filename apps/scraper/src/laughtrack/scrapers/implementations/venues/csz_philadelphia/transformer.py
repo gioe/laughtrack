@@ -14,7 +14,7 @@ from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
 from laughtrack.utilities.infrastructure.transformer.base import DataTransformer
 
-from .page_data import CszPhillyShowInstance
+from .data import CszPhillyShowInstance
 
 
 # Map 3-letter month abbreviations to month numbers (1-based)

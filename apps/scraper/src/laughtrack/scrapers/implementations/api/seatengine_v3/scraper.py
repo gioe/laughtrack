@@ -22,7 +22,7 @@ from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.ports.scraping import EventListContainer
 
 from .extractor import SeatEngineV3Extractor
-from .page_data import SeatEngineV3PageData
+from .data import SeatEngineV3PageData
 from .transformer import SeatEngineV3EventTransformer
 
 _V3_API_URL = "https://services.seatengine.com/api/v3/public"

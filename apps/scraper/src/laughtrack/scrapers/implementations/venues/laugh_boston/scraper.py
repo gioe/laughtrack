@@ -19,7 +19,7 @@ from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 
 from .extractor import LaughBostonEventExtractor
-from .page_data import LaughBostonPageData
+from .data import LaughBostonPageData
 from .transformer import LaughBostonEventTransformer
 
 

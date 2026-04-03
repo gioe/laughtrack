@@ -10,6 +10,6 @@ from laughtrack.foundation.models.types import JSONDict
 class SeatEngineExtractor:
     @staticmethod
     def to_page_data(events: List[JSONDict]):
-        from .page_data import SeatEnginePageData
+        from .data import SeatEnginePageData
 
         return SeatEnginePageData(event_list=events)

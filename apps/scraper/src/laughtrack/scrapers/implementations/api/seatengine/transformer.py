@@ -14,7 +14,7 @@ from laughtrack.core.clients.seatengine.client import SeatEngineClient
 class SeatEngineExtractor:
 	@staticmethod
 	def to_page_data(events: List[JSONDict]):
-		from .page_data import SeatEnginePageData
+		from .data import SeatEnginePageData
 
 		return SeatEnginePageData(event_list=events)
 
