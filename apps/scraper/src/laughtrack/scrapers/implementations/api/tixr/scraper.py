@@ -8,6 +8,10 @@ DB row (scraper='tixr', scraping_url=<calendar page>) — no Python changes need
 Pipeline:
 1. Fetch club.scraping_url as HTML.
 2. Extract all Tixr event URLs (short and long form) via TixrExtractor.
+2.5. If the page embeds an Organization JSON-LD block, filter to only URLs whose
+     event ID appears in that block — these are the events Tixr has fully configured
+     server-side (reliable JSON-LD on individual event pages).  Falls back to all
+     HTML-extracted URLs when the Org JSON-LD block is absent.
 3. Batch-resolve each URL to a TixrEvent via TixrClient.get_event_detail_from_url().
 4. Return TixrPageData containing the resolved events.
 """

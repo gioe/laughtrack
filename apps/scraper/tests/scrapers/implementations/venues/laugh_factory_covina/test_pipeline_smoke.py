@@ -155,6 +155,46 @@ async def test_get_data_returns_none_when_all_events_fail(monkeypatch):
     assert result is None
 
 
+@pytest.mark.asyncio
+async def test_get_data_filters_by_org_jsonld_when_present(monkeypatch):
+    """
+    get_data() uses TixrExtractor.extract_org_jsonld_event_urls() when an
+    Organization JSON-LD block is present — only events in the block are
+    processed; double-dash (client-side) URLs not in the block are skipped.
+    """
+    scraper = LaughFactoryCovinaScraper(_club())
+    dropped_url = "https://www.tixr.com/groups/laughfactorycovina/events/other--99999"
+
+    html_with_jsonld = f"""<html><head>
+<script type="application/ld+json">
+{{
+  "@type": "Organization",
+  "events": [{{"url": "{EVENT_URL}"}}]
+}}
+</script>
+</head><body>
+<a href="{EVENT_URL}">Comedy Night</a>
+<a href="{dropped_url}">Dropped Show</a>
+</body></html>"""
+
+    monkeypatch.setattr(
+        scraper.tixr_client,
+        "_fetch_tixr_page",
+        AsyncMock(return_value=html_with_jsonld),
+    )
+    monkeypatch.setattr(
+        scraper.tixr_client,
+        "get_event_detail_from_url",
+        AsyncMock(return_value=_tixr_event()),
+    )
+
+    result = await scraper.get_data(GROUP_URL)
+
+    assert isinstance(result, LaughFactoryCovinaPageData)
+    assert len(result.event_list) == 1
+    scraper.tixr_client.get_event_detail_from_url.assert_called_once_with(EVENT_URL)
+
+
 def test_can_transform_accepts_tixr_event():
     """
     Transformation pipeline accepts TixrEvent — catches type-mismatch regressions
