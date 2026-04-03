@@ -14,6 +14,9 @@ from unittest.mock import AsyncMock
 
 import pytest
 
+import laughtrack.scrapers.implementations.venues.haha_comedy_club.scraper as _scraper_mod
+from laughtrack.foundation.exceptions import NetworkError
+
 pytestmark = pytest.mark.skipif(
     importlib.util.find_spec("curl_cffi") is None,
     reason="curl_cffi not installed",
@@ -148,6 +151,60 @@ async def test_get_data_skips_malformed_jsonld_without_crashing(monkeypatch):
 
     result = await scraper.get_data(CALENDAR_URL)
     assert result is None
+
+
+@pytest.mark.asyncio
+async def test_get_data_retries_on_transient_5xx_then_succeeds(monkeypatch):
+    """
+    get_data() retries the calendar page fetch on a 5xx NetworkError and
+    returns TixrPageData when the retry succeeds (transient outage scenario).
+    """
+    scraper = HahaComedyClubScraper(_club())
+    call_count = {"n": 0}
+
+    async def fake_fetch_flaky(url: str) -> str:
+        call_count["n"] += 1
+        if call_count["n"] == 1:
+            raise NetworkError("Server error (HTTP 503)", status_code=503)
+        return _ONE_EVENT_HTML
+
+    async def _noop_sleep(_delay):
+        pass
+
+    monkeypatch.setattr(scraper, "fetch_html", fake_fetch_flaky)
+    monkeypatch.setattr(_scraper_mod.asyncio, "sleep", _noop_sleep)
+
+    result = await scraper.get_data(CALENDAR_URL)
+
+    assert isinstance(result, TixrPageData), "get_data() should succeed after a transient 5xx retry"
+    assert result.get_event_count() > 0, "get_data() should return events after retry"
+    assert call_count["n"] == 2, f"Expected 2 fetch attempts (1 failure + 1 retry), got {call_count['n']}"
+
+
+@pytest.mark.asyncio
+async def test_get_data_returns_none_after_all_retries_exhausted(monkeypatch):
+    """
+    get_data() returns None after all retry attempts fail with a 5xx NetworkError.
+    """
+    scraper = HahaComedyClubScraper(_club())
+    call_count = {"n": 0}
+
+    async def fake_fetch_always_500(url: str) -> str:
+        call_count["n"] += 1
+        raise NetworkError("Server error (HTTP 500)", status_code=500)
+
+    async def _noop_sleep(_delay):
+        pass
+
+    monkeypatch.setattr(scraper, "fetch_html", fake_fetch_always_500)
+    monkeypatch.setattr(_scraper_mod.asyncio, "sleep", _noop_sleep)
+
+    result = await scraper.get_data(CALENDAR_URL)
+
+    assert result is None, "get_data() should return None after all retries exhausted"
+    assert call_count["n"] == scraper._RETRY_ATTEMPTS + 1, (
+        f"Expected {scraper._RETRY_ATTEMPTS + 1} total attempts, got {call_count['n']}"
+    )
 
 
 def test_parse_date_with_time():

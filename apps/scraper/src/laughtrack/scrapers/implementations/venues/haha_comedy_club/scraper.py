@@ -17,6 +17,7 @@ necessary show data (name, date+time, performer, ticket URL, availability)
 directly from the calendar page HTML.
 """
 
+import asyncio
 import html
 import json
 import re
@@ -31,6 +32,7 @@ from laughtrack.core.entities.comedian.model import Comedian
 from laughtrack.core.entities.event.tixr import TixrEvent
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.entities.ticket.model import Ticket
+from laughtrack.foundation.exceptions import NetworkError
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.url import URLUtils
 from laughtrack.scrapers.base.base_scraper import BaseScraper
@@ -64,6 +66,8 @@ class HahaComedyClubScraper(BaseScraper):
     """
 
     key = "haha_comedy_club"
+    _RETRY_ATTEMPTS = 2   # retries after the initial attempt
+    _RETRY_DELAY = 3.0    # seconds between retries
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
@@ -86,27 +90,49 @@ class HahaComedyClubScraper(BaseScraper):
         Returns:
             TixrPageData containing TixrEvent objects, or None if no events found
         """
-        try:
-            html_content = await self.fetch_html(url)
-            if not html_content:
-                Logger.info(f"{self._log_prefix}: No HTML returned from {url}", self.logger_context)
+        html_content: Optional[str] = None
+        attempt = 0
+        while attempt <= self._RETRY_ATTEMPTS:
+            try:
+                html_content = await self.fetch_html(url)
+                break
+            except NetworkError as e:
+                if e.status_code is not None and 400 <= e.status_code < 600:
+                    attempt += 1
+                    if attempt <= self._RETRY_ATTEMPTS:
+                        Logger.warning(
+                            f"{self._log_prefix}: HTTP {e.status_code} fetching calendar page — retrying ({attempt}/{self._RETRY_ATTEMPTS})",
+                            self.logger_context,
+                        )
+                        await asyncio.sleep(self._RETRY_DELAY)
+                    else:
+                        Logger.error(
+                            f"{self._log_prefix}: Network error fetching {url} after {self._RETRY_ATTEMPTS} retries: {e}",
+                            self.logger_context,
+                        )
+                        return None
+                else:
+                    Logger.error(f"{self._log_prefix}: Network error fetching {url}: {e}", self.logger_context)
+                    return None
+            except Exception as e:
+                Logger.error(f"{self._log_prefix}: Error parsing calendar page {url}: {e}", self.logger_context)
                 return None
 
-            events = self._parse_events_from_html(html_content)
-
-            if not events:
-                Logger.info(f"{self._log_prefix}: No events parsed from {url}", self.logger_context)
-                return None
-
-            Logger.info(
-                f"{self._log_prefix}: Parsed {len(events)} events from calendar page",
-                self.logger_context,
-            )
-            return TixrPageData(event_list=events)
-
-        except Exception as e:
-            Logger.error(f"{self._log_prefix}: Error parsing calendar page {url}: {e}", self.logger_context)
+        if not html_content:
+            Logger.info(f"{self._log_prefix}: No HTML returned from {url}", self.logger_context)
             return None
+
+        events = self._parse_events_from_html(html_content)
+
+        if not events:
+            Logger.info(f"{self._log_prefix}: No events parsed from {url}", self.logger_context)
+            return None
+
+        Logger.info(
+            f"{self._log_prefix}: Parsed {len(events)} events from calendar page",
+            self.logger_context,
+        )
+        return TixrPageData(event_list=events)
 
     def _parse_events_from_html(self, html_content: str) -> List[TixrEvent]:
         """
