@@ -219,6 +219,15 @@ class TixrClient(BaseApiClient):
             # Unwrap @graph wrapper (common JSON-LD variant)
             if isinstance(parsed, dict) and "@graph" in parsed:
                 parsed = parsed["@graph"]
+            # Also unwrap array-wrapped @graph: [{"@graph": [...]}]
+            if isinstance(parsed, list):
+                expanded = []
+                for item in parsed:
+                    if isinstance(item, dict) and isinstance(item.get("@graph"), list):
+                        expanded.extend(item["@graph"])
+                    else:
+                        expanded.append(item)
+                parsed = expanded
             items = parsed if isinstance(parsed, list) else [parsed]
             for item in items:
                 if not isinstance(item, dict):
