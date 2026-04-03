@@ -24,6 +24,14 @@ def stub_base_init(monkeypatch):
     return _stub
 
 
+class Page:
+    """Minimal pagination stub reused across fetch_all_events tests."""
+
+    def __init__(self, events=None, has_more=False, continuation=None):
+        self.events = events if events is not None else []
+        self.pagination = types.SimpleNamespace(has_more_items=has_more, continuation=continuation)
+
+
 def _club(eventbrite_id: str | None = None, scraping_url: str = "example.com") -> Club:
     return Club(
         id=1,
@@ -167,11 +175,6 @@ async def test_fetch_all_events_paginates_and_converts(monkeypatch, stub_base_in
     club = _club(eventbrite_id="VENUE42")
     c = EventbriteClient(club)
 
-    class Page:
-        def __init__(self, events, has_more, continuation=None):
-            self.events = events
-            self.pagination = types.SimpleNamespace(has_more_items=has_more, continuation=continuation)
-
     async def fake_list(venue_id, continuation=None):
         if not continuation:
             return Page([{"id": 1}, {"id": 2}], True, "cont1")
@@ -203,11 +206,6 @@ async def test_fetch_all_events_falls_back_to_organizer_on_venue_404(monkeypatch
     club = _club(eventbrite_id="ORG123")
     c = EventbriteClient(club)
 
-    class Page:
-        def __init__(self, events, has_more, continuation=None):
-            self.events = events
-            self.pagination = type("P", (), {"has_more_items": has_more, "continuation": continuation})()
-
     async def fake_venue_list(venue_id, continuation=None):
         return None  # 404 / error
 
@@ -231,11 +229,6 @@ async def test_fetch_all_events_no_fallback_when_venue_is_empty(monkeypatch, stu
     stub_base_init()
     club = _club(eventbrite_id="VENUE42")
     c = EventbriteClient(club)
-
-    class Page:
-        def __init__(self, events, has_more):
-            self.events = events
-            self.pagination = type("P", (), {"has_more_items": has_more, "continuation": None})()
 
     async def fake_venue_list(venue_id, continuation=None):
         return Page([], False)  # valid response, just no events
@@ -267,11 +260,6 @@ async def test_fetch_all_events_both_endpoints_empty(monkeypatch, stub_base_init
 
     async def fake_venue_list(venue_id, continuation=None):
         return None  # 404
-
-    class Page:
-        def __init__(self):
-            self.events = []
-            self.pagination = type("P", (), {"has_more_items": False, "continuation": None})()
 
     async def fake_organizer_list(organizer_id, continuation=None):
         return Page()
@@ -374,11 +362,6 @@ async def test_fetch_all_events_organizer_url_skips_venue_endpoint(monkeypatch, 
     )
     c = EventbriteClient(club)
 
-    class Page:
-        def __init__(self, events, has_more):
-            self.events = events
-            self.pagination = type("P", (), {"has_more_items": has_more, "continuation": None})()
-
     venue_called = {"called": False}
 
     async def fake_venue_list(venue_id, continuation=None):
@@ -409,11 +392,6 @@ async def test_fetch_all_events_non_organizer_url_tries_venue_first(monkeypatch,
         scraping_url="www.eventbrite.com",
     )
     c = EventbriteClient(club)
-
-    class Page:
-        def __init__(self, events, has_more):
-            self.events = events
-            self.pagination = type("P", (), {"has_more_items": has_more, "continuation": None})()
 
     venue_called = {"called": False}
 
