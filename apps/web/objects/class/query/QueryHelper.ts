@@ -43,6 +43,13 @@ export const COMEDIAN_SORT_MAP: SortMap = {
     },
 };
 
+/** Admin-only sort fields appended to COMEDIAN_SORT_MAP. */
+export const COMEDIAN_SORT_MAP_ADMIN: SortMap = {
+    ...COMEDIAN_SORT_MAP,
+    [SortParamValue.InsertedAtDesc]: { field: "id", direction: "desc" },
+    [SortParamValue.InsertedAtAsc]: { field: "id", direction: "asc" },
+};
+
 /** Sort fields valid for the Club model (has: name, popularity, totalShows). */
 export const CLUB_SORT_MAP: SortMap = {
     [SortParamValue.NameAsc]: { field: "name", direction: "asc" },
@@ -78,6 +85,7 @@ export class QueryHelper {
     profileId?: string;
     userId?: string;
     timezone: string;
+    isAdmin: boolean;
     private _zipCapTriggered = false;
 
     constructor(requestData: ParameterizedRequestData) {
@@ -86,6 +94,7 @@ export class QueryHelper {
         this.profileId = requestData.profileId;
         this.slug = requestData.slug ? decodeURI(requestData.slug) : undefined;
         this.params = requestData.params;
+        this.isAdmin = requestData.isAdmin ?? false;
     }
 
     // Comedians

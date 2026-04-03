@@ -6,4 +6,5 @@ export interface ParameterizedRequestData {
     userId?: string;
     profileId?: string;
     slug?: string;
+    isAdmin?: boolean;
 }
