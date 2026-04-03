@@ -182,6 +182,33 @@ async def test_get_data_retries_on_transient_5xx_then_succeeds(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_get_data_returns_none_immediately_on_4xx(monkeypatch):
+    """
+    get_data() returns None immediately (no retry, no sleep) when fetch_html
+    raises a NetworkError with a 4xx status code (permanent client error).
+    """
+    scraper = HahaComedyClubScraper(_club())
+    call_count = {"n": 0}
+    sleep_called = {"n": 0}
+
+    async def fake_fetch_404(url: str) -> str:
+        call_count["n"] += 1
+        raise NetworkError("Client error (HTTP 404)", status_code=404)
+
+    async def _track_sleep(_delay):
+        sleep_called["n"] += 1
+
+    monkeypatch.setattr(scraper, "fetch_html", fake_fetch_404)
+    monkeypatch.setattr(_scraper_mod.asyncio, "sleep", _track_sleep)
+
+    result = await scraper.get_data(CALENDAR_URL)
+
+    assert result is None, "get_data() should return None on 4xx NetworkError"
+    assert call_count["n"] == 1, f"get_data() should not retry on 4xx — expected 1 attempt, got {call_count['n']}"
+    assert sleep_called["n"] == 0, "get_data() should not sleep on 4xx NetworkError"
+
+
+@pytest.mark.asyncio
 async def test_get_data_returns_none_immediately_on_non_http_network_error(monkeypatch):
     """
     get_data() returns None immediately (no retry, no sleep) when fetch_html

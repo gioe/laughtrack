@@ -68,7 +68,7 @@ class Grove34Scraper(BaseScraper):
                     html = await self.fetch_html_bare(listing_url)
                     break
                 except NetworkError as e:
-                    if e.status_code is not None and (400 <= e.status_code < 600):
+                    if e.status_code is not None and 500 <= e.status_code < 600:
                         attempt += 1
                         if attempt <= self._LISTING_RETRY_ATTEMPTS:
                             Logger.warning(
@@ -78,19 +78,19 @@ class Grove34Scraper(BaseScraper):
                             await asyncio.sleep(self._LISTING_RETRY_DELAY)
                             # continue retry loop
                         else:
-                            if 400 <= e.status_code < 500:
-                                Logger.warning(
-                                    f"{self._log_prefix}: Skipping listing page {listing_url} — HTTP {e.status_code} after {self._LISTING_RETRY_ATTEMPTS} retries",
-                                    self.logger_context,
-                                )
-                            else:
-                                Logger.error(
-                                    f"{self._log_prefix}: Network error fetching Grove34 listing page {listing_url} after {self._LISTING_RETRY_ATTEMPTS} retries: {e}",
-                                    self.logger_context,
-                                )
+                            Logger.error(
+                                f"{self._log_prefix}: Network error fetching Grove34 listing page {listing_url} after {self._LISTING_RETRY_ATTEMPTS} retries: {e}",
+                                self.logger_context,
+                            )
                             break
                     else:
-                        Logger.error(f"{self._log_prefix}: Network error fetching Grove34 listing page {listing_url}: {e}", self.logger_context)
+                        if e.status_code is not None and 400 <= e.status_code < 500:
+                            Logger.warning(
+                                f"{self._log_prefix}: Skipping listing page {listing_url} — HTTP {e.status_code} (permanent client error)",
+                                self.logger_context,
+                            )
+                        else:
+                            Logger.error(f"{self._log_prefix}: Network error fetching Grove34 listing page {listing_url}: {e}", self.logger_context)
                         break
                 except Exception as e:
                     Logger.error(f"{self._log_prefix}: Error fetching Grove34 listing page {listing_url}: {e}", self.logger_context)

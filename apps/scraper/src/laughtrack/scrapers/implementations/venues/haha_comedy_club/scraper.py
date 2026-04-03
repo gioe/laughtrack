@@ -97,7 +97,7 @@ class HahaComedyClubScraper(BaseScraper):
                 html_content = await self.fetch_html(url)
                 break
             except NetworkError as e:
-                if e.status_code is not None and 400 <= e.status_code < 600:
+                if e.status_code is not None and 500 <= e.status_code < 600:
                     attempt += 1
                     if attempt <= self._RETRY_ATTEMPTS:
                         Logger.warning(
