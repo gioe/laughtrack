@@ -124,6 +124,19 @@ class TixrExtractor:
                 parsed = json.loads(raw.strip())
             except (json.JSONDecodeError, ValueError):
                 continue
+            # Unwrap @graph array: [{"@graph": [{"@type": "Organization", ...}]}]
+            if isinstance(parsed, list):
+                candidates = []
+                for item in parsed:
+                    if isinstance(item, dict):
+                        candidates.extend(item.get("@graph", []) if isinstance(item.get("@graph"), list) else [item])
+                parsed = next((c for c in candidates if isinstance(c, dict) and c.get("@type") == "Organization"), None)
+                if parsed is None:
+                    continue
+            elif isinstance(parsed, dict) and isinstance(parsed.get("@graph"), list):
+                parsed = next((c for c in parsed["@graph"] if isinstance(c, dict) and c.get("@type") == "Organization"), None)
+                if parsed is None:
+                    continue
             if not isinstance(parsed, dict) or parsed.get("@type") != "Organization":
                 continue
             for event in parsed.get("events", []):
