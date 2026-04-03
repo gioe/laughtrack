@@ -76,6 +76,7 @@ STRUCTURAL_KEYWORDS: tuple[str, ...] = (
     "improv",
     "trivia",
     "graduation",
+    "favorites",
 )
 
 _MIN_NAME_LENGTH = 4

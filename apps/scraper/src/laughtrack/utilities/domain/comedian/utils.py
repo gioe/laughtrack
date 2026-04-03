@@ -1,12 +1,38 @@
 """Comedian-specific utility functions for the Laughtrack domain."""
 
 import hashlib
+import re
 from typing import Any, Dict, List, Optional, Set
 
 from laughtrack.core.entities.comedian.model import Comedian
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.popularity.scorer import PopularityScorer
 from gioe_libs.string_utils import StringUtils
+
+
+# Leading noise prefix: "Comedian Name" / "Comedy Magician Name" → "Name"
+_PREFIX_NOISE_RE = re.compile(r'^(?:Comedian|Comedy\s+Magician)\s+', re.IGNORECASE)
+
+# Trailing noise suffix anchored on a known noise keyword.
+# Strips everything from the match point onward.
+#
+# Patterns (case-insensitive):
+#   • " - Special Event..."  – dash then "special event" or "special show"
+#   • " - Live" / " - LIVE"  – dash then "live" as a standalone word
+#   • " Live in <word>"       – city suffix common in Naples venue listings
+#   • ' From "..." '         – From followed by a quoted show name
+#   • ' From SNL/FOX/...'    – From followed by an all-caps abbreviation
+_SUFFIX_NOISE_RE = re.compile(
+    r'(?:'
+    r'\s+[-–]\s+special[\s_]event|'          # " - Special Event"
+    r'\s+[-–]\s+special\s+show|'             # " - Special Show"
+    r'\s+[-–]\s+live\b|'                     # " - Live" / " - LIVE"
+    r'\s+live\s+in\s+\w|'                    # " Live in Naples"
+    r'\s+from\s+[\"\'\u201c\u2018]|'         # ' From "Show"' or " From 'Show'"
+    r'\s+from\s+[A-Z]{2,}'                   # " From SNL" / " From FOX"
+    r')',
+    re.IGNORECASE,
+)
 
 
 class ComedianUtils:
@@ -208,10 +234,38 @@ class ComedianUtils:
 
     @staticmethod
     def normalize_name(name: str) -> str:
-        """Normalizes the name string by trimming whitespace and applying title case if needed."""
+        """Normalizes a raw performer name to a canonical comedian name.
+
+        Transformations applied in order:
+          1. Strip leading/trailing whitespace.
+          2. Strip leading role prefix ("Comedian ", "Comedy Magician ").
+          3. Strip post-colon subtitle ("Adam Carolla: All New Material" → "Adam Carolla").
+          4. Strip trailing noise suffix anchored on a keyword:
+               - " - Special Event..." / " - Special Show..."
+               - " - Live" / " - LIVE"
+               - " Live in <city>" (Naples venue listing pattern)
+               - ' From "Show"' / " From SNL" (quoted or all-caps show reference)
+          5. Remove content in parentheses.
+          6. Title-case if the result is entirely upper- or lower-case.
+        """
         try:
-            trimmed_name = name.strip()
-            outside_parenthesis = StringUtils.remove_parentheses_content(trimmed_name)
+            canonical = name.strip()
+
+            # 2. Strip leading role prefix
+            canonical = _PREFIX_NOISE_RE.sub("", canonical).strip()
+
+            # 3. Strip post-colon subtitle
+            canonical = canonical.split(":")[0].strip()
+
+            # 4. Strip trailing noise suffix
+            m = _SUFFIX_NOISE_RE.search(canonical)
+            if m:
+                canonical = canonical[: m.start()].strip()
+
+            # 5. Remove parenthetical content
+            outside_parenthesis = StringUtils.remove_parentheses_content(canonical)
+
+            # 6. Title-case normalisation
             return (
                 outside_parenthesis.title()
                 if outside_parenthesis.isupper() or outside_parenthesis.islower()
