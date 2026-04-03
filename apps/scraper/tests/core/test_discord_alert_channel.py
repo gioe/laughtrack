@@ -34,7 +34,7 @@ def _capture_urlopen():
     """Returns (mock_fn, captured_requests) where captured_requests is populated on call."""
     captured = []
 
-    def mock_fn(req, timeout=None):
+    def mock_fn(req, timeout=None, **kwargs):
         captured.append(req)
         return _mock_urlopen()
 
