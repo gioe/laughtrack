@@ -182,6 +182,30 @@ async def test_get_data_retries_on_transient_5xx_then_succeeds(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_get_data_returns_none_immediately_on_non_http_network_error(monkeypatch):
+    """
+    get_data() returns None immediately (no retry, no sleep) when fetch_html
+    raises a NetworkError with no HTTP status code (e.g. connection refused).
+    """
+    scraper = HahaComedyClubScraper(_club())
+    sleep_called = {"n": 0}
+
+    async def fake_fetch_conn_refused(url: str) -> str:
+        raise NetworkError("Connection refused")
+
+    async def _track_sleep(_delay):
+        sleep_called["n"] += 1
+
+    monkeypatch.setattr(scraper, "fetch_html", fake_fetch_conn_refused)
+    monkeypatch.setattr(_scraper_mod.asyncio, "sleep", _track_sleep)
+
+    result = await scraper.get_data(CALENDAR_URL)
+
+    assert result is None, "get_data() should return None on non-HTTP NetworkError"
+    assert sleep_called["n"] == 0, "get_data() should not sleep on non-HTTP NetworkError"
+
+
+@pytest.mark.asyncio
 async def test_get_data_returns_none_after_all_retries_exhausted(monkeypatch):
     """
     get_data() returns None after all retry attempts fail with a 5xx NetworkError.

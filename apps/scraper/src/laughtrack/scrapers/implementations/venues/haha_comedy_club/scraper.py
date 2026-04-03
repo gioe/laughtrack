@@ -115,7 +115,7 @@ class HahaComedyClubScraper(BaseScraper):
                     Logger.error(f"{self._log_prefix}: Network error fetching {url}: {e}", self.logger_context)
                     return None
             except Exception as e:
-                Logger.error(f"{self._log_prefix}: Error parsing calendar page {url}: {e}", self.logger_context)
+                Logger.error(f"{self._log_prefix}: Unexpected error fetching calendar page {url}: {e}", self.logger_context)
                 return None
 
         if not html_content:
