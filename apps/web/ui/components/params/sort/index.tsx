@@ -9,11 +9,17 @@ import { useSortParams } from "./hooks/useSortParams";
 
 interface SortComponentProps {
     sortOptions: SortOptionInterface[];
+    isAdmin?: boolean;
 }
 
-export function SortParamComponent({ sortOptions }: SortComponentProps) {
-    const { selectedOption, updateSort, isSelected } =
-        useSortParams(sortOptions);
+export function SortParamComponent({
+    sortOptions,
+    isAdmin,
+}: SortComponentProps) {
+    const { selectedOption, updateSort, isSelected } = useSortParams(
+        sortOptions,
+        isAdmin,
+    );
 
     return (
         <Menu

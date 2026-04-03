@@ -32,8 +32,6 @@ export const allSortOptions = [
     SortParamValue.TotalShowsDesc.valueOf(),
     SortParamValue.ShowCountDesc.valueOf(),
     SortParamValue.ShowCountAsc.valueOf(),
-    SortParamValue.InsertedAtDesc.valueOf(),
-    SortParamValue.InsertedAtAsc.valueOf(),
 ];
 
 export const adminSortOptions = [

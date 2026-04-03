@@ -50,7 +50,7 @@ const getSearchBar = (variant: SearchVariant) => {
 const getSortOptions = (variant: SearchVariant, isAdmin = false) => {
     const entityType = VARIANT_TO_ENTITY_TYPE_MAP[variant] ?? EntityType.Show;
     const sortOptions = getSortOptionsForEntityType(entityType, isAdmin);
-    return <SortParamComponent sortOptions={sortOptions} />;
+    return <SortParamComponent sortOptions={sortOptions} isAdmin={isAdmin} />;
 };
 
 const FilterBar = ({ variant, total, filters, isAdmin }: FilterBarProps) => {

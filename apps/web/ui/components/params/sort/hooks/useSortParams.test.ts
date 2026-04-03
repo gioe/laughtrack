@@ -9,6 +9,8 @@ import { SortOptionInterface } from "@/objects/interface";
 
 const mockGetTypedParam = vi.fn();
 const mockSetTypedParam = vi.fn();
+const mockReplace = vi.fn();
+const mockSearchParamsGet = vi.fn();
 
 vi.mock("@/hooks/useUrlParams", () => ({
     useUrlParams: () => ({
@@ -18,14 +20,29 @@ vi.mock("@/hooks/useUrlParams", () => ({
     }),
 }));
 
+vi.mock("next/navigation", () => ({
+    useRouter: () => ({ replace: mockReplace }),
+    useSearchParams: () => ({
+        get: mockSearchParamsGet,
+        toString: () => "",
+    }),
+}));
+
 const sortOptions: SortOptionInterface[] = [
     { name: "Date Asc", value: SortParamValue.DateAsc },
     { name: "Date Desc", value: SortParamValue.DateDesc },
     { name: "Most Popular", value: SortParamValue.PopularityDesc },
 ];
 
+const adminSortOptions: SortOptionInterface[] = [
+    ...sortOptions,
+    { name: "Newest First", value: SortParamValue.InsertedAtDesc },
+    { name: "Oldest First", value: SortParamValue.InsertedAtAsc },
+];
+
 beforeEach(() => {
     vi.clearAllMocks();
+    mockSearchParamsGet.mockReturnValue(null);
 });
 
 describe("useSortParams", () => {
@@ -132,6 +149,54 @@ describe("useSortParams", () => {
 
             expect(result.current.isSelected(sortOptions[0])).toBe(false);
             expect(result.current.isSelected(sortOptions[2])).toBe(false);
+        });
+    });
+
+    describe("admin sort gating", () => {
+        it("non-admin with admin sort in URL defaults to sortOptions[0]", () => {
+            // getTypedParam returns undefined because inserted_at_desc is not in allSortOptions
+            mockGetTypedParam.mockReturnValue(undefined);
+            mockSearchParamsGet.mockReturnValue(SortParamValue.InsertedAtDesc);
+
+            const { result } = renderHook(() =>
+                useSortParams(sortOptions, false),
+            );
+
+            expect(result.current.selectedOption.value).toBe(
+                SortParamValue.DateAsc,
+            );
+        });
+
+        it("non-admin with admin sort in URL triggers URL strip", () => {
+            mockGetTypedParam.mockReturnValue(undefined);
+            mockSearchParamsGet.mockReturnValue(SortParamValue.InsertedAtDesc);
+
+            renderHook(() => useSortParams(sortOptions, false));
+
+            expect(mockReplace).toHaveBeenCalledWith("?");
+        });
+
+        it("admin with admin sort in URL resolves to the admin option", () => {
+            // getTypedParam still returns undefined (admin sorts not in allSortOptions)
+            mockGetTypedParam.mockReturnValue(undefined);
+            mockSearchParamsGet.mockReturnValue(SortParamValue.InsertedAtDesc);
+
+            const { result } = renderHook(() =>
+                useSortParams(adminSortOptions, true),
+            );
+
+            expect(result.current.selectedOption.value).toBe(
+                SortParamValue.InsertedAtDesc,
+            );
+        });
+
+        it("admin with admin sort in URL does not trigger URL strip", () => {
+            mockGetTypedParam.mockReturnValue(undefined);
+            mockSearchParamsGet.mockReturnValue(SortParamValue.InsertedAtDesc);
+
+            renderHook(() => useSortParams(adminSortOptions, true));
+
+            expect(mockReplace).not.toHaveBeenCalled();
         });
     });
 });
