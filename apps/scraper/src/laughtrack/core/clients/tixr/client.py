@@ -118,11 +118,13 @@ class TixrClient(BaseApiClient):
 
         jsonld = self._extract_jsonld_event(html)
         if not jsonld:
-            # URLs with '--{id}' (double-dash) use a client-side-rendered Tixr page
-            # template that never embeds JSON-LD. Event data is loaded via
-            # www.tixr.com/api/events/{id}, which requires a DataDome CAPTCHA-solved
-            # JS session and cannot be fetched by curl_cffi. No fallback is possible
-            # without full browser execution per event.
+            # Some Tixr event pages — particularly those with the --{id} double-dash
+            # URL format — do not embed JSON-LD when the page is client-side rendered.
+            # Event data for these pages is fetched via www.tixr.com/api/events/{id}
+            # which requires a DataDome CAPTCHA-solved JS session; curl_cffi cannot
+            # bypass it. No fallback is available without full browser execution.
+            # Note: not all --{id} URLs lack JSON-LD; those listed in the venue's
+            # Organization JSON-LD block (e.g. on a group page) typically do embed it.
             if re.search(r"--\d+(?:[/?#]|$)", url):
                 self.log_warning(
                     f"Tixr special-event page (--ID format) has no JSON-LD; "
