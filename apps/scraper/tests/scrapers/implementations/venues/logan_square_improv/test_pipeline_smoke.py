@@ -13,8 +13,10 @@ normalises to IANA equivalents before storing.
 
 import pytest
 
+import laughtrack.scrapers.implementations.venues.logan_square_improv.scraper as _scraper_mod
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.event.philly_improv import PhillyImprovShow
+from laughtrack.foundation.exceptions import NetworkError
 from laughtrack.scrapers.implementations.venues.logan_square_improv.scraper import LoganSquareImprovScraper
 from laughtrack.scrapers.implementations.venues.logan_square_improv.data import LoganSquareImprovPageData
 
@@ -337,3 +339,84 @@ def test_to_show_returns_none_on_unparseable_date():
     result = show.to_show(_club())
 
     assert result is None
+
+
+# ---------------------------------------------------------------------------
+# Retry logic tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_get_data_retries_on_transient_5xx_then_succeeds(monkeypatch):
+    """
+    get_data() retries the Crowdwork API fetch on a 5xx NetworkError and
+    returns LoganSquareImprovPageData when the retry succeeds.
+    """
+    scraper = LoganSquareImprovScraper(_club())
+    call_count = {"n": 0}
+
+    async def fake_fetch_flaky(self, url: str, **kwargs) -> dict:
+        call_count["n"] += 1
+        if call_count["n"] == 1:
+            raise NetworkError("Server error (HTTP 503)", status_code=503)
+        return _api_response([_show_entry()])
+
+    async def _noop_sleep(_delay):
+        pass
+
+    monkeypatch.setattr(LoganSquareImprovScraper, "fetch_json", fake_fetch_flaky)
+    monkeypatch.setattr(_scraper_mod.asyncio, "sleep", _noop_sleep)
+
+    result = await scraper.get_data(API_URL)
+
+    assert isinstance(result, LoganSquareImprovPageData), "get_data() should succeed after a transient 5xx retry"
+    assert len(result.event_list) > 0
+    assert call_count["n"] == 2, f"Expected 2 fetch attempts, got {call_count['n']}"
+
+
+@pytest.mark.asyncio
+async def test_get_data_returns_none_after_all_retries_exhausted(monkeypatch):
+    """get_data() returns None after all retry attempts fail with 5xx."""
+    scraper = LoganSquareImprovScraper(_club())
+    call_count = {"n": 0}
+
+    async def fake_fetch_always_500(self, url: str, **kwargs) -> dict:
+        call_count["n"] += 1
+        raise NetworkError("Server error (HTTP 500)", status_code=500)
+
+    async def _noop_sleep(_delay):
+        pass
+
+    monkeypatch.setattr(LoganSquareImprovScraper, "fetch_json", fake_fetch_always_500)
+    monkeypatch.setattr(_scraper_mod.asyncio, "sleep", _noop_sleep)
+
+    result = await scraper.get_data(API_URL)
+
+    assert result is None
+    assert call_count["n"] == scraper._RETRY_ATTEMPTS + 1, (
+        f"Expected {scraper._RETRY_ATTEMPTS + 1} total attempts, got {call_count['n']}"
+    )
+
+
+@pytest.mark.asyncio
+async def test_get_data_does_not_retry_on_4xx(monkeypatch):
+    """get_data() returns None immediately without retrying on 4xx NetworkError."""
+    scraper = LoganSquareImprovScraper(_club())
+    call_count = {"n": 0}
+    sleep_called = {"n": 0}
+
+    async def fake_fetch_404(self, url: str, **kwargs) -> dict:
+        call_count["n"] += 1
+        raise NetworkError("Client error (HTTP 404)", status_code=404)
+
+    async def _track_sleep(_delay):
+        sleep_called["n"] += 1
+
+    monkeypatch.setattr(LoganSquareImprovScraper, "fetch_json", fake_fetch_404)
+    monkeypatch.setattr(_scraper_mod.asyncio, "sleep", _track_sleep)
+
+    result = await scraper.get_data(API_URL)
+
+    assert result is None
+    assert call_count["n"] == 1, f"Expected 1 attempt (no retry on 4xx), got {call_count['n']}"
+    assert sleep_called["n"] == 0, "Should not sleep on 4xx NetworkError"
