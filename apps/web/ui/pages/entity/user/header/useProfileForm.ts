@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import { makeRequest } from "@/util/actions/makeRequest";
 import { APIRoutePath, RestAPIAction } from "@/objects/enum";
@@ -14,6 +15,7 @@ interface EditableFieldsState {
 
 export function useProfileForm(profile: UserProfileInterface) {
     const router = useRouter();
+    const { update } = useSession();
     const [isLoading, setIsLoading] = useState(false);
     const [fields, setFields] = useState<EditableFieldsState>({
         emailOptin: profile.emailOptin ?? false,
@@ -58,6 +60,7 @@ export function useProfileForm(profile: UserProfileInterface) {
 
             setDirtyFields({});
             toast.success("Updated successfully");
+            await update();
             router.refresh();
         } catch (error) {
             console.error("Failed to update profile:", error);
