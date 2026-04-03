@@ -1,4 +1,5 @@
 import { auth } from "@/auth";
+import { timingSafeEqual } from "crypto";
 import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -21,7 +22,13 @@ export async function POST(req: NextRequest) {
 
     const revalidateSecret = process.env.REVALIDATE_SECRET;
     const hasValidBearer =
-        bearerToken && revalidateSecret && bearerToken === revalidateSecret;
+        bearerToken &&
+        revalidateSecret &&
+        bearerToken.length === revalidateSecret.length &&
+        timingSafeEqual(
+            Buffer.from(bearerToken),
+            Buffer.from(revalidateSecret),
+        );
 
     if (!hasValidBearer) {
         const session = await auth();
