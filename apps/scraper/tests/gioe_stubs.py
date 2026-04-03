@@ -67,7 +67,7 @@ def _load_string_utils() -> object:
 
     try:
         spec = _ilu.find_spec("gioe_libs.string_utils")
-    except (ModuleNotFoundError, ValueError, PermissionError):
+    except (ModuleNotFoundError, ValueError, OSError):
         spec = None
     if spec:
         mod = _ilu.module_from_spec(spec)
