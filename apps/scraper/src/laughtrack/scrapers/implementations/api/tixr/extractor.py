@@ -1,5 +1,6 @@
 """Generic Tixr URL extraction utilities."""
 
+import json
 import re
 from typing import List
 
@@ -66,4 +67,40 @@ class TixrExtractor:
                 seen_urls.add(url)
                 urls.append(url)
 
+        return urls
+
+    @staticmethod
+    def extract_org_jsonld_event_urls(html_content: str) -> List[str]:
+        """
+        Extract event URLs from the Organization JSON-LD block on a Tixr group page.
+
+        Tixr embeds an Organization schema block listing the group's featured events,
+        each with a startDate.  These are the only events that also have server-rendered
+        JSON-LD on their individual pages.  Events in the HTML list that aren't in the
+        Org JSON-LD use client-side rendering with no static date data and would
+        produce batch failures with no recoverable information.
+
+        Args:
+            html_content: HTML of a Tixr group page
+
+        Returns:
+            List of event page URLs found in the Organization JSON-LD events array,
+            or [] if the block is absent or unparseable.
+        """
+        urls: List[str] = []
+        blocks = re.findall(
+            r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
+            html_content,
+            re.DOTALL | re.IGNORECASE,
+        )
+        for raw in blocks:
+            try:
+                parsed = json.loads(raw.strip())
+            except (json.JSONDecodeError, ValueError):
+                continue
+            if not isinstance(parsed, dict) or parsed.get("@type") != "Organization":
+                continue
+            for event in parsed.get("events", []):
+                if isinstance(event, dict) and event.get("url"):
+                    urls.append(event["url"])
         return urls

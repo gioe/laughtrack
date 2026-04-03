@@ -68,10 +68,32 @@ class TixrScraper(BaseScraper):
         """
         try:
             html_content = await self.fetch_html(URLUtils.normalize_url(url))
-            tixr_urls = TixrExtractor.extract_tixr_urls(html_content)
+            all_tixr_urls = TixrExtractor.extract_tixr_urls(html_content)
+
+            if not all_tixr_urls:
+                Logger.info(f"{self._log_prefix}: No Tixr URLs found on {url}", self.logger_context)
+                return None
+
+            # Filter to only events listed in the Organization JSON-LD block — these
+            # are the ones Tixr has fully configured server-side and reliably embed
+            # JSON-LD on their individual event pages.  Fall back to all HTML URLs
+            # when the Org JSON-LD block is absent (non-group-page calendars).
+            org_jsonld_urls = TixrExtractor.extract_org_jsonld_event_urls(html_content)
+            if org_jsonld_urls:
+                org_url_set = set(org_jsonld_urls)
+                tixr_urls = [u for u in all_tixr_urls if u in org_url_set]
+                skipped = len(all_tixr_urls) - len(tixr_urls)
+                if skipped > 0:
+                    Logger.info(
+                        f"{self._log_prefix}: Skipping {skipped} of {len(all_tixr_urls)} URLs "
+                        f"not in group JSON-LD (no server-side event data available)",
+                        self.logger_context,
+                    )
+            else:
+                tixr_urls = all_tixr_urls
 
             if not tixr_urls:
-                Logger.info(f"{self._log_prefix}: No Tixr URLs found on {url}", self.logger_context)
+                Logger.info(f"{self._log_prefix}: No processable Tixr URLs after filtering on {url}", self.logger_context)
                 return None
 
             Logger.info(f"{self._log_prefix}: Extracted {len(tixr_urls)} Tixr URLs from {url}", self.logger_context)

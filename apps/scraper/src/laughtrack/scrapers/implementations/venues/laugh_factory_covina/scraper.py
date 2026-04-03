@@ -16,15 +16,14 @@ pages. Attempting the others produces "11 failed" in the batch log with no
 recoverable data — filtering them out before the batch pass eliminates that noise.
 """
 
-import json
-import re
-from typing import List, Optional
+from typing import Optional
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.infrastructure.config.presets import BatchConfigPresets
 from laughtrack.infrastructure.monitoring import create_monitored_tixr_client
 from laughtrack.scrapers.base.base_scraper import BaseScraper
+from laughtrack.scrapers.implementations.api.tixr.extractor import TixrExtractor
 from laughtrack.utilities.infrastructure.scraper.scraper import BatchScraper
 
 from .extractor import LaughFactoryCovinaEventExtractor
@@ -45,10 +44,6 @@ class LaughFactoryCovinaScraper(BaseScraper):
 
     key = "laugh_factory_covina"
 
-    # Matches the --{numeric_id} double-dash suffix used by Tixr's client-side
-    # rendered event template (e.g. "slug--182870").
-    _DOUBLE_DASH_ID_RE = re.compile(r"--\d+(?:[/?#]|$)")
-
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
         self.transformation_pipeline.register_transformer(LaughFactoryCovinaEventTransformer(club))
@@ -57,39 +52,6 @@ class LaughFactoryCovinaScraper(BaseScraper):
             config=BatchConfigPresets.get_comedy_venue_config(),
             logger_context=club.as_context(),
         )
-
-    @staticmethod
-    def _extract_org_jsonld_event_urls(html_content: str) -> List[str]:
-        """
-        Extract event URLs from the Organization JSON-LD block on the Tixr group page.
-
-        Tixr embeds an Organization schema block listing the group's featured events,
-        each with a startDate.  These are the only events that also have server-rendered
-        JSON-LD on their individual pages.
-
-        Args:
-            html_content: HTML of the Tixr group page
-
-        Returns:
-            List of event page URLs found in the Organization JSON-LD events array
-        """
-        urls: List[str] = []
-        blocks = re.findall(
-            r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
-            html_content,
-            re.DOTALL | re.IGNORECASE,
-        )
-        for raw in blocks:
-            try:
-                parsed = json.loads(raw.strip())
-            except (json.JSONDecodeError, ValueError):
-                continue
-            if not isinstance(parsed, dict) or parsed.get("@type") != "Organization":
-                continue
-            for event in parsed.get("events", []):
-                if isinstance(event, dict) and event.get("url"):
-                    urls.append(event["url"])
-        return urls
 
     async def get_data(self, url: str) -> Optional[LaughFactoryCovinaPageData]:
         """
@@ -119,7 +81,7 @@ class LaughFactoryCovinaScraper(BaseScraper):
             # on their individual pages.  Events in the HTML list that aren't in the
             # Org JSON-LD use client-side rendering with no static date data and would
             # produce batch failures with no recoverable information.
-            org_jsonld_urls = self._extract_org_jsonld_event_urls(html_content)
+            org_jsonld_urls = TixrExtractor.extract_org_jsonld_event_urls(html_content)
 
             if org_jsonld_urls:
                 org_url_set = set(org_jsonld_urls)

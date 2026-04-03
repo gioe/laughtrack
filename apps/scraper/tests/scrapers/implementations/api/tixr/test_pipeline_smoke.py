@@ -156,6 +156,53 @@ def test_extractor_returns_empty_for_no_tixr_urls():
 
 
 # ---------------------------------------------------------------------------
+# TixrExtractor.extract_org_jsonld_event_urls tests
+# ---------------------------------------------------------------------------
+
+_ORG_JSONLD_HTML = """
+<html><head>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Test Venue",
+  "events": [
+    {"@type": "Event", "url": "https://tixr.com/groups/venue/events/show-a-111"},
+    {"@type": "Event", "url": "https://tixr.com/groups/venue/events/show-b-222"}
+  ]
+}
+</script>
+</head><body></body></html>
+"""
+
+
+def test_extract_org_jsonld_event_urls_returns_urls():
+    """extract_org_jsonld_event_urls() returns URLs from Organization JSON-LD block."""
+    urls = TixrExtractor.extract_org_jsonld_event_urls(_ORG_JSONLD_HTML)
+    assert urls == [
+        "https://tixr.com/groups/venue/events/show-a-111",
+        "https://tixr.com/groups/venue/events/show-b-222",
+    ]
+
+
+def test_extract_org_jsonld_event_urls_returns_empty_when_no_block():
+    """extract_org_jsonld_event_urls() returns [] when no Organization JSON-LD exists."""
+    html = "<html><body><p>No structured data</p></body></html>"
+    urls = TixrExtractor.extract_org_jsonld_event_urls(html)
+    assert urls == []
+
+
+def test_extract_org_jsonld_event_urls_ignores_non_org_blocks():
+    """extract_org_jsonld_event_urls() ignores JSON-LD blocks that aren't @type Organization."""
+    html = """
+    <script type="application/ld+json">{"@type": "Event", "url": "https://tixr.com/e/123"}</script>
+    <script type="application/ld+json">{"@type": "WebPage", "name": "Foo"}</script>
+    """
+    urls = TixrExtractor.extract_org_jsonld_event_urls(html)
+    assert urls == []
+
+
+# ---------------------------------------------------------------------------
 # collect_scraping_targets() tests
 # ---------------------------------------------------------------------------
 
@@ -257,6 +304,57 @@ async def test_get_data_returns_none_when_tixr_client_returns_nothing(monkeypatc
 
     result = await scraper.get_data(CALENDAR_URL)
     assert result is None
+
+
+@pytest.mark.asyncio
+async def test_get_data_filters_by_org_jsonld_when_present(monkeypatch):
+    """get_data() only processes URLs found in the Organization JSON-LD block."""
+    scraper = TixrScraper(_club())
+    kept_url = "https://tixr.com/groups/venue/events/show-a-177558"
+    dropped_url = "https://tixr.com/groups/venue/events/show-b--182870"  # double-dash, client-side
+
+    org_jsonld = f"""
+    <script type="application/ld+json">
+    {{"@type": "Organization", "events": [{{"url": "{kept_url}"}}]}}
+    </script>
+    """
+    html = f'<a href="{kept_url}">Show A</a><a href="{dropped_url}">Show B</a>{org_jsonld}'
+    event = _make_tixr_event("177558", "Show A")
+
+    async def fake_fetch_html(self, url, **kwargs):
+        return html
+
+    monkeypatch.setattr(TixrScraper, "fetch_html", fake_fetch_html)
+    scraper.tixr_client.get_event_detail_from_url = AsyncMock(return_value=event)
+
+    result = await scraper.get_data(CALENDAR_URL)
+
+    assert isinstance(result, TixrPageData)
+    assert len(result.event_list) == 1
+    # Only the kept URL was passed to the client
+    scraper.tixr_client.get_event_detail_from_url.assert_called_once_with(kept_url)
+
+
+@pytest.mark.asyncio
+async def test_get_data_falls_back_to_all_urls_when_no_org_jsonld(monkeypatch):
+    """get_data() uses all HTML-extracted URLs when no Organization JSON-LD block exists."""
+    scraper = TixrScraper(_club())
+    html = _calendar_html_short(["177558", "176996"])
+    event_a = _make_tixr_event("177558", "Show A")
+    event_b = _make_tixr_event("176996", "Show B")
+
+    async def fake_fetch_html(self, url, **kwargs):
+        return html
+
+    monkeypatch.setattr(TixrScraper, "fetch_html", fake_fetch_html)
+    scraper.tixr_client.get_event_detail_from_url = AsyncMock(
+        side_effect=lambda url: event_a if "177558" in url else event_b
+    )
+
+    result = await scraper.get_data(CALENDAR_URL)
+
+    assert isinstance(result, TixrPageData)
+    assert len(result.event_list) == 2
 
 
 @pytest.mark.asyncio
