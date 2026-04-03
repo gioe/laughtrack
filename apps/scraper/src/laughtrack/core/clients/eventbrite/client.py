@@ -61,7 +61,10 @@ class EventbriteClient(BaseApiClient):
         except Exception:
             pass
 
-        # Static params for list calls
+        # Static params for list calls.
+        # category_id, subcategory_id, and format_id are top-level fields in the
+        # Eventbrite venue/organizer API response — they are returned by default
+        # without needing to be listed in "expand".
         self.params = {
             "status": "live",
             "order_by": "start_asc",

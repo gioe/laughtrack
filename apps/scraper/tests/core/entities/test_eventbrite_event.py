@@ -100,22 +100,47 @@ def test_to_show_creates_default_ticket_when_no_offers():
 
 
 def test_to_show_skips_music_category_events():
-    """Events with Eventbrite category_id=103 (Music) are filtered out."""
+    """Events with category_id=103 (Music) and no comedy subcategory are filtered out."""
     ev = EventbriteEvent(
         name="Triplet Threat with DJ Mariko",
         event_url="https://eventbrite.com/e/456",
-        start_date="2025-11-01T22:00:00Z",
+        start_date="2099-01-01T22:00:00Z",
         category_id="103",
+        subcategory_id=None,
     )
     assert ev.to_show(make_club(), enhanced=False) is None
 
 
+def test_to_show_skips_music_category_with_music_subcategory():
+    """Events with category_id=103 and a non-comedy subcategory (e.g., 3001) are filtered out."""
+    ev = EventbriteEvent(
+        name="Young Adult Friction: indie dance party",
+        event_url="https://eventbrite.com/e/457",
+        start_date="2099-01-01T21:00:00Z",
+        category_id="103",
+        subcategory_id="3001",
+    )
+    assert ev.to_show(make_club(), enhanced=False) is None
+
+
+def test_to_show_allows_music_category_with_comedy_subcategory_103003():
+    """Events with category_id=103 but subcategory_id=103003 (comedy in the search API) are kept."""
+    ev = EventbriteEvent(
+        name="Stand-Up Night",
+        event_url="https://eventbrite.com/e/458",
+        start_date="2099-01-01T19:00:00Z",
+        category_id="103",
+        subcategory_id="103003",
+    )
+    assert ev.to_show(make_club(), enhanced=False) is not None
+
+
 def test_to_show_includes_comedy_category_events():
-    """Events with category_id=105 (Performing & Visual Arts / Comedy) are kept."""
+    """Events with category_id=105 (Performing & Visual Arts) are not filtered — comedy lives here."""
     ev = EventbriteEvent(
         name="Whiplash",
         event_url="https://eventbrite.com/e/789",
-        start_date="2025-11-05T19:00:00Z",
+        start_date="2099-01-01T19:00:00Z",
         category_id="105",
     )
     assert ev.to_show(make_club(), enhanced=False) is not None
@@ -126,7 +151,7 @@ def test_to_show_includes_events_with_no_category():
     ev = EventbriteEvent(
         name="Open Mic Night",
         event_url="https://eventbrite.com/e/000",
-        start_date="2025-11-10T20:00:00Z",
+        start_date="2099-01-01T20:00:00Z",
         category_id=None,
     )
     assert ev.to_show(make_club(), enhanced=False) is not None

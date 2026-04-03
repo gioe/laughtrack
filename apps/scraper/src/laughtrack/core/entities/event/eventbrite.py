@@ -17,6 +17,18 @@ from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.datetime import DateTimeUtils
 from laughtrack.utilities.domain.show.factory import is_dj_set_show
 
+# Eventbrite category_id=103 is "Music" in the venue/organizer list API — covers DJ sets,
+# karaoke, and dance parties at mixed-use venues like Union Hall.
+# IMPORTANT: The Eventbrite search API (used by the national scraper) uses category_id=103
+# for "Performing & Visual Arts", under which comedy lives at subcategory_id=103003.
+# To avoid silently dropping comedy events from the national scraper path, we only block
+# events that are category 103 AND have no comedy subcategory.
+_MUSIC_CATEGORY_ID = "103"
+# Known comedy subcategory IDs across both the venue/organizer API and the search API:
+#   5010  — Comedy subcategory in the venue/organizer list API (e.g., Union Hall events)
+#   103003 — Comedy subcategory in the Eventbrite search API (used by eventbrite_national)
+_COMEDY_SUBCATEGORY_IDS = frozenset({"5010", "103003"})
+
 
 @dataclass
 class EventbriteEvent(ShowConvertible):
@@ -45,6 +57,7 @@ class EventbriteEvent(ShowConvertible):
 
     # Eventbrite classification fields (from API response)
     category_id: Optional[str] = None
+    subcategory_id: Optional[str] = None
 
     # Data source indicators
     data_source_type: str = "json_ld"  # "json_ld" or "html_extraction"
@@ -119,6 +132,7 @@ class EventbriteEvent(ShowConvertible):
             performers=None,  # Will need to be extracted separately if available
             ticket_offers=None,  # Will need to be converted from ticket_availability if available
             category_id=getattr(api_event, "category_id", None),
+            subcategory_id=getattr(api_event, "subcategory_id", None),
             data_source_type="api",
             _raw_json_ld=None,
             _raw_html_data={"api_event": api_event.__dict__},
@@ -126,12 +140,8 @@ class EventbriteEvent(ShowConvertible):
 
     def to_show(self, club: Club, enhanced: bool = True, url: str | None = None):
         """Transform EventbriteEvent object to Show objects with EventBrite-specific processing."""
-        # Eventbrite category_id=103 is "Music" — covers DJ sets, karaoke, dance parties.
-        # Filter these out upstream rather than relying solely on title-based heuristics.
-        _MUSIC_CATEGORY_ID = "103"
-
         try:
-            if self.category_id == _MUSIC_CATEGORY_ID:
+            if self.category_id == _MUSIC_CATEGORY_ID and self.subcategory_id not in _COMEDY_SUBCATEGORY_IDS:
                 Logger.info(f"Skipping non-comedy (Music category) show: {self.name!r}")
                 return None
 

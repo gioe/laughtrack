@@ -80,6 +80,7 @@ class EventbriteEvent:
     format: Optional[EventbriteFormat] = None
     category_id: Optional[str] = None
     category: Optional[EventbriteCategory] = None
+    subcategory_id: Optional[str] = None
     subcategory: Optional[EventbriteSubcategory] = None
     music_properties: Optional[EventbriteMusicProperties] = None
     bookmark_info: Optional[EventbriteBookmarkInfo] = None
@@ -142,6 +143,7 @@ class EventbriteEvent:
             format=EventbriteFormat.from_json_dict(data.get("format", {})) if data.get("format") else None,
             category_id=data.get("category_id"),
             category=EventbriteCategory.from_json_dict(data.get("category", {})) if data.get("category") else None,
+            subcategory_id=data.get("subcategory_id"),
             subcategory=(
                 EventbriteSubcategory.from_json_dict(data.get("subcategory", {})) if data.get("subcategory") else None
             ),
