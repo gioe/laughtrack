@@ -212,13 +212,19 @@ async def test_collect_scraping_targets_4xx_logs_warning_not_error(monkeypatch, 
 
 @pytest.mark.asyncio
 async def test_collect_scraping_targets_5xx_logs_error(monkeypatch, caplog):
-    """collect_scraping_targets() logs ERROR when listing page returns HTTP 5xx."""
+    """collect_scraping_targets() logs ERROR when listing page returns HTTP 5xx (after retries)."""
+    import laughtrack.scrapers.implementations.venues.grove_34.scraper as _scraper_mod
+
+    async def _noop_sleep(_delay):
+        pass
+
     scraper = Grove34Scraper(_club())
 
     async def fake_fetch_500(self, url: str) -> str:
         raise NetworkError("Server error (HTTP 500)", status_code=500)
 
     monkeypatch.setattr(Grove34Scraper, "fetch_html_bare", fake_fetch_500)
+    monkeypatch.setattr(_scraper_mod.asyncio, "sleep", _noop_sleep)
 
     with caplog.at_level(logging.ERROR):
         urls = await scraper.collect_scraping_targets()
@@ -227,6 +233,31 @@ async def test_collect_scraping_targets_5xx_logs_error(monkeypatch, caplog):
     assert any(
         record.levelno == logging.ERROR for record in caplog.records
     ), f"Expected ERROR log for 5xx; got: {[(r.levelname, r.message) for r in caplog.records]}"
+
+
+@pytest.mark.asyncio
+async def test_collect_scraping_targets_retries_on_transient_4xx(monkeypatch):
+    """collect_scraping_targets() succeeds when the first attempt returns 404 and the retry returns 200."""
+    scraper = Grove34Scraper(_club())
+    call_count = {"n": 0}
+
+    async def fake_fetch_flaky(self, url: str) -> str:
+        call_count["n"] += 1
+        if call_count["n"] == 1:
+            raise NetworkError("Client error (HTTP 404)", status_code=404)
+        return _listing_html()
+
+    import laughtrack.scrapers.implementations.venues.grove_34.scraper as _scraper_mod
+
+    async def _noop_sleep(_delay):
+        pass
+
+    monkeypatch.setattr(Grove34Scraper, "fetch_html_bare", fake_fetch_flaky)
+    monkeypatch.setattr(_scraper_mod.asyncio, "sleep", _noop_sleep)
+
+    urls = await scraper.collect_scraping_targets()
+    assert len(urls) > 0, "collect_scraping_targets() should succeed after a transient 404 retry"
+    assert call_count["n"] == 2, f"Expected 2 fetch attempts (1 failure + 1 retry), got {call_count['n']}"
 
 
 @pytest.mark.asyncio

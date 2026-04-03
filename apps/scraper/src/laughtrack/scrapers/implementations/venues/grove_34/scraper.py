@@ -10,6 +10,7 @@ Scraping strategy:
 2. get_data(show_url): fetch each show detail page, extract JSON-LD event
 """
 
+import asyncio
 from datetime import datetime, timezone
 from typing import List, Optional
 
@@ -35,6 +36,8 @@ class Grove34Scraper(BaseScraper):
 
     key = "grove34"
     _MAX_LISTING_PAGES = 20
+    _LISTING_RETRY_ATTEMPTS = 2   # retries after the initial attempt
+    _LISTING_RETRY_DELAY = 3.0    # seconds between retries
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
@@ -56,26 +59,54 @@ class Grove34Scraper(BaseScraper):
             if listing_url in visited_listing_urls:
                 break
             visited_listing_urls.add(listing_url)
-            try:
-                await self.rate_limiter.await_if_needed(listing_url)
-                html = await self.fetch_html_bare(listing_url)
-                page_urls = Grove34EventExtractor.extract_show_urls(html)
-                for url in page_urls:
-                    if url not in seen:
-                        seen.add(url)
-                        all_urls.append(url)
 
-                listing_url = Grove34EventExtractor.get_next_page_url(html, listing_url)
-                pages_fetched += 1
-            except NetworkError as e:
-                if e.status_code is not None and 400 <= e.status_code < 500:
-                    Logger.warning(f"{self._log_prefix}: Skipping listing page {listing_url} — HTTP {e.status_code}", self.logger_context)
-                else:
-                    Logger.error(f"{self._log_prefix}: Network error fetching Grove34 listing page {listing_url}: {e}", self.logger_context)
+            html: Optional[str] = None
+            attempt = 0
+            while attempt <= self._LISTING_RETRY_ATTEMPTS:
+                try:
+                    await self.rate_limiter.await_if_needed(listing_url)
+                    html = await self.fetch_html_bare(listing_url)
+                    break
+                except NetworkError as e:
+                    if e.status_code is not None and (400 <= e.status_code < 600):
+                        attempt += 1
+                        if attempt <= self._LISTING_RETRY_ATTEMPTS:
+                            Logger.warning(
+                                f"{self._log_prefix}: HTTP {e.status_code} on listing page {listing_url} — retrying ({attempt}/{self._LISTING_RETRY_ATTEMPTS})",
+                                self.logger_context,
+                            )
+                            await asyncio.sleep(self._LISTING_RETRY_DELAY)
+                            # continue retry loop
+                        else:
+                            if 400 <= e.status_code < 500:
+                                Logger.warning(
+                                    f"{self._log_prefix}: Skipping listing page {listing_url} — HTTP {e.status_code} after {self._LISTING_RETRY_ATTEMPTS} retries",
+                                    self.logger_context,
+                                )
+                            else:
+                                Logger.error(
+                                    f"{self._log_prefix}: Network error fetching Grove34 listing page {listing_url} after {self._LISTING_RETRY_ATTEMPTS} retries: {e}",
+                                    self.logger_context,
+                                )
+                            break
+                    else:
+                        Logger.error(f"{self._log_prefix}: Network error fetching Grove34 listing page {listing_url}: {e}", self.logger_context)
+                        break
+                except Exception as e:
+                    Logger.error(f"{self._log_prefix}: Error fetching Grove34 listing page {listing_url}: {e}", self.logger_context)
+                    break
+
+            if html is None:
                 break
-            except Exception as e:
-                Logger.error(f"{self._log_prefix}: Error fetching Grove34 listing page {listing_url}: {e}", self.logger_context)
-                break
+
+            page_urls = Grove34EventExtractor.extract_show_urls(html)
+            for url in page_urls:
+                if url not in seen:
+                    seen.add(url)
+                    all_urls.append(url)
+
+            listing_url = Grove34EventExtractor.get_next_page_url(html, listing_url)
+            pages_fetched += 1
 
         Logger.info(f"{self._log_prefix}: Discovered {len(all_urls)} Grove34 show URLs across {pages_fetched} listing page(s)", self.logger_context)
         return all_urls
