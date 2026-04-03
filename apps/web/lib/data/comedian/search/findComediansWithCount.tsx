@@ -129,11 +129,11 @@ export async function findComediansWithCount(
 
             // Build parameterized WHERE conditions mirroring the Prisma whereClause
             const whereConditions: Prisma.Sql[] = [
-                Prisma.sql`c."parentComedianId" IS NULL`,
+                Prisma.sql`c."parent_comedian_id" IS NULL`,
                 Prisma.sql`NOT EXISTS (
-                    SELECT 1 FROM "TaggedComedian" tc
-                    JOIN "Tag" t ON tc."tagId" = t.id
-                    WHERE tc."comedianId" = c.id AND t."restrictContent" = true
+                    SELECT 1 FROM "tagged_comedians" tc
+                    JOIN "tags" t ON tc."tag_id" = t.id
+                    WHERE tc."comedian_id" = c.uuid AND t."restrictContent" = true
                 )`,
             ];
 
@@ -148,9 +148,9 @@ export async function findComediansWithCount(
             if (filtersParam) {
                 whereConditions.push(
                     Prisma.sql`EXISTS (
-                        SELECT 1 FROM "TaggedComedian" tc2
-                        JOIN "Tag" t2 ON tc2."tagId" = t2.id
-                        WHERE tc2."comedianId" = c.id
+                        SELECT 1 FROM "tagged_comedians" tc2
+                        JOIN "tags" t2 ON tc2."tag_id" = t2.id
+                        WHERE tc2."comedian_id" = c.uuid
                           AND t2.slug IN (${Prisma.join(filtersParam.split(","))})
                           AND t2.type = 'comedian'
                     )`,
@@ -165,12 +165,12 @@ export async function findComediansWithCount(
             const sortedRows = await db.$queryRaw<{ id: number }[]>(
                 Prisma.sql`
                     SELECT c.id
-                    FROM "Comedian" c
+                    FROM "comedians" c
                     WHERE ${Prisma.join(whereConditions, " AND ")}
                     ORDER BY (
-                        SELECT COUNT(*) FROM "LineupItem" li
-                        JOIN "Show" s ON li."showId" = s.id
-                        WHERE li."comedianId" = c.id AND s.date > NOW()
+                        SELECT COUNT(*) FROM "lineup_items" li
+                        JOIN "shows" s ON li."show_id" = s.id
+                        WHERE li."comedian_id" = c.uuid AND s.date > NOW()
                     ) ${sortDir}, c.name ASC
                     LIMIT ${take} OFFSET ${skip}
                 `,
