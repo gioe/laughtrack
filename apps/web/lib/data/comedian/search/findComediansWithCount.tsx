@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import {
     QueryHelper,
     COMEDIAN_SORT_MAP,
+    COMEDIAN_SORT_MAP_ADMIN,
 } from "@/objects/class/query/QueryHelper";
 import {
     containsAliasTag,
@@ -98,6 +99,9 @@ function mapComedian(comedian: ComedianWithUpcomingCount) {
 export async function findComediansWithCount(
     helper: QueryHelper,
 ): Promise<ComediansResponse> {
+    const sortMap = helper.isAdmin
+        ? COMEDIAN_SORT_MAP_ADMIN
+        : COMEDIAN_SORT_MAP;
     try {
         const whereClause: Prisma.ComedianWhereInput = {
             ...helper.getComedianNameClause(),
@@ -120,7 +124,7 @@ export async function findComediansWithCount(
         ) {
             const { take, skip } = helper.getGenericClauses(
                 totalCount,
-                COMEDIAN_SORT_MAP,
+                sortMap,
             );
 
             // Build parameterized WHERE conditions mirroring the Prisma whereClause
@@ -210,7 +214,7 @@ export async function findComediansWithCount(
 
         const { orderBy, take, skip } = helper.getGenericClauses(
             totalCount,
-            COMEDIAN_SORT_MAP,
+            sortMap,
         );
         // Inject totalShows tiebreaker after the primary sort so more-active comedians
         // surface first among ties — skip when already sorting by totalShows to
