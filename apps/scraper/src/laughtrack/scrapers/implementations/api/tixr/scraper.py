@@ -78,10 +78,20 @@ class TixrScraper(BaseScraper):
             # are the ones Tixr has fully configured server-side and reliably embed
             # JSON-LD on their individual event pages.  Fall back to all HTML URLs
             # when the Org JSON-LD block is absent (non-group-page calendars).
+            #
+            # Match by numeric event ID rather than URL string: the JSON-LD block may
+            # list long-form URLs while the calendar page HTML contains short-form URLs
+            # for the same events (or vice versa).  A string-equality check would
+            # produce an empty intersection even when the event sets overlap perfectly.
             org_jsonld_urls = TixrExtractor.extract_org_jsonld_event_urls(html_content)
             if org_jsonld_urls:
-                org_url_set = set(org_jsonld_urls)
-                tixr_urls = [u for u in all_tixr_urls if u in org_url_set]
+                org_event_ids = {
+                    TixrExtractor.get_event_id(u) for u in org_jsonld_urls
+                } - {None}
+                tixr_urls = [
+                    u for u in all_tixr_urls
+                    if TixrExtractor.get_event_id(u) in org_event_ids
+                ]
                 skipped = len(all_tixr_urls) - len(tixr_urls)
                 if skipped > 0:
                     Logger.info(

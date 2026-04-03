@@ -176,6 +176,28 @@ _ORG_JSONLD_HTML = """
 """
 
 
+def test_get_event_id_short_form():
+    """get_event_id() returns the numeric ID from a short-form Tixr URL."""
+    assert TixrExtractor.get_event_id("https://tixr.com/e/177558") == "177558"
+
+
+def test_get_event_id_long_form():
+    """get_event_id() returns the numeric ID from a long-form Tixr URL."""
+    assert TixrExtractor.get_event_id("https://www.tixr.com/groups/venue/events/comedy-show-177558") == "177558"
+
+
+def test_get_event_id_double_dash_url():
+    """get_event_id() still extracts the trailing numeric ID from double-dash URLs.
+    These are client-side rendered and will be filtered out by the Org JSON-LD
+    event ID set (not by URL format), so returning an ID here is correct."""
+    assert TixrExtractor.get_event_id("https://tixr.com/groups/venue/events/show--182870") == "182870"
+
+
+def test_get_event_id_returns_none_for_non_tixr_url():
+    """get_event_id() returns None when the URL is not a recognized Tixr URL."""
+    assert TixrExtractor.get_event_id("https://example.com/shows/123") is None
+
+
 def test_extract_org_jsonld_event_urls_returns_urls():
     """extract_org_jsonld_event_urls() returns URLs from Organization JSON-LD block."""
     urls = TixrExtractor.extract_org_jsonld_event_urls(_ORG_JSONLD_HTML)
@@ -355,6 +377,45 @@ async def test_get_data_falls_back_to_all_urls_when_no_org_jsonld(monkeypatch):
 
     assert isinstance(result, TixrPageData)
     assert len(result.event_list) == 2
+
+
+@pytest.mark.asyncio
+async def test_get_data_filters_by_event_id_when_url_forms_differ(monkeypatch):
+    """get_data() matches events by ID even when HTML has short-form URLs and
+    Org JSON-LD has long-form URLs for the same events (or vice versa)."""
+    scraper = TixrScraper(_club())
+
+    # HTML has short-form; JSON-LD has long-form for the same event — string
+    # equality would produce an empty intersection here.
+    short_url = "https://tixr.com/e/177558"
+    long_url_jsonld = "https://www.tixr.com/groups/venue/events/comedy-show-177558"
+    dropped_long_url = "https://www.tixr.com/groups/venue/events/dropped--182870"
+
+    org_jsonld = f"""
+    <script type="application/ld+json">
+    {{"@type": "Organization", "events": [{{"url": "{long_url_jsonld}"}}]}}
+    </script>
+    """
+    html = (
+        f'<a href="{short_url}">Short</a>'
+        f'<a href="{long_url_jsonld}">Long</a>'
+        f'<a href="{dropped_long_url}">Dropped</a>'
+        + org_jsonld
+    )
+    event = _make_tixr_event("177558", "Comedy Show")
+
+    async def fake_fetch_html(self, url, **kwargs):
+        return html
+
+    monkeypatch.setattr(TixrScraper, "fetch_html", fake_fetch_html)
+    scraper.tixr_client.get_event_detail_from_url = AsyncMock(return_value=event)
+
+    result = await scraper.get_data(CALENDAR_URL)
+
+    assert isinstance(result, TixrPageData)
+    assert len(result.event_list) == 1
+    # TixrExtractor deduplicates cross-form, keeping the short-form URL
+    scraper.tixr_client.get_event_detail_from_url.assert_called_once_with(short_url)
 
 
 @pytest.mark.asyncio

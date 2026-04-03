@@ -2,7 +2,7 @@
 
 import json
 import re
-from typing import List
+from typing import List, Optional
 
 
 class TixrExtractor:
@@ -70,6 +70,30 @@ class TixrExtractor:
         return urls
 
     @staticmethod
+    def get_event_id(url: str) -> Optional[str]:
+        """
+        Extract the numeric event ID from any Tixr event URL.
+
+        Handles both short form (tixr.com/e/{id}) and long form
+        (tixr.com/groups/.../events/slug-{id}).  Returns None when
+        no numeric ID can be parsed (e.g. double-dash --{id} URLs
+        or non-Tixr URLs).
+
+        Args:
+            url: A Tixr event URL in short or long form
+
+        Returns:
+            Numeric event ID string, or None if not parseable
+        """
+        short_match = TixrExtractor._SHORT_URL_RE.search(url)
+        if short_match:
+            return short_match.group(1)
+        long_match = TixrExtractor._LONG_URL_ID_RE.search(url)
+        if long_match:
+            return long_match.group(1)
+        return None
+
+    @staticmethod
     def extract_org_jsonld_event_urls(html_content: str) -> List[str]:
         """
         Extract event URLs from the Organization JSON-LD block on a Tixr group page.
@@ -85,7 +109,9 @@ class TixrExtractor:
 
         Returns:
             List of event page URLs found in the Organization JSON-LD events array,
-            or [] if the block is absent or unparseable.
+            or [] if the block is absent, unparseable, or present but contains no
+            events with a 'url' key.  Callers must treat [] as "no usable Org JSON-LD"
+            and fall back to all HTML-extracted URLs in that case.
         """
         urls: List[str] = []
         blocks = re.findall(
