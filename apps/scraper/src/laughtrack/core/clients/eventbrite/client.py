@@ -104,8 +104,7 @@ class EventbriteClient(BaseApiClient):
         if not self.club.eventbrite_id:
             return []
 
-        scraping_url = getattr(self.club, "scraping_url", "") or ""
-        if "/o/" in scraping_url:
+        if "/o/" in self.club.scraping_url:
             # Stored ID is an organizer ID — use organizer endpoint directly
             return await self._fetch_paginated("organizers", self.club.eventbrite_id) or []
 

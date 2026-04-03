@@ -438,3 +438,22 @@ async def test_fetch_all_events_non_organizer_url_tries_venue_first(monkeypatch,
     assert events == ["E5"]
     assert venue_called["called"], "venue endpoint must be tried first for non-organizer-URL clubs"
     assert not organizer_called["called"], "organizer endpoint should not be called when venue succeeds"
+
+
+@pytest.mark.asyncio
+async def test_fetch_all_events_organizer_url_organizer_failure_returns_empty(monkeypatch, stub_base_init):
+    """When scraping_url contains /o/ but organizer endpoint fails (None), fetch_all_events returns []."""
+    stub_base_init()
+    club = _club(
+        eventbrite_id="ORG456",
+        scraping_url="https://www.eventbrite.com/o/some-club-12345",
+    )
+    c = EventbriteClient(club)
+
+    async def fake_organizer_list(organizer_id, continuation=None):
+        return None  # endpoint failure (404 / network error)
+
+    monkeypatch.setattr(c, "fetch_organizer_event_list", fake_organizer_list)
+
+    events = await c.fetch_all_events()
+    assert events == []
