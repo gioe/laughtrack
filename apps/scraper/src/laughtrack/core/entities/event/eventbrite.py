@@ -43,6 +43,9 @@ class EventbriteEvent(ShowConvertible):
     # Ticket information - now using EventbriteTicket objects
     ticket_offers: Optional[List[EventbriteTicket]] = None
 
+    # Eventbrite classification fields (from API response)
+    category_id: Optional[str] = None
+
     # Data source indicators
     data_source_type: str = "json_ld"  # "json_ld" or "html_extraction"
 
@@ -115,6 +118,7 @@ class EventbriteEvent(ShowConvertible):
             location_address=location_address,
             performers=None,  # Will need to be extracted separately if available
             ticket_offers=None,  # Will need to be converted from ticket_availability if available
+            category_id=getattr(api_event, "category_id", None),
             data_source_type="api",
             _raw_json_ld=None,
             _raw_html_data={"api_event": api_event.__dict__},
@@ -122,7 +126,15 @@ class EventbriteEvent(ShowConvertible):
 
     def to_show(self, club: Club, enhanced: bool = True, url: str | None = None):
         """Transform EventbriteEvent object to Show objects with EventBrite-specific processing."""
+        # Eventbrite category_id=103 is "Music" — covers DJ sets, karaoke, dance parties.
+        # Filter these out upstream rather than relying solely on title-based heuristics.
+        _MUSIC_CATEGORY_ID = "103"
+
         try:
+            if self.category_id == _MUSIC_CATEGORY_ID:
+                Logger.info(f"Skipping non-comedy (Music category) show: {self.name!r}")
+                return None
+
             if is_dj_set_show(self.name):
                 Logger.info(f"Skipping DJ set show: {self.name!r}")
                 return None

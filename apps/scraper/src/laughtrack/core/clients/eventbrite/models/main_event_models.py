@@ -78,6 +78,7 @@ class EventbriteEvent:
     venue: Optional[EventbriteVenue] = None
     format_id: Optional[str] = None
     format: Optional[EventbriteFormat] = None
+    category_id: Optional[str] = None
     category: Optional[EventbriteCategory] = None
     subcategory: Optional[EventbriteSubcategory] = None
     music_properties: Optional[EventbriteMusicProperties] = None
@@ -139,6 +140,7 @@ class EventbriteEvent:
             venue=EventbriteVenue.from_json_dict(data.get("venue", {})) if data.get("venue") else None,
             format_id=data.get("format_id"),
             format=EventbriteFormat.from_json_dict(data.get("format", {})) if data.get("format") else None,
+            category_id=data.get("category_id"),
             category=EventbriteCategory.from_json_dict(data.get("category", {})) if data.get("category") else None,
             subcategory=(
                 EventbriteSubcategory.from_json_dict(data.get("subcategory", {})) if data.get("subcategory") else None

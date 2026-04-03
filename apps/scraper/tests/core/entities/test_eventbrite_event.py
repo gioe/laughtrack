@@ -97,3 +97,36 @@ def test_to_show_creates_default_ticket_when_no_offers():
     assert t.price == 0.0
     assert t.purchase_url == "https://event/basic"
     assert t.type == "General Admission"
+
+
+def test_to_show_skips_music_category_events():
+    """Events with Eventbrite category_id=103 (Music) are filtered out."""
+    ev = EventbriteEvent(
+        name="Triplet Threat with DJ Mariko",
+        event_url="https://eventbrite.com/e/456",
+        start_date="2025-11-01T22:00:00Z",
+        category_id="103",
+    )
+    assert ev.to_show(make_club(), enhanced=False) is None
+
+
+def test_to_show_includes_comedy_category_events():
+    """Events with category_id=105 (Performing & Visual Arts / Comedy) are kept."""
+    ev = EventbriteEvent(
+        name="Whiplash",
+        event_url="https://eventbrite.com/e/789",
+        start_date="2025-11-05T19:00:00Z",
+        category_id="105",
+    )
+    assert ev.to_show(make_club(), enhanced=False) is not None
+
+
+def test_to_show_includes_events_with_no_category():
+    """Events with no category_id set are not filtered out."""
+    ev = EventbriteEvent(
+        name="Open Mic Night",
+        event_url="https://eventbrite.com/e/000",
+        start_date="2025-11-10T20:00:00Z",
+        category_id=None,
+    )
+    assert ev.to_show(make_club(), enhanced=False) is not None
