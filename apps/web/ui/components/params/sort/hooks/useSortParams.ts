@@ -21,7 +21,7 @@ export function useSortParams(
         // For admin users: if the URL has an admin-only sort value that failed
         // the standard allSortOptions validation, resolve it directly.
         if (isAdmin) {
-            const rawSort = searchParams.get("sort");
+            const rawSort = searchParams.get(QueryProperty.Sort);
             if (rawSort && adminSortOptions.includes(rawSort)) {
                 const adminOption = sortOptions.find(
                     (o) => o.value === rawSort,
@@ -38,10 +38,10 @@ export function useSortParams(
     // Strip admin-only sort params from the URL for non-admin users.
     useEffect(() => {
         if (isAdmin) return;
-        const rawSort = searchParams.get("sort");
+        const rawSort = searchParams.get(QueryProperty.Sort);
         if (rawSort && adminSortOptions.includes(rawSort)) {
             const current = new URLSearchParams(searchParams.toString());
-            current.delete("sort");
+            current.delete(QueryProperty.Sort);
             router.replace(`?${current.toString()}`);
         }
     }, [isAdmin, searchParams, router]);

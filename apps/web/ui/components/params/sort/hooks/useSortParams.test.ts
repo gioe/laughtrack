@@ -198,5 +198,14 @@ describe("useSortParams", () => {
 
             expect(mockReplace).not.toHaveBeenCalled();
         });
+
+        it("non-admin with a valid (non-admin) sort in URL does not trigger URL strip", () => {
+            mockGetTypedParam.mockReturnValue(SortParamValue.PopularityDesc);
+            mockSearchParamsGet.mockReturnValue(SortParamValue.PopularityDesc);
+
+            renderHook(() => useSortParams(sortOptions, false));
+
+            expect(mockReplace).not.toHaveBeenCalled();
+        });
     });
 });
