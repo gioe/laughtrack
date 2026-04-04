@@ -96,14 +96,6 @@ ComedianQueries = _comedian_queries_mod.ComedianQueries
 
 # Register model and queries under canonical import paths so handler.py relative imports resolve
 sys.modules.setdefault("laughtrack.core.entities.comedian.model", _comedian_model_mod)
-# Register sql as a proper package so downstream tests can still import sql.club_queries etc.
-_sql_pkg = sys.modules.get("sql")
-if _sql_pkg is None or not hasattr(_sql_pkg, "__path__"):
-    from types import ModuleType as _ModuleType
-    _sql_pkg = _ModuleType("sql")
-    _sql_pkg.__path__ = [str(_SCRAPER_ROOT / "sql")]
-    _sql_pkg.__package__ = "sql"
-    sys.modules["sql"] = _sql_pkg
 sys.modules.setdefault("sql.comedian_queries", _comedian_queries_mod)
 
 # Stub BatchTemplateGenerator (used by insert_comedians, not under test here)
