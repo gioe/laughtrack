@@ -11,78 +11,17 @@ Covers:
 - SQL contract: GET_COMEDIANS_WITH_YOUTUBE_ACCOUNT filters NULL / empty string
 """
 
-import importlib.util
 import sys
-from pathlib import Path
-from types import ModuleType
 from unittest.mock import MagicMock, patch, call
 
 import pytest
 import requests as _requests
+from _entities_test_helpers import _load_module
 
 
 # ---------------------------------------------------------------------------
-# Module loading helpers (mirrors test_comedian_handler.py pattern)
+# Module loading (shared helpers and stubs are set up in conftest.py)
 # ---------------------------------------------------------------------------
-
-_SCRAPER_ROOT = Path(__file__).parents[3]  # apps/scraper/
-
-
-def _load_module(rel_path: str, module_name: str):
-    path = _SCRAPER_ROOT / rel_path
-    spec = importlib.util.spec_from_file_location(module_name, path)
-    mod = importlib.util.module_from_spec(spec)
-    sys.modules[module_name] = mod
-    _ensure_psycopg2_stubbed()
-    spec.loader.exec_module(mod)
-    return mod
-
-
-def _ensure_psycopg2_stubbed():
-    if "psycopg2" not in sys.modules:
-        psycopg2 = ModuleType("psycopg2")
-        extras = ModuleType("psycopg2.extras")
-        extras.DictRow = dict  # type: ignore[attr-defined]
-        extras.execute_values = MagicMock()
-        extensions = ModuleType("psycopg2.extensions")
-        extensions.connection = object  # type: ignore[attr-defined]
-        psycopg2.extras = extras  # type: ignore[attr-defined]
-        psycopg2.extensions = extensions  # type: ignore[attr-defined]
-        sys.modules["psycopg2"] = psycopg2
-        sys.modules["psycopg2.extras"] = extras
-        sys.modules["psycopg2.extensions"] = extensions
-
-
-def _stub(name: str, as_package: bool = False, **attrs):
-    m = ModuleType(name)
-    if as_package:
-        pkg_path = str(_SCRAPER_ROOT / "src" / name.replace(".", "/"))
-        m.__path__ = [pkg_path]
-        m.__package__ = name
-    for k, v in attrs.items():
-        setattr(m, k, v)
-    sys.modules.setdefault(name, m)
-    return m
-
-
-# Foundation stubs
-_stub("laughtrack.foundation.protocols.database_entity", DatabaseEntity=object)
-_stub("laughtrack.foundation.protocols", as_package=True, DatabaseEntity=object)
-_stub("laughtrack.foundation.infrastructure.logger.logger", Logger=MagicMock())
-_stub("laughtrack.foundation.infrastructure.logger", as_package=True, Logger=MagicMock())
-_stub("laughtrack.foundation.infrastructure", as_package=True, Logger=MagicMock())
-_stub("laughtrack.foundation.utilities.popularity.scorer", PopularityScorer=MagicMock())
-_stub("laughtrack.foundation.utilities.popularity", as_package=True, PopularityScorer=MagicMock())
-_stub("laughtrack.foundation.utilities.string", StringUtils=MagicMock())
-_stub("laughtrack.foundation.utilities", as_package=True, StringUtils=MagicMock())
-_stub("laughtrack.foundation", as_package=True, DatabaseEntity=object)
-_stub("laughtrack.utilities.domain.comedian.utils", ComedianUtils=MagicMock())
-_stub("laughtrack.utilities.domain.comedian", as_package=True, ComedianUtils=MagicMock())
-_stub("laughtrack.utilities.domain", as_package=True, ComedianUtils=MagicMock())
-_stub("laughtrack.utilities", as_package=True, ComedianUtils=MagicMock())
-_stub("laughtrack.foundation.infrastructure.database", as_package=True, BatchTemplateGenerator=MagicMock())
-_stub("laughtrack.foundation.infrastructure.database.template", BatchTemplateGenerator=MagicMock())
-_stub("laughtrack.foundation.infrastructure.database.operation", DatabaseOperationLogger=MagicMock())
 
 # Comedian model
 _comedian_model_mod = _load_module(
@@ -98,45 +37,6 @@ ComedianQueries = _comedian_queries_mod.ComedianQueries
 # Register under canonical paths
 sys.modules.setdefault("laughtrack.core.entities.comedian.model", _comedian_model_mod)
 sys.modules.setdefault("sql.comedian_queries", _comedian_queries_mod)
-
-# BaseDatabaseHandler stub
-from typing import Generic as _Generic, TypeVar as _TypeVar
-from abc import ABC as _ABC, abstractmethod as _abstractmethod
-
-_T_stub = _TypeVar("_T_stub")
-
-
-class _BaseDatabaseHandlerStub(_Generic[_T_stub], _ABC):
-    def __init__(self) -> None:
-        pass
-
-    @_abstractmethod
-    def get_entity_name(self) -> str: ...
-
-    @_abstractmethod
-    def get_entity_class(self): ...
-
-    def execute_with_cursor(self, operation, params=None, return_results=False):
-        raise NotImplementedError
-
-    def execute_batch_operation(self, query, items, template=None, return_results=False, log_summary=True):
-        raise NotImplementedError
-
-    def _get_cursor_factory(self):
-        return dict
-
-
-_stub("laughtrack.core.data.base_handler", BaseDatabaseHandler=_BaseDatabaseHandlerStub)
-_stub("laughtrack.core.data", as_package=True, BaseDatabaseHandler=_BaseDatabaseHandlerStub)
-_stub("laughtrack.core", as_package=True, BaseDatabaseHandler=_BaseDatabaseHandlerStub)
-_stub("laughtrack.core.entities", as_package=True, Comedian=None)
-_stub("laughtrack.core.entities.comedian", as_package=True, Comedian=None)
-
-# Load false_positive_detector directly (no deps) — required by handler.py's relative import
-_fp_detector_mod = _load_module(
-    "src/laughtrack/core/entities/comedian/false_positive_detector.py",
-    "laughtrack.core.entities.comedian.false_positive_detector",
-)
 
 # Load ComedianHandler (contains the new social refresh methods)
 _comedian_handler_mod = _load_module(
