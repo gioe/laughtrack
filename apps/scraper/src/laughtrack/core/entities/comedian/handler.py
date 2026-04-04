@@ -122,11 +122,11 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
             Logger.warn(f"_filter_denied_comedians: deny-list query failed, skipping filter: {e}")
             return comedians
 
-        denied = {row["name"] for row in rows}
+        denied = {row["name"].strip() for row in rows}
         if not denied:
             return comedians
 
-        allowed = [c for c in comedians if c.name not in denied]
+        allowed = [c for c in comedians if c.name.strip() not in denied]
         for name in denied:
             Logger.warn(f"lineup_filter: skipping deny-listed name '{name}'")
         return allowed
