@@ -94,7 +94,7 @@ const FooterComponent = () => {
                             About
                         </a>
                         <a
-                            href="#"
+                            href="mailto:contact@laugh-track.com"
                             onClick={handleClick}
                             className="text-gray-600 hover:text-copper transition-all duration-200
                             text-base sm:text-lg font-dmSans font-semibold hover:-translate-y-[1px]"
