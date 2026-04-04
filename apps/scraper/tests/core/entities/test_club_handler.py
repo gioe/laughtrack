@@ -9,12 +9,11 @@ Verifies three contracts:
 """
 
 import sys
-from typing import TypeVar as _TypeVar
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from _entities_test_helpers import _load_module, _stub, _ensure_psycopg2_stubbed
+from _entities_test_helpers import _load_module, _stub
 
 
 # Foundation stubs

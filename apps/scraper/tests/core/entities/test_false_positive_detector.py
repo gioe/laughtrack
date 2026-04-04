@@ -12,8 +12,6 @@ Covers all detection criteria:
   8. Real comedian names pass through (no false positive)
 """
 
-import sys
-
 from _entities_test_helpers import _load_module
 
 

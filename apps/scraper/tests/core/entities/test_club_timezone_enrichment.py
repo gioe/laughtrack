@@ -8,12 +8,11 @@ Covers:
 """
 
 import sys
-from typing import TypeVar as _TypeVar
 
 import pytest
 from unittest.mock import MagicMock, patch
 
-from _entities_test_helpers import _load_module, _stub, _ensure_psycopg2_stubbed
+from _entities_test_helpers import _load_module, _stub
 
 
 _stub("laughtrack.foundation.protocols.database_entity", DatabaseEntity=object)
