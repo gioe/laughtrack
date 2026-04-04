@@ -97,7 +97,14 @@ ComedianQueries = _comedian_queries_mod.ComedianQueries
 
 # Register under canonical paths
 sys.modules.setdefault("laughtrack.core.entities.comedian.model", _comedian_model_mod)
-sys.modules.setdefault("sql", _comedian_queries_mod)
+# Register sql as a proper package so downstream tests can still import sql.club_queries etc.
+_sql_pkg = sys.modules.get("sql")
+if _sql_pkg is None or not hasattr(_sql_pkg, "__path__"):
+    from types import ModuleType as _ModuleType
+    _sql_pkg = _ModuleType("sql")
+    _sql_pkg.__path__ = [str(_SCRAPER_ROOT / "sql")]
+    _sql_pkg.__package__ = "sql"
+    sys.modules["sql"] = _sql_pkg
 sys.modules.setdefault("sql.comedian_queries", _comedian_queries_mod)
 
 # BaseDatabaseHandler stub
@@ -131,7 +138,13 @@ _stub("laughtrack.core.data.base_handler", BaseDatabaseHandler=_BaseDatabaseHand
 _stub("laughtrack.core.data", as_package=True, BaseDatabaseHandler=_BaseDatabaseHandlerStub)
 _stub("laughtrack.core", as_package=True, BaseDatabaseHandler=_BaseDatabaseHandlerStub)
 _stub("laughtrack.core.entities", as_package=True, Comedian=None)
-_stub("laughtrack.core.entities.comedian", Comedian=None)
+_stub("laughtrack.core.entities.comedian", as_package=True, Comedian=None)
+
+# Load false_positive_detector directly (no deps) — required by handler.py's relative import
+_fp_detector_mod = _load_module(
+    "src/laughtrack/core/entities/comedian/false_positive_detector.py",
+    "laughtrack.core.entities.comedian.false_positive_detector",
+)
 
 # Load ComedianHandler (contains the new social refresh methods)
 _comedian_handler_mod = _load_module(
@@ -607,12 +620,10 @@ class TestRefreshInstagramFollowers:
         handler._get_comedians_with_instagram_accounts = MagicMock(return_value=rows)
         handler._fetch_instagram_follower_count = MagicMock(return_value=None)
 
-        import sys as _sys
-        logger_mock = _sys.modules.get("laughtrack.foundation.infrastructure.logger.logger")
-        with patch.object(logger_mock.Logger, "warn") as mock_warn:
+        with patch.object(_comedian_handler_mod, "Logger") as mock_logger:
             handler.refresh_instagram_followers()
-        mock_warn.assert_called_once()
-        assert "0 updated" in mock_warn.call_args[0][0]
+        mock_logger.warn.assert_called_once()
+        assert "0 updated" in mock_logger.warn.call_args[0][0]
 
 
 # ---------------------------------------------------------------------------
@@ -772,9 +783,7 @@ class TestRefreshTikTokFollowers:
         handler._get_comedians_with_tiktok_accounts = MagicMock(return_value=rows)
         handler._fetch_tiktok_follower_count = MagicMock(return_value=None)
 
-        import sys as _sys
-        logger_mock = _sys.modules.get("laughtrack.foundation.infrastructure.logger.logger")
-        with patch.object(logger_mock.Logger, "warn") as mock_warn:
+        with patch.object(_comedian_handler_mod, "Logger") as mock_logger:
             handler.refresh_tiktok_followers()
-        mock_warn.assert_called_once()
-        assert "0 updated" in mock_warn.call_args[0][0]
+        mock_logger.warn.assert_called_once()
+        assert "0 updated" in mock_logger.warn.call_args[0][0]

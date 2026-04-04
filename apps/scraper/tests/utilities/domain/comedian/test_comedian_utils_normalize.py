@@ -16,9 +16,34 @@ _SCRAPER_ROOT = Path(__file__).parents[4]  # apps/scraper/
 
 
 def _load_real_utils() -> type:
-    """Load ComedianUtils directly from source, bypassing sys.modules stubs."""
+    """Load ComedianUtils directly from source, bypassing sys.modules stubs.
 
-    # Stub heavy dependencies that utils.py imports
+    Uses save/restore around sys.modules writes so that the temporary stubs
+    needed to load utils.py don't leak into the broader pytest session and
+    corrupt other test files that depend on the real module objects.
+    """
+
+    _stub_names = [
+        "gioe_libs",
+        "gioe_libs.string_utils",
+        "laughtrack.foundation.infrastructure.logger.logger",
+        "laughtrack.foundation.infrastructure.logger",
+        "laughtrack.foundation.infrastructure",
+        "laughtrack.foundation.utilities.popularity.scorer",
+        "laughtrack.foundation.utilities.popularity",
+        "laughtrack.foundation.utilities.string",
+        "laughtrack.foundation.utilities",
+        "laughtrack.foundation",
+        "laughtrack.foundation.protocols.database_entity",
+        "laughtrack.foundation.protocols",
+        "laughtrack.core.entities.comedian.model",
+        "laughtrack.core.entities.comedian",
+        "laughtrack.core.entities",
+    ]
+
+    # Save existing modules so we can restore after loading
+    _saved = {name: sys.modules.get(name) for name in _stub_names}
+
     def _stub(name, **attrs):
         m = ModuleType(name)
         for k, v in attrs.items():
@@ -26,32 +51,40 @@ def _load_real_utils() -> type:
         sys.modules[name] = m
         return m
 
-    # gioe_libs.string_utils — only remove_parentheses_content is used by normalize_name
-    string_utils_stub = MagicMock()
-    string_utils_stub.remove_parentheses_content.side_effect = lambda s: s
-    _stub("gioe_libs", StringUtils=string_utils_stub)
-    _stub("gioe_libs.string_utils", StringUtils=string_utils_stub)
+    try:
+        # gioe_libs.string_utils — only remove_parentheses_content is used by normalize_name
+        string_utils_stub = MagicMock()
+        string_utils_stub.remove_parentheses_content.side_effect = lambda s: s
+        _stub("gioe_libs", StringUtils=string_utils_stub)
+        _stub("gioe_libs.string_utils", StringUtils=string_utils_stub)
 
-    _stub("laughtrack.foundation.infrastructure.logger.logger", Logger=MagicMock())
-    _stub("laughtrack.foundation.infrastructure.logger", Logger=MagicMock())
-    _stub("laughtrack.foundation.infrastructure", Logger=MagicMock())
-    _stub("laughtrack.foundation.utilities.popularity.scorer", PopularityScorer=MagicMock())
-    _stub("laughtrack.foundation.utilities.popularity", PopularityScorer=MagicMock())
-    _stub("laughtrack.foundation.utilities.string", StringUtils=string_utils_stub)
-    _stub("laughtrack.foundation.utilities", StringUtils=string_utils_stub)
-    _stub("laughtrack.foundation", DatabaseEntity=object)
-    _stub("laughtrack.foundation.protocols.database_entity", DatabaseEntity=object)
-    _stub("laughtrack.foundation.protocols", DatabaseEntity=object)
-    _stub("laughtrack.foundation.utilities.popularity", PopularityScorer=MagicMock())
-    _stub("laughtrack.core.entities.comedian.model", Comedian=MagicMock())
-    _stub("laughtrack.core.entities.comedian", Comedian=MagicMock())
-    _stub("laughtrack.core.entities", Comedian=MagicMock())
+        _stub("laughtrack.foundation.infrastructure.logger.logger", Logger=MagicMock())
+        _stub("laughtrack.foundation.infrastructure.logger", Logger=MagicMock())
+        _stub("laughtrack.foundation.infrastructure", Logger=MagicMock())
+        _stub("laughtrack.foundation.utilities.popularity.scorer", PopularityScorer=MagicMock())
+        _stub("laughtrack.foundation.utilities.popularity", PopularityScorer=MagicMock())
+        _stub("laughtrack.foundation.utilities.string", StringUtils=string_utils_stub)
+        _stub("laughtrack.foundation.utilities", StringUtils=string_utils_stub)
+        _stub("laughtrack.foundation", DatabaseEntity=object)
+        _stub("laughtrack.foundation.protocols.database_entity", DatabaseEntity=object)
+        _stub("laughtrack.foundation.protocols", DatabaseEntity=object)
+        _stub("laughtrack.foundation.utilities.popularity", PopularityScorer=MagicMock())
+        _stub("laughtrack.core.entities.comedian.model", Comedian=MagicMock())
+        _stub("laughtrack.core.entities.comedian", Comedian=MagicMock())
+        _stub("laughtrack.core.entities", Comedian=MagicMock())
 
-    path = _SCRAPER_ROOT / "src/laughtrack/utilities/domain/comedian/utils.py"
-    spec = importlib.util.spec_from_file_location("_comedian_utils_real", path)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod.ComedianUtils
+        path = _SCRAPER_ROOT / "src/laughtrack/utilities/domain/comedian/utils.py"
+        spec = importlib.util.spec_from_file_location("_comedian_utils_real", path)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod.ComedianUtils
+    finally:
+        # Restore pre-existing modules; remove any stubs that weren't there before
+        for name, original in _saved.items():
+            if original is None:
+                sys.modules.pop(name, None)
+            else:
+                sys.modules[name] = original
 
 
 ComedianUtils = _load_real_utils()

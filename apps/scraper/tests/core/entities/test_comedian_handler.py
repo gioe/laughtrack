@@ -96,7 +96,14 @@ ComedianQueries = _comedian_queries_mod.ComedianQueries
 
 # Register model and queries under canonical import paths so handler.py relative imports resolve
 sys.modules.setdefault("laughtrack.core.entities.comedian.model", _comedian_model_mod)
-sys.modules.setdefault("sql", _comedian_queries_mod)
+# Register sql as a proper package so downstream tests can still import sql.club_queries etc.
+_sql_pkg = sys.modules.get("sql")
+if _sql_pkg is None or not hasattr(_sql_pkg, "__path__"):
+    from types import ModuleType as _ModuleType
+    _sql_pkg = _ModuleType("sql")
+    _sql_pkg.__path__ = [str(_SCRAPER_ROOT / "sql")]
+    _sql_pkg.__package__ = "sql"
+    sys.modules["sql"] = _sql_pkg
 sys.modules.setdefault("sql.comedian_queries", _comedian_queries_mod)
 
 # Stub BatchTemplateGenerator (used by insert_comedians, not under test here)
@@ -134,7 +141,7 @@ _stub("laughtrack.core.data.base_handler", BaseDatabaseHandler=_BaseDatabaseHand
 _stub("laughtrack.core.data", as_package=True, BaseDatabaseHandler=_BaseDatabaseHandlerStub)
 _stub("laughtrack.core", as_package=True, BaseDatabaseHandler=_BaseDatabaseHandlerStub)
 _stub("laughtrack.core.entities", as_package=True, Comedian=None)
-_stub("laughtrack.core.entities.comedian", Comedian=None)
+_stub("laughtrack.core.entities.comedian", as_package=True, Comedian=None)
 
 # Load false_positive_detector directly (no deps) — required by handler.py's relative import
 _fp_detector_mod = _load_module(

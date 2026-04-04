@@ -72,8 +72,11 @@ async def test_collect_scraping_targets_returns_national():
 @pytest.mark.asyncio
 async def test_scrape_async_returns_shows_when_events_exist():
     """
-    scrape_async() produces Shows when _fetch_national_comedy_events returns
-    events and _process_events converts them successfully.
+    _scrape_async_impl() produces Shows when _fetch_national_comedy_events
+    returns events and _process_events converts them successfully.
+
+    Note: scrape_async() is retired and raises RuntimeError; tests use
+    _scrape_async_impl() directly to exercise the underlying logic.
     """
     scraper = EventbriteNationalScraper(_club())
     expected_shows = [_make_show("Gary Gulman Live"), _make_show("Nikki Glaser Stand-Up")]
@@ -90,10 +93,10 @@ async def test_scrape_async_returns_shows_when_events_exist():
             new=AsyncMock(return_value=expected_shows),
         ),
     ):
-        shows = await scraper.scrape_async()
+        shows = await scraper._scrape_async_impl()
 
     assert len(shows) == 2, (
-        "scrape_async() should return 2 Shows when _process_events returns 2"
+        "_scrape_async_impl() should return 2 Shows when _process_events returns 2"
     )
     assert all(isinstance(s, Show) for s in shows)
 
@@ -101,7 +104,7 @@ async def test_scrape_async_returns_shows_when_events_exist():
 @pytest.mark.asyncio
 async def test_scrape_async_returns_empty_when_no_events():
     """
-    scrape_async() returns [] when _fetch_national_comedy_events returns
+    _scrape_async_impl() returns [] when _fetch_national_comedy_events returns
     an empty list (no comedy events on Eventbrite nationally).
     """
     scraper = EventbriteNationalScraper(_club())
@@ -111,8 +114,8 @@ async def test_scrape_async_returns_empty_when_no_events():
         "_fetch_national_comedy_events",
         new=AsyncMock(return_value=[]),
     ):
-        shows = await scraper.scrape_async()
+        shows = await scraper._scrape_async_impl()
 
     assert shows == [], (
-        "scrape_async() should return [] when no national events are found"
+        "_scrape_async_impl() should return [] when no national events are found"
     )

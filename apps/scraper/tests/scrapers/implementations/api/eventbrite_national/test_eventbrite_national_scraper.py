@@ -92,8 +92,11 @@ async def test_collect_targets_returns_national(platform_club):
 @pytest.mark.asyncio
 async def test_scrape_async_returns_shows_for_each_event(platform_club):
     """
-    Given two events from the same venue, scrape_async should upsert the club
+    Given two events from the same venue, _scrape_async_impl should upsert the club
     once and return a Show for each event.
+
+    Note: scrape_async() is retired and raises RuntimeError; tests use
+    _scrape_async_impl() directly to exercise the underlying logic.
     """
     api_events = [
         _make_api_event(venue_id="V1", event_url="https://eb.com/e/1"),
@@ -111,7 +114,7 @@ async def test_scrape_async_returns_shows_for_each_event(platform_club):
             "upsert_for_eventbrite_venue",
             return_value=upserted_club,
         ):
-            shows = await scraper.scrape_async()
+            shows = await scraper._scrape_async_impl()
 
     assert len(shows) == 2
     assert all(isinstance(s, Show) for s in shows)
@@ -129,7 +132,7 @@ async def test_scrape_async_empty_response(platform_club):
     with patch.object(
         scraper, "_fetch_national_comedy_events", new=AsyncMock(return_value=[])
     ):
-        shows = await scraper.scrape_async()
+        shows = await scraper._scrape_async_impl()
 
     assert shows == []
 
@@ -161,7 +164,7 @@ async def test_scrape_async_skips_venue_on_upsert_failure(platform_club):
         scraper, "_fetch_national_comedy_events", new=AsyncMock(return_value=api_events)
     ):
         with patch.object(scraper._club_handler, "upsert_for_eventbrite_venue", side_effect=_upsert):
-            shows = await scraper.scrape_async()
+            shows = await scraper._scrape_async_impl()
 
     # Only the good venue's show should be returned
     assert len(shows) == 1
