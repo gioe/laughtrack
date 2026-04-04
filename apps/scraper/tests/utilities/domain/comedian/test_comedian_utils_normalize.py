@@ -68,7 +68,6 @@ def _load_real_utils() -> type:
         _stub("laughtrack.foundation", DatabaseEntity=object)
         _stub("laughtrack.foundation.protocols.database_entity", DatabaseEntity=object)
         _stub("laughtrack.foundation.protocols", DatabaseEntity=object)
-        _stub("laughtrack.foundation.utilities.popularity", PopularityScorer=MagicMock())
         _stub("laughtrack.core.entities.comedian.model", Comedian=MagicMock())
         _stub("laughtrack.core.entities.comedian", Comedian=MagicMock())
         _stub("laughtrack.core.entities", Comedian=MagicMock())
