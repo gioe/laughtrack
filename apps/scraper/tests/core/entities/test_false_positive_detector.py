@@ -169,6 +169,24 @@ class TestStructuralKeywords:
     def test_festival(self):
         assert detect_false_positive("Comedy Festival") is not None
 
+    def test_fest_abbreviation(self):
+        assert detect_false_positive("Desi Comedy Fest") is not None
+
+    def test_hypnosis(self):
+        assert detect_false_positive("An unbelievable comedy hypnosis event like no other!") is not None
+
+    def test_wrestling(self):
+        assert detect_false_positive("Championship Wrestling") is not None
+
+    def test_hosted_by(self):
+        assert detect_false_positive("Body Count hosted by Tessa Belle") is not None
+
+    def test_auditions(self):
+        assert detect_false_positive("Sabina Meschke present TRIPLET AUDITIONS") is not None
+
+    def test_lounge(self):
+        assert detect_false_positive("Ladies Laugh Lounge") is not None
+
     def test_reason_contains_structural_keyword(self):
         reason = detect_false_positive("Comedy Showcase")
         assert reason is not None
@@ -192,7 +210,7 @@ class TestDecorationPattern:
         assert detect_false_positive("*** Special Event ***") is not None
 
     def test_reason_contains_decoration_pattern(self):
-        reason = detect_false_positive("***Comedy Night***")
+        reason = detect_false_positive("***Super Stars***")
         assert reason is not None
         assert "decoration_pattern" in reason
 
@@ -262,3 +280,133 @@ class TestShortName:
         reason = detect_false_positive("Al")
         assert reason is not None
         assert "short_name" in reason
+
+
+# ---------------------------------------------------------------------------
+# New structural keywords — venue types, show formats, promotional patterns
+# ---------------------------------------------------------------------------
+
+class TestVenueTypeKeywords:
+    def test_brewery(self):
+        assert detect_false_positive("Cricket Hill Brewery") is not None
+
+    def test_winery(self):
+        assert detect_false_positive("Grace Winery") is not None
+
+    def test_vineyard(self):
+        assert detect_false_positive("Paradocx Vineyard") is not None
+
+    def test_distillery(self):
+        assert detect_false_positive("Pine Tavern Distillery") is not None
+
+    def test_tavern(self):
+        assert detect_false_positive("Poppy's Tavern") is not None
+
+
+class TestShowFormatKeywords:
+    def test_comedy_competition(self):
+        assert detect_false_positive("Roosters New Talent Comedy Competition") is not None
+
+    def test_comedy_camp(self):
+        assert detect_false_positive("Spring Comedy Camp") is not None
+
+    def test_comedy_academy(self):
+        assert detect_false_positive("Cap City Comedy Academy") is not None
+
+    def test_roast_battle(self):
+        assert detect_false_positive("Battle of the Sexes: A roast battle") is not None
+
+    def test_game_show(self):
+        assert detect_false_positive("Friendly Feud Game Show") is not None
+
+    def test_gameshow(self):
+        assert detect_false_positive("Get It?! Gameshow") is not None
+
+    def test_drag_show(self):
+        assert detect_false_positive("Drag Show Live") is not None
+
+    def test_drag_queen_bingo_caught_by_bingo(self):
+        assert detect_false_positive("Drag Queen Bingo!") is not None
+
+    def test_bob_the_drag_queen_passes(self):
+        """Real comedian — RuPaul's Drag Race winner."""
+        assert detect_false_positive("Bob the Drag Queen") is None
+
+    def test_all_stars(self):
+        assert detect_false_positive("Austin All Stars") is not None
+
+    def test_allstars(self):
+        assert detect_false_positive("Comedy Allstars") is not None
+
+    def test_piano_show(self):
+        assert detect_false_positive("Dueling Piano Show") is not None
+
+    def test_bingo(self):
+        assert detect_false_positive("Bingorama") is not None
+
+    def test_karaoke(self):
+        assert detect_false_positive("Live Band Karaoke") is not None
+
+    def test_open_jam(self):
+        assert detect_false_positive("Sunday Open Jam") is not None
+
+    def test_day_party(self):
+        assert detect_false_positive("Last Saturdaze Day Party") is not None
+
+    def test_private_event(self):
+        assert detect_false_positive("Closed for Private Event") is not None
+
+    def test_closed_for(self):
+        assert detect_false_positive("Closed for Easter") is not None
+
+    def test_talent_show(self):
+        assert detect_false_positive("Emerging Talent Show") is not None
+
+    def test_semi_finals(self):
+        assert detect_false_positive("SoCal's Funniest Comic - Semi-Finals") is not None
+
+    def test_prelim_round(self):
+        assert detect_false_positive("Comedy Competition - Prelim Round 4") is not None
+
+    def test_live_in_naples(self):
+        assert detect_false_positive("Comedian Chris D'Elia Live in Naples, Florida!") is not None
+
+
+class TestNewPlaceholderNames:
+    def test_talent(self):
+        assert detect_false_positive("Talent") is not None
+
+    def test_test_talent(self):
+        assert detect_false_positive("Test Talent") is not None
+
+    def test_unknown_artist(self):
+        assert detect_false_positive("Unknown Artist") is not None
+
+    def test_free_show(self):
+        assert detect_false_positive("Free Show") is not None
+
+    def test_fourth_of_july(self):
+        assert detect_false_positive("Fourth of July") is not None
+
+    def test_half(self):
+        assert detect_false_positive("Half") is not None
+
+
+class TestRealNamesStillPass:
+    """Ensure new rules don't create false negatives on real comedians."""
+
+    def test_ali_tavern_not_flagged(self):
+        """'Ali' contains no structural keyword — short name rule catches < 4."""
+        assert detect_false_positive("Ali Wong") is None
+
+    def test_nate_bargatze(self):
+        assert detect_false_positive("Nate Bargatze") is None
+
+    def test_taylor_tomlinson(self):
+        assert detect_false_positive("Taylor Tomlinson") is None
+
+    def test_matt_rife(self):
+        assert detect_false_positive("Matt Rife") is None
+
+    def test_shane_gillis(self):
+        assert detect_false_positive("Shane Gillis") is None
