@@ -52,9 +52,8 @@ const ShowCard: React.FC<ShowCardProps> = ({ show }: ShowCardProps) => {
             className="p-4 sm:p-6 bg-gradient-to-br from-[#FDF8EF] to-[#F5E6D3] overflow-hidden
                 rounded-xl w-full shadow-md hover:shadow-xl border border-white/20"
             initial={alreadySeen ? false : { opacity: 0, y: mv(20) }}
-            whileInView={{ opacity: 1, y: 0 }}
+            animate={{ opacity: 1, y: 0 }}
             whileHover={mp({ y: -4, transition: { duration: 0.15 } })}
-            viewport={{ once: true }}
             transition={{
                 duration: mv(0.5),
                 ease: "easeOut",
