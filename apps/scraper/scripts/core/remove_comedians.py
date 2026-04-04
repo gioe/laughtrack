@@ -18,12 +18,12 @@ Usage:
 Status table columns:
     FOUND        — comedian exists in comedians table (shows lineup_items count)
     NOT IN DB    — not found in comedians table (still added to deny list on --confirm)
-    ALREADY DENIED — already in comedian_deny_list; skipped entirely
+    ALREADY DENIED — already in comedian_deny_list; comedian record still deleted if present
 
 On --confirm:
     - Deletes lineup_items rows then comedian records in a single transaction
     - Adds FOUND + NOT IN DB names to comedian_deny_list (ON CONFLICT DO NOTHING)
-    - ALREADY DENIED names are skipped (already handled)
+    - ALREADY DENIED names still get DB records deleted; deny-list INSERT is skipped
 """
 
 import argparse
@@ -88,7 +88,7 @@ def _print_status_table(names: list, already_denied: set, found: dict) -> None:
     for name in names:
         if name in already_denied:
             status = "ALREADY DENIED"
-            lineup = "-"
+            lineup = str(found[name]['lineup_count']) if name in found else "-"
         elif name in found:
             status = "FOUND"
             lineup = str(found[name]['lineup_count'])
@@ -102,34 +102,35 @@ def _print_status_table(names: list, already_denied: set, found: dict) -> None:
 def _confirm_delete(names: list, already_denied: set, found: dict) -> None:
     """Delete comedian + lineup_items for FOUND names; add FOUND + NOT IN DB to deny list.
 
-    ALREADY DENIED names are skipped entirely — already handled.
+    ALREADY DENIED names still have their comedian records deleted if present —
+    being on the deny list does not imply the comedian row was previously removed.
     """
-    names_to_process = [n for n in names if n not in already_denied]
-    found_names = [n for n in names_to_process if n in found]
-    not_in_db_names = [n for n in names_to_process if n not in found]
+    names_to_deny = [n for n in names if n not in already_denied]
+    not_in_db_names = [n for n in names_to_deny if n not in found]
 
-    found_uuids = [found[n]['uuid'] for n in found_names]
+    # Delete DB records for ALL names that have them (including ALREADY DENIED).
+    all_uuids = [found[n]['uuid'] for n in names if n in found]
 
     with get_transaction() as conn:
         with conn.cursor() as cur:
             deleted_items = 0
             deleted_comedians = 0
 
-            if found_uuids:
+            if all_uuids:
                 cur.execute(
                     "DELETE FROM lineup_items WHERE comedian_id = ANY(%s)",
-                    (found_uuids,),
+                    (all_uuids,),
                 )
                 deleted_items = cur.rowcount
                 cur.execute(
                     "DELETE FROM comedians WHERE uuid = ANY(%s)",
-                    (found_uuids,),
+                    (all_uuids,),
                 )
                 deleted_comedians = cur.rowcount
 
             deny_rows = [
                 (name, 'manual_removal', 'remove_comedians_script')
-                for name in names_to_process
+                for name in names_to_deny
             ]
             if deny_rows:
                 execute_values(
@@ -193,24 +194,22 @@ def main() -> int:
 
     # Preflight: check deny list for all names before any comedian table lookup.
     already_denied = _check_deny_list(names)
-    if len(already_denied) == len(names):
-        print(f"All {len(names)} name(s) are already in the deny list — nothing to do.")
-        return 0
 
-    # Look up remaining names in the comedians table.
-    names_to_check = [n for n in names if n not in already_denied]
-    found = _lookup_comedians(names_to_check)
+    # Look up ALL names in the comedians table (including denied — they may still have records).
+    found = _lookup_comedians(names)
 
     # Print status table.
     _print_status_table(names, already_denied, found)
 
     if not args.confirm:
-        found_count = sum(1 for n in names if n in found)
+        found_count = sum(1 for n in names if n not in already_denied and n in found)
         not_in_db_count = sum(1 for n in names if n not in already_denied and n not in found)
+        denied_with_records = sum(1 for n in names if n in already_denied and n in found)
         print(
             f"Dry-run: {found_count} FOUND, {not_in_db_count} NOT IN DB, "
-            f"{len(already_denied)} ALREADY DENIED. "
-            "Pass --confirm to execute."
+            f"{len(already_denied)} ALREADY DENIED"
+            + (f" ({denied_with_records} with DB records to delete)" if denied_with_records else "")
+            + ". Pass --confirm to execute."
         )
         return 0
 
