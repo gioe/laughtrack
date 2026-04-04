@@ -7,55 +7,13 @@ Covers:
 3. Idempotency — clubs already having a timezone are not passed to UPDATE
 """
 
-import importlib.util
 import sys
-from pathlib import Path
-from types import ModuleType
+from typing import TypeVar as _TypeVar
 
 import pytest
 from unittest.mock import MagicMock, patch
 
-# ---------------------------------------------------------------------------
-# Bootstrap (mirrors test_club_handler.py pattern)
-# ---------------------------------------------------------------------------
-_SCRAPER_ROOT = Path(__file__).parents[3]  # apps/scraper/
-
-
-def _load_module(rel_path: str, module_name: str):
-    path = _SCRAPER_ROOT / rel_path
-    spec = importlib.util.spec_from_file_location(module_name, path)
-    mod = importlib.util.module_from_spec(spec)
-    sys.modules[module_name] = mod
-    _ensure_psycopg2_stubbed()
-    spec.loader.exec_module(mod)
-    return mod
-
-
-def _ensure_psycopg2_stubbed():
-    if "psycopg2" not in sys.modules:
-        psycopg2 = ModuleType("psycopg2")
-        extras = ModuleType("psycopg2.extras")
-        extras.DictRow = dict
-        extras.execute_values = MagicMock()
-        extensions = ModuleType("psycopg2.extensions")
-        extensions.connection = object
-        psycopg2.extras = extras
-        psycopg2.extensions = extensions
-        sys.modules["psycopg2"] = psycopg2
-        sys.modules["psycopg2.extras"] = extras
-        sys.modules["psycopg2.extensions"] = extensions
-
-
-def _stub(name: str, as_package: bool = False, **attrs):
-    m = ModuleType(name)
-    if as_package:
-        pkg_path = str(_SCRAPER_ROOT / "src" / name.replace(".", "/"))
-        m.__path__ = [pkg_path]
-        m.__package__ = name
-    for k, v in attrs.items():
-        setattr(m, k, v)
-    sys.modules.setdefault(name, m)
-    return m
+from _entities_test_helpers import _load_module, _stub, _ensure_psycopg2_stubbed
 
 
 _stub("laughtrack.foundation.protocols.database_entity", DatabaseEntity=object)

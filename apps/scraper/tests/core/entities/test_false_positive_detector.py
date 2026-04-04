@@ -12,23 +12,9 @@ Covers all detection criteria:
   8. Real comedian names pass through (no false positive)
 """
 
-import importlib.util
 import sys
-from pathlib import Path
 
-# ---------------------------------------------------------------------------
-# Load the detector module directly (no package deps)
-# ---------------------------------------------------------------------------
-_SCRAPER_ROOT = Path(__file__).parents[3]  # apps/scraper/
-
-
-def _load_module(rel_path: str, module_name: str):
-    path = _SCRAPER_ROOT / rel_path
-    spec = importlib.util.spec_from_file_location(module_name, path)
-    mod = importlib.util.module_from_spec(spec)
-    sys.modules[module_name] = mod
-    spec.loader.exec_module(mod)
-    return mod
+from _entities_test_helpers import _load_module
 
 
 _detector_mod = _load_module(
