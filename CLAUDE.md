@@ -27,6 +27,35 @@ For platform-specific venue onboarding guides (StageTime, Prekindle, Humanitix, 
 
 For testing patterns when writing scraper tests (smoke tests, module loading, mocking, async, VCR cassettes, etc.), see `apps/scraper/CONTRIBUTING.md`.
 
+## Scraper Tests — Module-Level sys.modules Stubs Persist Across Session
+
+Several scraper test files (e.g., `test_comedian_handler.py`, `test_lineup_handler.py`,
+`test_social_refresh.py`) inject module stubs at **module level** using
+`sys.modules.setdefault(name, stub)`. These stubs persist for the entire pytest session.
+
+**Risk**: Any `__post_init__` or lazy import that reads from a stubbed module and writes
+back to `self.X` will silently corrupt instance state. For example, if
+`ComedianUtils` is stubbed as a `MagicMock`, then:
+
+```python
+# In Comedian.__post_init__ — self.name gets assigned a MagicMock
+normalized = ComedianUtils.normalize_name(self.name)  # returns MagicMock
+self.name = normalized  # ← corrupts the name
+```
+
+**Rule**: When writing or modifying `__post_init__` methods that lazily import from
+`laughtrack.utilities.*`, do NOT assign the return value back to `self.X` unless you
+also add a guard:
+
+```python
+normalized = ComedianUtils.normalize_name(self.name)
+if isinstance(normalized, str) and normalized:
+    self.name = normalized
+```
+
+Long-term fix: refactor module-level stubs to use `pytest` fixtures with `monkeypatch`
+so cleanup happens automatically after each test (tracked in TASK-920).
+
 ## Scraper Tests — Patching `execute_values`
 
 `base_handler.py` imports `execute_values` directly:
@@ -73,6 +102,26 @@ file is named differently.
 from .data import MyVenuePageData   # ✓ file is data.py
 # from .page_data import ...        # ✗ breaks the import
 ```
+
+## Eventbrite — Two Distinct Category Numbering Systems
+
+The Eventbrite API uses **different category/subcategory IDs** depending on which endpoint is called:
+
+- **Venue/organizer list API** (`/venues/{id}/events/`, `/organizers/{id}/events/`):
+  - `category_id=103` → Music (DJ sets, karaoke, concerts)
+  - `category_id=105` → Performing & Visual Arts (comedy is subcategory `5010`)
+
+- **Search API** (`/events/search/`), used by `EventbriteNationalScraper`:
+  - `category_id=103` → Performing & Visual Arts
+  - `subcategory_id=103003` → Comedy
+
+Filters in `EventbriteEvent.to_show()` must account for both paths — blocking `category_id=103`
+alone would drop comedy events fetched via the national scraper path. The constants
+`_MUSIC_CATEGORY_ID` and `_COMEDY_SUBCATEGORY_IDS` in `entities/event/eventbrite.py` encode
+this duality.
+
+Also note: `category_id` and `subcategory_id` are **top-level fields** in both API responses
+and are returned without needing to include them in the `expand` parameter.
 
 ## Scraper Documentation — Verify API Endpoints from Client Source
 
@@ -395,3 +444,59 @@ If files show as `??` (untracked) after a `tusk commit` call, stage and commit t
 git add <file1> <file2> && git commit -m "[TASK-<id>] <message>" \
   --trailer "Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 ```
+
+## Scraper Tests — Patching Logger Calls
+
+Always patch `Logger` at the **usage site** (the handler/scraper module), not on the
+Logger class method directly:
+
+```python
+# ✗ Wrong — breaks when Logger in the handler is the real class (loaded before stubs)
+logger_mod = sys.modules.get("laughtrack.foundation.infrastructure.logger.logger")
+with patch.object(logger_mod.Logger, "warn") as mock_warn:
+    handler.some_method()
+mock_warn.assert_called_once()
+
+# ✓ Correct — patches the name in the handler module's namespace
+with patch.object(_handler_mod, "Logger") as mock_logger:
+    handler.some_method()
+mock_logger.warn.assert_called_once()
+```
+
+Patching the class method (`patch.object(Logger_class, "warn")`) fails silently when
+the real logger module has already been loaded into sys.modules by an earlier test
+(e.g. test_scraper_resolver.py) — the handler's `Logger` reference is the real class,
+but the patch and the reference diverge under certain session orderings.
+
+## Scraper Tests — Direct sys.modules Assignment Must Save/Restore
+
+When a test helper function uses `sys.modules[name] = m` (direct assignment, not
+`setdefault`) to register stubs, it MUST save and restore the affected entries using
+try/finally — or it will corrupt the session for every test that runs afterward:
+
+```python
+# ✗ Wrong — permanently replaces real modules; breaks downstream tests in full suite
+def _load_module_with_stubs():
+    sys.modules["some.real.module"] = stub_module
+    spec.loader.exec_module(mod)
+    return mod
+
+# ✓ Correct — save/restore so the stubs only live during module loading
+def _load_module_with_stubs():
+    _saved = {name: sys.modules.get(name) for name in _stub_names}
+    try:
+        for name in _stub_names:
+            sys.modules[name] = create_stub(name)
+        spec.loader.exec_module(mod)
+        return mod
+    finally:
+        for name, original in _saved.items():
+            if original is None:
+                sys.modules.pop(name, None)
+            else:
+                sys.modules[name] = original
+```
+
+`setdefault` is safe (only sets if absent), but `sys.modules[name] = m` overwrites
+existing entries and leaves them replaced for the rest of the pytest session.
+The save/restore pattern is required whenever direct assignment is used.
