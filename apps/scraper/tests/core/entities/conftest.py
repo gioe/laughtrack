@@ -22,16 +22,21 @@ _SCRAPER_ROOT = Path(__file__).parents[3]
 
 
 # ---------------------------------------------------------------------------
-# Shared helpers (importable by test files in this directory via
-# `from conftest import _load_module, _stub, ...`)
+# Shared helpers (available to test files via `from _entities_test_helpers import ...`)
 # ---------------------------------------------------------------------------
 
 def _load_module(rel_path: str, module_name: str):
-    """Import a single .py file as a module without triggering __init__.py chains."""
+    """Import a single .py file as a module without triggering __init__.py chains.
+
+    Idempotent: returns the already-loaded module if module_name is already in
+    sys.modules, avoiding double-execution for shared canonical names.
+    """
+    if module_name in sys.modules:
+        return sys.modules[module_name]
     path = _SCRAPER_ROOT / rel_path
     spec = importlib.util.spec_from_file_location(module_name, path)
     mod = importlib.util.module_from_spec(spec)
-    sys.modules[module_name] = mod
+    sys.modules.setdefault(module_name, mod)
     _ensure_psycopg2_stubbed()
     spec.loader.exec_module(mod)
     return mod
