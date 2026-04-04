@@ -72,7 +72,9 @@ _stub("laughtrack.utilities", as_package=True, TicketUtils=_ticket_utils_stub)
 # Load TicketQueries
 _ticket_queries_mod = _load_module("sql/ticket_queries.py", "sql.ticket_queries_direct")
 TicketQueries = _ticket_queries_mod.TicketQueries
-sys.modules.setdefault("sql.ticket_queries", _ticket_queries_mod)
+# Direct assignment — override any MagicMock stub placed by earlier test files
+# (e.g. test_lineup_handler stubs sql.ticket_queries for ShowHandler loading).
+sys.modules["sql.ticket_queries"] = _ticket_queries_mod
 # Do NOT register "sql" as a plain module — it is a real package on the pythonpath
 # (apps/scraper/sql/) and must remain importable for sibling test files.
 
