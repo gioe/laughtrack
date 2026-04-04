@@ -5,6 +5,15 @@ import { withSentryConfig } from '@sentry/nextjs';
 // They are server-side-only credentials read directly via process.env in lib/db.ts
 // and prisma/schema.prisma. Listing them here would expose them in the client bundle.
 const nextConfig = {
+  async redirects() {
+    return [
+      {
+        source: '/shows',
+        destination: '/show/search',
+        permanent: true,
+      },
+    ];
+  },
   images: {
     minimumCacheTTL: 0,
     dangerouslyAllowSVG: true,
