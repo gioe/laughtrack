@@ -59,7 +59,7 @@ const TermsPage = async () => {
                         laws of both the Laughtrack and foreign countries. Our
                         trademarks and trade dress may not be used in connection
                         with any product or service without the prior written
-                        consent of [Your Company Name].
+                        consent of Laughtrack Digital, LLC.
                     </p>
                 </div>
 
