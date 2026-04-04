@@ -16,19 +16,11 @@ import pytest
 from _entities_test_helpers import _load_module, _stub
 
 
-# Foundation stubs
-_stub("laughtrack.foundation.protocols.database_entity", DatabaseEntity=object)
-_stub("laughtrack.foundation.protocols", as_package=True, DatabaseEntity=object)
-_stub("laughtrack.foundation.infrastructure.logger.logger", Logger=MagicMock())
-_stub("laughtrack.foundation.infrastructure.logger", as_package=True, Logger=MagicMock())
-_stub("laughtrack.foundation.infrastructure.database.operation", DatabaseOperationLogger=MagicMock())
-_stub("laughtrack.foundation.infrastructure.database", as_package=True, DatabaseOperationLogger=MagicMock())
-_stub("laughtrack.foundation.infrastructure", as_package=True, Logger=MagicMock())
+# Non-foundation stubs (foundation modules are registered by conftest.py)
 from typing import TypeVar as _TypeVar
 _T = _TypeVar("T")
 _stub("laughtrack.foundation.models.types", T=_T, JSONDict=dict)
 _stub("laughtrack.foundation.models", as_package=True, T=_T)
-_stub("laughtrack.foundation", as_package=True, DatabaseEntity=object)
 _stub("laughtrack.adapters.db", create_connection=MagicMock())
 _stub("laughtrack.adapters", as_package=True, create_connection=MagicMock())
 
