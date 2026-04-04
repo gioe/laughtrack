@@ -42,6 +42,7 @@ class Comedian(DatabaseEntity):
 
     def __post_init__(self):
         """Initialize the comedian with a deterministic UUID based on normalized name if not provided."""
+        self.name = self.name.strip()
         if self.uuid is None:
             from laughtrack.utilities.domain.comedian.utils import ComedianUtils
 
