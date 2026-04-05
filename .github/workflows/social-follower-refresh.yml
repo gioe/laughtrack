@@ -2,8 +2,8 @@ name: Social Follower Refresh
 
 on:
   schedule:
-    # Weekly on Sunday at 08:00 UTC (04:00 ET / 00:00 PT)
-    - cron: '0 8 * * 0'
+    # Bi-weekly: 1st and 15th of each month at 08:00 UTC (04:00 ET / 00:00 PT)
+    - cron: '0 8 1,15 * *'
   workflow_dispatch:
 
 jobs:
@@ -54,7 +54,8 @@ jobs:
           INSTAGRAM_APP_ID: ${{ secrets.INSTAGRAM_APP_ID }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
-          python -m scripts.core.refresh_social_followers --platform all
+          python -m scripts.core.refresh_social_followers --platform youtube
+          python -m scripts.core.refresh_social_followers --platform tiktok
 
       - name: Update comedian popularity scores
         if: success()
