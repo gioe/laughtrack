@@ -18,6 +18,8 @@ import AnonymousLocationSection from "@/ui/pages/home/comedians-near-you/Anonymo
 import TrendingClubsCarousel from "@/ui/pages/home/clubs";
 import ShowDiscoverySection from "@/ui/pages/home/shows";
 import FooterComponent from "@/ui/pages/home/footer";
+import JsonLd from "@/ui/components/JsonLd";
+import { buildWebSiteJsonLd } from "@/util/jsonLd";
 
 export interface HomePageData {
     comedians: ComedianDTO[];
@@ -89,6 +91,7 @@ export default async function HomePage() {
 
     return (
         <main id="main-content" className="min-h-screen w-full">
+            <JsonLd data={buildWebSiteJsonLd()} />
             <HeroComponent profile={session?.profile} />
             <section className="w-full bg-white">
                 <TrendingComedianGrid comedians={comedians} />
