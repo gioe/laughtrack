@@ -60,9 +60,11 @@ const getSortOptions = (variant: SearchVariant, isAdmin = false) => {
 const FilterBar = ({ variant, total, filterData, isAdmin }: FilterBarProps) => {
     const { getTypedParam, setTypedParam } = useUrlParams();
     const isClubSearch = variant === SearchVariant.AllClubs;
-    const includeEmpty = isClubSearch
-        ? (getTypedParam("includeEmpty") ?? false)
-        : false;
+    const isComedianSearch = variant === SearchVariant.AllComedians;
+    const includeEmpty =
+        isClubSearch || isComedianSearch
+            ? (getTypedParam("includeEmpty") ?? false)
+            : false;
 
     const filtersParam: string = getTypedParam("filters") ?? "";
     const selectedSlugs = useMemo(
@@ -105,7 +107,7 @@ const FilterBar = ({ variant, total, filterData, isAdmin }: FilterBarProps) => {
                                 />
                             )}
 
-                            {isClubSearch && (
+                            {(isClubSearch || isComedianSearch) && (
                                 <label className="flex items-center gap-1.5 text-sm text-copper/70 whitespace-nowrap cursor-pointer select-none">
                                     <input
                                         type="checkbox"

@@ -14,6 +14,7 @@ export async function GET(req: NextRequest) {
     const filters = sp.get("filters") ?? undefined;
     const page = sp.get("page");
     const size = sp.get("size") ?? undefined;
+    const includeEmpty = sp.get("includeEmpty") ?? undefined;
 
     const timezone = req.headers.get("X-Timezone") ?? "UTC";
 
@@ -28,6 +29,7 @@ export async function GET(req: NextRequest) {
                 comedian,
                 sort,
                 filters,
+                includeEmpty,
                 // QueryHelper uses 1-indexed pages; API is 0-indexed
                 page:
                     page !== null && page !== undefined

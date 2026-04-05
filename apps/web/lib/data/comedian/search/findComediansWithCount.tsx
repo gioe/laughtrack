@@ -107,12 +107,16 @@ export async function findComediansWithCount(
         ? COMEDIAN_SORT_MAP_ADMIN
         : COMEDIAN_SORT_MAP;
     try {
+        const includeEmpty = helper.params.includeEmpty === "true";
         const whereClause: Prisma.ComedianWhereInput = {
             ...helper.getComedianNameClause(),
             ...helper.getComedianFiltersClause(),
             parentComedian: {
                 is: null,
             },
+            ...(!includeEmpty && {
+                lineupItems: { some: { show: { date: { gt: new Date() } } } },
+            }),
         };
 
         const upcomingCountSelect = buildUpcomingCountSelect();
@@ -145,6 +149,16 @@ export async function findComediansWithCount(
             if (comedianName) {
                 whereConditions.push(
                     Prisma.sql`c.name ILIKE ${"%" + comedianName + "%"}`,
+                );
+            }
+
+            if (!includeEmpty) {
+                whereConditions.push(
+                    Prisma.sql`EXISTS (
+                        SELECT 1 FROM "lineup_items" li
+                        JOIN "shows" s ON li."show_id" = s.id
+                        WHERE li."comedian_id" = c.uuid AND s.date > NOW()
+                    )`,
                 );
             }
 

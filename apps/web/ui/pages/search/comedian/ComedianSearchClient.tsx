@@ -21,6 +21,7 @@ const ComedianSearchClient = ({
         comedian: searchParams.get("comedian") ?? undefined,
         sort: searchParams.get("sort") ?? undefined,
         filters: searchParams.get("filters") ?? undefined,
+        includeEmpty: searchParams.get("includeEmpty") ?? undefined,
     };
 
     const {
