@@ -93,7 +93,7 @@ setup-venv:
 		echo "✅ Virtual environment already exists at $(VENV_DIR)/"; \
 	fi
 
-.PHONY: test test-all test-venues test-core test-infrastructure test-utils test-critical help help-full help-install help-test help-lint hdiscover help-clean help-linting help-testing help-scraping help-setup help-analysis help-viz help-maintenance help-update help-updates help-workflows help-discovery help-info help-cleanup scrape-all scrape-club scrape-club-id diagnose-club scrape-interactive scrape-types list-scrapers list-clubs update-popularity update-comedian-stats sync-club-images migrate migrate-dry-run dashboard visualize-metrics scraper-status daily-scrape full-maintenance install install-dev install-optional seatengine-api-tool clean lint lint-check format format-check lint-fix lint-fix-imports lint-fix-whitespace check-venv setup-venv arch-lint run-script
+.PHONY: test test-all test-venues test-core test-infrastructure test-utils test-critical help help-full help-install help-test help-lint hdiscover help-clean help-linting help-testing help-scraping help-setup help-analysis help-viz help-maintenance help-update help-updates help-workflows help-discovery help-info help-cleanup scrape-all scrape-club scrape-club-id diagnose-club scrape-interactive scrape-types list-scrapers list-clubs update-popularity update-comedian-stats sync-club-images audit-cdn-images migrate migrate-dry-run dashboard visualize-metrics scraper-status daily-scrape full-maintenance install install-dev install-optional seatengine-api-tool clean lint lint-check format format-check lint-fix lint-fix-imports lint-fix-whitespace check-venv setup-venv arch-lint run-script
 
 # =============================================================================
 # HELP & DOCUMENTATION
@@ -193,6 +193,7 @@ help-maintain:
 	@echo "📊 DATA MAINTENANCE & UPDATES:"
 	@echo "  update-popularity    - Recalculate venue/show popularity scores"
 	@echo "  update-comedian-stats - Update comedian follower counts and statistics"
+	@echo "  audit-cdn-images     - Check CDN for comedian/club image mismatches (ARGS='--update' to fix)"
 
 help-analyze:
 	@echo "📈 ANALYSIS & VISUALIZATION:"
@@ -674,6 +675,15 @@ sync-club-images:
 	@echo "🖼️ Syncing club has_image flags with CDN..."
 	@echo "   → Checking laughtrack.b-cdn.net/clubs/ for each club"
 	$(activate_venv) $(PYTHON) scripts/core/sync_club_images.py --update
+
+# Audit CDN images - HEAD-check comedian and club CDN URLs, report has_image mismatches
+# Usage: make audit-cdn-images              (dry-run, report only)
+#        make audit-cdn-images ARGS="--update"  (fix mismatches in DB)
+audit-cdn-images:
+	@echo "🔍 Auditing CDN images for comedians and clubs..."
+	@echo "   → Checking laughtrack.b-cdn.net for has_image mismatches"
+	$(activate_venv) $(PYTHON) scripts/core/audit_comedian_images.py $(ARGS)
+	$(activate_venv) $(PYTHON) scripts/core/sync_club_images.py $(ARGS)
 
 # Source comedian images - fetch from Wikidata/TMDb and upload to Bunny CDN
 source-images:
