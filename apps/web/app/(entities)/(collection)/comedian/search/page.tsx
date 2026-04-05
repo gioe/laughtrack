@@ -29,11 +29,12 @@ export async function generateMetadata(props: {
     const baseUrl = process.env.NEXT_PUBLIC_WEBSITE_URL;
     const url = baseUrl ? `${baseUrl}/comedian/search` : undefined;
 
+    const ogTitle = `${title} | LaughTrack`;
     return {
         title,
         description,
         openGraph: {
-            title,
+            title: ogTitle,
             description,
             type: "website",
             ...(url && { url }),

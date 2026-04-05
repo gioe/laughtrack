@@ -43,11 +43,12 @@ export async function generateMetadata(props: {
         comedian?.hasImage ?? false,
     );
 
+    const ogTitle = `${title} | LaughTrack`;
     return {
         title,
         description,
         openGraph: {
-            title,
+            title: ogTitle,
             description,
             type: "website",
             ...(url && { url }),
