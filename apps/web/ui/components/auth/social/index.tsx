@@ -47,6 +47,7 @@ interface SocialAuthButtonsProps {
 const SocialAuthButtons = ({
     actionText = "Continue",
     handleGoogleSignin,
+    handleAppleSignin,
 }: SocialAuthButtonsProps) => {
     const { mv, mt } = useMotionProps();
 
@@ -75,12 +76,11 @@ const SocialAuthButtons = ({
                     {actionText} with Google
                 </SocialButton>
             </motion.div>
-            {/* Uncomment when Apple sign-in is ready */}
-            {/* <motion.div variants={item}>
-                <SocialButton provider="apple" onClick={handleAppleSignin}>
+            <motion.div variants={item}>
+                <SocialButton provider="apple" onClick={handleAppleSignin!}>
                     {actionText} with Apple
                 </SocialButton>
-            </motion.div> */}
+            </motion.div>
         </motion.div>
     );
 };
