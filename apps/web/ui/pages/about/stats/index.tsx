@@ -16,7 +16,7 @@ const StatsSection: React.FC<StatsSectionProps> = ({
         <div className="w-full bg-coconut-cream py-16">
             <div className="max-w-7xl mx-auto px-4">
                 {/* Stats Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-12">
+                <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 gap-8 mb-12">
                     {/* Clubs Stat */}
                     <div className="flex flex-col items-center">
                         <Theater className="w-12 h-12 text-copper mb-4" />
