@@ -59,9 +59,9 @@ const ComedianGrid = ({
                 </motion.div>
             ) : (
                 <div className="flex flex-col items-center justify-center py-12 px-4">
-                    <h2 className="font-bold font-dmSans text-[48px] text-center text-cedar mb-4">
+                    <h3 className="font-bold font-dmSans text-[48px] text-center text-cedar mb-4">
                         No results found
-                    </h2>
+                    </h3>
                     <p className="text-gray-600 text-center text-lg font-dmSans">
                         That person must not be funny enough.
                     </p>
