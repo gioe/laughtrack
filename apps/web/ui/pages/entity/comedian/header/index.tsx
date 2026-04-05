@@ -61,7 +61,7 @@ const ComedianDetailHeader: React.FC<ClubDetailHeaderProps> = ({
                             src={comedian.imageUrl}
                             alt={parsedComedian.name}
                             fill
-                            className={`object-cover object-top transition-opacity duration-500 ${
+                            className={`object-cover object-[center_25%] transition-opacity duration-500 ${
                                 imageLoaded ? "opacity-100" : "opacity-0"
                             }`}
                             onError={() => setError(true)}
