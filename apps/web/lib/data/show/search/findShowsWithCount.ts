@@ -33,6 +33,7 @@ const SHOW_SELECT = {
             name: true,
             address: true,
             zipCode: true,
+            hasImage: true,
         },
     },
     lineupItems: {
@@ -158,7 +159,7 @@ export async function findShowsWithCount(
                 room: show.room,
                 address: show.club.address,
                 clubName: show.club.name,
-                imageUrl: buildClubImageUrl(show.club.name),
+                imageUrl: buildClubImageUrl(show.club.name, show.club.hasImage),
                 soldOut:
                     show.tickets.length > 0 &&
                     show.tickets.every((t) => t.soldOut === true),

@@ -13,6 +13,7 @@ const CLUB_SELECT = {
     state: true,
     website: true,
     zipCode: true,
+    hasImage: true,
 } as const;
 
 // Built fresh per request to avoid capturing a stale module-load Date
@@ -84,7 +85,7 @@ export async function findClubsWithCount(
                 city: club.city ?? undefined,
                 state: club.state ?? undefined,
                 zipCode: club.zipCode,
-                imageUrl: buildClubImageUrl(club.name),
+                imageUrl: buildClubImageUrl(club.name, club.hasImage),
                 show_count: club._count.shows,
                 distanceMiles: computeDistanceMiles(searchedZip, club.zipCode),
             })),

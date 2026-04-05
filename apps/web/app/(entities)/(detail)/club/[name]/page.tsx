@@ -27,7 +27,7 @@ export async function generateMetadata(props: {
         () =>
             db.club.findFirst({
                 where: { name: { equals: name, mode: "insensitive" } },
-                select: { name: true },
+                select: { name: true, hasImage: true },
             }),
         ["club-metadata", name],
         { revalidate: CACHE.detailPage, tags: ["club-metadata", name] },
@@ -39,7 +39,7 @@ export async function generateMetadata(props: {
     const description = `Discover upcoming comedy shows at ${clubName}. Find schedules, tickets, and more on LaughTrack.`;
     const baseUrl = process.env.NEXT_PUBLIC_WEBSITE_URL;
     const url = baseUrl ? `${baseUrl}/club/${slug}` : undefined;
-    const image = buildClubImageUrl(clubName);
+    const image = buildClubImageUrl(clubName, club?.hasImage ?? false);
 
     const ogTitle = `${title} | LaughTrack`;
     return {

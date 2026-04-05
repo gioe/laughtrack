@@ -22,6 +22,7 @@ const HOME_SHOW_SELECT = {
         select: {
             name: true,
             address: true,
+            hasImage: true,
         },
     },
     lineupItems: {
@@ -79,7 +80,7 @@ export async function findShowsForHome(
         date: show.date,
         clubName: show.club.name,
         address: show.club.address,
-        imageUrl: buildClubImageUrl(show.club.name),
+        imageUrl: buildClubImageUrl(show.club.name, show.club.hasImage),
         soldOut:
             show.tickets.length > 0 &&
             show.tickets.every((t) => t.soldOut === true),

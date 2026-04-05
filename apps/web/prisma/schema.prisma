@@ -28,6 +28,7 @@ model Club {
   eventbriteId       String?             @map("eventbrite_id")
   ticketmasterId     String?             @map("ticketmaster_id")
   totalShows         Int                 @default(0) @map("total_shows")
+  hasImage           Boolean             @default(false) @map("has_image")
   status             String              @default("active")
   closedAt           DateTime?           @map("closed_at")
   shows              Show[]

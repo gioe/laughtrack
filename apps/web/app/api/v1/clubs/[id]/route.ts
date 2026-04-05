@@ -30,6 +30,7 @@ export async function GET(
                 address: true,
                 zipCode: true,
                 phoneNumber: true,
+                hasImage: true,
             },
         });
 
@@ -45,7 +46,7 @@ export async function GET(
                 data: {
                     id: club.id,
                     name: club.name,
-                    imageUrl: buildClubImageUrl(club.name),
+                    imageUrl: buildClubImageUrl(club.name, club.hasImage),
                     website: club.website,
                     address: club.address,
                     zipCode: club.zipCode,

@@ -15,6 +15,7 @@ export async function getClubs(limit = 8, offset = 0): Promise<ClubDTO[]> {
                 address: true,
                 zipCode: true,
                 name: true,
+                hasImage: true,
                 shows: {
                     where: {
                         date: {
@@ -42,7 +43,7 @@ export async function getClubs(limit = 8, offset = 0): Promise<ClubDTO[]> {
                 address: club.address,
                 name: club.name,
                 zipCode: club.zipCode,
-                imageUrl: buildClubImageUrl(club.name),
+                imageUrl: buildClubImageUrl(club.name, club.hasImage),
                 active_comedian_count: new Set(
                     club.shows.flatMap((show) =>
                         show.lineupItems.map((item) => item.comedianId),

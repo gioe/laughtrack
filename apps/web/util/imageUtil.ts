@@ -14,7 +14,10 @@ export const buildComedianImageUrl = (name: string, hasImage = true) => {
     ).toString();
 };
 
-export const buildClubImageUrl = (clubName: string) => {
+const CLUB_PLACEHOLDER = "/placeholders/club-placeholder.svg";
+
+export const buildClubImageUrl = (clubName: string, hasImage = true) => {
+    if (!hasImage) return CLUB_PLACEHOLDER;
     const cdnBase = `https://${cdnHost}/`;
     try {
         return new URL(
@@ -22,10 +25,6 @@ export const buildClubImageUrl = (clubName: string) => {
             cdnBase,
         ).toString();
     } catch {
-        try {
-            return new URL(`logo.png`, cdnBase).toString();
-        } catch {
-            return "";
-        }
+        return CLUB_PLACEHOLDER;
     }
 };

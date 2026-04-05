@@ -14,6 +14,7 @@ const CLUB_SELECT = {
     city: true,
     state: true,
     zipCode: true,
+    hasImage: true,
     status: true,
     closedAt: true,
 } as const;
@@ -45,7 +46,7 @@ export async function findClubByName(helper: QueryHelper): Promise<ClubDTO> {
         return {
             name: clubData.name,
             id: clubData.id,
-            imageUrl: buildClubImageUrl(clubData.name),
+            imageUrl: buildClubImageUrl(clubData.name, clubData.hasImage),
             website: clubData.website,
             address: clubData.address,
             city: clubData.city ?? undefined,
