@@ -4,6 +4,7 @@ from typing import Dict, List, Optional, Tuple
 
 from laughtrack.core.data.base_handler import BaseDatabaseHandler
 from laughtrack.core.entities.comedian.handler import ComedianHandler
+from laughtrack.core.entities.comedian.name_splitter import split_combined_name
 from laughtrack.core.entities.lineup.handler import LineupHandler
 from laughtrack.core.entities.tag.handler import TagHandler
 from laughtrack.core.entities.ticket.handler import TicketHandler
@@ -355,6 +356,37 @@ class ShowHandler(BaseDatabaseHandler[Show]):
                 if novel_comedians:
                     show.lineup.extend(novel_comedians)
 
+    def _expand_multi_comedian_lineups(self, shows: List[Show]) -> None:
+        """Expand lineup entries that contain multiple comedian names.
+
+        For each show, splits combined names (e.g. "X & Y", "X with Y") into
+        individual Comedian objects so each person gets their own lineup item.
+        The original combined entry is replaced by the split parts.
+        """
+        from laughtrack.core.entities.comedian.model import Comedian
+
+        for show in shows:
+            expanded: List = []
+            for comedian in show.lineup:
+                parts = split_combined_name(comedian.name)
+                if len(parts) > 1:
+                    Logger.info(
+                        f"lineup_split: '{comedian.name}' → {parts}"
+                    )
+                    for part in parts:
+                        expanded.append(Comedian(name=part))
+                else:
+                    expanded.append(comedian)
+            if len(expanded) != len(show.lineup):
+                # Deduplicate by UUID in case a split name already exists in the lineup
+                seen_uuids = set()
+                deduped = []
+                for c in expanded:
+                    if c.uuid not in seen_uuids:
+                        seen_uuids.add(c.uuid)
+                        deduped.append(c)
+                show.lineup = deduped
+
     def update_show_lineups(self, shows: List[Show]) -> Tuple[int, int]:
         """Update lineups for shows with full processing including comedian popularity updates.
 
@@ -384,6 +416,9 @@ class ShowHandler(BaseDatabaseHandler[Show]):
 
             # Process comedian additions in memory
             self._process_comedian_additions(shows, show_name_comedians_map)
+
+            # Split multi-comedian lineup entries (e.g. "X & Y") into individual items
+            self._expand_multi_comedian_lineups(shows)
 
             # Insert any new comedians before updating lineup links.
             # Determine denied and false-positive names first so we can strip them
