@@ -28,6 +28,8 @@ _BROWSER_UA = (
 )
 # Delay between per-comedian requests to avoid rate-limiting on unofficial endpoints
 _SOCIAL_REQUEST_DELAY_S = float(os.environ.get("SOCIAL_REQUEST_DELAY_S", "1.0"))
+# Abort a platform refresh after this many consecutive failures (e.g. datacenter IP blocked)
+_CIRCUIT_BREAKER_THRESHOLD = int(os.environ.get("SOCIAL_CIRCUIT_BREAKER", "10"))
 
 
 class ComedianHandler(BaseDatabaseHandler[Comedian]):
@@ -389,10 +391,20 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
             return 0
 
         updates: List[tuple] = []
+        consecutive_failures = 0
         for row in rows:
             result = self._fetch_instagram_follower_count(row)
             if result is not None:
                 updates.append(result)
+                consecutive_failures = 0
+            else:
+                consecutive_failures += 1
+                if consecutive_failures >= _CIRCUIT_BREAKER_THRESHOLD:
+                    Logger.warn(
+                        f"refresh_instagram_followers: {_CIRCUIT_BREAKER_THRESHOLD} consecutive "
+                        f"failures — aborting (likely blocked). {len(updates)}/{len(rows)} updated."
+                    )
+                    break
             time.sleep(_SOCIAL_REQUEST_DELAY_S)
 
         if not updates:
@@ -471,10 +483,20 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
             return 0
 
         updates: List[tuple] = []
+        consecutive_failures = 0
         for row in rows:
             result = self._fetch_tiktok_follower_count(row)
             if result is not None:
                 updates.append(result)
+                consecutive_failures = 0
+            else:
+                consecutive_failures += 1
+                if consecutive_failures >= _CIRCUIT_BREAKER_THRESHOLD:
+                    Logger.warn(
+                        f"refresh_tiktok_followers: {_CIRCUIT_BREAKER_THRESHOLD} consecutive "
+                        f"failures — aborting (likely blocked). {len(updates)}/{len(rows)} updated."
+                    )
+                    break
             time.sleep(_SOCIAL_REQUEST_DELAY_S)
 
         if not updates:

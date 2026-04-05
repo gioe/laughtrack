@@ -55,7 +55,6 @@ jobs:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
           python -m scripts.core.refresh_social_followers --platform youtube
-          python -m scripts.core.refresh_social_followers --platform tiktok
 
       - name: Update comedian popularity scores
         if: success()
