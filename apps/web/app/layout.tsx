@@ -65,12 +65,44 @@ const oswald = Oswald({
     variable: "--font-oswald",
 });
 
+const SITE_URL = "https://laugh-track.com";
+const SITE_TITLE = "LaughTrack — Find Live Comedy Near You";
+const SITE_DESCRIPTION =
+    "Discover comedy shows, comedians, and tickets near you. Browse upcoming live comedy events, find your favorite comedians, and never miss a show.";
+const OG_IMAGE = `${SITE_URL}/logomark-512.png`;
+
 export const metadata: Metadata = {
     title: {
-        default: "LaughTrack — Find Live Comedy Near You",
+        default: SITE_TITLE,
         template: "%s | LaughTrack",
     },
-    description: "Find funny stuff",
+    description: SITE_DESCRIPTION,
+    metadataBase: new URL(SITE_URL),
+    alternates: {
+        canonical: "/",
+    },
+    openGraph: {
+        title: SITE_TITLE,
+        description: SITE_DESCRIPTION,
+        url: SITE_URL,
+        siteName: "LaughTrack",
+        type: "website",
+        images: [
+            {
+                url: OG_IMAGE,
+                width: 512,
+                height: 512,
+                alt: "LaughTrack",
+            },
+        ],
+    },
+    twitter: {
+        card: "summary",
+        title: SITE_TITLE,
+        description: SITE_DESCRIPTION,
+        images: [OG_IMAGE],
+        site: "@laughtrackapp",
+    },
     icons: {
         icon: [
             { url: "/logomark-32.png", sizes: "32x32", type: "image/png" },
