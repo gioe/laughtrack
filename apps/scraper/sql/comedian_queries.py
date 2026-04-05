@@ -159,3 +159,34 @@ class ComedianQueries:
         SET has_image = true
         WHERE name = ANY(%s)
     '''
+
+    # Website scraping metadata queries
+
+    GET_COMEDIANS_WITH_WEBSITES = '''
+        SELECT uuid, name, website, website_discovery_source,
+               website_last_scraped, website_scrape_strategy
+        FROM comedians
+        WHERE website IS NOT NULL
+          AND website <> ''
+        ORDER BY name
+    '''
+
+    GET_COMEDIANS_FOR_WEBSITE_SCRAPING = '''
+        SELECT uuid, name, website, website_discovery_source,
+               website_last_scraped, website_scrape_strategy
+        FROM comedians
+        WHERE website IS NOT NULL
+          AND website <> ''
+          AND (website_last_scraped IS NULL
+               OR website_last_scraped < NOW() - INTERVAL '7 days')
+        ORDER BY website_last_scraped ASC NULLS FIRST
+    '''
+
+    UPDATE_COMEDIAN_WEBSITE_SCRAPE_METADATA = '''
+        UPDATE comedians AS c
+        SET website_discovery_source = v.discovery_source,
+            website_last_scraped = v.last_scraped::timestamptz,
+            website_scrape_strategy = v.scrape_strategy
+        FROM (VALUES %s) AS v(uuid, discovery_source, last_scraped, scrape_strategy)
+        WHERE c.uuid = v.uuid::text
+    '''
