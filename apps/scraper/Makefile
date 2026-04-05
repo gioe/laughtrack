@@ -669,8 +669,14 @@ update-comedian-stats:
 	@echo "   → Refreshing social media followers and show performance metrics"
 	$(activate_venv) $(PYTHON) scripts/core/update_comedian_stats.py
 
+# Source comedian images - fetch from Wikidata/TMDb and upload to Bunny CDN
+source-images:
+	@echo "📸 Sourcing comedian images from Wikidata and TMDb..."
+	@echo "   → Processing comedians with has_image=false"
+	$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.source_comedian_images $(ARGS)
+
 # =============================================================================
-# ANALYSIS & VISUALIZATION  
+# ANALYSIS & VISUALIZATION
 # =============================================================================
 
 # Generate HTML analytics dashboard - comprehensive static dashboard with charts and metrics
