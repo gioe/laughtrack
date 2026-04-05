@@ -1,5 +1,5 @@
 export type SearchTheme = "brand" | "dark" | "warm";
-export type HeroVariant = "comedian" | "club";
+export type HeroVariant = "comedian" | "club" | "show";
 
 interface HeroThemeClasses {
     container: string;
@@ -45,6 +45,24 @@ const THEME_CLASSES: Record<
         },
         warm: {
             container: "bg-gradient-to-r from-amber-700 to-[#B95D3B]",
+            title: "text-white",
+            subtitle: "text-amber-100",
+        },
+    },
+    show: {
+        brand: {
+            container: "bg-gradient-to-br from-cedar to-copper",
+            title: "text-white",
+            subtitle: "text-white/80",
+        },
+        dark: {
+            container:
+                "bg-gradient-to-br from-gray-900 via-[#2A1208] to-[#8B5523]",
+            title: "text-white",
+            subtitle: "text-gray-300",
+        },
+        warm: {
+            container: "bg-gradient-to-br from-amber-700 to-[#B95D3B]",
             title: "text-white",
             subtitle: "text-amber-100",
         },

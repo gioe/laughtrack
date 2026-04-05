@@ -5,6 +5,7 @@ import { unstable_cache } from "next/cache";
 import { getSearchedShows } from "@/lib/data/show/search/getSearchedShows";
 import { ParameterizedRequestData } from "@/objects/interface";
 import { toSearchParams } from "@/util/search/toSearchParams";
+import SearchDetailHeader from "@/ui/pages/search/header";
 import FilterBar from "@/ui/pages/search/filterBar";
 import ShowSearchClient from "@/ui/pages/search/show/ShowSearchClient";
 import FilterModal from "@/ui/components/modals/filter";
@@ -114,6 +115,14 @@ export default async function ShowSearchPage(props: any) {
     return (
         <>
             <FilterModal filters={filters} total={total} />
+
+            <SearchDetailHeader
+                title="Search shows"
+                subTitle={`${total} results`}
+                variant="show"
+                tagline="Find upcoming comedy shows near you"
+            />
+
             <FilterBar
                 variant={SearchVariant.AllShows}
                 total={total}
