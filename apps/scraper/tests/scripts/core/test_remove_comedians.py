@@ -239,7 +239,7 @@ class TestMain:
             result = _mod.main()
         assert result == 0
         out = capsys.readouterr().out
-        assert "already in the deny list" in out
+        assert "ALREADY DENIED" in out
 
     def test_dry_run_does_not_call_confirm(self, capsys):
         with patch('sys.argv', ['script', '--name', 'John Doe']), \
