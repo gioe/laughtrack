@@ -68,7 +68,7 @@ def main():
         # Import scraper after path setup
         from laughtrack.scrapers.implementations.api.comedian_websites.scraper import ComedianWebsiteScraper
 
-        scraper = ComedianWebsiteScraper(club)
+        scraper = ComedianWebsiteScraper(club, comedian_name=args.comedian_name, limit=args.limit)
 
         # Get the list of comedians that would be scraped
         comedians = scraper._get_comedians_for_scraping(

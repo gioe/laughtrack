@@ -14,7 +14,7 @@ Triggered by a single clubs row with scraper='comedian_websites'.
 import asyncio
 import os
 from datetime import datetime, timezone
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 from laughtrack.core.entities.club.handler import ClubHandler
 from laughtrack.core.entities.club.model import Club
@@ -54,12 +54,14 @@ class ComedianWebsiteScraper(BaseScraper):
     _DEFAULT_MAX_CONCURRENT = 5
     _REQUEST_TIMEOUT = 30
 
-    def __init__(self, club: Club, **kwargs):
+    def __init__(self, club: Club, comedian_name: Optional[str] = None, limit: Optional[int] = None, **kwargs):
         super().__init__(club, **kwargs)
         self._club_handler = ClubHandler()
         self._comedian_handler = ComedianHandler()
         self._show_handler = ShowHandler()
         self._lineup_handler = LineupHandler()
+        self._comedian_name_filter = comedian_name
+        self._limit = limit
 
     # ------------------------------------------------------------------ #
     # BaseScraper pipeline                                                 #
@@ -84,7 +86,9 @@ class ComedianWebsiteScraper(BaseScraper):
     async def scrape_async(self) -> List[Show]:
         """Override: fetch comedian websites concurrently, extract JSON-LD events, persist shows + lineups."""
         try:
-            comedian_rows = self._get_comedians_for_scraping()
+            comedian_rows = self._get_comedians_for_scraping(
+                limit=self._limit, comedian_name=self._comedian_name_filter,
+            )
             if not comedian_rows:
                 Logger.info(f"{self._log_prefix}: no comedians with websites needing scrape found", self.logger_context)
                 return []
