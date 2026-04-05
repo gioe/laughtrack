@@ -28,36 +28,38 @@ export function Header({ onClick, currentUser }: HeaderProps) {
     }, [loginModal]);
 
     return (
-        <nav
+        <header
             className={`relative px-4 py-4 ${styleConfig.headerBackgroundColor}`}
         >
-            <div className="flex items-center justify-between lg:hidden">
-                <Link href="/">
-                    <Image
-                        src="/logomark.svg"
-                        alt="Laughtrack"
-                        width={32}
-                        height={32}
-                        className="shrink-0"
-                    />
-                </Link>
-                <HamburgerMenuButton handleClick={() => onClick(true)} />
-            </div>
-            <div className="hidden max-w-7xl mx-auto items-center lg:grid lg:grid-cols-3 ">
-                <div className="col-start-1">
-                    <Logo />
+            <nav aria-label="Main navigation">
+                <div className="flex items-center justify-between lg:hidden">
+                    <Link href="/">
+                        <Image
+                            src="/logomark.svg"
+                            alt="Laughtrack"
+                            width={32}
+                            height={32}
+                            className="shrink-0"
+                        />
+                    </Link>
+                    <HamburgerMenuButton handleClick={() => onClick(true)} />
                 </div>
-                <div className="col-start-2 justify-self-center">
-                    <NavigationMenu pathname={pathname} />
+                <div className="hidden max-w-7xl mx-auto items-center lg:grid lg:grid-cols-3 ">
+                    <div className="col-start-1">
+                        <Logo />
+                    </div>
+                    <div className="col-start-2 justify-self-center">
+                        <NavigationMenu pathname={pathname} />
+                    </div>
+                    <div className="col-start-3 justify-self-end">
+                        <AuthButtons
+                            currentUser={currentUser}
+                            pathname={pathname}
+                            onLogin={handleLoginClick}
+                        />
+                    </div>
                 </div>
-                <div className="col-start-3 justify-self-end">
-                    <AuthButtons
-                        currentUser={currentUser}
-                        pathname={pathname}
-                        onLogin={handleLoginClick}
-                    />
-                </div>
-            </div>
-        </nav>
+            </nav>
+        </header>
     );
 }
