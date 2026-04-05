@@ -1,28 +1,28 @@
 export function isToday(date: Date) {
     const today = new Date();
     return (
-        date.getDate() === today.getDate() &&
-        date.getMonth() === today.getMonth() &&
-        date.getFullYear() === today.getFullYear()
+        date.getUTCDate() === today.getUTCDate() &&
+        date.getUTCMonth() === today.getUTCMonth() &&
+        date.getUTCFullYear() === today.getUTCFullYear()
     );
 }
 
 export function isTomorrow(date: Date) {
     const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1); // Increment tomorrow's date by one day
+    tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
 
     return (
-        date.getDate() === tomorrow.getDate() &&
-        date.getMonth() === tomorrow.getMonth() &&
-        date.getFullYear() === tomorrow.getFullYear()
+        date.getUTCDate() === tomorrow.getUTCDate() &&
+        date.getUTCMonth() === tomorrow.getUTCMonth() &&
+        date.getUTCFullYear() === tomorrow.getUTCFullYear()
     );
 }
 
 export function datesAreSame(date1: Date, date2: Date) {
     return (
-        date1.getFullYear() === date2.getFullYear() &&
-        date1.getMonth() === date2.getMonth() &&
-        date1.getDate() === date2.getDate()
+        date1.getUTCFullYear() === date2.getUTCFullYear() &&
+        date1.getUTCMonth() === date2.getUTCMonth() &&
+        date1.getUTCDate() === date2.getUTCDate()
     );
 }
 
@@ -36,7 +36,8 @@ export function datesAreTomorrow(date1: Date, date2: Date) {
 
 export function formatShowDate(dateString: string): string {
     const date = new Date(dateString);
-    // Month formatting
+    // Use UTC methods to avoid server/client timezone mismatch (hydration error #418).
+    // Show times are stored as UTC timestamps representing venue-local time.
     const months = [
         "January",
         "February",
@@ -51,18 +52,15 @@ export function formatShowDate(dateString: string): string {
         "November",
         "December",
     ];
-    const month = months[date.getMonth()];
+    const month = months[date.getUTCMonth()];
 
-    // Day formatting with suffix
-    const day = date.getDate();
+    const day = date.getUTCDate();
     const suffix = getDaySuffix(day);
 
-    // Time formatting
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
+    const hours = date.getUTCHours();
+    const minutes = date.getUTCMinutes();
     const period = hours >= 12 ? "pm" : "am";
 
-    // Convert to 12-hour format
     const displayHours = hours % 12 || 12;
     const displayMinutes = minutes.toString().padStart(2, "0");
 
