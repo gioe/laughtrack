@@ -105,15 +105,13 @@ def main():
 
     if args.update and (newly_found or newly_missing):
         if newly_found:
-            escaped = [n.replace("'", "''") for n in newly_found]
-            values = ", ".join(f"'{n}'" for n in escaped)
-            cur.execute(f"UPDATE comedians SET has_image = true WHERE name IN ({values})")
+            placeholders = ", ".join(["%s"] * len(newly_found))
+            cur.execute(f"UPDATE comedians SET has_image = true WHERE name IN ({placeholders})", tuple(newly_found))
             print(f"\nUpdated {cur.rowcount} rows to has_image=true")
 
         if newly_missing:
-            escaped = [n.replace("'", "''") for n in newly_missing]
-            values = ", ".join(f"'{n}'" for n in escaped)
-            cur.execute(f"UPDATE comedians SET has_image = false WHERE name IN ({values})")
+            placeholders = ", ".join(["%s"] * len(newly_missing))
+            cur.execute(f"UPDATE comedians SET has_image = false WHERE name IN ({placeholders})", tuple(newly_missing))
             print(f"Updated {cur.rowcount} rows to has_image=false")
 
         conn.commit()
