@@ -28,6 +28,10 @@ class Comedian(DatabaseEntity):
     website: Optional[str] = None
     linktree: Optional[str] = None
     parent_comedian_id: Optional[int] = None
+    # Website scraping metadata
+    website_discovery_source: Optional[str] = None
+    website_last_scraped: Optional[str] = None
+    website_scrape_strategy: Optional[str] = None
     # Recency score: set by the popularity update pipeline, not persisted in DB.
     # Represents normalized recent/upcoming show activity (0.0 = no recent shows, 1.0 = max).
     recency_score: float = 0.0
@@ -88,6 +92,9 @@ class Comedian(DatabaseEntity):
             website=row.get("website"),
             linktree=row.get("linktree"),
             parent_comedian_id=row.get("parent_comedian_id"),
+            website_discovery_source=row.get("website_discovery_source"),
+            website_last_scraped=row.get("website_last_scraped"),
+            website_scrape_strategy=row.get("website_scrape_strategy"),
         )
 
     @classmethod
@@ -112,6 +119,9 @@ class Comedian(DatabaseEntity):
             self.website,
             self.linktree,
             self.parent_comedian_id,
+            self.website_discovery_source,
+            self.website_last_scraped,
+            self.website_scrape_strategy,
         )
 
     def to_unique_key(self) -> tuple:
