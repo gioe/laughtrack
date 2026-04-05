@@ -4,7 +4,7 @@ import os
 from dataclasses import dataclass
 from typing import Optional
 
-import aiohttp
+import requests
 
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
@@ -51,7 +51,7 @@ class BunnyCDNStorageClient:
         path = path.lstrip("/")
         return f"https://{self.region}.storage.bunnycdn.com/{self.storage_zone}/{path}"
 
-    async def upload(self, data: bytes, path: str, content_type: str = "image/png") -> UploadResult:
+    def upload(self, data: bytes, path: str, content_type: str = "image/png") -> UploadResult:
         """Upload file bytes to a path in the storage zone.
 
         Args:
@@ -69,27 +69,26 @@ class BunnyCDNStorageClient:
         }
 
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.put(url, data=data, headers=headers) as response:
-                    status = response.status
+            response = requests.put(url, data=data, headers=headers, timeout=15)
+            status = response.status_code
 
-                    if status == 201:
-                        Logger.info(f"Bunny CDN: uploaded {path} ({len(data)} bytes)")
-                        return UploadResult(success=True, status_code=status, path=path, message="Created")
+            if status == 201:
+                Logger.info(f"Bunny CDN: uploaded {path} ({len(data)} bytes)")
+                return UploadResult(success=True, status_code=status, path=path, message="Created")
 
-                    body = await response.text()
+            body = response.text
 
-                    if status == 401:
-                        Logger.error(f"Bunny CDN: auth failed for {path} (401)")
-                        return UploadResult(success=False, status_code=status, path=path, message="Authentication failed — check BUNNYCDN_STORAGE_PASSWORD")
+            if status == 401:
+                Logger.error(f"Bunny CDN: auth failed for {path} (401)")
+                return UploadResult(success=False, status_code=status, path=path, message="Authentication failed — check BUNNYCDN_STORAGE_PASSWORD")
 
-                    if status == 409:
-                        Logger.warning(f"Bunny CDN: conflict uploading {path} (409)")
-                        return UploadResult(success=False, status_code=status, path=path, message="Conflict — file may already exist")
+            if status == 409:
+                Logger.warning(f"Bunny CDN: conflict uploading {path} (409)")
+                return UploadResult(success=False, status_code=status, path=path, message="Conflict — file may already exist")
 
-                    Logger.error(f"Bunny CDN: upload failed for {path} — HTTP {status}: {body[:200]}")
-                    return UploadResult(success=False, status_code=status, path=path, message=f"HTTP {status}: {body[:200]}")
+            Logger.error(f"Bunny CDN: upload failed for {path} — HTTP {status}: {body[:200]}")
+            return UploadResult(success=False, status_code=status, path=path, message=f"HTTP {status}: {body[:200]}")
 
-        except aiohttp.ClientError as e:
+        except requests.RequestException as e:
             Logger.error(f"Bunny CDN: network error uploading {path} — {e}")
             return UploadResult(success=False, status_code=0, path=path, message=f"Network error: {e}")
