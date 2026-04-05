@@ -445,14 +445,12 @@ class ShowHandler(BaseDatabaseHandler[Show]):
                 inserted_rows = self.comedian_handler.insert_comedians(fp_allowed)
                 comedians_inserted = len(inserted_rows)
 
-                # Source images for newly inserted comedians (non-blocking)
+                # Source images for newly inserted comedians (non-blocking —
+                # source_images_for_new_comedians catches all exceptions internally)
                 if inserted_rows:
                     inserted_uuids = {row["uuid"] for row in inserted_rows}
                     new_names = [c.name for c in fp_allowed if c.uuid in inserted_uuids]
-                    try:
-                        self.comedian_handler.source_images_for_new_comedians(new_names)
-                    except Exception as e:
-                        Logger.warn(f"Image sourcing failed (non-fatal): {e}")
+                    self.comedian_handler.source_images_for_new_comedians(new_names)
 
             # Batch update all lineups at once
             lineup_items_added, _ = self.lineup_handler.batch_update_lineups(shows, db_lineups)

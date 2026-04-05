@@ -10,10 +10,10 @@ raised to callers.
 
 import io
 import os
-import ssl
+import re
+import time
 import urllib.parse
-import urllib.request
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 import requests
 from PIL import Image
@@ -31,10 +31,25 @@ _TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500"
 _CDN_HOST = "laughtrack.b-cdn.net"
 _MAX_IMAGE_WIDTH = 500
 
-# Shared SSL context for image downloads (some CDNs have cert issues)
-_SSL_CTX = ssl.create_default_context()
-_SSL_CTX.check_hostname = False
-_SSL_CTX.verify_mode = ssl.CERT_NONE
+# Only allow safe characters in SPARQL string literals
+_SAFE_NAME_RE = re.compile(r"^[a-zA-Z0-9 .'\-]+$")
+
+# Delay between per-comedian image sourcing requests to avoid rate-limiting
+_IMAGE_SOURCE_DELAY_S = float(os.environ.get("IMAGE_SOURCE_DELAY_S", "1.0"))
+
+
+def _escape_sparql_string(s: str) -> str:
+    """Escape a string for safe inclusion in a SPARQL double-quoted literal.
+
+    Handles backslashes, quotes, newlines, tabs, and carriage returns per the
+    SPARQL 1.1 grammar (https://www.w3.org/TR/sparql11-query/#rString).
+    """
+    s = s.replace("\\", "\\\\")
+    s = s.replace('"', '\\"')
+    s = s.replace("\n", "\\n")
+    s = s.replace("\r", "\\r")
+    s = s.replace("\t", "\\t")
+    return s
 
 
 def _get_wikidata_image_url(comedian_name: str) -> Optional[str]:
@@ -42,13 +57,18 @@ def _get_wikidata_image_url(comedian_name: str) -> Optional[str]:
 
     Returns the Wikimedia Commons image URL or None.
     """
-    query = """
-    SELECT ?image WHERE {
-      ?person rdfs:label "%s"@en ;
+    if not _SAFE_NAME_RE.match(comedian_name):
+        Logger.warn(f"image_sourcing: skipping Wikidata lookup for '{comedian_name}' — name contains unsupported characters")
+        return None
+
+    escaped_name = _escape_sparql_string(comedian_name)
+    query = f'''
+    SELECT ?image WHERE {{
+      ?person rdfs:label "{escaped_name}"@en ;
               wdt:P18 ?image .
-    }
+    }}
     LIMIT 1
-    """ % comedian_name.replace('"', '\\"')
+    '''
 
     try:
         resp = requests.get(
@@ -87,13 +107,15 @@ def _get_tmdb_image_url(comedian_name: str, api_key: str) -> Optional[str]:
 
 
 def _download_image(url: str) -> Optional[bytes]:
-    """Download image bytes from a URL."""
+    """Download image bytes from a URL using requests (with default SSL verification)."""
     try:
-        req = urllib.request.Request(url, headers={
-            "User-Agent": "LaughTrack/1.0 (comedy show aggregator)",
-        })
-        with urllib.request.urlopen(req, context=_SSL_CTX, timeout=15) as r:
-            return r.read()
+        resp = requests.get(
+            url,
+            headers={"User-Agent": "LaughTrack/1.0 (comedy show aggregator)"},
+            timeout=15,
+        )
+        resp.raise_for_status()
+        return resp.content
     except Exception as e:
         Logger.warn(f"image_sourcing: download failed for {url}: {e}")
         return None
@@ -189,7 +211,7 @@ def source_comedian_image(comedian_name: str) -> bool:
         Logger.warn(f"image_sourcing: resize failed for '{comedian_name}': {e}")
         return False
 
-    # Upload
+    # Upload — use same URL-encoded path convention as the audit script
     cdn_path = f"comedians/{urllib.parse.quote(comedian_name)}.png"
     return _upload_to_bunny_cdn(png_data, cdn_path, storage_password, storage_zone, region)
 
@@ -211,12 +233,15 @@ def source_images_for_comedians(
         return []
 
     sourced: List[str] = []
-    for name in comedian_names:
+    for i, name in enumerate(comedian_names):
         try:
             if source_comedian_image(name):
                 sourced.append(name)
         except Exception as e:
             Logger.warn(f"image_sourcing: unexpected error for '{name}': {e}")
+        # Rate-limit between requests to avoid hitting API limits
+        if i < len(comedian_names) - 1:
+            time.sleep(_IMAGE_SOURCE_DELAY_S)
 
     if sourced:
         Logger.info(f"image_sourcing: found images for {len(sourced)}/{len(comedian_names)} new comedians")
