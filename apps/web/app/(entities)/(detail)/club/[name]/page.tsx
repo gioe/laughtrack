@@ -16,6 +16,8 @@ import ShowTable from "@/ui/pages/search/table";
 import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { buildClubImageUrl } from "@/util/imageUtil";
+import JsonLd from "@/ui/components/JsonLd";
+import { buildClubJsonLd, buildShowJsonLd } from "@/util/jsonLd";
 
 export async function generateMetadata(props: {
     params: Promise<{ name: string }>;
@@ -139,8 +141,11 @@ export default async function ClubDetailPage(props: {
 
     const { data, shows, total, filters } = result!;
 
+    const jsonLdData = [buildClubJsonLd(data), ...shows.map(buildShowJsonLd)];
+
     return (
         <>
+            <JsonLd data={jsonLdData} />
             <FilterModal filters={filters} total={total} />
             <ClubDetailHeader club={data} />
             <FilterBar
