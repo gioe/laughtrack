@@ -5,13 +5,20 @@ import { ShowDTO } from "@/objects/class/show/show.interface";
 const BASE_URL =
     process.env.NEXT_PUBLIC_WEBSITE_URL ?? "https://www.laugh-track.com";
 
+function ensureAbsoluteUrl(url: string | undefined | null): string | undefined {
+    if (!url) return undefined;
+    if (url.startsWith("http://") || url.startsWith("https://")) return url;
+    if (url.startsWith("/")) return `${BASE_URL}${url}`;
+    return `https://${url}`;
+}
+
 export function buildClubJsonLd(club: ClubDTO): object {
     const jsonLd: Record<string, unknown> = {
         "@context": "https://schema.org",
         "@type": "EntertainmentBusiness",
         name: club.name,
         url: club.website,
-        image: club.imageUrl,
+        image: ensureAbsoluteUrl(club.imageUrl),
     };
 
     if (club.address) {
@@ -46,17 +53,17 @@ export function buildComedianJsonLd(comedian: ComedianDTO): object {
         sameAs.push(`https://www.youtube.com/@${social.youtube_account}`);
     }
     if (social?.website) {
-        sameAs.push(social.website);
+        sameAs.push(ensureAbsoluteUrl(social.website)!);
     }
     if (social?.linktree) {
-        sameAs.push(social.linktree);
+        sameAs.push(ensureAbsoluteUrl(social.linktree)!);
     }
 
     const jsonLd: Record<string, unknown> = {
         "@context": "https://schema.org",
         "@type": "Person",
         name: comedian.name,
-        image: comedian.imageUrl,
+        image: ensureAbsoluteUrl(comedian.imageUrl),
         url: `${BASE_URL}/comedian/${encodeURIComponent(comedian.name)}`,
     };
 
@@ -75,7 +82,7 @@ export function buildShowJsonLd(show: ShowDTO): object {
         startDate: new Date(show.date).toISOString(),
         eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
         eventStatus: "https://schema.org/EventScheduled",
-        image: show.imageUrl,
+        image: ensureAbsoluteUrl(show.imageUrl),
     };
 
     if (show.description) {
@@ -99,7 +106,7 @@ export function buildShowJsonLd(show: ShowDTO): object {
         jsonLd.performer = show.lineup.map((c) => ({
             "@type": "Person",
             name: c.name,
-            image: c.imageUrl,
+            image: ensureAbsoluteUrl(c.imageUrl),
         }));
     }
 
