@@ -9,6 +9,7 @@ Usage:
 """
 
 import argparse
+import os
 import ssl
 import sys
 import urllib.parse
@@ -22,7 +23,7 @@ CDN_HOST = "laughtrack.b-cdn.net"
 
 
 def get_connection():
-    v = dotenv_values(".env")
+    v = {**dotenv_values(".env"), **os.environ}
     return psycopg2.connect(
         dbname=v["DATABASE_NAME"],
         user=v["DATABASE_USER"],
