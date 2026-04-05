@@ -116,7 +116,7 @@ export default async function ComedianDetailsPage(props: {
             <FilterBar
                 variant={SearchVariant.ComedianDetail}
                 total={total}
-                filters={filters.length}
+                filterData={filters}
             />
             <ShowTable shows={shows} />
         </>

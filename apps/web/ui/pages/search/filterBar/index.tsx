@@ -12,6 +12,9 @@ import ShowSearchBar from "@/ui/components/params/search/pages/show/all";
 import { SortParamComponent } from "@/ui/components/params/sort";
 import { getSortOptionsForEntityType } from "@/util/sort";
 import { useUrlParams } from "@/hooks/useUrlParams";
+import { FilterDTO } from "@/objects/interface";
+import { X } from "lucide-react";
+import { useMemo } from "react";
 
 // Variants that use infinite scroll — no pagination controls needed
 const INFINITE_SCROLL_VARIANTS = new Set([
@@ -39,7 +42,7 @@ const VARIANT_TO_SEARCH_BAR_MAP = {
 interface FilterBarProps {
     variant: SearchVariant;
     total: number;
-    filters: number;
+    filterData: FilterDTO[];
     isAdmin?: boolean;
 }
 
@@ -54,12 +57,28 @@ const getSortOptions = (variant: SearchVariant, isAdmin = false) => {
     return <SortParamComponent sortOptions={sortOptions} isAdmin={isAdmin} />;
 };
 
-const FilterBar = ({ variant, total, filters, isAdmin }: FilterBarProps) => {
+const FilterBar = ({ variant, total, filterData, isAdmin }: FilterBarProps) => {
     const { getTypedParam, setTypedParam } = useUrlParams();
     const isClubSearch = variant === SearchVariant.AllClubs;
     const includeEmpty = isClubSearch
         ? (getTypedParam("includeEmpty") ?? false)
         : false;
+
+    const filtersParam: string = getTypedParam("filters") ?? "";
+    const selectedSlugs = useMemo(
+        () => (filtersParam ? filtersParam.split(",").filter(Boolean) : []),
+        [filtersParam],
+    );
+
+    const activeFilters = useMemo(
+        () => filterData.filter((f) => selectedSlugs.includes(f.slug)),
+        [filterData, selectedSlugs],
+    );
+
+    const removeFilter = (slug: string) => {
+        const updated = selectedSlugs.filter((s) => s !== slug).join(",");
+        setTypedParam("filters", updated);
+    };
 
     return (
         <div className="sticky top-0 z-20 w-full bg-coconut-cream border-b border-black/5">
@@ -80,8 +99,10 @@ const FilterBar = ({ variant, total, filters, isAdmin }: FilterBarProps) => {
                                 {getSortOptions(variant, isAdmin)}
                             </div>
 
-                            {filters > 0 && (
-                                <FilterModalButton filterCount={filters} />
+                            {filterData.length > 0 && (
+                                <FilterModalButton
+                                    filterCount={activeFilters.length}
+                                />
                             )}
 
                             {isClubSearch && (
@@ -118,6 +139,26 @@ const FilterBar = ({ variant, total, filters, isAdmin }: FilterBarProps) => {
                         )}
                     </div>
                 </div>
+
+                {/* Active filter chips */}
+                {activeFilters.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-2 mt-2 pt-2 border-t border-black/5">
+                        <span className="text-xs text-copper/60 font-dmSans">
+                            Filtered by:
+                        </span>
+                        {activeFilters.map((filter) => (
+                            <button
+                                key={filter.slug}
+                                onClick={() => removeFilter(filter.slug)}
+                                className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold font-dmSans
+                                    bg-copper text-white hover:bg-copper/80 transition-colors duration-150"
+                            >
+                                {filter.name}
+                                <X size={12} />
+                            </button>
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );

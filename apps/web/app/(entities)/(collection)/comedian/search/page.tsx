@@ -110,7 +110,7 @@ export default async function ComedianSearchPage(
             <FilterBar
                 variant={SearchVariant.AllComedians}
                 total={total}
-                filters={filters.length}
+                filterData={filters}
                 isAdmin={isAdmin}
             />
 

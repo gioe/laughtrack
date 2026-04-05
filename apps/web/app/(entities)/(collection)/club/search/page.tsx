@@ -98,7 +98,7 @@ export default async function ClubSearchPage(props: ClubSearchPageProps) {
             <FilterBar
                 variant={SearchVariant.AllClubs}
                 total={total}
-                filters={filters.length}
+                filterData={filters}
             />
             <Suspense>
                 <ClubSearchClient initialData={data} initialTotal={total} />

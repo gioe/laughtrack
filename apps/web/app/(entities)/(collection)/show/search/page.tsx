@@ -126,7 +126,7 @@ export default async function ShowSearchPage(props: any) {
             <FilterBar
                 variant={SearchVariant.AllShows}
                 total={total}
-                filters={filters.length}
+                filterData={filters}
             />
             <Suspense>
                 <ShowSearchClient

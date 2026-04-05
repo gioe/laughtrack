@@ -34,13 +34,20 @@ vi.mock("@/ui/components/params/search/pages/show/all", () => ({
 vi.mock("@/util/sort", () => ({
     getSortOptionsForEntityType: () => [],
 }));
+vi.mock("@/hooks/useUrlParams", () => ({
+    useUrlParams: () => ({
+        getTypedParam: () => "",
+        setTypedParam: vi.fn(),
+        setMultipleTypedParams: vi.fn(),
+    }),
+}));
 
 describe("FilterBar", () => {
     it.each(allVariantTypes)(
         "renders without error for variant %s",
         (variant) => {
             const { container } = render(
-                <FilterBar variant={variant} total={0} filters={0} />,
+                <FilterBar variant={variant} total={0} filterData={[]} />,
             );
             // Every variant must produce at least some DOM output
             expect(container.firstChild).not.toBeNull();
@@ -50,7 +57,7 @@ describe("FilterBar", () => {
     it("renders the sort component for every variant", () => {
         for (const variant of allVariantTypes) {
             const { container, unmount } = render(
-                <FilterBar variant={variant} total={5} filters={0} />,
+                <FilterBar variant={variant} total={5} filterData={[]} />,
             );
             expect(
                 container.querySelector('[data-testid="sort-param"]'),
@@ -59,12 +66,17 @@ describe("FilterBar", () => {
         }
     });
 
-    it("renders FilterModalButton when filters > 0", () => {
+    it("renders FilterModalButton when filterData has items", () => {
+        const mockFilters = [
+            { id: 1, slug: "late-night", name: "Late Night" },
+            { id: 2, slug: "family", name: "Family Friendly" },
+            { id: 3, slug: "improv", name: "Improv" },
+        ];
         const { container } = render(
             <FilterBar
                 variant={SearchVariant.AllShows}
                 total={10}
-                filters={3}
+                filterData={mockFilters}
             />,
         );
         expect(
@@ -72,12 +84,12 @@ describe("FilterBar", () => {
         ).not.toBeNull();
     });
 
-    it("does not render FilterModalButton when filters is 0", () => {
+    it("does not render FilterModalButton when filterData is empty", () => {
         const { container } = render(
             <FilterBar
                 variant={SearchVariant.AllShows}
                 total={10}
-                filters={0}
+                filterData={[]}
             />,
         );
         expect(
@@ -90,7 +102,7 @@ describe("FilterBar", () => {
             <FilterBar
                 variant={SearchVariant.AllClubs}
                 total={5}
-                filters={0}
+                filterData={[]}
             />,
         );
         expect(
@@ -103,7 +115,7 @@ describe("FilterBar", () => {
             <FilterBar
                 variant={SearchVariant.AllShows}
                 total={5}
-                filters={0}
+                filterData={[]}
             />,
         );
         expect(
@@ -116,7 +128,7 @@ describe("FilterBar", () => {
             <FilterBar
                 variant={SearchVariant.AllComedians}
                 total={5}
-                filters={0}
+                filterData={[]}
             />,
         );
         expect(
@@ -129,7 +141,7 @@ describe("FilterBar", () => {
             <FilterBar
                 variant={SearchVariant.ClubDetail}
                 total={5}
-                filters={0}
+                filterData={[]}
             />,
         );
         expect(
@@ -142,7 +154,7 @@ describe("FilterBar", () => {
             <FilterBar
                 variant={SearchVariant.ComedianDetail}
                 total={5}
-                filters={0}
+                filterData={[]}
             />,
         );
         expect(
