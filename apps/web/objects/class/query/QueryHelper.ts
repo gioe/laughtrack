@@ -2,7 +2,7 @@ import zipcodes from "zipcodes";
 import { Prisma } from "@prisma/client";
 import { ParameterizedRequestData } from "@/objects/interface";
 import { SearchParams } from "@/objects/interface/showSearch.interface";
-import { toZonedTime, format } from "date-fns-tz";
+import { toZonedTime, fromZonedTime, format } from "date-fns-tz";
 import { resolveLocationInput } from "@/util/location/resolveLocation";
 import { SortParamValue } from "@/objects/enum/sortParamValue";
 
@@ -358,18 +358,15 @@ export class QueryHelper {
         // Current time in UTC
         const currentDateUTC = new Date();
 
-        // Convert fromDate midnight in timezone to UTC
-        const fromDateMidnight = toZonedTime(
+        // Convert fromDate midnight in user's timezone to UTC
+        const fromDateMidnight = fromZonedTime(
             `${fromDate}T00:00:00`,
             this.timezone,
         );
 
         // Check if fromDate is today in the specified timezone
-        const todayInTimezone = toZonedTime(
-            format(new Date(), "yyyy-MM-dd"),
-            this.timezone,
-        );
-        const isToday = fromDate === format(todayInTimezone, "yyyy-MM-dd");
+        const nowInTimezone = toZonedTime(new Date(), this.timezone);
+        const isToday = fromDate === format(nowInTimezone, "yyyy-MM-dd");
 
         const fromDateFilter = isToday
             ? currentDateUTC.toISOString()
@@ -378,13 +375,11 @@ export class QueryHelper {
         // Handle toDate if provided and valid
         let toDateFilter: string | undefined = undefined;
         if (toDate && toDateValid) {
-            // Convert end of day in specified timezone to UTC
-            const toDateEndOfDay = toZonedTime(
+            // Convert end of day in user's timezone to UTC
+            const toDateEndOfDay = fromZonedTime(
                 `${toDate}T23:59:59.999`,
                 this.timezone,
             );
-            const oneDayInMs = 24 * 60 * 60 * 1000;
-            toDateEndOfDay.setTime(toDateEndOfDay.getTime() - oneDayInMs);
             toDateFilter = toDateEndOfDay.toISOString();
         }
 
