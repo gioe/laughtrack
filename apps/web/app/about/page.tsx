@@ -5,7 +5,10 @@ import StatsSection from "@/ui/pages/about/stats";
 import { getStats } from "@/lib/data/stats/getStats";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = { title: "About" };
+export const metadata: Metadata = {
+    title: "About",
+    alternates: { canonical: "/about" },
+};
 
 export const revalidate = 86400;
 

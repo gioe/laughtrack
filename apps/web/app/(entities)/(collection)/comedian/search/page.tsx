@@ -33,6 +33,9 @@ export async function generateMetadata(props: {
     return {
         title,
         description,
+        alternates: {
+            canonical: "/comedian/search",
+        },
         openGraph: {
             title: ogTitle,
             description,

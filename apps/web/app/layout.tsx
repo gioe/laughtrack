@@ -65,7 +65,7 @@ const oswald = Oswald({
     variable: "--font-oswald",
 });
 
-const SITE_URL = "https://laugh-track.com";
+const SITE_URL = "https://www.laugh-track.com";
 const SITE_TITLE = "LaughTrack — Find Live Comedy Near You";
 const SITE_DESCRIPTION =
     "Discover comedy shows, comedians, and tickets near you. Browse upcoming live comedy events, find your favorite comedians, and never miss a show.";

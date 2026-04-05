@@ -1,7 +1,10 @@
 import SupportSection from "@/ui/pages/support/content";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = { title: "Support" };
+export const metadata: Metadata = {
+    title: "Support",
+    alternates: { canonical: "/support" },
+};
 
 const SupportPage = async () => {
     return (

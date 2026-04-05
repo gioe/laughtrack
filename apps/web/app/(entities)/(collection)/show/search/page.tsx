@@ -66,6 +66,9 @@ export async function generateMetadata(props: {
     return {
         title,
         description,
+        alternates: {
+            canonical: "/show/search",
+        },
         openGraph: {
             title: ogTitle,
             description,
