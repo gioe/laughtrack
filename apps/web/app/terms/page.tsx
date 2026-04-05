@@ -5,18 +5,22 @@ export const metadata: Metadata = { title: "Terms and Conditions" };
 const TermsPage = async () => {
     return (
         <main className="min-h-screen w-full bg-coconut-cream">
-            <div className="max-w-7xl mx-auto px-6 py-12">
-                <h1>Terms and Conditions</h1>
-                <p className="mb-10 font-dmSans text-[12px]">
+            <div className="max-w-3xl mx-auto px-6 py-12 font-dmSans text-base leading-relaxed text-neutral-800">
+                <h1 className="text-3xl font-bold mb-2">
+                    Terms and Conditions
+                </h1>
+                <p className="mb-10 text-xs text-neutral-500">
                     Last Updated: February 28, 2025
                 </p>
 
-                <div className="mb-10 font-dmSans text-[16px]">
+                <div className="mb-10 space-y-4">
                     <p>
-                        Please read these Terms and Conditions ("Terms", "Terms
-                        and Conditions") carefully before using the Laughtrack
-                        website and application (the "Service") operated by
-                        Laughtrack Digital, LLC ("us", "we", or "our").
+                        Please read these Terms and Conditions
+                        (&ldquo;Terms&rdquo;, &ldquo;Terms and
+                        Conditions&rdquo;) carefully before using the Laughtrack
+                        website and application (the &ldquo;Service&rdquo;)
+                        operated by Laughtrack Digital, LLC (&ldquo;us&rdquo;,
+                        &ldquo;we&rdquo;, or &ldquo;our&rdquo;).
                     </p>
                     <p>
                         Your access to and use of the Service is conditioned on
@@ -30,8 +34,11 @@ const TermsPage = async () => {
                         terms, then you may not access the Service.
                     </p>
                 </div>
-                <div className="mb-10 font-dmSans text-[16px]">
-                    <h2>1. Accounts</h2>
+
+                <div className="mb-10 space-y-4">
+                    <h2 className="text-2xl font-semibold mt-8 mb-2">
+                        1. Accounts
+                    </h2>
                     <p>
                         When you create an account with us, you must provide
                         information that is accurate, complete, and current at
@@ -53,8 +60,10 @@ const TermsPage = async () => {
                     </p>
                 </div>
 
-                <div className="mb-10 font-dmSans text-[16px]">
-                    <h2>2. Intellectual Property</h2>
+                <div className="mb-10 space-y-4">
+                    <h2 className="text-2xl font-semibold mt-8 mb-2">
+                        2. Intellectual Property
+                    </h2>
                     <p>
                         The Service and its original content, features, and
                         functionality are and will remain the exclusive property
@@ -67,8 +76,10 @@ const TermsPage = async () => {
                     </p>
                 </div>
 
-                <div className="mb-10 font-dmSans text-[16px]">
-                    <h2>3. Links To Other Web Sites</h2>
+                <div className="mb-10 space-y-4">
+                    <h2 className="text-2xl font-semibold mt-8 mb-2">
+                        3. Links To Other Web Sites
+                    </h2>
                     <p>
                         Our Service may contain links to third-party web sites
                         or services that are not owned or controlled by
@@ -92,8 +103,10 @@ const TermsPage = async () => {
                     </p>
                 </div>
 
-                <div className="mb-10 font-dmSans text-[16px]">
-                    <h2>4. Termination</h2>
+                <div className="mb-10 space-y-4">
+                    <h2 className="text-2xl font-semibold mt-8 mb-2">
+                        4. Termination
+                    </h2>
                     <p>
                         We may terminate or suspend your account immediately,
                         without prior notice or liability, for any reason
@@ -114,8 +127,10 @@ const TermsPage = async () => {
                     </p>
                 </div>
 
-                <div className="mb-10 font-dmSans text-[16px]">
-                    <h2>5. Limitation Of Liability</h2>
+                <div className="mb-10 space-y-4">
+                    <h2 className="text-2xl font-semibold mt-8 mb-2">
+                        5. Limitation Of Liability
+                    </h2>
                     <p>
                         In no event shall Laughtrack Digital, LLC, nor its
                         directors, employees, partners, agents, suppliers, or
@@ -136,16 +151,18 @@ const TermsPage = async () => {
                     </p>
                 </div>
 
-                <div className="mb-10 font-dmSans text-[16px]">
-                    <h2>6. Disclaimer</h2>
+                <div className="mb-10 space-y-4">
+                    <h2 className="text-2xl font-semibold mt-8 mb-2">
+                        6. Disclaimer
+                    </h2>
                     <p>
                         Your use of the Service is at your sole risk. The
-                        Service is provided on an "AS IS" and "AS AVAILABLE"
-                        basis. The Service is provided without warranties of any
-                        kind, whether express or implied, including, but not
-                        limited to, implied warranties of merchantability,
-                        fitness for a particular purpose, non-infringement or
-                        course of performance.
+                        Service is provided on an &ldquo;AS IS&rdquo; and
+                        &ldquo;AS AVAILABLE&rdquo; basis. The Service is
+                        provided without warranties of any kind, whether express
+                        or implied, including, but not limited to, implied
+                        warranties of merchantability, fitness for a particular
+                        purpose, non-infringement or course of performance.
                     </p>
                     <p>
                         Laughtrack Digital, LLC, its subsidiaries, affiliates,
@@ -158,8 +175,10 @@ const TermsPage = async () => {
                     </p>
                 </div>
 
-                <div className="mb-10 font-dmSans text-[16px]">
-                    <h2>7. Governing Law</h2>
+                <div className="mb-10 space-y-4">
+                    <h2 className="text-2xl font-semibold mt-8 mb-2">
+                        7. Governing Law
+                    </h2>
                     <p>
                         These Terms shall be governed and construed in
                         accordance with the laws of the United States of
@@ -178,15 +197,17 @@ const TermsPage = async () => {
                     </p>
                 </div>
 
-                <div className="mb-10 font-dmSans text-[16px]">
-                    <h2>8. Changes</h2>
+                <div className="mb-10 space-y-4">
+                    <h2 className="text-2xl font-semibold mt-8 mb-2">
+                        8. Changes
+                    </h2>
                     <p>
                         We reserve the right, at our sole discretion, to modify
                         or replace these Terms at any time. If a revision is
-                        material we will try to provide at least 30 days' notice
-                        prior to any new terms taking effect. What constitutes a
-                        material change will be determined at our sole
-                        discretion.
+                        material we will try to provide at least 30 days&rsquo;
+                        notice prior to any new terms taking effect. What
+                        constitutes a material change will be determined at our
+                        sole discretion.
                     </p>
                     <p>
                         By continuing to access or use our Service after those
@@ -196,13 +217,15 @@ const TermsPage = async () => {
                     </p>
                 </div>
 
-                <div className="mb-10 font-dmSans text-[16px]">
-                    <h2>9. Contact Us</h2>
+                <div className="mb-10 space-y-4">
+                    <h2 className="text-2xl font-semibold mt-8 mb-2">
+                        9. Contact Us
+                    </h2>
                     <p>
                         If you have any questions about these Terms, please
                         contact us at:
                     </p>
-                    <ul>
+                    <ul className="list-disc pl-6 space-y-1">
                         <li>Email: admin@laughtrack-comedy.com</li>
                     </ul>
                 </div>
