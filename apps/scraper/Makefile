@@ -559,6 +559,16 @@ else
 	$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.scrape_shows --club-id $(ID) -v
 endif
 
+# Scrape comedian personal websites for tour dates (JSON-LD extraction)
+scrape-comedian-websites:
+	@echo "🌐 Scraping comedian websites for tour dates..."
+ifndef COMEDIAN
+	$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.scrape_comedian_websites --all $(if $(LIMIT),--limit $(LIMIT)) $(if $(DRY_RUN),--dry-run) -v
+else
+	@echo "🎭 Scraping website for: $(COMEDIAN)"
+	$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.scrape_comedian_websites --comedian-name "$(COMEDIAN)" $(if $(LIMIT),--limit $(LIMIT)) $(if $(DRY_RUN),--dry-run) -v
+endif
+
 # Run a one-off Python script from the repo root using the scraper venv
 run-script:
 	@echo "🐍 Running script with scraper venv:"
