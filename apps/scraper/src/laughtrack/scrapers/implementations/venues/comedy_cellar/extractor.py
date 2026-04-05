@@ -7,6 +7,7 @@ The extractor takes raw API responses and converts them to domain models.
 
 import json
 from typing import Any, Dict, List, Optional, Tuple
+from urllib.parse import urljoin
 
 from laughtrack.core.entities.event.comedy_cellar import ComedyCellarEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
@@ -360,6 +361,10 @@ class ComedyCellarExtractor:
             if not ticket_link:
                 Logger.debug(f"No ticket link found in show container for {date_key}")
                 return None, None
+
+            # Convert relative URLs to absolute (HTML may contain /reservations-newyork/...)
+            if ticket_link.startswith("/"):
+                ticket_link = urljoin("https://www.comedycellar.com", ticket_link)
 
             show_id = URLUtils.extract_query_param(ticket_link, "showid")
 
