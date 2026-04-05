@@ -58,6 +58,9 @@ model Comedian {
   songkickId         String?            @map("songkick_id")
   bandsintownId      String?            @map("bandsintown_id")
   hasImage           Boolean            @default(false) @map("has_image")
+  websiteDiscoverySource String?        @map("website_discovery_source")
+  websiteLastScraped     DateTime?      @map("website_last_scraped") @db.Timestamptz
+  websiteScrapeStrategy  String?        @map("website_scrape_strategy")
   parentComedianId   Int?               @map("parent_comedian_id")
   parentComedian     Comedian?          @relation("ComedianAliases", fields: [parentComedianId], references: [id])
   alternativeNames   Comedian[]         @relation("ComedianAliases")
