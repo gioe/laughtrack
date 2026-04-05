@@ -13,7 +13,7 @@ export default function Logo() {
         <div className="flex items-center gap-2">
             <Image
                 src="/logomark.svg"
-                alt=""
+                alt="Laughtrack"
                 width={28}
                 height={28}
                 className="shrink-0"
