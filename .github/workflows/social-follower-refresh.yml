@@ -9,7 +9,7 @@ on:
 jobs:
   refresh:
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 120
     defaults:
       run:
         working-directory: apps/scraper
@@ -54,7 +54,7 @@ jobs:
           INSTAGRAM_APP_ID: ${{ secrets.INSTAGRAM_APP_ID }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
-          python -m scripts.core.refresh_social_followers --platform youtube
+          python -m scripts.core.refresh_social_followers --platform all
 
       - name: Update comedian popularity scores
         if: success()
