@@ -3,10 +3,11 @@ if (!cdnHost) {
     throw new Error("Missing required environment variable: BUNNYCDN_CDN_HOST");
 }
 
-const COMEDIAN_PLACEHOLDER = "/placeholders/comedian-placeholder.svg";
+const buildDiceBearUrl = (name: string) =>
+    `https://api.dicebear.com/9.x/thumbs/svg?seed=${encodeURIComponent(name)}`;
 
 export const buildComedianImageUrl = (name: string, hasImage = true) => {
-    if (!hasImage) return COMEDIAN_PLACEHOLDER;
+    if (!hasImage) return buildDiceBearUrl(name);
     return new URL(
         `/comedians/${encodeURIComponent(name)}.png`,
         `https://${cdnHost}/`,
