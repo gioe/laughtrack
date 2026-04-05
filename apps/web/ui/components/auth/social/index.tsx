@@ -41,7 +41,7 @@ const SocialButton = ({ provider, onClick, children }: SocialButtonProps) => {
 interface SocialAuthButtonsProps {
     actionText?: string;
     handleGoogleSignin: () => void;
-    handleAppleSignin?: () => void;
+    handleAppleSignin: () => void;
 }
 
 const SocialAuthButtons = ({
@@ -77,7 +77,7 @@ const SocialAuthButtons = ({
                 </SocialButton>
             </motion.div>
             <motion.div variants={item}>
-                <SocialButton provider="apple" onClick={handleAppleSignin!}>
+                <SocialButton provider="apple" onClick={handleAppleSignin}>
                     {actionText} with Apple
                 </SocialButton>
             </motion.div>
