@@ -85,6 +85,43 @@ describe("QueryHelper.getDateClause", () => {
             expect(result.date.lte).toBeUndefined();
         });
 
+        it("converts fromDate midnight in America/New_York (EDT) to exact UTC", () => {
+            const result = makeHelper({
+                fromDate: "2026-06-15",
+            }).getDateClause() as any;
+            // Midnight EDT (UTC-4) → 04:00 UTC
+            expect(result.date.gte).toBe("2026-06-15T04:00:00.000Z");
+        });
+
+        it("converts toDate end-of-day in America/New_York (EDT) to exact UTC", () => {
+            const result = makeHelper({
+                fromDate: "2026-06-15",
+                toDate: "2026-06-30",
+            }).getDateClause() as any;
+            // 23:59:59.999 EDT (UTC-4) → 03:59:59.999 UTC next day
+            expect(result.date.gte).toBe("2026-06-15T04:00:00.000Z");
+            expect(result.date.lte).toBe("2026-07-01T03:59:59.999Z");
+        });
+
+        it("converts fromDate midnight in America/New_York (EST) to exact UTC", () => {
+            // January is EST (UTC-5)
+            const result = makeHelper({
+                fromDate: "2026-01-10",
+            }).getDateClause() as any;
+            // Midnight EST (UTC-5) → 05:00 UTC
+            expect(result.date.gte).toBe("2026-01-10T05:00:00.000Z");
+        });
+
+        it("converts toDate end-of-day in America/New_York (EST) to exact UTC", () => {
+            const result = makeHelper({
+                fromDate: "2026-01-10",
+                toDate: "2026-01-15",
+            }).getDateClause() as any;
+            // 23:59:59.999 EST (UTC-5) → 04:59:59.999 UTC next day
+            expect(result.date.gte).toBe("2026-01-10T05:00:00.000Z");
+            expect(result.date.lte).toBe("2026-01-16T04:59:59.999Z");
+        });
+
         it("returns gte:now default when fromDate is today (uses current time not midnight)", () => {
             // When fromDate equals today, getDateClause uses currentDateUTC not midnight
             const todayNYC = new Intl.DateTimeFormat("en-CA", {
