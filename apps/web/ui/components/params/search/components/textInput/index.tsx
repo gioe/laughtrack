@@ -8,6 +8,7 @@ interface TextInputComponentProps {
     onChange?: (value: string) => void;
     debounceTime?: number;
     className?: string;
+    ariaLabel?: string;
 }
 
 const TextInputComponent = ({
@@ -17,6 +18,7 @@ const TextInputComponent = ({
     onChange,
     debounceTime = 500,
     className,
+    ariaLabel,
     ...props
 }: TextInputComponentProps) => {
     const [inputValue, setInputValue] = useState(value);
@@ -55,6 +57,7 @@ const TextInputComponent = ({
                 value={inputValue}
                 onChange={handleInputChange}
                 placeholder={placeholder}
+                aria-label={ariaLabel || placeholder}
                 className={`border-0 px-0 focus:ring-0 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 ${className}`}
                 {...props}
             />
