@@ -32,7 +32,10 @@ const AboutPage = async () => {
     const { clubCount, comedianCount, showCount } = await getCachedStats();
 
     return (
-        <main className="min-h-screen w-full bg-coconut-cream">
+        <main
+            id="main-content"
+            className="min-h-screen w-full bg-coconut-cream"
+        >
             <AboutUsSection />
             <StatsSection
                 clubCount={clubCount}

@@ -7,7 +7,10 @@ export const metadata: Metadata = {
 
 const TermsPage = async () => {
     return (
-        <main className="min-h-screen w-full bg-coconut-cream">
+        <main
+            id="main-content"
+            className="min-h-screen w-full bg-coconut-cream"
+        >
             <div className="max-w-3xl mx-auto px-6 py-12 font-dmSans text-base leading-relaxed text-neutral-800">
                 <h1 className="text-3xl font-bold mb-2">
                     Terms and Conditions

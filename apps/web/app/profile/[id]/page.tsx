@@ -15,7 +15,10 @@ export default async function ProfilePage() {
         const profile = await getUserProfileData(session.profile?.userid);
 
         return (
-            <main className="min-h-screen w-full bg-coconut-cream">
+            <main
+                id="main-content"
+                className="min-h-screen w-full bg-coconut-cream"
+            >
                 <StyleContextProvider initialContext={StyleContextKey.Search}>
                     <Navbar currentUser={session.profile} />
                     <UserDetailHeader profile={profile} />

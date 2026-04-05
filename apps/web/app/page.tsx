@@ -88,7 +88,7 @@ export default async function HomePage() {
     ]);
 
     return (
-        <main className="min-h-screen w-full">
+        <main id="main-content" className="min-h-screen w-full">
             <HeroComponent profile={session?.profile} />
             <section className="w-full bg-white">
                 <TrendingComedianGrid comedians={comedians} />

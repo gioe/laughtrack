@@ -1,6 +1,9 @@
 export default function Loading() {
     return (
-        <main className="min-h-screen w-full bg-coconut-cream">
+        <main
+            id="main-content"
+            className="min-h-screen w-full bg-coconut-cream"
+        >
             <div className="max-w-7xl mx-auto px-6 py-12">
                 {/* Title */}
                 <div className="h-9 w-36 bg-gray-200 rounded-lg animate-pulse mx-auto mb-4" />

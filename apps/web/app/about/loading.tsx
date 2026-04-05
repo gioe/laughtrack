@@ -1,6 +1,9 @@
 export default function Loading() {
     return (
-        <main className="min-h-screen w-full bg-coconut-cream">
+        <main
+            id="main-content"
+            className="min-h-screen w-full bg-coconut-cream"
+        >
             {/* About content section skeleton */}
             <div className="max-w-7xl mx-auto px-6 py-12">
                 {/* Title */}

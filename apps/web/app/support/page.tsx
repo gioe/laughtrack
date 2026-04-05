@@ -8,7 +8,10 @@ export const metadata: Metadata = {
 
 const SupportPage = async () => {
     return (
-        <main className="min-h-screen w-full bg-coconut-cream">
+        <main
+            id="main-content"
+            className="min-h-screen w-full bg-coconut-cream"
+        >
             <SupportSection />
         </main>
     );
