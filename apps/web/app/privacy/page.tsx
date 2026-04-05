@@ -5,17 +5,18 @@ export const metadata: Metadata = { title: "Privacy Policy" };
 const PrivacyPage = async () => {
     return (
         <main className="min-h-screen w-full bg-coconut-cream">
-            <div className="max-w-7xl mx-auto px-6 py-12">
-                <h1>Privacy Policy</h1>
-                <p className="mb-10 font-dmSans text-[12px]">
+            <div className="max-w-3xl mx-auto px-6 py-12 font-dmSans text-base leading-relaxed text-neutral-800">
+                <h1 className="text-3xl font-bold mb-2">Privacy Policy</h1>
+                <p className="mb-10 text-xs text-neutral-500">
                     Last Updated: February 28, 2025
                 </p>
 
-                <div className="mb-10">
+                <div className="mb-10 space-y-4">
                     <p>
-                        Laughtrack Digital, LLC ("us", "we", or "our") operates
-                        the Laughtrack website and mobile application (the
-                        "Service").
+                        Laughtrack Digital, LLC (&ldquo;us&rdquo;,
+                        &ldquo;we&rdquo;, or &ldquo;our&rdquo;) operates the
+                        Laughtrack website and mobile application (the
+                        &ldquo;Service&rdquo;).
                     </p>
                     <p>
                         This page informs you of our policies regarding the
@@ -30,25 +31,31 @@ const PrivacyPage = async () => {
                     </p>
                 </div>
 
-                <div className="mb-10">
-                    <h2>1. Information Collection and Use</h2>
+                <div className="mb-10 space-y-4">
+                    <h2 className="text-2xl font-semibold mt-8 mb-2">
+                        1. Information Collection and Use
+                    </h2>
                     <p>
                         We collect several different types of information for
                         various purposes to provide and improve our Service to
                         you.
                     </p>
 
-                    <h2>1.1 Types of Data Collected</h2>
+                    <h3 className="text-xl font-semibold mt-6 mb-2">
+                        1.1 Types of Data Collected
+                    </h3>
 
-                    <h2>1.1.1 Personal Data</h2>
+                    <h4 className="text-lg font-medium mt-4 mb-2">
+                        1.1.1 Personal Data
+                    </h4>
                     <p>
                         While using our Service, we may ask you to provide us
                         with certain personally identifiable information that
-                        can be used to contact or identify you ("Personal
-                        Data"). Personally identifiable information may include,
-                        but is not limited to:
+                        can be used to contact or identify you (&ldquo;Personal
+                        Data&rdquo;). Personally identifiable information may
+                        include, but is not limited to:
                     </p>
-                    <ul>
+                    <ul className="list-disc pl-6 space-y-1">
                         <li>Email address</li>
                         <li>First name and last name</li>
                         <li>Phone number</li>
@@ -56,19 +63,22 @@ const PrivacyPage = async () => {
                         <li>Cookies and Usage Data</li>
                     </ul>
 
-                    <h2>1.1.2 Usage Data</h2>
+                    <h4 className="text-lg font-medium mt-4 mb-2">
+                        1.1.2 Usage Data
+                    </h4>
                     <p>
                         We may also collect information that your browser sends
                         whenever you visit our Service or when you access the
-                        Service by or through a mobile device ("Usage Data").
+                        Service by or through a mobile device (&ldquo;Usage
+                        Data&rdquo;).
                     </p>
                     <p>
                         This Usage Data may include information such as your
-                        computer's Internet Protocol address (e.g., IP address),
-                        browser type, browser version, the pages of our Service
-                        that you visit, the time and date of your visit, the
-                        time spent on those pages, unique device identifiers and
-                        other diagnostic data.
+                        computer&rsquo;s Internet Protocol address (e.g., IP
+                        address), browser type, browser version, the pages of
+                        our Service that you visit, the time and date of your
+                        visit, the time spent on those pages, unique device
+                        identifiers and other diagnostic data.
                     </p>
                     <p>
                         When you access the Service with a mobile device, this
@@ -79,7 +89,9 @@ const PrivacyPage = async () => {
                         unique device identifiers and other diagnostic data.
                     </p>
 
-                    <h2>1.1.3 Tracking & Cookies Data</h2>
+                    <h4 className="text-lg font-medium mt-4 mb-2">
+                        1.1.3 Tracking & Cookies Data
+                    </h4>
                     <p>
                         We use cookies and similar tracking technologies to
                         track the activity on our Service and hold certain
@@ -101,7 +113,7 @@ const PrivacyPage = async () => {
                         portions of our Service.
                     </p>
                     <p>Examples of Cookies we use:</p>
-                    <ul>
+                    <ul className="list-disc pl-6 space-y-1">
                         <li>
                             <strong>Session Cookies:</strong> We use Session
                             Cookies to operate our Service.
@@ -118,13 +130,15 @@ const PrivacyPage = async () => {
                     </ul>
                 </div>
 
-                <div className="mb-10">
-                    <h2>2. Use of Data</h2>
+                <div className="mb-10 space-y-4">
+                    <h2 className="text-2xl font-semibold mt-8 mb-2">
+                        2. Use of Data
+                    </h2>
                     <p>
                         Laughtrack Digital, LLC uses the collected data for
                         various purposes:
                     </p>
-                    <ul>
+                    <ul className="list-disc pl-6 space-y-1">
                         <li>To provide and maintain the Service</li>
                         <li>To notify you about changes to our Service</li>
                         <li>
@@ -141,8 +155,10 @@ const PrivacyPage = async () => {
                     </ul>
                 </div>
 
-                <div className="mb-10">
-                    <h2>3. Transfer of Data</h2>
+                <div className="mb-10 space-y-4">
+                    <h2 className="text-2xl font-semibold mt-8 mb-2">
+                        3. Transfer of Data
+                    </h2>
                     <p>
                         Your information, including Personal Data, may be
                         transferred to — and maintained on — computers located
@@ -166,16 +182,20 @@ const PrivacyPage = async () => {
                     </p>
                 </div>
 
-                <div className="mb-10">
-                    <h2>4. Disclosure of Data</h2>
+                <div className="mb-10 space-y-4">
+                    <h2 className="text-2xl font-semibold mt-8 mb-2">
+                        4. Disclosure of Data
+                    </h2>
 
-                    <h2>4.1 Legal Requirements</h2>
+                    <h3 className="text-xl font-semibold mt-6 mb-2">
+                        4.1 Legal Requirements
+                    </h3>
                     <p>
                         Laughtrack Digital, LLC may disclose your Personal Data
                         in the good faith belief that such action is necessary
                         to:
                     </p>
-                    <ul>
+                    <ul className="list-disc pl-6 space-y-1">
                         <li>To comply with a legal obligation</li>
                         <li>
                             To protect and defend the rights or property of
@@ -193,8 +213,10 @@ const PrivacyPage = async () => {
                     </ul>
                 </div>
 
-                <div className="mb-10">
-                    <h2>5. Security of Data</h2>
+                <div className="mb-10 space-y-4">
+                    <h2 className="text-2xl font-semibold mt-8 mb-2">
+                        5. Security of Data
+                    </h2>
                     <p>
                         The security of your data is important to us, but
                         remember that no method of transmission over the
@@ -205,14 +227,16 @@ const PrivacyPage = async () => {
                     </p>
                 </div>
 
-                <div className="mb-10">
-                    <h2>6. Service Providers</h2>
+                <div className="mb-10 space-y-4">
+                    <h2 className="text-2xl font-semibold mt-8 mb-2">
+                        6. Service Providers
+                    </h2>
                     <p>
                         We may employ third party companies and individuals to
-                        facilitate our Service ("Service Providers"), to provide
-                        the Service on our behalf, to perform Service-related
-                        services or to assist us in analyzing how our Service is
-                        used.
+                        facilitate our Service (&ldquo;Service
+                        Providers&rdquo;), to provide the Service on our behalf,
+                        to perform Service-related services or to assist us in
+                        analyzing how our Service is used.
                     </p>
                     <p>
                         These third parties have access to your Personal Data
@@ -222,13 +246,15 @@ const PrivacyPage = async () => {
                     </p>
                 </div>
 
-                <div className="mb-10">
-                    <h2>7. Links To Other Sites</h2>
+                <div className="mb-10 space-y-4">
+                    <h2 className="text-2xl font-semibold mt-8 mb-2">
+                        7. Links To Other Sites
+                    </h2>
                     <p>
                         Our Service may contain links to other sites that are
                         not operated by us. If you click on a third party link,
-                        you will be directed to that third party's site. We
-                        strongly advise you to review the Privacy Policy of
+                        you will be directed to that third party&rsquo;s site.
+                        We strongly advise you to review the Privacy Policy of
                         every site you visit.
                     </p>
                     <p>
@@ -238,11 +264,13 @@ const PrivacyPage = async () => {
                     </p>
                 </div>
 
-                <div className="mb-10">
-                    <h2>8. Children's Privacy</h2>
+                <div className="mb-10 space-y-4">
+                    <h2 className="text-2xl font-semibold mt-8 mb-2">
+                        8. Children&rsquo;s Privacy
+                    </h2>
                     <p>
                         Our Service does not address anyone under the age of 18
-                        ("Children").
+                        (&ldquo;Children&rdquo;).
                     </p>
                     <p>
                         We do not knowingly collect personally identifiable
@@ -256,8 +284,10 @@ const PrivacyPage = async () => {
                     </p>
                 </div>
 
-                <div className="mb-10">
-                    <h2>9. Changes To This Privacy Policy</h2>
+                <div className="mb-10 space-y-4">
+                    <h2 className="text-2xl font-semibold mt-8 mb-2">
+                        9. Changes To This Privacy Policy
+                    </h2>
                     <p>
                         We may update our Privacy Policy from time to time. We
                         will notify you of any changes by posting the new
@@ -266,8 +296,8 @@ const PrivacyPage = async () => {
                     <p>
                         We will let you know via email and/or a prominent notice
                         on our Service, prior to the change becoming effective
-                        and update the "effective date" at the top of this
-                        Privacy Policy.
+                        and update the &ldquo;effective date&rdquo; at the top
+                        of this Privacy Policy.
                     </p>
                     <p>
                         You are advised to review this Privacy Policy
@@ -276,13 +306,15 @@ const PrivacyPage = async () => {
                     </p>
                 </div>
 
-                <div className="mb-10">
-                    <h2>10. Contact Us</h2>
+                <div className="mb-10 space-y-4">
+                    <h2 className="text-2xl font-semibold mt-8 mb-2">
+                        10. Contact Us
+                    </h2>
                     <p>
                         If you have any questions about this Privacy Policy,
                         please contact us:
                     </p>
-                    <ul>
+                    <ul className="list-disc pl-6 space-y-1">
                         <li>By email: admin@laugh-track.com</li>
                     </ul>
                 </div>
