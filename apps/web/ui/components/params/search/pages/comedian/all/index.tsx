@@ -23,7 +23,7 @@ export default function ComedianSearchBar() {
     const handleComedianSearch = (value: string) =>
         setTypedParam(QueryProperty.Comedian, value);
     return (
-        <SearchBarLayout maxWidth="max-w-4xl">
+        <SearchBarLayout>
             <SearchBarSection first last>
                 <TextInputComponent
                     icon={
