@@ -21,6 +21,7 @@ const ClubSearchClient = ({
         club: searchParams.get("club") ?? undefined,
         sort: searchParams.get("sort") ?? undefined,
         filters: searchParams.get("filters") ?? undefined,
+        includeEmpty: searchParams.get("includeEmpty") ?? undefined,
     };
 
     const {

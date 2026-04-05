@@ -1,5 +1,3 @@
-import { DEFAULT, MapWithDefault } from "../class/map/MapWithDefault";
-
 export enum QueryProperty {
     FromDate = "fromDate",
     ToDate = "toDate",
@@ -62,4 +60,5 @@ export enum QueryProperty {
     MaxStartDate = "maxStartDate",
     MinEndDate = "minEndDate",
     MaxEndDate = "maxEndDate",
+    IncludeEmpty = "includeEmpty",
 }

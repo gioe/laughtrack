@@ -23,5 +23,6 @@ export function toSearchParams(
         sort: pick("sort"),
         page: pick("page"),
         size: pick("size"),
+        includeEmpty: pick("includeEmpty"),
     };
 }

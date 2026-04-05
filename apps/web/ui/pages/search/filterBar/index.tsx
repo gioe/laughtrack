@@ -11,6 +11,7 @@ import ComedianDetailSearchBar from "@/ui/components/params/search/pages/comedia
 import ShowSearchBar from "@/ui/components/params/search/pages/show/all";
 import { SortParamComponent } from "@/ui/components/params/sort";
 import { getSortOptionsForEntityType } from "@/util/sort";
+import { useUrlParams } from "@/hooks/useUrlParams";
 
 // Variants that use infinite scroll — no pagination controls needed
 const INFINITE_SCROLL_VARIANTS = new Set([
@@ -54,6 +55,12 @@ const getSortOptions = (variant: SearchVariant, isAdmin = false) => {
 };
 
 const FilterBar = ({ variant, total, filters, isAdmin }: FilterBarProps) => {
+    const { getTypedParam, setTypedParam } = useUrlParams();
+    const isClubSearch = variant === SearchVariant.AllClubs;
+    const includeEmpty = isClubSearch
+        ? (getTypedParam("includeEmpty") ?? false)
+        : false;
+
     return (
         <div className="sticky top-0 z-20 w-full bg-coconut-cream border-b border-black/5">
             <div
@@ -75,6 +82,23 @@ const FilterBar = ({ variant, total, filters, isAdmin }: FilterBarProps) => {
 
                             {filters > 0 && (
                                 <FilterModalButton filterCount={filters} />
+                            )}
+
+                            {isClubSearch && (
+                                <label className="flex items-center gap-1.5 text-sm text-copper/70 whitespace-nowrap cursor-pointer select-none">
+                                    <input
+                                        type="checkbox"
+                                        checked={includeEmpty}
+                                        onChange={() =>
+                                            setTypedParam(
+                                                "includeEmpty",
+                                                !includeEmpty,
+                                            )
+                                        }
+                                        className="accent-copper w-3.5 h-3.5"
+                                    />
+                                    Show all
+                                </label>
                             )}
 
                             <span className="hidden sm:block text-sm text-copper/60 whitespace-nowrap">

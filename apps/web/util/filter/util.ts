@@ -45,6 +45,7 @@ export type ParamTypeMap = {
     toDate: Date | undefined;
     fromDate: Date | undefined;
     filters: string;
+    includeEmpty: boolean;
 };
 
 // Centralized parameter configuration
@@ -149,5 +150,12 @@ export const paramConfigs: {
         },
         stringify: (value: string) => value,
         validate: (value: string) => value.length > 0 || value == "",
+    },
+    includeEmpty: {
+        key: QueryProperty.IncludeEmpty,
+        defaultValue: false,
+        parse: (value: string | null) => value === "true",
+        stringify: (value: boolean) => (value ? "true" : "false"),
+        validate: () => true,
     },
 };

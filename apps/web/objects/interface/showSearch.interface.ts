@@ -9,4 +9,5 @@ export interface SearchParams {
     sort?: string;
     page?: string;
     size?: string;
+    includeEmpty?: string;
 }

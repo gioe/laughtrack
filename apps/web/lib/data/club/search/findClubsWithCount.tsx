@@ -39,11 +39,15 @@ export async function findClubsWithCount(
 ): Promise<ClubsResponse> {
     try {
         // Common where clause for both count and find
+        const includeEmpty = queryHelper.params.includeEmpty === "true";
         const whereClause: Prisma.ClubWhereInput = {
             visible: true,
             status: "active",
             ...queryHelper.getClubNameClause(),
             ...queryHelper.getClubFiltersClause(),
+            ...(!includeEmpty && {
+                shows: { some: { date: { gt: new Date() } } },
+            }),
         };
 
         // Get total count first
