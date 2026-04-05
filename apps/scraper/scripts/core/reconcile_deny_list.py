@@ -5,17 +5,45 @@ For each deny list entry, extracts embedded real comedian names using multiple
 pattern-matching strategies and cross-references them against existing legitimate
 comedian records in the database.
 
-Pattern categories handled:
-  1. PREFIX:        "Comedian X ..." / "Comedy Magician X ..." → X
-  2. LIVE_SUFFIX:   "X Live!" / "X Live in <city>" → X
-  3. COMEDY_SUFFIX: "X Comedy" → X
-  4. MULTI_AND:     "X & Y" / "X and Y" → [X, Y]
-  5. MULTI_WITH:    "X with Y" / "X w/ Y" / "X Featuring Y" → [X, Y]
-  6. MULTI_SLASH:   "X / Y" → [X, Y]
-  7. AKA:           "X AKA Y" / "X aka Y" → [X, Y]
-  8. POSSESSIVE:    "X's <Show Name>" → X
-  9. PROMO:         "X Returns to ..." / "X Makes His ... Debut!" → X
- 10. NORMALIZE:     Fallback via ComedianUtils.normalize_name
+Pattern Categories (alias-generating)
+======================================
+
+These patterns embed a real comedian name inside a promotional string. When matched
+against a legitimate DB record, the deny list entry is re-inserted as an alias
+comedian record with parent_comedian_id set to the canonical comedian.
+
+  CATEGORY          EXAMPLE                                      EXTRACTED
+  ──────────────────────────────────────────────────────────────────────────
+  PREFIX_LIVE_IN    "Comedian Adam Hunter Live in Naples, FL!"    Adam Hunter
+  PREFIX            "Comedian Michael Loftus"                     Michael Loftus
+  LIVE_SUFFIX       "Carlos Mencia Live!"                        Carlos Mencia
+  LIVE_IN           "La Chupitos: ... Live in Naples, FL!"       La Chupitos
+  COMEDY_SUFFIX     "Derek Richards Comedy"                      Derek Richards
+  FROM_SHOW         "Steve Rannazzisi From \"The League\""       Steve Rannazzisi
+  SHOW_PREFIX       "SNL's Tommy Brennan"                        Tommy Brennan
+  PROMO             "Tom Thakkar is Back at The Attic!"          Tom Thakkar
+  POSSESSIVE        "Rickey Smiley's Karaoke Night"              Rickey Smiley
+  AKA               "Harry Settel AKA Lil' Sasquatch"            Harry Settel
+  MSSP_SUFFIX       "Lemaire Lee MSSP"                           LeMaire Lee
+  DATE_PREFIX       "Sun May 24 Lenny Clarke"                    Lenny Clarke
+  NORMALIZE         "DAVE ATTELL - SPECIAL EVENT - ..."          Dave Attell
+                    "Akaash Singh: Generational Triumph Tour"    Akaash Singh
+
+Multi-Comedian Patterns (document only)
+========================================
+
+These patterns contain TWO OR MORE real comedian names. The alias system only
+supports one parent per record, so these are reported but not aliased. They
+require a lineup-splitting enhancement to the scraper pipeline.
+
+  CATEGORY          EXAMPLE                                      EXTRACTED
+  ──────────────────────────────────────────────────────────────────────────
+  MULTI_AND         "Kiki Yeung & Esther Ku"                     [Kiki Yeung, Esther Ku]
+  MULTI_WITH        "Brent Terhune with Eli Wilz"                [Brent Terhune, Eli Wilz]
+  MULTI_SLASH       "Dave Herrero / Pete Galanis"                [Dave Herrero, Pete Galanis]
+
+  When only ONE of the extracted names matches a DB record, the entry IS aliased
+  to that single comedian. When BOTH match, the entry is document-only.
 
 Usage:
     cd apps/scraper
