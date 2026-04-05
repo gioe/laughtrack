@@ -20,9 +20,7 @@ export async function generateMetadata(props: {
     const zip =
         typeof searchParams.zip === "string" ? searchParams.zip : undefined;
 
-    const title = zip
-        ? `Comedy Clubs Near ${zip} | LaughTrack`
-        : "Comedy Clubs | LaughTrack";
+    const title = zip ? `Comedy Clubs Near ${zip}` : "Comedy Clubs";
     const description = zip
         ? `Find comedy clubs near ${zip}. Discover shows and venues on LaughTrack.`
         : "Find comedy clubs near you. Discover shows and venues on LaughTrack.";

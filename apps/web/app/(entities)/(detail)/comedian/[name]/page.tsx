@@ -34,7 +34,7 @@ export async function generateMetadata(props: {
 
     const comedian = await getComedianName();
     const comedianName = comedian?.name ?? name;
-    const title = `${comedianName} | LaughTrack`;
+    const title = comedianName;
     const description = `Discover upcoming comedy shows featuring ${comedianName}. Find schedules, tickets, and more on LaughTrack.`;
     const baseUrl = process.env.NEXT_PUBLIC_WEBSITE_URL;
     const url = baseUrl ? `${baseUrl}/comedian/${slug}` : undefined;

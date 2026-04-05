@@ -43,7 +43,7 @@ export async function generateMetadata(props: {
     else if (club) titleBase = `${club} Shows`;
     else if (zip) titleBase = `Comedy Shows Near ${zip}`;
 
-    const title = `${titleBase} | LaughTrack`;
+    const title = titleBase;
 
     let dateContext = "";
     if (fromDate && toDate) dateContext = ` from ${fromDate} to ${toDate}`;

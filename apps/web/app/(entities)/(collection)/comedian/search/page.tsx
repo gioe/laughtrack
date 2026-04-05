@@ -21,9 +21,7 @@ export async function generateMetadata(props: {
     const zip =
         typeof searchParams.zip === "string" ? searchParams.zip : undefined;
 
-    const title = zip
-        ? `Find Comedians Near ${zip} | LaughTrack`
-        : "Find Comedians | LaughTrack";
+    const title = zip ? `Find Comedians Near ${zip}` : "Find Comedians";
     const description = zip
         ? `Browse comedy performers near ${zip}. Discover upcoming shows on LaughTrack.`
         : "Browse comedy performers and discover upcoming shows on LaughTrack.";

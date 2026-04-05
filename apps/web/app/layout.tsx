@@ -66,7 +66,10 @@ const oswald = Oswald({
 });
 
 export const metadata: Metadata = {
-    title: "Laughtrack",
+    title: {
+        default: "LaughTrack — Find Live Comedy Near You",
+        template: "%s | LaughTrack",
+    },
     description: "Find funny stuff",
     icons: {
         icon: [

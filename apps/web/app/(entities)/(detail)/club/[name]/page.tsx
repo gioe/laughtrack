@@ -35,7 +35,7 @@ export async function generateMetadata(props: {
 
     const club = await getClubName();
     const clubName = club?.name ?? name;
-    const title = `${clubName} | LaughTrack`;
+    const title = clubName;
     const description = `Discover upcoming comedy shows at ${clubName}. Find schedules, tickets, and more on LaughTrack.`;
     const baseUrl = process.env.NEXT_PUBLIC_WEBSITE_URL;
     const url = baseUrl ? `${baseUrl}/club/${slug}` : undefined;
