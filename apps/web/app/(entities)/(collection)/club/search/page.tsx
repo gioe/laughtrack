@@ -27,6 +27,7 @@ export async function generateMetadata(props: {
 
     const baseUrl = process.env.NEXT_PUBLIC_WEBSITE_URL;
     const url = baseUrl ? `${baseUrl}/club/search` : undefined;
+    const ogImage = baseUrl ? `${baseUrl}/logomark-512.png` : undefined;
 
     const ogTitle = `${title} | LaughTrack`;
     return {
@@ -40,9 +41,20 @@ export async function generateMetadata(props: {
             description,
             type: "website",
             ...(url && { url }),
+            ...(ogImage && {
+                images: [
+                    {
+                        url: ogImage,
+                        width: 512,
+                        height: 512,
+                        alt: "LaughTrack",
+                    },
+                ],
+            }),
         },
         twitter: {
             card: "summary",
+            ...(ogImage && { images: [ogImage] }),
         },
     };
 }
