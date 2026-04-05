@@ -1,7 +1,7 @@
 "use client";
 import { Dialog, DialogPanel } from "@headlessui/react";
 import { XButton } from "../button/x";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { FullRoundedButton } from "../button/rounded/full";
 import { useSignOut } from "@/hooks/useSignOut";
 import { UserProfileInterface } from "@/app/api/profile/[id]/interface";
@@ -22,6 +22,15 @@ export function SideDrawer({ open, onClose, currentUser }: SideDrawerProps) {
     const loginModal = useLoginModal();
     const handleSignOut = useSignOut();
     const { mv, mt, prefersReducedMotion } = useMotionProps();
+
+    useEffect(() => {
+        if (open) {
+            document.body.style.overflow = "hidden";
+            return () => {
+                document.body.style.overflow = "";
+            };
+        }
+    }, [open]);
 
     const handleLoginClick = useCallback(() => {
         loginModal.onOpen();
@@ -75,6 +84,7 @@ export function SideDrawer({ open, onClose, currentUser }: SideDrawerProps) {
         <AnimatePresence>
             {open && (
                 <Dialog
+                    static
                     open={open}
                     onClose={onClose}
                     className="lg:hidden relative z-30"
