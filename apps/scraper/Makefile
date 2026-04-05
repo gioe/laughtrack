@@ -93,7 +93,7 @@ setup-venv:
 		echo "✅ Virtual environment already exists at $(VENV_DIR)/"; \
 	fi
 
-.PHONY: test test-all test-venues test-core test-infrastructure test-utils test-critical help help-full help-install help-test help-lint hdiscover help-clean help-linting help-testing help-scraping help-setup help-analysis help-viz help-maintenance help-update help-updates help-workflows help-discovery help-info help-cleanup scrape-all scrape-club scrape-club-id diagnose-club scrape-interactive scrape-types list-scrapers list-clubs update-popularity update-comedian-stats migrate migrate-dry-run dashboard visualize-metrics scraper-status daily-scrape full-maintenance install install-dev install-optional seatengine-api-tool clean lint lint-check format format-check lint-fix lint-fix-imports lint-fix-whitespace check-venv setup-venv arch-lint run-script
+.PHONY: test test-all test-venues test-core test-infrastructure test-utils test-critical help help-full help-install help-test help-lint hdiscover help-clean help-linting help-testing help-scraping help-setup help-analysis help-viz help-maintenance help-update help-updates help-workflows help-discovery help-info help-cleanup scrape-all scrape-club scrape-club-id diagnose-club scrape-interactive scrape-types list-scrapers list-clubs update-popularity update-comedian-stats sync-club-images migrate migrate-dry-run dashboard visualize-metrics scraper-status daily-scrape full-maintenance install install-dev install-optional seatengine-api-tool clean lint lint-check format format-check lint-fix lint-fix-imports lint-fix-whitespace check-venv setup-venv arch-lint run-script
 
 # =============================================================================
 # HELP & DOCUMENTATION
@@ -668,6 +668,12 @@ update-comedian-stats:
 	@echo "👤 Updating comedian statistics..."
 	@echo "   → Refreshing social media followers and show performance metrics"
 	$(activate_venv) $(PYTHON) scripts/core/update_comedian_stats.py
+
+# Sync club images - check CDN for club images and update has_image flag
+sync-club-images:
+	@echo "🖼️ Syncing club has_image flags with CDN..."
+	@echo "   → Checking laughtrack.b-cdn.net/clubs/ for each club"
+	$(activate_venv) $(PYTHON) scripts/core/sync_club_images.py --update
 
 # Source comedian images - fetch from Wikidata/TMDb and upload to Bunny CDN
 source-images:
