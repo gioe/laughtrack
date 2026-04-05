@@ -15,6 +15,8 @@ import ShowTable from "@/ui/pages/search/table";
 import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { buildComedianImageUrl } from "@/util/imageUtil";
+import JsonLd from "@/ui/components/JsonLd";
+import { buildComedianJsonLd, buildShowJsonLd } from "@/util/jsonLd";
 
 export async function generateMetadata(props: {
     params: Promise<{ name: string }>;
@@ -112,8 +114,14 @@ export default async function ComedianDetailsPage(props: {
 
     const { data, shows, total, filters } = result;
 
+    const jsonLdData = [
+        buildComedianJsonLd(data),
+        ...shows.map(buildShowJsonLd),
+    ];
+
     return (
         <>
+            <JsonLd data={jsonLdData} />
             <FilterModal filters={filters} total={total} />
             <ComedianDetailHeader comedian={data} />
             <FilterBar
