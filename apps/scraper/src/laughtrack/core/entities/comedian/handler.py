@@ -131,6 +131,37 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
             Logger.warn(f"lineup_filter: skipping deny-listed name '{name}'")
         return allowed
 
+    def source_images_for_new_comedians(self, comedian_names: List[str]) -> int:
+        """Attempt to source and upload images for newly inserted comedians.
+
+        Queries Wikidata and TMDb for each comedian, downloads/resizes images,
+        uploads to Bunny CDN, and sets has_image=true in the database.
+
+        This method is non-blocking — failures are logged but never raised.
+
+        Args:
+            comedian_names: Names of newly inserted comedians.
+
+        Returns:
+            Number of comedians for which images were found and uploaded.
+        """
+        if not comedian_names:
+            return 0
+
+        try:
+            from laughtrack.core.services.image_sourcing import source_images_for_comedians
+
+            sourced_names = source_images_for_comedians(comedian_names)
+            if sourced_names:
+                self.execute_with_cursor(
+                    ComedianQueries.BATCH_SET_HAS_IMAGE_TRUE, (sourced_names,)
+                )
+                Logger.info(f"source_images: set has_image=true for {len(sourced_names)} comedians")
+            return len(sourced_names)
+        except Exception as e:
+            Logger.warn(f"source_images: non-fatal error during image sourcing: {e}")
+            return 0
+
     def update_comedian_popularity(self, comedian_ids: Optional[List[str]] = None) -> None:
         """
         Update popularity for comedians in the database.

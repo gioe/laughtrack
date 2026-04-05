@@ -153,3 +153,9 @@ class ComedianQueries:
     GET_DENIED_NAMES = '''
         SELECT name FROM comedian_deny_list WHERE name = ANY(%s)
     '''
+
+    BATCH_SET_HAS_IMAGE_TRUE = '''
+        UPDATE comedians
+        SET has_image = true
+        WHERE name = ANY(%s)
+    '''
