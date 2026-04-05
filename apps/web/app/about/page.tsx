@@ -3,6 +3,9 @@ import { CACHE } from "@/util/constants/cacheConstants";
 import AboutUsSection from "@/ui/pages/about/content";
 import StatsSection from "@/ui/pages/about/stats";
 import { getStats } from "@/lib/data/stats/getStats";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { title: "About" };
 
 export const revalidate = 86400;
 

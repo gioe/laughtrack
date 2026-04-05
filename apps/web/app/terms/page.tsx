@@ -1,3 +1,7 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { title: "Terms and Conditions" };
+
 const TermsPage = async () => {
     return (
         <main className="min-h-screen w-full bg-coconut-cream">
