@@ -17,6 +17,7 @@ type NearYouComedianRow = {
     website: string | null;
     popularity: number;
     linktree: string | null;
+    has_image: boolean;
     show_count: number;
 };
 
@@ -62,6 +63,7 @@ export async function getComediansByZip(
                 c.website,
                 c.popularity,
                 c.linktree,
+                c.has_image,
                 COUNT(DISTINCT s.id)::int AS show_count
             FROM comedians c
             JOIN lineup_items li ON li.comedian_id = c.uuid
@@ -78,7 +80,7 @@ export async function getComediansByZip(
               )
             GROUP BY c.id, c.uuid, c.name, c.instagram_account, c.instagram_followers,
                      c.tiktok_account, c.tiktok_followers, c.youtube_account,
-                     c.youtube_followers, c.website, c.popularity, c.linktree
+                     c.youtube_followers, c.website, c.popularity, c.linktree, c.has_image
         )
         SELECT *
         FROM comedian_counts
@@ -90,7 +92,7 @@ export async function getComediansByZip(
         id: row.id,
         uuid: row.uuid,
         name: row.name,
-        imageUrl: buildComedianImageUrl(row.name),
+        imageUrl: buildComedianImageUrl(row.name, row.has_image),
         social_data: {
             id: row.id,
             instagram_account: row.instagram_account,

@@ -15,6 +15,7 @@ type TrendingComedianRow = {
     website: string | null;
     popularity: number;
     linktree: string | null;
+    has_image: boolean;
     show_count: number;
 };
 
@@ -52,6 +53,7 @@ export async function getTrendingComedians(
                 c.website,
                 c.popularity,
                 c.linktree,
+                c.has_image,
                 (
                     (
                         SELECT COUNT(*)
@@ -127,7 +129,7 @@ export async function getTrendingComedians(
         id: row.id,
         uuid: row.uuid,
         name: row.name,
-        imageUrl: buildComedianImageUrl(row.name),
+        imageUrl: buildComedianImageUrl(row.name, row.has_image),
         social_data: {
             id: row.id,
             instagram_account: row.instagram_account,

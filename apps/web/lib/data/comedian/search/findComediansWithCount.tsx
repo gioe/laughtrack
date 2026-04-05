@@ -26,6 +26,7 @@ const COMEDIAN_SELECT = {
     youtubeFollowers: true,
     website: true,
     popularity: true,
+    hasImage: true,
     alternativeNames: {
         select: {
             id: true,
@@ -76,7 +77,10 @@ function mapComedian(comedian: ComedianWithUpcomingCount) {
     return {
         id: effectiveComedian.id,
         name: effectiveComedian.name,
-        imageUrl: buildComedianImageUrl(effectiveComedian.name),
+        imageUrl: buildComedianImageUrl(
+            effectiveComedian.name,
+            effectiveComedian.hasImage,
+        ),
         isAlias,
         uuid: effectiveComedian.uuid,
         isFavorite: Boolean(comedian.favoriteComedians?.length),

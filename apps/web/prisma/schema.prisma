@@ -56,6 +56,7 @@ model Comedian {
   linktree           String?
   songkickId         String?            @map("songkick_id")
   bandsintownId      String?            @map("bandsintown_id")
+  hasImage           Boolean            @default(false) @map("has_image")
   parentComedianId   Int?               @map("parent_comedian_id")
   parentComedian     Comedian?          @relation("ComedianAliases", fields: [parentComedianId], references: [id])
   alternativeNames   Comedian[]         @relation("ComedianAliases")

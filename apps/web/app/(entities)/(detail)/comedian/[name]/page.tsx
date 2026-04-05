@@ -26,7 +26,7 @@ export async function generateMetadata(props: {
         () =>
             db.comedian.findFirst({
                 where: { name: { equals: name, mode: "insensitive" } },
-                select: { name: true },
+                select: { name: true, hasImage: true },
             }),
         ["comedian-metadata", name],
         { revalidate: CACHE.detailPage, tags: ["comedian-metadata", name] },
@@ -38,7 +38,10 @@ export async function generateMetadata(props: {
     const description = `Discover upcoming comedy shows featuring ${comedianName}. Find schedules, tickets, and more on LaughTrack.`;
     const baseUrl = process.env.NEXT_PUBLIC_WEBSITE_URL;
     const url = baseUrl ? `${baseUrl}/comedian/${slug}` : undefined;
-    const image = buildComedianImageUrl(comedianName);
+    const image = buildComedianImageUrl(
+        comedianName,
+        comedian?.hasImage ?? false,
+    );
 
     return {
         title,

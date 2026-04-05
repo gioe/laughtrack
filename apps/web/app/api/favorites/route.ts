@@ -97,6 +97,7 @@ export async function GET(req: NextRequest) {
                             website: true,
                             popularity: true,
                             linktree: true,
+                            hasImage: true,
                         },
                     },
                 },
@@ -106,7 +107,10 @@ export async function GET(req: NextRequest) {
 
         const comedians = favorites.map((favorite) => ({
             ...favorite.comedian,
-            imageUrl: buildComedianImageUrl(favorite.comedian.name),
+            imageUrl: buildComedianImageUrl(
+                favorite.comedian.name,
+                favorite.comedian.hasImage,
+            ),
             isFavorite: true,
             social_data: {
                 id: favorite.comedian.id,

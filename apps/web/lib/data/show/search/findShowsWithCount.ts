@@ -53,11 +53,13 @@ const SHOW_SELECT = {
                     id: true,
                     uuid: true,
                     name: true,
+                    hasImage: true,
                     parentComedian: {
                         select: {
                             id: true,
                             uuid: true,
                             name: true,
+                            hasImage: true,
                             taggedComedians: {
                                 select: {
                                     tag: true,

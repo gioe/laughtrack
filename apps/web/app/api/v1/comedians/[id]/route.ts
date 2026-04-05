@@ -36,6 +36,7 @@ export async function GET(
                 youtubeFollowers: true,
                 website: true,
                 popularity: true,
+                hasImage: true,
             },
         });
 
@@ -52,7 +53,10 @@ export async function GET(
                     id: comedian.id,
                     uuid: comedian.uuid,
                     name: comedian.name,
-                    imageUrl: buildComedianImageUrl(comedian.name),
+                    imageUrl: buildComedianImageUrl(
+                        comedian.name,
+                        comedian.hasImage,
+                    ),
                     social_data: {
                         linktree: comedian.linktree,
                         instagram_account: comedian.instagramAccount,

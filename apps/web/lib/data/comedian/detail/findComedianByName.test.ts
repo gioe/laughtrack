@@ -62,6 +62,7 @@ function makeComedianRow(
         youtubeFollowers: null,
         website: "https://alice.example.com",
         popularity: 80,
+        hasImage: true,
         totalShows: 0,
         soldOutShows: 0,
         parentComedianId: null,

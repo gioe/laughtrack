@@ -19,6 +19,7 @@ function buildComedianSelect() {
         youtubeFollowers: true,
         website: true,
         popularity: true,
+        hasImage: true,
         lineupItems: {
             select: {
                 id: true,
@@ -74,7 +75,10 @@ export async function findComedianByName(
         return {
             name: comedianData.name,
             id: comedianData.id,
-            imageUrl: buildComedianImageUrl(comedianData.name),
+            imageUrl: buildComedianImageUrl(
+                comedianData.name,
+                comedianData.hasImage,
+            ),
             uuid: comedianData.uuid,
             isFavorite: Boolean(comedianData.favoriteComedians?.length),
             show_count: comedianData.lineupItems.length,
