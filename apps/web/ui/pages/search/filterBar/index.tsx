@@ -78,7 +78,7 @@ const FilterBar = ({ variant, total, filters, isAdmin }: FilterBarProps) => {
                             )}
 
                             <span className="hidden sm:block text-sm text-copper/60 whitespace-nowrap">
-                                {total.toLocaleString()} results
+                                {total.toLocaleString("en-US")} results
                             </span>
                         </div>
 

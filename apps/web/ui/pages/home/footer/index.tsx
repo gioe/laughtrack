@@ -81,7 +81,10 @@ const FooterComponent = () => {
                 </div>
 
                 <div className="flex flex-col md:flex-row justify-between items-center pt-8 sm:pt-10 border-t border-gray-200">
-                    <div className="text-gray-600 mb-6 md:mb-0 text-base sm:text-lg font-dmSans">
+                    <div
+                        className="text-gray-600 mb-6 md:mb-0 text-base sm:text-lg font-dmSans"
+                        suppressHydrationWarning
+                    >
                         Copyright © {new Date().getFullYear()} Laughtrack
                         Digital, LLC
                     </div>
