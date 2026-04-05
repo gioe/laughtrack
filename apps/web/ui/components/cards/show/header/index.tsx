@@ -12,11 +12,13 @@ const PLACEHOLDER = "/placeholders/club-placeholder.svg";
 interface ShowCardHeaderProps {
     show: Show;
     distanceMiles?: number | null;
+    hideClubName?: boolean;
 }
 
 const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
     show,
     distanceMiles,
+    hideClubName,
 }: ShowCardHeaderProps) => {
     const [error, setError] = useState(false);
 
@@ -34,9 +36,11 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
             </div>
 
             <div>
-                <h2 className="text-xl sm:text-2xl md:text-[24px] font-gilroy-bold font-bold text-[#2D1810] mb-1">
-                    {show.clubName ?? ""}
-                </h2>
+                {!hideClubName && (
+                    <h2 className="text-xl sm:text-2xl md:text-[24px] font-gilroy-bold font-bold text-[#2D1810] mb-1">
+                        {show.clubName ?? ""}
+                    </h2>
+                )}
                 {show.name && (
                     <p className="text-base sm:text-lg md:text-[18px] text-gray-600 font-dmSans mb-1">
                         {`${show.name}`}

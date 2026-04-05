@@ -32,9 +32,13 @@ const seenShowIds = new Set<number>();
 
 interface ShowCardProps {
     show: ShowDTO;
+    hideClubName?: boolean;
 }
 
-const ShowCard: React.FC<ShowCardProps> = ({ show }: ShowCardProps) => {
+const ShowCard: React.FC<ShowCardProps> = ({
+    show,
+    hideClubName,
+}: ShowCardProps) => {
     const distanceMiles = show.distanceMiles ?? null;
     const { mv, mp } = useMotionProps();
     const parsedShow = new Show(show);
@@ -66,6 +70,7 @@ const ShowCard: React.FC<ShowCardProps> = ({ show }: ShowCardProps) => {
                             <ShowCardHeader
                                 show={parsedShow}
                                 distanceMiles={distanceMiles}
+                                hideClubName={hideClubName}
                             />
                         </div>
 

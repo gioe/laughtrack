@@ -145,7 +145,7 @@ export default async function ClubDetailPage(props: {
                 total={total}
                 filters={filters.length}
             />
-            <ShowTable shows={shows} />
+            <ShowTable shows={shows} hideClubName />
         </>
     );
 }
