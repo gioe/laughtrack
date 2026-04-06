@@ -569,6 +569,16 @@ else
 	$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.scrape_comedian_websites --comedian-name "$(COMEDIAN)" $(if $(LIMIT),--limit $(LIMIT)) $(if $(DRY_RUN),--dry-run) -v
 endif
 
+# Discover website_scraping_url for comedians who have a website but no scraping URL
+discover-scraping-urls:
+	@echo "🔍 Discovering scraping URLs from comedian homepages..."
+ifndef COMEDIAN
+	$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.discover_scraping_urls $(if $(LIMIT),--limit $(LIMIT)) $(if $(DRY_RUN),--dry-run) $(if $(INCLUDE_HOMEPAGE),--include-homepage) -v
+else
+	@echo "🎭 Discovering scraping URL for: $(COMEDIAN)"
+	$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.discover_scraping_urls --comedian-name "$(COMEDIAN)" $(if $(LIMIT),--limit $(LIMIT)) $(if $(DRY_RUN),--dry-run) $(if $(INCLUDE_HOMEPAGE),--include-homepage) -v
+endif
+
 # Run a one-off Python script from the repo root using the scraper venv
 run-script:
 	@echo "🐍 Running script with scraper venv:"
