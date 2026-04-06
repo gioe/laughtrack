@@ -177,17 +177,10 @@ class ComedianQueries:
                website_discovery_source,
                website_last_scraped, website_scrape_strategy
         FROM comedians
-        WHERE website IS NOT NULL
-          AND website <> ''
-          AND (website_confidence IS NULL OR website_confidence != 'low')
+        WHERE website_scraping_url IS NOT NULL
+          AND website_scraping_url <> ''
           AND (website_last_scraped IS NULL
                OR website_last_scraped < NOW() - INTERVAL '7 days')
-          AND website !~ '/shows/[0-9]+'
-          AND website !~ '/events/[0-9]+'
-          AND website !~ '/checkout/'
-          AND website !~ '/tickets/'
-          AND website !~ '/e/[0-9]+'
-          AND website !~ '/event/'
         ORDER BY website_last_scraped ASC NULLS FIRST
     '''
 
