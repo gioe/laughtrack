@@ -328,7 +328,7 @@ async def _discover_clubs(min_refs: int = 1) -> list[DiscoveredVenue]:
 
             for v in extracted:
                 key = v["name"].strip().lower()
-                if _is_known_club(vname, known_clubs):
+                if _is_known_club(v["name"], known_clubs):
                     continue
 
                 if key in venues:
