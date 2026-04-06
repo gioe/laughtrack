@@ -46,7 +46,7 @@ class DiscoveredVenue:
     venue_name: str
     city: str = ""
     state: str = ""
-    ticket_urls: list[str] = field(default_factory=list)
+    ticket_urls: set[str] = field(default_factory=set)
     platforms: set[str] = field(default_factory=set)
     comedians: set[str] = field(default_factory=set)
 
@@ -66,7 +66,6 @@ _GET_COMEDIANS_WITH_SCRAPED_WEBSITES = """
     WHERE website IS NOT NULL
       AND website <> ''
       AND website_scrape_strategy IN ('json_ld', 'json_ld_subpage')
-    ORDER BY name
 """
 
 _GET_ALL_CLUB_NAMES = """
@@ -97,6 +96,7 @@ def _load_comedians(limit: Optional[int] = None, comedian_name: Optional[str] = 
             if comedian_name:
                 query += " AND LOWER(name) LIKE LOWER(%s)"
                 params = (f"%{comedian_name}%",)
+            query += " ORDER BY name"
             cur.execute(query, params)
             columns = [desc[0] for desc in cur.description]
             rows = [dict(zip(columns, row)) for row in cur.fetchall()]
@@ -175,12 +175,12 @@ def _extract_venues_from_events(
             state = (location.address.address_region or "").strip()
 
         # Collect ticket URLs
-        ticket_urls: list[str] = []
+        ticket_urls: set[str] = set()
         if event.url:
-            ticket_urls.append(event.url)
+            ticket_urls.add(event.url)
         for offer in (event.offers or []):
             if offer.url:
-                ticket_urls.append(offer.url)
+                ticket_urls.add(offer.url)
 
         # Detect platforms from ticket URLs
         platforms: set[str] = set()
@@ -193,7 +193,7 @@ def _extract_venues_from_events(
         key = venue_name.strip().lower()
         if key in venues:
             existing = venues[key]
-            existing.ticket_urls.extend(ticket_urls)
+            existing.ticket_urls.update(ticket_urls)
             existing.platforms.update(platforms)
             existing.comedians.add(comedian_name)
         else:
@@ -251,9 +251,9 @@ async def _discover_venues(
                 for page_html in pages:
                     all_events.extend(EventExtractor.extract_events(page_html))
 
+                processed += 1
                 if all_events:
                     _extract_venues_from_events(all_events, name, known_clubs, venues)
-                    processed += 1
             except Exception as e:
                 Logger.warn(f"Error processing {name} ({website}): {e}")
                 errors += 1
