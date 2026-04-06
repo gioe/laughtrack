@@ -2,8 +2,8 @@ name: Discover Comedian Websites
 
 on:
   schedule:
-    # Weekly: Wednesdays at 10:00 UTC (06:00 ET / 02:00 PT)
-    - cron: '0 10 * * 3'
+    # Daily at 10:00 UTC (06:00 ET / 02:00 PT)
+    - cron: '0 10 * * *'
   workflow_dispatch:
 
 jobs:
@@ -54,7 +54,7 @@ jobs:
           GOOGLE_CUSTOM_SEARCH_ENGINE_ID: ${{ secrets.GOOGLE_CUSTOM_SEARCH_ENGINE_ID }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
-          python -m scripts.core.discover_comedian_websites --limit 50 -v
+          python -m scripts.core.discover_comedian_websites --limit 100 -v
 
       - name: Upload logs
         uses: actions/upload-artifact@v4
