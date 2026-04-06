@@ -50,11 +50,10 @@ def detect_tour_links(html: str, base_url: str) -> List[str]:
             continue
 
         # Check if the path matches a tour-page pattern
-        path = parsed.path.rstrip("/") + "/"  # normalize trailing slash
-        if not _TOUR_PATH_RE.match(path.lstrip("/")):
-            # Re-check with the raw path (the regex expects leading /)
-            if not _TOUR_PATH_RE.match(parsed.path):
-                continue
+        # Normalize: ensure leading slash, strip trailing slash, then match
+        normalized_path = "/" + parsed.path.strip("/")
+        if not _TOUR_PATH_RE.match(normalized_path):
+            continue
 
         # Deduplicate by scheme+netloc+path (ignore query/fragment)
         canonical = f"{parsed.scheme}://{parsed.netloc}{parsed.path.rstrip('/')}"
