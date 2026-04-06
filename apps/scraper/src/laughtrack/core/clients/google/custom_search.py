@@ -66,6 +66,9 @@ _EXCLUDED_DOMAINS = frozenset({
     "portcomedy.com",
     "goldcomedy.com",
     "bapacthousandoaks.com",
+    "thetinycupboard.com",
+    "micdropcomedysandiego.com",
+    "comedydynamics.com",
     # Talent agency / booking sites
     "punchup.live",
     "gersh.com",
@@ -110,6 +113,9 @@ _EXCLUDED_DOMAINS = frozenset({
     "forward.com",
     "pi.fyi",
     "acomicsoul.com",
+    "earwolf.com",
+    "themoviedb.org",
+    "grokipedia.com",
 })
 
 
