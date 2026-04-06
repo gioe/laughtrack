@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Discover comedian websites via Google Custom Search.
+Discover comedian websites via web search (Brave Search or Google Custom Search).
 
 Finds official websites for comedians who don't have one yet, prioritized
-by popularity (highest first). Respects the Google Custom Search free tier
-(100 queries/day).
+by popularity (highest first). Uses Brave Search API (preferred, ~1,000 queries/month)
+or falls back to Google Custom Search if configured.
 
 Usage:
     python -m scripts.core.discover_comedian_websites --limit 10
@@ -30,7 +30,7 @@ from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Discover comedian websites via Google Custom Search",
+        description="Discover comedian websites via web search",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 

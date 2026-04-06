@@ -44,6 +44,42 @@ _EXCLUDED_DOMAINS = frozenset({
     "tumblr.com",
     "yelp.com",
     "tripadvisor.com",
+    # Venue / comedy directory listing sites
+    "improv.com",
+    "improvtx.com",
+    "levitylive.com",
+    "dead-frog.com",
+    "thecomedystore.com",
+    "laughfactory.com",
+    "gothamcomedyclub.com",
+    "cellardog.com",
+    "comedycellar.com",
+    "standuplive.com",
+    # Streaming / media sites
+    "netflix.com",
+    "hulu.com",
+    "hbo.com",
+    "max.com",
+    "primevideo.com",
+    "peacocktv.com",
+    # Ticketing resellers
+    "vividseats.com",
+    # Venue listing / arts center sites
+    "comedyworks.com",
+    "mgmresorts.com",
+    "mayoarts.org",
+    # Reference / media / press sites
+    "tvinsider.com",
+    "kennedy-center.org",
+    "fasterthannormal.com",
+    "famousbirthdays.com",
+    "tvguide.com",
+    "rottentomatoes.com",
+    "tmz.com",
+    "people.com",
+    "variety.com",
+    "hollywoodreporter.com",
+    "deadline.com",
 })
 
 
@@ -76,6 +112,10 @@ class GoogleCustomSearchClient:
     @property
     def is_configured(self) -> bool:
         return bool(self._api_key and self._engine_id)
+
+    @property
+    def source_name(self) -> str:
+        return "google_search"
 
     @property
     def queries_remaining(self) -> int:

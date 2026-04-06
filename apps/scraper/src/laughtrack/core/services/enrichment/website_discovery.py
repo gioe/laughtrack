@@ -1,15 +1,15 @@
-"""Discover comedian websites via Google Custom Search.
+"""Discover comedian websites via web search APIs.
 
-Queries Google for '{name} comedian official website', filters out social media /
-ticketing / reference sites, and writes the best candidate URL to comedian.website
-with website_discovery_source='google_search'.
+Queries a search provider for '{name} comedian official website', filters out
+social media / ticketing / reference sites, and writes the best candidate URL
+to comedian.website with website_discovery_source set to the provider name.
 
 Prioritizes comedians by popularity (highest first, website IS NULL).
-Respects Google Custom Search free tier (100 queries/day).
+Supports multiple search providers (Brave, Google Custom Search).
 """
 
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Protocol
 from urllib.parse import urlparse
 
 from laughtrack.core.clients.google.custom_search import (
@@ -18,6 +18,21 @@ from laughtrack.core.clients.google.custom_search import (
 )
 from laughtrack.core.data.db_connection import create_connection
 from laughtrack.foundation.infrastructure.logger.logger import Logger
+
+
+class SearchClient(Protocol):
+    """Protocol for web search clients used by the discovery service."""
+
+    @property
+    def is_configured(self) -> bool: ...
+
+    @property
+    def queries_remaining(self) -> int: ...
+
+    @property
+    def source_name(self) -> str: ...
+
+    def search(self, query: str, num_results: int = 10) -> List[SearchResult]: ...
 
 
 @dataclass
@@ -33,10 +48,12 @@ class DiscoveryResult:
 
 
 # SQL: get comedians without websites, ordered by popularity DESC
+# Excludes comedians already marked as 'none_found' to avoid re-querying
 _GET_COMEDIANS_WITHOUT_WEBSITE = """
     SELECT uuid, name, popularity
     FROM comedians
     WHERE (website IS NULL OR website = '')
+      AND (website_discovery_source IS NULL OR website_discovery_source != 'none_found')
     ORDER BY popularity DESC NULLS LAST
 """
 
@@ -44,6 +61,7 @@ _GET_COMEDIANS_WITHOUT_WEBSITE_LIMITED = """
     SELECT uuid, name, popularity
     FROM comedians
     WHERE (website IS NULL OR website = '')
+      AND (website_discovery_source IS NULL OR website_discovery_source != 'none_found')
     ORDER BY popularity DESC NULLS LAST
     LIMIT %s
 """
@@ -52,6 +70,12 @@ _UPDATE_COMEDIAN_WEBSITE = """
     UPDATE comedians
     SET website = %s,
         website_discovery_source = %s
+    WHERE uuid = %s
+"""
+
+_MARK_NO_WEBSITE_FOUND = """
+    UPDATE comedians
+    SET website_discovery_source = 'none_found'
     WHERE uuid = %s
 """
 
@@ -133,6 +157,29 @@ def _pick_best_url(results: List[SearchResult], comedian_name: str) -> Optional[
     return best_url
 
 
+def _create_search_client() -> Optional[SearchClient]:
+    """Create the best available search client.
+
+    Tries Brave first (preferred), falls back to Google Custom Search.
+    Returns None if no client is configured.
+    """
+    try:
+        from laughtrack.core.clients.brave.search import BraveSearchClient
+        brave = BraveSearchClient()
+        if brave.is_configured:
+            Logger.info(f"Using Brave Search (daily limit: {brave._daily_limit})")
+            return brave
+    except ImportError:
+        pass
+
+    google = GoogleCustomSearchClient()
+    if google.is_configured:
+        Logger.info("Using Google Custom Search")
+        return google
+
+    return None
+
+
 def discover_websites(
     limit: Optional[int] = None,
     dry_run: bool = False,
@@ -149,10 +196,10 @@ def discover_websites(
     Returns:
         List of DiscoveryResult for each comedian processed.
     """
-    client = GoogleCustomSearchClient()
+    client = _create_search_client()
 
-    if not client.is_configured:
-        Logger.error("Google Custom Search not configured — set GOOGLE_CUSTOM_SEARCH_API_KEY and GOOGLE_CUSTOM_SEARCH_ENGINE_ID")
+    if client is None:
+        Logger.error("No search provider configured — set BRAVE_SEARCH_API_KEY or GOOGLE_CUSTOM_SEARCH_API_KEY + GOOGLE_CUSTOM_SEARCH_ENGINE_ID")
         return []
 
     conn = create_connection(autocommit=False)
@@ -185,29 +232,36 @@ def discover_websites(
                     search_results = client.search(search_query)
 
                     if not search_results:
+                        if not dry_run:
+                            cur.execute(_MARK_NO_WEBSITE_FOUND, (uuid,))
+                            conn.commit()
                         results.append(DiscoveryResult(
                             uuid=uuid, name=name, website=None,
                             skipped=True, reason="no search results",
                         ))
+                        Logger.info(f"No search results for {name} — marked as none_found")
                         continue
 
                     best_url = _pick_best_url(search_results, name)
 
                     if not best_url:
+                        if not dry_run:
+                            cur.execute(_MARK_NO_WEBSITE_FOUND, (uuid,))
+                            conn.commit()
                         results.append(DiscoveryResult(
                             uuid=uuid, name=name, website=None,
                             skipped=True, reason="no confident match",
                         ))
-                        Logger.debug(f"No suitable URL found for {name}")
+                        Logger.info(f"No suitable URL found for {name} — marked as none_found")
                         continue
 
-                    result = DiscoveryResult(uuid=uuid, name=name, website=best_url)
+                    result = DiscoveryResult(uuid=uuid, name=name, website=best_url, source=client.source_name)
                     results.append(result)
 
                     if dry_run:
                         Logger.info(f"[DRY RUN] {name} → {best_url}")
                     else:
-                        cur.execute(_UPDATE_COMEDIAN_WEBSITE, (best_url, "google_search", uuid))
+                        cur.execute(_UPDATE_COMEDIAN_WEBSITE, (best_url, client.source_name, uuid))
                         conn.commit()
                         Logger.info(f"Updated {name} → {best_url}")
 
