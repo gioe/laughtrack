@@ -25,6 +25,7 @@ from laughtrack.core.entities.show.handler import ShowHandler
 from laughtrack.core.entities.show.model import Show
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
+from laughtrack.scrapers.implementations.api.comedian_websites.widget_detector import detect_widgets
 from laughtrack.scrapers.implementations.json_ld.extractor import EventExtractor
 from laughtrack.utilities.domain.club.timezone_lookup import timezone_from_address
 from sql.comedian_queries import ComedianQueries
@@ -140,6 +141,9 @@ class ComedianWebsiteScraper(BaseScraper):
                 if not html:
                     self._update_scrape_metadata(row["uuid"], strategy)
                     return []
+
+                # Detect Bandsintown/Songkick widgets and enrich the comedian row
+                self._detect_and_persist_widgets(row["uuid"], comedian.name, html)
 
                 events = EventExtractor.extract_events(html)
                 if not events:
@@ -290,6 +294,35 @@ class ComedianWebsiteScraper(BaseScraper):
     # ------------------------------------------------------------------ #
     # Metadata updates                                                     #
     # ------------------------------------------------------------------ #
+
+    def _detect_and_persist_widgets(self, comedian_uuid: str, comedian_name: str, html: str) -> None:
+        """Detect Bandsintown/Songkick widgets in HTML and write IDs to the comedian row."""
+        try:
+            result = detect_widgets(html)
+            if not result.has_any:
+                return
+
+            parts = []
+            if result.bandsintown_id:
+                parts.append(f"bandsintown_id={result.bandsintown_id}")
+            if result.songkick_id:
+                parts.append(f"songkick_id={result.songkick_id}")
+
+            Logger.info(
+                f"{self._log_prefix}: {comedian_name} — widget detected: {', '.join(parts)}",
+                self.logger_context,
+            )
+
+            self._comedian_handler.execute_batch_operation(
+                ComedianQueries.UPDATE_COMEDIAN_TOUR_IDS,
+                [(comedian_uuid, result.bandsintown_id, result.songkick_id)],
+                log_summary=False,
+            )
+        except Exception as e:
+            Logger.error(
+                f"{self._log_prefix}: error persisting widget IDs for {comedian_name}: {e}",
+                self.logger_context,
+            )
 
     def _update_scrape_metadata(self, comedian_uuid: str, strategy: str) -> None:
         """Update website_last_scraped and website_scrape_strategy for a comedian."""

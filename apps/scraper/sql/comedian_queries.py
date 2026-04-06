@@ -182,6 +182,14 @@ class ComedianQueries:
         ORDER BY website_last_scraped ASC NULLS FIRST
     '''
 
+    UPDATE_COMEDIAN_TOUR_IDS = '''
+        UPDATE comedians AS c
+        SET bandsintown_id = COALESCE(v.bandsintown_id, c.bandsintown_id),
+            songkick_id = COALESCE(v.songkick_id, c.songkick_id)
+        FROM (VALUES %s) AS v(uuid, bandsintown_id, songkick_id)
+        WHERE c.uuid = v.uuid::text
+    '''
+
     UPDATE_COMEDIAN_WEBSITE_SCRAPE_METADATA = '''
         UPDATE comedians AS c
         SET website_discovery_source = v.discovery_source,
