@@ -150,11 +150,13 @@ class ComedianWebsiteScraper(BaseScraper):
                 if not events:
                     strategy = "json_ld_empty"
                     self._update_scrape_metadata(row["uuid"], strategy)
+                    self._update_scraping_url_confidence(row["uuid"], comedian.name, scraping_url, has_events=False)
                     return []
 
                 strategy = "json_ld"
                 shows = self._events_to_shows(events, comedian)
                 self._update_scrape_metadata(row["uuid"], strategy)
+                self._update_scraping_url_confidence(row["uuid"], comedian.name, scraping_url, has_events=True)
 
                 if website:
                     self._update_confidence(row["uuid"], comedian.name, website, has_events=True)
@@ -344,6 +346,21 @@ class ComedianWebsiteScraper(BaseScraper):
         except Exception as e:
             Logger.error(
                 f"{self._log_prefix}: error updating scrape metadata for {comedian_uuid}: {e}",
+                self.logger_context,
+            )
+
+    def _update_scraping_url_confidence(self, comedian_uuid: str, comedian_name: str, scraping_url: str, has_events: bool) -> None:
+        """Compute and persist website_scraping_url confidence score."""
+        try:
+            result = score_website(comedian_name, scraping_url, has_events=has_events)
+            self._comedian_handler.execute_batch_operation(
+                ComedianQueries.UPDATE_COMEDIAN_WEBSITE_SCRAPING_URL_CONFIDENCE,
+                [(comedian_uuid, result.confidence)],
+                log_summary=False,
+            )
+        except Exception as e:
+            Logger.error(
+                f"{self._log_prefix}: error updating scraping URL confidence for {comedian_uuid}: {e}",
                 self.logger_context,
             )
 

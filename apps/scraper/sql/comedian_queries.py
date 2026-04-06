@@ -179,6 +179,8 @@ class ComedianQueries:
         FROM comedians
         WHERE website_scraping_url IS NOT NULL
           AND website_scraping_url <> ''
+          AND (website_scraping_url_confidence IS NULL
+               OR website_scraping_url_confidence != 'low')
           AND (website_last_scraped IS NULL
                OR website_last_scraped < NOW() - INTERVAL '7 days')
         ORDER BY website_last_scraped ASC NULLS FIRST
@@ -215,4 +217,12 @@ class ComedianQueries:
         FROM (VALUES %s) AS v(uuid, confidence)
         WHERE c.uuid = v.uuid::text
           AND c.website_confidence IS DISTINCT FROM v.confidence
+    '''
+
+    UPDATE_COMEDIAN_WEBSITE_SCRAPING_URL_CONFIDENCE = '''
+        UPDATE comedians AS c
+        SET website_scraping_url_confidence = v.confidence
+        FROM (VALUES %s) AS v(uuid, confidence)
+        WHERE c.uuid = v.uuid::text
+          AND c.website_scraping_url_confidence IS DISTINCT FROM v.confidence
     '''
