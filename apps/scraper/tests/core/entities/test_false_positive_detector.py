@@ -371,6 +371,12 @@ class TestShowFormatKeywords:
     def test_live_in_naples(self):
         assert detect_false_positive("Comedian Chris D'Elia Live in Naples, Florida!") is not None
 
+    def test_special_event(self):
+        assert detect_false_positive("ANTHONY RODIA - SPECIAL EVENT - 4/3 - 4/4") is not None
+
+    def test_special_event_with_date(self):
+        assert detect_false_positive("DAVE ATTELL - SPECIAL EVENT  - SATURDAY, JULY 11TH @ 7:00PM") is not None
+
 
 class TestNewPlaceholderNames:
     def test_talent(self):

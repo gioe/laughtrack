@@ -165,6 +165,7 @@ STRUCTURAL_KEYWORDS: tuple[str, ...] = (
     "live in naples",
     "semi-finals",
     "prelim round",
+    "special event",
 )
 
 _MIN_NAME_LENGTH = 4
