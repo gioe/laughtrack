@@ -214,3 +214,11 @@ class ComedianQueries:
         WHERE c.uuid = v.uuid::text
           AND c.website_scraping_url IS DISTINCT FROM v.scraping_url
     '''
+
+    UPDATE_COMEDIAN_WEBSITE_CONFIDENCE = '''
+        UPDATE comedians AS c
+        SET website_confidence = v.confidence
+        FROM (VALUES %s) AS v(uuid, confidence)
+        WHERE c.uuid = v.uuid::text
+          AND c.website_confidence IS DISTINCT FROM v.confidence
+    '''

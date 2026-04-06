@@ -29,6 +29,7 @@ from laughtrack.scrapers.implementations.api.comedian_websites.tour_link_detecto
 from laughtrack.scrapers.implementations.api.comedian_websites.widget_detector import detect_widgets
 from laughtrack.scrapers.implementations.json_ld.extractor import EventExtractor
 from laughtrack.utilities.domain.club.timezone_lookup import timezone_from_address
+from laughtrack.utilities.domain.comedian.website_confidence import score_website
 from sql.comedian_queries import ComedianQueries
 
 
@@ -159,6 +160,7 @@ class ComedianWebsiteScraper(BaseScraper):
                     strategy = "json_ld_subpage"
                     shows = self._events_to_shows(events, comedian)
                     self._update_scrape_metadata(row["uuid"], strategy)
+                    self._update_confidence(row["uuid"], comedian.name, website, has_events=True)
 
                     if shows:
                         Logger.info(
@@ -206,11 +208,13 @@ class ComedianWebsiteScraper(BaseScraper):
                 if not events:
                     strategy = "json_ld_empty"
                     self._update_scrape_metadata(row["uuid"], strategy)
+                    self._update_confidence(row["uuid"], comedian.name, website, has_events=False)
                     return []
 
                 strategy = "json_ld_subpage" if len(pages_html) > 1 else "json_ld"
                 shows = self._events_to_shows(events, comedian)
                 self._update_scrape_metadata(row["uuid"], strategy)
+                self._update_confidence(row["uuid"], comedian.name, website, has_events=True)
 
                 # Persist the discovered scraping URL for next time
                 if discovered_scraping_url:
@@ -431,6 +435,21 @@ class ComedianWebsiteScraper(BaseScraper):
         except Exception as e:
             Logger.error(
                 f"{self._log_prefix}: error updating scrape metadata for {comedian_uuid}: {e}",
+                self.logger_context,
+            )
+
+    def _update_confidence(self, comedian_uuid: str, comedian_name: str, website: str, has_events: bool) -> None:
+        """Compute and persist website confidence score."""
+        try:
+            result = score_website(comedian_name, website, has_events=has_events)
+            self._comedian_handler.execute_batch_operation(
+                ComedianQueries.UPDATE_COMEDIAN_WEBSITE_CONFIDENCE,
+                [(comedian_uuid, result.confidence)],
+                log_summary=False,
+            )
+        except Exception as e:
+            Logger.error(
+                f"{self._log_prefix}: error updating confidence for {comedian_uuid}: {e}",
                 self.logger_context,
             )
 
