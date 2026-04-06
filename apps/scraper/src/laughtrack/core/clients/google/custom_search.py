@@ -55,6 +55,23 @@ _EXCLUDED_DOMAINS = frozenset({
     "cellardog.com",
     "comedycellar.com",
     "standuplive.com",
+    "thestandnyc.com",
+    "newyorkcomedyclub.com",
+    "broadwaycomedyclub.com",
+    "mintcomedy.com",
+    "bonkerzcomedyproductions.com",
+    "carolines.com",
+    "laughitupcomedy.com",
+    "opencomedy.com",
+    "portcomedy.com",
+    "goldcomedy.com",
+    "bapacthousandoaks.com",
+    # Talent agency / booking sites
+    "punchup.live",
+    "gersh.com",
+    "williamshirschtalent.com",
+    "neon-entertainment.com",
+    "innovativeartists.com",
     # Streaming / media sites
     "netflix.com",
     "hulu.com",
@@ -62,12 +79,19 @@ _EXCLUDED_DOMAINS = frozenset({
     "max.com",
     "primevideo.com",
     "peacocktv.com",
+    "abc.com",
     # Ticketing resellers
     "vividseats.com",
+    "bestcomedytickets.com",
     # Venue listing / arts center sites
     "comedyworks.com",
     "mgmresorts.com",
     "mayoarts.org",
+    "wellmonttheater.com",
+    "govs.com",
+    # Festival / event listing sites
+    "skankfest.com",
+    "broadwayworld.com",
     # Reference / media / press sites
     "tvinsider.com",
     "kennedy-center.org",
@@ -81,6 +105,11 @@ _EXCLUDED_DOMAINS = frozenset({
     "hollywoodreporter.com",
     "deadline.com",
     "fandom.com",
+    "encyclopedia.com",
+    "backstage.com",
+    "forward.com",
+    "pi.fyi",
+    "acomicsoul.com",
 })
 
 
