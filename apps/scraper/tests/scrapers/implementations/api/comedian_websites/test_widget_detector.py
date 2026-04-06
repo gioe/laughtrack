@@ -60,6 +60,70 @@ class TestDetectBandsintown:
         result = detect_widgets(html)
         assert result.bandsintown_id == "Ali Wong"
 
+    def test_script_tag_with_data_artist_name(self):
+        """Detect artist from widget.bandsintown.com script tag data-artist-name."""
+        html = '<script src="https://widget.bandsintown.com/main.min.js" data-artist-name="Mark Normand"></script>'
+        result = detect_widgets(html)
+        assert result.bandsintown_id == "Mark Normand"
+
+    def test_script_tag_with_data_artist_id(self):
+        """Fallback to data-artist-id on script tag when name is absent."""
+        html = '<script src="https://widget.bandsintown.com/main.min.js" data-artist-id="456789"></script>'
+        result = detect_widgets(html)
+        assert result.bandsintown_id == "456789"
+
+    def test_script_tag_case_insensitive_src(self):
+        html = '<script src="https://Widget.Bandsintown.COM/main.min.js" data-artist-name="Comic"></script>'
+        result = detect_widgets(html)
+        assert result.bandsintown_id == "Comic"
+
+    def test_script_tag_ignored_if_not_widget_domain(self):
+        """Script tags from other domains should not trigger detection."""
+        html = '<script src="https://cdn.example.com/bit.js" data-artist-name="Nope"></script>'
+        result = detect_widgets(html)
+        assert result.bandsintown_id is None
+
+    def test_profile_link_artist_slug(self):
+        """Detect artist slug from bandsintown.com profile link."""
+        html = '<a href="https://www.bandsintown.com/troy-bond">Tour Dates</a>'
+        result = detect_widgets(html)
+        assert result.bandsintown_id == "troy-bond"
+
+    def test_profile_link_numeric_id(self):
+        """Detect numeric artist ID from bandsintown.com/a/ID link."""
+        html = '<a href="https://www.bandsintown.com/a/12345">Tour Dates</a>'
+        result = detect_widgets(html)
+        assert result.bandsintown_id == "12345"
+
+    def test_profile_link_excludes_utility_paths(self):
+        """Links to privacy, terms, login, etc. should not match."""
+        html = '<a href="https://www.bandsintown.com/privacy">Privacy</a>'
+        result = detect_widgets(html)
+        assert result.bandsintown_id is None
+
+    def test_profile_link_excludes_festivals(self):
+        html = '<a href="https://www.bandsintown.com/festivals">Festivals</a>'
+        result = detect_widgets(html)
+        assert result.bandsintown_id is None
+
+    def test_bit_widget_initializer_preferred_over_script_tag(self):
+        """Primary detection (bit-widget-initializer) takes priority over script tag."""
+        html = """
+        <div class="bit-widget-initializer" data-artist-name="Primary Artist"></div>
+        <script src="https://widget.bandsintown.com/main.min.js" data-artist-name="Secondary"></script>
+        """
+        result = detect_widgets(html)
+        assert result.bandsintown_id == "Primary Artist"
+
+    def test_script_tag_preferred_over_profile_link(self):
+        """Script tag detection takes priority over profile link fallback."""
+        html = """
+        <script src="https://widget.bandsintown.com/main.min.js" data-artist-name="Script Artist"></script>
+        <a href="https://www.bandsintown.com/link-artist">Tour</a>
+        """
+        result = detect_widgets(html)
+        assert result.bandsintown_id == "Script Artist"
+
 
 class TestDetectSongkick:
     def test_href_url_extraction(self):
