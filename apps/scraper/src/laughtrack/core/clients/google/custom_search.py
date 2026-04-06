@@ -80,6 +80,7 @@ _EXCLUDED_DOMAINS = frozenset({
     "variety.com",
     "hollywoodreporter.com",
     "deadline.com",
+    "fandom.com",
 })
 
 

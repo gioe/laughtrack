@@ -27,7 +27,7 @@ class BraveSearchClient:
         except ValueError:
             self._daily_limit = 33
         try:
-            self._delay_s = float(os.environ.get("BRAVE_SEARCH_DELAY_S", "1.0"))
+            self._delay_s = float(os.environ.get("BRAVE_SEARCH_DELAY_S", "0.05"))
         except ValueError:
             self._delay_s = 1.0
 
@@ -76,6 +76,12 @@ class BraveSearchClient:
 
             if resp.status_code == 429:
                 Logger.warn("Brave Search rate limited (HTTP 429)")
+                self._queries_used = self._daily_limit  # stop the loop
+                return []
+
+            if resp.status_code == 402:
+                Logger.warn(f"Brave Search spending limit reached (HTTP 402): {resp.text[:200]}")
+                self._queries_used = self._daily_limit  # stop the loop
                 return []
 
             if resp.status_code != 200:
