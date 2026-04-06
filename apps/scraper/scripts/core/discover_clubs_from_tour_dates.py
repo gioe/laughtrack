@@ -4,13 +4,15 @@ Discover new clubs from comedian Bandsintown public pages.
 
 Fetches the Bandsintown public artist page for each comedian with a
 bandsintown_id, extracts venue names from the JSON-LD MusicEvent data,
-and cross-references against the existing clubs table. Reports unmatched
-venues sorted by how many comedians reference them.
+and cross-references against the existing clubs table. Auto-triages
+venues into high-confidence comedy clubs (auto-creates onboarding tasks)
+and a review list for ambiguous ones.
 
 Usage:
     python -m scripts.core.discover_clubs_from_tour_dates
     python -m scripts.core.discover_clubs_from_tour_dates --min-refs 2
     python -m scripts.core.discover_clubs_from_tour_dates --output clubs.csv
+    python -m scripts.core.discover_clubs_from_tour_dates --create-tasks
 """
 
 import argparse
@@ -55,6 +57,67 @@ class DiscoveredVenue:
             return f"{self.city}, {self.state}"
         return self.city or self.state or ""
 
+    @property
+    def is_likely_comedy_club(self) -> bool:
+        """Heuristic: does the name suggest a dedicated comedy venue?"""
+        return _is_comedy_venue_name(self.name)
+
+    @property
+    def triage(self) -> str:
+        """Auto-triage: 'auto' for high confidence, 'review' for ambiguous, 'skip' for non-US."""
+        # Non-US venues
+        if self.state and self.state not in _US_STATES:
+            return "skip"
+        # No state and no city — likely international
+        if not self.state and not self.city:
+            return "skip"
+
+        # High confidence: comedy keyword + 2+ comedians
+        if self.is_likely_comedy_club and len(self.comedians) >= 2:
+            return "auto"
+
+        # Medium confidence: comedy keyword OR 2+ comedians
+        if self.is_likely_comedy_club or len(self.comedians) >= 2:
+            return "review"
+
+        # Single reference, no comedy keyword — likely a one-off theater
+        return "skip"
+
+
+# Comedy venue name keywords — if the venue name contains any of these,
+# it's likely a dedicated comedy venue worth onboarding.
+_COMEDY_NAME_KEYWORDS = [
+    "comedy", "improv", "funny bone", "funnybone", "laugh", "comic",
+    "joke", "stand-up", "standup", "humor", "hilari",
+]
+
+# Non-comedy venue patterns — theaters, casinos, arenas that occasionally
+# host comedy but aren't dedicated clubs. Used to downgrade confidence.
+_NON_COMEDY_PATTERNS = [
+    "casino", "resort", "arena", "stadium", "amphitheater", "amphitheatre",
+    "convention center", "fairground", "festival",
+]
+
+_US_STATES = {
+    "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
+    "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
+    "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+    "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+    "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY",
+    "DC",
+}
+
+
+def _is_comedy_venue_name(name: str) -> bool:
+    """Check if a venue name suggests a dedicated comedy venue."""
+    lower = name.lower()
+    if any(kw in lower for kw in _COMEDY_NAME_KEYWORDS):
+        # Downgrade if it also matches a non-comedy pattern
+        if any(p in lower for p in _NON_COMEDY_PATTERNS):
+            return False
+        return True
+    return False
+
 
 # ---------------------------------------------------------------------------
 # Database
@@ -80,6 +143,27 @@ def _load_known_clubs() -> set[str]:
         with conn.cursor() as cur:
             cur.execute(_GET_ALL_CLUB_NAMES)
             return {row[0] for row in cur.fetchall()}
+
+
+def _is_known_club(name: str, known_clubs: set[str]) -> bool:
+    """Check if a venue name matches a known club — exact or fuzzy."""
+    lower = name.strip().lower()
+
+    # Exact match
+    if lower in known_clubs:
+        return True
+
+    # Fuzzy: check if any known club name is a substring of this venue or vice versa
+    # e.g. "Stress Factory" matches "Stress Factory Comedy Club"
+    for known in known_clubs:
+        # Known is substring of venue name (or vice versa), and the shorter
+        # string is at least 8 chars to avoid false positives like "The" or "Club"
+        shorter = min(known, lower, key=len)
+        longer = max(known, lower, key=len)
+        if len(shorter) >= 8 and shorter in longer:
+            return True
+
+    return False
 
 
 def _load_comedians() -> list[tuple[str, str]]:
@@ -210,7 +294,7 @@ async def _discover_clubs(min_refs: int = 1) -> list[DiscoveredVenue]:
 
             for v in extracted:
                 key = v["name"].strip().lower()
-                if key in known_clubs:
+                if _is_known_club(vname, known_clubs):
                     continue
 
                 if key in venues:
@@ -247,38 +331,82 @@ def _print_report(venues: list[DiscoveredVenue]) -> None:
         print("\nNo unmatched venues found.")
         return
 
+    auto = [v for v in venues if v.triage == "auto"]
+    review = [v for v in venues if v.triage == "review"]
+    skipped = [v for v in venues if v.triage == "skip"]
+
     print(f"\n{'='*80}")
     print(f"CLUB DISCOVERY REPORT — {len(venues)} unmatched venues from Bandsintown")
     print(f"{'='*80}")
+    print(f"  Auto-onboard:  {len(auto):4d}  (comedy keyword + 2+ comedians)")
+    print(f"  Review:        {len(review):4d}  (comedy keyword OR 2+ comedians)")
+    print(f"  Skipped:       {len(skipped):4d}  (one-off / non-US / ambiguous)")
 
-    # By state
-    state_counts: dict[str, int] = defaultdict(int)
+    if auto:
+        print(f"\n{'─'*80}")
+        print(f"AUTO-ONBOARD ({len(auto)} venues)")
+        print(f"{'─'*80}")
+        print(f"{'Venue':<35s} {'City, State':<25s} {'Comedians':>9s}")
+        print(f"{'─'*80}")
+        for v in auto:
+            print(f"{v.name[:34]:<35s} {v.location[:24]:<25s} {len(v.comedians):>9d}")
+
+    if review:
+        print(f"\n{'─'*80}")
+        print(f"NEEDS REVIEW ({len(review)} venues)")
+        print(f"{'─'*80}")
+        print(f"{'Venue':<35s} {'City, State':<25s} {'Comedians':>9s} {'Signal'}")
+        print(f"{'─'*80}")
+        for v in review:
+            signal = "comedy name" if v.is_likely_comedy_club else f"{len(v.comedians)} refs"
+            print(f"{v.name[:34]:<35s} {v.location[:24]:<25s} {len(v.comedians):>9d} {signal}")
+
+
+def _create_onboarding_tasks(venues: list[DiscoveredVenue]) -> int:
+    """Create tusk onboarding tasks for auto-triaged venues. Returns count created."""
+    import subprocess
+
+    created = 0
     for v in venues:
-        state_counts[v.state or "(unknown)"] += 1
+        location = v.location
+        comedians_str = ", ".join(sorted(v.comedians))
+        sample_url = next(iter(v.ticket_urls)) if v.ticket_urls else ""
 
-    if any(s != "(unknown)" for s in state_counts):
-        print("\nBy state:")
-        for state, count in sorted(state_counts.items(), key=lambda x: -x[1])[:15]:
-            print(f"  {state:5s} {count}")
+        summary = f"Onboard {v.name}"
+        if location:
+            summary += f" ({location})"
 
-    print(f"\n{'─'*80}")
-    print(f"{'Venue':<35s} {'City, State':<25s} {'Comedians':>9s}")
-    print(f"{'─'*80}")
+        description = (
+            f"Discovered via Bandsintown tour dates. "
+            f"Referenced by {len(v.comedians)} comedian(s): {comedians_str}."
+        )
+        if sample_url:
+            description += f" Sample ticket URL: {sample_url}"
 
-    for v in venues:
-        print(f"{v.name[:34]:<35s} {v.location[:24]:<25s} {len(v.comedians):>9d}")
+        cmd = [
+            "tusk", "task-insert",
+            summary, description,
+            "--priority", "Medium",
+            "--domain", "scraper",
+            "--task-type", "feature",
+            "--complexity", "S",
+            "--criteria", f"Add {v.name} to the clubs table with correct scraper type",
+            "--criteria", f"Verify scraper produces show records for {v.name}",
+        ]
 
-    # Detail for high-ref venues
-    high_ref = [v for v in venues if len(v.comedians) >= 2]
-    if high_ref:
-        print(f"\n{'='*80}")
-        print(f"MULTI-COMEDIAN VENUES (2+ comedians)")
-        print(f"{'='*80}")
-        for v in high_ref:
-            print(f"\n  {v.name} ({v.location})")
-            print(f"  Referenced by: {', '.join(sorted(v.comedians))}")
-            if v.ticket_urls:
-                print(f"  Sample URL: {next(iter(v.ticket_urls))}")
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+            if result.returncode == 0:
+                created += 1
+                Logger.info(f"  Created task: {summary}")
+            elif result.returncode == 1:
+                Logger.info(f"  Skipped (duplicate): {summary}")
+            else:
+                Logger.warn(f"  Failed to create task for {v.name}: {result.stderr.strip()}")
+        except Exception as e:
+            Logger.warn(f"  Error creating task for {v.name}: {e}")
+
+    return created
 
 
 def main():
@@ -288,6 +416,8 @@ def main():
     parser.add_argument("--min-refs", type=int, default=1,
                         help="Minimum comedian references to include (default: 1)")
     parser.add_argument("--output", type=str, help="Write CSV to this path")
+    parser.add_argument("--create-tasks", action="store_true",
+                        help="Auto-create onboarding tasks for high-confidence venues")
     parser.add_argument("-v", "--verbose", action="store_true")
 
     args = parser.parse_args()
@@ -304,15 +434,25 @@ def main():
         if args.output and results:
             with open(args.output, "w", newline="") as f:
                 w = csv.writer(f)
-                w.writerow(["venue", "city", "state", "comedian_count", "comedians", "sample_url"])
+                w.writerow(["venue", "city", "state", "comedian_count", "comedians", "triage", "sample_url"])
                 for v in results:
                     w.writerow([
                         v.name, v.city, v.state,
                         len(v.comedians),
                         "; ".join(sorted(v.comedians)),
+                        v.triage,
                         next(iter(v.ticket_urls)) if v.ticket_urls else "",
                     ])
             print(f"\nCSV written to {args.output}")
+
+        # Auto-create tasks for high-confidence venues
+        auto_venues = [v for v in results if v.triage == "auto"]
+        if args.create_tasks and auto_venues:
+            print(f"\nCreating onboarding tasks for {len(auto_venues)} auto-triaged venues...")
+            created = _create_onboarding_tasks(auto_venues)
+            print(f"Created {created} tasks ({len(auto_venues) - created} skipped as duplicates)")
+        elif auto_venues and not args.create_tasks:
+            print(f"\n{len(auto_venues)} venues ready for auto-onboard — pass --create-tasks to create tusk tasks")
 
         print(f"\nTotal: {len(results)} unmatched venues")
 
