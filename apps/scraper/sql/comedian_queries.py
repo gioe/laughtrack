@@ -179,6 +179,7 @@ class ComedianQueries:
         FROM comedians
         WHERE website IS NOT NULL
           AND website <> ''
+          AND (website_confidence IS NULL OR website_confidence != 'low')
           AND (website_last_scraped IS NULL
                OR website_last_scraped < NOW() - INTERVAL '7 days')
           AND website !~ '/shows/[0-9]+'
