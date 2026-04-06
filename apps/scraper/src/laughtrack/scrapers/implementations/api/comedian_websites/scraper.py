@@ -133,6 +133,7 @@ class ComedianWebsiteScraper(BaseScraper):
         """Fetch a comedian's website and any tour subpages, extract JSON-LD events, and convert to Shows."""
         comedian = Comedian(name=row["name"], uuid=row["uuid"])
         website = row.get("website", "").strip()
+        scraping_url = (row.get("website_scraping_url") or "").strip()
         strategy = "none"
 
         async with semaphore:
@@ -140,6 +141,33 @@ class ComedianWebsiteScraper(BaseScraper):
                 if not website:
                     return []
 
+                # If we already know the scraping URL, fetch it directly
+                if scraping_url:
+                    html = await self.fetch_html(scraping_url, timeout=self._REQUEST_TIMEOUT)
+                    if not html:
+                        self._update_scrape_metadata(row["uuid"], strategy)
+                        return []
+
+                    self._detect_and_persist_widgets(row["uuid"], comedian.name, html)
+                    events = EventExtractor.extract_events(html)
+
+                    if not events:
+                        strategy = "json_ld_empty"
+                        self._update_scrape_metadata(row["uuid"], strategy)
+                        return []
+
+                    strategy = "json_ld_subpage"
+                    shows = self._events_to_shows(events, comedian)
+                    self._update_scrape_metadata(row["uuid"], strategy)
+
+                    if shows:
+                        Logger.info(
+                            f"{self._log_prefix}: {comedian.name} — {len(shows)} shows extracted from {scraping_url}",
+                            self.logger_context,
+                        )
+                    return shows
+
+                # No scraping URL yet — fetch homepage and discover tour subpages
                 html = await self.fetch_html(website, timeout=self._REQUEST_TIMEOUT)
                 if not html:
                     self._update_scrape_metadata(row["uuid"], strategy)
@@ -150,6 +178,7 @@ class ComedianWebsiteScraper(BaseScraper):
 
                 # Collect HTML pages to extract events from (homepage + subpages)
                 pages_html: List[str] = [html]
+                discovered_scraping_url: Optional[str] = None
 
                 # Detect and fetch tour/shows/events subpages
                 tour_links = detect_tour_links(html, website)
@@ -162,8 +191,10 @@ class ComedianWebsiteScraper(BaseScraper):
                         subpage_html = await self._fetch_subpage(link, comedian.name)
                         if subpage_html:
                             pages_html.append(subpage_html)
-                            # Also detect widgets on subpages
                             self._detect_and_persist_widgets(row["uuid"], comedian.name, subpage_html)
+                            # Remember the first subpage that has events as the scraping URL
+                            if discovered_scraping_url is None and EventExtractor.extract_events(subpage_html):
+                                discovered_scraping_url = link
 
                 # Extract events from all pages and deduplicate
                 all_events = []
@@ -178,13 +209,12 @@ class ComedianWebsiteScraper(BaseScraper):
                     return []
 
                 strategy = "json_ld_subpage" if len(pages_html) > 1 else "json_ld"
-                shows: List[Show] = []
-                for event in events:
-                    show = self._json_ld_event_to_show(event, comedian)
-                    if show:
-                        shows.append(show)
-
+                shows = self._events_to_shows(events, comedian)
                 self._update_scrape_metadata(row["uuid"], strategy)
+
+                # Persist the discovered scraping URL for next time
+                if discovered_scraping_url:
+                    self._update_scraping_url(row["uuid"], discovered_scraping_url)
 
                 if shows:
                     Logger.info(
@@ -202,6 +232,15 @@ class ComedianWebsiteScraper(BaseScraper):
                 )
                 self._update_scrape_metadata(row["uuid"], "error")
                 return []
+
+    def _events_to_shows(self, events: list, comedian: Comedian) -> List[Show]:
+        """Convert a list of JSON-LD events to Shows."""
+        shows: List[Show] = []
+        for event in events:
+            show = self._json_ld_event_to_show(event, comedian)
+            if show:
+                shows.append(show)
+        return shows
 
     async def _fetch_subpage(self, url: str, comedian_name: str) -> Optional[str]:
         """Fetch a tour subpage, returning HTML or None on failure."""
@@ -392,6 +431,20 @@ class ComedianWebsiteScraper(BaseScraper):
         except Exception as e:
             Logger.error(
                 f"{self._log_prefix}: error updating scrape metadata for {comedian_uuid}: {e}",
+                self.logger_context,
+            )
+
+    def _update_scraping_url(self, comedian_uuid: str, scraping_url: str) -> None:
+        """Persist the discovered tour subpage URL for future scrape runs."""
+        try:
+            self._comedian_handler.execute_batch_operation(
+                ComedianQueries.UPDATE_COMEDIAN_WEBSITE_SCRAPING_URL,
+                [(comedian_uuid, scraping_url)],
+                log_summary=False,
+            )
+        except Exception as e:
+            Logger.error(
+                f"{self._log_prefix}: error updating scraping URL for {comedian_uuid}: {e}",
                 self.logger_context,
             )
 

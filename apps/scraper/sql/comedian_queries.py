@@ -163,7 +163,8 @@ class ComedianQueries:
     # Website scraping metadata queries
 
     GET_COMEDIANS_WITH_WEBSITES = '''
-        SELECT uuid, name, website, website_discovery_source,
+        SELECT uuid, name, website, website_scraping_url,
+               website_discovery_source,
                website_last_scraped, website_scrape_strategy
         FROM comedians
         WHERE website IS NOT NULL
@@ -172,7 +173,8 @@ class ComedianQueries:
     '''
 
     GET_COMEDIANS_FOR_WEBSITE_SCRAPING = '''
-        SELECT uuid, name, website, website_discovery_source,
+        SELECT uuid, name, website, website_scraping_url,
+               website_discovery_source,
                website_last_scraped, website_scrape_strategy
         FROM comedians
         WHERE website IS NOT NULL
@@ -203,4 +205,12 @@ class ComedianQueries:
             website_scrape_strategy = v.scrape_strategy
         FROM (VALUES %s) AS v(uuid, discovery_source, last_scraped, scrape_strategy)
         WHERE c.uuid = v.uuid::text
+    '''
+
+    UPDATE_COMEDIAN_WEBSITE_SCRAPING_URL = '''
+        UPDATE comedians AS c
+        SET website_scraping_url = v.scraping_url
+        FROM (VALUES %s) AS v(uuid, scraping_url)
+        WHERE c.uuid = v.uuid::text
+          AND c.website_scraping_url IS DISTINCT FROM v.scraping_url
     '''
