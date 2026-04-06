@@ -56,24 +56,81 @@ _UPDATE_COMEDIAN_WEBSITE = """
 """
 
 
-def _pick_best_url(results: List[SearchResult], comedian_name: str) -> Optional[str]:
-    """Select the best URL from search results.
+def _name_tokens(name: str) -> List[str]:
+    """Split a name into lowercase tokens for fuzzy matching."""
+    return [t for t in name.lower().split() if len(t) > 1]
 
-    Filters out excluded domains and picks the first remaining result,
-    which Google ranks by relevance.
+
+def _name_in_text(tokens: List[str], text: str) -> bool:
+    """Check if all name tokens appear in text (case-insensitive)."""
+    text_lower = text.lower()
+    return all(t in text_lower for t in tokens)
+
+
+def _name_in_domain(tokens: List[str], hostname: str) -> bool:
+    """Check if name tokens appear in the domain (stripped of separators)."""
+    # e.g. "mikesmithcomedy.com" → "mikesmithcomedy"
+    domain_base = hostname.lower().removeprefix("www.").split(".")[0]
+    # Check joined name: "mikesmith" in "mikesmithcomedy"
+    joined = "".join(tokens)
+    if joined in domain_base:
+        return True
+    # Check last name at minimum (more common in domains)
+    if len(tokens) >= 2 and tokens[-1] in domain_base:
+        return True
+    return False
+
+
+def _score_result(result: SearchResult, name_tokens: List[str]) -> int:
+    """Score a search result by confidence that it belongs to the comedian.
+
+    Returns 0 for low confidence (no name signal), higher is better.
     """
+    score = 0
+    hostname = urlparse(result.link).hostname or ""
+
+    if _name_in_domain(name_tokens, hostname):
+        score += 3
+    if _name_in_text(name_tokens, result.title):
+        score += 2
+    if _name_in_text(name_tokens, result.snippet):
+        score += 1
+
+    return score
+
+
+def _pick_best_url(results: List[SearchResult], comedian_name: str) -> Optional[str]:
+    """Select the best URL from search results using a confidence heuristic.
+
+    Scores each result by whether the comedian's name appears in the domain,
+    title, or snippet. Returns the highest-scoring result above the confidence
+    threshold, or None if no result is confident enough.
+    """
+    tokens = _name_tokens(comedian_name)
+    if not tokens:
+        return None
+
+    best_url: Optional[str] = None
+    best_score = 0
+
     for result in results:
         if GoogleCustomSearchClient.is_excluded_domain(result.link):
             continue
 
-        # Basic sanity — must be a valid HTTP(S) URL
         parsed = urlparse(result.link)
         if parsed.scheme not in ("http", "https"):
             continue
 
-        return result.link
+        score = _score_result(result, tokens)
+        if score > best_score:
+            best_score = score
+            best_url = result.link
 
-    return None
+    if best_score == 0:
+        Logger.info(f"No confident match for '{comedian_name}' — all results scored 0")
+        return None
+
+    return best_url
 
 
 def discover_websites(
@@ -139,7 +196,7 @@ def discover_websites(
                     if not best_url:
                         results.append(DiscoveryResult(
                             uuid=uuid, name=name, website=None,
-                            skipped=True, reason="all results excluded",
+                            skipped=True, reason="no confident match",
                         ))
                         Logger.debug(f"No suitable URL found for {name}")
                         continue
