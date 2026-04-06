@@ -168,7 +168,6 @@ class ComedianQueries:
         FROM comedians
         WHERE website IS NOT NULL
           AND website <> ''
-        ORDER BY name
     '''
 
     GET_COMEDIANS_FOR_WEBSITE_SCRAPING = '''
@@ -179,6 +178,12 @@ class ComedianQueries:
           AND website <> ''
           AND (website_last_scraped IS NULL
                OR website_last_scraped < NOW() - INTERVAL '7 days')
+          AND website !~ '/shows/[0-9]+'
+          AND website !~ '/events/[0-9]+'
+          AND website !~ '/checkout/'
+          AND website !~ '/tickets/'
+          AND website !~ '/e/[0-9]+'
+          AND website !~ '/event/'
         ORDER BY website_last_scraped ASC NULLS FIRST
     '''
 
