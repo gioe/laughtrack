@@ -145,6 +145,29 @@ def _load_known_clubs() -> set[str]:
             return {row[0] for row in cur.fetchall()}
 
 
+_STRIP_SUFFIXES = [
+    " comedy club", " comedy theatre", " comedy theater", " comedy night club",
+    " comedy nightclub", " comedy cafe", " comedy lounge",
+    " joke house", " joke shop",
+    " improv", " improvisation",
+    " theatre", " theater",
+    " - downtown", " downtown",
+]
+
+
+def _normalize_club_name(name: str) -> str:
+    """Strip common suffixes and noise for fuzzy comparison."""
+    n = name.strip().lower()
+    n = n.removeprefix("the ")
+    for suffix in _STRIP_SUFFIXES:
+        if n.endswith(suffix):
+            n = n[: -len(suffix)].strip()
+            break
+    # Remove possessive apostrophes: magooby's → magoobys
+    n = n.replace("'", "").replace("\u2019", "")
+    return n
+
+
 def _is_known_club(name: str, known_clubs: set[str]) -> bool:
     """Check if a venue name matches a known club — exact or fuzzy."""
     lower = name.strip().lower()
@@ -153,15 +176,26 @@ def _is_known_club(name: str, known_clubs: set[str]) -> bool:
     if lower in known_clubs:
         return True
 
-    # Fuzzy: check if any known club name is a substring of this venue or vice versa
-    # e.g. "Stress Factory" matches "Stress Factory Comedy Club"
+    # Normalize both sides and compare core names
+    norm = _normalize_club_name(lower)
+    if len(norm) < 5:
+        return False
+
     for known in known_clubs:
-        # Known is substring of venue name (or vice versa), and the shorter
-        # string is at least 8 chars to avoid false positives like "The" or "Club"
-        shorter = min(known, lower, key=len)
-        longer = max(known, lower, key=len)
-        if len(shorter) >= 8 and shorter in longer:
+        known_norm = _normalize_club_name(known)
+        if len(known_norm) < 5:
+            continue
+
+        # Normalized exact match (e.g. "Magooby's Joke House" vs "Magoobys Joke House")
+        if norm == known_norm:
             return True
+
+        # Substring: one normalized name appears inside the other
+        if len(norm) != len(known_norm):
+            shorter = norm if len(norm) < len(known_norm) else known_norm
+            longer = known_norm if len(norm) < len(known_norm) else norm
+            if len(shorter) >= 8 and shorter in longer:
+                return True
 
     return False
 
