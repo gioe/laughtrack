@@ -168,6 +168,7 @@ class ComedianQueries:
         FROM comedians
         WHERE website IS NOT NULL
           AND website <> ''
+        ORDER BY name
     '''
 
     GET_COMEDIANS_FOR_WEBSITE_SCRAPING = '''
