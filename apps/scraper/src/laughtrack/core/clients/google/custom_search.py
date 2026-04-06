@@ -64,8 +64,14 @@ class GoogleCustomSearchClient:
         self._api_key = os.environ.get("GOOGLE_CUSTOM_SEARCH_API_KEY", "")
         self._engine_id = os.environ.get("GOOGLE_CUSTOM_SEARCH_ENGINE_ID", "")
         self._queries_today = 0
-        self._daily_limit = int(os.environ.get("GOOGLE_CUSTOM_SEARCH_DAILY_LIMIT", "100"))
-        self._delay_s = float(os.environ.get("GOOGLE_CUSTOM_SEARCH_DELAY_S", "0.5"))
+        try:
+            self._daily_limit = int(os.environ.get("GOOGLE_CUSTOM_SEARCH_DAILY_LIMIT", "100"))
+        except ValueError:
+            self._daily_limit = 100
+        try:
+            self._delay_s = float(os.environ.get("GOOGLE_CUSTOM_SEARCH_DELAY_S", "0.5"))
+        except ValueError:
+            self._delay_s = 0.5
 
     @property
     def is_configured(self) -> bool:

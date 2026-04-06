@@ -8,18 +8,15 @@ Prioritizes comedians by popularity (highest first, website IS NULL).
 Respects Google Custom Search free tier (100 queries/day).
 """
 
-import os
 from dataclasses import dataclass
 from typing import List, Optional
 from urllib.parse import urlparse
-
-import psycopg2
-from dotenv import dotenv_values
 
 from laughtrack.core.clients.google.custom_search import (
     GoogleCustomSearchClient,
     SearchResult,
 )
+from laughtrack.core.data.db_connection import create_connection
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 
@@ -43,25 +40,20 @@ _GET_COMEDIANS_WITHOUT_WEBSITE = """
     ORDER BY popularity DESC NULLS LAST
 """
 
+_GET_COMEDIANS_WITHOUT_WEBSITE_LIMITED = """
+    SELECT uuid, name, popularity
+    FROM comedians
+    WHERE (website IS NULL OR website = '')
+    ORDER BY popularity DESC NULLS LAST
+    LIMIT %s
+"""
+
 _UPDATE_COMEDIAN_WEBSITE = """
     UPDATE comedians
     SET website = %s,
         website_discovery_source = %s
     WHERE uuid = %s
 """
-
-
-def _get_connection():
-    """Create a database connection from .env components."""
-    v = {**dotenv_values(".env"), **os.environ}
-    return psycopg2.connect(
-        dbname=v["DATABASE_NAME"],
-        user=v["DATABASE_USER"],
-        password=v["DATABASE_PASSWORD"],
-        host=v["DATABASE_HOST"],
-        port=v.get("DATABASE_PORT", "5432"),
-        sslmode="require",
-    )
 
 
 def _pick_best_url(results: List[SearchResult], comedian_name: str) -> Optional[str]:
@@ -106,74 +98,71 @@ def discover_websites(
         Logger.error("Google Custom Search not configured — set GOOGLE_CUSTOM_SEARCH_API_KEY and GOOGLE_CUSTOM_SEARCH_ENGINE_ID")
         return []
 
-    conn = _get_connection()
+    conn = create_connection(autocommit=False)
     results: List[DiscoveryResult] = []
 
     try:
-        cur = conn.cursor()
-
-        if comedian_name:
-            cur.execute(
-                _GET_COMEDIANS_WITHOUT_WEBSITE + " LIMIT 1000",
-            )
-            # Filter in Python for partial match
-            rows = [
-                row for row in cur.fetchall()
-                if comedian_name.lower() in row[1].lower()
-            ]
-        else:
-            query = _GET_COMEDIANS_WITHOUT_WEBSITE
-            if limit:
-                query += f" LIMIT {limit}"
+        with conn.cursor() as cur:
+            if comedian_name:
+                cur.execute(_GET_COMEDIANS_WITHOUT_WEBSITE_LIMITED, (1000,))
+                rows = [
+                    row for row in cur.fetchall()
+                    if comedian_name.lower() in row[1].lower()
+                ]
             else:
-                query += f" LIMIT {client.queries_remaining}"
-            cur.execute(query)
-            rows = cur.fetchall()
+                effective_limit = limit if limit else client.queries_remaining
+                cur.execute(_GET_COMEDIANS_WITHOUT_WEBSITE_LIMITED, (effective_limit,))
+                rows = cur.fetchall()
 
-        Logger.info(f"Found {len(rows)} comedians without websites to process")
+            Logger.info(f"Found {len(rows)} comedians without websites to process")
 
-        for uuid, name, popularity in rows:
-            if client.queries_remaining <= 0:
-                Logger.warn("Daily query limit reached — stopping")
-                break
+            for uuid, name, popularity in rows:
+                if client.queries_remaining <= 0:
+                    Logger.warn("Daily query limit reached — stopping")
+                    break
 
-            search_query = f"{name} comedian official website"
-            Logger.debug(f"Searching: {search_query}")
+                try:
+                    search_query = f"{name} comedian official website"
+                    Logger.debug(f"Searching: {search_query}")
 
-            search_results = client.search(search_query)
+                    search_results = client.search(search_query)
 
-            if not search_results:
-                results.append(DiscoveryResult(
-                    uuid=uuid, name=name, website=None,
-                    skipped=True, reason="no search results",
-                ))
-                continue
+                    if not search_results:
+                        results.append(DiscoveryResult(
+                            uuid=uuid, name=name, website=None,
+                            skipped=True, reason="no search results",
+                        ))
+                        continue
 
-            best_url = _pick_best_url(search_results, name)
+                    best_url = _pick_best_url(search_results, name)
 
-            if not best_url:
-                results.append(DiscoveryResult(
-                    uuid=uuid, name=name, website=None,
-                    skipped=True, reason="all results excluded",
-                ))
-                Logger.debug(f"No suitable URL found for {name}")
-                continue
+                    if not best_url:
+                        results.append(DiscoveryResult(
+                            uuid=uuid, name=name, website=None,
+                            skipped=True, reason="all results excluded",
+                        ))
+                        Logger.debug(f"No suitable URL found for {name}")
+                        continue
 
-            result = DiscoveryResult(uuid=uuid, name=name, website=best_url)
-            results.append(result)
+                    result = DiscoveryResult(uuid=uuid, name=name, website=best_url)
+                    results.append(result)
 
-            if dry_run:
-                Logger.info(f"[DRY RUN] {name} → {best_url}")
-            else:
-                cur.execute(_UPDATE_COMEDIAN_WEBSITE, (best_url, "google_search", uuid))
-                conn.commit()
-                Logger.info(f"Updated {name} → {best_url}")
+                    if dry_run:
+                        Logger.info(f"[DRY RUN] {name} → {best_url}")
+                    else:
+                        cur.execute(_UPDATE_COMEDIAN_WEBSITE, (best_url, "google_search", uuid))
+                        conn.commit()
+                        Logger.info(f"Updated {name} → {best_url}")
 
-        cur.close()
+                except Exception as e:
+                    Logger.warn(f"Failed to process comedian {name}: {e}")
+                    results.append(DiscoveryResult(
+                        uuid=uuid, name=name, website=None,
+                        skipped=True, reason=f"error: {e}",
+                    ))
 
     except Exception as e:
         Logger.error(f"Website discovery failed: {e}")
-        conn.rollback()
     finally:
         conn.close()
 
