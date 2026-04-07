@@ -22,6 +22,15 @@ class TixrExtractor:
         re.IGNORECASE,
     )
 
+    # Subdomain form: https://{group}.tixr.com/{slug}
+    # Some venues embed links as {group}.tixr.com/{slug} which 301-redirect to
+    # tixr.com/groups/{group}/{slug}. Exclude "www" subdomain (handled above)
+    # and bare group-page links (no slug after the domain).
+    _SUBDOMAIN_URL_RE = re.compile(
+        r'https?://(?!www\.)[a-z0-9-]+\.tixr\.com/([^\s"\'<>]+)',
+        re.IGNORECASE,
+    )
+
     # Extracts the trailing numeric event ID from a long-form URL slug.
     # Matches the final -\d+ sequence (single-dash format with a digit ID).
     _LONG_URL_ID_RE = re.compile(r'-(\d+)$')
@@ -67,6 +76,16 @@ class TixrExtractor:
                     seen_ids.add(event_id)
                 seen_urls.add(url)
                 urls.append(url)
+
+        # Subdomain form: {group}.tixr.com/{slug} — these 301-redirect to
+        # tixr.com/groups/{group}/{slug}. Include them as-is; the Tixr client
+        # follows redirects when fetching event pages.
+        for match in TixrExtractor._SUBDOMAIN_URL_RE.finditer(html_content):
+            url = match.group(0)
+            if url in seen_urls:
+                continue
+            seen_urls.add(url)
+            urls.append(url)
 
         return urls
 

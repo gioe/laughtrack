@@ -85,6 +85,15 @@ def _calendar_html_long(slugs: list) -> str:
     return f"<html><body><div class='calendar'>{links}</div></body></html>"
 
 
+def _calendar_html_subdomain(group: str, event_slugs: list) -> str:
+    """Calendar page with subdomain-form {group}.tixr.com/{slug} links."""
+    links = "".join(
+        f'<a href="https://{group}.tixr.com/{slug}">Buy Tickets</a>'
+        for slug in event_slugs
+    )
+    return f"<html><body><div class='calendar'>{links}</div></body></html>"
+
+
 # ---------------------------------------------------------------------------
 # TixrExtractor unit tests
 # ---------------------------------------------------------------------------
@@ -146,6 +155,38 @@ def test_extractor_deduplicates_cross_form():
     urls = TixrExtractor.extract_tixr_urls(html)
     # Only the short form should appear; the long form is the same event.
     assert urls == [short_url]
+
+
+def test_extractor_finds_subdomain_urls():
+    """extract_tixr_urls() picks up {group}.tixr.com/{slug} subdomain links."""
+    html = (
+        '<a href="https://rosecitycomedy.tixr.com/toddbarry">Todd Barry</a>'
+        '<a href="https://rosecitycomedy.tixr.com/openmic">Open Mic</a>'
+    )
+    urls = TixrExtractor.extract_tixr_urls(html)
+    assert urls == [
+        "https://rosecitycomedy.tixr.com/toddbarry",
+        "https://rosecitycomedy.tixr.com/openmic",
+    ]
+
+
+def test_extractor_deduplicates_subdomain_urls():
+    """extract_tixr_urls() deduplicates repeated subdomain URLs."""
+    html = (
+        '<a href="https://rosecitycomedy.tixr.com/toddbarry">Buy</a>'
+        '<a href="https://rosecitycomedy.tixr.com/toddbarry">Buy Again</a>'
+    )
+    urls = TixrExtractor.extract_tixr_urls(html)
+    assert urls == ["https://rosecitycomedy.tixr.com/toddbarry"]
+
+
+def test_extractor_excludes_www_subdomain():
+    """extract_tixr_urls() does not match www.tixr.com as a subdomain URL."""
+    html = '<a href="https://www.tixr.com/groups/venue/events/show-123">Buy</a>'
+    urls = TixrExtractor.extract_tixr_urls(html)
+    # Should be captured as long-form, not subdomain
+    assert len(urls) == 1
+    assert "groups/venue/events" in urls[0]
 
 
 def test_extractor_returns_empty_for_no_tixr_urls():
@@ -296,6 +337,32 @@ async def test_get_data_resolves_long_form_urls(monkeypatch):
     assert isinstance(result, TixrPageData)
     assert len(result.event_list) == 1
     assert result.event_list[0].title == "Comedy Show"
+
+
+@pytest.mark.asyncio
+async def test_get_data_resolves_subdomain_urls(monkeypatch):
+    """get_data() extracts subdomain-form Tixr URLs and resolves them to TixrEvents."""
+    scraper = TixrScraper(_club())
+
+    html = _calendar_html_subdomain("rosecitycomedy", ["toddbarry", "openmic"])
+    event_a = _make_tixr_event("100001", "Todd Barry")
+    event_b = _make_tixr_event("100002", "Open Mic")
+
+    async def fake_fetch_html(self, url, **kwargs):
+        return html
+
+    monkeypatch.setattr(TixrScraper, "fetch_html", fake_fetch_html)
+    scraper.tixr_client.get_event_detail_from_url = AsyncMock(
+        side_effect=lambda url: event_a if "toddbarry" in url else event_b
+    )
+
+    result = await scraper.get_data(CALENDAR_URL)
+
+    assert isinstance(result, TixrPageData)
+    assert len(result.event_list) == 2
+    titles = {e.title for e in result.event_list}
+    assert "Todd Barry" in titles
+    assert "Open Mic" in titles
 
 
 @pytest.mark.asyncio
