@@ -468,5 +468,11 @@ class ShowHandler(BaseDatabaseHandler[Show]):
             return comedians_inserted, lineup_items_added
 
         except Exception as e:
-            Logger.error(f"Error updating show lineups (non-fatal): {str(e)}")
+            club_ids = sorted({s.club_id for s in shows})
+            comedian_uuids = sorted({c.uuid for s in shows for c in s.lineup if c.uuid})
+            Logger.error(
+                f"Error updating show lineups (non-fatal): {e} | "
+                f"club_ids={club_ids}, shows={len(shows)}, "
+                f"comedian_uuids={comedian_uuids}"
+            )
             return 0, 0
