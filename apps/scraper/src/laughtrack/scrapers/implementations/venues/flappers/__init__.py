@@ -1,5 +1,5 @@
 """Flappers Comedy Club scraper."""
 
-from .scraper import FlappersComediClubScraper
+from .scraper import FlappersComedyClubScraper
 
-__all__ = ["FlappersComediClubScraper"]
+__all__ = ["FlappersComedyClubScraper"]

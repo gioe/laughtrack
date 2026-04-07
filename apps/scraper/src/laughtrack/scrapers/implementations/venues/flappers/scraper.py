@@ -32,7 +32,7 @@ _DETAIL_CONCURRENCY = 5
 _DETAIL_BASE_URL = "https://www.flapperscomedy.com/site/shows.php?event_id="
 
 
-class FlappersComediClubScraper(BaseScraper):
+class FlappersComedyClubScraper(BaseScraper):
     """Scraper for Flappers Comedy Club via server-rendered PHP calendar."""
 
     key = "flappers"
