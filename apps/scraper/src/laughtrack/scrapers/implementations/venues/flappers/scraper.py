@@ -14,6 +14,7 @@ Pipeline:
 """
 
 import asyncio
+import random
 from datetime import date
 from typing import List, Optional
 
@@ -28,8 +29,14 @@ from .extractor import FlappersEventExtractor
 from .transformer import FlappersEventTransformer
 
 _SCRAPE_WINDOW_MONTHS = 3
-_DETAIL_CONCURRENCY = 5
+_DETAIL_CONCURRENCY = 2
 _DETAIL_BASE_URL = "https://www.flapperscomedy.com/site/shows.php?event_id="
+_DETAIL_DELAY_MIN = 0.3
+_DETAIL_DELAY_MAX = 0.8
+_CF_MAX_RETRIES = 3
+_CF_BASE_DELAY = 3.0
+_CF_MAX_DELAY = 30.0
+_CF_CHALLENGE_MIN_LEN = 50_000
 
 
 class FlappersComedyClubScraper(BaseScraper):
@@ -94,35 +101,92 @@ class FlappersComedyClubScraper(BaseScraper):
             return None
 
     async def _enrich_events(self, events: list) -> None:
-        """Fetch show detail pages concurrently and enrich events with ticket/lineup data."""
+        """Fetch show detail pages with Cloudflare-aware retry and inter-request delays."""
         sem = asyncio.Semaphore(_DETAIL_CONCURRENCY)
+        cf_blocks = 0
 
         async def fetch_detail(event):
+            nonlocal cf_blocks
             async with sem:
+                # Random delay between requests to avoid triggering Cloudflare
+                await asyncio.sleep(
+                    random.uniform(_DETAIL_DELAY_MIN, _DETAIL_DELAY_MAX)
+                )
                 detail_url = f"{_DETAIL_BASE_URL}{event.event_id}"
-                try:
-                    html = await self.fetch_html(detail_url)
-                    if not html:
-                        return
-                    details = FlappersEventExtractor.extract_show_details(html)
-                    if not details:
-                        return
-                    if details.ticket_tiers:
-                        event.ticket_tiers = details.ticket_tiers
-                    if details.lineup_names:
-                        event.lineup_names = details.lineup_names
-                    if details.description:
-                        event.description = details.description
-                except Exception as e:
-                    Logger.warn(
-                        f"{self._log_prefix}: failed to fetch detail for event {event.event_id}: {e}",
-                        self.logger_context,
-                    )
+                html = await self._fetch_with_cf_retry(detail_url)
+                if html is None:
+                    cf_blocks += 1
+                    return
+                details = FlappersEventExtractor.extract_show_details(html)
+                if not details:
+                    return
+                if details.ticket_tiers:
+                    event.ticket_tiers = details.ticket_tiers
+                if details.lineup_names:
+                    event.lineup_names = details.lineup_names
+                if details.description:
+                    event.description = details.description
 
         await asyncio.gather(*(fetch_detail(ev) for ev in events))
 
-        enriched = sum(1 for ev in events if ev.ticket_tiers)
+        with_tickets = sum(1 for ev in events if ev.ticket_tiers)
+        with_lineup = sum(1 for ev in events if ev.lineup_names)
+        with_desc = sum(1 for ev in events if ev.description)
+        enriched = sum(
+            1 for ev in events
+            if ev.ticket_tiers or ev.lineup_names or ev.description
+        )
         Logger.info(
-            f"{self._log_prefix}: enriched {enriched}/{len(events)} events with detail page data",
+            f"{self._log_prefix}: enriched {enriched}/{len(events)} events "
+            f"(tickets={with_tickets}, lineup={with_lineup}, desc={with_desc})"
+            + (f" ({cf_blocks} Cloudflare blocks)" if cf_blocks else ""),
             self.logger_context,
         )
+
+    @staticmethod
+    def _is_cf_challenge(html: str) -> bool:
+        """Detect Cloudflare challenge pages served as HTTP 200.
+
+        When rate-limited, Cloudflare returns the site homepage (large HTML
+        without detail-page markers) instead of the actual show detail page.
+        """
+        if len(html) < _CF_CHALLENGE_MIN_LEN:
+            return False
+        return "ticket_choices" not in html and "also-starring" not in html
+
+    async def _fetch_with_cf_retry(self, url: str) -> Optional[str]:
+        """Fetch a URL with Cloudflare challenge detection and exponential backoff."""
+        for attempt in range(1, _CF_MAX_RETRIES + 1):
+            try:
+                html = await self.fetch_html(url)
+                if not html:
+                    return None
+                if not self._is_cf_challenge(html):
+                    return html
+                # Cloudflare challenge detected — retry with backoff
+                if attempt < _CF_MAX_RETRIES:
+                    delay = min(
+                        _CF_BASE_DELAY * (2 ** (attempt - 1)),
+                        _CF_MAX_DELAY,
+                    )
+                    delay *= 0.5 + random.random() * 0.5
+                    Logger.info(
+                        f"{self._log_prefix}: Cloudflare challenge for {url}, "
+                        f"retry {attempt}/{_CF_MAX_RETRIES} in {delay:.1f}s",
+                        self.logger_context,
+                    )
+                    await asyncio.sleep(delay)
+                    continue
+                Logger.warn(
+                    f"{self._log_prefix}: Cloudflare challenge for {url} "
+                    f"after {_CF_MAX_RETRIES} attempts",
+                    self.logger_context,
+                )
+                return None
+            except Exception as e:
+                Logger.warn(
+                    f"{self._log_prefix}: failed to fetch detail {url}: {e}",
+                    self.logger_context,
+                )
+                return None
+        return None
