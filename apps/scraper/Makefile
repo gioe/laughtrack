@@ -93,7 +93,7 @@ setup-venv:
 		echo "✅ Virtual environment already exists at $(VENV_DIR)/"; \
 	fi
 
-.PHONY: test test-all test-venues test-core test-infrastructure test-utils test-critical help help-full help-install help-test help-lint hdiscover help-clean help-linting help-testing help-scraping help-setup help-analysis help-viz help-maintenance help-update help-updates help-workflows help-discovery help-info help-cleanup scrape-all scrape-club scrape-club-id diagnose-club scrape-interactive scrape-types list-scrapers list-clubs update-popularity update-comedian-stats sync-club-images audit-cdn-images migrate migrate-dry-run dashboard visualize-metrics scraper-status daily-scrape full-maintenance install install-dev install-optional seatengine-api-tool clean lint lint-check format format-check lint-fix lint-fix-imports lint-fix-whitespace check-venv setup-venv arch-lint run-script
+.PHONY: test test-all test-venues test-core test-infrastructure test-utils test-critical help help-full help-install help-test help-lint hdiscover help-clean help-linting help-testing help-scraping help-setup help-analysis help-viz help-maintenance help-update help-updates help-workflows help-discovery help-info help-cleanup scrape-all scrape-club scrape-club-id diagnose-club scrape-interactive scrape-types list-scrapers list-clubs update-popularity update-comedian-stats sync-club-images audit-cdn-images migrate migrate-dry-run dashboard visualize-metrics scraper-status daily-scrape full-maintenance install install-dev install-optional seatengine-api-tool clean lint lint-check format format-check lint-fix lint-fix-imports lint-fix-whitespace check-venv setup-venv arch-lint run-script lookup-bandsintown-ids
 
 # =============================================================================
 # HELP & DOCUMENTATION
@@ -583,6 +583,11 @@ endif
 discover-widget-ids:
 	@echo "🔍 Discovering widget IDs from comedian websites..."
 	$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.discover_widget_ids $(if $(LIMIT),--limit $(LIMIT)) $(if $(DRY_RUN),--dry-run) -v
+
+# Look up Bandsintown artist IDs by comedian name via API
+lookup-bandsintown-ids:
+	@echo "🔍 Looking up Bandsintown artist IDs..."
+	$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.lookup_bandsintown_ids $(if $(LIMIT),--limit $(LIMIT)) $(if $(DRY_RUN),--dry-run) $(if $(CONCURRENCY),--concurrency $(CONCURRENCY)) -v
 
 # Run a one-off Python script from the repo root using the scraper venv
 run-script:
