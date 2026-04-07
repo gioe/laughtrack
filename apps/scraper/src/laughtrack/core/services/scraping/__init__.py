@@ -408,7 +408,10 @@ class ScrapingService:
                 },
             )
             channel = DiscordAlertChannel(webhook_url=config.discord_webhook_url)
-            channel.send(gioe_alert)
+            if not channel.send(gioe_alert):
+                Logger.error(
+                    f"Discord alert delivery failed (webhook may be expired or revoked): {config.discord_webhook_url[:60]}..."
+                )
         except Exception as e:  # pragma: no cover - defensive
             Logger.error(f"Failed to send Discord scraping alert: {e}")
 
@@ -476,7 +479,10 @@ class ScrapingService:
                 },
             )
             channel = DiscordAlertChannel(webhook_url=config.discord_webhook_url)
-            channel.send(gioe_alert)
+            if not channel.send(gioe_alert):
+                Logger.error(
+                    f"Discord run summary delivery failed (webhook may be expired or revoked): {config.discord_webhook_url[:60]}..."
+                )
         except Exception as e:  # pragma: no cover - defensive
             Logger.error(f"Failed to send Discord run summary: {e}")
 
