@@ -31,6 +31,10 @@ class Club(DatabaseEntity):
     eventbrite_id: Optional[str] = None
     ticketmaster_id: Optional[str] = None
     seatengine_id: Optional[str] = None
+    ovationtix_client_id: Optional[str] = None
+    wix_comp_id: Optional[str] = None
+    wix_category_id: Optional[str] = None
+    squadup_user_id: Optional[str] = None
     status: str = "active"
     rate_limit: float = 1.0
     max_retries: int = 3
@@ -108,6 +112,10 @@ class Club(DatabaseEntity):
             eventbrite_id=row.get("eventbrite_id"),
             ticketmaster_id=row.get("ticketmaster_id"),
             seatengine_id=row.get("seatengine_id"),
+            ovationtix_client_id=row.get("ovationtix_client_id"),
+            wix_comp_id=row.get("wix_comp_id"),
+            wix_category_id=row.get("wix_category_id"),
+            squadup_user_id=row.get("squadup_user_id"),
             status=row.get("status", "active"),
             rate_limit=row.get("rate_limit", 1.0),
             max_retries=row.get("max_retries", 3),

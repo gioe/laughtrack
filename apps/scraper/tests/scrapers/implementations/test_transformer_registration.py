@@ -17,7 +17,9 @@ from laughtrack.scrapers.implementations.api.seatengine.scraper import SeatEngin
 from laughtrack.scrapers.implementations.api.ticketmaster.scraper import TicketmasterScraper
 from laughtrack.scrapers.implementations.json_ld.scraper import JsonLdScraper
 from laughtrack.scrapers.implementations.venues.broadway_comedy_club.scraper import BroadwayComedyClubScraper
-from laughtrack.scrapers.implementations.venues.bushwick.scraper import BushwickComedyClubScraper
+from laughtrack.scrapers.implementations.api.ovationtix.scraper import OvationTixScraper
+from laughtrack.scrapers.implementations.api.wix_events.scraper import WixEventsScraper
+from laughtrack.scrapers.implementations.api.squadup.scraper import SquadUpScraper
 from laughtrack.scrapers.implementations.venues.comedy_cellar.scraper import ComedyCellarScraper
 from laughtrack.scrapers.implementations.venues.comedy_key_west.scraper import ComedyKeyWestScraper
 from laughtrack.scrapers.implementations.venues.gotham.scraper import GothamComedyClubScraper
@@ -27,7 +29,6 @@ from laughtrack.scrapers.implementations.venues.rodneys.scraper import RodneysCo
 from laughtrack.scrapers.implementations.venues.st_marks.scraper import StMarksScraper
 from laughtrack.scrapers.implementations.venues.standup_ny.scraper import StandupNYScraper
 from laughtrack.scrapers.implementations.venues.the_stand.scraper import TheStandNYCScraper
-from laughtrack.scrapers.implementations.venues.uncle_vinnies.scraper import UncleVinniesScraper
 from laughtrack.scrapers.implementations.venues.uptown_theater.scraper import UptownTheaterScraper
 from laughtrack.scrapers.implementations.venues.west_side.scraper import WestSideScraper
 
@@ -61,9 +62,12 @@ PIPELINE_SCRAPERS = [
     (TicketmasterScraper, {"ticketmaster_id": "TM123"}),
     # JSON-LD generic scraper
     (JsonLdScraper, {}),
+    # Platform scrapers (consolidated)
+    (OvationTixScraper, {"ovationtix_client_id": "12345"}),
+    (WixEventsScraper, {"wix_comp_id": "comp-test"}),
+    (SquadUpScraper, {"squadup_user_id": "99999"}),
     # Venue-specific scrapers
     (BroadwayComedyClubScraper, {}),
-    (BushwickComedyClubScraper, {}),
     (ComedyCellarScraper, {}),
     (ComedyKeyWestScraper, {}),
     (GothamComedyClubScraper, {}),
@@ -73,7 +77,6 @@ PIPELINE_SCRAPERS = [
     (StMarksScraper, {}),
     (StandupNYScraper, {}),
     (TheStandNYCScraper, {}),
-    (UncleVinniesScraper, {}),
     (UptownTheaterScraper, {}),
     (WestSideScraper, {}),
 ]
