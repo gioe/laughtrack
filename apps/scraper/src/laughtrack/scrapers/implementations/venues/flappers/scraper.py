@@ -23,6 +23,8 @@ from dateutil.relativedelta import relativedelta
 from laughtrack.core.entities.club.model import Club
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
+from laughtrack.utilities.infrastructure.scraper.config import BatchScrapingConfig
+from laughtrack.utilities.infrastructure.scraper.scraper import BatchScraper
 
 from .data import FlappersPageData
 from .extractor import FlappersEventExtractor
@@ -38,6 +40,13 @@ _CF_BASE_DELAY = 3.0
 _CF_MAX_DELAY = 30.0
 _CF_CHALLENGE_MIN_LEN = 50_000
 
+# BatchScraper config — delay is 0 because Cloudflare evasion uses random delays in the processor
+_DETAIL_BATCH_CONFIG = BatchScrapingConfig(
+    max_concurrent=_DETAIL_CONCURRENCY,
+    delay_between_requests=0,
+    enable_logging=False,
+)
+
 
 class FlappersComedyClubScraper(BaseScraper):
     """Scraper for Flappers Comedy Club via server-rendered PHP calendar."""
@@ -49,6 +58,7 @@ class FlappersComedyClubScraper(BaseScraper):
         self.transformation_pipeline.register_transformer(
             FlappersEventTransformer(club)
         )
+        self.batch_scraper = BatchScraper(self.logger_context, config=_DETAIL_BATCH_CONFIG)
 
     async def collect_scraping_targets(self) -> List[str]:
         today = date.today()
@@ -102,32 +112,35 @@ class FlappersComedyClubScraper(BaseScraper):
 
     async def _enrich_events(self, events: list) -> None:
         """Fetch show detail pages with Cloudflare-aware retry and inter-request delays."""
-        sem = asyncio.Semaphore(_DETAIL_CONCURRENCY)
         cf_blocks = 0
+        events_by_id = {ev.event_id: ev for ev in events}
 
-        async def fetch_detail(event):
+        async def fetch_detail(event_id: str) -> None:
             nonlocal cf_blocks
-            async with sem:
-                # Random delay between requests to avoid triggering Cloudflare
-                await asyncio.sleep(
-                    random.uniform(_DETAIL_DELAY_MIN, _DETAIL_DELAY_MAX)
-                )
-                detail_url = f"{_DETAIL_BASE_URL}{event.event_id}"
-                html = await self._fetch_with_cf_retry(detail_url)
-                if html is None:
-                    cf_blocks += 1
-                    return
-                details = FlappersEventExtractor.extract_show_details(html)
-                if not details:
-                    return
-                if details.ticket_tiers:
-                    event.ticket_tiers = details.ticket_tiers
-                if details.lineup_names:
-                    event.lineup_names = details.lineup_names
-                if details.description:
-                    event.description = details.description
+            # Random delay between requests to avoid triggering Cloudflare
+            await asyncio.sleep(
+                random.uniform(_DETAIL_DELAY_MIN, _DETAIL_DELAY_MAX)
+            )
+            detail_url = f"{_DETAIL_BASE_URL}{event_id}"
+            html = await self._fetch_with_cf_retry(detail_url)
+            if html is None:
+                cf_blocks += 1
+                return
+            details = FlappersEventExtractor.extract_show_details(html)
+            if not details:
+                return
+            event = events_by_id[event_id]
+            if details.ticket_tiers:
+                event.ticket_tiers = details.ticket_tiers
+            if details.lineup_names:
+                event.lineup_names = details.lineup_names
+            if details.description:
+                event.description = details.description
 
-        await asyncio.gather(*(fetch_detail(ev) for ev in events))
+        event_ids = [ev.event_id for ev in events]
+        await self.batch_scraper.process_batch(
+            event_ids, fetch_detail, description="detail page enrichment"
+        )
 
         with_tickets = sum(1 for ev in events if ev.ticket_tiers)
         with_lineup = sum(1 for ev in events if ev.lineup_names)
