@@ -139,6 +139,8 @@ class ComedianWebsiteScraper(BaseScraper):
                 if not scraping_url:
                     return []
 
+                prior_strategy = (row.get("website_scrape_strategy") or "").strip()
+
                 html = await self.fetch_html(scraping_url, timeout=self._REQUEST_TIMEOUT)
                 if not html:
                     self._update_scrape_metadata(row["uuid"], strategy)
@@ -146,6 +148,18 @@ class ComedianWebsiteScraper(BaseScraper):
 
                 self._detect_and_persist_widgets(row["uuid"], comedian.name, html)
                 events = EventExtractor.extract_events(html)
+
+                # Playwright fallback: if static HTML yielded no events but a prior
+                # scrape succeeded with JS rendering, retry with a headless browser.
+                if not events and prior_strategy == "json_ld":
+                    js_html = await self._fetch_html_with_js(scraping_url)
+                    if js_html:
+                        events = EventExtractor.extract_events(js_html)
+                        if events:
+                            Logger.info(
+                                f"{self._log_prefix}: {comedian.name} — Playwright fallback found {len(events)} events",
+                                self.logger_context,
+                            )
 
                 if not events:
                     strategy = "json_ld_empty"
