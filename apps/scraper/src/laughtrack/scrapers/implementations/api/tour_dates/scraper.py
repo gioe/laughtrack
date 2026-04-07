@@ -387,8 +387,8 @@ class TourDatesScraper(BaseScraper):
         for rows that already have a songkick_id or bandsintown_id.  Those
         comedians are pre-seeded in the database by the admin tooling before
         TourDatesScraper runs; they are never first-created here.  If a
-        comedian UUID is not yet in the DB the lineup link will silently be
-        skipped by batch_update_lineups (foreign-key miss), which is the
+        comedian UUID is not yet in the DB the lineup link is silently
+        skipped by the EXISTS guard in BATCH_ADD_LINEUP_ITEMS, which is the
         desired behaviour rather than accidentally inserting an incomplete row.
         """
         try:

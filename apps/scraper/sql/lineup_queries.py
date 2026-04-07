@@ -13,7 +13,9 @@ class LineupQueries:
     
     BATCH_ADD_LINEUP_ITEMS = """
         INSERT INTO lineup_items (show_id, comedian_id)
-        VALUES %s
+        SELECT v.show_id, v.comedian_id
+        FROM (VALUES %s) AS v(show_id, comedian_id)
+        WHERE EXISTS (SELECT 1 FROM comedians c WHERE c.uuid = v.comedian_id)
         ON CONFLICT (show_id, comedian_id) DO NOTHING;
     """
     

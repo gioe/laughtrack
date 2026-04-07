@@ -296,7 +296,8 @@ class ComedianWebsiteScraper(BaseScraper):
 
         Comedian insertion invariant: same as TourDatesScraper — comedians
         in show.lineup already exist in the DB (queried from the comedians
-        table). batch_update_lineups will silently skip any missing UUIDs.
+        table). The EXISTS guard in BATCH_ADD_LINEUP_ITEMS silently skips
+        any missing UUIDs.
         """
         try:
             self._show_handler.insert_shows(shows)
