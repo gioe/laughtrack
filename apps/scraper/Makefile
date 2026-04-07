@@ -579,6 +579,11 @@ else
 	$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.discover_scraping_urls --comedian-name "$(COMEDIAN)" $(if $(LIMIT),--limit $(LIMIT)) $(if $(DRY_RUN),--dry-run) $(if $(INCLUDE_HOMEPAGE),--include-homepage) -v
 endif
 
+# Discover Bandsintown/Songkick widget IDs from comedian websites
+discover-widget-ids:
+	@echo "🔍 Discovering widget IDs from comedian websites..."
+	$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.discover_widget_ids $(if $(LIMIT),--limit $(LIMIT)) $(if $(DRY_RUN),--dry-run) -v
+
 # Run a one-off Python script from the repo root using the scraper venv
 run-script:
 	@echo "🐍 Running script with scraper venv:"
