@@ -19,19 +19,26 @@ Pipeline:
   3. transformation_pipeline → ComedyCornerEvent.to_show() → Show objects
 """
 
-import asyncio
 from typing import List, Optional
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.event.comedy_corner_underground import ComedyCornerEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
+from laughtrack.utilities.infrastructure.scraper.config import BatchScrapingConfig
+from laughtrack.utilities.infrastructure.scraper.scraper import BatchScraper
 
 from .data import ComedyCornerPageData
 from .extractor import ComedyCornerExtractor
 from .transformer import ComedyCornerEventTransformer
 
 _BASE_URL = "https://ccu.stageti.me"
+
+_SLUG_BATCH_CONFIG = BatchScrapingConfig(
+    max_concurrent=5,
+    delay_between_requests=0,
+    enable_logging=True,
+)
 
 
 class ComedyCornerScraper(BaseScraper):
@@ -44,6 +51,7 @@ class ComedyCornerScraper(BaseScraper):
         self.transformation_pipeline.register_transformer(
             ComedyCornerEventTransformer(club)
         )
+        self.batch_scraper = BatchScraper(self.logger_context, config=_SLUG_BATCH_CONFIG)
 
     async def get_data(self, url: str) -> Optional[ComedyCornerPageData]:
         """
@@ -80,13 +88,9 @@ class ComedyCornerScraper(BaseScraper):
             )
 
             # Step 2: Fetch each individual event page concurrently and expand occurrences
-            all_events: List[ComedyCornerEvent] = []
-            semaphore = asyncio.Semaphore(5)
-
             async def _fetch_slug(slug: str) -> List[ComedyCornerEvent]:
                 event_url = f"{_BASE_URL}/e/{slug}"
-                async with semaphore:
-                    event_html = await self.fetch_html(event_url)
+                event_html = await self.fetch_html(event_url)
                 if not event_html:
                     Logger.warn(
                         f"{self._log_prefix}: empty response for event {slug}",
@@ -132,9 +136,12 @@ class ComedyCornerScraper(BaseScraper):
                     for start_time_utc in occurrences
                 ]
 
-            slug_results = await asyncio.gather(*(_fetch_slug(slug) for slug in slugs))
-            for events in slug_results:
-                all_events.extend(events)
+            slug_results = await self.batch_scraper.process_batch(
+                slugs, _fetch_slug, description="event page fetches"
+            )
+            all_events: List[ComedyCornerEvent] = [
+                ev for events in slug_results for ev in events
+            ]
 
             if not all_events:
                 Logger.info(
