@@ -7,6 +7,10 @@ class ClubQueries:
     GET_ALL_CLUBS = '''
         SELECT * FROM clubs WHERE scraper IS NOT NULL AND visible = True AND status = 'active' ORDER BY id
     '''
+
+    GET_ALL_CLUBS_JSON = '''
+        SELECT name, city, state, website FROM clubs ORDER BY name
+    '''
     
     GET_CLUB_BY_ID = '''
         SELECT *

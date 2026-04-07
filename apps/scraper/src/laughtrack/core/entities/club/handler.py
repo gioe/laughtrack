@@ -1,6 +1,6 @@
 """Club database handler for club-specific operations."""
 
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from sql.club_queries import ClubQueries
 
@@ -39,6 +39,13 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         except Exception as e:
             Logger.error(f"Error fetching clubs: {str(e)}")
             raise
+
+    def get_all_clubs_json(self) -> List[Dict[str, Optional[str]]]:
+        """Fetch all clubs (including those without scrapers) with name, city, state, website."""
+        results = self.execute_with_cursor(ClubQueries.GET_ALL_CLUBS_JSON, return_results=True)
+        if not results:
+            return []
+        return [{"name": r["name"], "city": r["city"], "state": r["state"], "website": r["website"]} for r in results]
 
     def get_clubs_by_ids(self, club_ids: List[int]) -> List[Club]:
         """

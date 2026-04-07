@@ -5,7 +5,9 @@ This service provides functionality for listing available clubs and scraper type
 reading directly from the database.
 """
 
-from typing import List, Optional
+import json
+import sys
+from typing import Dict, List, Optional
 from .handler import ClubHandler
 from .model import Club
 
@@ -48,6 +50,12 @@ class ClubService:
         )
 
         Logger.info(consolidated_message)
+
+    def list_clubs_json(self) -> None:
+        """Print all clubs as JSON (name, city, state, website) to stdout."""
+        clubs = self.club_handler.get_all_clubs_json()
+        json.dump(clubs, sys.stdout, indent=2)
+        sys.stdout.write("\n")
 
     def find_club_by_name(self, name: str) -> Optional[Club]:
         """

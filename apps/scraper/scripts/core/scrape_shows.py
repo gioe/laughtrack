@@ -75,6 +75,7 @@ Examples:
         "--list-scrapers", action="store_true", help="List available scraper types and their club counts"
     )
     group.add_argument("--list-clubs", action="store_true", help="List all available clubs with their IDs and names")
+    group.add_argument("--list-clubs-json", action="store_true", help="Output all clubs as JSON (name, city, state, website)")
 
     # Verbosity controls for console logging
     parser.add_argument("-v", "--verbose", action="store_true", help="Show INFO-level logs in the terminal")
@@ -125,6 +126,8 @@ Examples:
             scraper_service.list_available_scraper_types(); performed_primary = True
         elif args.list_clubs:
             club_service.list_available_clubs(); performed_primary = True
+        elif args.list_clubs_json:
+            club_service.list_clubs_json(); performed_primary = True
         elif args.open_dashboard:
             # Allow opening the dashboard without scraping anything.
             metrics_service.open_dashboard(open_in_browser=True); performed_primary = True

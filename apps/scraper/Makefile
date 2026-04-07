@@ -661,6 +661,10 @@ list-clubs:
 	@echo "   → Database IDs for use with 'make scrape-club-id ID=X'"
 	$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.scrape_shows --list-clubs
 
+# Output all clubs as JSON with name, city, state, website fields
+list-clubs-json:
+	@$(PYTHON) -m scripts.core.scrape_shows --list-clubs-json
+
 # =============================================================================
 # DATA MAINTENANCE & UPDATES
 # =============================================================================
