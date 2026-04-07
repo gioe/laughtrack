@@ -92,6 +92,11 @@ class TourDatesScraper(BaseScraper):
     async def scrape_async(self) -> List[Show]:
         """Override: fetch tour dates per comedian concurrently, upsert venues, persist shows + lineups."""
         try:
+            if not self._bandsintown_app_id:
+                Logger.warn(f"{self._log_prefix}: bandsintown_app_id is not configured — BandsInTown lookups will be skipped")
+            if not self._songkick_api_key:
+                Logger.warn(f"{self._log_prefix}: songkick_api_key is not configured — Songkick lookups will be skipped")
+
             comedian_rows = self._get_comedians_with_tour_ids()
             if not comedian_rows:
                 Logger.info(f"{self._log_prefix}: no comedians with Songkick/BandsInTown IDs found", self.logger_context)
