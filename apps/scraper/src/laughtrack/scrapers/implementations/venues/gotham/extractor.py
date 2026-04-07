@@ -5,7 +5,6 @@ This module provides extraction logic for Gotham Comedy Club's S3 bucket-based
 event system that provides JSON API endpoints with monthly event data.
 """
 
-import asyncio
 from typing import List, Optional
 
 from laughtrack.core.clients.gotham.models.models import GothamMonthlyResponse
@@ -16,9 +15,17 @@ from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.json.utils import JSONUtils
 from laughtrack.utilities.infrastructure.scraper import log_filter_breakdown
+from laughtrack.utilities.infrastructure.scraper.config import BatchScrapingConfig
+from laughtrack.utilities.infrastructure.scraper.scraper import BatchScraper
 
 
 from .data import GothamPageData
+
+_SHOWCLIX_BATCH_CONFIG = BatchScrapingConfig(
+    max_concurrent=5,
+    delay_between_requests=0,
+    enable_logging=True,
+)
 
 
 class GothamEventExtractor:
@@ -44,6 +51,7 @@ class GothamEventExtractor:
         self.get_session = http_session_getter
         self.showclix_client = ShowclixAPIClient(club, proxy_pool=proxy_pool)
         self.logger_context = club.as_context()
+        self.batch_scraper = BatchScraper(self.logger_context, config=_SHOWCLIX_BATCH_CONFIG)
 
     def get_headers(self) -> dict:
         """Get headers optimized for S3 CORS requests."""
@@ -119,7 +127,6 @@ class GothamEventExtractor:
             Logger.info(f"GothamEventExtractor [{self.club.name}]: Enriching {len(events)} events with Showclix ticket data", self.logger_context)
 
             # Log a standardized breakdown of which events have usable slugs for Showclix fetches
-            # We keep behavior unchanged; this is purely diagnostic.
             _ = log_filter_breakdown(
                 events,
                 self.logger_context,
@@ -130,78 +137,65 @@ class GothamEventExtractor:
                 date_getter=lambda e: getattr(e, "date", "n/a"),
             )
 
-            # Create parallel fetch tasks for events with valid slugs
-            fetch_tasks = []
-            for event in events:
-                if event.slug:
-                    task = self.showclix_client.get_web_page_for_event(event.slug)
-                    fetch_tasks.append((event, task))
-                else:
-                    Logger.warn(f"GothamEventExtractor [{self.club.name}]: Event missing slug, skipping: {event}", self.logger_context)
+            # Separate events with and without slugs
+            events_with_slugs = [e for e in events if e.slug]
+            events_without_slugs = [e for e in events if not e.slug]
 
-            if not fetch_tasks:
+            for event in events_without_slugs:
+                Logger.warn(f"GothamEventExtractor [{self.club.name}]: Event missing slug, skipping: {event}", self.logger_context)
+
+            if not events_with_slugs:
                 Logger.info(f"GothamEventExtractor [{self.club.name}]: No events with valid slugs found", self.logger_context)
                 return events
 
-            # Execute fetch operations in parallel
-            Logger.info(f"GothamEventExtractor [{self.club.name}]: Fetching HTML for {len(fetch_tasks)} events in parallel", self.logger_context)
-
-            tasks = [task for _, task in fetch_tasks]
-            html_results = await asyncio.gather(*tasks, return_exceptions=True)
-
-            # Process results and enrich events
+            # Build slug→event lookup for the processor
+            events_by_slug = {e.slug: e for e in events_with_slugs}
             enriched_events: List[GothamEvent] = []
-            for i, (event, _) in enumerate(fetch_tasks):
-                html_content = html_results[i]
 
-                if isinstance(html_content, Exception):
-                    Logger.warn(f"GothamEventExtractor [{self.club.name}]: Failed to fetch HTML for event {event.slug}: {html_content}", self.logger_context)
-                    enriched_events.append(event)
-                elif html_content and isinstance(html_content, str):
-                    Logger.info(
-                        f"GothamEventExtractor [{self.club.name}]: Successfully fetched HTML for event {event.slug} ({len(html_content)} chars)",
-                        self.logger_context,
+            async def _enrich_event(slug: str) -> GothamEvent:
+                event = events_by_slug[slug]
+                html_content = await self.showclix_client.get_web_page_for_event(slug)
+
+                if not html_content or not isinstance(html_content, str):
+                    Logger.warn(f"GothamEventExtractor [{self.club.name}]: No HTML content received for event {slug}", self.logger_context)
+                    return event
+
+                Logger.info(
+                    f"GothamEventExtractor [{self.club.name}]: Successfully fetched HTML for event {slug} ({len(html_content)} chars)",
+                    self.logger_context,
+                )
+
+                event_id = self._extract_event_id_from_html(html_content)
+                if not event_id:
+                    Logger.warn(f"GothamEventExtractor [{self.club.name}]: Could not extract event_id from HTML for event {slug}", self.logger_context)
+                    return event
+
+                Logger.info(f"GothamEventExtractor [{self.club.name}]: Extracted event_id '{event_id}' for event {slug}", self.logger_context)
+
+                event_data = await self.showclix_client.get_event_data(event_id)
+                if not event_data:
+                    Logger.warn(
+                        f"GothamEventExtractor [{self.club.name}]: Failed to fetch Showclix event data for event_id {event_id}", self.logger_context
                     )
+                    return event
 
-                    # Extract event_id and enrich
-                    event_id = self._extract_event_id_from_html(html_content)
-                    if event_id:
-                        Logger.info(f"GothamEventExtractor [{self.club.name}]: Extracted event_id '{event_id}' for event {event.slug}", self.logger_context)
+                Logger.info(
+                    f"GothamEventExtractor [{self.club.name}]: Successfully fetched Showclix event data for {slug} - "
+                    f"Name: {event_data.event}, Venue: {event_data.venue.venue_name}, "
+                    f"Primary Price: ${event_data.get_primary_price()}, "
+                    f"Available Tickets: {event_data.get_available_tickets()}",
+                    self.logger_context,
+                )
 
-                        try:
-                            event_data = await self.showclix_client.get_event_data(event_id)
-                            if event_data:
-                                Logger.info(
-                                    f"GothamEventExtractor [{self.club.name}]: Successfully fetched Showclix event data for {event.slug} - "
-                                    f"Name: {event_data.event}, Venue: {event_data.venue.venue_name}, "
-                                    f"Primary Price: ${event_data.get_primary_price()}, "
-                                    f"Available Tickets: {event_data.get_available_tickets()}",
-                                    self.logger_context,
-                                )
+                return event.enrich_with_showclix_data(event_data)
 
-                                enriched_event = event.enrich_with_showclix_data(event_data)
-                                enriched_events.append(enriched_event)
-                            else:
-                                Logger.warn(
-                                    f"GothamEventExtractor [{self.club.name}]: Failed to fetch Showclix event data for event_id {event_id}", self.logger_context
-                                )
-                                enriched_events.append(event)
-                        except Exception as api_error:
-                            Logger.error(
-                                f"GothamEventExtractor [{self.club.name}]: Error fetching Showclix event data for {event_id}: {api_error}", self.logger_context
-                            )
-                            enriched_events.append(event)
-                    else:
-                        Logger.warn(f"GothamEventExtractor [{self.club.name}]: Could not extract event_id from HTML for event {event.slug}", self.logger_context)
-                        enriched_events.append(event)
-                else:
-                    Logger.warn(f"GothamEventExtractor [{self.club.name}]: No HTML content received for event {event.slug}", self.logger_context)
-                    enriched_events.append(event)
+            slugs = [e.slug for e in events_with_slugs]
+            enriched_events = await self.batch_scraper.process_batch(
+                slugs, _enrich_event, description="Showclix enrichment"
+            )
 
-            # Add any events that were skipped due to missing slugs
-            for event in events:
-                if not event.slug:
-                    enriched_events.append(event)
+            # Add events without slugs (unenriched)
+            enriched_events.extend(events_without_slugs)
 
             Logger.info(f"GothamEventExtractor [{self.club.name}]: Successfully processed {len(enriched_events)} events", self.logger_context)
             return enriched_events
