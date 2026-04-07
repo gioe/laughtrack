@@ -175,7 +175,7 @@ model Show {
 model Ticket {
   id          Int      @id @default(autoincrement())
   purchaseUrl String?  @map("purchase_url")
-  price       Decimal? @map("price") @db.Decimal(5, 2)
+  price       Decimal? @map("price") @db.Decimal(7, 2)
   soldOut     Boolean  @default(false) @map("sold_out")
   showId      Int      @map("show_id")
   type        String?  @map("type")
