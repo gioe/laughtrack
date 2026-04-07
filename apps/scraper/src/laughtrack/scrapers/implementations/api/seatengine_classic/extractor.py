@@ -18,7 +18,7 @@ Layout 2 — single show with a buy-tickets button:
   <a class="btn btn-primary" href="/shows/356313">Buy Tickets</a>
 
 Each extracted show is a dict with keys:
-  name, date_str, show_url, sold_out
+  name, date_str, show_url, sold_out, location_label (optional)
 """
 
 import json
@@ -55,19 +55,23 @@ class SeatEngineClassicExtractor:
             if not event_name:
                 continue
 
+            labels = SeatEngineClassicExtractor._location_labels(item)
+
             times_group = item.find("div", class_="event-times-group")
             if times_group:
-                shows.extend(
-                    SeatEngineClassicExtractor._extract_layout1(
-                        item, times_group, event_name, base_url
-                    )
+                extracted = SeatEngineClassicExtractor._extract_layout1(
+                    item, times_group, event_name, base_url
                 )
             else:
                 show = SeatEngineClassicExtractor._extract_layout2(
                     item, event_name, base_url
                 )
-                if show:
-                    shows.append(show)
+                extracted = [show] if show else []
+
+            for show in extracted:
+                if labels:
+                    show["location_labels"] = labels
+                shows.append(show)
 
         if not shows:
             shows = SeatEngineClassicExtractor._extract_json_ld(soup)
@@ -112,6 +116,18 @@ class SeatEngineClassicExtractor:
             if shows:
                 break
         return shows
+
+    @staticmethod
+    def _location_labels(item: Tag) -> List[str]:
+        """Extract event-label texts from the event-labels div."""
+        labels_div = item.find("div", class_="event-labels")
+        if not labels_div:
+            return []
+        return [
+            span.get_text(strip=True)
+            for span in labels_div.find_all("span", class_="event-label")
+            if span.get_text(strip=True)
+        ]
 
     @staticmethod
     def _event_name(item: Tag) -> Optional[str]:
