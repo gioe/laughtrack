@@ -2,8 +2,6 @@
 Unit tests for McCurdysExtractor.extract_detail_page_urls and extract_events.
 """
 
-import pytest
-
 from laughtrack.scrapers.implementations.venues.mccurdys_comedy_theatre.extractor import (
     McCurdysExtractor,
 )

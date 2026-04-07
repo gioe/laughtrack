@@ -2,10 +2,8 @@
 Unit tests for McCurdysEvent._parse_performance year inference and to_show.
 """
 
-from datetime import date, timedelta
+from datetime import date
 from unittest.mock import patch, MagicMock
-
-import pytest
 
 from laughtrack.core.entities.event.mccurdys_comedy_theatre import (
     McCurdysEvent,
@@ -61,16 +59,11 @@ class TestParsePerformance:
         assert result is not None
         assert result[0] == date(2026, 4, 9)
 
-    def test_rejects_date_more_than_one_day_past(self):
-        """Dates more than 1 day in the past for both years return None."""
+    def test_year_inference_skips_past_date_picks_next_year(self):
+        """When current-year date is past, picks next year."""
         with patch(
             "laughtrack.core.entities.event.mccurdys_comedy_theatre.date"
         ) as mock_date:
-            # Set today to Dec 31 — Jan 7 of current year is ~358 days ago,
-            # and Jan 7 of next year is still in the future, so it should resolve.
-            # Instead use a date where both years fail:
-            # today = March 15, date_str = March 1 → Mar 1 2026 is 14 days ago,
-            # Mar 1 2027 is in the future → should pick 2027
             mock_date.today.return_value = date(2026, 3, 15)
             mock_date.side_effect = lambda *a, **k: date(*a, **k)
             result = _parse_performance("Sunday, March 01 at 7:00 PM")
