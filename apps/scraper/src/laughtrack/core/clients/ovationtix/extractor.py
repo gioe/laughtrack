@@ -14,6 +14,11 @@ import pytz
 from laughtrack.core.entities.event.ovationtix import OvationTixEvent
 from laughtrack.foundation.models.types import JSONDict
 
+# TypeVar for subclass construction
+from typing import Type, TypeVar
+
+_E = TypeVar("_E", bound=OvationTixEvent)
+
 # Matches https://ci.ovationtix.com/{clientId}/production/{productionId}
 PRODUCTION_URL_RE = re.compile(
     r"https://ci\.ovationtix\.com/(\d+)/production/(\d+)",
@@ -47,18 +52,21 @@ def extract_events_from_production(
     production_id: str,
     client_id: str,
     default_name: str = "Comedy Show",
-) -> List[OvationTixEvent]:
+    event_cls: Type[_E] = OvationTixEvent,  # type: ignore[assignment]
+) -> List[_E]:
     """
-    Build OvationTixEvent objects from a Production/performance? API response.
+    Build event objects from a Production/performance? API response.
 
     Args:
         production_data: Parsed JSON from the OvationTix production endpoint.
         production_id: The production ID string (e.g. "1068128").
         client_id: The OvationTix org/client ID (e.g. "36367").
         default_name: Fallback name if productionName and supertitle are absent.
+        event_cls: Dataclass type to construct (default: OvationTixEvent).
+            Must accept the same __init__ kwargs as OvationTixEvent.
 
     Returns:
-        List of OvationTixEvent, one per upcoming performance.
+        List of event_cls instances, one per upcoming performance.
     """
     production_name = (
         production_data.get("productionName")
@@ -68,7 +76,7 @@ def extract_events_from_production(
     description = production_data.get("description")
     performances = production_data.get("performances") or []
 
-    events: List[OvationTixEvent] = []
+    events: List[_E] = []
     for perf in performances:
         perf_id = perf.get("id")
         start_date = perf.get("startDate")
@@ -84,7 +92,7 @@ def extract_events_from_production(
         )
 
         events.append(
-            OvationTixEvent(
+            event_cls(
                 production_id=production_id,
                 performance_id=str(perf_id),
                 production_name=production_name,

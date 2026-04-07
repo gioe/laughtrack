@@ -9,7 +9,7 @@ from typing import List, Optional, Tuple
 
 from laughtrack.core.clients.ovationtix.extractor import (
     extract_client_and_production_ids,
-    extract_events_from_production as _extract_events,
+    extract_events_from_production,
     is_past_event,
 )
 from laughtrack.core.entities.event.comedy_at_the_carlson import ComedyAtTheCarlsonEvent
@@ -31,22 +31,11 @@ class ComedyAtTheCarlsonExtractor:
         client_id: str,
     ) -> List[ComedyAtTheCarlsonEvent]:
         """Build ComedyAtTheCarlsonEvent objects from a Production/performance? API response."""
-        base_events = _extract_events(
-            production_data, production_id, client_id, default_name="Comedy Show"
+        return extract_events_from_production(
+            production_data, production_id, client_id,
+            default_name="Comedy Show",
+            event_cls=ComedyAtTheCarlsonEvent,
         )
-        return [
-            ComedyAtTheCarlsonEvent(
-                production_id=e.production_id,
-                performance_id=e.performance_id,
-                production_name=e.production_name,
-                start_date=e.start_date,
-                tickets_available=e.tickets_available,
-                event_url=e.event_url,
-                description=e.description,
-                sections=e.sections,
-            )
-            for e in base_events
-        ]
 
     @staticmethod
     def is_past_event(start_date_str: str, timezone: str) -> bool:
