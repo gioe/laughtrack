@@ -21,7 +21,6 @@ from typing import List, Optional
 from laughtrack.core.entities.club.model import Club
 from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
 from laughtrack.foundation.infrastructure.logger.logger import Logger
-from laughtrack.foundation.utilities.url import URLUtils
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 
 from .data import ComedyAtTheCarlsonPageData
