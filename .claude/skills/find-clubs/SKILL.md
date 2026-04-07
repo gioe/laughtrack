@@ -18,24 +18,13 @@ Wait for the user to respond before continuing.
 
 ## Step 2: Query Known Clubs from DB
 
-Fetch all club names currently in the database:
+Fetch all clubs from the database as JSON:
 
 ```bash
-cd apps/scraper && .venv/bin/python3 -c "
-import sys
-sys.path.insert(0, 'src')
-from dotenv import load_dotenv
-load_dotenv('.env')
-from laughtrack.infrastructure.database.connection import create_connection
-conn = create_connection()
-cur = conn.cursor()
-cur.execute('SELECT name FROM clubs ORDER BY name')
-rows = cur.fetchall()
-print('\n'.join(r[0] for r in rows))
-conn.close()
-"
+cd apps/scraper && make list-clubs-json
 ```
 
+This outputs a JSON array of objects with `name`, `city`, `state`, and `website` fields.
 Hold this list in context as **known clubs**.
 
 ## Step 3: Search for Comedy Clubs in City
@@ -57,6 +46,7 @@ For each found club, compare against the **known clubs** list using these rules:
 
 - **Exact match** (case-insensitive): mark as **Already in system**
 - **Near match** (one is a substring of the other, or they differ only by "The", city name suffix, spacing, punctuation, or minor word differences): mark as **Already in system** with a note about the matched club name
+- **Location-aware brand match**: If a discovered club's name contains a generic comedy brand (e.g., "Improv", "Funny Bone", "Laugh Factory", "Comedy Works", "Helium"), check whether a known club with the same brand exists in the same metro area (matching `city`/`state` from the JSON, or a nearby city in the same metro — e.g., Schaumburg is in the Chicago metro). If so, mark as **Already in system** with a note (e.g., "Improv Comedy Club (Schaumburg, IL) → matches Chicago Improv"). This prevents duplicate onboarding tasks for venues that use a city prefix/suffix variation of the same brand.
 - **No match**: mark as **Potentially new**
 
 Be conservative — when uncertain, prefer marking as Already in system to avoid creating duplicate tasks.
