@@ -2,6 +2,7 @@
 from laughtrack.core.entities.event.event import JsonLdEvent, Offer
 from laughtrack.core.entities.event.broadway import BroadwayEvent
 from laughtrack.core.entities.event.bushwick import BushwickEvent
+from laughtrack.core.entities.event.comedy_at_the_carlson import ComedyAtTheCarlsonEvent
 from laughtrack.core.entities.event.comedy_cellar import ComedyCellarEvent
 from laughtrack.core.entities.event.eventbrite import EventbriteEvent
 from laughtrack.core.entities.event.gotham import GothamEvent
@@ -21,6 +22,7 @@ __all__ = [
     "Offer",
     "BroadwayEvent",
     "BushwickEvent",
+    "ComedyAtTheCarlsonEvent",
     "ComedyCellarEvent",
     "EventbriteEvent",
     "FourDayWeekendEvent",
