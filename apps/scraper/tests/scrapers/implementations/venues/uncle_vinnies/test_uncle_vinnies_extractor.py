@@ -260,12 +260,13 @@ class TestUncleVinniesEventToShow:
         return UncleVinniesEvent(
             production_id="prod-42",
             performance_id="perf-42",
-            name="Uncle Vinnie's Presents",
+            production_name="Uncle Vinnie's Presents",
             start_date=start_date,
+            tickets_available=True,
+            event_url="https://ci.ovationtix.com/35774/production/prod-42",
             description="A great evening of comedy.",
             sections=default_sections if sections is None else sections,
             ticket_types=[],
-            event_url="https://ci.ovationtix.com/35774/production/prod-42",
         )
 
     def test_to_show_basic_fields(self):

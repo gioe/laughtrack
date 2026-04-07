@@ -9,10 +9,11 @@ from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
 from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 from laughtrack.core.clients.base import BaseApiClient
+from laughtrack.core.clients.ovationtix.extractor import extract_next_performance_info
 
 
 class OvationTixClient(BaseApiClient):
-    """Client for interacting with OvationTeix's API."""
+    """Client for interacting with OvationTix's API."""
 
     def __init__(self, club: Club, proxy_pool: Optional[ProxyPool] = None):
         super().__init__(club, rate_limiter=Limiter(1 / 5, max_burst=1), proxy_pool=proxy_pool)
@@ -39,9 +40,7 @@ class OvationTixClient(BaseApiClient):
             if not production_json:
                 return None
 
-            performance_id = (
-                production_json.get("performanceSummary", {}).get("nextPerformance", {}).get("id")
-            )
+            performance_id, _ = extract_next_performance_info(production_json)
             if not performance_id:
                 return None
 
@@ -96,6 +95,4 @@ class OvationTixClient(BaseApiClient):
 
     async def fetch_events(self, production_id: Optional[str] = None) -> List[Any]:
         """Fetch events from OvationTix. This client works with production IDs."""
-        # OvationTixClient works by getting ticket data from specific production IDs
-        # This method is required by the interface but implementation depends on usage
         return []

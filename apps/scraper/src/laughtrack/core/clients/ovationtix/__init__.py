@@ -1,5 +1,1 @@
-"""OvationTix API client."""
-
-from .client import OvationTixClient
-
-__all__ = ["OvationTixClient"]
+"""OvationTix API client and shared extraction utilities."""

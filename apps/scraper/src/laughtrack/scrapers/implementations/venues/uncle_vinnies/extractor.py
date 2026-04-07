@@ -1,16 +1,17 @@
 """
 Uncle Vinnie's Comedy Club data extraction utilities.
 
-This extractor now focuses solely on parsing and model creation. All HTTP
-requests and workflow orchestration are handled by the Scraper using the
-BaseScraper HTTP utilities.
+Uses shared OvationTix extractor for common operations (production ID parsing,
+past-event filtering) while keeping Uncle Vinnie's-specific logic for calendar
+URL discovery and single-performance event creation.
 """
 
-from datetime import datetime
 from typing import List, Optional
 
-import pytz
-
+from laughtrack.core.clients.ovationtix.extractor import (
+    extract_next_performance_info,
+    is_past_event,
+)
 from laughtrack.core.entities.event.uncle_vinnies import UncleVinniesEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.models.types import JSONDict
@@ -22,16 +23,7 @@ class UncleVinniesExtractor:
 
     @staticmethod
     def extract_event_urls_from_calendar_html(html: str, base_url: Optional[str] = None) -> List[str]:
-        """
-        Extract event URLs from a calendar page HTML.
-
-        Args:
-            html: HTML content of the calendar page
-            base_url: Optional base URL to construct absolute URLs
-
-        Returns:
-            List of event URLs
-        """
+        """Extract event URLs from a calendar page HTML."""
         try:
             return HtmlScraper.find_links_by_class(html, "tickets-button", base_url=base_url)
         except Exception as e:
@@ -53,17 +45,8 @@ class UncleVinniesExtractor:
 
     @staticmethod
     def extract_next_performance_info(production_response: JSONDict) -> tuple[Optional[str], Optional[str]]:
-        """
-        From a Production(...)/performance? response, extract next performance id and start date.
-
-        Returns: (performance_id, start_date_str)
-        """
-        try:
-            performance_summary = production_response.get("performanceSummary", {}) or {}
-            next_performance = performance_summary.get("nextPerformance", {}) or {}
-            return next_performance.get("id"), next_performance.get("startDate")
-        except Exception:
-            return None, None
+        """From a Production(...)/performance? response, extract next performance id and start date."""
+        return extract_next_performance_info(production_response)
 
     @staticmethod
     def create_event_from_performance_data(
@@ -95,7 +78,7 @@ class UncleVinniesExtractor:
             return UncleVinniesEvent(
                 production_id=production_id,
                 performance_id=str(performance_id),
-                name=name,
+                production_name=name,
                 start_date=start_date,
                 description=description,
                 sections=sections,
@@ -111,23 +94,4 @@ class UncleVinniesExtractor:
     @staticmethod
     def is_past_event(start_date_str: str, timezone: str) -> bool:
         """Check if an event date string is in the past for a given timezone."""
-        try:
-            # Try multiple formats commonly returned by OvationTix
-            dt: Optional[datetime] = None
-            for fmt in ("%Y-%m-%d %H:%M", "%Y-%m-%dT%H:%M:%S"):
-                try:
-                    dt = datetime.strptime(start_date_str, fmt)
-                    break
-                except Exception:
-                    continue
-
-            if dt is None:
-                # As a conservative default, don't filter out events we can't parse
-                return False
-
-            tz = pytz.timezone(timezone)
-            event_dt = tz.localize(dt)
-            now = datetime.now(tz)
-            return event_dt < now
-        except Exception:
-            return False
+        return is_past_event(start_date_str, timezone)
