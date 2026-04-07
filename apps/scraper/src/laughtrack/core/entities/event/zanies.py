@@ -77,7 +77,7 @@ def _infer_date(date_str: str) -> Optional[date]:
 @dataclass
 class ZaniesEvent(ShowConvertible):
     """
-    A single event scraped from Zanies Comedy Club (Chicago, IL).
+    A single event scraped from a Zanies Comedy Club venue.
 
     Covers both headliner-run individual performances (extracted from series
     pages) and one-off special events (extracted from single-show detail

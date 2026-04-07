@@ -17,6 +17,7 @@ Pipeline:
 
 import re
 from typing import List, Optional
+from urllib.parse import urlparse
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.foundation.infrastructure.logger.logger import Logger
@@ -27,18 +28,24 @@ from .data import ZaniesPageData
 from .extractor import ZaniesExtractor
 from .transformer import ZaniesEventTransformer
 
-_SERIES_URL_RE = re.compile(
-    r'href="(https://chicago\.zanies\.com/calendar/category/series/[^"]+)"',
-    re.IGNORECASE,
-)
-_SHOW_URL_RE = re.compile(
-    r'href="(https://chicago\.zanies\.com/show/[^"]+)"',
-    re.IGNORECASE,
-)
+
+def _build_url_patterns(scraping_url: str):
+    """Build URL regex patterns from the club's scraping_url host."""
+    host = urlparse(scraping_url).hostname or "chicago.zanies.com"
+    escaped = re.escape(host)
+    series_re = re.compile(
+        rf'href="(https://{escaped}/(?:calendar|show)/category/series/[^"]+)"',
+        re.IGNORECASE,
+    )
+    show_re = re.compile(
+        rf'href="(https://{escaped}/show/(?!category/)[^"]+)"',
+        re.IGNORECASE,
+    )
+    return series_re, show_re
 
 
 class ZaniesScraper(BaseScraper):
-    """Scraper for Zanies Comedy Club (Chicago, IL)."""
+    """Scraper for Zanies Comedy Club venues."""
 
     key = "zanies"
 
@@ -46,6 +53,9 @@ class ZaniesScraper(BaseScraper):
         super().__init__(club, **kwargs)
         self.transformation_pipeline.register_transformer(
             ZaniesEventTransformer(club)
+        )
+        self._series_url_re, self._show_url_re = _build_url_patterns(
+            club.scraping_url or ""
         )
 
     async def collect_scraping_targets(self) -> List[str]:
@@ -66,8 +76,8 @@ class ZaniesScraper(BaseScraper):
             )
             return []
 
-        series_urls = list(dict.fromkeys(_SERIES_URL_RE.findall(html)))
-        show_urls = list(dict.fromkeys(_SHOW_URL_RE.findall(html)))
+        series_urls = list(dict.fromkeys(self._series_url_re.findall(html)))
+        show_urls = list(dict.fromkeys(self._show_url_re.findall(html)))
         targets = series_urls + show_urls
 
         Logger.info(
