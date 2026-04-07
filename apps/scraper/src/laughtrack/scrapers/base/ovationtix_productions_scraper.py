@@ -19,6 +19,7 @@ Subclasses specify:
 - discover_urls(): how to find the discovery page URL
 """
 
+from urllib.parse import urlparse
 from typing import ClassVar, List, Optional, Type
 
 from laughtrack.core.clients.ovationtix.extractor import (
@@ -66,10 +67,12 @@ class OvationTixProductionsScraper(BaseScraper):
     async def get_data(self, url: str):
         try:
             # Step 1: fetch discovery page and extract production IDs
+            parsed = urlparse(url)
+            page_origin = f"{parsed.scheme}://{parsed.netloc}"
             page_headers = BaseHeaders.get_headers(
                 base_type="desktop_browser",
-                domain="https://web.ovationtix.com",
-                referer="https://web.ovationtix.com/",
+                domain=page_origin,
+                referer=f"{page_origin}/",
             )
             html = await self.fetch_html(url, headers=page_headers)
             client_id, production_ids = extract_client_and_production_ids(html)
