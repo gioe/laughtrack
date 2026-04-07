@@ -1,14 +1,24 @@
 """Data model for a single show from Flappers Comedy Club."""
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.protocols.show_convertible import ShowConvertible
 
 _TIME_RE = re.compile(r"(\d{1,2}(?::\d{2})?)\s*(AM|PM)", re.IGNORECASE)
+
+
+@dataclass
+class FlappersTicketTier:
+    """A single ticket tier from a Flappers show detail page."""
+
+    price: float
+    ticket_type: str = "General Admission"
+    sold_out: bool = False
+    remaining: Optional[int] = None
 
 
 def _parse_time(time_str: str, year: int, month: int, day: int, tz_str: str) -> Optional[datetime]:
@@ -46,6 +56,9 @@ class FlappersEvent(ShowConvertible):
     time_str: str
     timezone: str = "America/Los_Angeles"
     room: str = ""
+    description: Optional[str] = None
+    lineup_names: List[str] = field(default_factory=list)
+    ticket_tiers: List[FlappersTicketTier] = field(default_factory=list)
 
     def to_show(self, club: "Club", enhanced: bool = True, url: Optional[str] = None):
         from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
@@ -60,7 +73,25 @@ class FlappersEvent(ShowConvertible):
             return None
 
         ticket_url = url or f"https://www.flapperscomedy.com/site/shows.php?event_id={self.event_id}"
-        tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url)]
+
+        # Build tickets from detail page tiers, or fallback
+        if self.ticket_tiers:
+            tickets = [
+                ShowFactoryUtils.create_fallback_ticket(
+                    purchase_url=ticket_url,
+                    price=tier.price,
+                    ticket_type=tier.ticket_type,
+                    sold_out=tier.sold_out,
+                )
+                for tier in self.ticket_tiers
+            ]
+        else:
+            tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url)]
+
+        # Build lineup from detail page performer names
+        lineup = ShowFactoryUtils.create_lineup_from_performers(
+            self.lineup_names
+        ) if self.lineup_names else []
 
         return ShowFactoryUtils.create_enhanced_show_base(
             name=self.title,
@@ -68,6 +99,8 @@ class FlappersEvent(ShowConvertible):
             date=start_date,
             show_page_url=ticket_url,
             tickets=tickets,
+            lineup=lineup,
+            description=self.description,
             room=self.room,
             enhanced=enhanced,
         )

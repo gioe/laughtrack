@@ -8,10 +8,12 @@ holding show titles, times, rooms, and event IDs.
 
 Pipeline:
   1. collect_scraping_targets() -> monthly calendar URLs (current + next 2 months)
-  2. get_data(url)              -> fetch HTML -> extract FlappersEvent objects
+  2. get_data(url)              -> fetch calendar HTML -> extract FlappersEvent objects
+                                   -> fetch each show detail page for tickets + lineup
   3. transformation_pipeline    -> FlappersEvent.to_show() -> Show objects
 """
 
+import asyncio
 from datetime import date
 from typing import List, Optional
 
@@ -26,6 +28,8 @@ from .extractor import FlappersEventExtractor
 from .transformer import FlappersEventTransformer
 
 _SCRAPE_WINDOW_MONTHS = 3
+_DETAIL_CONCURRENCY = 5
+_DETAIL_BASE_URL = "https://www.flapperscomedy.com/site/shows.php?event_id="
 
 
 class FlappersComediClubScraper(BaseScraper):
@@ -76,6 +80,10 @@ class FlappersComediClubScraper(BaseScraper):
                 f"{self._log_prefix}: extracted {len(events)} show(s) from {url}",
                 self.logger_context,
             )
+
+            # Enrich events with detail page data (tickets, lineup, description)
+            await self._enrich_events(events)
+
             return FlappersPageData(event_list=events)
 
         except Exception as e:
@@ -84,3 +92,37 @@ class FlappersComediClubScraper(BaseScraper):
                 self.logger_context,
             )
             return None
+
+    async def _enrich_events(self, events: list) -> None:
+        """Fetch show detail pages concurrently and enrich events with ticket/lineup data."""
+        sem = asyncio.Semaphore(_DETAIL_CONCURRENCY)
+
+        async def fetch_detail(event):
+            async with sem:
+                detail_url = f"{_DETAIL_BASE_URL}{event.event_id}"
+                try:
+                    html = await self.fetch_html(detail_url)
+                    if not html:
+                        return
+                    details = FlappersEventExtractor.extract_show_details(html)
+                    if not details:
+                        return
+                    if details.ticket_tiers:
+                        event.ticket_tiers = details.ticket_tiers
+                    if details.lineup_names:
+                        event.lineup_names = details.lineup_names
+                    if details.description:
+                        event.description = details.description
+                except Exception as e:
+                    Logger.warn(
+                        f"{self._log_prefix}: failed to fetch detail for event {event.event_id}: {e}",
+                        self.logger_context,
+                    )
+
+        await asyncio.gather(*(fetch_detail(ev) for ev in events))
+
+        enriched = sum(1 for ev in events if ev.ticket_tiers)
+        Logger.info(
+            f"{self._log_prefix}: enriched {enriched}/{len(events)} events with detail page data",
+            self.logger_context,
+        )
