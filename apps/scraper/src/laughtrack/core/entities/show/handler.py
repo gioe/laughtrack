@@ -434,15 +434,16 @@ class ShowHandler(BaseDatabaseHandler[Show]):
                     for show in shows:
                         show.lineup = [c for c in show.lineup if c.name not in denied_names]
 
-                # False-positive comedians are also skipped by insert_comedians()
-                # internally, so strip them from show.lineup for the same reason.
+                # False-positive comedians are also filtered here so their UUIDs
+                # don't reach batch_update_lineups. Pass pre_filtered=True since
+                # we've already applied both deny-list and FP filters.
                 fp_allowed = self.comedian_handler._filter_false_positive_comedians(allowed_comedians)
                 fp_names = {c.name for c in allowed_comedians} - {c.name for c in fp_allowed}
                 if fp_names:
                     for show in shows:
                         show.lineup = [c for c in show.lineup if c.name not in fp_names]
 
-                inserted_rows = self.comedian_handler.insert_comedians(fp_allowed)
+                inserted_rows = self.comedian_handler.insert_comedians(fp_allowed, pre_filtered=True)
                 comedians_inserted = len(inserted_rows)
 
                 # Source images for newly inserted comedians (non-blocking —

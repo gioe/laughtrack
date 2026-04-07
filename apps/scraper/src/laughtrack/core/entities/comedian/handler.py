@@ -43,7 +43,7 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
         """Return the Comedian class for instantiation."""
         return Comedian
 
-    def insert_comedians(self, comedians: List[Comedian]) -> List[DictRow]:
+    def insert_comedians(self, comedians: List[Comedian], *, pre_filtered: bool = False) -> List[DictRow]:
         """
         Insert comedians into the database.
 
@@ -54,10 +54,14 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
         provided comedians were already present.
 
         Names present in comedian_deny_list are skipped before insertion and logged
-        at warn level.
+        at warn level (unless pre_filtered=True).
 
         Args:
             comedians: List of comedians to insert
+            pre_filtered: If True, skip deny-list and false-positive filtering.
+                Use when the caller has already applied both filters (e.g.
+                update_show_lineups) to avoid redundant DB queries and
+                potential divergence between outer and inner filtering.
 
         Returns:
             List of newly inserted comedian rows (empty when all already existed)
@@ -66,15 +70,16 @@ class ComedianHandler(BaseDatabaseHandler[Comedian]):
             raise ValueError("No comedians to insert")
 
         try:
-            comedians = self._filter_false_positive_comedians(comedians)
-            if not comedians:
-                Logger.info("insert_comedians: all candidates were false positives; nothing inserted")
-                return []
+            if not pre_filtered:
+                comedians = self._filter_false_positive_comedians(comedians)
+                if not comedians:
+                    Logger.info("insert_comedians: all candidates were false positives; nothing inserted")
+                    return []
 
-            comedians = self._filter_denied_comedians(comedians)
-            if not comedians:
-                Logger.info("insert_comedians: all candidates were on the deny list; nothing inserted")
-                return []
+                comedians = self._filter_denied_comedians(comedians)
+                if not comedians:
+                    Logger.info("insert_comedians: all candidates were on the deny list; nothing inserted")
+                    return []
 
             items = [comedian.to_insert_tuple() for comedian in comedians]
             template = BatchTemplateGenerator.generate_dynamic_template(items)
