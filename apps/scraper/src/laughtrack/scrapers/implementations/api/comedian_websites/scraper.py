@@ -522,8 +522,11 @@ class ComedianWebsiteScraper(BaseScraper):
     def _get_comedians_for_scraping(self, limit: Optional[int] = None, comedian_name: Optional[str] = None) -> List[dict]:
         """Query comedians with websites that need scraping."""
         if comedian_name:
+            # GET_COMEDIANS_WITH_WEBSITES ends with ORDER BY — strip it,
+            # append the name filter, then re-add the ORDER BY.
+            base_query = ComedianQueries.GET_COMEDIANS_WITH_WEBSITES.replace("ORDER BY name", "").strip()
             results = self._comedian_handler.execute_with_cursor(
-                ComedianQueries.GET_COMEDIANS_WITH_WEBSITES + " AND LOWER(name) LIKE LOWER(%s)",
+                base_query + " AND LOWER(name) LIKE LOWER(%s) ORDER BY name",
                 (f"%{comedian_name}%",),
                 return_results=True,
             )
