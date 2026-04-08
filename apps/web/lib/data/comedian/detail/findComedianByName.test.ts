@@ -42,9 +42,16 @@ function makeComedianRow(
         popularity: number;
         totalShows: number;
         soldOutShows: number;
+        hasImage: boolean;
         parentComedianId: number | null;
         songkickId: string | null;
         bandsintownId: string | null;
+        websiteDiscoverySource: string | null;
+        websiteLastScraped: Date | null;
+        websiteScrapeStrategy: string | null;
+        websiteScrapingUrl: string | null;
+        websiteConfidence: string | null;
+        websiteScrapingUrlConfidence: string | null;
         lineupItems: { id: number }[];
         favoriteComedians: { id: number }[];
     }> = {},
@@ -71,6 +78,9 @@ function makeComedianRow(
         websiteDiscoverySource: null,
         websiteLastScraped: null,
         websiteScrapeStrategy: null,
+        websiteScrapingUrl: null,
+        websiteConfidence: null,
+        websiteScrapingUrlConfidence: null,
         lineupItems: [{ id: 10 }, { id: 11 }, { id: 12 }],
         favoriteComedians: [],
         ...overrides,
