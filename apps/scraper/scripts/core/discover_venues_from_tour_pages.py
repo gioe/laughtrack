@@ -16,7 +16,9 @@ Usage:
 
 import argparse
 import asyncio
+import html
 import os
+import re
 import sys
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -81,37 +83,78 @@ _STRIP_SUFFIXES = [
 
 
 def _normalize_club_name(name: str) -> str:
-    n = name.strip().lower()
+    # Decode HTML entities first (&#8217; -> ', &amp; -> &, etc.)
+    n = html.unescape(name).strip().lower()
     n = n.removeprefix("the ")
     for suffix in _STRIP_SUFFIXES:
         if n.endswith(suffix):
-            n = n[: -len(suffix)].strip()
+            candidate = n[: -len(suffix)].strip()
+            # Only strip if meaningful words remain (avoid "raleigh improv" -> "raleigh")
+            if len(candidate) >= 5:
+                n = candidate
             break
+    # Strip city qualifiers: " - CityName", " - CityName, ST"
+    n = re.sub(r"\s*[-–—]\s*[a-z ]+(?:,\s*[a-z]{2})?\s*$", "", n)
+    # Remove apostrophes / smart quotes
     n = n.replace("'", "").replace("\u2019", "")
-    return n
+    # Remove commas
+    n = n.replace(",", "")
+    # Remove extra qualifiers like "at <place>" for substring matching
+    n = re.sub(r"\s+at\s+.*$", "", n)
+    return n.strip()
+
+
+def _clean_name(name: str) -> str:
+    """Minimal cleaning: decode HTML, lowercase, strip punctuation. No suffix removal."""
+    n = html.unescape(name).strip().lower()
+    n = n.removeprefix("the ")
+    n = n.replace("'", "").replace("\u2019", "")
+    n = n.replace(",", "")
+    # Strip city qualifiers after dash: " - CityName" / " – CityName, ST"
+    n = re.sub(r"\s*[-–—]\s*[a-z ]+(?:,\s*[a-z]{2})?\s*$", "", n)
+    return n.strip()
+
+
+def _sorted_words(name: str) -> str:
+    """Return space-joined sorted words — catches word-order swaps like 'Raleigh Improv' vs 'Improv Raleigh'."""
+    return " ".join(sorted(name.split()))
 
 
 def _is_known_club(name: str, known_clubs: set[str]) -> bool:
     """Check if a venue name matches a known club — exact or fuzzy."""
-    lower = name.strip().lower()
+    # Decode HTML entities before any comparison
+    lower = html.unescape(name).strip().lower()
     if lower in known_clubs:
         return True
 
     norm = _normalize_club_name(lower)
-    if len(norm) < 5:
+    clean = _clean_name(lower)
+    if len(norm) < 5 and len(clean) < 5:
         return False
+
+    norm_words = _sorted_words(norm)
+    clean_words = _sorted_words(clean)
 
     for known in known_clubs:
         known_norm = _normalize_club_name(known)
-        if len(known_norm) < 5:
+        known_clean = _clean_name(known)
+        if len(known_norm) < 5 and len(known_clean) < 5:
             continue
-        if norm == known_norm:
+
+        # Exact match on either normalization level
+        if norm == known_norm or clean == known_clean:
             return True
-        if len(norm) != len(known_norm):
-            shorter = norm if len(norm) < len(known_norm) else known_norm
-            longer = known_norm if len(norm) < len(known_norm) else norm
-            if len(shorter) >= 8 and shorter in longer:
-                return True
+
+        # Word-order-independent match (e.g. "Improv Raleigh" vs "Raleigh Improv")
+        if norm_words == _sorted_words(known_norm) or clean_words == _sorted_words(known_clean):
+            return True
+
+        # Substring containment (either direction, min 8 chars) on both levels
+        for a, b in [(norm, known_norm), (clean, known_clean)]:
+            if len(a) >= 8 and len(b) >= 8 and len(a) != len(b):
+                shorter, longer = (a, b) if len(a) < len(b) else (b, a)
+                if shorter in longer:
+                    return True
 
     return False
 
@@ -465,6 +508,58 @@ def _create_clubs(venues: list[DiscoveredVenue]) -> int:
     return created
 
 
+def _send_discord_report(venues: list[DiscoveredVenue]) -> None:
+    """Send a Discord notification summarizing discovered venues."""
+    auto = [v for v in venues if v.triage == "auto"]
+    review = [v for v in venues if v.triage == "review"]
+    if not auto and not review:
+        return
+
+    try:
+        from laughtrack.infrastructure.config.monitoring_config import MonitoringConfig
+        from gioe_libs.alerting import DiscordAlertChannel, Alert, AlertSeverity
+    except ImportError as e:
+        Logger.error(f"Monitoring package not available; skipping Discord report: {e}")
+        return
+
+    try:
+        config = MonitoringConfig.default()
+        if not config.is_discord_configured() or not config.discord_webhook_url:
+            Logger.warn("Discord webhook not configured; skipping venue discovery report")
+            return
+
+        lines: list[str] = []
+        if auto:
+            lines.append(f"**Auto-onboarded ({len(auto)}):**")
+            for v in auto:
+                platforms = ", ".join(sorted(v.platforms)) if v.platforms else "unknown"
+                lines.append(f"• {v.venue_name} — {v.location} [{platforms}] ({len(v.comedians)} refs)")
+        if review:
+            lines.append(f"\n**Needs review ({len(review)}):**")
+            for v in review:
+                platforms = ", ".join(sorted(v.platforms)) if v.platforms else "unknown"
+                signal = "comedy name" if v.is_likely_comedy_club else f"{len(v.comedians)} refs"
+                lines.append(f"• {v.venue_name} — {v.location} [{platforms}] ({signal})")
+
+        alert = Alert(
+            title=f"Venue Discovery: {len(auto)} auto-onboarded, {len(review)} need review",
+            message="\n".join(lines),
+            severity=AlertSeverity.LOW,
+            metadata={
+                "auto_count": len(auto),
+                "review_count": len(review),
+                "total_unmatched": len(venues),
+            },
+        )
+        channel = DiscordAlertChannel(webhook_url=config.discord_webhook_url)
+        if channel.send(alert):
+            Logger.info("Discord venue discovery report sent")
+        else:
+            Logger.error("Discord venue discovery report delivery failed")
+    except Exception as e:
+        Logger.error(f"Failed to send Discord venue discovery report: {e}")
+
+
 def _create_onboarding_tasks(venues: list[DiscoveredVenue]) -> int:
     """Create tusk onboarding tasks for auto-triaged venues. Returns count created."""
     import subprocess
@@ -545,6 +640,7 @@ def main():
             min_refs=args.min_refs,
         ))
         _print_report(results)
+        _send_discord_report(results)
 
         auto_venues = [v for v in results if v.triage == "auto"]
 
