@@ -200,7 +200,7 @@ class ComedianWebsiteScraper(BaseScraper):
                     return 0
 
                 strategy = "json_ld"
-                venue_count = self._extract_venues_from_events(events, comedian)
+                venue_count = self._extract_venues_from_events(events)
                 self._update_scrape_metadata(row["uuid"], strategy)
                 self._update_scraping_url_confidence(row["uuid"], comedian.name, scraping_url, has_events=True)
 
@@ -306,7 +306,7 @@ class ComedianWebsiteScraper(BaseScraper):
             )
         return venue_count
 
-    def _extract_venues_from_events(self, events: list, comedian: Comedian) -> int:
+    def _extract_venues_from_events(self, events: list) -> int:
         """Extract and upsert venues from a list of JSON-LD events. Returns venue count."""
         count = 0
         for event in events:
