@@ -51,21 +51,27 @@ def _parse_date(date_str: str) -> Optional[datetime]:
     """
     Parse a date string like 'Sat, May 30, 2026'.
 
-    Tries the full format first (with year), then falls back to the
-    short format (no year) with year inference.
+    Tries the full format with weekday first, then without weekday,
+    then falls back to the short format (no year) with year inference.
     """
     # Strip leading/trailing whitespace and normalise inner whitespace
     cleaned = " ".join(date_str.split())
 
-    # Remove leading weekday prefix: "Sat, May 30, 2026" -> "May 30, 2026"
-    if ", " in cleaned:
-        cleaned = cleaned.split(", ", 1)[1]
+    # Try full format with weekday: "Sat, May 30, 2026"
+    try:
+        return datetime.strptime(cleaned, "%a, %b %d, %Y")
+    except ValueError:
+        pass
 
-    # Try with year: "May 30, 2026"
+    # Try full format without weekday: "May 30, 2026"
     try:
         return datetime.strptime(cleaned, "%b %d, %Y")
     except ValueError:
         pass
+
+    # Remove weekday prefix for short-format fallback: "Sat, May 30" -> "May 30"
+    if ", " in cleaned:
+        cleaned = cleaned.split(", ", 1)[1]
 
     # Try without year (short format): "May 30"
     from datetime import date, timedelta
@@ -110,27 +116,16 @@ class TheMoonEvent(ShowConvertible):
 
         # --- time ---
         door_time = _extract_door_time(self.time_str) if self.time_str else None
-        if door_time:
-            datetime_str = (
-                f"{parsed_dt.year}-{parsed_dt.month:02d}-{parsed_dt.day:02d} "
-                f"{door_time}"
-            )
-            start_dt = ShowFactoryUtils.safe_parse_datetime_string(
-                datetime_str,
-                "%Y-%m-%d %I:%M %p",
-                club.timezone or "America/New_York",
-            )
-        else:
-            # No time available — use noon as a placeholder
-            datetime_str = (
-                f"{parsed_dt.year}-{parsed_dt.month:02d}-{parsed_dt.day:02d} "
-                "12:00 PM"
-            )
-            start_dt = ShowFactoryUtils.safe_parse_datetime_string(
-                datetime_str,
-                "%Y-%m-%d %I:%M %p",
-                club.timezone or "America/New_York",
-            )
+        time_part = door_time or "12:00 PM"
+        datetime_str = (
+            f"{parsed_dt.year}-{parsed_dt.month:02d}-{parsed_dt.day:02d} "
+            f"{time_part}"
+        )
+        start_dt = ShowFactoryUtils.safe_parse_datetime_string(
+            datetime_str,
+            "%Y-%m-%d %I:%M %p",
+            club.timezone or "America/New_York",
+        )
 
         if start_dt is None:
             return None

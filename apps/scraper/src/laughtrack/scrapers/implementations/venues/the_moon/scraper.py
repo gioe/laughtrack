@@ -49,7 +49,7 @@ class TheMoonScraper(BaseScraper):
             TheMoonPageData with extracted events, or None on failure.
         """
         try:
-            html = await self.fetch_html(URLUtils.normalize_url(url))
+            html = await self.fetch_html(url)
             if not html:
                 Logger.warn(
                     f"{self._log_prefix}: empty response for {url}",
