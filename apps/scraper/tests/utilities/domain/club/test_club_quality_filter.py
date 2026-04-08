@@ -52,6 +52,20 @@ def test_name_prefix_partial_match_is_not_rejected():
 
 
 # ---------------------------------------------------------------------------
+# Website=None (source has no website data) — skips website checks
+# ---------------------------------------------------------------------------
+
+
+def test_no_website_skips_website_check():
+    """When website is None (default), only name rules are applied."""
+    assert is_junk_venue("Good Club") is False
+
+
+def test_no_website_still_checks_name():
+    assert is_junk_venue("Demo Comedy Club") is True
+
+
+# ---------------------------------------------------------------------------
 # Website exact-value rejection
 # ---------------------------------------------------------------------------
 

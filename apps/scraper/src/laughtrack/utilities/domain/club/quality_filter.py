@@ -70,16 +70,23 @@ def _check_website(website: str, rules: dict) -> Optional[str]:
     return None
 
 
-def is_junk_venue(name: str, website: str) -> bool:
+def is_junk_venue(name: str, website: Optional[str] = None) -> bool:
     """
     Return True if the venue should be rejected before DB ingestion.
+
+    Args:
+        name: venue name (always checked against name deny rules)
+        website: venue website URL, or None if the source doesn't provide
+                 website data.  When None, the website deny rules are skipped
+                 entirely — this is distinct from an empty string, which means
+                 the source explicitly returned no website.
 
     Logs a warning with the club name and matched rule when a venue is rejected.
     """
     rules = _RULES
 
     reason = _check_name(name, rules)
-    if reason is None:
+    if reason is None and website is not None:
         reason = _check_website(website, rules)
 
     if reason is not None:

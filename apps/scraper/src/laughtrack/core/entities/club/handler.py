@@ -119,7 +119,7 @@ class ClubHandler(BaseDatabaseHandler[Club]):
             return None
 
         from laughtrack.utilities.domain.club.quality_filter import is_junk_venue  # noqa: PLC0415
-        if is_junk_venue(venue.name, ""):
+        if is_junk_venue(venue.name):
             return None
 
         address = ""
@@ -258,7 +258,7 @@ class ClubHandler(BaseDatabaseHandler[Club]):
             return None
 
         from laughtrack.utilities.domain.club.quality_filter import is_junk_venue  # noqa: PLC0415
-        if is_junk_venue(name, ""):
+        if is_junk_venue(name):
             return None
 
         address_obj = venue.get("address") or {}
@@ -300,7 +300,7 @@ class ClubHandler(BaseDatabaseHandler[Club]):
             return None
 
         from laughtrack.utilities.domain.club.quality_filter import is_junk_venue  # noqa: PLC0415
-        if is_junk_venue(name, ""):
+        if is_junk_venue(name):
             return None
 
         address = (venue.get("address") or "").strip()

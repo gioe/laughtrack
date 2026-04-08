@@ -946,7 +946,7 @@ class TestUpsertForEventbriteVenueJunkFilter:
             result = handler.upsert_for_eventbrite_venue(venue)
 
         assert result is None
-        mock_filter.assert_called_once_with("Demo Comedy Club", "")
+        mock_filter.assert_called_once_with("Demo Comedy Club")
         mock_exec.assert_not_called()
 
 
@@ -961,7 +961,7 @@ class TestUpsertForTicketmasterVenueJunkFilter:
             result = handler.upsert_for_ticketmaster_venue(venue)
 
         assert result is None
-        mock_filter.assert_called_once_with("Demo Comedy Club", "")
+        mock_filter.assert_called_once_with("Demo Comedy Club")
         mock_exec.assert_not_called()
 
 
@@ -976,5 +976,5 @@ class TestUpsertForTourDateVenueJunkFilter:
             result = handler.upsert_for_tour_date_venue(venue)
 
         assert result is None
-        mock_filter.assert_called_once_with("Demo Comedy Club", "")
+        mock_filter.assert_called_once_with("Demo Comedy Club")
         mock_exec.assert_not_called()
