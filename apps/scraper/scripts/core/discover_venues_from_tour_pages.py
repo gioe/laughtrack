@@ -509,10 +509,17 @@ def _create_clubs(venues: list[DiscoveredVenue]) -> int:
 
 
 def _send_discord_report(venues: list[DiscoveredVenue]) -> None:
-    """Send a Discord notification summarizing discovered venues."""
+    """Send Discord notifications summarizing discovered venues.
+
+    Sends up to two separate messages:
+    1. Auto-onboarded + needs-review venues (actionable)
+    2. Skipped venues (for visibility)
+    """
     auto = [v for v in venues if v.triage == "auto"]
     review = [v for v in venues if v.triage == "review"]
-    if not auto and not review:
+    skipped = [v for v in venues if v.triage == "skip"]
+
+    if not auto and not review and not skipped:
         return
 
     try:
@@ -528,34 +535,96 @@ def _send_discord_report(venues: list[DiscoveredVenue]) -> None:
             Logger.warn("Discord webhook not configured; skipping venue discovery report")
             return
 
-        lines: list[str] = []
-        if auto:
-            lines.append(f"**Auto-onboarded ({len(auto)}):**")
-            for v in auto:
-                platforms = ", ".join(sorted(v.platforms)) if v.platforms else "unknown"
-                lines.append(f"• {v.venue_name} — {v.location} [{platforms}] ({len(v.comedians)} refs)")
-        if review:
-            lines.append(f"\n**Needs review ({len(review)}):**")
-            for v in review:
-                platforms = ", ".join(sorted(v.platforms)) if v.platforms else "unknown"
-                signal = "comedy name" if v.is_likely_comedy_club else f"{len(v.comedians)} refs"
-                lines.append(f"• {v.venue_name} — {v.location} [{platforms}] ({signal})")
-
-        alert = Alert(
-            title=f"Venue Discovery: {len(auto)} auto-onboarded, {len(review)} need review",
-            message="\n".join(lines),
-            severity=AlertSeverity.LOW,
-            metadata={
-                "auto_count": len(auto),
-                "review_count": len(review),
-                "total_unmatched": len(venues),
-            },
-        )
         channel = DiscordAlertChannel(webhook_url=config.discord_webhook_url)
-        if channel.send(alert):
-            Logger.info("Discord venue discovery report sent")
-        else:
-            Logger.error("Discord venue discovery report delivery failed")
+
+        # --- Alert 1: Auto-onboarded + review ---
+        if auto or review:
+            lines: list[str] = []
+            if auto:
+                lines.append(f"**Auto-onboarded ({len(auto)}):**")
+                for v in auto:
+                    line = f"• {v.venue_name}"
+                    if v.location:
+                        line += f" — {v.location}"
+                    parts = []
+                    if v.platforms:
+                        parts.append(", ".join(sorted(v.platforms)))
+                    parts.append(f"{len(v.comedians)} comedian refs")
+                    line += f" ({', '.join(parts)})"
+                    lines.append(line)
+            if review:
+                lines.append(f"\n**Needs review ({len(review)}):**")
+                for v in review:
+                    line = f"• {v.venue_name}"
+                    if v.location:
+                        line += f" — {v.location}"
+                    parts = []
+                    if v.platforms:
+                        parts.append(", ".join(sorted(v.platforms)))
+                    if v.is_likely_comedy_club:
+                        parts.append("comedy venue name")
+                    else:
+                        parts.append(f"{len(v.comedians)} comedian refs")
+                    line += f" ({', '.join(parts)})"
+                    lines.append(line)
+
+            alert = Alert(
+                title=f"Venue Discovery: {len(auto)} auto-onboarded, {len(review)} need review",
+                message="\n".join(lines),
+                severity=AlertSeverity.LOW,
+                metadata={
+                    "auto_count": len(auto),
+                    "review_count": len(review),
+                    "total_unmatched": len(venues),
+                },
+            )
+            if channel.send(alert):
+                Logger.info("Discord venue discovery report sent (auto + review)")
+            else:
+                Logger.error("Discord venue discovery report delivery failed (auto + review)")
+
+        # --- Alert 2: Skipped venues ---
+        if skipped:
+            skip_lines: list[str] = []
+            for v in skipped:
+                line = f"• {v.venue_name}"
+                if v.location:
+                    line += f" — {v.location}"
+                parts = []
+                if v.platforms:
+                    parts.append(", ".join(sorted(v.platforms)))
+                parts.append(f"{len(v.comedians)} comedian refs")
+                line += f" ({', '.join(parts)})"
+                skip_lines.append(line)
+
+            # Discord embeds have a 4096-char description limit; truncate if needed
+            body = "\n".join(skip_lines)
+            if len(body) > 3800:
+                truncated = []
+                total_len = 0
+                for line in skip_lines:
+                    if total_len + len(line) + 1 > 3700:
+                        break
+                    truncated.append(line)
+                    total_len += len(line) + 1
+                remaining = len(skip_lines) - len(truncated)
+                truncated.append(f"\n… and {remaining} more")
+                body = "\n".join(truncated)
+
+            skip_alert = Alert(
+                title=f"Venue Discovery — Skipped: {len(skipped)} venues",
+                message=body,
+                severity=AlertSeverity.LOW,
+                metadata={
+                    "skipped_count": len(skipped),
+                    "total_unmatched": len(venues),
+                },
+            )
+            if channel.send(skip_alert):
+                Logger.info("Discord venue discovery report sent (skipped)")
+            else:
+                Logger.error("Discord venue discovery report delivery failed (skipped)")
+
     except Exception as e:
         Logger.error(f"Failed to send Discord venue discovery report: {e}")
 
