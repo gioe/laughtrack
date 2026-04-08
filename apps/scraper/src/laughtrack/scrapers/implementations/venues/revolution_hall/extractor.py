@@ -79,14 +79,6 @@ class RevolutionHallExtractor:
             age_el = event_div.find("span", class_="event-age-restriction")
             age_text = age_el.get_text(strip=True) if age_el else ""
 
-            # Presenter from the <p> inside event__content (e.g. "OUTBACK PRESENTS")
-            content_div = event_div.find("div", class_="event__content")
-            presenter = ""
-            if content_div:
-                p_tag = content_div.find("p")
-                if p_tag:
-                    presenter = p_tag.get_text(strip=True)
-
             # Status from button class
             status_link = event_div.find("a", class_=re.compile(r"event-status--"))
             status = "on_sale"

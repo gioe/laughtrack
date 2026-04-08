@@ -52,7 +52,9 @@ class RevolutionHallEvent:
                 date=start_dt,
                 show_page_url=self.ticket_url,
                 lineup=[],
-                tickets=[ShowFactoryUtils.create_fallback_ticket(self.ticket_url)],
+                tickets=[ShowFactoryUtils.create_fallback_ticket(
+                    self.ticket_url, sold_out=(self.status == "sold_out")
+                )],
                 description="",
                 room="",
                 supplied_tags=["event"],

@@ -40,17 +40,16 @@ class RevolutionHallScraper(BaseScraper):
 
     async def get_data(self, url: str) -> Optional[RevolutionHallPageData]:
         try:
-            normalized_url = URLUtils.normalize_url(url)
-            html = await self.fetch_html(normalized_url)
+            html = await self.fetch_html(url)
 
             if not html:
-                Logger.warn(f"{self._log_prefix}: No HTML returned from {normalized_url}", self.logger_context)
+                Logger.warn(f"{self._log_prefix}: No HTML returned from {url}", self.logger_context)
                 return None
 
             events = RevolutionHallExtractor.extract_events(html)
 
             if not events:
-                Logger.warn(f"{self._log_prefix}: No events found on {normalized_url}", self.logger_context)
+                Logger.warn(f"{self._log_prefix}: No events found on {url}", self.logger_context)
                 return None
 
             Logger.info(f"{self._log_prefix}: Extracted {len(events)} events", self.logger_context)
