@@ -1,0 +1,94 @@
+name: Discover Venues from Tour Pages
+
+on:
+  schedule:
+    # Weekly on Sunday at 08:00 UTC (after discover-comedian-websites.yml)
+    - cron: '0 8 * * 0'
+  workflow_dispatch:
+
+jobs:
+  discover:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: apps/scraper
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.13"
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-3.13-${{ hashFiles('apps/scraper/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-3.13-
+            ${{ runner.os }}-pip-
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tesseract-ocr tesseract-ocr-eng
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e .
+
+      - name: Ping heartbeat start
+        env:
+          DISCOVER_VENUES_HEALTHCHECKS_PING_URL: ${{ secrets.DISCOVER_VENUES_HEALTHCHECKS_PING_URL }}
+        run: |
+          if [ -z "$DISCOVER_VENUES_HEALTHCHECKS_PING_URL" ]; then
+            echo "DISCOVER_VENUES_HEALTHCHECKS_PING_URL not set — skipping start ping"
+            exit 0
+          fi
+          curl -fsS --retry 3 --max-time 10 "$DISCOVER_VENUES_HEALTHCHECKS_PING_URL/start"
+
+      - name: Discover venues from tour pages
+        env:
+          DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+          DATABASE_USER: ${{ secrets.DATABASE_USER }}
+          DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
+          DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+          DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          make discover-venues
+
+      - name: Upload logs
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: discover-venues-logs-${{ github.run_id }}
+          path: apps/scraper/logs/
+          retention-days: 30
+
+      - name: Ping heartbeat monitor
+        if: always()
+        env:
+          DISCOVER_VENUES_HEALTHCHECKS_PING_URL: ${{ secrets.DISCOVER_VENUES_HEALTHCHECKS_PING_URL }}
+        run: |
+          if [ -z "$DISCOVER_VENUES_HEALTHCHECKS_PING_URL" ]; then
+            echo "DISCOVER_VENUES_HEALTHCHECKS_PING_URL not set — skipping heartbeat ping"
+            exit 0
+          fi
+          if [ "${{ job.status }}" = "success" ]; then
+            curl -fsS --retry 3 --max-time 10 "$DISCOVER_VENUES_HEALTHCHECKS_PING_URL"
+          else
+            curl -fsS --retry 3 --max-time 10 "$DISCOVER_VENUES_HEALTHCHECKS_PING_URL/fail"
+          fi
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "::error::Tour page venue discovery failed. Check the logs artifact for details."
+          echo "GitHub will send an email notification to repository administrators."
