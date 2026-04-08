@@ -1,6 +1,6 @@
 """
 TourDatesScraper: fetches upcoming US tour dates for comedians that have
-a songkick_id or bandsintown_id recorded in the comedians table.
+a bandsintown_id recorded in the comedians table.
 
 For each event returned:
 - Upserts a clubs row for the venue (scraper='tour_dates').
@@ -43,9 +43,9 @@ _US_STATES = {
 
 class TourDatesScraper(BaseScraper):
     """
-    Artist-level tour-date scraper that queries Songkick and BandsInTown
-    for upcoming US shows by comedians who have a songkick_id or
-    bandsintown_id recorded in the comedians table.
+    Artist-level tour-date scraper that queries BandsInTown for upcoming
+    US shows by comedians who have a bandsintown_id recorded in the
+    comedians table.
 
     Triggered by a single clubs row with scraper='tour_dates'.
     For each tour date found, upserts a venue club, upserts the show,
@@ -54,11 +54,9 @@ class TourDatesScraper(BaseScraper):
 
     key = "tour_dates"
 
-    _SONGKICK_BASE_URL = "https://api.songkick.com/api/3.0"
     _DEFAULT_MAX_CONCURRENT_COMEDIANS = 5
     _BANDSINTOWN_BASE_URL = "https://rest.bandsintown.com/v3"
     _REQUEST_TIMEOUT = 30
-    _MAX_PAGES = 20
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
@@ -66,7 +64,6 @@ class TourDatesScraper(BaseScraper):
         self._comedian_handler = ComedianHandler()
         self._show_handler = ShowHandler()
         self._lineup_handler = LineupHandler()
-        self._songkick_api_key: Optional[str] = ConfigManager.get_config("api", "songkick_api_key")
         self._bandsintown_app_id: Optional[str] = ConfigManager.get_config("api", "bandsintown_app_id")
 
     # ------------------------------------------------------------------ #
@@ -94,12 +91,10 @@ class TourDatesScraper(BaseScraper):
         try:
             if not self._bandsintown_app_id:
                 Logger.warn(f"{self._log_prefix}: bandsintown_app_id is not configured — BandsInTown lookups will be skipped")
-            if not self._songkick_api_key:
-                Logger.warn(f"{self._log_prefix}: songkick_api_key is not configured — Songkick lookups will be skipped")
 
             comedian_rows = self._get_comedians_with_tour_ids()
             if not comedian_rows:
-                Logger.info(f"{self._log_prefix}: no comedians with Songkick/BandsInTown IDs found", self.logger_context)
+                Logger.info(f"{self._log_prefix}: no comedians with BandsInTown IDs found", self.logger_context)
                 return []
 
             Logger.info(
@@ -137,10 +132,6 @@ class TourDatesScraper(BaseScraper):
         async with semaphore:
             try:
                 shows: List[Show] = []
-                if row.get("songkick_id") and self._songkick_api_key:
-                    shows.extend(
-                        await self._fetch_songkick_shows(comedian, row["songkick_id"])
-                    )
                 if row.get("bandsintown_id") and self._bandsintown_app_id:
                     shows.extend(
                         await self._fetch_bandsintown_shows(comedian, row["bandsintown_id"])
@@ -152,126 +143,6 @@ class TourDatesScraper(BaseScraper):
                     self.logger_context,
                 )
                 return []
-
-    # ------------------------------------------------------------------ #
-    # Songkick                                                             #
-    # ------------------------------------------------------------------ #
-
-    async def _fetch_songkick_shows(self, comedian: Comedian, artist_id: str) -> List[Show]:
-        """Fetch upcoming US tour dates from the Songkick artist calendar API."""
-        shows: List[Show] = []
-        page = 1
-
-        while page <= self._MAX_PAGES:
-            params = {
-                "apikey": self._songkick_api_key,
-                "per_page": 50,
-                "page": page,
-            }
-            url = f"{self._SONGKICK_BASE_URL}/artists/{artist_id}/calendar.json?{urlencode(params)}"
-
-            try:
-                data = await self.fetch_json(url, timeout=self._REQUEST_TIMEOUT)
-            except Exception as e:
-                Logger.error(
-                    f"{self._log_prefix}/Songkick: error fetching page {page} for artist {artist_id}: {e}",
-                    self.logger_context,
-                )
-                break
-
-            if not data:
-                break
-
-            results_page = data.get("resultsPage", {})
-            if results_page.get("status") == "error":
-                Logger.warn(
-                    f"{self._log_prefix}/Songkick: API error for artist {artist_id}: {results_page.get('error')}",
-                    self.logger_context,
-                )
-                break
-
-            entries = results_page.get("results", {}).get("calendarEntry", []) or []
-            if not entries:
-                break
-
-            for entry in entries:
-                event = entry.get("event", {})
-                show = self._songkick_event_to_show(event, comedian)
-                if show:
-                    shows.append(show)
-
-            total_entries = results_page.get("totalEntries", 0)
-            per_page = results_page.get("perPage", 50)
-            if page * per_page >= total_entries:
-                break
-            page += 1
-
-        return shows
-
-    def _songkick_event_to_show(self, event: dict, comedian: Comedian) -> Optional[Show]:
-        """Convert a Songkick calendar event to a Show, or None if not a US event."""
-        try:
-            # Only include US events
-            location = event.get("location", {})
-            city_str = location.get("city", "")  # e.g. "New York, NY, US"
-            if not city_str.endswith(", US"):
-                return None
-
-            venue_data = event.get("venue", {}) or {}
-            venue_name = (venue_data.get("displayName") or "").strip()
-            if not venue_name:
-                return None
-
-            # Parse date
-            start = event.get("start", {})
-            date_str = start.get("datetime") or start.get("date")
-            if not date_str:
-                return None
-
-            event_dt = self._parse_datetime(date_str)
-            if not event_dt:
-                return None
-
-            # Only include future events
-            if event_dt < datetime.now(tz=timezone.utc):
-                return None
-
-            # Build address from city string components ("New York, NY, US" → "New York, NY")
-            city_core = city_str.removesuffix(", US")
-            parts = [p.strip() for p in city_core.split(",")]
-            state = parts[-1].strip() if len(parts) >= 2 else ""
-            city = parts[0].strip() if parts else ""
-            address = f"{city}, {state}" if state else city
-
-            venue = {
-                "name": venue_name,
-                "address": address,
-                "zip_code": "",
-                "timezone": timezone_from_address(address),
-            }
-
-            club = self._club_handler.upsert_for_tour_date_venue(venue)
-            if not club:
-                return None
-
-            show_url = event.get("uri") or f"https://www.songkick.com/concerts/{event.get('id', '')}"
-
-            return Show(
-                name=f"{comedian.name} at {venue_name}",
-                club_id=club.id,
-                date=event_dt,
-                show_page_url=show_url,
-                description=event.get("displayName"),
-                timezone=club.timezone,
-                lineup=[comedian],
-            )
-
-        except Exception as e:
-            Logger.error(
-                f"{self._log_prefix}/Songkick: error converting event to show: {e}",
-                self.logger_context,
-            )
-            return None
 
     # ------------------------------------------------------------------ #
     # BandsInTown                                                          #
@@ -384,7 +255,7 @@ class TourDatesScraper(BaseScraper):
         directly, without inserting comedians first.  That is intentional and
         safe because every comedian in show.lineup originated from
         _get_comedians_with_tour_ids(), which queries the ``comedians`` table
-        for rows that already have a songkick_id or bandsintown_id.  Those
+        for rows that already have a bandsintown_id.  Those
         comedians are pre-seeded in the database by the admin tooling before
         TourDatesScraper runs; they are never first-created here.  If a
         comedian UUID is not yet in the DB the lineup link is silently
@@ -418,7 +289,7 @@ class TourDatesScraper(BaseScraper):
     # ------------------------------------------------------------------ #
 
     def _get_comedians_with_tour_ids(self) -> List[dict]:
-        """Query all comedians that have a songkick_id or bandsintown_id."""
+        """Query all comedians that have a bandsintown_id."""
         results = self._comedian_handler.execute_with_cursor(
             ComedianQueries.GET_COMEDIANS_WITH_TOUR_IDS,
             return_results=True,

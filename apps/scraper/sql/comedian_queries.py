@@ -90,9 +90,9 @@ class ComedianQueries:
     '''
 
     GET_COMEDIANS_WITH_TOUR_IDS = '''
-        SELECT uuid, name, songkick_id, bandsintown_id
+        SELECT uuid, name, bandsintown_id
         FROM comedians
-        WHERE songkick_id IS NOT NULL OR bandsintown_id IS NOT NULL
+        WHERE bandsintown_id IS NOT NULL
         ORDER BY name
     '''
 

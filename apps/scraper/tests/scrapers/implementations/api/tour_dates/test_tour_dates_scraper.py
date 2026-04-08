@@ -70,44 +70,6 @@ async def test_scrape_async_no_comedians(platform_club):
 
 
 # ------------------------------------------------------------------ #
-# scrape_async — Songkick happy path                                  #
-# ------------------------------------------------------------------ #
-
-@pytest.mark.asyncio
-async def test_scrape_async_songkick_returns_shows(platform_club):
-    """Given a comedian with songkick_id and a mocked API response, returns Shows."""
-    comedian_row = {
-        "uuid": "abc-123",
-        "name": "John Mulaney",
-        "songkick_id": "sk-12345",
-        "bandsintown_id": None,
-    }
-
-    future_date = datetime(2027, 6, 1, 19, 30, tzinfo=timezone.utc)
-
-    mock_show = Show(
-        name="John Mulaney at Madison Square Garden",
-        club_id=1,
-        date=future_date,
-        show_page_url="https://www.songkick.com/concerts/1",
-        lineup=[],
-    )
-
-    scraper = TourDatesScraper(platform_club)
-    scraper._songkick_api_key = "fake_key"
-
-    with patch.object(scraper, "_get_comedians_with_tour_ids", return_value=[comedian_row]):
-        with patch.object(
-            scraper, "_fetch_songkick_shows", new=AsyncMock(return_value=[mock_show])
-        ):
-            with patch.object(scraper, "_persist_shows_and_lineups"):
-                shows = await scraper.scrape_async()
-
-    assert len(shows) == 1
-    assert isinstance(shows[0], Show)
-
-
-# ------------------------------------------------------------------ #
 # scrape_async — BandsInTown happy path                               #
 # ------------------------------------------------------------------ #
 
@@ -117,7 +79,6 @@ async def test_scrape_async_bandsintown_returns_shows(platform_club):
     comedian_row = {
         "uuid": "def-456",
         "name": "Hannah Gadsby",
-        "songkick_id": None,
         "bandsintown_id": "hannah-gadsby",
     }
 
@@ -155,14 +116,12 @@ async def test_scrape_async_skips_comedian_on_api_error(platform_club):
     comedian_ok = {
         "uuid": "uuid-ok",
         "name": "Good Comic",
-        "songkick_id": "sk-ok",
-        "bandsintown_id": None,
+        "bandsintown_id": "bit-ok",
     }
     comedian_bad = {
         "uuid": "uuid-bad",
         "name": "Bad Comic",
-        "songkick_id": "sk-bad",
-        "bandsintown_id": None,
+        "bandsintown_id": "bit-bad",
     }
 
     future_date = datetime(2027, 8, 1, 19, 0, tzinfo=timezone.utc)
@@ -170,82 +129,26 @@ async def test_scrape_async_skips_comedian_on_api_error(platform_club):
         name="Good Comic at Venue",
         club_id=1,
         date=future_date,
-        show_page_url="https://www.songkick.com/concerts/1",
+        show_page_url="https://www.bandsintown.com/e/1",
         lineup=[],
     )
 
-    async def fake_fetch_songkick(comedian, artist_id):
-        if artist_id == "sk-bad":
+    async def fake_fetch_bandsintown(comedian, artist_id):
+        if artist_id == "bit-bad":
             raise RuntimeError("API error")
         return [good_show]
 
     scraper = TourDatesScraper(platform_club)
-    scraper._songkick_api_key = "fake_key"
+    scraper._bandsintown_app_id = "fake_app_id"
 
     with patch.object(scraper, "_get_comedians_with_tour_ids", return_value=[comedian_ok, comedian_bad]):
-        with patch.object(scraper, "_fetch_songkick_shows", side_effect=fake_fetch_songkick):
+        with patch.object(scraper, "_fetch_bandsintown_shows", side_effect=fake_fetch_bandsintown):
             with patch.object(scraper, "_persist_shows_and_lineups"):
                 shows = await scraper.scrape_async()
 
     # The bad comedian is skipped; the good comedian's show is still returned
     assert len(shows) == 1
     assert shows[0].club_id == 1
-
-
-# ------------------------------------------------------------------ #
-# _songkick_event_to_show — filtering                                 #
-# ------------------------------------------------------------------ #
-
-def test_songkick_event_to_show_filters_non_us(platform_club):
-    """Events not in the US should return None."""
-    from laughtrack.core.entities.comedian.model import Comedian
-
-    scraper = TourDatesScraper(platform_club)
-    comedian = Comedian(name="Test Comic", uuid="test-uuid")
-
-    non_us_event = {
-        "id": 1,
-        "displayName": "Test Comic at O2",
-        "uri": "https://www.songkick.com/concerts/1",
-        "location": {"city": "London, UK"},
-        "venue": {"displayName": "The O2"},
-        "start": {"datetime": "2027-09-01T20:00:00+0000"},
-    }
-
-    result = scraper._songkick_event_to_show(non_us_event, comedian)
-    assert result is None
-
-
-def test_songkick_event_to_show_creates_show_for_us_event(platform_club):
-    """A valid US event with a mocked club upsert should produce a Show."""
-    from laughtrack.core.entities.comedian.model import Comedian
-
-    scraper = TourDatesScraper(platform_club)
-    comedian = Comedian(name="John Mulaney", uuid="jm-uuid")
-    venue_club = _make_venue_club()
-
-    us_event = {
-        "id": 42,
-        "displayName": "John Mulaney at MSG",
-        "uri": "https://www.songkick.com/concerts/42",
-        "location": {"city": "New York, NY, US"},
-        "venue": {"displayName": "Madison Square Garden"},
-        "start": {"datetime": "2027-10-01T20:00:00+0000"},
-    }
-
-    with patch.object(
-        scraper._club_handler, "upsert_for_tour_date_venue", return_value=venue_club
-    ) as mock_upsert:
-        show = scraper._songkick_event_to_show(us_event, comedian)
-
-    assert show is not None
-    assert show.club_id == 1
-    assert show.lineup == [comedian]
-    assert "John Mulaney" in show.name
-
-    # Verify address is correctly parsed from "New York, NY, US" → "New York, NY"
-    venue_dict = mock_upsert.call_args.args[0]
-    assert venue_dict["address"] == "New York, NY"
 
 
 # ------------------------------------------------------------------ #
@@ -439,7 +342,7 @@ def test_persist_shows_and_lineups_skips_lineup_when_no_ids(platform_club):
 async def test_comedians_processed_concurrently(platform_club):
     """Multiple comedians should be scraped concurrently, not one-by-one."""
     comedian_rows = [
-        {"uuid": f"uuid-{i}", "name": f"Comic {i}", "songkick_id": f"sk-{i}", "bandsintown_id": None}
+        {"uuid": f"uuid-{i}", "name": f"Comic {i}", "bandsintown_id": f"bit-{i}"}
         for i in range(4)
     ]
 
@@ -455,10 +358,10 @@ async def test_comedians_processed_concurrently(platform_club):
         return [Show(name=f"Show for {comedian.name}", club_id=1, date=future_date, show_page_url="https://example.com", lineup=[])]
 
     scraper = TourDatesScraper(platform_club)
-    scraper._songkick_api_key = "fake_key"
+    scraper._bandsintown_app_id = "fake_app_id"
 
     with patch.object(scraper, "_get_comedians_with_tour_ids", return_value=comedian_rows):
-        with patch.object(scraper, "_fetch_songkick_shows", side_effect=slow_fetch):
+        with patch.object(scraper, "_fetch_bandsintown_shows", side_effect=slow_fetch):
             with patch.object(scraper, "_persist_shows_and_lineups"):
                 shows = await scraper.scrape_async()
 
@@ -470,23 +373,23 @@ async def test_comedians_processed_concurrently(platform_club):
 async def test_scrape_async_skips_comedian_on_error_concurrent(platform_club):
     """Error in one comedian does not abort others when processing concurrently."""
     comedian_rows = [
-        {"uuid": "uuid-ok", "name": "Good Comic", "songkick_id": "sk-ok", "bandsintown_id": None},
-        {"uuid": "uuid-bad", "name": "Bad Comic", "songkick_id": "sk-bad", "bandsintown_id": None},
+        {"uuid": "uuid-ok", "name": "Good Comic", "bandsintown_id": "bit-ok"},
+        {"uuid": "uuid-bad", "name": "Bad Comic", "bandsintown_id": "bit-bad"},
     ]
 
     future_date = datetime(2027, 8, 1, 19, 0, tzinfo=timezone.utc)
     good_show = Show(name="Good Comic at Venue", club_id=1, date=future_date, show_page_url="https://example.com", lineup=[])
 
     async def fake_fetch(comedian, artist_id):
-        if artist_id == "sk-bad":
+        if artist_id == "bit-bad":
             raise RuntimeError("API error")
         return [good_show]
 
     scraper = TourDatesScraper(platform_club)
-    scraper._songkick_api_key = "fake_key"
+    scraper._bandsintown_app_id = "fake_app_id"
 
     with patch.object(scraper, "_get_comedians_with_tour_ids", return_value=comedian_rows):
-        with patch.object(scraper, "_fetch_songkick_shows", side_effect=fake_fetch):
+        with patch.object(scraper, "_fetch_bandsintown_shows", side_effect=fake_fetch):
             with patch.object(scraper, "_persist_shows_and_lineups"):
                 shows = await scraper.scrape_async()
 
