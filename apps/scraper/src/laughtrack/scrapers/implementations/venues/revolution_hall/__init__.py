@@ -1,0 +1,1 @@
+"""Revolution Hall scraper implementation."""
