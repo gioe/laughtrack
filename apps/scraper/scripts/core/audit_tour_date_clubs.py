@@ -18,7 +18,6 @@ import argparse
 import asyncio
 import csv
 import os
-import re
 import subprocess
 import sys
 from collections import defaultdict
@@ -119,7 +118,6 @@ class AuditResult:
     state: str
     website: str
     platform: Optional[str] = None
-    has_events: bool = False
     error: Optional[str] = None
     http_status: Optional[int] = None
 
