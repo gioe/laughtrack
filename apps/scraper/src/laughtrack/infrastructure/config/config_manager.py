@@ -196,7 +196,6 @@ class ConfigManager:
             "seatengine_venue_scan_max_id": _seatengine_venue_scan_max_id,
             "seatengine_cb_threshold": _seatengine_cb_threshold,
             "seatengine_cb_cooldown": _seatengine_cb_cooldown,
-            "songkick_api_key": os.getenv("SONGKICK_API_KEY"),
             "bandsintown_app_id": os.getenv("BANDSINTOWN_APP_ID"),
         }
 
