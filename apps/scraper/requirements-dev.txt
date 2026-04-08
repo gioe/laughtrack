@@ -9,6 +9,7 @@ pytest>=7.4.0          # Testing framework
 pytest-asyncio>=0.21.0 # Async testing support
 pytest-cov>=4.1.0      # Test coverage reporting
 pytest-mock>=3.11.0    # Mocking for tests
+pytest-timeout>=2.2.0  # Per-test timeout to prevent hangs
 coverage>=7.3.0        # Coverage measurement
 
 # Code Quality
