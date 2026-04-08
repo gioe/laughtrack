@@ -57,6 +57,26 @@ def detect_website_platform(url: str) -> Optional[str]:
     return None
 
 
+def detect_website_platform_from_html(html: str) -> Optional[str]:
+    """Detect hosting platform by inspecting fetched HTML content.
+
+    Fallback for custom-domain sites where URL-based detection returns None.
+    Checks for platform-specific markers embedded in the page source:
+    - Squarespace: Static.SQUARESPACE_CONTEXT JavaScript object
+    - Wix: wix-one-events widget reference
+
+    Returns "squarespace", "wix", or None if unrecognized.
+    """
+    if not html:
+        return None
+
+    if "Static.SQUARESPACE_CONTEXT" in html:
+        return "squarespace"
+    if WixExtractorForComedian._EVENTS_MARKER in html:
+        return "wix"
+    return None
+
+
 class SquarespaceExtractorForComedian:
     """Extracts events from a comedian's Squarespace website.
 

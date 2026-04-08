@@ -14,6 +14,7 @@ from laughtrack.scrapers.implementations.api.comedian_websites.platform_extracto
     _bandsintown_event_to_show,
     _is_valid_squarespace_event,
     detect_website_platform,
+    detect_website_platform_from_html,
 )
 
 
@@ -46,6 +47,34 @@ class TestDetectWebsitePlatform:
 
     def test_invalid_url(self):
         assert detect_website_platform("not-a-url") is None
+
+
+# ------------------------------------------------------------------ #
+# detect_website_platform_from_html                                    #
+# ------------------------------------------------------------------ #
+
+
+class TestDetectWebsitePlatformFromHtml:
+    def test_squarespace_context_marker(self):
+        html = '<script>Static.SQUARESPACE_CONTEXT = {"collection": {"type": 10}};</script>'
+        assert detect_website_platform_from_html(html) == "squarespace"
+
+    def test_wix_events_marker(self):
+        html = '<div data-hook="wix-one-events">...</div>'
+        assert detect_website_platform_from_html(html) == "wix"
+
+    def test_squarespace_takes_precedence_over_wix(self):
+        html = 'Static.SQUARESPACE_CONTEXT = {} wix-one-events'
+        assert detect_website_platform_from_html(html) == "squarespace"
+
+    def test_plain_html_returns_none(self):
+        assert detect_website_platform_from_html("<html><body>Hello</body></html>") is None
+
+    def test_empty_string_returns_none(self):
+        assert detect_website_platform_from_html("") is None
+
+    def test_none_returns_none(self):
+        assert detect_website_platform_from_html(None) is None
 
 
 # ------------------------------------------------------------------ #

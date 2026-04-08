@@ -30,6 +30,7 @@ from laughtrack.scrapers.implementations.api.comedian_websites.platform_extracto
     SquarespaceExtractorForComedian,
     WixExtractorForComedian,
     detect_website_platform,
+    detect_website_platform_from_html,
 )
 from laughtrack.scrapers.implementations.api.comedian_websites.widget_detector import detect_widgets
 from laughtrack.scrapers.implementations.json_ld.extractor import EventExtractor
@@ -165,7 +166,9 @@ class ComedianWebsiteScraper(BaseScraper):
                 # --- Platform-specific extraction ---
                 # If we already know the platform from a prior run, use it directly.
                 # Otherwise detect from URL and try the platform extractor.
-                platform = prior_strategy if prior_strategy in self._PLATFORM_STRATEGIES else detect_website_platform(scraping_url)
+                platform = prior_strategy if prior_strategy in self._PLATFORM_STRATEGIES else (
+                    detect_website_platform(scraping_url) or detect_website_platform_from_html(html)
+                )
 
                 if platform == "squarespace":
                     shows = await self._try_squarespace(row, comedian, scraping_url, website, html)
