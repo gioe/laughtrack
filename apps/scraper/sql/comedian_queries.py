@@ -162,13 +162,16 @@ class ComedianQueries:
 
     # Website scraping metadata queries
 
-    GET_COMEDIANS_WITH_WEBSITES = '''
+    GET_COMEDIANS_WITH_WEBSITES_BASE = '''
         SELECT uuid, name, website, website_scraping_url,
                website_discovery_source,
                website_last_scraped, website_scrape_strategy
         FROM comedians
         WHERE website IS NOT NULL
           AND website <> ''
+    '''
+
+    GET_COMEDIANS_WITH_WEBSITES = GET_COMEDIANS_WITH_WEBSITES_BASE + '''
         ORDER BY name
     '''
 
