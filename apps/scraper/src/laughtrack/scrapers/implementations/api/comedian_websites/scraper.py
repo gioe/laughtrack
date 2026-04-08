@@ -25,6 +25,12 @@ from laughtrack.core.entities.show.handler import ShowHandler
 from laughtrack.core.entities.show.model import Show
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
+from laughtrack.scrapers.implementations.api.comedian_websites.platform_extractors import (
+    KomiExtractorForComedian,
+    SquarespaceExtractorForComedian,
+    WixExtractorForComedian,
+    detect_website_platform,
+)
 from laughtrack.scrapers.implementations.api.comedian_websites.widget_detector import detect_widgets
 from laughtrack.scrapers.implementations.json_ld.extractor import EventExtractor
 from laughtrack.utilities.domain.club.timezone_lookup import timezone_from_address
@@ -127,8 +133,11 @@ class ComedianWebsiteScraper(BaseScraper):
     # Per-comedian scraping                                                #
     # ------------------------------------------------------------------ #
 
+    # Platform strategies that skip JSON-LD entirely on subsequent runs
+    _PLATFORM_STRATEGIES = {"squarespace", "wix", "komi"}
+
     async def _scrape_comedian_website(self, row: dict, semaphore: asyncio.Semaphore) -> List[Show]:
-        """Fetch a comedian's website_scraping_url, extract JSON-LD events, and convert to Shows."""
+        """Fetch a comedian's website_scraping_url, detect platform, extract events, and convert to Shows."""
         comedian = Comedian(name=row["name"], uuid=row["uuid"])
         scraping_url = (row.get("website_scraping_url") or "").strip()
         website = (row.get("website") or "").strip()
@@ -141,12 +150,38 @@ class ComedianWebsiteScraper(BaseScraper):
 
                 prior_strategy = (row.get("website_scrape_strategy") or "").strip()
 
+                # --- komi.io fast path: no HTML fetch needed ---
+                # komi.io delegates to Bandsintown — query the API directly.
+                if prior_strategy == "komi" or detect_website_platform(scraping_url) == "komi":
+                    return await self._try_komi(row, comedian, scraping_url, website)
+
                 html = await self.fetch_html(scraping_url, timeout=self._REQUEST_TIMEOUT)
                 if not html:
                     self._update_scrape_metadata(row["uuid"], strategy)
                     return []
 
                 self._detect_and_persist_widgets(row["uuid"], comedian.name, html)
+
+                # --- Platform-specific extraction ---
+                # If we already know the platform from a prior run, use it directly.
+                # Otherwise detect from URL and try the platform extractor.
+                platform = prior_strategy if prior_strategy in self._PLATFORM_STRATEGIES else detect_website_platform(scraping_url)
+
+                if platform == "squarespace":
+                    shows = await self._try_squarespace(row, comedian, scraping_url, website, html)
+                    if shows is not None:
+                        return shows
+                    # Fall through to JSON-LD if Squarespace extraction returned None
+                    # (site doesn't have an events collection)
+
+                if platform == "wix":
+                    shows = await self._try_wix(row, comedian, scraping_url, website, html)
+                    if shows is not None:
+                        return shows
+                    # Fall through to JSON-LD if Wix extraction returned None
+                    # (site doesn't have an events widget)
+
+                # --- JSON-LD extraction (existing behavior) ---
                 events = EventExtractor.extract_events(html)
 
                 # Playwright fallback: if static HTML yielded no events but a prior
@@ -190,6 +225,92 @@ class ComedianWebsiteScraper(BaseScraper):
                 )
                 self._update_scrape_metadata(row["uuid"], "error")
                 return []
+
+    # ------------------------------------------------------------------ #
+    # Platform-specific extraction helpers                                 #
+    # ------------------------------------------------------------------ #
+
+    async def _try_squarespace(
+        self, row: dict, comedian: Comedian, scraping_url: str, website: str, html: str,
+    ) -> Optional[List[Show]]:
+        """Attempt Squarespace extraction. Returns None to signal fallback to JSON-LD."""
+        shows = await SquarespaceExtractorForComedian.extract_shows(
+            scraping_url=scraping_url,
+            html=html,
+            comedian=comedian,
+            club_handler=self._club_handler,
+            fetch_json_fn=self.fetch_json,
+            log_prefix=self._log_prefix,
+        )
+        if shows is None:
+            return None  # Not an events-capable Squarespace site
+
+        strategy = "squarespace"
+        has_events = len(shows) > 0
+        self._update_scrape_metadata(row["uuid"], strategy)
+        self._update_scraping_url_confidence(row["uuid"], comedian.name, scraping_url, has_events=has_events)
+        if website:
+            self._update_confidence(row["uuid"], comedian.name, website, has_events=has_events)
+        if shows:
+            Logger.info(
+                f"{self._log_prefix}: {comedian.name} — {len(shows)} shows via Squarespace API from {scraping_url}",
+                self.logger_context,
+            )
+        return shows
+
+    async def _try_wix(
+        self, row: dict, comedian: Comedian, scraping_url: str, website: str, html: str,
+    ) -> Optional[List[Show]]:
+        """Attempt Wix Events extraction. Returns None to signal fallback to JSON-LD."""
+        shows = await WixExtractorForComedian.extract_shows(
+            scraping_url=scraping_url,
+            html=html,
+            comedian=comedian,
+            club_handler=self._club_handler,
+            fetch_json_fn=self.fetch_json,
+            log_prefix=self._log_prefix,
+        )
+        if shows is None:
+            return None  # No Wix Events widget
+
+        strategy = "wix"
+        has_events = len(shows) > 0
+        self._update_scrape_metadata(row["uuid"], strategy)
+        self._update_scraping_url_confidence(row["uuid"], comedian.name, scraping_url, has_events=has_events)
+        if website:
+            self._update_confidence(row["uuid"], comedian.name, website, has_events=has_events)
+        if shows:
+            Logger.info(
+                f"{self._log_prefix}: {comedian.name} — {len(shows)} shows via Wix Events API from {scraping_url}",
+                self.logger_context,
+            )
+        return shows
+
+    async def _try_komi(
+        self, row: dict, comedian: Comedian, scraping_url: str, website: str,
+    ) -> List[Show]:
+        """Extract shows via komi.io → Bandsintown. Always returns a list (never None)."""
+        shows_result = await KomiExtractorForComedian.extract_shows(
+            scraping_url=scraping_url,
+            comedian=comedian,
+            club_handler=self._club_handler,
+            fetch_json_list_fn=self.fetch_json_list,
+            log_prefix=self._log_prefix,
+        )
+        shows = shows_result or []
+
+        strategy = "komi"
+        has_events = len(shows) > 0
+        self._update_scrape_metadata(row["uuid"], strategy)
+        self._update_scraping_url_confidence(row["uuid"], comedian.name, scraping_url, has_events=has_events)
+        if website:
+            self._update_confidence(row["uuid"], comedian.name, website, has_events=has_events)
+        if shows:
+            Logger.info(
+                f"{self._log_prefix}: {comedian.name} — {len(shows)} shows via komi.io/Bandsintown from {scraping_url}",
+                self.logger_context,
+            )
+        return shows
 
     def _events_to_shows(self, events: list, comedian: Comedian) -> List[Show]:
         """Convert a list of JSON-LD events to Shows."""
