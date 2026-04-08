@@ -12,7 +12,7 @@ import json
 import re
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional
-from urllib.parse import urlencode, urlparse
+from urllib.parse import quote, urlencode, urlparse
 
 from laughtrack.core.entities.club.handler import ClubHandler
 from laughtrack.core.entities.comedian.model import Comedian
@@ -306,6 +306,7 @@ async def _wix_fetch_events(
     all_events: List[dict] = []
     offset = 0
     limit = 50
+    max_pages = 20
 
     headers = {
         "Authorization": f"Bearer {token}",
@@ -313,7 +314,7 @@ async def _wix_fetch_events(
         "Accept": "application/json",
     }
 
-    while True:
+    for _ in range(max_pages):
         params = {
             "offset": offset,
             "limit": limit,
@@ -406,7 +407,7 @@ class KomiExtractorForComedian:
         }
         url = (
             f"{KomiExtractorForComedian._BANDSINTOWN_BASE_URL}"
-            f"/artists/{artist_name}/events?{urlencode(params)}"
+            f"/artists/{quote(artist_name, safe='')}/events?{urlencode(params)}"
         )
 
         try:
