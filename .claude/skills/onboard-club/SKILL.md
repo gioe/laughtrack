@@ -29,9 +29,11 @@ If no names are provided, ask:
 
 Split the input on commas and trim whitespace from each name. This produces a list of club names to process.
 
-### 2. Check All Clubs Against the Database
+### 2. Check All Clubs Against the Database (MANDATORY — must run before ANY task creation)
 
-Run a single query that checks all clubs at once:
+**CRITICAL**: This step MUST execute successfully before proceeding. If the query fails, STOP and report the error — do NOT skip ahead to task creation.
+
+Run the query below. It checks each input name against the clubs table using fuzzy matching (LIKE with wildcards) AND also extracts individual significant words from each name to catch partial matches (e.g., input "Syracuse Funny Bone" will match a DB entry called "Funny Bone Syracuse").
 
 ```bash
 cd apps/scraper && .venv/bin/python3 -c "
@@ -49,16 +51,33 @@ conn = psycopg2.connect(
 )
 cur = conn.cursor()
 names = <python_list_of_club_names>
+# Words to ignore when doing keyword matching (too generic to be meaningful)
+STOP_WORDS = {'the', 'a', 'an', 'at', 'in', 'of', 'and', 'comedy', 'club', 'theater', 'theatre', 'improv', 'lounge', 'bar', 'cafe'}
 results = {}
 for name in names:
+    # Primary: fuzzy match on the full name
     cur.execute('''
-        SELECT id, name, city, state, website, scraper_type
+        SELECT id, name, city, state, website, scraper
         FROM clubs
         WHERE LOWER(name) LIKE LOWER(%s)
         ORDER BY name
     ''', ('%' + name.strip() + '%',))
     rows = cur.fetchall()
-    results[name] = [{'id': r[0], 'name': r[1], 'city': r[2], 'state': r[3], 'website': r[4], 'scraper_type': r[5]} for r in rows]
+    # Secondary: keyword match — extract significant words and search for each
+    if not rows:
+        words = [w for w in name.strip().split() if w.lower() not in STOP_WORDS and len(w) > 2]
+        if words:
+            # Match clubs whose name contains ALL significant words
+            conditions = ' AND '.join(['LOWER(name) LIKE LOWER(%s)'] * len(words))
+            params = ['%' + w + '%' for w in words]
+            cur.execute(f'''
+                SELECT id, name, city, state, website, scraper
+                FROM clubs
+                WHERE {conditions}
+                ORDER BY name
+            ''', params)
+            rows = cur.fetchall()
+    results[name] = [{'id': r[0], 'name': r[1], 'city': r[2], 'state': r[3], 'website': r[4], 'scraper': r[5]} for r in rows]
 conn.close()
 print(json.dumps(results))
 "
@@ -66,12 +85,16 @@ print(json.dumps(results))
 
 Replace `<python_list_of_club_names>` with the actual Python list (e.g., `['Punch Line Sacramento', 'Cleveland Improv']`).
 
+**You MUST read and parse the JSON output.** Any club with a non-empty match array is already onboarded and MUST NOT have a task created for it.
+
 ### 3. Categorize Results
 
-Sort each club into one of two lists:
+Sort each club into one of two lists based on the query output from step 2:
 
-- **Already onboarded**: the query returned matches
-- **New clubs**: the query returned no matches (`[]`)
+- **Already onboarded**: the query returned one or more matches (non-empty array `[...]`)
+- **New clubs**: the query returned no matches (empty array `[]`)
+
+**If ALL clubs are already onboarded**, skip steps 4–5 and go directly to step 6 (Summary).
 
 ### 4. Report Existing Clubs
 
