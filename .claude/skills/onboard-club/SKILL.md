@@ -1,41 +1,41 @@
 ---
 name: onboard-club
-description: Check if a club is already in the DB, then create an onboarding task if not. Usage: /onboard-club <club name>
+description: Check if clubs are already in the DB, then create onboarding tasks for new ones. Usage: /onboard-club <club1>, <club2>, ...
 allowed-tools: Bash, Read, Skill
 ---
 
 # Onboard Club
 
-Checks whether a comedy club is already tracked in the database. If not, creates a structured onboarding task via `/create-task`.
+Checks whether one or more comedy clubs are already tracked in the database. For any that are not, creates structured onboarding tasks via `/create-task`.
 
 ## Usage
 
 ```
 /onboard-club Punch Line Sacramento
-/onboard-club "Cleveland Improv"
+/onboard-club Punch Line Sacramento, Cleveland Improv, Largo at the Coronet
 ```
 
 ## Arguments
 
-- Club name (required): the venue name to check and potentially onboard
+- One or more club names, comma-separated
 
-If no name is provided, ask:
+If no names are provided, ask:
 
-> Which club would you like to onboard?
+> Which club(s) would you like to onboard? You can provide multiple names separated by commas.
 
 ## Steps
 
-### 1. Parse the Club Name
+### 1. Parse Club Names
 
-Extract the club name from the arguments after `/onboard-club`.
+Split the input on commas and trim whitespace from each name. This produces a list of club names to process.
 
-### 2. Check the Database
+### 2. Check All Clubs Against the Database
 
-Search for the club by name (fuzzy match) against the clubs table:
+Run a single query that checks all clubs at once:
 
 ```bash
 cd apps/scraper && .venv/bin/python3 -c "
-import os, sys
+import os, sys, json
 from dotenv import load_dotenv
 load_dotenv('.env')
 import psycopg2
@@ -48,43 +48,44 @@ conn = psycopg2.connect(
     sslmode='require'
 )
 cur = conn.cursor()
-cur.execute('''
-    SELECT id, name, city, state, website, scraper_type
-    FROM clubs
-    WHERE LOWER(name) LIKE LOWER(%s)
-    ORDER BY name
-''', ('%<club_name>%',))
-rows = cur.fetchall()
-if rows:
-    for r in rows:
-        print(f'{r[0]} | {r[1]} | {r[2] or \"\"}, {r[3] or \"\"} | {r[4] or \"(no website)\"} | scraper: {r[5] or \"(none)\"}')
-else:
-    print('NO_MATCH')
+names = <python_list_of_club_names>
+results = {}
+for name in names:
+    cur.execute('''
+        SELECT id, name, city, state, website, scraper_type
+        FROM clubs
+        WHERE LOWER(name) LIKE LOWER(%s)
+        ORDER BY name
+    ''', ('%' + name.strip() + '%',))
+    rows = cur.fetchall()
+    results[name] = [{'id': r[0], 'name': r[1], 'city': r[2], 'state': r[3], 'website': r[4], 'scraper_type': r[5]} for r in rows]
 conn.close()
+print(json.dumps(results))
 "
 ```
 
-Replace `<club_name>` with the actual club name.
+Replace `<python_list_of_club_names>` with the actual Python list (e.g., `['Punch Line Sacramento', 'Cleveland Improv']`).
 
-### 3. Evaluate the Result
+### 3. Categorize Results
 
-**If matches are found**: the club is already onboarded (or a very similar name exists). Report:
+Sort each club into one of two lists:
 
-> **Already in the database:**
+- **Already onboarded**: the query returned matches
+- **New clubs**: the query returned no matches (`[]`)
+
+### 4. Report Existing Clubs
+
+If any clubs are already onboarded, show them in a table:
+
+> **Already in the database (skipped):**
 >
-> | ID | Name | Location | Website | Scraper |
-> |----|------|----------|---------|---------|
+> | Input | Matched Club | ID | Location | Scraper |
+> |-------|--------------|----|----------|---------|
 > | ... | ... | ... | ... | ... |
->
-> No onboarding task created.
 
-Then **stop**. Do not create a task.
+### 5. Create Onboarding Tasks for New Clubs
 
-**If `NO_MATCH` is returned**: the club is not in the database. Proceed to Step 4.
-
-### 4. Create Onboarding Task
-
-Invoke the `/create-task` skill with a structured onboarding description. Pass the following text:
+For each new club, invoke `/create-task` with:
 
 ```
 Onboard <club name> to the clubs database.
@@ -97,10 +98,33 @@ Acceptance criteria:
 3. At least one successful scrape run with shows persisted to the database
 ```
 
-The `/create-task` skill will handle decomposition, deduplication, domain/priority assignment, and insertion.
+When there are **multiple new clubs**, pass them all to `/create-task` in a single invocation as a batch:
 
-### 5. Report
+```
+Onboard the following clubs to the clubs database:
 
-After `/create-task` completes, confirm:
+1. <club name 1>
+2. <club name 2>
+3. <club name 3>
 
-> Onboarding task created for **<club name>**.
+Discovery source: manual request via /onboard-club.
+
+For each club, acceptance criteria:
+1. Club record exists in the clubs table with correct name, city, state, timezone, and website
+2. Scraper type is set and scraper produces show records
+3. At least one successful scrape run with shows persisted to the database
+```
+
+`/create-task` will handle decomposition into individual tasks, deduplication, and insertion.
+
+### 6. Summary
+
+Print a final summary:
+
+```
+Onboard Club Summary
+━━━━━━━━━━━━━━━━━━━
+Checked:  <total count>
+Skipped:  <already onboarded count> (already in DB)
+Created:  <new task count> tasks
+```
