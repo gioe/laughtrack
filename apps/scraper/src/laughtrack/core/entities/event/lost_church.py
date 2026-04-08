@@ -7,10 +7,10 @@ and sold-out status. The scraper filters to events tagged "Comedy" at the SF ven
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import List, Optional
+from typing import Optional
+from zoneinfo import ZoneInfo
 
 from laughtrack.core.entities.club.model import Club
-from laughtrack.core.entities.comedian.model import Comedian
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.protocols.show_convertible import ShowConvertible
 from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
@@ -47,12 +47,10 @@ class LostChurchEvent(ShowConvertible):
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None) -> Optional[Show]:
         """Convert this PatronTicket instance to a Show domain object."""
         try:
-            # Convert epoch ms to datetime in club timezone
+            # Convert epoch ms to timezone-aware datetime in club timezone directly
+            tz = ZoneInfo(club.timezone or "America/Los_Angeles")
             dt_utc = datetime.fromtimestamp(self.epoch_ms / 1000, tz=timezone.utc)
-            start_date = ShowFactoryUtils.parse_datetime_with_timezone_fallback(
-                dt_utc.strftime("%Y-%m-%d %H:%M:%S"),
-                club.timezone or "America/Los_Angeles",
-            )
+            start_date = dt_utc.astimezone(tz)
         except Exception:
             return None
 
