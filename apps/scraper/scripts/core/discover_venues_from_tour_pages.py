@@ -296,7 +296,7 @@ def _extract_venues_from_events(
         if not location:
             continue
 
-        venue_name = (location.name or "").strip()
+        venue_name = html.unescape((location.name or "")).strip()
         if not venue_name:
             continue
 
