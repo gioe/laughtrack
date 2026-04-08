@@ -16,7 +16,6 @@ from urllib.parse import quote, urlencode, urlparse
 
 from laughtrack.core.entities.club.handler import ClubHandler
 from laughtrack.core.entities.comedian.model import Comedian
-from laughtrack.core.entities.show.model import Show
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.utilities.domain.club.timezone_lookup import timezone_from_address
 
@@ -114,24 +113,19 @@ class SquarespaceExtractorForComedian:
         return collection_id or None
 
     @staticmethod
-    async def extract_shows(
+    async def extract_event_count(
         scraping_url: str,
         html: str,
         comedian: Comedian,
-        club_handler: ClubHandler,
         fetch_json_fn,
         log_prefix: str,
-    ) -> Optional[List[Show]]:
-        """Try to detect events from a Squarespace comedian website.
+    ) -> Optional[int]:
+        """Count events on a Squarespace comedian website.
 
         Returns None if this isn't an events-capable Squarespace site
-        (caller should fall back to JSON-LD). Returns an empty list
-        always — Squarespace personal sites don't include venue/location
-        data in the API response, so we can't create proper Show records.
-
-        The return value signals platform detection success so the caller
-        can update the strategy to "squarespace" for future runs.
-        The event count is logged for observability.
+        (caller should fall back to JSON-LD). Returns 0+ to confirm
+        platform detection — Squarespace personal sites don't include
+        venue/location data, so no venue upserts are possible.
         """
         collection_id = SquarespaceExtractorForComedian.discover_collection_id(html)
         if not collection_id:
@@ -172,11 +166,10 @@ class SquarespaceExtractorForComedian:
         if event_count > 0:
             Logger.info(
                 f"{log_prefix}: {comedian.name} — Squarespace site has {event_count} upcoming events "
-                f"(no venue data available for Show creation)"
+                f"(no venue data available for upsert)"
             )
 
-        # Return empty list (not None) to confirm this IS a Squarespace events site
-        return []
+        return event_count
 
 
 def _is_valid_squarespace_event(raw: dict) -> bool:
@@ -233,23 +226,19 @@ class WixExtractorForComedian:
         return matches[0] if matches else None
 
     @staticmethod
-    async def extract_shows(
+    async def extract_event_count(
         scraping_url: str,
         html: str,
         comedian: Comedian,
-        club_handler: ClubHandler,
         fetch_json_fn,
         log_prefix: str,
-    ) -> Optional[List[Show]]:
-        """Try to detect events from a Wix comedian website.
+    ) -> Optional[int]:
+        """Count events on a Wix comedian website.
 
         Returns None if the site doesn't have a Wix Events widget
-        (caller should fall back to JSON-LD). Returns an empty list
-        always — Wix comedian sites don't include venue/location data
-        in the events API, so we can't create proper Show records.
-
-        The return value signals platform detection success so the caller
-        can update the strategy to "wix" for future runs.
+        (caller should fall back to JSON-LD). Returns 0+ to confirm
+        platform detection — Wix comedian sites don't include venue/location
+        data, so no venue upserts are possible.
         """
         if not WixExtractorForComedian.has_events_widget(html):
             return None
@@ -277,11 +266,10 @@ class WixExtractorForComedian:
         if events:
             Logger.info(
                 f"{log_prefix}: {comedian.name} — Wix site has {len(events)} upcoming events "
-                f"(no venue data available for Show creation)"
+                f"(no venue data available for upsert)"
             )
 
-        # Return empty list (not None) to confirm this IS a Wix Events site
-        return []
+        return len(events)
 
 
 async def _wix_fetch_token(
@@ -398,21 +386,20 @@ class KomiExtractorForComedian:
         return slug if slug else None
 
     @staticmethod
-    async def extract_shows(
+    async def extract_venues(
         scraping_url: str,
         comedian: Comedian,
         club_handler: ClubHandler,
         fetch_json_list_fn,
         log_prefix: str,
-    ) -> Optional[List[Show]]:
-        """Fetch events from Bandsintown for a komi.io comedian.
+    ) -> int:
+        """Fetch events from Bandsintown for a komi.io comedian and upsert venues.
 
-        Returns None if the artist slug can't be extracted.
-        Returns an empty list if Bandsintown returns no events.
+        Returns 0 if the artist slug can't be extracted or no events found.
         """
         slug = KomiExtractorForComedian.extract_artist_slug(scraping_url)
         if not slug:
-            return None
+            return 0
 
         # Use comedian name for the Bandsintown lookup (more reliable than slug)
         artist_name = comedian.name
@@ -434,58 +421,54 @@ class KomiExtractorForComedian:
             data = await fetch_json_list_fn(url, timeout=15)
         except Exception as e:
             Logger.warn(f"{log_prefix}: Bandsintown fetch failed for {artist_name}: {e}")
-            return []
+            return 0
 
         if not data:
-            return []
+            return 0
 
-        shows: List[Show] = []
+        count = 0
         for event in data:
-            show = _bandsintown_event_to_show(
-                event, comedian, club_handler, log_prefix
-            )
-            if show:
-                shows.append(show)
+            if _bandsintown_event_to_venue(event, club_handler, log_prefix):
+                count += 1
 
-        return shows
+        return count
 
 
-def _bandsintown_event_to_show(
+def _bandsintown_event_to_venue(
     event: dict,
-    comedian: Comedian,
     club_handler: ClubHandler,
     log_prefix: str,
-) -> Optional[Show]:
-    """Convert a Bandsintown event to a Show (mirrors TourDatesScraper logic)."""
+) -> bool:
+    """Extract and upsert a venue from a Bandsintown event. Returns True on success."""
     try:
         venue = event.get("venue", {}) or {}
         country = (venue.get("country") or "").strip()
         if country not in ("United States", "US"):
-            return None
+            return False
 
         venue_name = (venue.get("name") or "").strip()
         if not venue_name:
-            return None
+            return False
 
         date_str = event.get("datetime") or event.get("starts_at")
         if not date_str:
-            return None
+            return False
 
         try:
             event_dt = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
         except (ValueError, AttributeError):
-            return None
+            return False
 
         if event_dt.tzinfo is None:
             event_dt = event_dt.replace(tzinfo=timezone.utc)
 
         if event_dt < datetime.now(tz=timezone.utc):
-            return None
+            return False
 
         city = (venue.get("city") or "").strip()
         region = (venue.get("region") or "").strip()
         if region and region not in _US_STATES:
-            return None
+            return False
 
         address = f"{city}, {region}" if region else city
         zip_code = (venue.get("postal_code") or "").strip()
@@ -498,21 +481,8 @@ def _bandsintown_event_to_show(
         }
 
         club = club_handler.upsert_for_tour_date_venue(venue_dict)
-        if not club:
-            return None
-
-        show_url = event.get("url") or f"https://www.bandsintown.com/e/{event.get('id', '')}"
-
-        return Show(
-            name=f"{comedian.name} at {venue_name}",
-            club_id=club.id,
-            date=event_dt,
-            show_page_url=show_url,
-            description=event.get("description") or event.get("title"),
-            timezone=club.timezone,
-            lineup=[comedian],
-        )
+        return club is not None
 
     except Exception as e:
-        Logger.warn(f"{log_prefix}: Bandsintown event conversion error: {e}")
-        return None
+        Logger.warn(f"{log_prefix}: Bandsintown venue extraction error: {e}")
+        return False

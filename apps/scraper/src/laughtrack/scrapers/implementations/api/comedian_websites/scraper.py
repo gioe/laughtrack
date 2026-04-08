@@ -1,12 +1,12 @@
 """
-ComedianWebsiteScraper: fetches upcoming shows from comedian personal websites
+ComedianWebsiteScraper: discovers venues from comedian personal websites
 that contain JSON-LD structured data (schema.org Event markup).
 
 For each event found on a comedian's website:
 - Upserts a clubs row for the venue (via ClubHandler.upsert_for_tour_date_venue).
-- Upserts a shows row for the event.
-- Links the comedian as a LineupItem.
 - Updates the comedian's website_last_scraped and website_scrape_strategy metadata.
+
+Shows are NOT created — dedicated venue scrapers handle show creation.
 
 Triggered by a single clubs row with scraper='comedian_websites'.
 """
@@ -20,9 +20,6 @@ from laughtrack.core.entities.club.handler import ClubHandler
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.comedian.handler import ComedianHandler
 from laughtrack.core.entities.comedian.model import Comedian
-from laughtrack.core.entities.lineup.handler import LineupHandler
-from laughtrack.core.entities.show.handler import ShowHandler
-from laughtrack.core.entities.show.model import Show
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.scrapers.implementations.api.comedian_websites.platform_extractors import (
@@ -52,8 +49,10 @@ _US_STATES = {
 
 class ComedianWebsiteScraper(BaseScraper):
     """
-    Scrapes comedian personal websites for JSON-LD Event markup, converts
-    discovered events into Show records, and links the comedian as a LineupItem.
+    Scrapes comedian personal websites for JSON-LD Event markup and
+    discovers venues via ClubHandler.upsert_for_tour_date_venue().
+
+    Shows are NOT created — dedicated venue scrapers handle show creation.
 
     Triggered by a single clubs row with scraper='comedian_websites'.
     """
@@ -67,8 +66,6 @@ class ComedianWebsiteScraper(BaseScraper):
         super().__init__(club, **kwargs)
         self._club_handler = ClubHandler()
         self._comedian_handler = ComedianHandler()
-        self._show_handler = ShowHandler()
-        self._lineup_handler = LineupHandler()
         self._comedian_name_filter = comedian_name
         self._limit = limit
 
@@ -92,8 +89,8 @@ class ComedianWebsiteScraper(BaseScraper):
         except (ValueError, TypeError):
             return self._DEFAULT_MAX_CONCURRENT
 
-    async def scrape_async(self) -> List[Show]:
-        """Override: fetch comedian websites concurrently, extract JSON-LD events, persist shows + lineups."""
+    async def scrape_async(self) -> list:
+        """Override: fetch comedian websites concurrently, extract events, and upsert venues."""
         try:
             comedian_rows = self._get_comedians_for_scraping(
                 limit=self._limit, comedian_name=self._comedian_name_filter,
@@ -108,21 +105,18 @@ class ComedianWebsiteScraper(BaseScraper):
             )
 
             semaphore = asyncio.Semaphore(self._max_concurrent)
-            results = await asyncio.gather(
+            venue_counts = await asyncio.gather(
                 *[self._scrape_comedian_website(row, semaphore) for row in comedian_rows]
             )
 
-            all_shows: List[Show] = [show for shows in results for show in shows]
+            total_venues = sum(venue_counts)
 
             Logger.info(
-                f"{self._log_prefix}: discovered {len(all_shows)} total shows from comedian websites",
+                f"{self._log_prefix}: discovered {total_venues} total venues from comedian websites",
                 self.logger_context,
             )
 
-            if all_shows:
-                self._persist_shows_and_lineups(all_shows)
-
-            return all_shows
+            return []
 
         except Exception as e:
             Logger.error(f"{self._log_prefix}: failed: {e}", self.logger_context)
@@ -137,8 +131,8 @@ class ComedianWebsiteScraper(BaseScraper):
     # Platform strategies that skip JSON-LD entirely on subsequent runs
     _PLATFORM_STRATEGIES = {"squarespace", "wix", "komi"}
 
-    async def _scrape_comedian_website(self, row: dict, semaphore: asyncio.Semaphore) -> List[Show]:
-        """Fetch a comedian's website_scraping_url, detect platform, extract events, and convert to Shows."""
+    async def _scrape_comedian_website(self, row: dict, semaphore: asyncio.Semaphore) -> int:
+        """Fetch a comedian's website_scraping_url, detect platform, and extract venues."""
         comedian = Comedian(name=row["name"], uuid=row["uuid"])
         scraping_url = (row.get("website_scraping_url") or "").strip()
         website = (row.get("website") or "").strip()
@@ -147,7 +141,7 @@ class ComedianWebsiteScraper(BaseScraper):
         async with semaphore:
             try:
                 if not scraping_url:
-                    return []
+                    return 0
 
                 prior_strategy = (row.get("website_scrape_strategy") or "").strip()
 
@@ -159,7 +153,7 @@ class ComedianWebsiteScraper(BaseScraper):
                 html = await self.fetch_html(scraping_url, timeout=self._REQUEST_TIMEOUT)
                 if not html:
                     self._update_scrape_metadata(row["uuid"], strategy)
-                    return []
+                    return 0
 
                 self._detect_and_persist_widgets(row["uuid"], comedian.name, html)
 
@@ -171,16 +165,16 @@ class ComedianWebsiteScraper(BaseScraper):
                 )
 
                 if platform == "squarespace":
-                    shows = await self._try_squarespace(row, comedian, scraping_url, website, html)
-                    if shows is not None:
-                        return shows
+                    result = await self._try_squarespace(row, comedian, scraping_url, website, html)
+                    if result is not None:
+                        return result
                     # Fall through to JSON-LD if Squarespace extraction returned None
                     # (site doesn't have an events collection)
 
                 if platform == "wix":
-                    shows = await self._try_wix(row, comedian, scraping_url, website, html)
-                    if shows is not None:
-                        return shows
+                    result = await self._try_wix(row, comedian, scraping_url, website, html)
+                    if result is not None:
+                        return result
                     # Fall through to JSON-LD if Wix extraction returned None
                     # (site doesn't have an events widget)
 
@@ -203,23 +197,23 @@ class ComedianWebsiteScraper(BaseScraper):
                     strategy = "json_ld_empty"
                     self._update_scrape_metadata(row["uuid"], strategy)
                     self._update_scraping_url_confidence(row["uuid"], comedian.name, scraping_url, has_events=False)
-                    return []
+                    return 0
 
                 strategy = "json_ld"
-                shows = self._events_to_shows(events, comedian)
+                venue_count = self._extract_venues_from_events(events, comedian)
                 self._update_scrape_metadata(row["uuid"], strategy)
                 self._update_scraping_url_confidence(row["uuid"], comedian.name, scraping_url, has_events=True)
 
                 if website:
                     self._update_confidence(row["uuid"], comedian.name, website, has_events=True)
 
-                if shows:
+                if venue_count:
                     Logger.info(
-                        f"{self._log_prefix}: {comedian.name} — {len(shows)} shows extracted from {scraping_url}",
+                        f"{self._log_prefix}: {comedian.name} — {venue_count} venues extracted from {scraping_url}",
                         self.logger_context,
                     )
 
-                return shows
+                return venue_count
 
             except Exception as e:
                 Logger.error(
@@ -227,7 +221,7 @@ class ComedianWebsiteScraper(BaseScraper):
                     self.logger_context,
                 )
                 self._update_scrape_metadata(row["uuid"], "error")
-                return []
+                return 0
 
     # ------------------------------------------------------------------ #
     # Platform-specific extraction helpers                                 #
@@ -235,106 +229,102 @@ class ComedianWebsiteScraper(BaseScraper):
 
     async def _try_squarespace(
         self, row: dict, comedian: Comedian, scraping_url: str, website: str, html: str,
-    ) -> Optional[List[Show]]:
+    ) -> Optional[int]:
         """Attempt Squarespace extraction. Returns None to signal fallback to JSON-LD."""
-        shows = await SquarespaceExtractorForComedian.extract_shows(
+        event_count = await SquarespaceExtractorForComedian.extract_event_count(
             scraping_url=scraping_url,
             html=html,
             comedian=comedian,
-            club_handler=self._club_handler,
             fetch_json_fn=self.fetch_json,
             log_prefix=self._log_prefix,
         )
-        if shows is None:
+        if event_count is None:
             return None  # Not an events-capable Squarespace site
 
         strategy = "squarespace"
-        has_events = len(shows) > 0
+        has_events = event_count > 0
         self._update_scrape_metadata(row["uuid"], strategy)
         self._update_scraping_url_confidence(row["uuid"], comedian.name, scraping_url, has_events=has_events)
         if website:
             self._update_confidence(row["uuid"], comedian.name, website, has_events=has_events)
-        if shows:
+        if event_count:
             Logger.info(
-                f"{self._log_prefix}: {comedian.name} — {len(shows)} shows via Squarespace API from {scraping_url}",
+                f"{self._log_prefix}: {comedian.name} — {event_count} events via Squarespace API from {scraping_url}",
                 self.logger_context,
             )
-        return shows
+        return 0  # Squarespace personal sites lack venue data for upsert
 
     async def _try_wix(
         self, row: dict, comedian: Comedian, scraping_url: str, website: str, html: str,
-    ) -> Optional[List[Show]]:
+    ) -> Optional[int]:
         """Attempt Wix Events extraction. Returns None to signal fallback to JSON-LD."""
-        shows = await WixExtractorForComedian.extract_shows(
+        event_count = await WixExtractorForComedian.extract_event_count(
             scraping_url=scraping_url,
             html=html,
             comedian=comedian,
-            club_handler=self._club_handler,
             fetch_json_fn=self.fetch_json,
             log_prefix=self._log_prefix,
         )
-        if shows is None:
+        if event_count is None:
             return None  # No Wix Events widget
 
         strategy = "wix"
-        has_events = len(shows) > 0
+        has_events = event_count > 0
         self._update_scrape_metadata(row["uuid"], strategy)
         self._update_scraping_url_confidence(row["uuid"], comedian.name, scraping_url, has_events=has_events)
         if website:
             self._update_confidence(row["uuid"], comedian.name, website, has_events=has_events)
-        if shows:
+        if event_count:
             Logger.info(
-                f"{self._log_prefix}: {comedian.name} — {len(shows)} shows via Wix Events API from {scraping_url}",
+                f"{self._log_prefix}: {comedian.name} — {event_count} events via Wix Events API from {scraping_url}",
                 self.logger_context,
             )
-        return shows
+        return 0  # Wix personal sites lack venue data for upsert
 
     async def _try_komi(
         self, row: dict, comedian: Comedian, scraping_url: str, website: str,
-    ) -> List[Show]:
-        """Extract shows via komi.io → Bandsintown. Always returns a list (never None)."""
-        shows_result = await KomiExtractorForComedian.extract_shows(
+    ) -> int:
+        """Extract venues via komi.io → Bandsintown. Always returns a count (never None)."""
+        venue_count = await KomiExtractorForComedian.extract_venues(
             scraping_url=scraping_url,
             comedian=comedian,
             club_handler=self._club_handler,
             fetch_json_list_fn=self.fetch_json_list,
             log_prefix=self._log_prefix,
         )
-        shows = shows_result or []
 
         strategy = "komi"
-        has_events = len(shows) > 0
+        has_events = venue_count > 0
         self._update_scrape_metadata(row["uuid"], strategy)
         self._update_scraping_url_confidence(row["uuid"], comedian.name, scraping_url, has_events=has_events)
         if website:
             self._update_confidence(row["uuid"], comedian.name, website, has_events=has_events)
-        if shows:
+        if venue_count:
             Logger.info(
-                f"{self._log_prefix}: {comedian.name} — {len(shows)} shows via komi.io/Bandsintown from {scraping_url}",
+                f"{self._log_prefix}: {comedian.name} — {venue_count} venues via komi.io/Bandsintown from {scraping_url}",
                 self.logger_context,
             )
-        return shows
+        return venue_count
 
-    def _events_to_shows(self, events: list, comedian: Comedian) -> List[Show]:
-        """Convert a list of JSON-LD events to Shows."""
-        shows: List[Show] = []
+    def _extract_venues_from_events(self, events: list, comedian: Comedian) -> int:
+        """Extract and upsert venues from a list of JSON-LD events. Returns venue count."""
+        count = 0
         for event in events:
-            show = self._json_ld_event_to_show(event, comedian)
-            if show:
-                shows.append(show)
-        return shows
+            if self._upsert_venue_from_json_ld_event(event):
+                count += 1
+        return count
 
     # ------------------------------------------------------------------ #
-    # Event conversion                                                     #
+    # Event → venue extraction                                             #
     # ------------------------------------------------------------------ #
 
-    def _json_ld_event_to_show(self, event, comedian: Comedian) -> Optional[Show]:
-        """Convert a JsonLdEvent to a Show, filtering to US-only future events."""
+    def _upsert_venue_from_json_ld_event(self, event) -> bool:
+        """Extract venue from a JsonLdEvent and upsert it, filtering to US-only future events."""
         try:
             # Parse date
             event_dt = event.start_date
             if event_dt is None:
-                return None
+                return False
 
             # Ensure timezone-aware
             if event_dt.tzinfo is None:
@@ -342,22 +332,19 @@ class ComedianWebsiteScraper(BaseScraper):
 
             # Only include future events
             if event_dt < datetime.now(tz=timezone.utc):
-                return None
+                return False
 
             # Extract venue information from the event location
             location = event.location
             if location is None:
-                return None
+                return False
 
             venue_name = (location.name or "").strip()
             if not venue_name:
-                return None
+                return False
 
             # Build address and filter to US
             address_obj = location.address
-            city = ""
-            state = ""
-            zip_code = ""
             address = ""
 
             if address_obj:
@@ -368,13 +355,15 @@ class ComedianWebsiteScraper(BaseScraper):
 
                 # Filter to US only
                 if country and country not in ("US", "USA", "UNITED STATES"):
-                    return None
+                    return False
 
                 # If no country specified, check state is a known US state
                 if not country and state and state.upper() not in _US_STATES:
-                    return None
+                    return False
 
                 address = f"{city}, {state}" if state else city
+            else:
+                zip_code = ""
 
             tz = timezone_from_address(address) if address else None
 
@@ -386,59 +375,14 @@ class ComedianWebsiteScraper(BaseScraper):
             }
 
             club = self._club_handler.upsert_for_tour_date_venue(venue_dict)
-            if not club:
-                return None
-
-            # Use event URL or the offer URL as the show page URL
-            show_url = event.url or ""
-            if not show_url and event.offers:
-                show_url = event.offers[0].url or ""
-
-            return Show(
-                name=event.name or f"{comedian.name} at {venue_name}",
-                club_id=club.id,
-                date=event_dt,
-                show_page_url=show_url,
-                description=event.description,
-                timezone=club.timezone,
-                lineup=[comedian],
-            )
+            return club is not None
 
         except Exception as e:
             Logger.error(
-                f"{self._log_prefix}: error converting JSON-LD event to show: {e}",
+                f"{self._log_prefix}: error extracting venue from JSON-LD event: {e}",
                 self.logger_context,
             )
-            return None
-
-    # ------------------------------------------------------------------ #
-    # Persistence                                                          #
-    # ------------------------------------------------------------------ #
-
-    def _persist_shows_and_lineups(self, shows: List[Show]) -> None:
-        """Upsert shows and link comedians as LineupItems.
-
-        Comedian insertion invariant: same as TourDatesScraper — comedians
-        in show.lineup already exist in the DB (queried from the comedians
-        table). The EXISTS guard in BATCH_ADD_LINEUP_ITEMS silently skips
-        any missing UUIDs.
-        """
-        try:
-            self._show_handler.insert_shows(shows)
-
-            shows_with_ids = [s for s in shows if s.id is not None]
-            if not shows_with_ids:
-                return
-
-            self._lineup_handler.batch_update_lineups(shows_with_ids, {})
-
-            Logger.info(
-                f"{self._log_prefix}: persisted {len(shows_with_ids)} shows with lineup links",
-                self.logger_context,
-            )
-        except Exception as e:
-            Logger.error(f"{self._log_prefix}: error persisting shows/lineups: {e}", self.logger_context)
-            raise
+            return False
 
     # ------------------------------------------------------------------ #
     # Metadata updates                                                     #

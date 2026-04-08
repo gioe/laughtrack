@@ -11,7 +11,7 @@ from laughtrack.scrapers.implementations.api.comedian_websites.platform_extracto
     KomiExtractorForComedian,
     SquarespaceExtractorForComedian,
     WixExtractorForComedian,
-    _bandsintown_event_to_show,
+    _bandsintown_event_to_venue,
     _is_valid_squarespace_event,
     detect_website_platform,
     detect_website_platform_from_html,
@@ -180,7 +180,7 @@ class TestKomiSlugExtraction:
         assert KomiExtractorForComedian.extract_artist_slug("") is None
 
 
-class TestBandsintownEventToShow:
+class TestBandsintownEventToVenue:
     def _make_event(self, **overrides):
         future_dt = (datetime.now(tz=timezone.utc) + timedelta(days=30)).strftime("%Y-%m-%dT%H:%M:%S")
         event = {
@@ -203,38 +203,31 @@ class TestBandsintownEventToShow:
                 event[k] = v
         return event
 
-    def test_converts_valid_us_event(self):
+    def test_upserts_valid_us_venue(self):
         event = self._make_event()
-        comedian = Comedian(name="Chris Kattan", uuid="uuid-1")
         club_handler = MagicMock()
         club = MagicMock()
         club.id = 99
-        club.timezone = "America/New_York"
         club_handler.upsert_for_tour_date_venue.return_value = club
 
-        show = _bandsintown_event_to_show(event, comedian, club_handler, "test")
-        assert show is not None
-        assert show.name == "Chris Kattan at The Comedy Club"
-        assert show.club_id == 99
-        assert comedian in show.lineup
+        result = _bandsintown_event_to_venue(event, club_handler, "test")
+        assert result is True
+        club_handler.upsert_for_tour_date_venue.assert_called_once()
 
     def test_skips_non_us_event(self):
         event = self._make_event(venue_country="Canada")
-        comedian = Comedian(name="Chris Kattan", uuid="uuid-1")
-        show = _bandsintown_event_to_show(event, comedian, MagicMock(), "test")
-        assert show is None
+        result = _bandsintown_event_to_venue(event, MagicMock(), "test")
+        assert result is False
 
     def test_skips_missing_venue_name(self):
         event = self._make_event(venue_name="")
-        comedian = Comedian(name="Chris Kattan", uuid="uuid-1")
-        show = _bandsintown_event_to_show(event, comedian, MagicMock(), "test")
-        assert show is None
+        result = _bandsintown_event_to_venue(event, MagicMock(), "test")
+        assert result is False
 
     def test_skips_non_us_state(self):
         event = self._make_event(venue_region="ON")
-        comedian = Comedian(name="Chris Kattan", uuid="uuid-1")
-        show = _bandsintown_event_to_show(event, comedian, MagicMock(), "test")
-        assert show is None
+        result = _bandsintown_event_to_venue(event, MagicMock(), "test")
+        assert result is False
 
 
 # ------------------------------------------------------------------ #
@@ -243,59 +236,57 @@ class TestBandsintownEventToShow:
 
 
 @pytest.mark.asyncio
-class TestSquarespaceExtractShows:
+class TestSquarespaceExtractEventCount:
     async def test_returns_none_for_non_events_page(self):
         html = '<script>Static.SQUARESPACE_CONTEXT = {"collection": {"type": 1, "id": "abc"}};</script>'
-        result = await SquarespaceExtractorForComedian.extract_shows(
+        result = await SquarespaceExtractorForComedian.extract_event_count(
             scraping_url="https://test.squarespace.com/",
             html=html,
             comedian=Comedian(name="Test", uuid="u1"),
-            club_handler=MagicMock(),
             fetch_json_fn=AsyncMock(),
             log_prefix="test",
         )
         assert result is None
 
-    async def test_returns_empty_for_events_page_with_no_events(self):
+    async def test_returns_zero_for_events_page_with_no_events(self):
         ctx = json.dumps({"collection": {"type": 10, "id": "abc123"}})
         html = f"<script>Static.SQUARESPACE_CONTEXT = {ctx};</script>"
         fetch_fn = AsyncMock(return_value=[])
 
-        result = await SquarespaceExtractorForComedian.extract_shows(
+        result = await SquarespaceExtractorForComedian.extract_event_count(
             scraping_url="https://test.squarespace.com/shows",
             html=html,
             comedian=Comedian(name="Test", uuid="u1"),
-            club_handler=MagicMock(),
             fetch_json_fn=fetch_fn,
             log_prefix="test",
         )
-        assert result == []
+        assert result == 0
         assert fetch_fn.call_count == 3  # 3 months
 
 
 @pytest.mark.asyncio
-class TestKomiExtractShows:
-    async def test_returns_none_for_non_komi_url(self):
-        result = await KomiExtractorForComedian.extract_shows(
+class TestKomiExtractVenues:
+    async def test_returns_zero_for_non_komi_url(self):
+        result = await KomiExtractorForComedian.extract_venues(
             scraping_url="https://example.com",
             comedian=Comedian(name="Test", uuid="u1"),
             club_handler=MagicMock(),
             fetch_json_list_fn=AsyncMock(),
             log_prefix="test",
         )
-        assert result is None
+        assert result == 0
 
-    async def test_returns_empty_for_no_events(self):
-        result = await KomiExtractorForComedian.extract_shows(
+    async def test_returns_zero_for_no_events(self):
+        result = await KomiExtractorForComedian.extract_venues(
             scraping_url="https://devonwalker.komi.io",
             comedian=Comedian(name="Devon Walker", uuid="u1"),
             club_handler=MagicMock(),
             fetch_json_list_fn=AsyncMock(return_value=[]),
             log_prefix="test",
         )
-        assert result == []
+        assert result == 0
 
-    async def test_returns_shows_from_bandsintown(self):
+    async def test_upserts_venues_from_bandsintown(self):
         future_dt = (datetime.now(tz=timezone.utc) + timedelta(days=30)).strftime("%Y-%m-%dT%H:%M:%S")
         events = [{
             "id": "123",
@@ -316,13 +307,12 @@ class TestKomiExtractShows:
         club_handler = MagicMock()
         club_handler.upsert_for_tour_date_venue.return_value = club
 
-        result = await KomiExtractorForComedian.extract_shows(
+        result = await KomiExtractorForComedian.extract_venues(
             scraping_url="https://chriskattan.komi.io/",
             comedian=Comedian(name="Chris Kattan", uuid="u1"),
             club_handler=club_handler,
             fetch_json_list_fn=AsyncMock(return_value=events),
             log_prefix="test",
         )
-        assert len(result) == 1
-        assert result[0].name == "Chris Kattan at Comedy Club"
-        assert result[0].club_id == 42
+        assert result == 1
+        club_handler.upsert_for_tour_date_venue.assert_called_once()
