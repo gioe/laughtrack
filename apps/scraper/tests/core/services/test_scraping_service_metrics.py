@@ -323,7 +323,8 @@ class TestScrapeClubsWithMetrics:
         club.as_context.return_value = {}
         return club
 
-    def test_ok_when_shows_returned(self):
+    @pytest.mark.asyncio
+    async def test_ok_when_shows_returned(self):
         from laughtrack.core.services.scraping import ScrapingService
         svc = self._make_service()
 
@@ -333,7 +334,7 @@ class TestScrapeClubsWithMetrics:
         svc._scraping_resolver.get.return_value = lambda club, **kw: mock_scraper
 
         club = self._make_club()
-        _, summary, _ = svc._scrape_clubs_with_metrics([club])
+        _, summary, _ = await svc._scrape_clubs_concurrently([club])
 
         assert len(summary.per_club) == 1
         m = summary.per_club[0]
@@ -341,7 +342,8 @@ class TestScrapeClubsWithMetrics:
         assert m.none_resp == 0
         assert m.error == 0
 
-    def test_none_resp_when_no_shows_no_error(self):
+    @pytest.mark.asyncio
+    async def test_none_resp_when_no_shows_no_error(self):
         from laughtrack.core.services.scraping import ScrapingService
         svc = self._make_service()
 
@@ -351,14 +353,15 @@ class TestScrapeClubsWithMetrics:
         svc._scraping_resolver.get.return_value = lambda club, **kw: mock_scraper
 
         club = self._make_club()
-        _, summary, _ = svc._scrape_clubs_with_metrics([club])
+        _, summary, _ = await svc._scrape_clubs_concurrently([club])
 
         m = summary.per_club[0]
         assert m.none_resp == 1
         assert m.ok == 0
         assert m.error == 0
 
-    def test_error_when_result_has_error(self):
+    @pytest.mark.asyncio
+    async def test_error_when_result_has_error(self):
         from laughtrack.core.services.scraping import ScrapingService
         svc = self._make_service()
 
@@ -368,14 +371,15 @@ class TestScrapeClubsWithMetrics:
         svc._scraping_resolver.get.return_value = lambda club, **kw: mock_scraper
 
         club = self._make_club()
-        _, summary, _ = svc._scrape_clubs_with_metrics([club])
+        _, summary, _ = await svc._scrape_clubs_concurrently([club])
 
         m = summary.per_club[0]
         assert m.error == 1
         assert m.ok == 0
         assert m.none_resp == 0
 
-    def test_clubs_run_concurrently(self):
+    @pytest.mark.asyncio
+    async def test_clubs_run_concurrently(self):
         """Multiple clubs should scrape in parallel, not sequentially."""
         from laughtrack.core.services.scraping import ScrapingService
         svc = self._make_service()
@@ -405,14 +409,15 @@ class TestScrapeClubsWithMetrics:
 
         clubs = [self._make_club(name=f"Club {i}") for i in range(4)]
         start = time.monotonic()
-        results, summary, _ = svc._scrape_clubs_with_metrics(clubs)
+        results, summary, _ = await svc._scrape_clubs_concurrently(clubs)
         elapsed = time.monotonic() - start
 
         assert len(results) == 4
         # Verify at least 2 clubs overlapped — this directly proves concurrency without relying on wall-clock timing
         assert max(active_at_once) >= 2
 
-    def test_one_club_failure_does_not_abort_others(self):
+    @pytest.mark.asyncio
+    async def test_one_club_failure_does_not_abort_others(self):
         """A failure in one club's scraper must not prevent other clubs from completing."""
         from laughtrack.core.services.scraping import ScrapingService
         svc = self._make_service()
@@ -434,7 +439,7 @@ class TestScrapeClubsWithMetrics:
             self._make_club(name="Bad Club"),
             self._make_club(name="Good Club 2"),
         ]
-        results, summary, _ = svc._scrape_clubs_with_metrics(clubs)
+        results, summary, _ = await svc._scrape_clubs_concurrently(clubs)
 
         assert len(results) == 3
         assert len(summary.per_club) == 3
@@ -443,7 +448,8 @@ class TestScrapeClubsWithMetrics:
         assert all(m.ok == 1 for m in good_metrics)
         assert bad_metrics[0].error == 1
 
-    def test_skipped_clubs_emit_warning(self):
+    @pytest.mark.asyncio
+    async def test_skipped_clubs_emit_warning(self):
         """Clubs with no scraper key or no matching scraper class emit a summary warning."""
         from laughtrack.core.services.scraping import ScrapingService
         svc = self._make_service()
@@ -457,7 +463,7 @@ class TestScrapeClubsWithMetrics:
         bad_key_club = self._make_club(name="Bad Key Club", scraper_key="unknown")
 
         with patch('laughtrack.core.services.scraping.Logger') as mock_logger:
-            results, summary, _ = svc._scrape_clubs_with_metrics([no_key_club, bad_key_club])
+            results, summary, _ = await svc._scrape_clubs_concurrently([no_key_club, bad_key_club])
 
         assert len(results) == 0
         assert len(summary.per_club) == 0
