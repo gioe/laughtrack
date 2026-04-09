@@ -89,12 +89,33 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
    - **`"mark_done"`** — no commits, but deliverable files listed in `files` already exist on disk. Mark all criteria done with `--skip-verify` and proceed directly to step 9 (commit + merge) without reimplementing.
    - **`"implement_fresh"`** — no commits and no deliverable files found. The criteria completions were marked without corresponding code — proceed normally and implement from scratch.
 
-3. **Determine the best subagent(s)** based on:
+3. **Skill routing — check for specialized workflows** before generic exploration.
+
+   If the task summary matches `Onboard <club name>` (i.e., starts with "Onboard" and
+   the domain is `scraper`), this is a venue onboarding task. **Invoke `/adopt-scraper`**
+   with the club name extracted from the summary instead of continuing with the generic
+   explore → implement workflow below. The adopt-scraper skill handles web research,
+   platform detection, scraper selection, migration creation, and verification — steps
+   3–7 of the normal tusk workflow are replaced by the skill's own steps.
+
+   If the task summary matches `Triage zero-show club: <club name>` (domain `scraper`),
+   this is a venue triage task. **Always invoke `/adopt-scraper`** with the club name
+   before deciding to close or hide the venue. The stored scraping URL may be dead while
+   the venue has moved to a different ticketing platform (e.g., SeatEngine → Wix). Only
+   close the venue if `/adopt-scraper` confirms there is no active web presence with
+   upcoming shows. If `/adopt-scraper` discovers a working platform, configure the
+   scraper and verify shows are scraped — do NOT close the club.
+
+   After `/adopt-scraper` completes, skip ahead to step 8 (verify) in this workflow.
+
+   For all other tasks, continue with the normal workflow:
+
+4. **Determine the best subagent(s)** based on:
    - Task domain
    - Task assignee field (often indicates the right agent type)
    - Task description and requirements
 
-4. **Confirm failure** — Run the failing tests *before* exploring any code when the task is about *fixing* an existing failure. This confirms the bug still exists and avoids wasted investigation.
+5. **Confirm failure** — Run the failing tests *before* exploring any code when the task is about *fixing* an existing failure. This confirms the bug still exists and avoids wasted investigation.
 
    **When to run this step:**
    - `task_type: bug` → always run
@@ -107,7 +128,7 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
    3. **If tests pass**: the issue may already be fixed or the description may be inaccurate — surface this to the user and stop before investigating further.
    4. **If tests fail**: capture the failure output. Use it as the primary diagnostic anchor in step 5 (Explore).
 
-5. **Explore the codebase before implementing** — use a sub-agent to research:
+6. **Explore the codebase before implementing** — use a sub-agent to research:
    - What files will need to change?
    - Are there existing patterns to follow?
    - What tests already exist for this area?
@@ -115,12 +136,12 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
 
    Report findings before writing any code.
 
-5. **Scope check — only implement what the task describes.**
+7. **Scope check — only implement what the task describes.**
    The task's `summary` and `description` fields define the full scope of work for this session. If the description references or links to external documents (evaluation docs, design specs, RFCs), treat them as **background context only** — do not implement items from those docs that go beyond what the task's own description asks for. Referenced docs often describe multi-task plans; implementing the entire plan collapses future tasks into one PR and defeats dependency ordering.
 
-6. **Delegate the work** to the chosen subagent(s).
+8. **Delegate the work** to the chosen subagent(s).
 
-7. **Implement, commit, and mark criteria done.** Work through the acceptance criteria from step 1 as your checklist — **one commit per criterion is the default**. For each criterion in order:
+9. **Implement, commit, and mark criteria done.** Work through the acceptance criteria from step 1 as your checklist — **one commit per criterion is the default**. For each criterion in order:
     1. Implement the changes that satisfy it
     2. Commit and mark the criterion done atomically using `tusk commit --criteria`:
        ```bash
@@ -202,21 +223,21 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
 
     **Schema migration reminder:** If the commit includes changes to `bin/tusk` that add or modify a migration (inside `cmd_migrate()`), run `tusk migrate` on the live database immediately after committing.
 
-8. **Review the code locally** before considering the work complete.
+10. **Review the code locally** before considering the work complete.
 
-9. **Verify all acceptance criteria are done** before pushing:
+11. **Verify all acceptance criteria are done** before pushing:
     ```bash
     tusk criteria list <id>
     ```
     If any criteria are still incomplete, address them now. If a criterion was intentionally skipped, note why in the PR description.
 
-10. **Run convention lint (advisory)** — `tusk commit` already runs lint before each commit. If you need to check lint independently before pushing:
+12. **Run convention lint (advisory)** — `tusk commit` already runs lint before each commit. If you need to check lint independently before pushing:
     ```bash
     tusk lint
     ```
     Review the output. This check is **advisory only** — violations are warnings, not blockers. Fix any clear violations in files you've already touched. Do not refactor unrelated code just to satisfy lint.
 
-11. **Run `/review-commits`** — check the review mode first:
+13. **Run `/review-commits`** — check the review mode first:
     ```bash
     tusk config review
     ```
@@ -229,7 +250,7 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
 
       After `/review-commits` completes with verdict **APPROVED**, proceed to step 12. If verdict is **CHANGES REMAINING**, surface the unresolved items to the user and stop.
 
-12. **Finalize — merge, push, and run retro.** Execute as a single uninterrupted sequence — do NOT pause for user confirmation between steps:
+14. **Finalize — merge, push, and run retro.** Execute as a single uninterrupted sequence — do NOT pause for user confirmation between steps:
     ```bash
     tusk merge <id> --session $SESSION_ID
     ```
