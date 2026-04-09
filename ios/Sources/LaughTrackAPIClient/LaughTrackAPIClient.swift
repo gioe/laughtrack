@@ -7,6 +7,7 @@ public typealias APIClientFactory = APIClient.APIClientFactory
 public typealias AuthenticationMiddleware = APIClient.AuthenticationMiddleware
 public typealias LoggingMiddleware = APIClient.LoggingMiddleware
 public typealias RetryMiddleware = APIClient.RetryMiddleware
+public typealias TokenRefreshMiddleware = APIClient.TokenRefreshMiddleware
 
 // Add product-specific extensions on generated types here.
 // Example:
