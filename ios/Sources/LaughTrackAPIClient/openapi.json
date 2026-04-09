@@ -1,0 +1,1024 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "LaughTrack API",
+    "version": "1.0.0",
+    "description": "LaughTrack v1 REST API — comedy shows, clubs, comedians, and favorites."
+  },
+  "servers": [
+    {
+      "url": "https://laughtrack.app/api/v1",
+      "description": "Production"
+    }
+  ],
+  "paths": {
+    "/auth/token": {
+      "post": {
+        "operationId": "exchangeToken",
+        "summary": "Exchange a session cookie for a JWT Bearer token",
+        "description": "iOS clients call this after completing OAuth via ASWebAuthenticationSession. Returns a 24-hour JWT.",
+        "tags": ["auth"],
+        "responses": {
+          "200": {
+            "description": "JWT issued successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No active session",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "Invalid origin (CSRF protection)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/clubs": {
+      "get": {
+        "operationId": "listClubs",
+        "summary": "List active clubs with upcoming shows",
+        "tags": ["clubs"],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 8 }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": { "type": "integer", "minimum": 0, "default": 0 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Club list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["data"],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/ClubListItem" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/clubs/{id}": {
+      "get": {
+        "operationId": "getClub",
+        "summary": "Get a single club by ID",
+        "tags": ["clubs"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Club detail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["data"],
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/ClubDetail" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Non-numeric ID",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Club not found or inactive",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/clubs/search": {
+      "get": {
+        "operationId": "searchClubs",
+        "summary": "Search clubs with filters and pagination",
+        "tags": ["clubs"],
+        "parameters": [
+          {
+            "name": "club",
+            "in": "query",
+            "description": "Search term for club name",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "filters",
+            "in": "query",
+            "description": "JSON-encoded filter object",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Zero-indexed page number",
+            "schema": { "type": "integer", "minimum": 0 }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "schema": { "type": "integer", "minimum": 1 }
+          },
+          {
+            "name": "includeEmpty",
+            "in": "query",
+            "description": "Include clubs with no upcoming shows",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "X-Timezone",
+            "in": "header",
+            "description": "IANA timezone identifier (defaults to UTC)",
+            "schema": { "type": "string", "default": "UTC" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search results",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ClubSearchResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/comedians": {
+      "get": {
+        "operationId": "listComedians",
+        "summary": "List trending comedians (3+ upcoming shows)",
+        "tags": ["comedians"],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 8 }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": { "type": "integer", "minimum": 0, "default": 0 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comedian list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["data"],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/ComedianListItem" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/comedians/{id}": {
+      "get": {
+        "operationId": "getComedian",
+        "summary": "Get a single comedian by numeric ID",
+        "tags": ["comedians"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comedian detail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["data"],
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/ComedianDetail" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Non-numeric ID",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Comedian not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/comedians/search": {
+      "get": {
+        "operationId": "searchComedians",
+        "summary": "Search comedians with filters and pagination",
+        "tags": ["comedians"],
+        "parameters": [
+          {
+            "name": "comedian",
+            "in": "query",
+            "description": "Search term for comedian name",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "filters",
+            "in": "query",
+            "description": "JSON-encoded filter object",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Zero-indexed page number",
+            "schema": { "type": "integer", "minimum": 0 }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "schema": { "type": "integer", "minimum": 1 }
+          },
+          {
+            "name": "includeEmpty",
+            "in": "query",
+            "description": "Include comedians with no upcoming shows",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "X-Timezone",
+            "in": "header",
+            "description": "IANA timezone identifier (defaults to UTC)",
+            "schema": { "type": "string", "default": "UTC" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search results",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ComedianSearchResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/shows": {
+      "get": {
+        "operationId": "listShows",
+        "summary": "List shows near a ZIP code",
+        "tags": ["shows"],
+        "parameters": [
+          {
+            "name": "zip",
+            "in": "query",
+            "required": true,
+            "description": "5-digit US ZIP code",
+            "schema": { "type": "string", "pattern": "^\\d{5}$" }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "Start date (YYYY-MM-DD)",
+            "schema": { "type": "string", "format": "date" }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "End date (YYYY-MM-DD)",
+            "schema": { "type": "string", "format": "date" }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Zero-indexed page number",
+            "schema": { "type": "integer", "minimum": 0 }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "schema": { "type": "integer", "minimum": 1 }
+          },
+          {
+            "name": "comedian",
+            "in": "query",
+            "description": "Filter by comedian name",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "filters",
+            "in": "query",
+            "description": "JSON-encoded filter object",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "distance",
+            "in": "query",
+            "description": "Radius in miles (1-500, default 25)",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 500, "default": 25 }
+          },
+          {
+            "name": "X-Timezone",
+            "in": "header",
+            "description": "IANA timezone identifier (defaults to UTC)",
+            "schema": { "type": "string", "default": "UTC" }
+          }
+        ],
+        "security": [{ "bearerAuth": [] }, {}],
+        "responses": {
+          "200": {
+            "description": "Show list",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ShowListResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters (zip, date format, distance range)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/shows/search": {
+      "get": {
+        "operationId": "searchShows",
+        "summary": "Search shows with flexible filters",
+        "description": "More flexible than /shows — ZIP is optional, supports club filter and sort.",
+        "tags": ["shows"],
+        "parameters": [
+          {
+            "name": "zip",
+            "in": "query",
+            "description": "5-digit US ZIP code (optional here, unlike /shows)",
+            "schema": { "type": "string", "pattern": "^\\d{5}$" }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "Start date (YYYY-MM-DD)",
+            "schema": { "type": "string", "format": "date" }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "End date (YYYY-MM-DD)",
+            "schema": { "type": "string", "format": "date" }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Zero-indexed page number",
+            "schema": { "type": "integer", "minimum": 0 }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "schema": { "type": "integer", "minimum": 1 }
+          },
+          {
+            "name": "comedian",
+            "in": "query",
+            "description": "Filter by comedian name",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "club",
+            "in": "query",
+            "description": "Filter by club name",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "filters",
+            "in": "query",
+            "description": "JSON-encoded filter object",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "distance",
+            "in": "query",
+            "description": "Radius in miles (1-500, defaults to 25 when zip provided)",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 500 }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "X-Timezone",
+            "in": "header",
+            "description": "IANA timezone identifier (defaults to UTC)",
+            "schema": { "type": "string", "default": "UTC" }
+          }
+        ],
+        "security": [{ "bearerAuth": [] }, {}],
+        "responses": {
+          "200": {
+            "description": "Search results",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ShowSearchResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/favorites": {
+      "post": {
+        "operationId": "addFavorite",
+        "summary": "Favorite a comedian",
+        "tags": ["favorites"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["comedianId"],
+                "properties": {
+                  "comedianId": {
+                    "type": "string",
+                    "description": "Comedian UUID"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Favorited successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FavoriteResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid comedianId",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Comedian not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "User profile not found (re-auth needed)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/favorites/{comedianId}": {
+      "delete": {
+        "operationId": "removeFavorite",
+        "summary": "Unfavorite a comedian",
+        "tags": ["favorites"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "comedianId",
+            "in": "path",
+            "required": true,
+            "description": "Comedian UUID",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Unfavorited successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FavoriteResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing comedianId",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Favorite not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "User profile not found (re-auth needed)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "24-hour JWT obtained from POST /auth/token"
+      }
+    },
+    "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["error"],
+        "properties": {
+          "error": { "type": "string" }
+        }
+      },
+      "TokenResponse": {
+        "type": "object",
+        "required": ["token"],
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "JWT Bearer token valid for 24 hours"
+          }
+        }
+      },
+      "FavoriteResponse": {
+        "type": "object",
+        "required": ["data"],
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": ["isFavorited"],
+            "properties": {
+              "isFavorited": { "type": "boolean" }
+            }
+          }
+        }
+      },
+      "SocialData": {
+        "type": "object",
+        "required": ["id"],
+        "properties": {
+          "id": { "type": "integer" },
+          "instagram_account": { "type": ["string", "null"] },
+          "instagram_followers": { "type": ["integer", "null"] },
+          "tiktok_account": { "type": ["string", "null"] },
+          "tiktok_followers": { "type": ["integer", "null"] },
+          "youtube_account": { "type": ["string", "null"] },
+          "youtube_followers": { "type": ["integer", "null"] },
+          "website": { "type": ["string", "null"] },
+          "popularity": { "type": ["number", "null"] },
+          "linktree": { "type": ["string", "null"] }
+        }
+      },
+      "Filter": {
+        "type": "object",
+        "required": ["id", "slug", "name"],
+        "properties": {
+          "id": { "type": "integer" },
+          "slug": { "type": "string" },
+          "name": { "type": "string" },
+          "selected": { "type": "boolean" }
+        }
+      },
+      "Ticket": {
+        "type": "object",
+        "properties": {
+          "price": { "type": ["number", "null"] },
+          "purchaseUrl": { "type": ["string", "null"] },
+          "soldOut": { "type": ["boolean", "null"] },
+          "type": { "type": ["string", "null"] }
+        }
+      },
+      "ComedianLineup": {
+        "type": "object",
+        "required": ["name", "imageUrl", "uuid", "id"],
+        "properties": {
+          "name": { "type": "string" },
+          "imageUrl": { "type": "string" },
+          "uuid": { "type": "string" },
+          "id": { "type": "integer" },
+          "userId": { "type": "integer" },
+          "social_data": { "$ref": "#/components/schemas/SocialData" },
+          "isFavorite": { "type": "boolean" },
+          "show_count": { "type": "integer" },
+          "isAlias": { "type": "boolean" },
+          "parentComedian": { "$ref": "#/components/schemas/ComedianLineup" },
+          "lineupItems": {
+            "type": "array",
+            "items": {}
+          }
+        }
+      },
+      "Show": {
+        "type": "object",
+        "required": ["id", "date", "imageUrl"],
+        "properties": {
+          "id": { "type": "integer" },
+          "clubName": { "type": "string" },
+          "date": { "type": "string", "format": "date-time" },
+          "tickets": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Ticket" }
+          },
+          "name": { "type": ["string", "null"] },
+          "social_data": { "$ref": "#/components/schemas/SocialData" },
+          "lineup": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ComedianLineup" }
+          },
+          "description": { "type": "string" },
+          "address": { "type": "string" },
+          "room": { "type": ["string", "null"] },
+          "imageUrl": { "type": "string" },
+          "soldOut": { "type": "boolean" },
+          "distanceMiles": { "type": ["number", "null"] }
+        }
+      },
+      "ShowListResponse": {
+        "type": "object",
+        "required": ["total", "data", "filters"],
+        "properties": {
+          "total": { "type": "integer" },
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Show" }
+          },
+          "filters": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Filter" }
+          }
+        }
+      },
+      "ShowSearchResponse": {
+        "type": "object",
+        "required": ["data", "total", "filters", "zipCapTriggered"],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Show" }
+          },
+          "total": { "type": "integer" },
+          "filters": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Filter" }
+          },
+          "zipCapTriggered": { "type": "boolean" }
+        }
+      },
+      "ClubListItem": {
+        "type": "object",
+        "required": ["id", "address", "name", "imageUrl", "active_comedian_count"],
+        "properties": {
+          "id": { "type": "integer" },
+          "address": { "type": "string" },
+          "name": { "type": "string" },
+          "zipCode": { "type": ["string", "null"] },
+          "imageUrl": { "type": "string" },
+          "active_comedian_count": { "type": "integer" }
+        }
+      },
+      "ClubDetail": {
+        "type": "object",
+        "required": ["id", "name", "imageUrl", "website", "address"],
+        "properties": {
+          "id": { "type": "integer" },
+          "name": { "type": "string" },
+          "imageUrl": { "type": "string" },
+          "website": { "type": "string" },
+          "address": { "type": "string" },
+          "zipCode": { "type": ["string", "null"] },
+          "phoneNumber": { "type": ["string", "null"] }
+        }
+      },
+      "ClubSearchItem": {
+        "type": "object",
+        "required": ["imageUrl"],
+        "properties": {
+          "id": { "type": "integer" },
+          "address": { "type": "string" },
+          "name": { "type": "string" },
+          "zipCode": { "type": ["string", "null"] },
+          "imageUrl": { "type": "string" },
+          "show_count": { "type": "integer" },
+          "is_Favorite": { "type": "boolean" },
+          "city": { "type": ["string", "null"] },
+          "state": { "type": ["string", "null"] },
+          "phone_number": { "type": ["string", "null"] },
+          "social_data": { "$ref": "#/components/schemas/SocialData" },
+          "active_comedian_count": { "type": "integer" },
+          "distanceMiles": { "type": ["number", "null"] }
+        }
+      },
+      "ClubSearchResponse": {
+        "type": "object",
+        "required": ["data", "total", "filters"],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ClubSearchItem" }
+          },
+          "total": { "type": "integer" },
+          "filters": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Filter" }
+          }
+        }
+      },
+      "ComedianListItem": {
+        "type": "object",
+        "required": ["id", "uuid", "name", "imageUrl", "social_data", "show_count"],
+        "properties": {
+          "id": { "type": "integer" },
+          "uuid": { "type": "string" },
+          "name": { "type": "string" },
+          "imageUrl": { "type": "string" },
+          "social_data": { "$ref": "#/components/schemas/SocialData" },
+          "show_count": { "type": "integer" }
+        }
+      },
+      "ComedianDetail": {
+        "type": "object",
+        "required": ["id", "uuid", "name", "imageUrl", "social_data"],
+        "properties": {
+          "id": { "type": "integer" },
+          "uuid": { "type": "string" },
+          "name": { "type": "string" },
+          "imageUrl": { "type": "string" },
+          "social_data": { "$ref": "#/components/schemas/SocialData" }
+        }
+      },
+      "ComedianSearchItem": {
+        "type": "object",
+        "required": ["name", "imageUrl", "uuid", "id", "social_data", "show_count"],
+        "properties": {
+          "id": { "type": "integer" },
+          "uuid": { "type": "string" },
+          "name": { "type": "string" },
+          "imageUrl": { "type": "string" },
+          "social_data": { "$ref": "#/components/schemas/SocialData" },
+          "show_count": { "type": "integer" },
+          "isFavorite": { "type": "boolean" }
+        }
+      },
+      "ComedianSearchResponse": {
+        "type": "object",
+        "required": ["data", "total", "filters"],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ComedianSearchItem" }
+          },
+          "total": { "type": "integer" },
+          "filters": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Filter" }
+          }
+        }
+      }
+    }
+  }
+}
