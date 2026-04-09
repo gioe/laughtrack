@@ -42,11 +42,14 @@ struct LaughTrackApp: App {
         }
 
         // Main client with full middleware chain including token refresh
-        self.apiClient = Client(
+        let apiClient = Client(
             serverURL: factory.serverURL,
             transport: URLSessionTransport(),
             middlewares: [tokenRefreshMiddleware, factory.authMiddleware, factory.retryMiddleware, factory.loggingMiddleware]
         )
+        self.apiClient = apiClient
+
+        ServiceRegistration.configureOfflineQueue(container, apiClient: apiClient)
     }
 
     var body: some Scene {
