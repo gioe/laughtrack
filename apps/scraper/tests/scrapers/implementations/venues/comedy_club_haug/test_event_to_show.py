@@ -93,8 +93,8 @@ class TestToShowBasic:
 
     def test_custom_url_override(self):
         show = _event().to_show(_club(), url="https://custom.com/tickets")
-        # When url is passed, it becomes the ticket URL but show_page_url stays
         assert show is not None
+        assert show.tickets[0].purchase_url == "https://custom.com/tickets"
 
 
 # ---------------------------------------------------------------------------

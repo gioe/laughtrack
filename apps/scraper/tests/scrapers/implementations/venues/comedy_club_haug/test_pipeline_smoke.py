@@ -174,7 +174,7 @@ async def test_get_data_returns_none_on_no_events(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_get_data_strips_utm_params_from_ticket_url(monkeypatch):
+async def test_get_data_strips_query_params_from_ticket_url(monkeypatch):
     """get_data() strips UTM parameters from ticket URLs."""
     scraper = ComedyClubHaugScraper(_club())
 
