@@ -39,8 +39,6 @@ class WixEventsScraper(BaseScraper):
     _MAX_PAGES = 20
 
     def __init__(self, club: Club, **kwargs):
-        if not club.wix_comp_id:
-            raise ValueError(f"Club {club.name} does not have a wix_comp_id configured")
         super().__init__(club, **kwargs)
         self.transformation_pipeline.register_transformer(WixEventsEventTransformer(club))
         self.domain = URLUtils.get_base_domain_with_protocol(
@@ -68,9 +66,12 @@ class WixEventsScraper(BaseScraper):
                 "limit": "50",
                 "draft": "false",
                 "fetchBadges": "false",
-                "compId": self.club.wix_comp_id,
                 "offset": "0",
             }
+            # compId is required for widget-based venues but optional for
+            # schedule-page venues where the API returns all events without it.
+            if self.club.wix_comp_id:
+                params["compId"] = self.club.wix_comp_id
             # Add optional categoryId
             if self.club.wix_category_id:
                 params["categoryId"] = self.club.wix_category_id
