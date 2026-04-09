@@ -2,14 +2,11 @@
 show time extraction) and to_show conversion (sold_out ticket, SOLD OUT prefix stripping)."""
 
 from datetime import datetime
-from unittest.mock import patch, MagicMock
 
-import pytest
 import pytz
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.event.revolution_hall import RevolutionHallEvent
-from laughtrack.core.entities.ticket.model import Ticket
 
 
 def _club() -> Club:

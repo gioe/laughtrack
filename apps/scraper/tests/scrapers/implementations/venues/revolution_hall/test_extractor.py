@@ -1,9 +1,6 @@
 """Unit tests for RevolutionHallExtractor: HTML parsing, event-wrapper filtering,
 field extraction, and status detection."""
 
-import pytest
-
-from laughtrack.core.entities.event.revolution_hall import RevolutionHallEvent
 from laughtrack.scrapers.implementations.venues.revolution_hall.extractor import (
     RevolutionHallExtractor,
 )
