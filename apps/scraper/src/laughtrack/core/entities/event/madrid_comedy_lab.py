@@ -75,6 +75,9 @@ class MadridComedyLabEvent(ShowConvertible):
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None) -> Optional[Show]:
         """Convert this Fienta event to a Show domain object."""
+        if not self.title:
+            return None
+
         try:
             tz = ZoneInfo(club.timezone or "Europe/Madrid")
             # Fienta returns times in the organizer's local timezone (no TZ offset)

@@ -70,7 +70,8 @@ class MadridComedyLabEventExtractor:
                 continue
 
             title = item.get("title") or ""
-            if any(sub in title for sub in _EXCLUDED_TITLE_SUBSTRINGS):
+            title_lower = title.lower()
+            if any(sub.lower() in title_lower for sub in _EXCLUDED_TITLE_SUBSTRINGS):
                 continue
 
             event_id = item.get("id")
