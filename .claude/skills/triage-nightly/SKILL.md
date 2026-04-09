@@ -116,6 +116,7 @@ exported_at = sess.get("exported_at", "unknown")
 new_failures = []       # OK yesterday, failing today
 persistent_failures = [] # failing both days
 recoveries = []         # failing yesterday, OK today
+show_drops = []         # had shows yesterday, 0 today (soft regression)
 cur_ok = []             # OK both days or new+OK
 
 for cid, club in cur_clubs.items():
@@ -123,11 +124,11 @@ for cid, club in cur_clubs.items():
     success = club.get("success", True)
     error = club.get("error") or ""
     num_shows = club.get("num_shows", 0)
-    # Treat zero-show successes as soft failures for triage
     is_failing = not success
 
     prev = prev_clubs.get(cid)
     was_failing = prev is not None and not prev.get("success", True) if prev else None
+    prev_shows = prev.get("num_shows", 0) if prev else 0
 
     if is_failing:
         if was_failing:
@@ -140,6 +141,10 @@ for cid, club in cur_clubs.items():
     else:
         if was_failing:
             recoveries.append({"name": name, "id": cid})
+        # Detect show-count drops: had shows yesterday, 0 today, no error
+        if num_shows == 0 and prev_shows > 0:
+            show_drops.append({"name": name, "id": cid, "prev_shows": prev_shows})
+        # Persistent zero-shows (0 both days) are silently ignored
 
 # ── Provider-wide outage detection ──────────────────────────────────────────
 # Group current failures by error message prefix (first 60 chars) to detect patterns
@@ -166,12 +171,14 @@ for err_pattern, clubs_in_group in error_groups.items():
 total_clubs = len(cur_clubs)
 total_failed = len(all_failing)
 total_ok = total_clubs - total_failed
+total_with_shows = len([c for c in cur_clubs.values() if c.get("success", True) and c.get("num_shows", 0) > 0])
+total_empty = total_ok - total_with_shows
 success_rate = current.get("success_rate", 0)
 
 print(f"\n{'='*64}")
 print(f"  SCRAPER TRIAGE REPORT  —  {exported_at}")
 print(f"{'='*64}")
-print(f"  Clubs: {total_clubs} total | {total_ok} OK | {total_failed} failed | {success_rate:.1f}% success")
+print(f"  Clubs: {total_clubs} total | {total_with_shows} with shows | {total_empty} empty | {total_failed} errored")
 if previous:
     print(f"  Compared against: {os.path.basename(previous_path)}")
 else:
@@ -213,7 +220,20 @@ else:
     print("  None — no clubs recovered since last run")
 print()
 
-# ── 4. PROVIDER-WIDE OUTAGES ────────────────────────────────────────────────
+# ── 4. SHOW DROPS (had shows yesterday, 0 today) ──────────────────────────
+print(f"## SHOW DROPS ({len(show_drops)})")
+print(f"{'─'*64}")
+if show_drops:
+    for d in sorted(show_drops, key=lambda x: x["name"]):
+        print(f"  DROP  {d['name']} (id={d['id']}): {d['prev_shows']} shows → 0")
+        safe_name = d["name"].replace("'", "'\\''")
+        print(f"        Repro: cd apps/scraper && make scrape-club CLUB='{safe_name}'")
+        print()
+else:
+    print("  None — no clubs dropped to zero shows")
+print()
+
+# ── 5. PROVIDER-WIDE OUTAGES ────────────────────────────────────────────────
 print(f"## PROVIDER-WIDE OUTAGES ({len(provider_outages)})")
 print(f"{'─'*64}")
 if provider_outages:
@@ -247,6 +267,12 @@ if persistent_failures:
         lines.append(f"  ...and {len(persistent_failures)-8} more")
 if recoveries:
     lines.append(f"\n**Recovered ({len(recoveries)}):** " + ", ".join(r["name"] for r in recoveries[:8]))
+if show_drops:
+    lines.append(f"\n**Show Drops ({len(show_drops)}):**")
+    for d in show_drops[:10]:
+        lines.append(f"- {d['name']} (id={d['id']}): {d['prev_shows']} → 0")
+    if len(show_drops) > 10:
+        lines.append(f"  ...and {len(show_drops)-10} more")
 if provider_outages:
     for o in provider_outages:
         lines.append(f"\n**Outage:** {o['count']} clubs — {o['error_pattern'][:60]}")
@@ -260,10 +286,14 @@ print(f"\n--- DISCORD MESSAGE ---")
 print(discord_msg)
 print(f"--- END DISCORD MESSAGE ---")
 
-# ── Machine-readable new failures for --create-tasks ───────────────────────
+# ── Machine-readable outputs for --create-tasks ───────────────────────────
 print(f"\n--- NEW_FAILURES_JSON ---")
 print(json.dumps(new_failures))
 print(f"--- END NEW_FAILURES_JSON ---")
+
+print(f"\n--- SHOW_DROPS_JSON ---")
+print(json.dumps(show_drops))
+print(f"--- END SHOW_DROPS_JSON ---")
 PYEOF
 ```
 
@@ -291,14 +321,16 @@ For now, display the Discord message block to the user and suggest they copy-pas
 
 If `--create-tasks` was passed:
 
-1. Extract the JSON array between `--- NEW_FAILURES_JSON ---` and `--- END NEW_FAILURES_JSON ---` from the Python output.
+1. Extract the JSON arrays from the Python output:
+   - `NEW_FAILURES_JSON` — clubs that errored after being OK yesterday
+   - `SHOW_DROPS_JSON` — clubs that returned 0 shows after having shows yesterday (no error, but likely a parser/site regression)
 
-2. If the array is empty (`[]`), print:
+2. If both arrays are empty, print:
    > No new regressions — no tasks to create.
 
    Stop.
 
-3. For each entry in the array, create a tusk task using `tusk task-insert`:
+3. **For each new failure** (from `NEW_FAILURES_JSON`), create a task:
 
    ```bash
    tusk task-insert \
@@ -312,14 +344,30 @@ If `--create-tasks` was passed:
      --criteria "Scraper runs without errors: cd apps/scraper && make scrape-club CLUB='<club_name>'"
    ```
 
-   Replace `<club_name>`, `<club_id>`, and `<error_message>` with the values from the JSON entry (`name`, `id`, `error` fields respectively). Escape single quotes in club names for shell safety.
+4. **For each show drop** (from `SHOW_DROPS_JSON`), create a task:
 
-4. After all tasks are created, print a summary:
-   > Created **N** task(s) for new scraper regressions.
+   ```bash
+   tusk task-insert \
+     "Investigate scraper show drop: <club_name>" \
+     "Scraper for <club_name> (club id=<club_id>) returned 0 shows after having <prev_shows> shows in the previous nightly run. No error was reported — the scraper ran successfully but found nothing. This may indicate a site redesign, changed selectors, or a temporary calendar gap.\n\nReproduction:\ncd apps/scraper && make scrape-club CLUB='<club_name>'" \
+     --priority Medium \
+     --domain scraper \
+     --task-type bug \
+     --assignee scraper \
+     --complexity XS \
+     --criteria "Scraper returns non-zero shows or club confirmed to have no upcoming shows: cd apps/scraper && make scrape-club CLUB='<club_name>'"
+   ```
+
+   Replace `<club_name>`, `<club_id>`, and `<prev_shows>` with the values from the JSON entry (`name`, `id`, `prev_shows` fields). Escape single quotes in club names for shell safety.
+
+5. After all tasks are created, print a summary:
+   > Created **N** task(s): **X** for error regressions, **Y** for show drops.
 
    List the task IDs and club names.
 
 **Important constraints:**
-- Only `new_failures` generate tasks — these are clubs that were OK in the previous run and are failing now.
+- `new_failures` (errored after being OK) → High priority tasks
+- `show_drops` (0 shows after having shows) → Medium priority tasks
 - `persistent_failures` (failing 2+ consecutive runs) do NOT generate tasks — they are already known issues.
-- Clubs with zero shows but no errors (successful scrape, just no shows posted) are categorized as OK by the Python script and do NOT appear in `new_failures`.
+- Clubs with 0 shows both days (persistent zero) do NOT generate tasks — they may simply have no upcoming events.
+- Clubs with 0 shows and no previous data do NOT generate tasks — no baseline to compare against.
