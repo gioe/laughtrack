@@ -32,10 +32,12 @@ _RULES: dict = _load_rules()
 
 
 def _check_name(name: str, rules: dict) -> Optional[str]:
-    """Return a rejection reason if *name* matches a prefix deny rule, else None."""
+    """Return a rejection reason if *name* matches a deny rule, else None."""
     for prefix in rules.get("name_prefix_deny", []):
         if name.startswith(prefix):
             return f"name starts with denied prefix '{prefix}'"
+    if name in (rules.get("name_exact_deny") or []):
+        return f"name is on the exact deny list"
     return None
 
 

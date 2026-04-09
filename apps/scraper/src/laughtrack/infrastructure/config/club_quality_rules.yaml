@@ -22,3 +22,21 @@ website_hostname_deny:
     - "developmenttestsite.seatengine.com"
   glob:
     - "demo-*.seatengine.com"
+
+# Reject clubs whose name exactly matches any of these entries (case-sensitive).
+# Used to deny-list non-comedy venues that were bulk-imported without research.
+name_exact_deny:
+  - "test 2"
+  - "Events by KathySings4u"
+  - "Fiesta De Independencia"
+  - "FUNCHAMANIA!"
+  - "I Am Battle Comic | Hermosa Beach Community Theater"
+  - "Submit to the 208 Comedy Festival Please"
+  - "Suits for Soldiers"
+  - "Wave Entertainment"
+  - "Mike Gardner Comedy"
+  - "Jess Miller Comedy Shows"
+  - "MobRun Productions"
+  - "Don Barnhart Entertainment"
+  - "Bridgestones Comedy Shows"
+  - "Mad Hatter Shows"
