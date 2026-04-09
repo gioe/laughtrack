@@ -15,6 +15,9 @@ from laughtrack.core.clients.ticketmaster.client import TicketmasterClient
 
 _COMEDY_GENRE_NAMES = {"comedy", "stand-up comedy", "standup comedy"}
 
+# Genres that are effectively uncategorised — treat the same as missing genre
+_UNCATEGORISED_GENRE_NAMES = {"miscellaneous", "undefined", "other"}
+
 
 class TicketmasterEventTransformer(DataTransformer[JSONDict]):
     def can_transform(self, raw_data: JSONDict) -> bool:  # type: ignore[override]
@@ -56,8 +59,10 @@ class TicketmasterEventTransformer(DataTransformer[JSONDict]):
         """Check if a Ticketmaster event is a comedy event.
 
         Inspects classifications[].genre.name and classifications[].subGenre.name
-        for comedy-related genres. Events with no classifications are allowed through
-        to avoid dropping events that lack metadata.
+        for comedy-related genres. Events with no classifications — or with only
+        uncategorised/empty genre metadata — are allowed through to avoid dropping
+        events that lack proper tagging (e.g. The Second City uses segment
+        "Arts & Theatre" with empty or "Miscellaneous" genre).
         """
         classifications = event_data.get("classifications", [])
         if not classifications:
@@ -65,9 +70,20 @@ class TicketmasterEventTransformer(DataTransformer[JSONDict]):
 
         for classification in classifications:
             genre = classification.get("genre", {})
-            if genre and genre.get("name", "").lower() in _COMEDY_GENRE_NAMES:
+            genre_name = genre.get("name", "").lower() if genre else ""
+            if genre_name in _COMEDY_GENRE_NAMES:
                 return True
             sub_genre = classification.get("subGenre", {})
-            if sub_genre and sub_genre.get("name", "").lower() in _COMEDY_GENRE_NAMES:
+            sub_genre_name = sub_genre.get("name", "").lower() if sub_genre else ""
+            if sub_genre_name in _COMEDY_GENRE_NAMES:
                 return True
-        return False
+
+        # If every classification has empty or uncategorised genre info, treat the
+        # event as unclassified and allow it through — the venue was explicitly
+        # onboarded as a comedy club, so the event is very likely comedy.
+        for classification in classifications:
+            genre = classification.get("genre", {})
+            genre_name = genre.get("name", "").lower() if genre else ""
+            if genre_name and genre_name not in _UNCATEGORISED_GENRE_NAMES:
+                return False
+        return True
