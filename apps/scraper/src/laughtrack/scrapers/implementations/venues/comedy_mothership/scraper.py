@@ -5,6 +5,8 @@ Comedy Mothership (320 E 6th St, Austin TX) is Joe Rogan's comedy club.
 Shows are listed at comedymothership.com/shows (server-rendered Next.js HTML).
 The site uses Vercel hosting with bot protection; fetching with no custom
 headers via curl_cffi's Chrome impersonation bypasses this protection.
+When curl-cffi is rate-limited (HTTP 429) or bot-blocked, the request
+automatically falls back to a Playwright headless browser via HttpClient.
 
 Ticket purchases are handled through SquadUP, embedded on the show detail
 page (comedymothership.com/shows/{id}).
@@ -21,6 +23,7 @@ from typing import Optional
 from curl_cffi.requests import AsyncSession
 
 from laughtrack.core.entities.club.model import Club
+from laughtrack.foundation.infrastructure.http.client import HttpClient
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 
@@ -37,6 +40,7 @@ class ComedyMothershipScraper(BaseScraper):
 
     Bypasses Vercel Bot Protection by using curl_cffi Chrome impersonation
     with no custom request headers — the TLS fingerprint alone is sufficient.
+    Falls back to Playwright on HTTP 429 or bot-block responses.
     """
 
     key = "comedy_mothership"
@@ -46,30 +50,6 @@ class ComedyMothershipScraper(BaseScraper):
         self.transformation_pipeline.register_transformer(
             ComedyMothershipEventTransformer(club)
         )
-
-    async def _fetch_shows_html(self, url: str) -> Optional[str]:
-        """
-        Fetch shows page HTML using bare Chrome impersonation (no app headers).
-
-        Vercel's bot protection blocks requests that include common scraper
-        header combinations. Sending no extra headers avoids this.
-        """
-        try:
-            async with AsyncSession(impersonate="chrome124") as session:
-                response = await session.get(url)
-                if response.status_code != 200:
-                    Logger.warn(
-                        f"{self._log_prefix}: HTTP {response.status_code} fetching {url}",
-                        self.logger_context,
-                    )
-                    return None
-                return response.text
-        except Exception as e:
-            Logger.error(
-                f"{self._log_prefix}: error fetching {url}: {e}",
-                self.logger_context,
-            )
-            return None
 
     async def get_data(self, url: str) -> Optional[ComedyMothershipPageData]:
         """
@@ -87,26 +67,40 @@ class ComedyMothershipScraper(BaseScraper):
         all_events = []
         seen_ids: set = set()
 
-        for page in range(1, _MAX_PAGES + 1):
-            page_url = base_url if page == 1 else f"{base_url}?page={page}"
+        async with AsyncSession(impersonate="chrome124") as session:
+            for page in range(1, _MAX_PAGES + 1):
+                page_url = base_url if page == 1 else f"{base_url}?page={page}"
 
-            html = await self._fetch_shows_html(page_url)
-            if not html:
-                break
+                try:
+                    html = await HttpClient.fetch_html(
+                        session,
+                        page_url,
+                        headers=None,
+                        logger_context=self.logger_context,
+                    )
+                except Exception as e:
+                    Logger.error(
+                        f"{self._log_prefix}: error fetching {page_url}: {e}",
+                        self.logger_context,
+                    )
+                    break
 
-            events = ComedyMothershipEventExtractor.extract_shows(html, timezone)
-            Logger.debug(
-                f"{self._log_prefix}: page {page}: {len(events)} events extracted",
-                self.logger_context,
-            )
+                if not html:
+                    break
 
-            if not events:
-                break
+                events = ComedyMothershipEventExtractor.extract_shows(html, timezone)
+                Logger.debug(
+                    f"{self._log_prefix}: page {page}: {len(events)} events extracted",
+                    self.logger_context,
+                )
 
-            for event in events:
-                if event.show_id not in seen_ids:
-                    seen_ids.add(event.show_id)
-                    all_events.append(event)
+                if not events:
+                    break
+
+                for event in events:
+                    if event.show_id not in seen_ids:
+                        seen_ids.add(event.show_id)
+                        all_events.append(event)
 
         if not all_events:
             Logger.info(

@@ -23,6 +23,9 @@ from laughtrack.scrapers.implementations.venues.comedy_mothership.extractor impo
 from laughtrack.scrapers.implementations.venues.comedy_mothership.data import (
     ComedyMothershipPageData,
 )
+from laughtrack.scrapers.implementations.venues.comedy_mothership import (
+    scraper as _scraper_mod,
+)
 from laughtrack.scrapers.implementations.venues.comedy_mothership.scraper import (
     ComedyMothershipScraper,
 )
@@ -377,10 +380,10 @@ async def test_get_data_returns_page_data_with_events(monkeypatch):
     """get_data() fetches HTML and returns ComedyMothershipPageData with events."""
     scraper = ComedyMothershipScraper(_club())
 
-    async def fake_fetch(self, url: str):
+    async def fake_fetch(session, url, **kwargs):
         return _fixture_html()
 
-    monkeypatch.setattr(ComedyMothershipScraper, "_fetch_shows_html", fake_fetch)
+    monkeypatch.setattr(_scraper_mod, "HttpClient", type("HC", (), {"fetch_html": staticmethod(fake_fetch)}))
 
     result = await scraper.get_data(SHOWS_URL)
 
@@ -394,7 +397,7 @@ async def test_get_data_deduplicates_across_pages(monkeypatch):
     scraper = ComedyMothershipScraper(_club())
     call_count = 0
 
-    async def fake_fetch(self, url: str):
+    async def fake_fetch(session, url, **kwargs):
         nonlocal call_count
         call_count += 1
         if call_count == 1:
@@ -402,7 +405,7 @@ async def test_get_data_deduplicates_across_pages(monkeypatch):
         # Second page returns same events → should all be deduped
         return _fixture_html()
 
-    monkeypatch.setattr(ComedyMothershipScraper, "_fetch_shows_html", fake_fetch)
+    monkeypatch.setattr(_scraper_mod, "HttpClient", type("HC", (), {"fetch_html": staticmethod(fake_fetch)}))
 
     result = await scraper.get_data(SHOWS_URL)
 
@@ -416,10 +419,10 @@ async def test_get_data_returns_none_when_no_events(monkeypatch):
     """get_data() returns None when no events are found."""
     scraper = ComedyMothershipScraper(_club())
 
-    async def fake_fetch(self, url: str):
+    async def fake_fetch(session, url, **kwargs):
         return "<html><body><p>No shows.</p></body></html>"
 
-    monkeypatch.setattr(ComedyMothershipScraper, "_fetch_shows_html", fake_fetch)
+    monkeypatch.setattr(_scraper_mod, "HttpClient", type("HC", (), {"fetch_html": staticmethod(fake_fetch)}))
 
     result = await scraper.get_data(SHOWS_URL)
     assert result is None
@@ -427,13 +430,13 @@ async def test_get_data_returns_none_when_no_events(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_get_data_returns_none_when_fetch_fails(monkeypatch):
-    """get_data() returns None when _fetch_shows_html returns None."""
+    """get_data() returns None when HttpClient.fetch_html returns None."""
     scraper = ComedyMothershipScraper(_club())
 
-    async def fake_fetch(self, url: str):
+    async def fake_fetch(session, url, **kwargs):
         return None
 
-    monkeypatch.setattr(ComedyMothershipScraper, "_fetch_shows_html", fake_fetch)
+    monkeypatch.setattr(_scraper_mod, "HttpClient", type("HC", (), {"fetch_html": staticmethod(fake_fetch)}))
 
     result = await scraper.get_data(SHOWS_URL)
     assert result is None
@@ -445,7 +448,7 @@ async def test_get_data_stops_pagination_on_empty_page(monkeypatch):
     scraper = ComedyMothershipScraper(_club())
     call_count = 0
 
-    async def fake_fetch(self, url: str):
+    async def fake_fetch(session, url, **kwargs):
         nonlocal call_count
         call_count += 1
         if call_count == 1:
@@ -453,7 +456,7 @@ async def test_get_data_stops_pagination_on_empty_page(monkeypatch):
         # Subsequent pages are empty → pagination should stop
         return "<html><body></body></html>"
 
-    monkeypatch.setattr(ComedyMothershipScraper, "_fetch_shows_html", fake_fetch)
+    monkeypatch.setattr(_scraper_mod, "HttpClient", type("HC", (), {"fetch_html": staticmethod(fake_fetch)}))
 
     result = await scraper.get_data(SHOWS_URL)
 
