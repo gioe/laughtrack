@@ -22,9 +22,6 @@ import re
 
 from typing import Dict, List, Optional
 
-from laughtrack.foundation.infrastructure.logger.logger import Logger
-
-
 class ComedyClubHaugExtractor:
     """Extracts show data from Comedy Club Haug's Next.js RSC payload."""
 
@@ -116,8 +113,8 @@ class ComedyClubHaugExtractor:
             return None
 
         event_str = text[start:end]
-        # Replace RSC references ($XX) with null for valid JSON
-        event_str = re.sub(r'"\$[0-9a-f]+"', "null", event_str)
+        # Replace RSC references (e.g. "$L5", "$Sreact.suspense") with null for valid JSON
+        event_str = re.sub(r'"\$[^"]+"', "null", event_str)
 
         try:
             return json.loads(event_str)
@@ -125,15 +122,21 @@ class ComedyClubHaugExtractor:
             return None
 
     @staticmethod
+    def _unescape_unicode(text: str) -> str:
+        """Selectively unescape \\uXXXX sequences without corrupting other content."""
+        return re.sub(
+            r"\\u([0-9a-fA-F]{4})",
+            lambda m: chr(int(m.group(1), 16)),
+            text,
+        )
+
+    @staticmethod
     def _extract_from_raw_html(html: str) -> List[Dict]:
         """Fallback: extract event data from raw HTML patterns."""
         events: List[Dict] = []
 
-        # Decode unicode escapes in the full HTML
-        try:
-            decoded = html.encode().decode("unicode_escape", errors="ignore")
-        except Exception:
-            decoded = html
+        # Selectively unescape \\uXXXX sequences only (safe for non-ASCII names)
+        decoded = ComedyClubHaugExtractor._unescape_unicode(html)
 
         pattern = re.compile(
             r'\{"id":"\d+","title":"[^"]+","url":"https://comedyclubhaug\.com/shows/[^"]+","slug":"[^"]+'
