@@ -59,8 +59,8 @@ class TestParseDate:
         assert result.month == 12
         assert result.day == 15
 
-    def test_without_year_uses_far_future(self):
-        """A date string with explicit year parses correctly."""
+    def test_explicit_far_future_year(self):
+        """A date string with explicit far-future year parses correctly."""
         result = _parse_date("Jun 15, 2099")
         assert result is not None
         assert result.year == 2099
