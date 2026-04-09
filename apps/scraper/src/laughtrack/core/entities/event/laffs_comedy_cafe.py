@@ -50,11 +50,14 @@ def _parse_showtime(showtime_str: str, timezone_name: str) -> Optional[datetime]
                 r"(\d+)\s*([AP]M)", r"\1:00 \2", time_part, flags=re.IGNORECASE
             )
 
-        # Add current year
-        current_year = datetime.now().year
-        full_str = f"{date_part}, {current_year} {time_part}"
-
+        # Add current year, bumping to next year if the month is in the past
+        now = datetime.now()
+        full_str = f"{date_part}, {now.year} {time_part}"
         naive = datetime.strptime(full_str, "%B %d, %Y %I:%M %p")
+
+        if naive.month < now.month:
+            naive = naive.replace(year=now.year + 1)
+
         tz = pytz.timezone(timezone_name)
         return tz.localize(naive)
     except Exception:
