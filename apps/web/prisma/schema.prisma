@@ -20,6 +20,7 @@ model Club {
   zipCode            String?             @map("zip_code") @db.VarChar(10)
   city               String?             @map("city")
   state              String?             @map("state")
+  country            String?             @map("country")
   phoneNumber        String?             @default("") @map("phone_number")
   timezone           String?             @map("timezone")
   visible            Boolean?            @default(true)
