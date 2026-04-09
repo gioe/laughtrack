@@ -79,11 +79,10 @@ class TestInferComedianNameValid:
         assert _infer_comedian_name("Carlos García LIVE") == "Carlos García"
 
     def test_strips_dash_live_suffix(self):
-        # " - Live" is stripped, leaving "Carlos García" (trailing " -" stripped by suffix match)
-        assert _infer_comedian_name("Carlos García - Live") == "Carlos García -"
+        assert _infer_comedian_name("Carlos García - Live") == "Carlos García"
 
     def test_strips_dash_LIVE_suffix(self):
-        assert _infer_comedian_name("Carlos García - LIVE") == "Carlos García -"
+        assert _infer_comedian_name("Carlos García - LIVE") == "Carlos García"
 
     def test_live_not_in_keywords(self):
         # "live" is NOT in _SHOW_TITLE_KEYWORDS, so a title with "Live" as a word passes

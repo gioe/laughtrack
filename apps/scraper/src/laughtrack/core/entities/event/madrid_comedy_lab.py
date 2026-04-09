@@ -32,7 +32,7 @@ def _infer_comedian_name(event_title: str) -> Optional[str]:
     - Reject if any word matches a known show-title keyword
     """
     name = event_title.strip()
-    for suffix in (" Live", " LIVE", " - Live", " - LIVE"):
+    for suffix in (" - Live", " - LIVE", " Live", " LIVE"):
         if name.endswith(suffix):
             name = name[: -len(suffix)].strip()
             break
