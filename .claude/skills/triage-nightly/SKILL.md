@@ -11,8 +11,12 @@ Fetches the latest two metrics JSON snapshots, compares them, and produces an ac
 ## Arguments
 
 Parse `ARGUMENTS`:
-- If `--local` is present → go to **Mode: Local**
-- Otherwise → go to **Mode: GitHub** (with local fallback if `gh auth` is unavailable)
+- If `--local` is present → set **local mode**
+- If `--create-tasks` is present → set **create-tasks mode** (will auto-create tusk tasks for new regressions after the report)
+- If neither flag is present → go to **Mode: GitHub** (with local fallback if `gh auth` is unavailable)
+- Flags can be combined: `--local --create-tasks`
+
+If local mode → go to **Mode: Local**; otherwise → go to **Mode: GitHub**
 
 ---
 
@@ -255,6 +259,11 @@ if len(discord_msg) > 1950:
 print(f"\n--- DISCORD MESSAGE ---")
 print(discord_msg)
 print(f"--- END DISCORD MESSAGE ---")
+
+# ── Machine-readable new failures for --create-tasks ───────────────────────
+print(f"\n--- NEW_FAILURES_JSON ---")
+print(json.dumps(new_failures))
+print(f"--- END NEW_FAILURES_JSON ---")
 PYEOF
 ```
 
@@ -273,3 +282,44 @@ Post it to the #laughtrack Discord channel (ID: `1480559611689046066`).
 - `content`: the extracted Discord message text
 
 For now, display the Discord message block to the user and suggest they copy-paste it to the channel — or skip the Discord step if there are zero new failures (nothing actionable to alert on).
+
+---
+
+## Create Tasks for New Regressions
+
+**Skip this section entirely** if `--create-tasks` was NOT passed in arguments. The report-only behavior (no task creation) is the default.
+
+If `--create-tasks` was passed:
+
+1. Extract the JSON array between `--- NEW_FAILURES_JSON ---` and `--- END NEW_FAILURES_JSON ---` from the Python output.
+
+2. If the array is empty (`[]`), print:
+   > No new regressions — no tasks to create.
+
+   Stop.
+
+3. For each entry in the array, create a tusk task using `tusk task-insert`:
+
+   ```bash
+   tusk task-insert \
+     "Fix scraper regression: <club_name>" \
+     "Scraper for <club_name> (club id=<club_id>) started failing after being OK in the previous nightly run.\n\nError: <error_message>\n\nReproduction:\ncd apps/scraper && make scrape-club CLUB='<club_name>'" \
+     --priority High \
+     --domain scraper \
+     --task-type bug \
+     --assignee scraper \
+     --complexity XS \
+     --criteria "Scraper runs without errors: cd apps/scraper && make scrape-club CLUB='<club_name>'"
+   ```
+
+   Replace `<club_name>`, `<club_id>`, and `<error_message>` with the values from the JSON entry (`name`, `id`, `error` fields respectively). Escape single quotes in club names for shell safety.
+
+4. After all tasks are created, print a summary:
+   > Created **N** task(s) for new scraper regressions.
+
+   List the task IDs and club names.
+
+**Important constraints:**
+- Only `new_failures` generate tasks — these are clubs that were OK in the previous run and are failing now.
+- `persistent_failures` (failing 2+ consecutive runs) do NOT generate tasks — they are already known issues.
+- Clubs with zero shows but no errors (successful scrape, just no shows posted) are categorized as OK by the Python script and do NOT appear in `new_failures`.
