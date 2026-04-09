@@ -1,21 +1,24 @@
--- TASK-1108: Close AC Jokes (id=412).
+-- TASK-1108: Fix AC Jokes (id=412) — repoint from dead SeatEngine to live Wix site.
 --
 -- Investigation findings:
---   - SeatEngine venue 387 returns 404 on all API endpoints
---   - SeatEngine page loads (HTML shell, logo, nav) but calendar and events
---     pages show 0 events
---   - acjokes.com exists on Wix but Wix events API returns 404
---   - No city/state set, 0 shows ever in DB, total_shows=0
---   - Appears to be a defunct SeatEngine bulk-import venue with no real content
+--   - Original SeatEngine subdomain (4bc8f310-...seatengine.com) is defunct:
+--     API returns 404, events page shows 0 events
+--   - Real website is acjokes.com (Wix), which has 20+ upcoming shows across
+--     4 venues (Resorts Casino, The Hook at Caesars, The Cove Brigantine,
+--     Hi Point Pub Absecon)
+--   - Wix Events calendar widget shows shows from Apr 10 through May 9+
+--   - Club was missing city/state metadata
 --
--- Action: close and hide. No shows to delete (total_shows=0).
+-- Action: update website, scraping_url, city, state. Scraper type change
+-- to wix_events will be handled in onboarding task.
 
 BEGIN;
 
 UPDATE clubs
-SET status    = 'closed',
-    visible   = false,
-    closed_at = NOW()
+SET website     = 'https://www.acjokes.com',
+    scraping_url = 'https://www.acjokes.com',
+    city        = 'Atlantic City',
+    state       = 'NJ'
 WHERE id = 412;  -- AC Jokes
 
 COMMIT;
