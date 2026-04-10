@@ -1,14 +1,17 @@
 """
-SeatEngine white-label scraper for Bananas Comedy Club.
+Generic SeatEngine white-label website scraper.
 
-The SeatEngine v1 API (venue_id=294) returns 0 events, but the white-label
-site at bananascomedyclub.com serves shows normally. This scraper:
+Some SeatEngine venues serve shows through a white-label frontend
+(e.g., bananascomedyclub.com) while the SeatEngine v1 API returns 0 events.
+This scraper bypasses the API entirely and scrapes the venue's own website:
 
 1. Fetches the /events listing page to discover event detail URLs
 2. Fetches each event detail page for its JSON-LD Event markup
 3. Reuses the standard JsonLd extraction and transformation pipeline
 
-Currently used by: Bananas Comedy Club (Rutherford, NJ).
+To onboard a new club: set scraper='seatengine_web' and scraping_url to
+the venue's website root (e.g., 'https://www.bananascomedyclub.com').
+No Python changes needed.
 """
 
 import re
@@ -20,10 +23,10 @@ from laughtrack.scrapers.implementations.json_ld.scraper import JsonLdScraper
 from laughtrack.shared.types import ScrapingTarget
 
 
-class BananasComedyClubScraper(JsonLdScraper):
-    """Scrapes Bananas Comedy Club via its SeatEngine white-label site."""
+class SeatEngineWebScraper(JsonLdScraper):
+    """Scrapes SeatEngine white-label sites via their /events listing page."""
 
-    key = "bananas_comedy_club"
+    key = "seatengine_web"
 
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)

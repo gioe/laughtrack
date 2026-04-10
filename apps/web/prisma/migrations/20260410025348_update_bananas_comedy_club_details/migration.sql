@@ -5,7 +5,7 @@ UPDATE "clubs"
 SET
     website = 'https://www.bananascomedyclub.com',
     scraping_url = 'https://www.bananascomedyclub.com',
-    scraper = 'bananas_comedy_club',
+    scraper = 'seatengine_web',
     address = '801 Rutherford Ave, Rutherford, NJ 07070',
     city = 'Rutherford',
     state = 'NJ',
