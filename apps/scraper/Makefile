@@ -681,6 +681,68 @@ list-clubs:
 list-clubs-json:
 	@$(PYTHON) -m scripts.core.scrape_shows --list-clubs-json
 
+# Look up a club by name or ID and print full record as JSON
+# Usage: make club CLUB='Baltimore Comedy Factory'   (partial match)
+#        make club ID=845                             (exact ID)
+club:
+ifndef CLUB
+ifndef ID
+	@echo "❌ Usage: make club CLUB='<name>' or make club ID=<id>"
+	@exit 1
+endif
+endif
+	@printf '%s\n' \
+		'import os, sys, json' \
+		'from dotenv import load_dotenv' \
+		'import psycopg2' \
+		'' \
+		'load_dotenv(".env")' \
+		'conn = psycopg2.connect(' \
+		'    host=os.environ["DATABASE_HOST"],' \
+		'    user=os.environ["DATABASE_USER"],' \
+		'    password=os.environ["DATABASE_PASSWORD"],' \
+		'    dbname=os.environ["DATABASE_NAME"],' \
+		'    port=int(os.environ.get("DATABASE_PORT", "5432")),' \
+		'    sslmode="require"' \
+		')' \
+		'cur = conn.cursor()' \
+		'cur.execute("SELECT column_name FROM information_schema.columns WHERE table_name = '"'"'clubs'"'"' ORDER BY ordinal_position")' \
+		'cols = [r[0] for r in cur.fetchall()]' \
+		'' \
+		'club_arg = sys.argv[1] if len(sys.argv) > 1 else None' \
+		'id_arg = sys.argv[2] if len(sys.argv) > 2 else None' \
+		'' \
+		'if id_arg:' \
+		'    cur.execute("SELECT * FROM clubs WHERE id = %s", (int(id_arg),))' \
+		'elif club_arg:' \
+		'    cur.execute("SELECT * FROM clubs WHERE LOWER(name) LIKE LOWER(%s)", (f"%{club_arg}%",))' \
+		'else:' \
+		'    print("No CLUB or ID provided"); sys.exit(1)' \
+		'' \
+		'rows = cur.fetchall()' \
+		'if not rows:' \
+		'    print("No clubs found"); sys.exit(1)' \
+		'' \
+		'results = []' \
+		'for row in rows:' \
+		'    record = {}' \
+		'    for k, v in zip(cols, row):' \
+		'        if v is None:' \
+		'            record[k] = None' \
+		'        elif hasattr(v, "isoformat"):' \
+		'            record[k] = v.isoformat()' \
+		'        else:' \
+		'            record[k] = v' \
+		'    results.append(record)' \
+		'' \
+		'if len(results) == 1:' \
+		'    print(json.dumps(results[0], indent=2))' \
+		'else:' \
+		'    print(json.dumps(results, indent=2))' \
+		'' \
+		'conn.close()' \
+		| $(PYTHON) - "$(CLUB)" "$(ID)"
+
 # =============================================================================
 # DATA MAINTENANCE & UPDATES
 # =============================================================================
@@ -834,6 +896,72 @@ full-maintenance:
 	@echo ""
 	@echo "✅ Full maintenance workflow completed successfully!"
 	@echo "   🎉 System is fully updated with fresh data and analytics"
+
+# Hide a club - set visible=false, create Prisma migration, record in _prisma_migrations
+# Usage: make hide-club ID=413
+hide-club:
+ifndef ID
+	@echo "❌ Usage: make hide-club ID=<club_id>"
+	@exit 1
+endif
+	@printf '%s\n' \
+		'import os, sys, json' \
+		'from datetime import datetime, timezone' \
+		'from dotenv import load_dotenv' \
+		'import psycopg2' \
+		'' \
+		'load_dotenv(".env")' \
+		'club_id = int(sys.argv[1])' \
+		'' \
+		'conn = psycopg2.connect(' \
+		'    host=os.environ["DATABASE_HOST"],' \
+		'    user=os.environ["DATABASE_USER"],' \
+		'    password=os.environ["DATABASE_PASSWORD"],' \
+		'    dbname=os.environ["DATABASE_NAME"],' \
+		'    port=int(os.environ.get("DATABASE_PORT", "5432")),' \
+		'    sslmode="require"' \
+		')' \
+		'conn.autocommit = True' \
+		'cur = conn.cursor()' \
+		'' \
+		'# Fetch club details' \
+		'cur.execute("SELECT id, name, visible FROM clubs WHERE id = %s", (club_id,))' \
+		'row = cur.fetchone()' \
+		'if not row:' \
+		'    print(f"❌ Club {club_id} not found")' \
+		'    sys.exit(1)' \
+		'club_name = row[1]' \
+		'if not row[2]:' \
+		'    print(f"⚠️  Club {club_id} ({club_name}) is already hidden")' \
+		'    sys.exit(0)' \
+		'' \
+		'# Hide the club' \
+		'cur.execute("UPDATE clubs SET visible = false WHERE id = %s", (club_id,))' \
+		'print(f"✅ Hidden club {club_id} ({club_name})")' \
+		'' \
+		'# Create Prisma migration' \
+		'ts = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")' \
+		'slug = club_name.lower()' \
+		'for ch in "\u2019'\''\"()&,./!?":' \
+		'    slug = slug.replace(ch, "")' \
+		'slug = "_".join(slug.split())' \
+		'migration_name = f"{ts}_hide_{slug}"' \
+		'migration_dir = f"../web/prisma/migrations/{migration_name}"' \
+		'os.makedirs(migration_dir, exist_ok=True)' \
+		'sql = f"-- Hide {club_name} (club {club_id})\nUPDATE \"clubs\" SET \"visible\" = false WHERE \"id\" = {club_id};\n"' \
+		'with open(f"{migration_dir}/migration.sql", "w") as f:' \
+		'    f.write(sql)' \
+		'print(f"📄 Created migration: {migration_name}")' \
+		'' \
+		'# Record in _prisma_migrations' \
+		'cur.execute(' \
+		'    "INSERT INTO _prisma_migrations (id, checksum, migration_name, logs, started_at, finished_at, applied_steps_count) "' \
+		'    "VALUES (gen_random_uuid(), %s, %s, NULL, now(), now(), 1) ON CONFLICT DO NOTHING",' \
+		'    ("", migration_name)' \
+		')' \
+		'print(f"📝 Recorded in _prisma_migrations")' \
+		'conn.close()' \
+		| $(PYTHON) - $(ID)
 
 # =============================================================================
 # MAINTENANCE & CLEANUP
