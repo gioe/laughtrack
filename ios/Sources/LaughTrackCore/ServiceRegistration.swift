@@ -2,9 +2,9 @@ import Foundation
 import LaughTrackBridge
 import LaughTrackAPIClient
 
-enum ServiceRegistration {
+public enum ServiceRegistration {
     @MainActor
-    static func configure(_ container: ServiceContainer) {
+    public static func configure(_ container: ServiceContainer) {
         container.register(NetworkMonitorProtocol.self, scope: .appLevel) { NetworkMonitor.shared }
         container.register(SecureStorageProtocol.self, scope: .appLevel) { KeychainStorage() }
         container.register(ToastManager.self, scope: .featureLevel) { ToastManager() }
@@ -15,7 +15,7 @@ enum ServiceRegistration {
     }
 
     @MainActor
-    static func configureOfflineQueue(_ container: ServiceContainer, apiClient: Client) {
+    public static func configureOfflineQueue(_ container: ServiceContainer, apiClient: Client) {
         container.register(OfflineOperationQueue<LaughTrackOfflineOperation>.self, scope: .appLevel) {
             OfflineOperationQueue<LaughTrackOfflineOperation>(
                 storageKey: "laughtrack.offline",
