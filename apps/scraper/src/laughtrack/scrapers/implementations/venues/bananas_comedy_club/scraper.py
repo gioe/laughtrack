@@ -12,7 +12,7 @@ Currently used by: Bananas Comedy Club (Rutherford, NJ).
 """
 
 import re
-from typing import List, Optional
+from typing import List
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.foundation.infrastructure.logger.logger import Logger
