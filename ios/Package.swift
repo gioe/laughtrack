@@ -38,5 +38,12 @@ let package = Package(
                 "openapi-generator-config.yaml"
             ]
         ),
+        .testTarget(
+            name: "LaughTrackTests",
+            dependencies: [
+                "LaughTrackBridge",
+                "LaughTrackAPIClient",
+            ]
+        ),
     ]
 )
