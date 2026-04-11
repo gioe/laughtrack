@@ -21,7 +21,7 @@ back to Format B by calling ``_parse_product_title_datetime``.
 import re
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
