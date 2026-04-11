@@ -1,14 +1,26 @@
 """Shopify product extraction — converts products.json response into ShopifyEvents.
 
-Each Shopify product represents a show listing. Products may have multiple
-variants representing different date/times (e.g. 7pm and 9pm shows) or
-ticket tiers (General Admission, VIP). The extractor groups variants by
-date/time and creates one ShopifyEvent per unique showtime.
+Each Shopify product represents a show listing. Two layout conventions exist:
+
+  Format A (variant-date): Each variant title contains a date/time and ticket tier.
+      Multiple variants may share a product (one per showtime × tier combo).
+      The extractor groups variants by date/time → one ShopifyEvent per showtime.
+
+  Format B (title-date): The product title itself contains the date/time and
+      comedian lineup. Variants are ticket tiers only ("General Admission", "VIP").
+      One ShopifyEvent per product, using the lowest variant price.
+
+The extractor tries Format A first; if no variant yields a parseable date it
+falls back to Format B.
 """
 
 from typing import Any, Dict, List
 
-from laughtrack.core.entities.event.shopify import ShopifyEvent, _parse_variant_datetime
+from laughtrack.core.entities.event.shopify import (
+    ShopifyEvent,
+    _parse_product_title_datetime,
+    _parse_variant_datetime,
+)
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 
@@ -19,11 +31,7 @@ class ShopifyExtractor:
     def extract_events(
         api_response: Dict[str, Any], timezone: str = "America/Los_Angeles"
     ) -> List[ShopifyEvent]:
-        """Extract ShopifyEvent objects from the products.json response.
-
-        Groups variants by date/time — one ShopifyEvent per unique showtime.
-        Uses the lowest price among variants sharing the same showtime.
-        """
+        """Extract ShopifyEvent objects from the products.json response."""
         products = api_response.get("products", [])
         if not isinstance(products, list):
             return []
@@ -52,7 +60,6 @@ class ShopifyExtractor:
         if not title or not handle:
             return []
 
-        # Get first image URL
         images = product.get("images") or []
         image_url = images[0].get("src", "") if images else ""
 
@@ -60,7 +67,7 @@ class ShopifyExtractor:
         if not variants:
             return []
 
-        # Group variants by date/time
+        # --- Format A: group variants by date/time ---
         showtime_map: Dict[str, Dict[str, Any]] = {}
         for variant in variants:
             variant_title = variant.get("title", "")
@@ -79,24 +86,54 @@ class ShopifyExtractor:
                     "available": available,
                 }
             else:
-                # Keep lowest price and OR the availability
                 existing = showtime_map[dt_key]
                 if float(price) < float(existing["price"]):
                     existing["price"] = price
                 existing["available"] = existing["available"] or available
+
+        if showtime_map:
+            return [
+                ShopifyEvent(
+                    product_id=product_id,
+                    title=title,
+                    handle=handle,
+                    show_date=info["datetime"],
+                    price=info["price"],
+                    available=info["available"],
+                    image_url=image_url,
+                    body_html=body_html,
+                    timezone=timezone,
+                    tags=tags if isinstance(tags, list) else [],
+                )
+                for info in showtime_map.values()
+            ]
+
+        # --- Format B: date/time in product title, variants are ticket tiers ---
+        dt = _parse_product_title_datetime(title, timezone)
+        if not dt:
+            return []
+
+        # Lowest price / any available across all tier variants
+        lowest_price = "0.00"
+        any_available = False
+        for variant in variants:
+            price = variant.get("price", "0.00")
+            if lowest_price == "0.00" or float(price) < float(lowest_price):
+                lowest_price = price
+            if variant.get("available", False):
+                any_available = True
 
         return [
             ShopifyEvent(
                 product_id=product_id,
                 title=title,
                 handle=handle,
-                show_date=info["datetime"],
-                price=info["price"],
-                available=info["available"],
+                show_date=dt,
+                price=lowest_price,
+                available=any_available,
                 image_url=image_url,
                 body_html=body_html,
                 timezone=timezone,
                 tags=tags if isinstance(tags, list) else [],
             )
-            for info in showtime_map.values()
         ]
