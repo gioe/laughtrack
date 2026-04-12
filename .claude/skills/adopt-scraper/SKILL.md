@@ -1,0 +1,454 @@
+---
+name: adopt-scraper
+description: "Standard process to research a venue, identify its ticketing platform, and build/configure the correct scraper. Usage: /adopt-scraper <club name>"
+allowed-tools: Bash, Read, Edit, Write, Grep, Glob, WebSearch, WebFetch, Agent
+trigger: automatically invoked by /tusk when working on an "Onboard <club>" task
+---
+
+# Adopt Scraper
+
+Standardized process for onboarding a comedy club scraper. Given a club name (and
+optionally city/state from the task description), this skill walks through platform
+discovery, scraper selection, migration creation, and verification.
+
+## Usage
+
+```
+/adopt-scraper Punch Line Sacramento
+```
+
+Or invoked automatically when `/tusk` picks up a task whose summary starts with "Onboard".
+
+## Arguments
+
+- Club name (required) — the venue to onboard
+- City/state context is pulled from the task description if available
+
+## Guiding Principle: Club Website First
+
+**Always prefer scraping from the club's own website over aggregator APIs.**
+
+Even if a venue has a Ticketmaster, SeatEngine, or Eventbrite presence, check the
+club's website first. If the site has structured event data (JS calendar widgets,
+JSON-LD, embedded ticket listings), build a scraper that fetches from the club's
+site. This ensures:
+
+- `show_page_url` points to the club's own site, driving traffic to the venue
+- We support the club's direct sales rather than sending users to an aggregator
+- The club benefits from the exposure we provide
+
+**Only fall back to aggregator APIs** (`live_nation`, `eventbrite`, `seatengine`) when:
+- The club has no website or the website is down
+- The website has no event/calendar page
+- The website only links out to the aggregator with no local event data
+- The website's event data is insufficient (e.g., no dates, no ticket links)
+
+The ticket `purchase_url` (on the Ticket entity) can still point to the third-party
+platform for checkout — it's the `show_page_url` on the Show that must point to the
+club's site whenever possible.
+
+## Step 1: Research the Venue
+
+### 1a. Find the Club Website
+
+Search the web for the club's official website:
+
+```
+WebSearch: "<club name>" comedy club official site
+```
+
+Look for the **official venue website** (not a Yelp listing, not a Facebook page).
+Record:
+- **Website URL** (use `https://` — see CLAUDE.md rule on HTTPS)
+- **Address** (street address from the website or Google)
+- **City, State, Zip** (confirm against the task description)
+
+If the club appears to be **permanently closed** (website down, Google says "Permanently
+closed", no social media activity in 6+ months), stop and report:
+
+> This venue appears to be permanently closed. Recommend closing the task as `wont_do`.
+
+### 1b. Find the Events/Shows Page
+
+From the website, locate the page that lists upcoming shows. This is usually linked as
+"Shows", "Events", "Calendar", "Tickets", or "Schedule" in the navigation.
+
+Record the **events page URL** — this is the page we'll analyze for platform detection.
+
+If the venue has **no events page** and only links to external ticket sellers (e.g.,
+"Buy tickets on Ticketmaster"), note the external platform and skip to Step 2.
+
+## Step 2: Identify the Ticketing Platform
+
+**Remember: club website first.** The goal is to find the best way to scrape event
+data directly from the club's own site. Only resort to aggregator APIs when the
+club's site doesn't provide enough structured data.
+
+Fetch the events page and inspect its content:
+
+```
+WebFetch: <events page URL>
+```
+
+### 2a. Check for Scrapable Data on the Club's Own Site
+
+First, look for structured event data embedded directly in the club's website HTML
+or JavaScript. These patterns let us scrape from the club's site (keeping
+`show_page_url` pointed at the venue):
+
+| Pattern in page | Platform | Scraper |
+|----------------|----------|---------|
+| `var all_events = [...]` JS array + `tw-plugin-calendar` | TicketWeb (WordPress plugin) | `ticketweb` (generic) |
+| `<script type="application/ld+json">` with `"@type": "Event"` | JSON-LD | `json_ld` (generic) |
+| `rhpSingleEvent` / `rhp-event__title--list` CSS classes | rhp-events (WordPress) | `comedy_magic_club` (generic) |
+| `self.__next_f.push` RSC segments + `stageti.me` | StageTime | venue-specific |
+| `app.opendate.io` / `confirm-card` divs | OpenDate | venue-specific |
+| `eventRow` / `dateTime` / `event-btn` CSS classes | TicketSource | venue-specific |
+| `events.humanitix.com/host/` links | Humanitix | `json_ld` (generic) |
+
+If a match is found, skip to Step 3. The scraper will fetch from the club's URL.
+
+### 2b. Check for Third-Party Platform Links (Aggregator Fallback)
+
+Only if Step 2a found no scrapable data on the club's site, look for aggregator
+platform links. These scrapers use the platform's API directly — `show_page_url`
+will point to the aggregator, not the club:
+
+| Pattern in page | Platform | Scraper |
+|----------------|----------|---------|
+| `ticketmaster.com` buy link or embed | Ticketmaster | `live_nation` (generic) |
+| `eventbrite.com` buy link or embed | Eventbrite | `eventbrite` (generic) |
+| `seatengine.net` buy link | SeatEngine | `seatengine` / `seatengine_v3` (generic) |
+| `thundertix.com` buy link | ThunderTix | venue-specific (new code) |
+| `tixr.com` buy link | Tixr | venue-specific (new code) |
+| `prekindle.com` buy link | Prekindle | `json_ld` (generic) |
+
+If a match is found, skip to Step 3.
+
+### 2c. Check for Platform APIs (JS-Heavy Sites)
+
+If no patterns were found in the HTML source, the site may use an embedded widget
+that loads data via JavaScript. Use Playwright to check network requests:
+
+```
+browser_navigate → <events page URL>
+browser_network_requests
+```
+
+Look for these API calls (ordered by preference — club-hosted APIs first):
+
+| Network request pattern | Platform | Scraper | Data source |
+|------------------------|----------|---------|-------------|
+| `/wp-json/tribe/events/v1/events` | Tribe Events (WordPress) | `the_rockwell` (generic) | Club site |
+| `/api/open/GetItemsByMonth` | Squarespace | venue-specific | Club site |
+| `crowdwork.com/api/v2` | Crowdwork | venue-specific | Club site |
+| `tockify.com/api/` | Tockify | venue-specific | Club site |
+| `plugin.vbotickets.com` | VBO Tickets | venue-specific | Club site |
+| `/.netlify/functions/` | Netlify Functions | venue-specific | Club site |
+| `editmysite.com/app/store/api/` | Square Online (Weebly) | venue-specific | Club site |
+| `api.ninkashi.com` | Ninkashi | `ninkashi` (generic) | Third-party |
+| `vivenu` | Vivenu | `vivenu` (generic) | Third-party |
+
+If Playwright fails (Chrome conflict), fall back to reading the page source via
+WebFetch and looking for `<script>` tags, `data-` attributes, or embedded iframes.
+
+### 2d. Check Page Source for Additional Markup Patterns
+
+If no API calls match, inspect the page HTML for remaining widget patterns:
+
+| Source pattern | Platform | Scraper |
+|---------------|----------|---------|
+| `data-compId` on Wix widget / `wixstatic.com` | Wix Events | venue-specific |
+| `squadup = { userId:` in JS | SquadUP | venue-specific |
+
+### 2e. No Match — Mandatory Playwright Inspection Before Giving Up
+
+**CRITICAL: Before concluding a platform is unsupported or recommending hide/close,
+you MUST open the venue's events page in Playwright MCP and inspect network requests.**
+Many ticketing platforms load event data entirely via client-side JavaScript — static
+HTML and WebFetch will show nothing while the actual API is fully scrapable.
+
+```
+browser_navigate → <events page URL>
+browser_network_requests (static: false)
+```
+
+Look for ANY JSON API call that returns event/product/show data — even if the platform
+is not in the tables above. A clean JSON API with structured event data (dates, names,
+prices) is always scrapable with a venue-specific scraper.
+
+**Only after Playwright inspection confirms no scrapable API exists**, proceed:
+- Check if the venue uses a **tour_dates / Bandsintown** widget — these are NOT
+  sufficient for a dedicated scraper (per project feedback). Note this in the task.
+- If the site is purely static HTML with show listings, a custom HTML scraper may
+  be needed — flag as higher complexity.
+- If the venue has **no online ticket sales** at all, recommend closing the task.
+
+**Important: Cloudflare 403 does NOT mean a site is unscrapable.** The scraper's
+`HttpClient.fetch_html` automatically falls back to a headless Playwright browser
+when it detects Cloudflare challenges ("Just a moment..."), DataDome, or other
+bot-block signatures. Always test fetchability using the scraper's own stack
+(see CLAUDE.md rule), not plain `requests`/`urllib`. If Playwright fallback
+succeeds, generic scrapers like `json_ld` will work normally.
+
+## Step 3: Configure or Build the Scraper
+
+Based on the platform identified in Step 2, follow ONE of the two paths below.
+
+### Path A: Generic Scraper (No New Code)
+
+For platforms with existing generic scrapers (`ticketweb`, `json_ld`, `the_rockwell`,
+`comedy_magic_club`, `live_nation`, `eventbrite`, `seatengine`, `seatengine_v3`,
+`ninkashi`, `vivenu`):
+
+**3A-1. Extract the Platform ID**
+
+**3A-1b. Verify the Platform ID Returns Data**
+
+Before creating the migration, hit the platform API directly to confirm the ID
+returns actual event data (not just a valid profile with 0 events). For Eventbrite,
+use the scraper's auth token to call the organizer/venue events endpoint and check
+`pagination.object_count > 0`. For SeatEngine, check the venue API returns a valid
+response. If the API returns 0 events and the venue website is also down, the
+platform ID may be stale — consider hiding the club instead of switching scrapers.
+
+Each generic scraper needs a platform-specific identifier:
+
+| Scraper | ID to extract | How to find it |
+|---------|--------------|----------------|
+| `ticketweb` | `scraping_url` | The club's calendar/events page URL containing the TicketWeb WordPress plugin (`var all_events` JS array + `tw-plugin-calendar` classes) |
+| `live_nation` | `ticketmaster_id` | Search Discovery API: `curl -s "https://app.ticketmaster.com/discovery/v2/venues.json?apikey=$TICKETMASTER_API_KEY&keyword=<name>&countryCode=US"` — use the alphanumeric `id` field (e.g., `KovZpZAJalFA`), NOT a numeric ID |
+| `eventbrite` | `eventbrite_id` | Extract organizer ID (11 digits) or venue ID (8-9 digits) from the Eventbrite URL |
+| `seatengine` | `seatengine_id` | Numeric ID from `{venue}.seatengine.net` URL (1-700 range) |
+| `seatengine_v3` | `seatengine_id` | UUID from `v-{uuid}.seatengine.net` URL |
+| `json_ld` | `scraping_url` | The events page URL containing JSON-LD Event markup |
+| `the_rockwell` | `scraping_url` | The Tribe Events REST API base URL |
+| `comedy_magic_club` | `scraping_url` | The events page URL with rhp-events markup |
+| `ninkashi` | `scraping_url` | The tickets subdomain (e.g., `tickets.myvenue.com`) |
+| `vivenu` | `scraping_url` | The Vivenu seller page root URL |
+
+**3A-2. Create the Migration**
+
+Create a Prisma migration file:
+
+```bash
+# Generate timestamp
+TIMESTAMP=$(date -u +%Y%m%d%H%M%S)
+MIGRATION_DIR="apps/web/prisma/migrations/${TIMESTAMP}_onboard_<snake_case_club_name>"
+mkdir -p "$MIGRATION_DIR"
+```
+
+Write `migration.sql`:
+
+```sql
+-- Onboard <Club Name> (<City>, <State>)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM "clubs" WHERE name = '<Club Name>') THEN
+        INSERT INTO "clubs" (
+            name, address, website, scraping_url, scraper,
+            visible, zip_code, timezone,
+            city, state, <platform_id_column>
+        )
+        VALUES (
+            '<Club Name>',
+            '<Street Address>',
+            'https://<website>',
+            '<scraping_url or platform/id>',
+            '<scraper_key>',
+            true,
+            '<zip_code>',
+            '<timezone>',
+            '<City>',
+            '<State>',
+            '<platform_id_value>'
+        );
+    END IF;
+END $$;
+```
+
+Key rules:
+- Always use `https://` for the website URL
+- Use the correct IANA timezone (e.g., `America/New_York`, `America/Chicago`)
+- Set `visible = true`
+- Use `DO $$ BEGIN ... IF NOT EXISTS ... END $$;` for idempotency
+
+Skip to Step 4.
+
+### Path B: Venue-Specific Scraper (New Code Required)
+
+For platforms that need a new scraper implementation (Tockify, Squarespace, Crowdwork,
+Tixr, ThunderTix, VBO Tickets, Wix, SquadUP, TicketSource, StageTime, OpenDate,
+Netlify Functions, or custom HTML):
+
+**3B-1. Find the Reference Implementation**
+
+Read `apps/scraper/SCRAPERS.md` for the platform section — it names the reference
+scraper to copy from. Common references:
+
+| Platform | Copy from |
+|----------|-----------|
+| Tockify | `venues/ice_house/` |
+| Squarespace | existing Squarespace venue |
+| Crowdwork | `venues/philly_improv_theater/` |
+| Tixr | `venues/the_stand_nyc/` or `venues/haha_comedy_club/` |
+| ThunderTix | `venues/annoyance/` |
+| VBO Tickets | `venues/esthers_follies/` |
+| SquadUP | `venues/sunset_strip/` |
+| TicketSource | `venues/comedy_clubhouse/` |
+| StageTime | `venues/comedy_corner_underground/` |
+| OpenDate | `venues/sports_drink/` |
+
+**3B-2. Create the Venue Scraper Directory**
+
+```
+apps/scraper/src/laughtrack/scrapers/implementations/venues/<venue_snake_name>/
+    __init__.py
+    scraper.py      — main scraper class (key = "<venue_snake_name>")
+    extractor.py    — parse HTML/JSON → event objects
+    data.py         — PageData dataclass (MUST be named data.py)
+    transformer.py  — convert events to Show/Ticket entities
+```
+
+Read the reference implementation files first, then adapt:
+- Change the `key` in `scraper.py` to match the new venue
+- Update `collect_scraping_targets()` with the correct URL/API endpoint
+- Adapt `extractor.py` to parse the venue's specific response format
+- Update `data.py` with the correct event type imports
+- `transformer.py` usually inherits from `DataTransformer` with minimal changes
+
+**3B-3. Create the Event Entity (if needed)**
+
+If the platform's event format differs from existing entities, create:
+```
+apps/scraper/src/laughtrack/core/entities/event/<venue_snake_name>.py
+```
+
+**3B-4. Register the Scraper**
+
+Check how existing scrapers are registered/discovered. The scraper `key` must be unique
+and will be stored in the `scraper` column of the clubs table.
+
+**3B-5. Create the Migration**
+
+Same as Path A Step 3A-2, but set `scraper = '<venue_snake_name>'` instead of a
+generic scraper key.
+
+**3B-6. Write Tests**
+
+Create a test file following the project's test patterns (see `apps/scraper/CONTRIBUTING.md`):
+```
+apps/scraper/tests/scrapers/implementations/venues/<venue_snake_name>/
+    __init__.py
+    test_scraper.py
+```
+
+## Step 4: Deploy and Verify
+
+### 4a. Apply the Migration
+
+`npx prisma migrate deploy` cannot run locally (see CLAUDE.md — local `.env.local` points to
+localhost, not Neon). Apply the migration SQL directly using the scraper's DB connection, then
+record it in the Prisma migrations table:
+
+```bash
+cd apps/scraper && .venv/bin/python3 -c "
+import os
+from dotenv import load_dotenv
+load_dotenv('.env')
+import psycopg2
+
+conn = psycopg2.connect(
+    host=os.environ['DATABASE_HOST'],
+    user=os.environ['DATABASE_USER'],
+    password=os.environ['DATABASE_PASSWORD'],
+    dbname=os.environ['DATABASE_NAME'],
+    port=int(os.environ.get('DATABASE_PORT', '5432')),
+    sslmode='require'
+)
+conn.autocommit = True
+cur = conn.cursor()
+cur.execute(open('../web/prisma/migrations/<MIGRATION_DIR>/migration.sql').read())
+cur.execute('''
+INSERT INTO _prisma_migrations (id, checksum, migration_name, logs, started_at, finished_at, applied_steps_count)
+VALUES (gen_random_uuid(), '', '<MIGRATION_DIR>', NULL, now(), now(), 1)
+ON CONFLICT DO NOTHING;
+''')
+conn.close()
+print('Migration applied and recorded')
+"
+```
+
+Replace `<MIGRATION_DIR>` with the actual migration directory name (e.g., `20260408201527_onboard_the_lost_church`).
+
+Verify the club was inserted:
+
+```bash
+cd apps/scraper && .venv/bin/python3 -c "
+import os, json
+from dotenv import load_dotenv
+load_dotenv('.env')
+import psycopg2
+conn = psycopg2.connect(
+    host=os.environ['DATABASE_HOST'],
+    user=os.environ['DATABASE_USER'],
+    password=os.environ['DATABASE_PASSWORD'],
+    dbname=os.environ['DATABASE_NAME'],
+    port=int(os.environ.get('DATABASE_PORT', '5432')),
+    sslmode='require'
+)
+cur = conn.cursor()
+cur.execute(\"SELECT id, name, city, state, scraper, website FROM clubs WHERE LOWER(name) LIKE LOWER(%s)\", ('%<club_name>%',))
+print(json.dumps([dict(zip(['id','name','city','state','scraper','website'], r)) for r in cur.fetchall()], indent=2))
+conn.close()
+"
+```
+
+### 4b. Run a Test Scrape
+
+```bash
+cd apps/scraper && make scrape-club CLUB='<Club Name>'
+```
+
+Check the output for:
+- Events extracted (non-zero count)
+- Valid ticket URLs
+- Comedian names parsed (if available)
+- No errors or warnings
+
+If the scraper returns **0 events**, investigate:
+- Is the venue currently listing shows? (check website manually)
+- Is the platform ID correct? (re-verify from Step 3)
+- Is the API returning data? (test the endpoint directly — see CLAUDE.md on using
+  direct HTTP calls instead of WebFetch for API inspection)
+
+If shows are genuinely not on sale yet, note this in the task and mark the
+verification criteria as blocked (same pattern as TASK-663, TASK-685, etc.).
+
+### 4c. Commit
+
+Commit the migration (and scraper code if Path B) on a feature branch:
+
+```bash
+git checkout -b feature/TASK-<id>-onboard-<venue-snake-name>
+git add <migration files> <scraper files if any>
+git commit -m "[TASK-<id>] Onboard <Club Name> (<scraper_type> scraper)"
+```
+
+## Step 5: Report Results
+
+Present a summary:
+
+```
+Adopt Scraper Results
+━━━━━━━━━━━━━━━━━━━━
+Club:       <Club Name>
+Location:   <City>, <State>
+Website:    <URL>
+Platform:   <platform name>
+Scraper:    <scraper_key> (generic|venue-specific)
+Club ID:    <DB id>
+Shows found: <count> (or "blocked — not yet on sale")
+```
+
+Mark task criteria as done via `tusk criteria done` as each is verified.
