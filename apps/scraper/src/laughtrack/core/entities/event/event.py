@@ -62,6 +62,7 @@ class JsonLdEvent(ShowConvertible):
     image: Optional[str] = None
     organizer: Optional[Organization] = None
     event_type: str = "Event"
+    same_as: Optional[str] = None
 
     def to_show(self, club: Club, enhanced: bool = True) -> Optional[object]:
         """Factory method to create a Show from an Event and Club.
@@ -94,12 +95,16 @@ class JsonLdEvent(ShowConvertible):
             tickets = [Ticket.from_offer(offer) for offer in self.offers] if self.offers else []
             supplied_tags = []
 
+        # Prefer sameAs for show_page_url when it points to the club's own site,
+        # keeping self.url (often a third-party ticket link) for ticket purchase
+        show_page_url = self.same_as if self.same_as else self.url
+
         # Create the basic show instance
         show = Show(
             name=self.name,
             club_id=club.id,
             date=self.start_date,
-            show_page_url=self.url,
+            show_page_url=show_page_url,
             lineup=lineup,
             tickets=tickets,
             description=self.description,
@@ -138,6 +143,15 @@ class JsonLdEvent(ShowConvertible):
             organizer = cls._parse_organizer(data)
             performers = cls._parse_performers(data)
 
+            # Parse sameAs — may be a string or list of strings; take the first
+            same_as_raw = data.get("sameAs")
+            if isinstance(same_as_raw, list):
+                same_as = same_as_raw[0] if same_as_raw else None
+            elif isinstance(same_as_raw, str):
+                same_as = same_as_raw
+            else:
+                same_as = None
+
             return cls(
                 name=name,
                 start_date=parse_event_date(start_date_str),
@@ -151,6 +165,7 @@ class JsonLdEvent(ShowConvertible):
                 organizer=organizer,
                 performers=performers,
                 event_type=data.get("@type", "Event"),
+                same_as=same_as,
             )
         except KeyError as e:
             raise KeyError(f"Missing required field in JSON-LD data: {e}")
