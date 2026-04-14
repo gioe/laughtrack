@@ -10,6 +10,16 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+model Chain {
+  id      Int     @id @default(autoincrement())
+  name    String  @unique
+  slug    String  @unique
+  website String?
+  clubs   Club[]
+
+  @@map("chains")
+}
+
 model Club {
   id                 Int                 @id @default(autoincrement())
   name               String              @unique
@@ -36,12 +46,15 @@ model Club {
   hasImage           Boolean             @default(false) @map("has_image")
   status             String              @default("active")
   closedAt           DateTime?           @map("closed_at")
+  chainId            Int?                @map("chain_id")
+  chain              Chain?              @relation(fields: [chainId], references: [id])
   shows              Show[]
   taggedClubs        TaggedClub[]
   emailSubscriptions EmailSubscription[]
   processedEmails    ProcessedEmail[]
 
   @@index([visible])
+  @@index([chainId])
   @@map("clubs")
 }
 
