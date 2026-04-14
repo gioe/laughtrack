@@ -7,8 +7,6 @@ multi-variant products, missing fields, and empty responses.
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-import pytest
-
 from laughtrack.scrapers.implementations.venues.american_comedy_co.extractor import (
     ShopifyExtractor,
 )

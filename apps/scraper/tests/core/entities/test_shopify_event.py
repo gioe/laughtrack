@@ -10,8 +10,6 @@ Covers:
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-import pytest
-
 from laughtrack.core.entities.event.shopify import (
     ShopifyEvent,
     _extract_comedian_name,
