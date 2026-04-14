@@ -81,7 +81,7 @@ How many HTTP round-trips are needed to collect all event data.
 | 34 | Philly Improv Theater | `philly_improv_theater` | json_feed | single | Crowdwork/Fourthwall API |
 | 35 | Red Room | `red_room` | external_api | single | Wix Events paginated API |
 | 36 | Rodney's | `rodneys` | html | multi_step | Custom HTML listing -> Eventbrite/22Rams detail pages |
-| 37 | The Setup SF | `setup_sf` | google_sheets | single | Published Google Sheets CSV export |
+| 37 | The Setup | `setup` | google_sheets | single | Published Google Sheets CSV export (multi-city via gid) |
 | 38 | Sports Drink | `sports_drink` | html | single | OpenDate server-rendered HTML |
 | 39 | St. Marks | `st_marks` | external_api | multi_step | Tixr group page -> per-event JSON-LD fetch |
 | 40 | StandUp NY | `standup_ny` | graphql | multi_step | ShowTix4U GraphQL + VenuePilot enrichment |

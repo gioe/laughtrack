@@ -1,4 +1,4 @@
-"""Data model for a single event from The Setup SF (Google Sheets CSV)."""
+"""Data model for a single event from The Setup (Google Sheets CSV)."""
 
 from dataclasses import dataclass
 from datetime import datetime
@@ -23,12 +23,12 @@ _TIME_FMTS = [
 
 
 @dataclass
-class SetupSFEvent(ShowConvertible):
+class SetupEvent(ShowConvertible):
     """
-    Data model for a single event from The Setup SF's Google Sheets CSV calendar.
+    Data model for a single event from The Setup's Google Sheets CSV calendar.
 
-    The CSV is published at:
-      https://docs.google.com/spreadsheets/d/e/2PACX-1v.../pub?gid=495747966&single=true&output=csv
+    Each city location publishes a separate tab (gid) in the same Google Sheet.
+    The club's scraping_url encodes the city-specific gid.
 
     CSV columns: date,day,time,title,venue,city,ticket_url,urgency_tag,sold_out
 
@@ -49,7 +49,7 @@ class SetupSFEvent(ShowConvertible):
     sold_out: bool = False
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None) -> Optional[Show]:
-        """Convert a SetupSFEvent to a Show domain object."""
+        """Convert a SetupEvent to a Show domain object."""
         try:
             tz = ZoneInfo(club.timezone or "America/Los_Angeles")
             naive = None

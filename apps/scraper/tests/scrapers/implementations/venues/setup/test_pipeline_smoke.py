@@ -1,7 +1,7 @@
 """
-Pipeline smoke tests for SetupSFScraper and SetupSFEvent.
+Pipeline smoke tests for SetupScraper and SetupEvent.
 
-Exercises the CSV extraction path and the SetupSFEvent.to_show() transformation
+Exercises the CSV extraction path and the SetupEvent.to_show() transformation
 without making real HTTP calls or hitting the Google Sheets API.
 """
 
@@ -11,10 +11,10 @@ from zoneinfo import ZoneInfo
 import pytest
 
 from laughtrack.core.entities.club.model import Club
-from laughtrack.core.entities.event.setup_sf import SetupSFEvent
-from laughtrack.scrapers.implementations.venues.setup_sf.data import SetupSFPageData
-from laughtrack.scrapers.implementations.venues.setup_sf.extractor import SetupSFExtractor
-from laughtrack.scrapers.implementations.venues.setup_sf.scraper import SetupSFScraper
+from laughtrack.core.entities.event.setup import SetupEvent
+from laughtrack.scrapers.implementations.venues.setup.data import SetupPageData
+from laughtrack.scrapers.implementations.venues.setup.extractor import SetupExtractor
+from laughtrack.scrapers.implementations.venues.setup.scraper import SetupScraper
 
 _CSV_URL = (
     "https://docs.google.com/spreadsheets/d/e/"
@@ -63,8 +63,8 @@ def _make_event(
     venue: str = "The Palace Theater",
     ticket_url: str = "https://setupcomedy.com/tickets-3/palace-theater-friday-april-3rd-9pm",
     sold_out: bool = False,
-) -> SetupSFEvent:
-    return SetupSFEvent(
+) -> SetupEvent:
+    return SetupEvent(
         date=date_str,
         time=time_str,
         title=title,
@@ -75,14 +75,14 @@ def _make_event(
 
 
 # ---------------------------------------------------------------------------
-# SetupSFExtractor tests
+# SetupExtractor tests
 # ---------------------------------------------------------------------------
 
 
 def test_extract_events_returns_upcoming_events():
     """extract_events() parses a CSV and returns upcoming events."""
     csv_text = _future_csv()
-    events = SetupSFExtractor.extract_events(csv_text, today=date(2026, 1, 1))
+    events = SetupExtractor.extract_events(csv_text, today=date(2026, 1, 1))
 
     assert len(events) == 2
     titles = {e.title for e in events}
@@ -98,7 +98,7 @@ def test_extract_events_filters_past_events():
         ("2099-12-31", "9:00 PM", "Future Show", "The Palace Theater",
          "https://setupcomedy.com/tickets-3/future-show"),
     )
-    events = SetupSFExtractor.extract_events(csv_text, today=date(2026, 1, 1))
+    events = SetupExtractor.extract_events(csv_text, today=date(2026, 1, 1))
 
     assert len(events) == 1
     assert events[0].title == "Future Show"
@@ -112,7 +112,7 @@ def test_extract_events_skips_rows_with_missing_fields():
         "2099-04-04,Fri,9:00 PM,Has Title,The Palace Theater,San Francisco,,,\n"
         "2099-04-05,Fri,9:00 PM,Good Show,The Palace Theater,San Francisco,https://setupcomedy.com/t/2,,\n"
     )
-    events = SetupSFExtractor.extract_events(csv_text, today=date(2026, 1, 1))
+    events = SetupExtractor.extract_events(csv_text, today=date(2026, 1, 1))
 
     assert len(events) == 1
     assert events[0].title == "Good Show"
@@ -124,14 +124,14 @@ def test_extract_events_returns_empty_for_all_past():
         ("2020-01-01", "9:00 PM", "Old Show A", "The Palace Theater", "https://setupcomedy.com/t/1"),
         ("2021-06-15", "8:00 PM", "Old Show B", "The Lost Church", "https://setupcomedy.com/t/2"),
     )
-    events = SetupSFExtractor.extract_events(csv_text, today=date.today())
+    events = SetupExtractor.extract_events(csv_text, today=date.today())
     assert events == []
 
 
 def test_extract_events_returns_empty_for_empty_csv():
     """extract_events() returns an empty list when the CSV has only a header."""
     csv_text = "date,day,time,title,venue,city,ticket_url,urgency_tag,sold_out\n"
-    events = SetupSFExtractor.extract_events(csv_text, today=date.today())
+    events = SetupExtractor.extract_events(csv_text, today=date.today())
     assert events == []
 
 
@@ -141,7 +141,7 @@ def test_extract_events_parses_ticket_url():
         ("2099-04-03", "9:00 PM", "Comedy Night", "The Palace Theater",
          "https://setupcomedy.com/tickets-3/palace-theater-friday-april-3rd-9pm"),
     )
-    events = SetupSFExtractor.extract_events(csv_text, today=date(2026, 1, 1))
+    events = SetupExtractor.extract_events(csv_text, today=date(2026, 1, 1))
 
     assert len(events) == 1
     assert events[0].ticket_url == "https://setupcomedy.com/tickets-3/palace-theater-friday-april-3rd-9pm"
@@ -158,7 +158,7 @@ def test_extract_events_two_concurrent_shows_different_venues():
         ("2099-04-04", "9:00 PM", "Show B", "The Lost Church",
          "https://setupcomedy.com/tickets-3/lost-church-saturday"),
     )
-    events = SetupSFExtractor.extract_events(csv_text, today=date(2026, 1, 1))
+    events = SetupExtractor.extract_events(csv_text, today=date(2026, 1, 1))
 
     assert len(events) == 2, "Both concurrent shows at different venues must be extracted"
     venues = {e.venue for e in events}
@@ -167,7 +167,7 @@ def test_extract_events_two_concurrent_shows_different_venues():
 
 
 # ---------------------------------------------------------------------------
-# SetupSFEvent.to_show() tests
+# SetupEvent.to_show() tests
 # ---------------------------------------------------------------------------
 
 
@@ -286,7 +286,7 @@ def test_to_show_marks_sold_out_ticket():
 @pytest.mark.asyncio
 async def test_collect_scraping_targets_returns_csv_url():
     """collect_scraping_targets() returns the Google Sheets CSV URL from club.scraping_url."""
-    scraper = SetupSFScraper(_club())
+    scraper = SetupScraper(_club())
     targets = await scraper.collect_scraping_targets()
 
     assert len(targets) == 1
@@ -297,7 +297,7 @@ async def test_collect_scraping_targets_returns_csv_url():
 @pytest.mark.asyncio
 async def test_collect_scraping_targets_returns_single_url():
     """collect_scraping_targets() returns exactly one URL."""
-    scraper = SetupSFScraper(_club())
+    scraper = SetupScraper(_club())
     targets = await scraper.collect_scraping_targets()
 
     assert len(targets) == 1
@@ -310,30 +310,30 @@ async def test_collect_scraping_targets_returns_single_url():
 
 @pytest.mark.asyncio
 async def test_get_data_returns_page_data_with_events(monkeypatch):
-    """get_data() fetches the CSV and returns SetupSFPageData with events."""
-    scraper = SetupSFScraper(_club())
+    """get_data() fetches the CSV and returns SetupPageData with events."""
+    scraper = SetupScraper(_club())
 
     async def fake_fetch_html(self, url: str, **kwargs):
         return _future_csv()
 
-    monkeypatch.setattr(SetupSFScraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(SetupScraper, "fetch_html", fake_fetch_html)
     monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
 
     result = await scraper.get_data(_CSV_URL)
 
-    assert isinstance(result, SetupSFPageData)
+    assert isinstance(result, SetupPageData)
     assert len(result.event_list) == 2
 
 
 @pytest.mark.asyncio
 async def test_get_data_returns_none_on_empty_csv(monkeypatch):
     """get_data() returns None when the CSV has no upcoming events."""
-    scraper = SetupSFScraper(_club())
+    scraper = SetupScraper(_club())
 
     async def fake_fetch_html(self, url: str, **kwargs):
         return "date,day,time,title,venue,city,ticket_url,urgency_tag,sold_out\n"
 
-    monkeypatch.setattr(SetupSFScraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(SetupScraper, "fetch_html", fake_fetch_html)
     monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
 
     result = await scraper.get_data(_CSV_URL)
@@ -343,12 +343,12 @@ async def test_get_data_returns_none_on_empty_csv(monkeypatch):
 @pytest.mark.asyncio
 async def test_get_data_returns_none_on_null_response(monkeypatch):
     """get_data() returns None when fetch_html returns an empty string."""
-    scraper = SetupSFScraper(_club())
+    scraper = SetupScraper(_club())
 
     async def fake_fetch_html(self, url: str, **kwargs):
         return ""
 
-    monkeypatch.setattr(SetupSFScraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(SetupScraper, "fetch_html", fake_fetch_html)
     monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
 
     result = await scraper.get_data(_CSV_URL)
@@ -358,12 +358,12 @@ async def test_get_data_returns_none_on_null_response(monkeypatch):
 @pytest.mark.asyncio
 async def test_get_data_returns_none_on_client_exception(monkeypatch):
     """get_data() returns None when fetch_html raises an exception."""
-    scraper = SetupSFScraper(_club())
+    scraper = SetupScraper(_club())
 
     async def fake_fetch_html(self, url: str, **kwargs):
         raise RuntimeError("network error")
 
-    monkeypatch.setattr(SetupSFScraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(SetupScraper, "fetch_html", fake_fetch_html)
     monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
 
     result = await scraper.get_data(_CSV_URL)
@@ -378,12 +378,12 @@ async def test_get_data_returns_none_on_client_exception(monkeypatch):
 @pytest.mark.asyncio
 async def test_transformation_pipeline_produces_shows(monkeypatch):
     """Full pipeline: get_data() + transform_data() produces Show objects."""
-    scraper = SetupSFScraper(_club())
+    scraper = SetupScraper(_club())
 
     async def fake_fetch_html(self, url: str, **kwargs):
         return _future_csv()
 
-    monkeypatch.setattr(SetupSFScraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(SetupScraper, "fetch_html", fake_fetch_html)
     monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
 
     page_data = await scraper.get_data(_CSV_URL)
@@ -397,7 +397,7 @@ async def test_transformation_pipeline_produces_shows(monkeypatch):
 @pytest.mark.asyncio
 async def test_transformation_pipeline_preserves_event_name(monkeypatch):
     """transform_data() preserves the event title as the Show name."""
-    scraper = SetupSFScraper(_club())
+    scraper = SetupScraper(_club())
 
     csv_text = _csv_rows(
         ("2099-04-03", "9:00 PM", "The Setup at The Palace Theater", "The Palace Theater",
@@ -407,7 +407,7 @@ async def test_transformation_pipeline_preserves_event_name(monkeypatch):
     async def fake_fetch_html(self, url: str, **kwargs):
         return csv_text
 
-    monkeypatch.setattr(SetupSFScraper, "fetch_html", fake_fetch_html)
+    monkeypatch.setattr(SetupScraper, "fetch_html", fake_fetch_html)
     monkeypatch.setattr(scraper.rate_limiter, "await_if_needed", lambda url: __import__("asyncio").sleep(0))
 
     page_data = await scraper.get_data(_CSV_URL)

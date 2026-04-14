@@ -1,20 +1,20 @@
-"""The Setup SF event extraction from Google Sheets CSV."""
+"""The Setup event extraction from Google Sheets CSV."""
 
 import csv
 import io
 from datetime import date
 from typing import List
 
-from laughtrack.core.entities.event.setup_sf import SetupSFEvent
+from laughtrack.core.entities.event.setup import SetupEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 
-class SetupSFExtractor:
-    """Converts raw Google Sheets CSV text into SetupSFEvent objects."""
+class SetupExtractor:
+    """Converts raw Google Sheets CSV text into SetupEvent objects."""
 
     @staticmethod
-    def extract_events(csv_text: str, today: date | None = None) -> List[SetupSFEvent]:
-        """Extract SetupSFEvent objects from the published Google Sheets CSV.
+    def extract_events(csv_text: str, today: date | None = None) -> List[SetupEvent]:
+        """Extract SetupEvent objects from the published Google Sheets CSV.
 
         Args:
             csv_text: Raw CSV text from the Google Sheets publish URL.
@@ -22,7 +22,7 @@ class SetupSFExtractor:
                    Defaults to date.today().
 
         Returns:
-            List of SetupSFEvent objects for upcoming shows.
+            List of SetupEvent objects for upcoming shows.
         """
         if today is None:
             today = date.today()
@@ -31,23 +31,23 @@ class SetupSFExtractor:
         # which would corrupt the first column header (e.g. '\ufeffdate' ≠ 'date').
         csv_text = csv_text.lstrip('\ufeff')
 
-        events: List[SetupSFEvent] = []
+        events: List[SetupEvent] = []
         try:
             reader = csv.DictReader(io.StringIO(csv_text))
             for row in reader:
                 try:
-                    event = SetupSFExtractor._parse_row(row, today)
+                    event = SetupExtractor._parse_row(row, today)
                     if event is not None:
                         events.append(event)
                 except Exception as e:
-                    Logger.warn(f"SetupSFExtractor: skipping row due to error: {e}")
+                    Logger.warn(f"SetupExtractor: skipping row due to error: {e}")
         except Exception as e:
-            Logger.error(f"SetupSFExtractor: failed to parse CSV: {e}")
+            Logger.error(f"SetupExtractor: failed to parse CSV: {e}")
         return events
 
     @staticmethod
-    def _parse_row(row: dict, today: date) -> SetupSFEvent | None:
-        """Parse a single CSV row into a SetupSFEvent, or None to skip."""
+    def _parse_row(row: dict, today: date) -> SetupEvent | None:
+        """Parse a single CSV row into a SetupEvent, or None to skip."""
         raw_date = (row.get("date") or "").strip()
         raw_time = (row.get("time") or "").strip()
         title = (row.get("title") or "").strip()
@@ -68,7 +68,7 @@ class SetupSFExtractor:
         sold_out_raw = (row.get("sold_out") or "").strip().lower()
         sold_out = sold_out_raw in ("true", "1", "yes", "sold out")
 
-        return SetupSFEvent(
+        return SetupEvent(
             date=raw_date,
             time=raw_time,
             title=title,
