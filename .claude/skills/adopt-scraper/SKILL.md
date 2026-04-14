@@ -47,6 +47,21 @@ The ticket `purchase_url` (on the Ticket entity) can still point to the third-pa
 platform for checkout — it's the `show_page_url` on the Show that must point to the
 club's site whenever possible.
 
+## Step 0: Look Up Existing Club Data
+
+If the club already exists in the database (e.g., triage tasks), fetch its current
+record first — this gives you the scraper type, platform IDs, website, and location
+without guessing column names:
+
+```bash
+make -C "$(git rev-parse --show-toplevel)/apps/scraper" club CLUB='<Club Name>'
+# or by ID:
+make -C "$(git rev-parse --show-toplevel)/apps/scraper" club ID=<club_id>
+```
+
+Use this output to inform your research — e.g., check the existing `seatengine_id`,
+`eventbrite_id`, or `scraping_url` before searching the web.
+
 ## Step 1: Research the Venue
 
 ### 1a. Find the Club Website
@@ -105,6 +120,8 @@ or JavaScript. These patterns let us scrape from the club's site (keeping
 | `app.opendate.io` / `confirm-card` divs | OpenDate | venue-specific |
 | `eventRow` / `dateTime` / `event-btn` CSS classes | TicketSource | venue-specific |
 | `events.humanitix.com/host/` links | Humanitix | `json_ld` (generic) |
+| `showpass.com/widget/` iframe or `showpass.com` buy links | Showpass | venue-specific (ref: `comedy_cave`) |
+| `app.showslinger.com` iframe / `promo_widget_v3` embed | ShowSlinger | venue-specific |
 
 If a match is found, skip to Step 3. The scraper will fetch from the club's URL.
 
@@ -148,6 +165,7 @@ Look for these API calls (ordered by preference — club-hosted APIs first):
 | `editmysite.com/app/store/api/` | Square Online (Weebly) | venue-specific | Club site |
 | `api.ninkashi.com` | Ninkashi | `ninkashi` (generic) | Third-party |
 | `vivenu` | Vivenu | `vivenu` (generic) | Third-party |
+| `showpass.com/api/public/venues/` | Showpass | venue-specific (ref: `comedy_cave`) | Third-party |
 
 If Playwright fails (Chrome conflict), fall back to reading the page source via
 WebFetch and looking for `<script>` tags, `data-` attributes, or embedded iframes.
@@ -161,23 +179,24 @@ If no API calls match, inspect the page HTML for remaining widget patterns:
 | `data-compId` on Wix widget / `wixstatic.com` | Wix Events | venue-specific |
 | `squadup = { userId:` in JS | SquadUP | venue-specific |
 
-### 2e. No Match — Mandatory Playwright Inspection Before Giving Up
+### 2e. No Match — Mandatory Deep Inspection Before Giving Up
 
 **CRITICAL: Before concluding a platform is unsupported or recommending hide/close,
-you MUST open the venue's events page in Playwright MCP and inspect network requests.**
-Many ticketing platforms load event data entirely via client-side JavaScript — static
-HTML and WebFetch will show nothing while the actual API is fully scrapable.
+you MUST run `/investigate-site` on the venue's events page URL.** This opens the page
+in Playwright MCP, captures all network requests, inspects page source for widget
+patterns, and reports any detected platform and API endpoints.
 
 ```
-browser_navigate → <events page URL>
-browser_network_requests (static: false)
+/investigate-site <events page URL>
 ```
 
-Look for ANY JSON API call that returns event/product/show data — even if the platform
-is not in the tables above. A clean JSON API with structured event data (dates, names,
-prices) is always scrapable with a venue-specific scraper.
+The skill returns a structured report with detected platform, API URLs, and a
+recommendation. Use that report to inform your decision.
 
-**Only after Playwright inspection confirms no scrapable API exists**, proceed:
+If `/investigate-site` detects a platform or API endpoint, use its recommendation to
+proceed with Step 3 (configure the appropriate scraper).
+
+**Only after `/investigate-site` confirms no scrapable API exists**, proceed:
 - Check if the venue uses a **tour_dates / Bandsintown** widget — these are NOT
   sufficient for a dedicated scraper (per project feedback). Note this in the task.
 - If the site is purely static HTML with show listings, a custom HTML scraper may
@@ -219,7 +238,7 @@ Each generic scraper needs a platform-specific identifier:
 | `ticketweb` | `scraping_url` | The club's calendar/events page URL containing the TicketWeb WordPress plugin (`var all_events` JS array + `tw-plugin-calendar` classes) |
 | `live_nation` | `ticketmaster_id` | Search Discovery API: `curl -s "https://app.ticketmaster.com/discovery/v2/venues.json?apikey=$TICKETMASTER_API_KEY&keyword=<name>&countryCode=US"` — use the alphanumeric `id` field (e.g., `KovZpZAJalFA`), NOT a numeric ID |
 | `eventbrite` | `eventbrite_id` | Extract organizer ID (11 digits) or venue ID (8-9 digits) from the Eventbrite URL |
-| `seatengine` | `seatengine_id` | Numeric ID from `{venue}.seatengine.net` URL (1-700 range) |
+| `seatengine` | `seatengine_id` | Numeric ID from `{venue}.seatengine.net` URL (1-700 range). **If the stored ID returns 0 events**, fetch a live show page from the SeatEngine domain (`<slug>.seatengine.com/shows/<show_id>`) and grep for `venue_id` in the HTML — the real numeric ID is embedded in the page's JSON data (e.g., `"venue_id":366`). The stored ID may be stale after SeatEngine migrations. |
 | `seatengine_v3` | `seatengine_id` | UUID from `v-{uuid}.seatengine.net` URL |
 | `json_ld` | `scraping_url` | The events page URL containing JSON-LD Event markup |
 | `the_rockwell` | `scraping_url` | The Tribe Events REST API base URL |
@@ -227,7 +246,21 @@ Each generic scraper needs a platform-specific identifier:
 | `ninkashi` | `scraping_url` | The tickets subdomain (e.g., `tickets.myvenue.com`) |
 | `vivenu` | `scraping_url` | The Vivenu seller page root URL |
 
-**3A-2. Create the Migration**
+**3A-2. Check for Duplicate Club Names**
+
+Before creating a migration, verify the intended club name doesn't already exist in
+the database (venues sometimes rebrand, and a second record may already be onboarded
+under the new name):
+
+```bash
+make -C "$(git rev-parse --show-toplevel)/apps/scraper" club CLUB='<New Club Name>'
+```
+
+If a match is found, the venue is a **duplicate** — hide the old record instead of
+creating a new one. Write a migration that sets `visible = false` on the old club ID
+and skip the INSERT below.
+
+**3A-3. Create the Migration**
 
 Create a Prisma migration file:
 
@@ -384,24 +417,7 @@ Replace `<MIGRATION_DIR>` with the actual migration directory name (e.g., `20260
 Verify the club was inserted:
 
 ```bash
-cd apps/scraper && .venv/bin/python3 -c "
-import os, json
-from dotenv import load_dotenv
-load_dotenv('.env')
-import psycopg2
-conn = psycopg2.connect(
-    host=os.environ['DATABASE_HOST'],
-    user=os.environ['DATABASE_USER'],
-    password=os.environ['DATABASE_PASSWORD'],
-    dbname=os.environ['DATABASE_NAME'],
-    port=int(os.environ.get('DATABASE_PORT', '5432')),
-    sslmode='require'
-)
-cur = conn.cursor()
-cur.execute(\"SELECT id, name, city, state, scraper, website FROM clubs WHERE LOWER(name) LIKE LOWER(%s)\", ('%<club_name>%',))
-print(json.dumps([dict(zip(['id','name','city','state','scraper','website'], r)) for r in cur.fetchall()], indent=2))
-conn.close()
-"
+make -C "$(git rev-parse --show-toplevel)/apps/scraper" club CLUB='<Club Name>'
 ```
 
 ### 4b. Run a Test Scrape
