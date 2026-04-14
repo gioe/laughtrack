@@ -1,11 +1,10 @@
 """
 Data model for a single event from the Showpass public calendar API.
 
-Comedy Cave (Calgary, AB) uses a Showpass embedded widget.  Upcoming shows are
-available via the public calendar endpoint:
+Venues using Showpass for ticketing publish upcoming shows via:
 
   GET https://www.showpass.com/api/public/venues/{slug}/calendar/
-      ?venue__in={venue_id}&only_parents=true&page_size=100
+      ?only_parents=true&page_size=100
       &ends_on__gte={start}&starts_on__lt={end}
 
 Each item in the ``results`` array represents one show with title, dates
@@ -85,8 +84,9 @@ class ShowpassEvent(ShowConvertible):
         ticket_url = f"https://www.showpass.com/{self.slug}/"
         tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url, sold_out=self.sold_out)]
 
-        # Use the club's shows page as show_page_url (drives traffic to venue)
-        show_page_url = url or (club.scraping_url or club.website or ticket_url)
+        # Use the club's website as show_page_url (drives traffic to venue).
+        # scraping_url is the Showpass API URL, not suitable for display.
+        show_page_url = url or (club.website or ticket_url)
 
         lineup = []
         comedian_name = self._extract_comedian_name()
