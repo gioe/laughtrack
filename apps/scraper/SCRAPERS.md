@@ -30,6 +30,11 @@ Is there a tixr.com buy link?
   └── YES → platform: Tixr → new venue-specific scraper required
               (see Tixr section — short/long URL format matters)
 
+Is there a Showpass widget or showpass.com buy link?
+  └── YES → platform: Showpass → new venue-specific scraper required
+              (see Showpass section — use comedy_cave scraper as reference)
+              DB: scraping_url = club's shows page URL
+
 Check browser network requests (browser_navigate + browser_network_requests):
   └── tockify.com/api/tagoptions/<calname>   → platform: Tockify
                                                 → new venue-specific scraper required
@@ -41,6 +46,11 @@ Check browser network requests (browser_navigate + browser_network_requests):
                                                 → new venue-specific scraper required
   └── /.netlify/functions/availability       → platform: Netlify Functions
                                                 → new venue-specific scraper required
+  └── showpass.com/api/public/venues/          → platform: Showpass
+                                                → new venue-specific scraper required
+  └── editmysite.com/app/store/api/          → platform: Square Online (Weebly)
+                                                → new venue-specific scraper required
+                                                (see Square Online section — use coral_gables_comedy_club as reference)
   └── /wp-json/tribe/events/v1/events        → platform: Tribe Events Calendar (WordPress)
                                                 → scraper: the_rockwell (generic; set scraping_url)
 
@@ -388,6 +398,18 @@ The innermost `comp-xxxx` result is the `compId`.
 - `categoryId` is NOT required unless the venue uses Wix event categories
 - API: `POST /_api/wix-one-events-server/web/paginated-events/viewer?compId=<compId>` — paginated event list
 - Requires an OAuth access token fetched first from `/_api/v1/access-tokens`
+
+**Schedule-page variant (no compId):**
+Some Wix venues use the Wix Events "Schedule" full-page app instead of embedding a
+widget on a regular page. These venues have a `/schedule` page but no `compId`.
+Detection: navigate to the schedule page and look for `data-hook="EVENTS_ROOT_NODE"`
+with a `TPAMultiSection_*` parent (not a `comp-*` widget).
+
+For these venues:
+- Set `scraper = 'wix_events'` and `scraping_url` to the site root
+- Leave `wix_comp_id` NULL — the `paginated-events/viewer` API returns all events
+  without a `compId` param when authenticated
+- The scraper automatically omits `compId` from the request when it's not set
 
 ---
 
@@ -926,6 +948,11 @@ VALUES (..., 'comedy_corner_underground', 'https://comedycornerunderground.stage
 
 **Both patterns** use `Production({id})/performance?` with `clientId` and `newCIRequest: true` headers. The client/org ID appears in the production URL on the venue's buy page.
 
+**Pattern 3 — Generic OvationTix scraper (e.g. Comedy @ The Carlson, Side Splitters)**
+- Uses scraper key `ovationtix` — reads `ovationtix_client_id` from the club record
+- `scraping_url` **must** be `https://web.ovationtix.com/trs/cal/{clientId}` (server-rendered calendar page). Do NOT use `ci.ovationtix.com/{clientId}` — that is a JS SPA and the HTML contains no production IDs for the scraper to discover.
+- Discovers all production IDs from the calendar HTML, fetches performances and pricing automatically
+
 **Ticket pricing:** fetched via a separate `Performance({id})` call per upcoming show. Response `sections[].ticketTypeViews` provides per-tier pricing. Format the ticket `type` as `f"{ticketGroupName} - {name}"` (e.g. `"General - Adult"`) to match `OvationTixClient._extract_ticket_data()` and avoid dedup key mismatches.
 
 ---
@@ -975,6 +1002,261 @@ The `?per_page=500` parameter is **required** — the default returns only ~50 e
 1. Find the venue slug from their OpenDate page URL: `app.opendate.io/v/{slug}`
 2. Copy the `sports_drink/` scraper directory as the reference implementation
 3. Update the venue slug constant
+
+---
+
+### Fienta
+
+| | |
+|---|---|
+| **Scraper key** | venue-specific (ref: `madrid_comedy_lab`) |
+| **DB field** | `scraping_url` |
+| **Value format** | `https://fienta.com/api/v1/public/events?organizer={organizer_id}` |
+| **Generic?** | ❌ New venue-specific scraper required |
+
+**Detection signals:**
+- Venue website loads events via JavaScript calling `fienta.com/api/v1/public/events`
+- Buy/ticket links point to `fienta.com/{event-slug}`
+- Venue listed on `fienta.com/o/{organizer-slug}`
+
+**API endpoint:**
+```
+https://fienta.com/api/v1/public/events?organizer={organizer_id}
+```
+Returns a JSON object with `events` array containing all upcoming events. No pagination needed — all events are returned in a single response.
+
+**Response structure:**
+```json
+{
+  "success": {"code": 200},
+  "count": 25,
+  "events": [
+    {
+      "id": 177670,
+      "title": "Dark Humour Night",
+      "starts_at": "2026-04-09 20:30:00",
+      "ends_at": "2026-04-09 22:00:00",
+      "url": "https://fienta.com/dark-humour-night-lab-177670",
+      "sale_status": "onSale",
+      "address": "...",
+      "description": "<p>...</p>"
+    }
+  ]
+}
+```
+
+**Key extraction notes:**
+1. `starts_at` and `ends_at` are in the organizer's local timezone (no UTC offset)
+2. `sale_status` can be `"onSale"` or `"soldOut"` — use for ticket availability
+3. Some organizers mix non-show items (gift vouchers) — filter by title keywords
+4. Find the `organizer_id` by inspecting the venue website's JS source for the API call
+
+**To onboard a new Fienta venue:**
+1. Find the organizer ID from the venue website's JavaScript (`fienta.com/api/v1/public/events?organizer=XXXXX`)
+2. Copy the `madrid_comedy_lab/` scraper directory as the reference implementation
+3. Update the organizer ID constant and title exclusion filters
+
+---
+
+### Showpass
+
+| | |
+|---|---|
+| **Scraper key** | venue-specific (ref: `comedy_cave`) |
+| **DB field** | `scraping_url` |
+| **Value format** | Club's shows/events page URL (e.g. `https://comedycave.com/shows/`) |
+| **Generic?** | Not yet — venue-specific scraper required. Can be generalized if more Showpass venues appear. |
+
+**Detection signals:**
+- Venue website embeds a Showpass calendar widget (iframe to `showpass.com/widget/tickets/events/calendar/{venue_id}/`)
+- Buy/ticket links point to `showpass.com/{event-slug}/`
+- Network requests to `showpass.com/api/public/venues/{slug}/calendar/`
+- Venue listed on `showpass.com/o/{organizer-slug}`
+
+**API endpoint:**
+```
+GET https://www.showpass.com/api/public/venues/{slug}/calendar/
+    ?venue__in={venue_id}
+    &only_parents=true
+    &page_size=100
+    &ends_on__gte={start}
+    &starts_on__lt={end}
+    &slug={slug}
+    &version=1
+```
+Returns a JSON object with a `results` array. No auth required. Paginate by month.
+
+**IMPORTANT:** Datetime parameters must use `.000Z` suffix (e.g. `2026-04-01T00:00:00.000Z`),
+NOT `+00:00`. The API returns HTTP 400 for `+00:00` format.
+
+**Response structure:**
+```json
+{
+  "results": [
+    {
+      "id": 1500904,
+      "name": "Performing April 13 : Tre Stewart",
+      "slug": "performing-april-13-tre-stewart",
+      "starts_on": "2026-04-14T01:30:00+00:00",
+      "ends_on": "2026-04-14T03:00:00+00:00",
+      "timezone": "America/Edmonton",
+      "sold_out": false,
+      "status": "sp_event_active",
+      "description": "<p>...</p>",
+      "image_banner": "images/events/comedy-cave/img-banner/..."
+    }
+  ]
+}
+```
+
+**Key extraction notes:**
+1. `starts_on`/`ends_on` are ISO 8601 with UTC offset — parse with `datetime.fromisoformat()`
+2. `status` should be `"sp_event_active"` — skip other statuses
+3. Comedian name is often in the event `name` field as "Performing <date> : <Name>"
+4. Ticket URL: `https://www.showpass.com/{slug}/`
+5. Find the venue ID and slug by inspecting the embedded widget URL or network requests
+
+**To onboard a new Showpass venue:**
+1. Find the venue ID and slug from the embedded widget URL (`/widget/tickets/events/calendar/{venue_id}/`) or API calls
+2. Copy the `comedy_cave/` scraper directory as the reference implementation
+3. Update the venue slug and ID constants, and adjust the name regex if the venue uses a different title format
+
+---
+
+### Square Online (Weebly)
+
+| | |
+|---|---|
+| **Scraper key** | venue-specific (ref: `coral_gables_comedy_club`) |
+| **DB field** | `scraping_url` (full products API URL) |
+| **Value format** | `https://cdn5.editmysite.com/app/store/api/v28/editor/users/{user_id}/sites/{site_id}/products?product_type=event&visibilities[]=visible&per_page=50&include=images,media_files&excluded_fulfillment=dine_in` |
+| **Generic?** | ❌ New venue-specific scraper required |
+
+**Detection signals:**
+- `window.__BOOTSTRAP_STATE__` in page source contains `squareMerchantId`
+- Network requests to `cdn5.editmysite.com/app/store/api/` or `editmysite.com/app/store/api/`
+- `square.online` or `web.squarecdn.com/v1/square.js` script references
+- Site built on Weebly/Square Online (check footer or page source for `weebly` references)
+
+**API details:**
+- Public storefront API — no auth required
+- Returns products with `product_type=event` containing full event details
+- Event data is in `product_type_details`: `start_date`, `start_time`, `timezone`, `address`
+- Performer names are in the product `name` field (often delimited by " & ")
+- Prices are in `price.regular` (in cents)
+- Sold-out status in `badges.out_of_stock`
+- Ticket URLs are relative (`site_link` field) — prepend the venue domain
+
+**Key non-obvious details:**
+1. The `user_id` and `site_id` are visible in the network request URL when the page loads events.
+   They can also be found in `__BOOTSTRAP_STATE__` as `properties.classicSiteID` (site_id) and
+   in the store API URLs captured via Playwright network inspection.
+2. Static HTML contains almost no event data — events are loaded client-side via JS.
+   Always use Playwright `browser_network_requests` to discover the API URL.
+3. Past events are returned alongside upcoming ones — filter by `start_date >= today`.
+
+**To onboard a new Square Online venue:**
+1. Navigate in Playwright → capture `browser_network_requests` → find `editmysite.com/app/store/api/.../products?product_type=event` call
+2. Extract `user_id` and `site_id` from the URL path
+3. Copy the `coral_gables_comedy_club/` scraper directory as the reference implementation
+4. Update the event entity and scraper key for the new venue
+
+---
+
+### Shopify
+
+| | |
+|---|---|
+| **Scraper key** | `shopify` |
+| **DB field** | `scraping_url` |
+| **Value format** | Shopify collection page URL (e.g. `https://americancomedyco.com/collections/shows`) |
+| **Generic?** | ✅ Yes — new venues need only a DB row, no Python changes |
+
+**Detection signals:**
+- Venue sells tickets as Shopify "products" (Add to Cart → Shopify checkout)
+- URL path contains `/collections/{handle}` (e.g. `/collections/shows`, `/collections/events`)
+- Appending `/products.json` to the collection URL returns a JSON object with a `products` array
+- Page source contains `cdn.shopify.com` or `Shopify.theme` references
+- Checkout redirects to `{domain}/checkouts/` or `checkout.shopify.com`
+
+**API endpoint:**
+```
+GET https://{domain}/collections/{handle}/products.json?limit=250
+```
+Public, no auth required. Returns up to 250 products in a single request — no pagination needed.
+
+**Response structure:**
+```json
+{
+  "products": [
+    {
+      "id": 123456,
+      "title": "Michael Rapaport LIVE! [THU]",
+      "handle": "michael-rapaport-live-thu",
+      "body_html": "<p>...</p>",
+      "images": [{ "src": "https://cdn.shopify.com/..." }],
+      "tags": ["comedy", "headliner"],
+      "variants": [
+        {
+          "id": 456789,
+          "title": "Thursday April 9 2026 / 8:00pm General Admission",
+          "price": "25.00",
+          "available": true
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Two date/time parsing formats (tried in order):**
+
+1. **Format A — date in variant title:** Each variant encodes a specific date/time
+   (e.g. `"Thursday April 9 2026 / 8:00pm General Admission"`). Multiple variants per
+   product → one show per unique (date, time) combo. Lowest price among matching variants.
+
+2. **Format B — date in product title:** Product title contains the date/time
+   (e.g. `"Sat Apr 11th @6:30pm - Des Mulrooney, Caleb Synan and Landry"`). Variants
+   are ticket tiers only (General Admission, VIP). One show per product.
+
+The extractor tries Format A first; if no variant yields a date, falls back to Format B.
+Products where neither format matches are skipped.
+
+**Comedian name extraction:**
+- Format A: Cleaned from product title (strips "LIVE!", day markers like "[THU]", parenthetical notes)
+- Format B: Text after the ` - ` separator in the product title
+
+**Key implementation details:**
+- Ticket URL constructed from `scraping_url` domain + product `handle`:
+  `https://{domain}/products/{handle}`
+- Price: lowest among applicable variants (in dollars, e.g. `"25.00"`)
+- Availability: `true` if any matching variant is available
+- Timezone: uses `club.timezone` from DB; defaults to `America/Los_Angeles`
+- No pagination — `limit=250` covers all products in a single request
+
+**DB setup:**
+```sql
+UPDATE clubs
+SET scraper = 'shopify',
+    scraping_url = 'https://example.com/collections/shows'
+WHERE name = 'My Comedy Club';
+```
+The scraper appends `/products.json?limit=250` at runtime — store only the collection page URL.
+
+**Reference implementation:** `american_comedy_co/`
+
+**To onboard a new Shopify venue:**
+1. Confirm the venue uses Shopify — check for `/collections/` URL and `products.json` API
+2. Find the correct collection handle (usually `shows` or `events`)
+3. Verify the API returns data: `curl 'https://{domain}/collections/{handle}/products.json?limit=1' | python3 -m json.tool`
+4. Insert/update the DB row with `scraper='shopify'` and `scraping_url` pointing to the collection page
+5. Run `make scrape-club CLUB='<name>'` from `apps/scraper/` to verify
+
+**Troubleshooting:**
+- **0 events but products exist:** Check that variant or product titles match one of the two date formats.
+  Custom title formats require extending the regex patterns in `ShopifyExtractor`.
+- **403 or empty response:** Some Shopify stores restrict the JSON API by region or bot detection.
+  Test with the scraper's Playwright browser fallback if `fetch_json` fails.
 
 ---
 
@@ -1075,7 +1357,9 @@ Before implementing a second location, fetch one day's HTML from the new locatio
 | StageTime | venue-specific | **Yes** — new scraper dir | `scraping_url` |
 | OvationTix (calendar) | `uncle_vinnies` | **Yes** — replace production IDs | `scraping_url` |
 | OvationTix (direct) | `four_day_weekend` | **Yes** — replace production IDs | `scraping_url` |
+| OvationTix (generic) | `ovationtix` | **No** — set `ovationtix_client_id` | `scraping_url` = `web.ovationtix.com/trs/cal/{clientId}` |
 | OpenDate | venue-specific | **Yes** — ref: `sports_drink` | `scraping_url` |
+| Square Online (Weebly) | venue-specific | **Yes** — ref: `coral_gables_comedy_club` | `scraping_url` (full products API URL) |
 
 ---
 
@@ -1141,5 +1425,6 @@ Confirm shows are scraped with correct dates (timestamps ÷ 1000 → seconds), t
 | `json_ld` | `scraping_url` (events page with JSON-LD markup, e.g. Prekindle, Humanitix) |
 | `ninkashi` | `scraping_url` (tickets subdomain, e.g. `tickets.myvenue.com`) |
 | `vivenu` | `scraping_url` (Vivenu seller page root URL) |
+| `comedy_cave` | `scraping_url` (club's shows page; Showpass venue ID/slug hardcoded in scraper) |
 | `east_austin_comedy` | `scraping_url` (homepage anchor; unused at runtime) |
 | All venue-specific | `scraping_url` (venue calendar page or API URL) |
