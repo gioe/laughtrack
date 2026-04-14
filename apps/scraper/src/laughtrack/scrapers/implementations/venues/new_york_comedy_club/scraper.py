@@ -86,7 +86,7 @@ def _normalize_street(address: str) -> str:
     if not address:
         return ""
 
-    street = address.split(",")[0].strip().lower()
+    street = address.split(",")[0].strip().lower().rstrip(".")
 
     replacements = {
         " street": " st",
