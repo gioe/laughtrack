@@ -4,8 +4,11 @@ Documents the purpose and usage of each model in `schema.prisma`.
 
 ## Core Entities
 
+### Chain
+A comedy club chain/brand (e.g., Improv, Helium, Funny Bone). Groups multiple Club locations under one parent brand. Has a unique name, slug, and optional brand-level website.
+
 ### Club
-Comedy club venue. Has shows, tags, email subscriptions, and processed emails.
+Comedy club venue. Has shows, tags, email subscriptions, and processed emails. Optionally belongs to a Chain via chainId FK.
 
 ### Comedian
 Individual comedian. Has social media stats, popularity, alternate names (aliases), favorites, and lineup appearances.
