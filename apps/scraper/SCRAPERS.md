@@ -31,9 +31,9 @@ Is there a tixr.com buy link?
               (see Tixr section — short/long URL format matters)
 
 Is there a Showpass widget or showpass.com buy link?
-  └── YES → platform: Showpass → new venue-specific scraper required
-              (see Showpass section — use comedy_cave scraper as reference)
-              DB: scraping_url = club's shows page URL
+  └── YES → platform: Showpass → scraper = 'showpass' (generic)
+              DB: scraping_url = Showpass calendar API base URL
+              (see Showpass section for details)
 
 Check browser network requests (browser_navigate + browser_network_requests):
   └── tockify.com/api/tagoptions/<calname>   → platform: Tockify
@@ -1062,10 +1062,10 @@ Returns a JSON object with `events` array containing all upcoming events. No pag
 
 | | |
 |---|---|
-| **Scraper key** | venue-specific (ref: `comedy_cave`) |
+| **Scraper key** | `showpass` |
 | **DB field** | `scraping_url` |
-| **Value format** | Club's shows/events page URL (e.g. `https://comedycave.com/shows/`) |
-| **Generic?** | Not yet — venue-specific scraper required. Can be generalized if more Showpass venues appear. |
+| **Value format** | Showpass calendar API base URL: `https://www.showpass.com/api/public/venues/{slug}/calendar/` |
+| **Generic?** | ✅ DB-only onboarding — no Python changes needed |
 
 **Detection signals:**
 - Venue website embeds a Showpass calendar widget (iframe to `showpass.com/widget/tickets/events/calendar/{venue_id}/`)
@@ -1076,8 +1076,7 @@ Returns a JSON object with `events` array containing all upcoming events. No pag
 **API endpoint:**
 ```
 GET https://www.showpass.com/api/public/venues/{slug}/calendar/
-    ?venue__in={venue_id}
-    &only_parents=true
+    ?only_parents=true
     &page_size=100
     &ends_on__gte={start}
     &starts_on__lt={end}
@@ -1114,12 +1113,12 @@ NOT `+00:00`. The API returns HTTP 400 for `+00:00` format.
 2. `status` should be `"sp_event_active"` — skip other statuses
 3. Comedian name is often in the event `name` field as "Performing <date> : <Name>"
 4. Ticket URL: `https://www.showpass.com/{slug}/`
-5. Find the venue ID and slug by inspecting the embedded widget URL or network requests
+5. Find the venue slug by inspecting the embedded widget URL or network requests
 
 **To onboard a new Showpass venue:**
-1. Find the venue ID and slug from the embedded widget URL (`/widget/tickets/events/calendar/{venue_id}/`) or API calls
-2. Copy the `comedy_cave/` scraper directory as the reference implementation
-3. Update the venue slug and ID constants, and adjust the name regex if the venue uses a different title format
+1. Find the venue slug from the embedded widget URL or API network requests
+2. Insert a DB row: `scraper = 'showpass'`, `scraping_url = 'https://www.showpass.com/api/public/venues/{slug}/calendar/'`
+3. Set `website` to the venue's own website URL (used as the show page URL for traffic attribution)
 
 ---
 
@@ -1425,6 +1424,6 @@ Confirm shows are scraped with correct dates (timestamps ÷ 1000 → seconds), t
 | `json_ld` | `scraping_url` (events page with JSON-LD markup, e.g. Prekindle, Humanitix) |
 | `ninkashi` | `scraping_url` (tickets subdomain, e.g. `tickets.myvenue.com`) |
 | `vivenu` | `scraping_url` (Vivenu seller page root URL) |
-| `comedy_cave` | `scraping_url` (club's shows page; Showpass venue ID/slug hardcoded in scraper) |
+| `showpass` | `scraping_url` (Showpass calendar API base URL: `.../venues/{slug}/calendar/`) |
 | `east_austin_comedy` | `scraping_url` (homepage anchor; unused at runtime) |
 | All venue-specific | `scraping_url` (venue calendar page or API URL) |
