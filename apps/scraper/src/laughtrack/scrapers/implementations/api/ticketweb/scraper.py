@@ -33,7 +33,12 @@ class TicketWebScraper(BaseScraper):
         self._calendar_events: Dict[str, Dict] = {}
 
     async def collect_scraping_targets(self) -> List[str]:
-        """Fetch the calendar page and discover event detail URLs."""
+        """Fetch the calendar page and discover event detail URLs.
+
+        Tries the inline ``var all_events`` JS array first. If absent, falls
+        back to parsing the HTML-based ``tw-plugin-upcoming-event-list`` markup
+        and follows pagination links to gather all pages.
+        """
         calendar_url = self.club.scraping_url
         if not calendar_url:
             Logger.error(
@@ -46,10 +51,29 @@ class TicketWebScraper(BaseScraper):
         if not html:
             return []
 
+        # Primary: try the JS-based calendar array
         events = TicketWebExtractor.extract_calendar_events(html)
+
+        # Fallback: parse the server-rendered HTML event list with pagination
+        if not events:
+            events = TicketWebExtractor.extract_html_calendar_events(html)
+            # Follow pagination links (up to 10 pages to avoid runaway loops)
+            page_html = html
+            for _ in range(9):
+                next_url = TicketWebExtractor.extract_next_page_url(page_html)
+                if not next_url:
+                    break
+                page_html = await self.fetch_html(next_url)
+                if not page_html:
+                    break
+                page_events = TicketWebExtractor.extract_html_calendar_events(page_html)
+                if not page_events:
+                    break
+                events.extend(page_events)
+
         if not events:
             Logger.warn(
-                f"{self._log_prefix}: No events found in calendar JS on {calendar_url}"
+                f"{self._log_prefix}: No events found on {calendar_url}"
             )
             return []
 

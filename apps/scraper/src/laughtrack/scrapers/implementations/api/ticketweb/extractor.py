@@ -2,6 +2,9 @@
 
 Phase 1: Parse the inline `var all_events = [...]` JS array from the calendar page
          to discover event names, dates, and detail page URLs.
+         Fallback: parse the HTML-based ``tw-plugin-upcoming-event-list`` markup
+         when the JS array is absent (some TicketWeb plugin configurations render
+         events as server-side HTML instead of a client-side JS calendar).
 Phase 2: Parse each event detail page to extract the TicketWeb ticket purchase URL
          and sold-out status.
 """
@@ -9,6 +12,8 @@ Phase 2: Parse each event detail page to extract the TicketWeb ticket purchase U
 import re
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
+
+from dateutil import parser as dateutil_parser
 
 from laughtrack.core.entities.event.ticketweb import TicketWebEvent
 from laughtrack.foundation.infrastructure.logger.logger import Logger
@@ -26,6 +31,25 @@ class TicketWebExtractor:
     _TITLE_PATTERN = re.compile(r"title\s*:\s*'((?:[^'\\]|\\.)*)'")
     _START_PATTERN = re.compile(r"start\s*:\s*new\s+Date\s*\(\s*'([^']+)'\s*\)")
     _URL_PATTERN = re.compile(r"url\s*:\s*'((?:[^'\\]|\\.)*)'")
+
+    # HTML-based event list patterns (server-rendered tw-plugin markup)
+    _HTML_EVENT_NAME = re.compile(
+        r'class="tw-name"[^>]*>\s*<a[^>]*>(.*?)</a>', re.DOTALL
+    )
+    _HTML_EVENT_DATE = re.compile(
+        r'class="tw-event-date"[^>]*>(.*?)</span>', re.DOTALL
+    )
+    _HTML_EVENT_TIME = re.compile(
+        r'class="tw-event-time"[^>]*>(.*?)</span>', re.DOTALL
+    )
+    _HTML_EVENT_LINK = re.compile(
+        r'class="tw-name"[^>]*>\s*<a[^>]*href="([^"]+)"', re.DOTALL
+    )
+
+    # Pagination: next page link
+    _NEXT_PAGE_PATTERN = re.compile(
+        r'<a[^>]*class="[^"]*next[^"]*"[^>]*href="([^"]+)"', re.DOTALL
+    )
 
     # Pattern for TicketWeb buy button on detail pages
     _BUY_BUTTON_PATTERN = re.compile(
@@ -82,6 +106,80 @@ class TicketWebExtractor:
             })
 
         return events
+
+    @staticmethod
+    def extract_html_calendar_events(html: str) -> List[Dict]:
+        """Parse the HTML-based ``tw-plugin-upcoming-event-list`` markup.
+
+        Used as a fallback when ``var all_events`` is absent. Each event block
+        contains ``tw-name``, ``tw-event-date``, ``tw-event-time`` elements.
+
+        Returns a list of dicts with keys: title, start_date, url.
+        """
+        events: List[Dict] = []
+        seen_urls: set = set()
+
+        # Split HTML on "seven columns" blocks — each contains one event's metadata
+        blocks = re.split(r'<div class="five columns">', html)
+
+        for block in blocks[1:]:  # skip content before the first event
+            name_match = TicketWebExtractor._HTML_EVENT_NAME.search(block)
+            date_match = TicketWebExtractor._HTML_EVENT_DATE.search(block)
+            time_match = TicketWebExtractor._HTML_EVENT_TIME.search(block)
+            link_match = TicketWebExtractor._HTML_EVENT_LINK.search(block)
+
+            if not (name_match and date_match and link_match):
+                continue
+
+            url = link_match.group(1).strip()
+            if url in seen_urls:
+                continue
+            seen_urls.add(url)
+
+            title = re.sub(r"<[^>]+>", "", name_match.group(1)).strip()
+
+            # Parse date — format is typically "Apr 17 -" or "May 9 -"
+            raw_date = re.sub(r"<[^>]+>", "", date_match.group(1)).strip()
+            raw_date = raw_date.rstrip(" -")
+
+            # Parse time — format is "Show: 9:00 PM" or "9:00 PM"
+            raw_time = ""
+            if time_match:
+                raw_time = re.sub(r"<[^>]+>", "", time_match.group(1)).strip()
+                raw_time = re.sub(r"^Show:\s*", "", raw_time).strip()
+
+            date_str = f"{raw_date} {raw_time}".strip()
+
+            try:
+                start_date = dateutil_parser.parse(date_str)
+                # dateutil defaults to the current year when no year is given.
+                # If the resulting date is more than 30 days in the past, the
+                # event likely belongs to next year (e.g., "Jan 10" parsed in
+                # November should become next January).
+                now = datetime.now()
+                from datetime import timedelta
+
+                if start_date < now - timedelta(days=30):
+                    start_date = start_date.replace(year=now.year + 1)
+            except (ValueError, TypeError):
+                Logger.warn(
+                    f"TicketWebExtractor: unparseable HTML date '{date_str}' for '{title}'"
+                )
+                continue
+
+            events.append({
+                "title": title,
+                "start_date": start_date,
+                "url": url,
+            })
+
+        return events
+
+    @staticmethod
+    def extract_next_page_url(html: str) -> Optional[str]:
+        """Extract the next-page URL from pagination links, if present."""
+        match = TicketWebExtractor._NEXT_PAGE_PATTERN.search(html)
+        return match.group(1) if match else None
 
     @staticmethod
     def extract_ticket_info(html: str) -> Tuple[Optional[str], bool]:
