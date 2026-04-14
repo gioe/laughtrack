@@ -155,7 +155,8 @@ class TestFetchHtmlProxyWiring:
         client = ConcreteClient(_make_club(), proxy_pool=pool)
         cm, _ = _make_session_cm(status_code=404)
 
-        with patch("laughtrack.core.clients.base.AsyncSession", return_value=cm):
+        with patch("laughtrack.core.clients.base.AsyncSession", return_value=cm), \
+             patch("laughtrack.foundation.infrastructure.http.client._get_js_browser", return_value=None):
             result = await client.fetch_html("https://example.com/page")
 
         assert result is None
