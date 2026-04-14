@@ -11,22 +11,23 @@
 --    Club 492 has 169 unique shows (no URL overlap) to migrate.
 -- ============================================================================
 
--- Fix name typo and website on canonical entry
-UPDATE clubs
-SET name = 'Comedy Zone Jacksonville',
-    website = 'https://www.comedyzone.com'
-WHERE id = 59;
-
 -- Migrate all shows from 492 → 59 (all 169 are unique — no URL overlap)
 UPDATE shows
 SET club_id = 59
 WHERE club_id = 492;
 
--- Hide duplicate
+-- Rename duplicate to avoid unique constraint clash, then hide it
 UPDATE clubs
-SET visible = false,
+SET name = 'Comedy Zone Jacksonville (duplicate)',
+    visible = false,
     status = 'closed'
 WHERE id = 492;
+
+-- Fix name typo and website on canonical entry
+UPDATE clubs
+SET name = 'Comedy Zone Jacksonville',
+    website = 'https://www.comedyzone.com'
+WHERE id = 59;
 
 -- ============================================================================
 -- 2. Funny Bone Columbus: keep id=308, hide id=1037
