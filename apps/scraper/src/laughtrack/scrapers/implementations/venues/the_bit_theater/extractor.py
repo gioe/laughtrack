@@ -18,12 +18,11 @@ Pagination uses /event/page/N links in a <ul class="pagination"> element.
 """
 
 import re
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 from bs4 import BeautifulSoup, Tag
 
 from laughtrack.core.entities.event.the_bit_theater import BitTheaterEvent, is_comedy_relevant
-from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 _BASE_URL = "https://www.bitimprov.org"
 
