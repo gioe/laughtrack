@@ -71,6 +71,11 @@ Check page source:
   └── tickets.{venue}.com subdomain + api.ninkashi.com network requests
         → platform: Ninkashi → scraper: ninkashi (generic; set scraping_url to subdomain)
 
+Is there a ShowSlinger widget or app.showslinger.com buy link?
+  └── YES → platform: ShowSlinger → scraper: show_slinger
+              DB: scraping_url = full combo_widget URL with id, secure_code, and origin_url
+              (see ShowSlinger section — origin_url is REQUIRED to bypass Cloudflare)
+
 None of the above → custom HTML scraper required
   (StageTime: self.__next_f.push RSC segments at {slug}.stageti.me — see StageTime section)
   (OpenDate: server-rendered confirm-card divs at app.opendate.io — see OpenDate section)
@@ -1327,6 +1332,52 @@ Before implementing a second location, fetch one day's HTML from the new locatio
 
 ---
 
+### ShowSlinger
+
+| | |
+|---|---|
+| **Scraper key** | `show_slinger` |
+| **DB field** | `scraping_url` |
+| **Value format** | Full combo widget URL: `https://app.showslinger.com/promo_widget_v3/combo_widget?id=<venue_id>&secure_code=<code>&origin_url=<club_website_url>` |
+| **Generic?** | ✅ Already generic — no code needed for new venues (uses `the_comedy_shoppe` implementation) |
+
+**Detection signals:**
+- Buy links pointing to `app.showslinger.com/ticket_payment/...`
+- Widget embed `<script>` tag referencing `showslinger.com` on the venue page
+- "Powered by ShowSlinger" footer text
+
+**⚠️ The `origin_url` parameter is REQUIRED.** Without it, the ShowSlinger widget returns a Cloudflare 403. The `origin_url` must match the club's actual website URL (the page where the widget is embedded).
+
+**Finding the widget parameters:**
+1. View the club's calendar/events page source
+2. Look for a `<script>` or `<iframe>` embed referencing `app.showslinger.com`
+3. Extract three parameters from the embed URL:
+   - `id` — the venue's numeric ID (e.g., `238`)
+   - `secure_code` — alphanumeric code (e.g., `ec8183215e`)
+   - `origin_url` — the club's website URL where the widget is embedded
+
+**HTML structure:** The widget is server-rendered (no JS execution needed). Events are in `div.signUP-admin` cards with:
+- `h4.widget-name` — event title
+- `span.widget-time` — showtime (two formats: full date "Sat, May 2, 3:00 pm" or time-only "7:30 PM" with date from `.widget-date-month` badge)
+- `a.mrk_ticket_event_url` — ticket link (href contains `/ticket_payment/<id>`)
+- `img.grid-img` — event image
+- `.widget-price` / `.price` — ticket price
+
+**DB setup:**
+```sql
+UPDATE clubs
+SET scraper = 'show_slinger',
+    scraping_url = 'https://app.showslinger.com/promo_widget_v3/combo_widget?id=238&secure_code=ec8183215e&origin_url=https://jjcomedy.com/calendar/'
+WHERE name = 'My Club';
+```
+
+**Verify:**
+```bash
+cd apps/scraper && make scrape-club CLUB='My Club'
+```
+
+---
+
 ## Generic vs. Parameterized Summary
 
 | Platform | Scraper Key | Needs Code? | Just set DB fields |
@@ -1343,6 +1394,7 @@ Before implementing a second location, fetch one day's HTML from the new locatio
 | Humanitix | `json_ld` | No | `scraping_url` (Humanitix host URL) |
 | Ninkashi | `ninkashi` | No | `scraping_url` (tickets subdomain URL) |
 | Vivenu | `vivenu` | No | `scraping_url` |
+| ShowSlinger | `show_slinger` | No | `scraping_url` (full combo_widget URL with id, secure_code, origin_url) |
 | Tixr | venue-specific | **Yes** — new scraper dir | `scraping_url` |
 | Tockify | venue-specific | **Yes** — replace calname | `scraping_url` |
 | Squarespace | venue-specific | **Yes** — replace collectionId | `scraping_url` |
@@ -1425,5 +1477,6 @@ Confirm shows are scraped with correct dates (timestamps ÷ 1000 → seconds), t
 | `ninkashi` | `scraping_url` (tickets subdomain, e.g. `tickets.myvenue.com`) |
 | `vivenu` | `scraping_url` (Vivenu seller page root URL) |
 | `showpass` | `scraping_url` (Showpass calendar API base URL: `.../venues/{slug}/calendar/`) |
+| `show_slinger` | `scraping_url` (full combo_widget URL with id, secure_code, origin_url) |
 | `east_austin_comedy` | `scraping_url` (homepage anchor; unused at runtime) |
 | All venue-specific | `scraping_url` (venue calendar page or API URL) |
