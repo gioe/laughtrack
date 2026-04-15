@@ -4,5 +4,5 @@
 
 UPDATE clubs
 SET scraper     = 'show_slinger',
-    scraping_url = 'https://app.showslinger.com/promo_widget_v3/combo_widget?id=238&secure_code=ec8183215e'
+    scraping_url = 'https://app.showslinger.com/promo_widget_v3/combo_widget?id=238&secure_code=ec8183215e&origin_url=https://jjcomedy.com/calendar/'
 WHERE id = 327;
