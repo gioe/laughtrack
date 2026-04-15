@@ -11,6 +11,7 @@ export async function GET(req: NextRequest) {
     const club = sp.get("club") ?? undefined;
     const sort = sp.get("sort") ?? undefined;
     const filters = sp.get("filters") ?? undefined;
+    const chain = sp.get("chain") ?? undefined;
     const page = sp.get("page");
     const size = sp.get("size") ?? undefined;
     const includeEmpty = sp.get("includeEmpty") ?? undefined;
@@ -27,6 +28,7 @@ export async function GET(req: NextRequest) {
                 club,
                 sort,
                 filters,
+                chain,
                 // QueryHelper uses 1-indexed pages; API is 0-indexed
                 page:
                     page !== null && page !== undefined

@@ -10,4 +10,5 @@ export interface SearchParams {
     page?: string;
     size?: string;
     includeEmpty?: string;
+    chain?: string;
 }

@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { getFilters } from "../../filters/getFilters";
+import { getChainFilters } from "../../filters/getChainFilters";
 import { EntityType } from "@/objects/enum";
 import { QueryHelper } from "@/objects/class/query/QueryHelper";
 import { findClubsWithCount } from "./findClubsWithCount";
@@ -12,15 +13,17 @@ export async function getSearchedClubs(
     try {
         const helper = new QueryHelper(requestData);
 
-        const [clubsWithCount, filters] = await Promise.all([
+        const [clubsWithCount, filters, chainFilters] = await Promise.all([
             findClubsWithCount(helper),
             getFilters(EntityType.Club, requestData.params.filters),
+            getChainFilters(),
         ]);
 
         return {
             data: clubsWithCount.clubs,
             total: clubsWithCount.totalCount,
             filters,
+            chainFilters,
         };
     } catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {

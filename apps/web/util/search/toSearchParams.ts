@@ -24,5 +24,6 @@ export function toSearchParams(
         page: pick("page"),
         size: pick("size"),
         includeEmpty: pick("includeEmpty"),
+        chain: pick("chain"),
     };
 }

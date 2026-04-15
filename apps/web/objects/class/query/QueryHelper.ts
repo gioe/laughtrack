@@ -192,6 +192,16 @@ export class QueryHelper {
         };
     }
 
+    getChainClause() {
+        const chain = this.params.chain;
+        if (!chain) {
+            return {};
+        }
+        return {
+            chain: { slug: chain },
+        };
+    }
+
     setClubName() {
         this.params = { ...this.params, club: this.slug ?? "" };
     }

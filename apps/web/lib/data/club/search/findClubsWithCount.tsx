@@ -18,6 +18,7 @@ const CLUB_SELECT = {
     chain: {
         select: {
             name: true,
+            slug: true,
         },
     },
 } as const;
@@ -51,6 +52,7 @@ export async function findClubsWithCount(
             status: "active",
             ...queryHelper.getClubNameClause(),
             ...queryHelper.getClubFiltersClause(),
+            ...queryHelper.getChainClause(),
             ...(!includeEmpty && {
                 shows: { some: { date: { gt: new Date() } } },
             }),
@@ -100,6 +102,7 @@ export async function findClubsWithCount(
                 distanceMiles: computeDistanceMiles(searchedZip, club.zipCode),
                 chainId: club.chainId ?? null,
                 chainName: club.chain?.name ?? null,
+                chainSlug: club.chain?.slug ?? null,
             })),
             totalCount,
         };
