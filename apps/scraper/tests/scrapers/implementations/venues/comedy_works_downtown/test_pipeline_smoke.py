@@ -6,8 +6,6 @@ ComedyWorksDowntownEvent.to_show() against sample HTML matching the
 actual comedyworks.com structure.
 """
 
-import pytest
-
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.event.comedy_works_downtown import (
     ComedyWorksDowntownEvent,
