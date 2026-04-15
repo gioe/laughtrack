@@ -6,8 +6,8 @@ impersonation bypasses it when the correct secure_code is included
 in the URL query string.
 
 The scraping_url stored in the DB should be the full widget URL including
-the secure_code parameter, e.g.:
-  https://app.showslinger.com/promo_widget_v3/combo_widget?id=238&secure_code=ec8183215e
+the secure_code and origin_url parameters, e.g.:
+  https://app.showslinger.com/promo_widget_v3/combo_widget?id=238&secure_code=ec8183215e&origin_url=https://jjcomedy.com/calendar/
 """
 
 from typing import Optional

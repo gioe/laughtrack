@@ -7,7 +7,7 @@ into one ShowSlingerEvent per showtime.
 
 import re
 from datetime import datetime
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 from bs4 import BeautifulSoup, Tag
 
