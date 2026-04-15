@@ -4,6 +4,7 @@ import { NotFoundError } from "@/objects/NotFoundError";
 import { ClosedClubError } from "@/objects/ClosedClubError";
 import { auth } from "@/auth";
 import ClubDetailHeader from "@/ui/pages/entity/club/header";
+import SiblingLocations from "@/ui/pages/entity/club/siblings";
 import FilterBar from "@/ui/pages/search/filterBar";
 import FilterModal from "@/ui/components/modals/filter";
 import { SearchVariant } from "@/objects/enum/searchVariant";
@@ -139,7 +140,7 @@ export default async function ClubDetailPage(props: {
         );
     }
 
-    const { data, shows, total, filters } = result!;
+    const { data, shows, total, filters, siblings } = result!;
 
     const jsonLdData = [buildClubJsonLd(data), ...shows.map(buildShowJsonLd)];
 
@@ -148,6 +149,12 @@ export default async function ClubDetailPage(props: {
             <JsonLd data={jsonLdData} />
             <FilterModal filters={filters} total={total} />
             <ClubDetailHeader club={data} />
+            {data.chainName && (
+                <SiblingLocations
+                    chainName={data.chainName}
+                    siblings={siblings}
+                />
+            )}
             <FilterBar
                 variant={SearchVariant.ClubDetail}
                 total={total}

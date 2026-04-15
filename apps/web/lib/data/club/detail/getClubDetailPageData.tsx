@@ -8,10 +8,11 @@ import { ParameterizedRequestData } from "@/objects/interface";
 import { ClubDetailResponse } from "./interface";
 import { ClosedClubError } from "@/objects/ClosedClubError";
 import { NotFoundError } from "@/objects/NotFoundError";
+import { findSiblingClubs, SiblingClubDTO } from "./findSiblingClubs";
 
 export async function getClubDetailPageData(
     requestData: ParameterizedRequestData,
-): Promise<ClubDetailResponse> {
+): Promise<ClubDetailResponse & { siblings: SiblingClubDTO[] }> {
     try {
         const helper = new QueryHelper(requestData);
         helper.setClubName();
@@ -21,11 +22,18 @@ export async function getClubDetailPageData(
             findShowsWithCount(helper),
             getFilters(EntityType.Show, requestData.params.filters),
         ]);
+
+        const siblings =
+            club.chainId && club.id
+                ? await findSiblingClubs(club.chainId, club.id)
+                : [];
+
         return {
             data: club,
             shows: showsWithCount.shows,
             total: showsWithCount.totalCount,
             filters,
+            siblings,
         };
     } catch (error) {
         if (
