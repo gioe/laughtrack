@@ -54,6 +54,12 @@ const ClubSearchCard: React.FC<ClubSearchCardProps> = ({ club }) => {
                     {locationLabel}
                 </p>
 
+                {club.chainName && (
+                    <p className="text-xs text-base-content/50 text-center font-dmSans">
+                        {club.chainName}
+                    </p>
+                )}
+
                 <div className="flex justify-center">
                     <span className="bg-copper/10 text-copper text-xs px-2 py-0.5 rounded-full font-dmSans">
                         {`${parsedClub.showCount ?? 0} upcoming shows`}
