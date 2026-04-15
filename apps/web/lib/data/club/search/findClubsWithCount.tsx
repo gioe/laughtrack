@@ -14,6 +14,12 @@ const CLUB_SELECT = {
     website: true,
     zipCode: true,
     hasImage: true,
+    chainId: true,
+    chain: {
+        select: {
+            name: true,
+        },
+    },
 } as const;
 
 // Built fresh per request to avoid capturing a stale module-load Date
@@ -92,6 +98,8 @@ export async function findClubsWithCount(
                 imageUrl: buildClubImageUrl(club.name, club.hasImage),
                 show_count: club._count.shows,
                 distanceMiles: computeDistanceMiles(searchedZip, club.zipCode),
+                chainId: club.chainId ?? null,
+                chainName: club.chain?.name ?? null,
             })),
             totalCount,
         };
