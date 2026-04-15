@@ -7,14 +7,13 @@ against SimpleTixEvent objects, and get_data() against mocked HTML responses.
 
 import pytest
 from datetime import datetime
+from typing import Optional
 from unittest.mock import patch
 
 from laughtrack.core.entities.club.model import Club
-from laughtrack.core.entities.event.simpletix import SimpleTixEvent
 from laughtrack.scrapers.implementations.api.simpletix.scraper import SimpleTixScraper
 from laughtrack.scrapers.implementations.api.simpletix.data import SimpleTixPageData
 from laughtrack.scrapers.implementations.api.simpletix.extractor import SimpleTixExtractor
-from laughtrack.scrapers.implementations.api.simpletix.transformer import SimpleTixTransformer
 
 
 SCRAPING_URL = "https://www.simpletix.com/e/comedy-night-tickets-123456"
@@ -396,7 +395,7 @@ async def test_get_data_returns_none_on_fetch_failure(monkeypatch):
     """get_data() returns None when fetch_html returns None."""
     scraper = SimpleTixScraper(_club())
 
-    async def fake_fetch_html(self, url: str, **kwargs):
+    async def fake_fetch_html(self, url: str, **kwargs) -> Optional[str]:
         return None
 
     monkeypatch.setattr(SimpleTixScraper, "fetch_html", fake_fetch_html)
