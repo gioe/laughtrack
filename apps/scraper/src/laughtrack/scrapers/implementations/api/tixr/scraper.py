@@ -71,7 +71,20 @@ class TixrScraper(BaseScraper):
             TixrPageData containing resolved TixrEvent objects, or None if no events found
         """
         try:
-            html_content = await self.fetch_html(URLUtils.normalize_url(url))
+            normalized = URLUtils.normalize_url(url)
+            # Tixr group pages (tixr.com/groups/*) are behind DataDome WAF and
+            # require a bare curl_cffi session to bypass bot detection.  Non-Tixr
+            # calendar pages (venue's own domain) are fetched via the standard
+            # HttpClient path which includes Playwright fallback.
+            if "tixr.com" in normalized:
+                html_content = await self.tixr_client._fetch_tixr_page(normalized)
+            else:
+                html_content = await self.fetch_html(normalized)
+
+            if not html_content:
+                Logger.info(f"{self._log_prefix}: No HTML content returned from {url}", self.logger_context)
+                return None
+
             all_tixr_urls = TixrExtractor.extract_tixr_urls(html_content)
 
             if not all_tixr_urls:

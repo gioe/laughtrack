@@ -81,9 +81,11 @@ async def test_get_data_returns_page_data_with_events(monkeypatch):
     """
     scraper = TixrScraper(_club())
 
+    # Mock _fetch_tixr_page (not fetch_html) because tixr.com URLs use the
+    # DataDome-safe Tixr client path in TixrScraper.get_data()
     monkeypatch.setattr(
-        scraper,
-        "fetch_html",
+        scraper.tixr_client,
+        "_fetch_tixr_page",
         AsyncMock(return_value=_group_page_html()),
     )
     monkeypatch.setattr(
@@ -109,8 +111,8 @@ async def test_get_data_returns_none_when_no_event_urls(monkeypatch):
     scraper = TixrScraper(_club())
 
     monkeypatch.setattr(
-        scraper,
-        "fetch_html",
+        scraper.tixr_client,
+        "_fetch_tixr_page",
         AsyncMock(return_value="<html><body>No events here</body></html>"),
     )
 
@@ -124,8 +126,8 @@ async def test_get_data_returns_none_when_all_events_fail(monkeypatch):
     scraper = TixrScraper(_club())
 
     monkeypatch.setattr(
-        scraper,
-        "fetch_html",
+        scraper.tixr_client,
+        "_fetch_tixr_page",
         AsyncMock(return_value=_group_page_html()),
     )
     monkeypatch.setattr(
@@ -161,8 +163,8 @@ async def test_get_data_filters_by_org_jsonld_when_present(monkeypatch):
 </body></html>"""
 
     monkeypatch.setattr(
-        scraper,
-        "fetch_html",
+        scraper.tixr_client,
+        "_fetch_tixr_page",
         AsyncMock(return_value=html_with_jsonld),
     )
     monkeypatch.setattr(
@@ -203,8 +205,8 @@ async def test_get_data_filters_by_event_id_when_url_forms_differ(monkeypatch):
 </body></html>"""
 
     monkeypatch.setattr(
-        scraper,
-        "fetch_html",
+        scraper.tixr_client,
+        "_fetch_tixr_page",
         AsyncMock(return_value=html_with_jsonld),
     )
     monkeypatch.setattr(
