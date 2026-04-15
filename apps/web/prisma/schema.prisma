@@ -20,6 +20,29 @@ model Chain {
   @@map("chains")
 }
 
+model ProductionCompany {
+  id          Int                      @id @default(autoincrement())
+  name        String                   @unique
+  slug        String                   @unique
+  website     String?
+  scrapingUrl String?                  @map("scraping_url")
+  visible     Boolean                  @default(true)
+  venues      ProductionCompanyVenue[]
+  shows       Show[]
+
+  @@map("production_companies")
+}
+
+model ProductionCompanyVenue {
+  productionCompanyId Int               @map("production_company_id")
+  clubId              Int               @map("club_id")
+  productionCompany   ProductionCompany @relation(fields: [productionCompanyId], references: [id], onDelete: Cascade)
+  club                Club              @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@id([productionCompanyId, clubId])
+  @@map("production_company_venues")
+}
+
 model Club {
   id                 Int                 @id @default(autoincrement())
   name               String              @unique
@@ -50,8 +73,9 @@ model Club {
   chain              Chain?              @relation(fields: [chainId], references: [id])
   shows              Show[]
   taggedClubs        TaggedClub[]
-  emailSubscriptions EmailSubscription[]
-  processedEmails    ProcessedEmail[]
+  emailSubscriptions      EmailSubscription[]
+  processedEmails         ProcessedEmail[]
+  productionCompanyVenues ProductionCompanyVenue[]
 
   @@index([visible])
   @@index([chainId])
@@ -166,16 +190,18 @@ model Show {
   name            String?
   date            DateTime     @db.Timestamptz(6)
   showPageUrl     String       @map("show_page_url")
-  clubId          Int          @map("club_id")
-  popularity      Float        @default(0.0)
-  lastScrapedDate DateTime?    @map("last_scraped_date") @db.Timestamptz(6)
-  description     String?
-  room            String?
-  lineupItems        LineupItem[]
-  club               Club               @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  taggedShows        TaggedShow[]
-  tickets            Ticket[]
-  sentNotifications  SentNotification[]
+  clubId               Int                @map("club_id")
+  popularity           Float              @default(0.0)
+  lastScrapedDate      DateTime?          @map("last_scraped_date") @db.Timestamptz(6)
+  description          String?
+  room                 String?
+  productionCompanyId  Int?               @map("production_company_id")
+  lineupItems          LineupItem[]
+  club                 Club               @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  productionCompany    ProductionCompany? @relation(fields: [productionCompanyId], references: [id])
+  taggedShows          TaggedShow[]
+  tickets              Ticket[]
+  sentNotifications    SentNotification[]
 
   // Dual-index design (intentional):
   // - @@unique([clubId, date, room]) enforces deduplication and is used by the
@@ -187,6 +213,7 @@ model Show {
   //   standalone index when only date is filtered.
   @@unique([clubId, date, room])
   @@index([date])
+  @@index([productionCompanyId])
   @@map("shows")
 }
 
