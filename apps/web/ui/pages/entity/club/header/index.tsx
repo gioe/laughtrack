@@ -76,6 +76,19 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({ club }) => {
                     >
                         {parsedClub.name}
                     </motion.h1>
+                    {club.chainName && (
+                        <motion.p
+                            initial={{ opacity: 0, y: mv(10) }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={mt({
+                                duration: 0.3,
+                                delay: mv(0.15),
+                            })}
+                            className="text-sm text-white/60 italic mb-1"
+                        >
+                            Part of the {club.chainName} family
+                        </motion.p>
+                    )}
                     <motion.div
                         initial={{ opacity: 0, y: mv(10) }}
                         animate={{ opacity: 1, y: 0 }}
