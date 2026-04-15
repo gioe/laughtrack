@@ -17,6 +17,13 @@ const CLUB_SELECT = {
     hasImage: true,
     status: true,
     closedAt: true,
+    chain: {
+        select: {
+            id: true,
+            name: true,
+            slug: true,
+        },
+    },
 } as const;
 
 export async function findClubByName(helper: QueryHelper): Promise<ClubDTO> {
@@ -52,6 +59,9 @@ export async function findClubByName(helper: QueryHelper): Promise<ClubDTO> {
             city: clubData.city ?? undefined,
             state: clubData.state ?? undefined,
             zipCode: clubData.zipCode,
+            chainId: clubData.chain?.id ?? null,
+            chainName: clubData.chain?.name ?? null,
+            chainSlug: clubData.chain?.slug ?? null,
         };
     } catch (error) {
         if (
