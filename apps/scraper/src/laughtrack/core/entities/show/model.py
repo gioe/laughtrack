@@ -30,6 +30,7 @@ class Show(DatabaseEntity):
     timezone: Optional[str] = None  # Used for UTC conversion only, not stored in database
     popularity: float = 0.0
     room: Optional[str] = ""
+    production_company_id: Optional[int] = None
     id: Optional[int] = None  # Database ID
     operation_type: Optional[str] = None  # 'inserted' or 'updated'
 
@@ -103,6 +104,7 @@ class Show(DatabaseEntity):
             club_id=row["club_id"],
             room=row.get("room", ""),
             popularity=row.get("popularity", 0.0),
+            production_company_id=row.get("production_company_id"),
         )
 
     @classmethod
@@ -120,6 +122,7 @@ class Show(DatabaseEntity):
             self.club_id,
             datetime.now().isoformat(),
             self.room,
+            self.production_company_id,
         )
 
     def to_unique_key(self) -> tuple:

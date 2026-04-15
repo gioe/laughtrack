@@ -22,21 +22,23 @@ class ShowQueries:
     
     BATCH_INSERT_SHOWS = '''
         INSERT INTO shows (
-            name, show_page_url, description, date, club_id, last_scraped_date, room
-        ) 
-        VALUES %s 
-        ON CONFLICT (club_id, date, room) 
-        DO UPDATE SET 
+            name, show_page_url, description, date, club_id, last_scraped_date, room,
+            production_company_id
+        )
+        VALUES %s
+        ON CONFLICT (club_id, date, room)
+        DO UPDATE SET
             name = EXCLUDED.name,
             show_page_url = EXCLUDED.show_page_url,
             description = EXCLUDED.description,
             date = EXCLUDED.date,
             club_id = EXCLUDED.club_id,
             last_scraped_date = EXCLUDED.last_scraped_date,
-            room = EXCLUDED.room
-        RETURNING 
+            room = EXCLUDED.room,
+            production_company_id = COALESCE(EXCLUDED.production_company_id, shows.production_company_id)
+        RETURNING
             id, club_id, room, date,
-            CASE 
+            CASE
                 WHEN xmax::text::int > 0 THEN 'updated'
                 ELSE 'inserted'
             END AS operation_type
