@@ -8,7 +8,7 @@ both Downtown and South locations; this scraper filters for Downtown only.
 Pipeline:
   1. collect_scraping_targets() → unique comedian slugs from /events?downtown=1
   2. get_data(slug)             → fetch /comedians/{slug}, extract showtimes
-  3. transformation_pipeline    → ComedyWorksDowntownEvent.to_shows() → Show objects
+  3. transformation_pipeline    → ComedyWorksDowntownEvent.to_show() → Show objects
 """
 
 from typing import List, Optional

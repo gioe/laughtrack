@@ -1,7 +1,7 @@
 """Comedy Works Downtown data extraction utilities."""
 
 import re
-from typing import Dict, List, Set
+from typing import List, Optional, Set
 
 from bs4 import BeautifulSoup, Tag
 
@@ -9,7 +9,6 @@ from laughtrack.core.entities.event.comedy_works_downtown import (
     ComedyWorksDowntownEvent,
     ComedyWorksDowntownShowtime,
 )
-from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 _SLUG_RE = re.compile(r"/comedians/([\w-]+)")
 _SECTION_ID_RE = re.compile(r"seating-sections-(\d+)")
@@ -113,11 +112,13 @@ class ComedyWorksDowntownExtractor:
         return showtimes
 
     @staticmethod
-    def _parse_showtime(li: Tag) -> ComedyWorksDowntownShowtime:
+    def _parse_showtime(li: Tag) -> Optional[ComedyWorksDowntownShowtime]:
         """Parse a single showtime <li> element."""
         # Date/time: "Thursday, Apr 16 2026  7:15PM"
         day_el = li.select_one("p.show-day")
         datetime_str = day_el.get_text(strip=True) if day_el else ""
+        if not datetime_str:
+            return None
 
         # Age restriction from show-meta: "No Passes |     21+"
         meta_el = li.select_one("p.show-meta")

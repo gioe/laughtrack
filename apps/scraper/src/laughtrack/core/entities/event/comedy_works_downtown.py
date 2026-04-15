@@ -20,8 +20,6 @@ _DATETIME_RE = re.compile(
     re.IGNORECASE,
 )
 
-_PRICE_RE = re.compile(r"\$(\d+(?:\.\d{2})?)")
-
 
 @dataclass
 class ComedyWorksDowntownShowtime:
