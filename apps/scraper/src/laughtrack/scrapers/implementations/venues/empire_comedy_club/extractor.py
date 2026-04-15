@@ -118,7 +118,9 @@ class EmpireEventExtractor:
             # Parse "Apr 16" with year
             dt = datetime.strptime(f"{date_text} {year}", "%b %d %Y")
 
-            # Parse time
+            # Parse time — skip event if no time provided
+            if not time_text:
+                return None
             time_match = re.match(r"(\d{1,2}):(\d{2})\s*(AM|PM)", time_text, re.IGNORECASE)
             if time_match:
                 hour = int(time_match.group(1))

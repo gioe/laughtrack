@@ -26,13 +26,13 @@ class EmpireEventTransformer(DataTransformer[EmpireEvent]):
 
             tickets: List[Ticket] = []
             if raw_data.show_page_url:
-                sold_out = raw_data.status and raw_data.status.lower() == "sold out"
+                sold_out = (raw_data.status or "").lower() == "sold out"
                 tickets.append(
                     Ticket(
                         price=0.0,
                         type="General Admission",
                         purchase_url=raw_data.show_page_url,
-                        sold_out=sold_out or False,
+                        sold_out=sold_out,
                     )
                 )
 

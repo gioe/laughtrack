@@ -4,7 +4,7 @@ Scrapes the shows listing page at empirecomedyme.com/shows/ which contains
 all upcoming events in a single HTML page organized by month sections.
 """
 
-from typing import List, Optional
+from typing import Optional
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.foundation.infrastructure.logger.logger import Logger
