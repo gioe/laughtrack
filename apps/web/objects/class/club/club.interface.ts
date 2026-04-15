@@ -29,6 +29,9 @@ export interface ClubDTO {
     active_comedian_count?: number;
     phone_number?: string;
     distanceMiles?: number | null;
+    chainId?: number | null;
+    chainName?: string | null;
+    chainSlug?: string | null;
 }
 
 export interface PaginatedClubResponseDTO {
