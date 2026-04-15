@@ -62,30 +62,31 @@ class SimpleTixExtractor:
     @staticmethod
     def extract_json_ld_price(html: str) -> Optional[float]:
         """Extract the lowest ticket price from JSON-LD AggregateOffer."""
-        match = SimpleTixExtractor._JSON_LD_PATTERN.search(html)
-        if not match:
+        matches = SimpleTixExtractor._JSON_LD_PATTERN.findall(html)
+        if not matches:
             return None
 
-        try:
-            ld = json.loads(match.group(1))
-        except (json.JSONDecodeError, ValueError):
-            return None
+        for raw_ld in matches:
+            try:
+                ld = json.loads(raw_ld)
+            except (json.JSONDecodeError, ValueError):
+                continue
 
-        offers = ld.get("offers")
-        if not offers:
-            return None
+            offers = ld.get("offers")
+            if not offers:
+                continue
 
-        # offers can be a single dict or a list
-        if isinstance(offers, dict):
-            offers = [offers]
+            # offers can be a single dict or a list
+            if isinstance(offers, dict):
+                offers = [offers]
 
-        for offer in offers:
-            low_price = offer.get("lowPrice")
-            if low_price is not None:
-                try:
-                    return float(low_price)
-                except (ValueError, TypeError):
-                    continue
+            for offer in offers:
+                low_price = offer.get("lowPrice")
+                if low_price is not None:
+                    try:
+                        return float(low_price)
+                    except (ValueError, TypeError):
+                        continue
 
         return None
 
@@ -108,7 +109,7 @@ class SimpleTixExtractor:
 
     @staticmethod
     def extract_events(
-        html: str, scraping_url: str
+        html: str,
     ) -> Tuple[List[Dict], Optional[str], Optional[float]]:
         """Extract all event data from a SimpleTix page.
 

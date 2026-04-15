@@ -43,7 +43,7 @@ class SimpleTixScraper(BaseScraper):
         if not html:
             return None
 
-        time_entries, title, price = SimpleTixExtractor.extract_events(html, target)
+        time_entries, title, price = SimpleTixExtractor.extract_events(html)
 
         if not time_entries:
             Logger.warn(
@@ -70,7 +70,7 @@ class SimpleTixScraper(BaseScraper):
                 show_page_url=target,
                 ticket_url=target,
                 price=price,
-                performers=[event_name],
+                performers=[],
             ))
 
         Logger.info(
