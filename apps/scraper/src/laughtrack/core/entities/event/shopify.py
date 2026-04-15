@@ -15,7 +15,7 @@ Two product-title formats are supported:
     variant:  "General Admission" / "VIP"
 
 The extractor tries Format A first; if no variant yields a date, it falls
-back to Format B by calling ``_parse_product_title_datetime``.
+back to Format B by calling ``parse_product_title_datetime``.
 """
 
 import re
@@ -31,7 +31,7 @@ from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
 
 # ---------- Format A: date in variant title ----------
 # Pattern: "Wednesday April 9 2026 / 8:00pm ..." or "Wednesday April 9 2026 / 8:00 PM ..."
-_VARIANT_DATE_RE = re.compile(
+VARIANT_DATE_RE = re.compile(
     r"^(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\s+"
     r"(\w+ \d{1,2} \d{4})\s*/\s*(\d{1,2}:\d{2}\s*[APap][Mm])",
 )
@@ -41,7 +41,7 @@ _VARIANT_DATE_RE = re.compile(
 # Examples:
 #   "Sat Apr 11th @6:30pm - Des Mulrooney, Caleb Synan and Landry"
 #   "*Late Show Pricing* Fri Apr 17th @9:30pm - Ross Bennett, JJ Whitehead and Brian Kiley"
-_PRODUCT_TITLE_DATE_RE = re.compile(
+PRODUCT_TITLE_DATE_RE = re.compile(
     r"(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)\w*\s+"         # day-of-week (abbreviated or full)
     r"(\w{3,9})\s+"                                    # month name (e.g. "Apr", "April")
     r"(\d{1,2})(?:st|nd|rd|th)?\s+"                    # day with optional ordinal
@@ -50,7 +50,7 @@ _PRODUCT_TITLE_DATE_RE = re.compile(
 )
 
 # Suffixes to strip from product title to get comedian name
-_TITLE_CLEANUP_RE = re.compile(
+TITLE_CLEANUP_RE = re.compile(
     r"\s*(?:LIVE!?|Live!?)\s*"       # "LIVE!" or "Live!"
     r"|\s*\[(?:MON|TUE|WED|THU|FRI|SAT|SUN)\]\s*"  # "[THU]" day markers
     r"|\s*\(.*?\)\s*",               # parenthetical notes
@@ -58,7 +58,7 @@ _TITLE_CLEANUP_RE = re.compile(
 )
 
 
-def _extract_comedian_name(title: str) -> str:
+def extract_comedian_name(title: str) -> str:
     """Extract the comedian name from a Shopify product title.
 
     Handles two formats:
@@ -67,7 +67,7 @@ def _extract_comedian_name(title: str) -> str:
                → "Des Mulrooney, Caleb Synan and Landry"
     """
     # Format B: if title contains " - " after a date pattern, extract comedian after separator
-    if _PRODUCT_TITLE_DATE_RE.search(title):
+    if PRODUCT_TITLE_DATE_RE.search(title):
         sep_idx = title.find(" - ")
         if sep_idx != -1:
             after = title[sep_idx + 3:].strip()
@@ -75,11 +75,11 @@ def _extract_comedian_name(title: str) -> str:
                 return after
 
     # Format A: strip suffixes
-    cleaned = _TITLE_CLEANUP_RE.sub("", title).strip()
+    cleaned = TITLE_CLEANUP_RE.sub("", title).strip()
     return cleaned or title.strip()
 
 
-def _parse_variant_datetime(variant_title: str, timezone: str) -> Optional[datetime]:
+def parse_variant_datetime(variant_title: str, timezone: str) -> Optional[datetime]:
     """Parse a date/time from a Shopify variant title string (Format A).
 
     Args:
@@ -89,7 +89,7 @@ def _parse_variant_datetime(variant_title: str, timezone: str) -> Optional[datet
     Returns:
         A timezone-aware datetime, or None if parsing fails.
     """
-    match = _VARIANT_DATE_RE.match(variant_title)
+    match = VARIANT_DATE_RE.match(variant_title)
     if not match:
         return None
 
@@ -107,7 +107,7 @@ def _parse_variant_datetime(variant_title: str, timezone: str) -> Optional[datet
         return None
 
 
-def _parse_product_title_datetime(title: str, timezone: str) -> Optional[datetime]:
+def parse_product_title_datetime(title: str, timezone: str) -> Optional[datetime]:
     """Parse a date/time from a Shopify product title string (Format B).
 
     Args:
@@ -117,7 +117,7 @@ def _parse_product_title_datetime(title: str, timezone: str) -> Optional[datetim
     Returns:
         A timezone-aware datetime, or None if parsing fails.
     """
-    match = _PRODUCT_TITLE_DATE_RE.search(title)
+    match = PRODUCT_TITLE_DATE_RE.search(title)
     if not match:
         return None
 
@@ -169,7 +169,7 @@ class ShopifyEvent(ShowConvertible):
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None) -> Optional[Show]:
         """Convert a ShopifyEvent to a Show domain object."""
-        comedian_name = _extract_comedian_name(self.title)
+        comedian_name = extract_comedian_name(self.title)
         # Use scraping_url base for ticket links (covers stores on a subdomain)
         base = (club.scraping_url or club.website or "").rstrip("/")
         base_clean = base.replace("https://", "").replace("http://", "").rstrip("/")

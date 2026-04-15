@@ -18,8 +18,8 @@ from typing import Any, Dict, List
 
 from laughtrack.core.entities.event.shopify import (
     ShopifyEvent,
-    _parse_product_title_datetime,
-    _parse_variant_datetime,
+    parse_product_title_datetime,
+    parse_variant_datetime,
 )
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 
@@ -71,7 +71,7 @@ class ShopifyExtractor:
         showtime_map: Dict[str, Dict[str, Any]] = {}
         for variant in variants:
             variant_title = variant.get("title", "")
-            dt = _parse_variant_datetime(variant_title, timezone)
+            dt = parse_variant_datetime(variant_title, timezone)
             if not dt:
                 continue
 
@@ -109,7 +109,7 @@ class ShopifyExtractor:
             ]
 
         # --- Format B: date/time in product title, variants are ticket tiers ---
-        dt = _parse_product_title_datetime(title, timezone)
+        dt = parse_product_title_datetime(title, timezone)
         if not dt:
             return []
 

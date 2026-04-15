@@ -1,9 +1,9 @@
 """Unit tests for ShopifyEvent entity and helper functions.
 
 Covers:
-  - _extract_comedian_name (Format A / Format B titles)
-  - _parse_variant_datetime (Format A variant titles)
-  - _parse_product_title_datetime (Format B product titles)
+  - extract_comedian_name (Format A / Format B titles)
+  - parse_variant_datetime (Format A variant titles)
+  - parse_product_title_datetime (Format B product titles)
   - ShopifyEvent.to_show conversion
 """
 
@@ -12,9 +12,9 @@ from zoneinfo import ZoneInfo
 
 from laughtrack.core.entities.event.shopify import (
     ShopifyEvent,
-    _extract_comedian_name,
-    _parse_variant_datetime,
-    _parse_product_title_datetime,
+    extract_comedian_name,
+    parse_variant_datetime,
+    parse_product_title_datetime,
 )
 from laughtrack.core.entities.club.model import Club
 
@@ -37,7 +37,7 @@ def make_club() -> Club:
 
 
 # ---------------------------------------------------------------------------
-# _extract_comedian_name
+# extract_comedian_name
 # ---------------------------------------------------------------------------
 
 
@@ -45,41 +45,41 @@ class TestExtractComedianName:
     """Format A: strip LIVE!, [DAY], parentheticals. Format B: split on ' - '."""
 
     def test_format_a_live_bang(self):
-        assert _extract_comedian_name("Michael Rapaport LIVE! [THU]") == "Michael Rapaport"
+        assert extract_comedian_name("Michael Rapaport LIVE! [THU]") == "Michael Rapaport"
 
     def test_format_a_live_no_bang(self):
-        assert _extract_comedian_name("John Mulaney Live") == "John Mulaney"
+        assert extract_comedian_name("John Mulaney Live") == "John Mulaney"
 
     def test_format_a_day_bracket_only(self):
-        assert _extract_comedian_name("Jo Koy [FRI]") == "Jo Koy"
+        assert extract_comedian_name("Jo Koy [FRI]") == "Jo Koy"
 
     def test_format_a_parenthetical(self):
-        assert _extract_comedian_name("Ali Wong (Early Show)") == "Ali Wong"
+        assert extract_comedian_name("Ali Wong (Early Show)") == "Ali Wong"
 
     def test_format_a_multiple_suffixes(self):
-        assert _extract_comedian_name("Dave Chappelle LIVE! [SAT] (Late Show)") == "Dave Chappelle"
+        assert extract_comedian_name("Dave Chappelle LIVE! [SAT] (Late Show)") == "Dave Chappelle"
 
     def test_format_b_with_date(self):
-        name = _extract_comedian_name(
+        name = extract_comedian_name(
             "Sat Apr 11th @6:30pm - Des Mulrooney, Caleb Synan and Landry"
         )
         assert name == "Des Mulrooney, Caleb Synan and Landry"
 
     def test_format_b_with_prefix(self):
-        name = _extract_comedian_name(
+        name = extract_comedian_name(
             "*Late Show Pricing* Fri Apr 17th @9:30pm - Ross Bennett, JJ Whitehead and Brian Kiley"
         )
         assert name == "Ross Bennett, JJ Whitehead and Brian Kiley"
 
     def test_plain_name_no_suffixes(self):
-        assert _extract_comedian_name("Mark Normand") == "Mark Normand"
+        assert extract_comedian_name("Mark Normand") == "Mark Normand"
 
     def test_empty_string(self):
-        assert _extract_comedian_name("") == ""
+        assert extract_comedian_name("") == ""
 
 
 # ---------------------------------------------------------------------------
-# _parse_variant_datetime
+# parse_variant_datetime
 # ---------------------------------------------------------------------------
 
 
@@ -87,45 +87,45 @@ class TestParseVariantDatetime:
     """Format A: 'DayOfWeek Month DD YYYY / H:MMam/pm ...' """
 
     def test_canonical(self):
-        dt = _parse_variant_datetime("Thursday April 9 2026 / 8:00pm General Admission", TZ)
+        dt = parse_variant_datetime("Thursday April 9 2026 / 8:00pm General Admission", TZ)
         assert dt is not None
         assert dt == datetime(2026, 4, 9, 20, 0, tzinfo=ZoneInfo(TZ))
 
     def test_spaced_am_pm(self):
-        dt = _parse_variant_datetime("Friday April 10 2026 / 7:30 PM VIP", TZ)
+        dt = parse_variant_datetime("Friday April 10 2026 / 7:30 PM VIP", TZ)
         assert dt is not None
         assert dt == datetime(2026, 4, 10, 19, 30, tzinfo=ZoneInfo(TZ))
 
     def test_morning_time(self):
-        dt = _parse_variant_datetime("Saturday January 3 2026 / 11:00AM Brunch Show", TZ)
+        dt = parse_variant_datetime("Saturday January 3 2026 / 11:00AM Brunch Show", TZ)
         assert dt is not None
         assert dt.hour == 11
 
     def test_different_timezone(self):
-        dt = _parse_variant_datetime("Monday June 1 2026 / 9:00pm GA", "America/New_York")
+        dt = parse_variant_datetime("Monday June 1 2026 / 9:00pm GA", "America/New_York")
         assert dt is not None
         assert dt.tzinfo == ZoneInfo("America/New_York")
 
     def test_tier_only_returns_none(self):
         """Variant titles like 'General Admission' (no date) should return None."""
-        assert _parse_variant_datetime("General Admission", TZ) is None
+        assert parse_variant_datetime("General Admission", TZ) is None
 
     def test_vip_tier_returns_none(self):
-        assert _parse_variant_datetime("VIP", TZ) is None
+        assert parse_variant_datetime("VIP", TZ) is None
 
     def test_empty_string_returns_none(self):
-        assert _parse_variant_datetime("", TZ) is None
+        assert parse_variant_datetime("", TZ) is None
 
     def test_garbage_returns_none(self):
-        assert _parse_variant_datetime("not a date at all", TZ) is None
+        assert parse_variant_datetime("not a date at all", TZ) is None
 
     def test_missing_year_returns_none(self):
         """Without year in variant, regex should not match."""
-        assert _parse_variant_datetime("Thursday April 9 / 8:00pm General Admission", TZ) is None
+        assert parse_variant_datetime("Thursday April 9 / 8:00pm General Admission", TZ) is None
 
 
 # ---------------------------------------------------------------------------
-# _parse_product_title_datetime
+# parse_product_title_datetime
 # ---------------------------------------------------------------------------
 
 
@@ -133,7 +133,7 @@ class TestParseProductTitleDatetime:
     """Format B: 'Day Mon DDth @H:MMam/pm - comedian(s)' """
 
     def test_canonical(self):
-        dt = _parse_product_title_datetime("Sat Apr 11th @6:30pm - Des Mulrooney", TZ)
+        dt = parse_product_title_datetime("Sat Apr 11th @6:30pm - Des Mulrooney", TZ)
         assert dt is not None
         assert dt.month == 4
         assert dt.day == 11
@@ -141,7 +141,7 @@ class TestParseProductTitleDatetime:
         assert dt.minute == 30
 
     def test_no_ordinal(self):
-        dt = _parse_product_title_datetime("Fri Apr 17 @9:30pm - Ross Bennett", TZ)
+        dt = parse_product_title_datetime("Fri Apr 17 @9:30pm - Ross Bennett", TZ)
         assert dt is not None
         assert dt.day == 17
         assert dt.hour == 21
@@ -149,31 +149,31 @@ class TestParseProductTitleDatetime:
 
     def test_hour_only_no_colon(self):
         """Time like '@7pm' (no minutes) should parse as 7:00 PM."""
-        dt = _parse_product_title_datetime("Tue Mar 3rd @7pm - Test Comic", TZ)
+        dt = parse_product_title_datetime("Tue Mar 3rd @7pm - Test Comic", TZ)
         assert dt is not None
         assert dt.hour == 19
         assert dt.minute == 0
 
     def test_with_prefix_text(self):
-        dt = _parse_product_title_datetime(
+        dt = parse_product_title_datetime(
             "*Late Show Pricing* Fri Apr 17th @9:30pm - Brian Kiley", TZ
         )
         assert dt is not None
         assert dt.hour == 21
 
     def test_timezone_aware(self):
-        dt = _parse_product_title_datetime("Sat Apr 11th @6:30pm - Test", TZ)
+        dt = parse_product_title_datetime("Sat Apr 11th @6:30pm - Test", TZ)
         assert dt is not None
         assert dt.tzinfo == ZoneInfo(TZ)
 
     def test_no_match_returns_none(self):
-        assert _parse_product_title_datetime("Michael Rapaport LIVE! [THU]", TZ) is None
+        assert parse_product_title_datetime("Michael Rapaport LIVE! [THU]", TZ) is None
 
     def test_empty_string_returns_none(self):
-        assert _parse_product_title_datetime("", TZ) is None
+        assert parse_product_title_datetime("", TZ) is None
 
     def test_garbage_returns_none(self):
-        assert _parse_product_title_datetime("not a date at all", TZ) is None
+        assert parse_product_title_datetime("not a date at all", TZ) is None
 
 
 # ---------------------------------------------------------------------------
