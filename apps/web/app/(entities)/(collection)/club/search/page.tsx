@@ -97,7 +97,7 @@ export default async function ClubSearchPage(props: ClubSearchPageProps) {
             },
         );
 
-    const { data, total, filters } =
+    const { data, total, filters, chainFilters } =
         await getCachedSearchPageData(requestData)();
 
     return (
@@ -114,6 +114,7 @@ export default async function ClubSearchPage(props: ClubSearchPageProps) {
                 variant={SearchVariant.AllClubs}
                 total={total}
                 filterData={filters}
+                chainFilters={chainFilters}
             />
             <Suspense>
                 <ClubSearchClient initialData={data} initialTotal={total} />
