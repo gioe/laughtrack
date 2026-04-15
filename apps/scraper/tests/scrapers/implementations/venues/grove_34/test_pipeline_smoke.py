@@ -8,6 +8,7 @@ Exercises collect_scraping_targets() (listing page → show URLs) → get_data()
 import importlib.util
 import json
 import logging
+from datetime import datetime, timedelta
 
 import pytest
 
@@ -51,8 +52,15 @@ def _listing_html() -> str:
 </body></html>"""
 
 
-def _show_detail_html(title: str = "Comedy Night April", start_date: str = "2026-04-15T20:00:00") -> str:
+def _future_date() -> str:
+    """Return an ISO 8601 datetime string 30 days in the future."""
+    return (datetime.now() + timedelta(days=30)).strftime("%Y-%m-%dT20:00:00")
+
+
+def _show_detail_html(title: str = "Comedy Night April", start_date: str | None = None) -> str:
     """Minimal show detail HTML with a JSON-LD Event block."""
+    if start_date is None:
+        start_date = _future_date()
     ld = json.dumps({
         "@context": "https://schema.org",
         "@type": "Event",
