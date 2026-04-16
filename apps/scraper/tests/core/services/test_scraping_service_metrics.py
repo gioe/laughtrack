@@ -665,6 +665,34 @@ class TestSendDiscordRunSummary:
 
         svc.club_handler.refresh_club_total_shows.assert_called_once_with()
 
+    def test_scrape_by_scraper_type_refreshes_total_shows(self):
+        """scrape_by_scraper_type refreshes clubs.total_shows after persisting results.
+
+        Without this call, running `make scrape-shows --types <type>` to backfill an
+        entire platform leaves clubs.total_shows stale on every venue scraped that way.
+        """
+        from laughtrack.core.services.scraping import ScrapingService
+        from laughtrack.foundation.models.operation_result import DatabaseOperationResult
+
+        with patch.object(ScrapingService, '__init__', lambda self, *a, **kw: None):
+            svc = ScrapingService.__new__(ScrapingService)
+            svc.success_rate_threshold = 70.0
+            svc.proxy_pool = None
+
+        mock_club = MagicMock()
+        mock_club.name = "Test Club"
+        svc.club_handler = MagicMock()
+        svc.club_handler.get_clubs_for_scraper.return_value = [mock_club]
+        svc.club_handler.refresh_club_total_shows.return_value = None
+        svc._result_processor = MagicMock()
+        svc._result_processor.process_results.return_value = None
+
+        with patch.object(svc, '_scrape_clubs_with_metrics',
+                          return_value=([], _make_summary(ok=1), DatabaseOperationResult())):
+            svc.scrape_by_scraper_type(scraper_type="seatengine")
+
+        svc.club_handler.refresh_club_total_shows.assert_called_once_with()
+
 
 class TestSendRunSummary:
     """Tests for _send_run_summary channel dispatch."""
