@@ -35,6 +35,12 @@ Is there a Showpass widget or showpass.com buy link?
               DB: scraping_url = Showpass calendar API base URL
               (see Showpass section for details)
 
+Is there an events.ticketleap.com/events/{slug} link or a TicketLeap widget?
+  └── YES → platform: TicketLeap → scraper = 'ticketleap' (generic)
+              DB: scraping_url = https://events.ticketleap.com/events/{org_slug}
+              (see TicketLeap section — listing page requires JS, detail pages emit
+               standard schema.org Event JSON-LD)
+
 Check browser network requests (browser_navigate + browser_network_requests):
   └── tockify.com/api/tagoptions/<calname>   → platform: Tockify
                                                 → new venue-specific scraper required
@@ -1127,6 +1133,82 @@ NOT `+00:00`. The API returns HTTP 400 for `+00:00` format.
 
 ---
 
+### TicketLeap
+
+| | |
+|---|---|
+| **Scraper key** | `ticketleap` |
+| **DB field** | `scraping_url` |
+| **Value format** | Org listing URL: `https://events.ticketleap.com/events/{org_slug}` |
+| **Generic?** | ✅ DB-only onboarding — no Python changes needed |
+
+**Detection signals:**
+- Venue website embeds a TicketLeap widget or links to `events.ticketleap.com/events/{org_slug}`
+- Buy/ticket links point to `events.ticketleap.com/tickets/{org_slug}/{event-slug}`
+- Event detail URLs follow `events.ticketleap.com/event/{event_id}` (numeric ID)
+
+**Two-step (listing → detail) flow:**
+
+1. **Listing page** (`events.ticketleap.com/events/{org_slug}`) does **not** embed per-event
+   JSON-LD. Event IDs are only available inside a `window.dataLayer.push({...})` call that
+   runs client-side. Extract with Playwright + `json.JSONDecoder().raw_decode()`:
+
+   ```html
+   <script>
+     window.dataLayer = window.dataLayer || [];
+     window.dataLayer.push({"event":"orglisting_page_view",
+                            "listing_slug":"funny",
+                            "event_ids":[2053571, 2091519, 2080411, ...],
+                            "event_names":[...],
+                            "display_type":"grid"});
+   </script>
+   ```
+
+   Listing page requires JS rendering — curl-cffi receives a ~17 KB shell without the
+   dataLayer payload. The scraper uses `_fetch_html_with_js()` (Playwright) for this
+   single request.
+
+2. **Event detail page** (`events.ticketleap.com/event/{event_id}`) is server-rendered
+   and carries a single standard schema.org `<script type="application/ld+json">` Event
+   block. Fetch with plain `fetch_html()` (curl-cffi) and run the shared
+   `EventExtractor.extract_events()` on the HTML. Maps cleanly to `JsonLdEvent`.
+
+**Key extraction notes:**
+1. `startDate` is the show's first performance (TicketLeap may emit `endDate` months
+   later for recurring series — it denotes the last performance in the run, not the
+   single show's end time).
+2. Ticket `offers[]` may contain multiple tiers (e.g. "General Admission", "preferred
+   seating") — the existing JSON-LD offer transformer captures them all.
+3. `location.name` distinguishes different physical locations under the same org slug
+   (see "Multi-location caveat" below).
+
+**Multi-location caveat:**
+
+A single TicketLeap org (`/events/{org_slug}`) can back multiple physical venues. The
+only structured signal distinguishing them is `location.name` on each per-event JSON-LD
+block. When onboarding, always enumerate the distinct `location.name` values in the
+feed:
+- One value → one club row.
+- Multiple values → model each location as its own club row with its own `scraper=
+  ticketleap` entry; add a per-event `location.name` filter in a venue-specific scraper
+  (subclass `TicketleapScraper` or filter in the transformer) so each club only ingests
+  its own shows.
+
+Example: Mesquite St. Comedy Club's 'funny' org covers a downtown and a southside
+venue. At onboarding time (2026-04-16) all shows were tagged downtown so a single club
+row was sufficient; if southside events reappear a second club row + filter will be
+needed to avoid mis-attributing them.
+
+**To onboard a new TicketLeap venue:**
+1. Visit `events.ticketleap.com/events/{org_slug}` in a browser to confirm events are listed.
+2. Check the distinct `location.name` values on a few event detail pages to decide
+   whether to model as one club or many.
+3. Insert/update the DB row: `scraper = 'ticketleap'`, `scraping_url =
+   'https://events.ticketleap.com/events/{org_slug}'`, and set `website` to the venue's
+   own site for traffic attribution.
+
+---
+
 ### Square Online (Weebly)
 
 | | |
@@ -1411,6 +1493,7 @@ cd apps/scraper && make scrape-club CLUB='My Club'
 | OvationTix (generic) | `ovationtix` | **No** — set `ovationtix_client_id` | `scraping_url` = `web.ovationtix.com/trs/cal/{clientId}` |
 | OpenDate | venue-specific | **Yes** — ref: `sports_drink` | `scraping_url` |
 | Square Online (Weebly) | venue-specific | **Yes** — ref: `coral_gables_comedy_club` | `scraping_url` (full products API URL) |
+| TicketLeap | `ticketleap` | No | `scraping_url` (org listing URL: `events.ticketleap.com/events/{org_slug}`) |
 
 ---
 
@@ -1478,5 +1561,6 @@ Confirm shows are scraped with correct dates (timestamps ÷ 1000 → seconds), t
 | `vivenu` | `scraping_url` (Vivenu seller page root URL) |
 | `showpass` | `scraping_url` (Showpass calendar API base URL: `.../venues/{slug}/calendar/`) |
 | `show_slinger` | `scraping_url` (full combo_widget URL with id, secure_code, origin_url) |
+| `ticketleap` | `scraping_url` (org listing URL: `events.ticketleap.com/events/{org_slug}`) |
 | `east_austin_comedy` | `scraping_url` (homepage anchor; unused at runtime) |
 | All venue-specific | `scraping_url` (venue calendar page or API URL) |

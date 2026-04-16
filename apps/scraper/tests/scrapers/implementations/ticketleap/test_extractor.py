@@ -57,6 +57,30 @@ def test_extract_event_ids_handles_empty_html():
     assert extract_event_ids("<html></html>") == []
 
 
+def test_extract_event_ids_handles_literal_brace_paren_inside_string():
+    # A JSON string value containing '})' must not truncate the payload. This
+    # is exactly the failure mode raw_decode protects against that a non-greedy
+    # `.*?\)` regex does not.
+    payload = (
+        '{"event":"orglisting_page_view",'
+        '"event_name":"Laugh })Trap })",'
+        '"event_ids":[999, 1000]}'
+    )
+    ids = extract_event_ids(_listing_html(payload))
+    assert ids == [999, 1000]
+
+
+def test_extract_event_ids_handles_whitespace_between_paren_and_brace():
+    # Reformatted HTML where `push(` and `{` are separated by whitespace must
+    # still parse — raw_decode itself does not skip leading whitespace.
+    html = (
+        '<script>window.dataLayer.push(\n    '
+        '{"event":"orglisting_page_view","event_ids":[7, 8]}\n  )</script>'
+    )
+    ids = extract_event_ids(html)
+    assert ids == [7, 8]
+
+
 def test_extract_event_ids_coerces_string_ids_and_skips_non_numeric():
     payload = (
         '{"event":"orglisting_page_view",'

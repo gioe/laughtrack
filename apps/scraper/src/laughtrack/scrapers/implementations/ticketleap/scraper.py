@@ -66,15 +66,10 @@ class TicketleapScraper(BaseScraper):
 
         # Listing page is client-rendered; the dataLayer.push payload only
         # appears after JS evaluation, so skip curl-cffi and go straight to
-        # Playwright for this fetch.
-        try:
-            html = await self._fetch_html_with_js(normalized_url)
-        except Exception as e:
-            Logger.error(
-                f"{self._log_prefix}: Failed to fetch TicketLeap listing {normalized_url}: {e}",
-                self.logger_context,
-            )
-            return []
+        # Playwright for this fetch. _fetch_html_with_js already catches
+        # Timeout and generic errors internally and returns None, so we rely
+        # on the falsy-html branch below for both failure modes.
+        html = await self._fetch_html_with_js(normalized_url)
 
         if not html:
             Logger.warn(

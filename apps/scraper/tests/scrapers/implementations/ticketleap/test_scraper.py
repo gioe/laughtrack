@@ -131,17 +131,6 @@ async def test_collect_scraping_targets_empty_when_js_fetch_returns_none(monkeyp
 
 
 @pytest.mark.asyncio
-async def test_collect_scraping_targets_handles_fetch_error(monkeypatch, club):
-    s = TicketleapScraper(club)
-
-    async def boom(url):
-        raise RuntimeError("network blew up")
-
-    monkeypatch.setattr(s, "_fetch_html_with_js", boom)
-    assert await s.collect_scraping_targets() == []
-
-
-@pytest.mark.asyncio
 async def test_collect_scraping_targets_empty_when_missing_url(monkeypatch, club):
     club.scraping_url = ""
     s = TicketleapScraper(club)

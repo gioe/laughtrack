@@ -16,15 +16,15 @@ event detail page (events.ticketleap.com/event/{id}) to parse its JSON-LD.
 from __future__ import annotations
 
 import json
-import re
 from typing import List
 
-# window.dataLayer.push({...}) is the canonical listing-page payload. The JSON
-# object is single-line; we capture the braced body, parse it, and pull out
-# event_ids. Using a JSON parser (rather than a naive array regex) guards
-# against malformed matches when TicketLeap emits multiple dataLayer calls or
-# reformats the payload.
-_DATA_LAYER_PUSH_RE = re.compile(r"dataLayer\.push\((\{.*?\})\)", re.DOTALL)
+# Marker scanned at every offset in the HTML. From each match we hand the
+# payload body to JSONDecoder.raw_decode, which uses the JSON grammar to find
+# the closing brace — so a literal '})' inside a string value cannot truncate
+# the payload the way a non-greedy regex would.
+_PUSH_MARKER = "dataLayer.push("
+
+_DECODER = json.JSONDecoder()
 
 
 def extract_event_ids(html_content: str) -> List[int]:
@@ -40,12 +40,34 @@ def extract_event_ids(html_content: str) -> List[int]:
     seen: set[int] = set()
     ordered: List[int] = []
 
-    for match in _DATA_LAYER_PUSH_RE.finditer(html_content):
-        payload_text = match.group(1)
-        try:
-            payload = json.loads(payload_text)
-        except (ValueError, TypeError):
+    search_from = 0
+    while True:
+        marker_idx = html_content.find(_PUSH_MARKER, search_from)
+        if marker_idx == -1:
+            break
+
+        payload_start = marker_idx + len(_PUSH_MARKER)
+        # Skip whitespace between '(' and the payload's opening brace so
+        # reformatted HTML ("push( { ... })") still parses.
+        while (
+            payload_start < len(html_content)
+            and html_content[payload_start].isspace()
+        ):
+            payload_start += 1
+
+        # Advance past this marker even when the payload is unparseable so we
+        # never re-enter the same branch on the next iteration.
+        search_from = payload_start
+
+        if payload_start >= len(html_content) or html_content[payload_start] != "{":
             continue
+
+        try:
+            payload, end = _DECODER.raw_decode(html_content, payload_start)
+        except json.JSONDecodeError:
+            continue
+
+        search_from = end
 
         if not isinstance(payload, dict):
             continue
