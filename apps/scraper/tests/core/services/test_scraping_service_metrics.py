@@ -630,7 +630,7 @@ class TestSendDiscordRunSummary:
 
         with patch.object(svc, '_try_validate_scraper_keys'), \
              patch.object(svc, '_scrape_clubs_with_metrics', return_value=([], summary, expected_db_result)), \
-             patch.object(svc, '_scrape_production_companies', return_value=([], DatabaseOperationResult())), \
+             patch.object(svc, '_scrape_production_companies', return_value=([], ScrapingRunSummary(), DatabaseOperationResult())), \
              patch.object(svc, '_emit_summary'), \
              patch.object(svc, '_check_and_alert'), \
              patch.object(svc, '_send_run_summary') as mock_summary:
