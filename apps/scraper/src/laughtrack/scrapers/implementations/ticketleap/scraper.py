@@ -15,6 +15,18 @@ Pipeline:
        regex-extract event IDs, return a list of per-event detail URLs.
     2. get_data(url): fetch detail page, run the shared JSON-LD EventExtractor,
        wrap the resulting JsonLdEvent in TicketleapPageData.
+
+Multi-location policy (Mesquite St. 'funny' org):
+    The 'funny' TicketLeap listing covers both the 617 Mesquite St. downtown
+    venue and a 4535 S. Padre Island Dr. southside venue. Every event on the
+    feed at onboarding time (all 7 upcoming shows, 2026-04 through 2026-07)
+    was tagged `location.name == "MESQUITE ST COMEDY CLUB DOWNTOWN"`, so we
+    model club 837 as the single downtown row. If future events for the
+    southside location appear, split them off into a second club row and
+    filter this scraper by JsonLdEvent.location.name. We did not add that
+    filter now because there is no active southside inventory to drop —
+    filtering pre-emptively would mask legitimate downtown shows if TicketLeap
+    ever renames the downtown location label.
 """
 
 from typing import List, Optional
