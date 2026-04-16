@@ -8,10 +8,13 @@ interface ClubDataColumnProps {
 
 const ClubDataColumn = ({ club }: ClubDataColumnProps) => {
     const parsedClub = new Club(club);
+    const isFestival = parsedClub.clubType === "festival";
     return (
         <div className="max-w-2xl bg-coconut-cream">
             <section>
-                <h2 className="text-xl font-bold mb-4">Contact</h2>
+                <h2 className="text-xl font-bold mb-4">
+                    {isFestival ? "Festival Info" : "Contact"}
+                </h2>
                 <div className="space-y-3">
                     {parsedClub.phoneNumber !== "" && (
                         <a
@@ -30,7 +33,11 @@ const ClubDataColumn = ({ club }: ClubDataColumnProps) => {
                             className="flex items-center gap-2 text-cedar hover:text-paarl"
                         >
                             <Globe className="w-5 h-5" />
-                            <span>{parsedClub.website}</span>
+                            <span>
+                                {isFestival
+                                    ? "Visit Festival Website"
+                                    : parsedClub.website}
+                            </span>
                         </a>
                     )}
                 </div>
