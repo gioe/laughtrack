@@ -1,6 +1,6 @@
 """Club database handler for club-specific operations."""
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set
 
 from sql.club_queries import ClubQueries
 
@@ -441,6 +441,23 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         except Exception as e:
             Logger.error(f"Error refreshing club total_shows: {str(e)}")
             raise
+
+    def get_active_festival_ids(self) -> Set[int]:
+        """Return IDs of festival clubs that have shows in the next 90 days.
+
+        Festivals without upcoming shows are considered off-season and can be
+        skipped during bulk scrape runs.
+        """
+        try:
+            results = self.execute_with_cursor(
+                ClubQueries.GET_ACTIVE_FESTIVAL_IDS, return_results=True
+            )
+            ids = {row["id"] for row in results} if results else set()
+            Logger.info(f"Found {len(ids)} active festival club(s) with upcoming shows")
+            return ids
+        except Exception as e:
+            Logger.error(f"Error fetching active festival IDs: {e}")
+            return set()
 
     def get_clubs_for_scraper(self, scraper_type: str) -> List[Club]:
         """

@@ -34,6 +34,15 @@ class ClubQueries:
         WHERE scraper = %s AND scraper IS NOT NULL AND status = 'active'
         ORDER BY id
     '''
+
+    GET_ACTIVE_FESTIVAL_IDS = '''
+        SELECT DISTINCT c.id
+        FROM clubs c
+        JOIN shows s ON s.club_id = c.id
+        WHERE c.club_type = 'festival'
+          AND s.date >= NOW()
+          AND s.date <= NOW() + INTERVAL '90 days'
+    '''
     
     GET_DISTINCT_SCRAPER_TYPES = '''
         SELECT scraper, COUNT(*) as club_count

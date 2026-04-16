@@ -36,6 +36,7 @@ class Club(DatabaseEntity):
     wix_category_id: Optional[str] = None
     squadup_user_id: Optional[str] = None
     status: str = "active"
+    club_type: str = "club"
     rate_limit: float = 1.0
     max_retries: int = 3
     timeout: int = 30
@@ -117,6 +118,7 @@ class Club(DatabaseEntity):
             wix_category_id=row.get("wix_category_id"),
             squadup_user_id=row.get("squadup_user_id"),
             status=row.get("status", "active"),
+            club_type=row.get("club_type", "club"),
             rate_limit=row.get("rate_limit", 1.0),
             max_retries=row.get("max_retries", 3),
             timeout=row.get("timeout", 30),
