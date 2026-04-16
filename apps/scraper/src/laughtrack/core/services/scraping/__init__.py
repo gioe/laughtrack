@@ -10,9 +10,13 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from typing import Optional, List
 
+import copy
+
 from laughtrack.app.scraper_resolver import ScraperResolver
 from laughtrack.core.entities.club.handler import ClubHandler
 from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.production_company.handler import ProductionCompanyHandler
+from laughtrack.core.entities.production_company.model import ProductionCompany
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.utilities.domain.club.selector import ClubSelector
 from laughtrack.utilities.domain.scraper.result import ScrapingResultProcessor
@@ -72,9 +76,25 @@ def _scrape_with_context(scraper: BaseScraper, club: Club) -> ClubScrapingResult
     return result
 
 
+def _build_proxy_club(venue_club: Club, company: ProductionCompany) -> Club:
+    """Create a Club proxy that uses the production company's scraping_url.
+
+    Copies the venue club (preserving its id, timezone, etc.) but overrides the
+    scraping_url with the production company's URL. The scraper resolver uses
+    club.scraper to find the right scraper class, so the venue club must already
+    have a compatible scraper key configured.
+    """
+    proxy = copy.copy(venue_club)
+    proxy.scraping_url = company.scraping_url or ""
+    # Tag so scrape_one can stamp production_company_id before persistence
+    proxy._production_company_id = company.id  # type: ignore[attr-defined]
+    return proxy
+
+
 class ScrapingService:
     def __init__(self, success_rate_threshold: float = _DEFAULT_SUCCESS_RATE_THRESHOLD):
         self.club_handler = ClubHandler()
+        self.production_company_handler = ProductionCompanyHandler()
         self.selector = ClubSelector()
         self._result_processor: Optional[ScrapingResultProcessor] = None
         self._scraping_resolver = ScraperResolver()
@@ -111,6 +131,12 @@ class ScrapingService:
         Logger.info(f"Found {len(clubs)} clubs with scraper configurations")
         self._try_validate_scraper_keys(clubs)
         results, summary, db_result = self._scrape_clubs_with_metrics(clubs)
+
+        # Scrape production companies after regular clubs
+        pc_results, pc_db_result = self._scrape_production_companies(clubs)
+        results.extend(pc_results)
+        db_result = db_result + pc_db_result
+
         self._emit_summary(summary)
         self._check_and_alert(summary)
         self._send_run_summary(summary, db_result)
@@ -139,6 +165,62 @@ class ScrapingService:
         self.result_processor.process_results(results, db_result)
         total_shows = sum(r.num_shows for r in results)
         Logger.info(f"Scraped {total_shows} shows for {scraper_type}")
+
+    # --- Production company helpers ---
+
+    def _scrape_production_companies(
+        self, clubs: List[Club]
+    ) -> tuple[List[ClubScrapingResult], DatabaseOperationResult]:
+        """Scrape all production companies and map shows to venue clubs.
+
+        For each production company with a scraping_url, builds a proxy Club from
+        the company's first mapped venue, runs the matching scraper, then stamps
+        production_company_id on every resulting Show.
+
+        Args:
+            clubs: The full list of active clubs (used to look up venue details).
+
+        Returns:
+            Tuple of (scraping results, database operation result).
+        """
+        companies = self.production_company_handler.get_all_production_companies()
+        if not companies:
+            return [], DatabaseOperationResult()
+
+        club_by_id = {c.id: c for c in clubs}
+        proxy_clubs: List[tuple[Club, ProductionCompany]] = []
+
+        for company in companies:
+            if not company.venue_club_ids:
+                Logger.warn(f"Production company '{company.name}' has no venue mappings — skipping")
+                continue
+
+            # Use the first mapped venue as the primary club for this scrape
+            primary_club_id = company.venue_club_ids[0]
+            venue_club = club_by_id.get(primary_club_id)
+            if not venue_club:
+                Logger.warn(
+                    f"Production company '{company.name}': primary venue club_id={primary_club_id} "
+                    f"not found in active clubs — skipping"
+                )
+                continue
+
+            proxy = _build_proxy_club(venue_club, company)
+            proxy_clubs.append((proxy, company))
+
+        if not proxy_clubs:
+            Logger.info("No production companies eligible for scraping")
+            return [], DatabaseOperationResult()
+
+        Logger.info(f"Scraping {len(proxy_clubs)} production company(ies)")
+
+        # Scrape using the same concurrent infrastructure as regular clubs.
+        # production_company_id is stamped on shows inside scrape_one via the
+        # _production_company_id attribute on the proxy Club, before persistence.
+        proxies_only = [pc[0] for pc in proxy_clubs]
+        results, _, db_result = self._scrape_clubs_with_metrics(proxies_only)
+
+        return results, db_result
 
     # --- Internal helpers ---
     @property
@@ -223,6 +305,12 @@ class ScrapingService:
                         metrics.none_resp += 1
                     else:
                         metrics.ok += 1
+                    # Stamp production_company_id on shows before persistence
+                    # when scraping via a production company proxy club.
+                    pc_id = getattr(club, "_production_company_id", None)
+                    if pc_id is not None:
+                        for show in result.shows:
+                            show.production_company_id = pc_id
                     # Persist immediately after this club completes scraping.
                     # db_lock serializes writes so insert_club_result() is called
                     # from at most one thread at a time, ensuring ShowService thread safety.
