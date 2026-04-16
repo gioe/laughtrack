@@ -132,8 +132,9 @@ class ScrapingService:
         results, summary, db_result = self._scrape_clubs_with_metrics(clubs)
 
         # Scrape production companies after regular clubs
-        pc_results, pc_db_result = self._scrape_production_companies(clubs)
+        pc_results, pc_summary, pc_db_result = self._scrape_production_companies(clubs)
         results.extend(pc_results)
+        summary = summary.merge(pc_summary)
         db_result = db_result + pc_db_result
 
         self._emit_summary(summary)
@@ -169,7 +170,7 @@ class ScrapingService:
 
     def _scrape_production_companies(
         self, clubs: List[Club]
-    ) -> tuple[List[ClubScrapingResult], DatabaseOperationResult]:
+    ) -> tuple[List[ClubScrapingResult], ScrapingRunSummary, DatabaseOperationResult]:
         """Scrape all production companies and map shows to venue clubs.
 
         For each production company with a scraping_url, builds a proxy Club from
@@ -180,11 +181,11 @@ class ScrapingService:
             clubs: The full list of active clubs (used to look up venue details).
 
         Returns:
-            Tuple of (scraping results, database operation result).
+            Tuple of (scraping results, scraping run summary, database operation result).
         """
         companies = self.production_company_handler.get_all_production_companies()
         if not companies:
-            return [], DatabaseOperationResult()
+            return [], ScrapingRunSummary(), DatabaseOperationResult()
 
         club_by_id = {c.id: c for c in clubs}
         proxy_clubs: List[tuple[Club, ProductionCompany]] = []
@@ -209,7 +210,7 @@ class ScrapingService:
 
         if not proxy_clubs:
             Logger.info("No production companies eligible for scraping")
-            return [], DatabaseOperationResult()
+            return [], ScrapingRunSummary(), DatabaseOperationResult()
 
         Logger.info(f"Scraping {len(proxy_clubs)} production company(ies)")
 
@@ -217,9 +218,9 @@ class ScrapingService:
         # production_company_id is stamped on shows inside scrape_one via the
         # _production_company_id attribute on the proxy Club, before persistence.
         proxies_only = [pc[0] for pc in proxy_clubs]
-        results, _, db_result = self._scrape_clubs_with_metrics(proxies_only)
+        results, pc_summary, db_result = self._scrape_clubs_with_metrics(proxies_only)
 
-        return results, db_result
+        return results, pc_summary, db_result
 
     # --- Internal helpers ---
     @property

@@ -64,6 +64,12 @@ class ScrapingRunSummary:
     def clubs_empty(self) -> int:
         return sum(1 for m in self.per_club if m.none_resp > 0 and m.ok == 0 and m.error == 0)
 
+    def merge(self, other: "ScrapingRunSummary") -> "ScrapingRunSummary":
+        """Combine two summaries into one (e.g. venue clubs + production companies)."""
+        combined = ScrapingRunSummary()
+        combined.per_club = self.per_club + other.per_club
+        return combined
+
     def below_threshold(self, threshold_pct: float) -> List[DomainRequestMetrics]:
         """Return clubs whose success rate is below *threshold_pct*."""
         return [m for m in self.per_club if m.success_rate < threshold_pct]
