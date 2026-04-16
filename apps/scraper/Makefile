@@ -93,7 +93,7 @@ setup-venv:
 		echo "✅ Virtual environment already exists at $(VENV_DIR)/"; \
 	fi
 
-.PHONY: test test-all test-venues test-core test-infrastructure test-utils test-critical help help-full help-install help-test help-lint hdiscover help-clean help-linting help-testing help-scraping help-setup help-analysis help-viz help-maintenance help-update help-updates help-workflows help-discovery help-info help-cleanup scrape-all scrape-club scrape-club-id diagnose-club scrape-interactive scrape-types list-scrapers list-clubs update-popularity update-comedian-stats sync-club-images audit-cdn-images migrate migrate-dry-run dashboard visualize-metrics scraper-status daily-scrape full-maintenance install install-dev install-optional seatengine-api-tool clean lint lint-check format format-check lint-fix lint-fix-imports lint-fix-whitespace check-venv setup-venv arch-lint run-script lookup-bandsintown-ids discover-venues
+.PHONY: test test-all test-venues test-core test-infrastructure test-utils test-critical help help-full help-install help-test help-lint hdiscover help-clean help-linting help-testing help-scraping help-setup help-analysis help-viz help-maintenance help-update help-updates help-workflows help-discovery help-info help-cleanup scrape-all scrape-club scrape-club-id diagnose-club scrape-interactive scrape-types list-scrapers list-clubs update-popularity update-comedian-stats sync-club-images audit-cdn-images migrate migrate-dry-run dashboard visualize-metrics scraper-status daily-scrape full-maintenance install install-dev install-optional seatengine-api-tool seatengine-check seatengine-audit clean lint lint-check format format-check lint-fix lint-fix-imports lint-fix-whitespace check-venv setup-venv arch-lint run-script lookup-bandsintown-ids discover-venues
 
 # =============================================================================
 # HELP & DOCUMENTATION
@@ -204,6 +204,8 @@ help-analyze:
 	@echo "  select-metrics       - Pick a metrics JSON and render it to the dashboard"
 	@echo "  scraper-status       - Show current scraper health and status"
 	@echo "  seatengine-api-tool  - Start SeatEngine API testing tool (port 9247)"
+	@echo "  seatengine-check    - Check single SeatEngine venue (ID=<venue_id>)"
+	@echo "  seatengine-audit    - Bulk audit all SeatEngine venues for health"
 
 help-workflow:
 	@echo "🔄 AUTOMATED WORKFLOWS:"
@@ -692,11 +694,14 @@ ifndef ID
 endif
 endif
 	@printf '%s\n' \
-		'import os, sys, json' \
+		'import os, sys, json, subprocess' \
 		'from dotenv import load_dotenv' \
 		'import psycopg2' \
 		'' \
-		'load_dotenv(".env")' \
+		'# Find repo root via git so this works from any CWD' \
+		'repo_root = subprocess.check_output(["git", "rev-parse", "--show-toplevel"], text=True).strip()' \
+		'env_path = os.path.join(repo_root, "apps", "scraper", ".env")' \
+		'load_dotenv(env_path)' \
 		'conn = psycopg2.connect(' \
 		'    host=os.environ["DATABASE_HOST"],' \
 		'    user=os.environ["DATABASE_USER"],' \
@@ -830,6 +835,20 @@ seatengine-api-tool:
 	@echo "   🛑 Press Ctrl+C to stop the server"
 	$(activate_venv) $(PYTHON) web/seatengine_api_tool/app.py
 
+# Check a single SeatEngine venue by ID
+# Usage: make seatengine-check ID=90
+seatengine-check:
+ifndef ID
+	@echo "Usage: make seatengine-check ID=<seatengine_venue_id>"
+	@exit 1
+endif
+	@source $(VENV_ACTIVATE) && $(PYTHON) scripts/core/seatengine_check.py $(ID)
+
+# Bulk audit all visible seatengine-scraped clubs
+# Usage: make seatengine-audit
+seatengine-audit:
+	@source $(VENV_ACTIVATE) && $(PYTHON) scripts/core/seatengine_audit.py
+
 # =============================================================================
 # AUTOMATED WORKFLOWS - Production Pipeline Orchestration
 # =============================================================================
@@ -897,20 +916,98 @@ full-maintenance:
 	@echo "✅ Full maintenance workflow completed successfully!"
 	@echo "   🎉 System is fully updated with fresh data and analytics"
 
+# Close a club - set status='closed', visible=false, closed_at=NOW(), create Prisma migration
+# Usage: make close-club ID=816
+# Use this for permanently-defunct venues. For reversible hiding, use `make hide-club`.
+close-club:
+ifndef ID
+	@echo "❌ Usage: make close-club ID=<club_id>"
+	@exit 1
+endif
+	@printf '%s\n' \
+		'import os, sys, json, subprocess' \
+		'from datetime import datetime, timezone' \
+		'from dotenv import load_dotenv' \
+		'import psycopg2' \
+		'' \
+		'repo_root = subprocess.check_output(["git", "rev-parse", "--show-toplevel"], text=True).strip()' \
+		'scraper_dir = os.path.join(repo_root, "apps", "scraper")' \
+		'env_path = os.path.join(scraper_dir, ".env")' \
+		'migrations_base = os.path.join(repo_root, "apps", "web", "prisma", "migrations")' \
+		'' \
+		'load_dotenv(env_path)' \
+		'club_id = int(sys.argv[1])' \
+		'' \
+		'conn = psycopg2.connect(' \
+		'    host=os.environ["DATABASE_HOST"],' \
+		'    user=os.environ["DATABASE_USER"],' \
+		'    password=os.environ["DATABASE_PASSWORD"],' \
+		'    dbname=os.environ["DATABASE_NAME"],' \
+		'    port=int(os.environ.get("DATABASE_PORT", "5432")),' \
+		'    sslmode="require"' \
+		')' \
+		'conn.autocommit = True' \
+		'cur = conn.cursor()' \
+		'' \
+		'cur.execute("SELECT id, name, status, visible FROM clubs WHERE id = %s", (club_id,))' \
+		'row = cur.fetchone()' \
+		'if not row:' \
+		'    print(f"❌ Club {club_id} not found")' \
+		'    sys.exit(1)' \
+		'club_name = row[1]' \
+		'if row[2] == "closed":' \
+		'    print(f"⚠️  Club {club_id} ({club_name}) is already closed")' \
+		'    sys.exit(0)' \
+		'' \
+		'cur.execute("UPDATE clubs SET status = %s, visible = false, closed_at = NOW() WHERE id = %s", ("closed", club_id))' \
+		'print(f"✅ Closed club {club_id} ({club_name})")' \
+		'' \
+		'ts = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")' \
+		'slug = club_name.lower()' \
+		'for ch in "\u2019'\''\"()&,./!?":' \
+		'    slug = slug.replace(ch, "")' \
+		'slug = "_".join(slug.split())' \
+		'migration_name = f"{ts}_close_{slug}"' \
+		'migration_dir = os.path.join(migrations_base, migration_name)' \
+		'os.makedirs(migration_dir, exist_ok=True)' \
+		'sql = (' \
+		'    f"-- Close {club_name} (club {club_id})\n"' \
+		'    f"UPDATE clubs SET status = \u0027closed\u0027, visible = false, closed_at = NOW() WHERE id = {club_id};\n"' \
+		')' \
+		'with open(os.path.join(migration_dir, "migration.sql"), "w") as f:' \
+		'    f.write(sql)' \
+		'print(f"📄 Created migration: {migration_name}")' \
+		'' \
+		'cur.execute(' \
+		'    "INSERT INTO _prisma_migrations (id, checksum, migration_name, logs, started_at, finished_at, applied_steps_count) "' \
+		'    "VALUES (gen_random_uuid(), %s, %s, NULL, now(), now(), 1) ON CONFLICT DO NOTHING",' \
+		'    ("", migration_name)' \
+		')' \
+		'print(f"📝 Recorded in _prisma_migrations")' \
+		'conn.close()' \
+		| $(PYTHON) - $(ID)
+
 # Hide a club - set visible=false, create Prisma migration, record in _prisma_migrations
 # Usage: make hide-club ID=413
+# Use this for reversible hiding (pending investigation, duplicates). For permanent closure, use `make close-club`.
 hide-club:
 ifndef ID
 	@echo "❌ Usage: make hide-club ID=<club_id>"
 	@exit 1
 endif
 	@printf '%s\n' \
-		'import os, sys, json' \
+		'import os, sys, json, subprocess' \
 		'from datetime import datetime, timezone' \
 		'from dotenv import load_dotenv' \
 		'import psycopg2' \
 		'' \
-		'load_dotenv(".env")' \
+		'# Find repo root via git so this works from any CWD' \
+		'repo_root = subprocess.check_output(["git", "rev-parse", "--show-toplevel"], text=True).strip()' \
+		'scraper_dir = os.path.join(repo_root, "apps", "scraper")' \
+		'env_path = os.path.join(scraper_dir, ".env")' \
+		'migrations_base = os.path.join(repo_root, "apps", "web", "prisma", "migrations")' \
+		'' \
+		'load_dotenv(env_path)' \
 		'club_id = int(sys.argv[1])' \
 		'' \
 		'conn = psycopg2.connect(' \
@@ -946,10 +1043,10 @@ endif
 		'    slug = slug.replace(ch, "")' \
 		'slug = "_".join(slug.split())' \
 		'migration_name = f"{ts}_hide_{slug}"' \
-		'migration_dir = f"../web/prisma/migrations/{migration_name}"' \
+		'migration_dir = os.path.join(migrations_base, migration_name)' \
 		'os.makedirs(migration_dir, exist_ok=True)' \
 		'sql = f"-- Hide {club_name} (club {club_id})\nUPDATE \"clubs\" SET \"visible\" = false WHERE \"id\" = {club_id};\n"' \
-		'with open(f"{migration_dir}/migration.sql", "w") as f:' \
+		'with open(os.path.join(migration_dir, "migration.sql"), "w") as f:' \
 		'    f.write(sql)' \
 		'print(f"📄 Created migration: {migration_name}")' \
 		'' \
