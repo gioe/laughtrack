@@ -32,6 +32,7 @@ export interface ClubDTO {
     chainId?: number | null;
     chainName?: string | null;
     chainSlug?: string | null;
+    clubType?: string;
 }
 
 export interface PaginatedClubResponseDTO {

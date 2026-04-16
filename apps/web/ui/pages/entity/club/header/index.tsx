@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { MapPin } from "lucide-react";
+import { MapPin, CalendarDays } from "lucide-react";
 import Image from "next/image";
 import { Club } from "@/objects/class/club/Club";
 import { ClubDTO } from "@/objects/class/club/club.interface";
@@ -20,10 +20,14 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({ club }) => {
     const { mv, mt, prefersReducedMotion } = useMotionProps();
     const [error, setError] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
-    const locationLabel =
-        parsedClub.city && parsedClub.state
+    const isFestival = parsedClub.clubType === "festival";
+    const locationLabel = isFestival
+        ? parsedClub.city && parsedClub.state
             ? `${parsedClub.city}, ${parsedClub.state}`
-            : parsedClub.city || parsedClub.address;
+            : parsedClub.city || parsedClub.state || ""
+        : parsedClub.city && parsedClub.state
+          ? `${parsedClub.city}, ${parsedClub.state}`
+          : parsedClub.city || parsedClub.address;
 
     const showImage =
         !error && !!parsedClub.imageUrl && parsedClub.imageUrl !== PLACEHOLDER;
@@ -68,6 +72,19 @@ const ClubDetailHeader: React.FC<ClubDetailHeaderProps> = ({ club }) => {
 
                 {/* Name + Address overlaid at bottom */}
                 <div className="absolute bottom-0 left-0 right-0 p-6">
+                    {isFestival && (
+                        <motion.div
+                            initial={{ opacity: 0, y: mv(10) }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={mt({ duration: 0.3 })}
+                            className="mb-2"
+                        >
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/90 text-white text-xs font-semibold uppercase tracking-wide">
+                                <CalendarDays className="w-3.5 h-3.5" />
+                                Festival
+                            </span>
+                        </motion.div>
+                    )}
                     <motion.h1
                         initial={{ opacity: 0, y: mv(20) }}
                         animate={{ opacity: 1, y: 0 }}

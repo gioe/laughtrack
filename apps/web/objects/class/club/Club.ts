@@ -22,6 +22,7 @@ export class Club implements ClubInterface {
     readonly activeComedianCount?: number;
     readonly imageUrl: string;
     readonly phoneNumber: string;
+    readonly clubType: string;
     readonly fallbackImageUrl?: URL;
 
     // Complex objects
@@ -39,6 +40,7 @@ export class Club implements ClubInterface {
         this.address = input.address ?? "";
         this.zipCode = input.zipCode ?? "";
         this.phoneNumber = input.phone_number ?? "";
+        this.clubType = input.clubType ?? "club";
 
         this.imageUrl = input.imageUrl;
 
