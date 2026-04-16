@@ -916,16 +916,22 @@ full-maintenance:
 	@echo "✅ Full maintenance workflow completed successfully!"
 	@echo "   🎉 System is fully updated with fresh data and analytics"
 
-# Close a club - set status='closed', visible=false, closed_at=NOW(), create Prisma migration
+# Close a club - set status='closed', visible=false, closed_at=<ISO literal>, create Prisma migration
 # Usage: make close-club ID=816
 # Use this for permanently-defunct venues. For reversible hiding, use `make hide-club`.
+#
+# The migration file is written BEFORE the DB update so that a failure during file
+# generation cannot leave the live DB ahead of git. The generated SQL uses an ISO
+# literal for closed_at (deterministic replay across environments) and a
+# `WHERE ... AND status <> 'closed'` guard (idempotent: re-applying will not
+# overwrite a historical closed_at).
 close-club:
 ifndef ID
 	@echo "❌ Usage: make close-club ID=<club_id>"
 	@exit 1
 endif
 	@printf '%s\n' \
-		'import os, sys, json, subprocess' \
+		'import os, sys, subprocess' \
 		'from datetime import datetime, timezone' \
 		'from dotenv import load_dotenv' \
 		'import psycopg2' \
@@ -959,10 +965,12 @@ endif
 		'    print(f"⚠️  Club {club_id} ({club_name}) is already closed")' \
 		'    sys.exit(0)' \
 		'' \
-		'cur.execute("UPDATE clubs SET status = %s, visible = false, closed_at = NOW() WHERE id = %s", ("closed", club_id))' \
-		'print(f"✅ Closed club {club_id} ({club_name})")' \
+		'# Capture single timestamp — used in both the migration SQL literal and the live UPDATE' \
+		'now = datetime.now(timezone.utc)' \
+		'ts = now.strftime("%Y%m%d%H%M%S")' \
+		'iso_ts = now.isoformat()' \
 		'' \
-		'ts = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")' \
+		'# Build migration file first — DB mutation only happens if file write succeeds' \
 		'slug = club_name.lower()' \
 		'for ch in "\u2019'\''\"()&,./!?":' \
 		'    slug = slug.replace(ch, "")' \
@@ -972,11 +980,24 @@ endif
 		'os.makedirs(migration_dir, exist_ok=True)' \
 		'sql = (' \
 		'    f"-- Close {club_name} (club {club_id})\n"' \
-		'    f"UPDATE clubs SET status = \u0027closed\u0027, visible = false, closed_at = NOW() WHERE id = {club_id};\n"' \
+		'    f"UPDATE clubs\n"' \
+		'    f"SET status = \u0027closed\u0027,\n"' \
+		'    f"    visible = false,\n"' \
+		'    f"    closed_at = COALESCE(closed_at, \u0027{iso_ts}\u0027::timestamptz)\n"' \
+		'    f"WHERE id = {club_id} AND status <> \u0027closed\u0027;\n"' \
 		')' \
 		'with open(os.path.join(migration_dir, "migration.sql"), "w") as f:' \
 		'    f.write(sql)' \
 		'print(f"📄 Created migration: {migration_name}")' \
+		'' \
+		'# Apply the same UPDATE to the live DB, matching the migration exactly' \
+		'cur.execute(' \
+		'    "UPDATE clubs SET status = %s, visible = false, "' \
+		'    "closed_at = COALESCE(closed_at, %s::timestamptz) "' \
+		'    "WHERE id = %s AND status <> %s",' \
+		'    ("closed", iso_ts, club_id, "closed")' \
+		')' \
+		'print(f"✅ Closed club {club_id} ({club_name})")' \
 		'' \
 		'cur.execute(' \
 		'    "INSERT INTO _prisma_migrations (id, checksum, migration_name, logs, started_at, finished_at, applied_steps_count) "' \

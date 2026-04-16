@@ -38,11 +38,11 @@ If the argument is numeric, use it directly as the club ID.
 If the argument is a name, look it up:
 
 ```bash
-SCRAPER_DIR="$(git rev-parse --show-toplevel)/apps/scraper" && \
-"$SCRAPER_DIR/.venv/bin/python3" -c "
-import os, json
+"$(git rev-parse --show-toplevel)/apps/scraper/.venv/bin/python3" -c "
+import os, subprocess
 from dotenv import load_dotenv
-load_dotenv(os.environ['SCRAPER_DIR'] + '/.env')
+scraper_dir = subprocess.check_output(['git', 'rev-parse', '--show-toplevel'], text=True).strip() + '/apps/scraper'
+load_dotenv(scraper_dir + '/.env')
 import psycopg2
 conn = psycopg2.connect(
     host=os.environ['DATABASE_HOST'],
