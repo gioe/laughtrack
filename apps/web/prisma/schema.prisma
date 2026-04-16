@@ -21,14 +21,15 @@ model Chain {
 }
 
 model ProductionCompany {
-  id          Int                      @id @default(autoincrement())
-  name        String                   @unique
-  slug        String                   @unique
-  website     String?
-  scrapingUrl String?                  @map("scraping_url")
-  visible     Boolean                  @default(true)
-  venues      ProductionCompanyVenue[]
-  shows       Show[]
+  id               Int                      @id @default(autoincrement())
+  name             String                   @unique
+  slug             String                   @unique
+  website          String?
+  scrapingUrl      String?                  @map("scraping_url")
+  visible          Boolean                  @default(true)
+  showNameKeywords String[]                 @default([]) @map("show_name_keywords")
+  venues           ProductionCompanyVenue[]
+  shows            Show[]
 
   @@map("production_companies")
 }

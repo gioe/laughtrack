@@ -19,6 +19,7 @@ class ProductionCompany(DatabaseEntity):
     scraping_url: Optional[str] = None
     website: Optional[str] = None
     visible: bool = True
+    show_name_keywords: List[str] = field(default_factory=list)
     venue_club_ids: List[int] = field(default_factory=list)
 
     @classmethod
@@ -31,6 +32,7 @@ class ProductionCompany(DatabaseEntity):
             scraping_url=row.get("scraping_url"),
             website=row.get("website"),
             visible=row.get("visible", True),
+            show_name_keywords=row.get("show_name_keywords") or [],
         )
 
     @classmethod
@@ -59,6 +61,18 @@ class ProductionCompany(DatabaseEntity):
             "production_company_name": self.name,
             "scraping_url": self.scraping_url,
         }
+
+    def matches_show_name(self, show_name: str) -> bool:
+        """Return True if the show name matches this company's keyword filter.
+
+        If show_name_keywords is empty, all shows match (no filtering).
+        Otherwise, at least one keyword must appear in the show name
+        (case-insensitive substring match).
+        """
+        if not self.show_name_keywords:
+            return True
+        name_lower = show_name.lower()
+        return any(kw.lower() in name_lower for kw in self.show_name_keywords)
 
     def get_club_id_for_venue(self, club_ids_in_scope: Set[int]) -> Optional[int]:
         """Return the first venue club_id that is in scope, or None."""

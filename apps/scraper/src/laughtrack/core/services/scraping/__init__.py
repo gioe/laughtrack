@@ -87,6 +87,7 @@ def _build_proxy_club(venue_club: Club, company: ProductionCompany) -> Club:
     proxy.scraping_url = company.scraping_url or ""
     # Tag so scrape_one can stamp production_company_id before persistence
     proxy._production_company_id = company.id  # type: ignore[attr-defined]
+    proxy._production_company = company  # type: ignore[attr-defined]
     return proxy
 
 
@@ -305,12 +306,23 @@ class ScrapingService:
                         metrics.none_resp += 1
                     else:
                         metrics.ok += 1
-                    # Stamp production_company_id on shows before persistence
+                    # Stamp production_company_id on matching shows before persistence
                     # when scraping via a production company proxy club.
+                    # If the company has show_name_keywords configured, only shows
+                    # whose name matches at least one keyword get stamped.
                     pc_id = getattr(club, "_production_company_id", None)
                     if pc_id is not None:
+                        pc: Optional[ProductionCompany] = getattr(club, "_production_company", None)
+                        stamped = 0
                         for show in result.shows:
-                            show.production_company_id = pc_id
+                            if pc is None or pc.matches_show_name(show.name):
+                                show.production_company_id = pc_id
+                                stamped += 1
+                        if pc and pc.show_name_keywords and stamped < len(result.shows):
+                            Logger.info(
+                                f"Production company '{pc.name}': stamped {stamped}/{len(result.shows)} "
+                                f"shows (filtered by keywords)"
+                            )
                     # Persist immediately after this club completes scraping.
                     # db_lock serializes writes so insert_club_result() is called
                     # from at most one thread at a time, ensuring ShowService thread safety.
