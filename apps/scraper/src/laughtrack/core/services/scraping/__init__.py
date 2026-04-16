@@ -8,9 +8,8 @@ import threading
 import uuid
 from collections import defaultdict
 from datetime import datetime, timezone
-from typing import Optional, List
-
 import copy
+from typing import Optional, List
 
 from laughtrack.app.scraper_resolver import ScraperResolver
 from laughtrack.core.entities.club.handler import ClubHandler

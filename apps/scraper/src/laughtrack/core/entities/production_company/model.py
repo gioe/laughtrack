@@ -1,7 +1,7 @@
 """Data model for a production company."""
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Set
+from typing import List, Optional, Set
 
 from psycopg2.extras import DictRow
 
