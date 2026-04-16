@@ -19,6 +19,7 @@ import { db } from "@/lib/db";
 import { buildClubImageUrl } from "@/util/imageUtil";
 import JsonLd from "@/ui/components/JsonLd";
 import { buildClubJsonLd, buildShowJsonLd } from "@/util/jsonLd";
+import FestivalDateRange from "@/ui/pages/entity/club/festivalDateRange";
 
 export async function generateMetadata(props: {
     params: Promise<{ name: string }>;
@@ -26,20 +27,23 @@ export async function generateMetadata(props: {
     const { name: slug } = await props.params;
     const name = decodeURI(slug);
 
-    const getClubName = unstable_cache(
+    const getClubMeta = unstable_cache(
         () =>
             db.club.findFirst({
                 where: { name: { equals: name, mode: "insensitive" } },
-                select: { name: true, hasImage: true },
+                select: { name: true, hasImage: true, clubType: true },
             }),
         ["club-metadata", name],
         { revalidate: CACHE.detailPage, tags: ["club-metadata", name] },
     );
 
-    const club = await getClubName();
+    const club = await getClubMeta();
     const clubName = club?.name ?? name;
+    const isFestival = club?.clubType === "festival";
     const title = clubName;
-    const description = `Discover upcoming comedy shows at ${clubName}. Find schedules, tickets, and more on LaughTrack.`;
+    const description = isFestival
+        ? `Discover the ${clubName} comedy festival. Find lineups, schedules, tickets, and more on LaughTrack.`
+        : `Discover upcoming comedy shows at ${clubName}. Find schedules, tickets, and more on LaughTrack.`;
     const baseUrl = process.env.NEXT_PUBLIC_WEBSITE_URL;
     const url = baseUrl ? `${baseUrl}/club/${slug}` : undefined;
     const image = buildClubImageUrl(clubName, club?.hasImage ?? false);
@@ -142,6 +146,7 @@ export default async function ClubDetailPage(props: {
 
     const { data, shows, total, filters, siblings } = result!;
 
+    const isFestival = data.clubType === "festival";
     const jsonLdData = [buildClubJsonLd(data), ...shows.map(buildShowJsonLd)];
 
     return (
@@ -154,6 +159,9 @@ export default async function ClubDetailPage(props: {
                     chainName={data.chainName}
                     siblings={siblings}
                 />
+            )}
+            {isFestival && shows.length > 0 && (
+                <FestivalDateRange shows={shows} />
             )}
             <FilterBar
                 variant={SearchVariant.ClubDetail}
