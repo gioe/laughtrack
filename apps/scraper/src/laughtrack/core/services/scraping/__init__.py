@@ -221,6 +221,15 @@ class ScrapingService:
         proxies_only = [pc[0] for pc in proxy_clubs]
         results, pc_summary, db_result = self._scrape_clubs_with_metrics(proxies_only)
 
+        # Clean up non-matching shows: the upsert uses COALESCE which preserves
+        # old production_company_id values when the incoming value is NULL.
+        # For companies with keyword filters, clear the stale stamps.
+        for proxy, company in proxy_clubs:
+            if company.show_name_keywords:
+                venue_club_id = company.venue_club_ids[0] if company.venue_club_ids else None
+                if venue_club_id:
+                    self.production_company_handler.clear_unmatched_shows(company, venue_club_id)
+
         return results, pc_summary, db_result
 
     # --- Internal helpers ---

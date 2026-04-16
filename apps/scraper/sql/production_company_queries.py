@@ -15,3 +15,17 @@ class ProductionCompanyQueries:
         FROM production_company_venues
         ORDER BY production_company_id, club_id
     """
+
+    GET_FUTURE_SHOWS_FOR_COMPANY_VENUE = """
+        SELECT id, name
+        FROM shows
+        WHERE club_id = %s
+          AND production_company_id = %s
+          AND date >= NOW()
+    """
+
+    CLEAR_PRODUCTION_COMPANY_ID = """
+        UPDATE shows
+        SET production_company_id = NULL
+        WHERE id = ANY(%s)
+    """
