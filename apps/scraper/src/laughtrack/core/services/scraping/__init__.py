@@ -123,12 +123,39 @@ class ScrapingService:
             self._result_processor = ScrapingResultProcessor()
         return self._result_processor
 
+    def _filter_off_season_festivals(self, clubs: List[Club]) -> List[Club]:
+        """Remove festival clubs that are outside their active scraping window.
+
+        Festivals only need scraping when they have shows within the next 90 days.
+        Regular clubs (club_type != 'festival') are always included.
+        """
+        festivals = [c for c in clubs if c.club_type == "festival"]
+        if not festivals:
+            return clubs
+
+        active_festival_ids = self.club_handler.get_active_festival_ids()
+        kept: List[Club] = []
+        skipped: List[str] = []
+        for club in clubs:
+            if club.club_type == "festival" and club.id not in active_festival_ids:
+                skipped.append(club.name)
+            else:
+                kept.append(club)
+
+        if skipped:
+            Logger.info(
+                f"Skipping {len(skipped)} off-season festival(s): {', '.join(skipped)}"
+            )
+
+        return kept
+
     def scrape_all_clubs(self) -> List[ClubScrapingResult]:
         Logger.info("Starting scrape of all clubs...")
         clubs = self.club_handler.get_all_clubs()
         if not clubs:
             raise ValueError("No clubs found with valid scraper configurations")
         Logger.info(f"Found {len(clubs)} clubs with scraper configurations")
+        clubs = self._filter_off_season_festivals(clubs)
         self._try_validate_scraper_keys(clubs)
         results, summary, db_result = self._scrape_clubs_with_metrics(clubs)
 
