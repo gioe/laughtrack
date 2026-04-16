@@ -5,9 +5,14 @@ embed per-event JSON-LD — only event IDs inside window.dataLayer.push. Each
 event detail page (events.ticketleap.com/event/{id}) carries a standard
 schema.org Event JSON-LD block we can reuse the shared extractor on.
 
+The listing page is client-rendered: curl-cffi receives a 17 KB shell without
+the dataLayer.push payload, so we go straight to the Playwright browser for
+that one fetch. Detail pages are server-rendered and work with plain
+fetch_html (curl-cffi with automatic Playwright fallback on block pages).
+
 Pipeline:
-    1. collect_scraping_targets(): fetch listing, regex-extract event IDs,
-       return a list of per-event detail URLs.
+    1. collect_scraping_targets(): fetch listing with Playwright,
+       regex-extract event IDs, return a list of per-event detail URLs.
     2. get_data(url): fetch detail page, run the shared JSON-LD EventExtractor,
        wrap the resulting JsonLdEvent in TicketleapPageData.
 """
@@ -47,11 +52,21 @@ class TicketleapScraper(BaseScraper):
 
         normalized_url = URLUtils.normalize_url(listing_url)
 
+        # Listing page is client-rendered; the dataLayer.push payload only
+        # appears after JS evaluation, so skip curl-cffi and go straight to
+        # Playwright for this fetch.
         try:
-            html = await self.fetch_html(normalized_url)
+            html = await self._fetch_html_with_js(normalized_url)
         except Exception as e:
             Logger.error(
                 f"{self._log_prefix}: Failed to fetch TicketLeap listing {normalized_url}: {e}",
+                self.logger_context,
+            )
+            return []
+
+        if not html:
+            Logger.warn(
+                f"{self._log_prefix}: TicketLeap listing returned empty HTML: {normalized_url}",
                 self.logger_context,
             )
             return []

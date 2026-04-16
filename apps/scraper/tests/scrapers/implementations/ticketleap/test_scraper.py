@@ -93,11 +93,11 @@ def _detail_html(event_id: int, name: str, start: str) -> str:
 async def test_collect_scraping_targets_returns_detail_urls(monkeypatch, club):
     s = TicketleapScraper(club)
 
-    async def fake_fetch(url, **kwargs):
+    async def fake_js_fetch(url):
         assert url == "https://events.ticketleap.com/events/funny"
         return _listing_html([111, 222, 333])
 
-    monkeypatch.setattr(s, "fetch_html", fake_fetch)
+    monkeypatch.setattr(s, "_fetch_html_with_js", fake_js_fetch)
 
     targets = await s.collect_scraping_targets()
     assert targets == [
@@ -111,10 +111,22 @@ async def test_collect_scraping_targets_returns_detail_urls(monkeypatch, club):
 async def test_collect_scraping_targets_empty_when_no_ids(monkeypatch, club):
     s = TicketleapScraper(club)
 
-    async def fake_fetch(url, **kwargs):
+    async def fake_js_fetch(url):
         return "<html><body>No events here.</body></html>"
 
-    monkeypatch.setattr(s, "fetch_html", fake_fetch)
+    monkeypatch.setattr(s, "_fetch_html_with_js", fake_js_fetch)
+    assert await s.collect_scraping_targets() == []
+
+
+@pytest.mark.asyncio
+async def test_collect_scraping_targets_empty_when_js_fetch_returns_none(monkeypatch, club):
+    """If Playwright is unavailable or times out, _fetch_html_with_js returns None."""
+    s = TicketleapScraper(club)
+
+    async def fake_js_fetch(url):
+        return None
+
+    monkeypatch.setattr(s, "_fetch_html_with_js", fake_js_fetch)
     assert await s.collect_scraping_targets() == []
 
 
@@ -122,10 +134,10 @@ async def test_collect_scraping_targets_empty_when_no_ids(monkeypatch, club):
 async def test_collect_scraping_targets_handles_fetch_error(monkeypatch, club):
     s = TicketleapScraper(club)
 
-    async def boom(url, **kwargs):
+    async def boom(url):
         raise RuntimeError("network blew up")
 
-    monkeypatch.setattr(s, "fetch_html", boom)
+    monkeypatch.setattr(s, "_fetch_html_with_js", boom)
     assert await s.collect_scraping_targets() == []
 
 
@@ -190,11 +202,14 @@ async def test_full_pipeline_produces_shows(monkeypatch, club):
         ),
     }
 
+    async def fake_js_fetch(url):
+        assert url == "https://events.ticketleap.com/events/funny"
+        return listing
+
     async def fake_fetch(url, **kwargs):
-        if url == "https://events.ticketleap.com/events/funny":
-            return listing
         return detail_by_id[url]
 
+    monkeypatch.setattr(s, "_fetch_html_with_js", fake_js_fetch)
     monkeypatch.setattr(s, "fetch_html", fake_fetch)
 
     shows = await s.scrape_async()
