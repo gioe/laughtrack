@@ -179,6 +179,7 @@ class ScrapingService:
             raise ValueError(f"Club with ID {club_id} not found" if club_id else "No club selected")
         results, _, db_result = self._scrape_clubs_with_metrics(clubs)
         self.result_processor.process_results(results, db_result)
+        self.club_handler.refresh_club_total_shows()
         total_shows = sum(r.num_shows for r in results)
         club_label = clubs[0].name if len(clubs) == 1 else f"{len(clubs)} clubs"
         Logger.info(f"Scraped {total_shows} shows for {club_label}")
