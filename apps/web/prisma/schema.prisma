@@ -69,6 +69,7 @@ model Club {
   totalShows         Int                 @default(0) @map("total_shows")
   hasImage           Boolean             @default(false) @map("has_image")
   status             String              @default("active")
+  clubType           String              @default("club") @map("club_type")
   closedAt           DateTime?           @map("closed_at")
   chainId            Int?                @map("chain_id")
   chain              Chain?              @relation(fields: [chainId], references: [id])
