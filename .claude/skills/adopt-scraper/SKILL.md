@@ -79,9 +79,93 @@ Record:
 - **City, State, Zip** (confirm against the task description)
 
 If the club appears to be **permanently closed** (website down, Google says "Permanently
-closed", no social media activity in 6+ months), stop and report:
+closed", no social media activity in 6+ months), invoke `/close-club <club_id>` to mark
+the row as `status='closed'`, `visible=false`, `closed_at=NOW()` and generate the
+corresponding migration. Commit the migration on the task's feature branch, then report:
 
-> This venue appears to be permanently closed. Recommend closing the task as `wont_do`.
+> This venue is permanently closed. Closed via `/close-club` and migration committed.
+
+Do NOT use `/hide-club` for confirmed-defunct venues — it only flips `visible` and
+leaves `status='active'`, which pollutes downstream reporting. `/hide-club` is for
+reversible hiding (duplicates pending merge, data-quality pulls).
+
+### 1a-2. Check if This Is a Production Company, Not a Venue
+
+If the research reveals the entity is a **comedy production company** (produces shows
+at third-party venues, has no dedicated physical space), it should be modeled as a
+`ProductionCompany`, not a `Club`. Signs include:
+
+- Website says "we produce shows at..." or lists multiple unrelated venues
+- No fixed address — shows happen at rotating locations
+- Eventbrite/ticketing presence is under an "organizer" profile, not a venue
+
+**If this is a production company:**
+
+1. Hide the club record (`visible = false`) — it's not a venue
+2. Create a `ProductionCompany` record via migration:
+
+```sql
+-- Hide club record (not a venue)
+UPDATE clubs SET visible = false WHERE id = <club_id>;
+
+-- Create as production company
+INSERT INTO production_companies (name, slug, website, scraping_url, visible, show_name_keywords)
+VALUES (
+    '<Name>',
+    '<slug>',
+    'https://<website>',
+    '<scraping_url>',
+    true,
+    ARRAY['comedy', 'stand-up', 'standup', 'stand up', 'improv', 'open mic', 'open-mic',
+          'comedian', 'comic', 'laugh', 'humor', 'jokes']
+)
+ON CONFLICT (name) DO NOTHING;
+```
+
+3. If any of the venues the company produces at are already in our DB, link them:
+```sql
+INSERT INTO production_company_venues (production_company_id, club_id)
+VALUES (<prod_co_id>, <club_id>)
+ON CONFLICT DO NOTHING;
+```
+
+4. Apply the migration, commit, and skip to Step 5 (report). No scraper verification
+   needed — production company scraping is handled separately.
+
+Use the existing Laff House record (`production_companies` id=1) as a reference for
+field values like `show_name_keywords`.
+
+### 1a-3. Check if This Is a Seasonal Festival on Hiatus
+
+If the venue is a **comedy festival** (annual multi-day event, multi-venue) and the
+homepage explicitly states it is skipping a year (e.g., "Taking 2026 off", "See you
+in 2027", "We'll be back next year"), treat this as a hiatus — not a closure.
+
+Signs of a festival (vs. a regular club):
+
+- Name includes "Festival", "Fest", or "Sketchfest"
+- `club_type = 'festival'` on the existing row
+- Website lists multiple partner venues the festival runs shows at
+- Social media posts reference annual editions (e.g., "Year 12")
+
+**If the festival is on hiatus** (taking a year off but not defunct):
+
+```sql
+-- Mark festival as on hiatus — active but not currently running
+UPDATE clubs
+SET status = 'hiatus',
+    website = 'https://<festival_domain>'
+WHERE id = <club_id>;
+```
+
+Keep `visible = false` (nothing to show this year). Apply the migration, commit,
+and skip to Step 5 — no scraper needed. Note: `hiatus` is a new status value that
+won't match existing `active`/`closed` filters; downstream code that assumes a
+two-value enum may need updates (flag as a follow-up task if you encounter such
+code during the research).
+
+If the festival is permanently cancelled (organizers announce it's over), use
+`status = 'closed'` instead and follow the normal closure pattern.
 
 ### 1b. Find the Events/Shows Page
 
@@ -375,6 +459,27 @@ apps/scraper/tests/scrapers/implementations/venues/<venue_snake_name>/
     __init__.py
     test_scraper.py
 ```
+
+### Path C: Platform Identified but No Scraper Exists
+
+If research confirms the real ticketing platform (e.g., TicketLeap, a niche custom API)
+but the codebase has no matching scraper AND building a full Path B scraper exceeds
+this task's complexity, use this hand-off pattern:
+
+1. Write a migration that updates the club's verified metadata (address, city, state,
+   zip, timezone, website, scraping_url). Point `scraping_url` at the correct platform
+   URL so the follow-up task inherits it. Keep `visible=false` and leave the existing
+   (broken) scraper value in place as a placeholder.
+2. Create a follow-up task titled "Build <Platform> platform scraper and onboard
+   <Club Name> (club <id>)". In the description, include:
+   - Platform details (listing URL format, detail URL format, where the event data
+     lives — e.g., `window.dataLayer.push` IDs + per-event JSON-LD).
+   - A sketch of the scraper design (two-step crawl, reference implementations to copy).
+   - A note that club metadata is already set and the scraper-build task only needs
+     to flip `scraper` + `visible` when the scraper verifies shows.
+3. Commit the metadata migration, mark the "research" criterion done, and
+   `--skip-verify` the remaining conditional criteria with rationale logged via
+   `tusk progress` (venue is active but scraper is deferred to the follow-up task).
 
 ## Step 4: Deploy and Verify
 
