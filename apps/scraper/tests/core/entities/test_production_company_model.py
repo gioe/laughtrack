@@ -143,3 +143,55 @@ class TestGetClubIdForVenue:
         company = _make_company(venue_club_ids=[30, 10, 20])
         # Both 10 and 30 are in scope; should return 30 (first in list)
         assert company.get_club_id_for_venue({10, 30}) == 30
+
+
+class TestMatchesShowName:
+    def test_matches_when_no_keywords_configured(self):
+        company = _make_company(show_name_keywords=[])
+        assert company.matches_show_name("Bre Kennedy Live") is True
+
+    def test_matches_keyword_in_show_name(self):
+        company = _make_company(show_name_keywords=["comedy", "stand-up", "open mic"])
+        assert company.matches_show_name("Friday Night Comedy Showcase") is True
+
+    def test_case_insensitive_match(self):
+        company = _make_company(show_name_keywords=["comedy"])
+        assert company.matches_show_name("COMEDY NIGHT") is True
+
+    def test_no_match_filters_out_show(self):
+        company = _make_company(show_name_keywords=["comedy", "stand-up", "laff"])
+        assert company.matches_show_name("Bre Kennedy") is False
+
+    def test_partial_keyword_match(self):
+        company = _make_company(show_name_keywords=["laugh"])
+        assert company.matches_show_name("Laughs & Drinks Night") is True
+
+    def test_multiple_keywords_any_match(self):
+        company = _make_company(show_name_keywords=["improv", "roast"])
+        assert company.matches_show_name("Celebrity Roast Battle") is True
+
+    def test_empty_show_name_no_match(self):
+        company = _make_company(show_name_keywords=["comedy"])
+        assert company.matches_show_name("") is False
+
+
+class TestFromDbRowShowNameKeywords:
+    def test_loads_keywords_from_row(self):
+        row = {
+            "id": 1,
+            "name": "Laff House",
+            "slug": "laff-house",
+            "show_name_keywords": ["comedy", "stand-up"],
+        }
+        company = ProductionCompany.from_db_row(row)
+        assert company.show_name_keywords == ["comedy", "stand-up"]
+
+    def test_defaults_to_empty_list_when_missing(self):
+        row = {"id": 1, "name": "Test Co"}
+        company = ProductionCompany.from_db_row(row)
+        assert company.show_name_keywords == []
+
+    def test_defaults_to_empty_list_when_none(self):
+        row = {"id": 1, "name": "Test Co", "show_name_keywords": None}
+        company = ProductionCompany.from_db_row(row)
+        assert company.show_name_keywords == []
