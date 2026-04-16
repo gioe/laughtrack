@@ -1,7 +1,7 @@
 """Production company database handler."""
 
 from collections import defaultdict
-from typing import Dict, List, Set
+from typing import Dict, List
 
 from sql.production_company_queries import ProductionCompanyQueries
 
