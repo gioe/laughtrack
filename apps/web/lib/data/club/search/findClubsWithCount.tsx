@@ -50,6 +50,7 @@ export async function findClubsWithCount(
         const whereClause: Prisma.ClubWhereInput = {
             visible: true,
             status: "active",
+            clubType: { not: "festival" },
             ...queryHelper.getClubNameClause(),
             ...queryHelper.getClubFiltersClause(),
             ...queryHelper.getChainClause(),
