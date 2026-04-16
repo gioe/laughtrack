@@ -1066,7 +1066,7 @@ endif
 		'migration_name = f"{ts}_hide_{slug}"' \
 		'migration_dir = os.path.join(migrations_base, migration_name)' \
 		'os.makedirs(migration_dir, exist_ok=True)' \
-		'sql = f"-- Hide {club_name} (club {club_id})\nUPDATE \"clubs\" SET \"visible\" = false WHERE \"id\" = {club_id};\n"' \
+		'sql = f"-- Hide {club_name} (club {club_id})\nUPDATE clubs SET visible = false WHERE id = {club_id};\n"' \
 		'with open(os.path.join(migration_dir, "migration.sql"), "w") as f:' \
 		'    f.write(sql)' \
 		'print(f"📄 Created migration: {migration_name}")' \
