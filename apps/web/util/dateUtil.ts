@@ -34,10 +34,25 @@ export function datesAreTomorrow(date1: Date, date2: Date) {
     return datesAreSame(date1, date2) && isTomorrow(date1);
 }
 
-export function formatShowDate(dateString: string): string {
+import { formatInTimeZone, toZonedTime } from "date-fns-tz";
+
+// Clubs without a populated timezone column fall back to ET (matching the scraper's
+// default in apps/scraper/src/laughtrack/core/entities/club/model.py:27).
+export const DEFAULT_SHOW_TIMEZONE = "America/New_York";
+
+export function formatShowDate(
+    dateString: string,
+    timezone?: string | null,
+): string {
     const date = new Date(dateString);
-    // Use UTC methods to avoid server/client timezone mismatch (hydration error #418).
-    // Show times are stored as UTC timestamps representing venue-local time.
+    const tz = timezone || DEFAULT_SHOW_TIMEZONE;
+
+    // toZonedTime returns a Date whose *local* fields (getMonth/getDate/getHours/...)
+    // carry the wallclock time in `tz`. The value is computed from the tz database
+    // via Intl, so it's deterministic across server and client regardless of the
+    // host system's timezone — no hydration mismatch (cf. hydration error #418).
+    const zoned = toZonedTime(date, tz);
+
     const months = [
         "January",
         "February",
@@ -52,19 +67,19 @@ export function formatShowDate(dateString: string): string {
         "November",
         "December",
     ];
-    const month = months[date.getUTCMonth()];
-
-    const day = date.getUTCDate();
+    const month = months[zoned.getMonth()];
+    const day = zoned.getDate();
     const suffix = getDaySuffix(day);
 
-    const hours = date.getUTCHours();
-    const minutes = date.getUTCMinutes();
+    const hours = zoned.getHours();
+    const minutes = zoned.getMinutes();
     const period = hours >= 12 ? "pm" : "am";
-
     const displayHours = hours % 12 || 12;
     const displayMinutes = minutes.toString().padStart(2, "0");
 
-    return `${month} ${day}${suffix} at ${displayHours}:${displayMinutes} ${period}`;
+    const tzLabel = formatInTimeZone(date, tz, "zzz");
+
+    return `${month} ${day}${suffix} at ${displayHours}:${displayMinutes} ${period} ${tzLabel}`;
 }
 
 function getDaySuffix(day: number): string {
