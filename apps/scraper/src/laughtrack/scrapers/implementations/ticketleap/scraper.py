@@ -29,9 +29,11 @@ Multi-location policy (Mesquite St. 'funny' org):
     ever renames the downtown location label.
 """
 
+from collections import Counter
 from typing import List, Optional
 
 from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.show.model import Show
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.url import URLUtils
 from laughtrack.scrapers.base.base_scraper import BaseScraper
@@ -51,6 +53,21 @@ class TicketleapScraper(BaseScraper):
     def __init__(self, club: Club, **kwargs):
         super().__init__(club, **kwargs)
         self.transformation_pipeline.register_transformer(TicketleapTransformer(club))
+        self._location_name_counts: Counter[str] = Counter()
+
+    async def scrape_async(self) -> List[Show]:
+        # Reset per-scrape drift tally; org slugs like 'funny' cover multiple
+        # physical venues, so we log when more than one location.name appears.
+        self._location_name_counts = Counter()
+        try:
+            return await super().scrape_async()
+        finally:
+            if len(self._location_name_counts) > 1:
+                Logger.info(
+                    f"{self._log_prefix}: TicketLeap multi-location detected: "
+                    f"{dict(self._location_name_counts)}",
+                    self.logger_context,
+                )
 
     async def collect_scraping_targets(self) -> List[ScrapingTarget]:
         """Fetch the listing page and return event detail URLs."""
@@ -105,6 +122,11 @@ class TicketleapScraper(BaseScraper):
                     self.logger_context,
                 )
                 return None
+
+            for event in events:
+                loc_name = getattr(getattr(event, "location", None), "name", None)
+                if loc_name:
+                    self._location_name_counts[loc_name] += 1
 
             return TicketleapPageData(events)
         except Exception as e:
