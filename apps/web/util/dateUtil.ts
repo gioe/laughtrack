@@ -1,3 +1,5 @@
+import { formatInTimeZone, toZonedTime } from "date-fns-tz";
+
 export function isToday(date: Date) {
     const today = new Date();
     return (
@@ -33,8 +35,6 @@ export function datesAreToday(date1: Date, date2: Date) {
 export function datesAreTomorrow(date1: Date, date2: Date) {
     return datesAreSame(date1, date2) && isTomorrow(date1);
 }
-
-import { formatInTimeZone, toZonedTime } from "date-fns-tz";
 
 // Clubs without a populated timezone column fall back to ET (matching the scraper's
 // default in apps/scraper/src/laughtrack/core/entities/club/model.py:27).
