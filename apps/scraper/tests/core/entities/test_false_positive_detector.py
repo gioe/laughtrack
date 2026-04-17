@@ -489,42 +489,14 @@ class TestStartsWithAtSign:
 
 
 # ---------------------------------------------------------------------------
-# Criterion 11: Multi-word all-caps event titles
-# ---------------------------------------------------------------------------
-
-class TestAllCapsRatio:
-    def test_two_word_allcaps_flagged(self):
-        assert detect_false_positive("A DREAMSCAPE") is not None
-
-    def test_allcaps_reason_prefix(self):
-        reason = detect_false_positive("THE RIOT STANDUP")
-        assert reason is not None
-        assert reason.startswith("allcaps_ratio:")
-
-    def test_single_word_allcaps_passes(self):
-        """Single-word all-caps names (stage names) are allowed."""
-        assert detect_false_positive("NNAMDI") is None
-
-    def test_mixed_case_name_with_one_uppercase_token_not_flagged(self):
-        """One token written in emphatic all-caps isn't enough — the lowercase
-        letters in the other token keep the ratio below threshold."""
-        assert detect_false_positive("John SMITH") is None
-
-    def test_dj_hammer_not_flagged(self):
-        """Short initialism with a Title-case name is well below threshold."""
-        assert detect_false_positive("DJ Hammer") is None
-
-    def test_title_case_name_passes(self):
-        assert detect_false_positive("Amy Schumer") is None
-
-    def test_mostly_allcaps_phrase_flagged(self):
-        """Fully upper-case multi-word phrase — flagged via ratio."""
-        assert detect_false_positive("ANNUAL HIGH MIGHTY MEGA SESH") is not None
-
-
-# ---------------------------------------------------------------------------
 # Regression fixture — the exact false-positive names from TASK-1547
 # ---------------------------------------------------------------------------
+#
+# Only the names matching the new prefix rules (quote / digit / @) are asserted
+# here. 'A DREAMSCAPE' and 'A Laugh Supreme' reach the DB via ingestion paths
+# where ComedianUtils.normalize_name() title-cases fully-upper input, so the
+# detector can't reliably distinguish those from real comedians imported in
+# caps (e.g. 'CLARE BOWEN'). Those are handled by direct deny-list cleanup.
 
 TASK_1547_FALSE_POSITIVES = (
     '"Big Irish" Jay Hollingsworth',
@@ -535,12 +507,11 @@ TASK_1547_FALSE_POSITIVES = (
     "5th ANNUAL HIGH AND MIGHTY 420 MEGA SESH",
     "90 Day Fiance: Sarper Guven",
     "@ComedyTrend with John Campanelli",
-    "A DREAMSCAPE",
 )
 
 
 class TestTask1547RegressionFixture:
-    """Every leaked name from the original bug report must now be rejected."""
+    """Every prefix-pattern leak from the original bug report must be rejected."""
 
     def test_all_known_false_positives_detected(self):
         for name in TASK_1547_FALSE_POSITIVES:

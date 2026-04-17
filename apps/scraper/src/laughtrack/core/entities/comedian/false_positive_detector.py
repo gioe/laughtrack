@@ -16,9 +16,11 @@ Detection criteria (any one match → false positive):
   8. Starts with a quote (straight or smart) — show titles like '"Big Irish" Jay ...'
   9. Starts with a digit — event titles like '5th ANNUAL ...', '90 Day Fiance: ...'
  10. Starts with '@' — social handles, not names
- 11. Multi-word name where ≥ 70% of alphabetic characters are uppercase — event
-     titles like 'A DREAMSCAPE', 'THE RIOT STANDUP'. Single-word all-caps names
-     (e.g. stage names) are allowed.
+
+Note: an all-caps rule was considered but omitted. ComedianUtils.normalize_name()
+already title-cases fully-upper input before insertion, so the rule is dead code
+in the normal path — and historical all-caps rows in the DB include real comedians
+(e.g. 'CLARE BOWEN', 'JAMES DAVIS') that must not be rejected.
 """
 
 from typing import Optional
@@ -180,13 +182,6 @@ _MAX_NAME_LENGTH = 60
 # Straight and curly quotes (open/close, single/double). Real names don't start with any of these.
 _LEADING_QUOTE_CHARS: tuple[str, ...] = ("\"", "'", "\u201c", "\u201d", "\u2018", "\u2019")
 
-# Multi-word names where ≥ _ALLCAPS_RATIO of alphabetic chars are uppercase are event
-# titles, not comedian names. The single-word guard allows single-token stage names
-# like "NNAMDI" to pass; the threshold excludes "John SMITH" / "DJ Hammer" which have
-# a lowercased component.
-_ALLCAPS_RATIO = 0.7
-_ALLCAPS_MIN_ALPHA_CHARS = 4
-
 
 def detect_false_positive(name: str) -> Optional[str]:
     """Return a detection reason string if *name* is a false positive, else None.
@@ -234,12 +229,5 @@ def detect_false_positive(name: str) -> Optional[str]:
 
     if stripped.startswith("@"):
         return "starts_with_at_sign"
-
-    if " " in stripped:
-        alpha_chars = [c for c in stripped if c.isalpha()]
-        if len(alpha_chars) >= _ALLCAPS_MIN_ALPHA_CHARS:
-            upper_ratio = sum(1 for c in alpha_chars if c.isupper()) / len(alpha_chars)
-            if upper_ratio >= _ALLCAPS_RATIO:
-                return f"allcaps_ratio:{upper_ratio:.2f}"
 
     return None
