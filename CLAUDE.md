@@ -1,3 +1,26 @@
+## Scraper Fetchability — Test with the Scraper's Own HTTP Stack
+
+When checking whether a URL is scrapable, do NOT use plain `requests` or `urllib`
+— these lack the scraper's bot-bypass capabilities and will produce false negatives.
+
+The scraper's `HttpClient.fetch_html` uses `curl-cffi` (TLS fingerprint impersonation)
+with an automatic Playwright headless browser fallback for Cloudflare, DataDome, and
+other bot-block pages. A 403 from `requests` does not mean the scraper can't fetch it.
+
+Test with the scraper's actual Playwright browser:
+```bash
+cd apps/scraper && .venv/bin/python3 -c "
+import asyncio, sys; sys.path.insert(0, 'src')
+from laughtrack.foundation.infrastructure.http.playwright_browser import PlaywrightBrowser
+async def t():
+    b = PlaywrightBrowser()
+    html = await b.fetch_html('<URL>')
+    print(f'Length: {len(html)}')
+    await b.close()
+asyncio.run(t())
+"
+```
+
 ## Investigating API Responses — Use Direct HTTP Calls, Not WebFetch
 
 WebFetch summarizes JSON content via an AI model — it may report fewer array items
@@ -52,6 +75,13 @@ normalized = ComedianUtils.normalize_name(self.name)
 if isinstance(normalized, str) and normalized:
     self.name = normalized
 ```
+
+**Mitigation (in place)**: `apps/scraper/tests/conftest.py` pre-imports the real
+foundation modules (Logger, etc.) before subdirectory conftest files run their
+`setdefault()` stubs. Since `setdefault` only sets if absent, the real modules win
+and tests outside `tests/core/entities/` get the real Logger. If you add a new
+module-level `_stub()` call for a foundation module, ensure the root conftest also
+pre-imports the real module — otherwise the same session-pollution bug will recur.
 
 Long-term fix: refactor module-level stubs to use `pytest` fixtures with `monkeypatch`
 so cleanup happens automatically after each test (tracked in TASK-920).
@@ -333,6 +363,20 @@ db.$transaction(async (tx) => { ... }, {
 })
 ```
 
+## Prisma Migrations — Use Lowercase Table Names in Raw SQL
+
+Prisma models are PascalCase (`Club`, `Show`, `Ticket`) but the actual PostgreSQL
+tables are lowercase (`clubs`, `shows`, `tickets`). In raw migration SQL, always
+use the lowercase table name — `"Club"` will fail with `relation "Club" does not exist`.
+
+```sql
+-- ✗ Wrong — Prisma model name, not the actual table
+UPDATE "Club" SET website = 'https://example.com' WHERE id = 86;
+
+-- ✓ Correct — actual PostgreSQL table name
+UPDATE clubs SET website = 'https://example.com' WHERE id = 86;
+```
+
 ## Local Dev — Use `npm run dev`
 
 From `apps/web/`, run `npm run dev`. The wrapper at `apps/web/bin/dev` reads
@@ -360,6 +404,20 @@ verification; avoid destructive actions. A warning prints on startup whenever
 **Workaround for new migrations**: Write the migration SQL manually, create the migration directory under `prisma/migrations/<timestamp>_<name>/migration.sql`, and commit both the schema and the migration file. The migration will be applied to the real DB via `prisma migrate deploy` in the deployment environment.
 
 **After deploying UPDATE migrations**: `prisma migrate deploy` exits 0 even when a WHERE clause matches 0 rows — always verify the row count was non-zero after applying any migration that uses `UPDATE ... WHERE ...`. Query the DB or check the scraper behavior immediately after deploy to confirm the update took effect.
+
+**Apply a migration locally against Neon**: use the same DSN the dev wrapper assembles.
+From `apps/web/`:
+
+```bash
+cd apps/web && DB_URL=$(python3 -c "
+from dotenv import dotenv_values
+v = dotenv_values('../scraper/.env')
+print(f\"postgresql://{v['DATABASE_USER']}:{v['DATABASE_PASSWORD']}@{v['DATABASE_HOST']}:{v.get('DATABASE_PORT','5432')}/{v['DATABASE_NAME']}?sslmode=require\")
+") && DATABASE_URL="$DB_URL" DIRECT_URL="$DB_URL" npx prisma migrate deploy
+```
+
+`DIRECT_URL` is required by `schema.prisma` at CLI invocation (the Prisma CLI reads it even
+though the runtime client doesn't). `sslmode=require` is mandatory for Neon.
 
 ## Vitest Route Tests — Mocking the rateLimit Chain
 
@@ -408,6 +466,31 @@ add a matching glob to the `content` array in `apps/web/tailwind.config.ts`:
 
 Without this, Tailwind's JIT purger will strip all classes from files in that directory
 in production builds.
+
+## Tailwind `min-*` / `max-*` Arbitrary Variants — Not Supported with Range-Based Screens
+
+`apps/web/tailwind.config.ts` defines `screens` as objects with `min`/`max` ranges
+(e.g. `sm: { min: "576px", max: "897px" }`). Tailwind 3.x disables the `min-[*]:`
+and `max-[*]:` arbitrary variant syntax when screens contain objects — the JIT
+silently generates no CSS and logs:
+
+    warn - The `min-*` and `max-*` variants are not supported with a `screens` configuration containing objects.
+
+Because `sm` and `md` are **bounded** (they have a `max`), utilities like
+`sm:inline` / `md:inline` do NOT cascade to wider breakpoints. To apply a rule
+from 576 px upward, chain breakpoints explicitly — `lg` is unbounded at
+`min:1200px`, so it covers `xl` and `2xl` as well:
+
+```tsx
+// ✗ Wrong — min-[*]: arbitrary variant is silently dropped here
+<span className="hidden min-[576px]:inline">Label</span>
+
+// ✗ Wrong — sm/md are bounded; this hides the label at ≥1200 px
+<span className="hidden sm:inline md:inline">Label</span>
+
+// ✓ Correct — explicit chain; lg has no max, so it covers xl+2xl too
+<span className="hidden sm:inline md:inline lg:inline">Label</span>
+```
 
 ## React Component and Hook Tests — Vitest Setup
 
