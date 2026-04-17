@@ -156,16 +156,16 @@ const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
 
     return (
         <div className="max-w-7xl w-full mx-auto py-12 px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+            <div className="flex flex-col sm:flex-row md:flex-row lg:flex-row justify-between items-start sm:items-center md:items-center lg:items-center mb-6">
                 <div>
                     <h2 className="text-2xl sm:text-3xl md:text-[36px] font-bold font-gilroy-bold text-cedar mb-2">
                         Popular Clubs
                     </h2>
-                    <p className="text-gray-600 font-dmSans text-sm md:text-base mb-4 sm:mb-0">
+                    <p className="text-gray-600 font-dmSans text-sm md:text-base mb-4 sm:mb-0 md:mb-0 lg:mb-0">
                         Check out our most popular comedy venues
                     </p>
                 </div>
-                <div className="flex gap-2 self-end sm:self-auto">
+                <div className="flex gap-2 self-end sm:self-auto md:self-auto lg:self-auto">
                     <ScrollButtons
                         leftOnClick={() => scroll("left")}
                         rightOnClick={() => scroll("right")}
@@ -183,14 +183,14 @@ const TrendingClubsCarousel = ({ clubs }: TrendingClubsCarouselProps) => {
                 {sortedClubs.map((dto) => (
                     <div
                         key={dto.name}
-                        className="flex-none w-[280px] sm:w-[320px] max-w-[calc(100vw-2rem)]"
+                        className="flex-none w-[280px] sm:w-[320px] md:w-[320px] lg:w-[320px] max-w-[calc(100vw-2rem)]"
                     >
                         <PopularClubCard entity={dto} />
                     </div>
                 ))}
             </div>
 
-            <div className="flex justify-center mt-4 gap-1.5 sm:hidden">
+            <div className="flex justify-center mt-4 gap-1.5 sm:hidden md:hidden lg:hidden">
                 {Array.from({ length: Math.ceil(sortedClubs.length / 3) }).map(
                     (_, index) => (
                         <button
