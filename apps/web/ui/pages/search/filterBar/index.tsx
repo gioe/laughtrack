@@ -166,7 +166,7 @@ const FilterBar = ({
                                 </label>
                             )}
 
-                            <span className="hidden sm:block md:block text-sm text-copper/60 whitespace-nowrap">
+                            <span className="hidden sm:block md:block lg:block text-sm text-copper/60 whitespace-nowrap">
                                 {total.toLocaleString("en-US")} results
                             </span>
                         </div>

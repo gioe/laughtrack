@@ -21,7 +21,7 @@ export function PageParamComponent({
     return (
         <div className="inline-flex items-center gap-2 sm:gap-4 text-copper text-sm">
             <div className="relative inline-flex items-center gap-2">
-                <span className="hidden sm:inline md:inline whitespace-nowrap">
+                <span className="hidden sm:inline md:inline lg:inline whitespace-nowrap">
                     Rows per page:
                 </span>
                 <div className="relative">
