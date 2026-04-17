@@ -416,3 +416,135 @@ class TestRealNamesStillPass:
 
     def test_shane_gillis(self):
         assert detect_false_positive("Shane Gillis") is None
+
+
+# ---------------------------------------------------------------------------
+# Criterion 8: Starts with quote
+# ---------------------------------------------------------------------------
+
+class TestStartsWithQuote:
+    def test_leading_double_quote_flagged(self):
+        assert detect_false_positive('"Big Irish" Jay Hollingsworth') is not None
+
+    def test_leading_double_quote_reason(self):
+        reason = detect_false_positive('"Big Irish" Jay Hollingsworth')
+        assert reason == "starts_with_quote"
+
+    def test_leading_single_quote_flagged(self):
+        assert detect_false_positive("'The Kid' Johnson") is not None
+
+    def test_leading_smart_double_open_quote_flagged(self):
+        assert detect_false_positive("\u201cThat One Mailman\u201d Sean Fogelson") is not None
+
+    def test_leading_smart_single_open_quote_flagged(self):
+        assert detect_false_positive("\u2018Ace\u2019 Williams") is not None
+
+    def test_interior_quote_not_flagged(self):
+        """Dwayne 'The Rock' Johnson style — quote in middle is fine."""
+        assert detect_false_positive("Dwayne \"The Rock\" Johnson") is None
+
+    def test_apostrophe_in_name_still_passes(self):
+        """O'Brien has an apostrophe but it is not leading — must not be flagged."""
+        assert detect_false_positive("O'Brien") is None
+
+
+# ---------------------------------------------------------------------------
+# Criterion 9: Starts with digit
+# ---------------------------------------------------------------------------
+
+class TestStartsWithDigit:
+    def test_leading_digit_flagged(self):
+        assert detect_false_positive("2 Munchie Minimum") is not None
+
+    def test_leading_digit_reason(self):
+        reason = detect_false_positive("20 Ride")
+        assert reason == "starts_with_digit"
+
+    def test_three_digit_prefix_flagged(self):
+        assert detect_false_positive("404 Blac") is not None
+
+    def test_ordinal_prefix_flagged(self):
+        assert detect_false_positive("5th ANNUAL HIGH AND MIGHTY 420 MEGA SESH") is not None
+
+    def test_title_with_digit_and_colon_flagged(self):
+        assert detect_false_positive("90 Day Fiance: Sarper Guven") is not None
+
+
+# ---------------------------------------------------------------------------
+# Criterion 10: Starts with @
+# ---------------------------------------------------------------------------
+
+class TestStartsWithAtSign:
+    def test_at_sign_prefix_flagged(self):
+        assert detect_false_positive("@ComedyTrend with John Campanelli") is not None
+
+    def test_at_sign_prefix_reason(self):
+        reason = detect_false_positive("@SomeHandle")
+        assert reason == "starts_with_at_sign"
+
+    def test_interior_at_not_flagged(self):
+        """A '@' inside the name (e.g. email-ish artifact) isn't caught here — other
+        rules handle that. This test documents the surface-area of the check."""
+        assert detect_false_positive("John @ Comedy Club") is None
+
+
+# ---------------------------------------------------------------------------
+# Criterion 11: Multi-word all-caps event titles
+# ---------------------------------------------------------------------------
+
+class TestAllCapsRatio:
+    def test_two_word_allcaps_flagged(self):
+        assert detect_false_positive("A DREAMSCAPE") is not None
+
+    def test_allcaps_reason_prefix(self):
+        reason = detect_false_positive("THE RIOT STANDUP")
+        assert reason is not None
+        assert reason.startswith("allcaps_ratio:")
+
+    def test_single_word_allcaps_passes(self):
+        """Single-word all-caps names (stage names) are allowed."""
+        assert detect_false_positive("NNAMDI") is None
+
+    def test_mixed_case_name_with_one_uppercase_token_not_flagged(self):
+        """One token written in emphatic all-caps isn't enough — the lowercase
+        letters in the other token keep the ratio below threshold."""
+        assert detect_false_positive("John SMITH") is None
+
+    def test_dj_hammer_not_flagged(self):
+        """Short initialism with a Title-case name is well below threshold."""
+        assert detect_false_positive("DJ Hammer") is None
+
+    def test_title_case_name_passes(self):
+        assert detect_false_positive("Amy Schumer") is None
+
+    def test_mostly_allcaps_phrase_flagged(self):
+        """Fully upper-case multi-word phrase — flagged via ratio."""
+        assert detect_false_positive("ANNUAL HIGH MIGHTY MEGA SESH") is not None
+
+
+# ---------------------------------------------------------------------------
+# Regression fixture — the exact false-positive names from TASK-1547
+# ---------------------------------------------------------------------------
+
+TASK_1547_FALSE_POSITIVES = (
+    '"Big Irish" Jay Hollingsworth',
+    '"That One Mailman" Sean Fogelson',
+    "2 Munchie Minimum",
+    "20 Ride",
+    "404 Blac",
+    "5th ANNUAL HIGH AND MIGHTY 420 MEGA SESH",
+    "90 Day Fiance: Sarper Guven",
+    "@ComedyTrend with John Campanelli",
+    "A DREAMSCAPE",
+)
+
+
+class TestTask1547RegressionFixture:
+    """Every leaked name from the original bug report must now be rejected."""
+
+    def test_all_known_false_positives_detected(self):
+        for name in TASK_1547_FALSE_POSITIVES:
+            reason = detect_false_positive(name)
+            assert reason is not None, (
+                f"Expected {name!r} to be flagged as a false positive"
+            )
