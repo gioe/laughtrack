@@ -65,7 +65,7 @@ const SocialMediaColumn = ({ comedian }: SocialMediaColumnProps) => {
                 Connect
             </motion.h2>
 
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                 {socialLinks.map((link, index) => {
                     if (!link.account) return null;
                     const Icon = link.icon;
@@ -90,41 +90,37 @@ const SocialMediaColumn = ({ comedian }: SocialMediaColumnProps) => {
                                     setHoveredLink(link.platform)
                                 }
                                 onMouseLeave={() => setHoveredLink(null)}
-                                className={`flex items-center justify-between p-4 rounded-lg transition-all duration-200 group ${
+                                className={`flex items-center gap-3 p-4 rounded-lg transition-all duration-200 group ${
                                     isHovered
                                         ? `${link.bgColor} shadow-sm`
                                         : "hover:bg-gray-50"
                                 }`}
                             >
-                                <div className="flex items-center gap-3">
-                                    <motion.div
-                                        className={`p-2 rounded-lg transition-colors ${
-                                            isHovered
-                                                ? "bg-white"
-                                                : "bg-gray-100"
-                                        }`}
-                                        whileHover={mp({ scale: 1.05 })}
-                                        whileTap={mp({ scale: 0.95 })}
+                                <motion.div
+                                    className={`p-2 rounded-lg transition-colors flex-shrink-0 ${
+                                        isHovered ? "bg-white" : "bg-gray-100"
+                                    }`}
+                                    whileHover={mp({ scale: 1.05 })}
+                                    whileTap={mp({ scale: 0.95 })}
+                                >
+                                    <Icon
+                                        className={`w-5 h-5 transition-colors ${link.color}`}
+                                    />
+                                </motion.div>
+                                <div className="flex-1 min-w-0">
+                                    <div
+                                        className={`font-medium transition-colors ${link.color} font-dmSans`}
                                     >
-                                        <Icon
-                                            className={`w-5 h-5 transition-colors ${link.color}`}
-                                        />
-                                    </motion.div>
-                                    <div>
-                                        <div
-                                            className={`font-medium transition-colors ${link.color} font-dmSans`}
-                                        >
-                                            {link.platform}
-                                        </div>
-                                        <div className="text-sm text-gray-500">
-                                            {link.account}
-                                        </div>
+                                        {link.platform}
+                                    </div>
+                                    <div className="text-sm text-gray-500 truncate">
+                                        {link.account}
                                     </div>
                                 </div>
                                 <motion.div
                                     whileHover={mp({ scale: 1.1 })}
                                     whileTap={mp({ scale: 0.9 })}
-                                    className={`p-2 rounded-full transition-colors ${
+                                    className={`p-2 rounded-full transition-colors flex-shrink-0 ${
                                         isHovered
                                             ? "bg-white"
                                             : "bg-transparent"
