@@ -66,9 +66,9 @@ export default function ShowSearchForm() {
                 className="w-full max-w-3xl mx-auto"
             >
                 <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl overflow-hidden">
-                    <div className="flex flex-col sm:flex-row sm:items-stretch">
+                    <div className="flex flex-col sm:flex-row md:flex-row lg:flex-row sm:items-stretch md:items-stretch lg:items-stretch">
                         {/* Location section */}
-                        <div className="flex-1 px-6 pt-5 pb-4 sm:py-5">
+                        <div className="flex-1 min-w-0 px-6 pt-5 pb-4 sm:py-5 md:py-5 lg:py-5">
                             <label
                                 htmlFor="show-search-zip"
                                 className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-2.5 block"
@@ -82,40 +82,41 @@ export default function ShowSearchForm() {
                             />
                         </div>
 
-                        {/* Vertical divider (desktop) / Horizontal divider (mobile) */}
-                        <div className="hidden sm:block w-px bg-white/15 my-4" />
-                        <div className="sm:hidden h-px bg-white/15 mx-6" />
+                        {/* Vertical divider (tablet+) / Horizontal divider (mobile) */}
+                        <div className="hidden sm:block md:block lg:block w-px bg-white/15 my-4" />
+                        <div className="sm:hidden md:hidden lg:hidden h-px bg-white/15 mx-6" />
 
-                        {/* Dates section */}
-                        <div className="flex-1 px-6 pt-4 sm:pt-5 pb-5">
-                            <p
-                                id="show-search-dates-label"
-                                className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-2.5"
-                            >
-                                When
-                            </p>
-                            <CalendarComponent
-                                variant={ComponentVariant.Form}
-                                name="dates"
-                                form={form}
-                                inputId="show-search-dates-label"
-                            />
-                        </div>
+                        {/* Dates + button grouped on the right so the button sits adjacent to the When field */}
+                        <div className="flex flex-col sm:flex-row md:flex-row lg:flex-row sm:items-stretch md:items-stretch lg:items-stretch">
+                            <div className="px-6 pt-4 sm:pt-5 md:pt-5 lg:pt-5 pb-5 sm:pb-5 md:pb-5 lg:pb-5 sm:py-5 md:py-5 lg:py-5">
+                                <p
+                                    id="show-search-dates-label"
+                                    className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-2.5"
+                                >
+                                    When
+                                </p>
+                                <CalendarComponent
+                                    variant={ComponentVariant.Form}
+                                    name="dates"
+                                    form={form}
+                                    inputId="show-search-dates-label"
+                                />
+                            </div>
 
-                        {/* Search button */}
-                        <div className="px-5 pb-5 sm:py-4 sm:pr-4 sm:flex sm:items-center sm:pl-3">
-                            <button
-                                type="submit"
-                                aria-label="Find Shows"
-                                className="w-full sm:w-auto px-7 py-3 bg-copper hover:bg-copper/90
-                                           active:scale-[0.98] transition-all duration-150
-                                           rounded-xl flex items-center justify-center gap-2.5
-                                           text-white font-semibold text-base
-                                           shadow-lg shadow-black/20"
-                            >
-                                <Search className="w-5 h-5" />
-                                Find Shows
-                            </button>
+                            <div className="px-5 pb-5 sm:py-4 sm:pr-4 sm:pl-3 sm:flex sm:items-center md:py-4 md:pr-4 md:pl-3 md:flex md:items-center lg:py-4 lg:pr-4 lg:pl-3 lg:flex lg:items-center">
+                                <button
+                                    type="submit"
+                                    aria-label="Find Shows"
+                                    className="w-full sm:w-auto md:w-auto lg:w-auto px-7 py-3 bg-copper hover:bg-copper/90
+                                               active:scale-[0.98] transition-all duration-150
+                                               rounded-xl flex items-center justify-center gap-2.5
+                                               text-white font-semibold text-base
+                                               shadow-lg shadow-black/20 whitespace-nowrap"
+                                >
+                                    <Search className="w-5 h-5" />
+                                    Find Shows
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
