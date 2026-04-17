@@ -50,6 +50,13 @@ _POST_SCROLL_WAIT_MS = 800
 _POST_SHOW_MORE_WAIT_MS = 2500
 _MAX_SHOW_MORE_CLICKS = 40
 
+# Total runtime budget for a single _capture_msearch_responses() call.
+# Covers page load + the "Show more" click loop + trailing networkidle.
+# Worst-case theoretical cost (~132s click loop + 60s page load + 15s idle)
+# exceeds this; the wait_for cap prevents a hung Bubble page from pinning
+# Chromium for minutes during nightly runs.
+_CAPTURE_TOTAL_BUDGET_S = 180
+
 
 class JetBookScraper(BaseScraper):
     """Generic scraper for venues hosted on the JetBook (Bubble.io) platform."""
@@ -72,7 +79,17 @@ class JetBookScraper(BaseScraper):
             JetBookPageData with extracted events, or None on failure.
         """
         try:
-            response_bodies = await self._capture_msearch_responses(url)
+            response_bodies = await asyncio.wait_for(
+                self._capture_msearch_responses(url),
+                timeout=_CAPTURE_TOTAL_BUDGET_S,
+            )
+        except asyncio.TimeoutError:
+            Logger.warn(
+                f"{self._log_prefix}: Playwright capture exceeded "
+                f"{_CAPTURE_TOTAL_BUDGET_S}s budget for {url}",
+                self.logger_context,
+            )
+            return None
         except Exception as e:
             Logger.error(
                 f"{self._log_prefix}: Playwright capture failed for {url}: {e}",
@@ -116,74 +133,92 @@ class JetBookScraper(BaseScraper):
 
         async with async_playwright() as pw:
             browser = await pw.chromium.launch(headless=True)
-            context = await browser.new_context()
-            page = await context.new_page()
-
-            async def _on_response(response) -> None:
-                if (
-                    "elasticsearch" in response.url
-                    and "msearch" in response.url
-                    and response.status == 200
-                ):
-                    try:
-                        bodies.append(await response.text())
-                    except Exception:
-                        # Response may be closed before we can read it; skip.
-                        pass
-
-            page.on("response", _on_response)
-
             try:
-                await page.goto(
-                    url,
-                    wait_until="networkidle",
-                    timeout=_PAGE_LOAD_TIMEOUT_MS,
-                )
-            except Exception as e:
-                Logger.warn(
-                    f"{self._log_prefix}: initial navigation to {url} failed: {e}",
-                    self.logger_context,
-                )
+                context = await browser.new_context()
+                page = await context.new_page()
 
-            # Scroll + click "Show more" until no more results load.
-            for _ in range(_MAX_SHOW_MORE_CLICKS):
-                await page.evaluate(
-                    "window.scrollTo(0, document.body.scrollHeight)"
-                )
-                await page.wait_for_timeout(_POST_SCROLL_WAIT_MS)
+                async def _on_response(response) -> None:
+                    # Tight suffix match — avoids matching unrelated paths
+                    # that happen to contain both substrings.
+                    if (
+                        response.url.endswith("/elasticsearch/msearch")
+                        and response.status == 200
+                    ):
+                        try:
+                            bodies.append(await response.text())
+                        except Exception:
+                            # Response may be closed before we can read it.
+                            pass
 
-                # Standard Playwright .click() times out against Bubble's
-                # button (the element is technically "not visible" per
-                # Playwright's visibility checks). Dispatch the click via
-                # evaluate() instead.
-                clicked = await page.evaluate(
-                    """
-                    () => {
-                        const els = Array.from(document.querySelectorAll('button, *'))
-                          .filter(el => {
-                            const t = (el.innerText || '').trim();
-                            return t === 'Show more' && el.offsetParent !== null;
-                          });
-                        if (els.length === 0) return false;
-                        els[0].scrollIntoView();
-                        els[0].click();
-                        return true;
-                    }
-                    """
-                )
-                if not clicked:
-                    break
-                await page.wait_for_timeout(_POST_SHOW_MORE_WAIT_MS)
+                page.on("response", _on_response)
 
-            try:
-                await page.wait_for_load_state(
-                    "networkidle", timeout=_NETWORK_IDLE_TIMEOUT_MS
-                )
-            except Exception:
-                # Networkidle timeout is non-fatal — we keep whatever we've
-                # collected so far.
-                pass
+                try:
+                    await page.goto(
+                        url,
+                        wait_until="networkidle",
+                        timeout=_PAGE_LOAD_TIMEOUT_MS,
+                    )
+                except Exception as e:
+                    Logger.warn(
+                        f"{self._log_prefix}: initial navigation to {url} failed: {e}",
+                        self.logger_context,
+                    )
 
-            await browser.close()
+                # Scroll + click "Show more" until no more results load.
+                clicks = 0
+                for _ in range(_MAX_SHOW_MORE_CLICKS):
+                    await page.evaluate(
+                        "window.scrollTo(0, document.body.scrollHeight)"
+                    )
+                    await page.wait_for_timeout(_POST_SCROLL_WAIT_MS)
+
+                    # Standard Playwright .click() times out against Bubble's
+                    # button (the element is "not visible" per Playwright's
+                    # visibility checks). Dispatch via evaluate() instead.
+                    # Scope the selector to actual interactive elements so a
+                    # parent div whose innerText happens to equal "Show more"
+                    # never becomes the click target.
+                    clicked = await page.evaluate(
+                        """
+                        () => {
+                            const candidates = Array.from(
+                                document.querySelectorAll('button, a, [role="button"]')
+                            ).filter(el => {
+                                const t = (el.innerText || '').trim().toLowerCase();
+                                return t === 'show more' && el.offsetParent !== null;
+                            });
+                            if (candidates.length === 0) return false;
+                            candidates[0].scrollIntoView();
+                            candidates[0].click();
+                            return true;
+                        }
+                        """
+                    )
+                    if not clicked:
+                        break
+                    clicks += 1
+                    await page.wait_for_timeout(_POST_SHOW_MORE_WAIT_MS)
+
+                if clicks >= _MAX_SHOW_MORE_CLICKS:
+                    # Pagination cap hit — events past this point are silently
+                    # dropped. Surface to the scraper team so they can raise
+                    # the cap for high-volume venues.
+                    Logger.warn(
+                        f"{self._log_prefix}: hit _MAX_SHOW_MORE_CLICKS="
+                        f"{_MAX_SHOW_MORE_CLICKS} at {url}; additional events "
+                        "may have been dropped",
+                        self.logger_context,
+                    )
+
+                try:
+                    await page.wait_for_load_state(
+                        "networkidle", timeout=_NETWORK_IDLE_TIMEOUT_MS
+                    )
+                except Exception:
+                    # Networkidle timeout is non-fatal — keep whatever we
+                    # collected so far.
+                    pass
+            finally:
+                await browser.close()
 
         return bodies

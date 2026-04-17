@@ -359,6 +359,37 @@ def test_to_show_passes_description_through():
     assert "improv" in show.description.lower()
 
 
+def test_to_show_falls_back_to_utc_when_club_timezone_missing():
+    """Generic multi-venue scraper must not silently assume a specific tz.
+
+    If club.timezone is empty, JetBookEvent.to_show() logs a warning and
+    falls back to UTC — making the missing config visible rather than
+    silently shifting show times to some venue's default.
+    """
+    club = _club()
+    club.timezone = ""  # simulate missing timezone
+
+    start_utc = datetime(2099, 7, 4, 22, 0, tzinfo=timezone.utc)
+    show = _make_event(
+        start_ms=int(start_utc.timestamp() * 1000)
+    ).to_show(club)
+
+    assert show is not None
+    # With UTC fallback the localized date should equal the original UTC hour.
+    assert show.date.astimezone(timezone.utc) == start_utc
+    assert show.date.hour == 22  # UTC, not LA (15) or NY (18)
+
+
+def test_to_show_uses_central_build_ticket_url():
+    """to_show() must route ticket URL construction through
+    JetBookExtractor.build_ticket_url so the URL pattern cannot drift
+    between the entity and the extractor."""
+    show = _make_event(slug="routed-slug").to_show(_club())
+    assert show is not None
+    expected = JetBookExtractor.build_ticket_url("routed-slug")
+    assert show.tickets[0].purchase_url == expected
+
+
 # ---------------------------------------------------------------------------
 # Transformation pipeline smoke test (required by CONTRIBUTING.md)
 # ---------------------------------------------------------------------------

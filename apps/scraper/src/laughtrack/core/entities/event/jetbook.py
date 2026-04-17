@@ -18,6 +18,7 @@ import pytz
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.protocols.show_convertible import ShowConvertible
+from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 
 def _parse_bubble_millis(ms: int, timezone_name: str) -> Optional[datetime]:
@@ -40,17 +41,28 @@ class JetBookEvent(ShowConvertible):
 
     def to_show(self, club: Club, enhanced: bool = True, url: Optional[str] = None):
         """Convert to a Show domain object."""
+        from laughtrack.scrapers.implementations.jetbook.extractor import JetBookExtractor
         from laughtrack.utilities.domain.show.factory import ShowFactoryUtils
 
         if not self.title or not self.start_time_ms or not self.slug:
             return None
 
-        tz_name = club.timezone or "America/Los_Angeles"
+        # JetBook is a generic multi-venue platform — rely on the club's
+        # configured timezone rather than a venue-specific hardcoded default.
+        # Fall back to UTC (and log) so a missing timezone produces a visible
+        # anomaly rather than silently shifting times by several hours.
+        tz_name = club.timezone
+        if not tz_name:
+            Logger.warn(
+                f"JetBookEvent: club '{club.name}' has no timezone set; "
+                "falling back to UTC for show date conversion"
+            )
+            tz_name = "UTC"
         start_dt = _parse_bubble_millis(self.start_time_ms, tz_name)
         if start_dt is None:
             return None
 
-        ticket_url = url or f"https://jetbook.co/e/{self.slug}"
+        ticket_url = url or JetBookExtractor.build_ticket_url(self.slug)
         tickets = [ShowFactoryUtils.create_fallback_ticket(ticket_url)]
 
         return ShowFactoryUtils.create_enhanced_show_base(

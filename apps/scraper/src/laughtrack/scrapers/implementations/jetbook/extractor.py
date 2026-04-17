@@ -152,13 +152,14 @@ class JetBookExtractor:
         return events
 
     @staticmethod
-    def parse_single_response(body: str) -> List[JetBookEvent]:
-        """Convenience wrapper for a single response body."""
-        return JetBookExtractor.parse_msearch_responses([body])
-
-    @staticmethod
     def build_ticket_url(slug: str) -> Optional[str]:
-        """Build the per-event detail URL from a JetBook slug."""
+        """Build the per-event detail URL from a JetBook slug.
+
+        Centralizing the URL pattern here keeps ``JetBookEvent.to_show()``
+        and any future callers (e.g. tests, auditing tools) in sync — the
+        ``https://jetbook.co/e/<slug>`` format is asserted by production
+        traffic and must not drift between the entity and the extractor.
+        """
         slug = (slug or "").strip()
         if not slug:
             return None
