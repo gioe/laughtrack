@@ -111,6 +111,7 @@ export async function GET(req: NextRequest) {
                 favorite.comedian.name,
                 favorite.comedian.hasImage,
             ),
+            hasImage: Boolean(favorite.comedian.hasImage),
             isFavorite: true,
             social_data: {
                 id: favorite.comedian.id,

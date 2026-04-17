@@ -130,6 +130,7 @@ export async function getTrendingComedians(
         uuid: row.uuid,
         name: row.name,
         imageUrl: buildComedianImageUrl(row.name, row.has_image),
+        hasImage: Boolean(row.has_image),
         social_data: {
             id: row.id,
             instagram_account: row.instagram_account,

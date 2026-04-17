@@ -57,9 +57,12 @@ export async function generateMetadata(props: {
             description,
             type: "website",
             ...(url && { url }),
-            images: [{ url: image }],
+            ...(image && { images: [{ url: image }] }),
         },
-        twitter: { card: "summary_large_image", images: [{ url: image }] },
+        twitter: {
+            card: "summary_large_image",
+            ...(image && { images: [{ url: image }] }),
+        },
     };
 }
 

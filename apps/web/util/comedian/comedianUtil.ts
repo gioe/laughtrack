@@ -39,6 +39,7 @@ const mapLineupItem = (item: { comedian: any }, userId?: string) => {
             effectiveComedian.name,
             effectiveComedian.hasImage,
         ),
+        hasImage: Boolean(effectiveComedian.hasImage),
         isFavorite: userId
             ? (item.comedian.favoriteComedians?.length ?? 0) > 0
             : false,

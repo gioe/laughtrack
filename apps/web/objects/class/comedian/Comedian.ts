@@ -17,6 +17,7 @@ export class Comedian implements ComedianInterface {
     id: number;
     type: EntityType = EntityType.Comedian;
     imageUrl: string;
+    hasImage: boolean;
     containedEntities: Entity[];
     showCount?: number;
     isAlias?: boolean;
@@ -34,6 +35,7 @@ export class Comedian implements ComedianInterface {
         this.id = input.id;
         this.showCount = input.show_count;
         this.imageUrl = input.imageUrl;
+        this.hasImage = input.hasImage ?? Boolean(input.imageUrl);
         this.uuid = input.uuid;
         this.isAlias = input.isAlias ?? false;
     }

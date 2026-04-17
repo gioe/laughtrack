@@ -11,6 +11,7 @@ export interface ComedianInterface extends Favoritable, Entity {}
 export interface ComedianDTO {
     name: string;
     imageUrl: string;
+    hasImage?: boolean;
     uuid: string;
     id: number;
     userId?: number;

@@ -7,15 +7,14 @@ import { HeartIcon as OutlineHeart } from "@heroicons/react/24/outline";
 import { HeartIcon as SolidHeart } from "@heroicons/react/24/solid";
 import { useState } from "react";
 import { useFavorite } from "@/hooks/useFavorite";
+import ComedianAvatarFallback from "./fallback";
+
 interface ComedianHeadshotProps {
     comedian: Comedian;
     sizes?: string;
     variant?: "grid" | "lineup";
     className?: string;
 }
-
-const PLACEHOLDER = "/placeholders/comedian-placeholder.svg";
-const ALIAS_PLACEHOLDER = "/placeholders/mystery-comedian-placeholder.svg";
 
 const variantStyles = {
     grid: {
@@ -46,31 +45,31 @@ const ComedianHeadshot = ({
         entityId: comedian.uuid,
     });
 
-    const determineImage = () => {
-        return error
-            ? comedian.isAlias
-                ? ALIAS_PLACEHOLDER
-                : PLACEHOLDER
-            : comedian.imageUrl;
-    };
-
     const styles = variantStyles[variant];
+    const showFallback = !comedian.hasImage || !comedian.imageUrl || error;
 
     return (
         <div className={`${styles.container} ${className}`}>
             <Link href={`/comedian/${comedian.name}`} className={styles.link}>
-                <Image
-                    src={determineImage()}
-                    alt={`${comedian.name}`}
-                    className={styles.image}
-                    priority={false}
-                    onError={() => setError(true)}
-                    onLoad={() => setLoaded(true)}
-                    fill={true}
-                    sizes={sizes}
-                />
+                {showFallback ? (
+                    <ComedianAvatarFallback
+                        name={comedian.name}
+                        variant={variant}
+                    />
+                ) : (
+                    <Image
+                        src={comedian.imageUrl}
+                        alt={`${comedian.name}`}
+                        className={styles.image}
+                        priority={false}
+                        onError={() => setError(true)}
+                        onLoad={() => setLoaded(true)}
+                        fill={true}
+                        sizes={sizes}
+                    />
+                )}
             </Link>
-            {loaded && (
+            {(showFallback || loaded) && (
                 <button
                     onClick={handleFavoriteClick}
                     className={`${styles.favoriteButton} p-2.5 bg-black/20 hover:bg-black/30 rounded-full transition-all duration-200 z-10 shadow-md`}

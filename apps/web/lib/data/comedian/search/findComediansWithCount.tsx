@@ -81,6 +81,7 @@ function mapComedian(comedian: ComedianWithUpcomingCount) {
             effectiveComedian.name,
             effectiveComedian.hasImage,
         ),
+        hasImage: Boolean(effectiveComedian.hasImage),
         isAlias,
         uuid: effectiveComedian.uuid,
         isFavorite: Boolean(comedian.favoriteComedians?.length),

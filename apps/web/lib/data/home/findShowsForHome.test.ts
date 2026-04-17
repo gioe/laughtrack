@@ -190,6 +190,7 @@ describe("findShowsForHome", () => {
                 uuid: "uuid-99",
                 name: "Filtered Comic",
                 imageUrl: "https://cdn.example.com/Filtered Comic.png",
+                hasImage: true,
                 isFavorite: false,
                 isAlias: false,
             };

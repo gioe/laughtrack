@@ -9,6 +9,7 @@ import { SocialDataDTO } from "../socialData/socialData.interface";
 export interface ComedianLineupDTO {
     name: string;
     imageUrl: string;
+    hasImage?: boolean;
     uuid: string;
     id: number;
     userId?: number;

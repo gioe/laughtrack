@@ -79,6 +79,7 @@ export async function findComedianByName(
                 comedianData.name,
                 comedianData.hasImage,
             ),
+            hasImage: Boolean(comedianData.hasImage),
             uuid: comedianData.uuid,
             isFavorite: Boolean(comedianData.favoriteComedians?.length),
             show_count: comedianData.lineupItems.length,

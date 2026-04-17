@@ -57,6 +57,7 @@ export async function GET(
                         comedian.name,
                         comedian.hasImage,
                     ),
+                    hasImage: Boolean(comedian.hasImage),
                     social_data: {
                         linktree: comedian.linktree,
                         instagram_account: comedian.instagramAccount,
