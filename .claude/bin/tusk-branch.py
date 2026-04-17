@@ -23,14 +23,25 @@ import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import tusk_loader
+import tusk_loader  # loads tusk-db-lib.py and tusk-git-helpers.py
 
 _db_lib = tusk_loader.load("tusk-db-lib")
 checkpoint_wal = _db_lib.checkpoint_wal
 
+_git_helpers = tusk_loader.load("tusk-git-helpers")
+_is_remote_unreachable = _git_helpers._is_remote_unreachable
+_UNREACHABLE_REMOTE_PATTERNS = _git_helpers._UNREACHABLE_REMOTE_PATTERNS
+_UNREACHABLE_REMOTE_REGEX = _git_helpers._UNREACHABLE_REMOTE_REGEX
+
 
 def run(args: list[str], check: bool = True) -> subprocess.CompletedProcess:
     return subprocess.run(args, capture_output=True, text=True, check=check)
+
+
+def _has_remote(name: str = "origin") -> bool:
+    """Return True if the named git remote exists."""
+    result = run(["git", "remote", "get-url", name], check=False)
+    return result.returncode == 0
 
 
 def detect_default_branch() -> str:
@@ -160,12 +171,26 @@ def main(argv: list[str]) -> int:
             _try_pop_stash()
         return 2
 
-    result = run(["git", "pull", "origin", default_branch], check=False)
-    if result.returncode != 0:
-        print(f"Error: git pull origin {default_branch} failed:\n{result.stderr.strip()}", file=sys.stderr)
-        if dirty:
-            _try_pop_stash(current_branch=default_branch)
-        return 2
+    if _has_remote():
+        result = run(["git", "pull", "origin", default_branch], check=False)
+        if result.returncode != 0:
+            if _is_remote_unreachable(result.stderr):
+                print(
+                    f"Warning: could not reach origin — skipping pull. "
+                    f"Branching from local '{default_branch}'.\n  {result.stderr.strip()}",
+                    file=sys.stderr,
+                )
+            else:
+                print(f"Error: git pull origin {default_branch} failed:\n{result.stderr.strip()}", file=sys.stderr)
+                if dirty:
+                    _try_pop_stash(current_branch=default_branch)
+                return 2
+    else:
+        print(
+            "Warning: no git remote 'origin' configured — skipping pull. "
+            "Branching from local HEAD.",
+            file=sys.stderr,
+        )
 
     # Create feature branch — check if one already exists for this task
     branch_name = f"feature/TASK-{task_id}-{slug}"

@@ -126,25 +126,11 @@ After recording the inline decision, skip directly to Step 6.
 **For all other diffs:** verify the required agent sandbox permissions are configured before spawning reviewer agents. Run:
 
 ```bash
-python3 -c "
-import json, sys
-try:
-    d = json.load(open('.claude/settings.json'))
-    allow = d.get('permissions', {}).get('allow', [])
-    required = ['Bash(git diff:*)', 'Bash(git remote:*)', 'Bash(git symbolic-ref:*)', 'Bash(git branch:*)', 'Bash(tusk review:*)']
-    missing = [r for r in required if r not in allow]
-    if missing:
-        print('MISSING: ' + ', '.join(missing))
-        sys.exit(1)
-    print('OK')
-except FileNotFoundError:
-    print('MISSING: .claude/settings.json not found — no permissions.allow configured')
-    sys.exit(1)
-"
+REVIEW_PERM_CHECK=$(tusk review-check-perms) || { echo "Agent review aborted: $REVIEW_PERM_CHECK"; exit 1; }
 ```
 
-If this command prints `MISSING:` or exits nonzero, stop and surface:
-> Agent review aborted: The following required `permissions.allow` entries are missing from `.claude/settings.json`: `<missing entries listed in the MISSING: output>`. Add them manually or run `tusk upgrade` to apply them, then restart the session.
+On success the command prints `OK` and exits 0. On failure it prints a single `MISSING: …` line (either `not found on disk or in HEAD`, a JSON/shape error, or a comma-separated list of missing `permissions.allow` entries) and exits 1. When the check fails, surface to the user:
+> Agent review aborted: `<captured MISSING: line>`. Create `.claude/settings.json` or add the missing entries manually, or run `tusk upgrade` to apply them, then restart the session.
 
 Proceed to spawn agents only if the check prints `OK`.
 
@@ -157,6 +143,8 @@ Read file: <base_directory>/REVIEWER-PROMPT.md
 Where `<base_directory>` is the skill base directory shown at the top of this file.
 
 **Filter reviewers by task domain before spawning:**
+
+If `review.reviewers` is empty in config (i.e. there is only one unassigned review created in Step 4), **skip this filter step entirely** and proceed to the spawn block below for that review. The filter applies only when multiple configured reviewers exist and need to be narrowed by domain.
 
 Run:
 
@@ -248,7 +236,13 @@ After all reviewer agents complete, fetch the full review results for each revie
 tusk review list <task_id>
 ```
 
-Gather all open (unresolved) comments across all reviews. Group them by category:
+Gather all open (unresolved) comments across all reviews. Before processing any comments, initialize a bash array to track every file you touch during review fixes — Step 9 uses this list to stage only the files you actually modified:
+
+```bash
+REVIEW_FIX_FILES=()
+```
+
+Group the open comments by category:
 
 ### must_fix comments
 
@@ -257,7 +251,11 @@ These are blocking issues that must be resolved before the work can be merged.
 For each open `must_fix` comment:
 1. Read the comment details (file path, line numbers, comment text, severity).
 2. Implement the fix directly in the codebase.
-3. After fixing, mark the comment resolved:
+3. Record every file you modified while addressing this comment — usually the comment's own `file_path`, plus any additional files the fix required (new tests, helper extraction, etc.):
+   ```bash
+   REVIEW_FIX_FILES+=("<file_path>")
+   ```
+4. After fixing, mark the comment resolved:
    ```bash
    tusk review resolve <comment_id> fixed
    ```
@@ -283,7 +281,7 @@ Task tool call:
 
 These are optional improvements. For each `suggest` comment, **decide autonomously** whether to fix or dismiss — do not ask the user:
 
-- **Fix**: implement the suggestion and run `tusk review resolve <comment_id> fixed`
+- **Fix**: implement the suggestion, append every file you modified to `REVIEW_FIX_FILES` (`REVIEW_FIX_FILES+=("<file_path>")`), then run `tusk review resolve <comment_id> fixed`
   - Apply when the fix is small, clearly correct, and within the current task's scope
 - **Dismiss**: run `tusk review resolve <comment_id> dismissed`
   - Apply when the suggestion is out of scope, low-value, or would require significant rework
@@ -369,25 +367,11 @@ Otherwise, loop while `can_retry` is true:
    **For all other diffs:** verify the required agent sandbox permissions are configured before spawning re-review agents. Run:
 
    ```bash
-   python3 -c "
-   import json, sys
-   try:
-       d = json.load(open('.claude/settings.json'))
-       allow = d.get('permissions', {}).get('allow', [])
-       required = ['Bash(git diff:*)', 'Bash(git remote:*)', 'Bash(git symbolic-ref:*)', 'Bash(git branch:*)', 'Bash(tusk review:*)']
-       missing = [r for r in required if r not in allow]
-       if missing:
-           print('MISSING: ' + ', '.join(missing))
-           sys.exit(1)
-       print('OK')
-   except FileNotFoundError:
-       print('MISSING: .claude/settings.json not found — no permissions.allow configured')
-       sys.exit(1)
-   "
+   REVIEW_PERM_CHECK=$(tusk review-check-perms) || { echo "Re-review agent aborted: $REVIEW_PERM_CHECK"; exit 1; }
    ```
 
-   If this command prints `MISSING:` or exits nonzero, stop and surface:
-   > Re-review agent aborted: The following required `permissions.allow` entries are missing from `.claude/settings.json`: `<missing entries listed in the MISSING: output>`. Add them manually or run `tusk upgrade` to apply them, then restart the session.
+   On failure the command prints a single `MISSING: …` line and exits 1. When the check fails, surface to the user:
+   > Re-review agent aborted: `<captured MISSING: line>`. Create `.claude/settings.json` or add the missing entries manually, or run `tusk upgrade` to apply them, then restart the session.
 
    Proceed to spawn re-review agents only if the check prints `OK`. Re-review agents fetch the diff themselves — no diff is passed inline.
 
@@ -411,15 +395,38 @@ git diff --stat
 git diff --cached --stat
 ```
 
-If either command shows output (unstaged or staged changes exist), commit them:
+If both commands show no output, the working tree is clean — skip this step.
+
+Otherwise, commit **only** the files you tracked in `REVIEW_FIX_FILES` during Steps 7 and 8. **Never use `git add -A` or `git add .`** — those stage every dirty or untracked file in the working tree, including unrelated changes from other sessions (a real incident on TASK-1423 produced a 460-file commit that had to be reverted twice).
+
+First, deduplicate the tracked list and reconcile it against the actual diff **before** staging or committing:
 
 ```bash
-git add -A
+# Deduplicate the tracked file list
+REVIEW_FIX_FILES=($(printf '%s\n' "${REVIEW_FIX_FILES[@]}" | sort -u))
+
+# Abort if no files were tracked but a diff exists — investigate manually
+if [ ${#REVIEW_FIX_FILES[@]} -eq 0 ]; then
+  echo "ERROR: uncommitted changes exist but REVIEW_FIX_FILES is empty. Review the diff above and stage files explicitly by name." >&2
+  exit 1
+fi
+```
+
+Now re-run `git diff --stat` and `git diff --cached --stat` and compare the listed paths to `REVIEW_FIX_FILES`. If any path you *did* modify during review is missing from the array, append it explicitly by name (never fall back to `git add -A`):
+
+```bash
+REVIEW_FIX_FILES+=("<path-you-modified>")
+```
+
+Conversely, any remaining unstaged paths that are **not** in `REVIEW_FIX_FILES` must be scratch work from other sessions — leave them alone.
+
+Once the list is reconciled, stage, commit, and push in a single pass:
+
+```bash
+git add -- "${REVIEW_FIX_FILES[@]}"
 git commit -m "[TASK-<task_id>] Apply review fixes"
 git push
 ```
-
-If the working tree is already clean (no output from either diff command), skip this step.
 
 ## Step 10: Final Summary
 

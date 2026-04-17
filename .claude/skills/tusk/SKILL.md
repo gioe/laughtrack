@@ -74,6 +74,12 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
 
    Hold onto `session_id` from the JSON — it will be passed to `tusk merge` in step 12 to close the session. **Do not pass it to `tusk task-done`; use `tusk merge` for the full finalization sequence.**
 
+1b. **Workflow routing** — If the task's `workflow` field (from the `task` object in step 1) is non-null, the task uses a custom workflow instead of the default development cycle. Look up the corresponding skill:
+   ```
+   Read file: .claude/skills/<workflow>/SKILL.md
+   ```
+   If the file exists, **stop following the steps below** and follow that skill's instructions instead, passing the task ID and session_id from step 1. If the file does not exist, log a warning ("Workflow '<workflow>' not found — falling back to default development cycle") and continue with step 2.
+
 2. **Create a new git branch IMMEDIATELY** (skip if resuming and branch already exists):
    ```bash
    tusk branch <id> <brief-description-slug>
@@ -89,33 +95,12 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
    - **`"mark_done"`** — no commits, but deliverable files listed in `files` already exist on disk. Mark all criteria done with `--skip-verify` and proceed directly to step 9 (commit + merge) without reimplementing.
    - **`"implement_fresh"`** — no commits and no deliverable files found. The criteria completions were marked without corresponding code — proceed normally and implement from scratch.
 
-3. **Skill routing — check for specialized workflows** before generic exploration.
-
-   If the task summary matches `Onboard <club name>` (i.e., starts with "Onboard" and
-   the domain is `scraper`), this is a venue onboarding task. **Invoke `/adopt-scraper`**
-   with the club name extracted from the summary instead of continuing with the generic
-   explore → implement workflow below. The adopt-scraper skill handles web research,
-   platform detection, scraper selection, migration creation, and verification — steps
-   3–7 of the normal tusk workflow are replaced by the skill's own steps.
-
-   If the task summary matches `Triage zero-show club: <club name>` (domain `scraper`),
-   this is a venue triage task. **Always invoke `/adopt-scraper`** with the club name
-   before deciding to close or hide the venue. The stored scraping URL may be dead while
-   the venue has moved to a different ticketing platform (e.g., SeatEngine → Wix). Only
-   close the venue if `/adopt-scraper` confirms there is no active web presence with
-   upcoming shows. If `/adopt-scraper` discovers a working platform, configure the
-   scraper and verify shows are scraped — do NOT close the club.
-
-   After `/adopt-scraper` completes, skip ahead to step 8 (verify) in this workflow.
-
-   For all other tasks, continue with the normal workflow:
-
-4. **Determine the best subagent(s)** based on:
+3. **Determine the best subagent(s)** based on:
    - Task domain
    - Task assignee field (often indicates the right agent type)
    - Task description and requirements
 
-5. **Confirm failure** — Run the failing tests *before* exploring any code when the task is about *fixing* an existing failure. This confirms the bug still exists and avoids wasted investigation.
+4. **Confirm failure** — Run the failing tests *before* exploring any code when the task is about *fixing* an existing failure. This confirms the bug still exists and avoids wasted investigation.
 
    **When to run this step:**
    - `task_type: bug` → always run
@@ -128,7 +113,7 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
    3. **If tests pass**: the issue may already be fixed or the description may be inaccurate — surface this to the user and stop before investigating further.
    4. **If tests fail**: capture the failure output. Use it as the primary diagnostic anchor in step 5 (Explore).
 
-6. **Explore the codebase before implementing** — use a sub-agent to research:
+5. **Explore the codebase before implementing** — use a sub-agent to research:
    - What files will need to change?
    - Are there existing patterns to follow?
    - What tests already exist for this area?
@@ -136,18 +121,22 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
 
    Report findings before writing any code.
 
-7. **Scope check — only implement what the task describes.**
+5. **Scope check — only implement what the task describes.**
    The task's `summary` and `description` fields define the full scope of work for this session. If the description references or links to external documents (evaluation docs, design specs, RFCs), treat them as **background context only** — do not implement items from those docs that go beyond what the task's own description asks for. Referenced docs often describe multi-task plans; implementing the entire plan collapses future tasks into one PR and defeats dependency ordering.
 
-8. **Delegate the work** to the chosen subagent(s).
+6. **Delegate the work** to the chosen subagent(s).
 
-9. **Implement, commit, and mark criteria done.** Work through the acceptance criteria from step 1 as your checklist — **one commit per criterion is the default**. For each criterion in order:
+7. **Implement, commit, and mark criteria done.** Work through the acceptance criteria from step 1 as your checklist — **one commit per criterion is the default**. For each criterion in order:
     1. Implement the changes that satisfy it
     2. Commit and mark the criterion done atomically using `tusk commit --criteria`:
        ```bash
        tusk commit <id> "<message>" "<file1>" ["<file2>" ...] --criteria <cid>
        ```
-       This runs `tusk lint` (advisory — never blocks), stages the listed files, commits with the `[TASK-<id>] <message>` format and Co-Authored-By trailer, and marks the criterion done — all in one call. The criterion is bound to the new commit hash automatically.
+       An alternative `-m` flag form is also supported (useful when file paths come first):
+       ```bash
+       tusk commit <id> "<file1>" ["<file2>" ...] -m "<message>" --criteria <cid>
+       ```
+       This runs `tusk lint` (advisory — never blocks), stages the listed files, commits with the `[TASK-<id>] <message>` format and Co-Authored-By trailer, and marks the criterion done — all in one call. The criterion is bound to the new commit hash automatically. Duplicate `[TASK-N]` prefixes in the message are stripped automatically, and bare `--` separators are silently ignored.
 
        **Always quote file paths** — zsh expands unquoted brackets (`[id]`, `[slug]`) as glob patterns before the shell passes arguments to `tusk commit`. Any path component containing `[`, `]`, `*`, `?`, or spaces must be wrapped in double quotes (e.g., `"apps/api/[id]/route.ts"`).
 
@@ -174,11 +163,13 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
     ```
     Then mark criteria done with `tusk criteria done <cid> --skip-verify` as usual.
 
-    **Exit code 3 also occurs when a formatter (e.g. `black`, `prettier`) modifies a staged file during the pre-commit hook's stash/unstash cycle.** In this case the commit is rejected because the working tree now differs from the staged snapshot after the hook runs. To resolve, stage the reformatted file and retry:
+    **If `tusk commit` fails with `pathspec '…' is beyond a symbolic link`** (exit code 3), the path lives under a symlinked directory that `git add` refuses to traverse. In tusk's own repo this hits any path under `.claude/skills/<name>/`, because each skill is a symlink to `skills/<name>/`. Retry with the real source path:
     ```bash
-    git add "<file>" && tusk commit <task_id> "<message>" "<file>"
+    tusk commit <id> "<message>" "skills/<name>/SKILL.md" --criteria <cid>
     ```
-    If you cannot or do not want to stage the reformatted output, bypass the hook entirely:
+    More generally: if `ls -la` on any parent directory shows it is a symlink, use the link's target path instead.
+
+    **If a pre-commit auto-formatter (e.g. `black`, `ruff --fix`, `prettier`, `gofmt`) rewrites a staged file in-place**, `tusk commit` detects the index/working-tree divergence, re-stages the reformatted content, and retries the commit exactly once — no manual intervention required. If the retry also fails (the formatter produces unstable output on every run), bypass hooks with:
     ```bash
     tusk commit <task_id> "<message>" "<file>" --skip-verify
     ```
@@ -223,21 +214,21 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
 
     **Schema migration reminder:** If the commit includes changes to `bin/tusk` that add or modify a migration (inside `cmd_migrate()`), run `tusk migrate` on the live database immediately after committing.
 
-10. **Review the code locally** before considering the work complete.
+8. **Review the code locally** before considering the work complete.
 
-11. **Verify all acceptance criteria are done** before pushing:
+9. **Verify all acceptance criteria are done** before pushing:
     ```bash
     tusk criteria list <id>
     ```
     If any criteria are still incomplete, address them now. If a criterion was intentionally skipped, note why in the PR description.
 
-12. **Run convention lint (advisory)** — `tusk commit` already runs lint before each commit. If you need to check lint independently before pushing:
+10. **Run convention lint (advisory)** — `tusk commit` already runs lint before each commit. If you need to check lint independently before pushing:
     ```bash
     tusk lint
     ```
     Review the output. This check is **advisory only** — violations are warnings, not blockers. Fix any clear violations in files you've already touched. Do not refactor unrelated code just to satisfy lint.
 
-13. **Run `/review-commits`** — check the review mode first:
+11. **Run `/review-commits`** — check the review mode first:
     ```bash
     tusk config review
     ```
@@ -250,7 +241,7 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
 
       After `/review-commits` completes with verdict **APPROVED**, proceed to step 12. If verdict is **CHANGES REMAINING**, surface the unresolved items to the user and stop.
 
-14. **Finalize — merge, push, and run retro.** Execute as a single uninterrupted sequence — do NOT pause for user confirmation between steps:
+12. **Finalize — merge, push, and run retro.** Execute as a single uninterrupted sequence — do NOT pause for user confirmation between steps:
     ```bash
     tusk merge <id> --session $SESSION_ID
     ```

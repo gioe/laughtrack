@@ -19,9 +19,10 @@
 #   tusk session-recalc        Re-run session-stats for all sessions (backfill corrected costs)
 #   tusk session-close <id>    Close a session (duration, diff stats, token stats)
 #   tusk session-close --task-id <id>  Bulk-close all open sessions for a task
+#   tusk active-project {add|remove|list|path} [path]  Manage the cross-repo drift-warning registry
 #   tusk criteria add <id> "text" [--source ...] [--type ...] [--spec ...]  Add a criterion
 #   tusk criteria list <id>      List criteria for a task
-#   tusk criteria done <cid> [--skip-verify]  Mark a criterion as completed
+#   tusk criteria done <cid> [<cid> ...] [--skip-verify]  Mark one or more criteria as completed
 #   tusk criteria skip <cid> --reason <reason>  Mark a criterion as deferred to chain
 #   tusk criteria reset <cid>    Reset a criterion to incomplete (clears deferred flag too)
 #   tusk criteria finish-deferred --reason <r> <id...>  Mark all deferred criteria with given reason as completed
@@ -43,6 +44,7 @@
 #
 # The DB path is defined here. Everything else reads it from this script.
 # Override with TUSK_DB env var: TUSK_DB=/tmp/test.db tusk migrate
+# Pin active project with TUSK_PROJECT env var: TUSK_PROJECT=/path/to/repo tusk ...
 
 set -euo pipefail
 
@@ -61,7 +63,16 @@ find_repo_root() {
   echo "$PWD"
 }
 
-REPO_ROOT="$(find_repo_root)"
+CWD_REPO_ROOT="$(find_repo_root)"
+if [[ -n "${TUSK_PROJECT:-}" ]]; then
+  if [[ ! -d "$TUSK_PROJECT" ]]; then
+    echo "Error: TUSK_PROJECT=$TUSK_PROJECT is not a directory" >&2
+    exit 2
+  fi
+  REPO_ROOT="$(cd "$TUSK_PROJECT" && pwd -P)"
+else
+  REPO_ROOT="$CWD_REPO_ROOT"
+fi
 if [[ -n "${TUSK_DB:-}" ]]; then
   DB_PATH="$TUSK_DB"
   DB_DIR="$(dirname "$DB_PATH")"
@@ -70,6 +81,46 @@ else
   DB_PATH="$DB_DIR/tasks.db"
 fi
 PROJECT_CONFIG="$REPO_ROOT/tusk/config.json"
+
+# ── Active-projects registry ─────────────────────────────────────────
+# Tracks projects with open sessions so tusk can warn when the CWD resolves
+# to a different repo (silent cross-repo DB rerouting, issue #464).
+TUSK_STATE_DIR="${TUSK_STATE_DIR:-$HOME/.tusk}"
+ACTIVE_PROJECTS_FILE="$TUSK_STATE_DIR/active-projects"
+export TUSK_STATE_DIR
+export TUSK_ACTIVE_PROJECTS_FILE="$ACTIVE_PROJECTS_FILE"
+export TUSK_REPO_ROOT="$REPO_ROOT"
+
+# Warn when a pinned project differs from the CWD-resolved repo, and neither
+# TUSK_PROJECT nor TUSK_DB is set (explicit pins suppress the warning).
+# Paths in the registry are stored canonically at write time, so no per-entry
+# canonicalization is needed here. Dedup on read so a benign add-add race
+# between concurrent /chain wavelets cannot double-print.
+maybe_warn_cross_repo_drift() {
+  [[ -n "${TUSK_PROJECT:-}" ]] && return 0
+  [[ -n "${TUSK_DB:-}" ]] && return 0
+  [[ -n "${TUSK_QUIET:-}" ]] && return 0
+  [[ ! -s "$ACTIVE_PROJECTS_FILE" ]] && return 0
+  local current_real others=() pinned seen=""
+  current_real="$(cd "$CWD_REPO_ROOT" 2>/dev/null && pwd -P)" || return 0
+  while IFS= read -r pinned; do
+    [[ -z "$pinned" ]] && continue
+    [[ "$pinned" = "$current_real" ]] && continue
+    case ":$seen:" in *":$pinned:"*) continue ;; esac
+    seen="$seen:$pinned"
+    [[ ! -d "$pinned" ]] && continue
+    others+=("$pinned")
+  done < "$ACTIVE_PROJECTS_FILE"
+  if [[ ${#others[@]} -gt 0 ]]; then
+    {
+      echo "tusk: warning — active session(s) pinned to other project(s):"
+      for p in "${others[@]}"; do echo "  - $p"; done
+      echo "  CWD resolves to: $current_real"
+      echo "  Set TUSK_PROJECT=<path> to pin this invocation, or cd back. (TUSK_QUIET=1 to silence)"
+    } >&2
+  fi
+}
+maybe_warn_cross_repo_drift
 # Default config: check sibling (installed) then parent dir (source repo)
 if [[ -f "$SCRIPT_DIR/config.default.json" ]]; then
   DEFAULT_CONFIG="$SCRIPT_DIR/config.default.json"
@@ -218,6 +269,7 @@ update_gitignore() {
     "tusk/tasks.db"
     "tusk/tasks.db-wal"
     "tusk/tasks.db-shm"
+    "tusk/backups/"
   )
   # Remove deprecated entries added by older versions of tusk
   for deprecated in "${deprecated_ignores[@]}"; do
@@ -329,6 +381,7 @@ CREATE TABLE tasks (
     closed_reason TEXT,
     complexity TEXT,
     is_deferred INTEGER NOT NULL DEFAULT 0 CHECK (is_deferred IN (0, 1)),
+    workflow TEXT,
     -- Timestamps are UTC (SQLite datetime('now') returns UTC)
     created_at TEXT DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now')),
@@ -502,6 +555,7 @@ CREATE TABLE acceptance_criteria (
     committed_at TEXT,
     is_deferred INTEGER DEFAULT 0,
     deferred_reason TEXT,
+    skip_note TEXT,
     created_at TEXT DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now')),
     FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
@@ -687,7 +741,7 @@ PILLARS_SCHEMA
   fi
 
   # Set schema version so fresh DBs never need migration
-  sqlite3 "$DB_PATH" "PRAGMA user_version = 44;"
+  sqlite3 "$DB_PATH" "PRAGMA user_version = 46;"
 
   echo "Initialized task database at $DB_PATH"
   echo "Note: tusk/tasks.db is local-only — not synced across machines."
@@ -770,7 +824,7 @@ candidates = [
   'review','deps','session-stats','session-recalc','skill-run',
   'call-breakdown','session-close','task-get','task-get-multi','task-select','task-start',
   'task-done','task-insert','task-update','task-reopen','task-list',
-  'audit','autoclose','backlog-scan','test-detect','init-scan-codebase','init-scan-todos','scaffold-reviewer-prompts','filter-reviewers','loop','merge','progress',
+  'audit','autoclose','backlog-scan','test-detect','init-scan-codebase','init-scan-todos','scaffold-reviewer-prompts','filter-reviewers','review-check-perms','loop','merge','progress',
   'setup','token-audit','sync-skills','generate-manifest','pricing-update','wsjf','shell',
   'version','version-bump','changelog-add','migrate','regen-triggers','upgrade',
 ]
@@ -896,6 +950,43 @@ cmd_upgrade() {
 
 # ── Session Close ────────────────────────────────────────────────────
 
+cmd_active_project() {
+  local subcmd="${1:-}"
+  local path_arg="${2:-$REPO_ROOT}"
+  case "$subcmd" in
+    add)
+      mkdir -p "$TUSK_STATE_DIR"
+      local canon
+      canon="$(cd "$path_arg" 2>/dev/null && pwd -P)" || { echo "Error: $path_arg not a directory" >&2; exit 1; }
+      touch "$ACTIVE_PROJECTS_FILE"
+      grep -Fx -- "$canon" "$ACTIVE_PROJECTS_FILE" >/dev/null 2>&1 && return 0
+      echo "$canon" >> "$ACTIVE_PROJECTS_FILE"
+      ;;
+    remove)
+      [[ ! -f "$ACTIVE_PROJECTS_FILE" ]] && return 0
+      local canon
+      canon="$(cd "$path_arg" 2>/dev/null && pwd -P)" || canon="$path_arg"
+      local tmp="$ACTIVE_PROJECTS_FILE.tmp.$$"
+      grep -Fxv -- "$canon" "$ACTIVE_PROJECTS_FILE" > "$tmp" || true
+      if [[ -s "$tmp" ]]; then
+        mv "$tmp" "$ACTIVE_PROJECTS_FILE"
+      else
+        rm -f "$tmp" "$ACTIVE_PROJECTS_FILE"
+      fi
+      ;;
+    list)
+      [[ -s "$ACTIVE_PROJECTS_FILE" ]] && cat "$ACTIVE_PROJECTS_FILE"
+      ;;
+    path)
+      echo "$ACTIVE_PROJECTS_FILE"
+      ;;
+    *)
+      echo "Usage: tusk active-project {add|remove|list|path} [path]" >&2
+      exit 1
+      ;;
+  esac
+}
+
 cmd_session_close() {
   local session_id="" task_id="" lines_added="" lines_removed="" skip_stats=false
 
@@ -949,6 +1040,11 @@ cmd_session_close() {
     "
 
     echo "Closed $count open session(s) for task $task_id (lines: +$lines_added/-$lines_removed)"
+    local remaining
+    remaining="$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM task_sessions WHERE ended_at IS NULL" 2>/dev/null || echo 0)"
+    if [[ "$remaining" = "0" && -d "$REPO_ROOT" ]]; then
+      cmd_active_project remove "$REPO_ROOT" 2>/dev/null || true
+    fi
     return 0
   fi
 
@@ -1007,6 +1103,13 @@ cmd_session_close() {
       || echo "Warning: could not collect session stats; continuing" >&2
     python3 "$SCRIPT_DIR/tusk-call-breakdown.py" "$DB_PATH" "$(resolve_config)" --session "$session_id" --write-only || true
   fi
+
+  # Deregister REPO_ROOT if no open sessions remain (cross-repo drift tracking)
+  local remaining
+  remaining="$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM task_sessions WHERE ended_at IS NULL" 2>/dev/null || echo 0)"
+  if [[ "$remaining" = "0" && -d "$REPO_ROOT" && -z "${TUSK_DB:-}" ]]; then
+    cmd_active_project remove "$REPO_ROOT" 2>/dev/null || true
+  fi
 }
 
 cmd_git_default_branch() {
@@ -1039,6 +1142,63 @@ cmd_branch_parse() {
   echo "{\"task_id\": $task_id}"
 }
 
+# ── DB snapshot defense ──────────────────────────────────────────────
+# Before any mutating subcommand, snapshot tusk/tasks.db into tusk/backups/
+# via the SQLite .backup API (WAL-safe). Retention keeps the newest
+# TUSK_BACKUP_RETENTION snapshots (default 20). Read-only subcommands skip
+# the snapshot. Opt out entirely with TUSK_NO_BACKUP=1.
+#
+# Why: an external clobber of tusk/tasks.db (git stash pop of an old stash
+# that predated `git rm --cached`, git checkout across the un-track commit,
+# rm, etc.) would otherwise be silent and unrecoverable. A rolling backup
+# means the most a client can lose is the last tusk command's mutation.
+
+BACKUP_DIR="$DB_DIR/backups"
+TUSK_BACKUP_RETENTION_DEFAULT=20
+
+is_readonly_subcmd() {
+  # Subcommands that never mutate tusk/tasks.db. Everything else triggers
+  # a snapshot. When in doubt, omit from this list — a redundant backup is
+  # cheaper than a missed one.
+  case "${1:-}" in
+    ""|path|config|validate|sql-quote|version|version-bump|\
+    git-default-branch|branch-parse|report-issue|\
+    sync-skills|generate-manifest|pricing-update|token-audit|\
+    task-get|task-get-multi|task-list|task-select|setup|\
+    backlog-scan|blockers|check-deliverables|test-detect|review-check-perms|\
+    init-fetch-bootstrap|init-scan-codebase|init-scan-todos)
+      return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+snapshot_db() {
+  [[ "${TUSK_NO_BACKUP:-}" == "1" ]] && return 0
+  [[ -f "$DB_PATH" ]] || return 0
+  mkdir -p "$BACKUP_DIR" 2>/dev/null || return 0
+  local ts out retention
+  # PID suffix so two snapshots in the same second don't collide —
+  # VACUUM INTO errors if the destination already exists.
+  ts="$(date +%Y%m%d%H%M%S).$$"
+  out="$BACKUP_DIR/tasks.db.$ts"
+  # VACUUM INTO writes a single consolidated file with no WAL/SHM sidecars.
+  # Best-effort: a snapshot failure must never block the user's command.
+  sqlite3 "$DB_PATH" "VACUUM INTO '$out'" 2>/dev/null || return 0
+  retention="${TUSK_BACKUP_RETENTION:-$TUSK_BACKUP_RETENTION_DEFAULT}"
+  # Keep newest N; drop the rest. `ls -1t` is sorted newest-first.
+  # shellcheck disable=SC2012
+  ls -1t "$BACKUP_DIR"/tasks.db.* 2>/dev/null | tail -n +$((retention + 1)) \
+    | while IFS= read -r old; do rm -f "$old"; done
+  return 0
+}
+
+if [[ -z "${TUSK_NESTED_CALL:-}" ]] && ! is_readonly_subcmd "${1:-}"; then
+  snapshot_db
+fi
+# Any nested `tusk` invoked by a Python child inherits this and skips the
+# snapshot — one snapshot per user-initiated command is the right mental model.
+export TUSK_NESTED_CALL=1
+
 # ── Dispatch ─────────────────────────────────────────────────────────
 
 case "${1:-}" in
@@ -1067,6 +1227,7 @@ case "${1:-}" in
   skill-run) shift; exec python3 "$SCRIPT_DIR/tusk-skill-run.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   call-breakdown) shift; exec python3 "$SCRIPT_DIR/tusk-call-breakdown.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   session-close) shift; cmd_session_close "$@" ;;
+  active-project) shift; cmd_active_project "$@" ;;
   git-default-branch) cmd_git_default_branch ;;
   branch-parse) shift; cmd_branch_parse "$@" ;;
   task-get) shift; exec python3 "$SCRIPT_DIR/tusk-task-get.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
@@ -1090,6 +1251,7 @@ case "${1:-}" in
   init-write-config) shift; exec python3 "$SCRIPT_DIR/tusk-init-write-config.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   scaffold-reviewer-prompts) shift; exec python3 "$SCRIPT_DIR/tusk-scaffold-reviewer-prompts.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   filter-reviewers) shift; exec python3 "$SCRIPT_DIR/tusk-filter-reviewers.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
+  review-check-perms) shift; exec python3 "$SCRIPT_DIR/tusk-review-check-perms.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   loop) shift; exec python3 "$SCRIPT_DIR/tusk-loop.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   merge) shift; exec python3 "$SCRIPT_DIR/tusk-merge.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   progress) shift; exec python3 "$SCRIPT_DIR/tusk-progress.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
@@ -1108,6 +1270,6 @@ case "${1:-}" in
   update-gitignore) cmd_update_gitignore ;;
   regen-triggers) cmd_regen_triggers ;;
   upgrade) shift; cmd_upgrade "$@" ;;
-  "")     echo "Usage: tusk {init|path|config|validate|sql-quote|commit|lint|lint-rule|dupes|deps|blockers|review|conventions|pillars|criteria|dag|dashboard|wsjf|audit|setup|autoclose|backlog-scan|init-scan-codebase|scaffold-reviewer-prompts|filter-reviewers|token-audit|sync-skills|pricing-update|session-stats|session-recalc|session-close|git-default-branch|branch-parse|skill-run|call-breakdown|task-get|task-get-multi|task-select|task-start|task-done|task-insert|task-update|task-reopen|task-list|merge|progress|shell|version|version-bump|changelog-add|migrate|update-gitignore|upgrade|regen-triggers|report-issue|\"SQL ...\"}" >&2; exit 1 ;;
+  "")     echo "Usage: tusk {init|path|config|validate|sql-quote|commit|lint|lint-rule|dupes|deps|blockers|review|conventions|pillars|criteria|dag|dashboard|wsjf|audit|setup|autoclose|backlog-scan|init-scan-codebase|scaffold-reviewer-prompts|filter-reviewers|review-check-perms|token-audit|sync-skills|pricing-update|session-stats|session-recalc|session-close|git-default-branch|branch-parse|skill-run|call-breakdown|task-get|task-get-multi|task-select|task-start|task-done|task-insert|task-update|task-reopen|task-list|merge|progress|shell|version|version-bump|changelog-add|migrate|update-gitignore|upgrade|regen-triggers|report-issue|\"SQL ...\"}" >&2; exit 1 ;;
   *)      cmd_query "$@" ;;
 esac
