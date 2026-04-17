@@ -412,7 +412,13 @@ class ScrapingService:
                 await asyncio.wait_for(close_js_browser(), timeout=_BROWSER_CLOSE_TIMEOUT)
             except asyncio.TimeoutError:
                 Logger.warn(f"close_js_browser timed out after {_BROWSER_CLOSE_TIMEOUT}s — Playwright node may be unresponsive")
-            executor.shutdown(wait=False)
+            # wait=True joins the worker threads before we enumerate. All futures
+            # are already complete (gather() just returned), so the workers only
+            # need one loop iteration to observe the shutdown flag and exit —
+            # near-instant in practice. wait=False was racy with the subsequent
+            # threading.enumerate(), producing a cosmetic "threads still alive"
+            # WARNING because workers hadn't finished exiting their pool loop.
+            executor.shutdown(wait=True)
             alive = [t.name for t in threading.enumerate() if t.name.startswith("scraper-club")]
             if alive:
                 Logger.warn(f"scraper-club threads still alive after gather: {alive}")
