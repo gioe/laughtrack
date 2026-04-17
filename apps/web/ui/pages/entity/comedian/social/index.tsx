@@ -5,11 +5,10 @@ import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import InstagramIcon from "@/ui/components/icons/InstagramIcon";
 import TikTokIcon from "@/ui/components/icons/TikTokIcon";
 import YouTubeIcon from "@/ui/components/icons/YouTubeIcon";
-import { Globe, ExternalLink, Share2 } from "lucide-react";
+import { Globe, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
 import { useMotionProps } from "@/hooks";
 import { useState } from "react";
-import toast from "react-hot-toast";
 
 interface SocialMediaColumnProps {
     comedian: ComedianDTO;
@@ -19,7 +18,6 @@ const SocialMediaColumn = ({ comedian }: SocialMediaColumnProps) => {
     const { mv, mp } = useMotionProps();
     const parsedComedian = new Comedian(comedian);
     const [hoveredLink, setHoveredLink] = useState<string | null>(null);
-    const [copiedPlatform, setCopiedPlatform] = useState<string | null>(null);
 
     const socialLinks = [
         {
@@ -56,23 +54,6 @@ const SocialMediaColumn = ({ comedian }: SocialMediaColumnProps) => {
         },
     ];
 
-    const handleShare = async (
-        link: (typeof socialLinks)[0],
-        e: React.MouseEvent,
-    ) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        try {
-            await navigator.clipboard.writeText(link.url);
-            setCopiedPlatform(link.platform);
-            toast.success(`${link.platform} link copied to clipboard!`);
-            setTimeout(() => setCopiedPlatform(null), 2000);
-        } catch {
-            toast.error("Failed to copy link");
-        }
-    };
-
     return (
         <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-sm border border-gray-100">
             <motion.h2
@@ -89,7 +70,6 @@ const SocialMediaColumn = ({ comedian }: SocialMediaColumnProps) => {
                     if (!link.account) return null;
                     const Icon = link.icon;
                     const isHovered = hoveredLink === link.platform;
-                    const isCopied = copiedPlatform === link.platform;
 
                     return (
                         <motion.div
@@ -141,39 +121,19 @@ const SocialMediaColumn = ({ comedian }: SocialMediaColumnProps) => {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-3">
-                                    <motion.button
-                                        onClick={(e) => handleShare(link, e)}
-                                        whileHover={mp({ scale: 1.1 })}
-                                        whileTap={mp({ scale: 0.9 })}
-                                        className={`p-2 rounded-full transition-colors ${
-                                            isHovered
-                                                ? "bg-white"
-                                                : "bg-transparent"
-                                        }`}
-                                    >
-                                        <Share2
-                                            className={`w-4 h-4 ${
-                                                isCopied
-                                                    ? "text-green-500"
-                                                    : "text-gray-400"
-                                            }`}
-                                        />
-                                    </motion.button>
-                                    <motion.div
-                                        whileHover={mp({ scale: 1.1 })}
-                                        whileTap={mp({ scale: 0.9 })}
-                                        className={`p-2 rounded-full transition-colors ${
-                                            isHovered
-                                                ? "bg-white"
-                                                : "bg-transparent"
-                                        }`}
-                                    >
-                                        <ExternalLink
-                                            className={`w-4 h-4 ${link.color}`}
-                                        />
-                                    </motion.div>
-                                </div>
+                                <motion.div
+                                    whileHover={mp({ scale: 1.1 })}
+                                    whileTap={mp({ scale: 0.9 })}
+                                    className={`p-2 rounded-full transition-colors ${
+                                        isHovered
+                                            ? "bg-white"
+                                            : "bg-transparent"
+                                    }`}
+                                >
+                                    <ExternalLink
+                                        className={`w-4 h-4 ${link.color}`}
+                                    />
+                                </motion.div>
                             </motion.a>
                         </motion.div>
                     );
