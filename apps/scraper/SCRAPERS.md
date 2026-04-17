@@ -59,6 +59,9 @@ Check browser network requests (browser_navigate + browser_network_requests):
                                                 (see Square Online section — use coral_gables_comedy_club as reference)
   └── /wp-json/tribe/events/v1/events        → platform: Tribe Events Calendar (WordPress)
                                                 → scraper: the_rockwell (generic; set scraping_url)
+  └── jetbook.co/elasticsearch/msearch        → platform: JetBook (Bubble.io)
+                                                → scraper: jetbook (generic)
+                                                  DB: scraping_url = https://jetbook.co/o_iframe/<venue-slug>
 
 Check page source:
   └── squadup = { userId: [<id>] ... } in page JS
@@ -927,6 +930,66 @@ StageTime (stageti.me) is a Next.js ticketing platform. Venues have a subdomain:
 ```sql
 INSERT INTO clubs (..., scraper, scraping_url, ...)
 VALUES (..., 'comedy_corner_underground', 'https://comedycornerunderground.stageti.me', ...);
+```
+
+---
+
+### JetBook (Bubble.io)
+
+| | |
+|---|---|
+| **Scraper key** | `jetbook` |
+| **DB field** | `scraping_url` |
+| **Value format** | `https://jetbook.co/o_iframe/<venue-slug>` |
+| **Generic?** | ✅ One scraper handles all JetBook venues |
+
+JetBook is a hosted comedy/improv ticketing platform built on Bubble.io. Venues are embedded as an iframe on their own site (e.g. Framer, Squarespace) pointing at `https://jetbook.co/o_iframe/<venue-slug>`.
+
+**Detection signals:**
+- `jetbook.co/o_iframe/...` iframe `src` on the venue's site
+- Page issues POSTs to `/elasticsearch/msearch` and `/elasticsearch/mget`
+- `/api/1.1/init/data?location=<iframe_url>` returns Bubble lookup IDs (format `<id>__LOOKUP__<id>`) in `data[0].data.list_events_list_custom_event1` — NOT full event objects
+
+**Data extraction approach:**
+
+The init endpoint only returns opaque lookup IDs; full event records are resolved via `POST /elasticsearch/msearch`. Bubble **encrypts the msearch request body** (opaque `{"z":"..."}` payload) but the **response body is plaintext JSON** and contains the full record:
+
+```json
+{"responses":[{"hits":{"hits":[{"_id":"<bubble id>","_source":{
+  "name_text": "<title>",
+  "parsedate_start_date": <unix ms>,
+  "Slug": "<per-event slug>",
+  "typevisible_option_typevisible": "visible",
+  "visble_boolean": true,
+  "ticket_page_visible_boolean": true,
+  "description_text": "...",
+  ...
+}}, ...]}}, ...]}
+```
+
+Pipeline:
+1. Launch a Playwright headless Chromium browser.
+2. Attach a `response` listener that captures every `/elasticsearch/msearch` 200 body.
+3. Navigate to the iframe URL with `wait_until='networkidle'`.
+4. Scroll to the bottom of the page and click the "Show more" button repeatedly via `page.evaluate()` (standard Playwright `.click()` times out because Bubble's custom button is considered "not visible"). Each click triggers another msearch batch.
+5. Parse every captured body; filter to records where `visble_boolean=true`, `ticket_page_visible_boolean=true`, `typevisible_option_typevisible='visible'`, and `parsedate_start_date >= now`; dedupe by `_id`.
+
+**Ticket URL pattern:** `https://jetbook.co/e/<slug>` (returns HTTP 200 with the event's detail page).
+
+**Gotchas:**
+- `init/data` exposes an `eventbrite_org_id_text` field — this is NOT a real Eventbrite org (the Eventbrite API returns 404). Do not onboard JetBook venues via the Eventbrite scraper.
+- The "Show more" button must be clicked via `evaluate()` — `ElementHandle.click()` times out.
+- `parsedate_start_date` is a Unix **millisecond** timestamp (UTC).
+
+**Reference implementation:** `apps/scraper/src/laughtrack/scrapers/implementations/jetbook/`
+
+**DB setup:**
+```sql
+UPDATE clubs
+SET scraper = 'jetbook',
+    scraping_url = 'https://jetbook.co/o_iframe/<venue-slug>',
+    visible = TRUE
+WHERE id = <club_id>;
 ```
 
 ---
