@@ -33,7 +33,7 @@ export function SortParamComponent({
                 >
                     <div className="flex items-center gap-2">
                         <MenuIcon size={20} />
-                        <span className="hidden sm:inline pr-3">Sort by:</span>
+                        <span className="pr-3">Sort</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <span className="hidden sm:inline">
@@ -49,7 +49,8 @@ export function SortParamComponent({
 
             <MenuItems
                 transition
-                className="absolute right-0 z-10 mt-2 w-40 origin-top-right rounded-lg
+                anchor={{ to: "bottom start", gap: 8 }}
+                className="z-10 w-40 origin-top-left rounded-lg
                           shadow-2xl ring-1 ring-black ring-opacity-5 transition focus:outline-none
                           data-[closed]:scale-95 data-[closed]:transform data-[closed]:opacity-0
                           data-[enter]:duration-100 data-[leave]:duration-75
