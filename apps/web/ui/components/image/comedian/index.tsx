@@ -40,13 +40,23 @@ const ComedianHeadshot = ({
     const [error, setError] = useState(false);
     const [loaded, setLoaded] = useState(false);
 
-    const { isFavorite, handleFavoriteClick } = useFavorite({
+    const { isFavorite, handleFavoriteClick, isAuthenticated } = useFavorite({
         initialState: comedian.isFavorite,
         entityId: comedian.uuid,
     });
 
     const styles = variantStyles[variant];
     const showFallback = !comedian.hasImage || !comedian.imageUrl || error;
+
+    const buttonBaseClasses = `${styles.favoriteButton} p-2.5 bg-black/20 hover:bg-black/30 rounded-full transition-all duration-200 z-10 shadow-md`;
+    const buttonClasses = isAuthenticated
+        ? buttonBaseClasses
+        : `${buttonBaseClasses} border border-dashed border-white/70`;
+    const buttonAriaLabel = isAuthenticated
+        ? isFavorite
+            ? `Remove ${comedian.name} from favorites`
+            : `Add ${comedian.name} to favorites`
+        : `Sign in to favorite ${comedian.name}`;
 
     return (
         <div className={`${styles.container} ${className}`}>
@@ -71,13 +81,20 @@ const ComedianHeadshot = ({
             </Link>
             {(showFallback || loaded) && (
                 <button
+                    type="button"
                     onClick={handleFavoriteClick}
-                    className={`${styles.favoriteButton} p-2.5 bg-black/20 hover:bg-black/30 rounded-full transition-all duration-200 z-10 shadow-md`}
+                    aria-label={buttonAriaLabel}
+                    aria-pressed={isAuthenticated ? isFavorite : undefined}
+                    className={buttonClasses}
                 >
                     {isFavorite ? (
                         <SolidHeart className="w-6 h-6 text-red-500 drop-shadow-sm" />
                     ) : (
-                        <OutlineHeart className="w-6 h-6 text-white hover:text-red-500 drop-shadow-sm" />
+                        <OutlineHeart
+                            className={`w-6 h-6 hover:text-red-500 drop-shadow-sm ${
+                                isAuthenticated ? "text-white" : "text-white/80"
+                            }`}
+                        />
                     )}
                 </button>
             )}

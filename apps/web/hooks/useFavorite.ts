@@ -1,9 +1,10 @@
 "use client";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
 import { useSession } from "next-auth/react";
 import useLoginModal from "./useLoginModal";
 import { favorite } from "@/app/actions/favorite";
+import { pendingFavorite } from "@/util/pendingFavorite";
 
 interface UseFavoriteProps {
     initialState: boolean;
@@ -13,7 +14,11 @@ interface UseFavoriteProps {
 interface UseFavoriteReturn {
     isFavorite: boolean;
     handleFavoriteClick: (e: React.MouseEvent) => Promise<void>;
+    isAuthenticated: boolean;
 }
+
+const FAVORITE_ERROR_MSG = "Failed to update favorite. Please try again.";
+const SIGNIN_NUDGE_MSG = "Sign in to save your favorites";
 
 export const useFavorite = ({
     initialState,
@@ -22,20 +27,14 @@ export const useFavorite = ({
     const session = useSession();
     const loginModal = useLoginModal();
     const [isFavorite, setIsFavorite] = useState(initialState);
+    const pendingConsumedRef = useRef(false);
 
     const requireLogin = useCallback(() => {
         loginModal.onOpen();
     }, [loginModal]);
 
-    const FAVORITE_ERROR_MSG = "Failed to update favorite. Please try again.";
-
-    const handleFavoriteClick = async (e: React.MouseEvent) => {
-        e.stopPropagation();
-
-        if (session.status === "authenticated") {
-            // Optimistically update the UI
-            const newFavoriteState = !isFavorite;
-
+    const performFavorite = useCallback(
+        async (newFavoriteState: boolean) => {
             setIsFavorite(newFavoriteState);
 
             try {
@@ -46,27 +45,47 @@ export const useFavorite = ({
                     "error" in response &&
                     typeof response.error === "string"
                 ) {
-                    // FavoriteError: surface the descriptive message from validation/server
                     setIsFavorite(!newFavoriteState);
                     toast.error(response.error);
                 } else if (response === undefined) {
-                    // Server-side auth guard fired despite authenticated client
                     console.warn(
                         "[useFavorite] server action returned undefined — possible server-session mismatch",
                     );
                     setIsFavorite(!newFavoriteState);
                     toast.error(FAVORITE_ERROR_MSG);
                 } else if (response !== newFavoriteState) {
-                    // Unexpected boolean mismatch — revert with generic message
                     setIsFavorite(!newFavoriteState);
                     toast.error(FAVORITE_ERROR_MSG);
                 }
             } catch {
-                // Revert the optimistic update on error
                 setIsFavorite(!newFavoriteState);
                 toast.error(FAVORITE_ERROR_MSG);
             }
+        },
+        [entityId],
+    );
+
+    // Once authenticated, complete any favorite action the user started while logged out.
+    useEffect(() => {
+        if (session.status !== "authenticated") return;
+        if (pendingConsumedRef.current) return;
+        const pending = pendingFavorite.consume(entityId);
+        if (!pending) return;
+        pendingConsumedRef.current = true;
+        void performFavorite(pending.setFavorite);
+    }, [session.status, entityId, performFavorite]);
+
+    const handleFavoriteClick = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+
+        if (session.status === "authenticated") {
+            await performFavorite(!isFavorite);
         } else {
+            pendingFavorite.set({
+                entityId,
+                setFavorite: !isFavorite,
+            });
+            toast(SIGNIN_NUDGE_MSG, { icon: "❤️" });
             requireLogin();
         }
     };
@@ -74,5 +93,6 @@ export const useFavorite = ({
     return {
         isFavorite,
         handleFavoriteClick,
+        isAuthenticated: session.status === "authenticated",
     };
 };
