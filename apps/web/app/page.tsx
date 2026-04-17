@@ -14,7 +14,6 @@ import { ClubDTO } from "@/objects/class/club/club.interface";
 import HeroComponent from "@/ui/pages/home/hero";
 import TrendingComedianGrid from "@/ui/pages/home/comedians";
 import ComedianNearYouSection from "@/ui/pages/home/comedians-near-you";
-import AnonymousLocationSection from "@/ui/pages/home/comedians-near-you/AnonymousLocationSection";
 import TrendingClubsCarousel from "@/ui/pages/home/clubs";
 import ShowDiscoverySection from "@/ui/pages/home/shows";
 import FooterComponent from "@/ui/pages/home/footer";
@@ -96,18 +95,14 @@ export default async function HomePage() {
             <section className="w-full bg-white">
                 <TrendingComedianGrid comedians={comedians} />
             </section>
-            {zipCode && nearYouComedians.length > 0 ? (
+            {zipCode && nearYouComedians.length > 0 && (
                 <section className="w-full bg-coconut-cream">
                     <ComedianNearYouSection
                         comedians={nearYouComedians}
                         zipCode={zipCode}
                     />
                 </section>
-            ) : !zipCode ? (
-                <section className="w-full bg-coconut-cream">
-                    <AnonymousLocationSection />
-                </section>
-            ) : null}
+            )}
             {showsTonight.length > 0 && (
                 <section className="w-full bg-white">
                     <ShowDiscoverySection
