@@ -2,7 +2,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { QueryProperty, SortParamValue } from "./objects/enum";
-import { formattedDateParam } from "./util/primatives/paramUtil";
 import { UserInterface } from "./objects/class/user/user.interface";
 import { getCorsHeaders } from "./lib/cors";
 
@@ -133,9 +132,12 @@ export function setParamDefaults(
     if (!params.has(QueryProperty.Zip)) {
         params.set(QueryProperty.Zip, user?.zipCode ?? "");
     }
-    if (!params.has(QueryProperty.FromDate)) {
-        params.set(QueryProperty.FromDate, formattedDateParam(new Date()));
-    }
+    // Intentionally do not default fromDate. Injecting the server's UTC "today"
+    // into the URL caused React hydration error #418: CalendarDisplay renders
+    // date-fns isToday/isTomorrow labels in local time, so a server render in
+    // UTC and a client render in a non-UTC tz produce different text for the
+    // same URL param. QueryHelper.getDateClause already defaults to upcoming
+    // shows when fromDate is absent, so omitting it here is safe.
     if (!params.has(QueryProperty.Distance)) {
         params.set(QueryProperty.Distance, "5");
     }
