@@ -101,6 +101,20 @@ function mapComedian(comedian: ComedianWithUpcomingCount) {
     };
 }
 
+async function fetchDeniedComedianNames(): Promise<string[]> {
+    try {
+        const rows = await db.$queryRaw<{ name: string }[]>(
+            Prisma.sql`SELECT name FROM "comedian_deny_list"`,
+        );
+        return rows.map((r) => r.name);
+    } catch (error) {
+        // Table is created via scraper migration; if it isn't present locally
+        // (or the query fails), fall back to no filtering rather than break the page.
+        console.warn("fetchDeniedComedianNames: skipping filter:", error);
+        return [];
+    }
+}
+
 export async function findComediansWithCount(
     helper: QueryHelper,
 ): Promise<ComediansResponse> {
@@ -109,12 +123,21 @@ export async function findComediansWithCount(
         : COMEDIAN_SORT_MAP;
     try {
         const includeEmpty = helper.params.includeEmpty === "true";
+        const deniedNames = await fetchDeniedComedianNames();
+        // Compose with AND: name-contains search and name-notIn deny list both target
+        // the `name` column, so spreading them as sibling keys would clobber one.
+        const nameFilters: Prisma.ComedianWhereInput[] = [
+            helper.getComedianNameClause(),
+            ...(deniedNames.length > 0
+                ? [{ name: { notIn: deniedNames } }]
+                : []),
+        ];
         const whereClause: Prisma.ComedianWhereInput = {
-            ...helper.getComedianNameClause(),
             ...helper.getComedianFiltersClause(),
             parentComedian: {
                 is: null,
             },
+            AND: nameFilters,
             ...(!includeEmpty && {
                 lineupItems: { some: { show: { date: { gt: new Date() } } } },
             }),

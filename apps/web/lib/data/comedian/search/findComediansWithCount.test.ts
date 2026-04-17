@@ -73,6 +73,9 @@ function makeComedianRow(id: number, showCount = 0, name = `Comedian ${id}`) {
 describe("findComediansWithCount", () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        // Default: empty deny-list. Individual tests override for the show-count
+        // raw-SQL path (which makes a second $queryRaw call for sorted IDs).
+        mockQueryRaw.mockResolvedValue([] as never);
     });
 
     describe("regular sort (non show_count_desc)", () => {
@@ -109,7 +112,8 @@ describe("findComediansWithCount", () => {
             expect(result.totalCount).toBe(2);
             expect(result.comedians).toHaveLength(2);
             expect(mockFindMany).toHaveBeenCalledOnce();
-            expect(mockQueryRaw).not.toHaveBeenCalled();
+            // $queryRaw is still called once — to fetch the deny list — but not for sorted IDs.
+            expect(mockQueryRaw).toHaveBeenCalledOnce();
         });
 
         it("maps show_count from _count.lineupItems", async () => {
@@ -125,12 +129,14 @@ describe("findComediansWithCount", () => {
     describe("show_count_asc sort", () => {
         it("uses $queryRaw for ordered IDs with ASC direction", async () => {
             mockCount.mockResolvedValue(3);
-            // Raw SQL returns IDs in ascending show-count order: 2, 1, 3
-            mockQueryRaw.mockResolvedValue([
-                { id: 2 },
-                { id: 1 },
-                { id: 3 },
-            ] as never);
+            // First $queryRaw call fetches the deny list (empty); second returns IDs.
+            mockQueryRaw
+                .mockResolvedValueOnce([] as never)
+                .mockResolvedValueOnce([
+                    { id: 2 },
+                    { id: 1 },
+                    { id: 3 },
+                ] as never);
             mockFindMany.mockResolvedValue([
                 makeComedianRow(1, 2),
                 makeComedianRow(2, 1),
@@ -140,7 +146,7 @@ describe("findComediansWithCount", () => {
             const helper = makeHelper(SortParamValue.ShowCountAsc);
             const result = await findComediansWithCount(helper);
 
-            expect(mockQueryRaw).toHaveBeenCalledOnce();
+            expect(mockQueryRaw).toHaveBeenCalledTimes(2);
             expect(mockFindMany).toHaveBeenCalledOnce();
             // Result must be in SQL order: 2, 1, 3 (fewest first)
             expect(result.comedians.map((c) => c.id)).toEqual([2, 1, 3]);
@@ -148,11 +154,13 @@ describe("findComediansWithCount", () => {
 
         it("returns comedians ordered by ascending show_count after re-sort", async () => {
             mockCount.mockResolvedValue(3);
-            mockQueryRaw.mockResolvedValue([
-                { id: 2 },
-                { id: 1 },
-                { id: 3 },
-            ] as never);
+            mockQueryRaw
+                .mockResolvedValueOnce([] as never)
+                .mockResolvedValueOnce([
+                    { id: 2 },
+                    { id: 1 },
+                    { id: 3 },
+                ] as never);
             mockFindMany.mockResolvedValue([
                 makeComedianRow(1, 2),
                 makeComedianRow(2, 1),
@@ -171,12 +179,14 @@ describe("findComediansWithCount", () => {
     describe("show_count_desc sort", () => {
         it("uses $queryRaw for ordered IDs, then findMany by those IDs", async () => {
             mockCount.mockResolvedValue(3);
-            // Raw SQL returns IDs in sorted order: 3, 1, 2
-            mockQueryRaw.mockResolvedValue([
-                { id: 3 },
-                { id: 1 },
-                { id: 2 },
-            ] as never);
+            // First call = deny list (empty); second = sorted IDs: 3, 1, 2
+            mockQueryRaw
+                .mockResolvedValueOnce([] as never)
+                .mockResolvedValueOnce([
+                    { id: 3 },
+                    { id: 1 },
+                    { id: 2 },
+                ] as never);
             // findMany returns rows in arbitrary DB order
             mockFindMany.mockResolvedValue([
                 makeComedianRow(1, 2),
@@ -187,7 +197,7 @@ describe("findComediansWithCount", () => {
             const helper = makeHelper(SortParamValue.ShowCountDesc);
             const result = await findComediansWithCount(helper);
 
-            expect(mockQueryRaw).toHaveBeenCalledOnce();
+            expect(mockQueryRaw).toHaveBeenCalledTimes(2);
             expect(mockFindMany).toHaveBeenCalledOnce();
             expect(result.totalCount).toBe(3);
             // Result must be in SQL order: 3, 1, 2
@@ -196,11 +206,13 @@ describe("findComediansWithCount", () => {
 
         it("returns comedians ordered by descending show_count after re-sort", async () => {
             mockCount.mockResolvedValue(3);
-            mockQueryRaw.mockResolvedValue([
-                { id: 3 },
-                { id: 1 },
-                { id: 2 },
-            ] as never);
+            mockQueryRaw
+                .mockResolvedValueOnce([] as never)
+                .mockResolvedValueOnce([
+                    { id: 3 },
+                    { id: 1 },
+                    { id: 2 },
+                ] as never);
             mockFindMany.mockResolvedValue([
                 makeComedianRow(1, 2),
                 makeComedianRow(2, 1),
@@ -217,7 +229,9 @@ describe("findComediansWithCount", () => {
 
         it("returns empty array when raw query finds no IDs", async () => {
             mockCount.mockResolvedValue(0);
-            mockQueryRaw.mockResolvedValue([] as never);
+            mockQueryRaw
+                .mockResolvedValueOnce([] as never)
+                .mockResolvedValueOnce([] as never);
 
             const helper = makeHelper(SortParamValue.ShowCountDesc);
             const result = await findComediansWithCount(helper);
@@ -229,7 +243,9 @@ describe("findComediansWithCount", () => {
 
         it("does not use findMany without a take/skip limit (no fetch-all)", async () => {
             mockCount.mockResolvedValue(100);
-            mockQueryRaw.mockResolvedValue([{ id: 1 }] as never);
+            mockQueryRaw
+                .mockResolvedValueOnce([] as never)
+                .mockResolvedValueOnce([{ id: 1 }] as never);
             mockFindMany.mockResolvedValue([makeComedianRow(1, 3)] as never);
 
             const helper = makeHelper(SortParamValue.ShowCountDesc);
@@ -290,6 +306,89 @@ describe("findComediansWithCount", () => {
             await findComediansWithCount(helper);
 
             expect(capturedMaps[0]).toBe(COMEDIAN_SORT_MAP_ADMIN);
+        });
+    });
+
+    describe("deny-list filtering", () => {
+        it("includes name:notIn clause on the Prisma findMany path when deny list is non-empty", async () => {
+            mockCount.mockResolvedValue(5);
+            mockQueryRaw.mockResolvedValueOnce([
+                { name: "Fake Comedy Show" },
+                { name: "90 Day Fiance: Sarper Guven" },
+            ] as never);
+            mockFindMany.mockResolvedValue([makeComedianRow(1)] as never);
+
+            const helper = makeHelper(SortParamValue.PopularityDesc);
+            await findComediansWithCount(helper);
+
+            const call = mockFindMany.mock.calls[0]?.[0];
+            expect(call?.where?.AND).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        name: {
+                            notIn: [
+                                "Fake Comedy Show",
+                                "90 Day Fiance: Sarper Guven",
+                            ],
+                        },
+                    }),
+                ]),
+            );
+        });
+
+        it("omits the notIn clause when the deny list is empty", async () => {
+            mockCount.mockResolvedValue(2);
+            mockQueryRaw.mockResolvedValueOnce([] as never);
+            mockFindMany.mockResolvedValue([makeComedianRow(1)] as never);
+
+            const helper = makeHelper(SortParamValue.PopularityDesc);
+            await findComediansWithCount(helper);
+
+            const call = mockFindMany.mock.calls[0]?.[0];
+            const andArray = (call?.where?.AND ?? []) as Array<
+                Record<string, unknown>
+            >;
+            const hasNotIn = andArray.some(
+                (entry) => (entry.name as { notIn?: unknown })?.notIn,
+            );
+            expect(hasNotIn).toBe(false);
+        });
+
+        it("falls back to no filter when the deny-list query throws", async () => {
+            mockCount.mockResolvedValue(1);
+            mockQueryRaw.mockRejectedValueOnce(
+                new Error("comedian_deny_list does not exist"),
+            );
+            mockFindMany.mockResolvedValue([makeComedianRow(1)] as never);
+
+            const helper = makeHelper(SortParamValue.PopularityDesc);
+            const result = await findComediansWithCount(helper);
+
+            // Query succeeds without the filter — no throw, still returns results.
+            expect(result.comedians).toHaveLength(1);
+        });
+
+        it("passes the denied names into the count query whereClause", async () => {
+            mockQueryRaw.mockResolvedValueOnce([
+                { name: "Blocked Name" },
+            ] as never);
+            mockCount.mockResolvedValue(0);
+            mockFindMany.mockResolvedValue([] as never);
+
+            const helper = makeHelper(SortParamValue.PopularityDesc);
+            await findComediansWithCount(helper);
+
+            const countCall = mockCount.mock.calls[0]?.[0];
+            const andArray = (countCall?.where?.AND ?? []) as Array<
+                Record<string, unknown>
+            >;
+            expect(andArray).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        name: { notIn: ["Blocked Name"] },
+                    }),
+                ]),
+            );
         });
     });
 
