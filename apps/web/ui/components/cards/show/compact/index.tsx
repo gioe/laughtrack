@@ -52,11 +52,11 @@ const CompactShowCard: React.FC<CompactShowCardProps> = ({ show }) => {
                     />
                 </div>
                 <div className="min-w-0">
-                    <p className="font-gilroy-bold font-bold text-[#2D1810] text-[15px] leading-tight truncate">
+                    <p className="font-gilroy-bold font-bold text-[#2D1810] text-[15px] leading-tight line-clamp-2">
                         {parsedShow.clubName}
                     </p>
                     {parsedShow.name && (
-                        <p className="text-xs text-gray-500 font-dmSans truncate">
+                        <p className="text-xs text-gray-500 font-dmSans leading-snug line-clamp-2">
                             {parsedShow.name}
                         </p>
                     )}
