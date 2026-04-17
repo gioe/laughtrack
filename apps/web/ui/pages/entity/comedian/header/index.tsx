@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Heart, Sparkles } from "lucide-react";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { Comedian } from "@/objects/class/comedian/Comedian";
@@ -23,6 +23,13 @@ const ComedianDetailHeader: React.FC<ClubDetailHeaderProps> = ({
     const [error, setError] = useState(false);
     const [showConfetti, setShowConfetti] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
+    const imageRef = useRef<HTMLImageElement | null>(null);
+
+    useEffect(() => {
+        if (imageRef.current?.complete) {
+            setImageLoaded(true);
+        }
+    }, [comedian.imageUrl]);
 
     const parsedComedian = new Comedian(comedian);
 
@@ -58,6 +65,7 @@ const ComedianDetailHeader: React.FC<ClubDetailHeaderProps> = ({
                 {showImage && (
                     <>
                         <Image
+                            ref={imageRef}
                             src={comedian.imageUrl}
                             alt={parsedComedian.name}
                             fill
