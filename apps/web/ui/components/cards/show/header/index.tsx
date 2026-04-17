@@ -52,7 +52,8 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
                     </p>
                 )}
                 <p className="text-base sm:text-lg md:text-[18px] text-gray-600 font-dmSans">
-                    {formatShowDate(show.date.toString())} · {`${show.address}`}
+                    {formatShowDate(show.date.toString(), show.timezone)} ·{" "}
+                    {`${show.address}`}
                 </p>
                 {distanceMiles != null && (
                     <p className="flex items-center gap-1 text-sm text-copper font-dmSans mt-0.5">

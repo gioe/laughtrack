@@ -78,7 +78,7 @@ function makeShowRow(
         name: string;
         date: Date;
         tickets: ReturnType<typeof makeTicket>[];
-        club: { name: string; address: string };
+        club: { name: string; address: string; timezone?: string | null };
         lineupItems: ReturnType<typeof makeLineupItem>[];
     }> = {},
 ) {
@@ -87,7 +87,11 @@ function makeShowRow(
         name: "Test Show",
         date: new Date("2026-06-01"),
         tickets: [makeTicket()],
-        club: { name: "Laugh Factory", address: "8001 Sunset Blvd" },
+        club: {
+            name: "Laugh Factory",
+            address: "8001 Sunset Blvd",
+            timezone: "America/Los_Angeles",
+        },
         lineupItems: [makeLineupItem()],
         ...overrides,
     };
@@ -250,6 +254,47 @@ describe("findShowsForHome", () => {
             const result = await findShowsForHome({}, { date: "asc" });
 
             expect(result[0].date).toEqual(date);
+        });
+
+        it("maps club.timezone onto the returned DTO", async () => {
+            const row = makeShowRow({
+                club: {
+                    name: "Flappers",
+                    address: "102 E Magnolia Blvd",
+                    timezone: "America/Los_Angeles",
+                },
+            });
+            mockFindMany.mockResolvedValue([row] as any);
+
+            const result = await findShowsForHome({}, { date: "asc" });
+
+            expect(result[0].timezone).toBe("America/Los_Angeles");
+        });
+
+        it("returns null timezone when the club has no timezone configured", async () => {
+            const row = makeShowRow({
+                club: {
+                    name: "Carry On",
+                    address: "123 Midtown",
+                    timezone: null,
+                },
+            });
+            mockFindMany.mockResolvedValue([row] as any);
+
+            const result = await findShowsForHome({}, { date: "asc" });
+
+            expect(result[0].timezone).toBeNull();
+        });
+
+        it("selects club.timezone from the database", async () => {
+            mockFindMany.mockResolvedValue([] as any);
+
+            await findShowsForHome({}, { date: "asc" });
+
+            const call = mockFindMany.mock.calls[0][0] as {
+                select: { club: { select: Record<string, unknown> } };
+            };
+            expect(call.select.club.select.timezone).toBe(true);
         });
 
         it("returns an empty array when the DB returns no rows", async () => {

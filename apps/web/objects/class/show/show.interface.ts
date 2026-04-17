@@ -33,6 +33,7 @@ export interface ShowDTO {
     imageUrl: string;
     soldOut?: boolean;
     distanceMiles?: number | null;
+    timezone?: string | null;
 }
 
 export interface PaginatedShowResponseDTO {

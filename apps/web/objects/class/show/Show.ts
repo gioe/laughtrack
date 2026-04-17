@@ -26,6 +26,7 @@ export class Show implements ShowInterface {
     room?: string | null;
     imageUrl: string;
     soldOut?: boolean;
+    timezone?: string | null;
 
     // Constructor
     constructor(input: ShowDTO) {
@@ -50,6 +51,7 @@ export class Show implements ShowInterface {
         this.address = input.address;
         this.imageUrl = input.imageUrl;
         this.soldOut = input.soldOut;
+        this.timezone = input.timezone;
         this.isFavorite = false;
     }
     clubAddress?: string | undefined;

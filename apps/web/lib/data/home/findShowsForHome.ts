@@ -23,6 +23,7 @@ const HOME_SHOW_SELECT = {
             name: true,
             address: true,
             hasImage: true,
+            timezone: true,
         },
     },
     lineupItems: {
@@ -87,5 +88,6 @@ export async function findShowsForHome(
         lineup: filterAndMapLineupItems(show.lineupItems),
         tickets: mapTickets(show.tickets),
         room: show.room ?? undefined,
+        timezone: show.club.timezone,
     }));
 }

@@ -70,7 +70,12 @@ const CompactShowCard: React.FC<CompactShowCardProps> = ({ show }) => {
 
             {/* Date & address */}
             <div className="text-[13px] text-gray-600 font-dmSans space-y-0.5">
-                <p>{formatShowDate(parsedShow.date.toString())}</p>
+                <p>
+                    {formatShowDate(
+                        parsedShow.date.toString(),
+                        parsedShow.timezone,
+                    )}
+                </p>
                 {parsedShow.address && (
                     <p className="truncate">{parsedShow.address}</p>
                 )}
