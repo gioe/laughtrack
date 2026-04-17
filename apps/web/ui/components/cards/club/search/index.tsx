@@ -29,7 +29,7 @@ const ClubSearchCard: React.FC<ClubSearchCardProps> = ({ club }) => {
             className="bg-gradient-to-b from-white to-coconut-cream/60 rounded-xl overflow-hidden pb-4 px-4 h-full shadow-sm border-b-2 border-transparent transition-all duration-300 hover:shadow-lg hover:border-copper"
             whileHover={mp({ y: -4, transition: { duration: 0.15 } })}
         >
-            <div className="relative w-full aspect-video">
+            <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-coconut-cream p-3">
                 <Link
                     href={`/club/${parsedClub.name}`}
                     className="block w-full h-full"
@@ -38,7 +38,7 @@ const ClubSearchCard: React.FC<ClubSearchCardProps> = ({ club }) => {
                         src={error ? PLACEHOLDER : club.imageUrl}
                         alt={`${parsedClub.name}`}
                         fill
-                        className="object-cover rounded-xl"
+                        className="object-cover"
                         onError={() => setError(true)}
                         sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                         priority={false}
