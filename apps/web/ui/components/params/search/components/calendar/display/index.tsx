@@ -17,6 +17,7 @@ import {
     PopoverContent,
 } from "@/ui/components/ui/popover";
 import { DateRange } from "@/objects/interface";
+import { getChipPresets } from "./presets";
 
 const PLACEHOLDER = "When";
 const MOBILE_QUERY = "(max-width: 639px)";
@@ -61,6 +62,33 @@ export const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
 
     const isMobile = useIsMobileViewport();
     const [sheetOpen, setSheetOpen] = useState(false);
+    const [popoverOpen, setPopoverOpen] = useState(false);
+
+    const handleChipSelect = (range: DateRange) => {
+        onSelect(range);
+        setSheetOpen(false);
+        setPopoverOpen(false);
+    };
+
+    const chipPresets = getChipPresets();
+    const chipRow = (
+        <div
+            className="flex flex-wrap gap-2 px-2 pt-2 pb-3 justify-center"
+            role="group"
+            aria-label="Quick date presets"
+        >
+            {chipPresets.map((preset) => (
+                <button
+                    key={preset.label}
+                    type="button"
+                    onClick={() => handleChipSelect(preset.range)}
+                    className="px-3 py-1.5 text-xs font-dmSans font-medium rounded-full border border-gray-300 text-gray-700 bg-white hover:bg-gray-100 hover:border-gray-400 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
+                    {preset.label}
+                </button>
+            ))}
+        </div>
+    );
 
     const savedScrollY = useRef(0);
     useEffect(() => {
@@ -157,6 +185,7 @@ export const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
                                                 />
                                             </button>
                                         </div>
+                                        {chipRow}
                                         <div className="flex justify-center">
                                             {calendar}
                                         </div>
@@ -166,7 +195,7 @@ export const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
                             )}
                     </>
                 ) : (
-                    <Popover>
+                    <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
                         <PopoverTrigger asChild>
                             <button
                                 type="button"
@@ -182,6 +211,7 @@ export const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
                             sideOffset={16}
                             avoidCollisions={true}
                         >
+                            {chipRow}
                             {calendar}
                         </PopoverContent>
                     </Popover>
