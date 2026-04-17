@@ -1,5 +1,6 @@
 "use client";
 import { useFilterModal } from "@/hooks";
+import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { Filter } from "lucide-react";
 import { useCallback } from "react";
 
@@ -16,14 +17,17 @@ export function FilterModalButton({ filterCount }: FilterModalButtonProps) {
 
     return (
         <button
+            aria-label="Filter"
             className="relative flex gap-2 items-center text-copper font-dmSans"
             type="button"
             onClick={openModal}
         >
             <Filter size={20} />
-            <span className="hidden sm:inline font-dmSans text-[16px]">
-                Filter Results
-            </span>
+            <span className="font-dmSans text-[16px]">Filter</span>
+            <ChevronDownIcon
+                aria-hidden="true"
+                className="h-5 w-5 flex-none text-copper"
+            />
             {filterCount != null && filterCount > 0 && (
                 <span
                     data-testid="filter-count-badge"
