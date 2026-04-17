@@ -147,11 +147,25 @@ class _QuietShutdownFilter(logging.Filter):
     _PATTERN = "Event loop is closed"
 
     def filter(self, record: logging.LogRecord) -> bool:  # noqa: D401
-        msg = record.getMessage()
-        if self._PATTERN in msg:
-            return False
+        # Narrow match: asyncio's default exception handler emits records with
+        # the message prefix "Exception in callback" when a callback raises.
+        # Requiring a RuntimeError whose str() contains the pattern avoids
+        # silencing unrelated future asyncio log calls that happen to mention
+        # "Event loop is closed" (e.g. debug lines about loop state).
         exc_info = record.exc_info
-        if exc_info and exc_info[1] is not None and self._PATTERN in str(exc_info[1]):
+        if (
+            exc_info
+            and exc_info[0] is RuntimeError
+            and exc_info[1] is not None
+            and self._PATTERN in str(exc_info[1])
+        ):
+            return False
+        # Fallback: some asyncio callsites pass the error via the formatted
+        # message string without exc_info (e.g. "Task exception was never
+        # retrieved").  Require the "Exception in callback" prefix so unrelated
+        # log lines aren't dropped.
+        msg = record.getMessage()
+        if self._PATTERN in msg and "Exception in callback" in msg:
             return False
         return True
 
@@ -289,9 +303,14 @@ class PlaywrightBrowser:
         launched on — which happens when a worker thread's ``asyncio.run()``
         creates the browser and the main loop later calls ``close_js_browser``
         — the Playwright internals are bound to the (possibly closed) launch
-        loop and ``browser.close()`` would hang.  In that case we clear state
-        without awaiting; ``_atexit_close`` handles the actual subprocess
-        teardown on a fresh loop.
+        loop and awaiting ``browser.close()`` from a different loop would
+        hang.  In that case we drop the references without awaiting and
+        return immediately.  The Chromium subprocess is then reaped by the OS
+        at Python process exit; ``_atexit_close`` cannot rescue it because
+        the launch loop is already closed (and awaiting its futures from a
+        new loop would itself hang).  This trade-off is acceptable for the
+        scraper's short-lived CLI invocations, where the process terminates
+        shortly after this path is taken.
 
         Each shutdown step is bounded by an internal timeout so that one
         hung step (e.g. an unresponsive Node subprocess) cannot exhaust the

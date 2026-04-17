@@ -4,6 +4,7 @@ import asyncio
 import concurrent.futures
 import logging
 import sys
+from typing import Optional
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -575,7 +576,7 @@ class TestPlaywrightBrowser:
 # ---------------------------------------------------------------------------
 
 
-def _make_record(msg: str, exc: Exception = None) -> logging.LogRecord:
+def _make_record(msg: str, exc: Optional[Exception] = None) -> logging.LogRecord:
     record = logging.LogRecord(
         name="asyncio",
         level=logging.ERROR,
@@ -607,6 +608,18 @@ class TestQuietShutdownFilter:
     def test_keeps_unrelated_exception(self):
         f = _QuietShutdownFilter()
         record = _make_record("Exception in callback", ValueError("something else"))
+        assert f.filter(record) is True
+
+    def test_keeps_message_mentioning_pattern_without_callback_prefix(self):
+        """A debug/info line that mentions the phrase but is not a callback error must pass."""
+        f = _QuietShutdownFilter()
+        record = _make_record("Loop state: Event loop is closed after drain")
+        assert f.filter(record) is True
+
+    def test_keeps_non_runtime_error_with_matching_string(self):
+        """Filter requires exc type to be RuntimeError exactly."""
+        f = _QuietShutdownFilter()
+        record = _make_record("Exception in callback", ValueError("Event loop is closed"))
         assert f.filter(record) is True
 
 
