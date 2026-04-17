@@ -195,7 +195,7 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
                 miles around
             </span>
 
-            <div className="w-full sm:w-auto flex-1 max-w-[200px] relative">
+            <div className="w-full sm:w-auto flex-1 max-w-[200px] md:w-full md:flex-none md:max-w-none lg:w-full lg:flex-none lg:max-w-none relative">
                 <div className="flex items-center gap-1">
                     <div className="flex-1">{buildZipCodeComponent(props)}</div>
                     <div className="relative flex-shrink-0">
