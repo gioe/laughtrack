@@ -9,8 +9,7 @@ import { useFavorite } from "@/hooks/useFavorite";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMotionProps } from "@/hooks";
 import Image from "next/image";
-
-const PLACEHOLDER = "/placeholders/comedian-placeholder.svg";
+import ComedianAvatarFallback from "@/ui/components/image/comedian/fallback";
 
 interface ClubDetailHeaderProps {
     comedian: ComedianDTO;
@@ -46,8 +45,7 @@ const ComedianDetailHeader: React.FC<ClubDetailHeaderProps> = ({
         await handleFavoriteClick(e);
     };
 
-    const showImage =
-        !error && !!comedian.imageUrl && comedian.imageUrl !== PLACEHOLDER;
+    const showImage = !error && !!comedian.imageUrl;
 
     return (
         <div className="max-w-7xl mx-auto">
@@ -61,8 +59,8 @@ const ComedianDetailHeader: React.FC<ClubDetailHeaderProps> = ({
                 {/* Gradient fallback background */}
                 <div className="absolute inset-0 bg-gradient-to-br from-slate-600 via-slate-800 to-slate-900" />
 
-                {/* Hero image */}
-                {showImage && (
+                {/* Hero image or silhouette + monogram fallback */}
+                {showImage ? (
                     <>
                         <Image
                             ref={imageRef}
@@ -86,6 +84,15 @@ const ComedianDetailHeader: React.FC<ClubDetailHeaderProps> = ({
                         {/* Overlay gradient — only when image is present */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
                     </>
+                ) : (
+                    <div className="absolute inset-0">
+                        <ComedianAvatarFallback
+                            name={parsedComedian.name}
+                            variant="hero"
+                        />
+                        {/* Overlay gradient so the name stays readable */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                    </div>
                 )}
 
                 {/* Name + Favorite button overlaid at bottom */}

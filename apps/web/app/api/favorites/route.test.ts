@@ -164,6 +164,27 @@ describe("GET /api/favorites", () => {
         });
     });
 
+    describe("hasImage propagation", () => {
+        it("propagates the comedian.hasImage field to each DTO", async () => {
+            const withImage = { ...makeComedian(1), hasImage: true };
+            const withoutImage = { ...makeComedian(2), hasImage: false };
+            mockFindMany.mockResolvedValue([
+                { comedian: withImage },
+                { comedian: withoutImage },
+            ] as any);
+            mockCount.mockResolvedValue(2);
+
+            const res = await GET(makeRequest({ userId: TEST_USER_ID }));
+            const body = await res.json();
+
+            expect(res.status).toBe(200);
+            expect(body.comedians.map((c: any) => c.hasImage)).toEqual([
+                true,
+                false,
+            ]);
+        });
+    });
+
     describe("validation", () => {
         it("page=-1 returns 400", async () => {
             const res = await GET(

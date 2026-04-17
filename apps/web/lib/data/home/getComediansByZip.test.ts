@@ -312,5 +312,26 @@ describe("getComediansByZip", () => {
                 "Headliner B",
             ]);
         });
+
+        it("propagates has_image to the DTO as hasImage", async () => {
+            (mockZipRadius as any).mockReturnValue(["10001", "10002", "10003"]);
+            const rowWithImage: any = makeRow({
+                id: 1,
+                uuid: "uuid-1",
+                name: "Has Pic",
+            });
+            rowWithImage.has_image = true;
+            const rowWithoutImage: any = makeRow({
+                id: 2,
+                uuid: "uuid-2",
+                name: "No Pic",
+            });
+            rowWithoutImage.has_image = null;
+            mockQueryRaw.mockResolvedValue([rowWithImage, rowWithoutImage]);
+
+            const result = await getComediansByZip("10001");
+
+            expect(result.map((c) => c.hasImage)).toEqual([true, false]);
+        });
     });
 });

@@ -304,4 +304,26 @@ describe("getTrendingComedians", () => {
             expect(result.map((c) => c.id)).toEqual([10, 11, 12]);
         });
     });
+
+    describe("hasImage propagation", () => {
+        it("sets hasImage=true when the DB row's has_image is true", async () => {
+            const row: any = makeRow({ id: 1, uuid: "uuid-1", name: "A" });
+            row.has_image = true;
+            mockQueryRaw.mockResolvedValue([row]);
+
+            const [result] = await getTrendingComedians(1, 0);
+
+            expect(result.hasImage).toBe(true);
+        });
+
+        it("sets hasImage=false when the DB row's has_image is falsy (null/false)", async () => {
+            const row: any = makeRow({ id: 1, uuid: "uuid-1", name: "A" });
+            row.has_image = null;
+            mockQueryRaw.mockResolvedValue([row]);
+
+            const [result] = await getTrendingComedians(1, 0);
+
+            expect(result.hasImage).toBe(false);
+        });
+    });
 });

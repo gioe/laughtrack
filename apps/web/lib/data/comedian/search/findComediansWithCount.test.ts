@@ -292,4 +292,19 @@ describe("findComediansWithCount", () => {
             expect(capturedMaps[0]).toBe(COMEDIAN_SORT_MAP_ADMIN);
         });
     });
+
+    describe("hasImage propagation", () => {
+        it("sets hasImage=true when the row has hasImage=true and false otherwise", async () => {
+            const withImage: any = makeComedianRow(1);
+            withImage.hasImage = true;
+            const withoutImage: any = makeComedianRow(2);
+            withoutImage.hasImage = false;
+            mockCount.mockResolvedValue(2);
+            mockFindMany.mockResolvedValue([withImage, withoutImage] as never);
+
+            const { comedians } = await findComediansWithCount(makeHelper());
+
+            expect(comedians.map((c) => c.hasImage)).toEqual([true, false]);
+        });
+    });
 });

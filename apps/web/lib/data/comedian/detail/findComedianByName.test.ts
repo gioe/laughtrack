@@ -154,6 +154,26 @@ describe("findComedianByName", () => {
         });
     });
 
+    describe("hasImage propagation", () => {
+        it("sets hasImage=true when DB row has hasImage=true", async () => {
+            const row = makeComedianRow({ hasImage: true });
+            mockFindFirst.mockResolvedValue(row);
+
+            const result = await findComedianByName(makeHelper());
+
+            expect(result.hasImage).toBe(true);
+        });
+
+        it("sets hasImage=false when DB row has hasImage=false", async () => {
+            const row = makeComedianRow({ hasImage: false });
+            mockFindFirst.mockResolvedValue(row);
+
+            const result = await findComedianByName(makeHelper());
+
+            expect(result.hasImage).toBe(false);
+        });
+    });
+
     describe("NotFoundError", () => {
         it("throws NotFoundError when db.comedian.findFirst returns null", async () => {
             mockFindFirst.mockResolvedValue(null);

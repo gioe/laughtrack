@@ -1,6 +1,6 @@
 import { getInitials } from "@/util/comedian/getInitials";
 
-type FallbackVariant = "grid" | "lineup";
+type FallbackVariant = "grid" | "lineup" | "hero";
 
 interface ComedianAvatarFallbackProps {
     name: string;
@@ -11,6 +11,7 @@ interface ComedianAvatarFallbackProps {
 const shapeClass: Record<FallbackVariant, string> = {
     grid: "rounded-full",
     lineup: "rounded-xl",
+    hero: "rounded-xl",
 };
 
 const ComedianAvatarFallback = ({
