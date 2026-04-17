@@ -333,11 +333,29 @@ db.$transaction(async (tx) => { ... }, {
 })
 ```
 
+## Local Dev — Use `npm run dev`
+
+From `apps/web/`, run `npm run dev`. The wrapper at `apps/web/bin/dev` reads
+`apps/scraper/.env`, assembles `DATABASE_URL` from the component vars, and
+execs `next dev`. Exported `DATABASE_URL` takes precedence over `.env.local`
+(Next.js preserves any var already in `process.env`), so you can leave the
+broken localhost value in `.env.local` and the wrapper still wins.
+
+Flags:
+- `npm run dev -- --fresh` — clears `.next/` before starting. Use this when
+  the Tailwind JIT cache looks stale or after editing `tailwind.config.ts`.
+
+The dev server connects to production Neon. Prefer the UI for read-only
+verification; avoid destructive actions. A warning prints on startup whenever
+`DATABASE_HOST` is not `localhost`/`127.0.0.1`.
+
 ## Prisma Migrations
 
-`prisma migrate dev` **cannot be run locally** in this project for two reasons:
-1. The local PostgreSQL database is always empty (no tables); the real data lives in Neon serverless.
-2. The shadow database validation fails on migration `20260308000000_set_email_scraper_fields` which contains a data-dependent operation requiring "Gotham Comedy Club" to exist.
+`prisma migrate dev` is **out of scope** for local dev. Reasons:
+1. No local `laughtrack` PostgreSQL database is provisioned; runtime hits Neon directly via `bin/dev`.
+2. Even pointed at Neon, shadow-DB validation fails on
+   `20260308000000_set_email_scraper_fields`, which contains a data-dependent
+   operation that requires "Gotham Comedy Club" to exist.
 
 **Workaround for new migrations**: Write the migration SQL manually, create the migration directory under `prisma/migrations/<timestamp>_<name>/migration.sql`, and commit both the schema and the migration file. The migration will be applied to the real DB via `prisma migrate deploy` in the deployment environment.
 
