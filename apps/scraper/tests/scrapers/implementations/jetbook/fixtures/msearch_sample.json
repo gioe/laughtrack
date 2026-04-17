@@ -1,0 +1,105 @@
+{
+  "responses": [
+    {
+      "hits": {
+        "hits": [
+          {
+            "_version": 5386595,
+            "found": true,
+            "_source": {
+              "recurringoriginal_custom_event1": "1348695171700984260__LOOKUP__1752009233172x758577297998741500",
+              "date_doorstime_date": 1759538700000,
+              "avg_number": 0,
+              "visble_boolean": true,
+              "typevisible_option_typevisible": "visible",
+              "Created Date": 1767385609855,
+              "type_option_show_types": "improv",
+              "__totaltickets_number": 25,
+              "date_start_date": 1776474000000,
+              "nt_boolean": true,
+              "is_recurring__boolean": true,
+              "avg_per_ticket_number": 0,
+              "checkin_number": 0,
+              "date_end_date": 1776477600000,
+              "list_tickets_list_custom_v2_tickets": [
+                "1348695171700984260__LOOKUP__1767385640720x448659561935437630",
+                "1348695171700984260__LOOKUP__1767385641019x101085921938791180",
+                "1348695171700984260__LOOKUP__1767385641198x280435590050425860",
+                "1348695171700984260__LOOKUP__1767385641444x753323811301059000",
+                "1348695171700984260__LOOKUP__1767385641736x880903498718366800",
+                "1348695171700984260__LOOKUP__1767385642022x232286102186734620",
+                "1348695171700984260__LOOKUP__1767385642306x930667797499150800",
+                "1348695171700984260__LOOKUP__1767385642552x846677945367024400",
+                "1348695171700984260__LOOKUP__1767385642756x780528946621025700",
+                "1348695171700984260__LOOKUP__1767385643009x433956130004449400",
+                "1348695171700984260__LOOKUP__1767385643305x429870189052059500",
+                "1348695171700984260__LOOKUP__1767385643681x915138414739612200",
+                "1348695171700984260__LOOKUP__1767385643917x698196601603011700",
+                "1348695171700984260__LOOKUP__1767385644217x611504547239107000",
+                "1348695171700984260__LOOKUP__1767385644447x719070026421322100",
+                "1348695171700984260__LOOKUP__1767385644684x617080165079431000",
+                "1348695171700984260__LOOKUP__1767385644850x805059081591752000",
+                "1348695171700984260__LOOKUP__1767385645036x274427324145871700",
+                "1348695171700984260__LOOKUP__1767385645264x792255426335608500",
+                "1348695171700984260__LOOKUP__1767385645519x624240226317614000",
+                "1348695171700984260__LOOKUP__1767385645744x434077658793940800",
+                "1348695171700984260__LOOKUP__1767385645948x445203882182131140",
+                "1348695171700984260__LOOKUP__1767385646165x117198546251753300",
+                "1348695171700984260__LOOKUP__1767385646501x105434514236886880",
+                "1348695171700984260__LOOKUP__1767385646807x680176471210265100"
+              ],
+              "list_spots_list_custom_v2_spots": [
+                "1348695171700984260__LOOKUP__1767385610625x153213808082331330",
+                "1348695171700984260__LOOKUP__1767385611168x818474157745567000"
+              ],
+              "Slug": "the-friday-night-jamhsyu",
+              "parsedate_start_date": 1776474000000,
+              "summary_text": "Improv Comedy",
+              "display_lineup_visible_boolean": true,
+              "richdescription_text": "[color=rgb(35, 35, 37)]Come join us for our weekly downtown mesa Big O\u2019l Neighborhood improv jam! This is your chance to showcase your talent, have some fun, and connect with other improvisers in the community. Are you ready to take the stage and make some magic happen? oh yeah, this is a pay what you can event.[/color]\n\n[color=rgb(35, 35, 37)]Whether you\u2019re a seasoned performer or new to improv, the improv jam is a supportive and inclusive space where everyone is welcome to participate.[/color]",
+              "related_venue_custom_v2_venues": "1348695171700984260__LOOKUP__1675973840696x626596206775369700",
+              "parsedate_doorstime_date": 1776905100000,
+              "hideloading_boolean": true,
+              "refunds_number": 0,
+              "Created By": "1348695171700984260__LOOKUP__1675973604078x267686284835238600",
+              "description_text": "Come join us for our weekly downtown mesa Big O\u2019l Neighborhood improv jam! This is your chance to showcase your talent, have some fun, and connect with other improvisers in the community. Are you ready to take the stage and make some magic happen? oh yeah, this is a pay what you can event.\n\nWhether you\u2019re a seasoned performer or new to improv, the improv jam is a supportive and inclusive space where everyone is welcome to participate.",
+              "eventbrite_id_text": "1979551926099",
+              "ticket_sold_number": 0,
+              "parsedate_end_date": 1776477600000,
+              "comps_number": 0,
+              "typename_text": "Improv",
+              "ticket_page_visible_boolean": true,
+              "related_eventstageseating_list_custom_v2_eventstageseating": [
+                "1348695171700984260__LOOKUP__1767385640247x612931784356141700"
+              ],
+              "order_number": 985,
+              "user_owner_user": "1348695171700984260__LOOKUP__1675973604078x267686284835238600",
+              "scheduleticketsreminder_list_text": [
+                "2075118"
+              ],
+              "date_ticketatthedoordifference_number": 30,
+              "name_text": "The Neighborhood Jam",
+              "noedit_boolean": false,
+              "renevue_number": 0,
+              "related_stage_custom_v2_venuestage": "1348695171700984260__LOOKUP__1675973833413x435289855608487940",
+              "promocodes_list_custom_v2_codes": [
+                "1348695171700984260__LOOKUP__1748563295849x611244411613085700",
+                "1348695171700984260__LOOKUP__1748629270188x393897870352711700",
+                "1348695171700984260__LOOKUP__1772070620834x665861400605491200"
+              ],
+              "Modified Date": 1774474630503,
+              "_id": "1767385609845x481784969628054700",
+              "neweb_boolean": true,
+              "event_img_image": "https://638d083719d8e76dc8427997ad8e7a9f.cdn.bubble.io/f1774395717874x725386060909600800/C7S0JH.png",
+              "difftime_number": 0,
+              "_version": 5386595,
+              "_type": "custom.event1"
+            },
+            "_type": "custom.event1",
+            "_id": "1767385609845x481784969628054700"
+          }
+        ]
+      }
+    }
+  ]
+}
