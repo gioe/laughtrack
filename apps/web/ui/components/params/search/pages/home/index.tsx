@@ -88,7 +88,7 @@ export default function ShowSearchForm() {
 
                         {/* Dates + button grouped on the right so the button sits adjacent to the When field */}
                         <div className="flex flex-col sm:flex-row md:flex-row lg:flex-row sm:items-stretch md:items-stretch lg:items-stretch">
-                            <div className="px-6 pt-4 sm:pt-5 md:pt-5 lg:pt-5 pb-5 sm:pb-5 md:pb-5 lg:pb-5 sm:py-5 md:py-5 lg:py-5">
+                            <div className="px-6 pt-4 pb-5 sm:py-5 md:py-5 lg:py-5">
                                 <p
                                     id="show-search-dates-label"
                                     className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-2.5"
