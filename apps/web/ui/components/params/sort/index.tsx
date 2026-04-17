@@ -28,7 +28,6 @@ export function SortParamComponent({
         >
             <div>
                 <MenuButton
-                    aria-label="Sort"
                     className="group flex items-center justify-between rounded-lg
                              text-copper font-dmSans text-[16px] hover:bg-gray-50"
                 >

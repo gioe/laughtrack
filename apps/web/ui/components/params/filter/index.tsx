@@ -17,7 +17,6 @@ export function FilterModalButton({ filterCount }: FilterModalButtonProps) {
 
     return (
         <button
-            aria-label="Filter"
             className="relative flex gap-2 items-center text-copper font-dmSans"
             type="button"
             onClick={openModal}
