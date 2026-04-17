@@ -2,13 +2,17 @@
 
 import asyncio
 import concurrent.futures
+import logging
 import sys
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from laughtrack.foundation.infrastructure.http import playwright_browser as _pb_mod
 from laughtrack.foundation.infrastructure.http.playwright_browser import (
     PlaywrightBrowser,
+    _QuietShutdownFilter,
+    _install_quiet_shutdown_filter,
     _parse_proxy,
 )
 
@@ -564,3 +568,198 @@ class TestPlaywrightBrowser:
         assert result == "<html>rendered</html>"
         # Chromium launched twice: once before close(), once after.
         assert mock_pw_chromium.launch.call_count == 2
+
+
+# ---------------------------------------------------------------------------
+# _QuietShutdownFilter — silences benign Playwright shutdown noise
+# ---------------------------------------------------------------------------
+
+
+def _make_record(msg: str, exc: Exception = None) -> logging.LogRecord:
+    record = logging.LogRecord(
+        name="asyncio",
+        level=logging.ERROR,
+        pathname=__file__,
+        lineno=0,
+        msg=msg,
+        args=(),
+        exc_info=(type(exc), exc, None) if exc is not None else None,
+    )
+    return record
+
+
+class TestQuietShutdownFilter:
+    def test_drops_record_with_matching_message(self):
+        f = _QuietShutdownFilter()
+        record = _make_record("Exception in callback: Event loop is closed")
+        assert f.filter(record) is False
+
+    def test_drops_record_with_matching_exc_info(self):
+        f = _QuietShutdownFilter()
+        record = _make_record("Exception in callback", RuntimeError("Event loop is closed"))
+        assert f.filter(record) is False
+
+    def test_keeps_unrelated_record(self):
+        f = _QuietShutdownFilter()
+        record = _make_record("Task was destroyed but it is pending")
+        assert f.filter(record) is True
+
+    def test_keeps_unrelated_exception(self):
+        f = _QuietShutdownFilter()
+        record = _make_record("Exception in callback", ValueError("something else"))
+        assert f.filter(record) is True
+
+
+class TestInstallQuietShutdownFilter:
+    def setup_method(self):
+        # Reset global install flag and strip any prior instance from the logger
+        # so each test starts from a clean slate.
+        _pb_mod._quiet_filter_installed = False
+        logger = logging.getLogger("asyncio")
+        for filt in list(logger.filters):
+            if isinstance(filt, _QuietShutdownFilter):
+                logger.removeFilter(filt)
+
+    def teardown_method(self):
+        logger = logging.getLogger("asyncio")
+        for filt in list(logger.filters):
+            if isinstance(filt, _QuietShutdownFilter):
+                logger.removeFilter(filt)
+        _pb_mod._quiet_filter_installed = False
+
+    def test_install_adds_filter_to_asyncio_logger(self):
+        _install_quiet_shutdown_filter()
+        filters = logging.getLogger("asyncio").filters
+        assert any(isinstance(f, _QuietShutdownFilter) for f in filters)
+
+    def test_install_is_idempotent(self):
+        _install_quiet_shutdown_filter()
+        _install_quiet_shutdown_filter()
+        _install_quiet_shutdown_filter()
+        filters = logging.getLogger("asyncio").filters
+        count = sum(1 for f in filters if isinstance(f, _QuietShutdownFilter))
+        assert count == 1
+
+    def test_constructing_browser_installs_filter(self):
+        PlaywrightBrowser()
+        filters = logging.getLogger("asyncio").filters
+        assert any(isinstance(f, _QuietShutdownFilter) for f in filters)
+
+
+# ---------------------------------------------------------------------------
+# close() — loop mismatch detection
+# ---------------------------------------------------------------------------
+
+
+class TestCloseLoopMismatch:
+    @pytest.mark.asyncio
+    async def test_close_clears_state_without_awaiting_when_launch_loop_closed(self):
+        """If _launch_loop is closed, close() clears state without awaiting browser.close()."""
+        mock_pw_module, mock_browser, _ = _make_pw_mocks()
+
+        # Replace the mocks' close with an AsyncMock that would hang forever
+        # if awaited — proving we skipped the graceful path.
+        async def hang(*_a, **_kw):
+            await asyncio.sleep(60)
+
+        mock_browser.close = AsyncMock(side_effect=hang)
+        mock_cm = mock_pw_module.async_playwright.return_value
+        mock_cm.__aexit__ = AsyncMock(side_effect=hang)
+
+        with _patch_playwright(mock_pw_module):
+            browser = PlaywrightBrowser()
+            await browser.fetch_html("https://example.com")
+
+            # Simulate the worker-thread scenario: launch_loop points at a
+            # now-closed loop that is NOT the current running loop.
+            dead_loop = asyncio.new_event_loop()
+            dead_loop.close()
+            browser._launch_loop = dead_loop
+
+            # Should return quickly (no hang) and clear state.
+            await asyncio.wait_for(browser.close(), timeout=1)
+
+        assert browser._browser is None
+        assert browser._pw_cm is None
+        assert browser._pw is None
+        mock_browser.close.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_close_clears_state_when_launch_loop_is_different_running_loop(self):
+        """If _launch_loop is a different (still-alive) loop, also skip graceful close."""
+        mock_pw_module, mock_browser, _ = _make_pw_mocks()
+
+        async def hang(*_a, **_kw):
+            await asyncio.sleep(60)
+
+        mock_browser.close = AsyncMock(side_effect=hang)
+
+        with _patch_playwright(mock_pw_module):
+            browser = PlaywrightBrowser()
+            await browser.fetch_html("https://example.com")
+
+            other_loop = asyncio.new_event_loop()
+            try:
+                browser._launch_loop = other_loop
+                await asyncio.wait_for(browser.close(), timeout=1)
+            finally:
+                other_loop.close()
+
+        assert browser._browser is None
+        mock_browser.close.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# close() shutdown-step timeouts
+# ---------------------------------------------------------------------------
+
+
+class TestCloseStepTimeouts:
+    @pytest.mark.asyncio
+    async def test_close_clears_state_when_browser_close_times_out(self):
+        """A hung browser.close() must not leave _browser set or block forever."""
+        mock_pw_module, mock_browser, _ = _make_pw_mocks()
+
+        async def hang(*_a, **_kw):
+            await asyncio.sleep(60)  # would exceed _CLOSE_STEP_TIMEOUT (10s)
+
+        mock_browser.close = AsyncMock(side_effect=hang)
+
+        with _patch_playwright(mock_pw_module):
+            browser = PlaywrightBrowser()
+            await browser.fetch_html("https://example.com")
+            # Patch the constant down to keep the test quick
+            with patch(
+                "laughtrack.foundation.infrastructure.http.playwright_browser._CLOSE_STEP_TIMEOUT",
+                0.05,
+            ):
+                await browser.close()
+
+        # Even though browser.close() timed out, the state is cleared and
+        # close() returned without raising.
+        assert browser._browser is None
+        assert browser._pw_cm is None
+
+    @pytest.mark.asyncio
+    async def test_close_clears_state_when_pw_aexit_times_out(self):
+        """A hung playwright shutdown still results in cleared state."""
+        mock_pw_module, mock_browser, _ = _make_pw_mocks()
+        mock_cm = mock_pw_module.async_playwright.return_value
+
+        async def hang(*_a, **_kw):
+            await asyncio.sleep(60)
+
+        mock_cm.__aexit__ = AsyncMock(side_effect=hang)
+
+        with _patch_playwright(mock_pw_module):
+            browser = PlaywrightBrowser()
+            await browser.fetch_html("https://example.com")
+            with patch(
+                "laughtrack.foundation.infrastructure.http.playwright_browser._CLOSE_STEP_TIMEOUT",
+                0.05,
+            ):
+                await browser.close()
+
+        assert browser._browser is None
+        assert browser._pw_cm is None
+        assert browser._pw is None

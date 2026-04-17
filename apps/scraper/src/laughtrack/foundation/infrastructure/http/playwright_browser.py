@@ -38,6 +38,7 @@ The atexit handler is a last-resort safety net only.
 import asyncio
 import atexit
 import concurrent.futures
+import logging
 import weakref
 from typing import Optional
 from urllib.parse import urlparse
@@ -98,6 +99,11 @@ _USER_AGENT = (
     "Chrome/124.0.0.0 Safari/537.36"
 )
 
+# Per-step shutdown timeout in close(): the outer close_js_browser() in the
+# scraping service grants 30s overall; bounding each step at 10s leaves
+# headroom and prevents a single hung step from triggering the outer warning.
+_CLOSE_STEP_TIMEOUT = 10
+
 
 def _parse_proxy(proxy_url: str) -> dict:
     """Convert a proxy URL string to Playwright's proxy dict format.
@@ -117,6 +123,49 @@ def _parse_proxy(proxy_url: str) -> dict:
         return proxy_dict
     except Exception:
         return {"server": proxy_url}
+
+
+class _QuietShutdownFilter(logging.Filter):
+    """Drop benign 'Event loop is closed' noise from the asyncio logger.
+
+    The scraper runs each club inside a worker thread that owns its own
+    ``asyncio.run()`` loop, while the shared ``PlaywrightBrowser`` singleton
+    outlives that worker and is closed later on the main loop.  Playwright's
+    internal connection futures remain bound to the (now-closed) worker loop,
+    and the cancellation cascade scheduled during main-loop teardown calls
+    ``future.cancel()`` on those closed loops — raising
+    ``RuntimeError('Event loop is closed')``.
+
+    The default asyncio exception handler logs these at ERROR level via
+    ``logging.getLogger('asyncio')``, producing cosmetic noise that drowns out
+    real failures in shared logs.  A logging filter is used here (rather than
+    ``loop.set_exception_handler``) because the error surfaces on whichever
+    loop runs the callback — which is not necessarily the loop the browser was
+    launched on — making a per-loop handler unreliable.
+    """
+
+    _PATTERN = "Event loop is closed"
+
+    def filter(self, record: logging.LogRecord) -> bool:  # noqa: D401
+        msg = record.getMessage()
+        if self._PATTERN in msg:
+            return False
+        exc_info = record.exc_info
+        if exc_info and exc_info[1] is not None and self._PATTERN in str(exc_info[1]):
+            return False
+        return True
+
+
+_quiet_filter_installed = False
+
+
+def _install_quiet_shutdown_filter() -> None:
+    """Attach the quiet-shutdown filter to the asyncio logger exactly once."""
+    global _quiet_filter_installed
+    if _quiet_filter_installed:
+        return
+    logging.getLogger("asyncio").addFilter(_QuietShutdownFilter())
+    _quiet_filter_installed = True
 
 
 def _atexit_close(browser_ref: "weakref.ref[PlaywrightBrowser]") -> None:
@@ -204,6 +253,10 @@ class PlaywrightBrowser:
         # fetch_html calls are therefore serialized; concurrent callers queue up.
         self._browser_lock = asyncio.Lock()
 
+        # Install the logging filter once at construction so the noise is
+        # silenced regardless of which loop eventually raises it.
+        _install_quiet_shutdown_filter()
+
         # Register best-effort cleanup on process exit
         atexit.register(_atexit_close, weakref.ref(self))
 
@@ -217,7 +270,8 @@ class PlaywrightBrowser:
 
         # Record the running loop before any await so _atexit_close can close
         # Playwright objects on the same loop they were created on.
-        self._launch_loop = asyncio.get_running_loop()
+        loop = asyncio.get_running_loop()
+        self._launch_loop = loop
 
         # Lazy import — keeps playwright out of the import graph unless needed
         from playwright.async_api import async_playwright  # noqa: PLC0415
@@ -230,15 +284,66 @@ class PlaywrightBrowser:
         """Close the persistent Chromium browser and the Playwright context.
 
         Safe to call multiple times; subsequent calls are no-ops.
+
+        If the current running loop differs from the loop the browser was
+        launched on — which happens when a worker thread's ``asyncio.run()``
+        creates the browser and the main loop later calls ``close_js_browser``
+        — the Playwright internals are bound to the (possibly closed) launch
+        loop and ``browser.close()`` would hang.  In that case we clear state
+        without awaiting; ``_atexit_close`` handles the actual subprocess
+        teardown on a fresh loop.
+
+        Each shutdown step is bounded by an internal timeout so that one
+        hung step (e.g. an unresponsive Node subprocess) cannot exhaust the
+        outer ``close_js_browser`` budget — keeping the scraper teardown
+        deterministic even when Playwright misbehaves.
         """
         async with self._browser_lock:
-            if self._browser is not None:
-                await self._browser.close()
+            if self._browser is None and self._pw_cm is None:
+                return
+
+            try:
+                current_loop = asyncio.get_running_loop()
+            except RuntimeError:
+                current_loop = None
+
+            launch_loop = self._launch_loop
+            loop_mismatch = (
+                launch_loop is not None
+                and (launch_loop is not current_loop or launch_loop.is_closed())
+            )
+
+            if loop_mismatch:
+                # Playwright's connection futures are bound to launch_loop.
+                # Awaiting close() here would deadlock.  Let _atexit_close
+                # handle the subprocess teardown on a fresh loop.
                 self._browser = None
-            if self._pw_cm is not None:
-                await self._pw_cm.__aexit__(None, None, None)
                 self._pw_cm = None
                 self._pw = None
+                return
+
+            if self._browser is not None:
+                try:
+                    await asyncio.wait_for(self._browser.close(), timeout=_CLOSE_STEP_TIMEOUT)
+                except asyncio.TimeoutError:
+                    Logger.warn(
+                        f"PlaywrightBrowser.close: browser.close() timed out after {_CLOSE_STEP_TIMEOUT}s"
+                    )
+                finally:
+                    self._browser = None
+            if self._pw_cm is not None:
+                try:
+                    await asyncio.wait_for(
+                        self._pw_cm.__aexit__(None, None, None),
+                        timeout=_CLOSE_STEP_TIMEOUT,
+                    )
+                except asyncio.TimeoutError:
+                    Logger.warn(
+                        f"PlaywrightBrowser.close: playwright shutdown timed out after {_CLOSE_STEP_TIMEOUT}s"
+                    )
+                finally:
+                    self._pw_cm = None
+                    self._pw = None
 
     async def fetch_html(self, url: str, proxy_url: Optional[str] = None) -> str:
         """Fetch fully-rendered HTML from *url* using the persistent Playwright browser.
