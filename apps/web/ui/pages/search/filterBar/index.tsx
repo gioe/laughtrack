@@ -109,10 +109,10 @@ const FilterBar = ({
                         {getSearchBar(variant)}
                     </div>
 
-                    {/* Controls row: [sort · filter · count] | [pagination] */}
-                    <div className="flex flex-wrap items-center gap-2 lg:flex-nowrap lg:shrink-0">
+                    {/* Controls row: [sort · filter · count] | [pagination] — stacks below lg so pagination never clips on tablet */}
+                    <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:shrink-0">
                         {/* Search controls cluster */}
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-wrap items-center gap-3">
                             <div className="text-copper">
                                 {getSortOptions(variant, isAdmin)}
                             </div>
@@ -171,9 +171,9 @@ const FilterBar = ({
                             </span>
                         </div>
 
-                        {/* Separator */}
+                        {/* Separator — only on the same row as pagination (lg+) */}
                         <div
-                            className="hidden sm:block mx-1 h-5 w-px bg-black/15 shrink-0"
+                            className="hidden lg:block mx-1 h-5 w-px bg-black/15 shrink-0"
                             aria-hidden="true"
                         />
 
