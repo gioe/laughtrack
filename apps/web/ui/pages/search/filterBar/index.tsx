@@ -103,12 +103,14 @@ const FilterBar = ({
                 role="search"
                 aria-label="Search and filter results"
             >
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    {/* Search input — full-width on mobile, flex-1 on sm+ */}
-                    <div className="sm:flex-1">{getSearchBar(variant)}</div>
+                <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+                    {/* Search input — full-width until lg; flex-1 above so tablet keeps the input full-width instead of getting squeezed by the controls cluster */}
+                    <div className="min-w-0 lg:flex-1">
+                        {getSearchBar(variant)}
+                    </div>
 
                     {/* Controls row: [sort · filter · count] | [pagination] */}
-                    <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap sm:shrink-0">
+                    <div className="flex flex-wrap items-center gap-2 lg:flex-nowrap lg:shrink-0">
                         {/* Search controls cluster */}
                         <div className="flex items-center gap-3">
                             <div className="text-copper">
