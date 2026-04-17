@@ -102,17 +102,12 @@ function mapComedian(comedian: ComedianWithUpcomingCount) {
 }
 
 async function fetchDeniedComedianNames(): Promise<string[]> {
-    try {
-        const rows = await db.$queryRaw<{ name: string }[]>(
-            Prisma.sql`SELECT name FROM "comedian_deny_list"`,
-        );
-        return rows.map((r) => r.name);
-    } catch (error) {
-        // Table is created via scraper migration; if it isn't present locally
-        // (or the query fails), fall back to no filtering rather than break the page.
-        console.warn("fetchDeniedComedianNames: skipping filter:", error);
-        return [];
-    }
+    // Errors propagate so a missing / broken deny_list surfaces loudly rather
+    // than silently re-exposing the event-title rows this filter is meant to hide.
+    const rows = await db.$queryRaw<{ name: string }[]>(
+        Prisma.sql`SELECT name FROM "comedian_deny_list"`,
+    );
+    return rows.map((r) => r.name);
 }
 
 export async function findComediansWithCount(

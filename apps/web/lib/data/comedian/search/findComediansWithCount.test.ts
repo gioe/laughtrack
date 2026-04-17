@@ -241,6 +241,28 @@ describe("findComediansWithCount", () => {
             expect(mockFindMany).not.toHaveBeenCalled();
         });
 
+        it("includes the comedian_deny_list NOT EXISTS subquery in the raw-SQL branch", async () => {
+            mockCount.mockResolvedValue(1);
+            mockQueryRaw
+                .mockResolvedValueOnce([] as never)
+                .mockResolvedValueOnce([{ id: 1 }] as never);
+            mockFindMany.mockResolvedValue([makeComedianRow(1, 3)] as never);
+
+            const helper = makeHelper(SortParamValue.ShowCountDesc);
+            await findComediansWithCount(helper);
+
+            // The second $queryRaw call builds the sorted-IDs query; it must retain
+            // the NOT EXISTS "comedian_deny_list" predicate so the show-count path
+            // can't silently regress back to the original TASK-1547 bug.
+            const secondCallArgs = mockQueryRaw.mock
+                .calls[1]?.[0] as unknown as
+                | { sql?: string; strings?: readonly string[] }
+                | undefined;
+            const sqlText =
+                secondCallArgs?.sql ?? secondCallArgs?.strings?.join(" ") ?? "";
+            expect(sqlText).toMatch(/comedian_deny_list/);
+        });
+
         it("does not use findMany without a take/skip limit (no fetch-all)", async () => {
             mockCount.mockResolvedValue(100);
             mockQueryRaw
@@ -354,7 +376,7 @@ describe("findComediansWithCount", () => {
             expect(hasNotIn).toBe(false);
         });
 
-        it("falls back to no filter when the deny-list query throws", async () => {
+        it("surfaces the error loudly when the deny-list query throws", async () => {
             mockCount.mockResolvedValue(1);
             mockQueryRaw.mockRejectedValueOnce(
                 new Error("comedian_deny_list does not exist"),
@@ -362,10 +384,11 @@ describe("findComediansWithCount", () => {
             mockFindMany.mockResolvedValue([makeComedianRow(1)] as never);
 
             const helper = makeHelper(SortParamValue.PopularityDesc);
-            const result = await findComediansWithCount(helper);
-
-            // Query succeeds without the filter — no throw, still returns results.
-            expect(result.comedians).toHaveLength(1);
+            // A silent fallback would re-expose the false positives this filter
+            // is meant to hide, so findComediansWithCount must throw instead.
+            await expect(findComediansWithCount(helper)).rejects.toThrow(
+                /Failed to fetch comedians/,
+            );
         });
 
         it("passes the denied names into the count query whereClause", async () => {

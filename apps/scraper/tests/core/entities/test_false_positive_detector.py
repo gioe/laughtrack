@@ -9,7 +9,11 @@ Covers all detection criteria:
   5. Pipe character in name
   6. Name length > 60
   7. Short name (length < 4)
-  8. Real comedian names pass through (no false positive)
+  8. Starts with a quote (straight or smart)
+  9. Starts with a digit
+ 10. Starts with an '@'
+
+Plus cross-cutting checks that real comedian names pass through.
 """
 
 from _entities_test_helpers import _load_module
