@@ -22,10 +22,11 @@ const HeroComponent = ({ profile }: HeroComponentProps) => {
                 <div className="flex flex-col items-center justify-center h-full text-center w-full px-4 sm:px-6 relative">
                     <div className="animate-fadeIn">
                         <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold mb-4 sm:mb-6 font-chivo text-white drop-shadow-lg transform transition-transform duration-300 hover:scale-[1.02]">
-                            Laughtrack
+                            Get out and laugh
                         </h1>
                         <p className="text-xl sm:text-2xl text-gray-100 mb-8 sm:mb-12 max-w-3xl font-chivo animate-slideUp opacity-90">
-                            Get out and laugh
+                            Find live comedy shows, clubs, and comedians near
+                            you.
                         </p>
                         <div className="transform transition-all duration-300 hover:scale-[1.02]">
                             <ShowSearchForm />
