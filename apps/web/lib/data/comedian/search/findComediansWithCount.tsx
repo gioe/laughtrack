@@ -144,6 +144,10 @@ export async function findComediansWithCount(
                     JOIN "tags" t ON tc."tag_id" = t.id
                     WHERE tc."comedian_id" = c.uuid AND t."restrictContent" = true
                 )`,
+                Prisma.sql`NOT EXISTS (
+                    SELECT 1 FROM "comedian_deny_list" dl
+                    WHERE dl."name" = c.name
+                )`,
             ];
 
             const comedianName = helper.params.comedian;

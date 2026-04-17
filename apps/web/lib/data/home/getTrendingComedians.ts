@@ -79,6 +79,10 @@ export async function getTrendingComedians(
                     WHERE tc.comedian_id = c.uuid
                         AND t.slug IN ('alias', 'non_human', 'non comic')
                 )
+                AND NOT EXISTS (
+                    SELECT 1 FROM comedian_deny_list dl
+                    WHERE dl.name = c.name
+                )
                 AND (
                     EXISTS (
                         SELECT 1 FROM lineup_items li
