@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+#
+# apps/web/bin/dev — start the Next.js dev server with DATABASE_URL assembled
+# from apps/scraper/.env.
+#
+# Usage: npm run dev [-- --fresh] [-- <next dev args>]
+#        bin/dev [--fresh] [<next dev args>]
+#
+# Flags:
+#   --fresh   Clear .next/ before starting (fixes stale Tailwind JIT cache).
+#
+# The lib/db.ts Prisma client reads DATABASE_URL from process.env at boot. By
+# exporting it here before invoking `next dev`, the real Neon connection wins
+# over any stale value in .env.local (process.env takes precedence over
+# .env* files in Next.js).
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+WEB_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+SCRAPER_ENV="$WEB_DIR/../scraper/.env"
+
+if [[ ! -f "$SCRAPER_ENV" ]]; then
+    echo "Error: $SCRAPER_ENV not found — cannot assemble DATABASE_URL." >&2
+    echo "       Copy apps/scraper/.env.example to apps/scraper/.env and fill in Neon creds." >&2
+    exit 1
+fi
+
+# Source KEY=VALUE pairs from scraper/.env (shell handles comments and blank
+# lines; `set -a` exports everything assigned until `set +a`).
+set -a
+# shellcheck disable=SC1090
+. "$SCRAPER_ENV"
+set +a
+
+: "${DATABASE_USER:?scraper/.env is missing DATABASE_USER}"
+: "${DATABASE_PASSWORD:?scraper/.env is missing DATABASE_PASSWORD}"
+: "${DATABASE_HOST:?scraper/.env is missing DATABASE_HOST}"
+: "${DATABASE_NAME:?scraper/.env is missing DATABASE_NAME}"
+DATABASE_PORT="${DATABASE_PORT:-5432}"
+
+DATABASE_URL="postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}?sslmode=require"
+export DATABASE_URL
+export DIRECT_URL="$DATABASE_URL"
+
+if [[ "$DATABASE_HOST" != "localhost" && "$DATABASE_HOST" != "127.0.0.1" ]]; then
+    echo "⚠  Dev server is connected to $DATABASE_HOST (not localhost)." >&2
+    echo "   All writes affect that database. Avoid destructive actions in dev." >&2
+fi
+
+FRESH=0
+NEXT_ARGS=()
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --fresh)
+            FRESH=1
+            shift
+            ;;
+        --)
+            shift
+            NEXT_ARGS+=("$@")
+            break
+            ;;
+        *)
+            NEXT_ARGS+=("$1")
+            shift
+            ;;
+    esac
+done
+
+if [[ "$FRESH" -eq 1 ]]; then
+    echo "Clearing .next/ cache..." >&2
+    rm -rf "$WEB_DIR/.next"
+fi
+
+cd "$WEB_DIR"
+exec npx next dev ${NEXT_ARGS[@]+"${NEXT_ARGS[@]}"}
