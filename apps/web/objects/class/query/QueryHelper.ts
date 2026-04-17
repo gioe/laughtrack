@@ -87,6 +87,7 @@ export class QueryHelper {
     timezone: string;
     isAdmin: boolean;
     private _zipCapTriggered = false;
+    private _exactClubNameMatch = false;
 
     constructor(requestData: ParameterizedRequestData) {
         this.timezone = requestData.timezone;
@@ -159,9 +160,14 @@ export class QueryHelper {
             return {};
         }
 
+        // Detail-page context (setClubName) needs exact match so that clubs
+        // whose names are substrings of each other (e.g. "The Stand" vs
+        // "The Stand Up Comedy Club") don't bleed into each other's show lists.
         return {
             name: {
-                contains: club,
+                ...(this._exactClubNameMatch
+                    ? { equals: club }
+                    : { contains: club }),
                 mode: Prisma.QueryMode.insensitive,
             },
         };
@@ -204,6 +210,7 @@ export class QueryHelper {
 
     setClubName() {
         this.params = { ...this.params, club: this.slug ?? "" };
+        this._exactClubNameMatch = true;
     }
 
     // Shows
