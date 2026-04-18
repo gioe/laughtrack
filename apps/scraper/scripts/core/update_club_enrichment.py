@@ -20,8 +20,10 @@ import argparse
 import asyncio
 import json
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
+from urllib.parse import urlparse
 
 _repo_root = Path(__file__).resolve().parents[2]
 _src_path = _repo_root / "src"
@@ -36,6 +38,7 @@ from psycopg2.extras import execute_values
 from laughtrack.adapters.db import get_connection
 from laughtrack.foundation.infrastructure.http.client import (
     HttpClient,
+    _bot_block_reason,
     _get_js_browser,
     close_js_browser,
 )
@@ -47,6 +50,22 @@ from laughtrack.utilities.domain.club.enrichment import (
 
 _CONCURRENCY = 8
 _TIMEOUT_SECONDS = 25
+
+
+@dataclass
+class _ClubFetchResult:
+    """Outcome of a single club fetch + extraction attempt.
+
+    ``status`` distinguishes bot-blocked pages from plain "nothing
+    extractable" so the nightly summary can surface each failure mode
+    independently (a rising bot_blocked count signals a platform move,
+    not a content-quality issue).
+    """
+
+    club_id: int
+    status: str  # "extracted" | "bot_blocked" | "no_data" | "fetch_failed"
+    description: Optional[str] = None
+    hours: Optional[Dict[str, str]] = None
 
 
 _GET_CLUBS_SQL = """
@@ -133,8 +152,13 @@ async def _process_club(
     club_id: int,
     name: str,
     website: str,
-) -> Optional[Tuple[int, Optional[str], Optional[Dict[str, str]]]]:
-    """Fetch + extract for a single club.  Returns None if nothing was extracted."""
+) -> _ClubFetchResult:
+    """Fetch + extract for a single club.
+
+    Always returns a ``_ClubFetchResult``; callers inspect ``status`` to
+    distinguish extracted data, bot-block interstitials, pages with no
+    structured content, and outright fetch failures.
+    """
     context = {"club_id": club_id, "club_name": name}
     async with semaphore:
         html: Optional[str] = None
@@ -149,13 +173,28 @@ async def _process_club(
             html = await _fetch_with_playwright(website, context)
 
         if not html:
-            return None
+            return _ClubFetchResult(club_id=club_id, status="fetch_failed")
+
+        bot_sig = _bot_block_reason(html)
+        if bot_sig is not None:
+            host = urlparse(website).hostname or website
+            Logger.warn(
+                f"[club-enrichment] bot-blocked: {host} (club {club_id} "
+                f"'{name}', signature {bot_sig!r})",
+                context,
+            )
+            return _ClubFetchResult(club_id=club_id, status="bot_blocked")
 
         description = extract_description(html)
         hours = extract_hours(html)
         if description is None and hours is None:
-            return None
-        return (club_id, description, hours)
+            return _ClubFetchResult(club_id=club_id, status="no_data")
+        return _ClubFetchResult(
+            club_id=club_id,
+            status="extracted",
+            description=description,
+            hours=hours,
+        )
 
 
 async def _enrich(
@@ -181,19 +220,28 @@ async def _enrich(
     rows: List[Tuple[int, Optional[str], Optional[str]]] = []
     desc_hits = 0
     hours_hits = 0
-    for item in extracted:
-        if item is None:
+    bot_blocked = 0
+    for result in extracted:
+        if result.status == "bot_blocked":
+            bot_blocked += 1
             continue
-        cid, desc, hours = item
-        if desc:
+        if result.status != "extracted":
+            continue
+        if result.description:
             desc_hits += 1
-        if hours:
+        if result.hours:
             hours_hits += 1
-        rows.append((cid, desc, json.dumps(hours) if hours else None))
+        rows.append(
+            (
+                result.club_id,
+                result.description,
+                json.dumps(result.hours) if result.hours else None,
+            )
+        )
 
     Logger.info(
         f"[club-enrichment] extracted from {len(rows)}/{len(targets)} clubs — "
-        f"description={desc_hits}, hours={hours_hits}"
+        f"description={desc_hits}, hours={hours_hits}, bot_blocked={bot_blocked}"
     )
 
     if dry_run:
@@ -203,6 +251,7 @@ async def _enrich(
             "extracted": len(rows),
             "description_hits": desc_hits,
             "hours_hits": hours_hits,
+            "bot_blocked": bot_blocked,
             "written": 0,
         }
 
@@ -225,6 +274,7 @@ async def _enrich(
         "extracted": len(rows),
         "description_hits": desc_hits,
         "hours_hits": hours_hits,
+        "bot_blocked": bot_blocked,
         "written": written,
     }
 
