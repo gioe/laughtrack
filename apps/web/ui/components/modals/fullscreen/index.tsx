@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import { useEffect, useRef, useState, ReactNode, MouseEvent } from "react";
+import { useDialogKeyboard } from "@/hooks";
 
 interface FullScreenModalProps {
     isOpen: boolean;
@@ -15,6 +16,13 @@ const FullScreenModal = ({
     const [isAnimating, setIsAnimating] = useState(false);
     const [shouldRender, setShouldRender] = useState(false);
     const savedScrollY = useRef(0);
+    const dialogRef = useRef<HTMLDivElement>(null);
+
+    useDialogKeyboard({
+        isOpen: shouldRender && isOpen,
+        onClose,
+        containerRef: dialogRef,
+    });
 
     useEffect(() => {
         if (isOpen) {
@@ -55,7 +63,11 @@ const FullScreenModal = ({
             onClick={onClose}
         >
             <div
-                className={`relative w-full h-full bg-white overflow-y-auto transform transition-transform duration-300 ease-in-out
+                ref={dialogRef}
+                role="dialog"
+                aria-modal="true"
+                tabIndex={-1}
+                className={`relative w-full h-full bg-white overflow-y-auto transform transition-transform duration-300 ease-in-out outline-none
                     ${isAnimating ? "translate-y-0" : "translate-y-full"}`}
                 onClick={handleModalClick}
             >

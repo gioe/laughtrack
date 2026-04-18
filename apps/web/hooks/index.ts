@@ -5,6 +5,7 @@ import { useSignOut } from "./useSignOut";
 import { useUrlParams } from "./useUrlParams";
 import { useMediaQuery } from "./useMediaQuery";
 import { useMotionProps } from "./useMotionProps";
+import { useDialogKeyboard } from "./useDialogKeyboard";
 
 import useLoginModal from "./useLoginModal";
 import useFilterModal from "./useFilterModal";
@@ -19,4 +20,5 @@ export {
     useUrlParams,
     useMediaQuery,
     useMotionProps,
+    useDialogKeyboard,
 };

@@ -1,6 +1,7 @@
 "use client";
 
 import React, {
+    useCallback,
     useEffect,
     useRef,
     useState,
@@ -17,6 +18,7 @@ import {
     PopoverContent,
 } from "@/ui/components/ui/popover";
 import { DateRange } from "@/objects/interface";
+import { useDialogKeyboard } from "@/hooks";
 import { getChipPresets } from "./presets";
 
 const PLACEHOLDER = "When";
@@ -63,6 +65,14 @@ export const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
     const isMobile = useIsMobileViewport();
     const [sheetOpen, setSheetOpen] = useState(false);
     const [popoverOpen, setPopoverOpen] = useState(false);
+    const sheetRef = useRef<HTMLDivElement>(null);
+    const closeSheet = useCallback(() => setSheetOpen(false), []);
+
+    useDialogKeyboard({
+        isOpen: isMobile && sheetOpen,
+        onClose: closeSheet,
+        containerRef: sheetRef,
+    });
 
     const handleChipSelect = (range: DateRange) => {
         onSelect(range);
@@ -161,10 +171,12 @@ export const CalendarDisplay: React.FC<CalendarDisplayProps> = ({
                                     role="presentation"
                                 >
                                     <div
+                                        ref={sheetRef}
                                         role="dialog"
                                         aria-modal="true"
                                         aria-label="Select dates"
-                                        className="fixed inset-x-0 bottom-0 rounded-t-2xl bg-white shadow-2xl pt-2 pb-6 px-4 animate-in slide-in-from-bottom duration-300"
+                                        tabIndex={-1}
+                                        className="fixed inset-x-0 bottom-0 rounded-t-2xl bg-white shadow-2xl pt-2 pb-6 px-4 animate-in slide-in-from-bottom duration-300 outline-none"
                                         onClick={(e) => e.stopPropagation()}
                                     >
                                         <div className="flex items-center justify-between mb-1">
