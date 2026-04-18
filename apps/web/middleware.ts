@@ -149,7 +149,17 @@ function getSortParamDefaultFromPath(
     params: URLSearchParams,
     path: string,
 ): URLSearchParams {
-    if (path.startsWith("/club") || path.startsWith("/comedian")) {
+    if (path.startsWith("/club")) {
+        // /club/search defaults to "Most Active" (totalShows desc) so the
+        // busiest clubs surface first — popularity is effectively unpopulated
+        // for clubs, and alphabetical ordering buries active venues.
+        params.set(
+            QueryProperty.Sort,
+            path.includes("/search")
+                ? SortParamValue.TotalShowsDesc
+                : SortParamValue.DateAsc,
+        );
+    } else if (path.startsWith("/comedian")) {
         params.set(
             QueryProperty.Sort,
             path.includes("/search")

@@ -34,7 +34,19 @@ describe("getSortOptionsForEntityType", () => {
     describe("EntityType.Club", () => {
         const options = getSortOptionsForEntityType(EntityType.Club);
 
-        it("includes A-Z and Z-A options", () => {
+        it("first option (UI default) is 'Most Active' / TotalShowsDesc", () => {
+            expect(options[0]).toEqual({
+                name: "Most Active",
+                value: SortParamValue.TotalShowsDesc,
+            });
+        });
+
+        it("includes 'Least Active' / TotalShowsAsc", () => {
+            const opt = options.find((o) => o.name === "Least Active");
+            expect(opt?.value).toBe(SortParamValue.TotalShowsAsc);
+        });
+
+        it("includes A-Z and Z-A options for user opt-in", () => {
             const values = options.map((o) => o.value);
             expect(values).toContain(SortParamValue.NameAsc);
             expect(values).toContain(SortParamValue.NameDesc);

@@ -9,10 +9,10 @@ export const getSortOptionsForEntityType = (
     switch (type) {
         case EntityType.Club:
             return [
+                { name: "Most Active", value: SortParamValue.TotalShowsDesc },
+                { name: "Least Active", value: SortParamValue.TotalShowsAsc },
                 { name: "A-Z", value: SortParamValue.NameAsc },
                 { name: "Z-A", value: SortParamValue.NameDesc },
-                // { name: "Most Popular", value: SortParamValue.Popularity, direction: DirectionParamValue.Descending },
-                // { name: "Least Popular", value: SortParamValue.Popularity, direction: DirectionParamValue.Ascending },
             ];
         case EntityType.Comedian: {
             const base: SortOptionInterface[] = [
