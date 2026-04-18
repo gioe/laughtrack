@@ -34,7 +34,11 @@ from curl_cffi.requests import AsyncSession
 from psycopg2.extras import execute_values
 
 from laughtrack.adapters.db import get_connection
-from laughtrack.foundation.infrastructure.http.client import HttpClient, close_js_browser
+from laughtrack.foundation.infrastructure.http.client import (
+    HttpClient,
+    _get_js_browser,
+    close_js_browser,
+)
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.utilities.domain.club.enrichment import (
     extract_description,
@@ -104,21 +108,23 @@ async def _fetch_with_playwright(url: str, context: dict) -> Optional[str]:
     ``HttpClient.fetch_html`` only falls back on 4xx/5xx responses and
     bot-block bodies — plain TLS or DNS errors raise before the fallback
     hook runs, so we catch them here and retry through the shared browser.
+
+    Reuses the shared ``HttpClient`` Playwright singleton (same one the
+    built-in bot-block fallback uses) so a nightly run with several TLS
+    failures doesn't pay a fresh Chromium-launch cost per miss.  Teardown
+    is handled by ``close_js_browser`` in ``_enrich``'s ``finally``.
     """
-    try:
-        from laughtrack.foundation.infrastructure.http.playwright_browser import (
-            PlaywrightBrowser,
-        )
-    except ImportError:
+    browser = _get_js_browser()
+    if browser is None:
         return None
-    browser = PlaywrightBrowser()
     try:
         return await browser.fetch_html(url)
     except Exception as exc:
-        Logger.warn(f"[club-enrichment] Playwright retry failed for {url}: {exc}", context)
+        Logger.warn(
+            f"[club-enrichment] Playwright retry failed for {url}: {exc}",
+            context,
+        )
         return None
-    finally:
-        await browser.close()
 
 
 async def _process_club(
@@ -137,7 +143,8 @@ async def _process_club(
         except Exception as exc:
             Logger.warn(
                 f"[club-enrichment] curl fetch failed for club {club_id} '{name}' "
-                f"({website}): {exc} — retrying with Playwright"
+                f"({website}): {exc} — retrying with Playwright",
+                context,
             )
             html = await _fetch_with_playwright(website, context)
 
@@ -204,7 +211,12 @@ async def _enrich(
         sql = _UPDATE_SQL_FORCE if force else _UPDATE_SQL_FILL_NULLS
         with get_connection() as conn:
             with conn.cursor() as cur:
-                execute_values(cur, sql, rows, template=_VALUES_TEMPLATE, page_size=500)
+                # page_size = len(rows) keeps all updates in one execute_values
+                # batch so cur.rowcount reflects the entire run — with the
+                # default 100-row pages, rowcount only captures the last batch.
+                execute_values(
+                    cur, sql, rows, template=_VALUES_TEMPLATE, page_size=max(len(rows), 1)
+                )
                 written = cur.rowcount
         Logger.info(f"[club-enrichment] wrote updates for {written} clubs")
 
