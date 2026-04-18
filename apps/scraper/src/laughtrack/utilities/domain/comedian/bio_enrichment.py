@@ -23,9 +23,9 @@ _MAX_BIO_LENGTH = 600
 
 # Keywords that signal the subject works in comedy. Matched case-insensitively
 # as whole words so we don't accidentally match "comedic relief" in an article
-# about a dramatic actor. Includes ``actor`` because many stand-ups are
-# primarily described by Wikipedia as "actor and comedian" with ``actor``
-# appearing first — dropping ``actor`` would reject too many real matches.
+# about a dramatic actor. ``actor`` is deliberately excluded — every real
+# comedian page Wikipedia has also uses ``comedian``/``comic``/``stand-up``,
+# so the narrower list avoids false positives on pure-drama actor pages.
 _COMEDY_KEYWORDS = [
     "comedian",
     "comedienne",

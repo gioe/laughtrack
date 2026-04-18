@@ -151,7 +151,8 @@ async def _fetch_summary(
         # enough that an immediate fail keeps the nightly summary honest.
         if resp.status_code != 429:
             break
-        await asyncio.sleep(_RETRY_BASE_DELAY_S * (2 ** attempt))
+        if attempt + 1 < _MAX_RETRIES:
+            await asyncio.sleep(_RETRY_BASE_DELAY_S * (2 ** attempt))
 
     assert resp is not None  # loop always assigns or returns
     if resp.status_code == 404:
