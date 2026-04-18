@@ -13,6 +13,8 @@ export interface ClubInterface extends Favoritable, Entity {
 }
 
 // DB
+export type ClubHours = Record<string, string>;
+
 export interface ClubDTO {
     id?: number;
     imageUrl: string;
@@ -28,6 +30,8 @@ export interface ClubDTO {
     show_count?: number;
     active_comedian_count?: number;
     phone_number?: string;
+    description?: string;
+    hours?: unknown;
     distanceMiles?: number | null;
     chainId?: number | null;
     chainName?: string | null;
