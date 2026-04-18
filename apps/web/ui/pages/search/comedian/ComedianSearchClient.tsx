@@ -37,6 +37,7 @@ const ComedianSearchClient = ({
         params,
         initialData,
         initialTotal,
+        getItemKey: (c) => c.id,
     });
 
     return (

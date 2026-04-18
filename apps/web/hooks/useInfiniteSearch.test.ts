@@ -437,6 +437,108 @@ describe("useInfiniteSearch", () => {
         });
     });
 
+    describe("getItemKey dedup", () => {
+        it("drops items from a later page whose key already appears in prior data", async () => {
+            // initialData contains id=2; page 1 returns id=2 (dup) and id=3 (new)
+            mockFetch.mockResolvedValue(
+                makeJsonResponse([{ id: 2 }, { id: 3 }], 10),
+            );
+
+            const { result } = renderHook(() =>
+                useInfiniteSearch({
+                    endpoint: "/api/search",
+                    params: {},
+                    initialData: [{ id: 1 }, { id: 2 }],
+                    initialTotal: 10,
+                    getItemKey: (item: { id: number }) => item.id,
+                }),
+            );
+
+            const sentinel = document.createElement("div");
+            act(() => {
+                result.current.sentinelRef(sentinel);
+            });
+
+            await act(async () => {
+                fireIO(true);
+            });
+
+            await waitFor(() => {
+                expect(result.current.data).toEqual([
+                    { id: 1 },
+                    { id: 2 },
+                    { id: 3 },
+                ]);
+            });
+        });
+
+        it("dedupes within a single page payload when getItemKey is provided", async () => {
+            mockFetch.mockResolvedValue(
+                makeJsonResponse([{ id: 3 }, { id: 3 }, { id: 4 }], 10),
+            );
+
+            const { result } = renderHook(() =>
+                useInfiniteSearch({
+                    endpoint: "/api/search",
+                    params: {},
+                    initialData: [{ id: 1 }],
+                    initialTotal: 10,
+                    getItemKey: (item: { id: number }) => item.id,
+                }),
+            );
+
+            const sentinel = document.createElement("div");
+            act(() => {
+                result.current.sentinelRef(sentinel);
+            });
+
+            await act(async () => {
+                fireIO(true);
+            });
+
+            await waitFor(() => {
+                expect(result.current.data).toEqual([
+                    { id: 1 },
+                    { id: 3 },
+                    { id: 4 },
+                ]);
+            });
+        });
+
+        it("still appends raw server data when getItemKey is not provided", async () => {
+            mockFetch.mockResolvedValue(
+                makeJsonResponse([{ id: 2 }, { id: 3 }], 10),
+            );
+
+            const { result } = renderHook(() =>
+                useInfiniteSearch({
+                    endpoint: "/api/search",
+                    params: {},
+                    initialData: [{ id: 1 }, { id: 2 }],
+                    initialTotal: 10,
+                }),
+            );
+
+            const sentinel = document.createElement("div");
+            act(() => {
+                result.current.sentinelRef(sentinel);
+            });
+
+            await act(async () => {
+                fireIO(true);
+            });
+
+            await waitFor(() => {
+                expect(result.current.data).toEqual([
+                    { id: 1 },
+                    { id: 2 },
+                    { id: 2 },
+                    { id: 3 },
+                ]);
+            });
+        });
+    });
+
     describe("hasMore", () => {
         it("sets hasMore=false when loaded count reaches total", async () => {
             // initialData has 2 items, page 1 has 1 item, total is 3 → 2+1=3 >= 3

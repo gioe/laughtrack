@@ -10,6 +10,12 @@ interface UseInfiniteSearchOptions<T> {
     initialTotal: number;
     pageSize?: number;
     initialZipCapTriggered?: boolean;
+    /**
+     * Optional extractor for a stable item key. When provided, merged pages are deduped
+     * by this key so the same entity can't appear twice if the server returns it on
+     * multiple pages (e.g. when a non-strict sort drifts an item across a page boundary).
+     */
+    getItemKey?: (item: T) => string | number;
 }
 
 interface UseInfiniteSearchResult<T> {
@@ -33,7 +39,10 @@ export function useInfiniteSearch<T>({
     initialTotal,
     pageSize = 25,
     initialZipCapTriggered = false,
+    getItemKey,
 }: UseInfiniteSearchOptions<T>): UseInfiniteSearchResult<T> {
+    const getItemKeyRef = useRef(getItemKey);
+    getItemKeyRef.current = getItemKey;
     const paramsKey = JSON.stringify(params);
     const prevParamsKey = useRef(paramsKey);
 
@@ -95,9 +104,23 @@ export function useInfiniteSearch<T>({
                     ? json.data.length
                     : loadedCountRef.current + json.data.length;
 
-            setData((prev) =>
-                page === 0 ? json.data : [...prev, ...json.data],
-            );
+            setData((prev) => {
+                const keyFn = getItemKeyRef.current;
+                if (!keyFn) {
+                    return page === 0 ? json.data : [...prev, ...json.data];
+                }
+                const base = page === 0 ? [] : prev;
+                const seen = new Set<string | number>();
+                for (const item of base) seen.add(keyFn(item));
+                const merged = [...base];
+                for (const item of json.data) {
+                    const k = keyFn(item);
+                    if (seen.has(k)) continue;
+                    seen.add(k);
+                    merged.push(item);
+                }
+                return merged;
+            });
             setTotal(json.total);
             hasMoreRef.current = newCount < json.total;
             setHasMore(newCount < json.total);
