@@ -488,10 +488,9 @@ class ClubHandler(BaseDatabaseHandler[Club]):
                 ``None``, every active, visible club is considered.
         """
         try:
+            # When club_ids is None/empty, get_all_club_ids raises on an empty
+            # database, so target_ids is guaranteed non-empty past this line.
             target_ids = club_ids if club_ids else self.get_all_club_ids()
-            if not target_ids:
-                Logger.warn("No clubs found for popularity update")
-                return
 
             results = self.execute_with_cursor(
                 ClubQueries.BATCH_GET_CLUB_POPULARITY, (target_ids,), return_results=True

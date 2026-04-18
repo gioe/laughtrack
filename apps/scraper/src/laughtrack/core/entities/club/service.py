@@ -134,9 +134,5 @@ class ClubService:
                 ``None``, every active, visible club is considered.
         """
         Logger.info("Starting club popularity update.")
-
-        try:
-            self.club_handler.update_club_popularity(club_ids)
-        except Exception as e:
-            Logger.error(f"Error updating club popularity: {str(e)}")
-            raise
+        # Error logging happens inside the handler — don't double-log here.
+        self.club_handler.update_club_popularity(club_ids)

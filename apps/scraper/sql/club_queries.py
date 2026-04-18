@@ -160,8 +160,12 @@ class ClubQueries:
     # Computes popularity per club from two signals over the ±90-day window:
     #   - Activity: count of shows in the past 90 days + next 90 days,
     #     saturated at 60 shows (≈ one show every three days on average).
-    #   - Quality: average popularity of comedians in the lineups of those
-    #     same shows (already normalized to 0–1 by update_comedian_popularity).
+    #   - Quality: booking-weighted average comedian popularity — the LEFT JOIN
+    #     fans out one row per (show, comedian) pair, so a comedian booked
+    #     multiple times at this club in the window contributes proportionally
+    #     more.  This intentionally rewards clubs that book popular comedians
+    #     *repeatedly*, not just once.  Values are already normalized to 0–1
+    #     by update_comedian_popularity.
     # Activity gets 60% weight, quality 40%, mirroring the comedian scorer's
     # performance-over-social split.  Clubs with no shows in the window are
     # absent from the result set and keep their existing popularity untouched.
