@@ -48,6 +48,15 @@ def test_description_collapses_whitespace_and_decodes_nbsp():
     assert extract_description(html) == "multi line description with whitespace"
 
 
+def test_description_decodes_common_html_entities():
+    html = (
+        '<html><head>'
+        '<meta name="description" content="Cocktails &amp; laughs &mdash; don&#39;t miss it">'
+        '</head></html>'
+    )
+    assert extract_description(html) == "Cocktails & laughs \u2014 don't miss it"
+
+
 def test_description_returns_none_when_nothing_matches():
     assert extract_description("<html><head></head></html>") is None
     assert extract_description("") is None

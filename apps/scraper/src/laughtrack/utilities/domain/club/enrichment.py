@@ -18,6 +18,7 @@ day name (``monday``..``sunday``) with human-friendly 12-hour range values
 
 from __future__ import annotations
 
+import html as _html
 import json
 import re
 from typing import Any, Dict, Iterable, List, Optional
@@ -163,10 +164,9 @@ def _extract_meta_content(html: str, attrs: List[tuple[str, str]]) -> Optional[s
 
 
 def _clean_text(text: str) -> str:
-    # Strip HTML entities that commonly appear in meta descriptions before
-    # collapsing whitespace — a trailing ``&nbsp;`` otherwise masquerades as
-    # real content.
-    cleaned = text.replace("&nbsp;", " ").replace("\u00a0", " ")
+    # Decode HTML entities before collapsing whitespace so "&amp;"/"&nbsp;"
+    # don't survive to the UI as literal character sequences.
+    cleaned = _html.unescape(text).replace("\u00a0", " ")
     cleaned = re.sub(r"\s+", " ", cleaned).strip()
     if len(cleaned) > _MAX_DESCRIPTION_LENGTH:
         cleaned = cleaned[: _MAX_DESCRIPTION_LENGTH - 1].rstrip() + "\u2026"
