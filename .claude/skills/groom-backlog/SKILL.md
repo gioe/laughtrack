@@ -20,6 +20,8 @@ tusk skill-run start groom-backlog
 
 This prints `{"run_id": N, "started_at": "..."}`. Capture `run_id` — you will need it in Step 7.
 
+> **Early-exit cleanup:** If any check below causes the skill to stop before Step 7b (e.g., `tusk setup` / `tusk backlog-scan` fails, the backlog is empty with nothing to groom, or the user declines the Step 4 approval prompt), first call `tusk skill-run cancel <run_id>` to close the open row, then stop. Otherwise the row lingers as `(open)` in `tusk skill-run list` forever.
+
 ## Setup: Fetch Config and Backlog
 
 Before grooming, fetch everything needed in a single call:
@@ -151,6 +153,8 @@ Present analysis in this format:
 ## Step 4: Get User Confirmation
 
 **IMPORTANT**: Before making any changes, explicitly ask the user to approve each category.
+
+If the user declines approval (or no actions were proposed), run `tusk skill-run cancel <run_id>` and stop — do not proceed to Step 5. This closes the open `skill_runs` row instead of leaving it pending forever.
 
 ## Step 5: Execute Changes
 

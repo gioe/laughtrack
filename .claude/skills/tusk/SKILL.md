@@ -180,23 +180,31 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
     ```
     Then mark criteria done with `tusk criteria done <cid> --skip-verify`.
 
-    **If `tusk commit` exits 4 (advisory lint warnings)** — the commit **succeeded**. Exit code 4 means lint ran and emitted advisory-only warnings, but the commit was made. No fallback or retry is needed. Use `git log --oneline -1` to confirm the commit is present, then continue to the next criterion.
+    **If `tusk commit` exits 6 (blocking lint violation)** — the commit did NOT land. A non-advisory lint rule fired (Rule 1 raw sqlite3, Rule 3 hardcoded DB path, Rule 11 bad SKILL.md frontmatter, Rule 16 DB-backed blocking rules, Rules 18/19 MANIFEST drift, Rule 21 multi-trailing-newlines, etc.). The violating rule's output is printed verbatim — fix it, then retry `tusk commit`. Advisory-only rules (Rule 13 VERSION bump missing, Rule 15 big-bang commits, Rule 17 DB-backed advisory, etc.) still print WARN lines but do NOT exit non-zero and do NOT block. If the violation is a known false positive or pre-existing state you can't resolve in this commit, bypass with `--skip-lint` (lint only) or widen to `--skip-verify` (lint, tests, and pre-commit hooks):
+    ```bash
+    tusk commit <id> "<message>" "<file>" --skip-lint --criteria <cid>
+    ```
+    Lint output during commit is now filtered: only rules with violations print — passing rules are suppressed. If the last lint pass was clean, you won't see any lint output at all.
 
     **If `tusk commit` hard-fails because tests fail** (exit code 2 — `test_command` is set and returned non-zero), **first verify the failure is not pre-existing** before entering the diagnosis loop:
 
-    **Pre-existing failure check** — run the tests against a clean stash:
+    **Pre-existing failure check** — run the tests against HEAD with any local changes safely set aside:
     ```bash
-    git stash && <test_command>; git stash pop
+    tusk test-precheck
     ```
-    Use `tusk test-detect` to retrieve `<test_command>` if you don't already have it.
+    Or pass an explicit command when the config-resolved one isn't what you want to check against:
+    ```bash
+    tusk test-precheck --command "<test_command>"
+    ```
+    `tusk test-precheck` resolves the test command from `--command`, then `config.test_command`, then `tusk test-detect`. When the working tree is dirty it stashes local changes under a *uniquely-named* entry, runs the test against HEAD, and pops *that entry by reference* — never by top-of-stack. When the working tree is clean it runs the test directly without touching `git stash` at all. Output is JSON on stdout: `{pre_existing, exit_code, test_command, stashed}`; the test command's own output is redirected to stderr so programmatic callers can `json.loads(stdout)` directly. Do **not** fall back to the raw `git stash && … ; git stash pop` snippet — when the tree is clean, the empty `git stash` becomes a no-op and `git stash pop` will pop a stale foreign entry and silently trash unrelated state. If precheck exits non-zero, it prints a recovery message on stderr (always including the stash message, when one was created) so you can finish the pop manually; it never silently falls through with changes orphaned in the stash list.
 
-    - **If tests fail on the clean stash** — the failure is pre-existing and unrelated to your changes. **Skip the diagnosis loop entirely.** Do not attempt to fix tests in files you did not modify during this session. Fall back immediately to:
+    - **If `pre_existing` is `true`** — the failure is pre-existing and unrelated to your changes. **Skip the diagnosis loop entirely.** Do not attempt to fix tests in files you did not modify during this session. Fall back immediately to:
       ```bash
       git add <file1> [file2 ...] && git commit -m "[TASK-<id>] <message>" --trailer "Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
       ```
       Then mark criteria done with `tusk criteria done <cid> --skip-verify`.
 
-    - **If tests pass on the clean stash** — your changes introduced the failure. Proceed with the diagnosis loop below. Do **not** modify any code until you've completed steps 1–2:
+    - **If `pre_existing` is `false`** — your changes introduced the failure. Proceed with the diagnosis loop below. Do **not** modify any code until you've completed steps 1–2:
     1. **Read the full test output** — scroll through the entire failure log. Do not make any code changes until you understand what failed and why.
     2. **Trace the root cause** — open the relevant source files and identify the exact lines responsible for the failure.
     3. **Implement a fix** — make the minimal change required to address the root cause.
@@ -262,6 +270,12 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
     tusk merge <id> --session $SESSION_ID --pr --pr-number <N>
     ```
     This squash-merges via `gh pr merge` instead of a local fast-forward.
+
+    **No-commit closure (`wont_do` / `duplicate`):** If the task should be closed *without* shipping any code — an evaluation/spike whose answer is "don't do it", or a task that turns out to be a duplicate — use `tusk abandon` instead of `tusk merge`:
+    ```bash
+    tusk abandon <id> --reason wont_do|duplicate --session $SESSION_ID [--note "<rationale>"]
+    ```
+    `tusk abandon` switches off the feature branch, deletes it (force), closes the session, and marks the task Done with the given `closed_reason` in one call. **Refuses** if the feature branch has commits not on the default branch — in that case use `tusk merge` to ship the work, or delete the branch manually if you really want to discard it. The optional `--note` records the decision rationale on `task_progress` so the audit trail survives. After `tusk abandon` exits 0, run `/retro` exactly as you would after `tusk merge`.
 
     Then run `/retro` immediately — do not ask "shall I run retro?". Invoke it to review the session, surface process improvements, and create follow-up tasks.
 
