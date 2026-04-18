@@ -26,6 +26,7 @@ const nextConfig = {
   },
   images: {
     minimumCacheTTL: 0,
+    qualities: [75, 90],
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
