@@ -127,6 +127,11 @@ export default async function ShowSearchPage(props: any) {
     const { data, total, filters, zipCapTriggered } =
         await getCachedSearchPageData(requestData)();
 
+    const zipFilter = requestData.params.zip;
+    const tagline = zipFilter
+        ? `Find upcoming comedy shows near ${zipFilter}`
+        : "Browse upcoming comedy shows";
+
     return (
         <>
             <FilterModal filters={filters} total={total} />
@@ -135,7 +140,7 @@ export default async function ShowSearchPage(props: any) {
                 title="Search shows"
                 subTitle={`${total} results`}
                 variant="show"
-                tagline="Find upcoming comedy shows near you"
+                tagline={tagline}
             />
 
             <FilterBar
