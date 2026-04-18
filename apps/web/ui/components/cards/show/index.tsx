@@ -94,21 +94,17 @@ const ShowCard: React.FC<ShowCardProps> = ({
                         )}
                     </div>
 
-                    {parsedShow.lineup.length > 0 && (
-                        <div className="lg:hidden">
-                            <Divider />
-                            <div className="pt-2 sm:pt-4">
-                                <LineupGrid lineup={parsedShow.lineup} />
-                            </div>
+                    <div className="lg:hidden">
+                        <Divider />
+                        <div className="pt-2 sm:pt-4">
+                            <LineupGrid lineup={parsedShow.lineup} />
                         </div>
-                    )}
+                    </div>
                 </div>
 
-                {parsedShow.lineup.length > 0 && (
-                    <div className="hidden lg:block lg:w-[65%]">
-                        <LineupGrid lineup={parsedShow.lineup} />
-                    </div>
-                )}
+                <div className="hidden lg:block lg:w-[65%]">
+                    <LineupGrid lineup={parsedShow.lineup} />
+                </div>
             </div>
         </motion.div>
     );
