@@ -197,6 +197,7 @@ class ConfigManager:
             "seatengine_cb_threshold": _seatengine_cb_threshold,
             "seatengine_cb_cooldown": _seatengine_cb_cooldown,
             "bandsintown_app_id": os.getenv("BANDSINTOWN_APP_ID"),
+            "google_places_api_key": os.getenv("GOOGLE_PLACES_API_KEY"),
         }
 
         # Monitoring configuration
