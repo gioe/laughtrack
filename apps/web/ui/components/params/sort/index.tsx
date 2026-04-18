@@ -12,6 +12,13 @@ interface SortComponentProps {
     isAdmin?: boolean;
 }
 
+// Literal ids (not useId) — HeadlessUI's internal useId was drifting across
+// SSR/hydration because of upstream tree-shape differences, producing
+// mismatched headlessui-menu-button-_R_<hash>_ values. Since only one
+// SortParamComponent renders per search page, a static id is unique.
+const BUTTON_ID = "sort-menu-button";
+const ITEMS_ID = "sort-menu-items";
+
 export function SortParamComponent({
     sortOptions,
     isAdmin,
@@ -28,6 +35,7 @@ export function SortParamComponent({
         >
             <div>
                 <MenuButton
+                    id={BUTTON_ID}
                     className="group flex items-center justify-between rounded-lg
                              text-copper font-dmSans text-[16px] hover:bg-gray-50"
                 >
@@ -48,6 +56,7 @@ export function SortParamComponent({
             </div>
 
             <MenuItems
+                id={ITEMS_ID}
                 transition
                 anchor={{ to: "bottom start", gap: 8 }}
                 className="z-10 w-40 origin-top-left rounded-lg
