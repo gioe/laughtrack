@@ -99,6 +99,7 @@ jobs:
           python -m scripts.core.update_popularity
 
       - name: Backfill club description and hours
+        id: enrichment
         if: always()
         env:
           DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
@@ -110,7 +111,42 @@ jobs:
           # Fills description/hours for any visible club still missing either
           # column.  Only re-fetches clubs that need an update, so nightly
           # re-runs are cheap once the backfill stabilises.
-          python -m scripts.core.update_club_enrichment
+          #
+          # tee stdout to enrichment-summary.txt so the next step can parse
+          # the final JSON line ({fetched, written, description_hits, ...})
+          # and post a compact report to Discord.
+          python -m scripts.core.update_club_enrichment | tee enrichment-summary.txt
+
+      - name: Post enrichment summary to Discord
+        if: always()
+        continue-on-error: true
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
+            echo "DISCORD_WEBHOOK_URL not set — skipping"
+            exit 0
+          fi
+          if [ ! -s enrichment-summary.txt ]; then
+            echo "No enrichment output captured (step failed before printing summary) — skipping"
+            exit 0
+          fi
+          # The script emits its JSON summary as the final stdout line via
+          # print(json.dumps(summary)). Earlier lines are Logger output.
+          SUMMARY=$(tail -n1 enrichment-summary.txt)
+          if ! echo "$SUMMARY" | jq empty >/dev/null 2>&1; then
+            echo "Enrichment summary not valid JSON — skipping Discord post"
+            echo "Last line was: $SUMMARY"
+            exit 0
+          fi
+          FETCHED=$(echo "$SUMMARY" | jq -r '.fetched // 0')
+          WRITTEN=$(echo "$SUMMARY" | jq -r '.written // 0')
+          DESC=$(echo "$SUMMARY" | jq -r '.description_hits // 0')
+          HOURS=$(echo "$SUMMARY" | jq -r '.hours_hits // 0')
+          MSG="[enrichment] fetched ${FETCHED}, wrote ${WRITTEN} (desc=${DESC}, hours=${HOURS})"
+          curl -fsS --retry 3 --max-time 10 -X POST "$DISCORD_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -nc --arg c "$MSG" '{content: $c}')"
 
       - name: Send comedian arrival notifications
         if: always()
