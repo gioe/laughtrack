@@ -83,7 +83,7 @@ jobs:
             -H "Authorization: Bearer $REVALIDATE_SECRET" \
             -d '{"tags": ["home-page-data"]}'
 
-      - name: Update comedian popularity scores
+      - name: Update popularity scores (comedians, shows, clubs)
         if: always()
         env:
           DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
@@ -93,7 +93,12 @@ jobs:
           DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
+          # Order matters: club popularity aggregates comedian popularity via
+          # lineups, and show popularity aggregates comedian popularity via
+          # lineups — so refresh comedians first, then shows, then clubs.
           python -m scripts.core.update_popularity --comedians
+          python -m scripts.core.update_popularity --shows
+          python -m scripts.core.update_popularity --clubs
 
       - name: Send comedian arrival notifications
         if: always()
