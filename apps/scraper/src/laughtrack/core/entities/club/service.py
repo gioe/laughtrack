@@ -124,3 +124,19 @@ class ClubService:
             List[Club]: List of clubs using the specified scraper type
         """
         return self.club_handler.get_clubs_for_scraper(scraper_type)
+
+    def update_club_popularity(self, club_ids: Optional[List[int]] = None) -> None:
+        """
+        Recompute and persist popularity for clubs.
+
+        Args:
+            club_ids: Optional list of specific club IDs to update.  When
+                ``None``, every active, visible club is considered.
+        """
+        Logger.info("Starting club popularity update.")
+
+        try:
+            self.club_handler.update_club_popularity(club_ids)
+        except Exception as e:
+            Logger.error(f"Error updating club popularity: {str(e)}")
+            raise

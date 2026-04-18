@@ -459,6 +459,68 @@ class ClubHandler(BaseDatabaseHandler[Club]):
             Logger.error(f"Error fetching active festival IDs: {e}")
             return set()
 
+    def get_all_club_ids(self) -> List[int]:
+        """
+        Fetch all active, visible club IDs from the database.
+
+        Returns:
+            List[int]: IDs of every active, visible club (regardless of scraper).
+        """
+        results = self.execute_with_cursor(ClubQueries.GET_ALL_CLUB_IDS, return_results=True)
+        if not results:
+            raise ValueError("No active clubs found in database")
+
+        Logger.info(f"Retrieved {len(results)} active club IDs from database")
+        return [row["id"] for row in results]
+
+    def update_club_popularity(self, club_ids: Optional[List[int]] = None) -> None:
+        """
+        Recompute and persist popularity for clubs.
+
+        Aggregates show activity and lineup quality over a ±90-day window per
+        club (see ``ClubQueries.BATCH_GET_CLUB_POPULARITY``).  Clubs with no
+        shows in that window are absent from the result set and keep their
+        current popularity value — the signal is "this club is active right
+        now", not "this club has ever been active".
+
+        Args:
+            club_ids: Optional list of specific club IDs to update.  When
+                ``None``, every active, visible club is considered.
+        """
+        try:
+            target_ids = club_ids if club_ids else self.get_all_club_ids()
+            if not target_ids:
+                Logger.warn("No clubs found for popularity update")
+                return
+
+            results = self.execute_with_cursor(
+                ClubQueries.BATCH_GET_CLUB_POPULARITY, (target_ids,), return_results=True
+            )
+
+            if not results:
+                Logger.info(
+                    f"update_club_popularity: no clubs with show activity in the ±90d window "
+                    f"(examined {len(target_ids)} clubs)"
+                )
+                return
+
+            result_club_ids = [int(row["club_id"]) for row in results]
+            popularity_values = [float(row["popularity"]) for row in results]
+
+            self.execute_with_cursor(
+                ClubQueries.BATCH_UPDATE_CLUB_POPULARITY,
+                (result_club_ids, popularity_values),
+            )
+
+            Logger.info(
+                f"update_club_popularity: updated {len(results)}/{len(target_ids)} clubs "
+                f"(clubs without recent/upcoming shows keep their prior value)"
+            )
+
+        except Exception as e:
+            Logger.error(f"Error updating club popularity: {str(e)}")
+            raise
+
     def get_clubs_for_scraper(self, scraper_type: str) -> List[Club]:
         """
         Fetch all clubs that use a specific scraper type.

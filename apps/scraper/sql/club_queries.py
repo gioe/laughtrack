@@ -153,6 +153,63 @@ class ClubQueries:
         SET total_shows = (SELECT COUNT(*) FROM shows WHERE shows.club_id = clubs.id)
     '''
 
+    GET_ALL_CLUB_IDS = '''
+        SELECT id FROM clubs WHERE visible = True AND status = 'active' ORDER BY id
+    '''
+
+    # Computes popularity per club from two signals over the ±90-day window:
+    #   - Activity: count of shows in the past 90 days + next 90 days,
+    #     saturated at 60 shows (≈ one show every three days on average).
+    #   - Quality: average popularity of comedians in the lineups of those
+    #     same shows (already normalized to 0–1 by update_comedian_popularity).
+    # Activity gets 60% weight, quality 40%, mirroring the comedian scorer's
+    # performance-over-social split.  Clubs with no shows in the window are
+    # absent from the result set and keep their existing popularity untouched.
+    BATCH_GET_CLUB_POPULARITY = '''
+        WITH club_metrics AS (
+            SELECT
+                s.club_id,
+                COUNT(DISTINCT CASE
+                    WHEN s.date >= CURRENT_DATE
+                     AND s.date <= CURRENT_DATE + INTERVAL '90 days'
+                    THEN s.id END) AS upcoming_shows,
+                COUNT(DISTINCT CASE
+                    WHEN s.date >= CURRENT_DATE - INTERVAL '90 days'
+                     AND s.date <  CURRENT_DATE
+                    THEN s.id END) AS recent_shows,
+                AVG(c.popularity) FILTER (
+                    WHERE s.date >= CURRENT_DATE - INTERVAL '90 days'
+                      AND s.date <= CURRENT_DATE + INTERVAL '90 days'
+                ) AS avg_comedian_popularity
+            FROM shows s
+            LEFT JOIN lineup_items li ON li.show_id = s.id
+            LEFT JOIN comedians c ON c.uuid = li.comedian_id
+            WHERE s.club_id = ANY(%s::int[])
+              AND s.date >= CURRENT_DATE - INTERVAL '90 days'
+              AND s.date <= CURRENT_DATE + INTERVAL '90 days'
+            GROUP BY s.club_id
+        )
+        SELECT
+            club_id,
+            LEAST(
+                LEAST((upcoming_shows + recent_shows)::float / 60.0, 1.0) * 0.6 +
+                COALESCE(avg_comedian_popularity, 0) * 0.4,
+                1.0
+            ) AS popularity
+        FROM club_metrics
+        WHERE upcoming_shows + recent_shows > 0
+    '''
+
+    BATCH_UPDATE_CLUB_POPULARITY = '''
+        UPDATE clubs
+        SET popularity = v.popularity
+        FROM (
+            SELECT club_id, popularity
+            FROM UNNEST(%s::int[], %s::numeric[]) AS v(club_id, popularity)
+        ) v
+        WHERE id = v.club_id
+    '''
+
     GET_CLUBS_WITH_NULL_CITY_STATE = '''
         SELECT * FROM clubs
         WHERE (city IS NULL OR state IS NULL) AND address IS NOT NULL AND address != ''
