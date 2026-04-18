@@ -360,12 +360,24 @@ export class QueryHelper {
         const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
         const fromDate = this.params.fromDate;
         const toDate = this.params.toDate;
-        if (
-            !fromDate ||
-            !ISO_DATE_RE.test(fromDate) ||
-            isNaN(new Date(fromDate).getTime())
-        ) {
-            // No valid fromDate provided — default to upcoming shows only
+        const fromDateValid =
+            !!fromDate &&
+            ISO_DATE_RE.test(fromDate) &&
+            !isNaN(new Date(fromDate).getTime());
+        const toDatePresent =
+            !!toDate &&
+            ISO_DATE_RE.test(toDate) &&
+            !isNaN(new Date(toDate).getTime());
+
+        // No valid date params — return an empty clause. Callers add their own
+        // upcoming-only constraint (date.gte = now) when they need one.
+        if (!fromDateValid && !toDatePresent) {
+            return {};
+        }
+        if (!fromDateValid) {
+            // fromDate missing/invalid but toDate is present and valid — fall
+            // back to upcoming-only (gte:now). Preserves the pre-refactor
+            // behavior for this edge case so a stray toDate still bounds results.
             return { date: { gte: new Date().toISOString() } };
         }
         const toDateValid =

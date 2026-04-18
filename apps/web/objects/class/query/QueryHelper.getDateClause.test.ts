@@ -9,29 +9,39 @@ function makeHelper(params: Record<string, string | undefined> = {}) {
 }
 
 describe("QueryHelper.getDateClause", () => {
-    describe("default — no fromDate provided", () => {
-        it("returns a gte filter using the current time when fromDate is absent", () => {
-            const before = Date.now();
+    describe("no date params", () => {
+        it("returns an empty object when both fromDate and toDate are absent", () => {
             const result = makeHelper().getDateClause();
-            const after = Date.now();
-
-            expect(result).toHaveProperty("date.gte");
-            const gte = new Date((result as any).date.gte).getTime();
-            expect(gte).toBeGreaterThanOrEqual(before);
-            expect(gte).toBeLessThanOrEqual(after);
+            expect(result).toEqual({});
         });
 
-        it("does not include lte when fromDate is absent", () => {
-            const result = makeHelper().getDateClause() as any;
-            expect(result.date.lte).toBeUndefined();
+        it("returns an empty object when fromDate and toDate are both undefined", () => {
+            const result = makeHelper({
+                fromDate: undefined,
+                toDate: undefined,
+            }).getDateClause();
+            expect(result).toEqual({});
         });
     });
 
-    describe("default — invalid fromDate provided", () => {
-        it("returns a gte:now filter for a non-ISO string", () => {
+    describe("fromDate invalid, toDate absent — fall back to empty", () => {
+        // An invalid fromDate with no toDate is equivalent to "no date params"
+        // in intent. Previously this returned gte:now; now it returns {} so
+        // callers can decide whether to apply their own upcoming-only filter.
+        it("returns an empty object for a non-ISO fromDate when toDate is absent", () => {
+            const result = makeHelper({
+                fromDate: "not-a-date",
+            }).getDateClause();
+            expect(result).toEqual({});
+        });
+    });
+
+    describe("fromDate invalid, toDate present — upcoming-only fallback", () => {
+        it("returns a gte:now filter when fromDate is invalid but toDate is set", () => {
             const before = Date.now();
             const result = makeHelper({
                 fromDate: "not-a-date",
+                toDate: "2026-06-30",
             }).getDateClause() as any;
             const after = Date.now();
 
