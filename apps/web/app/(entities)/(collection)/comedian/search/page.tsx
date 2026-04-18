@@ -112,7 +112,11 @@ export default async function ComedianSearchPage(
 
     return (
         <>
-            <FilterModal filters={filters} total={total} />
+            <FilterModal
+                filters={filters}
+                total={total}
+                variant={SearchVariant.AllComedians}
+            />
 
             <SearchDetailHeader
                 title="Search comedians"

@@ -2,17 +2,22 @@
 
 import React, { useEffect } from "react";
 import { FilterDTO } from "@/objects/interface";
+import { SearchVariant } from "@/objects/enum/searchVariant";
 import { Modal } from "../basic";
 import { FilterChip } from "../../params/filter/chips";
 import { useFilters } from "@/hooks/useFilters";
 import { useFilterModal } from "@/hooks";
+import ComedianAdvancedFilters from "./comedianAdvanced";
 
 interface FilterModalProps {
     filters: FilterDTO[];
     total: number;
+    // Optional — when set to AllComedians, renders the rich filter sections
+    // (location, dates, min upcoming shows) above the tag chip section.
+    variant?: SearchVariant;
 }
 
-const FilterModal = ({ filters, total }: FilterModalProps) => {
+const FilterModal = ({ filters, total, variant }: FilterModalProps) => {
     const filterModal = useFilterModal();
     const { handleOpen, handleFilterChange, handleClose, selections } =
         useFilters(filters);
@@ -38,21 +43,27 @@ const FilterModal = ({ filters, total }: FilterModalProps) => {
                 Select options to refine search
             </p>
 
-            <div className="mb-6 pt-7 animate-slideUp">
-                <h3 className="text-[18px] font-bold font-gilroy-bold text-gray-800 mb-3 pb-3 border-b border-gray-100">
-                    Filter By
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                    {filters.map((option) => (
-                        <FilterChip
-                            key={`filter-${option.id}`}
-                            option={option}
-                            onClick={handleFilterChange}
-                            isSelected={selections.includes(option.slug)}
-                        />
-                    ))}
+            {variant === SearchVariant.AllComedians && (
+                <ComedianAdvancedFilters />
+            )}
+
+            {filters.length > 0 && (
+                <div className="mb-6 pt-7 animate-slideUp">
+                    <h3 className="text-[18px] font-bold font-gilroy-bold text-gray-800 mb-3 pb-3 border-b border-gray-100">
+                        Filter By
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                        {filters.map((option) => (
+                            <FilterChip
+                                key={`filter-${option.id}`}
+                                option={option}
+                                onClick={handleFilterChange}
+                                isSelected={selections.includes(option.slug)}
+                            />
+                        ))}
+                    </div>
                 </div>
-            </div>
+            )}
 
             <button
                 onClick={onClose}
