@@ -19,6 +19,7 @@ export interface ComedianDTO {
     dates?: ShowDTO[];
     isFavorite?: boolean;
     show_count: number;
+    co_appearances?: number;
     isAlias?: boolean;
     parentComedian?: ComedianDTO;
     lineupItems?: any[];

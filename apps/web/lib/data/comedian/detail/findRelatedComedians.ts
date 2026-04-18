@@ -19,6 +19,7 @@ type RelatedComedianRow = {
     popularity: number;
     linktree: string | null;
     has_image: boolean;
+    co_appearances: number;
     upcoming_show_count: number;
 };
 
@@ -95,6 +96,7 @@ export async function findRelatedComedians(
                 linktree: row.linktree,
             },
             show_count: Number(row.upcoming_show_count),
+            co_appearances: Number(row.co_appearances),
         }));
     } catch (err) {
         console.error("findRelatedComedians: query failed", err);
