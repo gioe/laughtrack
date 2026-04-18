@@ -86,9 +86,16 @@ export async function findShowsWithCount(
     try {
         const clubNameClause = helper.getClubNameClause();
         const zipCodeClause = helper.getZipCodeClause();
+        // getDateClause returns {} when no fromDate/toDate are set. Show search
+        // always wants upcoming-only results, so supply the default here.
+        const dateClause = helper.getDateClause();
+        const dateFilter =
+            "date" in dateClause
+                ? dateClause
+                : { date: { gte: new Date() } };
         const whereClause: Prisma.ShowWhereInput = {
             // Shows whose dates are Greater Than (gte) today's date or a date parameter, if provided
-            ...helper.getDateClause(),
+            ...dateFilter,
 
             // Club conditions
             club: {

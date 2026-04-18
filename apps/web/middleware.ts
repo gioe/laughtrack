@@ -136,8 +136,8 @@ export function setParamDefaults(
     // into the URL caused React hydration error #418: CalendarDisplay renders
     // date-fns isToday/isTomorrow labels in local time, so a server render in
     // UTC and a client render in a non-UTC tz produce different text for the
-    // same URL param. QueryHelper.getDateClause already defaults to upcoming
-    // shows when fromDate is absent, so omitting it here is safe.
+    // same URL param. Callers (findShowsWithCount, findComediansWithCount)
+    // apply their own upcoming-only default when no date params are present.
     if (!params.has(QueryProperty.Distance)) {
         params.set(QueryProperty.Distance, "5");
     }

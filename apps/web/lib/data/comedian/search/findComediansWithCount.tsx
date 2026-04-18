@@ -135,11 +135,15 @@ export async function findComediansWithCount(
         const needsLineupItemsFilter =
             !includeEmpty || hasZipFilter || hasDateFilter;
 
-        // Filter shows by date range (or implicit upcoming-only when !includeEmpty)
-        // and optionally restrict to clubs in the zip-code radius.
+        // Filter shows by date range (explicit) or restrict to upcoming when
+        // !includeEmpty (default comedian-search path, where we don't want to
+        // surface comedians whose only shows are in the past). Optionally also
+        // restrict to clubs in the zip-code radius.
         const showFilter: Prisma.ShowWhereInput = {};
-        if (hasDateFilter || !includeEmpty) {
+        if (hasDateFilter) {
             Object.assign(showFilter, helper.getDateClause());
+        } else if (!includeEmpty) {
+            showFilter.date = { gte: new Date() };
         }
         if (hasZipFilter) {
             showFilter.club = helper.getZipCodeClause();
