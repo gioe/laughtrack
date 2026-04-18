@@ -12,6 +12,7 @@ const mockHandleClose = vi.fn();
 
 vi.mock("@/hooks", () => ({
     useFilterModal: () => ({ isOpen: true, onClose: mockModalOnClose }),
+    useDialogKeyboard: () => {},
 }));
 vi.mock("@/hooks/useFilters", () => ({
     useFilters: () => ({

@@ -1,4 +1,6 @@
 import { X } from "lucide-react";
+import { useRef } from "react";
+import { useDialogKeyboard } from "@/hooks";
 
 // components/ui/Modal.tsx
 interface ModalProps {
@@ -9,10 +11,19 @@ interface ModalProps {
 }
 
 export const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
+    const dialogRef = useRef<HTMLDivElement>(null);
+    useDialogKeyboard({ isOpen, onClose, containerRef: dialogRef });
+
     if (!isOpen) return null;
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="w-[calc(100%-2rem)] max-w-md bg-coconut-cream rounded-lg p-4 sm:p-6 m-4">
+            <div
+                ref={dialogRef}
+                role="dialog"
+                aria-modal="true"
+                tabIndex={-1}
+                className="w-[calc(100%-2rem)] max-w-md bg-coconut-cream rounded-lg p-4 sm:p-6 m-4 outline-none"
+            >
                 <div className="flex justify-between items-center mb-2">
                     <h2 className="text-[26px] font-bold font-gilroy-bold text-gray-800">
                         {title}
