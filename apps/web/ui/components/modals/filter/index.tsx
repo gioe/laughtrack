@@ -29,14 +29,17 @@ const FilterModal = ({ filters, total, variant }: FilterModalProps) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filterModal.isOpen]); // intentionally omit handleOpen — we only want to snapshot selections at modal-open time, not every render
 
-    const onClose = () => {
+    const onCancel = () => {
         handleClose();
+        filterModal.onClose();
+    };
+    const onApply = () => {
         filterModal.onClose();
     };
     return (
         <Modal
             isOpen={filterModal.isOpen}
-            onClose={onClose}
+            onClose={onCancel}
             title="Filter Results"
         >
             <p className="text-gray-600 mb-4 font-dmSans text-[16px] animate-fadeIn">
@@ -66,8 +69,8 @@ const FilterModal = ({ filters, total, variant }: FilterModalProps) => {
             )}
 
             <button
-                onClick={onClose}
-                className="w-full font-dmSans bg-copper text-ivory py-3 rounded-lg font-bold text-[16px] shadow-sm 
+                onClick={onApply}
+                className="w-full font-dmSans bg-copper text-ivory py-3 rounded-lg font-bold text-[16px] shadow-sm
                 transform transition-all duration-200 ease-in-out
                 hover:scale-[1.02] hover:shadow-md hover:bg-copper/90 active:scale-[0.98]
                 border-2 border-copper hover:border-copper/80"
