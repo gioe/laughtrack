@@ -777,6 +777,12 @@ update-club-enrichment:
 	@echo "ℹ️  Updating club description/hours from website schema.org/meta data..."
 	$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.update_club_enrichment $(ARGS)
 
+# Backfill comedian bios from Wikipedia page summaries.  Safe to re-run
+# nightly; only fills comedians whose bio is still NULL.
+update-comedian-bios:
+	@echo "🎤 Backfilling comedian bios from Wikipedia summaries..."
+	$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.update_comedian_bios $(ARGS)
+
 # Update comedian statistics - refresh follower counts and performance metrics
 update-comedian-stats:
 	@echo "👤 Updating comedian statistics..."

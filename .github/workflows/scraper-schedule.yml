@@ -148,6 +148,53 @@ jobs:
             -H "Content-Type: application/json" \
             -d "$(jq -nc --arg c "$MSG" '{content: $c}')"
 
+      - name: Backfill comedian bios
+        id: comedian_bios
+        if: always()
+        env:
+          DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+          DATABASE_USER: ${{ secrets.DATABASE_USER }}
+          DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
+          DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+          DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
+        run: |
+          # Fills Comedian.bio for comedians still missing one, in popularity
+          # order.  Capped per run to stay under Wikipedia's unauthenticated
+          # IP throttle — the backlog drains across subsequent nightlies.
+          python -m scripts.core.update_comedian_bios --limit 500 \
+            | tee comedian-bios-summary.txt
+
+      - name: Post comedian bios summary to Discord
+        if: always()
+        continue-on-error: true
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
+            echo "DISCORD_WEBHOOK_URL not set — skipping"
+            exit 0
+          fi
+          if [ ! -s comedian-bios-summary.txt ]; then
+            echo "No comedian-bios output captured — skipping"
+            exit 0
+          fi
+          SUMMARY=$(tail -n1 comedian-bios-summary.txt)
+          if ! echo "$SUMMARY" | jq empty >/dev/null 2>&1; then
+            echo "comedian-bios summary not valid JSON — skipping Discord post"
+            echo "Last line was: $SUMMARY"
+            exit 0
+          fi
+          FETCHED=$(echo "$SUMMARY" | jq -r '.fetched // 0')
+          WRITTEN=$(echo "$SUMMARY" | jq -r '.written // 0')
+          NOT_FOUND=$(echo "$SUMMARY" | jq -r '.not_found // 0')
+          DISAMBIG=$(echo "$SUMMARY" | jq -r '.disambiguation // 0')
+          NOT_COMEDIAN=$(echo "$SUMMARY" | jq -r '.not_comedian // 0')
+          FAILED=$(echo "$SUMMARY" | jq -r '.fetch_failed // 0')
+          MSG="[comedian-bios] fetched ${FETCHED}, wrote ${WRITTEN} (not_found=${NOT_FOUND}, disambig=${DISAMBIG}, not_comedian=${NOT_COMEDIAN}, failed=${FAILED})"
+          curl -fsS --retry 3 --max-time 10 -X POST "$DISCORD_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -nc --arg c "$MSG" '{content: $c}')"
+
       - name: Send comedian arrival notifications
         if: always()
         env:
