@@ -51,6 +51,7 @@ export async function findPastShowsForComedian(
                         address: true,
                         zipCode: true,
                         hasImage: true,
+                        timezone: true,
                     },
                 },
                 lineupItems: {
@@ -112,6 +113,7 @@ export async function findPastShowsForComedian(
             ),
             tickets: mapTickets(show.tickets),
             distanceMiles: null,
+            timezone: show.club.timezone,
         })),
     };
 }
