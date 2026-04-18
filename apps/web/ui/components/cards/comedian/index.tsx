@@ -44,7 +44,9 @@ const ComedianGridCard: React.FC<ComedianGridCardProps> = ({
 
                 <div className="flex justify-center">
                     <span className="bg-copper/10 text-copper text-xs px-2 py-0.5 rounded-full font-dmSans">
-                        {`${comedian.showCount ?? 0} upcoming shows`}
+                        {comedian.coAppearances
+                            ? `Performed together ${comedian.coAppearances} times`
+                            : `${comedian.showCount ?? 0} upcoming shows`}
                     </span>
                 </div>
             </div>

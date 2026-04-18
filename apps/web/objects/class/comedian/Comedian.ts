@@ -20,6 +20,7 @@ export class Comedian implements ComedianInterface {
     hasImage: boolean;
     containedEntities: Entity[];
     showCount?: number;
+    coAppearances?: number;
     isAlias?: boolean;
 
     constructor(input: ComedianDTO | ComedianLineupDTO) {
@@ -34,6 +35,7 @@ export class Comedian implements ComedianInterface {
         this.isFavorite = input.isFavorite ?? false;
         this.id = input.id;
         this.showCount = input.show_count;
+        this.coAppearances = (input as ComedianDTO).co_appearances;
         this.imageUrl = input.imageUrl;
         this.hasImage = input.hasImage ?? Boolean(input.imageUrl);
         this.uuid = input.uuid;
