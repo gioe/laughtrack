@@ -142,7 +142,11 @@ export async function findComediansWithCount(
         const showFilter: Prisma.ShowWhereInput = {};
         if (hasDateFilter) {
             Object.assign(showFilter, helper.getDateClause());
-        } else if (!includeEmpty) {
+        }
+        // Apply upcoming-only default when no effective date filter landed —
+        // covers both no-params and set-but-invalid-params cases, since
+        // getDateClause returns {} in both.
+        if (!showFilter.date && !includeEmpty) {
             showFilter.date = { gte: new Date() };
         }
         if (hasZipFilter) {
