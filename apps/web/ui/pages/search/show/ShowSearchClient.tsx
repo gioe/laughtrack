@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ShowDTO } from "@/objects/class/show/show.interface";
 import { useInfiniteSearch } from "@/hooks/useInfiniteSearch";
@@ -18,9 +19,10 @@ const ShowSearchClient = ({
     initialZipCapTriggered,
 }: ShowSearchClientProps) => {
     const searchParams = useSearchParams();
+    const zip = searchParams.get("zip") ?? undefined;
 
     const params: Record<string, string | undefined> = {
-        zip: searchParams.get("zip") ?? undefined,
+        zip,
         distance: searchParams.get("distance") ?? undefined,
         from: searchParams.get("fromDate") ?? undefined,
         to: searchParams.get("toDate") ?? undefined,
@@ -47,6 +49,25 @@ const ShowSearchClient = ({
         initialZipCapTriggered,
     });
 
+    const broadenHref = (() => {
+        if (!zip) return null;
+        const next = new URLSearchParams(searchParams.toString());
+        next.delete("zip");
+        next.delete("distance");
+        const qs = next.toString();
+        return qs ? `/show/search?${qs}` : "/show/search";
+    })();
+
+    const emptyAction =
+        broadenHref && !isLoading ? (
+            <Link
+                href={broadenHref}
+                className="inline-block bg-cedar text-white font-dmSans font-semibold px-6 py-3 rounded-full hover:bg-copper transition-colors"
+            >
+                Browse all shows
+            </Link>
+        ) : undefined;
+
     return (
         <>
             {zipCapTriggered && (
@@ -64,7 +85,7 @@ const ShowSearchClient = ({
                 retry={retry}
                 sentinelRef={sentinelRef}
             >
-                <ShowTable shows={data} />
+                <ShowTable shows={data} emptyAction={emptyAction} />
             </SearchClientShell>
         </>
     );

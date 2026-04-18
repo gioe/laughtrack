@@ -1,12 +1,14 @@
 import { LucideIcon } from "lucide-react";
+import { ReactNode } from "react";
 
 interface EmptyStateProps {
     title: string;
     message: string;
     icons: LucideIcon[];
+    action?: ReactNode;
 }
 
-const EmptyState = ({ title, message, icons }: EmptyStateProps) => {
+const EmptyState = ({ title, message, icons, action }: EmptyStateProps) => {
     return (
         <div className="flex flex-col items-center justify-center py-16 px-4 max-w-2xl mx-auto text-center">
             <div className="bg-gradient-to-br from-[#FDF8EF] to-[#F5E6D3] p-8 rounded-2xl shadow-lg mb-8">
@@ -28,6 +30,7 @@ const EmptyState = ({ title, message, icons }: EmptyStateProps) => {
                         <p className="text-gray-600 text-lg font-dmSans">
                             {message}
                         </p>
+                        {action && <div className="pt-2">{action}</div>}
                     </div>
                 </div>
             </div>
