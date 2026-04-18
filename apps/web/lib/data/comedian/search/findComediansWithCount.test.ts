@@ -434,4 +434,120 @@ describe("findComediansWithCount", () => {
             expect(comedians.map((c) => c.hasImage)).toEqual([true, false]);
         });
     });
+
+    describe("advanced comedian filters (zip / date / minTotalShows)", () => {
+        it("adds totalShows >= clause to where when minTotalShows > 0", async () => {
+            mockCount.mockResolvedValue(1);
+            mockFindMany.mockResolvedValue([makeComedianRow(1)] as never);
+
+            const helper = makeHelper(
+                SortParamValue.PopularityDesc,
+                undefined,
+                undefined,
+                undefined,
+                false,
+                { minTotalShows: "5" },
+            );
+            await findComediansWithCount(helper);
+
+            const call = mockFindMany.mock.calls[0]?.[0];
+            expect(call?.where?.totalShows).toEqual({ gte: 5 });
+        });
+
+        it("omits totalShows clause when minTotalShows is missing or zero", async () => {
+            mockCount.mockResolvedValue(1);
+            mockFindMany.mockResolvedValue([makeComedianRow(1)] as never);
+
+            await findComediansWithCount(makeHelper());
+
+            const call = mockFindMany.mock.calls[0]?.[0];
+            expect(call?.where?.totalShows).toBeUndefined();
+        });
+
+        it("nests the zip-code clause under lineupItems.some.show.club when zip is set", async () => {
+            mockCount.mockResolvedValue(1);
+            mockFindMany.mockResolvedValue([makeComedianRow(1)] as never);
+
+            const helper = makeHelper(
+                SortParamValue.PopularityDesc,
+                undefined,
+                undefined,
+                undefined,
+                false,
+                { zip: "10001" },
+            );
+            // Override the default empty zip clause to return a real Prisma shape.
+            (
+                helper as unknown as { getZipCodeClause: () => unknown }
+            ).getZipCodeClause = () => ({
+                zipCode: { in: ["10001", "10002"] },
+            });
+
+            await findComediansWithCount(helper);
+
+            const call = mockFindMany.mock.calls[0]?.[0];
+            const showClause = call?.where?.lineupItems?.some?.show as
+                | { club?: { zipCode?: unknown } }
+                | undefined;
+            expect(showClause?.club?.zipCode).toEqual({
+                in: ["10001", "10002"],
+            });
+        });
+
+        it("propagates the date clause from getDateClause into lineupItems.some.show", async () => {
+            mockCount.mockResolvedValue(1);
+            mockFindMany.mockResolvedValue([makeComedianRow(1)] as never);
+
+            const helper = makeHelper(
+                SortParamValue.PopularityDesc,
+                undefined,
+                undefined,
+                undefined,
+                false,
+                { fromDate: "2026-05-01", toDate: "2026-05-31" },
+            );
+            (
+                helper as unknown as { getDateClause: () => unknown }
+            ).getDateClause = () => ({
+                date: {
+                    gte: "2026-05-01T00:00:00Z",
+                    lte: "2026-05-31T23:59:59Z",
+                },
+            });
+
+            await findComediansWithCount(helper);
+
+            const call = mockFindMany.mock.calls[0]?.[0];
+            const showClause = call?.where?.lineupItems?.some?.show as
+                | { date?: { gte?: string; lte?: string } }
+                | undefined;
+            expect(showClause?.date?.gte).toBe("2026-05-01T00:00:00Z");
+            expect(showClause?.date?.lte).toBe("2026-05-31T23:59:59Z");
+        });
+
+        it("includes c.total_shows >= N in the raw-SQL where conditions when minTotalShows is set on a show_count sort", async () => {
+            mockCount.mockResolvedValue(1);
+            mockQueryRaw
+                .mockResolvedValueOnce([] as never) // deny list
+                .mockResolvedValueOnce([{ id: 1 }] as never); // sorted IDs
+            mockFindMany.mockResolvedValue([makeComedianRow(1, 3)] as never);
+
+            const helper = makeHelper(
+                SortParamValue.ShowCountDesc,
+                undefined,
+                undefined,
+                undefined,
+                false,
+                { minTotalShows: "10" },
+            );
+            await findComediansWithCount(helper);
+
+            // The 2nd $queryRaw call is the sorted-ID query — its Prisma.Sql values
+            // include the parameterized minTotalShows value.
+            const sortedCall = mockQueryRaw.mock.calls[1]?.[0] as {
+                values: unknown[];
+            };
+            expect(sortedCall?.values).toContain(10);
+        });
+    });
 });
