@@ -56,7 +56,13 @@ function makeShow(
         description: string | null;
         popularity: number;
         tickets: any[];
-        club: { name: string; address: string };
+        club: {
+            name: string;
+            address: string;
+            zipCode?: string | null;
+            hasImage?: boolean;
+            timezone?: string | null;
+        };
         lineupItems: any[];
     }> = {},
 ) {
@@ -67,7 +73,13 @@ function makeShow(
         description: null,
         popularity: 5,
         tickets: [],
-        club: { name: "Test Club", address: "123 Main St" },
+        club: {
+            name: "Test Club",
+            address: "123 Main St",
+            zipCode: "10001",
+            hasImage: true,
+            timezone: "America/New_York",
+        },
         lineupItems: [],
         ...overrides,
     };
@@ -283,6 +295,93 @@ describe("findShowsWithCount", () => {
             const comedianSelect =
                 capturedSelect.lineupItems.select.comedian.select;
             expect(comedianSelect.favoriteComedians).toBeUndefined();
+        });
+    });
+
+    describe("timezone mapping", () => {
+        it("selects club.timezone from the database", async () => {
+            let capturedSelect: any;
+            mockCount.mockResolvedValue(0);
+            mockFindMany.mockImplementation((args: any) => {
+                capturedSelect = args.select;
+                return Promise.resolve([]);
+            });
+
+            await findShowsWithCount(makeHelper() as any);
+
+            expect(capturedSelect.club.select.timezone).toBe(true);
+        });
+
+        it("maps a Los Angeles club.timezone onto the returned DTO", async () => {
+            const show = makeShow({
+                club: {
+                    name: "Laugh Factory",
+                    address: "8001 Sunset Blvd",
+                    zipCode: "90046",
+                    hasImage: true,
+                    timezone: "America/Los_Angeles",
+                },
+            });
+            mockCount.mockResolvedValue(1);
+            mockFindMany.mockResolvedValue([show]);
+
+            const result = await findShowsWithCount(makeHelper() as any);
+
+            expect(result.shows[0].timezone).toBe("America/Los_Angeles");
+        });
+
+        it("maps a Chicago club.timezone onto the returned DTO", async () => {
+            const show = makeShow({
+                club: {
+                    name: "The Laugh Factory Chicago",
+                    address: "3175 N Broadway",
+                    zipCode: "60657",
+                    hasImage: true,
+                    timezone: "America/Chicago",
+                },
+            });
+            mockCount.mockResolvedValue(1);
+            mockFindMany.mockResolvedValue([show]);
+
+            const result = await findShowsWithCount(makeHelper() as any);
+
+            expect(result.shows[0].timezone).toBe("America/Chicago");
+        });
+
+        it("maps a Denver club.timezone onto the returned DTO", async () => {
+            const show = makeShow({
+                club: {
+                    name: "Comedy Works",
+                    address: "1226 15th St",
+                    zipCode: "80202",
+                    hasImage: true,
+                    timezone: "America/Denver",
+                },
+            });
+            mockCount.mockResolvedValue(1);
+            mockFindMany.mockResolvedValue([show]);
+
+            const result = await findShowsWithCount(makeHelper() as any);
+
+            expect(result.shows[0].timezone).toBe("America/Denver");
+        });
+
+        it("returns null timezone when the club has no timezone configured", async () => {
+            const show = makeShow({
+                club: {
+                    name: "Unknown Venue",
+                    address: "123 Main St",
+                    zipCode: "00000",
+                    hasImage: false,
+                    timezone: null,
+                },
+            });
+            mockCount.mockResolvedValue(1);
+            mockFindMany.mockResolvedValue([show]);
+
+            const result = await findShowsWithCount(makeHelper() as any);
+
+            expect(result.shows[0].timezone).toBeNull();
         });
     });
 

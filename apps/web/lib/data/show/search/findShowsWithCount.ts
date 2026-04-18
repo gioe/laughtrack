@@ -34,6 +34,7 @@ const SHOW_SELECT = {
             address: true,
             zipCode: true,
             hasImage: true,
+            timezone: true,
         },
     },
     lineupItems: {
@@ -172,6 +173,7 @@ export async function findShowsWithCount(
                     searchedZip,
                     show.club.zipCode,
                 ),
+                timezone: show.club.timezone,
             })),
             totalCount,
         };
