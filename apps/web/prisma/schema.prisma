@@ -110,6 +110,7 @@ model Comedian {
   websiteScrapingUrl     String?        @map("website_scraping_url")
   websiteConfidence      String?        @map("website_confidence")
   websiteScrapingUrlConfidence String?  @map("website_scraping_url_confidence")
+  bio                String?
   parentComedianId   Int?               @map("parent_comedian_id")
   parentComedian     Comedian?          @relation("ComedianAliases", fields: [parentComedianId], references: [id])
   alternativeNames   Comedian[]         @relation("ComedianAliases")
