@@ -51,6 +51,7 @@ export default function ClubSearchBar() {
                         onDistanceSelection={handleDistanceSelection}
                         onZipcodeInput={handleZipCodeInput}
                         inputId="club-all-zip"
+                        dropdownId="club-all-distance-listbox"
                     />
                 </div>
             </SearchBarSection>

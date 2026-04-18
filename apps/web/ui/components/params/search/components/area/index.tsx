@@ -26,6 +26,7 @@ type ShowDistanceFormProps = {
     variant: ComponentVariant.Form;
     form: UseFormReturn<any>;
     inputId?: string;
+    dropdownId?: string;
 };
 
 type ShowDistanceStandaloneProps = {
@@ -34,6 +35,7 @@ type ShowDistanceStandaloneProps = {
     onDistanceSelection?: (value: string) => void;
     onZipcodeInput?: (value: string) => void;
     inputId?: string;
+    dropdownId?: string;
 };
 
 type ShowLocationComponentProps =
@@ -136,6 +138,7 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
                     name="distance.distance"
                     form={props.form}
                     variant={props.variant}
+                    contentId={props.dropdownId}
                 />
             );
         }
@@ -146,6 +149,7 @@ const ShowLocationComponent = (props: ShowLocationComponentProps) => {
                 onChange={props.onDistanceSelection ?? updateDistance}
                 value={props.value?.distance ?? ""}
                 variant={props.variant}
+                contentId={props.dropdownId}
             />
         );
     };

@@ -13,6 +13,7 @@ import DropdownDisplay from "./display";
 interface BaseDropdownProps {
     placeholder?: string;
     items: Selectable[];
+    contentId?: string;
 }
 
 // Props for the form variant
@@ -46,6 +47,7 @@ export function DropdownComponent(props: DropdownProps) {
                                 value={field.value}
                                 onChange={field.onChange}
                                 items={props.items}
+                                contentId={props.contentId}
                             />
                         </FormControl>
                         <FormMessage />
@@ -61,6 +63,7 @@ export function DropdownComponent(props: DropdownProps) {
             value={props.value}
             onChange={props.onChange}
             items={props.items}
+            contentId={props.contentId}
         />
     );
 }
