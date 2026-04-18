@@ -160,10 +160,13 @@ function getSortParamDefaultFromPath(
                 : SortParamValue.DateAsc,
         );
     } else if (path.startsWith("/comedian")) {
+        // /comedian/search defaults to "Most Popular" (popularity desc) to
+        // match the UI's sortOptions[0] — comedians have populated popularity
+        // data, and alphabetical ordering buries well-known comedians.
         params.set(
             QueryProperty.Sort,
             path.includes("/search")
-                ? SortParamValue.NameAsc
+                ? SortParamValue.PopularityDesc
                 : SortParamValue.DateAsc,
         );
     } else if (path.startsWith("/show")) {

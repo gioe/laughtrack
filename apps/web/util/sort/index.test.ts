@@ -6,6 +6,13 @@ describe("getSortOptionsForEntityType", () => {
     describe("EntityType.Comedian", () => {
         const options = getSortOptionsForEntityType(EntityType.Comedian);
 
+        it("first option (UI default) is 'Most Popular' / PopularityDesc", () => {
+            expect(options[0]).toEqual({
+                name: "Most Popular",
+                value: SortParamValue.PopularityDesc,
+            });
+        });
+
         it("'Most Active' maps to ActivityDesc", () => {
             const opt = options.find((o) => o.name === "Most Active");
             expect(opt).toBeDefined();
