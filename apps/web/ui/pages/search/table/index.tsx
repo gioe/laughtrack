@@ -23,7 +23,7 @@ const ShowTable = ({
                 shows.map((show) => {
                     return (
                         <ShowCard
-                            key={`${show.name}-${show.id}`}
+                            key={show.id}
                             show={show}
                             hideClubName={hideClubName}
                         />

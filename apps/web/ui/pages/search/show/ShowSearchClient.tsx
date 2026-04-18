@@ -47,6 +47,7 @@ const ShowSearchClient = ({
         initialData,
         initialTotal,
         initialZipCapTriggered,
+        getItemKey: (s) => s.id,
     });
 
     const broadenHref = (() => {

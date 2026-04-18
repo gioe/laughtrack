@@ -41,7 +41,7 @@ const ClubGrid = ({ clubs }: ClubGridProps) => {
                 >
                     {clubs.map((dto) => (
                         <motion.div
-                            key={dto.name}
+                            key={dto.id ?? dto.name}
                             variants={shouldAnimate ? cardVariants : undefined}
                         >
                             <ClubSearchCard club={dto} />

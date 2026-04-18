@@ -38,6 +38,7 @@ const ClubSearchClient = ({
         params,
         initialData,
         initialTotal,
+        getItemKey: (c) => c.id ?? -1,
     });
 
     return (
