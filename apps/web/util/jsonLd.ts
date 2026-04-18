@@ -37,7 +37,84 @@ export function buildClubJsonLd(club: ClubDTO): object {
         jsonLd.telephone = club.phone_number;
     }
 
+    if (
+        typeof club.description === "string" &&
+        club.description.trim() !== ""
+    ) {
+        jsonLd.description = club.description;
+    }
+
+    const openingHours = buildOpeningHoursSpecification(club.hours);
+    if (openingHours) {
+        jsonLd.openingHoursSpecification = openingHours;
+    }
+
     return jsonLd;
+}
+
+const DAY_OF_WEEK: Record<string, string> = {
+    monday: "Monday",
+    tuesday: "Tuesday",
+    wednesday: "Wednesday",
+    thursday: "Thursday",
+    friday: "Friday",
+    saturday: "Saturday",
+    sunday: "Sunday",
+};
+
+function to24Hour(h: number, m: number, meridiem: string): string | null {
+    if (h < 1 || h > 12 || m < 0 || m > 59) return null;
+    const mer = meridiem.toLowerCase();
+    let hh = h;
+    if (mer === "am") {
+        if (h === 12) hh = 0;
+    } else if (mer === "pm") {
+        if (h !== 12) hh = h + 12;
+    } else {
+        return null;
+    }
+    return `${String(hh).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+function parseHoursRange(
+    raw: string,
+): { opens: string; closes: string } | null {
+    const match = raw
+        .trim()
+        .match(
+            /^(\d{1,2})(?::(\d{2}))?\s*(AM|PM|am|pm)\s*[-–—]\s*(\d{1,2})(?::(\d{2}))?\s*(AM|PM|am|pm)$/,
+        );
+    if (!match) return null;
+    const [, h1, m1 = "00", mer1, h2, m2 = "00", mer2] = match;
+    const opens = to24Hour(parseInt(h1, 10), parseInt(m1, 10), mer1);
+    const closes = to24Hour(parseInt(h2, 10), parseInt(m2, 10), mer2);
+    if (!opens || !closes) return null;
+    return { opens, closes };
+}
+
+export function buildOpeningHoursSpecification(
+    hours: unknown,
+): object[] | undefined {
+    if (!hours || typeof hours !== "object" || Array.isArray(hours)) {
+        return undefined;
+    }
+    const entries: object[] = [];
+    for (const [day, value] of Object.entries(
+        hours as Record<string, unknown>,
+    )) {
+        if (typeof value !== "string" || value.trim() === "") continue;
+        const canonicalDay = DAY_OF_WEEK[day.toLowerCase()];
+        if (!canonicalDay) continue;
+        const parsed = parseHoursRange(value);
+        if (!parsed) continue;
+        entries.push({
+            "@type": "OpeningHoursSpecification",
+            dayOfWeek: canonicalDay,
+            opens: parsed.opens,
+            closes: parsed.closes,
+        });
+    }
+    return entries.length > 0 ? entries : undefined;
 }
 
 export function buildComedianJsonLd(comedian: ComedianDTO): object {
