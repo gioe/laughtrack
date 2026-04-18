@@ -87,15 +87,11 @@ const FilterBar = ({
 
     // Comedian search exposes rich modal filters (zip, dates, min-shows) that
     // aren't chip-driven — count them so the modal button badge stays accurate.
-    const hasZipFilter = Boolean(getTypedParam("zip"));
-    const hasDateFilter = Boolean(
-        getTypedParam("fromDate") || getTypedParam("toDate"),
-    );
-    const minTotalShowsFilter = Number(getTypedParam("minTotalShows") ?? 0);
+    // Gated behind isComedianSearch so other variants don't pay the param reads.
     const advancedFilterCount = isComedianSearch
-        ? (hasZipFilter ? 1 : 0) +
-          (hasDateFilter ? 1 : 0) +
-          (minTotalShowsFilter > 0 ? 1 : 0)
+        ? (getTypedParam("zip") ? 1 : 0) +
+          (getTypedParam("fromDate") || getTypedParam("toDate") ? 1 : 0) +
+          ((getTypedParam("minTotalShows") ?? 0) > 0 ? 1 : 0)
         : 0;
     const filterButtonCount = activeFilters.length + advancedFilterCount;
     const showFilterButton = filterData.length > 0 || isComedianSearch;

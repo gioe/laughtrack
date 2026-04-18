@@ -549,5 +549,63 @@ describe("findComediansWithCount", () => {
             };
             expect(sortedCall?.values).toContain(10);
         });
+
+        it("threads zip + date predicates into both the EXISTS lineup check and the ORDER BY count subquery on the raw-SQL show_count branch", async () => {
+            mockCount.mockResolvedValue(1);
+            mockQueryRaw
+                .mockResolvedValueOnce([] as never) // deny list
+                .mockResolvedValueOnce([{ id: 1 }] as never); // sorted IDs
+            mockFindMany.mockResolvedValue([makeComedianRow(1, 3)] as never);
+
+            const helper = makeHelper(
+                SortParamValue.ShowCountDesc,
+                undefined,
+                undefined,
+                undefined,
+                false,
+                {
+                    zip: "10001",
+                    fromDate: "2026-05-01",
+                    toDate: "2026-05-31",
+                },
+            );
+            // Real Prisma shapes for the predicates the raw-SQL branch unpacks.
+            (
+                helper as unknown as { getZipCodeClause: () => unknown }
+            ).getZipCodeClause = () => ({
+                zipCode: { in: ["10001", "10002"] },
+            });
+            (
+                helper as unknown as { getDateClause: () => unknown }
+            ).getDateClause = () => ({
+                date: {
+                    gte: "2026-05-01T00:00:00Z",
+                    lte: "2026-05-31T23:59:59Z",
+                },
+            });
+
+            await findComediansWithCount(helper);
+
+            const sortedCall = mockQueryRaw.mock.calls[1]?.[0] as {
+                strings: string[];
+                values: unknown[];
+            };
+            const sql = sortedCall.strings.join(" ");
+            // Zip subquery joins clubs and IN-filters by zip_code; both the EXISTS
+            // and ORDER BY count subqueries reference cl."zip_code".
+            expect(sql).toContain('cl."zip_code"');
+            expect(sql).toContain('JOIN "clubs" cl ON s."club_id" = cl.id');
+            // The resolved zip strings flow through .values as parameters.
+            expect(sortedCall.values).toEqual(
+                expect.arrayContaining(["10001", "10002"]),
+            );
+            // Date bounds also flow through .values as Date objects.
+            const hasDateValue = sortedCall.values.some(
+                (v) =>
+                    v instanceof Date &&
+                    v.toISOString().startsWith("2026-05-01"),
+            );
+            expect(hasDateValue).toBe(true);
+        });
     });
 });

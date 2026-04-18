@@ -26,6 +26,12 @@ export const paramsContainsFilter = (
     return params.includes(filter);
 };
 
+// Upper bound for the comedian-search "Minimum total shows" stepper. Shared
+// between the URL-param validator and the modal UI so a manually-edited URL
+// (e.g. ?minTotalShows=999) can never round-trip past the value the +/- UI
+// can reach — keeping the two in sync was a TASK-1561 review finding.
+export const MIN_TOTAL_SHOWS_CEILING = 50;
+
 interface ParamConfig<T> {
     key: string;
     defaultValue: T;
@@ -176,6 +182,8 @@ export const paramConfigs: {
         },
         stringify: (value: number) => value.toString(),
         validate: (value: number) =>
-            Number.isFinite(value) && value >= 0 && value <= 1000,
+            Number.isFinite(value) &&
+            value >= 0 &&
+            value <= MIN_TOTAL_SHOWS_CEILING,
     },
 };
