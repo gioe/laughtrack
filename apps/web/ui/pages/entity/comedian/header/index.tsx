@@ -155,6 +155,18 @@ const ComedianDetailHeader: React.FC<ClubDetailHeaderProps> = ({
                 </AnimatePresence>
             </motion.div>
 
+            {/* Bio */}
+            {comedian.bio && (
+                <section className="px-6 pt-6">
+                    <div className="max-w-2xl">
+                        <h2 className="text-xl font-bold mb-2">About</h2>
+                        <p className="text-cedar whitespace-pre-line">
+                            {comedian.bio}
+                        </p>
+                    </div>
+                </section>
+            )}
+
             {/* Social Links */}
             <div className="p-6">
                 <SocialMediaColumn comedian={comedian} />

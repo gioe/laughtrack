@@ -22,6 +22,7 @@ export interface ComedianDTO {
     isAlias?: boolean;
     parentComedian?: ComedianDTO;
     lineupItems?: any[];
+    bio?: string | null;
 }
 
 export interface UpdateComedianDTO {

@@ -10,6 +10,7 @@ function buildComedianSelect() {
         id: true,
         uuid: true,
         name: true,
+        bio: true,
         linktree: true,
         instagramAccount: true,
         instagramFollowers: true,
@@ -83,6 +84,7 @@ export async function findComedianByName(
             uuid: comedianData.uuid,
             isFavorite: Boolean(comedianData.favoriteComedians?.length),
             show_count: comedianData.lineupItems.length,
+            bio: comedianData.bio,
             social_data: {
                 id: comedianData.id,
                 linktree: comedianData.linktree,
