@@ -25,5 +25,6 @@ export function toSearchParams(
         size: pick("size"),
         includeEmpty: pick("includeEmpty"),
         chain: pick("chain"),
+        minTotalShows: pick("minTotalShows"),
     };
 }

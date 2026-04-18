@@ -47,6 +47,7 @@ export type ParamTypeMap = {
     filters: string;
     includeEmpty: boolean;
     chain: string;
+    minTotalShows: number;
 };
 
 // Centralized parameter configuration
@@ -165,5 +166,16 @@ export const paramConfigs: {
         parse: (value: string | null) => value ?? "",
         stringify: (value: string) => value,
         validate: (value: string) => value.length > 0 || value === "",
+    },
+    minTotalShows: {
+        key: QueryProperty.MinTotalShows,
+        defaultValue: 0,
+        parse: (value: string | null) => {
+            const parsed = parseInt(value ?? "0", 10);
+            return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+        },
+        stringify: (value: number) => value.toString(),
+        validate: (value: number) =>
+            Number.isFinite(value) && value >= 0 && value <= 1000,
     },
 };
