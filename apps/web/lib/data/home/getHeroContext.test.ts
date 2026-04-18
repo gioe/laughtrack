@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mockHeadersGet = vi.fn<(key: string) => string | null>();
+const mockHeadersFn = vi.fn(async () => ({ get: mockHeadersGet }));
 
 vi.mock("next/headers", () => ({
-    headers: vi.fn(async () => ({ get: mockHeadersGet })),
+    headers: () => mockHeadersFn(),
 }));
 
 vi.mock("zipcodes", () => ({
@@ -27,11 +28,13 @@ function withHeaders(map: Record<string, string | null | undefined>): void {
 beforeEach(() => {
     vi.clearAllMocks();
     mockHeadersGet.mockReturnValue(null);
+    mockHeadersFn.mockImplementation(async () => ({ get: mockHeadersGet }));
 });
 
 describe("getHeroContext", () => {
     it("prefers session zip and looks up city/state", async () => {
         withHeaders({
+            "x-vercel-ip-country": "US",
             "x-vercel-ip-postal-code": "10001",
             "x-vercel-ip-city": "Los Angeles",
             "x-vercel-ip-country-region": "CA",
@@ -55,6 +58,7 @@ describe("getHeroContext", () => {
 
     it("falls back to geo-IP zip when session zip is absent", async () => {
         withHeaders({
+            "x-vercel-ip-country": "US",
             "x-vercel-ip-postal-code": "94103",
             "x-vercel-ip-city": "San Francisco",
             "x-vercel-ip-country-region": "CA",
@@ -77,6 +81,7 @@ describe("getHeroContext", () => {
 
     it("uses geo-IP city when zip lookup returns nothing", async () => {
         withHeaders({
+            "x-vercel-ip-country": "US",
             "x-vercel-ip-postal-code": "00000",
             "x-vercel-ip-city": "Anytown",
             "x-vercel-ip-country-region": "xx",
@@ -103,6 +108,7 @@ describe("getHeroContext", () => {
 
     it("decodes URI-encoded geo-IP city headers", async () => {
         withHeaders({
+            "x-vercel-ip-country": "US",
             "x-vercel-ip-postal-code": null,
             "x-vercel-ip-city": "New%20York",
             "x-vercel-ip-country-region": "NY",
@@ -117,6 +123,7 @@ describe("getHeroContext", () => {
 
     it("rejects malformed session zip and falls through to geo-IP", async () => {
         withHeaders({
+            "x-vercel-ip-country": "US",
             "x-vercel-ip-postal-code": "30301",
             "x-vercel-ip-city": "Atlanta",
             "x-vercel-ip-country-region": "GA",
@@ -150,5 +157,61 @@ describe("getHeroContext", () => {
 
         expect(ctx.zipCode).toBe("60601");
         expect(mockLookup).toHaveBeenCalledWith("60601");
+    });
+
+    it("ignores non-US geo-IP headers (e.g., German 5-digit postal codes)", async () => {
+        withHeaders({
+            "x-vercel-ip-country": "DE",
+            "x-vercel-ip-postal-code": "10115",
+            "x-vercel-ip-city": "Berlin",
+            "x-vercel-ip-country-region": "BE",
+        });
+
+        const ctx = await getHeroContext(null);
+
+        expect(ctx).toEqual({ zipCode: null, city: null, state: null });
+        expect(mockLookup).not.toHaveBeenCalled();
+    });
+
+    it("drops malformed state codes (not 2 uppercase letters)", async () => {
+        withHeaders({
+            "x-vercel-ip-country": "US",
+            "x-vercel-ip-postal-code": null,
+            "x-vercel-ip-city": "Sacramento",
+            "x-vercel-ip-country-region": "California",
+        });
+
+        const ctx = await getHeroContext(null);
+
+        expect(ctx.city).toBe("Sacramento");
+        expect(ctx.state).toBe(null);
+    });
+
+    it("returns all-null when headers() throws (outside a request context)", async () => {
+        mockHeadersFn.mockImplementationOnce(async () => {
+            throw new Error("headers() called outside request scope");
+        });
+
+        const ctx = await getHeroContext(null);
+
+        expect(ctx).toEqual({ zipCode: null, city: null, state: null });
+    });
+
+    it("survives zipcodes.lookup throwing and falls back to geo-IP fields", async () => {
+        withHeaders({
+            "x-vercel-ip-country": "US",
+            "x-vercel-ip-postal-code": "02108",
+            "x-vercel-ip-city": "Boston",
+            "x-vercel-ip-country-region": "MA",
+        });
+        mockLookup.mockImplementation(() => {
+            throw new Error("zipcodes dataset corrupted");
+        });
+
+        const ctx = await getHeroContext(null);
+
+        expect(ctx.zipCode).toBe("02108");
+        expect(ctx.city).toBe("Boston");
+        expect(ctx.state).toBe("MA");
     });
 });

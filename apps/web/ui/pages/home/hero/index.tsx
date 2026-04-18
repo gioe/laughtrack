@@ -6,6 +6,7 @@ import { UserProfileInterface } from "@/app/api/profile/[id]/interface";
 import ShowSearchForm from "@/ui/components/params/search/pages/home";
 import CompactShowCard from "@/ui/components/cards/show/compact";
 import { ShowDTO } from "@/objects/class/show/show.interface";
+import { DEFAULT_HOME_RADIUS_MILES } from "@/util/constants/radiusConstants";
 
 interface HeroComponentProps {
     profile?: UserProfileInterface | null;
@@ -20,6 +21,16 @@ function buildHeadline(city: string | null, state: string | null): string {
     return `What's funny near ${locale}?`;
 }
 
+function buildSubtitle(city: string | null, hasLocalShows: boolean): string {
+    if (city && hasLocalShows) {
+        return `The next shows within ${DEFAULT_HOME_RADIUS_MILES} miles`;
+    }
+    if (city) {
+        return "No local shows found — try expanding your search below.";
+    }
+    return "Find live comedy shows, clubs, and comedians near you.";
+}
+
 const HeroComponent = ({
     profile,
     city = null,
@@ -28,12 +39,7 @@ const HeroComponent = ({
 }: HeroComponentProps) => {
     const hasLocalShows = heroShows.length > 0;
     const headline = buildHeadline(city, state);
-    const subtitle =
-        city && hasLocalShows
-            ? "The next shows within 5 miles"
-            : city
-              ? "No local shows found — try expanding your search below."
-              : "Find live comedy shows, clubs, and comedians near you.";
+    const subtitle = buildSubtitle(city, hasLocalShows);
 
     return (
         <section className="relative w-full min-h-[380px] sm:min-h-[600px] md:min-h-[700px] lg:min-h-[776px] overflow-hidden">

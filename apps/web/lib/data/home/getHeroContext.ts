@@ -40,16 +40,25 @@ export async function getHeroContext(
 
     // Vercel geo-IP headers are only populated on Vercel deployments.
     // In dev/non-Vercel environments they'll be absent and we fall back.
+    // Only trust US headers — the zipcodes dataset is US-only and non-US
+    // 5-digit postal codes (e.g., Germany) would produce misleading zip links.
     let geoZip: string | null = null;
     let geoCity: string | null = null;
     let geoState: string | null = null;
     try {
         const h = await headers();
-        const postal = decodeHeader(h.get("x-vercel-ip-postal-code"));
-        if (postal && /^\d{5}$/.test(postal)) geoZip = postal;
-        geoCity = decodeHeader(h.get("x-vercel-ip-city"));
-        const region = decodeHeader(h.get("x-vercel-ip-country-region"));
-        if (region) geoState = region.toUpperCase();
+        const country = decodeHeader(
+            h.get("x-vercel-ip-country"),
+        )?.toUpperCase();
+        if (country === "US") {
+            const postal = decodeHeader(h.get("x-vercel-ip-postal-code"));
+            if (postal && /^\d{5}$/.test(postal)) geoZip = postal;
+            geoCity = decodeHeader(h.get("x-vercel-ip-city"));
+            const region = decodeHeader(
+                h.get("x-vercel-ip-country-region"),
+            )?.toUpperCase();
+            if (region && /^[A-Z]{2}$/.test(region)) geoState = region;
+        }
     } catch {
         // headers() may throw outside a request context (e.g., during cache warmup)
     }
