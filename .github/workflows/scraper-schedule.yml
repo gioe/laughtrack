@@ -98,6 +98,20 @@ jobs:
           # popularity via lineups) in a single process.
           python -m scripts.core.update_popularity
 
+      - name: Backfill club description and hours
+        if: always()
+        env:
+          DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+          DATABASE_USER: ${{ secrets.DATABASE_USER }}
+          DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
+          DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+          DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
+        run: |
+          # Fills description/hours for any visible club still missing either
+          # column.  Only re-fetches clubs that need an update, so nightly
+          # re-runs are cheap once the backfill stabilises.
+          python -m scripts.core.update_club_enrichment
+
       - name: Send comedian arrival notifications
         if: always()
         env:

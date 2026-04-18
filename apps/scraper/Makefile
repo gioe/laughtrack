@@ -93,7 +93,7 @@ setup-venv:
 		echo "✅ Virtual environment already exists at $(VENV_DIR)/"; \
 	fi
 
-.PHONY: test test-all test-venues test-core test-infrastructure test-utils test-critical help help-full help-install help-test help-lint hdiscover help-clean help-linting help-testing help-scraping help-setup help-analysis help-viz help-maintenance help-update help-updates help-workflows help-discovery help-info help-cleanup scrape-all scrape-club scrape-club-id diagnose-club scrape-interactive scrape-types list-scrapers list-clubs update-popularity update-comedian-stats sync-club-images audit-cdn-images migrate migrate-dry-run dashboard visualize-metrics scraper-status daily-scrape full-maintenance install install-dev install-optional seatengine-api-tool seatengine-check seatengine-audit clean lint lint-check format format-check lint-fix lint-fix-imports lint-fix-whitespace check-venv setup-venv arch-lint run-script lookup-bandsintown-ids discover-venues
+.PHONY: test test-all test-venues test-core test-infrastructure test-utils test-critical help help-full help-install help-test help-lint hdiscover help-clean help-linting help-testing help-scraping help-setup help-analysis help-viz help-maintenance help-update help-updates help-workflows help-discovery help-info help-cleanup scrape-all scrape-club scrape-club-id diagnose-club scrape-interactive scrape-types list-scrapers list-clubs update-popularity update-club-enrichment update-comedian-stats sync-club-images audit-cdn-images migrate migrate-dry-run dashboard visualize-metrics scraper-status daily-scrape full-maintenance install install-dev install-optional seatengine-api-tool seatengine-check seatengine-audit clean lint lint-check format format-check lint-fix lint-fix-imports lint-fix-whitespace check-venv setup-venv arch-lint run-script lookup-bandsintown-ids discover-venues
 
 # =============================================================================
 # HELP & DOCUMENTATION
@@ -770,6 +770,12 @@ update-popularity:
 	@echo "⭐ Updating popularity scores..."
 	@echo "   → Recalculating venue/show rankings based on recent performance data"
 	$(activate_venv) $(PYTHON) scripts/core/update_popularity.py
+
+# Update club enrichment (description + hours) - fetch each club's website and
+# extract schema.org / meta data.  Safe to re-run nightly; only fills NULLs.
+update-club-enrichment:
+	@echo "ℹ️  Updating club description/hours from website schema.org/meta data..."
+	$(activate_venv) $(RUN_ENV) $(PYTHON) -m scripts.core.update_club_enrichment $(ARGS)
 
 # Update comedian statistics - refresh follower counts and performance metrics
 update-comedian-stats:
