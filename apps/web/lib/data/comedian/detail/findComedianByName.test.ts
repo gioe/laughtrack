@@ -31,6 +31,7 @@ function makeComedianRow(
         id: number;
         uuid: string;
         name: string;
+        bio: string | null;
         linktree: string | null;
         instagramAccount: string | null;
         instagramFollowers: number | null;
@@ -60,6 +61,7 @@ function makeComedianRow(
         id: 1,
         uuid: "uuid-1",
         name: "Alice Smith",
+        bio: null,
         linktree: null,
         instagramAccount: "@alice",
         instagramFollowers: 5000,

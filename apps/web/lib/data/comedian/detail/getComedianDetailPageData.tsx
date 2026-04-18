@@ -1,5 +1,6 @@
 import { findShowsWithCount } from "../../show/search/findShowsWithCount";
 import { findComedianByName } from "./findComedianByName";
+import { findPastShowsForComedian } from "./findPastShowsForComedian";
 import { Prisma } from "@prisma/client";
 import { getFilters } from "../../filters/getFilters";
 import { EntityType } from "@/objects/enum";
@@ -13,16 +14,20 @@ export async function getComedianDetailPageData(
     try {
         const helper = new QueryHelper(requestData);
         helper.setComedianName();
-        const [comedianData, showsWithCount, filters] = await Promise.all([
-            findComedianByName(helper),
-            findShowsWithCount(helper),
-            getFilters(EntityType.Show, requestData.params.filters),
-        ]);
+        const [comedianData, showsWithCount, pastShows, filters] =
+            await Promise.all([
+                findComedianByName(helper),
+                findShowsWithCount(helper),
+                findPastShowsForComedian(helper),
+                getFilters(EntityType.Show, requestData.params.filters),
+            ]);
 
         return {
             data: comedianData,
             shows: showsWithCount.shows,
             total: showsWithCount.totalCount,
+            pastShows: pastShows.shows,
+            pastShowsTotal: pastShows.totalCount,
             filters,
         };
     } catch (error) {

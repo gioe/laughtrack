@@ -8,6 +8,7 @@ import { getComedianDetailPageData } from "@/lib/data/comedian/detail/getComedia
 import { ParameterizedRequestData } from "@/objects/interface";
 import { toSearchParams } from "@/util/search/toSearchParams";
 import ComedianDetailHeader from "@/ui/pages/entity/comedian/header";
+import PastShowsSection from "@/ui/pages/entity/comedian/pastShows";
 import FilterBar from "@/ui/pages/search/filterBar";
 import FilterModal from "@/ui/components/modals/filter";
 import { cookies } from "next/headers";
@@ -115,7 +116,7 @@ export default async function ComedianDetailsPage(props: {
         throw error;
     }
 
-    const { data, shows, total, filters } = result;
+    const { data, shows, total, pastShows, pastShowsTotal, filters } = result;
 
     const jsonLdData = [
         buildComedianJsonLd(data),
@@ -133,6 +134,7 @@ export default async function ComedianDetailsPage(props: {
                 filterData={filters}
             />
             <ShowTable shows={shows} />
+            <PastShowsSection shows={pastShows} total={pastShowsTotal} />
         </>
     );
 }
