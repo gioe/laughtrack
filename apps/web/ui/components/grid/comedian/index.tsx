@@ -47,7 +47,7 @@ const ComedianGrid = ({
                 >
                     {comedians.map((dto) => (
                         <motion.div
-                            key={dto.name}
+                            key={dto.id}
                             variants={shouldAnimate ? cardVariants : undefined}
                         >
                             <ComedianGridCard
