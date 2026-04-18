@@ -18,8 +18,10 @@ const FullScreenModal = ({
     const savedScrollY = useRef(0);
     const dialogRef = useRef<HTMLDivElement>(null);
 
+    // Tie the hook to `shouldRender` (not `isOpen`) so focus is restored when
+    // the modal actually unmounts — not mid close-animation.
     useDialogKeyboard({
-        isOpen: shouldRender && isOpen,
+        isOpen: shouldRender,
         onClose,
         containerRef: dialogRef,
     });

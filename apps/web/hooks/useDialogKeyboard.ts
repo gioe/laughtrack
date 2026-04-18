@@ -9,6 +9,10 @@ const FOCUSABLE_SELECTOR = [
     "[tabindex]:not([tabindex='-1'])",
 ].join(",");
 
+// `offsetParent !== null` catches `display:none` on the element or any
+// ancestor; it won't catch `visibility:hidden`. Dialog descendants in this
+// codebase use `display:none` (or mount/unmount) for hidden states, so the
+// check is sufficient here.
 function getFocusable(container: HTMLElement): HTMLElement[] {
     return Array.from(
         container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
@@ -62,7 +66,9 @@ export function useDialogKeyboard({
 
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === "Escape") {
-                e.stopPropagation();
+                // Use stopImmediatePropagation so a stacked dialog (e.g.
+                // LoginModal over the calendar sheet) only closes the top one.
+                e.stopImmediatePropagation();
                 onCloseRef.current();
                 return;
             }
