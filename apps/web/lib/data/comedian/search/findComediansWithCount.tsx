@@ -127,15 +127,43 @@ export async function findComediansWithCount(
                 ? [{ name: { notIn: deniedNames } }]
                 : []),
         ];
+
+        const hasZipFilter = Boolean(helper.params.zip);
+        const hasDateFilter = Boolean(
+            helper.params.fromDate || helper.params.toDate,
+        );
+        const needsLineupItemsFilter =
+            !includeEmpty || hasZipFilter || hasDateFilter;
+
+        // Filter shows by date range (or implicit upcoming-only when !includeEmpty)
+        // and optionally restrict to clubs in the zip-code radius.
+        const showFilter: Prisma.ShowWhereInput = {};
+        if (hasDateFilter || !includeEmpty) {
+            Object.assign(showFilter, helper.getDateClause());
+        }
+        if (hasZipFilter) {
+            showFilter.club = helper.getZipCodeClause();
+        }
+
+        const lineupItemsClause: Prisma.ComedianWhereInput =
+            needsLineupItemsFilter
+                ? { lineupItems: { some: { show: showFilter } } }
+                : {};
+
+        const minTotalShowsValue = Number(helper.params.minTotalShows) || 0;
+        const minTotalShowsClause: Prisma.ComedianWhereInput =
+            minTotalShowsValue > 0
+                ? { totalShows: { gte: minTotalShowsValue } }
+                : {};
+
         const whereClause: Prisma.ComedianWhereInput = {
             ...helper.getComedianFiltersClause(),
             parentComedian: {
                 is: null,
             },
             AND: nameFilters,
-            ...(!includeEmpty && {
-                lineupItems: { some: { show: { date: { gt: new Date() } } } },
-            }),
+            ...lineupItemsClause,
+            ...minTotalShowsClause,
         };
 
         const upcomingCountSelect = buildUpcomingCountSelect();
@@ -175,13 +203,63 @@ export async function findComediansWithCount(
                 );
             }
 
-            if (!includeEmpty) {
-                whereConditions.push(
-                    Prisma.sql`EXISTS (
+            // Build the per-show date+zip filter so the EXISTS lineup check
+            // and the ORDER BY count subquery apply the same predicates.
+            const showWhereParts: Prisma.Sql[] = [];
+            if (hasDateFilter || !includeEmpty) {
+                const dateBounds = (
+                    showFilter as { date?: Prisma.DateTimeFilter }
+                ).date;
+                const gte = dateBounds?.gte;
+                const lte = dateBounds?.lte;
+                if (gte !== undefined) {
+                    showWhereParts.push(
+                        Prisma.sql`s.date >= ${new Date(gte as string | Date)}`,
+                    );
+                }
+                if (lte !== undefined) {
+                    showWhereParts.push(
+                        Prisma.sql`s.date <= ${new Date(lte as string | Date)}`,
+                    );
+                }
+            }
+            const zipFilter = (
+                showFilter.club as {
+                    zipCode?: { in?: string[]; equals?: string };
+                }
+            )?.zipCode;
+            const zipList: string[] | null = zipFilter
+                ? Array.isArray(zipFilter.in)
+                    ? zipFilter.in
+                    : typeof zipFilter.equals === "string"
+                      ? [zipFilter.equals]
+                      : null
+                : null;
+            if (zipList && zipList.length > 0) {
+                showWhereParts.push(
+                    Prisma.sql`cl."zip_code" IN (${Prisma.join(zipList)})`,
+                );
+            } else if (zipList && zipList.length === 0) {
+                // Resolved to no zips (city not found) — match nothing.
+                showWhereParts.push(Prisma.sql`FALSE`);
+            }
+
+            const lineupExistsClause =
+                showWhereParts.length > 0
+                    ? Prisma.sql`EXISTS (
                         SELECT 1 FROM "lineup_items" li
                         JOIN "shows" s ON li."show_id" = s.id
-                        WHERE li."comedian_id" = c.uuid AND s.date > NOW()
-                    )`,
+                        ${zipList ? Prisma.sql`JOIN "clubs" cl ON s."club_id" = cl.id` : Prisma.sql``}
+                        WHERE li."comedian_id" = c.uuid AND ${Prisma.join(showWhereParts, " AND ")}
+                    )`
+                    : null;
+            if (lineupExistsClause) {
+                whereConditions.push(lineupExistsClause);
+            }
+
+            if (minTotalShowsValue > 0) {
+                whereConditions.push(
+                    Prisma.sql`c."total_shows" >= ${minTotalShowsValue}`,
                 );
             }
 
@@ -203,6 +281,17 @@ export async function findComediansWithCount(
                     ? Prisma.sql`ASC`
                     : Prisma.sql`DESC`;
 
+            // ORDER BY counts the same scoped show set used by the lineup-exists clause
+            // so a comedian filtered to a zip/date range is ranked by their matching count,
+            // not their global upcoming count.
+            const orderCountWhere =
+                showWhereParts.length > 0
+                    ? Prisma.sql`AND ${Prisma.join(showWhereParts, " AND ")}`
+                    : Prisma.sql`AND s.date > NOW()`;
+            const orderCountJoin = zipList
+                ? Prisma.sql`JOIN "clubs" cl ON s."club_id" = cl.id`
+                : Prisma.sql``;
+
             const sortedRows = await db.$queryRaw<{ id: number }[]>(
                 Prisma.sql`
                     SELECT c.id
@@ -211,7 +300,8 @@ export async function findComediansWithCount(
                     ORDER BY (
                         SELECT COUNT(*) FROM "lineup_items" li
                         JOIN "shows" s ON li."show_id" = s.id
-                        WHERE li."comedian_id" = c.uuid AND s.date > NOW()
+                        ${orderCountJoin}
+                        WHERE li."comedian_id" = c.uuid ${orderCountWhere}
                     ) ${sortDir}, c.name ASC
                     LIMIT ${take} OFFSET ${skip}
                 `,

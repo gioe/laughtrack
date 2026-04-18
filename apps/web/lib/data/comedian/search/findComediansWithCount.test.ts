@@ -34,13 +34,18 @@ function makeHelper(
     filters?: string,
     profileId?: string,
     isAdmin = false,
+    extraParams: Record<string, unknown> = {},
 ): QueryHelper {
     return {
-        params: { sort, comedian, filters },
+        params: { sort, comedian, filters, ...extraParams },
         isAdmin,
         getProfileId: () => profileId,
         getComedianNameClause: () => ({}),
         getComedianFiltersClause: () => ({}),
+        // Mirrors the real method's "no fromDate → upcoming-only" default so
+        // tests don't need to thread date params through every makeHelper call.
+        getDateClause: () => ({ date: { gte: new Date().toISOString() } }),
+        getZipCodeClause: () => ({}),
         getGenericClauses: (total: number) => ({
             orderBy: [{ popularity: "desc" as const }],
             take: Math.min(10, total),
