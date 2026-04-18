@@ -7,6 +7,7 @@ import { getComediansByZip } from "@/lib/data/home/getComediansByZip";
 import { getShowsTonight } from "@/lib/data/home/getShowsTonight";
 import { getShowsNearZip } from "@/lib/data/home/getShowsNearZip";
 import { getTrendingShowsThisWeek } from "@/lib/data/home/getTrendingShowsThisWeek";
+import { getHeroContext } from "@/lib/data/home/getHeroContext";
 import { DEFAULT_HOME_RADIUS_MILES } from "@/util/constants/radiusConstants";
 import { Prisma } from "@prisma/client";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
@@ -58,7 +59,8 @@ const getCachedHomePageData = unstable_cache(
 
 export default async function HomePage() {
     const session = await auth();
-    const zipCode = session?.profile?.zipCode ?? null;
+    const heroContext = await getHeroContext(session?.profile?.zipCode ?? null);
+    const zipCode = heroContext.zipCode;
 
     const now = new Date();
     const todayStr = now.toISOString().split("T")[0];
@@ -88,10 +90,18 @@ export default async function HomePage() {
         getTrendingShowsThisWeek().catch(() => []),
     ]);
 
+    const heroShows = showsNearYou.slice(0, 3);
+    const remainingNearYou = showsNearYou.slice(3);
+
     return (
         <main id="main-content" className="min-h-screen w-full">
             <JsonLd data={buildWebSiteJsonLd()} />
-            <HeroComponent profile={session?.profile} />
+            <HeroComponent
+                profile={session?.profile}
+                city={heroContext.city}
+                state={heroContext.state}
+                heroShows={heroShows}
+            />
             <section className="w-full bg-white">
                 <TrendingComedianGrid comedians={comedians} />
             </section>
@@ -113,12 +123,12 @@ export default async function HomePage() {
                     />
                 </section>
             )}
-            {zipCode && showsNearYou.length > 0 && (
+            {zipCode && remainingNearYou.length > 0 && (
                 <section className="w-full bg-coconut-cream">
                     <ShowDiscoverySection
-                        title="Near You"
+                        title="More Near You"
                         subtitle="Upcoming shows at clubs in your area"
-                        shows={showsNearYou}
+                        shows={remainingNearYou}
                         seeAllHref={`/show/search?zip=${zipCode}&distance=${DEFAULT_HOME_RADIUS_MILES}`}
                     />
                 </section>
