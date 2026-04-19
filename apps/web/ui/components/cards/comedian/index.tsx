@@ -1,10 +1,9 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { useMotionProps } from "@/hooks";
 import { Comedian } from "@/objects/class/comedian/Comedian";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import ComedianHeadshot from "../../image/comedian";
+import EntityCard from "../entity";
 
 interface ComedianGridCardProps {
     entity: ComedianDTO;
@@ -15,12 +14,11 @@ const ComedianGridCard: React.FC<ComedianGridCardProps> = ({
     entity,
     isTrending,
 }) => {
-    const { mp } = useMotionProps();
     const comedian = new Comedian(entity);
     return (
-        <motion.div
+        <EntityCard
+            chrome="none"
             className="relative h-full flex flex-col items-center"
-            whileHover={mp({ y: -4, transition: { duration: 0.15 } })}
         >
             <ComedianHeadshot
                 comedian={comedian}
@@ -50,7 +48,7 @@ const ComedianGridCard: React.FC<ComedianGridCardProps> = ({
                     </span>
                 </div>
             </div>
-        </motion.div>
+        </EntityCard>
     );
 };
 

@@ -1,12 +1,11 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { useMotionProps } from "@/hooks";
 import { Club } from "@/objects/class/club/Club";
 import { ClubDTO } from "@/objects/class/club/club.interface";
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import EntityCard from "../../entity";
 
 const PLACEHOLDER = "/placeholders/club-placeholder.svg";
 
@@ -15,15 +14,11 @@ interface PopularClubCardProps {
 }
 
 const PopularClubCard: React.FC<PopularClubCardProps> = ({ entity }) => {
-    const { mp } = useMotionProps();
     const club = new Club(entity);
     const [error, setError] = useState(false);
 
     return (
-        <motion.div
-            className="w-full"
-            whileHover={mp({ y: -4, transition: { duration: 0.15 } })}
-        >
+        <EntityCard chrome="none" className="w-full">
             <div className="relative w-full aspect-square rounded-xl overflow-hidden mb-4 hover:cursor-pointer bg-coconut-cream p-3">
                 <Link
                     href={`/club/${club.name}`}
@@ -50,7 +45,7 @@ const PopularClubCard: React.FC<PopularClubCardProps> = ({ entity }) => {
                     {club.activeComedianCount} active comedians
                 </p>
             </div>
-        </motion.div>
+        </EntityCard>
     );
 };
 

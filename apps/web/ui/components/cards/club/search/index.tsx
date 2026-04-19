@@ -1,13 +1,12 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { MapPin } from "lucide-react";
-import { useMotionProps } from "@/hooks";
 import { Club } from "@/objects/class/club/Club";
 import { ClubDTO } from "@/objects/class/club/club.interface";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import EntityCard from "../../entity";
 
 const PLACEHOLDER = "/placeholders/club-placeholder.svg";
 
@@ -16,7 +15,6 @@ interface ClubSearchCardProps {
 }
 
 const ClubSearchCard: React.FC<ClubSearchCardProps> = ({ club }) => {
-    const { mp } = useMotionProps();
     const parsedClub = new Club(club);
     const [error, setError] = useState(false);
     const locationLabel =
@@ -25,10 +23,7 @@ const ClubSearchCard: React.FC<ClubSearchCardProps> = ({ club }) => {
             : parsedClub.city || parsedClub.address;
 
     return (
-        <motion.div
-            className="bg-gradient-to-b from-white to-coconut-cream/60 rounded-xl overflow-hidden pb-4 px-4 h-full shadow-sm border-b-2 border-transparent transition-all duration-300 hover:shadow-lg hover:border-copper"
-            whileHover={mp({ y: -4, transition: { duration: 0.15 } })}
-        >
+        <EntityCard chrome="coconut-hover" className="pb-4 px-4 h-full">
             <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-coconut-cream p-3">
                 <Link
                     href={`/club/${parsedClub.name}`}
@@ -74,7 +69,7 @@ const ClubSearchCard: React.FC<ClubSearchCardProps> = ({ club }) => {
                     </p>
                 )}
             </div>
-        </motion.div>
+        </EntityCard>
     );
 };
 
