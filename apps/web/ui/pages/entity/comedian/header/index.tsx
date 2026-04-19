@@ -1,21 +1,29 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Heart, Sparkles } from "lucide-react";
+import { Heart, Sparkles, Calendar, Users } from "lucide-react";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { Comedian } from "@/objects/class/comedian/Comedian";
-import SocialMediaColumn from "../social";
 import { useFavorite } from "@/hooks/useFavorite";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMotionProps } from "@/hooks";
 import Image from "next/image";
 import ComedianAvatarFallback from "@/ui/components/image/comedian/fallback";
+import InstagramIcon from "@/ui/components/icons/InstagramIcon";
+import TikTokIcon from "@/ui/components/icons/TikTokIcon";
+import YouTubeIcon from "@/ui/components/icons/YouTubeIcon";
+import { Globe } from "lucide-react";
 
-interface ClubDetailHeaderProps {
+interface ComedianDetailHeaderProps {
     comedian: ComedianDTO;
 }
 
-const ComedianDetailHeader: React.FC<ClubDetailHeaderProps> = ({
+const compactNumber = new Intl.NumberFormat("en-US", {
+    notation: "compact",
+    maximumFractionDigits: 1,
+});
+
+const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
     comedian,
 }) => {
     const { mv, mp, mt, prefersReducedMotion } = useMotionProps();
@@ -31,6 +39,7 @@ const ComedianDetailHeader: React.FC<ClubDetailHeaderProps> = ({
     }, [comedian.imageUrl]);
 
     const parsedComedian = new Comedian(comedian);
+    const social = parsedComedian.socialData;
 
     const { isFavorite, handleFavoriteClick } = useFavorite({
         initialState: parsedComedian.isFavorite ?? false,
@@ -47,92 +56,245 @@ const ComedianDetailHeader: React.FC<ClubDetailHeaderProps> = ({
 
     const showImage = !error && !!comedian.imageUrl;
 
+    const totalFollowers =
+        (social?.instagram.following ?? 0) +
+        (social?.tiktok.following ?? 0) +
+        (social?.youtube.following ?? 0);
+
+    const socialLinks = [
+        {
+            platform: "Instagram",
+            account: social?.instagram.account,
+            href: `https://instagram.com/${social?.instagram.account}`,
+            Icon: InstagramIcon,
+        },
+        {
+            platform: "TikTok",
+            account: social?.tiktok.account,
+            href: `https://tiktok.com/@${social?.tiktok.account}`,
+            Icon: TikTokIcon,
+        },
+        {
+            platform: "YouTube",
+            account: social?.youtube.account,
+            href: `https://youtube.com/${social?.youtube.account}`,
+            Icon: YouTubeIcon,
+        },
+        {
+            platform: "Website",
+            account: social?.website,
+            href: social?.website
+                ? social.website.startsWith("http")
+                    ? social.website
+                    : `https://${social.website}`
+                : "#",
+            Icon: Globe,
+        },
+    ].filter((link) => Boolean(link.account));
+
     return (
-        <div className="max-w-7xl mx-auto">
-            {/* Hero Image Section */}
+        <section className="relative w-full overflow-hidden bg-cedar">
+            {/* Blurred backdrop (uses headshot when present, else warm gradient) */}
+            <div className="absolute inset-0">
+                {showImage ? (
+                    <>
+                        <Image
+                            src={comedian.imageUrl}
+                            alt=""
+                            aria-hidden="true"
+                            fill
+                            className="object-cover object-center scale-110 blur-2xl opacity-60"
+                            sizes="100vw"
+                            priority
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-br from-cedar/80 via-cedar/70 to-paarl/50" />
+                    </>
+                ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-cedar via-paarl/40 to-cedar" />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+            </div>
+
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={mt({ duration: 0.4 })}
-                className="relative w-full h-60 sm:h-72 md:h-96 lg:h-96 xl:h-[28rem] overflow-hidden rounded-xl"
+                className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 md:py-12 lg:py-14"
             >
-                {/* Gradient fallback background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-slate-600 via-slate-800 to-slate-900" />
-
-                {/* Hero image or silhouette + monogram fallback */}
-                {showImage ? (
-                    <>
-                        <Image
-                            ref={imageRef}
-                            src={comedian.imageUrl}
-                            alt={parsedComedian.name}
-                            fill
-                            className={`object-cover object-top transition-opacity duration-500 ${
-                                imageLoaded ? "opacity-100" : "opacity-0"
+                {/* Favorite button — pinned to top-right of the hero */}
+                <motion.div
+                    whileHover={mp({ scale: 1.1 })}
+                    whileTap={mp({ scale: 0.9 })}
+                    className="absolute top-4 right-4 sm:top-6 sm:right-6"
+                >
+                    <button
+                        onClick={handleFavoriteWithAnimation}
+                        aria-label={
+                            isFavorite
+                                ? "Remove from favorites"
+                                : "Add to favorites"
+                        }
+                        aria-pressed={isFavorite}
+                        className="p-3 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:shadow-xl transition-shadow"
+                    >
+                        <Heart
+                            aria-hidden="true"
+                            className={`w-6 h-6 ${
+                                isFavorite
+                                    ? "text-red-500 fill-current"
+                                    : "text-gray-700"
                             }`}
-                            onError={() => setError(true)}
-                            onLoad={() => setImageLoaded(true)}
-                            priority
-                            sizes="(max-width: 768px) 100vw, 1280px"
                         />
-                        {/* Skeleton pulse during image load */}
-                        {!imageLoaded && (
-                            <div
-                                className={`absolute inset-0 bg-slate-700${!prefersReducedMotion ? " animate-pulse" : ""}`}
-                            />
-                        )}
-                        {/* Overlay gradient — only when image is present */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
-                    </>
-                ) : (
-                    <div className="absolute inset-0">
-                        <ComedianAvatarFallback
-                            name={parsedComedian.name}
-                            variant="hero"
-                        />
-                        {/* Overlay gradient so the name stays readable */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-                    </div>
-                )}
+                    </button>
+                </motion.div>
 
-                {/* Name + Favorite button overlaid at bottom */}
-                <div className="absolute bottom-0 left-0 right-0 p-6 flex items-end justify-between">
-                    <motion.h1
+                <div className="flex flex-col md:flex-row lg:flex-row items-center md:items-stretch lg:items-stretch gap-6 md:gap-8 lg:gap-10">
+                    {/* Headshot */}
+                    <motion.div
                         initial={{ opacity: 0, y: mv(20) }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={mt({ duration: 0.3, delay: mv(0.1) })}
-                        className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg"
+                        transition={mt({ duration: 0.4 })}
+                        className="relative flex-shrink-0 w-44 h-44 sm:w-56 sm:h-56 md:w-64 md:h-64 lg:w-72 lg:h-72 rounded-2xl overflow-hidden ring-4 ring-white/20 shadow-2xl"
                     >
-                        {parsedComedian.name}
-                    </motion.h1>
-
-                    <motion.div
-                        whileHover={mp({ scale: 1.1 })}
-                        whileTap={mp({ scale: 0.9 })}
-                    >
-                        <button
-                            onClick={handleFavoriteWithAnimation}
-                            aria-label={
-                                isFavorite
-                                    ? "Remove from favorites"
-                                    : "Add to favorites"
-                            }
-                            aria-pressed={isFavorite}
-                            className="p-3 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:shadow-xl transition-shadow"
-                        >
-                            <Heart
-                                aria-hidden="true"
-                                className={`w-6 h-6 ${
-                                    isFavorite
-                                        ? "text-red-500 fill-current"
-                                        : "text-gray-600"
-                                }`}
-                            />
-                        </button>
+                        {showImage ? (
+                            <>
+                                <div className="absolute inset-0 bg-gradient-to-br from-slate-600 via-slate-800 to-slate-900" />
+                                <Image
+                                    ref={imageRef}
+                                    src={comedian.imageUrl}
+                                    alt={parsedComedian.name}
+                                    fill
+                                    className={`object-cover object-top transition-opacity duration-500 ${
+                                        imageLoaded
+                                            ? "opacity-100"
+                                            : "opacity-0"
+                                    }`}
+                                    onError={() => setError(true)}
+                                    onLoad={() => setImageLoaded(true)}
+                                    priority
+                                    sizes="(max-width: 768px) 240px, 288px"
+                                />
+                                {!imageLoaded && (
+                                    <div
+                                        className={`absolute inset-0 bg-slate-700${!prefersReducedMotion ? " animate-pulse" : ""}`}
+                                    />
+                                )}
+                            </>
+                        ) : (
+                            <div className="absolute inset-0">
+                                <ComedianAvatarFallback
+                                    name={parsedComedian.name}
+                                    variant="hero"
+                                />
+                            </div>
+                        )}
                     </motion.div>
+
+                    {/* Info column */}
+                    <div className="flex-1 min-w-0 flex flex-col justify-center text-center md:text-left lg:text-left">
+                        <motion.h1
+                            initial={{ opacity: 0, y: mv(20) }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={mt({ duration: 0.3, delay: mv(0.05) })}
+                            className="text-h1 sm:text-display md:text-display lg:text-hero font-chivo font-bold text-white drop-shadow-md leading-tight"
+                        >
+                            {parsedComedian.name}
+                        </motion.h1>
+
+                        {/* Stats chips */}
+                        {(comedian.show_count > 0 || totalFollowers > 0) && (
+                            <motion.ul
+                                initial={{ opacity: 0, y: mv(10) }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={mt({
+                                    duration: 0.3,
+                                    delay: mv(0.1),
+                                })}
+                                className="mt-3 flex flex-wrap justify-center md:justify-start lg:justify-start gap-2"
+                            >
+                                {comedian.show_count > 0 && (
+                                    <li className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-sm border border-white/20 px-3 py-1 text-caption font-dmSans text-white">
+                                        <Calendar
+                                            className="w-3.5 h-3.5"
+                                            aria-hidden="true"
+                                        />
+                                        {comedian.show_count.toLocaleString()}{" "}
+                                        upcoming{" "}
+                                        {comedian.show_count === 1
+                                            ? "show"
+                                            : "shows"}
+                                    </li>
+                                )}
+                                {totalFollowers > 0 && (
+                                    <li className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-sm border border-white/20 px-3 py-1 text-caption font-dmSans text-white">
+                                        <Users
+                                            className="w-3.5 h-3.5"
+                                            aria-hidden="true"
+                                        />
+                                        {compactNumber.format(totalFollowers)}{" "}
+                                        followers
+                                    </li>
+                                )}
+                            </motion.ul>
+                        )}
+
+                        {/* Bio */}
+                        {comedian.bio && (
+                            <motion.p
+                                initial={{ opacity: 0, y: mv(10) }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={mt({
+                                    duration: 0.3,
+                                    delay: mv(0.15),
+                                })}
+                                className="mt-4 text-lead font-dmSans text-white/90 whitespace-pre-line max-w-2xl mx-auto md:mx-0 lg:mx-0"
+                            >
+                                {comedian.bio}
+                            </motion.p>
+                        )}
+
+                        {/* Social row */}
+                        {socialLinks.length > 0 && (
+                            <motion.ul
+                                initial={{ opacity: 0, y: mv(10) }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={mt({
+                                    duration: 0.3,
+                                    delay: mv(0.2),
+                                })}
+                                className="mt-5 flex flex-wrap justify-center md:justify-start lg:justify-start gap-2"
+                            >
+                                {socialLinks.map((link) => {
+                                    const { Icon, platform, account, href } =
+                                        link;
+                                    return (
+                                        <li key={platform}>
+                                            <a
+                                                href={href}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                aria-label={`${parsedComedian.name} on ${platform}`}
+                                                className="inline-flex items-center gap-2 rounded-full bg-white/95 hover:bg-white text-cedar px-3 py-1.5 text-caption font-dmSans font-medium shadow-sm transition-colors"
+                                            >
+                                                <Icon
+                                                    className="w-4 h-4"
+                                                    aria-hidden="true"
+                                                />
+                                                <span className="truncate max-w-[10rem]">
+                                                    {platform === "Website"
+                                                        ? platform
+                                                        : `@${account}`}
+                                                </span>
+                                            </a>
+                                        </li>
+                                    );
+                                })}
+                            </motion.ul>
+                        )}
+                    </div>
                 </div>
 
-                {/* Confetti burst — centered in hero */}
+                {/* Confetti burst */}
                 <AnimatePresence>
                     {showConfetti && (
                         <motion.div
@@ -154,24 +316,7 @@ const ComedianDetailHeader: React.FC<ClubDetailHeaderProps> = ({
                     )}
                 </AnimatePresence>
             </motion.div>
-
-            {/* Bio */}
-            {comedian.bio && (
-                <section className="px-6 pt-6">
-                    <div className="max-w-2xl">
-                        <h2 className="text-xl font-bold mb-2">About</h2>
-                        <p className="text-cedar whitespace-pre-line">
-                            {comedian.bio}
-                        </p>
-                    </div>
-                </section>
-            )}
-
-            {/* Social Links */}
-            <div className="p-6">
-                <SocialMediaColumn comedian={comedian} />
-            </div>
-        </div>
+        </section>
     );
 };
 
