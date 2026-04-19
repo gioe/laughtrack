@@ -1,17 +1,5 @@
-import { heroui } from "@heroui/theme";
 import type { Config } from "tailwindcss";
-import defaultColors from "tailwindcss/colors";
-import daisyui from "daisyui";
-import withMT from "@material-tailwind/react/utils/withMT";
 import forms from "@tailwindcss/forms";
-
-// @material-tailwind/react's withMT sets theme.colors (not theme.extend.colors)
-// to Material Design's palette, which wipes out Tailwind's default slate, zinc,
-// neutral, stone, sky, rose, etc. Re-add the ones we use via theme.extend.colors
-// below so classes like bg-slate-700 / from-slate-600 keep working.
-const restoredDefaultColors = {
-    slate: defaultColors.slate,
-};
 
 // Color definitions
 const baseColors = {
@@ -124,7 +112,6 @@ const config: Config = {
         "./ui/pages/**/*.{js,ts,jsx,tsx}",
         "./ui/util/**/*.{js,ts,jsx,tsx}",
         "./app/**/*.{js,ts,jsx,tsx}",
-        "./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}",
     ],
     theme: {
         screens: {
@@ -170,7 +157,6 @@ const config: Config = {
             },
             fontFamily: fonts,
             colors: {
-                ...restoredDefaultColors,
                 ...baseColors,
                 ...brandColors,
                 ...themeColors,
@@ -185,7 +171,7 @@ const config: Config = {
     variants: {
         fill: ["hover", "focus"],
     },
-    plugins: [daisyui, heroui(), forms],
+    plugins: [forms],
 };
 
-export default withMT(config);
+export default config;
