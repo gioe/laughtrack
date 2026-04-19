@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { useMotionProps } from "@/hooks";
 import { FullRoundedButton } from "@/ui/components/button/rounded/full";
@@ -51,9 +52,14 @@ const ShowCard: React.FC<ShowCardProps> = ({
         seenShowIds.add(show.id);
     }, [show.id]);
 
+    const detailHref = `/show/${show.id}`;
+    const detailLabel = parsedShow.name
+        ? `View details for ${parsedShow.name}`
+        : `View details for show at ${parsedShow.clubName ?? "comedy club"}`;
+
     return (
-        <motion.div
-            className="p-4 sm:p-6 bg-gradient-to-br from-[#FDF8EF] to-[#F5E6D3] overflow-hidden
+        <motion.article
+            className="relative p-4 sm:p-6 bg-gradient-to-br from-[#FDF8EF] to-[#F5E6D3] overflow-hidden
                 rounded-xl w-full shadow-md hover:shadow-xl border border-white/20"
             initial={alreadySeen ? false : { opacity: 0, y: mv(20) }}
             animate={{ opacity: 1, y: 0 }}
@@ -63,7 +69,18 @@ const ShowCard: React.FC<ShowCardProps> = ({
                 ease: "easeOut",
             }}
         >
-            <div className="flex flex-col lg:flex-row gap-4">
+            {/* Stretched-link overlay: whole card navigates to the internal show detail.
+                Inner interactive elements (ticket button, lineup headshots) sit on top
+                via `relative z-[2]` so their clicks aren't swallowed. */}
+            <Link
+                href={detailHref}
+                aria-label={detailLabel}
+                className="absolute inset-0 z-[1] rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper"
+            >
+                <span className="sr-only">View show details</span>
+            </Link>
+
+            <div className="relative flex flex-col lg:flex-row gap-4">
                 <div className="flex-1 lg:w-[35%] flex flex-col gap-4">
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                         <div className="flex-1">
@@ -75,7 +92,7 @@ const ShowCard: React.FC<ShowCardProps> = ({
                         </div>
 
                         {parsedShow.tickets.length > 0 && (
-                            <div className="sm:self-start">
+                            <div className="sm:self-start relative z-[2]">
                                 <FullRoundedButton
                                     href={
                                         stillOnSale
@@ -89,12 +106,14 @@ const ShowCard: React.FC<ShowCardProps> = ({
                                         stillOnSale ? "bg-copper" : "bg-red-500"
                                     }
                                     disabled={!stillOnSale}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                 />
                             </div>
                         )}
                     </div>
 
-                    <div className="lg:hidden">
+                    <div className="lg:hidden relative z-[2]">
                         <Divider />
                         <div className="pt-2 sm:pt-4">
                             <LineupGrid lineup={parsedShow.lineup} />
@@ -102,11 +121,11 @@ const ShowCard: React.FC<ShowCardProps> = ({
                     </div>
                 </div>
 
-                <div className="hidden lg:block lg:w-[65%]">
+                <div className="hidden lg:block lg:w-[65%] relative z-[2]">
                     <LineupGrid lineup={parsedShow.lineup} />
                 </div>
             </div>
-        </motion.div>
+        </motion.article>
     );
 };
 

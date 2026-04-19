@@ -32,12 +32,28 @@ const CompactShowCard: React.FC<CompactShowCardProps> = ({ show }) => {
     const displayNames = lineupNames.slice(0, 2).join(", ");
     const extraCount = lineupNames.length - 2;
 
+    const detailHref = `/show/${show.id}`;
+    const detailLabel = parsedShow.name
+        ? `View details for ${parsedShow.name}`
+        : `View details for show at ${parsedShow.clubName ?? "comedy club"}`;
+
     return (
-        <motion.div
-            className="flex flex-col gap-3 p-4 bg-gradient-to-br from-[#FDF8EF] to-[#F5E6D3]
+        <motion.article
+            className="relative flex flex-col gap-3 p-4 bg-gradient-to-br from-[#FDF8EF] to-[#F5E6D3]
                 rounded-xl shadow-md border border-white/20 h-full"
             whileHover={mp({ y: -4, transition: { duration: 0.15 } })}
         >
+            {/* Stretched-link overlay: whole card navigates to /show/[id].
+                The ticket link below uses `relative z-[2]` so it still opens
+                the external ticketing URL in a new tab. */}
+            <Link
+                href={detailHref}
+                aria-label={detailLabel}
+                className="absolute inset-0 z-[1] rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper"
+            >
+                <span className="sr-only">View show details</span>
+            </Link>
+
             {/* Club header */}
             <div className="flex items-center gap-3">
                 <div className="relative w-10 h-10 rounded-full overflow-hidden flex-none">
@@ -91,7 +107,7 @@ const CompactShowCard: React.FC<CompactShowCardProps> = ({ show }) => {
 
             {/* Ticket CTA */}
             {parsedShow.tickets.length > 0 && (
-                <div className="mt-auto pt-1">
+                <div className="mt-auto pt-1 relative z-[2]">
                     {buyUrl ? (
                         <Link
                             href={buyUrl}
@@ -108,7 +124,7 @@ const CompactShowCard: React.FC<CompactShowCardProps> = ({ show }) => {
                     )}
                 </div>
             )}
-        </motion.div>
+        </motion.article>
     );
 };
 

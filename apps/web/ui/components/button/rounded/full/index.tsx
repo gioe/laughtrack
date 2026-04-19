@@ -10,6 +10,8 @@ interface FullRoundedButtonProps {
     disabled?: boolean;
     type?: "submit" | "reset" | "button";
     color?: string;
+    target?: "_blank" | "_self";
+    rel?: string;
 }
 
 export function FullRoundedButton({
@@ -19,6 +21,8 @@ export function FullRoundedButton({
     type = "submit",
     href = undefined,
     color = "bg-copper",
+    target,
+    rel,
 }: FullRoundedButtonProps) {
     const baseClasses = `
         px-6 py-2.5 text-white rounded-lg font-bold text-[16px] font-dmSans
@@ -53,5 +57,9 @@ export function FullRoundedButton({
         return button;
     }
 
-    return <Link href={href}>{button}</Link>;
+    return (
+        <Link href={href} target={target} rel={rel}>
+            {button}
+        </Link>
+    );
 }
