@@ -3,6 +3,7 @@ import { ShowDetailDTO } from "@/lib/data/show/detail/interface";
 import { formatTicketString } from "@/util/ticket/ticketUtil";
 import { Ticket } from "@/objects/class/ticket/Ticket";
 import { TicketDTO } from "@/objects/class/ticket/ticket.interface";
+import { Button } from "@/ui/components/ui/button";
 
 interface ShowTicketCtaProps {
     show: ShowDetailDTO;
@@ -58,20 +59,21 @@ const ShowTicketCta: React.FC<ShowTicketCtaProps> = ({ show, isPast }) => {
 
     return (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 mt-8 mb-10">
-            <Link
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={ctaLabel}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-copper text-white font-gilroy-bold font-bold text-body shadow-sm hover:shadow-md hover:-translate-y-[1px] transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper"
-            >
-                Get Tickets
-                {priceLabel && (
-                    <span className="text-white/90 font-dmSans font-normal">
-                        · {priceLabel}
-                    </span>
-                )}
-            </Link>
+            <Button asChild variant="roundedShimmer" className="gap-2">
+                <Link
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={ctaLabel}
+                >
+                    Get Tickets
+                    {priceLabel && (
+                        <span className="text-white/90 font-dmSans font-normal">
+                            · {priceLabel}
+                        </span>
+                    )}
+                </Link>
+            </Button>
             <p className="mt-2 text-xs text-gray-500 font-dmSans">
                 Opens the venue&apos;s ticketing page in a new tab.
             </p>

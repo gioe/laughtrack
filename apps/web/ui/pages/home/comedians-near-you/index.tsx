@@ -1,5 +1,6 @@
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import ComedianGrid from "@/ui/components/grid/comedian";
+import { Button } from "@/ui/components/ui/button";
 import Link from "next/link";
 
 interface ComedianNearYouSectionProps {
@@ -33,15 +34,13 @@ const ComedianNearYouSection = ({
             </div>
 
             <div className="text-center pt-12 mt-8 animate-fadeIn">
-                <Link
-                    href={`/show/search?zipCode=${encodeURIComponent(zipCode)}`}
-                    className="bg-cedar-dark text-white px-8 py-4 rounded-full
-                    transform transition-all duration-300 ease-in-out
-                    hover:scale-105 hover:shadow-lg hover:bg-copper
-                    active:scale-95 font-dmSans text-lg"
-                >
-                    See Shows Near You
-                </Link>
+                <Button asChild variant="roundedShimmer">
+                    <Link
+                        href={`/show/search?zipCode=${encodeURIComponent(zipCode)}`}
+                    >
+                        See Shows Near You
+                    </Link>
+                </Button>
             </div>
         </div>
     );

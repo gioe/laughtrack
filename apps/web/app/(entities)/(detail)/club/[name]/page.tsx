@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { NotFoundError } from "@/objects/NotFoundError";
 import { ClosedClubError } from "@/objects/ClosedClubError";
 import { auth } from "@/auth";
+import { Button } from "@/ui/components/ui/button";
 import ClubDetailHeader from "@/ui/pages/entity/club/header";
 import SiblingLocations from "@/ui/pages/entity/club/siblings";
 import FilterBar from "@/ui/pages/search/filterBar";
@@ -137,12 +138,9 @@ export default async function ClubDetailPage(props: {
                         Closed on {closedDate}
                     </p>
                 )}
-                <a
-                    href="/club/search"
-                    className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-copper text-white font-dmSans font-bold text-base shadow-sm hover:bg-copper/90 hover:shadow-md hover:-translate-y-[1px] transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper mt-8"
-                >
-                    Browse other venues
-                </a>
+                <Button asChild variant="roundedShimmer" className="mt-8">
+                    <a href="/club/search">Browse other venues</a>
+                </Button>
             </div>
         );
     }

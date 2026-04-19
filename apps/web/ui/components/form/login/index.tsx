@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 import { signIn } from "next-auth/react";
 import { motion } from "framer-motion";
 import { useMotionProps } from "@/hooks";
+import { Button } from "@/ui/components/ui/button";
 import { Form } from "../../ui/form";
 import { FormInput } from "../components/input";
 
@@ -106,14 +107,11 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
                             placeholder="you@example.com"
                             type="email"
                         />
-                        <button
+                        <Button
                             type="submit"
+                            variant="roundedShimmer"
                             disabled={isLoading}
-                            className="w-full flex items-center justify-center gap-2 px-6 py-3
-                                border border-copper rounded-xl text-caption text-white font-dmSans
-                                bg-copper hover:bg-copper/90 transition-colors duration-200
-                                shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2
-                                focus:ring-copper disabled:opacity-60 disabled:cursor-not-allowed"
+                            className="w-full gap-2"
                         >
                             {isLoading ? (
                                 <>
@@ -127,7 +125,7 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
                             ) : (
                                 "Continue with Email"
                             )}
-                        </button>
+                        </Button>
                     </div>
                 </form>
             </Form>
