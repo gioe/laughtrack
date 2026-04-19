@@ -2,6 +2,7 @@ import { CACHE } from "@/util/constants/cacheConstants";
 import { notFound } from "next/navigation";
 import { NotFoundError } from "@/objects/NotFoundError";
 import { ClosedClubError } from "@/objects/ClosedClubError";
+import Link from "next/link";
 import { auth } from "@/auth";
 import { Button } from "@/ui/components/ui/button";
 import ClubDetailHeader from "@/ui/pages/entity/club/header";
@@ -139,7 +140,7 @@ export default async function ClubDetailPage(props: {
                     </p>
                 )}
                 <Button asChild variant="roundedShimmer" className="mt-8">
-                    <a href="/club/search">Browse other venues</a>
+                    <Link href="/club/search">Browse other venues</Link>
                 </Button>
             </div>
         );
