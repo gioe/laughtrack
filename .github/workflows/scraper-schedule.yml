@@ -202,7 +202,8 @@ jobs:
           DISAMBIG=$(echo "$SUMMARY" | jq -r '.disambiguation // 0')
           NOT_COMEDIAN=$(echo "$SUMMARY" | jq -r '.not_comedian // 0')
           FAILED=$(echo "$SUMMARY" | jq -r '.fetch_failed // 0')
-          MSG="[comedian-bios] fetched ${FETCHED}, wrote ${WRITTEN} (not_found=${NOT_FOUND}, disambig=${DISAMBIG}, not_comedian=${NOT_COMEDIAN}, failed=${FAILED})"
+          QUALIFIER_SAVES=$(echo "$SUMMARY" | jq -r '.qualifier_retry_saves // 0')
+          MSG="[comedian-bios] fetched ${FETCHED}, wrote ${WRITTEN} (not_found=${NOT_FOUND}, disambig=${DISAMBIG}, not_comedian=${NOT_COMEDIAN}, failed=${FAILED}, qualifier_saves=${QUALIFIER_SAVES})"
           curl -fsS --retry 3 --max-time 10 -X POST "$DISCORD_WEBHOOK_URL" \
             -H "Content-Type: application/json" \
             -d "$(jq -nc --arg c "$MSG" '{content: $c}')"

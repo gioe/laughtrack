@@ -55,6 +55,17 @@ _USER_AGENT = (
     "comedian-bio-enrichment"
 )
 
+# Wikipedia's standard disambiguation suffix for performers. When the exact-name
+# lookup hits a non-comedian page, disambiguation page, or 404, retrying with
+# "<name> (comedian)" often resolves to the correct article (e.g. a stand-up
+# named "Mike Johnson" whose dedicated page is titled "Mike Johnson (comedian)").
+_DISAMBIGUATION_QUALIFIER = "(comedian)"
+
+# Statuses where a qualifier retry has a plausible chance of finding the right
+# page. fetch_failed / HTTP errors indicate transient issues, not name collisions,
+# so retrying with a different title wastes requests without useful signal.
+_RETRY_ELIGIBLE_STATUSES = frozenset({"not_found", "disambiguation", "not_comedian"})
+
 
 @dataclass
 class _BioFetchResult:
@@ -63,11 +74,15 @@ class _BioFetchResult:
     ``status`` distinguishes successful extraction from disambiguation pages,
     missing pages (404), non-comedian pages (heuristic rejection), and fetch
     failures so the nightly summary can surface each mode independently.
+    ``title_used`` records which Wikipedia title produced the outcome so nightly
+    logs can distinguish exact-name lookups from qualifier-retry lookups.
     """
 
     comedian_id: int
     status: str  # "extracted" | "not_found" | "disambiguation" | "not_comedian" | "fetch_failed"
     bio: Optional[str] = None
+    title_used: Optional[str] = None
+    qualifier_retry_used: bool = False
 
 
 _GET_COMEDIANS_SQL = """
@@ -118,19 +133,27 @@ def _load_target_comedians(
     return [(r[0], r[1]) for r in rows]
 
 
-async def _fetch_summary(
+async def _fetch_by_title(
     session: AsyncSession,
     comedian_id: int,
-    name: str,
+    comedian_name: str,
+    title_text: str,
 ) -> _BioFetchResult:
-    """Fetch + parse a single Wikipedia summary, with rejection diagnostics.
+    """Fetch + parse a single Wikipedia summary for a specific title.
 
     Wikipedia's URL format uses underscores in place of spaces; ``quote``
     handles the rest of the path segment including unicode characters.
+    ``comedian_name`` is the DB name used for log context; ``title_text`` is
+    the actual Wikipedia title we're querying (may be the bare name or a
+    qualifier-retry variant like ``"Mike Johnson (comedian)"``).
     """
-    title = quote(name.replace(" ", "_"), safe="")
+    title = quote(title_text.replace(" ", "_"), safe="")
     url = f"{_WIKIPEDIA_SUMMARY_BASE}{title}"
-    context = {"comedian_id": comedian_id, "comedian_name": name}
+    context = {
+        "comedian_id": comedian_id,
+        "comedian_name": comedian_name,
+        "title": title_text,
+    }
 
     resp = None
     for attempt in range(_MAX_RETRIES):
@@ -142,10 +165,12 @@ async def _fetch_summary(
             )
         except Exception as exc:
             Logger.warn(
-                f"[comedian-bio] fetch failed for comedian {comedian_id} '{name}': {exc}",
+                f"[comedian-bio] fetch failed for comedian {comedian_id} '{comedian_name}' (title='{title_text}'): {exc}",
                 context,
             )
-            return _BioFetchResult(comedian_id=comedian_id, status="fetch_failed")
+            return _BioFetchResult(
+                comedian_id=comedian_id, status="fetch_failed", title_used=title_text
+            )
 
         # Only 429 is retried — 404 is deterministic and 5xx errors are rare
         # enough that an immediate fail keeps the nightly summary honest.
@@ -156,30 +181,91 @@ async def _fetch_summary(
 
     assert resp is not None  # loop always assigns or returns
     if resp.status_code == 404:
-        return _BioFetchResult(comedian_id=comedian_id, status="not_found")
+        return _BioFetchResult(
+            comedian_id=comedian_id, status="not_found", title_used=title_text
+        )
     if resp.status_code >= 400:
         Logger.warn(
-            f"[comedian-bio] HTTP {resp.status_code} for comedian {comedian_id} '{name}'",
+            f"[comedian-bio] HTTP {resp.status_code} for comedian {comedian_id} '{comedian_name}' (title='{title_text}')",
             context,
         )
-        return _BioFetchResult(comedian_id=comedian_id, status="fetch_failed")
+        return _BioFetchResult(
+            comedian_id=comedian_id, status="fetch_failed", title_used=title_text
+        )
 
     try:
         payload = resp.json()
     except Exception as exc:
         Logger.warn(
-            f"[comedian-bio] non-JSON response for comedian {comedian_id} '{name}': {exc}",
+            f"[comedian-bio] non-JSON response for comedian {comedian_id} '{comedian_name}' (title='{title_text}'): {exc}",
             context,
         )
-        return _BioFetchResult(comedian_id=comedian_id, status="fetch_failed")
+        return _BioFetchResult(
+            comedian_id=comedian_id, status="fetch_failed", title_used=title_text
+        )
 
     if isinstance(payload, dict) and payload.get("type") == "disambiguation":
-        return _BioFetchResult(comedian_id=comedian_id, status="disambiguation")
+        return _BioFetchResult(
+            comedian_id=comedian_id, status="disambiguation", title_used=title_text
+        )
 
     bio = extract_bio(payload)
     if bio is None:
-        return _BioFetchResult(comedian_id=comedian_id, status="not_comedian")
-    return _BioFetchResult(comedian_id=comedian_id, status="extracted", bio=bio)
+        return _BioFetchResult(
+            comedian_id=comedian_id, status="not_comedian", title_used=title_text
+        )
+    return _BioFetchResult(
+        comedian_id=comedian_id, status="extracted", bio=bio, title_used=title_text
+    )
+
+
+async def _fetch_summary(
+    session: AsyncSession,
+    comedian_id: int,
+    name: str,
+) -> _BioFetchResult:
+    """Fetch a bio by name, retrying once with a ``(comedian)`` qualifier on rejection.
+
+    Common-name collisions (e.g. "John Smith", "Mike Johnson") can resolve to
+    an unrelated person's page whose prose happens to mention comedy-adjacent
+    language, or to a disambiguation stub, or to 404 when Wikipedia's canonical
+    title carries a ``(comedian)`` suffix. A single retry with the standard
+    disambiguator catches most of these without materially increasing request
+    volume. Transient fetch failures are not retried with a new title — the
+    issue is network-level, not a naming collision.
+
+    Accept/reject decisions are logged at INFO so the nightly run surfaces
+    anomalies without requiring a separate audit pass.
+    """
+    result = await _fetch_by_title(session, comedian_id, name, name)
+
+    if result.status == "extracted":
+        Logger.info(
+            f"[comedian-bio] accepted: comedian_id={comedian_id} '{name}' (title='{result.title_used}')"
+        )
+        return result
+
+    if result.status in _RETRY_ELIGIBLE_STATUSES:
+        qualifier_title = f"{name} {_DISAMBIGUATION_QUALIFIER}"
+        retry = await _fetch_by_title(session, comedian_id, name, qualifier_title)
+        if retry.status == "extracted":
+            retry.qualifier_retry_used = True
+            Logger.info(
+                f"[comedian-bio] accepted via qualifier retry: comedian_id={comedian_id} "
+                f"'{name}' original={result.status} -> title='{qualifier_title}'"
+            )
+            return retry
+        Logger.info(
+            f"[comedian-bio] rejected: comedian_id={comedian_id} '{name}' "
+            f"original={result.status} retry('{qualifier_title}')={retry.status}"
+        )
+        return result
+
+    # fetch_failed / other non-retryable statuses: log and return as-is.
+    Logger.info(
+        f"[comedian-bio] rejected: comedian_id={comedian_id} '{name}' status={result.status}"
+    )
+    return result
 
 
 async def _process(
@@ -209,9 +295,12 @@ async def _enrich(
     disambiguation = 0
     not_comedian = 0
     fetch_failed = 0
+    qualifier_retry_saves = 0
     for result in results:
         if result.status == "extracted" and result.bio:
             rows.append((result.comedian_id, result.bio))
+            if result.qualifier_retry_used:
+                qualifier_retry_saves += 1
         elif result.status == "not_found":
             not_found += 1
         elif result.status == "disambiguation":
@@ -224,7 +313,8 @@ async def _enrich(
     Logger.info(
         f"[comedian-bio] extracted for {len(rows)}/{len(targets)} comedians — "
         f"not_found={not_found}, disambiguation={disambiguation}, "
-        f"not_comedian={not_comedian}, fetch_failed={fetch_failed}"
+        f"not_comedian={not_comedian}, fetch_failed={fetch_failed}, "
+        f"qualifier_retry_saves={qualifier_retry_saves}"
     )
 
     if dry_run:
@@ -237,6 +327,7 @@ async def _enrich(
             "disambiguation": disambiguation,
             "not_comedian": not_comedian,
             "fetch_failed": fetch_failed,
+            "qualifier_retry_saves": qualifier_retry_saves,
         }
 
     written = 0
@@ -264,6 +355,7 @@ async def _enrich(
         "disambiguation": disambiguation,
         "not_comedian": not_comedian,
         "fetch_failed": fetch_failed,
+        "qualifier_retry_saves": qualifier_retry_saves,
     }
 
 
@@ -324,6 +416,7 @@ def main() -> None:
             "disambiguation": 0,
             "not_comedian": 0,
             "fetch_failed": 0,
+            "qualifier_retry_saves": 0,
         }))
         return
 
