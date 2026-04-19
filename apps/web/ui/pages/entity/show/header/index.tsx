@@ -13,9 +13,13 @@ const PLACEHOLDER = "/placeholders/club-placeholder.svg";
 
 interface ShowDetailHeaderProps {
     show: ShowDetailDTO;
+    isPast: boolean;
 }
 
-const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({ show }) => {
+const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({
+    show,
+    isPast,
+}) => {
     const { mt, prefersReducedMotion } = useMotionProps();
     const [error, setError] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
@@ -60,7 +64,7 @@ const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({ show }) => {
                 )}
 
                 <div className="absolute bottom-0 left-0 right-0 p-6">
-                    {show.isPast && (
+                    {isPast && (
                         <span className="inline-block mb-3 text-[11px] font-bold uppercase tracking-wider text-white bg-stone-600/90 px-2.5 py-1 rounded-full font-dmSans">
                             Archived
                         </span>
@@ -72,7 +76,7 @@ const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({ show }) => {
                         <p className="mt-2 text-base sm:text-lg text-white/90 font-dmSans">
                             at{" "}
                             <Link
-                                href={`/club/${show.clubSlug}`}
+                                href={`/club/${show.clubName}`}
                                 className="underline-offset-2 hover:underline focus-visible:underline"
                             >
                                 {show.clubName}

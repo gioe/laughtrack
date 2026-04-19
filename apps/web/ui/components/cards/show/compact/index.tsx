@@ -33,9 +33,13 @@ const CompactShowCard: React.FC<CompactShowCardProps> = ({ show }) => {
     const extraCount = lineupNames.length - 2;
 
     const detailHref = `/show/${show.id}`;
-    const detailLabel = parsedShow.name
-        ? `View details for ${parsedShow.name}`
-        : `View details for show at ${parsedShow.clubName ?? "comedy club"}`;
+    const showDescriptor = parsedShow.name
+        ? parsedShow.name
+        : `show at ${parsedShow.clubName ?? "comedy club"}`;
+    const detailLabel = `View details for ${showDescriptor}`;
+    const ticketAriaLabel = buyUrl
+        ? `Get tickets for ${showDescriptor}`
+        : undefined;
 
     return (
         <motion.article
@@ -113,6 +117,7 @@ const CompactShowCard: React.FC<CompactShowCardProps> = ({ show }) => {
                             href={buyUrl}
                             target="_blank"
                             rel="noopener noreferrer"
+                            aria-label={ticketAriaLabel}
                             className="inline-block text-[13px] font-semibold text-copper font-dmSans hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper"
                         >
                             {ticketLabel || "Get Tickets"}

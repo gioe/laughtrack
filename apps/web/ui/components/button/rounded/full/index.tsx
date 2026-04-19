@@ -12,6 +12,7 @@ interface FullRoundedButtonProps {
     color?: string;
     target?: "_blank" | "_self";
     rel?: string;
+    ariaLabel?: string;
 }
 
 export function FullRoundedButton({
@@ -23,6 +24,7 @@ export function FullRoundedButton({
     color = "bg-copper",
     target,
     rel,
+    ariaLabel,
 }: FullRoundedButtonProps) {
     const baseClasses = `
         px-6 py-2.5 text-white rounded-lg font-bold text-[16px] font-dmSans
@@ -47,6 +49,7 @@ export function FullRoundedButton({
                     handleClick();
                 }
             }}
+            aria-label={ariaLabel}
             className={twMerge(baseClasses, color)}
         >
             {label}
@@ -58,7 +61,7 @@ export function FullRoundedButton({
     }
 
     return (
-        <Link href={href} target={target} rel={rel}>
+        <Link href={href} target={target} rel={rel} aria-label={ariaLabel}>
             {button}
         </Link>
     );

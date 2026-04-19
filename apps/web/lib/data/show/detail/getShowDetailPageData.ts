@@ -5,7 +5,7 @@ import { ShowDetailResponse } from "./interface";
 export async function getShowDetailPageData(
     id: number,
 ): Promise<ShowDetailResponse> {
-    const show = await findShowById(id);
-    const relatedShows = await findRelatedShowsForShow(id, show.clubId);
+    const { show, clubId } = await findShowById(id);
+    const relatedShows = await findRelatedShowsForShow(id, clubId);
     return { show, relatedShows };
 }

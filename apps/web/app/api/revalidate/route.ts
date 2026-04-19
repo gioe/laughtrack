@@ -7,6 +7,8 @@ const SUPPORTED_TAGS = [
     "home-page-data",
     "club-detail-data",
     "comedian-detail-data",
+    "show-detail-data",
+    "show-metadata",
     "club-search-data",
     "show-search-data",
 ] as const;

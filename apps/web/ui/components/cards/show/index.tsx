@@ -53,9 +53,13 @@ const ShowCard: React.FC<ShowCardProps> = ({
     }, [show.id]);
 
     const detailHref = `/show/${show.id}`;
-    const detailLabel = parsedShow.name
-        ? `View details for ${parsedShow.name}`
-        : `View details for show at ${parsedShow.clubName ?? "comedy club"}`;
+    const showDescriptor = parsedShow.name
+        ? parsedShow.name
+        : `show at ${parsedShow.clubName ?? "comedy club"}`;
+    const detailLabel = `View details for ${showDescriptor}`;
+    const ticketLabel = stillOnSale
+        ? `Get tickets for ${showDescriptor}`
+        : `${showDescriptor} is sold out`;
 
     return (
         <motion.article
@@ -108,6 +112,7 @@ const ShowCard: React.FC<ShowCardProps> = ({
                                     disabled={!stillOnSale}
                                     target="_blank"
                                     rel="noopener noreferrer"
+                                    ariaLabel={ticketLabel}
                                 />
                             </div>
                         )}

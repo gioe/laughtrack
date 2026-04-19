@@ -5,13 +5,11 @@ import CompactShowCard from "@/ui/components/cards/show/compact";
 interface RelatedShowsSectionProps {
     shows: ShowDTO[];
     clubName?: string;
-    clubSlug?: string;
 }
 
 const RelatedShowsSection: React.FC<RelatedShowsSectionProps> = ({
     shows,
     clubName,
-    clubSlug,
 }) => {
     if (shows.length === 0) return null;
 
@@ -21,9 +19,9 @@ const RelatedShowsSection: React.FC<RelatedShowsSectionProps> = ({
                 <h2 className="font-gilroy-bold text-[26px] font-bold text-cedar">
                     {clubName ? `More shows at ${clubName}` : "More shows"}
                 </h2>
-                {clubSlug && (
+                {clubName && (
                     <Link
-                        href={`/club/${clubSlug}`}
+                        href={`/club/${clubName}`}
                         className="text-sm font-dmSans text-copper hover:underline whitespace-nowrap"
                     >
                         See all →

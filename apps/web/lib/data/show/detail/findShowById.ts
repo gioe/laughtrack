@@ -6,7 +6,12 @@ import { mapTickets } from "@/util/ticket/ticketUtil";
 import { Prisma } from "@prisma/client";
 import { ShowDetailDTO } from "./interface";
 
-export async function findShowById(id: number): Promise<ShowDetailDTO> {
+export interface FindShowByIdResult {
+    show: ShowDetailDTO;
+    clubId: number;
+}
+
+export async function findShowById(id: number): Promise<FindShowByIdResult> {
     try {
         const row = await db.show.findUnique({
             where: { id },
@@ -80,7 +85,7 @@ export async function findShowById(id: number): Promise<ShowDetailDTO> {
         }
 
         const clubName = row.club.name;
-        return {
+        const show: ShowDetailDTO = {
             id: row.id,
             name: row.name,
             date: row.date,
@@ -97,10 +102,8 @@ export async function findShowById(id: number): Promise<ShowDetailDTO> {
             distanceMiles: null,
             timezone: row.club.timezone,
             showPageUrl: row.showPageUrl,
-            clubSlug: encodeURIComponent(clubName),
-            isPast: row.date.getTime() < Date.now(),
-            clubId: row.club.id,
         };
+        return { show, clubId: row.club.id };
     } catch (error) {
         if (error instanceof NotFoundError) {
             throw error;
