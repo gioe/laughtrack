@@ -696,6 +696,26 @@ CREATE TABLE skill_runs (
 CREATE INDEX idx_skill_runs_skill_name ON skill_runs(skill_name);
 SR_SCHEMA
 
+  # Retro findings (one row per approved finding emitted by /retro on close;
+  # read by 'tusk retro-themes' for cross-retro theme rollups)
+  sqlite3 "$DB_PATH" <<'RF_SCHEMA'
+CREATE TABLE retro_findings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    skill_run_id INTEGER NOT NULL,
+    task_id INTEGER,
+    category TEXT NOT NULL,
+    summary TEXT NOT NULL,
+    action_taken TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (skill_run_id) REFERENCES skill_runs(id) ON DELETE CASCADE,
+    FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE SET NULL
+);
+CREATE INDEX idx_retro_findings_skill_run_id ON retro_findings(skill_run_id);
+CREATE INDEX idx_retro_findings_task_id ON retro_findings(task_id);
+CREATE INDEX idx_retro_findings_category ON retro_findings(category);
+CREATE INDEX idx_retro_findings_created_at ON retro_findings(created_at);
+RF_SCHEMA
+
   # Tool call stats (pre-computed per-tool-call cost aggregates per session or skill run)
   sqlite3 "$DB_PATH" <<'TCS_SCHEMA'
 CREATE TABLE tool_call_stats (
@@ -804,7 +824,7 @@ PILLARS_SCHEMA
   fi
 
   # Set schema version so fresh DBs never need migration
-  sqlite3 "$DB_PATH" "PRAGMA user_version = 56;"
+  sqlite3 "$DB_PATH" "PRAGMA user_version = 57;"
 
   echo "Initialized task database at $DB_PATH"
   echo "Note: tusk/tasks.db is local-only — not synced across machines."
@@ -1306,6 +1326,9 @@ case "${1:-}" in
   autoclose) shift; exec python3 "$SCRIPT_DIR/tusk-autoclose.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   backlog-scan) shift; exec python3 "$SCRIPT_DIR/tusk-backlog-scan.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   check-deliverables) shift; exec python3 "$SCRIPT_DIR/tusk-check-deliverables.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
+  retro-signals) shift; exec python3 "$SCRIPT_DIR/tusk-retro-signals.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
+  retro-themes) shift; exec python3 "$SCRIPT_DIR/tusk-retro-themes.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
+  retro-finding) shift; exec python3 "$SCRIPT_DIR/tusk-retro-finding.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   test-detect) shift; exec python3 "$SCRIPT_DIR/tusk-test-detect.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
   test-precheck) shift; exec python3 "$SCRIPT_DIR/tusk-test-precheck.py" "$REPO_ROOT" "$(resolve_config)" "$@" ;;
   add-lib) shift; exec python3 "$SCRIPT_DIR/tusk-add-lib.py" "$DB_PATH" "$(resolve_config)" "$@" ;;
