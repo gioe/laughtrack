@@ -159,7 +159,56 @@ describe("findPastShowsForComedian", () => {
 
             expect(result.shows[0].timezone).toBe("America/Chicago");
         });
+    });
 
+    describe("pagination", () => {
+        it("defaults to skip=0, take=20 when no options are passed", async () => {
+            let capturedArgs: any;
+            mockFindMany.mockImplementation((args: any) => {
+                capturedArgs = args;
+                return Promise.resolve([]);
+            });
+
+            await findPastShowsForComedian(makeHelper() as any);
+
+            expect(capturedArgs.skip).toBe(0);
+            expect(capturedArgs.take).toBe(20);
+        });
+
+        it("applies skip = page * size for subsequent pages", async () => {
+            let capturedArgs: any;
+            mockFindMany.mockImplementation((args: any) => {
+                capturedArgs = args;
+                return Promise.resolve([]);
+            });
+
+            await findPastShowsForComedian(makeHelper() as any, {
+                page: 2,
+                size: 20,
+            });
+
+            expect(capturedArgs.skip).toBe(40);
+            expect(capturedArgs.take).toBe(20);
+        });
+
+        it("coerces negative page to 0 and undersized size to 1", async () => {
+            let capturedArgs: any;
+            mockFindMany.mockImplementation((args: any) => {
+                capturedArgs = args;
+                return Promise.resolve([]);
+            });
+
+            await findPastShowsForComedian(makeHelper() as any, {
+                page: -5,
+                size: 0,
+            });
+
+            expect(capturedArgs.skip).toBe(0);
+            expect(capturedArgs.take).toBe(1);
+        });
+    });
+
+    describe("null timezone edge case", () => {
         it("returns null timezone when the club has no timezone configured", async () => {
             const show = makeShow({
                 club: {

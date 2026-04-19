@@ -143,7 +143,11 @@ export default async function ComedianDetailsPage(props: {
                 filterData={filters}
             />
             <ShowTable shows={shows} />
-            <PastShowsSection shows={pastShows} total={pastShowsTotal} />
+            <PastShowsSection
+                shows={pastShows}
+                total={pastShowsTotal}
+                comedianName={data.name}
+            />
             <RelatedComediansSection
                 comedians={relatedComedians}
                 subjectName={data.name}

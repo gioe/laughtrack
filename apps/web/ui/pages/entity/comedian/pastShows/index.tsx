@@ -1,13 +1,42 @@
+"use client";
+
 import { ShowDTO } from "@/objects/class/show/show.interface";
+import { useInfiniteSearch } from "@/hooks/useInfiniteSearch";
 import ShowCard from "@/ui/components/cards/show";
+import SearchClientShell from "@/ui/pages/search/SearchClientShell";
 
 interface PastShowsSectionProps {
     shows: ShowDTO[];
     total: number;
+    comedianName: string;
 }
 
-const PastShowsSection = ({ shows, total }: PastShowsSectionProps) => {
-    if (total === 0) return null;
+const PAGE_SIZE = 20;
+
+const PastShowsSection = ({
+    shows,
+    total,
+    comedianName,
+}: PastShowsSectionProps) => {
+    const {
+        data,
+        total: liveTotal,
+        isLoading,
+        isError,
+        errorMessage,
+        hasMore,
+        sentinelRef,
+        retry,
+    } = useInfiniteSearch<ShowDTO>({
+        endpoint: "/api/v1/comedians/past-shows",
+        params: { comedian: comedianName },
+        initialData: shows,
+        initialTotal: total,
+        pageSize: PAGE_SIZE,
+        getItemKey: (s) => s.id,
+    });
+
+    if (liveTotal === 0) return null;
 
     return (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 mt-10 mb-10">
@@ -15,16 +44,23 @@ const PastShowsSection = ({ shows, total }: PastShowsSectionProps) => {
                 Past Shows
             </h2>
             <p className="text-gray-600 font-dmSans text-[16px] mb-8">
-                {total} past {total === 1 ? "show" : "shows"}
-                {shows.length < total
-                    ? ` — showing the ${shows.length} most recent`
-                    : ""}
+                {liveTotal} past {liveTotal === 1 ? "show" : "shows"}
             </p>
-            <div className="grid grid-cols-1 gap-y-6 sm:gap-y-8 md:gap-y-10">
-                {shows.map((show) => (
-                    <ShowCard key={show.id} show={show} />
-                ))}
-            </div>
+            <SearchClientShell
+                isLoading={isLoading}
+                isError={isError}
+                errorMessage={errorMessage}
+                hasMore={hasMore}
+                dataLength={data.length}
+                retry={retry}
+                sentinelRef={sentinelRef}
+            >
+                <div className="grid grid-cols-1 gap-y-6 sm:gap-y-8 md:gap-y-10">
+                    {data.map((show) => (
+                        <ShowCard key={show.id} show={show} />
+                    ))}
+                </div>
+            </SearchClientShell>
         </section>
     );
 };
