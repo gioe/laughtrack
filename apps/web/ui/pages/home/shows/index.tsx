@@ -78,8 +78,16 @@ const ShowDiscoverySection = ({
         setTimeout(checkScrollability, 300);
     };
 
+    const testId = `shows-section-${title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "")}`;
+
     return (
-        <div className="max-w-7xl w-full mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <div
+            data-testid={testId}
+            className="max-w-7xl w-full mx-auto py-12 px-4 sm:px-6 lg:px-8"
+        >
             <div className="flex flex-col sm:flex-row md:flex-row lg:flex-row justify-between items-start sm:items-center md:items-center lg:items-center mb-6">
                 <div>
                     <h2 className="text-2xl sm:text-3xl md:text-[36px] font-bold font-gilroy-bold text-cedar mb-2">

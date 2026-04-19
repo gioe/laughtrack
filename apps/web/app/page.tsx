@@ -20,6 +20,7 @@ import ShowDiscoverySection from "@/ui/pages/home/shows";
 import FooterComponent from "@/ui/pages/home/footer";
 import JsonLd from "@/ui/components/JsonLd";
 import { buildWebSiteJsonLd } from "@/util/jsonLd";
+import FixtureHomePage from "./page.fixture";
 
 export interface HomePageData {
     comedians: ComedianDTO[];
@@ -58,6 +59,10 @@ const getCachedHomePageData = unstable_cache(
 );
 
 export default async function HomePage() {
+    if (process.env.E2E_FIXTURE_MODE === "1") {
+        return <FixtureHomePage />;
+    }
+
     const session = await auth();
     const heroContext = await getHeroContext(session?.profile?.zipCode ?? null);
     const zipCode = heroContext.zipCode;
