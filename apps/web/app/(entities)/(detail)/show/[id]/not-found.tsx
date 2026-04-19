@@ -12,7 +12,10 @@ export default function ShowNotFound() {
                 We couldn&apos;t find this show — it may have been removed or
                 never existed.
             </p>
-            <Link href="/show/search" className="btn btn-primary">
+            <Link
+                href="/show/search"
+                className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-copper text-white font-dmSans font-bold text-base shadow-sm hover:bg-copper/90 hover:shadow-md hover:-translate-y-[1px] transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper"
+            >
                 Browse shows
             </Link>
         </div>
