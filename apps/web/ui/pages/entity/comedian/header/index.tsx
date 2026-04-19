@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Heart, Sparkles, Calendar, Users } from "lucide-react";
 import { ComedianDTO } from "@/objects/class/comedian/comedian.interface";
 import { Comedian } from "@/objects/class/comedian/Comedian";
@@ -61,43 +61,45 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
         (social?.tiktok.following ?? 0) +
         (social?.youtube.following ?? 0);
 
-    const stripAt = (s: string | null | undefined) =>
-        s ? s.replace(/^@+/, "") : s;
-    const ig = stripAt(social?.instagram.account);
-    const tt = stripAt(social?.tiktok.account);
-    const yt = stripAt(social?.youtube.account);
+    const socialLinks = useMemo(() => {
+        const stripAt = (s: string | null | undefined) =>
+            s ? s.replace(/^@+/, "") : s;
+        const ig = stripAt(social?.instagram.account);
+        const tt = stripAt(social?.tiktok.account);
+        const yt = stripAt(social?.youtube.account);
 
-    const socialLinks = [
-        {
-            platform: "Instagram",
-            account: ig,
-            href: `https://instagram.com/${ig}`,
-            Icon: InstagramIcon,
-        },
-        {
-            platform: "TikTok",
-            account: tt,
-            href: `https://tiktok.com/@${tt}`,
-            Icon: TikTokIcon,
-        },
-        {
-            platform: "YouTube",
-            account: yt,
-            href: `https://youtube.com/@${yt}`,
-            Icon: YouTubeIcon,
-        },
-        {
-            platform: "Website",
-            account: social?.website,
-            href: social?.website
-                ? social.website.startsWith("http://") ||
-                  social.website.startsWith("https://")
-                    ? social.website
-                    : `https://${social.website}`
-                : "#",
-            Icon: Globe,
-        },
-    ].filter((link) => Boolean(link.account));
+        return [
+            {
+                platform: "Instagram",
+                account: ig,
+                href: `https://instagram.com/${ig}`,
+                Icon: InstagramIcon,
+            },
+            {
+                platform: "TikTok",
+                account: tt,
+                href: `https://tiktok.com/@${tt}`,
+                Icon: TikTokIcon,
+            },
+            {
+                platform: "YouTube",
+                account: yt,
+                href: `https://youtube.com/@${yt}`,
+                Icon: YouTubeIcon,
+            },
+            {
+                platform: "Website",
+                account: social?.website,
+                href: social?.website
+                    ? social.website.startsWith("http://") ||
+                      social.website.startsWith("https://")
+                        ? social.website
+                        : `https://${social.website}`
+                    : "#",
+                Icon: Globe,
+            },
+        ].filter((link) => Boolean(link.account));
+    }, [social]);
 
     return (
         <section className="relative w-full overflow-hidden bg-cedar">
