@@ -32,6 +32,13 @@ const buttonVariants = cva(
                     "before:translate-x-[-100%] before:hover:translate-x-[100%]",
                     "before:transition-transform before:duration-500",
                 ].join(" "),
+                roundedShimmerOutline: [
+                    "rounded-lg border-2 border-copper bg-transparent",
+                    "text-copper font-bold font-dmSans",
+                    "transition-colors",
+                    "hover:bg-copper hover:text-white",
+                    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper focus-visible:ring-0",
+                ].join(" "),
             },
             size: {
                 default: "h-9 px-4 py-2",
@@ -39,6 +46,7 @@ const buttonVariants = cva(
                 lg: "h-10 rounded-md px-8",
                 icon: "h-9 w-9",
                 roundedShimmer: "h-auto px-6 py-2.5 text-body",
+                roundedShimmerOutline: "h-auto px-6 py-3 text-body",
             },
         },
         defaultVariants: {
@@ -50,6 +58,11 @@ const buttonVariants = cva(
                 variant: "roundedShimmer",
                 size: "default",
                 className: "h-auto px-6 py-2.5 text-body",
+            },
+            {
+                variant: "roundedShimmerOutline",
+                size: "default",
+                className: "h-auto px-6 py-3 text-body",
             },
         ],
     },

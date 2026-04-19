@@ -22,12 +22,9 @@ export default function ErrorPage({
                 <Button type="button" variant="roundedShimmer" onClick={reset}>
                     Try again
                 </Button>
-                <Link
-                    href="/"
-                    className="inline-flex items-center justify-center px-6 py-3 rounded-lg border-2 border-copper text-copper font-dmSans font-bold text-base hover:bg-copper hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper"
-                >
-                    Go home
-                </Link>
+                <Button asChild variant="roundedShimmerOutline">
+                    <Link href="/">Go home</Link>
+                </Button>
             </div>
         </div>
     );
