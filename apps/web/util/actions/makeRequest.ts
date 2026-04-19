@@ -2,7 +2,6 @@ import { JWT } from "next-auth/jwt";
 import { getUrl } from "../urlUtil";
 import { Session } from "next-auth";
 import { RestAPIAction } from "../../objects/enum";
-import { headers } from "next/headers"
 
 interface ExecuteOptions {
     method?: RestAPIAction;
@@ -11,12 +10,12 @@ interface ExecuteOptions {
     searchParams?: URLSearchParams;
     revalidate?: false | 0 | number;
     session?: Session | null;
-    next?: NextFetchRequestConfig;  // Add this type for Next.js fetch options
+    next?: NextFetchRequestConfig; // Add this type for Next.js fetch options
 }
 
 export const makeRequest = async <T>(
     endpoint: string,
-    options: ExecuteOptions = {}
+    options: ExecuteOptions = {},
 ): Promise<T> => {
     const {
         method = "GET",
@@ -24,10 +23,10 @@ export const makeRequest = async <T>(
         body,
         searchParams,
         revalidate = 0,
-        next
+        next,
     } = options;
     // Create base URL
-    const url = getUrl(endpoint, searchParams)
+    const url = getUrl(endpoint, searchParams);
 
     // Construct headers
     const headers: Record<string, string> = {
@@ -44,25 +43,26 @@ export const makeRequest = async <T>(
         method,
         headers,
         next: {
-            ...(next || {}),  // Allow passing in any next config options
-            ...(method === "GET" ? { revalidate } : {}),  // Keep existing revalidation logic
+            ...(next || {}), // Allow passing in any next config options
+            ...(method === "GET" ? { revalidate } : {}), // Keep existing revalidation logic
             tags: [
-                ...(next?.tags || []),  // Spread any tags passed in through next config
-            ]
-        }
+                ...(next?.tags || []), // Spread any tags passed in through next config
+            ],
+        },
     };
 
     // Add body for non-GET requests
     if (method !== "GET" && body) {
-        requestOptions.body = body instanceof URLSearchParams
-            ? body
-            : JSON.stringify(body);
+        requestOptions.body =
+            body instanceof URLSearchParams ? body : JSON.stringify(body);
     }
 
     // Make request
     const response = await fetch(url, requestOptions);
     if (!response.ok) {
-        throw new Error(`Fetch Error: ${response.status} ${response.statusText}`);
+        throw new Error(
+            `Fetch Error: ${response.status} ${response.statusText}`,
+        );
     }
 
     const data = await response.json();

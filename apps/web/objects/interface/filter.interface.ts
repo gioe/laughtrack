@@ -1,5 +1,3 @@
-import { EntityType } from "../enum";
-
 // Client
 export interface FilterInterface {
     id: number;

@@ -4,7 +4,7 @@ import reactHooks from "eslint-plugin-react-hooks";
 import nextPlugin from "@next/eslint-plugin-next";
 
 export default [
-  { ignores: ["node_modules/**", ".next/**"] },
+  { ignores: ["node_modules/**", ".next/**", "next-env.d.ts"] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   // Use the full v7 recommended-latest flat config (enables static-components,
