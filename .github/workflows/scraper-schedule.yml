@@ -121,10 +121,12 @@ jobs:
           # clubs still missing hours fall back to Google Places API when
           # GOOGLE_PLACES_API_KEY is configured.
           #
-          # tee stdout to enrichment-summary.txt so the next step can parse
-          # the final JSON line ({fetched, written, description_hits, ...})
-          # and post a compact report to Discord.
-          python -m scripts.core.update_club_enrichment | tee enrichment-summary.txt
+          # --summary-out writes the JSON summary to a dedicated file so the
+          # next step can parse it directly — decoupling the Discord post
+          # from stdout so future Logger lines written after the print can't
+          # silently break JSON parsing (previous tee + tail -n1 approach).
+          python -m scripts.core.update_club_enrichment \
+            --summary-out enrichment-summary.json
 
       - name: Post enrichment summary to Discord
         if: always()
@@ -136,16 +138,14 @@ jobs:
             echo "DISCORD_WEBHOOK_URL not set — skipping"
             exit 0
           fi
-          if [ ! -s enrichment-summary.txt ]; then
-            echo "No enrichment output captured (step failed before printing summary) — skipping"
+          if [ ! -s enrichment-summary.json ]; then
+            echo "No enrichment summary file (step failed before writing) — skipping"
             exit 0
           fi
-          # The script emits its JSON summary as the final stdout line via
-          # print(json.dumps(summary)). Earlier lines are Logger output.
-          SUMMARY=$(tail -n1 enrichment-summary.txt)
+          SUMMARY=$(cat enrichment-summary.json)
           if ! echo "$SUMMARY" | jq empty >/dev/null 2>&1; then
             echo "Enrichment summary not valid JSON — skipping Discord post"
-            echo "Last line was: $SUMMARY"
+            echo "File contents: $SUMMARY"
             exit 0
           fi
           FETCHED=$(echo "$SUMMARY" | jq -r '.fetched // 0')
@@ -173,8 +173,12 @@ jobs:
           # Fills Comedian.bio for comedians still missing one, in popularity
           # order.  Capped per run to stay under Wikipedia's unauthenticated
           # IP throttle — the backlog drains across subsequent nightlies.
+          #
+          # --summary-out writes the JSON summary to a dedicated file so the
+          # Discord post step reads it directly (avoids fragile tail -n1
+          # parsing — see update_club_enrichment step for rationale).
           python -m scripts.core.update_comedian_bios --limit 500 \
-            | tee comedian-bios-summary.txt
+            --summary-out comedian-bios-summary.json
 
       - name: Post comedian bios summary to Discord
         if: always()
@@ -186,14 +190,14 @@ jobs:
             echo "DISCORD_WEBHOOK_URL not set — skipping"
             exit 0
           fi
-          if [ ! -s comedian-bios-summary.txt ]; then
-            echo "No comedian-bios output captured — skipping"
+          if [ ! -s comedian-bios-summary.json ]; then
+            echo "No comedian-bios summary file — skipping"
             exit 0
           fi
-          SUMMARY=$(tail -n1 comedian-bios-summary.txt)
+          SUMMARY=$(cat comedian-bios-summary.json)
           if ! echo "$SUMMARY" | jq empty >/dev/null 2>&1; then
             echo "comedian-bios summary not valid JSON — skipping Discord post"
-            echo "Last line was: $SUMMARY"
+            echo "File contents: $SUMMARY"
             exit 0
           fi
           FETCHED=$(echo "$SUMMARY" | jq -r '.fetched // 0')
