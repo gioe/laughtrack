@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { isAdminSession } from "@/lib/auth/requireAdmin";
+import { Button } from "@/ui/components/ui/button";
 
 export const dynamic = "force-dynamic";
 
@@ -51,12 +52,9 @@ export default async function AdminClubsPage(props: {
                     placeholder="Search by name…"
                     className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-copper focus:border-copper"
                 />
-                <button
-                    type="submit"
-                    className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-copper text-white font-dmSans font-bold text-base shadow-sm hover:bg-copper/90 hover:shadow-md hover:-translate-y-[1px] transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper"
-                >
+                <Button type="submit" variant="roundedShimmer">
                     Search
-                </button>
+                </Button>
             </form>
 
             <p className="text-sm text-gray-700 mb-2">
