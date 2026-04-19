@@ -154,6 +154,52 @@ def test_parse_does_not_warn_when_day_prefix_does_not_match():
     mock_logger.warn.assert_not_called()
 
 
+def test_parse_24h_requires_zero_padded_hours_to_avoid_ambiguity():
+    # "5:00 - 7:00" lacks AM/PM and uses single-digit hours — could be
+    # mistakenly read as 24-hour and silently relabeled "5am-7am".  Requiring
+    # zero-padded hours in the 24h regex routes this to the warn path instead.
+    from laughtrack.core.clients.google import places as _places_mod
+
+    with patch.object(_places_mod, "Logger") as mock_logger:
+        result = parse_weekday_descriptions(["Monday: 5:00 \u2013 7:00"])
+
+    assert result is None
+    assert mock_logger.warn.call_count == 1
+
+
+def test_parse_rejects_out_of_range_24h_values():
+    # 24:00 / 25:00 / 99:00 must NOT silently coerce — they should fall
+    # through to the unparseable diagnostic so unexpected inputs are visible.
+    from laughtrack.core.clients.google import places as _places_mod
+
+    descs = [
+        "Monday: 24:00 \u2013 25:00",
+        "Tuesday: 99:00 \u2013 17:00",
+        "Wednesday: 12:60 \u2013 13:00",
+    ]
+    with patch.object(_places_mod, "Logger") as mock_logger:
+        result = parse_weekday_descriptions(descs)
+
+    assert result is None
+    assert mock_logger.warn.call_count == 3
+
+
+def test_parse_rejects_out_of_range_12h_values():
+    # "13:00 PM" / "5:60 PM" — invalid clock values must route to the warn
+    # path rather than producing nonsense output like "13pm".
+    from laughtrack.core.clients.google import places as _places_mod
+
+    descs = [
+        "Monday: 13:00 PM \u2013 14:00 PM",
+        "Tuesday: 5:60 PM \u2013 9:00 PM",
+    ]
+    with patch.object(_places_mod, "Logger") as mock_logger:
+        result = parse_weekday_descriptions(descs)
+
+    assert result is None
+    assert mock_logger.warn.call_count == 2
+
+
 # ---------------------------------------------------------------------------
 # GooglePlacesClient.fetch_hours
 # ---------------------------------------------------------------------------

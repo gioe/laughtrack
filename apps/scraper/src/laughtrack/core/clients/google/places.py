@@ -49,8 +49,10 @@ _TIME_RANGE_12H_RE = re.compile(
 )
 
 # "17:00 – 23:00" — 24-hour locale format returned by non-US place listings.
+# Hours must be zero-padded so an AM/PM-less 12-hour string like "5:00 - 7:00"
+# (where Google omitted the meridiem) doesn't get silently relabeled as 5am.
 _TIME_RANGE_24H_RE = re.compile(
-    r"^\s*(\d{1,2}):(\d{2})\s*[\u2013\u2014\-]\s*(\d{1,2}):(\d{2})\s*$"
+    r"^\s*(\d{2}):(\d{2})\s*[\u2013\u2014\-]\s*(\d{2}):(\d{2})\s*$"
 )
 
 _ALWAYS_OPEN_PHRASES = frozenset({"open 24 hours", "24 hours", "24/7"})
@@ -88,8 +90,11 @@ def _format_12h(hour: int, minutes: int, ampm: str) -> str:
 
 
 def _format_24h(hour: int, minutes: int) -> str:
-    """Render a 24-hour H:MM pair as the project's compact 12-hour token."""
-    hour %= 24
+    """Render a 24-hour H:MM pair as the project's compact 12-hour token.
+
+    Caller is responsible for validating ``hour`` (0-23) and ``minutes``
+    (0-59) — out-of-range values would otherwise be silently coerced.
+    """
     suffix = "am" if hour < 12 else "pm"
     h12 = hour % 12 or 12
     if minutes:
@@ -102,21 +107,32 @@ def _parse_time_range(segment: str) -> Optional[str]:
 
     Accepts both 12-hour forms (``"5:00 PM – 11:00 PM"``) and 24-hour
     locale forms (``"17:00 – 23:00"``).  Returns ``None`` when the
-    segment matches neither.
+    segment matches neither, OR when matched values fall outside the
+    valid clock range — those route to the diagnostic warn path so
+    unexpected formats become visible in logs rather than silently
+    coerced.
     """
     match = _TIME_RANGE_12H_RE.match(segment)
     if match:
-        open_str = _format_12h(
-            int(match.group(1)), int(match.group(2) or 0), match.group(3)
-        )
-        close_str = _format_12h(
-            int(match.group(4)), int(match.group(5) or 0), match.group(6)
-        )
+        open_h, open_m = int(match.group(1)), int(match.group(2) or 0)
+        close_h, close_m = int(match.group(4)), int(match.group(5) or 0)
+        if not (1 <= open_h <= 12 and 1 <= close_h <= 12):
+            return None
+        if not (0 <= open_m <= 59 and 0 <= close_m <= 59):
+            return None
+        open_str = _format_12h(open_h, open_m, match.group(3))
+        close_str = _format_12h(close_h, close_m, match.group(6))
         return f"{open_str}-{close_str}"
     match = _TIME_RANGE_24H_RE.match(segment)
     if match:
-        open_str = _format_24h(int(match.group(1)), int(match.group(2)))
-        close_str = _format_24h(int(match.group(3)), int(match.group(4)))
+        open_h, open_m = int(match.group(1)), int(match.group(2))
+        close_h, close_m = int(match.group(3)), int(match.group(4))
+        if not (0 <= open_h <= 23 and 0 <= close_h <= 23):
+            return None
+        if not (0 <= open_m <= 59 and 0 <= close_m <= 59):
+            return None
+        open_str = _format_24h(open_h, open_m)
+        close_str = _format_24h(close_h, close_m)
         return f"{open_str}-{close_str}"
     return None
 

@@ -92,6 +92,21 @@ function parseHoursRange(
     return { opens, closes };
 }
 
+// Multi-shift hours (e.g. "11am-2pm, 5pm-10pm" for venues with separate
+// lunch + dinner service) are emitted by the Places enrichment step as a
+// single comma-joined string per day. Splitting here lets each sub-range
+// surface as its own OpeningHoursSpecification so SEO output stays
+// consistent with the scraper's new format.
+function parseHoursRanges(raw: string): { opens: string; closes: string }[] {
+    return raw
+        .split(",")
+        .map((segment) => parseHoursRange(segment))
+        .filter(
+            (parsed): parsed is { opens: string; closes: string } =>
+                parsed !== null,
+        );
+}
+
 export function buildOpeningHoursSpecification(
     hours: unknown,
 ): object[] | undefined {
@@ -105,14 +120,14 @@ export function buildOpeningHoursSpecification(
         if (typeof value !== "string" || value.trim() === "") continue;
         const canonicalDay = DAY_OF_WEEK[day.toLowerCase()];
         if (!canonicalDay) continue;
-        const parsed = parseHoursRange(value);
-        if (!parsed) continue;
-        entries.push({
-            "@type": "OpeningHoursSpecification",
-            dayOfWeek: canonicalDay,
-            opens: parsed.opens,
-            closes: parsed.closes,
-        });
+        for (const parsed of parseHoursRanges(value)) {
+            entries.push({
+                "@type": "OpeningHoursSpecification",
+                dayOfWeek: canonicalDay,
+                opens: parsed.opens,
+                closes: parsed.closes,
+            });
+        }
     }
     return entries.length > 0 ? entries : undefined;
 }

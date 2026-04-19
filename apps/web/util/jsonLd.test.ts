@@ -138,6 +138,37 @@ describe("buildOpeningHoursSpecification", () => {
         expect(result[0].opens).toBe("09:00");
         expect(result[0].closes).toBe("17:00");
     });
+
+    it("emits one entry per sub-range for multi-shift days", () => {
+        // The Places enrichment step produces comma-joined ranges for venues
+        // with separate lunch + dinner service. Each shift must surface as
+        // its own OpeningHoursSpecification.
+        const result = buildOpeningHoursSpecification({
+            tuesday: "11am-2pm, 5pm-10pm",
+        }) as Array<{ dayOfWeek: string; opens: string; closes: string }>;
+        expect(result).toHaveLength(2);
+        expect(result[0]).toEqual({
+            "@type": "OpeningHoursSpecification",
+            dayOfWeek: "Tuesday",
+            opens: "11:00",
+            closes: "14:00",
+        });
+        expect(result[1]).toEqual({
+            "@type": "OpeningHoursSpecification",
+            dayOfWeek: "Tuesday",
+            opens: "17:00",
+            closes: "22:00",
+        });
+    });
+
+    it("keeps valid sub-ranges when one segment in a multi-shift day fails", () => {
+        const result = buildOpeningHoursSpecification({
+            wednesday: "11am-2pm, GARBAGE",
+        }) as Array<{ dayOfWeek: string; opens: string; closes: string }>;
+        expect(result).toHaveLength(1);
+        expect(result[0].opens).toBe("11:00");
+        expect(result[0].closes).toBe("14:00");
+    });
 });
 
 describe("buildClubJsonLd", () => {
