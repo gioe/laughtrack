@@ -15,52 +15,31 @@ beforeEach(() => {
 });
 
 describe("findRelatedShowsForShow", () => {
-    describe("self-exclusion", () => {
-        it("passes id: { not: showId } in the where clause", async () => {
-            await findRelatedShowsForShow(42, 99);
-
-            const [where] = mockFindShowsForHome.mock.calls[0];
-            expect(where.id).toEqual({ not: 42 });
-        });
-    });
-
-    describe("past-show exclusion", () => {
-        it("requires date >= now in the where clause", async () => {
+    describe("query args passed to findShowsForHome", () => {
+        it("builds the expected where clause, orderBy, and limit", async () => {
             const before = new Date();
-            await findRelatedShowsForShow(1, 99);
+            await findRelatedShowsForShow(42, 99);
             const after = new Date();
 
-            const [where] = mockFindShowsForHome.mock.calls[0];
+            expect(mockFindShowsForHome).toHaveBeenCalledTimes(1);
+            const [where, orderBy, take] = mockFindShowsForHome.mock.calls[0];
+
+            // self-exclusion
+            expect(where.id).toEqual({ not: 42 });
+
+            // past-show exclusion (date >= now)
             const gte = (where.date as { gte: Date }).gte;
             expect(gte).toBeInstanceOf(Date);
             expect(gte.getTime()).toBeGreaterThanOrEqual(before.getTime());
             expect(gte.getTime()).toBeLessThanOrEqual(after.getTime());
-        });
-    });
 
-    describe("club scope", () => {
-        it("scopes to the same clubId and only visible clubs", async () => {
-            await findRelatedShowsForShow(1, 99);
-
-            const [where] = mockFindShowsForHome.mock.calls[0];
+            // club scope: same club, visible only
             expect(where.club).toEqual({ id: 99, visible: true });
-        });
-    });
 
-    describe("ordering", () => {
-        it("orders by date ascending then id ascending", async () => {
-            await findRelatedShowsForShow(1, 99);
-
-            const [, orderBy] = mockFindShowsForHome.mock.calls[0];
+            // ordering: date asc, then id asc as tiebreaker
             expect(orderBy).toEqual([{ date: "asc" }, { id: "asc" }]);
-        });
-    });
 
-    describe("limit", () => {
-        it("limits results to 4", async () => {
-            await findRelatedShowsForShow(1, 99);
-
-            const [, , take] = mockFindShowsForHome.mock.calls[0];
+            // limit
             expect(take).toBe(4);
         });
     });

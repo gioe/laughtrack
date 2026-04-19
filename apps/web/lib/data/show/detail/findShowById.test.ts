@@ -25,8 +25,13 @@ vi.mock("@/util/comedian/comedianUtil", () => ({
 import { findShowById } from "./findShowById";
 import { db } from "@/lib/db";
 import { NotFoundError } from "@/objects/NotFoundError";
+import { mapTickets } from "@/util/ticket/ticketUtil";
+import { filterAndMapLineupItems } from "@/util/comedian/comedianUtil";
+import { Prisma } from "@prisma/client";
 
 const mockFindUnique = vi.mocked(db.show.findUnique);
+const mockMapTickets = vi.mocked(mapTickets);
+const mockFilterAndMap = vi.mocked(filterAndMapLineupItems);
 
 function makeShowRow(
     overrides: Partial<{
@@ -107,6 +112,38 @@ describe("findShowById", () => {
                 "https://cdn.example.com/Comedy Cellar.jpg",
             );
             expect(result.show.distanceMiles).toBeNull();
+        });
+
+        it("passes row.tickets to mapTickets and row.lineupItems to filterAndMapLineupItems", async () => {
+            const tickets = [
+                { price: 15, soldOut: false, purchaseUrl: null, type: "ga" },
+            ];
+            const lineupItems = [{ comedian: { id: 1, name: "Alice" } }];
+            const row = makeShowRow({ tickets, lineupItems });
+            mockFindUnique.mockResolvedValue(row as any);
+
+            await findShowById(1);
+
+            expect(mockMapTickets).toHaveBeenCalledWith(tickets);
+            expect(mockFilterAndMap).toHaveBeenCalledWith(lineupItems);
+        });
+
+        it("propagates description when present", async () => {
+            const row = makeShowRow({ description: "A great show" });
+            mockFindUnique.mockResolvedValue(row as any);
+
+            const result = await findShowById(1);
+
+            expect(result.show.description).toBe("A great show");
+        });
+
+        it("maps null description to undefined", async () => {
+            const row = makeShowRow({ description: null });
+            mockFindUnique.mockResolvedValue(row as any);
+
+            const result = await findShowById(1);
+
+            expect(result.show.description).toBeUndefined();
         });
 
         it("computes soldOut=true when all tickets are soldOut", async () => {
@@ -202,6 +239,41 @@ describe("findShowById", () => {
             mockFindUnique.mockResolvedValue(row as any);
 
             await expect(findShowById(7)).rejects.toThrow(/7/);
+            mockFindUnique.mockResolvedValue(row as any);
+            await expect(findShowById(7)).rejects.not.toThrow(/Hidden Club/);
+            mockFindUnique.mockResolvedValue(row as any);
+            await expect(findShowById(7)).rejects.not.toThrow(/somewhere/);
+        });
+    });
+
+    describe("Prisma error rewrapping", () => {
+        it("rewraps PrismaClientKnownRequestError as a generic Error with 'Database error:' prefix", async () => {
+            const prismaError = new Prisma.PrismaClientKnownRequestError(
+                "Timed out",
+                { code: "P2024", clientVersion: "6.5.0" },
+            );
+            mockFindUnique.mockRejectedValue(prismaError);
+
+            await expect(findShowById(1)).rejects.toThrow(
+                /^Database error: Timed out/,
+            );
+        });
+
+        it("does not rewrap Prisma errors as NotFoundError", async () => {
+            const prismaError = new Prisma.PrismaClientKnownRequestError(
+                "boom",
+                { code: "P2025", clientVersion: "6.5.0" },
+            );
+            mockFindUnique.mockRejectedValue(prismaError);
+
+            await expect(findShowById(1)).rejects.not.toThrow(NotFoundError);
+        });
+
+        it("re-throws a generic Error unchanged (fallback branch)", async () => {
+            const generic = new Error("boom");
+            mockFindUnique.mockRejectedValue(generic);
+
+            await expect(findShowById(1)).rejects.toBe(generic);
         });
     });
 });
