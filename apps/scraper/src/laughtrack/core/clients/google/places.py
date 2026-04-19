@@ -42,10 +42,15 @@ _DAY_PREFIX_RE = re.compile(
 )
 
 # "5:00 PM – 11:00 PM" — en dash or hyphen, tolerant of thin/narrow-nbsp before AM/PM
-_TIME_RANGE_RE = re.compile(
+_TIME_RANGE_12H_RE = re.compile(
     r"^\s*(\d{1,2})(?::(\d{2}))?\s*([AP]M)\s*[\u2013\u2014\-]\s*"
     r"(\d{1,2})(?::(\d{2}))?\s*([AP]M)\s*$",
     re.IGNORECASE,
+)
+
+# "17:00 – 23:00" — 24-hour locale format returned by non-US place listings.
+_TIME_RANGE_24H_RE = re.compile(
+    r"^\s*(\d{1,2}):(\d{2})\s*[\u2013\u2014\-]\s*(\d{1,2}):(\d{2})\s*$"
 )
 
 _ALWAYS_OPEN_PHRASES = frozenset({"open 24 hours", "24 hours", "24/7"})
@@ -82,6 +87,40 @@ def _format_12h(hour: int, minutes: int, ampm: str) -> str:
     return f"{hour}{suffix}"
 
 
+def _format_24h(hour: int, minutes: int) -> str:
+    """Render a 24-hour H:MM pair as the project's compact 12-hour token."""
+    hour %= 24
+    suffix = "am" if hour < 12 else "pm"
+    h12 = hour % 12 or 12
+    if minutes:
+        return f"{h12}:{minutes:02d}{suffix}"
+    return f"{h12}{suffix}"
+
+
+def _parse_time_range(segment: str) -> Optional[str]:
+    """Parse one open-close range into the compact project format.
+
+    Accepts both 12-hour forms (``"5:00 PM – 11:00 PM"``) and 24-hour
+    locale forms (``"17:00 – 23:00"``).  Returns ``None`` when the
+    segment matches neither.
+    """
+    match = _TIME_RANGE_12H_RE.match(segment)
+    if match:
+        open_str = _format_12h(
+            int(match.group(1)), int(match.group(2) or 0), match.group(3)
+        )
+        close_str = _format_12h(
+            int(match.group(4)), int(match.group(5) or 0), match.group(6)
+        )
+        return f"{open_str}-{close_str}"
+    match = _TIME_RANGE_24H_RE.match(segment)
+    if match:
+        open_str = _format_24h(int(match.group(1)), int(match.group(2)))
+        close_str = _format_24h(int(match.group(3)), int(match.group(4)))
+        return f"{open_str}-{close_str}"
+    return None
+
+
 def parse_weekday_descriptions(descriptions: List[str]) -> Optional[Dict[str, str]]:
     """Convert Places ``weekdayDescriptions`` into the project hours shape.
 
@@ -89,6 +128,13 @@ def parse_weekday_descriptions(descriptions: List[str]) -> Optional[Dict[str, st
     intentionally omitted from the result (matches existing behaviour:
     JSON-LD extraction also omits closed days rather than writing an
     explicit "closed" marker).  "Open 24 hours" collapses to ``"24hrs"``.
+
+    Handles multi-shift days (e.g. lunch + dinner service) by splitting on
+    commas and joining the parsed sub-ranges back with ", ".  Time ranges
+    are accepted in both 12-hour (``"5:00 PM – 11:00 PM"``) and 24-hour
+    (``"17:00 – 23:00"``) forms; locale output always normalizes to 12h.
+    If the day prefix matches but NO sub-range parses, a diagnostic warn
+    is emitted so production patterns can be spotted in logs.
     """
     if not descriptions:
         return None
@@ -108,20 +154,20 @@ def parse_weekday_descriptions(descriptions: List[str]) -> Optional[Dict[str, st
         if lowered in _ALWAYS_OPEN_PHRASES:
             out[day] = "24hrs"
             continue
-        range_match = _TIME_RANGE_RE.match(rest)
-        if not range_match:
+        segments = [seg for seg in (s.strip() for s in rest.split(",")) if seg]
+        parsed_segments: List[str] = []
+        for segment in segments:
+            formatted = _parse_time_range(segment)
+            if formatted:
+                parsed_segments.append(formatted)
+        if not parsed_segments:
+            # Prefix matched but no time range parsed — surface the raw
+            # entry so unseen locale/format patterns are visible in logs.
+            Logger.warn(
+                f"[places] unparseable hours entry for {day}: {raw!r}"
+            )
             continue
-        open_str = _format_12h(
-            int(range_match.group(1)),
-            int(range_match.group(2) or 0),
-            range_match.group(3),
-        )
-        close_str = _format_12h(
-            int(range_match.group(4)),
-            int(range_match.group(5) or 0),
-            range_match.group(6),
-        )
-        out[day] = f"{open_str}-{close_str}"
+        out[day] = ", ".join(parsed_segments)
     return out or None
 
 

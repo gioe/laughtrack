@@ -71,6 +71,89 @@ def test_parse_skips_non_string_entries():
     }
 
 
+def test_parse_multi_shift_day_joins_ranges():
+    # Lunch + dinner service — both shifts must survive, joined with ", ".
+    descs = ["Tuesday: 11:00 AM \u2013 2:00 PM, 5:00 PM \u2013 10:00 PM"]
+    assert parse_weekday_descriptions(descs) == {
+        "tuesday": "11am-2pm, 5pm-10pm"
+    }
+
+
+def test_parse_multi_shift_with_three_segments():
+    descs = [
+        "Wednesday: 8:00 AM \u2013 10:00 AM, 12:00 PM \u2013 2:00 PM, 6:00 PM \u2013 9:00 PM"
+    ]
+    assert parse_weekday_descriptions(descs) == {
+        "wednesday": "8am-10am, 12pm-2pm, 6pm-9pm"
+    }
+
+
+def test_parse_multi_shift_partial_parse_keeps_valid_segments():
+    # A garbled second segment shouldn't drop the entire day.
+    descs = ["Thursday: 5:00 PM \u2013 9:00 PM, NOT A RANGE"]
+    assert parse_weekday_descriptions(descs) == {"thursday": "5pm-9pm"}
+
+
+def test_parse_24_hour_locale_format():
+    # Non-US locales return 24-hour times — must convert to 12h output.
+    descs = [
+        "Monday: 17:00 \u2013 23:00",
+        "Tuesday: 09:30 \u2013 17:45",
+        "Wednesday: 00:00 \u2013 06:00",
+    ]
+    assert parse_weekday_descriptions(descs) == {
+        "monday": "5pm-11pm",
+        "tuesday": "9:30am-5:45pm",
+        "wednesday": "12am-6am",
+    }
+
+
+def test_parse_24_hour_with_multi_shift():
+    descs = ["Friday: 11:00 \u2013 14:00, 17:00 \u2013 22:00"]
+    assert parse_weekday_descriptions(descs) == {
+        "friday": "11am-2pm, 5pm-10pm"
+    }
+
+
+def test_parse_warns_when_day_prefix_matches_but_range_unparseable():
+    # If the day matched but the rest is gibberish (and not "Closed" / 24-hour
+    # phrase), we want a diagnostic log line so unseen formats are spotted
+    # in production rather than silently dropped.
+    from laughtrack.core.clients.google import places as _places_mod
+
+    descs = ["Monday: someday from dawn til dusk"]
+    with patch.object(_places_mod, "Logger") as mock_logger:
+        result = parse_weekday_descriptions(descs)
+
+    assert result is None
+    assert mock_logger.warn.call_count == 1
+    msg = mock_logger.warn.call_args[0][0]
+    assert "unparseable hours entry" in msg
+    assert "monday" in msg
+    assert "Monday: someday from dawn til dusk" in msg
+
+
+def test_parse_does_not_warn_for_closed_or_24h_phrases():
+    from laughtrack.core.clients.google import places as _places_mod
+
+    descs = ["Monday: Closed", "Tuesday: Open 24 hours"]
+    with patch.object(_places_mod, "Logger") as mock_logger:
+        result = parse_weekday_descriptions(descs)
+
+    assert result == {"tuesday": "24hrs"}
+    mock_logger.warn.assert_not_called()
+
+
+def test_parse_does_not_warn_when_day_prefix_does_not_match():
+    from laughtrack.core.clients.google import places as _places_mod
+
+    with patch.object(_places_mod, "Logger") as mock_logger:
+        result = parse_weekday_descriptions(["gibberish entry"])
+
+    assert result is None
+    mock_logger.warn.assert_not_called()
+
+
 # ---------------------------------------------------------------------------
 # GooglePlacesClient.fetch_hours
 # ---------------------------------------------------------------------------
