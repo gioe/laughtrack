@@ -3,12 +3,11 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { useMotionProps } from "@/hooks";
 import { Show } from "@/objects/class/show/Show";
 import { ShowDTO } from "@/objects/class/show/show.interface";
 import { formatShowDate } from "@/util/dateUtil";
 import { formatTicketString } from "@/util/ticket/ticketUtil";
+import EntityCard from "../../entity";
 
 const PLACEHOLDER = "/placeholders/club-placeholder.svg";
 
@@ -17,7 +16,6 @@ interface CompactShowCardProps {
 }
 
 const CompactShowCard: React.FC<CompactShowCardProps> = ({ show }) => {
-    const { mp } = useMotionProps();
     const [imgError, setImgError] = useState(false);
     const parsedShow = new Show(show);
 
@@ -42,10 +40,10 @@ const CompactShowCard: React.FC<CompactShowCardProps> = ({ show }) => {
         : undefined;
 
     return (
-        <motion.article
-            className="relative flex flex-col gap-3 p-4 bg-gradient-to-br from-[#FDF8EF] to-[#F5E6D3]
-                rounded-xl shadow-md border border-white/20 h-full"
-            whileHover={mp({ y: -4, transition: { duration: 0.15 } })}
+        <EntityCard
+            as="article"
+            chrome="warm"
+            className="relative flex flex-col gap-3 p-4 h-full"
         >
             {/* Stretched-link overlay: whole card navigates to /show/[id].
                 The ticket link below uses `relative z-[2]` so it still opens
@@ -129,7 +127,7 @@ const CompactShowCard: React.FC<CompactShowCardProps> = ({ show }) => {
                     )}
                 </div>
             )}
-        </motion.article>
+        </EntityCard>
     );
 };
 

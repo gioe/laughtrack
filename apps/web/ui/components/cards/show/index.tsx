@@ -2,14 +2,13 @@
 
 import React, { useEffect } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { useMotionProps } from "@/hooks";
 import { Button } from "@/ui/components/ui/button";
 import { Show } from "@/objects/class/show/Show";
 import ShowCardHeader from "@/ui/components/cards/show/header";
 import LineupGrid from "@/ui/components/lineup";
 import { ShowDTO } from "@/objects/class/show/show.interface";
 import { Divider } from "../../divider";
+import EntityCard from "../entity";
 
 // NOTE: Responsive classes in this file use project-custom Tailwind breakpoints
 // (not Tailwind defaults). See tailwind.config.ts `theme.screens` for definitions:
@@ -41,7 +40,6 @@ const ShowCard: React.FC<ShowCardProps> = ({
     hideClubName,
 }: ShowCardProps) => {
     const distanceMiles = show.distanceMiles ?? null;
-    const { mv, mp } = useMotionProps();
     const parsedShow = new Show(show);
     const stillOnSale =
         parsedShow.tickets.filter((ticket) => !ticket.soldOut).length > 0;
@@ -62,16 +60,12 @@ const ShowCard: React.FC<ShowCardProps> = ({
         : `${showDescriptor} is sold out`;
 
     return (
-        <motion.article
-            className="relative p-4 sm:p-6 bg-gradient-to-br from-[#FDF8EF] to-[#F5E6D3] overflow-hidden
-                rounded-xl w-full shadow-md hover:shadow-xl border border-white/20"
-            initial={alreadySeen ? false : { opacity: 0, y: mv(20) }}
-            animate={{ opacity: 1, y: 0 }}
-            whileHover={mp({ y: -4, transition: { duration: 0.15 } })}
-            transition={{
-                duration: mv(0.5),
-                ease: "easeOut",
-            }}
+        <EntityCard
+            as="article"
+            chrome="warm"
+            className="relative p-4 sm:p-6 overflow-hidden w-full hover:shadow-xl"
+            animateEntryY={20}
+            alreadySeen={alreadySeen}
         >
             {/* Stretched-link overlay: whole card navigates to the internal show detail.
                 Inner interactive elements (ticket button, lineup headshots) sit on top
@@ -151,7 +145,7 @@ const ShowCard: React.FC<ShowCardProps> = ({
                     <LineupGrid lineup={parsedShow.lineup} />
                 </div>
             </div>
-        </motion.article>
+        </EntityCard>
     );
 };
 
