@@ -25,23 +25,28 @@ export async function GET(req: NextRequest) {
         );
     }
 
-    const page = pageParam !== null ? Math.max(0, Number(pageParam)) : 0;
-    if (Number.isNaN(page)) {
-        return NextResponse.json(
-            { error: "page must be a non-negative integer" },
-            { status: 400, headers: rateLimitHeaders(rl) },
-        );
+    let page = 0;
+    if (pageParam !== null) {
+        const parsed = Number(pageParam);
+        if (!Number.isInteger(parsed) || parsed < 0) {
+            return NextResponse.json(
+                { error: "page must be a non-negative integer" },
+                { status: 400, headers: rateLimitHeaders(rl) },
+            );
+        }
+        page = parsed;
     }
 
-    const size =
-        sizeParam !== null
-            ? Math.min(MAX_PAGE_SIZE, Math.max(1, Number(sizeParam)))
-            : PAST_SHOWS_PAGE_SIZE;
-    if (Number.isNaN(size)) {
-        return NextResponse.json(
-            { error: "size must be a positive integer" },
-            { status: 400, headers: rateLimitHeaders(rl) },
-        );
+    let size = PAST_SHOWS_PAGE_SIZE;
+    if (sizeParam !== null) {
+        const parsed = Number(sizeParam);
+        if (!Number.isInteger(parsed) || parsed < 1) {
+            return NextResponse.json(
+                { error: "size must be a positive integer" },
+                { status: 400, headers: rateLimitHeaders(rl) },
+            );
+        }
+        size = Math.min(MAX_PAGE_SIZE, parsed);
     }
 
     const timezone = req.headers.get("X-Timezone") ?? "UTC";
