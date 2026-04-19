@@ -433,6 +433,17 @@ def main() -> None:
             "Daily request ceiling is controlled by GOOGLE_PLACES_DAILY_LIMIT."
         ),
     )
+    parser.add_argument(
+        "--summary-out",
+        type=str,
+        default=None,
+        help=(
+            "Write the final summary JSON to this path (in addition to stdout). "
+            "Used by the nightly workflow to avoid fragile 'tail -n1' parsing of "
+            "tee'd stdout — any trailing Logger line would otherwise break the "
+            "downstream Discord post."
+        ),
+    )
 
     args = parser.parse_args()
     missing_only = not (args.all or args.force or args.club_ids)
@@ -464,6 +475,20 @@ def main() -> None:
         f"dry_run={args.dry_run}, places={'on' if places_client else 'off'})"
     )
     if not targets:
+        empty_summary = {
+            "fetched": 0,
+            "extracted": 0,
+            "description_hits": 0,
+            "hours_hits": 0,
+            "hours_from_ldjson": 0,
+            "hours_from_places": 0,
+            "places_calls": 0,
+            "bot_blocked": 0,
+            "written": 0,
+        }
+        print(json.dumps(empty_summary))
+        if args.summary_out:
+            Path(args.summary_out).write_text(json.dumps(empty_summary), encoding="utf-8")
         return
 
     try:
@@ -484,6 +509,8 @@ def main() -> None:
 
     # Short JSON summary on stdout for programmatic callers (nightly workflow).
     print(json.dumps(summary))
+    if args.summary_out:
+        Path(args.summary_out).write_text(json.dumps(summary), encoding="utf-8")
 
 
 if __name__ == "__main__":
