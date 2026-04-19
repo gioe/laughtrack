@@ -39,12 +39,15 @@ export default async function AdminClubEditPage(props: {
     return (
         <div className="max-w-3xl mx-auto px-4 py-8">
             <div className="mb-4 text-sm">
-                <Link href="/admin/clubs" className="link">
+                <Link
+                    href="/admin/clubs"
+                    className="text-copper hover:underline"
+                >
                     ← All clubs
                 </Link>
             </div>
             <h1 className="text-2xl font-bold mb-1">{club.name}</h1>
-            <div className="text-sm text-base-content/70 mb-6">
+            <div className="text-sm text-gray-700 mb-6">
                 {[club.city, club.state].filter(Boolean).join(", ") || "—"}
             </div>
             <AdminClubEditor

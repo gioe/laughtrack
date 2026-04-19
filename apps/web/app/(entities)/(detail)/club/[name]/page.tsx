@@ -129,11 +129,11 @@ export default async function ClubDetailPage(props: {
         return (
             <div className="max-w-7xl mx-auto px-4 py-16 text-center">
                 <h1 className="text-3xl font-bold mb-4">{clubName}</h1>
-                <p className="text-lg text-base-content/70">
+                <p className="text-lg text-gray-700">
                     {clubName} has permanently closed.
                 </p>
                 {closedDate && (
-                    <p className="mt-2 text-sm text-base-content/50">
+                    <p className="mt-2 text-sm text-gray-500">
                         Closed on {closedDate}
                     </p>
                 )}

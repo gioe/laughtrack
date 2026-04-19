@@ -30,7 +30,7 @@ const SiblingLocations = ({ chainName, siblings }: SiblingLocationsProps) => {
             </div>
 
             {remaining > 0 && (
-                <p className="mt-3 text-sm text-base-content/60">
+                <p className="mt-3 text-sm text-gray-600">
                     + {remaining} more location{remaining > 1 ? "s" : ""}
                 </p>
             )}

@@ -99,13 +99,13 @@ export default function AdminClubEditor({
                 </label>
                 <textarea
                     id="description"
-                    className="textarea textarea-bordered w-full"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-copper focus:border-copper"
                     rows={6}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     maxLength={5000}
                 />
-                <div className="text-xs text-base-content/60 mt-1">
+                <div className="text-xs text-gray-600 mt-1">
                     {description.length} / 5000
                 </div>
             </section>
@@ -127,7 +127,7 @@ export default function AdminClubEditor({
                             <input
                                 id={`hours-${day}`}
                                 type="text"
-                                className="input input-bordered w-full"
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-copper focus:border-copper"
                                 placeholder="e.g. 7:00 PM – 11:00 PM, or Closed"
                                 value={hours[day]}
                                 onChange={(e) =>
@@ -141,7 +141,7 @@ export default function AdminClubEditor({
                         </div>
                     ))}
                 </div>
-                <p className="text-xs text-base-content/60 mt-2">
+                <p className="text-xs text-gray-600 mt-2">
                     Leave all days blank to clear hours entirely.
                 </p>
             </section>
@@ -158,17 +158,19 @@ export default function AdminClubEditor({
                     href={`/club/${encodeURIComponent(clubName)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="btn btn-ghost"
+                    className="inline-flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-100 transition-colors"
                 >
                     View public page
                 </Link>
                 {status.kind === "ok" && (
-                    <span className="text-success text-sm">
+                    <span className="text-green-600 text-sm">
                         {status.message}
                     </span>
                 )}
                 {status.kind === "error" && (
-                    <span className="text-error text-sm">{status.message}</span>
+                    <span className="text-red-600 text-sm">
+                        {status.message}
+                    </span>
                 )}
             </div>
         </form>

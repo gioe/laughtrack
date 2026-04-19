@@ -49,7 +49,7 @@ export default async function AdminClubsPage(props: {
                     name="q"
                     defaultValue={query}
                     placeholder="Search by name…"
-                    className="input input-bordered flex-1"
+                    className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-copper focus:border-copper"
                 />
                 <button
                     type="submit"
@@ -59,12 +59,12 @@ export default async function AdminClubsPage(props: {
                 </button>
             </form>
 
-            <p className="text-sm text-base-content/70 mb-2">
+            <p className="text-sm text-gray-700 mb-2">
                 {total} club{total === 1 ? "" : "s"} · page {page + 1} of{" "}
                 {totalPages}
             </p>
 
-            <ul className="divide-y divide-base-300">
+            <ul className="divide-y divide-gray-300">
                 {clubs.map((club) => {
                     const hasDescription =
                         typeof club.description === "string" &&
@@ -83,7 +83,7 @@ export default async function AdminClubsPage(props: {
                                 >
                                     {club.name}
                                 </Link>
-                                <div className="text-sm text-base-content/70">
+                                <div className="text-sm text-gray-700">
                                     {[club.city, club.state]
                                         .filter(Boolean)
                                         .join(", ") || "—"}
@@ -93,8 +93,8 @@ export default async function AdminClubsPage(props: {
                                 <span
                                     className={
                                         hasDescription
-                                            ? "text-success"
-                                            : "text-warning"
+                                            ? "text-green-600"
+                                            : "text-amber-600"
                                     }
                                 >
                                     {hasDescription ? "✓" : "—"} description
@@ -102,8 +102,8 @@ export default async function AdminClubsPage(props: {
                                 <span
                                     className={
                                         hasHours
-                                            ? "text-success"
-                                            : "text-warning"
+                                            ? "text-green-600"
+                                            : "text-amber-600"
                                     }
                                 >
                                     {hasHours ? "✓" : "—"} hours
@@ -146,7 +146,11 @@ function PaginationLink({
     disabled: boolean;
 }) {
     if (disabled) {
-        return <span className="btn btn-disabled">{label}</span>;
+        return (
+            <span className="inline-flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium opacity-50 cursor-not-allowed bg-gray-100">
+                {label}
+            </span>
+        );
     }
     const params = new URLSearchParams();
     if (q) params.set("q", q);
@@ -155,7 +159,7 @@ function PaginationLink({
     return (
         <Link
             href={`/admin/clubs${qs ? `?${qs}` : ""}`}
-            className="btn btn-outline"
+            className="inline-flex items-center justify-center px-4 py-2 border border-gray-400 rounded-md text-sm font-medium hover:bg-gray-100 transition-colors"
         >
             {label}
         </Link>

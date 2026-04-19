@@ -27,18 +27,22 @@ const SearchClientShell = ({
 
             {isLoading && (
                 <div className="flex justify-center py-6">
-                    <span className="loading loading-spinner loading-md text-copper" />
+                    <span
+                        role="status"
+                        aria-label="Loading"
+                        className="inline-block w-6 h-6 border-2 border-copper border-t-transparent rounded-full animate-spin"
+                    />
                 </div>
             )}
 
             {isError && (
                 <div className="flex flex-col items-center gap-2 py-6">
-                    <p className="text-sm text-error font-dmSans">
+                    <p className="text-sm text-red-600 font-dmSans">
                         {errorMessage ?? "Failed to load results"}
                     </p>
                     <button
                         onClick={retry}
-                        className="btn btn-sm btn-outline border-copper text-copper hover:bg-copper hover:text-white"
+                        className="inline-flex items-center justify-center px-3 py-1 text-xs border border-copper text-copper rounded-md hover:bg-copper hover:text-white transition-colors"
                     >
                         Retry
                     </button>

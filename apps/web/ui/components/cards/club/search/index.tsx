@@ -55,7 +55,7 @@ const ClubSearchCard: React.FC<ClubSearchCardProps> = ({ club }) => {
                 </p>
 
                 {club.chainName && (
-                    <p className="text-xs text-base-content/50 text-center font-dmSans">
+                    <p className="text-xs text-gray-500 text-center font-dmSans">
                         {club.chainName}
                     </p>
                 )}

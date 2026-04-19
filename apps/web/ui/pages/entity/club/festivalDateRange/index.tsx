@@ -24,10 +24,10 @@ const FestivalDateRange = ({ shows }: FestivalDateRangeProps) => {
 
     return (
         <div className="max-w-7xl mx-auto px-6 py-3">
-            <div className="inline-flex items-center gap-2 text-sm text-base-content/70">
+            <div className="inline-flex items-center gap-2 text-sm text-gray-700">
                 <CalendarDays className="w-4 h-4" />
                 <span>{dateLabel}</span>
-                <span className="text-base-content/50">
+                <span className="text-gray-500">
                     · {shows.length} {shows.length === 1 ? "show" : "shows"}
                 </span>
             </div>
