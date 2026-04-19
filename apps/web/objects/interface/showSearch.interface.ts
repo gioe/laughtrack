@@ -11,5 +11,5 @@ export interface SearchParams {
     size?: string;
     includeEmpty?: string;
     chain?: string;
-    minTotalShows?: string;
+    minUpcomingShows?: string;
 }

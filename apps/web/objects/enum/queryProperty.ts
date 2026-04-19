@@ -48,7 +48,7 @@ export enum QueryProperty {
     MaxTiktokFollowers = "maxTiktokFollowers",
     MinYoutubeFollowers = "minYoutubeFollowers",
     MaxYoutubeFollowers = "maxYoutubeFollowers",
-    MinTotalShows = "minTotalShows",
+    MinUpcomingShows = "minUpcomingShows",
     MaxTotalShows = "maxTotalShows",
     MinSoldOutShows = "minSoldOutShows",
     MaxSoldOutShows = "maxSoldOutShows",

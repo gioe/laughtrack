@@ -26,11 +26,11 @@ export const paramsContainsFilter = (
     return params.includes(filter);
 };
 
-// Upper bound for the comedian-search "Minimum total shows" stepper. Shared
+// Upper bound for the comedian-search "Minimum upcoming shows" stepper. Shared
 // between the URL-param validator and the modal UI so a manually-edited URL
-// (e.g. ?minTotalShows=999) can never round-trip past the value the +/- UI
+// (e.g. ?minUpcomingShows=999) can never round-trip past the value the +/- UI
 // can reach — keeping the two in sync was a TASK-1561 review finding.
-export const MIN_TOTAL_SHOWS_CEILING = 50;
+export const MIN_UPCOMING_SHOWS_CEILING = 50;
 
 interface ParamConfig<T> {
     key: string;
@@ -53,7 +53,7 @@ export type ParamTypeMap = {
     filters: string;
     includeEmpty: boolean;
     chain: string;
-    minTotalShows: number;
+    minUpcomingShows: number;
 };
 
 // Centralized parameter configuration
@@ -173,8 +173,8 @@ export const paramConfigs: {
         stringify: (value: string) => value,
         validate: (value: string) => value.length > 0 || value === "",
     },
-    minTotalShows: {
-        key: QueryProperty.MinTotalShows,
+    minUpcomingShows: {
+        key: QueryProperty.MinUpcomingShows,
         defaultValue: 0,
         parse: (value: string | null) => {
             const parsed = parseInt(value ?? "0", 10);
@@ -184,6 +184,6 @@ export const paramConfigs: {
         validate: (value: number) =>
             Number.isFinite(value) &&
             value >= 0 &&
-            value <= MIN_TOTAL_SHOWS_CEILING,
+            value <= MIN_UPCOMING_SHOWS_CEILING,
     },
 };

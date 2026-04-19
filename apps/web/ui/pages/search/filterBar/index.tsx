@@ -91,7 +91,7 @@ const FilterBar = ({
     const advancedFilterCount = isComedianSearch
         ? (getTypedParam("zip") ? 1 : 0) +
           (getTypedParam("fromDate") || getTypedParam("toDate") ? 1 : 0) +
-          ((getTypedParam("minTotalShows") ?? 0) > 0 ? 1 : 0)
+          ((getTypedParam("minUpcomingShows") ?? 0) > 0 ? 1 : 0)
         : 0;
     const filterButtonCount = activeFilters.length + advancedFilterCount;
     const showFilterButton = filterData.length > 0 || isComedianSearch;

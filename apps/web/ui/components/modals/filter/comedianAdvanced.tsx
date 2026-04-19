@@ -6,7 +6,7 @@ import { useUrlParams } from "@/hooks/useUrlParams";
 import { ComponentVariant, QueryProperty } from "@/objects/enum";
 import { DateRange, DistanceData } from "@/objects/interface";
 import { getDateRangeFromParams } from "@/util/search/util";
-import { MIN_TOTAL_SHOWS_CEILING } from "@/util/filter/util";
+import { MIN_UPCOMING_SHOWS_CEILING } from "@/util/filter/util";
 import ShowLocationComponent from "../../params/search/components/area";
 import CalendarComponent from "../../params/search/components/calendar";
 
@@ -26,7 +26,9 @@ export default function ComedianAdvancedFilters() {
         from: getTypedParam(QueryProperty.FromDate),
         to: getTypedParam(QueryProperty.ToDate),
     });
-    const minTotalShows: number = getTypedParam(QueryProperty.MinTotalShows);
+    const minUpcomingShows: number = getTypedParam(
+        QueryProperty.MinUpcomingShows,
+    );
 
     const handleZip = (v: string) => setTypedParam(QueryProperty.Zip, v);
     const handleDistance = (v: string) =>
@@ -34,8 +36,8 @@ export default function ComedianAdvancedFilters() {
     const handleDateRange = (v?: DateRange) =>
         setMultipleTypedParams({ fromDate: v?.from, toDate: v?.to });
     const setMinShows = (n: number) => {
-        const clamped = Math.max(0, Math.min(MIN_TOTAL_SHOWS_CEILING, n));
-        setTypedParam(QueryProperty.MinTotalShows, clamped);
+        const clamped = Math.max(0, Math.min(MIN_UPCOMING_SHOWS_CEILING, n));
+        setTypedParam(QueryProperty.MinUpcomingShows, clamped);
     };
 
     return (
@@ -59,11 +61,12 @@ export default function ComedianAdvancedFilters() {
                 />
             </Section>
 
-            {/* Backed by Comedian.totalShows (lifetime), not upcoming-only —
-                see TASK-1561 review #2096. Label reflects the actual predicate. */}
-            <Section label="Minimum total shows" labelId={MIN_SHOWS_LABEL_ID}>
+            <Section
+                label="Minimum upcoming shows"
+                labelId={MIN_SHOWS_LABEL_ID}
+            >
                 <Stepper
-                    value={minTotalShows}
+                    value={minUpcomingShows}
                     onChange={setMinShows}
                     labelledBy={MIN_SHOWS_LABEL_ID}
                 />
@@ -107,7 +110,7 @@ function Stepper({
     labelledBy: string;
 }) {
     const atMin = value <= 0;
-    const atMax = value >= MIN_TOTAL_SHOWS_CEILING;
+    const atMax = value >= MIN_UPCOMING_SHOWS_CEILING;
     return (
         <div className="flex items-center gap-3">
             <button
@@ -124,7 +127,7 @@ function Stepper({
                 aria-labelledby={labelledBy}
                 aria-valuenow={value}
                 aria-valuemin={0}
-                aria-valuemax={MIN_TOTAL_SHOWS_CEILING}
+                aria-valuemax={MIN_UPCOMING_SHOWS_CEILING}
                 aria-valuetext={value === 0 ? "Any" : String(value)}
                 tabIndex={0}
                 className="font-dmSans text-[16px] min-w-[3ch] text-center tabular-nums"

@@ -435,9 +435,16 @@ describe("findComediansWithCount", () => {
         });
     });
 
-    describe("advanced comedian filters (zip / date / minTotalShows)", () => {
-        it("adds totalShows >= clause to where when minTotalShows > 0", async () => {
+    describe("advanced comedian filters (zip / date / minUpcomingShows)", () => {
+        it("resolves matching uuids via raw SQL and applies uuid IN clause when minUpcomingShows > 0", async () => {
             mockCount.mockResolvedValue(1);
+            // 1st $queryRaw = deny list (empty); 2nd = matching uuids for the filter.
+            mockQueryRaw
+                .mockResolvedValueOnce([] as never)
+                .mockResolvedValueOnce([
+                    { uuid: "uuid-1" },
+                    { uuid: "uuid-2" },
+                ] as never);
             mockFindMany.mockResolvedValue([makeComedianRow(1)] as never);
 
             const helper = makeHelper(
@@ -446,22 +453,58 @@ describe("findComediansWithCount", () => {
                 undefined,
                 undefined,
                 false,
-                { minTotalShows: "5" },
+                { minUpcomingShows: "5" },
             );
             await findComediansWithCount(helper);
 
+            // The 2nd $queryRaw call is the upcoming-shows subquery — threshold flows via .values.
+            const filterCall = mockQueryRaw.mock.calls[1]?.[0] as {
+                strings: string[];
+                values: unknown[];
+            };
+            const sql = filterCall.strings.join(" ");
+            expect(sql).toContain('FROM "lineup_items"');
+            expect(sql).toContain("s.date > NOW()");
+            expect(filterCall.values).toContain(5);
+
             const call = mockFindMany.mock.calls[0]?.[0];
-            expect(call?.where?.totalShows).toEqual({ gte: 5 });
+            expect(call?.where?.uuid).toEqual({ in: ["uuid-1", "uuid-2"] });
+            // totalShows is no longer part of the filter — guard against regression.
+            expect(call?.where?.totalShows).toBeUndefined();
         });
 
-        it("omits totalShows clause when minTotalShows is missing or zero", async () => {
+        it("short-circuits to empty result when no comedians meet minUpcomingShows", async () => {
+            mockCount.mockResolvedValue(99);
+            mockQueryRaw
+                .mockResolvedValueOnce([] as never) // deny list
+                .mockResolvedValueOnce([] as never); // no matches
+            mockFindMany.mockResolvedValue([] as never);
+
+            const helper = makeHelper(
+                SortParamValue.PopularityDesc,
+                undefined,
+                undefined,
+                undefined,
+                false,
+                { minUpcomingShows: "20" },
+            );
+            const result = await findComediansWithCount(helper);
+
+            expect(result).toEqual({ comedians: [], totalCount: 0 });
+            // findMany must not be called when the pre-fetch returned zero uuids.
+            expect(mockFindMany).not.toHaveBeenCalled();
+        });
+
+        it("omits uuid filter and skips pre-fetch when minUpcomingShows is missing or zero", async () => {
             mockCount.mockResolvedValue(1);
             mockFindMany.mockResolvedValue([makeComedianRow(1)] as never);
 
             await findComediansWithCount(makeHelper());
 
             const call = mockFindMany.mock.calls[0]?.[0];
-            expect(call?.where?.totalShows).toBeUndefined();
+            expect(call?.where?.uuid).toBeUndefined();
+            // Only one $queryRaw call: the deny-list fetch. No upcoming-shows pre-fetch.
+            expect(mockQueryRaw).toHaveBeenCalledTimes(1);
         });
 
         it("nests the zip-code clause under lineupItems.some.show.club when zip is set", async () => {
@@ -525,10 +568,12 @@ describe("findComediansWithCount", () => {
             expect(showClause?.date?.lte).toBe("2026-05-31T23:59:59Z");
         });
 
-        it("includes c.total_shows >= N in the raw-SQL where conditions when minTotalShows is set on a show_count sort", async () => {
+        it("includes an upcoming-shows COUNT subquery in the raw-SQL where conditions when minUpcomingShows is set on a show_count sort", async () => {
             mockCount.mockResolvedValue(1);
+            // Call order: deny list → upcoming-shows pre-fetch → sorted IDs.
             mockQueryRaw
                 .mockResolvedValueOnce([] as never) // deny list
+                .mockResolvedValueOnce([{ uuid: "uuid-1" }] as never) // pre-fetch
                 .mockResolvedValueOnce([{ id: 1 }] as never); // sorted IDs
             mockFindMany.mockResolvedValue([makeComedianRow(1, 3)] as never);
 
@@ -538,16 +583,22 @@ describe("findComediansWithCount", () => {
                 undefined,
                 undefined,
                 false,
-                { minTotalShows: "10" },
+                { minUpcomingShows: "10" },
             );
             await findComediansWithCount(helper);
 
-            // The 2nd $queryRaw call is the sorted-ID query — its Prisma.Sql values
-            // include the parameterized minTotalShows value.
-            const sortedCall = mockQueryRaw.mock.calls[1]?.[0] as {
+            // The 3rd $queryRaw call is the sorted-ID query — the count subquery
+            // filters on future-dated shows and the threshold flows via .values.
+            const sortedCall = mockQueryRaw.mock.calls[2]?.[0] as {
+                strings: string[];
                 values: unknown[];
             };
-            expect(sortedCall?.values).toContain(10);
+            const sql = sortedCall.strings.join(" ");
+            expect(sql).toContain('FROM "lineup_items"');
+            expect(sql).toContain("s.date > NOW()");
+            // Guard against regression: old implementation filtered on c."total_shows".
+            expect(sql).not.toContain('c."total_shows" >=');
+            expect(sortedCall.values).toContain(10);
         });
 
         it("threads zip + date predicates into both the EXISTS lineup check and the ORDER BY count subquery on the raw-SQL show_count branch", async () => {

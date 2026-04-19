@@ -158,11 +158,32 @@ export async function findComediansWithCount(
                 ? { lineupItems: { some: { show: showFilter } } }
                 : {};
 
-        const minTotalShowsValue = Number(helper.params.minTotalShows) || 0;
-        const minTotalShowsClause: Prisma.ComedianWhereInput =
-            minTotalShowsValue > 0
-                ? { totalShows: { gte: minTotalShowsValue } }
-                : {};
+        // Prisma can't express "COUNT(relation WHERE ...) >= N" in a where clause,
+        // so resolve the matching comedian uuids via a raw SQL pre-fetch and pass
+        // them to the main findMany/count via `uuid IN (...)`. Real-time accuracy
+        // (no denormalized column / scraper coordination) at the cost of an extra
+        // DB round-trip when the filter is active.
+        const minUpcomingShowsValue =
+            Number(helper.params.minUpcomingShows) || 0;
+        let minUpcomingShowsClause: Prisma.ComedianWhereInput = {};
+        if (minUpcomingShowsValue > 0) {
+            const matchingRows = await db.$queryRaw<{ uuid: string }[]>(
+                Prisma.sql`
+                    SELECT c.uuid FROM "comedians" c
+                    WHERE (
+                        SELECT COUNT(*) FROM "lineup_items" li
+                        JOIN "shows" s ON li."show_id" = s.id
+                        WHERE li."comedian_id" = c.uuid AND s.date > NOW()
+                    ) >= ${minUpcomingShowsValue}
+                `,
+            );
+            if (matchingRows.length === 0) {
+                return { comedians: [], totalCount: 0 };
+            }
+            minUpcomingShowsClause = {
+                uuid: { in: matchingRows.map((r) => r.uuid) },
+            };
+        }
 
         const whereClause: Prisma.ComedianWhereInput = {
             ...helper.getComedianFiltersClause(),
@@ -171,7 +192,7 @@ export async function findComediansWithCount(
             },
             AND: nameFilters,
             ...lineupItemsClause,
-            ...minTotalShowsClause,
+            ...minUpcomingShowsClause,
         };
 
         const upcomingCountSelect = buildUpcomingCountSelect();
@@ -265,9 +286,13 @@ export async function findComediansWithCount(
                 whereConditions.push(lineupExistsClause);
             }
 
-            if (minTotalShowsValue > 0) {
+            if (minUpcomingShowsValue > 0) {
                 whereConditions.push(
-                    Prisma.sql`c."total_shows" >= ${minTotalShowsValue}`,
+                    Prisma.sql`(
+                        SELECT COUNT(*) FROM "lineup_items" li
+                        JOIN "shows" s ON li."show_id" = s.id
+                        WHERE li."comedian_id" = c.uuid AND s.date > NOW()
+                    ) >= ${minUpcomingShowsValue}`,
                 );
             }
 
