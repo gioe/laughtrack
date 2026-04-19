@@ -95,35 +95,48 @@ const ShowCard: React.FC<ShowCardProps> = ({
                             />
                         </div>
 
-                        {parsedShow.tickets.length > 0 && (
-                            <div className="sm:self-start relative z-[2]">
-                                {stillOnSale ? (
-                                    <Button asChild variant="roundedShimmer">
-                                        <Link
-                                            href={
-                                                parsedShow.tickets[0]
-                                                    .purchaseUrl
-                                            }
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            aria-label={ticketLabel}
-                                        >
-                                            Get Tickets
-                                        </Link>
-                                    </Button>
-                                ) : (
-                                    <Button
-                                        type="button"
-                                        variant="roundedShimmer"
-                                        className="bg-red-500"
-                                        disabled
-                                        aria-label={ticketLabel}
-                                    >
-                                        Sold Out
-                                    </Button>
-                                )}
-                            </div>
-                        )}
+                        {parsedShow.tickets.length > 0 &&
+                            (() => {
+                                const purchaseUrl =
+                                    parsedShow.tickets[0].purchaseUrl;
+                                const canPurchase =
+                                    stillOnSale && !!purchaseUrl;
+                                return (
+                                    <div className="sm:self-start relative z-[2]">
+                                        {canPurchase ? (
+                                            <Button
+                                                asChild
+                                                variant="roundedShimmer"
+                                            >
+                                                <Link
+                                                    href={purchaseUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    aria-label={ticketLabel}
+                                                >
+                                                    Get Tickets
+                                                </Link>
+                                            </Button>
+                                        ) : (
+                                            <Button
+                                                type="button"
+                                                variant="roundedShimmer"
+                                                className={
+                                                    stillOnSale
+                                                        ? undefined
+                                                        : "bg-red-500"
+                                                }
+                                                disabled={!stillOnSale}
+                                                aria-label={ticketLabel}
+                                            >
+                                                {stillOnSale
+                                                    ? "Get Tickets"
+                                                    : "Sold Out"}
+                                            </Button>
+                                        )}
+                                    </div>
+                                );
+                            })()}
                     </div>
 
                     <div className="lg:hidden relative z-[2]">
