@@ -1379,6 +1379,549 @@ def migrate_48(db_path: str, config_path: str, script_dir: str) -> None:
     _progress("  Migration 48: collapsed review.reviewers (array) into review.reviewer (object)")
 
 
+def migrate_49(db_path: str, config_path: str, script_dir: str) -> None:
+    """Persist request_count on task_sessions and skill_runs.
+
+    aggregate_session() in tusk-pricing-lib already computes the deduplicated
+    Claude API request count per session, but prior to this migration it was
+    only printed and never stored. Adds a nullable request_count INTEGER column
+    to both task_sessions and skill_runs, and extends the task_metrics view
+    with SUM(s.request_count) AS total_request_count so historical "turns per
+    task size" queries don't have to re-parse every transcript.
+
+    Idempotent: column additions are guarded by has_column() so a partial
+    prior run (column present, view unchanged) still reaches the view recreation
+    and version bump.
+    """
+    if get_version(db_path) >= 49:
+        _progress("  Migration 49: added request_count column to task_sessions and skill_runs, extended task_metrics view")
+        return
+
+    alter_stmts = []
+    if not has_column(db_path, "task_sessions", "request_count"):
+        alter_stmts.append("ALTER TABLE task_sessions ADD COLUMN request_count INTEGER;")
+    if not has_column(db_path, "skill_runs", "request_count"):
+        alter_stmts.append("ALTER TABLE skill_runs ADD COLUMN request_count INTEGER;")
+
+    script = "\n".join(alter_stmts) + """
+        DROP VIEW IF EXISTS task_metrics;
+        CREATE VIEW task_metrics AS
+        SELECT t.*,
+            COUNT(s.id) as session_count,
+            SUM(s.duration_seconds) as total_duration_seconds,
+            SUM(s.cost_dollars) as total_cost,
+            SUM(s.tokens_in) as total_tokens_in,
+            SUM(s.tokens_out) as total_tokens_out,
+            SUM(s.lines_added) as total_lines_added,
+            SUM(s.lines_removed) as total_lines_removed,
+            SUM(s.request_count) as total_request_count
+        FROM tasks t
+        LEFT JOIN task_sessions s ON t.id = s.task_id
+        GROUP BY t.id;
+
+        PRAGMA user_version = 49;
+    """
+    run_script(db_path, script)
+    _progress("  Migration 49: added request_count column to task_sessions and skill_runs, extended task_metrics view")
+
+
+def migrate_50(db_path: str, config_path: str, script_dir: str) -> None:
+    """Split collapsed 'claude-opus-4' rows into the correct minor version.
+
+    Context: before TASK-77, pricing.json stopped at claude-opus-4-6, so
+    resolve_model() prefix-collapsed every 'claude-opus-4-7' transcript entry
+    to 'claude-opus-4' (the shortest prefix match). task_sessions.model and
+    skill_runs.model were stamped at session-close time with that collapsed
+    value, so even after pricing.json was refreshed, historical rows still
+    read 'claude-opus-4' — and the Models dashboard couldn't tell 4.6 from 4.7.
+
+    This migration splits the bucket on the 2026-04-17 cutoff: anything dated
+    on or after that is Opus 4.7 (the upgrade date for the primary tusk user's
+    fleet), everything earlier is Opus 4.6. On a DB that has no 'claude-opus-4'
+    rows (fresh installs, or repos manually backfilled during TASK-77), every
+    UPDATE is a no-op by design.
+
+    This is a data-only migration — no schema change.
+    """
+    if get_version(db_path) >= 50:
+        _progress("  Migration 50: split collapsed 'claude-opus-4' rows into 4-6 / 4-7 on the 2026-04-17 cutoff")
+        return
+
+    script = """
+        UPDATE task_sessions
+           SET model = 'claude-opus-4-7'
+         WHERE model = 'claude-opus-4' AND started_at >= '2026-04-17';
+        UPDATE task_sessions
+           SET model = 'claude-opus-4-6'
+         WHERE model = 'claude-opus-4' AND started_at < '2026-04-17';
+        UPDATE skill_runs
+           SET model = 'claude-opus-4-7'
+         WHERE model = 'claude-opus-4' AND started_at >= '2026-04-17';
+        UPDATE skill_runs
+           SET model = 'claude-opus-4-6'
+         WHERE model = 'claude-opus-4' AND started_at < '2026-04-17';
+
+        PRAGMA user_version = 50;
+    """
+    run_script(db_path, script)
+    _progress("  Migration 50: split collapsed 'claude-opus-4' rows into 4-6 / 4-7 on the 2026-04-17 cutoff")
+
+
+def migrate_51(db_path: str, config_path: str, script_dir: str) -> None:
+    """Link skill_runs rows back to the task that triggered them.
+
+    Adds skill_runs.task_id (nullable INTEGER, FK → tasks(id) ON DELETE SET NULL)
+    so per-task 'all-in cost' rollups can attribute skill-run spend (e.g. /review-commits)
+    to the originating task. Nullable because standalone skills like /groom-backlog
+    and /tusk-insights run without a task.
+
+    Backfill for historical rows: for each skill_run with a task-scoped skill_name
+    ('tusk', 'chain', 'review-commits', 'retro') whose task_id is NULL, find the
+    task_session whose [started_at, ended_at] window contains the skill_run's
+    started_at and copy its task_id. Open sessions (ended_at IS NULL) are treated
+    as extending to now. Ambiguous overlaps resolve to the most recently started
+    session.
+
+    Idempotent: the column-add is guarded by has_column(), and the backfill only
+    touches rows where task_id IS NULL.
+    """
+    if get_version(db_path) >= 51:
+        _progress("  Migration 51: added skill_runs.task_id and backfilled task-scoped rows")
+        return
+
+    alter_stmts = []
+    if not has_column(db_path, "skill_runs", "task_id"):
+        alter_stmts.append(
+            "ALTER TABLE skill_runs ADD COLUMN task_id INTEGER REFERENCES tasks(id) ON DELETE SET NULL;"
+        )
+
+    script = "\n".join(alter_stmts) + """
+        UPDATE skill_runs
+           SET task_id = (
+               SELECT ts.task_id
+                 FROM task_sessions ts
+                WHERE ts.started_at <= skill_runs.started_at
+                  AND (ts.ended_at IS NULL OR ts.ended_at >= skill_runs.started_at)
+                ORDER BY ts.started_at DESC
+                LIMIT 1
+           )
+         WHERE task_id IS NULL
+           AND skill_name IN ('tusk', 'chain', 'review-commits', 'retro');
+
+        PRAGMA user_version = 51;
+    """
+    run_script(db_path, script)
+    _progress("  Migration 51: added skill_runs.task_id and backfilled task-scoped rows")
+
+
+def migrate_52(db_path: str, config_path: str, script_dir: str) -> None:
+    """Record reviewer model on code_reviews rows.
+
+    Adds code_reviews.model (nullable TEXT) so per-model reviewer experiments
+    ("does opus-as-reviewer catch more must_fix findings than sonnet-as-reviewer?")
+    can attribute findings to the model that produced them. Follows the same
+    pattern as task_sessions.model and skill_runs.model.
+
+    Backfill for historical rows: for each code_review whose model IS NULL,
+    find the task_session belonging to the same task whose
+    [started_at, ended_at] window contains code_reviews.created_at, and copy
+    that session's model. Open sessions (ended_at IS NULL) extend to now.
+    Ambiguous overlaps resolve to the most recently started session. The task
+    description guarantees this is valid for every current row since the
+    reviewer agent's model has never been overridden.
+
+    Idempotent: the column-add is guarded by has_column(), and the backfill
+    only touches rows where model IS NULL.
+    """
+    if get_version(db_path) >= 52:
+        _progress("  Migration 52: added code_reviews.model and backfilled from task_sessions")
+        return
+
+    alter_stmts = []
+    if not has_column(db_path, "code_reviews", "model"):
+        alter_stmts.append("ALTER TABLE code_reviews ADD COLUMN model TEXT;")
+
+    script = "\n".join(alter_stmts) + """
+        UPDATE code_reviews
+           SET model = (
+               SELECT ts.model
+                 FROM task_sessions ts
+                WHERE ts.task_id = code_reviews.task_id
+                  AND ts.started_at <= code_reviews.created_at
+                  AND (ts.ended_at IS NULL OR ts.ended_at >= code_reviews.created_at)
+                ORDER BY ts.started_at DESC
+                LIMIT 1
+           )
+         WHERE model IS NULL;
+
+        PRAGMA user_version = 52;
+    """
+    run_script(db_path, script)
+    _progress("  Migration 52: added code_reviews.model and backfilled from task_sessions")
+
+
+def migrate_53(db_path: str, config_path: str, script_dir: str) -> None:
+    """Add task_status_transitions audit log + task_metrics.reopen_count.
+
+    Creates a task_status_transitions(id, task_id, from_status, to_status,
+    changed_at) table and an AFTER UPDATE OF status trigger on tasks that
+    records every status change. Extends task_metrics with a reopen_count
+    column (count of transitions whose from_status is the Done terminal state)
+    so 'rework rate per model' becomes a first-class query.
+
+    Seeds synthetic rows for existing tasks so the table is not empty on
+    first migrate:
+      - Done tasks get 'To Do → In Progress' (at started_at, if set) and
+        'In Progress → Done' (at COALESCE(closed_at, updated_at)).
+      - In Progress tasks get 'To Do → In Progress' (at started_at, if set).
+      - To Do tasks get nothing.
+    No synthetic row ever has from_status='Done', so historical reopen_count
+    is always 0 by design — reopen history does not exist in the DB or git.
+    Value is forward-looking.
+
+    Idempotent: guarded with has_table/has_column checks, CREATE TRIGGER IF
+    NOT EXISTS, and NOT EXISTS on the backfill so a partial prior run still
+    converges.
+    """
+    if get_version(db_path) >= 53:
+        _progress("  Migration 53: added task_status_transitions table, trigger, backfill, and task_metrics.reopen_count")
+        return
+
+    ddl_stmts = []
+    if not has_table(db_path, "task_status_transitions"):
+        ddl_stmts.append("""
+            CREATE TABLE task_status_transitions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                task_id INTEGER NOT NULL,
+                from_status TEXT,
+                to_status TEXT NOT NULL,
+                changed_at TEXT NOT NULL DEFAULT (datetime('now')),
+                FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
+            );
+            CREATE INDEX idx_task_status_transitions_task_id ON task_status_transitions(task_id);
+        """)
+
+    script = "\n".join(ddl_stmts) + """
+        CREATE TRIGGER IF NOT EXISTS log_task_status_transition
+        AFTER UPDATE OF status ON tasks
+        FOR EACH ROW
+        WHEN OLD.status IS NOT NEW.status
+        BEGIN
+            INSERT INTO task_status_transitions (task_id, from_status, to_status, changed_at)
+            VALUES (NEW.id, OLD.status, NEW.status, datetime('now'));
+        END;
+
+        INSERT INTO task_status_transitions (task_id, from_status, to_status, changed_at)
+        SELECT t.id, 'To Do', 'In Progress', t.started_at
+          FROM tasks t
+         WHERE t.started_at IS NOT NULL
+           AND t.status IN ('In Progress', 'Done')
+           AND NOT EXISTS (
+             SELECT 1 FROM task_status_transitions tst
+              WHERE tst.task_id = t.id AND tst.to_status = 'In Progress'
+           );
+
+        INSERT INTO task_status_transitions (task_id, from_status, to_status, changed_at)
+        SELECT t.id, 'In Progress', 'Done', COALESCE(t.closed_at, t.updated_at)
+          FROM tasks t
+         WHERE t.status IN ('Done')
+           AND NOT EXISTS (
+             SELECT 1 FROM task_status_transitions tst
+              WHERE tst.task_id = t.id AND tst.to_status IN ('Done')
+           );
+
+        DROP VIEW IF EXISTS task_metrics;
+        CREATE VIEW task_metrics AS
+        SELECT t.*,
+            COUNT(s.id) as session_count,
+            SUM(s.duration_seconds) as total_duration_seconds,
+            SUM(s.cost_dollars) as total_cost,
+            SUM(s.tokens_in) as total_tokens_in,
+            SUM(s.tokens_out) as total_tokens_out,
+            SUM(s.lines_added) as total_lines_added,
+            SUM(s.lines_removed) as total_lines_removed,
+            SUM(s.request_count) as total_request_count,
+            (SELECT COUNT(*) FROM task_status_transitions tst
+              WHERE tst.task_id = t.id AND tst.from_status IN ('Done')) as reopen_count
+        FROM tasks t
+        LEFT JOIN task_sessions s ON t.id = s.task_id
+        GROUP BY t.id;
+
+        PRAGMA user_version = 53;
+    """
+    run_script(db_path, script)
+    _progress("  Migration 53: added task_status_transitions table, trigger, backfill, and task_metrics.reopen_count")
+
+
+def migrate_54(db_path: str, config_path: str, script_dir: str) -> None:
+    """Broaden task_metrics.reopen_count to cover any backward jump into To Do.
+
+    Migration 53 defined reopen_count as COUNT(*) WHERE from_status = 'Done',
+    which only captured post-Done reopens (Done -> To Do via
+    'tusk task-reopen --force'). It missed In Progress -> To Do rework —
+    a task bouncing through To Do before ever reaching Done — even though
+    TASK-81's motivating example required it.
+
+    This migration recreates the task_metrics view with
+    to_status = 'To Do' instead, which subsumes both cycles:
+      - In Progress -> To Do (mid-task rework)
+      - Done -> To Do       (post-Done reopen via --force)
+
+    The column name stays reopen_count (non-breaking for dashboard consumers).
+    Backfill produces no synthetic rows with to_status='To Do', so the
+    forward-looking-only property is preserved.
+
+    Idempotent: DROP VIEW IF EXISTS + CREATE VIEW reconstructs the view from
+    scratch regardless of prior state.
+    """
+    if get_version(db_path) >= 54:
+        _progress("  Migration 54: broadened task_metrics.reopen_count to to_status = 'To Do'")
+        return
+
+    script = """
+        DROP VIEW IF EXISTS task_metrics;
+        CREATE VIEW task_metrics AS
+        SELECT t.*,
+            COUNT(s.id) as session_count,
+            SUM(s.duration_seconds) as total_duration_seconds,
+            SUM(s.cost_dollars) as total_cost,
+            SUM(s.tokens_in) as total_tokens_in,
+            SUM(s.tokens_out) as total_tokens_out,
+            SUM(s.lines_added) as total_lines_added,
+            SUM(s.lines_removed) as total_lines_removed,
+            SUM(s.request_count) as total_request_count,
+            (SELECT COUNT(*) FROM task_status_transitions tst
+              WHERE tst.task_id = t.id AND tst.to_status = 'To Do') as reopen_count
+        FROM tasks t
+        LEFT JOIN task_sessions s ON t.id = s.task_id
+        GROUP BY t.id;
+
+        PRAGMA user_version = 54;
+    """
+    run_script(db_path, script)
+    _progress("  Migration 54: broadened task_metrics.reopen_count to to_status = 'To Do'")
+
+
+def migrate_55(db_path: str, config_path: str, script_dir: str) -> None:
+    """Link follow-up/rework tasks back to the source task they fix.
+
+    Adds nullable tasks.fixes_task_id INTEGER REFERENCES tasks(id) ON DELETE SET NULL
+    so post-hoc rollups can answer 'did the shipped code actually stick?' — when a
+    task goes Done and a follow-up task is later created to patch, revert, or rework
+    it, the follow-up points back at the original. Combined with skill_runs.task_id
+    (migration 51) and code_reviews.model (migration 52), this enables durability-
+    per-model queries.
+
+    One-shot backfill: greps tasks.description for 'fixes TASK-N',
+    'follow-up from TASK-N', and 'retro follow-up from TASK-N' phrasing, and
+    additionally scans git log for commits whose subject has a '[TASK-M]' prefix
+    AND whose message references one of those phrases (mapping M → N). Coverage
+    is expected <30% — the rest is lost, which is explicitly acceptable per the
+    TASK-82 brief. The git-log path is best-effort and silently no-ops when git
+    is unavailable or the DB lives outside a git repo.
+
+    Idempotent: column-add is guarded by has_column(); backfill only touches rows
+    where fixes_task_id IS NULL; FK integrity is preserved by filtering against
+    the current id set before each UPDATE.
+    """
+    if get_version(db_path) >= 55:
+        _progress("  Migration 55: added tasks.fixes_task_id and backfilled follow-up links")
+        return
+
+    if not has_column(db_path, "tasks", "fixes_task_id"):
+        run_script(
+            db_path,
+            "ALTER TABLE tasks ADD COLUMN fixes_task_id INTEGER "
+            "REFERENCES tasks(id) ON DELETE SET NULL;",
+        )
+
+    ref_re = re.compile(
+        r"(?:retro\s+)?follow[-\s]?up\s+from\s+TASK-(\d+)|fixes\s+TASK-(\d+)",
+        re.IGNORECASE,
+    )
+    prefix_re = re.compile(r"^\s*\[TASK-(\d+)\]")
+
+    conn = db_connect(db_path)
+    try:
+        existing_ids = {r[0] for r in conn.execute("SELECT id FROM tasks").fetchall()}
+
+        desc_updates: list[tuple[int, int]] = []
+        for task_id, desc in conn.execute(
+            "SELECT id, description FROM tasks "
+            "WHERE fixes_task_id IS NULL AND description IS NOT NULL"
+        ).fetchall():
+            m = ref_re.search(desc)
+            if not m:
+                continue
+            ref = int(m.group(1) or m.group(2))
+            if ref == task_id or ref not in existing_ids:
+                continue
+            desc_updates.append((ref, task_id))
+
+        git_pairs = _followup_pairs_from_git(db_path, existing_ids, ref_re, prefix_re)
+
+        all_updates = desc_updates + git_pairs
+        if all_updates:
+            conn.executemany(
+                "UPDATE tasks SET fixes_task_id = ? "
+                "WHERE id = ? AND fixes_task_id IS NULL",
+                all_updates,
+            )
+        conn.commit()
+    finally:
+        conn.close()
+
+    set_version(db_path, 55)
+    _progress("  Migration 55: added tasks.fixes_task_id and backfilled follow-up links")
+
+
+def _followup_pairs_from_git(
+    db_path: str,
+    existing_ids: set,
+    ref_re,
+    prefix_re,
+) -> list:
+    """Return (fixes_task_id, current_task_id) pairs scraped from git log.
+
+    Walks up from db_path until a .git directory is found; returns [] if none
+    exists or if git invocation fails (fresh projects, missing binary, etc.).
+    """
+    start = os.path.dirname(os.path.abspath(db_path))
+    repo_root = start
+    while repo_root and not os.path.isdir(os.path.join(repo_root, ".git")):
+        parent = os.path.dirname(repo_root)
+        if parent == repo_root:
+            return []
+        repo_root = parent
+    if not os.path.isdir(os.path.join(repo_root, ".git")):
+        return []
+
+    try:
+        output = subprocess.check_output(
+            ["git", "-C", repo_root, "log", "--all", "--format=%H%n%B%n--END--"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+            timeout=30,
+        )
+    except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired):
+        return []
+
+    pairs: dict = {}
+    for block in output.split("--END--\n"):
+        block = block.strip()
+        if not block:
+            continue
+        lines = block.split("\n", 1)
+        body = lines[1] if len(lines) > 1 else ""
+        p = prefix_re.search(body)
+        if not p:
+            continue
+        current = int(p.group(1))
+        r = ref_re.search(body)
+        if not r:
+            continue
+        ref = int(r.group(1) or r.group(2))
+        if ref == current or current not in existing_ids or ref not in existing_ids:
+            continue
+        pairs.setdefault(current, ref)
+
+    return [(ref, current) for current, ref in pairs.items()]
+
+
+def migrate_56(db_path: str, config_path: str, script_dir: str) -> None:
+    """Recreate tasks-dependent views so ALTER TABLE additions propagate.
+
+    SQLite resolves ``SELECT t.*`` at CREATE VIEW time and freezes the column
+    list. Adding a column to ``tasks`` via ALTER TABLE (as migration 55 did for
+    ``fixes_task_id``) does not propagate into views that select ``t.*``:
+    ``task_metrics``, ``v_ready_tasks``, and ``v_chain_heads`` all keep their
+    pre-ALTER column lists until re-CREATEd. Fresh installs are fine because
+    ``cmd_init`` rebuilds the schema end-to-end; only migrated DBs carry stale
+    view shapes.
+
+    ``v_criteria_coverage`` projects specific columns (not ``t.*``), so its
+    column list does not freeze — but it is recreated here anyway, per the
+    task brief, to keep the set of "tasks-dependent views" uniform and to
+    guarantee bit-for-bit parity with ``cmd_init``.
+
+    Idempotent: DROP VIEW IF EXISTS + CREATE VIEW reconstructs each view from
+    scratch regardless of prior state. Definitions mirror ``cmd_init`` in
+    ``bin/tusk`` verbatim as of v56.
+    """
+    if get_version(db_path) >= 56:
+        _progress("  Migration 56: recreated tasks-dependent views")
+        return
+
+    script = """
+        DROP VIEW IF EXISTS task_metrics;
+        CREATE VIEW task_metrics AS
+        SELECT t.*,
+            COUNT(s.id) as session_count,
+            SUM(s.duration_seconds) as total_duration_seconds,
+            SUM(s.cost_dollars) as total_cost,
+            SUM(s.tokens_in) as total_tokens_in,
+            SUM(s.tokens_out) as total_tokens_out,
+            SUM(s.lines_added) as total_lines_added,
+            SUM(s.lines_removed) as total_lines_removed,
+            SUM(s.request_count) as total_request_count,
+            (SELECT COUNT(*) FROM task_status_transitions tst
+              WHERE tst.task_id = t.id AND tst.to_status = 'To Do') as reopen_count
+        FROM tasks t
+        LEFT JOIN task_sessions s ON t.id = s.task_id
+        GROUP BY t.id;
+
+        DROP VIEW IF EXISTS v_ready_tasks;
+        CREATE VIEW v_ready_tasks AS
+        SELECT t.*
+        FROM tasks t
+        WHERE t.status = 'To Do'
+          AND NOT EXISTS (
+            SELECT 1 FROM task_dependencies d
+            JOIN tasks blocker ON d.depends_on_id = blocker.id
+            WHERE d.task_id = t.id AND d.relationship_type = 'blocks' AND blocker.status <> 'Done'
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM external_blockers eb
+            WHERE eb.task_id = t.id AND eb.is_resolved = 0
+          );
+
+        DROP VIEW IF EXISTS v_chain_heads;
+        CREATE VIEW v_chain_heads AS
+        SELECT t.*
+        FROM tasks t
+        WHERE t.status <> 'Done'
+          AND EXISTS (
+            SELECT 1 FROM task_dependencies d
+            JOIN tasks downstream ON d.task_id = downstream.id
+            WHERE d.depends_on_id = t.id AND downstream.status <> 'Done'
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM task_dependencies d
+            JOIN tasks blocker ON d.depends_on_id = blocker.id
+            WHERE d.task_id = t.id AND d.relationship_type = 'blocks' AND blocker.status <> 'Done'
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM external_blockers eb
+            WHERE eb.task_id = t.id AND eb.is_resolved = 0
+          );
+
+        DROP VIEW IF EXISTS v_criteria_coverage;
+        CREATE VIEW v_criteria_coverage AS
+        SELECT t.id AS task_id,
+               t.summary,
+               COUNT(CASE WHEN ac.is_deferred = 0 OR ac.is_deferred IS NULL THEN 1 END) AS total_criteria,
+               COALESCE(SUM(CASE WHEN ac.is_completed = 1 AND (ac.is_deferred = 0 OR ac.is_deferred IS NULL) THEN 1 ELSE 0 END), 0) AS completed_criteria,
+               COUNT(CASE WHEN ac.is_deferred = 0 OR ac.is_deferred IS NULL THEN 1 END) - COALESCE(SUM(CASE WHEN ac.is_completed = 1 AND (ac.is_deferred = 0 OR ac.is_deferred IS NULL) THEN 1 ELSE 0 END), 0) AS remaining_criteria
+        FROM tasks t
+        LEFT JOIN acceptance_criteria ac ON ac.task_id = t.id
+        GROUP BY t.id, t.summary;
+
+        PRAGMA user_version = 56;
+    """
+    run_script(db_path, script)
+    _progress("  Migration 56: recreated tasks-dependent views")
+
+
 # ── Migration registry ────────────────────────────────────────────────────────
 
 MIGRATIONS = [
@@ -1430,6 +1973,14 @@ MIGRATIONS = [
     (46, migrate_46),
     (47, migrate_47),
     (48, migrate_48),
+    (49, migrate_49),
+    (50, migrate_50),
+    (51, migrate_51),
+    (52, migrate_52),
+    (53, migrate_53),
+    (54, migrate_54),
+    (55, migrate_55),
+    (56, migrate_56),
 ]
 
 

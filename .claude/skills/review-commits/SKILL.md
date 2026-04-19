@@ -18,13 +18,21 @@ Optional: `/review-commits <task_id>` — if omitted, task ID is inferred from t
 
 ## Step 0: Start Cost Tracking
 
-Record the start of this review run so cost can be captured at the end:
+First, resolve the task ID so the skill run can be attributed to it. Use the argument if one was passed, otherwise parse it from the current branch:
 
 ```bash
-tusk skill-run start review-commits
+tusk branch-parse
 ```
 
-This prints `{"run_id": N, "started_at": "..."}`. Capture `run_id` — you will need it in Step 11.
+Returns `{"task_id": N}` on success. If it exits 1 (branch doesn't match pattern) and no argument was passed, ask the user to provide a task ID before continuing. Store the resolved ID as `TASK_ID`.
+
+Then record the start of this review run so cost can be captured at the end:
+
+```bash
+tusk skill-run start review-commits --task-id $TASK_ID
+```
+
+This prints `{"run_id": N, "started_at": "...", "task_id": N}`. Capture `run_id` — you will need it in Step 11.
 
 > **Early-exit cleanup:** If any validity/mode check below causes the skill to stop before Step 11, first call `tusk skill-run cancel <run_id>` to close the open row, then stop. Otherwise the row lingers as `(open)` in `tusk skill-run list` forever. The explicit cancel calls below cover the known early-exit paths; if you hit an unexpected bail-out, cancel before returning.
 
@@ -42,23 +50,15 @@ Parse the returned JSON. Extract:
 - `review_severities` — valid severity levels (typically `["critical", "major", "minor"]`)
 - `task_types` — list of valid task type strings. Resolve the best type for deferred tasks now: prefer `"refactor"`, then `"chore"`, then the first entry that is not `"bug"`. Store as `DEFERRED_TASK_TYPE`. If the list is empty or every entry is `"bug"`, set `DEFERRED_TASK_TYPE = null`.
 
-## Step 2: Detect Task ID
+## Step 2: Verify Task and Capture Domain
 
-If a task ID was passed as an argument, use it. Otherwise, infer from the current branch:
-
-```bash
-tusk branch-parse
-```
-
-Returns `{"task_id": N}` on success. If the command exits 1 (branch doesn't match pattern), ask the user to provide a task ID.
-
-Verify the task exists and capture its domain:
+`TASK_ID` was resolved in Step 0. Verify the task exists and capture its domain:
 
 ```bash
-tusk -header -column "SELECT id, summary, status, domain FROM tasks WHERE id = <task_id>"
+tusk -header -column "SELECT id, summary, status, domain FROM tasks WHERE id = $TASK_ID"
 ```
 
-If no row is returned, run `tusk skill-run cancel <run_id>` to close the open row, then abort: "Task `<task_id>` not found."
+If no row is returned, run `tusk skill-run cancel <run_id>` to close the open row, then abort: "Task `$TASK_ID` not found."
 
 Store the task's `domain` value — Step 7 uses it when dupe-checking and creating deferred tasks.
 
@@ -125,13 +125,13 @@ Only when the diff is non-empty and a review has been started in Step 4, proceed
 - The diff is small (fewer than ~200 lines) or contains only non-code files (`.md`, `.json`, `.yaml`).
 - `review.reviewer` is absent from config (the review record is unassigned and no agent is configured to handle it).
 
-Read the diff yourself, evaluate it, and record the result directly:
+Read the diff yourself, evaluate it, and record the result directly. Always pass `--model <your_model_id>` — the canonical ID matching the format in `task_sessions.model` (e.g. `claude-opus-4-7`, `claude-sonnet-4-6`, `claude-haiku-4-5`). Strip any suffixes like `[1m]` or date-stamps from your system prompt's ID so the value joins cleanly against other model-tagged tables (e.g. `claude-opus-4-7[1m]` → `claude-opus-4-7`):
 
 ```bash
 # Approve with no findings:
-tusk review approve <review_id> --note "Inline review: small/docs-only diff (or no reviewer configured), no findings."
+tusk review approve <review_id> --model <your_model_id> --note "Inline review: small/docs-only diff (or no reviewer configured), no findings."
 # Or if changes are needed:
-tusk review request-changes <review_id>
+tusk review request-changes <review_id> --model <your_model_id>
 # Then add comments as needed:
 tusk review add-comment <review_id> "<description>" --file "<file>" --line-start <line> --category <category> --severity <severity>
 ```
@@ -207,16 +207,16 @@ STALL_THRESHOLD = 5   # iterations (~2.5 min at 30 s/iter)
 
    **Agent still running:**
    - Increment `stall_count` by 1.
-   - If `stall_count >= STALL_THRESHOLD`, the agent has been running for too long without posting a verdict. Auto-approve immediately with a stall warning note and exit the loop:
+   - If `stall_count >= STALL_THRESHOLD`, the agent has been running for too long without posting a verdict. Auto-approve immediately with a stall warning note and exit the loop. Pass `--model <your_model_id>` (the orchestrator's own ID from its system prompt) since the orchestrator, not the stalled agent, is closing this review:
      ```bash
-     tusk review approve <review_id> --note "Auto-approved (stall): reviewer agent has been running for ≥5 monitoring iterations (~2.5 min) without posting a verdict. The agent may be looping or running a long-running command such as a full test suite. Check REVIEWER-PROMPT.md Step 2.6 constraints. To prevent stalls, ensure the agent sandbox has the required permissions.allow entries: Bash(git diff:*), Bash(git remote:*), Bash(git symbolic-ref:*), Bash(git branch:*), Bash(tusk review:*)"
+     tusk review approve <review_id> --model <your_model_id> --note "Auto-approved (stall): reviewer agent has been running for ≥5 monitoring iterations (~2.5 min) without posting a verdict. The agent may be looping or running a long-running command such as a full test suite. Check REVIEWER-PROMPT.md Step 2.6 constraints. To prevent stalls, ensure the agent sandbox has the required permissions.allow entries: Bash(git diff:*), Bash(git remote:*), Bash(git symbolic-ref:*), Bash(git branch:*), Bash(tusk review:*)"
      ```
      Continue as if the review returned no findings.
 
    **Agent has completed** (TaskOutput shows the agent is done) but the review is still `"pending"`:
-   - The agent finished without calling `tusk review approve` or `tusk review request-changes`. Log a warning and auto-approve with a note:
+   - The agent finished without calling `tusk review approve` or `tusk review request-changes`. Log a warning and auto-approve with a note. Pass `--model <your_model_id>` (the orchestrator's own ID) since the orchestrator, not the silent agent, is closing this review:
      ```bash
-     tusk review approve <review_id> --note "Auto-approved (no verdict): reviewer agent completed without posting a decision. Most likely cause: Bash tool not permitted in agent sandbox. Required permissions.allow entries: Bash(git diff:*), Bash(git remote:*), Bash(git symbolic-ref:*), Bash(git branch:*), Bash(tusk review:*)"
+     tusk review approve <review_id> --model <your_model_id> --note "Auto-approved (no verdict): reviewer agent completed without posting a decision. Most likely cause: Bash tool not permitted in agent sandbox. Required permissions.allow entries: Bash(git diff:*), Bash(git remote:*), Bash(git symbolic-ref:*), Bash(git branch:*), Bash(tusk review:*)"
      ```
      The most common cause is missing Bash tool permissions (the agent could not run `git diff` or `tusk review`). Run `tusk upgrade` to propagate the required `permissions.allow` entries if they are missing from `.claude/settings.json`. Continue as if the review returned no findings.
 
