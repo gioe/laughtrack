@@ -56,7 +56,10 @@ export async function generateMetadata(props: {
 
     const clubName = row.club.name;
     const showTitle = row.name?.trim() || `Comedy at ${clubName}`;
-    const dateLabel = formatShowDate(row.date.toISOString(), row.club.timezone);
+    // row.date may round-trip through unstable_cache as an ISO string, so coerce
+    // to Date before calling toISOString().
+    const dateIso = new Date(row.date).toISOString();
+    const dateLabel = formatShowDate(dateIso, row.club.timezone);
     const title = `${showTitle} · ${clubName} · ${dateLabel}`;
     const description = `${showTitle} at ${clubName} on ${dateLabel}. Lineup and ticket info on LaughTrack.`;
     const baseUrl = process.env.NEXT_PUBLIC_WEBSITE_URL;

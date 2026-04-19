@@ -1,3 +1,5 @@
+"use client";
+
 import { Comedian } from "@/objects/class/comedian/Comedian";
 import { ComedianLineupDTO } from "@/objects/class/comedian/comedianLineup.interface";
 import LineupGrid from "@/ui/components/lineup";
@@ -6,6 +8,8 @@ interface ShowLineupSectionProps {
     lineup: ComedianLineupDTO[];
 }
 
+// Client-side because LineupGrid expects Comedian class instances — constructing
+// them here means we never send a class across the server→client boundary.
 const ShowLineupSection: React.FC<ShowLineupSectionProps> = ({ lineup }) => {
     const parsed = lineup.map((item) => new Comedian(item));
 
