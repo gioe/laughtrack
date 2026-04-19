@@ -405,6 +405,17 @@ def main() -> None:
         default=None,
         help="Process at most N comedians (useful for smoke-testing or nightly caps).",
     )
+    parser.add_argument(
+        "--summary-out",
+        type=str,
+        default=None,
+        help=(
+            "Write the final summary JSON to this path (in addition to stdout). "
+            "Used by the nightly workflow to avoid fragile 'tail -n1' parsing of "
+            "tee'd stdout — any trailing Logger line would otherwise break the "
+            "downstream Discord post."
+        ),
+    )
 
     args = parser.parse_args()
     missing_only = not (args.all or args.force or args.comedian_ids)
@@ -419,7 +430,7 @@ def main() -> None:
         f"(missing_only={missing_only}, force={args.force}, dry_run={args.dry_run})"
     )
     if not targets:
-        print(json.dumps({
+        empty_summary = {
             "fetched": 0,
             "extracted": 0,
             "written": 0,
@@ -428,7 +439,10 @@ def main() -> None:
             "not_comedian": 0,
             "fetch_failed": 0,
             "qualifier_retry_saves": 0,
-        }))
+        }
+        print(json.dumps(empty_summary))
+        if args.summary_out:
+            Path(args.summary_out).write_text(json.dumps(empty_summary), encoding="utf-8")
         return
 
     try:
@@ -443,6 +457,8 @@ def main() -> None:
         sys.exit(1)
 
     print(json.dumps(summary))
+    if args.summary_out:
+        Path(args.summary_out).write_text(json.dumps(summary), encoding="utf-8")
 
 
 if __name__ == "__main__":
