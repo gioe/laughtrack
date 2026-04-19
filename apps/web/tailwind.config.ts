@@ -124,6 +124,29 @@ const config: Config = {
             "2xl": { min: "1359px" }, // Desktop widescreen.
         },
         extend: {
+            // Typography scale:
+            //   Semantic tokens that extend (not replace) Tailwind's default font-size
+            //   utilities (text-xs, text-sm, text-base, text-lg, text-xl, text-2xl, …).
+            //   Prefer these tokens over ad-hoc text-[Xpx] arbitrary values.
+            //
+            //   text-caption  13px  badges, chips, metadata, helper text
+            //   text-body     16px  default body text, buttons, labels
+            //   text-lead     18px  prose, larger body, secondary info
+            //   text-h3       22px  card titles, entity names, subheadings
+            //   text-h2       26px  section headers, modal titles
+            //   text-h1       32px  page titles
+            //   text-display  40px  home-page displays, about-page stats
+            //   text-hero     48px  empty-state grid titles, hero marks
+            fontSize: {
+                caption: "13px",
+                body: "16px",
+                lead: "18px",
+                h3: "22px",
+                h2: "26px",
+                h1: "32px",
+                display: "40px",
+                hero: "48px",
+            },
             spacing: {
                 "18": "4.5rem",
                 "22": "5.5rem",
