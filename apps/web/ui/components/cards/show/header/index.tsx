@@ -37,12 +37,12 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
 
             <div>
                 {!hideClubName && (
-                    <h2 className="text-xl sm:text-2xl md:text-[24px] font-gilroy-bold font-bold text-[#2D1810] mb-1">
+                    <h2 className="text-xl sm:text-2xl md:text-h3 font-gilroy-bold font-bold text-[#2D1810] mb-1">
                         {show.clubName ?? ""}
                     </h2>
                 )}
                 {show.name && (
-                    <p className="text-base sm:text-lg md:text-[18px] text-gray-600 font-dmSans mb-1">
+                    <p className="text-base sm:text-lg md:text-lead text-gray-600 font-dmSans mb-1">
                         {`${show.name}`}
                     </p>
                 )}
@@ -51,7 +51,7 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
                         {show.room}
                     </p>
                 )}
-                <p className="text-base sm:text-lg md:text-[18px] text-gray-600 font-dmSans">
+                <p className="text-base sm:text-lg md:text-lead text-gray-600 font-dmSans">
                     {formatShowDate(show.date.toString(), show.timezone)} ·{" "}
                     {`${show.address}`}
                 </p>
@@ -64,7 +64,7 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
                     </p>
                 )}
                 {!show.soldOut && (
-                    <p className="text-lg sm:text-xl md:text-[20px] text-copper font-semibold mt-1 font-dmSans">
+                    <p className="text-lg sm:text-xl md:text-lead text-copper font-semibold mt-1 font-dmSans">
                         {formatTicketString(
                             show.tickets.filter((ticket) => !ticket.soldOut),
                         )}

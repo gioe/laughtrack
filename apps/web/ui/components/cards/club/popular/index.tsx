@@ -43,10 +43,10 @@ const PopularClubCard: React.FC<PopularClubCardProps> = ({ entity }) => {
 
             {/* Text Content */}
             <div className="space-y-1">
-                <h2 className="text-[21px] font-bold leading-tight font-gilroy-bold">
+                <h2 className="text-h3 font-bold leading-tight font-gilroy-bold">
                     {club.name}
                 </h2>
-                <p className="text-[16px] text-gray-600 font-dmSans">
+                <p className="text-body text-gray-600 font-dmSans">
                     {club.activeComedianCount} active comedians
                 </p>
             </div>

@@ -110,7 +110,7 @@ export default function LoginForm({ onSubmit }: LoginFormProps) {
                             type="submit"
                             disabled={isLoading}
                             className="w-full flex items-center justify-center gap-2 px-6 py-3
-                                border border-copper rounded-xl text-[14px] text-white font-dmSans
+                                border border-copper rounded-xl text-caption text-white font-dmSans
                                 bg-copper hover:bg-copper/90 transition-colors duration-200
                                 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2
                                 focus:ring-copper disabled:opacity-60 disabled:cursor-not-allowed"

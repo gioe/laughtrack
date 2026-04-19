@@ -65,7 +65,7 @@ const ShowDetailHeader: React.FC<ShowDetailHeaderProps> = ({
 
                 <div className="absolute bottom-0 left-0 right-0 p-6">
                     {isPast && (
-                        <span className="inline-block mb-3 text-[11px] font-bold uppercase tracking-wider text-white bg-stone-600/90 px-2.5 py-1 rounded-full font-dmSans">
+                        <span className="inline-block mb-3 text-caption font-bold uppercase tracking-wider text-white bg-stone-600/90 px-2.5 py-1 rounded-full font-dmSans">
                             Archived
                         </span>
                     )}

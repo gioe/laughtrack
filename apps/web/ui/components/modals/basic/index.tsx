@@ -25,7 +25,7 @@ export const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
                 className="w-[calc(100%-2rem)] max-w-md bg-coconut-cream rounded-lg p-4 sm:p-6 m-4 outline-none"
             >
                 <div className="flex justify-between items-center mb-2">
-                    <h2 className="text-[26px] font-bold font-gilroy-bold text-gray-800">
+                    <h2 className="text-h2 font-bold font-gilroy-bold text-gray-800">
                         {title}
                     </h2>
                     <button

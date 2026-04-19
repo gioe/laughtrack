@@ -15,7 +15,7 @@ const ShowLineupSection: React.FC<ShowLineupSectionProps> = ({ lineup }) => {
 
     return (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 mt-10 mb-10">
-            <h2 className="font-gilroy-bold text-[26px] font-bold text-cedar mb-4">
+            <h2 className="font-gilroy-bold text-h2 font-bold text-cedar mb-4">
                 Lineup
             </h2>
             <LineupGrid lineup={parsed} />

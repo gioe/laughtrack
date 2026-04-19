@@ -38,7 +38,7 @@ const buttonVariants = cva(
                 sm: "h-8 rounded-md px-3 text-xs",
                 lg: "h-10 rounded-md px-8",
                 icon: "h-9 w-9",
-                roundedShimmer: "h-auto px-6 py-2.5 text-[16px]",
+                roundedShimmer: "h-auto px-6 py-2.5 text-body",
             },
         },
         defaultVariants: {
@@ -49,7 +49,7 @@ const buttonVariants = cva(
             {
                 variant: "roundedShimmer",
                 size: "default",
-                className: "h-auto px-6 py-2.5 text-[16px]",
+                className: "h-auto px-6 py-2.5 text-body",
             },
         ],
     },

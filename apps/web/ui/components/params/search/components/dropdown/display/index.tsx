@@ -28,7 +28,7 @@ export function DropdownDisplay(props: DropdownDisplayProps) {
         <div className="flex items-center">
             <Select onValueChange={props.onChange} value={props.value}>
                 <SelectTrigger
-                    className={`text-[18px] ${styleConfig.inputTextColor} font-dmSans h-9 border-gray-300 shadow-none hover:border-gray-400 focus:border-gray-400`}
+                    className={`text-lead ${styleConfig.inputTextColor} font-dmSans h-9 border-gray-300 shadow-none hover:border-gray-400 focus:border-gray-400`}
                     {...(props.contentId
                         ? { "aria-controls": props.contentId }
                         : {})}

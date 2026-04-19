@@ -14,10 +14,10 @@ const RelatedComediansSection = ({
 
     return (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 mt-10 mb-16">
-            <h2 className="font-gilroy-bold text-[26px] font-bold text-cedar">
+            <h2 className="font-gilroy-bold text-h2 font-bold text-cedar">
                 Comedians who perform with {subjectName}
             </h2>
-            <p className="text-gray-600 font-dmSans text-[16px] mb-8">
+            <p className="text-gray-600 font-dmSans text-body mb-8">
                 Based on shared lineups across past and upcoming shows.
             </p>
             <ComedianGrid

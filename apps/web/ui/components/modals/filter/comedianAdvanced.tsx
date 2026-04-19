@@ -130,7 +130,7 @@ function Stepper({
                 aria-valuemax={MIN_UPCOMING_SHOWS_CEILING}
                 aria-valuetext={value === 0 ? "Any" : String(value)}
                 tabIndex={0}
-                className="font-dmSans text-[16px] min-w-[3ch] text-center tabular-nums"
+                className="font-dmSans text-body min-w-[3ch] text-center tabular-nums"
             >
                 {value === 0 ? "Any" : value}
             </span>

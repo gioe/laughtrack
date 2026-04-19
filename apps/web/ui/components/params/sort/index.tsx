@@ -37,7 +37,7 @@ export function SortParamComponent({
                 <MenuButton
                     id={BUTTON_ID}
                     className="group flex items-center justify-between rounded-lg
-                             text-copper font-dmSans text-[16px] hover:bg-gray-50"
+                             text-copper font-dmSans text-body hover:bg-gray-50"
                 >
                     <div className="flex items-center gap-2">
                         <MenuIcon size={20} />

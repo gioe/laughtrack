@@ -16,7 +16,7 @@ const RelatedShowsSection: React.FC<RelatedShowsSectionProps> = ({
     return (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 mt-10 mb-16">
             <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2 mb-6">
-                <h2 className="font-gilroy-bold text-[26px] font-bold text-cedar">
+                <h2 className="font-gilroy-bold text-h2 font-bold text-cedar">
                     {clubName ? `More shows at ${clubName}` : "More shows"}
                 </h2>
                 {clubName && (

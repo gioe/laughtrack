@@ -98,7 +98,7 @@ const ShowDiscoverySection = ({
         >
             <div className="flex flex-col sm:flex-row md:flex-row lg:flex-row justify-between items-start sm:items-center md:items-center lg:items-center mb-6">
                 <div>
-                    <h2 className="text-2xl sm:text-3xl md:text-[36px] font-bold font-gilroy-bold text-cedar mb-2">
+                    <h2 className="text-2xl sm:text-3xl md:text-display font-bold font-gilroy-bold text-cedar mb-2">
                         {title}
                     </h2>
                     <p className="text-gray-600 font-dmSans text-sm md:text-base mb-4 sm:mb-0 md:mb-0 lg:mb-0">

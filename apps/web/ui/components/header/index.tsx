@@ -39,7 +39,7 @@ function MobileNavLink({
         <Link
             href={href}
             aria-current={highlighted ? "page" : undefined}
-            className={`flex-1 text-center text-[15px] font-semibold font-dmSans py-2 rounded-lg transition-all duration-200 ${
+            className={`flex-1 text-center text-body font-semibold font-dmSans py-2 rounded-lg transition-all duration-200 ${
                 highlighted
                     ? `${highlightedColor} bg-copper/20`
                     : `${baseColor} opacity-70 hover:opacity-100 hover:bg-copper/10`
@@ -87,7 +87,7 @@ export function Header({ currentUser }: HeaderProps) {
                                             ? "page"
                                             : undefined
                                     }
-                                    className={`text-[15px] font-semibold font-dmSans transition-opacity ${
+                                    className={`text-body font-semibold font-dmSans transition-opacity ${
                                         styleConfig.baseHeaderItemColor
                                     } ${
                                         pathname.includes("/profile")
@@ -100,7 +100,7 @@ export function Header({ currentUser }: HeaderProps) {
                                 <button
                                     type="button"
                                     onClick={handleSignOut}
-                                    className={`text-[15px] font-semibold font-dmSans opacity-70 hover:opacity-100 transition-opacity ${styleConfig.baseHeaderItemColor}`}
+                                    className={`text-body font-semibold font-dmSans opacity-70 hover:opacity-100 transition-opacity ${styleConfig.baseHeaderItemColor}`}
                                 >
                                     Log Out
                                 </button>

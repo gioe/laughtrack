@@ -16,7 +16,7 @@ export const FilterChip = ({
             onClick={() => {
                 onClick(option.slug);
             }}
-            className={`px-4 py-2 rounded-full text-[13px] font-bold font-dmSans
+            className={`px-4 py-2 rounded-full text-caption font-bold font-dmSans
             transform transition-all duration-200 ease-in-out
             shadow-sm hover:shadow-md active:scale-[0.97]
             ${

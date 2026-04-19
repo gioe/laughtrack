@@ -18,7 +18,7 @@ export function HeaderItem({
 }: HeaderItemProps) {
     const { getCurrentStyles } = useStyleContext();
     const styleConfig = getCurrentStyles();
-    const baseClasses = `text-[16px] font-semibold font-dmSans relative
+    const baseClasses = `text-body font-semibold font-dmSans relative
         transition-all duration-300 ease-out
         after:content-[''] after:absolute after:bottom-[-4px] after:left-0
         after:w-full after:h-[2px] after:bg-copper after:transform

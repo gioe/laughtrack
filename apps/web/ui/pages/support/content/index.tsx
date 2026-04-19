@@ -9,7 +9,7 @@ const SupportSection = () => {
             {/* Content Container */}
             <div className="max-w-7xl mx-auto px-6 py-12">
                 {/* Header */}
-                <h1 className="text-[32px] font-bold text-center mb-4 font-chivo">
+                <h1 className="text-h1 font-bold text-center mb-4 font-chivo">
                     Support
                 </h1>
 
@@ -23,7 +23,7 @@ const SupportSection = () => {
                 </div>
 
                 {/* Text Content */}
-                <div className="space-y-6 text-gray-700 text-left text-[18px] font-dmSans">
+                <div className="space-y-6 text-gray-700 text-left text-lead font-dmSans">
                     <p>
                         We built Laughtrack because we saw a problem that needed
                         solving. It's not the biggest problem in the world, but

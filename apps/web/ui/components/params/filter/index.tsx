@@ -22,7 +22,7 @@ export function FilterModalButton({ filterCount }: FilterModalButtonProps) {
             onClick={openModal}
         >
             <Filter size={20} />
-            <span className="font-dmSans text-[16px]">Filter</span>
+            <span className="font-dmSans text-body">Filter</span>
             <ChevronDownIcon
                 aria-hidden="true"
                 className="h-5 w-5 flex-none text-copper"
@@ -30,7 +30,7 @@ export function FilterModalButton({ filterCount }: FilterModalButtonProps) {
             {filterCount != null && filterCount > 0 && (
                 <span
                     data-testid="filter-count-badge"
-                    className="absolute -top-2 -right-2 flex items-center justify-center min-w-[1rem] h-4 px-0.5 rounded-full bg-copper text-white text-[10px] font-bold leading-none"
+                    className="absolute -top-2 -right-2 flex items-center justify-center min-w-[1rem] h-4 px-0.5 rounded-full bg-copper text-white text-caption font-bold leading-none"
                 >
                     {filterCount > 9 ? "9+" : filterCount}
                 </span>

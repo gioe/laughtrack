@@ -42,7 +42,7 @@ const FilterModal = ({ filters, total, variant }: FilterModalProps) => {
             onClose={onCancel}
             title="Filter Results"
         >
-            <p className="text-gray-600 mb-4 font-dmSans text-[16px] animate-fadeIn">
+            <p className="text-gray-600 mb-4 font-dmSans text-body animate-fadeIn">
                 Select options to refine search
             </p>
 
@@ -52,7 +52,7 @@ const FilterModal = ({ filters, total, variant }: FilterModalProps) => {
 
             {filters.length > 0 && (
                 <div className="mb-6 pt-7 animate-slideUp">
-                    <h3 className="text-[18px] font-bold font-gilroy-bold text-gray-800 mb-3 pb-3 border-b border-gray-100">
+                    <h3 className="text-lead font-bold font-gilroy-bold text-gray-800 mb-3 pb-3 border-b border-gray-100">
                         Filter By
                     </h3>
                     <div className="flex flex-wrap gap-2">
@@ -70,7 +70,7 @@ const FilterModal = ({ filters, total, variant }: FilterModalProps) => {
 
             <button
                 onClick={onApply}
-                className="w-full font-dmSans bg-copper text-ivory py-3 rounded-lg font-bold text-[16px] shadow-sm
+                className="w-full font-dmSans bg-copper text-ivory py-3 rounded-lg font-bold text-body shadow-sm
                 transform transition-all duration-200 ease-in-out
                 hover:scale-[1.02] hover:shadow-md hover:bg-copper/90 active:scale-[0.98]
                 border-2 border-copper hover:border-copper/80"

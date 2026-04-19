@@ -21,10 +21,10 @@ function LaughtrackLogin({ handleSubmit }: LaughtrackLoginProps) {
                 <div className="flex-1 flex flex-col items-center justify-center px-4">
                     <div className="w-full max-w-md space-y-6">
                         <div className="text-center space-y-2">
-                            <h2 className="text-2xl font-bold text-gray-900 font-dmSans text-[28px]">
+                            <h2 className="text-2xl font-bold text-gray-900 font-dmSans text-h2">
                                 Welcome back
                             </h2>
-                            <p className="text-gray-600 font-dmSans text-[16px]">
+                            <p className="text-gray-600 font-dmSans text-body">
                                 Continue with your preferred provider to access
                                 your account and build your profile
                             </p>

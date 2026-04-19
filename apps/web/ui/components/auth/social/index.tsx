@@ -25,7 +25,7 @@ const SocialButton = ({ provider, onClick, children }: SocialButtonProps) => {
             whileHover={mp({ scale: 1.02 })}
             whileTap={mp({ scale: 0.98 })}
             className="w-full flex items-center justify-center gap-3 px-6 py-3
-                border border-gray-200 rounded-xl text-[14px] text-gray-700 font-dmSans
+                border border-gray-200 rounded-xl text-caption text-gray-700 font-dmSans
                 bg-white hover:bg-gray-50 transition-colors duration-200
                 shadow-sm hover:shadow focus:outline-none focus:ring-2
                 focus:ring-offset-2 focus:ring-copper"

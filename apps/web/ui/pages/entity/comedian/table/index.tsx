@@ -16,10 +16,10 @@ const TableWithHeader: React.FC<TableWithHeaderProps> = ({
 }) => {
     return (
         <div className="flex-1">
-            <h1 className="font-gilroy-bold text-[26px] font-bold">
+            <h1 className="font-gilroy-bold text-h2 font-bold">
                 Upcoming Shows
             </h1>
-            <p className="text-gray-600 font-dmSans text-[16px] mb-8">
+            <p className="text-gray-600 font-dmSans text-body mb-8">
                 {total} upcoming shows
             </p>
             {children}

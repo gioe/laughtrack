@@ -9,10 +9,10 @@ const AboutUsSection = () => {
             <div className="max-w-7xl mx-auto px-6 py-12">
                 {/* Header with fade-in and slide-up animation */}
                 <div className="text-center mb-8 animate-fadeIn">
-                    <h1 className="text-[32px] font-bold mb-4 font-chivo bg-gradient-to-r from-copper to-cedar bg-clip-text text-transparent transform transition-transform duration-300 hover:scale-105">
+                    <h1 className="text-h1 font-bold mb-4 font-chivo bg-gradient-to-r from-copper to-cedar bg-clip-text text-transparent transform transition-transform duration-300 hover:scale-105">
                         About Us
                     </h1>
-                    <p className="text-gray-700 font-dmSans text-[16px] animate-slideUp">
+                    <p className="text-gray-700 font-dmSans text-body animate-slideUp">
                         Laughtrack is a space to find things that make you
                         laugh, and hopefully nothing else.
                     </p>
@@ -29,7 +29,7 @@ const AboutUsSection = () => {
                 </div>
 
                 {/* Text Content with staggered animations */}
-                <div className="space-y-8 text-gray-700 text-left text-[18px] font-dmSans max-w-3xl mx-auto">
+                <div className="space-y-8 text-gray-700 text-left text-lead font-dmSans max-w-3xl mx-auto">
                     <p className="animate-fadeIn [animation-delay:100ms]">
                         Laughtrack is a space to find things that make you
                         laugh, and hopefully nothing else.

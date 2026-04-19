@@ -63,7 +63,7 @@ const ShowTicketCta: React.FC<ShowTicketCtaProps> = ({ show, isPast }) => {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={ctaLabel}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-copper text-white font-gilroy-bold font-bold text-[16px] shadow-sm hover:shadow-md hover:-translate-y-[1px] transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-copper text-white font-gilroy-bold font-bold text-body shadow-sm hover:shadow-md hover:-translate-y-[1px] transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper"
             >
                 Get Tickets
                 {priceLabel && (

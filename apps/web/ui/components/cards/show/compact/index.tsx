@@ -72,7 +72,7 @@ const CompactShowCard: React.FC<CompactShowCardProps> = ({ show }) => {
                     />
                 </div>
                 <div className="min-w-0">
-                    <p className="font-gilroy-bold font-bold text-[#2D1810] text-[15px] leading-tight line-clamp-2">
+                    <p className="font-gilroy-bold font-bold text-[#2D1810] text-body leading-tight line-clamp-2">
                         {parsedShow.clubName}
                     </p>
                     {parsedShow.name && (
@@ -89,7 +89,7 @@ const CompactShowCard: React.FC<CompactShowCardProps> = ({ show }) => {
             </div>
 
             {/* Date & address */}
-            <div className="text-[13px] text-gray-600 font-dmSans space-y-0.5">
+            <div className="text-caption text-gray-600 font-dmSans space-y-0.5">
                 <p>
                     {formatShowDate(
                         parsedShow.date.toString(),
@@ -103,7 +103,7 @@ const CompactShowCard: React.FC<CompactShowCardProps> = ({ show }) => {
 
             {/* Lineup */}
             {lineupNames.length > 0 && (
-                <p className="text-[13px] text-gray-700 font-dmSans">
+                <p className="text-caption text-gray-700 font-dmSans">
                     w/ {displayNames}
                     {extraCount > 0 && ` +${extraCount} more`}
                 </p>
@@ -118,12 +118,12 @@ const CompactShowCard: React.FC<CompactShowCardProps> = ({ show }) => {
                             target="_blank"
                             rel="noopener noreferrer"
                             aria-label={ticketAriaLabel}
-                            className="inline-block text-[13px] font-semibold text-copper font-dmSans hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper"
+                            className="inline-block text-caption font-semibold text-copper font-dmSans hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper"
                         >
                             {ticketLabel || "Get Tickets"}
                         </Link>
                     ) : (
-                        <span className="inline-block text-[11px] font-bold text-white bg-red-500 px-2.5 py-0.5 rounded-full font-dmSans">
+                        <span className="inline-block text-caption font-bold text-white bg-red-500 px-2.5 py-0.5 rounded-full font-dmSans">
                             Sold Out
                         </span>
                     )}
