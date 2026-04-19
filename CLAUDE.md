@@ -173,6 +173,56 @@ Chrome is already running with a conflicting profile. Options:
 2. Fall back to WebFetch if the page is server-rendered (not a JS widget).
    Playwright is only needed when WebFetch returns misleading/empty results —
    e.g., a 403, missing API calls, or content that requires JS execution.
+3. Run a standalone Playwright script via `apps/web/node_modules/playwright`
+   when you need multi-viewport visual screenshots (WebFetch can't capture these).
+   The script file itself must live inside `apps/web/` — Node's ESM resolver
+   walks up from the **script's** directory (not CWD) to find
+   `node_modules/playwright`. A script in `/tmp` fails with
+   `ERR_MODULE_NOT_FOUND: Cannot find package 'playwright' imported from /tmp/...`
+   even if you `cd apps/web` first.
+
+   ```bash
+   cat > apps/web/screenshot.mjs <<'EOF'
+   import { chromium } from "playwright";
+   const browser = await chromium.launch({ headless: true });
+   const page = await browser.newContext().then(c => c.newPage());
+   for (const w of [390, 768, 1024, 1440]) {
+       await page.setViewportSize({ width: w, height: 900 });
+       await page.goto("http://localhost:3000/<path>", { waitUntil: "networkidle" });
+       await page.screenshot({ path: `/tmp/shot-${w}.png` });
+   }
+   await browser.close();
+   EOF
+   cd apps/web && node screenshot.mjs && rm screenshot.mjs
+   ```
+
+   This bypasses the MCP browser profile entirely — no conflict. Always
+   delete the script after use so it doesn't end up in git status.
+
+   **CSP on Next.js dev mode**: when the script targets `http://localhost:<dev-port>`,
+   pass `bypassCSP: true` to the browser context:
+
+   ```js
+   const ctx = await browser.newContext({ bypassCSP: true });
+   ```
+
+   Without it, the dev-mode CSP blocks `unsafe-eval` used by React's HMR/hydration
+   layer. Symptom: the page renders but clicks don't open popovers or modals and
+   no errors appear in stdout — attach `page.on("pageerror", …)` to see the
+   `"Evaluating a string as JavaScript violates the following Content Security
+   Policy directive"` message.
+
+   **`waitUntil: "networkidle"` hangs against the dev server.** Sentry (and other
+   long-polling clients) keep a request in-flight indefinitely, so `page.goto(url,
+   { waitUntil: "networkidle" })` never resolves and the script times out at 30s.
+   Use `waitUntil: "domcontentloaded"` followed by `page.waitForLoadState("load")`
+   and a short fixed wait for client hydration:
+
+   ```js
+   await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
+   await page.waitForLoadState("load", { timeout: 60000 });
+   await page.waitForTimeout(2500);
+   ```
 
 The Playwright pattern below is specifically for JS-heavy embedded widgets
 (Crowdwork, SeatGeek, Wix). For standard HTML pages, WebFetch is sufficient.
@@ -194,6 +244,60 @@ const [zipCapTriggered, setZipCapTriggered] = useState(initialZipCapTriggered ??
 This applies to any `useInfiniteSearch`-style hook that accepts an `initial*` option:
 pass the SSR value into the hook so it can seed its own state, reset on param change,
 and overwrite on each fetch — rather than leaving a static prop to dominate the render.
+
+## URL Default Params — Injected by `middleware.ts`, Not QueryHelper
+
+`apps/web/middleware.ts#setParamDefaults` rewrites the incoming URL to inject default
+values for `sort`, `page`, `size`, `zip`, `distance`, and `direction` **before** Server
+Components see `searchParams`. For `/club/search`, `/comedian/search`, and `/show/*`,
+the default `sort` is chosen by `getSortParamDefaultFromPath`.
+
+When debugging "wrong default sort/page/zip on a collection page", check `middleware.ts`
+FIRST — not `QueryHelper.getGenericClauses` (which only applies `PopularityDesc` when the
+URL has no `sort`, but the middleware ensures the URL always has one) and not
+`paramConfigs.defaultValue` (which controls URL-strip behavior in `setTypedParam`, not
+SSR defaults).
+
+## Middleware Rewrite Causes `useId()` SSR/CSR Drift — Use Literal IDs in UI Libraries
+
+`middleware.ts` uses `NextResponse.rewrite(url)` (not `redirect`) to inject param
+defaults. This intentionally keeps the browser URL clean but produces an
+unavoidable SSR/CSR tree-shape mismatch for any Client Component that reads
+`useSearchParams()`:
+
+- **SSR pass**: renders with the rewritten URL (`?sort=popularityDesc&page=1&size=10&direction=asc&distance=5`)
+- **CSR pass (hydration)**: `useSearchParams()` returns the browser's actual URL (no params on first load)
+
+The tree-shape difference shifts the React hook counter, so **`useId()` returns
+different values on SSR vs CSR for the same tree position**. This breaks any
+UI library that relies on internal `useId()` for ARIA linking — observed with
+HeadlessUI `Menu` (`headlessui-menu-button-_R_<hash>_`, TASK-1601) and Radix
+`Select` (`contentId`, TASK-1603). It is the same family of bug as TASK-1550
+(middleware-injected `fromDate` caused `isToday` label divergence).
+
+**Decision — per-component workarounds are the accepted fix.** A systemic fix
+would require either:
+1. Switching `rewrite` to `redirect` (exposes ugly URLs with every default param to users), or
+2. Removing middleware param injection entirely and re-applying defaults inside
+   every Server Component data fetcher (large refactor across `lib/data/`,
+   `QueryHelper`, and every `useUrlParams` caller).
+
+Both options are disproportionate to the impact: only the handful of library
+components using internal `useId()` are affected, and each can be fixed with a
+literal ID in ~3 lines. New code that embeds HeadlessUI/Radix/HeroUI primitives
+on a search page should pass a **static** `id` / `contentId` prop rather than
+relying on the library's internal `useId()`. If a component renders more than
+once on the page, use a stable key derived from props (e.g.
+`` `sort-menu-${variant}` ``) — not `useId()`.
+
+```tsx
+// ✗ Fragile on search pages — library's internal useId() drifts
+<Menu.Button>…</Menu.Button>
+
+// ✓ Literal id bypasses useId() entirely
+const BUTTON_ID = "sort-menu-button";
+<Menu.Button id={BUTTON_ID}>…</Menu.Button>
+```
 
 ## Makefile Multi-line Python — Use printf Pipe, Not -c with Backslash Continuations
 
@@ -252,6 +356,11 @@ When creating new files (e.g., `__init__.py`, test stubs, migration files), alwa
 Never use `touch relative/path` when the shell's CWD might be a subdirectory (e.g., `apps/scraper/`).
 Using a path like `touch apps/scraper/tests/...` from within `apps/scraper/` silently creates the file
 at `apps/scraper/apps/scraper/tests/...` — the doubled path is invisible until a later step fails.
+
+The same pitfall hits `git add` / `git commit -- <path>` — if the shell's CWD has drifted into a
+subdirectory (e.g., via an earlier `cd apps/web` that persisted), a repo-relative path will fail
+with `pathspec 'apps/web/...' did not match any files`. Use `git -C /absolute/repo/root <cmd>` or
+run from the repo root explicitly.
 
 ## Venue Onboarding — Always Use HTTPS for Website URL
 
@@ -392,6 +501,15 @@ Flags:
 The dev server connects to production Neon. Prefer the UI for read-only
 verification; avoid destructive actions. A warning prints on startup whenever
 `DATABASE_HOST` is not `localhost`/`127.0.0.1`.
+
+If port 3000 is already in use (e.g., a stale dev server from a prior session),
+Next.js silently auto-increments to the next free port (3001, 3002, …) and logs:
+
+    ⚠ Port 3000 is in use by process <pid>, using available port 3001 instead.
+
+When running end-to-end scripts against the dev server, tail the dev-server log
+for the `- Local: http://localhost:<port>` line to capture the actual port —
+do not hardcode 3000.
 
 ## Prisma Migrations
 
