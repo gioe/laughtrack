@@ -2,6 +2,7 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { StyleContextProvider } from "@/contexts/StyleProvider";
 import { StyleContextKey } from "@/objects/enum";
+import { Button } from "@/ui/components/ui/button";
 import Navbar from "@/ui/components/navbar";
 import FooterComponent from "@/ui/pages/home/footer";
 
@@ -25,12 +26,9 @@ export default async function NotFound() {
                         The page you&apos;re looking for doesn&apos;t exist or
                         may have moved.
                     </p>
-                    <Link
-                        href="/"
-                        className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-copper text-white font-dmSans font-bold text-base shadow-sm hover:bg-copper/90 hover:shadow-md hover:-translate-y-[1px] transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper"
-                    >
-                        Go home
-                    </Link>
+                    <Button asChild variant="roundedShimmer">
+                        <Link href="/">Go home</Link>
+                    </Button>
                 </main>
                 <FooterComponent />
             </div>

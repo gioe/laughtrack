@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Button } from "@/ui/components/ui/button";
 
 export default function ClubNotFound() {
     return (
@@ -12,12 +13,9 @@ export default function ClubNotFound() {
                 We couldn&apos;t find this club — it may have closed or
                 hasn&apos;t been added yet.
             </p>
-            <Link
-                href="/club/search"
-                className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-copper text-white font-dmSans font-bold text-base shadow-sm hover:bg-copper/90 hover:shadow-md hover:-translate-y-[1px] transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper"
-            >
-                Back to search
-            </Link>
+            <Button asChild variant="roundedShimmer">
+                <Link href="/club/search">Back to search</Link>
+            </Button>
         </div>
     );
 }
