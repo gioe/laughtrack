@@ -158,23 +158,87 @@ export async function findComediansWithCount(
                 ? { lineupItems: { some: { show: showFilter } } }
                 : {};
 
+        // Build the scope predicates that constrain the "upcoming shows" count —
+        // the same zip + date bounds the user applied in the modal — so the
+        // minUpcomingShows threshold, the ShowCount ORDER BY, and the raw-SQL
+        // WHERE all count the same set of shows. Hoisted above both branches so
+        // the Prisma path's pre-fetch can share it.
+        const showWhereParts: Prisma.Sql[] = [];
+        if (hasDateFilter || !includeEmpty) {
+            const dateBounds = (showFilter as { date?: Prisma.DateTimeFilter })
+                .date;
+            const gte = dateBounds?.gte;
+            const lte = dateBounds?.lte;
+            if (gte !== undefined) {
+                showWhereParts.push(
+                    Prisma.sql`s.date >= ${new Date(gte as string | Date)}`,
+                );
+            }
+            if (lte !== undefined) {
+                showWhereParts.push(
+                    Prisma.sql`s.date <= ${new Date(lte as string | Date)}`,
+                );
+            }
+        }
+        const zipFilter = (
+            showFilter.club as {
+                zipCode?: { in?: string[]; equals?: string };
+            }
+        )?.zipCode;
+        const zipList: string[] | null = zipFilter
+            ? Array.isArray(zipFilter.in)
+                ? zipFilter.in
+                : typeof zipFilter.equals === "string"
+                  ? [zipFilter.equals]
+                  : null
+            : null;
+        if (zipList && zipList.length > 0) {
+            showWhereParts.push(
+                Prisma.sql`cl."zip_code" IN (${Prisma.join(zipList)})`,
+            );
+        } else if (zipList && zipList.length === 0) {
+            // Resolved to no zips (city not found) — match nothing.
+            showWhereParts.push(Prisma.sql`FALSE`);
+        }
+
+        // Returns the parenthesized COUNT subquery for comedian c.uuid's shows
+        // matching the active scope. Used 3x (pre-fetch WHERE, show_count WHERE
+        // threshold, show_count ORDER BY) — a single source of truth so a fix
+        // to the scoping semantics only has to be made in one place.
+        const buildScopedUpcomingCountSql = (): Prisma.Sql => {
+            const joinClause = zipList
+                ? Prisma.sql`JOIN "clubs" cl ON s."club_id" = cl.id`
+                : Prisma.sql``;
+            const whereClause =
+                showWhereParts.length > 0
+                    ? Prisma.sql`AND ${Prisma.join(showWhereParts, " AND ")}`
+                    : Prisma.sql`AND s.date > NOW()`;
+            return Prisma.sql`(
+                SELECT COUNT(*) FROM "lineup_items" li
+                JOIN "shows" s ON li."show_id" = s.id
+                ${joinClause}
+                WHERE li."comedian_id" = c.uuid ${whereClause}
+            )`;
+        };
+
+        const isShowCountSort =
+            helper.params.sort === SortParamValue.ShowCountDesc ||
+            helper.params.sort === SortParamValue.ShowCountAsc;
+
         // Prisma can't express "COUNT(relation WHERE ...) >= N" in a where clause,
-        // so resolve the matching comedian uuids via a raw SQL pre-fetch and pass
-        // them to the main findMany/count via `uuid IN (...)`. Real-time accuracy
-        // (no denormalized column / scraper coordination) at the cost of an extra
-        // DB round-trip when the filter is active.
+        // so resolve matching comedian uuids via a raw SQL pre-fetch and pass
+        // them to the main findMany/count via `uuid IN (...)`. Skipped on the
+        // show_count sort path — that branch's own whereConditions apply the
+        // same threshold directly, so the pre-fetch would just be duplicate
+        // work with a discarded result.
         const minUpcomingShowsValue =
             Number(helper.params.minUpcomingShows) || 0;
         let minUpcomingShowsClause: Prisma.ComedianWhereInput = {};
-        if (minUpcomingShowsValue > 0) {
+        if (minUpcomingShowsValue > 0 && !isShowCountSort) {
             const matchingRows = await db.$queryRaw<{ uuid: string }[]>(
                 Prisma.sql`
                     SELECT c.uuid FROM "comedians" c
-                    WHERE (
-                        SELECT COUNT(*) FROM "lineup_items" li
-                        JOIN "shows" s ON li."show_id" = s.id
-                        WHERE li."comedian_id" = c.uuid AND s.date > NOW()
-                    ) >= ${minUpcomingShowsValue}
+                    WHERE ${buildScopedUpcomingCountSql()} >= ${minUpcomingShowsValue}
                 `,
             );
             if (matchingRows.length === 0) {
@@ -202,10 +266,7 @@ export async function findComediansWithCount(
 
         // For show_count_desc / show_count_asc: use raw SQL to ORDER BY upcoming show count
         // with DB-level LIMIT/OFFSET, then fetch full comedian data for only that page's IDs.
-        if (
-            helper.params.sort === SortParamValue.ShowCountDesc ||
-            helper.params.sort === SortParamValue.ShowCountAsc
-        ) {
+        if (isShowCountSort) {
             const { take, skip } = helper.getGenericClauses(
                 totalCount,
                 sortMap,
@@ -232,47 +293,6 @@ export async function findComediansWithCount(
                 );
             }
 
-            // Build the per-show date+zip filter so the EXISTS lineup check
-            // and the ORDER BY count subquery apply the same predicates.
-            const showWhereParts: Prisma.Sql[] = [];
-            if (hasDateFilter || !includeEmpty) {
-                const dateBounds = (
-                    showFilter as { date?: Prisma.DateTimeFilter }
-                ).date;
-                const gte = dateBounds?.gte;
-                const lte = dateBounds?.lte;
-                if (gte !== undefined) {
-                    showWhereParts.push(
-                        Prisma.sql`s.date >= ${new Date(gte as string | Date)}`,
-                    );
-                }
-                if (lte !== undefined) {
-                    showWhereParts.push(
-                        Prisma.sql`s.date <= ${new Date(lte as string | Date)}`,
-                    );
-                }
-            }
-            const zipFilter = (
-                showFilter.club as {
-                    zipCode?: { in?: string[]; equals?: string };
-                }
-            )?.zipCode;
-            const zipList: string[] | null = zipFilter
-                ? Array.isArray(zipFilter.in)
-                    ? zipFilter.in
-                    : typeof zipFilter.equals === "string"
-                      ? [zipFilter.equals]
-                      : null
-                : null;
-            if (zipList && zipList.length > 0) {
-                showWhereParts.push(
-                    Prisma.sql`cl."zip_code" IN (${Prisma.join(zipList)})`,
-                );
-            } else if (zipList && zipList.length === 0) {
-                // Resolved to no zips (city not found) — match nothing.
-                showWhereParts.push(Prisma.sql`FALSE`);
-            }
-
             const lineupExistsClause =
                 showWhereParts.length > 0
                     ? Prisma.sql`EXISTS (
@@ -288,11 +308,7 @@ export async function findComediansWithCount(
 
             if (minUpcomingShowsValue > 0) {
                 whereConditions.push(
-                    Prisma.sql`(
-                        SELECT COUNT(*) FROM "lineup_items" li
-                        JOIN "shows" s ON li."show_id" = s.id
-                        WHERE li."comedian_id" = c.uuid AND s.date > NOW()
-                    ) >= ${minUpcomingShowsValue}`,
+                    Prisma.sql`${buildScopedUpcomingCountSql()} >= ${minUpcomingShowsValue}`,
                 );
             }
 
@@ -314,28 +330,12 @@ export async function findComediansWithCount(
                     ? Prisma.sql`ASC`
                     : Prisma.sql`DESC`;
 
-            // ORDER BY counts the same scoped show set used by the lineup-exists clause
-            // so a comedian filtered to a zip/date range is ranked by their matching count,
-            // not their global upcoming count.
-            const orderCountWhere =
-                showWhereParts.length > 0
-                    ? Prisma.sql`AND ${Prisma.join(showWhereParts, " AND ")}`
-                    : Prisma.sql`AND s.date > NOW()`;
-            const orderCountJoin = zipList
-                ? Prisma.sql`JOIN "clubs" cl ON s."club_id" = cl.id`
-                : Prisma.sql``;
-
             const sortedRows = await db.$queryRaw<{ id: number }[]>(
                 Prisma.sql`
                     SELECT c.id
                     FROM "comedians" c
                     WHERE ${Prisma.join(whereConditions, " AND ")}
-                    ORDER BY (
-                        SELECT COUNT(*) FROM "lineup_items" li
-                        JOIN "shows" s ON li."show_id" = s.id
-                        ${orderCountJoin}
-                        WHERE li."comedian_id" = c.uuid ${orderCountWhere}
-                    ) ${sortDir}, c.name ASC
+                    ORDER BY ${buildScopedUpcomingCountSql()} ${sortDir}, c.name ASC
                     LIMIT ${take} OFFSET ${skip}
                 `,
             );

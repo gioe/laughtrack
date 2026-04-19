@@ -464,7 +464,9 @@ describe("findComediansWithCount", () => {
             };
             const sql = filterCall.strings.join(" ");
             expect(sql).toContain('FROM "lineup_items"');
-            expect(sql).toContain("s.date > NOW()");
+            // Default helper applies the upcoming-only bound (showFilter.date = NOW)
+            // so the scoped form uses s.date >= <Date> rather than the bare fallback.
+            expect(sql).toContain("s.date >=");
             expect(filterCall.values).toContain(5);
 
             const call = mockFindMany.mock.calls[0]?.[0];
@@ -568,12 +570,13 @@ describe("findComediansWithCount", () => {
             expect(showClause?.date?.lte).toBe("2026-05-31T23:59:59Z");
         });
 
-        it("includes an upcoming-shows COUNT subquery in the raw-SQL where conditions when minUpcomingShows is set on a show_count sort", async () => {
+        it("includes an upcoming-shows COUNT subquery in the raw-SQL where conditions when minUpcomingShows is set on a show_count sort (and skips the Prisma-path pre-fetch)", async () => {
             mockCount.mockResolvedValue(1);
-            // Call order: deny list → upcoming-shows pre-fetch → sorted IDs.
+            // Call order: deny list → sorted IDs. The pre-fetch is skipped on
+            // the show_count sort path since the raw-SQL branch applies the
+            // same threshold directly.
             mockQueryRaw
                 .mockResolvedValueOnce([] as never) // deny list
-                .mockResolvedValueOnce([{ uuid: "uuid-1" }] as never) // pre-fetch
                 .mockResolvedValueOnce([{ id: 1 }] as never); // sorted IDs
             mockFindMany.mockResolvedValue([makeComedianRow(1, 3)] as never);
 
@@ -587,18 +590,91 @@ describe("findComediansWithCount", () => {
             );
             await findComediansWithCount(helper);
 
-            // The 3rd $queryRaw call is the sorted-ID query — the count subquery
+            // Only 2 raw calls — no pre-fetch round-trip.
+            expect(mockQueryRaw).toHaveBeenCalledTimes(2);
+
+            // The 2nd $queryRaw call is the sorted-ID query — the count subquery
             // filters on future-dated shows and the threshold flows via .values.
-            const sortedCall = mockQueryRaw.mock.calls[2]?.[0] as {
+            const sortedCall = mockQueryRaw.mock.calls[1]?.[0] as {
                 strings: string[];
                 values: unknown[];
             };
             const sql = sortedCall.strings.join(" ");
             expect(sql).toContain('FROM "lineup_items"');
-            expect(sql).toContain("s.date > NOW()");
+            // Default helper applies the upcoming-only bound (showFilter.date = NOW)
+            // so the scoped form uses s.date >= <Date> rather than the bare fallback.
+            expect(sql).toContain("s.date >=");
             // Guard against regression: old implementation filtered on c."total_shows".
             expect(sql).not.toContain('c."total_shows" >=');
             expect(sortedCall.values).toContain(10);
+        });
+
+        it("scopes the pre-fetch subquery to the user's zip + date filters on the Prisma path", async () => {
+            mockCount.mockResolvedValue(1);
+            mockQueryRaw
+                .mockResolvedValueOnce([] as never) // deny list
+                .mockResolvedValueOnce([{ uuid: "uuid-1" }] as never); // pre-fetch
+            mockFindMany.mockResolvedValue([makeComedianRow(1)] as never);
+
+            const helper = makeHelper(
+                SortParamValue.PopularityDesc,
+                undefined,
+                undefined,
+                undefined,
+                false,
+                {
+                    minUpcomingShows: "3",
+                    zip: "10001",
+                    fromDate: "2026-05-01",
+                    toDate: "2026-05-31",
+                },
+            );
+            (
+                helper as unknown as { getZipCodeClause: () => unknown }
+            ).getZipCodeClause = () => ({
+                zipCode: { in: ["10001", "10002"] },
+            });
+            (
+                helper as unknown as { getDateClause: () => unknown }
+            ).getDateClause = () => ({
+                date: {
+                    gte: "2026-05-01T00:00:00Z",
+                    lte: "2026-05-31T23:59:59Z",
+                },
+            });
+
+            await findComediansWithCount(helper);
+
+            // 2nd $queryRaw is the pre-fetch; its SQL must include the zip
+            // JOIN/IN clause and the date bounds — not a bare `s.date > NOW()`.
+            const prefetchCall = mockQueryRaw.mock.calls[1]?.[0] as {
+                strings: string[];
+                values: unknown[];
+            };
+            const sql = prefetchCall.strings.join(" ");
+            expect(sql).toContain('JOIN "clubs" cl ON s."club_id" = cl.id');
+            expect(sql).toContain('cl."zip_code" IN');
+            // Zips and the date bounds are parameterized, so they flow via .values.
+            expect(prefetchCall.values).toEqual(
+                expect.arrayContaining(["10001", "10002", 3]),
+            );
+            expect(
+                prefetchCall.values.some(
+                    (v) =>
+                        v instanceof Date &&
+                        v.toISOString().startsWith("2026-05-01"),
+                ),
+            ).toBe(true);
+            expect(
+                prefetchCall.values.some(
+                    (v) =>
+                        v instanceof Date &&
+                        v.toISOString().startsWith("2026-05-31"),
+                ),
+            ).toBe(true);
+            // Bare "> NOW()" fallback is only used when no explicit bounds exist;
+            // here the user-supplied bounds take over.
+            expect(sql).not.toContain("s.date > NOW()");
         });
 
         it("threads zip + date predicates into both the EXISTS lineup check and the ORDER BY count subquery on the raw-SQL show_count branch", async () => {
