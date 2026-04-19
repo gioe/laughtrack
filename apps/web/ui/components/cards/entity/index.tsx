@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 export type EntityCardChrome = "warm" | "coconut-hover" | "none";
 
 const CHROME_CLASSES: Record<EntityCardChrome, string> = {
-    warm: "rounded-xl shadow-md border border-white/20 bg-gradient-to-br from-[#FDF8EF] to-[#F5E6D3]",
+    warm: "rounded-xl shadow-md border border-white/20 bg-gradient-to-br from-cream-50 to-cream-100",
     "coconut-hover":
         "rounded-xl overflow-hidden shadow-sm border-b-2 border-transparent bg-gradient-to-b from-white to-coconut-cream/60 transition-all duration-300 hover:shadow-lg hover:border-copper",
     none: "",

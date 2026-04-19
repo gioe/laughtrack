@@ -70,7 +70,7 @@ const CompactShowCard: React.FC<CompactShowCardProps> = ({ show }) => {
                     />
                 </div>
                 <div className="min-w-0">
-                    <p className="font-gilroy-bold font-bold text-[#2D1810] text-body leading-tight line-clamp-2">
+                    <p className="font-gilroy-bold font-bold text-cedar-dark text-body leading-tight line-clamp-2">
                         {parsedShow.clubName}
                     </p>
                     {parsedShow.name && (

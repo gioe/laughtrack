@@ -37,7 +37,7 @@ const ShowCardHeader: React.FC<ShowCardHeaderProps> = ({
 
             <div>
                 {!hideClubName && (
-                    <h2 className="text-xl sm:text-2xl md:text-h3 font-gilroy-bold font-bold text-[#2D1810] mb-1">
+                    <h2 className="text-xl sm:text-2xl md:text-h3 font-gilroy-bold font-bold text-cedar-dark mb-1">
                         {show.clubName ?? ""}
                     </h2>
                 )}

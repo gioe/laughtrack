@@ -27,7 +27,7 @@ const ComedianGridCard: React.FC<ComedianGridCardProps> = ({
             />
 
             <div className="mt-4 space-y-2 w-full">
-                <h3 className="text-h3 font-extrabold font-gilroy-bold text-center text-cedar hover:text-[#2D1810] transition-colors">
+                <h3 className="text-h3 font-extrabold font-gilroy-bold text-center text-cedar hover:text-cedar-dark transition-colors">
                     {comedian.name}
                 </h3>
 

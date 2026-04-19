@@ -8,7 +8,7 @@ interface TikTokIconProps {
 const TikTokIcon = ({ className = "", size = "w-5 h-5" }: TikTokIconProps) => {
     return (
         <div
-            className={`${size} rounded-full bg-[#CD6837] flex items-center justify-center ${className}`}
+            className={`${size} rounded-full bg-copper-bright flex items-center justify-center ${className}`}
         >
             <svg
                 viewBox="0 0 24 24"

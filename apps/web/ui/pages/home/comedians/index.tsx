@@ -28,7 +28,7 @@ const TrendingComedianGrid = ({ comedians }: TrendingComedianGridProps) => {
             <div className="text-center pt-12 mt-8 animate-fadeIn">
                 <Link
                     href={`/comedian/search`}
-                    className="bg-[#2D1810] text-white px-8 py-4 rounded-full
+                    className="bg-cedar-dark text-white px-8 py-4 rounded-full
                     transform transition-all duration-300 ease-in-out
                     hover:scale-105 hover:shadow-lg hover:bg-copper
                     active:scale-95 font-dmSans text-lg"

@@ -11,7 +11,7 @@ interface EmptyStateProps {
 const EmptyState = ({ title, message, icons, action }: EmptyStateProps) => {
     return (
         <div className="flex flex-col items-center justify-center py-16 px-4 max-w-2xl mx-auto text-center">
-            <div className="bg-gradient-to-br from-[#FDF8EF] to-[#F5E6D3] p-8 rounded-2xl shadow-lg mb-8">
+            <div className="bg-gradient-to-br from-cream-50 to-cream-100 p-8 rounded-2xl shadow-lg mb-8">
                 <div className="flex flex-col items-center gap-6">
                     <div className="flex items-center gap-4">
                         {icons.map((Icon, index) => (
