@@ -15,6 +15,11 @@ interface ShowDiscoverySectionProps {
     subtitle: string;
     shows: ShowDTO[];
     seeAllHref: string;
+    // Optional stable identifier for visual regression tests. When omitted,
+    // falls back to a slug derived from `title` — but callers that pin
+    // baselines (e.g. apps/web/app/page.fixture.tsx) should pass an explicit
+    // value so a copy tweak to `title` doesn't silently break the locator.
+    testId?: string;
 }
 
 const ShowDiscoverySection = ({
@@ -22,6 +27,7 @@ const ShowDiscoverySection = ({
     subtitle,
     shows,
     seeAllHref,
+    testId,
 }: ShowDiscoverySectionProps) => {
     const scrollContainerRef = useRef<HTMLDivElement | null>(null);
     const [isClient, setIsClient] = useState(false);
@@ -78,14 +84,16 @@ const ShowDiscoverySection = ({
         setTimeout(checkScrollability, 300);
     };
 
-    const testId = `shows-section-${title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "")}`;
+    const resolvedTestId =
+        testId ??
+        `shows-section-${title
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-|-$/g, "")}`;
 
     return (
         <div
-            data-testid={testId}
+            data-testid={resolvedTestId}
             className="max-w-7xl w-full mx-auto py-12 px-4 sm:px-6 lg:px-8"
         >
             <div className="flex flex-col sm:flex-row md:flex-row lg:flex-row justify-between items-start sm:items-center md:items-center lg:items-center mb-6">

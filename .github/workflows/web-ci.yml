@@ -10,6 +10,12 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - "apps/web/**"
+  workflow_dispatch:
+    inputs:
+      update_baselines:
+        description: "Run e2e-visual with --update-snapshots and upload regenerated Linux baselines as an artifact (commit them manually to approve)."
+        type: boolean
+        default: false
 
 jobs:
   type-check:
@@ -175,16 +181,30 @@ jobs:
           exit 1
 
       - name: Run visual regression
-        run: BASE_URL=http://localhost:3100 npm run test:e2e:visual
+        run: |
+          if [ "${{ inputs.update_baselines }}" = "true" ]; then
+            BASE_URL=http://localhost:3100 npm run test:e2e:visual:update
+          else
+            BASE_URL=http://localhost:3100 npm run test:e2e:visual
+          fi
 
       - name: Stop server
         if: always()
         run: kill ${SERVER_PID:-0} 2>/dev/null || true
 
-      # Uploaded on failure so maintainers can review diffs and, on first run,
-      # promote the rendered Linux screenshots to committed baselines. Playwright
-      # writes actual/diff/expected PNGs + trace.zip under test-results/ and the
-      # full HTML report under playwright-report/.
+      # When update_baselines=true: uploads the regenerated Linux baselines so
+      # a maintainer can download + commit them. On regular runs: uploads diffs
+      # on failure so maintainers can review what changed. Playwright writes
+      # actual/diff/expected PNGs + trace.zip under test-results/ and the full
+      # HTML report under playwright-report/.
+      - name: Upload baselines (update mode)
+        if: ${{ inputs.update_baselines == true }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-visual-baselines
+          path: apps/web/e2e/home-carousels.spec.ts-snapshots/
+          retention-days: 14
+
       - name: Upload diff artifacts
         if: failure()
         uses: actions/upload-artifact@v4

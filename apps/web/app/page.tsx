@@ -59,7 +59,15 @@ const getCachedHomePageData = unstable_cache(
 );
 
 export default async function HomePage() {
-    if (process.env.E2E_FIXTURE_MODE === "1") {
+    // Belt-and-suspenders: fixture mode is a test-only escape hatch. The
+    // VERCEL_ENV guard prevents a stray E2E_FIXTURE_MODE=1 in Vercel
+    // production from silently serving fake shows to real users. VERCEL_ENV
+    // is only set on Vercel deploys, so CI (where we want fixture mode)
+    // stays unaffected.
+    if (
+        process.env.VERCEL_ENV !== "production" &&
+        process.env.E2E_FIXTURE_MODE === "1"
+    ) {
         return <FixtureHomePage />;
     }
 

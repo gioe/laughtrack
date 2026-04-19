@@ -1,8 +1,9 @@
 import { test, expect } from "@playwright/test";
+import { CAROUSEL_TEST_IDS } from "@/lib/data/home/homeFixtures";
 
 const CAROUSEL_IDS = [
-    "shows-section-shows-tonight",
-    "shows-section-trending-this-week",
+    CAROUSEL_TEST_IDS.showsTonight,
+    CAROUSEL_TEST_IDS.trendingThisWeek,
 ] as const;
 
 const VIEWPORTS = [

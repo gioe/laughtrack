@@ -1,11 +1,21 @@
 import { ShowDTO } from "@/objects/class/show/show.interface";
 
-// Deterministic fixture shows used by Playwright visual regression tests when
-// E2E_FIXTURE_MODE=1 is set. The UTC instant and timezone together fully
-// determine the rendered wallclock, so screenshots stay pixel-stable across
-// runs. The date sits outside DST observance in every US zone to avoid
-// EST/EDT label drift.
-const FIXTURE_DATE = new Date("2026-02-14T01:00:00Z");
+// Stable test-ids referenced by apps/web/e2e/home-carousels.spec.ts. Kept in
+// this module (rather than page.fixture.tsx) because Playwright's test runner
+// imports it directly — page.fixture.tsx pulls in client-only next/link
+// transitively via ShowDiscoverySection, which the test runner can't resolve.
+export const CAROUSEL_TEST_IDS = {
+    showsTonight: "carousel-shows-tonight",
+    trendingThisWeek: "carousel-trending-this-week",
+} as const;
+
+// Deterministic fixture instant used by Playwright visual regression tests
+// when E2E_FIXTURE_MODE=1 is set. UTC 2026-02-14T01:00:00Z renders as
+// Feb 13th — 8pm EST / 7pm CST / 6pm MST / 5pm PST — in every US zone, all
+// outside DST observance so the tz-abbreviation labels stay stable across
+// runs. The UTC instant + timezone together fully determine the rendered
+// wallclock, keeping screenshots pixel-stable.
+const FIXTURE_INSTANT = new Date("2026-02-14T01:00:00Z");
 
 const PLACEHOLDER_IMAGE = "/placeholders/club-placeholder.svg";
 
@@ -20,7 +30,7 @@ function buildFixtureShow(
     return {
         id,
         clubName,
-        date: FIXTURE_DATE,
+        date: FIXTURE_INSTANT,
         name,
         address,
         imageUrl: PLACEHOLDER_IMAGE,
