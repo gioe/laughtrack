@@ -4,7 +4,7 @@ import React, { useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useMotionProps } from "@/hooks";
-import { FullRoundedButton } from "@/ui/components/button/rounded/full";
+import { Button } from "@/ui/components/ui/button";
 import { Show } from "@/objects/class/show/Show";
 import ShowCardHeader from "@/ui/components/cards/show/header";
 import LineupGrid from "@/ui/components/lineup";
@@ -97,23 +97,31 @@ const ShowCard: React.FC<ShowCardProps> = ({
 
                         {parsedShow.tickets.length > 0 && (
                             <div className="sm:self-start relative z-[2]">
-                                <FullRoundedButton
-                                    href={
-                                        stillOnSale
-                                            ? parsedShow.tickets[0].purchaseUrl
-                                            : null
-                                    }
-                                    label={
-                                        stillOnSale ? "Get Tickets" : "Sold Out"
-                                    }
-                                    color={
-                                        stillOnSale ? "bg-copper" : "bg-red-500"
-                                    }
-                                    disabled={!stillOnSale}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    ariaLabel={ticketLabel}
-                                />
+                                {stillOnSale ? (
+                                    <Button asChild variant="roundedShimmer">
+                                        <Link
+                                            href={
+                                                parsedShow.tickets[0]
+                                                    .purchaseUrl
+                                            }
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            aria-label={ticketLabel}
+                                        >
+                                            Get Tickets
+                                        </Link>
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        type="button"
+                                        variant="roundedShimmer"
+                                        className="bg-red-500"
+                                        disabled
+                                        aria-label={ticketLabel}
+                                    >
+                                        Sold Out
+                                    </Button>
+                                )}
                             </div>
                         )}
                     </div>

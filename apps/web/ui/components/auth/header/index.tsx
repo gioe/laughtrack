@@ -1,5 +1,5 @@
 import { useSignOut } from "@/hooks/useSignOut";
-import { FullRoundedButton } from "../../button/rounded/full";
+import { Button } from "../../ui/button";
 import { HeaderItem } from "../../navbar/headerItem";
 import { UserProfileInterface } from "@/app/api/profile/[id]/interface";
 
@@ -25,14 +25,23 @@ export default function AuthButtons({
                         href={`/profile/${currentUser.id}`}
                         title="Profile"
                     />
-                    <FullRoundedButton
-                        handleClick={handleSignOut}
-                        label="Log Out"
-                    />
+                    <Button
+                        type="button"
+                        variant="roundedShimmer"
+                        onClick={handleSignOut}
+                    >
+                        Log Out
+                    </Button>
                 </div>
             ) : (
                 <div className="hidden lg:flex lg:flex-1 lg:justify-end gap-3">
-                    <FullRoundedButton handleClick={onLogin} label="Log In" />
+                    <Button
+                        type="button"
+                        variant="roundedShimmer"
+                        onClick={onLogin}
+                    >
+                        Log In
+                    </Button>
                 </div>
             )}
         </div>

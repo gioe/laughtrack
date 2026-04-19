@@ -2,7 +2,7 @@
 
 import { FieldValues, UseFormReturn, SubmitHandler } from "react-hook-form";
 import { Form } from "../ui/form";
-import { FullRoundedButton } from "../button/rounded/full";
+import { Button } from "../ui/button";
 
 export interface BaseFormProps {
     isLoading: boolean;
@@ -17,7 +17,9 @@ export default function BaseForm({ form, body, onSubmit }: BaseFormProps) {
             <form onSubmit={form.handleSubmit(onSubmit)}>
                 <div className="flex flex-col justify-center w-full gap-3">
                     {body}
-                    <FullRoundedButton label="OK" />
+                    <Button type="submit" variant="roundedShimmer">
+                        OK
+                    </Button>
                 </div>
             </form>
         </Form>

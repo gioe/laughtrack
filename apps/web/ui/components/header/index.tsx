@@ -10,7 +10,7 @@ import { UserProfileInterface } from "@/app/api/profile/[id]/interface";
 import { useStyleContext } from "@/contexts/StyleProvider";
 import { useLoginModal } from "@/hooks";
 import { useSignOut } from "@/hooks/useSignOut";
-import { FullRoundedButton } from "../button/rounded/full";
+import { Button } from "../ui/button";
 
 interface HeaderProps {
     currentUser?: UserProfileInterface | null;
@@ -106,10 +106,13 @@ export function Header({ currentUser }: HeaderProps) {
                                 </button>
                             </div>
                         ) : (
-                            <FullRoundedButton
-                                handleClick={handleLoginClick}
-                                label="Log In"
-                            />
+                            <Button
+                                type="button"
+                                variant="roundedShimmer"
+                                onClick={handleLoginClick}
+                            >
+                                Log In
+                            </Button>
                         )}
                     </div>
                     <div className="mt-3 flex items-center gap-1 border-t border-copper/30 pt-2">

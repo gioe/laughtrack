@@ -1,6 +1,6 @@
 "use client";
 
-import { FullRoundedButton } from "@/ui/components/button/rounded/full";
+import { Button } from "@/ui/components/ui/button";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -78,12 +78,13 @@ export default function UnsubscribePage() {
                         <div className="text-copper">
                             <p>{message}</p>
                             <div className="pt-3">
-                                <FullRoundedButton
-                                    handleClick={() =>
-                                        (window.location.href = "/")
-                                    }
-                                    label="Return to Homepage"
-                                />
+                                <Button
+                                    type="button"
+                                    variant="roundedShimmer"
+                                    onClick={() => (window.location.href = "/")}
+                                >
+                                    Return to Homepage
+                                </Button>
                             </div>
                         </div>
                     )}
