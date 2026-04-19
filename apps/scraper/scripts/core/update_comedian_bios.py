@@ -67,6 +67,17 @@ _DISAMBIGUATION_QUALIFIER = "(comedian)"
 _RETRY_ELIGIBLE_STATUSES = frozenset({"not_found", "disambiguation", "not_comedian"})
 
 
+def _has_parenthetical_qualifier(name: str) -> bool:
+    """True when ``name`` already carries a Wikipedia-style disambiguator.
+
+    DB names like ``"Bo Burnham (musician)"`` or ``"Paula Poundstone (comedian)"``
+    would produce invalid double-qualifier titles (``"Bo Burnham (musician) (comedian)"``)
+    that always 404 — skipping the retry avoids the wasted request.
+    """
+    stripped = name.rstrip()
+    return stripped.endswith(")") and "(" in stripped
+
+
 @dataclass
 class _BioFetchResult:
     """Outcome of a single Wikipedia summary lookup.
@@ -245,7 +256,7 @@ async def _fetch_summary(
         )
         return result
 
-    if result.status in _RETRY_ELIGIBLE_STATUSES:
+    if result.status in _RETRY_ELIGIBLE_STATUSES and not _has_parenthetical_qualifier(name):
         qualifier_title = f"{name} {_DISAMBIGUATION_QUALIFIER}"
         retry = await _fetch_by_title(session, comedian_id, name, qualifier_title)
         if retry.status == "extracted":

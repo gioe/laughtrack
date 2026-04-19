@@ -7,11 +7,11 @@ disambiguation qualifier and surfaces the retry outcome via the summary counter.
 from __future__ import annotations
 
 import asyncio
+import logging
 import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List
-from unittest.mock import MagicMock
 
 # Match the runtime path setup so the script's imports resolve in tests.
 _repo_root = Path(__file__).resolve().parents[3]
@@ -159,6 +159,24 @@ def test_retry_also_fails_preserves_original_status():
     assert session.calls == ["Nobody Here", "Nobody Here (comedian)"]
 
 
+def test_name_with_existing_parenthetical_skips_qualifier_retry():
+    # DB names like "Bo Burnham (musician)" should NOT be re-qualified — the
+    # resulting title would be "Bo Burnham (musician) (comedian)" which always
+    # 404s and wastes a request. The original rejection status is preserved.
+    session = _FakeSession({
+        "Bo Burnham (musician)": _FakeResponse(
+            200, _standard_non_comedian_payload("Bo Burnham")
+        ),
+    })
+
+    result = asyncio.run(mod._fetch_summary(session, 11, "Bo Burnham (musician)"))
+
+    assert result.status == "not_comedian"
+    assert result.qualifier_retry_used is False
+    # Only the original lookup happened — no second request with double qualifier.
+    assert session.calls == ["Bo Burnham (musician)"]
+
+
 def test_fetch_failed_does_not_trigger_qualifier_retry():
     # Transient errors shouldn't burn a second request on a different title —
     # the network issue isn't a naming collision.
@@ -171,6 +189,34 @@ def test_fetch_failed_does_not_trigger_qualifier_retry():
     assert result.status == "fetch_failed"
     assert result.qualifier_retry_used is False
     assert session.calls == ["Some Comedian"]
+
+
+def test_accept_and_reject_paths_emit_info_logs(caplog):
+    # AC #2 requires accept/reject decisions to surface in nightly logs so
+    # operators can spot disambiguation anomalies without a separate audit.
+    # Verify both paths emit at INFO with the comedian_id, name, and title used.
+    session = _FakeSession({
+        "Dave Chappelle": _FakeResponse(
+            200, _standard_comedian_payload("Dave Chappelle")
+        ),
+        "Nobody Real": _FakeResponse(404),
+        "Nobody Real (comedian)": _FakeResponse(404),
+    })
+
+    with caplog.at_level(logging.INFO):
+        asyncio.run(mod._fetch_summary(session, 1, "Dave Chappelle"))
+        asyncio.run(mod._fetch_summary(session, 2, "Nobody Real"))
+
+    accept_lines = [r.message for r in caplog.records if "accepted" in r.message]
+    reject_lines = [r.message for r in caplog.records if "rejected" in r.message]
+
+    assert any(
+        "comedian_id=1" in m and "Dave Chappelle" in m for m in accept_lines
+    ), f"expected accept log for comedian_id=1, got: {accept_lines}"
+    assert any(
+        "comedian_id=2" in m and "Nobody Real" in m and "not_found" in m
+        for m in reject_lines
+    ), f"expected reject log for comedian_id=2, got: {reject_lines}"
 
 
 def test_enrich_summary_reports_qualifier_retry_saves():
