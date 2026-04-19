@@ -2,7 +2,6 @@ import "./globals.css";
 import "./fonts.css";
 import { Suspense } from "react";
 import { ScrollPositionManager } from "@/ui/components/scroll/manager";
-import { HeroUIProvider } from "@heroui/react";
 import { SessionProvider } from "next-auth/react";
 import {
     Bebas_Neue,
@@ -137,21 +136,19 @@ export default async function RootLayout({
                     >
                         Skip to main content
                     </a>
-                    <HeroUIProvider>
-                        <TimezoneProvider>
-                            <ScrollPositionManager />
-                            <ToasterProvider />
-                            <Suspense fallback={null}>
-                                <LoginModal />
-                            </Suspense>
-                            <StyleContextProvider
-                                initialContext={StyleContextKey.Home}
-                            >
-                                <ClientTimezone />
-                                <ErrorBoundary>{children}</ErrorBoundary>
-                            </StyleContextProvider>
-                        </TimezoneProvider>
-                    </HeroUIProvider>
+                    <TimezoneProvider>
+                        <ScrollPositionManager />
+                        <ToasterProvider />
+                        <Suspense fallback={null}>
+                            <LoginModal />
+                        </Suspense>
+                        <StyleContextProvider
+                            initialContext={StyleContextKey.Home}
+                        >
+                            <ClientTimezone />
+                            <ErrorBoundary>{children}</ErrorBoundary>
+                        </StyleContextProvider>
+                    </TimezoneProvider>
                 </body>
             </html>
         </SessionProvider>
