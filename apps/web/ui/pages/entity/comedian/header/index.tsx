@@ -61,30 +61,37 @@ const ComedianDetailHeader: React.FC<ComedianDetailHeaderProps> = ({
         (social?.tiktok.following ?? 0) +
         (social?.youtube.following ?? 0);
 
+    const stripAt = (s: string | null | undefined) =>
+        s ? s.replace(/^@+/, "") : s;
+    const ig = stripAt(social?.instagram.account);
+    const tt = stripAt(social?.tiktok.account);
+    const yt = stripAt(social?.youtube.account);
+
     const socialLinks = [
         {
             platform: "Instagram",
-            account: social?.instagram.account,
-            href: `https://instagram.com/${social?.instagram.account}`,
+            account: ig,
+            href: `https://instagram.com/${ig}`,
             Icon: InstagramIcon,
         },
         {
             platform: "TikTok",
-            account: social?.tiktok.account,
-            href: `https://tiktok.com/@${social?.tiktok.account}`,
+            account: tt,
+            href: `https://tiktok.com/@${tt}`,
             Icon: TikTokIcon,
         },
         {
             platform: "YouTube",
-            account: social?.youtube.account,
-            href: `https://youtube.com/${social?.youtube.account}`,
+            account: yt,
+            href: `https://youtube.com/@${yt}`,
             Icon: YouTubeIcon,
         },
         {
             platform: "Website",
             account: social?.website,
             href: social?.website
-                ? social.website.startsWith("http")
+                ? social.website.startsWith("http://") ||
+                  social.website.startsWith("https://")
                     ? social.website
                     : `https://${social.website}`
                 : "#",
