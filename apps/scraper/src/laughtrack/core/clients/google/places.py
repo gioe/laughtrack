@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import os
 import re
+import threading
 import time
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
@@ -130,6 +131,10 @@ class GooglePlacesClient:
     def __init__(self) -> None:
         self._api_key = os.environ.get("GOOGLE_PLACES_API_KEY", "")
         self._calls_made = 0
+        # Guards _calls_made under concurrent ``asyncio.to_thread`` workers —
+        # the enrichment script dispatches up to 8 in parallel, and a
+        # naive ``+= 1`` would race past the daily cap by a handful of calls.
+        self._counter_lock = threading.Lock()
         try:
             self._daily_limit = int(os.environ.get("GOOGLE_PLACES_DAILY_LIMIT", "500"))
         except ValueError:
@@ -155,6 +160,27 @@ class GooglePlacesClient:
     def calls_remaining(self) -> int:
         return max(0, self._daily_limit - self._calls_made)
 
+    def _reserve_call_slot(self) -> bool:
+        """Atomically check the cap and reserve a slot if room remains.
+
+        Returning ``True`` commits the slot — the caller MUST proceed to
+        make the HTTP request, since the increment is already accounted
+        for.  Returning ``False`` means the cap was hit; do not call the
+        API.  Holding the lock around both check and increment is what
+        makes the cap a hard ceiling under concurrent workers.
+        """
+        with self._counter_lock:
+            if self._calls_made >= self._daily_limit:
+                return False
+            self._calls_made += 1
+            return True
+
+    def _release_call_slot(self) -> None:
+        """Roll back a reserved slot when the request never reached the API."""
+        with self._counter_lock:
+            if self._calls_made > 0:
+                self._calls_made -= 1
+
     def fetch_hours(self, query: str) -> PlacesHoursResult:
         """Run a text search + hours fetch for ``query`` in one request.
 
@@ -168,7 +194,7 @@ class GooglePlacesClient:
             return empty
         if not query or not query.strip():
             return empty
-        if self._calls_made >= self._daily_limit:
+        if not self._reserve_call_slot():
             Logger.warn(
                 f"[places] daily limit reached ({self._daily_limit}) — skipping query '{query}'"
             )
@@ -189,8 +215,10 @@ class GooglePlacesClient:
             resp = requests.post(
                 _API_URL, json=payload, headers=headers, timeout=self._timeout_s
             )
-            self._calls_made += 1
         except requests.RequestException as exc:
+            # Refund the reserved slot — no request reached the API, so a
+            # transient outage shouldn't drain the daily quota.
+            self._release_call_slot()
             Logger.warn(f"[places] request failed for '{query}': {exc}")
             return empty
 

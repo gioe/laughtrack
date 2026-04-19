@@ -180,3 +180,48 @@ def test_places_query_format_omits_state_when_missing():
     assert mod._places_query("X", "Boise", "ID") == "X, Boise, ID"
     assert mod._places_query("X", None, "ID") is None
     assert mod._places_query("", "Boise", "ID") is None
+
+
+def test_places_recovers_hours_when_website_fetch_fails(patch_fetch_html):
+    # Empty HTML simulates a network/TLS failure that even Playwright
+    # couldn't recover from — the Places fallback should still run and
+    # the recovered hours should land in the returned result with
+    # status="extracted" so the row gets written.
+    target = _target(7, "Recovered Club", city="Denver", state="CO")
+    patch_fetch_html[target.website] = ""
+
+    places_client = _places_query_returns({
+        "Recovered Club, Denver, CO": {"friday": "8pm-11pm"},
+    })
+
+    summary = _run_enrich([target], places_client)
+
+    assert places_client.fetch_hours.call_count == 1
+    assert summary["hours_hits"] == 1
+    assert summary["hours_from_places"] == 1
+    assert summary["extracted"] == 1
+
+
+def test_places_recovers_hours_when_bot_blocked(patch_fetch_html):
+    # Cloudflare-style interstitial — _bot_block_reason returns a signature
+    # so status starts as "bot_blocked".  Places should still attempt the
+    # lookup, and a hit should promote status back to "extracted".
+    target = _target(8, "Blocked Club", city="Chicago", state="IL")
+    patch_fetch_html[target.website] = (
+        "<html><body>Just a moment... cf-browser-verification "
+        "Checking your browser before accessing</body></html>"
+    )
+
+    places_client = _places_query_returns({
+        "Blocked Club, Chicago, IL": {"saturday": "9pm-1am"},
+    })
+
+    summary = _run_enrich([target], places_client)
+
+    assert places_client.fetch_hours.call_count == 1
+    assert summary["hours_hits"] == 1
+    assert summary["hours_from_places"] == 1
+    # bot_blocked must NOT be incremented when Places recovered the data —
+    # otherwise a bot-block alarm fires for a club whose data is intact.
+    assert summary["bot_blocked"] == 0
+    assert summary["extracted"] == 1

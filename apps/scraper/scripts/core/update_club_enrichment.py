@@ -263,7 +263,11 @@ async def _process_club(
 
         # Places fallback — only when LD-JSON didn't already fill hours.
         # Gated on: client configured, club doesn't already have DB hours
-        # (unless --force), and a disambiguating city is available.
+        # (unless --force), and a disambiguating city is available.  Runs
+        # even when the website fetch failed or was bot-blocked: that is
+        # exactly the case Places exists to cover, and a successful Places
+        # call promotes the result back to "extracted" so the recovered
+        # hours land in the DB instead of being dropped.
         if (
             hours is None
             and places_client is not None
@@ -276,6 +280,7 @@ async def _process_club(
                 if places_result.hours:
                     hours = places_result.hours
                     hours_source = "places"
+                    status = "extracted"
 
         if status == "extracted" and description is None and hours is None:
             status = "no_data"
