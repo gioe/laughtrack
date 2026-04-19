@@ -116,6 +116,86 @@ jobs:
         env:
           BASE_URL: ${{ vars.E2E_BASE_URL }}
 
+  e2e-visual:
+    name: E2E Visual Regression
+    runs-on: ubuntu-latest
+    needs: [type-check, lint, test]
+    defaults:
+      run:
+        working-directory: apps/web
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      # Required secrets for this job:
+      #   DATABASE_URL  — used by `next build` for sitemap.xml prerender and Prisma
+      #   DIRECT_URL    — Prisma migrate deploy (same value as DATABASE_URL is fine)
+      #   AUTH_SECRET   — NextAuth v5 session signing; a throwaway value is acceptable
+      #                   because fixture mode bypasses auth(), but it must exist for
+      #                   the build to succeed.
+      - name: Build
+        run: npm run build
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+
+      - name: Start Next.js in fixture mode
+        run: |
+          E2E_FIXTURE_MODE=1 \
+          DATABASE_URL='${{ secrets.DATABASE_URL }}' \
+          DIRECT_URL='${{ secrets.DIRECT_URL }}' \
+          AUTH_SECRET='${{ secrets.AUTH_SECRET }}' \
+          PORT=3100 \
+          npm start > /tmp/visual-server.log 2>&1 &
+          echo "SERVER_PID=$!" >> $GITHUB_ENV
+          for i in {1..60}; do
+            if curl -sf -o /dev/null http://localhost:3100; then
+              echo "Server ready after ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Server failed to start within 60s"
+          tail -50 /tmp/visual-server.log
+          exit 1
+
+      - name: Run visual regression
+        run: BASE_URL=http://localhost:3100 npm run test:e2e:visual
+
+      - name: Stop server
+        if: always()
+        run: kill ${SERVER_PID:-0} 2>/dev/null || true
+
+      # Uploaded on failure so maintainers can review diffs and, on first run,
+      # promote the rendered Linux screenshots to committed baselines. Playwright
+      # writes actual/diff/expected PNGs + trace.zip under test-results/ and the
+      # full HTML report under playwright-report/.
+      - name: Upload diff artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-visual-diff
+          path: |
+            apps/web/test-results/
+            apps/web/playwright-report/
+            apps/web/e2e/home-carousels.spec.ts-snapshots/
+          retention-days: 14
+
   build:
     name: Build
     runs-on: ubuntu-latest
