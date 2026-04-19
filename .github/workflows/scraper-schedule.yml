@@ -107,10 +107,19 @@ jobs:
           DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
           DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
           DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
+          # Places fallback runs only when this key is set; the script's
+          # GOOGLE_PLACES_DAILY_LIMIT (default 500) caps spend per run.
+          # Unset secret => Places auto-disabled, no spend, no run failure.
+          GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
+          GOOGLE_PLACES_DAILY_LIMIT: ${{ vars.GOOGLE_PLACES_DAILY_LIMIT || '500' }}
         run: |
           # Fills description/hours for any visible club still missing either
           # column.  Only re-fetches clubs that need an update, so nightly
           # re-runs are cheap once the backfill stabilises.
+          #
+          # Hours are sourced from the club's website first (LD-JSON / meta);
+          # clubs still missing hours fall back to Google Places API when
+          # GOOGLE_PLACES_API_KEY is configured.
           #
           # tee stdout to enrichment-summary.txt so the next step can parse
           # the final JSON line ({fetched, written, description_hits, ...})
@@ -143,7 +152,10 @@ jobs:
           WRITTEN=$(echo "$SUMMARY" | jq -r '.written // 0')
           DESC=$(echo "$SUMMARY" | jq -r '.description_hits // 0')
           HOURS=$(echo "$SUMMARY" | jq -r '.hours_hits // 0')
-          MSG="[enrichment] fetched ${FETCHED}, wrote ${WRITTEN} (desc=${DESC}, hours=${HOURS})"
+          HOURS_LDJSON=$(echo "$SUMMARY" | jq -r '.hours_from_ldjson // 0')
+          HOURS_PLACES=$(echo "$SUMMARY" | jq -r '.hours_from_places // 0')
+          PLACES_CALLS=$(echo "$SUMMARY" | jq -r '.places_calls // 0')
+          MSG="[enrichment] fetched ${FETCHED}, wrote ${WRITTEN} (desc=${DESC}, hours=${HOURS} [ldjson=${HOURS_LDJSON}, places=${HOURS_PLACES}], places_calls=${PLACES_CALLS})"
           curl -fsS --retry 3 --max-time 10 -X POST "$DISCORD_WEBHOOK_URL" \
             -H "Content-Type: application/json" \
             -d "$(jq -nc --arg c "$MSG" '{content: $c}')"
