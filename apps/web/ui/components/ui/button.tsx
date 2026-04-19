@@ -20,18 +20,38 @@ const buttonVariants = cva(
                     "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
                 ghost: "hover:bg-accent hover:text-accent-foreground",
                 link: "text-primary underline-offset-4 hover:underline",
+                roundedShimmer: [
+                    "relative overflow-hidden",
+                    "rounded-lg text-white font-bold font-dmSans",
+                    "bg-copper shadow-sm",
+                    "transform transition-all duration-200 ease-in-out",
+                    "hover:shadow-md hover:-translate-y-[1px] hover:scale-[1.02]",
+                    "active:translate-y-[1px] active:scale-[0.98]",
+                    "disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:scale-100",
+                    "before:absolute before:inset-0 before:bg-white/20",
+                    "before:translate-x-[-100%] before:hover:translate-x-[100%]",
+                    "before:transition-transform before:duration-500",
+                ].join(" "),
             },
             size: {
                 default: "h-9 px-4 py-2",
                 sm: "h-8 rounded-md px-3 text-xs",
                 lg: "h-10 rounded-md px-8",
                 icon: "h-9 w-9",
+                roundedShimmer: "h-auto px-6 py-2.5 text-[16px]",
             },
         },
         defaultVariants: {
             variant: "default",
             size: "default",
         },
+        compoundVariants: [
+            {
+                variant: "roundedShimmer",
+                size: "default",
+                className: "h-auto px-6 py-2.5 text-[16px]",
+            },
+        ],
     },
 );
 
