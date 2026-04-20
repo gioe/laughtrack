@@ -22,6 +22,7 @@ from typing import Any, Dict, Optional
 
 from curl_cffi.requests import AsyncSession
 
+from laughtrack.foundation.infrastructure.http.diagnostics import current_diagnostics
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.models.types import JSONDict
 from laughtrack.foundation.utilities.url import URLUtils
@@ -182,6 +183,10 @@ class HttpClient:
         proxies = {"http": proxy_url, "https": proxy_url} if proxy_url else None
         response = await session.get(normalized_url, headers=headers, proxies=proxies, **request_kwargs)
 
+        diagnostics = current_diagnostics()
+        if diagnostics is not None:
+            diagnostics.record_response(response.status_code)
+
         # 5xx is a server-side failure; a headless browser cannot rescue it.
         # Skip the Playwright attempt (saves 1–3 s per retry) and let the
         # caller's retry layer handle it via raise_for_status.
@@ -213,11 +218,17 @@ class HttpClient:
         elif not html.strip():
             fallback_reason = "empty body"
         else:
-            fallback_reason = _bot_block_reason(html)
+            bot_signature = _bot_block_reason(html)
+            if bot_signature is not None:
+                if diagnostics is not None:
+                    diagnostics.record_bot_block(bot_signature)
+                fallback_reason = bot_signature
 
         if fallback_reason is not None:
             browser = _get_js_browser()
             if browser is not None:
+                if diagnostics is not None:
+                    diagnostics.record_playwright_fallback()
                 Logger.info(
                     f"[HttpClient] Triggering Playwright fallback for {normalized_url} "
                     f"(reason: {fallback_reason!r})",
@@ -274,6 +285,11 @@ class HttpClient:
 
         proxies = {"http": proxy_url, "https": proxy_url} if proxy_url else None
         response = await session.get(normalized_url, headers=headers, proxies=proxies)
+
+        diagnostics = current_diagnostics()
+        if diagnostics is not None:
+            diagnostics.record_response(response.status_code)
+
         if response.status_code != 200:
             Logger.warn(f"HTTP {response.status_code} when fetching {normalized_url}", logger_context)
             return None
