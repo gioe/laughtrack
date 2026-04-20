@@ -282,6 +282,179 @@ class TestFetchHtmlFallback:
         assert "empty body" in log_msg
 
 
+class TestPlaywrightBotBlockDiagnostic:
+    """Playwright fallback that *itself* returns a bot-block page.
+
+    Covers the gap called out in the TASK-1656 deferred finding: a WAF that
+    blocks both curl-cffi and the headless browser would leave
+    ``fetch_html`` returning challenge HTML and ``fetch_json`` returning None
+    via the unparseable-body path, without any diagnostic distinguishing
+    "persistent WAF" from "API returned unexpected HTML". The helper now
+    records a ``playwright_<signature>`` on the bound ScrapeDiagnostics.
+    """
+
+    def setup_method(self):
+        client_module._js_browser = None
+
+    @pytest.mark.asyncio
+    async def test_fetch_html_records_prefixed_signature_when_playwright_blocked(self):
+        from laughtrack.foundation.infrastructure.http.diagnostics import (
+            ScrapeDiagnostics,
+            bind_diagnostics,
+            reset_diagnostics,
+        )
+
+        session = AsyncMock()
+        session.get.return_value = _make_response(403)
+        # Playwright returns its own Cloudflare challenge page
+        mock_browser = AsyncMock()
+        mock_browser.fetch_html = AsyncMock(
+            return_value="<html><title>Just a moment...</title></html>"
+        )
+
+        diagnostics = ScrapeDiagnostics()
+        token = bind_diagnostics(diagnostics)
+        try:
+            with patch(
+                "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+                return_value=mock_browser,
+            ):
+                with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn"):
+                    with patch("laughtrack.foundation.infrastructure.http.client.Logger.info"):
+                        await HttpClient.fetch_html(session, "https://example.com/page")
+        finally:
+            reset_diagnostics(token)
+
+        assert diagnostics.bot_block_detected is True
+        assert diagnostics.bot_block_signature == "playwright_just a moment"
+        assert diagnostics.playwright_fallback_used is True
+
+    @pytest.mark.asyncio
+    async def test_fetch_json_records_prefixed_signature_when_playwright_blocked(self):
+        from laughtrack.foundation.infrastructure.http.diagnostics import (
+            ScrapeDiagnostics,
+            bind_diagnostics,
+            reset_diagnostics,
+        )
+
+        session = AsyncMock()
+        session.get.return_value = _make_response(403)
+        # Playwright response is itself a DataDome challenge page — no JSON to parse
+        mock_browser = AsyncMock()
+        mock_browser.fetch_html = AsyncMock(
+            return_value='<html><body><script src="https://js.datadome.co/tags.js"></script></body></html>'
+        )
+
+        diagnostics = ScrapeDiagnostics()
+        token = bind_diagnostics(diagnostics)
+        try:
+            with patch(
+                "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+                return_value=mock_browser,
+            ):
+                with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn"):
+                    with patch("laughtrack.foundation.infrastructure.http.client.Logger.info"):
+                        result = await HttpClient.fetch_json(session, "https://example.com/api")
+        finally:
+            reset_diagnostics(token)
+
+        assert result is None
+        assert diagnostics.bot_block_detected is True
+        assert diagnostics.bot_block_signature == "playwright_datadome"
+
+    @pytest.mark.asyncio
+    async def test_no_prefixed_signature_when_playwright_returns_clean_content(self):
+        from laughtrack.foundation.infrastructure.http.diagnostics import (
+            ScrapeDiagnostics,
+            bind_diagnostics,
+            reset_diagnostics,
+        )
+
+        session = AsyncMock()
+        session.get.return_value = _make_response(403)
+        mock_browser = _make_browser_mock("<html><body>real content</body></html>")
+
+        diagnostics = ScrapeDiagnostics()
+        token = bind_diagnostics(diagnostics)
+        try:
+            with patch(
+                "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+                return_value=mock_browser,
+            ):
+                with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn"):
+                    with patch("laughtrack.foundation.infrastructure.http.client.Logger.info"):
+                        await HttpClient.fetch_html(session, "https://example.com/page")
+        finally:
+            reset_diagnostics(token)
+
+        # curl-cffi saw a 403 (no body) so no signature was recorded there either —
+        # Playwright rescued with clean HTML, so bot_block stays False.
+        assert diagnostics.bot_block_detected is False
+        assert diagnostics.bot_block_signature is None
+
+    @pytest.mark.asyncio
+    async def test_warn_logged_when_playwright_returns_bot_block(self):
+        """On-call relies on greppable log output — pin the WARN phrasing."""
+        session = AsyncMock()
+        session.get.return_value = _make_response(403)
+        mock_browser = AsyncMock()
+        mock_browser.fetch_html = AsyncMock(
+            return_value="<html><title>Just a moment...</title></html>"
+        )
+
+        with patch(
+            "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+            return_value=mock_browser,
+        ):
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.info"):
+                with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn:
+                    await HttpClient.fetch_html(session, "https://example.com/page")
+
+        playwright_warns = [
+            c for c in mock_warn.call_args_list
+            if "Playwright fallback" in c.args[0] and "also returned a bot-block" in c.args[0]
+        ]
+        assert len(playwright_warns) == 1
+        assert "just a moment" in playwright_warns[0].args[0]
+
+    @pytest.mark.asyncio
+    async def test_curl_cffi_signature_wins_when_playwright_also_blocked(self):
+        """First-seen signature wins: curl-cffi's original bot block is preserved."""
+        from laughtrack.foundation.infrastructure.http.diagnostics import (
+            ScrapeDiagnostics,
+            bind_diagnostics,
+            reset_diagnostics,
+        )
+
+        # curl-cffi returns 200 with a bot-block page (triggers fallback)
+        session = AsyncMock()
+        session.get.return_value = _make_response(
+            200, text="<html><title>Just a moment...</title></html>"
+        )
+        # Playwright also returns a (different) bot-block signature
+        mock_browser = AsyncMock()
+        mock_browser.fetch_html = AsyncMock(
+            return_value='<html><body>Please <b>enable JavaScript and cookies to continue</b></body></html>'
+        )
+
+        diagnostics = ScrapeDiagnostics()
+        token = bind_diagnostics(diagnostics)
+        try:
+            with patch(
+                "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+                return_value=mock_browser,
+            ):
+                with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn"):
+                    with patch("laughtrack.foundation.infrastructure.http.client.Logger.info"):
+                        await HttpClient.fetch_html(session, "https://example.com/page")
+        finally:
+            reset_diagnostics(token)
+
+        assert diagnostics.bot_block_detected is True
+        # curl-cffi's signature was recorded first — the playwright_ prefix does NOT overwrite it
+        assert diagnostics.bot_block_signature == "just a moment"
+
+
 # ---------------------------------------------------------------------------
 # _get_js_browser — env-flag disable
 # ---------------------------------------------------------------------------

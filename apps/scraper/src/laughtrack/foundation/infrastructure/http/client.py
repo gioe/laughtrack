@@ -20,6 +20,12 @@ extracts and decodes that content.  The fallback is:
   to skip the fallback entirely.
 * **5xx-skipping** — a headless browser cannot rescue a server-side failure,
   so both methods return ``None`` on 5xx without attempting the retry.
+
+When the Playwright-rendered response *itself* matches a known bot-block
+signature (WAF still blocking the headless browser), the signature is
+recorded on the bound ``ScrapeDiagnostics`` with a ``playwright_`` prefix so
+persistent WAF failures are distinguishable from curl-cffi-level blocks in
+the triage report.
 """
 
 import html as _html_lib
@@ -295,6 +301,25 @@ class HttpClient:
                     logger_context,
                 )
                 html = None
+
+        # Playwright can return its own bot-challenge page when the WAF also
+        # blocks the headless browser. Without this check the caller would
+        # receive challenge HTML (fetch_html) or a failed JSON parse
+        # (fetch_json) indistinguishably from "API returned unexpected HTML",
+        # and the nightly triage report would only show the curl-cffi
+        # signature. Record a prefixed signature so persistent WAF failures
+        # are visible in the same report as curl-cffi-level blocks.
+        if html is not None:
+            rendered_bot_signature = _bot_block_reason(html)
+            if rendered_bot_signature is not None:
+                Logger.warn(
+                    f"[HttpClient] Playwright fallback for {normalized_url} "
+                    f"also returned a bot-block page "
+                    f"(signature: {rendered_bot_signature!r})",
+                    logger_context,
+                )
+                if diagnostics is not None:
+                    diagnostics.record_bot_block(f"playwright_{rendered_bot_signature}")
 
         # Preserve the mixin contract: non-2xx without rescue → raise so the
         # shared retry layer (ErrorHandler.execute_with_retry) can classify
