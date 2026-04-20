@@ -26,7 +26,7 @@ import html as _html_lib
 import json as _json
 import os
 import re
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
 from curl_cffi.requests import AsyncSession
 
@@ -184,6 +184,122 @@ class HttpClient:
     """
 
     @staticmethod
+    async def _fetch_with_fallback(
+        session: AsyncSession,
+        url: str,
+        headers: Optional[Dict[str, str]] = None,
+        logger_context: Optional[JSONDict] = None,
+        proxy_url: Optional[str] = None,
+        raise_on_failure: bool = False,
+        **request_kwargs: Any,
+    ) -> Tuple[Optional[str], Any, bool]:
+        """
+        Shared fetch orchestration for ``fetch_html`` and ``fetch_json``.
+
+        Issues a curl-cffi GET, evaluates the response for non-200/empty/bot-
+        block conditions, and retries with the lazy Playwright singleton when
+        appropriate.  The caller post-processes the returned body into the
+        format it wants (raw HTML vs. parsed JSON).
+
+        Returns:
+            (html, response, used_fallback) where:
+            * ``html`` — final HTML string, or ``None`` if neither curl-cffi
+              nor the Playwright fallback produced usable content
+            * ``response`` — the original curl-cffi response object (always
+              set; never ``None`` on return)
+            * ``used_fallback`` — ``True`` when ``html`` was produced by the
+              Playwright browser rather than the curl-cffi body
+        """
+        logger_context = logger_context or {}
+        normalized_url = URLUtils.normalize_url(url)
+
+        proxies = {"http": proxy_url, "https": proxy_url} if proxy_url else None
+        response = await session.get(normalized_url, headers=headers, proxies=proxies, **request_kwargs)
+
+        diagnostics = current_diagnostics()
+        if diagnostics is not None:
+            diagnostics.record_response(response.status_code)
+
+        # 5xx is a server-side failure; a headless browser cannot rescue it.
+        # Skip the Playwright attempt (saves 1–3 s per retry) and let the
+        # caller's retry layer handle it via raise_for_status.
+        if 500 <= response.status_code < 600:
+            Logger.warn(
+                f"HTTP {response.status_code} when fetching {normalized_url}",
+                logger_context,
+            )
+            if raise_on_failure:
+                response.raise_for_status()
+            return None, response, False
+
+        # ------------------------------------------------------------------
+        # Decide whether the response is usable or needs the JS fallback
+        # ------------------------------------------------------------------
+        fallback_reason: Optional[str] = None
+
+        if response.status_code != 200:
+            Logger.warn(
+                f"HTTP {response.status_code} when fetching {normalized_url}",
+                logger_context,
+            )
+            fallback_reason = f"HTTP {response.status_code}"
+            # A 4xx body served as HTML often contains a WAF challenge
+            # (DataDome, Cloudflare). Prefer the signature as the fallback
+            # reason so the Playwright activation log is informative.
+            if response.text:
+                bot_signature = _bot_block_reason(response.text)
+                if bot_signature is not None:
+                    if diagnostics is not None:
+                        diagnostics.record_bot_block(bot_signature)
+                    fallback_reason = bot_signature
+        elif not response.text or not response.text.strip():
+            Logger.warn(
+                f"HTTP 200 with empty body when fetching {normalized_url}",
+                logger_context,
+            )
+            fallback_reason = "empty body"
+        else:
+            # 200 with an HTML challenge (some WAFs return 200 + interstitial).
+            bot_signature = _bot_block_reason(response.text)
+            if bot_signature is not None:
+                if diagnostics is not None:
+                    diagnostics.record_bot_block(bot_signature)
+                fallback_reason = bot_signature
+
+        if fallback_reason is None:
+            return response.text, response, False
+
+        # ------------------------------------------------------------------
+        # Automatic JS fallback
+        # ------------------------------------------------------------------
+        browser = _get_js_browser()
+        html: Optional[str] = None
+        if browser is not None:
+            if diagnostics is not None:
+                diagnostics.record_playwright_fallback()
+            Logger.info(
+                f"[HttpClient] Triggering Playwright fallback for {normalized_url} "
+                f"(reason: {fallback_reason!r})",
+                logger_context,
+            )
+            try:
+                html = await browser.fetch_html(normalized_url, proxy_url=proxy_url)
+            except Exception as exc:
+                Logger.warn(
+                    f"[HttpClient] Playwright fallback failed for {normalized_url}: {exc}",
+                    logger_context,
+                )
+                html = None
+
+        # Preserve the mixin contract: non-2xx without rescue → raise so the
+        # shared retry layer (ErrorHandler.execute_with_retry) can classify
+        # the error and drive exponential backoff.
+        if raise_on_failure and html is None and response.status_code != 200:
+            response.raise_for_status()
+
+        return html, response, True
+
+    @staticmethod
     async def fetch_html(
         session: AsyncSession,
         url: str,
@@ -230,78 +346,15 @@ class HttpClient:
             Exception: Any network or connection error is re-raised so callers
                 can log and handle it (avoids duplicate log entries).
         """
-        logger_context = logger_context or {}
-        normalized_url = URLUtils.normalize_url(url)
-
-        proxies = {"http": proxy_url, "https": proxy_url} if proxy_url else None
-        response = await session.get(normalized_url, headers=headers, proxies=proxies, **request_kwargs)
-
-        diagnostics = current_diagnostics()
-        if diagnostics is not None:
-            diagnostics.record_response(response.status_code)
-
-        # 5xx is a server-side failure; a headless browser cannot rescue it.
-        # Skip the Playwright attempt (saves 1–3 s per retry) and let the
-        # caller's retry layer handle it via raise_for_status.
-        if 500 <= response.status_code < 600:
-            Logger.warn(
-                f"HTTP {response.status_code} when fetching {normalized_url}",
-                logger_context,
-            )
-            if raise_on_failure:
-                response.raise_for_status()
-            return None
-
-        if response.status_code != 200:
-            Logger.warn(
-                f"HTTP {response.status_code} when fetching {normalized_url}",
-                logger_context,
-            )
-            html: Optional[str] = None
-        else:
-            html = response.text
-
-        # ------------------------------------------------------------------
-        # Automatic JS fallback
-        # ------------------------------------------------------------------
-        fallback_reason: Optional[str] = None
-
-        if html is None:
-            fallback_reason = f"HTTP {response.status_code if response else 'error'}"
-        elif not html.strip():
-            fallback_reason = "empty body"
-        else:
-            bot_signature = _bot_block_reason(html)
-            if bot_signature is not None:
-                if diagnostics is not None:
-                    diagnostics.record_bot_block(bot_signature)
-                fallback_reason = bot_signature
-
-        if fallback_reason is not None:
-            browser = _get_js_browser()
-            if browser is not None:
-                if diagnostics is not None:
-                    diagnostics.record_playwright_fallback()
-                Logger.info(
-                    f"[HttpClient] Triggering Playwright fallback for {normalized_url} "
-                    f"(reason: {fallback_reason!r})",
-                    logger_context,
-                )
-                try:
-                    html = await browser.fetch_html(normalized_url, proxy_url=proxy_url)
-                except Exception as exc:
-                    Logger.warn(
-                        f"[HttpClient] Playwright fallback failed for {normalized_url}: {exc}",
-                        logger_context,
-                    )
-                    html = None
-
-        # Preserve the old mixin contract: non-2xx without rescue → raise so
-        # the shared retry layer (ErrorHandler.execute_with_retry) can classify
-        # the error and drive exponential backoff.
-        if raise_on_failure and html is None and response.status_code != 200:
-            response.raise_for_status()
-
+        html, _response, _used_fallback = await HttpClient._fetch_with_fallback(
+            session,
+            url,
+            headers=headers,
+            logger_context=logger_context,
+            proxy_url=proxy_url,
+            raise_on_failure=raise_on_failure,
+            **request_kwargs,
+        )
         return html
 
     @staticmethod
@@ -341,91 +394,25 @@ class HttpClient:
             Exception: Any network or connection error is re-raised so callers
                 can log and handle it (avoids duplicate log entries).
         """
-        logger_context = logger_context or {}
+        html, response, used_fallback = await HttpClient._fetch_with_fallback(
+            session,
+            url,
+            headers=headers,
+            logger_context=logger_context,
+            proxy_url=proxy_url,
+        )
 
-        # Normalize URL to ensure proper scheme
-        normalized_url = URLUtils.normalize_url(url)
-
-        proxies = {"http": proxy_url, "https": proxy_url} if proxy_url else None
-        response = await session.get(normalized_url, headers=headers, proxies=proxies)
-
-        diagnostics = current_diagnostics()
-        if diagnostics is not None:
-            diagnostics.record_response(response.status_code)
-
-        # 5xx is a server-side failure; a headless browser cannot rescue it.
-        # Skip the Playwright attempt (saves 1–3 s per retry) — the caller's
-        # retry layer classifies 5xx via the non-None return contract.
-        if 500 <= response.status_code < 600:
-            Logger.warn(
-                f"HTTP {response.status_code} when fetching {normalized_url}",
-                logger_context,
-            )
+        if html is None:
             return None
 
-        # ------------------------------------------------------------------
-        # Decide whether the response is usable or needs the JS fallback
-        # ------------------------------------------------------------------
-        fallback_reason: Optional[str] = None
+        if not used_fallback:
+            return response.json()
 
-        if response.status_code != 200:
+        parsed = _parse_json_from_rendered_html(html)
+        if parsed is None:
             Logger.warn(
-                f"HTTP {response.status_code} when fetching {normalized_url}",
-                logger_context,
+                f"[HttpClient] Playwright fallback could not parse JSON from "
+                f"{URLUtils.normalize_url(url)}",
+                logger_context or {},
             )
-            fallback_reason = f"HTTP {response.status_code}"
-            # A 4xx body served as HTML often contains a WAF challenge
-            # (DataDome, Cloudflare). Detect the signature for log observability
-            # even when diagnostics is absent, and prefer it as the fallback
-            # reason so the Playwright activation log is informative.
-            if response.text:
-                bot_signature = _bot_block_reason(response.text)
-                if bot_signature is not None:
-                    if diagnostics is not None:
-                        diagnostics.record_bot_block(bot_signature)
-                    fallback_reason = bot_signature
-        elif not response.text or not response.text.strip():
-            Logger.warn(
-                f"HTTP 200 with empty body when fetching {normalized_url}",
-                logger_context,
-            )
-            fallback_reason = "empty body"
-        else:
-            # 200 with an HTML challenge (some WAFs return 200 + interstitial).
-            bot_signature = _bot_block_reason(response.text)
-            if bot_signature is not None:
-                if diagnostics is not None:
-                    diagnostics.record_bot_block(bot_signature)
-                fallback_reason = bot_signature
-
-        # ------------------------------------------------------------------
-        # Automatic JS fallback
-        # ------------------------------------------------------------------
-        if fallback_reason is not None:
-            browser = _get_js_browser()
-            if browser is None:
-                return None
-            if diagnostics is not None:
-                diagnostics.record_playwright_fallback()
-            Logger.info(
-                f"[HttpClient] Triggering Playwright fallback for {normalized_url} "
-                f"(reason: {fallback_reason!r})",
-                logger_context,
-            )
-            try:
-                rendered = await browser.fetch_html(normalized_url, proxy_url=proxy_url)
-            except Exception as exc:
-                Logger.warn(
-                    f"[HttpClient] Playwright fallback failed for {normalized_url}: {exc}",
-                    logger_context,
-                )
-                return None
-            parsed = _parse_json_from_rendered_html(rendered)
-            if parsed is None:
-                Logger.warn(
-                    f"[HttpClient] Playwright fallback could not parse JSON from {normalized_url}",
-                    logger_context,
-                )
-            return parsed
-
-        return response.json()
+        return parsed
