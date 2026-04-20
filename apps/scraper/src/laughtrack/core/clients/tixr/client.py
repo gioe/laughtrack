@@ -173,24 +173,39 @@ class TixrClient(BaseApiClient):
         combinations (e.g. Accept-Language + Cache-Control + Pragma together).
         curl_cffi's Chrome impersonation sends a browser-consistent fingerprint on
         its own — passing our API header dict disrupts that fingerprint and triggers
-        403s. This method sends only curl_cffi's built-in impersonation headers
-        (no extra application-level headers from self.headers).
+        403s.  This method sends only curl_cffi's built-in impersonation headers
+        (``headers=None`` is forwarded to ``HttpClient.fetch_html`` so
+        ``BaseApiClient.fetch_html``'s ``headers or self.headers`` fallback is
+        bypassed — the Accept/Referer dict would reintroduce the 403).
+
+        Routes through ``HttpClient.fetch_html`` so a DataDome 403 (or any known
+        bot-block interstitial) transparently retries via the shared Playwright
+        headless-browser fallback — this is the primary recovery path for the
+        0-show GH Actions scrape failures on tixr.com.
 
         Args:
             url: Tixr event page URL
             timeout: Request timeout in seconds (default 30)
 
         Returns:
-            HTML string on success, None on failure (non-200 or exception)
+            HTML string on success (from curl_cffi or the Playwright fallback),
+            ``None`` when both the direct fetch and the fallback fail.
         """
         try:
-            await self._apply_rate_limit(url)
-            async with AsyncSession(impersonate=self._get_impersonation_target(url), timeout=timeout) as session:
-                response = await session.get(url)
-                if response.status_code != 200:
-                    self.log_warning(f"HTTP {response.status_code} fetching Tixr page {url}")
-                    return None
-                return response.text
+            async with AsyncSession(
+                impersonate=self._get_impersonation_target(url),
+                timeout=timeout,
+            ) as session:
+                await self._apply_rate_limit(url)
+                return await self.http_client.fetch_html(
+                    session=session,
+                    url=url,
+                    headers=None,
+                    logger_context={
+                        "club_name": getattr(self.club, "name", "-"),
+                        "url": url,
+                    },
+                )
         except Exception as e:
             self.log_error(f"Failed to fetch Tixr page {url}: {e}")
             return None

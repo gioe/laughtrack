@@ -7,6 +7,7 @@ from laughtrack.core.clients.tixr import client as tixr_module
 from laughtrack.core.clients.tixr.client import TixrClient
 from laughtrack.core.clients.base import BaseApiClient
 from laughtrack.core.entities.club.model import Club
+from laughtrack.foundation.infrastructure.http.client import HttpClient
 
 
 # ---------------------------------------------------------------------------
@@ -25,6 +26,8 @@ def stub_base_init(monkeypatch):
     def _init(self, club, proxy_pool=None):
         self.club = club
         self.headers = {}
+        self.http_client = HttpClient()
+        self.proxy_pool = None
     monkeypatch.setattr(BaseApiClient, "__init__", _init)
 
 
@@ -50,6 +53,7 @@ class TestFetchTixrPage:
 
     @pytest.mark.asyncio
     async def test_200_returns_html(self, monkeypatch, stub_base_init):
+        monkeypatch.setenv("PLAYWRIGHT_FALLBACK", "0")
         client = TixrClient(_club())
 
         class FakeResponse:
@@ -57,7 +61,7 @@ class TestFetchTixrPage:
             text = "<html>hello</html>"
 
         class Session(_FakeSession):
-            async def get(self, url):
+            async def get(self, url, headers=None, proxies=None, **kwargs):
                 return FakeResponse()
 
         monkeypatch.setattr(tixr_module, "AsyncSession", Session)
@@ -69,6 +73,7 @@ class TestFetchTixrPage:
 
     @pytest.mark.asyncio
     async def test_non_200_returns_none(self, monkeypatch, stub_base_init):
+        monkeypatch.setenv("PLAYWRIGHT_FALLBACK", "0")
         client = TixrClient(_club())
 
         class FakeResponse:
@@ -76,7 +81,7 @@ class TestFetchTixrPage:
             text = "Forbidden"
 
         class Session(_FakeSession):
-            async def get(self, url):
+            async def get(self, url, headers=None, proxies=None, **kwargs):
                 return FakeResponse()
 
         monkeypatch.setattr(tixr_module, "AsyncSession", Session)
@@ -88,10 +93,11 @@ class TestFetchTixrPage:
 
     @pytest.mark.asyncio
     async def test_exception_returns_none(self, monkeypatch, stub_base_init):
+        monkeypatch.setenv("PLAYWRIGHT_FALLBACK", "0")
         client = TixrClient(_club())
 
         class Session(_FakeSession):
-            async def get(self, url):
+            async def get(self, url, headers=None, proxies=None, **kwargs):
                 raise ConnectionError("network down")
 
         monkeypatch.setattr(tixr_module, "AsyncSession", Session)
@@ -100,6 +106,42 @@ class TestFetchTixrPage:
 
         result = await client._fetch_tixr_page("https://tixr.com/groups/x/events/y")
         assert result is None
+
+    @pytest.mark.asyncio
+    async def test_datadome_403_triggers_playwright_fallback(self, monkeypatch, stub_base_init):
+        """A DataDome 403 returns rescued HTML via the Playwright fallback."""
+        monkeypatch.delenv("PLAYWRIGHT_FALLBACK", raising=False)
+        client = TixrClient(_club())
+
+        class FakeResponse:
+            status_code = 403
+            text = "<html><body>datadome challenge</body></html>"
+
+        captured_headers: dict = {}
+
+        class Session(_FakeSession):
+            async def get(self, url, headers=None, proxies=None, **kwargs):
+                captured_headers["value"] = headers
+                return FakeResponse()
+
+        monkeypatch.setattr(tixr_module, "AsyncSession", Session)
+        monkeypatch.setattr(client, "_apply_rate_limit", lambda url: _noop())
+        monkeypatch.setattr(client, "_get_impersonation_target", lambda url: "chrome124")
+
+        class FakeBrowser:
+            async def fetch_html(self, url, proxy_url=None):
+                return "<html>rescued by playwright</html>"
+
+        monkeypatch.setattr(
+            "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+            lambda: FakeBrowser(),
+        )
+
+        result = await client._fetch_tixr_page("https://tixr.com/groups/x/events/y")
+        assert result == "<html>rescued by playwright</html>"
+        # Verify headers=None was forwarded — preserves the DataDome-friendly
+        # curl_cffi impersonation fingerprint.
+        assert captured_headers["value"] is None
 
 
 # Async no-op coroutine used as stub for _apply_rate_limit
@@ -119,7 +161,7 @@ class _FakeSession:
     async def __aexit__(self, *args):
         pass
 
-    async def get(self, url):
+    async def get(self, url, headers=None, proxies=None, **kwargs):
         raise NotImplementedError("subclass must override get()")
 
 
