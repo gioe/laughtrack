@@ -454,6 +454,103 @@ class TestFetchTixrPage:
         assert result == "<html>ok</html>"
         assert seen_proxies == [None]
 
+    @pytest.mark.asyncio
+    async def test_proxy_pool_reports_failure_on_5xx(
+        self, monkeypatch, stub_base_init
+    ):
+        """5xx short-circuits without Playwright but must still penalize the proxy."""
+        client = TixrClient(_club())
+
+        pool = _StubProxyPool("http://proxy.example.com:8080")
+        client.proxy_pool = pool
+
+        class FakeResponse:
+            status_code = 503
+            text = "<html>upstream</html>"
+            headers: dict = {}
+
+        class Session(_FakeSession):
+            async def get(self, url, headers=None, proxies=None, **kwargs):
+                return FakeResponse()
+
+        monkeypatch.setattr(tixr_module, "AsyncSession", Session)
+        monkeypatch.setattr(client, "_apply_rate_limit", lambda url: _noop())
+        monkeypatch.setattr(client, "_get_impersonation_target", lambda url: "chrome124")
+
+        result = await client._fetch_tixr_page("https://tixr.com/groups/x")
+        assert result is None
+        assert pool.failures == ["http://proxy.example.com:8080"]
+        assert pool.successes == []
+
+    @pytest.mark.asyncio
+    async def test_proxy_pool_reports_failure_when_browser_unavailable(
+        self, monkeypatch, stub_base_init
+    ):
+        """When PLAYWRIGHT_FALLBACK is disabled and curl-cffi was bot-blocked,
+        no rescue is possible — the proxy must be marked as failed."""
+        monkeypatch.setenv("PLAYWRIGHT_FALLBACK", "0")
+        client = TixrClient(_club())
+        client._failure_monitor = _RecordingMonitor()
+
+        pool = _StubProxyPool("http://proxy.example.com:8080")
+        client.proxy_pool = pool
+
+        class FakeResponse:
+            status_code = 403
+            text = "<html><body>datadome challenge</body></html>"
+            headers: dict = {}
+
+        class Session(_FakeSession):
+            async def get(self, url, headers=None, proxies=None, **kwargs):
+                return FakeResponse()
+
+        monkeypatch.setattr(tixr_module, "AsyncSession", Session)
+        monkeypatch.setattr(client, "_apply_rate_limit", lambda url: _noop())
+        monkeypatch.setattr(client, "_get_impersonation_target", lambda url: "chrome124")
+
+        result = await client._fetch_tixr_page("https://tixr.com/groups/x")
+        assert result is None
+        assert pool.failures == ["http://proxy.example.com:8080"]
+        assert pool.successes == []
+
+    @pytest.mark.asyncio
+    async def test_proxy_pool_reports_failure_when_playwright_raises(
+        self, monkeypatch, stub_base_init
+    ):
+        """If the Playwright fallback itself raises, the proxy must be marked as failed."""
+        monkeypatch.delenv("PLAYWRIGHT_FALLBACK", raising=False)
+        client = TixrClient(_club())
+        client._failure_monitor = _RecordingMonitor()
+
+        pool = _StubProxyPool("http://proxy.example.com:8080")
+        client.proxy_pool = pool
+
+        class FakeResponse:
+            status_code = 403
+            text = "<html><body>datadome challenge</body></html>"
+            headers: dict = {}
+
+        class Session(_FakeSession):
+            async def get(self, url, headers=None, proxies=None, **kwargs):
+                return FakeResponse()
+
+        class FakeBrowser:
+            async def fetch_html(self, url, proxy_url=None):
+                raise RuntimeError("playwright crashed")
+
+        monkeypatch.setattr(tixr_module, "AsyncSession", Session)
+        monkeypatch.setattr(client, "_apply_rate_limit", lambda url: _noop())
+        monkeypatch.setattr(client, "_get_impersonation_target", lambda url: "chrome124")
+        monkeypatch.setattr(
+            "laughtrack.core.clients.tixr.client._get_js_browser",
+            lambda: FakeBrowser(),
+        )
+
+        result = await client._fetch_tixr_page("https://tixr.com/groups/x")
+        assert result is None
+        assert pool.failures == ["http://proxy.example.com:8080"]
+        assert pool.successes == []
+
 
 class _StubProxyPool:
     """Minimal ProxyPool stand-in that records success/failure calls."""
