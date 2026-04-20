@@ -38,7 +38,7 @@ Source: nightly metrics 2026-04-16 through 2026-04-19.
 |----|------|---|
 | 1025 | McCurdy's Comedy Theatre | mccurdyscomedy.com/shows/ |
 
-McCurdy's was already 403ing for 7 days before the rest of the wave started — it shares nothing with the Etix clubs and must be investigated separately (see follow-up TASK-1662).
+McCurdy's was already 403ing for 7 days before the rest of the wave started — it shares nothing with the Etix clubs and must be investigated separately (see follow-up TASK-1660).
 
 ## Evidence
 
@@ -149,11 +149,11 @@ This is platform-wide, not Funny-Bone-specific. Any other Etix-hosted venue we a
 
 Do (a) + (c) in parallel:
 
-1. **TASK-1660** — Build DataDome CAPTCHA solver integration into `PlaywrightBrowser` (scraper, highest priority). Gates the recovery of all 16 clubs + future Etix venues.
-2. **TASK-1661** — Spot-check `/adopt-scraper` for 3 representative Etix venues (Funny Bone Columbus 308, Dr. Grins 207, The Moon 1048) to confirm Etix is still their only platform. If any has migrated, onboard the new platform instead.
-3. **TASK-1662** — Investigate McCurdy's Comedy Theatre HTTP 403 separately — its site loads cleanly via Playwright, so the scraper's own HTTP path is the bug, not a bot-block.
+1. **TASK-1658** — Build DataDome CAPTCHA solver integration into `PlaywrightBrowser` (scraper, highest priority). Gates the recovery of all 16 clubs + future Etix venues.
+2. **TASK-1659** — Spot-check `/adopt-scraper` for 3 representative Etix venues (Funny Bone Columbus 308, Dr. Grins 207, The Moon 1048) to confirm Etix is still their only platform. If any has migrated, onboard the new platform instead.
+3. **TASK-1660** — Investigate McCurdy's Comedy Theatre HTTP 403 separately — its site loads cleanly via Playwright, so the scraper's own HTTP path is the bug, not a bot-block.
 
-If TASK-1660 slips past 2 weeks, escalate to (d) and hide the 16 clubs until it lands.
+If TASK-1658 slips past 2 weeks, escalate to (d) and hide the 16 clubs until it lands.
 
 ## Reproduction pointers
 
