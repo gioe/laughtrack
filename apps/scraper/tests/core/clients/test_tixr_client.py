@@ -186,9 +186,9 @@ class TestFetchTixrPage:
         assert result is None
         assert len(monitor.calls) == 1
         call = monitor.calls[0]
-        # Status coerced to 403 so TixrFailureMonitor's _classify_failure
-        # inspects the body (_classify_failure treats 200 as success and skips).
-        assert call["status_code"] == 403
+        # Real status is passed through unchanged — TixrFailureMonitor now
+        # inspects the body itself and does not require a 200→403 coercion.
+        assert call["status_code"] == 200
         assert "datadome" in call["response_body"].lower()
         # A dedicated DataDome WARN must be surfaced for triage.
         assert any("datadome" in w.lower() for w in warnings)

@@ -106,7 +106,11 @@ class TixrFailureMonitor:
         """
         self.total_requests += 1
 
-        if status_code == 200:
+        # DataDome sometimes serves interstitials with HTTP 200 — the status
+        # code alone is not a reliable success signal. Inspect the response
+        # first so those blocks land in the aggregator instead of silently
+        # inflating the success count.
+        if status_code == 200 and self._detect_datadome(response_headers, response_body) is None:
             self.success_count += 1
             self._invalidate_stats_cache()
             return None
@@ -287,6 +291,12 @@ class TixrFailureMonitor:
         Returns:
             Classified failure type
         """
+        # DataDome can flag a response with any status code (including 200), so
+        # check the DataDome indicators before bucketing by status.
+        datadome = self._detect_datadome(response_headers, response_body)
+        if datadome is not None:
+            return datadome
+
         if status_code != 403:
             if status_code == 429:
                 return FailureType.RATE_LIMITING
@@ -295,23 +305,37 @@ class TixrFailureMonitor:
             else:
                 return FailureType.OTHER
 
-        # Check for DataDome indicators
-        if "X-DataDome" in response_headers:
-            return FailureType.DATADOME_COOKIE
-
         if response_body:
             body_lower = response_body.lower()
-            if "datadome" in body_lower:
-                if "captcha" in body_lower:
-                    return FailureType.DATADOME_CAPTCHA
-                else:
-                    return FailureType.DATADOME_COOKIE
-
             # Other automation detection patterns
             if any(pattern in body_lower for pattern in ["bot", "automation", "crawler", "robot", "scraping"]):
                 return FailureType.AUTOMATION_DETECTION
 
         return FailureType.UNKNOWN_403
+
+    @staticmethod
+    def _detect_datadome(
+        response_headers: Dict[str, str], response_body: Optional[str]
+    ) -> Optional[FailureType]:
+        """
+        Detect a DataDome interstitial from response headers and body.
+
+        HTTP/2 lowercases header names by default, so the x-datadome marker
+        can arrive as any case variant — match case-insensitively.
+
+        Returns:
+            DATADOME_CAPTCHA for captcha challenges, DATADOME_COOKIE for other
+            DataDome markers, or None when no DataDome signature is present.
+        """
+        if response_headers and any(k.lower() == "x-datadome" for k in response_headers):
+            return FailureType.DATADOME_COOKIE
+        if response_body:
+            body_lower = response_body.lower()
+            if "datadome" in body_lower or "captcha-delivery.com" in body_lower:
+                if "captcha" in body_lower:
+                    return FailureType.DATADOME_CAPTCHA
+                return FailureType.DATADOME_COOKIE
+        return None
 
     def _extract_additional_context(self, response_headers: Dict[str, str], response_body: Optional[str]) -> JSONDict:
         """
@@ -326,17 +350,15 @@ class TixrFailureMonitor:
         """
         context = {}
 
-        # Extract DataDome specific info
-        if "X-DataDome" in response_headers:
-            context["datadome_id"] = response_headers["X-DataDome"]
+        for key, value in (response_headers or {}).items():
+            key_lower = key.lower()
+            if key_lower == "x-datadome":
+                context["datadome_id"] = value
+            elif key_lower == "x-ratelimit-remaining":
+                context["rate_limit_remaining"] = value
 
-        # Extract any challenge URLs
         if response_body and "captcha-delivery.com" in response_body:
             context["has_captcha_challenge"] = True
-
-        # Extract rate limiting info
-        if "X-RateLimit-Remaining" in response_headers:
-            context["rate_limit_remaining"] = response_headers["X-RateLimit-Remaining"]
 
         return context
 
