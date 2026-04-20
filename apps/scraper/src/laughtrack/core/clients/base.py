@@ -22,6 +22,20 @@ from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 # machinery, the POST helpers surface bot-block signatures and non-200 /
 # empty-body failures via Logger.error so they are visible in triage rather
 # than swallowed as WARNINGs.
+#
+# Log-level decision (TASK-1671 deferred review): all four POST failure
+# branches (non-200, non-200+bot-block, 200+empty, 200+bot-block) stay at
+# Logger.error rather than being split (bot-block=error / plain non-200=warn).
+# Rationale: (1) POST has no Playwright rescue, so any failure here is a
+# completed-without-recovery event for that scrape attempt — semantically
+# different from the GET path's WARN, which is followed by an automatic
+# retry; (2) the only consumer of error-level counts is _ErrorCountingHandler
+# → ClubScrapingResult.error_log_count → PerClubStat.errors, which surfaces
+# in the review-only dashboard column. The nightly /triage-nightly script
+# keys off `success` / `error` (string) / `num_shows`, and the Discord /
+# email / webhook run summaries display DomainRequestMetrics.error (raised
+# exceptions per club) — none of them page on Logger.error counts. Revisit
+# this if a log-level-based alerting rule is ever introduced.
 
 
 def _log_post_bot_block(
