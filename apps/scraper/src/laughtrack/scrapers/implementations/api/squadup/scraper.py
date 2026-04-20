@@ -15,6 +15,7 @@ from curl_cffi.requests import AsyncSession
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.event.squadup import SquadUpEvent
+from laughtrack.foundation.infrastructure.http.client import HttpClient
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 
@@ -52,8 +53,14 @@ class SquadUpScraper(BaseScraper):
         """
         Fetch one page of events from the SquadUP API.
 
-        Uses a bare AsyncSession with Chrome impersonation (no extra headers)
-        to bypass Cloudflare's TLS fingerprint check.
+        Uses a bare AsyncSession with Chrome impersonation (no extra headers —
+        ``headers=None`` is forwarded to ``HttpClient.fetch_json``) to bypass
+        Cloudflare's TLS fingerprint check.
+
+        Routes through ``HttpClient.fetch_json`` so a Cloudflare 403, empty
+        body, or known bot-block interstitial transparently retries via the
+        shared Playwright headless-browser fallback (A2 / TASK-1650) — the
+        primary recovery path when the TLS fingerprint bypass fails.
         """
         params = (
             f"user_ids={user_id}"
@@ -66,14 +73,12 @@ class SquadUpScraper(BaseScraper):
         url = f"{_SQUADUP_EVENTS_URL}?{params}"
         try:
             async with AsyncSession(impersonate="chrome124") as session:
-                response = await session.get(url)
-                if response.status_code != 200:
-                    Logger.warn(
-                        f"{self._log_prefix}: HTTP {response.status_code} fetching page {page}",
-                        self.logger_context,
-                    )
-                    return None
-                return response.json()
+                return await HttpClient.fetch_json(
+                    session=session,
+                    url=url,
+                    headers=None,
+                    logger_context=self.logger_context,
+                )
         except Exception as e:
             Logger.error(
                 f"{self._log_prefix}: error fetching page {page}: {e}",
