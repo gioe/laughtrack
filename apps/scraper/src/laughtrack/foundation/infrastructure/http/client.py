@@ -6,18 +6,26 @@ logging, and URL normalization.
 
 Playwright fallback
 -------------------
-When curl-cffi returns ``None``, an empty body, or a response containing a
-known bot-block signature (Cloudflare "Just a moment", DataDome challenge,
-"Access denied"), ``fetch_html`` transparently retries the request with a
-``PlaywrightBrowser`` instance.  The fallback is:
+When curl-cffi returns a non-200 status, an empty body, or a response
+containing a known bot-block signature (Cloudflare "Just a moment", DataDome
+challenge, "Access denied"), both ``fetch_html`` and ``fetch_json``
+transparently retry the request with a ``PlaywrightBrowser`` instance.
+``fetch_json`` additionally parses the browser-rendered body back into JSON —
+Chromium wraps raw API responses in a ``<pre>`` block, so the fallback
+extracts and decodes that content.  The fallback is:
 
 * **Lazy** — the ``playwright`` package is only imported when the fallback is
   actually triggered.
 * **Globally disable-able** — set ``PLAYWRIGHT_FALLBACK=0`` in the environment
   to skip the fallback entirely.
+* **5xx-skipping** — a headless browser cannot rescue a server-side failure,
+  so both methods return ``None`` on 5xx without attempting the retry.
 """
 
+import html as _html_lib
+import json as _json
 import os
+import re
 from typing import Any, Dict, Optional
 
 from curl_cffi.requests import AsyncSession
@@ -51,6 +59,37 @@ def _bot_block_reason(html: str) -> Optional[str]:
     for sig in _BOT_BLOCK_SIGNATURES:
         if sig in lower:
             return sig
+    return None
+
+
+# Chromium's default JSON-viewer wraps the raw response body in a <pre> block.
+_PRE_BLOCK_RE = re.compile(r"<pre[^>]*>(.*?)</pre>", flags=re.DOTALL | re.IGNORECASE)
+
+
+def _parse_json_from_rendered_html(rendered: str) -> Optional[Any]:
+    """Parse JSON out of a Playwright-rendered response body.
+
+    When the fallback browser navigates to an API endpoint that returns
+    ``application/json``, Chromium renders the page as
+    ``<html><body><pre>…JSON…</pre></body></html>``.  Less commonly, the page
+    body is the raw JSON text itself.  Try both strategies in order and return
+    ``None`` if neither yields valid JSON.
+    """
+    stripped = rendered.strip()
+    if stripped.startswith(("{", "[")):
+        try:
+            return _json.loads(stripped)
+        except _json.JSONDecodeError:
+            pass
+
+    match = _PRE_BLOCK_RE.search(rendered)
+    if match is not None:
+        inner = _html_lib.unescape(match.group(1)).strip()
+        try:
+            return _json.loads(inner)
+        except _json.JSONDecodeError:
+            return None
+
     return None
 
 
@@ -262,17 +301,27 @@ class HttpClient:
         """
         Fetch JSON data from a URL with standardized error handling.
 
+        If curl-cffi returns a non-200 status, an empty body, or a known
+        bot-block response, the request is automatically retried with a
+        Playwright headless browser.  The browser renders the JSON endpoint,
+        and the wrapping ``<pre>`` block (or raw body) is parsed back into
+        JSON.  Set ``PLAYWRIGHT_FALLBACK=0`` to disable this behaviour globally.
+
+        5xx responses skip the fallback — a server-side failure cannot be
+        rescued by a headless browser.
+
         Args:
             session: curl_cffi AsyncSession to use for the request
             url: URL to fetch (will be normalized)
             headers: Optional headers to include
             logger_context: Context for logging
             proxy_url: Optional proxy URL (e.g. "http://host:8080"). When
-                provided the request is routed through that proxy.
+                provided the request is routed through that proxy.  Also
+                applied to the Playwright browser context on fallback.
 
         Returns:
-            JSON data as dictionary, or None if the response status is not 200
-            or the body is empty/whitespace-only.
+            JSON data as dictionary, or None if the response is not usable
+            and the Playwright fallback does not recover parseable JSON.
 
         Raises:
             Exception: Any network or connection error is re-raised so callers
@@ -290,8 +339,23 @@ class HttpClient:
         if diagnostics is not None:
             diagnostics.record_response(response.status_code)
 
+        # 5xx is a server-side failure; a headless browser cannot rescue it.
+        # Skip the Playwright attempt (saves 1–3 s per retry) — the caller's
+        # retry layer classifies 5xx via the non-None return contract.
+        if 500 <= response.status_code < 600:
+            Logger.warn(
+                f"HTTP {response.status_code} when fetching {normalized_url}",
+                logger_context,
+            )
+            return None
+
+        # ------------------------------------------------------------------
+        # Decide whether the response is usable or needs the JS fallback
+        # ------------------------------------------------------------------
+        fallback_reason: Optional[str] = None
+
         if response.status_code != 200:
-            # A 4xx/5xx body served as HTML often contains a WAF challenge
+            # A 4xx body served as HTML often contains a WAF challenge
             # (DataDome, Cloudflare). Record the bot-block signature so JSON-path
             # scrapers (Prekindle, SeatEngine, Wix, ...) self-triage the same
             # way the HTML path does.
@@ -299,17 +363,53 @@ class HttpClient:
                 bot_signature = _bot_block_reason(response.text)
                 if bot_signature is not None:
                     diagnostics.record_bot_block(bot_signature)
-            Logger.warn(f"HTTP {response.status_code} when fetching {normalized_url}", logger_context)
-            return None
-
-        if not response.text or not response.text.strip():
-            Logger.warn(f"HTTP 200 with empty body when fetching {normalized_url}", logger_context)
-            return None
-
-        # 200 with an HTML challenge (some WAFs return 200 + interstitial).
-        if diagnostics is not None:
+            Logger.warn(
+                f"HTTP {response.status_code} when fetching {normalized_url}",
+                logger_context,
+            )
+            fallback_reason = f"HTTP {response.status_code}"
+        elif not response.text or not response.text.strip():
+            Logger.warn(
+                f"HTTP 200 with empty body when fetching {normalized_url}",
+                logger_context,
+            )
+            fallback_reason = "empty body"
+        else:
+            # 200 with an HTML challenge (some WAFs return 200 + interstitial).
             bot_signature = _bot_block_reason(response.text)
             if bot_signature is not None:
-                diagnostics.record_bot_block(bot_signature)
+                if diagnostics is not None:
+                    diagnostics.record_bot_block(bot_signature)
+                fallback_reason = bot_signature
+
+        # ------------------------------------------------------------------
+        # Automatic JS fallback
+        # ------------------------------------------------------------------
+        if fallback_reason is not None:
+            browser = _get_js_browser()
+            if browser is None:
+                return None
+            if diagnostics is not None:
+                diagnostics.record_playwright_fallback()
+            Logger.info(
+                f"[HttpClient] Triggering Playwright fallback for {normalized_url} "
+                f"(reason: {fallback_reason!r})",
+                logger_context,
+            )
+            try:
+                rendered = await browser.fetch_html(normalized_url, proxy_url=proxy_url)
+            except Exception as exc:
+                Logger.warn(
+                    f"[HttpClient] Playwright fallback failed for {normalized_url}: {exc}",
+                    logger_context,
+                )
+                return None
+            parsed = _parse_json_from_rendered_html(rendered)
+            if parsed is None:
+                Logger.warn(
+                    f"[HttpClient] Playwright fallback could not parse JSON from {normalized_url}",
+                    logger_context,
+                )
+            return parsed
 
         return response.json()

@@ -445,8 +445,9 @@ class TestFetchJson:
         session = AsyncMock()
         session.get.return_value = _make_response(200, text="")
 
-        with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn:
-            result = await HttpClient.fetch_json(session, "https://example.com/api")
+        with _NO_FALLBACK:
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn:
+                result = await HttpClient.fetch_json(session, "https://example.com/api")
 
         assert result is None
         mock_warn.assert_called_once()
@@ -458,8 +459,9 @@ class TestFetchJson:
         session = AsyncMock()
         session.get.return_value = _make_response(200, text="   \n  ")
 
-        with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn:
-            result = await HttpClient.fetch_json(session, "https://example.com/api")
+        with _NO_FALLBACK:
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn:
+                result = await HttpClient.fetch_json(session, "https://example.com/api")
 
         assert result is None
         mock_warn.assert_called_once()
@@ -472,9 +474,269 @@ class TestFetchJson:
         session.get.return_value = _make_response(200, text="")
         context = {"club": "test_club", "endpoint": "/api/shows"}
 
-        with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn:
-            await HttpClient.fetch_json(session, "https://example.com/api", logger_context=context)
+        with _NO_FALLBACK:
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn:
+                await HttpClient.fetch_json(session, "https://example.com/api", logger_context=context)
 
         mock_warn.assert_called_once()
         call_context = mock_warn.call_args[0][1]
         assert call_context == context
+
+
+# ---------------------------------------------------------------------------
+# fetch_json — Playwright fallback
+# ---------------------------------------------------------------------------
+
+
+def _make_json_browser_mock(payload):
+    """Build a mock PlaywrightBrowser whose fetch_html returns Chrome-wrapped JSON."""
+    import json as _json_lib
+    wrapped = f"<html><body><pre>{_json_lib.dumps(payload)}</pre></body></html>"
+    mock = AsyncMock()
+    mock.fetch_html = AsyncMock(return_value=wrapped)
+    return mock
+
+
+class TestFetchJsonFallback:
+    def setup_method(self):
+        client_module._js_browser = None
+
+    @pytest.mark.asyncio
+    async def test_fallback_triggered_on_403(self):
+        """403 response → curl-cffi returns non-200 → Playwright fallback fires."""
+        session = AsyncMock()
+        session.get.return_value = _make_response(403)
+        payload = {"events": [{"id": 42}]}
+        mock_browser = _make_json_browser_mock(payload)
+
+        with patch(
+            "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+            return_value=mock_browser,
+        ):
+            result = await HttpClient.fetch_json(session, "https://example.com/api")
+
+        mock_browser.fetch_html.assert_called_once()
+        assert result == payload
+
+    @pytest.mark.asyncio
+    async def test_fallback_triggered_on_empty_body(self):
+        session = AsyncMock()
+        session.get.return_value = _make_response(200, text="   ")
+        payload = {"ok": True}
+        mock_browser = _make_json_browser_mock(payload)
+
+        with patch(
+            "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+            return_value=mock_browser,
+        ):
+            result = await HttpClient.fetch_json(session, "https://example.com/api")
+
+        mock_browser.fetch_html.assert_called_once()
+        assert result == payload
+
+    @pytest.mark.asyncio
+    async def test_fallback_triggered_on_bot_block(self):
+        bot_html = "<html><title>Just a moment...</title></html>"
+        session = AsyncMock()
+        session.get.return_value = _make_response(200, text=bot_html)
+        payload = {"events": []}
+        mock_browser = _make_json_browser_mock(payload)
+
+        with patch(
+            "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+            return_value=mock_browser,
+        ):
+            result = await HttpClient.fetch_json(session, "https://example.com/api")
+
+        mock_browser.fetch_html.assert_called_once()
+        assert result == payload
+
+    @pytest.mark.asyncio
+    async def test_no_fallback_for_good_json(self):
+        session = AsyncMock()
+        payload = {"events": [{"id": 1}]}
+        session.get.return_value = _make_response(200, json_data=payload)
+        mock_browser = _make_json_browser_mock({"should": "not be reached"})
+
+        with patch(
+            "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+            return_value=mock_browser,
+        ):
+            result = await HttpClient.fetch_json(session, "https://example.com/api")
+
+        mock_browser.fetch_html.assert_not_called()
+        assert result == payload
+
+    @pytest.mark.asyncio
+    async def test_fallback_skipped_on_5xx(self):
+        """500-class responses skip the fallback (server can't be rescued by a browser)."""
+        session = AsyncMock()
+        session.get.return_value = _make_response(502)
+        mock_browser = _make_json_browser_mock({"never": "reached"})
+
+        with patch(
+            "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+            return_value=mock_browser,
+        ):
+            result = await HttpClient.fetch_json(session, "https://example.com/api")
+
+        mock_browser.fetch_html.assert_not_called()
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_fallback_disabled_when_env_flag_is_zero(self, monkeypatch):
+        """PLAYWRIGHT_FALLBACK=0 disables the fallback symmetrically with fetch_html."""
+        monkeypatch.setenv("PLAYWRIGHT_FALLBACK", "0")
+        client_module._js_browser = None
+        session = AsyncMock()
+        session.get.return_value = _make_response(403)
+
+        result = await HttpClient.fetch_json(session, "https://example.com/api")
+
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_fallback_returns_none_on_playwright_exception(self):
+        session = AsyncMock()
+        session.get.return_value = _make_response(403)
+        mock_browser = AsyncMock()
+        mock_browser.fetch_html = AsyncMock(side_effect=RuntimeError("playwright crashed"))
+
+        with patch(
+            "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+            return_value=mock_browser,
+        ):
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn"):
+                result = await HttpClient.fetch_json(session, "https://example.com/api")
+
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_fallback_returns_none_on_unparseable_body(self):
+        """Rendered HTML without a <pre> block and no raw JSON → None."""
+        session = AsyncMock()
+        session.get.return_value = _make_response(403)
+        mock_browser = AsyncMock()
+        mock_browser.fetch_html = AsyncMock(
+            return_value="<html><body>Not JSON at all</body></html>"
+        )
+
+        with patch(
+            "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+            return_value=mock_browser,
+        ):
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn"):
+                result = await HttpClient.fetch_json(session, "https://example.com/api")
+
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_fallback_parses_raw_json_body(self):
+        """Browser returned raw JSON (no <pre> wrapping) — still parses."""
+        session = AsyncMock()
+        session.get.return_value = _make_response(403)
+        payload = {"foo": "bar"}
+        mock_browser = AsyncMock()
+        mock_browser.fetch_html = AsyncMock(return_value='{"foo": "bar"}')
+
+        with patch(
+            "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+            return_value=mock_browser,
+        ):
+            result = await HttpClient.fetch_json(session, "https://example.com/api")
+
+        assert result == payload
+
+    @pytest.mark.asyncio
+    async def test_fallback_unescapes_html_entities_in_pre_block(self):
+        """Chrome HTML-escapes special chars in the JSON viewer — unescape before parsing."""
+        session = AsyncMock()
+        session.get.return_value = _make_response(403)
+        # Chrome wraps and escapes: >, <, & become &gt;, &lt;, &amp;
+        rendered = '<html><body><pre>{"note": "a &amp; b &lt; c"}</pre></body></html>'
+        mock_browser = AsyncMock()
+        mock_browser.fetch_html = AsyncMock(return_value=rendered)
+
+        with patch(
+            "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+            return_value=mock_browser,
+        ):
+            result = await HttpClient.fetch_json(session, "https://example.com/api")
+
+        assert result == {"note": "a & b < c"}
+
+    @pytest.mark.asyncio
+    async def test_proxy_passed_to_playwright_fallback(self):
+        session = AsyncMock()
+        session.get.return_value = _make_response(403)
+        mock_browser = _make_json_browser_mock({"ok": True})
+
+        with patch(
+            "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+            return_value=mock_browser,
+        ):
+            await HttpClient.fetch_json(
+                session, "https://example.com/api", proxy_url="http://proxy:8080"
+            )
+
+        from laughtrack.foundation.utilities.url import URLUtils
+        expected_url = URLUtils.normalize_url("https://example.com/api")
+        mock_browser.fetch_html.assert_called_once_with(
+            expected_url, proxy_url="http://proxy:8080"
+        )
+
+    @pytest.mark.asyncio
+    async def test_fallback_activation_logged(self):
+        session = AsyncMock()
+        session.get.return_value = _make_response(403)
+        mock_browser = _make_json_browser_mock({"ok": True})
+
+        with patch(
+            "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+            return_value=mock_browser,
+        ):
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.info") as mock_info:
+                await HttpClient.fetch_json(session, "https://example.com/api")
+
+        mock_info.assert_called_once()
+        log_msg = mock_info.call_args[0][0]
+        assert "Playwright fallback" in log_msg
+        assert "403" in log_msg
+
+
+# ---------------------------------------------------------------------------
+# _parse_json_from_rendered_html
+# ---------------------------------------------------------------------------
+
+
+class TestParseJsonFromRenderedHtml:
+    def test_raw_json_body(self):
+        from laughtrack.foundation.infrastructure.http.client import _parse_json_from_rendered_html
+        assert _parse_json_from_rendered_html('{"a": 1}') == {"a": 1}
+
+    def test_raw_json_array_body(self):
+        from laughtrack.foundation.infrastructure.http.client import _parse_json_from_rendered_html
+        assert _parse_json_from_rendered_html("[1, 2, 3]") == [1, 2, 3]
+
+    def test_pre_wrapped_json(self):
+        from laughtrack.foundation.infrastructure.http.client import _parse_json_from_rendered_html
+        rendered = '<html><body><pre>{"x": "y"}</pre></body></html>'
+        assert _parse_json_from_rendered_html(rendered) == {"x": "y"}
+
+    def test_pre_wrapped_json_with_attributes(self):
+        from laughtrack.foundation.infrastructure.http.client import _parse_json_from_rendered_html
+        rendered = '<html><body><pre style="word-wrap: break-word;">{"x": 1}</pre></body></html>'
+        assert _parse_json_from_rendered_html(rendered) == {"x": 1}
+
+    def test_html_entities_unescaped(self):
+        from laughtrack.foundation.infrastructure.http.client import _parse_json_from_rendered_html
+        rendered = "<pre>{&quot;k&quot;: &quot;v&quot;}</pre>"
+        assert _parse_json_from_rendered_html(rendered) == {"k": "v"}
+
+    def test_returns_none_for_non_json(self):
+        from laughtrack.foundation.infrastructure.http.client import _parse_json_from_rendered_html
+        assert _parse_json_from_rendered_html("<html><body>plain page</body></html>") is None
+
+    def test_returns_none_for_invalid_json_in_pre(self):
+        from laughtrack.foundation.infrastructure.http.client import _parse_json_from_rendered_html
+        assert _parse_json_from_rendered_html("<pre>not { valid json</pre>") is None
