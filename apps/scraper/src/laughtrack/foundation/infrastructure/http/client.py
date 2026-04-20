@@ -355,19 +355,21 @@ class HttpClient:
         fallback_reason: Optional[str] = None
 
         if response.status_code != 200:
-            # A 4xx body served as HTML often contains a WAF challenge
-            # (DataDome, Cloudflare). Record the bot-block signature so JSON-path
-            # scrapers (Prekindle, SeatEngine, Wix, ...) self-triage the same
-            # way the HTML path does.
-            if diagnostics is not None and response.text:
-                bot_signature = _bot_block_reason(response.text)
-                if bot_signature is not None:
-                    diagnostics.record_bot_block(bot_signature)
             Logger.warn(
                 f"HTTP {response.status_code} when fetching {normalized_url}",
                 logger_context,
             )
             fallback_reason = f"HTTP {response.status_code}"
+            # A 4xx body served as HTML often contains a WAF challenge
+            # (DataDome, Cloudflare). Detect the signature for log observability
+            # even when diagnostics is absent, and prefer it as the fallback
+            # reason so the Playwright activation log is informative.
+            if response.text:
+                bot_signature = _bot_block_reason(response.text)
+                if bot_signature is not None:
+                    if diagnostics is not None:
+                        diagnostics.record_bot_block(bot_signature)
+                    fallback_reason = bot_signature
         elif not response.text or not response.text.strip():
             Logger.warn(
                 f"HTTP 200 with empty body when fetching {normalized_url}",

@@ -578,10 +578,15 @@ class TestFetchJsonFallback:
             "laughtrack.foundation.infrastructure.http.client._get_js_browser",
             return_value=mock_browser,
         ):
-            result = await HttpClient.fetch_json(session, "https://example.com/api")
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn:
+                result = await HttpClient.fetch_json(session, "https://example.com/api")
 
         mock_browser.fetch_html.assert_not_called()
         assert result is None
+        # The HTTP-status warn is the only signal on-call sees for 5xx —
+        # assert it so a refactor can't silently drop it.
+        mock_warn.assert_called_once()
+        assert "502" in mock_warn.call_args[0][0]
 
     @pytest.mark.asyncio
     async def test_fallback_disabled_when_env_flag_is_zero(self, monkeypatch):
@@ -606,10 +611,14 @@ class TestFetchJsonFallback:
             "laughtrack.foundation.infrastructure.http.client._get_js_browser",
             return_value=mock_browser,
         ):
-            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn"):
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn:
                 result = await HttpClient.fetch_json(session, "https://example.com/api")
 
         assert result is None
+        # Ensure the exception message reaches the log so operators can debug.
+        fallback_warns = [c for c in mock_warn.call_args_list if "Playwright fallback failed" in c.args[0]]
+        assert len(fallback_warns) == 1
+        assert "playwright crashed" in fallback_warns[0].args[0]
 
     @pytest.mark.asyncio
     async def test_fallback_returns_none_on_unparseable_body(self):
@@ -625,10 +634,13 @@ class TestFetchJsonFallback:
             "laughtrack.foundation.infrastructure.http.client._get_js_browser",
             return_value=mock_browser,
         ):
-            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn"):
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn:
                 result = await HttpClient.fetch_json(session, "https://example.com/api")
 
         assert result is None
+        # The 'could not parse JSON' phrasing is what on-call greps for; pin it.
+        parse_warns = [c for c in mock_warn.call_args_list if "could not parse JSON" in c.args[0]]
+        assert len(parse_warns) == 1
 
     @pytest.mark.asyncio
     async def test_fallback_parses_raw_json_body(self):
