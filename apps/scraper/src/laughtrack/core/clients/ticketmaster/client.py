@@ -46,6 +46,8 @@ class TicketmasterClient(BaseApiClient):
     # Ticketmaster Discovery API Configuration
     BASE_URL = "https://app.ticketmaster.com/discovery/v2"
     DEFAULT_MARKET = "US"  # Default to US market
+    _DEFAULT_PAGE_SIZE = 200  # Discovery API maximum
+    _MAX_PAGES = 50  # Safety cap: 50 * 200 = 10,000 events per venue
 
     def __init__(self, club: Club, api_key: Optional[str] = None, proxy_pool: Optional[ProxyPool] = None):
         super().__init__(club, proxy_pool=proxy_pool)
@@ -87,47 +89,80 @@ class TicketmasterClient(BaseApiClient):
         """
         Fetch events from Ticketmaster API for a specific venue.
 
+        Paginates through the Discovery API's ``page`` parameter until
+        ``page.totalPages`` is exhausted (bounded by :attr:`_MAX_PAGES`), so
+        venues with more than 200 events in the configured window return
+        complete results instead of being silently truncated to the first page.
+
         Args:
             venue_id: Ticketmaster venue ID (e.g., "KovZpZAEAaEA")
-            **kwargs: Additional API parameters
+            **kwargs: Additional API parameters (e.g. ``size``, ``startDateTime``)
 
         Returns:
-            List of event dictionaries from API response
+            List of event dictionaries from the Discovery API response
         """
         try:
-            # Build API parameters
-            params = {
+            base_params = {
                 "apikey": self.api_key,
                 "venueId": venue_id,
-                "size": 200,  # Maximum events per request
-                "sort": "date,asc",  # Sort by date
+                "size": self._DEFAULT_PAGE_SIZE,
+                "sort": "date,asc",
                 **kwargs,
             }
 
-            # Add date range (next 6 months by default)
-            if "startDateTime" not in params:
-                params["startDateTime"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
-            if "endDateTime" not in params:
+            if "startDateTime" not in base_params:
+                base_params["startDateTime"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+            if "endDateTime" not in base_params:
                 end_date = datetime.now() + timedelta(days=180)
-                params["endDateTime"] = end_date.strftime("%Y-%m-%dT%H:%M:%SZ")
+                base_params["endDateTime"] = end_date.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-            # Enforce rate limiting
-            await self._enforce_rate_limit()
-
-            # Make API request
             url = f"{self.BASE_URL}/events.json"
-
             self.log_info(f"Fetching events from Ticketmaster API for venue {venue_id}")
 
-            # Build full URL with query params and use BaseApiClient.fetch_json
-            full_url = URLUtils.build_url(url, params=params)
-            data = await self.fetch_json(full_url, headers=self.headers)
+            events: List[JSONDict] = []
+            page = 0
+            total_pages = 1
 
-            if not data:
-                self.log_warning("Ticketmaster API returned no data for events request")
-                return []
+            while page < self._MAX_PAGES:
+                params = {**base_params, "page": page}
 
-            events = data.get("_embedded", {}).get("events", [])
+                await self._enforce_rate_limit()
+
+                full_url = URLUtils.build_url(url, params=params)
+                data = await self.fetch_json(full_url, headers=self.headers)
+
+                if not data:
+                    if page == 0:
+                        self.log_warning("Ticketmaster API returned no data for events request")
+                    break
+
+                pagination = data.get("page") or {}
+                total_pages = pagination.get("totalPages", 1)
+
+                if page == 0:
+                    total_elements = pagination.get("totalElements", 0)
+                    if total_elements > base_params["size"]:
+                        self.log_info(
+                            f"Ticketmaster venue {venue_id}: paginating "
+                            f"{total_elements} events across {total_pages} pages "
+                            f"(size={base_params['size']})"
+                        )
+
+                page_events = data.get("_embedded", {}).get("events", [])
+                if not page_events:
+                    break
+                events.extend(page_events)
+
+                if page + 1 >= total_pages:
+                    break
+                page += 1
+
+            if page >= self._MAX_PAGES and total_pages > self._MAX_PAGES:
+                self.log_warning(
+                    f"Ticketmaster venue {venue_id}: reached MAX_PAGES ({self._MAX_PAGES}); "
+                    f"{total_pages - self._MAX_PAGES} pages truncated"
+                )
+
             self.log_info(f"Successfully fetched {len(events)} events from Ticketmaster API")
             return events
 
