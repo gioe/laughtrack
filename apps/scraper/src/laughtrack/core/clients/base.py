@@ -9,8 +9,19 @@ from laughtrack.core.entities.club.model import Club
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.models.types import JSONDict
 from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
-from laughtrack.foundation.infrastructure.http.client import HttpClient
+from laughtrack.foundation.infrastructure.http.client import HttpClient, _bot_block_reason
 from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
+
+# POST requests in this module do NOT get the Playwright fallback that the
+# GET-side fetch_html/fetch_json enjoy. Replaying a POST body from a
+# browser context requires a pre-warmed cookie jar (a prior GET that cleared
+# any challenge) and a page.request.post() call that inherits that context —
+# the audit in TASK-1648 flagged this as MEDIUM severity because POSTs are
+# rarely the scrape entry point (they follow an authenticated GET that has
+# already satisfied the WAF). Until a concrete case justifies the extra
+# machinery, the POST helpers surface bot-block signatures and non-200 /
+# empty-body failures via Logger.error so they are visible in triage rather
+# than swallowed as WARNINGs.
 
 
 class BaseApiClient(ABC):
@@ -361,13 +372,36 @@ class BaseApiClient(ABC):
                     pass
                 await self._apply_rate_limit(url)
                 response = await session.post(url, json=payload, headers=request_headers, proxies=proxies)
+                resp_text = response.text if isinstance(response.text, str) else ""
                 if response.status_code != 200:
-                    Logger.warning(f"HTTP {response.status_code} when POSTing {url}")
+                    bot_signature = _bot_block_reason(resp_text) if resp_text else None
+                    if bot_signature is not None:
+                        Logger.error(
+                            f"Bot-block signature {bot_signature!r} in HTTP {response.status_code} "
+                            f"POST response from {url}. Playwright fallback is not implemented for "
+                            f"POST — see module docstring in core/clients/base.py."
+                        )
+                    else:
+                        Logger.error(f"HTTP {response.status_code} when POSTing {url}")
                     if proxy_url and self.proxy_pool is not None:
                         self.proxy_pool.report_failure(proxy_url)
                     return None
-                if not response.text or not response.text.strip():
-                    Logger.warning(f"HTTP 200 with empty body when POSTing {url}")
+                if not resp_text or not resp_text.strip():
+                    Logger.error(f"HTTP 200 with empty body when POSTing {url}")
+                    if proxy_url and self.proxy_pool is not None:
+                        self.proxy_pool.report_failure(proxy_url)
+                    return None
+                # Some WAFs return 200 + an HTML challenge interstitial; detect that here
+                # so the caller isn't handed a cart/auth response that is actually a block page.
+                bot_signature = _bot_block_reason(resp_text)
+                if bot_signature is not None:
+                    Logger.error(
+                        f"Bot-block signature {bot_signature!r} in HTTP 200 POST response body "
+                        f"from {url}. Playwright fallback is not implemented for POST — see module "
+                        f"docstring in core/clients/base.py."
+                    )
+                    if proxy_url and self.proxy_pool is not None:
+                        self.proxy_pool.report_failure(proxy_url)
                     return None
                 obj = response.json()
                 # DEBUG summary of response
@@ -448,12 +482,38 @@ class BaseApiClient(ABC):
                     pass
                 await self._apply_rate_limit(url)
                 response = await session.post(url, data=payload, headers=request_headers, proxies=proxies)
+                resp_text = response.text if isinstance(response.text, str) else ""
                 if response.status_code != 200:
-                    Logger.warning(f"HTTP {response.status_code} when POSTing form to {url}")
+                    bot_signature = _bot_block_reason(resp_text) if resp_text else None
+                    if bot_signature is not None:
+                        Logger.error(
+                            f"Bot-block signature {bot_signature!r} in HTTP {response.status_code} "
+                            f"POST (form) response from {url}. Playwright fallback is not implemented "
+                            f"for POST — see module docstring in core/clients/base.py."
+                        )
+                    else:
+                        Logger.error(f"HTTP {response.status_code} when POSTing form to {url}")
                     if proxy_url and self.proxy_pool is not None:
                         self.proxy_pool.report_failure(proxy_url)
                     return None
-                text = response.text
+                if not resp_text or not resp_text.strip():
+                    Logger.error(f"HTTP 200 with empty body when POSTing form to {url}")
+                    if proxy_url and self.proxy_pool is not None:
+                        self.proxy_pool.report_failure(proxy_url)
+                    return None
+                # Some WAFs return 200 + an HTML challenge interstitial in response to a POST;
+                # surface that as an error so the caller doesn't treat the block page as real data.
+                bot_signature = _bot_block_reason(resp_text)
+                if bot_signature is not None:
+                    Logger.error(
+                        f"Bot-block signature {bot_signature!r} in HTTP 200 POST (form) response "
+                        f"body from {url}. Playwright fallback is not implemented for POST — see "
+                        f"module docstring in core/clients/base.py."
+                    )
+                    if proxy_url and self.proxy_pool is not None:
+                        self.proxy_pool.report_failure(proxy_url)
+                    return None
+                text = resp_text
                 # DEBUG summary of response
                 try:
                     ctx: JSONDict = {"club_name": getattr(self.club, "name", "-")}

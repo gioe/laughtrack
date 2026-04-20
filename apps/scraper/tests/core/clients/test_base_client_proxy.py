@@ -170,8 +170,8 @@ class TestFetchHtmlProxyWiring:
 
 class TestPostJsonEmptyBody:
     @pytest.mark.asyncio
-    async def test_200_empty_body_returns_none_and_logs_warning(self):
-        """HTTP 200 with empty body returns None and logs a warning."""
+    async def test_200_empty_body_returns_none_and_logs_error(self):
+        """HTTP 200 with empty body returns None and logs an error."""
         client = ConcreteClient(_make_club())
         cm, _ = _make_session_cm(200, text="")
 
@@ -180,12 +180,12 @@ class TestPostJsonEmptyBody:
                 result = await client.post_json("https://example.com/api", {"key": "val"})
 
         assert result is None
-        MockLogger.warning.assert_called()
-        warning_msg = MockLogger.warning.call_args[0][0]
-        assert "empty body" in warning_msg
+        MockLogger.error.assert_called()
+        error_msg = MockLogger.error.call_args[0][0]
+        assert "empty body" in error_msg
 
     @pytest.mark.asyncio
-    async def test_200_whitespace_only_body_returns_none_and_logs_warning(self):
+    async def test_200_whitespace_only_body_returns_none_and_logs_error(self):
         """HTTP 200 with whitespace-only body is treated as empty."""
         client = ConcreteClient(_make_club())
         cm, _ = _make_session_cm(200, text="   \n  ")
@@ -195,7 +195,7 @@ class TestPostJsonEmptyBody:
                 result = await client.post_json("https://example.com/api", {"key": "val"})
 
         assert result is None
-        MockLogger.warning.assert_called()
+        MockLogger.error.assert_called()
 
     @pytest.mark.asyncio
     async def test_200_valid_body_returns_parsed_json(self):
@@ -207,3 +207,136 @@ class TestPostJsonEmptyBody:
             result = await client.post_json("https://example.com/api", {"key": "val"})
 
         assert result == {"token": "abc"}
+
+
+# ---------------------------------------------------------------------------
+# post_json — bot-block detection
+# ---------------------------------------------------------------------------
+
+
+class TestPostJsonBotBlock:
+    @pytest.mark.asyncio
+    async def test_non200_with_datadome_body_logs_error_with_signature(self):
+        """HTTP 403 with a DataDome challenge body logs the signature at error level."""
+        pool = _make_pool()
+        client = ConcreteClient(_make_club(), proxy_pool=pool)
+        cm, _ = _make_session_cm(
+            status_code=403,
+            text="<html><body>datadome challenge page</body></html>",
+        )
+
+        with patch("laughtrack.core.clients.base.AsyncSession", return_value=cm):
+            with patch("laughtrack.core.clients.base.Logger") as MockLogger:
+                result = await client.post_json("https://example.com/api", {"key": "val"})
+
+        assert result is None
+        MockLogger.error.assert_called()
+        error_msg = MockLogger.error.call_args[0][0]
+        assert "datadome" in error_msg.lower()
+        assert "bot-block" in error_msg.lower()
+        pool.report_failure.assert_called_once_with(PROXY_URL)
+
+    @pytest.mark.asyncio
+    async def test_non200_without_bot_block_logs_plain_error(self):
+        """HTTP 500 without a bot-block signature logs an error without the signature label."""
+        client = ConcreteClient(_make_club())
+        cm, _ = _make_session_cm(status_code=500, text="internal server error")
+
+        with patch("laughtrack.core.clients.base.AsyncSession", return_value=cm):
+            with patch("laughtrack.core.clients.base.Logger") as MockLogger:
+                result = await client.post_json("https://example.com/api", {"key": "val"})
+
+        assert result is None
+        MockLogger.error.assert_called()
+        error_msg = MockLogger.error.call_args[0][0]
+        assert "500" in error_msg
+        assert "bot-block" not in error_msg.lower()
+
+    @pytest.mark.asyncio
+    async def test_200_with_cloudflare_interstitial_returns_none_and_logs_error(self):
+        """HTTP 200 + Cloudflare 'Just a moment' body is treated as a bot-block."""
+        pool = _make_pool()
+        client = ConcreteClient(_make_club(), proxy_pool=pool)
+        cm, _ = _make_session_cm(
+            status_code=200,
+            text="<html><title>Just a moment...</title></html>",
+        )
+
+        with patch("laughtrack.core.clients.base.AsyncSession", return_value=cm):
+            with patch("laughtrack.core.clients.base.Logger") as MockLogger:
+                result = await client.post_json("https://example.com/api", {"key": "val"})
+
+        assert result is None
+        MockLogger.error.assert_called()
+        error_msg = MockLogger.error.call_args[0][0]
+        assert "bot-block" in error_msg.lower()
+        pool.report_failure.assert_called_once_with(PROXY_URL)
+
+
+# ---------------------------------------------------------------------------
+# post_form — empty-body + bot-block detection
+# ---------------------------------------------------------------------------
+
+
+class TestPostFormBotBlock:
+    @pytest.mark.asyncio
+    async def test_non200_with_datadome_body_logs_error_with_signature(self):
+        pool = _make_pool()
+        client = ConcreteClient(_make_club(), proxy_pool=pool)
+        cm, _ = _make_session_cm(
+            status_code=403,
+            text="<html><body>datadome challenge page</body></html>",
+        )
+
+        with patch("laughtrack.core.clients.base.AsyncSession", return_value=cm):
+            with patch("laughtrack.core.clients.base.Logger") as MockLogger:
+                result = await client.post_form("https://example.com/api", {"k": "v"})
+
+        assert result is None
+        MockLogger.error.assert_called()
+        error_msg = MockLogger.error.call_args[0][0]
+        assert "datadome" in error_msg.lower()
+        pool.report_failure.assert_called_once_with(PROXY_URL)
+
+    @pytest.mark.asyncio
+    async def test_200_empty_body_logs_error(self):
+        client = ConcreteClient(_make_club())
+        cm, _ = _make_session_cm(status_code=200, text="")
+
+        with patch("laughtrack.core.clients.base.AsyncSession", return_value=cm):
+            with patch("laughtrack.core.clients.base.Logger") as MockLogger:
+                result = await client.post_form("https://example.com/api", {"k": "v"})
+
+        assert result is None
+        MockLogger.error.assert_called()
+        error_msg = MockLogger.error.call_args[0][0]
+        assert "empty body" in error_msg
+
+    @pytest.mark.asyncio
+    async def test_200_with_cloudflare_interstitial_returns_none_and_logs_error(self):
+        pool = _make_pool()
+        client = ConcreteClient(_make_club(), proxy_pool=pool)
+        cm, _ = _make_session_cm(
+            status_code=200,
+            text="<html>Just a moment please…</html>",
+        )
+
+        with patch("laughtrack.core.clients.base.AsyncSession", return_value=cm):
+            with patch("laughtrack.core.clients.base.Logger") as MockLogger:
+                result = await client.post_form("https://example.com/api", {"k": "v"})
+
+        assert result is None
+        MockLogger.error.assert_called()
+        error_msg = MockLogger.error.call_args[0][0]
+        assert "bot-block" in error_msg.lower()
+        pool.report_failure.assert_called_once_with(PROXY_URL)
+
+    @pytest.mark.asyncio
+    async def test_200_valid_body_returns_text(self):
+        client = ConcreteClient(_make_club())
+        cm, _ = _make_session_cm(status_code=200, text="OK")
+
+        with patch("laughtrack.core.clients.base.AsyncSession", return_value=cm):
+            result = await client.post_form("https://example.com/api", {"k": "v"})
+
+        assert result == "OK"
