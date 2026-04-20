@@ -54,7 +54,6 @@ class _FakeSession:
         raise NotImplementedError("subclass must override get()")
 
 
-@pytest.mark.asyncio
 async def test_200_returns_parsed_json(monkeypatch):
     """HTTP 200 + well-formed JSON body returns the parsed dict unchanged."""
     monkeypatch.setenv("PLAYWRIGHT_FALLBACK", "0")
@@ -83,7 +82,6 @@ async def test_200_returns_parsed_json(monkeypatch):
     assert result == payload
 
 
-@pytest.mark.asyncio
 async def test_non_200_returns_none_when_fallback_disabled(monkeypatch):
     """Non-200 without a Playwright rescue returns None."""
     monkeypatch.setenv("PLAYWRIGHT_FALLBACK", "0")
@@ -107,7 +105,6 @@ async def test_non_200_returns_none_when_fallback_disabled(monkeypatch):
     assert result is None
 
 
-@pytest.mark.asyncio
 async def test_exception_returns_none(monkeypatch):
     """Network-layer exceptions are caught and logged, returning None."""
     monkeypatch.setenv("PLAYWRIGHT_FALLBACK", "0")
@@ -124,7 +121,6 @@ async def test_exception_returns_none(monkeypatch):
     assert result is None
 
 
-@pytest.mark.asyncio
 async def test_cloudflare_403_triggers_playwright_fallback(monkeypatch):
     """A Cloudflare 403 is rescued via the Playwright fallback (TASK-1654 / B3)."""
     monkeypatch.delenv("PLAYWRIGHT_FALLBACK", raising=False)
@@ -166,3 +162,40 @@ async def test_cloudflare_403_triggers_playwright_fallback(monkeypatch):
     # Preserve the DataDome-friendly contract: no application-level headers on
     # the curl_cffi request — only the Chrome impersonation fingerprint.
     assert captured_headers["value"] is None
+
+
+async def test_plain_403_without_bot_signature_triggers_fallback(monkeypatch):
+    """A bare 403 with no WAF marker still triggers Playwright rescue.
+
+    HttpClient.fetch_json falls back on any non-200 — not only on bot-signature
+    hits — so SquadUp's primary recovery path must keep working when the block
+    page is a generic 'Forbidden' body without Cloudflare / DataDome text.
+    """
+    monkeypatch.delenv("PLAYWRIGHT_FALLBACK", raising=False)
+
+    class FakeResponse:
+        status_code = 403
+        text = "Forbidden"
+
+    class Session(_FakeSession):
+        async def get(self, url, headers=None, proxies=None, **kwargs):
+            return FakeResponse()
+
+    monkeypatch.setattr(squadup_module, "AsyncSession", Session)
+
+    rescued_payload = {"events": [{"id": 9, "title": "Generic 403 Rescued"}]}
+
+    class FakeBrowser:
+        async def fetch_html(self, url, proxy_url=None):
+            import json as _json
+            return f"<html><body><pre>{_json.dumps(rescued_payload)}</pre></body></html>"
+
+    monkeypatch.setattr(
+        "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+        lambda: FakeBrowser(),
+    )
+
+    scraper = SquadUpScraper(_club())
+    result = await scraper._fetch_events_page(user_id="7408591", page=1)
+
+    assert result == rescued_payload
