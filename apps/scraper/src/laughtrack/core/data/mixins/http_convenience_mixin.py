@@ -73,11 +73,19 @@ class HttpConvenienceMixin(AsyncHttpMixin):
     async def fetch_json(self, url: str, **kwargs) -> Any:
         """Fetch and parse JSON from URL with error handling and Playwright fallback.
 
+        Raise-on-failure semantics match the pre-TASK-1649 behavior: a non-2xx
+        response raises ``RequestsError`` (via ``response.raise_for_status()``)
+        so the shared retry layer can classify 5xx into ``NetworkError`` for
+        exponential backoff.  Playwright is NOT attempted for 5xx (server
+        errors cannot be rescued by a browser).  For 4xx, bot-block, and
+        empty-body cases the fallback fires; if it recovers, the raise is
+        skipped.
+
         Returns:
-            Parsed JSON data, or None if the response is non-200, the body
-            is empty/whitespace-only, or the response matches a known
-            bot-block signature and the Playwright fallback either is
-            disabled or fails to recover a parseable body.
+            Parsed JSON data, or None if the response was 200 OK with an
+            empty/whitespace-only body or bot-block signature and the
+            Playwright fallback either is disabled or fails to recover a
+            parseable body.
         """
         logger_context = getattr(self, "logger_context", None) or {}
         normalized_url = URLUtils.normalize_url(url)
@@ -89,6 +97,15 @@ class HttpConvenienceMixin(AsyncHttpMixin):
         async def _fetch_json():
             session = await self.get_session()
             response = await session.get(normalized_url, **request_kwargs)
+
+            # 5xx: server error — Playwright can't rescue. Raise so the
+            # retry layer can classify into NetworkError for backoff.
+            if 500 <= response.status_code < 600:
+                Logger.warn(
+                    f"HTTP {response.status_code} when fetching {normalized_url}",
+                    logger_context,
+                )
+                response.raise_for_status()
 
             fallback_reason: Optional[str] = None
             if response.status_code != 200:
@@ -112,23 +129,29 @@ class HttpConvenienceMixin(AsyncHttpMixin):
                 return response.json()
 
             browser = _get_js_browser()
-            if browser is None:
-                return None
-            Logger.info(
-                f"[HttpConvenienceMixin.fetch_json] Triggering Playwright fallback for "
-                f"{normalized_url} (reason: {fallback_reason!r})",
-                logger_context,
-            )
-            try:
-                rendered = await browser.fetch_html(normalized_url, proxy_url=proxy_url)
-            except Exception as exc:
-                Logger.warn(
-                    f"[HttpConvenienceMixin.fetch_json] Playwright fallback failed for "
-                    f"{normalized_url}: {exc}",
+            rescued: Any = None
+            if browser is not None:
+                Logger.info(
+                    f"[HttpConvenienceMixin.fetch_json] Triggering Playwright fallback for "
+                    f"{normalized_url} (reason: {fallback_reason!r})",
                     logger_context,
                 )
-                return None
-            return _parse_json_from_rendered(rendered)
+                try:
+                    rendered = await browser.fetch_html(normalized_url, proxy_url=proxy_url)
+                    rescued = _parse_json_from_rendered(rendered)
+                except Exception as exc:
+                    Logger.warn(
+                        f"[HttpConvenienceMixin.fetch_json] Playwright fallback failed for "
+                        f"{normalized_url}: {exc}",
+                        logger_context,
+                    )
+
+            # Non-2xx with no Playwright rescue → raise to preserve the old
+            # retry contract (ErrorHandler.execute_with_retry classifies 4xx
+            # as terminal and 5xx would already have raised above).
+            if rescued is None and response.status_code != 200:
+                response.raise_for_status()
+            return rescued
 
         # Use error handler if available, otherwise execute directly
         error_handler = getattr(self, "error_handler", None)
@@ -155,10 +178,11 @@ class HttpConvenienceMixin(AsyncHttpMixin):
     async def fetch_html(self, url: str, **kwargs) -> Optional[str]:
         """Fetch HTML content from URL with error handling and Playwright fallback.
 
-        Delegates to ``HttpClient.fetch_html`` so every scraper inherits the
-        automatic Playwright rescue on 403 / empty body / bot-block responses.
-        Returns ``None`` when both the curl-cffi path and the Playwright
-        fallback fail to return a usable body.
+        Delegates to ``HttpClient.fetch_html`` with ``raise_on_failure=True``
+        so non-2xx responses (when the Playwright fallback cannot rescue them)
+        raise ``RequestsError`` for the shared retry layer — preserving the
+        pre-TASK-1649 contract that downstream scrapers depend on for 5xx
+        exponential backoff and ``except NetworkError`` retry loops.
         """
         logger_context = getattr(self, "logger_context", None)
 
@@ -168,6 +192,7 @@ class HttpConvenienceMixin(AsyncHttpMixin):
                 session,
                 url,
                 logger_context=logger_context,
+                raise_on_failure=True,
                 **kwargs,
             )
 

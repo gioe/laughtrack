@@ -156,11 +156,16 @@ class TestFetchJson:
         assert result == {"ok": True}
 
     @pytest.mark.asyncio
-    async def test_returns_none_when_fallback_disabled_on_403(self):
-        """HTTP 403 with PLAYWRIGHT_FALLBACK disabled returns None."""
+    async def test_raises_on_403_when_fallback_disabled(self):
+        """HTTP 403 with PLAYWRIGHT_FALLBACK disabled raises via raise_for_status.
+
+        This preserves the pre-TASK-1649 contract so ErrorHandler.execute_with_retry
+        can classify the error into NetworkError for the retry layer.
+        """
         mock_response = MagicMock()
         mock_response.status_code = 403
         mock_response.text = ""
+        mock_response.raise_for_status.side_effect = RuntimeError("403 Forbidden")
 
         mock_session = AsyncMock()
         mock_session.get.return_value = mock_response
@@ -168,10 +173,38 @@ class TestFetchJson:
         mixin = _ConcreteMixin()
         mixin.get_session = AsyncMock(return_value=mock_session)
 
-        with _NO_JS_FALLBACK:
-            result = await mixin.fetch_json("https://example.com/api")
+        with _NO_JS_FALLBACK, pytest.raises(RuntimeError, match="403"):
+            await mixin.fetch_json("https://example.com/api")
 
-        assert result is None
+    @pytest.mark.asyncio
+    async def test_raises_on_5xx_without_attempting_playwright(self):
+        """HTTP 5xx raises immediately without spinning up the headless browser.
+
+        Server errors cannot be rescued by a client-side browser; attempting
+        Playwright wastes 1-3s per retry. Verify raise_for_status fires and
+        the browser is never consulted.
+        """
+        mock_response = MagicMock()
+        mock_response.status_code = 503
+        mock_response.text = ""
+        mock_response.raise_for_status.side_effect = RuntimeError("503 Service Unavailable")
+
+        mock_session = AsyncMock()
+        mock_session.get.return_value = mock_response
+
+        mock_browser = AsyncMock()
+        mock_browser.fetch_html = AsyncMock(return_value="<html>should_not_be_called</html>")
+
+        mixin = _ConcreteMixin()
+        mixin.get_session = AsyncMock(return_value=mock_session)
+
+        with patch(
+            "laughtrack.core.data.mixins.http_convenience_mixin._get_js_browser",
+            return_value=mock_browser,
+        ), pytest.raises(RuntimeError, match="503"):
+            await mixin.fetch_json("https://example.com/api")
+
+        mock_browser.fetch_html.assert_not_called()
 
 
 # ---------------------------------------------------------------------------
@@ -467,15 +500,84 @@ class TestFetchHtml:
 
     @pytest.mark.asyncio
     async def test_uses_error_handler_when_present(self):
-        """execute_with_retry wraps the delegated fetch when error_handler is set."""
-        mock_handler = MagicMock()
-        mock_handler.execute_with_retry = AsyncMock(return_value="<html>retried</html>")
+        """execute_with_retry wraps the delegated fetch and the wrapped closure works.
 
+        Assert both: (1) the handler was called, and (2) invoking the wrapped
+        closure drives the real HttpClient.fetch_html delegation path — this
+        catches regressions where the closure is silently broken (wrong
+        kwargs, session not forwarded, etc.).
+        """
+        captured_closure = {}
+
+        async def capture_and_run(fn, _name):
+            captured_closure["fn"] = fn
+            return await fn()
+
+        mock_handler = MagicMock()
+        mock_handler.execute_with_retry = AsyncMock(side_effect=capture_and_run)
+
+        mock_session = AsyncMock()
         mixin = _ConcreteMixin(error_handler=mock_handler)
-        result = await mixin.fetch_html("https://example.com/page")
+        mixin.get_session = AsyncMock(return_value=mock_session)
+
+        with patch(
+            "laughtrack.core.data.mixins.http_convenience_mixin.HttpClient.fetch_html",
+            new_callable=AsyncMock,
+            return_value="<html>ok</html>",
+        ) as mock_fetch:
+            result = await mixin.fetch_html("https://example.com/page")
 
         mock_handler.execute_with_retry.assert_called_once()
-        assert result == "<html>retried</html>"
+        assert "fn" in captured_closure
+        # The wrapped closure executed and drove the real delegation
+        mock_fetch.assert_awaited_once()
+        assert mock_fetch.await_args.args[0] is mock_session
+        assert result == "<html>ok</html>"
+
+    @pytest.mark.asyncio
+    async def test_raises_on_non_2xx_when_fallback_disabled(self):
+        """403 with no rescue raises — preserves retry-layer NetworkError contract."""
+        mock_response = MagicMock()
+        mock_response.status_code = 403
+        mock_response.text = ""
+        mock_response.raise_for_status.side_effect = RuntimeError("403 Forbidden")
+
+        mock_session = AsyncMock()
+        mock_session.get.return_value = mock_response
+
+        mixin = _ConcreteMixin()
+        mixin.get_session = AsyncMock(return_value=mock_session)
+
+        with patch(
+            "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+            return_value=None,
+        ), pytest.raises(RuntimeError, match="403"):
+            await mixin.fetch_html("https://example.com/page")
+
+    @pytest.mark.asyncio
+    async def test_5xx_short_circuits_without_playwright(self):
+        """5xx raises immediately without invoking the headless browser."""
+        mock_response = MagicMock()
+        mock_response.status_code = 502
+        mock_response.text = ""
+        mock_response.raise_for_status.side_effect = RuntimeError("502 Bad Gateway")
+
+        mock_session = AsyncMock()
+        mock_session.get.return_value = mock_response
+
+        mock_browser = AsyncMock()
+        mock_browser.fetch_html = AsyncMock(return_value="<html>nope</html>")
+
+        mixin = _ConcreteMixin()
+        mixin.get_session = AsyncMock(return_value=mock_session)
+
+        with patch(
+            "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+            return_value=mock_browser,
+        ), pytest.raises(RuntimeError, match="502"):
+            await mixin.fetch_html("https://example.com/page")
+
+        mock_browser.fetch_html.assert_not_called()
 
 
 # ---------------------------------------------------------------------------

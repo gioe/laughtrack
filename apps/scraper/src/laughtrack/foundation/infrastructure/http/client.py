@@ -136,6 +136,7 @@ class HttpClient:
         headers: Optional[Dict[str, str]] = None,
         logger_context: Optional[JSONDict] = None,
         proxy_url: Optional[str] = None,
+        raise_on_failure: bool = False,
         **request_kwargs: Any,
     ) -> Optional[str]:
         """
@@ -154,6 +155,13 @@ class HttpClient:
             proxy_url: Optional proxy URL (e.g. "http://host:8080"). When
                 provided the request is routed through that proxy.  Also
                 applied to the Playwright browser context on fallback.
+            raise_on_failure: When True, raise ``RequestsError`` (via
+                ``response.raise_for_status()``) when the curl-cffi response
+                is non-2xx and the Playwright fallback did not recover usable
+                content.  This preserves the shared retry layer's ability to
+                classify transient 5xx into ``NetworkError`` for exponential
+                backoff.  Also short-circuits the Playwright attempt for 5xx
+                responses (server errors cannot be rescued by a browser).
             **request_kwargs: Additional keyword arguments forwarded to
                 ``session.get`` (e.g. ``timeout``).  Reserved names
                 ``headers`` and ``proxies`` are handled explicitly.
@@ -163,6 +171,8 @@ class HttpClient:
             Playwright fallback fail to return usable content.
 
         Raises:
+            RequestsError: Only when ``raise_on_failure=True`` and the
+                response is non-2xx with no Playwright rescue.
             Exception: Any network or connection error is re-raised so callers
                 can log and handle it (avoids duplicate log entries).
         """
@@ -171,6 +181,18 @@ class HttpClient:
 
         proxies = {"http": proxy_url, "https": proxy_url} if proxy_url else None
         response = await session.get(normalized_url, headers=headers, proxies=proxies, **request_kwargs)
+
+        # 5xx is a server-side failure; a headless browser cannot rescue it.
+        # Skip the Playwright attempt (saves 1–3 s per retry) and let the
+        # caller's retry layer handle it via raise_for_status.
+        if 500 <= response.status_code < 600:
+            Logger.warn(
+                f"HTTP {response.status_code} when fetching {normalized_url}",
+                logger_context,
+            )
+            if raise_on_failure:
+                response.raise_for_status()
+            return None
 
         if response.status_code != 200:
             Logger.warn(
@@ -209,6 +231,12 @@ class HttpClient:
                         logger_context,
                     )
                     html = None
+
+        # Preserve the old mixin contract: non-2xx without rescue → raise so
+        # the shared retry layer (ErrorHandler.execute_with_retry) can classify
+        # the error and drive exponential backoff.
+        if raise_on_failure and html is None and response.status_code != 200:
+            response.raise_for_status()
 
         return html
 
