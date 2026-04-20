@@ -17,6 +17,12 @@ from typing import Awaitable, Callable, List, Optional
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.show.model import Show
+from laughtrack.foundation.infrastructure.http.diagnostics import (
+    ScrapeDiagnostics,
+    bind_diagnostics,
+    current_diagnostics,
+    reset_diagnostics,
+)
 from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 from laughtrack.shared.types import ScrapingTarget
 from laughtrack.ports.scraping import EventListContainer
@@ -346,10 +352,20 @@ class BaseScraper(HttpConvenienceMixin, ABC):
         """
         all_shows: List[Show] = []
 
+        diagnostics = current_diagnostics()
         successful_transforms = 0
         for raw_data, target in raw_data_results:
             if raw_data is None:
                 continue
+
+            # Record raw event count before dedup/date/validation filters run
+            # downstream — lets a 0-show result distinguish "parser returned
+            # nothing" from "filter dropped everything".
+            if diagnostics is not None and hasattr(raw_data, "event_list"):
+                try:
+                    diagnostics.add_items_before_filter(len(raw_data.event_list))
+                except TypeError:
+                    pass
 
             try:
                 shows = self.transform_data(raw_data, target)
@@ -389,8 +405,10 @@ class BaseScraper(HttpConvenienceMixin, ABC):
         from laughtrack.core.models.results import ClubScrapingResult
 
         start_time = datetime.now()
+        diagnostics = ScrapeDiagnostics()
         # Ensure all logs in this scrape carry club/scraper context
         with Logger.use_context(self.logger_context):
+            token = bind_diagnostics(diagnostics)
             try:
                 Logger.info(f"{self._log_prefix}: Starting scrape", self.logger_context)
                 shows = self.scrape()
@@ -401,7 +419,17 @@ class BaseScraper(HttpConvenienceMixin, ABC):
                     self.logger_context,
                 )
 
-                return ClubScrapingResult(club_name=self.club.name, shows=shows, execution_time=execution_time, club_id=getattr(self.club, 'id', None))
+                return ClubScrapingResult(
+                    club_name=self.club.name,
+                    shows=shows,
+                    execution_time=execution_time,
+                    club_id=getattr(self.club, 'id', None),
+                    http_status=diagnostics.http_status,
+                    bot_block_detected=diagnostics.bot_block_detected,
+                    bot_block_signature=diagnostics.bot_block_signature,
+                    playwright_fallback_used=diagnostics.playwright_fallback_used,
+                    items_before_filter=diagnostics.items_before_filter,
+                )
             except Exception as e:
                 execution_time = (datetime.now() - start_time).total_seconds()
                 error_msg = str(e)
@@ -411,8 +439,19 @@ class BaseScraper(HttpConvenienceMixin, ABC):
                 )
 
                 return ClubScrapingResult(
-                    club_name=self.club.name, shows=[], execution_time=execution_time, error=error_msg, club_id=self.club.id
+                    club_name=self.club.name,
+                    shows=[],
+                    execution_time=execution_time,
+                    error=error_msg,
+                    club_id=self.club.id,
+                    http_status=diagnostics.http_status,
+                    bot_block_detected=diagnostics.bot_block_detected,
+                    bot_block_signature=diagnostics.bot_block_signature,
+                    playwright_fallback_used=diagnostics.playwright_fallback_used,
+                    items_before_filter=diagnostics.items_before_filter,
                 )
+            finally:
+                reset_diagnostics(token)
 
     async def collect_scraping_targets(self) -> List[ScrapingTarget]:
         """

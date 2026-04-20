@@ -182,7 +182,16 @@ class ScrapingService:
         self.club_handler.refresh_club_total_shows()
         total_shows = sum(r.num_shows for r in results)
         club_label = clubs[0].name if len(clubs) == 1 else f"{len(clubs)} clubs"
-        Logger.info(f"Scraped {total_shows} shows for {club_label}")
+        if total_shows == 0 and len(results) == 1:
+            r = results[0]
+            diag_suffix = (
+                f" [http={r.http_status}, bot_block={r.bot_block_detected}, "
+                f"fallback={r.playwright_fallback_used}, "
+                f"items_before_filter={r.items_before_filter}]"
+            )
+            Logger.info(f"Scraped {total_shows} shows for {club_label}{diag_suffix}")
+        else:
+            Logger.info(f"Scraped {total_shows} shows for {club_label}")
 
     def scrape_by_scraper_type(self, scraper_type: Optional[str] = None) -> None:
         Logger.info(f"Starting scrape of all clubs using scraper type: {scraper_type}")

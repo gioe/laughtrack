@@ -34,6 +34,11 @@ class MetricsAggregator:
                     error=(result.error if result.error is not None else None),
                     club_id=result.club_id,
                     errors=result.error_log_count,
+                    http_status=result.http_status,
+                    bot_block_detected=result.bot_block_detected,
+                    bot_block_signature=result.bot_block_signature,
+                    playwright_fallback_used=result.playwright_fallback_used,
+                    items_before_filter=result.items_before_filter,
                 )
             )
         return ScrapingSessionResult(shows=all_shows, errors=errors, per_club_stats=per_club_stats)

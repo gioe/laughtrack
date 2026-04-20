@@ -23,6 +23,13 @@ class ClubScrapingResult:
     error: Optional[str] = None
     club_id: Optional[int] = None
     error_log_count: int = 0
+    # Fetch-layer diagnostics populated by the base scraper from ScrapeDiagnostics.
+    # Let /triage-nightly categorize 0-show results without a manual rerun.
+    http_status: Optional[int] = None
+    bot_block_detected: bool = False
+    bot_block_signature: Optional[str] = None
+    playwright_fallback_used: bool = False
+    items_before_filter: Optional[int] = None
 
     @property
     def num_shows(self) -> int:
