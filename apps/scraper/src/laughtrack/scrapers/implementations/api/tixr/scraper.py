@@ -89,9 +89,9 @@ class TixrScraper(BaseScraper):
 
             if not all_tixr_urls:
                 Logger.warn(
-                    f"{self._log_prefix}: 0 Tixr URLs extracted from 200-response page {url} "
-                    f"(html_len={len(html_content)}) — either a bot-block interstitial that "
-                    f"bypassed DataDome classification or a genuinely-empty calendar",
+                    f"{self._log_prefix}: page fetch succeeded (html_len={len(html_content)}) "
+                    f"but no Tixr URLs were extracted from {url} — either a bot-block "
+                    f"interstitial or a genuinely-empty calendar",
                     self.logger_context,
                 )
                 return None

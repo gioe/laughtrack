@@ -77,7 +77,14 @@ class TixrClient(BaseApiClient):
             )
 
             return get_tixr_failure_monitor(self.club)
-        except Exception:
+        except Exception as exc:
+            # Surface the misconfiguration — a silent None means every group-page
+            # DataDome block goes unrecorded, which is itself a triage event.
+            Logger.warn(
+                f"[TixrClient] Tixr failure monitor unavailable: {exc} — "
+                f"group-page DataDome blocks will not be recorded",
+                {"club_name": getattr(self.club, "name", "-")},
+            )
             return None
 
     async def get_event_detail(self, event_id: str) -> Optional[TixrEvent]:
@@ -226,17 +233,27 @@ class TixrClient(BaseApiClient):
             ) as session:
                 await self._apply_rate_limit(url)
                 response = await session.get(normalized_url)
+                # Materialize everything we need from the response *inside* the
+                # session context so we don't depend on curl_cffi keeping a
+                # fully-buffered body around after the session closes.
+                status = response.status_code
+                response_headers = self._response_headers_dict(response)
+                body = response.text or ""
         except Exception as e:
             self.log_error(f"Failed to fetch Tixr page {url}: {e}")
             return None
 
-        status = response.status_code
-        response_headers = self._response_headers_dict(response)
-        body = response.text or ""
-
         diagnostics = current_diagnostics()
         if diagnostics is not None:
             diagnostics.record_response(status)
+
+        # 5xx is a server-side failure and Playwright cannot rescue it — short-
+        # circuit before DataDome classification so a 5xx that happens to carry
+        # a DataDome marker does not log a WARN pair (the monitor would also
+        # reclassify it as NETWORK_ERROR anyway).
+        if 500 <= status < 600:
+            self.log_warning(f"Tixr HTTP {status} fetching group page: {normalized_url}")
+            return None
 
         datadome_type = self._classify_datadome(response_headers, body)
         if datadome_type is not None:
@@ -250,10 +267,6 @@ class TixrClient(BaseApiClient):
                 response_headers=response_headers,
                 response_body=body,
             )
-
-        if 500 <= status < 600:
-            self.log_warning(f"Tixr HTTP {status} fetching group page: {normalized_url}")
-            return None
 
         fallback_reason: Optional[str] = None
         if status != 200:
@@ -333,16 +346,36 @@ class TixrClient(BaseApiClient):
         # classify as DATADOME_COOKIE / DATADOME_CAPTCHA. The real status is still
         # captured in the log line above for triage.
         reported_status = 403 if status_code == 200 else status_code
+        # TixrFailureMonitor._classify_failure does a case-sensitive
+        # ``"X-DataDome" in response_headers`` check. HTTP/2 lowercases header
+        # names by default, so Tixr servers commonly return an ``x-datadome``
+        # header that our lowercase detection catches but the monitor would
+        # miss — classifying it as UNKNOWN_403 instead of DATADOME_COOKIE and
+        # desynchronizing triage from stats. Inject the canonical-case alias
+        # whenever any cased variant is present.
+        monitor_headers = self._canonicalize_datadome_header(response_headers)
         try:
             monitor.record_request_result(
                 event_id=url,
                 status_code=reported_status,
-                response_headers=response_headers,
+                response_headers=monitor_headers,
                 response_body=response_body,
                 club=self.club,
             )
         except Exception as exc:
             self.log_warning(f"Failed to record Tixr group-page failure: {exc}")
+
+    @staticmethod
+    def _canonicalize_datadome_header(
+        response_headers: Dict[str, str],
+    ) -> Dict[str, str]:
+        canonical = "X-DataDome"
+        if canonical in response_headers:
+            return response_headers
+        for key, value in response_headers.items():
+            if key.lower() == "x-datadome":
+                return {**response_headers, canonical: value}
+        return response_headers
 
     def _extract_jsonld_event(self, html: str) -> Optional[Dict[str, Any]]:
         """

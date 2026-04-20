@@ -256,6 +256,44 @@ class TestFetchTixrPage:
         assert any("datadome" in w.lower() for w in warnings)
 
     @pytest.mark.asyncio
+    async def test_500_returns_none_without_playwright_fallback(self, monkeypatch, stub_base_init):
+        """5xx responses short-circuit: no DataDome recording, no Playwright rescue."""
+        client = TixrClient(_club())
+        monitor = _RecordingMonitor()
+        client._failure_monitor = monitor
+
+        class FakeResponse:
+            status_code = 503
+            # Body happens to contain a DataDome marker — should NOT be recorded
+            # because 5xx is a server-side failure classified elsewhere.
+            text = "<html>datadome outage</html>"
+            headers: dict = {}
+
+        class Session(_FakeSession):
+            async def get(self, url, headers=None, proxies=None, **kwargs):
+                return FakeResponse()
+
+        browser_called = {"value": False}
+
+        class FakeBrowser:
+            async def fetch_html(self, url, proxy_url=None):
+                browser_called["value"] = True
+                return "<html>should never be returned</html>"
+
+        monkeypatch.setattr(tixr_module, "AsyncSession", Session)
+        monkeypatch.setattr(client, "_apply_rate_limit", lambda url: _noop())
+        monkeypatch.setattr(client, "_get_impersonation_target", lambda url: "chrome124")
+        monkeypatch.setattr(
+            "laughtrack.core.clients.tixr.client._get_js_browser",
+            lambda: FakeBrowser(),
+        )
+
+        result = await client._fetch_tixr_page("https://tixr.com/groups/x")
+        assert result is None
+        assert browser_called["value"] is False
+        assert monitor.calls == []
+
+    @pytest.mark.asyncio
     async def test_normal_200_does_not_invoke_failure_monitor(self, monkeypatch, stub_base_init):
         """A clean 200 response does not record any failure."""
         monkeypatch.setenv("PLAYWRIGHT_FALLBACK", "0")
