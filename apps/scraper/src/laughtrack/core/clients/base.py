@@ -24,6 +24,30 @@ from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
 # than swallowed as WARNINGs.
 
 
+def _log_post_bot_block(
+    url: str,
+    signature: str,
+    status_code: int,
+    is_form: bool,
+    is_200_interstitial: bool,
+) -> None:
+    """Log a bot-block signature from a POST response at ERROR level.
+
+    Shared by post_json and post_form so the four near-identical error
+    messages (non-200 + 200-interstitial, each × json/form) stay in sync.
+    """
+    method = "POST (form)" if is_form else "POST"
+    if is_200_interstitial:
+        location = f"HTTP 200 {method} response body"
+    else:
+        location = f"HTTP {status_code} {method} response"
+    Logger.error(
+        f"Bot-block signature {signature!r} in {location} from {url}. "
+        f"Playwright fallback is not implemented for POST — see module "
+        f"docstring in core/clients/base.py."
+    )
+
+
 class BaseApiClient(ABC):
     """Base class for all API clients with common functionality."""
 
@@ -372,14 +396,13 @@ class BaseApiClient(ABC):
                     pass
                 await self._apply_rate_limit(url)
                 response = await session.post(url, json=payload, headers=request_headers, proxies=proxies)
-                resp_text = response.text if isinstance(response.text, str) else ""
+                resp_text = response.text
                 if response.status_code != 200:
                     bot_signature = _bot_block_reason(resp_text) if resp_text else None
                     if bot_signature is not None:
-                        Logger.error(
-                            f"Bot-block signature {bot_signature!r} in HTTP {response.status_code} "
-                            f"POST response from {url}. Playwright fallback is not implemented for "
-                            f"POST — see module docstring in core/clients/base.py."
+                        _log_post_bot_block(
+                            url, bot_signature, response.status_code,
+                            is_form=False, is_200_interstitial=False,
                         )
                     else:
                         Logger.error(f"HTTP {response.status_code} when POSTing {url}")
@@ -395,10 +418,9 @@ class BaseApiClient(ABC):
                 # so the caller isn't handed a cart/auth response that is actually a block page.
                 bot_signature = _bot_block_reason(resp_text)
                 if bot_signature is not None:
-                    Logger.error(
-                        f"Bot-block signature {bot_signature!r} in HTTP 200 POST response body "
-                        f"from {url}. Playwright fallback is not implemented for POST — see module "
-                        f"docstring in core/clients/base.py."
+                    _log_post_bot_block(
+                        url, bot_signature, response.status_code,
+                        is_form=False, is_200_interstitial=True,
                     )
                     if proxy_url and self.proxy_pool is not None:
                         self.proxy_pool.report_failure(proxy_url)
@@ -482,14 +504,13 @@ class BaseApiClient(ABC):
                     pass
                 await self._apply_rate_limit(url)
                 response = await session.post(url, data=payload, headers=request_headers, proxies=proxies)
-                resp_text = response.text if isinstance(response.text, str) else ""
+                resp_text = response.text
                 if response.status_code != 200:
                     bot_signature = _bot_block_reason(resp_text) if resp_text else None
                     if bot_signature is not None:
-                        Logger.error(
-                            f"Bot-block signature {bot_signature!r} in HTTP {response.status_code} "
-                            f"POST (form) response from {url}. Playwright fallback is not implemented "
-                            f"for POST — see module docstring in core/clients/base.py."
+                        _log_post_bot_block(
+                            url, bot_signature, response.status_code,
+                            is_form=True, is_200_interstitial=False,
                         )
                     else:
                         Logger.error(f"HTTP {response.status_code} when POSTing form to {url}")
@@ -505,31 +526,26 @@ class BaseApiClient(ABC):
                 # surface that as an error so the caller doesn't treat the block page as real data.
                 bot_signature = _bot_block_reason(resp_text)
                 if bot_signature is not None:
-                    Logger.error(
-                        f"Bot-block signature {bot_signature!r} in HTTP 200 POST (form) response "
-                        f"body from {url}. Playwright fallback is not implemented for POST — see "
-                        f"module docstring in core/clients/base.py."
+                    _log_post_bot_block(
+                        url, bot_signature, response.status_code,
+                        is_form=True, is_200_interstitial=True,
                     )
                     if proxy_url and self.proxy_pool is not None:
                         self.proxy_pool.report_failure(proxy_url)
                     return None
-                text = resp_text
                 # DEBUG summary of response
                 try:
                     ctx: JSONDict = {"club_name": getattr(self.club, "name", "-")}
                     if isinstance(context, dict):
                         ctx.update(context)
-                    if isinstance(text, str):
-                        preview = (text[:300] + "…") if len(text) > 300 else text
-                        summary = f"text len={len(text)} preview={preview!r}"
-                    else:
-                        summary = f"type={type(text).__name__}"
+                    preview = (resp_text[:300] + "…") if len(resp_text) > 300 else resp_text
+                    summary = f"text len={len(resp_text)} preview={preview!r}"
                     Logger.debug(f"HTTP POST {url} → {summary}", context=ctx)
                 except Exception:
                     pass
                 if proxy_url and self.proxy_pool is not None:
                     self.proxy_pool.report_success(proxy_url)
-                return text
+                return resp_text
         except Exception as e:
             if proxy_url and self.proxy_pool is not None:
                 self.proxy_pool.report_failure(proxy_url)

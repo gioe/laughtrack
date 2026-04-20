@@ -299,6 +299,23 @@ class TestPostFormBotBlock:
         pool.report_failure.assert_called_once_with(PROXY_URL)
 
     @pytest.mark.asyncio
+    async def test_non200_without_bot_block_logs_plain_error(self):
+        """HTTP 500 without a bot-block signature logs an error without the signature label."""
+        client = ConcreteClient(_make_club())
+        cm, _ = _make_session_cm(status_code=500, text="internal server error")
+
+        with patch("laughtrack.core.clients.base.AsyncSession", return_value=cm):
+            with patch("laughtrack.core.clients.base.Logger") as MockLogger:
+                result = await client.post_form("https://example.com/api", {"k": "v"})
+
+        assert result is None
+        MockLogger.error.assert_called()
+        error_msg = MockLogger.error.call_args[0][0]
+        assert "500" in error_msg
+        assert "form" in error_msg.lower()
+        assert "bot-block" not in error_msg.lower()
+
+    @pytest.mark.asyncio
     async def test_200_empty_body_logs_error(self):
         client = ConcreteClient(_make_club())
         cm, _ = _make_session_cm(status_code=200, text="")
