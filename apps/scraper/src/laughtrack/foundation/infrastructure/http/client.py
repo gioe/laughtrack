@@ -136,6 +136,7 @@ class HttpClient:
         headers: Optional[Dict[str, str]] = None,
         logger_context: Optional[JSONDict] = None,
         proxy_url: Optional[str] = None,
+        **request_kwargs: Any,
     ) -> Optional[str]:
         """
         Fetch HTML content from a URL with standardized error handling.
@@ -153,6 +154,9 @@ class HttpClient:
             proxy_url: Optional proxy URL (e.g. "http://host:8080"). When
                 provided the request is routed through that proxy.  Also
                 applied to the Playwright browser context on fallback.
+            **request_kwargs: Additional keyword arguments forwarded to
+                ``session.get`` (e.g. ``timeout``).  Reserved names
+                ``headers`` and ``proxies`` are handled explicitly.
 
         Returns:
             HTML content as string, or None if both curl-cffi and the
@@ -166,7 +170,7 @@ class HttpClient:
         normalized_url = URLUtils.normalize_url(url)
 
         proxies = {"http": proxy_url, "https": proxy_url} if proxy_url else None
-        response = await session.get(normalized_url, headers=headers, proxies=proxies)
+        response = await session.get(normalized_url, headers=headers, proxies=proxies, **request_kwargs)
 
         if response.status_code != 200:
             Logger.warn(

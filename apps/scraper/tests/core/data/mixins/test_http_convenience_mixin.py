@@ -1,10 +1,13 @@
-"""Tests for HttpConvenienceMixin.fetch_json, fetch_html_bare, fetch_json_list, and post_json."""
+"""Tests for HttpConvenienceMixin.fetch_html, fetch_json, fetch_html_bare, fetch_json_list, and post_json."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from laughtrack.core.data.mixins.http_convenience_mixin import HttpConvenienceMixin
+from laughtrack.core.data.mixins.http_convenience_mixin import (
+    HttpConvenienceMixin,
+    _parse_json_from_rendered,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -29,13 +32,19 @@ class _ConcreteMixin(HttpConvenienceMixin):
 # ---------------------------------------------------------------------------
 
 
+_NO_JS_FALLBACK = patch(
+    "laughtrack.core.data.mixins.http_convenience_mixin._get_js_browser",
+    return_value=None,
+)
+
+
 class TestFetchJson:
     @pytest.mark.asyncio
     async def test_returns_none_and_warns_on_empty_body(self):
         """HTTP 200 with empty body returns None and logs a warning."""
         mock_response = MagicMock()
+        mock_response.status_code = 200
         mock_response.text = ""
-        mock_response.raise_for_status = MagicMock()
 
         mock_session = AsyncMock()
         mock_session.get.return_value = mock_response
@@ -43,7 +52,7 @@ class TestFetchJson:
         mixin = _ConcreteMixin()
         mixin.get_session = AsyncMock(return_value=mock_session)
 
-        with patch(
+        with _NO_JS_FALLBACK, patch(
             "laughtrack.core.data.mixins.http_convenience_mixin.Logger"
         ) as MockLogger:
             result = await mixin.fetch_json("https://example.com/api")
@@ -57,8 +66,8 @@ class TestFetchJson:
     async def test_returns_none_and_warns_on_whitespace_body(self):
         """HTTP 200 with whitespace-only body is treated as empty."""
         mock_response = MagicMock()
+        mock_response.status_code = 200
         mock_response.text = "   "
-        mock_response.raise_for_status = MagicMock()
 
         mock_session = AsyncMock()
         mock_session.get.return_value = mock_response
@@ -66,7 +75,7 @@ class TestFetchJson:
         mixin = _ConcreteMixin()
         mixin.get_session = AsyncMock(return_value=mock_session)
 
-        with patch(
+        with _NO_JS_FALLBACK, patch(
             "laughtrack.core.data.mixins.http_convenience_mixin.Logger"
         ) as MockLogger:
             result = await mixin.fetch_json("https://example.com/api")
@@ -78,9 +87,9 @@ class TestFetchJson:
     async def test_returns_parsed_json_on_valid_body(self):
         """HTTP 200 with valid JSON body returns parsed data."""
         mock_response = MagicMock()
+        mock_response.status_code = 200
         mock_response.text = '{"events": []}'
         mock_response.json.return_value = {"events": []}
-        mock_response.raise_for_status = MagicMock()
 
         mock_session = AsyncMock()
         mock_session.get.return_value = mock_response
@@ -88,9 +97,81 @@ class TestFetchJson:
         mixin = _ConcreteMixin()
         mixin.get_session = AsyncMock(return_value=mock_session)
 
-        result = await mixin.fetch_json("https://example.com/api")
+        with _NO_JS_FALLBACK:
+            result = await mixin.fetch_json("https://example.com/api")
 
         assert result == {"events": []}
+
+    @pytest.mark.asyncio
+    async def test_fallback_recovers_json_on_403(self):
+        """HTTP 403 triggers Playwright fallback and the rendered JSON is parsed."""
+        mock_response = MagicMock()
+        mock_response.status_code = 403
+        mock_response.text = ""
+
+        mock_session = AsyncMock()
+        mock_session.get.return_value = mock_response
+
+        rendered = '<html><body><pre>{"events": [{"id": 1}]}</pre></body></html>'
+        mock_browser = AsyncMock()
+        mock_browser.fetch_html = AsyncMock(return_value=rendered)
+
+        mixin = _ConcreteMixin()
+        mixin.get_session = AsyncMock(return_value=mock_session)
+
+        with patch(
+            "laughtrack.core.data.mixins.http_convenience_mixin._get_js_browser",
+            return_value=mock_browser,
+        ):
+            result = await mixin.fetch_json("https://example.com/api")
+
+        mock_browser.fetch_html.assert_called_once()
+        assert result == {"events": [{"id": 1}]}
+
+    @pytest.mark.asyncio
+    async def test_fallback_recovers_json_on_bot_block(self):
+        """HTTP 200 with Cloudflare bot-block body triggers Playwright fallback."""
+        bot_html = "<html><title>Just a moment...</title></html>"
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.text = bot_html
+
+        mock_session = AsyncMock()
+        mock_session.get.return_value = mock_response
+
+        rendered = '<html><body><pre>{"ok": true}</pre></body></html>'
+        mock_browser = AsyncMock()
+        mock_browser.fetch_html = AsyncMock(return_value=rendered)
+
+        mixin = _ConcreteMixin()
+        mixin.get_session = AsyncMock(return_value=mock_session)
+
+        with patch(
+            "laughtrack.core.data.mixins.http_convenience_mixin._get_js_browser",
+            return_value=mock_browser,
+        ):
+            result = await mixin.fetch_json("https://example.com/api")
+
+        mock_browser.fetch_html.assert_called_once()
+        assert result == {"ok": True}
+
+    @pytest.mark.asyncio
+    async def test_returns_none_when_fallback_disabled_on_403(self):
+        """HTTP 403 with PLAYWRIGHT_FALLBACK disabled returns None."""
+        mock_response = MagicMock()
+        mock_response.status_code = 403
+        mock_response.text = ""
+
+        mock_session = AsyncMock()
+        mock_session.get.return_value = mock_response
+
+        mixin = _ConcreteMixin()
+        mixin.get_session = AsyncMock(return_value=mock_session)
+
+        with _NO_JS_FALLBACK:
+            result = await mixin.fetch_json("https://example.com/api")
+
+        assert result is None
 
 
 # ---------------------------------------------------------------------------
@@ -308,3 +389,120 @@ class TestPostJson:
         result = await mixin.post_json("https://example.com/api", {"key": "val"})
 
         assert result == {"token": "abc"}
+
+
+# ---------------------------------------------------------------------------
+# fetch_html — delegates to HttpClient.fetch_html (Playwright fallback parity)
+# ---------------------------------------------------------------------------
+
+
+class TestFetchHtml:
+    @pytest.mark.asyncio
+    async def test_delegates_to_http_client_fetch_html(self):
+        """fetch_html routes through HttpClient.fetch_html with the owned session."""
+        mock_session = AsyncMock()
+        mixin = _ConcreteMixin()
+        mixin.get_session = AsyncMock(return_value=mock_session)
+
+        with patch(
+            "laughtrack.core.data.mixins.http_convenience_mixin.HttpClient.fetch_html",
+            new_callable=AsyncMock,
+            return_value="<html>ok</html>",
+        ) as mock_fetch:
+            result = await mixin.fetch_html("https://example.com/page")
+
+        assert result == "<html>ok</html>"
+        mock_fetch.assert_awaited_once()
+        call_args = mock_fetch.await_args
+        # Positional args: (session, url)
+        assert call_args.args[0] is mock_session
+        assert call_args.args[1] == "https://example.com/page"
+
+    @pytest.mark.asyncio
+    async def test_forwards_headers_and_timeout_kwargs(self):
+        """Caller kwargs (headers, timeout) propagate through to HttpClient.fetch_html."""
+        mock_session = AsyncMock()
+        mixin = _ConcreteMixin()
+        mixin.get_session = AsyncMock(return_value=mock_session)
+
+        with patch(
+            "laughtrack.core.data.mixins.http_convenience_mixin.HttpClient.fetch_html",
+            new_callable=AsyncMock,
+            return_value="<html/>",
+        ) as mock_fetch:
+            await mixin.fetch_html(
+                "https://example.com/page",
+                headers={"X-Custom": "v"},
+                timeout=45,
+            )
+
+        kwargs = mock_fetch.await_args.kwargs
+        assert kwargs.get("headers") == {"X-Custom": "v"}
+        assert kwargs.get("timeout") == 45
+
+    @pytest.mark.asyncio
+    async def test_fallback_recovers_html_on_403(self):
+        """HTTP 403 at the session layer triggers HttpClient's Playwright fallback."""
+        mock_response = MagicMock()
+        mock_response.status_code = 403
+        mock_response.text = ""
+
+        mock_session = AsyncMock()
+        mock_session.get.return_value = mock_response
+
+        mock_browser = AsyncMock()
+        mock_browser.fetch_html = AsyncMock(return_value="<html>rescued</html>")
+
+        mixin = _ConcreteMixin()
+        mixin.get_session = AsyncMock(return_value=mock_session)
+
+        with patch(
+            "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+            return_value=mock_browser,
+        ):
+            result = await mixin.fetch_html("https://example.com/page")
+
+        assert result == "<html>rescued</html>"
+        mock_browser.fetch_html.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_uses_error_handler_when_present(self):
+        """execute_with_retry wraps the delegated fetch when error_handler is set."""
+        mock_handler = MagicMock()
+        mock_handler.execute_with_retry = AsyncMock(return_value="<html>retried</html>")
+
+        mixin = _ConcreteMixin(error_handler=mock_handler)
+        result = await mixin.fetch_html("https://example.com/page")
+
+        mock_handler.execute_with_retry.assert_called_once()
+        assert result == "<html>retried</html>"
+
+
+# ---------------------------------------------------------------------------
+# _parse_json_from_rendered — Playwright-rescued JSON extraction
+# ---------------------------------------------------------------------------
+
+
+class TestParseJsonFromRendered:
+    def test_extracts_json_from_pre_tag(self):
+        html = '<html><body><pre>{"k": 1}</pre></body></html>'
+        assert _parse_json_from_rendered(html) == {"k": 1}
+
+    def test_extracts_json_from_pre_with_attributes(self):
+        html = '<html><body><pre style="color:red">{"k": 2}</pre></body></html>'
+        assert _parse_json_from_rendered(html) == {"k": 2}
+
+    def test_unescapes_html_entities_in_pre(self):
+        """Chromium encodes quotes in the JSON viewer — they must round-trip."""
+        html = '<pre>{&quot;k&quot;: &quot;v&quot;}</pre>'
+        assert _parse_json_from_rendered(html) == {"k": "v"}
+
+    def test_parses_raw_json_when_no_pre_tag(self):
+        assert _parse_json_from_rendered('{"k": 3}') == {"k": 3}
+
+    def test_returns_none_on_unparseable(self):
+        assert _parse_json_from_rendered("<html>not json</html>") is None
+
+    def test_returns_none_on_empty(self):
+        assert _parse_json_from_rendered("") is None
+        assert _parse_json_from_rendered(None) is None

@@ -2,21 +2,64 @@
 HTTP convenience methods mixin for scrapers.
 
 This module provides common HTTP operations with error handling and retry logic.
+
+Playwright fallback parity
+--------------------------
+``fetch_html`` routes through ``HttpClient.fetch_html`` so every scraper
+inherits the automatic Playwright rescue on 403 / empty-body / bot-block
+responses.  ``fetch_json`` duplicates the same fallback inline (until
+``HttpClient.fetch_json`` gains native support in TASK-1650 / A2): the URL is
+re-fetched via the shared ``PlaywrightBrowser`` and the rendered body is
+parsed as JSON, tolerating Chromium's ``<pre>``-wrapped JSON viewer output.
+Set ``PLAYWRIGHT_FALLBACK=0`` to disable both paths globally.
 """
 
-from typing import Any, Dict, List, Optional, Protocol
+import json as _json
+import re
+from html import unescape as _html_unescape
+from typing import Any, List, Optional, Protocol
 
 from curl_cffi.requests import AsyncSession
 
+from laughtrack.core.data.mixins.async_http_mixin import AsyncHttpMixin
+from laughtrack.foundation.infrastructure.http.client import (
+    HttpClient,
+    _bot_block_reason,
+    _get_js_browser,
+)
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.models.types import JSONDict
-from laughtrack.core.data.mixins.async_http_mixin import AsyncHttpMixin
+from laughtrack.foundation.utilities.url import URLUtils
 
 
 class HasErrorHandler(Protocol):
     """Protocol for classes that have an error handler."""
 
     error_handler: Any
+
+
+_PRE_PATTERN = re.compile(r"<pre[^>]*>(.*?)</pre>", re.DOTALL | re.IGNORECASE)
+
+
+def _parse_json_from_rendered(html: Optional[str]) -> Any:
+    """Best-effort parse of JSON content from a Playwright-rendered page.
+
+    Chromium wraps raw JSON bodies in its built-in JSON viewer
+    (``<html>…<body><pre>JSON_HERE</pre>…``).  Extract the ``<pre>`` content
+    when present; otherwise try parsing the document directly.
+    """
+    if not html:
+        return None
+    candidate = html.strip()
+    match = _PRE_PATTERN.search(html)
+    if match:
+        candidate = _html_unescape(match.group(1)).strip()
+    if not candidate:
+        return None
+    try:
+        return _json.loads(candidate)
+    except (ValueError, TypeError):
+        return None
 
 
 class HttpConvenienceMixin(AsyncHttpMixin):
@@ -28,21 +71,64 @@ class HttpConvenienceMixin(AsyncHttpMixin):
     """
 
     async def fetch_json(self, url: str, **kwargs) -> Any:
-        """Fetch and parse JSON from URL with error handling.
+        """Fetch and parse JSON from URL with error handling and Playwright fallback.
 
         Returns:
-            Parsed JSON data, or None if the response body is empty or
-            whitespace-only (HTTP 200 with no content).
+            Parsed JSON data, or None if the response is non-200, the body
+            is empty/whitespace-only, or the response matches a known
+            bot-block signature and the Playwright fallback either is
+            disabled or fails to recover a parseable body.
         """
+        logger_context = getattr(self, "logger_context", None) or {}
+        normalized_url = URLUtils.normalize_url(url)
+        proxy_url = kwargs.pop("proxy_url", None)
+        request_kwargs = dict(kwargs)
+        if proxy_url is not None:
+            request_kwargs["proxies"] = {"http": proxy_url, "https": proxy_url}
 
         async def _fetch_json():
             session = await self.get_session()
-            response = await session.get(url, **kwargs)
-            response.raise_for_status()
-            if not response.text or not response.text.strip():
-                Logger.warn(f"HTTP 200 with empty body when fetching {url}")
+            response = await session.get(normalized_url, **request_kwargs)
+
+            fallback_reason: Optional[str] = None
+            if response.status_code != 200:
+                Logger.warn(
+                    f"HTTP {response.status_code} when fetching {normalized_url}",
+                    logger_context,
+                )
+                fallback_reason = f"HTTP {response.status_code}"
+            else:
+                body_text = response.text
+                if not body_text or not body_text.strip():
+                    Logger.warn(
+                        f"HTTP 200 with empty body when fetching {normalized_url}",
+                        logger_context,
+                    )
+                    fallback_reason = "empty body"
+                else:
+                    fallback_reason = _bot_block_reason(body_text)
+
+            if fallback_reason is None:
+                return response.json()
+
+            browser = _get_js_browser()
+            if browser is None:
                 return None
-            return response.json()
+            Logger.info(
+                f"[HttpConvenienceMixin.fetch_json] Triggering Playwright fallback for "
+                f"{normalized_url} (reason: {fallback_reason!r})",
+                logger_context,
+            )
+            try:
+                rendered = await browser.fetch_html(normalized_url, proxy_url=proxy_url)
+            except Exception as exc:
+                Logger.warn(
+                    f"[HttpConvenienceMixin.fetch_json] Playwright fallback failed for "
+                    f"{normalized_url}: {exc}",
+                    logger_context,
+                )
+                return None
+            return _parse_json_from_rendered(rendered)
 
         # Use error handler if available, otherwise execute directly
         error_handler = getattr(self, "error_handler", None)
@@ -66,14 +152,24 @@ class HttpConvenienceMixin(AsyncHttpMixin):
             return None
         return data
 
-    async def fetch_html(self, url: str, **kwargs) -> str:
-        """Fetch HTML content from URL with error handling."""
+    async def fetch_html(self, url: str, **kwargs) -> Optional[str]:
+        """Fetch HTML content from URL with error handling and Playwright fallback.
+
+        Delegates to ``HttpClient.fetch_html`` so every scraper inherits the
+        automatic Playwright rescue on 403 / empty body / bot-block responses.
+        Returns ``None`` when both the curl-cffi path and the Playwright
+        fallback fail to return a usable body.
+        """
+        logger_context = getattr(self, "logger_context", None)
 
         async def _fetch_html():
             session = await self.get_session()
-            response = await session.get(url, **kwargs)
-            response.raise_for_status()
-            return response.text
+            return await HttpClient.fetch_html(
+                session,
+                url,
+                logger_context=logger_context,
+                **kwargs,
+            )
 
         # Use error handler if available, otherwise execute directly
         error_handler = getattr(self, "error_handler", None)
