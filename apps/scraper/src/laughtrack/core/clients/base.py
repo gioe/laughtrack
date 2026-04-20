@@ -202,6 +202,7 @@ class BaseApiClient(ABC):
         headers: Optional[Dict[str, str]] = None,
         timeout: int = 30,
         logger_context: Optional[Dict[str, Any]] = None,
+        allow_empty_body: bool = False,
     ) -> Optional[JSONDict]:
         """
         Fetch JSON data from a URL with session management and error handling.
@@ -211,6 +212,9 @@ class BaseApiClient(ABC):
             headers: Optional headers to include (defaults to self.headers)
             timeout: Request timeout in seconds
             logger_context: Context for logging
+            allow_empty_body: When True, an HTTP-200 empty body returns
+                ``None`` directly without warning or invoking the Playwright
+                fallback.  Forwarded verbatim to ``HttpClient.fetch_json``.
 
         Returns:
             JSON data as dictionary, or None if fetch failed
@@ -235,6 +239,7 @@ class BaseApiClient(ABC):
                 data = await self.http_client.fetch_json(
                     session=session, url=url, headers=request_headers,
                     logger_context=context, proxy_url=proxy_url,
+                    allow_empty_body=allow_empty_body,
                 )
                 # DEBUG summary of response
                 try:
@@ -305,6 +310,7 @@ class BaseApiClient(ABC):
         headers: Optional[Dict[str, str]] = None,
         timeout: int = 30,
         logger_context: Optional[Dict[str, Any]] = None,
+        allow_empty_body: bool = False,
     ) -> Optional[str]:
         """
         Fetch HTML content from a URL with session management and error handling.
@@ -314,6 +320,9 @@ class BaseApiClient(ABC):
             headers: Optional headers to include (defaults to self.headers)
             timeout: Request timeout in seconds
             logger_context: Context for logging
+            allow_empty_body: When True, an HTTP-200 empty body returns
+                ``None`` directly without warning or invoking the Playwright
+                fallback.  Forwarded verbatim to ``HttpClient.fetch_html``.
 
         Returns:
             HTML content as string, or None if fetch failed
@@ -339,6 +348,7 @@ class BaseApiClient(ABC):
                 text = await self.http_client.fetch_html(
                     session=session, url=url, headers=request_headers,
                     logger_context=context, proxy_url=proxy_url,
+                    allow_empty_body=allow_empty_body,
                 )
                 # DEBUG summary of response
                 try:

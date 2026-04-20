@@ -20,6 +20,13 @@ extracts and decodes that content.  The fallback is:
   to skip the fallback entirely.
 * **5xx-skipping** — a headless browser cannot rescue a server-side failure,
   so both methods return ``None`` on 5xx without attempting the retry.
+* **Per-call empty-body opt-out** — pass ``allow_empty_body=True`` to
+  ``fetch_html`` or ``fetch_json`` when an HTTP-200 empty body is a
+  legitimate signal rather than a failure (e.g. Tessera's stale-event
+  response on Broadway Comedy Club, where the browser replay returns
+  empty too and every stale event pays ~1–3 s of Chromium overhead for
+  nothing). The WARN log and the fallback are both suppressed; the
+  method returns ``None`` directly.
 
 When the Playwright-rendered response *itself* matches a known bot-block
 signature (WAF still blocking the headless browser), the signature is
@@ -197,6 +204,7 @@ class HttpClient:
         logger_context: Optional[JSONDict] = None,
         proxy_url: Optional[str] = None,
         raise_on_failure: bool = False,
+        allow_empty_body: bool = False,
         **request_kwargs: Any,
     ) -> Tuple[Optional[str], Response, bool]:
         """
@@ -206,6 +214,18 @@ class HttpClient:
         block conditions, and retries with the lazy Playwright singleton when
         appropriate.  The caller post-processes the returned body into the
         format it wants (raw HTML vs. parsed JSON).
+
+        Args:
+            allow_empty_body: When True, an HTTP-200 response with an
+                empty or whitespace-only body is treated as a legitimate
+                "no data" signal rather than a possible bot-block:
+                returns ``(None, response, False)`` immediately with no
+                WARN log and no Playwright fallback attempt.  Tessera
+                uses this for its stale-event signature — the browser
+                replay returns empty too, so the fallback is pure
+                overhead (~1–3 s of Chromium launch per stale event).
+                Non-200 and 200+bot-signature branches still trigger
+                the fallback regardless of this flag.
 
         Returns:
             (html, response, fallback_invoked) where:
@@ -262,6 +282,12 @@ class HttpClient:
                         diagnostics.record_bot_block(bot_signature)
                     fallback_reason = bot_signature
         elif not response.text or not response.text.strip():
+            # Caller has opted into empty-body-is-OK semantics (Tessera's
+            # stale-event signal): short-circuit before the WARN and the
+            # Playwright launch.  The browser replay returns empty too,
+            # so the fallback would only burn Chromium startup time.
+            if allow_empty_body:
+                return None, response, False
             Logger.warn(
                 f"HTTP 200 with empty body when fetching {normalized_url}",
                 logger_context,
@@ -337,6 +363,7 @@ class HttpClient:
         logger_context: Optional[JSONDict] = None,
         proxy_url: Optional[str] = None,
         raise_on_failure: bool = False,
+        allow_empty_body: bool = False,
         **request_kwargs: Any,
     ) -> Optional[str]:
         """
@@ -362,6 +389,10 @@ class HttpClient:
                 classify transient 5xx into ``NetworkError`` for exponential
                 backoff.  Also short-circuits the Playwright attempt for 5xx
                 responses (server errors cannot be rescued by a browser).
+            allow_empty_body: When True, an HTTP-200 empty body returns
+                ``None`` immediately without warning or triggering the
+                Playwright fallback.  Use this when the caller knows an
+                empty body is a valid application-level signal.
             **request_kwargs: Additional keyword arguments forwarded to
                 ``session.get`` (e.g. ``timeout``).  Reserved names
                 ``headers`` and ``proxies`` are handled explicitly.
@@ -383,6 +414,7 @@ class HttpClient:
             logger_context=logger_context,
             proxy_url=proxy_url,
             raise_on_failure=raise_on_failure,
+            allow_empty_body=allow_empty_body,
             **request_kwargs,
         )
         return html
@@ -394,6 +426,7 @@ class HttpClient:
         headers: Optional[Dict[str, str]] = None,
         logger_context: Optional[JSONDict] = None,
         proxy_url: Optional[str] = None,
+        allow_empty_body: bool = False,
     ) -> Optional[JSONDict]:
         """
         Fetch JSON data from a URL with standardized error handling.
@@ -415,6 +448,11 @@ class HttpClient:
             proxy_url: Optional proxy URL (e.g. "http://host:8080"). When
                 provided the request is routed through that proxy.  Also
                 applied to the Playwright browser context on fallback.
+            allow_empty_body: When True, an HTTP-200 empty body returns
+                ``None`` immediately without warning or triggering the
+                Playwright fallback.  Use this for endpoints where an
+                empty body is the expected "no data" signal (e.g. a
+                Tessera stale-event response on Broadway Comedy Club).
 
         Returns:
             JSON data as dictionary, or None if the response is not usable
@@ -430,6 +468,7 @@ class HttpClient:
             headers=headers,
             logger_context=logger_context,
             proxy_url=proxy_url,
+            allow_empty_body=allow_empty_body,
         )
 
         if html is None:

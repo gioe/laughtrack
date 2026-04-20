@@ -108,12 +108,16 @@ class TesseraClient(BaseApiClient):
 
         Delegates to ``BaseApiClient.fetch_json`` → ``HttpClient.fetch_json`` so
         a Cloudflare/DataDome 403 or an HTTP-200 challenge body is retried via
-        the Playwright headless browser (A2, TASK-1650).  Tessera's known
-        "stale event" signal (HTTP 200 + empty body) now triggers the fallback
-        as well — the browser replay returns empty too, so the final result
-        is still ``None`` and the scraper path is unchanged, but we gain
-        genuine challenge recovery for the 403 case at the cost of one
-        fallback attempt per stale event.
+        the Playwright headless browser (A2, TASK-1650).
+
+        Tessera's stale-event signal (HTTP 200 + empty body) is handled with
+        ``allow_empty_body=True`` (TASK-1672): the fallback is skipped because
+        the browser replay returns empty too, so launching Chromium per stale
+        event only adds ~1–3 s of overhead and holds the shared PlaywrightBrowser
+        singleton for no benefit.  The 403 / bot-block branches still trigger
+        the fallback.  The Tessera-side WARN below ("No ticket data for event
+        X — event may be stale, expired, or blocked") remains the sole
+        observability signal for the stale-event case.
 
         Args:
             event_id: Event ID for API call
@@ -126,6 +130,7 @@ class TesseraClient(BaseApiClient):
             api_url,
             headers=self.headers,
             logger_context={"event_id": event_id},
+            allow_empty_body=True,
         )
         if parsed_response is None:
             # fetch_json already logged the specific failure (non-200 / empty

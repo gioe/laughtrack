@@ -1005,3 +1005,157 @@ class TestParseJsonFromRenderedHtml:
     def test_returns_none_for_invalid_json_in_pre(self):
         from laughtrack.foundation.infrastructure.http.client import _parse_json_from_rendered_html
         assert _parse_json_from_rendered_html("<pre>not { valid json</pre>") is None
+
+
+# ---------------------------------------------------------------------------
+# allow_empty_body — per-call opt-out for empty-body fallback
+# ---------------------------------------------------------------------------
+
+
+class TestAllowEmptyBody:
+    """HTTP-200 + empty body → return None immediately when opted in.
+
+    Tessera's stale-event signal is HTTP 200 with an empty body: the
+    browser replay returns empty too, so every stale event paid ~1–3 s
+    of Chromium launch for no recovery (TASK-1672 deferred finding from
+    TASK-1649). ``allow_empty_body=True`` short-circuits before the WARN
+    and before ``_get_js_browser`` is touched. Non-200 and 200+bot-block
+    branches are unaffected and still trigger the fallback.
+    """
+
+    def setup_method(self):
+        client_module._js_browser = None
+
+    @pytest.mark.asyncio
+    async def test_fetch_json_empty_body_skips_fallback_when_opted_in(self):
+        session = AsyncMock()
+        session.get.return_value = _make_response(200, text="")
+        mock_browser = _make_browser_mock()
+
+        with patch(
+            "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+            return_value=mock_browser,
+        ):
+            result = await HttpClient.fetch_json(
+                session, "https://api.tessera.example/products/123",
+                allow_empty_body=True,
+            )
+
+        assert result is None
+        mock_browser.fetch_html.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_fetch_json_whitespace_only_body_skips_fallback_when_opted_in(self):
+        session = AsyncMock()
+        session.get.return_value = _make_response(200, text="   \n  ")
+        mock_browser = _make_browser_mock()
+
+        with patch(
+            "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+            return_value=mock_browser,
+        ):
+            result = await HttpClient.fetch_json(
+                session, "https://api.tessera.example/products/123",
+                allow_empty_body=True,
+            )
+
+        assert result is None
+        mock_browser.fetch_html.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_fetch_html_empty_body_skips_fallback_when_opted_in(self):
+        session = AsyncMock()
+        session.get.return_value = _make_response(200, text="")
+        mock_browser = _make_browser_mock()
+
+        with patch(
+            "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+            return_value=mock_browser,
+        ):
+            result = await HttpClient.fetch_html(
+                session, "https://example.com/page",
+                allow_empty_body=True,
+            )
+
+        assert result is None
+        mock_browser.fetch_html.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_fetch_json_empty_body_suppresses_warn_when_opted_in(self):
+        """Callers that opt in own their own stale-event logging — no duplicate WARN from the helper."""
+        session = AsyncMock()
+        session.get.return_value = _make_response(200, text="")
+
+        with patch(
+            "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+            return_value=_make_browser_mock(),
+        ):
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn:
+                await HttpClient.fetch_json(
+                    session, "https://api.tessera.example/products/123",
+                    allow_empty_body=True,
+                )
+
+        mock_warn.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_non_200_still_triggers_fallback_when_allow_empty_body_true(self):
+        """``allow_empty_body`` must NOT widen to non-200: a 403 still needs the browser rescue."""
+        session = AsyncMock()
+        session.get.return_value = _make_response(403)
+        mock_browser = _make_browser_mock('<html><body><pre>{"ok": true}</pre></body></html>')
+
+        with patch(
+            "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+            return_value=mock_browser,
+        ):
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn"):
+                with patch("laughtrack.foundation.infrastructure.http.client.Logger.info"):
+                    result = await HttpClient.fetch_json(
+                        session, "https://api.tessera.example/products/123",
+                        allow_empty_body=True,
+                    )
+
+        mock_browser.fetch_html.assert_called_once()
+        assert result == {"ok": True}
+
+    @pytest.mark.asyncio
+    async def test_200_bot_block_still_triggers_fallback_when_allow_empty_body_true(self):
+        """200 with a bot-block signature must still fall back — ``allow_empty_body`` is empty-only."""
+        session = AsyncMock()
+        session.get.return_value = _make_response(
+            200, text="<html><title>Just a moment...</title></html>"
+        )
+        mock_browser = _make_browser_mock('<html><body><pre>{"ok": true}</pre></body></html>')
+
+        with patch(
+            "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+            return_value=mock_browser,
+        ):
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn"):
+                with patch("laughtrack.foundation.infrastructure.http.client.Logger.info"):
+                    result = await HttpClient.fetch_json(
+                        session, "https://example.com/api",
+                        allow_empty_body=True,
+                    )
+
+        mock_browser.fetch_html.assert_called_once()
+        assert result == {"ok": True}
+
+    @pytest.mark.asyncio
+    async def test_default_behavior_unchanged_when_flag_omitted(self):
+        """Regression guard: without ``allow_empty_body``, empty body still WARNs and falls back."""
+        session = AsyncMock()
+        session.get.return_value = _make_response(200, text="")
+        mock_browser = _make_browser_mock()
+
+        with patch(
+            "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+            return_value=mock_browser,
+        ):
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn:
+                with patch("laughtrack.foundation.infrastructure.http.client.Logger.info"):
+                    await HttpClient.fetch_json(session, "https://example.com/api")
+
+        mock_browser.fetch_html.assert_called_once()
+        assert any("empty body" in c.args[0] for c in mock_warn.call_args_list)

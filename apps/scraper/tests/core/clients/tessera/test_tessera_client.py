@@ -130,9 +130,10 @@ class TestFetchTicketData:
 
         captured = {}
 
-        async def fake_fetch_json(self, url, headers=None, timeout=30, logger_context=None):
+        async def fake_fetch_json(self, url, headers=None, timeout=30, logger_context=None, allow_empty_body=False):
             captured["url"] = url
             captured["headers"] = headers
+            captured["allow_empty_body"] = allow_empty_body
             return {"campaigns": [], "seatingChartUrl": None}
 
         monkeypatch.setattr(BaseApiClient, "fetch_json", fake_fetch_json)
@@ -144,13 +145,16 @@ class TestFetchTicketData:
         # sessionid header is threaded through so the API can authenticate the request
         assert captured["headers"] is client.headers
         assert "sessionid" in captured["headers"]
+        # TASK-1672: Tessera opts into empty-body-is-OK so stale events
+        # don't pay the Chromium launch for a response the browser can't rescue.
+        assert captured["allow_empty_body"] is True
 
     @pytest.mark.asyncio
     async def test_none_from_fetch_json_returns_none(self, monkeypatch, stub_base_init):
         """fetch_json already handles empty-body / 403 / bot-block via HttpClient; Tessera just re-labels."""
         client = _client()
 
-        async def fake_fetch_json(self, url, headers=None, timeout=30, logger_context=None):
+        async def fake_fetch_json(self, url, headers=None, timeout=30, logger_context=None, allow_empty_body=False):
             return None
 
         monkeypatch.setattr(BaseApiClient, "fetch_json", fake_fetch_json)
@@ -162,7 +166,7 @@ class TestFetchTicketData:
     async def test_non_dict_response_returns_none(self, monkeypatch, stub_base_init):
         client = _client()
 
-        async def fake_fetch_json(self, url, headers=None, timeout=30, logger_context=None):
+        async def fake_fetch_json(self, url, headers=None, timeout=30, logger_context=None, allow_empty_body=False):
             return ["unexpected", "array"]
 
         monkeypatch.setattr(BaseApiClient, "fetch_json", fake_fetch_json)
@@ -229,3 +233,72 @@ class TestFetchTicketDataEndToEnd:
         assert result is not None
         # Parsed TesseraAPIResponse with empty campaigns list from the rescued JSON
         assert list(result.campaigns or []) == []
+
+
+# ---------------------------------------------------------------------------
+# End-to-end: stale-event (HTTP 200 + empty body) skips Playwright
+# ---------------------------------------------------------------------------
+
+
+class _EmptyBodySession:
+    """AsyncSession stub that returns a 200 + empty body (Tessera stale event)."""
+
+    def __init__(self, impersonate=None, timeout=None):
+        pass
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *args):
+        pass
+
+    async def get(self, url, headers=None, proxies=None, **kwargs):
+        class _Resp:
+            status_code = 200
+            text = ""
+
+            def json(self):
+                raise ValueError("empty body not JSON")
+        return _Resp()
+
+
+class TestFetchTicketDataStaleEventSkipsFallback:
+    """TASK-1672: HTTP 200 + empty body must NOT trigger the Playwright fallback.
+
+    Previously every stale event on Broadway Comedy Club paid ~1–3 s of
+    Chromium launch via ``_fetch_with_fallback``'s empty-body branch.
+    The browser replay returns empty too, so the launch was pure overhead.
+    ``_fetch_ticket_data`` now passes ``allow_empty_body=True``; the
+    short-circuit is exercised end-to-end below.
+    """
+
+    @pytest.mark.asyncio
+    async def test_empty_body_does_not_launch_browser(self, monkeypatch, stub_base_init):
+        monkeypatch.delenv("PLAYWRIGHT_FALLBACK", raising=False)
+        client = _client()
+
+        from laughtrack.core.clients import base as base_mod
+        monkeypatch.setattr(base_mod, "AsyncSession", _EmptyBodySession)
+
+        browser_launch_count = {"n": 0}
+
+        def _tracking_get_js_browser():
+            browser_launch_count["n"] += 1
+
+            class _ShouldNotBeCalled:
+                async def fetch_html(self, url, proxy_url=None):
+                    raise AssertionError(
+                        "Playwright fallback must not run on Tessera stale-event empty body"
+                    )
+            return _ShouldNotBeCalled()
+
+        monkeypatch.setattr(
+            "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+            _tracking_get_js_browser,
+        )
+
+        result = await client._fetch_ticket_data("EVT-STALE")
+
+        assert result is None
+        # The fallback branch never ran — _get_js_browser was not touched at all.
+        assert browser_launch_count["n"] == 0
