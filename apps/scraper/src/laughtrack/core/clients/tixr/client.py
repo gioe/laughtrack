@@ -212,6 +212,13 @@ class TixrClient(BaseApiClient):
         behavior remains identical to the previous ``HttpClient.fetch_html``
         path.
 
+        When a ``proxy_pool`` is configured on this client, the curl-cffi GET
+        and the Playwright fallback are routed through the next pool proxy so
+        group-page fetches participate in the same rotation as event-detail
+        and JSON API calls. Proxy outcome accounting mirrors
+        ``BaseApiClient.fetch_html``: a non-``None`` final return reports
+        success to the pool; ``None`` reports failure.
+
         Args:
             url: Tixr event page URL
             timeout: Request timeout in seconds (default 30)
@@ -226,13 +233,16 @@ class TixrClient(BaseApiClient):
             "url": normalized_url,
         }
 
+        proxy_url = self._get_proxy_url()
+        proxies = {"http": proxy_url, "https": proxy_url} if proxy_url else None
+
         try:
             async with AsyncSession(
                 impersonate=self._get_impersonation_target(url),
                 timeout=timeout,
             ) as session:
                 await self._apply_rate_limit(url)
-                response = await session.get(normalized_url)
+                response = await session.get(normalized_url, proxies=proxies)
                 # Materialize everything we need from the response *inside* the
                 # session context so we don't depend on curl_cffi keeping a
                 # fully-buffered body around after the session closes.
@@ -240,6 +250,8 @@ class TixrClient(BaseApiClient):
                 response_headers = self._response_headers_dict(response)
                 body = response.text or ""
         except Exception as e:
+            if proxy_url and self.proxy_pool is not None:
+                self.proxy_pool.report_failure(proxy_url)
             self.log_error(f"Failed to fetch Tixr page {url}: {e}")
             return None
 
@@ -253,6 +265,8 @@ class TixrClient(BaseApiClient):
         # reclassify it as NETWORK_ERROR anyway).
         if 500 <= status < 600:
             self.log_warning(f"Tixr HTTP {status} fetching group page: {normalized_url}")
+            if proxy_url and self.proxy_pool is not None:
+                self.proxy_pool.report_failure(proxy_url)
             return None
 
         datadome_type = self._classify_datadome(response_headers, body)
@@ -287,10 +301,14 @@ class TixrClient(BaseApiClient):
                 fallback_reason = sig
 
         if fallback_reason is None:
+            if proxy_url and self.proxy_pool is not None:
+                self.proxy_pool.report_success(proxy_url)
             return body
 
         browser = _get_js_browser()
         if browser is None:
+            if proxy_url and self.proxy_pool is not None:
+                self.proxy_pool.report_failure(proxy_url)
             return None
         if diagnostics is not None:
             diagnostics.record_playwright_fallback()
@@ -300,12 +318,19 @@ class TixrClient(BaseApiClient):
             logger_context,
         )
         try:
-            return await browser.fetch_html(normalized_url)
+            fallback_html = await browser.fetch_html(normalized_url, proxy_url=proxy_url)
         except Exception as exc:
             self.log_warning(
                 f"[TixrClient] Playwright fallback failed for {normalized_url}: {exc}"
             )
-            return None
+            fallback_html = None
+
+        if proxy_url and self.proxy_pool is not None:
+            if fallback_html is None:
+                self.proxy_pool.report_failure(proxy_url)
+            else:
+                self.proxy_pool.report_success(proxy_url)
+        return fallback_html
 
     @staticmethod
     def _response_headers_dict(response: Any) -> Dict[str, str]:

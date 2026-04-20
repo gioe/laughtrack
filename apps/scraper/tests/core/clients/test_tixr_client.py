@@ -318,6 +318,160 @@ class TestFetchTixrPage:
         assert result == "<html><body>actual event listing</body></html>"
         assert monitor.calls == []
 
+    @pytest.mark.asyncio
+    async def test_proxy_pool_threads_proxy_into_session_and_reports_success(
+        self, monkeypatch, stub_base_init
+    ):
+        """When a proxy_pool is configured, the curl-cffi GET is routed
+        through the proxy and a clean 200 reports success to the pool."""
+        monkeypatch.setenv("PLAYWRIGHT_FALLBACK", "0")
+        client = TixrClient(_club())
+
+        pool = _StubProxyPool("http://user:pass@proxy.example.com:8080")
+        client.proxy_pool = pool
+
+        seen_proxies: list = []
+
+        class FakeResponse:
+            status_code = 200
+            text = "<html>ok</html>"
+            headers: dict = {}
+
+        class Session(_FakeSession):
+            async def get(self, url, headers=None, proxies=None, **kwargs):
+                seen_proxies.append(proxies)
+                return FakeResponse()
+
+        monkeypatch.setattr(tixr_module, "AsyncSession", Session)
+        monkeypatch.setattr(client, "_apply_rate_limit", lambda url: _noop())
+        monkeypatch.setattr(client, "_get_impersonation_target", lambda url: "chrome124")
+
+        result = await client._fetch_tixr_page("https://tixr.com/groups/x/events/y")
+        assert result == "<html>ok</html>"
+        # Proxy dict threaded through for both schemes — matches base.py pattern.
+        assert seen_proxies == [
+            {"http": "http://user:pass@proxy.example.com:8080",
+             "https": "http://user:pass@proxy.example.com:8080"}
+        ]
+        assert pool.successes == ["http://user:pass@proxy.example.com:8080"]
+        assert pool.failures == []
+
+    @pytest.mark.asyncio
+    async def test_proxy_pool_reports_failure_on_network_exception(
+        self, monkeypatch, stub_base_init
+    ):
+        """A network exception during the proxied fetch must surface as a
+        proxy failure so the pool can retire a bad proxy after max_failures."""
+        monkeypatch.setenv("PLAYWRIGHT_FALLBACK", "0")
+        client = TixrClient(_club())
+
+        pool = _StubProxyPool("http://proxy.example.com:8080")
+        client.proxy_pool = pool
+
+        class Session(_FakeSession):
+            async def get(self, url, headers=None, proxies=None, **kwargs):
+                raise ConnectionError("proxy tunnel down")
+
+        monkeypatch.setattr(tixr_module, "AsyncSession", Session)
+        monkeypatch.setattr(client, "_apply_rate_limit", lambda url: _noop())
+        monkeypatch.setattr(client, "_get_impersonation_target", lambda url: "chrome124")
+
+        result = await client._fetch_tixr_page("https://tixr.com/groups/x")
+        assert result is None
+        assert pool.failures == ["http://proxy.example.com:8080"]
+        assert pool.successes == []
+
+    @pytest.mark.asyncio
+    async def test_proxy_pool_threads_proxy_into_playwright_fallback(
+        self, monkeypatch, stub_base_init
+    ):
+        """The Playwright rescue inherits the same proxy_url so the fallback
+        fetches from the same egress IP as curl-cffi did."""
+        monkeypatch.delenv("PLAYWRIGHT_FALLBACK", raising=False)
+        client = TixrClient(_club())
+        client._failure_monitor = _RecordingMonitor()
+
+        pool = _StubProxyPool("http://proxy.example.com:8080")
+        client.proxy_pool = pool
+
+        class FakeResponse:
+            status_code = 403
+            text = "<html><body>datadome challenge</body></html>"
+            headers: dict = {}
+
+        class Session(_FakeSession):
+            async def get(self, url, headers=None, proxies=None, **kwargs):
+                return FakeResponse()
+
+        browser_calls: list = []
+
+        class FakeBrowser:
+            async def fetch_html(self, url, proxy_url=None):
+                browser_calls.append({"url": url, "proxy_url": proxy_url})
+                return "<html>rescued</html>"
+
+        monkeypatch.setattr(tixr_module, "AsyncSession", Session)
+        monkeypatch.setattr(client, "_apply_rate_limit", lambda url: _noop())
+        monkeypatch.setattr(client, "_get_impersonation_target", lambda url: "chrome124")
+        monkeypatch.setattr(
+            "laughtrack.core.clients.tixr.client._get_js_browser",
+            lambda: FakeBrowser(),
+        )
+
+        result = await client._fetch_tixr_page("https://tixr.com/groups/x/events/y")
+        assert result == "<html>rescued</html>"
+        assert len(browser_calls) == 1
+        assert browser_calls[0]["proxy_url"] == "http://proxy.example.com:8080"
+        # Playwright recovered → the proxy ultimately served content, so report success.
+        assert pool.successes == ["http://proxy.example.com:8080"]
+        assert pool.failures == []
+
+    @pytest.mark.asyncio
+    async def test_no_proxy_pool_omits_proxies_kwarg(self, monkeypatch, stub_base_init):
+        """With no proxy_pool configured, session.get receives proxies=None."""
+        monkeypatch.setenv("PLAYWRIGHT_FALLBACK", "0")
+        client = TixrClient(_club())
+        # stub_base_init already sets proxy_pool=None; be explicit for the test.
+        client.proxy_pool = None
+
+        seen_proxies: list = []
+
+        class FakeResponse:
+            status_code = 200
+            text = "<html>ok</html>"
+            headers: dict = {}
+
+        class Session(_FakeSession):
+            async def get(self, url, headers=None, proxies=None, **kwargs):
+                seen_proxies.append(proxies)
+                return FakeResponse()
+
+        monkeypatch.setattr(tixr_module, "AsyncSession", Session)
+        monkeypatch.setattr(client, "_apply_rate_limit", lambda url: _noop())
+        monkeypatch.setattr(client, "_get_impersonation_target", lambda url: "chrome124")
+
+        result = await client._fetch_tixr_page("https://tixr.com/groups/x")
+        assert result == "<html>ok</html>"
+        assert seen_proxies == [None]
+
+
+class _StubProxyPool:
+    """Minimal ProxyPool stand-in that records success/failure calls."""
+
+    def __init__(self, proxy_url: str):
+        self._proxy_url = proxy_url
+        self.successes: list = []
+        self.failures: list = []
+
+    def get_proxy(self):
+        return self._proxy_url
+
+    def report_success(self, proxy_url):
+        self.successes.append(proxy_url)
+
+    def report_failure(self, proxy_url):
+        self.failures.append(proxy_url)
+
 
 # Async no-op coroutine used as stub for _apply_rate_limit
 async def _noop(*args, **kwargs):
