@@ -262,3 +262,40 @@ def test_to_show_mismatched_weekday_still_parses():
     assert show is not None
     assert show.date.month == 4
     assert show.date.day == 5
+
+
+def test_to_show_accepts_full_year_date_format():
+    """The Moon's rhp-events cards include the year: 'Thu, Apr 23, 2026'."""
+    event = _make_event(
+        title="Rob Schneider",
+        date_str="Sat, May 30, 2026",
+        time_str="Door Time Is: 6:30 pm",
+    )
+    show = event.to_show(_club())
+    assert show is not None
+    assert show.date.year == 2026
+    assert show.date.month == 5
+    assert show.date.day == 30
+
+
+def test_to_show_uses_door_time_when_no_show_marker():
+    """When only 'Door Time Is: X pm' is published, treat it as the show start."""
+    event = _make_event(
+        date_str="Sat, May 30, 2026",
+        time_str="Door Time Is: 6:30 pm",
+    )
+    show = event.to_show(_club())
+    assert show is not None
+    assert show.date.hour == 18
+    assert show.date.minute == 30
+
+
+def test_to_show_doors_no_show_marker_uses_door_time():
+    """Short 'Doors: 7 pm' (no 'Show:') falls back to the door time."""
+    event = _make_event(
+        date_str="Sat, May 30, 2026",
+        time_str="Doors: 7 pm",
+    )
+    show = event.to_show(_club())
+    assert show is not None
+    assert show.date.hour == 19

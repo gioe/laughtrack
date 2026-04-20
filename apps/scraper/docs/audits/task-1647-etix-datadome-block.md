@@ -157,6 +157,42 @@ If TASK-1658 slips past 2 weeks, escalate to (d) and hide the 16 clubs until it 
 
 ## Spot-check results (TASK-1659 follow-ups)
 
+### The Moon (1048, Tallahassee FL) — TASK-1663, 2026-04-20
+
+**Conclusion: Etix remains the ticketing platform, BUT the venue's own WordPress
+site (moonevents.com) renders the same shows via the rhp-events plugin — not
+DataDome-blocked — and the existing `comedy_magic_club` scraper can parse it.
+Migrated The Moon to `scraper=comedy_magic_club` + `scraping_url=https://moonevents.com/events`
+as an independent recovery path that does not wait on TASK-1658.**
+
+- moonevents.com/events returns HTTP 200 via Playwright (~203 KB) with 5–7
+  `rhpSingleEvent` cards per fetch. Every card's "Buy Tickets" href goes to
+  `etix.com/ticket/p/…?partner_id=100`, so the ticket `purchase_url` remains
+  correct and the Etix platform keeps its affiliate attribution.
+- The rhp-events extractor in `core/entities/event/comedy_magic_club.py` needed
+  two small fixes to accept The Moon's variant of the same plugin output:
+  - Date cards include the year (e.g. `Thu, Apr 23, 2026`) whereas The Comedy &
+    Magic Club renders only `Thu, Mar 26` with year inference. `_infer_date`
+    now tries the full-year format first before falling back to inference.
+  - Time cards publish only a door time (`Door Time Is: 6:30 pm`) with no
+    `Show:` marker. `_extract_show_time` now falls back to the door time via
+    a new `_DOOR_TIME_RE`, then to the whole string as before.
+  Both changes are additive — The Comedy & Magic Club's tests (13 pre-existing
+  + 3 new for The Moon's format, all 16 passing) confirm no regression.
+- Post-migration scrape: `make scrape-club CLUB='The Moon'` returned 4 upcoming
+  shows (previously 0 under the DataDome-blocked etix path). Items-before-filter
+  was 5; one empty `rhp-event__time-text` card was correctly dropped.
+- The Moon is a music-forward venue (Lake Street Dive, Ethel Cain, Alabama
+  Shakes, Steve Earle, Violent Vira, Rob Schneider for May). The old `etix`
+  scraper had no category filter either, so the switch preserves existing
+  behavior. A proper comedy-keyword filter is a separate concern that would
+  apply to the old etix scraper and the new rhp-events path equally.
+- Net: 1 of the 16 Etix clubs now recovers independently of TASK-1658. The
+  remaining 15 (Funny Bone chain + Dr. Grins + Zanies + Laugh Patriot Place +
+  Lounge at World Stage) still require the DataDome solver because their club
+  websites either route directly to etix (funnybone.com subdomains) or are
+  static pages with no rhp-events markup (thebob.com/drgrins).
+
 ### Dr. Grins Comedy Club (207) — TASK-1662, 2026-04-20
 
 **Conclusion: Etix remains the only platform. No migration possible. Recovery depends on TASK-1658.**

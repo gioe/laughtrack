@@ -19,6 +19,13 @@ from laughtrack.core.protocols.show_convertible import ShowConvertible
 # Regex to pull the show time out of "Doors: 6:30 pm Show: 8 pm" strings.
 _SHOW_TIME_RE = re.compile(r"Show:\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm))", re.IGNORECASE)
 
+# Some venues (e.g. The Moon, Tallahassee) only publish a door time in the
+# rhp-events card — no "Show:" marker. Treat the door time as the show start
+# time when that's all we have.
+_DOOR_TIME_RE = re.compile(
+    r"Door(?:s| Time Is)?:\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm))", re.IGNORECASE
+)
+
 # Normalise "8 pm" / "6:30 pm" → "8:00 PM" / "6:30 PM"
 _TIME_PART_RE = re.compile(r"^(\d{1,2})(?::(\d{2}))?\s*(am|pm)$", re.IGNORECASE)
 
@@ -38,20 +45,29 @@ def _extract_show_time(time_str: str) -> Optional[str]:
     """
     Pull the show start time from a string like 'Doors: 6:30 pm Show: 8 pm'.
 
-    Falls back to the whole string if no 'Show:' marker is present.
+    Falls back to the door time ("Door Time Is: 6 pm", "Doors: 7 pm") when no
+    explicit "Show:" marker is present, and to the whole string as a final
+    fallback before giving up.
     """
     m = _SHOW_TIME_RE.search(time_str)
-    raw = m.group(1) if m else time_str.strip()
-    return _normalize_time(raw)
+    if m:
+        return _normalize_time(m.group(1))
+    m = _DOOR_TIME_RE.search(time_str)
+    if m:
+        return _normalize_time(m.group(1))
+    return _normalize_time(time_str.strip())
 
 
 def _infer_date(date_str: str) -> Optional[date]:
     """
-    Parse a short date like 'Thu, Mar 26' and infer the correct year.
+    Parse a date from an rhp-events card header.
 
-    The listing page only shows upcoming events, so we try the current
-    year first.  If that date has already passed (by more than one day)
-    we use the following year instead.
+    Accepts two formats:
+    * Short form like "Thu, Mar 26" (The Comedy & Magic Club) — the year is
+      inferred by trying the current year first and falling back to next year
+      when the date has already passed.
+    * Full form like "Thu, Apr 23, 2026" (The Moon) — the embedded year is
+      used directly.
 
     The weekday prefix is stripped before parsing — Python's strptime with
     %a does not validate that the weekday matches the computed date, so a
@@ -59,6 +75,14 @@ def _infer_date(date_str: str) -> Optional[date]:
     """
     today = date.today()
     date_part = date_str.split(", ", 1)[-1]
+
+    # Full form — year is embedded, e.g. "Apr 23, 2026".
+    try:
+        return datetime.strptime(date_part, "%b %d, %Y").date()
+    except ValueError:
+        pass
+
+    # Short form — infer the year.
     for year in (today.year, today.year + 1):
         try:
             parsed = datetime.strptime(f"{date_part} {year}", "%b %d %Y").date()
