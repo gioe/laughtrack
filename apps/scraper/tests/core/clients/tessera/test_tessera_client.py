@@ -169,3 +169,63 @@ class TestFetchTicketData:
 
         result = await client._fetch_ticket_data("EVT-000")
         assert result is None
+
+
+# ---------------------------------------------------------------------------
+# End-to-end: bot-block → Playwright fallback path
+#
+# Verifies the actual delegation chain Tessera now depends on — AsyncSession
+# returns a 403 + DataDome body, HttpClient.fetch_json kicks off the Playwright
+# fallback, and the rescued JSON flows back to TesseraClient. Without this
+# test, a future rename of a BaseApiClient / HttpClient kwarg would silently
+# skip the fallback and the stubbed unit tests above would still pass.
+# ---------------------------------------------------------------------------
+
+
+class _EndToEndFakeSession:
+    """AsyncSession stub that returns a canned response for a single GET."""
+
+    def __init__(self, impersonate=None, timeout=None):
+        pass
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *args):
+        pass
+
+    async def get(self, url, headers=None, proxies=None, **kwargs):
+        class _Resp:
+            status_code = 403
+            text = "<html><body>datadome challenge page</body></html>"
+        return _Resp()
+
+
+class TestFetchTicketDataEndToEnd:
+    @pytest.mark.asyncio
+    async def test_datadome_403_reaches_playwright_fallback(self, monkeypatch, stub_base_init):
+        """A DataDome 403 on the Tessera GET path triggers the shared Playwright fallback."""
+        monkeypatch.delenv("PLAYWRIGHT_FALLBACK", raising=False)
+        client = _client()
+
+        # Replace AsyncSession in the BaseApiClient module so fetch_json opens our fake session.
+        from laughtrack.core.clients import base as base_mod
+        monkeypatch.setattr(base_mod, "AsyncSession", _EndToEndFakeSession)
+
+        # Stub the Playwright browser to return rescued JSON wrapped in <pre>
+        # (Chromium's default JSON-viewer shape — HttpClient._parse_json_from_rendered_html
+        # handles the extraction).
+        class FakeBrowser:
+            async def fetch_html(self, url, proxy_url=None):
+                return '<html><body><pre>{"campaigns": [], "seatingChartUrl": null}</pre></body></html>'
+
+        monkeypatch.setattr(
+            "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+            lambda: FakeBrowser(),
+        )
+
+        result = await client._fetch_ticket_data("EVT-999")
+
+        assert result is not None
+        # Parsed TesseraAPIResponse with empty campaigns list from the rescued JSON
+        assert list(result.campaigns or []) == []

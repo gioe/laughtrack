@@ -395,7 +395,14 @@ class BaseApiClient(ABC):
                 except Exception:
                     pass
                 await self._apply_rate_limit(url)
-                response = await session.post(url, json=payload, headers=request_headers, proxies=proxies)
+                # When payload is None, omit the json= kwarg so curl-cffi sends
+                # no body at all — passing json=None serializes "null" into the
+                # request body, which some auth endpoints (e.g. Tessera
+                # /authorization/session) reject as malformed.
+                if payload is None:
+                    response = await session.post(url, headers=request_headers, proxies=proxies)
+                else:
+                    response = await session.post(url, json=payload, headers=request_headers, proxies=proxies)
                 resp_text = response.text
                 if response.status_code != 200:
                     bot_signature = _bot_block_reason(resp_text) if resp_text else None

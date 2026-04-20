@@ -7,7 +7,9 @@ including proper authentication headers and data parsing.
 Routes both the auth POST (``refresh_session_id``) and the ticket GET
 (``_fetch_ticket_data``) through the BaseApiClient / HttpClient helpers so
 Cloudflare-style 403s and empty-body challenge responses hit the shared
-Playwright fallback (A2) and bot-block detection (A3) added in TASK-1648.
+Playwright fallback and bot-block detection — the A1/A2/A3 fallbacks
+landed in TASK-1649 / TASK-1650 / TASK-1651, each a sibling fix task
+created from the TASK-1648 audit.
 """
 
 from typing import Dict, List, Optional
@@ -61,9 +63,9 @@ class TesseraClient(BaseApiClient):
     async def refresh_session_id(self) -> bool:
         """Fetch a fresh session ID from the Tessera authorization endpoint.
 
-        Delegates to ``BaseApiClient.post_json`` so bot-block (Cloudflare /
-        DataDome) responses surface as ERROR logs and non-200 / empty-body
-        failures are no longer swallowed silently (A3, TASK-1651).
+        Delegates to ``BaseApiClient.post_json`` (A3, TASK-1651) so bot-block
+        (Cloudflare / DataDome) responses surface as ERROR logs and non-200 /
+        empty-body failures are no longer swallowed silently.
 
         Returns:
             True if a new session ID was acquired and applied, False otherwise.
