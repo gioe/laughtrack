@@ -3,12 +3,14 @@ Tessera API client for fetching ticket information.
 
 This client handles interactions with Tessera-based ticketing systems,
 including proper authentication headers and data parsing.
-Refactored to inherit from BaseApiClient to unify HTTP and logging behavior.
+
+Routes both the auth POST (``refresh_session_id``) and the ticket GET
+(``_fetch_ticket_data``) through the BaseApiClient / HttpClient helpers so
+Cloudflare-style 403s and empty-body challenge responses hit the shared
+Playwright fallback (A2) and bot-block detection (A3) added in TASK-1648.
 """
 
-from typing import Any, Dict, List, Optional
-
-from curl_cffi.requests import AsyncSession
+from typing import Dict, List, Optional
 
 from laughtrack.core.clients.tessera.models.response import TesseraAPIResponse
 from laughtrack.core.clients.base import BaseApiClient
@@ -16,7 +18,6 @@ from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.ticket.local.broadway import BroadwayTicket
 from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
 from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
-from laughtrack.foundation.utilities.url import URLUtils
 
 
 class TesseraClient(BaseApiClient):
@@ -60,48 +61,33 @@ class TesseraClient(BaseApiClient):
     async def refresh_session_id(self) -> bool:
         """Fetch a fresh session ID from the Tessera authorization endpoint.
 
-        The Tessera API returns HTTP 200 + empty body when the session ID is
-        expired.  Call this once per scrape run to avoid silent failures.
+        Delegates to ``BaseApiClient.post_json`` so bot-block (Cloudflare /
+        DataDome) responses surface as ERROR logs and non-200 / empty-body
+        failures are no longer swallowed silently (A3, TASK-1651).
 
         Returns:
             True if a new session ID was acquired and applied, False otherwise.
         """
         auth_url = f"{self.api_root_url}/authorization/session"
-        try:
-            await self._apply_rate_limit(auth_url)
-            async with AsyncSession(
-                impersonate=self._get_impersonation_target(auth_url)
-            ) as session:
-                response = await session.post(
-                    auth_url,
-                    headers={
-                        "Content-Type": "application/json",
-                        "Origin": self.origin_url,
-                    },
-                )
-            if response.status_code != 200:
-                self.log_warning(
-                    f"Tessera session refresh failed: HTTP {response.status_code}"
-                    f" | url={auth_url}"
-                )
-                return False
-            if not response.text.strip():
-                self.log_warning(
-                    f"Tessera session refresh returned empty body (HTTP 200)"
-                    f" | url={auth_url}"
-                )
-                return False
-            data = response.json()
-            session_id = data.get("sessionId") if isinstance(data, dict) else None
-            if not session_id:
-                self.log_warning(f"Tessera session refresh returned no sessionId | url={auth_url}")
-                return False
-            self.headers["sessionid"] = session_id
-            self.log_info("Tessera session refreshed successfully")
-            return True
-        except Exception as e:
-            self.log_warning(f"Tessera session refresh error: {e} | url={auth_url}")
+        # payload=None → curl-cffi sends no JSON body, matching the prior
+        # direct-post shape.  post_json auto-adds Content-Type: application/json.
+        data = await self.post_json(
+            auth_url,
+            payload=None,
+            headers={"Origin": self.origin_url},
+            logger_context={"action": "refresh_session_id"},
+        )
+        if data is None:
+            # post_json already logged the specific failure (bot-block / non-200 /
+            # empty body) at ERROR level.
             return False
+        session_id = data.get("sessionId")
+        if not session_id:
+            self.log_warning(f"Tessera session refresh returned no sessionId | url={auth_url}")
+            return False
+        self.headers["sessionid"] = session_id
+        self.log_info("Tessera session refreshed successfully")
+        return True
 
     def _initialize_headers(self) -> Dict[str, str]:
         """Initialize default headers for Tessera API using BaseHeaders."""
@@ -118,47 +104,42 @@ class TesseraClient(BaseApiClient):
         """
         Fetch raw ticket data from Tessera API.
 
-        The Tessera API returns HTTP 200 with an empty body for expired/stale
-        events.  Using a raw session here (rather than fetch_json) lets us
-        detect that case and log at WARNING rather than ERROR.
+        Delegates to ``BaseApiClient.fetch_json`` → ``HttpClient.fetch_json`` so
+        a Cloudflare/DataDome 403 or an HTTP-200 challenge body is retried via
+        the Playwright headless browser (A2, TASK-1650).  Tessera's known
+        "stale event" signal (HTTP 200 + empty body) now triggers the fallback
+        as well — the browser replay returns empty too, so the final result
+        is still ``None`` and the scraper path is unchanged, but we gain
+        genuine challenge recovery for the 403 case at the cost of one
+        fallback attempt per stale event.
 
         Args:
             event_id: Event ID for API call
 
         Returns:
-            TesseraAPIResponse dictionary or None if failed
+            TesseraAPIResponse dictionary or None if failed.
         """
         api_url = f"{self.api_base_url}/{event_id}"
-        normalized_url = URLUtils.normalize_url(api_url)
-
-        try:
-            await self._apply_rate_limit(normalized_url)
-            async with AsyncSession(
-                impersonate=self._get_impersonation_target(normalized_url)
-            ) as session:
-                response = await session.get(normalized_url, headers=self.headers)
-
-            body = response.text.strip() if response.text else ""
-            if not body:
-                self.log_warning(
-                    f"Empty response for event {event_id} — event may be stale or expired"
-                    f" | url={normalized_url}"
-                )
-                return None
-
-            parsed_response = response.json()
-            if not parsed_response or not isinstance(parsed_response, dict):
-                self.log_warning(
-                    f"Invalid response for event {event_id}: expected dict,"
-                    f" got {type(parsed_response)} | url={normalized_url}"
-                )
-                return None
-
-            return TesseraAPIResponse.from_dict(parsed_response)
-
-        except Exception as e:
-            self.log_error(f"Error fetching ticket data for event {event_id}: {str(e)}")
+        parsed_response = await self.fetch_json(
+            api_url,
+            headers=self.headers,
+            logger_context={"event_id": event_id},
+        )
+        if parsed_response is None:
+            # fetch_json already logged the specific failure (non-200 / empty
+            # body / unparseable after fallback).  For Tessera this commonly
+            # means a stale event — retain a client-side warn for that signal.
+            self.log_warning(
+                f"No ticket data for event {event_id} — event may be stale, expired, or blocked"
+            )
             return None
+        if not isinstance(parsed_response, dict):
+            self.log_warning(
+                f"Invalid response for event {event_id}: expected dict,"
+                f" got {type(parsed_response).__name__}"
+            )
+            return None
+        return TesseraAPIResponse.from_dict(parsed_response)
 
     async def get_ticket(self, event_id: str) -> List[BroadwayTicket]:
         """
