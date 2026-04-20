@@ -5,6 +5,7 @@ import pytest
 
 from laughtrack.core.clients.tixr import client as tixr_module
 from laughtrack.core.clients.tixr.client import TixrClient
+from laughtrack.core.clients.tixr.tixr_failure_monitor import FailureType
 from laughtrack.core.clients.base import BaseApiClient
 from laughtrack.core.entities.club.model import Club
 from laughtrack.foundation.infrastructure.http.client import HttpClient
@@ -29,6 +30,17 @@ def stub_base_init(monkeypatch):
         self.http_client = HttpClient()
         self.proxy_pool = None
     monkeypatch.setattr(BaseApiClient, "__init__", _init)
+
+
+class _RecordingMonitor:
+    """Captures record_request_result calls for assertion."""
+
+    def __init__(self):
+        self.calls = []
+
+    def record_request_result(self, **kwargs):
+        self.calls.append(kwargs)
+        return None
 
 
 def _club() -> Club:
@@ -112,16 +124,16 @@ class TestFetchTixrPage:
         """A DataDome 403 returns rescued HTML via the Playwright fallback."""
         monkeypatch.delenv("PLAYWRIGHT_FALLBACK", raising=False)
         client = TixrClient(_club())
+        monitor = _RecordingMonitor()
+        client._failure_monitor = monitor
 
         class FakeResponse:
             status_code = 403
             text = "<html><body>datadome challenge</body></html>"
-
-        captured_headers: dict = {}
+            headers: dict = {}
 
         class Session(_FakeSession):
             async def get(self, url, headers=None, proxies=None, **kwargs):
-                captured_headers["value"] = headers
                 return FakeResponse()
 
         monkeypatch.setattr(tixr_module, "AsyncSession", Session)
@@ -133,15 +145,140 @@ class TestFetchTixrPage:
                 return "<html>rescued by playwright</html>"
 
         monkeypatch.setattr(
-            "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+            "laughtrack.core.clients.tixr.client._get_js_browser",
             lambda: FakeBrowser(),
         )
 
         result = await client._fetch_tixr_page("https://tixr.com/groups/x/events/y")
         assert result == "<html>rescued by playwright</html>"
-        # Verify headers=None was forwarded — preserves the DataDome-friendly
-        # curl_cffi impersonation fingerprint.
-        assert captured_headers["value"] is None
+        # DataDome block on the original 403 must have been recorded via the
+        # failure monitor so TixrAlertSystem can aggregate group-page blocks
+        # alongside event-detail blocks — even though Playwright recovered.
+        assert len(monitor.calls) == 1
+        assert monitor.calls[0]["status_code"] == 403
+
+    @pytest.mark.asyncio
+    async def test_datadome_200_interstitial_records_cookie_failure(self, monkeypatch, stub_base_init):
+        """A 200 response whose body is a DataDome interstitial is recorded as DATADOME_COOKIE."""
+        monkeypatch.setenv("PLAYWRIGHT_FALLBACK", "0")
+        client = TixrClient(_club())
+        monitor = _RecordingMonitor()
+        client._failure_monitor = monitor
+
+        warnings: list = []
+        monkeypatch.setattr(client, "log_warning", lambda msg: warnings.append(msg))
+
+        class FakeResponse:
+            status_code = 200
+            text = "<html>datadome blocked</html>"
+            headers: dict = {}
+
+        class Session(_FakeSession):
+            async def get(self, url, headers=None, proxies=None, **kwargs):
+                return FakeResponse()
+
+        monkeypatch.setattr(tixr_module, "AsyncSession", Session)
+        monkeypatch.setattr(client, "_apply_rate_limit", lambda url: _noop())
+        monkeypatch.setattr(client, "_get_impersonation_target", lambda url: "chrome124")
+
+        result = await client._fetch_tixr_page("https://tixr.com/groups/x")
+        # PLAYWRIGHT_FALLBACK=0 → bot-block → no rescue → None.
+        assert result is None
+        assert len(monitor.calls) == 1
+        call = monitor.calls[0]
+        # Status coerced to 403 so TixrFailureMonitor's _classify_failure
+        # inspects the body (_classify_failure treats 200 as success and skips).
+        assert call["status_code"] == 403
+        assert "datadome" in call["response_body"].lower()
+        # A dedicated DataDome WARN must be surfaced for triage.
+        assert any("datadome" in w.lower() for w in warnings)
+
+    @pytest.mark.asyncio
+    async def test_datadome_200_captcha_records_captcha_failure(self, monkeypatch, stub_base_init):
+        """A 200 with a DataDome captcha interstitial classifies as DATADOME_CAPTCHA."""
+        monkeypatch.setenv("PLAYWRIGHT_FALLBACK", "0")
+        client = TixrClient(_club())
+        monitor = _RecordingMonitor()
+        client._failure_monitor = monitor
+
+        warnings: list = []
+        monkeypatch.setattr(client, "log_warning", lambda msg: warnings.append(msg))
+
+        class FakeResponse:
+            status_code = 200
+            text = (
+                "<html>DataDome captcha challenge from "
+                "https://geo.captcha-delivery.com/captcha/</html>"
+            )
+            headers: dict = {}
+
+        class Session(_FakeSession):
+            async def get(self, url, headers=None, proxies=None, **kwargs):
+                return FakeResponse()
+
+        monkeypatch.setattr(tixr_module, "AsyncSession", Session)
+        monkeypatch.setattr(client, "_apply_rate_limit", lambda url: _noop())
+        monkeypatch.setattr(client, "_get_impersonation_target", lambda url: "chrome124")
+
+        await client._fetch_tixr_page("https://tixr.com/groups/x")
+        assert len(monitor.calls) == 1
+        # WARN must identify the captcha variant so triage can distinguish it
+        # from a plain DataDome cookie block.
+        assert any(FailureType.DATADOME_CAPTCHA.value in w for w in warnings)
+
+    @pytest.mark.asyncio
+    async def test_x_datadome_header_records_cookie_failure(self, monkeypatch, stub_base_init):
+        """An X-DataDome response header on any status flags DATADOME_COOKIE."""
+        monkeypatch.setenv("PLAYWRIGHT_FALLBACK", "0")
+        client = TixrClient(_club())
+        monitor = _RecordingMonitor()
+        client._failure_monitor = monitor
+
+        warnings: list = []
+        monkeypatch.setattr(client, "log_warning", lambda msg: warnings.append(msg))
+
+        class FakeResponse:
+            status_code = 200
+            # No datadome content in the body — the header alone is the signal.
+            text = "<html><body>payload</body></html>"
+            headers = {"X-DataDome": "protected"}
+
+        class Session(_FakeSession):
+            async def get(self, url, headers=None, proxies=None, **kwargs):
+                return FakeResponse()
+
+        monkeypatch.setattr(tixr_module, "AsyncSession", Session)
+        monkeypatch.setattr(client, "_apply_rate_limit", lambda url: _noop())
+        monkeypatch.setattr(client, "_get_impersonation_target", lambda url: "chrome124")
+
+        await client._fetch_tixr_page("https://tixr.com/groups/x")
+        assert len(monitor.calls) == 1
+        assert any("datadome" in w.lower() for w in warnings)
+
+    @pytest.mark.asyncio
+    async def test_normal_200_does_not_invoke_failure_monitor(self, monkeypatch, stub_base_init):
+        """A clean 200 response does not record any failure."""
+        monkeypatch.setenv("PLAYWRIGHT_FALLBACK", "0")
+        client = TixrClient(_club())
+        monitor = _RecordingMonitor()
+        client._failure_monitor = monitor
+
+        class FakeResponse:
+            status_code = 200
+            text = "<html><body>actual event listing</body></html>"
+            headers: dict = {}
+
+        class Session(_FakeSession):
+            async def get(self, url, headers=None, proxies=None, **kwargs):
+                return FakeResponse()
+
+        monkeypatch.setattr(tixr_module, "AsyncSession", Session)
+        monkeypatch.setattr(client, "_apply_rate_limit", lambda url: _noop())
+        monkeypatch.setattr(client, "_get_impersonation_target", lambda url: "chrome124")
+
+        result = await client._fetch_tixr_page("https://tixr.com/groups/x")
+        assert result == "<html><body>actual event listing</body></html>"
+        assert monitor.calls == []
 
 
 # Async no-op coroutine used as stub for _apply_rate_limit

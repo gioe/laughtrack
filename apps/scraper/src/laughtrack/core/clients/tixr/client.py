@@ -17,7 +17,11 @@ from laughtrack.core.entities.comedian.model import Comedian
 from laughtrack.core.entities.show.model import Show
 from laughtrack.core.entities.ticket.model import Ticket
 from laughtrack.core.clients.base import BaseApiClient
+from laughtrack.core.clients.tixr.tixr_failure_monitor import FailureType
+from laughtrack.foundation.infrastructure.http.client import _bot_block_reason, _get_js_browser
+from laughtrack.foundation.infrastructure.http.diagnostics import current_diagnostics
 from laughtrack.foundation.infrastructure.http.proxy_pool import ProxyPool
+from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.foundation.utilities.datetime import DateTimeUtils
 from laughtrack.foundation.utilities.json.utils import JSONUtils
 from laughtrack.foundation.utilities.url import URLUtils
@@ -60,6 +64,21 @@ class TixrClient(BaseApiClient):
                 "Referer": self.base_url,
             }
         )
+
+        self._failure_monitor = self._resolve_failure_monitor()
+
+    def _resolve_failure_monitor(self) -> Optional[Any]:
+        # Lazy — imported inside the method to avoid a module-level import cycle
+        # between core.clients.tixr.client and infrastructure.monitoring.integrations.tixr
+        # (the latter imports TixrClient in its create_monitored_client path).
+        try:
+            from laughtrack.infrastructure.monitoring.client_integration import (
+                get_tixr_failure_monitor,
+            )
+
+            return get_tixr_failure_monitor(self.club)
+        except Exception:
+            return None
 
     async def get_event_detail(self, event_id: str) -> Optional[TixrEvent]:
         """
@@ -167,21 +186,24 @@ class TixrClient(BaseApiClient):
 
     async def _fetch_tixr_page(self, url: str, timeout: int = 30) -> Optional[str]:
         """
-        Fetch a Tixr event page HTML without application-level custom headers.
+        Fetch a Tixr group/event page HTML without application-level custom headers.
 
         Tixr's DataDome bot-detection blocks requests that carry specific header
         combinations (e.g. Accept-Language + Cache-Control + Pragma together).
         curl_cffi's Chrome impersonation sends a browser-consistent fingerprint on
-        its own — passing our API header dict disrupts that fingerprint and triggers
-        403s.  This method sends only curl_cffi's built-in impersonation headers
-        (``headers=None`` is forwarded to ``HttpClient.fetch_html`` so
-        ``BaseApiClient.fetch_html``'s ``headers or self.headers`` fallback is
-        bypassed — the Accept/Referer dict would reintroduce the 403).
+        its own — passing our API header dict disrupts that fingerprint and
+        triggers 403s. This method therefore sends only curl_cffi's built-in
+        impersonation headers.
 
-        Routes through ``HttpClient.fetch_html`` so a DataDome 403 (or any known
-        bot-block interstitial) transparently retries via the shared Playwright
-        headless-browser fallback — this is the primary recovery path for the
-        0-show GH Actions scrape failures on tixr.com.
+        The request is performed inline (not via ``HttpClient.fetch_html``) so
+        the raw response can be inspected for DataDome signatures *before* any
+        Playwright rescue — a successful rescue would otherwise hide the block
+        from ``TixrFailureMonitor`` and silently degrade group-page fetches to
+        "0 URLs extracted" in triage. After recording the block, the shared
+        bot-block → Playwright fallback machinery from
+        ``foundation.infrastructure.http.client`` is reused so the recovery
+        behavior remains identical to the previous ``HttpClient.fetch_html``
+        path.
 
         Args:
             url: Tixr event page URL
@@ -191,24 +213,136 @@ class TixrClient(BaseApiClient):
             HTML string on success (from curl_cffi or the Playwright fallback),
             ``None`` when both the direct fetch and the fallback fail.
         """
+        normalized_url = URLUtils.normalize_url(url)
+        logger_context = {
+            "club_name": getattr(self.club, "name", "-"),
+            "url": normalized_url,
+        }
+
         try:
             async with AsyncSession(
                 impersonate=self._get_impersonation_target(url),
                 timeout=timeout,
             ) as session:
                 await self._apply_rate_limit(url)
-                return await self.http_client.fetch_html(
-                    session=session,
-                    url=url,
-                    headers=None,
-                    logger_context={
-                        "club_name": getattr(self.club, "name", "-"),
-                        "url": url,
-                    },
-                )
+                response = await session.get(normalized_url)
         except Exception as e:
             self.log_error(f"Failed to fetch Tixr page {url}: {e}")
             return None
+
+        status = response.status_code
+        response_headers = self._response_headers_dict(response)
+        body = response.text or ""
+
+        diagnostics = current_diagnostics()
+        if diagnostics is not None:
+            diagnostics.record_response(status)
+
+        datadome_type = self._classify_datadome(response_headers, body)
+        if datadome_type is not None:
+            self.log_warning(
+                f"Tixr group-page DataDome interstitial detected "
+                f"(type={datadome_type.value}, status={status}): {normalized_url}"
+            )
+            self._record_group_page_datadome(
+                url=normalized_url,
+                status_code=status,
+                response_headers=response_headers,
+                response_body=body,
+            )
+
+        if 500 <= status < 600:
+            self.log_warning(f"Tixr HTTP {status} fetching group page: {normalized_url}")
+            return None
+
+        fallback_reason: Optional[str] = None
+        if status != 200:
+            fallback_reason = f"HTTP {status}"
+            if body:
+                sig = _bot_block_reason(body)
+                if sig is not None:
+                    if diagnostics is not None:
+                        diagnostics.record_bot_block(sig)
+                    fallback_reason = sig
+        elif not body.strip():
+            fallback_reason = "empty body"
+        else:
+            sig = _bot_block_reason(body)
+            if sig is not None:
+                if diagnostics is not None:
+                    diagnostics.record_bot_block(sig)
+                fallback_reason = sig
+
+        if fallback_reason is None:
+            return body
+
+        browser = _get_js_browser()
+        if browser is None:
+            return None
+        if diagnostics is not None:
+            diagnostics.record_playwright_fallback()
+        Logger.info(
+            f"[TixrClient] Triggering Playwright fallback for {normalized_url} "
+            f"(reason: {fallback_reason!r})",
+            logger_context,
+        )
+        try:
+            return await browser.fetch_html(normalized_url)
+        except Exception as exc:
+            self.log_warning(
+                f"[TixrClient] Playwright fallback failed for {normalized_url}: {exc}"
+            )
+            return None
+
+    @staticmethod
+    def _response_headers_dict(response: Any) -> Dict[str, str]:
+        try:
+            headers = response.headers
+            if headers is None:
+                return {}
+            return {str(k): str(v) for k, v in dict(headers).items()}
+        except Exception:
+            return {}
+
+    @staticmethod
+    def _classify_datadome(
+        response_headers: Dict[str, str], body: str
+    ) -> Optional[FailureType]:
+        if any(k.lower() == "x-datadome" for k in response_headers):
+            return FailureType.DATADOME_COOKIE
+        body_lower = body.lower() if body else ""
+        if "datadome" in body_lower or "captcha-delivery.com" in body_lower:
+            if "captcha" in body_lower:
+                return FailureType.DATADOME_CAPTCHA
+            return FailureType.DATADOME_COOKIE
+        return None
+
+    def _record_group_page_datadome(
+        self,
+        url: str,
+        status_code: int,
+        response_headers: Dict[str, str],
+        response_body: str,
+    ) -> None:
+        monitor = self._failure_monitor
+        if monitor is None:
+            return
+        # TixrFailureMonitor.record_request_result short-circuits status_code == 200
+        # as a success. DataDome can serve an interstitial with a 200 status code,
+        # so coerce to 403 — _classify_failure will then inspect the body and
+        # classify as DATADOME_COOKIE / DATADOME_CAPTCHA. The real status is still
+        # captured in the log line above for triage.
+        reported_status = 403 if status_code == 200 else status_code
+        try:
+            monitor.record_request_result(
+                event_id=url,
+                status_code=reported_status,
+                response_headers=response_headers,
+                response_body=response_body,
+                club=self.club,
+            )
+        except Exception as exc:
+            self.log_warning(f"Failed to record Tixr group-page failure: {exc}")
 
     def _extract_jsonld_event(self, html: str) -> Optional[Dict[str, Any]]:
         """
