@@ -20,3 +20,11 @@ class PerClubStat:
     skipped_dedup: Optional[int] = None
     validation_failed: Optional[int] = None
     db_errors: Optional[int] = None
+    # Fetch-layer diagnostics — let 0-show results self-triage without a rerun.
+    # http_status is the most-diagnostic response code seen (non-200 wins over 200);
+    # items_before_filter counts raw events parsed before dedup/date/validation filters.
+    http_status: Optional[int] = None
+    bot_block_detected: bool = False
+    bot_block_signature: Optional[str] = None
+    playwright_fallback_used: bool = False
+    items_before_filter: Optional[int] = None

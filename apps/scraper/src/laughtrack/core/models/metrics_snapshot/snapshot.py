@@ -49,6 +49,11 @@ class ScrapingMetricsSnapshot:
                     skipped_dedup=d.get("skipped_dedup"),
                     validation_failed=d.get("validation_failed"),
                     db_errors=d.get("db_errors"),
+                    http_status=d.get("http_status"),
+                    bot_block_detected=bool(d.get("bot_block_detected", False)),
+                    bot_block_signature=d.get("bot_block_signature"),
+                    playwright_fallback_used=bool(d.get("playwright_fallback_used", False)),
+                    items_before_filter=d.get("items_before_filter"),
                 )
             )
         return out
