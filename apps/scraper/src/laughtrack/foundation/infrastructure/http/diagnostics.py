@@ -31,9 +31,13 @@ __all__ = [
 class ScrapeDiagnostics:
     """Diagnostics collected during a single club scrape.
 
-    ``http_status`` retains the most-diagnostic code seen — a 5xx or 4xx
-    observed on any request wins over a later 200, so the field reflects the
-    root cause of an empty result rather than a recovered status from a retry.
+    ``http_status`` is sticky on the first non-200 code seen — once a 4xx or
+    5xx is recorded, a subsequent 200 cannot overwrite it. Within non-200
+    codes, the first-seen wins (e.g. 403 then 503 leaves ``http_status=403``).
+    The goal is to surface the root cause of an empty result rather than a
+    recovered status from a later retry; picking "which non-200 is most
+    diagnostic" is a judgement call we intentionally don't make in the
+    recorder — the first failure is typically the one worth investigating.
     """
 
     http_status: Optional[int] = None

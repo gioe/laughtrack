@@ -291,11 +291,25 @@ class HttpClient:
             diagnostics.record_response(response.status_code)
 
         if response.status_code != 200:
+            # A 4xx/5xx body served as HTML often contains a WAF challenge
+            # (DataDome, Cloudflare). Record the bot-block signature so JSON-path
+            # scrapers (Prekindle, SeatEngine, Wix, ...) self-triage the same
+            # way the HTML path does.
+            if diagnostics is not None and response.text:
+                bot_signature = _bot_block_reason(response.text)
+                if bot_signature is not None:
+                    diagnostics.record_bot_block(bot_signature)
             Logger.warn(f"HTTP {response.status_code} when fetching {normalized_url}", logger_context)
             return None
 
         if not response.text or not response.text.strip():
             Logger.warn(f"HTTP 200 with empty body when fetching {normalized_url}", logger_context)
             return None
+
+        # 200 with an HTML challenge (some WAFs return 200 + interstitial).
+        if diagnostics is not None:
+            bot_signature = _bot_block_reason(response.text)
+            if bot_signature is not None:
+                diagnostics.record_bot_block(bot_signature)
 
         return response.json()

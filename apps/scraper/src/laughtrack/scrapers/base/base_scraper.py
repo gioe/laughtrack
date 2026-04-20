@@ -11,6 +11,7 @@ scraper-architecture-patterns.md documentation.
 
 import asyncio
 import concurrent.futures
+import contextvars
 from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Awaitable, Callable, List, Optional
@@ -218,9 +219,14 @@ class BaseScraper(HttpConvenienceMixin, ABC):
             # Try to get the current event loop
             asyncio.get_running_loop()
             # If we reach here, we're in an async context with a running loop
-            # We need to run in a separate thread to avoid "RuntimeError: cannot be called from a running event loop"
+            # We need to run in a separate thread to avoid "RuntimeError: cannot be called from a running event loop".
+            # copy_context() propagates ContextVars (notably the ScrapeDiagnostics
+            # binding from scrape_with_result) into the worker thread; a plain
+            # executor.submit starts with a fresh context and the side-channel
+            # would silently record into the void.
+            ctx = contextvars.copy_context()
             with concurrent.futures.ThreadPoolExecutor() as executor:
-                future = executor.submit(asyncio.run, self.scrape_async())
+                future = executor.submit(ctx.run, asyncio.run, self.scrape_async())
                 return future.result()
         except RuntimeError:
             # No event loop is running, we can safely use asyncio.run

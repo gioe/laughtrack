@@ -28,10 +28,11 @@ _NO_FALLBACK = patch(
 )
 
 
-def _make_response(status_code: int, text: str = ""):
+def _make_response(status_code: int, text: str = "", json_data=None):
     resp = MagicMock()
     resp.status_code = status_code
     resp.text = text
+    resp.json = MagicMock(return_value=(json_data if json_data is not None else {}))
     return resp
 
 
@@ -132,6 +133,62 @@ class TestScrapeDiagnosticsFetchHtml:
                 result = await HttpClient.fetch_html(session, "https://example.com/")
 
         assert result is None
+
+
+class TestScrapeDiagnosticsFetchJson:
+    @pytest.mark.asyncio
+    async def test_non_200_records_http_status(self):
+        """API path also records status for triage."""
+        session = AsyncMock()
+        session.get.return_value = _make_response(503, text="Service Unavailable")
+
+        diagnostics = ScrapeDiagnostics()
+        token = bind_diagnostics(diagnostics)
+        try:
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn"):
+                result = await HttpClient.fetch_json(session, "https://example.com/api")
+        finally:
+            reset_diagnostics(token)
+
+        assert result is None
+        assert diagnostics.http_status == 503
+        assert diagnostics.bot_block_detected is False
+
+    @pytest.mark.asyncio
+    async def test_200_json_response_records_status(self):
+        """Successful API fetch still records http_status=200 for completeness."""
+        session = AsyncMock()
+        session.get.return_value = _make_response(200, text='{"ok":true}', json_data={"ok": True})
+
+        diagnostics = ScrapeDiagnostics()
+        token = bind_diagnostics(diagnostics)
+        try:
+            result = await HttpClient.fetch_json(session, "https://example.com/api")
+        finally:
+            reset_diagnostics(token)
+
+        assert result == {"ok": True}
+        assert diagnostics.http_status == 200
+
+    @pytest.mark.asyncio
+    async def test_cloudflare_html_challenge_on_json_path_records_bot_block(self):
+        """WAF that returns a 403 HTML challenge to an API request surfaces as bot_block=True."""
+        challenge_html = "<html><title>Just a moment...</title></html>"
+        session = AsyncMock()
+        session.get.return_value = _make_response(403, text=challenge_html)
+
+        diagnostics = ScrapeDiagnostics()
+        token = bind_diagnostics(diagnostics)
+        try:
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn"):
+                result = await HttpClient.fetch_json(session, "https://example.com/api")
+        finally:
+            reset_diagnostics(token)
+
+        assert result is None
+        assert diagnostics.http_status == 403
+        assert diagnostics.bot_block_detected is True
+        assert diagnostics.bot_block_signature == "just a moment"
 
 
 class TestItemsBeforeFilter:
