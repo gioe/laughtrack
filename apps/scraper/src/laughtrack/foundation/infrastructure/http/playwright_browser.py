@@ -27,9 +27,12 @@ browser was first launched (``_launch_loop``):
 * **Loop still running** — schedules ``close()`` on the original loop via
   ``asyncio.run_coroutine_threadsafe`` and blocks until it completes.  This
   path is taken when atexit fires during ``asyncio.run()`` shutdown.
-* **Loop not running** — falls back to creating a new event loop, which is safe
-  because the original loop has already finished and released all Playwright
-  transports.
+* **Loop not running / never set** — drops references without calling
+  ``close()`` on a fresh loop.  ``_browser_lock`` and Playwright's internal
+  futures remain bound to the dead launch loop, so driving ``close()`` through
+  a new loop would either raise ``RuntimeError('... bound to a different event
+  loop')`` or hang.  The Chromium subprocess is reaped by the OS at Python
+  process exit — acceptable for the scraper's short-lived CLI invocations.
 
 Callers should prefer ``await browser.close()`` for deterministic shutdown.
 The atexit handler is a last-resort safety net only.
@@ -214,8 +217,11 @@ def _atexit_close(browser_ref: "weakref.ref[PlaywrightBrowser]") -> None:
 
     Schedules ``close()`` on the original event loop when it is still running
     (e.g., during ``asyncio.run()`` teardown), so Playwright objects are closed
-    on the same loop that created them.  Falls back to a new event loop when the
-    original loop is no longer running.
+    on the same loop that created them.  When the launch loop is no longer
+    running (or was never set) drops references without calling ``close()`` —
+    driving ``close()`` through a fresh loop would hit the same cross-loop
+    Lock error the main ``close()`` path now short-circuits, and Chromium is
+    reaped by the OS when the process exits shortly after.
     """
     browser = browser_ref()
     if browser is None:

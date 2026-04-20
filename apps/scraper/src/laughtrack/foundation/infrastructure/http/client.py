@@ -164,6 +164,10 @@ async def close_js_browser() -> None:
     try:
         await browser.close()
     except RuntimeError as exc:
+        # Only the cross-loop signature is expected here; re-raise any other
+        # RuntimeError so genuine transport failures remain visible.
+        if "bound to a different event loop" not in str(exc):
+            raise
         Logger.warn(f"[HttpClient] close_js_browser swallowed cross-loop RuntimeError: {exc}")
 
 

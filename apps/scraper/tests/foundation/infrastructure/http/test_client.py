@@ -388,13 +388,12 @@ class TestCloseJsBrowser:
         this RuntimeError so nightly teardown is resilient even if the
         PlaywrightBrowser.close() short-circuit misses an edge case.
         """
-        mock_browser = MagicMock()
-        mock_browser.close = AsyncMock(
-            side_effect=RuntimeError(
-                "<asyncio.locks.Lock object at 0x1234 [locked]> "
-                "is bound to a different event loop"
-            )
+        runtime_exc = RuntimeError(
+            "<asyncio.locks.Lock object at 0x1234 [locked]> "
+            "is bound to a different event loop"
         )
+        mock_browser = MagicMock()
+        mock_browser.close = AsyncMock(side_effect=runtime_exc)
         client_module._js_browser = mock_browser
 
         from laughtrack.foundation.infrastructure.http.client import close_js_browser
@@ -405,9 +404,33 @@ class TestCloseJsBrowser:
 
         mock_browser.close.assert_awaited_once()
         assert client_module._js_browser is None
-        # Operator visibility: one WARN summarizing the swallowed error.
+        # Operator visibility: one WARN with the original exception's message
+        # embedded so the cross-loop signature is still searchable in logs.
         mock_warn.assert_called_once()
-        assert "cross-loop" in mock_warn.call_args[0][0]
+        assert str(runtime_exc) in mock_warn.call_args[0][0]
+
+    @pytest.mark.asyncio
+    async def test_reraises_non_cross_loop_runtime_error(self):
+        """Non-cross-loop RuntimeErrors from browser.close() must propagate.
+
+        The cross-loop swallow is intentionally narrow so genuine Playwright
+        transport failures (node subprocess crashes, torn-down pipes, etc.)
+        remain visible to callers and nightly triage — only the known
+        ``bound to a different event loop`` signature is absorbed.
+        """
+        transport_exc = RuntimeError("Playwright node transport closed")
+        mock_browser = MagicMock()
+        mock_browser.close = AsyncMock(side_effect=transport_exc)
+        client_module._js_browser = mock_browser
+
+        from laughtrack.foundation.infrastructure.http.client import close_js_browser
+
+        with pytest.raises(RuntimeError, match="Playwright node transport closed"):
+            await close_js_browser()
+
+        mock_browser.close.assert_awaited_once()
+        # Singleton is still cleared so retries don't re-use the dead browser.
+        assert client_module._js_browser is None
 
 
 # ---------------------------------------------------------------------------
