@@ -155,6 +155,36 @@ Do (a) + (c) in parallel:
 
 If TASK-1658 slips past 2 weeks, escalate to (d) and hide the 16 clubs until it lands.
 
+## Spot-check results (TASK-1659 follow-ups)
+
+### Dr. Grins Comedy Club (207) — TASK-1662, 2026-04-20
+
+**Conclusion: Etix remains the only platform. No migration possible. Recovery depends on TASK-1658.**
+
+- Club's own site (`thebob.com/drgrins`) is a static page with "Buy Tickets" links
+  pointing directly at `etix.com/ticket/v/35455/drgrins-comedy-club-at-the-bob` —
+  no embedded event data, no JSON-LD events (only a `Restaurant` block for The BOB).
+- `grinstix.com` (the venue's marketing domain) 301-redirects to the same Etix
+  venue_id=35455 URL.
+- Ticketmaster Discovery API returns the venue (`venueId=ZFr9jZ11kk`) but only
+  5 events, all the same comedian (Brian Simpson, Dec 3–5 2026). The secondary
+  venue record `KovZpZAFAElA` ("The B.O.B. - Dr. Grin's") is the LaughFest
+  festival listing with 0 upcoming events. Not a viable replacement for the
+  full calendar (~60 shows historically).
+- AXS has a venue page (`axs.com/venues/133204/...`) but it 403s from our stack
+  and is functionally a ticket-resale mirror, not the primary sales channel.
+
+Local reproduction (2026-04-20) matches the audit's core finding: fetch falls
+back to Playwright, Playwright returns the DataDome CAPTCHA interstitial,
+parser correctly reports "no events found":
+
+```
+WARNING | HTTP 403 when fetching https://www.etix.com/ticket/mvc/online/upcomingEvents/venue?venue_id=35455&...
+INFO    | [HttpClient] Triggering Playwright fallback for ... (reason: 'HTTP 403')
+INFO    | DrGrinsScraper: no events found on ...
+INFO    | DrGrinsScraper: Scraped 0 total shows
+```
+
 ## Reproduction pointers
 
 ```bash
