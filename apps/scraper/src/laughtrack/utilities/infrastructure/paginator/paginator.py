@@ -18,19 +18,25 @@ from laughtrack.foundation.infrastructure.logger.logger import Logger
 
 @dataclass
 class PaginatorConfig:
-    """Configuration for Paginator / AsyncPaginator behavior."""
+    """Configuration shared between the Paginator base class and AsyncPaginator.
 
-    # Called with (html_content, base_url) -> next_url or None
+    Only `find_next_url` and `debug_mode` are read by the base `Paginator` class.
+    The remaining fields (`stop_condition`, `track_visited`, `delay_seconds`) are
+    consumed exclusively by `AsyncPaginator.async_pages()` — they exist on the
+    base config so AsyncPaginator can share a single dataclass.
+    """
+
+    # Called with (html_content, base_url) -> next_url or None. Consumed by Paginator + AsyncPaginator.
     find_next_url: Optional[Callable[[str, str], Optional[str]]] = None
 
-    # Optional: stop pagination early if condition is met; called with (html, url)
+    # Optional: stop pagination early if condition is met; called with (html, url). AsyncPaginator only.
     stop_condition: Optional[Callable[[str, str], bool]] = None
 
-    # Flow control
+    # Flow control. AsyncPaginator only.
     track_visited: bool = True
     delay_seconds: float = 0.0
 
-    # Logging
+    # Logging. Consumed by Paginator + AsyncPaginator.
     debug_mode: bool = False
 
 
