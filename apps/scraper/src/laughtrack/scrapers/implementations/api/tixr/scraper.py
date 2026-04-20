@@ -88,7 +88,12 @@ class TixrScraper(BaseScraper):
             all_tixr_urls = TixrExtractor.extract_tixr_urls(html_content)
 
             if not all_tixr_urls:
-                Logger.info(f"{self._log_prefix}: No Tixr URLs found on {url}", self.logger_context)
+                Logger.warn(
+                    f"{self._log_prefix}: 0 Tixr URLs extracted from 200-response page {url} "
+                    f"(html_len={len(html_content)}) — either a bot-block interstitial that "
+                    f"bypassed DataDome classification or a genuinely-empty calendar",
+                    self.logger_context,
+                )
                 return None
 
             # Filter to only events listed in the Organization JSON-LD block — these
