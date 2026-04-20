@@ -263,7 +263,15 @@ class BaseApiClient(ABC):
                     pass
                 if proxy_url and self.proxy_pool is not None:
                     if data is None:
-                        self.proxy_pool.report_failure(proxy_url)
+                        # When the caller opted into empty-body-as-valid,
+                        # data=None is ambiguous (could be a legitimate
+                        # HTTP 200 stale-event response, or a fallback-
+                        # failed 403).  Skip proxy accounting rather than
+                        # falsely penalize a proxy that handled the
+                        # request cleanly — this keeps Tessera stale-event
+                        # volume from poisoning the proxy health score.
+                        if not allow_empty_body:
+                            self.proxy_pool.report_failure(proxy_url)
                     else:
                         self.proxy_pool.report_success(proxy_url)
                 return data

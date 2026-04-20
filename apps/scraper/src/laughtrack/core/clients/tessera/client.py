@@ -137,7 +137,8 @@ class TesseraClient(BaseApiClient):
             # body / unparseable after fallback).  For Tessera this commonly
             # means a stale event — retain a client-side warn for that signal.
             self.log_warning(
-                f"No ticket data for event {event_id} — event may be stale, expired, or blocked"
+                f"No ticket data for event {event_id} ({api_url}) — "
+                f"event may be stale, expired, or blocked"
             )
             return None
         if not isinstance(parsed_response, dict):
