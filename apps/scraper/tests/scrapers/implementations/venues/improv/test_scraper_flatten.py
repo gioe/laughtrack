@@ -68,14 +68,14 @@ async def test_improv_scraper_flattens_batch_results(monkeypatch):
     async def fake_fetch_html(self, url: str):
         return "<html></html>"
 
-    def fake_get_next(self, html, current_url, anchor_id=None):
+    def fake_get_next(html, anchor_id, base_url=None):
         return None  # stop after first page
 
     def fake_extract_ticket_links(html, base_url, ctx):
         return ["https://example.com/t1", "https://example.com/t2"]
 
     monkeypatch.setattr(ImprovScraper, "fetch_html", fake_fetch_html, raising=False)
-    monkeypatch.setattr(improv_scraper_module.Paginator, "get_url_by_anchor_id", fake_get_next, raising=False)
+    monkeypatch.setattr(improv_scraper_module.HtmlScraper, "get_link_url_by_id", fake_get_next, raising=False)
     monkeypatch.setattr(
         improv_scraper_module.ImprovExtractor,
         "extract_ticket_links",

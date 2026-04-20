@@ -13,7 +13,7 @@ from laughtrack.foundation.infrastructure.http.base_headers import BaseHeaders
 from laughtrack.foundation.infrastructure.logger.logger import Logger
 from laughtrack.scrapers.base.base_scraper import BaseScraper
 from laughtrack.foundation.utilities.url import URLUtils
-from laughtrack.utilities.infrastructure.paginator import Paginator
+from laughtrack.utilities.infrastructure.html.scraper import HtmlScraper
 from laughtrack.utilities.infrastructure.scraper.scraper import BatchScraper
 from laughtrack.utilities.infrastructure.scraper.config import BatchScrapingConfig
 
@@ -50,8 +50,7 @@ class ImprovScraper(BaseScraper):
         try:
             start_url = URLUtils.normalize_url(url)
             base_url = URLUtils.get_base_domain_with_protocol(start_url)
-            # Use paginator to follow "More Shows" style links across pages
-            paginator = Paginator()
+            # Follow "More Shows" style links across pages via async fetch_html + direct HTML parsing
             visited_urls = set()
             current_url = start_url
             all_ticket_links: List[str] = []
@@ -68,8 +67,8 @@ class ImprovScraper(BaseScraper):
 
                 # Extract ticket links from this page
                 page_ticket_links = ImprovExtractor.extract_ticket_links(
-                    html_content, 
-                    base_url, 
+                    html_content,
+                    base_url,
                     self.logger_context
                 )
 
@@ -81,7 +80,7 @@ class ImprovScraper(BaseScraper):
                             all_ticket_links.append(link)
 
                 # Use only the explicit anchor id used by Improv sites
-                next_url = paginator.get_url_by_anchor_id(html_content, current_url, anchor_id="moreshowsbtn")
+                next_url = HtmlScraper.get_link_url_by_id(html_content, anchor_id="moreshowsbtn", base_url=current_url)
                 if not next_url or next_url in visited_urls:
                     break
 
