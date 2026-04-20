@@ -11,6 +11,7 @@ import pytest
 
 from laughtrack.foundation.infrastructure.http import playwright_browser as _pb_mod
 from laughtrack.foundation.infrastructure.http.playwright_browser import (
+    _LAUNCH_ARGS,
     PlaywrightBrowser,
     _QuietShutdownFilter,
     _install_quiet_shutdown_filter,
@@ -227,6 +228,77 @@ class TestPlaywrightBrowser:
             await browser.close()  # second call is a no-op
 
         mock_browser.close.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_launch_passes_disable_automation_flag(self):
+        """Chromium launch args include --disable-blink-features=AutomationControlled.
+
+        Required for AWS WAF passive JS challenges (Etix / Funny Bone venues):
+        without this flag, the WAF's mp_verify payload is rejected and the
+        challenge escalates to an interactive CAPTCHA that Playwright cannot
+        solve passively.
+        """
+        mock_pw_module, _, _ = _make_pw_mocks()
+        mock_launch = mock_pw_module.async_playwright.return_value.__aenter__.return_value.chromium.launch
+        with _patch_playwright(mock_pw_module):
+            browser = PlaywrightBrowser()
+            await browser.fetch_html("https://example.com")
+
+        _, kwargs = mock_launch.call_args
+        args = kwargs.get("args") or []
+        assert "--disable-blink-features=AutomationControlled" in args
+        # _LAUNCH_ARGS is the source of truth — ensure the exported tuple is used
+        assert all(a in args for a in _LAUNCH_ARGS)
+
+    @pytest.mark.asyncio
+    async def test_waits_for_waf_challenge_when_markers_present(self):
+        """If initial HTML contains AWS WAF markers, wait_for_function is called to wait for challenge."""
+        mock_pw_module, _, mock_page = _make_pw_mocks()
+        # First content() call returns a challenge page, subsequent calls (after
+        # the wait) return the real content.
+        mock_page.content = AsyncMock(
+            side_effect=[
+                "<html><script>window.awsWafCookieDomainList=['etix.com'];window.gokuProps={};</script></html>",
+                "<html>post-challenge content</html>",
+            ]
+        )
+        mock_page.wait_for_function = AsyncMock()
+
+        with _patch_playwright(mock_pw_module):
+            browser = PlaywrightBrowser()
+            result = await browser.fetch_html("https://example.com")
+
+        mock_page.wait_for_function.assert_called_once()
+        assert result == "<html>post-challenge content</html>"
+
+    @pytest.mark.asyncio
+    async def test_does_not_wait_when_no_waf_markers(self):
+        """If initial HTML has no WAF markers, wait_for_function is NOT called (no-op on non-WAF pages)."""
+        mock_pw_module, _, mock_page = _make_pw_mocks()
+        mock_page.content = AsyncMock(return_value="<html>regular page</html>")
+        mock_page.wait_for_function = AsyncMock()
+
+        with _patch_playwright(mock_pw_module):
+            browser = PlaywrightBrowser()
+            result = await browser.fetch_html("https://example.com")
+
+        mock_page.wait_for_function.assert_not_called()
+        assert result == "<html>regular page</html>"
+
+    @pytest.mark.asyncio
+    async def test_waf_waiter_returns_challenge_html_on_timeout(self):
+        """If the WAF challenge doesn't resolve within timeout, return the initial HTML (caller's bot-block detector handles it)."""
+        mock_pw_module, _, mock_page = _make_pw_mocks()
+        challenge_html = "<html><script>window.gokuProps={};</script></html>"
+        mock_page.content = AsyncMock(return_value=challenge_html)
+        mock_page.wait_for_function = AsyncMock(side_effect=asyncio.TimeoutError())
+
+        with _patch_playwright(mock_pw_module):
+            browser = PlaywrightBrowser()
+            result = await browser.fetch_html("https://example.com")
+
+        mock_page.wait_for_function.assert_called_once()
+        assert result == challenge_html
 
     @pytest.mark.asyncio
     async def test_goto_uses_domcontentloaded(self):

@@ -104,6 +104,33 @@ _USER_AGENT = (
 # headroom and prevents a single hung step from triggering the outer warning.
 _CLOSE_STEP_TIMEOUT = 10
 
+# Chromium launch flags. --disable-blink-features=AutomationControlled removes
+# the ``navigator.webdriver`` flag at the Blink layer (not just via the stealth
+# init script). AWS WAF's passive JS challenge inspects this flag before
+# signing its mp_verify payload; without the launch flag the signed payload is
+# rejected and the WAF escalates to an interactive CAPTCHA, leaving Playwright
+# stuck on the challenge page. Applies to all contexts — Cloudflare's "Just a
+# moment" challenge is unaffected by this flag.
+_LAUNCH_ARGS: tuple[str, ...] = (
+    "--disable-blink-features=AutomationControlled",
+)
+
+# Markers present in AWS WAF passive JS challenge pages. When the initial
+# ``page.goto(..., wait_until='domcontentloaded')`` resolves, the challenge
+# script is still executing — the rendered HTML contains these globals but not
+# the real content. fetch_html waits briefly for the challenge to complete
+# (cookie set, JS reload) before returning.
+_AWS_WAF_MARKERS: tuple[str, ...] = (
+    "awsWafCookieDomainList",
+    "gokuProps",
+)
+
+# Maximum time to wait for the AWS WAF passive challenge to resolve after
+# the initial DOMContentLoaded. 8s comfortably covers the typical 1-3s
+# challenge + reload path; on timeout, fetch_html returns whatever HTML is
+# present and the caller's bot-block detector handles the rest.
+_WAF_CHALLENGE_WAIT_MS = 8_000
+
 
 def _parse_proxy(proxy_url: str) -> dict:
     """Convert a proxy URL string to Playwright's proxy dict format.
@@ -292,7 +319,10 @@ class PlaywrightBrowser:
 
         self._pw_cm = async_playwright()
         self._pw = await self._pw_cm.__aenter__()
-        self._browser = await self._pw.chromium.launch(headless=True)
+        self._browser = await self._pw.chromium.launch(
+            headless=True,
+            args=list(_LAUNCH_ARGS),
+        )
 
     async def close(self) -> None:
         """Close the persistent Chromium browser and the Playwright context.
@@ -364,6 +394,28 @@ class PlaywrightBrowser:
                     self._pw_cm = None
                     self._pw = None
 
+    @staticmethod
+    async def _wait_for_waf_challenge(page: object, html: str) -> str:
+        """Wait for an AWS WAF passive JS challenge to resolve, then return the final HTML.
+
+        Polls the live DOM for the absence of the challenge's inline globals
+        (``awsWafCookieDomainList`` / ``gokuProps``). These are set on
+        ``window`` by the challenge markup and disappear once the challenge
+        reloads the page into the real content. Falls back to returning the
+        original challenge HTML on timeout — ``HttpClient._bot_block_reason``
+        and caller-level error handling will surface the unresolved block.
+        """
+        try:
+            await page.wait_for_function(
+                "() => !window.awsWafCookieDomainList && !window.gokuProps",
+                timeout=_WAF_CHALLENGE_WAIT_MS,
+            )
+        except Exception:
+            # Any exception (TimeoutError, navigation racing the script) —
+            # return current HTML; bot-block detection handles the rest.
+            return html
+        return await page.content()
+
     async def fetch_html(self, url: str, proxy_url: Optional[str] = None) -> str:
         """Fetch fully-rendered HTML from *url* using the persistent Playwright browser.
 
@@ -411,6 +463,8 @@ class PlaywrightBrowser:
                     timeout=self._timeout_ms,
                 )
                 html = await page.content()
+                if any(marker in html for marker in _AWS_WAF_MARKERS):
+                    html = await self._wait_for_waf_challenge(page, html)
                 Logger.debug(
                     f"[PlaywrightBrowser] Fetched {normalized_url} ({len(html)} chars)",
                     {},
