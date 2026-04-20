@@ -95,6 +95,28 @@ class TestFetchHtml:
         call_context = mock_warn.call_args[0][1]
         assert call_context == context
 
+    @pytest.mark.asyncio
+    async def test_200_empty_body_warn_matches_fetch_json(self):
+        """200 + empty body in fetch_html warns exactly once with the 'empty body' phrasing.
+
+        Pins the post-extraction symmetry: fetch_html used to be silent on
+        empty-200 bodies, but since the shared _fetch_with_fallback helper
+        owns the warn, both public methods now emit the same log. Asserting
+        call count guards against a future refactor duplicating the warn
+        (e.g. once in the helper, once in fetch_html).
+        """
+        session = AsyncMock()
+        session.get.return_value = _make_response(200, text="")
+
+        with _NO_FALLBACK:
+            with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn:
+                result = await HttpClient.fetch_html(session, "https://example.com/page")
+
+        assert result is None
+        mock_warn.assert_called_once()
+        call_msg = mock_warn.call_args[0][0]
+        assert "empty body" in call_msg
+
 
 # ---------------------------------------------------------------------------
 # _bot_block_reason

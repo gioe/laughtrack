@@ -28,7 +28,7 @@ import os
 import re
 from typing import Any, Dict, Optional, Tuple
 
-from curl_cffi.requests import AsyncSession
+from curl_cffi.requests import AsyncSession, Response
 
 from laughtrack.foundation.infrastructure.http.diagnostics import current_diagnostics
 from laughtrack.foundation.infrastructure.logger.logger import Logger
@@ -192,7 +192,7 @@ class HttpClient:
         proxy_url: Optional[str] = None,
         raise_on_failure: bool = False,
         **request_kwargs: Any,
-    ) -> Tuple[Optional[str], Any, bool]:
+    ) -> Tuple[Optional[str], Response, bool]:
         """
         Shared fetch orchestration for ``fetch_html`` and ``fetch_json``.
 
@@ -202,13 +202,16 @@ class HttpClient:
         format it wants (raw HTML vs. parsed JSON).
 
         Returns:
-            (html, response, used_fallback) where:
+            (html, response, fallback_invoked) where:
             * ``html`` — final HTML string, or ``None`` if neither curl-cffi
               nor the Playwright fallback produced usable content
             * ``response`` — the original curl-cffi response object (always
               set; never ``None`` on return)
-            * ``used_fallback`` — ``True`` when ``html`` was produced by the
-              Playwright browser rather than the curl-cffi body
+            * ``fallback_invoked`` — ``True`` when the Playwright fallback
+              was actually invoked (regardless of whether it succeeded).
+              ``False`` when the curl-cffi body was used directly, or when
+              a fallback reason was detected but ``_get_js_browser()``
+              returned ``None`` (env-disabled or Playwright unavailable).
         """
         logger_context = logger_context or {}
         normalized_url = URLUtils.normalize_url(url)
@@ -274,7 +277,9 @@ class HttpClient:
         # ------------------------------------------------------------------
         browser = _get_js_browser()
         html: Optional[str] = None
+        fallback_invoked = False
         if browser is not None:
+            fallback_invoked = True
             if diagnostics is not None:
                 diagnostics.record_playwright_fallback()
             Logger.info(
@@ -297,7 +302,7 @@ class HttpClient:
         if raise_on_failure and html is None and response.status_code != 200:
             response.raise_for_status()
 
-        return html, response, True
+        return html, response, fallback_invoked
 
     @staticmethod
     async def fetch_html(
@@ -346,7 +351,7 @@ class HttpClient:
             Exception: Any network or connection error is re-raised so callers
                 can log and handle it (avoids duplicate log entries).
         """
-        html, _response, _used_fallback = await HttpClient._fetch_with_fallback(
+        html, _response, _fallback_invoked = await HttpClient._fetch_with_fallback(
             session,
             url,
             headers=headers,
@@ -394,7 +399,7 @@ class HttpClient:
             Exception: Any network or connection error is re-raised so callers
                 can log and handle it (avoids duplicate log entries).
         """
-        html, response, used_fallback = await HttpClient._fetch_with_fallback(
+        html, response, fallback_invoked = await HttpClient._fetch_with_fallback(
             session,
             url,
             headers=headers,
@@ -405,7 +410,7 @@ class HttpClient:
         if html is None:
             return None
 
-        if not used_fallback:
+        if not fallback_invoked:
             return response.json()
 
         parsed = _parse_json_from_rendered_html(html)
