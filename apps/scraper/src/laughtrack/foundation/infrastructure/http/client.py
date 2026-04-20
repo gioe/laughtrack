@@ -148,13 +148,23 @@ async def close_js_browser() -> None:
     Call this while the event loop is still running (e.g., at the end of
     _scrape_clubs_concurrently) so Playwright objects are closed on the same
     loop that created them — making the atexit handler a safe no-op.
+
+    When the singleton was first launched on a worker-thread event loop,
+    the main loop's ``close()`` call may hit a loop mismatch.  ``close()``
+    now short-circuits in that case, but any residual RuntimeError (e.g.
+    from a sibling Playwright future attached to a closed loop) is caught
+    here so nightly teardown cannot propagate a cross-loop error up
+    through ``scrape_shows`` and trigger the 90-minute GHA timeout.
     """
     global _js_browser
     browser = _js_browser
     if browser is None or browser is _BROWSER_UNAVAILABLE:
         return
     _js_browser = None
-    await browser.close()
+    try:
+        await browser.close()
+    except RuntimeError as exc:
+        Logger.warn(f"[HttpClient] close_js_browser swallowed cross-loop RuntimeError: {exc}")
 
 
 # ---------------------------------------------------------------------------

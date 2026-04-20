@@ -374,6 +374,41 @@ class TestCloseJsBrowser:
 
         mock_browser.close.assert_awaited_once()
 
+    @pytest.mark.asyncio
+    async def test_swallows_cross_loop_runtime_error(self):
+        """close_js_browser() must not propagate ``bound to a different event loop``.
+
+        Regression for TASK-1668 / 90-minute GHA timeout: when a worker
+        thread's ``asyncio.run()`` loop created the Playwright singleton,
+        the main loop calling ``close_js_browser()`` used to propagate the
+        cross-loop RuntimeError up through ``_scrape_clubs_concurrently``'s
+        finally block, which propagated into ``scrape_shows.main()`` and
+        triggered ``sys.exit(1)`` — after which atexit handlers hung until
+        the 90-minute GHA job timeout fired.  The close path now catches
+        this RuntimeError so nightly teardown is resilient even if the
+        PlaywrightBrowser.close() short-circuit misses an edge case.
+        """
+        mock_browser = MagicMock()
+        mock_browser.close = AsyncMock(
+            side_effect=RuntimeError(
+                "<asyncio.locks.Lock object at 0x1234 [locked]> "
+                "is bound to a different event loop"
+            )
+        )
+        client_module._js_browser = mock_browser
+
+        from laughtrack.foundation.infrastructure.http.client import close_js_browser
+
+        with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn") as mock_warn:
+            # Must not raise — would crash scrape_shows orchestrator otherwise.
+            await close_js_browser()
+
+        mock_browser.close.assert_awaited_once()
+        assert client_module._js_browser is None
+        # Operator visibility: one WARN summarizing the swallowed error.
+        mock_warn.assert_called_once()
+        assert "cross-loop" in mock_warn.call_args[0][0]
+
 
 # ---------------------------------------------------------------------------
 # fetch_json

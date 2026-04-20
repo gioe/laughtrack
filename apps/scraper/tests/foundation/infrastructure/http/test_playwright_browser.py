@@ -229,6 +229,52 @@ class TestPlaywrightBrowser:
 
         mock_browser.close.assert_called_once()
 
+    def test_close_short_circuits_on_loop_mismatch_without_acquiring_lock(self):
+        """close() must short-circuit before ``async with self._browser_lock``.
+
+        Regression for TASK-1668 / 90-minute GHA timeout: when scrape_shows
+        runs each club in a worker thread with its own ``asyncio.run()`` loop,
+        the first worker to trigger the Playwright fallback binds the shared
+        singleton's ``_browser_lock`` to its loop.  When the orchestrator's
+        main loop later calls ``close_js_browser()``, the close path must
+        drop references without attempting to acquire the lock — acquiring
+        an asyncio.Lock bound to a different loop raises ``RuntimeError``,
+        which used to propagate up through ``_scrape_clubs_concurrently``'s
+        finally block and kill the nightly job.
+        """
+        mock_pw_module, _, _ = _make_pw_mocks()
+
+        # Launch the browser on a dedicated worker loop so the singleton's
+        # internal Lock is bound there — mirroring the scrape_shows worker.
+        worker_loop = asyncio.new_event_loop()
+
+        with _patch_playwright(mock_pw_module):
+            browser = PlaywrightBrowser()
+            worker_loop.run_until_complete(browser.fetch_html("https://example.com"))
+
+        assert browser._launch_loop is worker_loop
+
+        # Simulate the orchestrator: launch_loop is no longer running when
+        # the main loop drives close_js_browser.
+        worker_loop.close()
+        assert worker_loop.is_closed()
+
+        # Run close() on a *different* loop.  The old implementation raised
+        # RuntimeError the instant it reached ``async with self._browser_lock``.
+        main_loop = asyncio.new_event_loop()
+        try:
+            # Must complete cleanly — no RuntimeError, no hang.
+            main_loop.run_until_complete(
+                asyncio.wait_for(browser.close(), timeout=2)
+            )
+        finally:
+            main_loop.close()
+
+        # References dropped so future close_js_browser() calls are no-ops.
+        assert browser._browser is None
+        assert browser._pw_cm is None
+        assert browser._pw is None
+
     @pytest.mark.asyncio
     async def test_launch_passes_disable_automation_flag(self):
         """Chromium launch args include --disable-blink-features=AutomationControlled.
@@ -404,131 +450,72 @@ class TestPlaywrightBrowser:
         mock_rcts.assert_called_once_with(close_coro, fake._launch_loop)
         mock_future.result.assert_called_once_with(timeout=10)
 
-    def test_atexit_close_uses_new_loop_when_original_loop_not_running(self):
-        """_atexit_close falls back to a new event loop when the original loop is stopped."""
-        import weakref
-        from laughtrack.foundation.infrastructure.http.playwright_browser import _atexit_close
+    def test_atexit_close_drops_refs_when_original_loop_not_running(self):
+        """_atexit_close drops references when the launch loop is no longer running.
 
-        mock_browser_obj = MagicMock()
-        mock_browser_obj._browser = MagicMock()
-
-        mock_loop = MagicMock()
-        mock_loop.is_running.return_value = False
-        mock_browser_obj._launch_loop = mock_loop
-
-        close_coro = MagicMock()
-        mock_browser_obj.close = MagicMock(return_value=close_coro)
-
-        new_loop = MagicMock()
-        wait_for_sentinel = MagicMock()
-        # Use new= to force MagicMock instead of AsyncMock (asyncio.wait_for is async,
-        # so patch() would auto-create AsyncMock whose call returns a coroutine, not the sentinel)
-        mock_wf = MagicMock(return_value=wait_for_sentinel)
-
-        with (
-            patch("asyncio.new_event_loop", return_value=new_loop) as mock_nel,
-            patch("asyncio.wait_for", new=mock_wf),
-            patch("asyncio.run_coroutine_threadsafe") as mock_rcts,
-        ):
-            ref = weakref.ref(mock_browser_obj)
-            _atexit_close(ref)
-
-        mock_nel.assert_called_once()
-        mock_wf.assert_called_once_with(close_coro, timeout=10)
-        new_loop.run_until_complete.assert_called_once_with(wait_for_sentinel)
-        new_loop.close.assert_called_once()
-        mock_rcts.assert_not_called()
-
-    def test_atexit_close_uses_new_loop_when_launch_loop_is_none(self):
-        """_atexit_close falls back to a new loop when _launch_loop was never set."""
-        import weakref
-        from laughtrack.foundation.infrastructure.http.playwright_browser import _atexit_close
-
-        mock_browser_obj = MagicMock()
-        mock_browser_obj._browser = MagicMock()
-        mock_browser_obj._launch_loop = None
-
-        close_coro = MagicMock()
-        mock_browser_obj.close = MagicMock(return_value=close_coro)
-
-        new_loop = MagicMock()
-        wait_for_sentinel = MagicMock()
-        mock_wf = MagicMock(return_value=wait_for_sentinel)
-
-        with (
-            patch("asyncio.new_event_loop", return_value=new_loop),
-            patch("asyncio.wait_for", new=mock_wf),
-            patch("asyncio.run_coroutine_threadsafe") as mock_rcts,
-        ):
-            ref = weakref.ref(mock_browser_obj)
-            _atexit_close(ref)
-
-        mock_wf.assert_called_once_with(close_coro, timeout=10)
-        new_loop.run_until_complete.assert_called_once_with(wait_for_sentinel)
-        mock_rcts.assert_not_called()
-
-    def test_atexit_close_calls_close_when_browser_is_none_but_pw_cm_is_set(self):
-        """_atexit_close still calls close() when _browser is None but _pw_cm is set.
-
-        This is the partial-launch scenario: async_playwright().__aenter__() succeeded
-        but chromium.launch() failed, leaving _pw_cm non-None and _browser None.
-        The old guard 'if browser is None or browser._browser is None: return' would
-        have skipped close(), leaking the _pw_cm resource.
+        Regression for TASK-1668: the previous implementation tried to drive
+        browser.close() on a freshly-created event loop, but close() still
+        awaits self._browser_lock, which is bound to the dead launch_loop
+        and raises ``RuntimeError('bound to a different event loop')``.  The
+        atexit path now skips close() entirely in this scenario — Chromium is
+        reaped by the OS at process exit.
         """
         import weakref
         from laughtrack.foundation.infrastructure.http.playwright_browser import _atexit_close
 
         mock_browser_obj = MagicMock()
-        mock_browser_obj._browser = None          # launch failed / not yet launched
-        mock_browser_obj._pw_cm = MagicMock()     # context manager was entered
-        mock_browser_obj._launch_loop = None
+        mock_browser_obj._browser = MagicMock()
+        mock_browser_obj._pw_cm = MagicMock()
+        mock_browser_obj._pw = MagicMock()
 
-        close_coro = MagicMock()
-        mock_browser_obj.close = MagicMock(return_value=close_coro)
-
-        new_loop = MagicMock()
-        wait_for_sentinel = MagicMock()
-        mock_wf = MagicMock(return_value=wait_for_sentinel)
+        mock_loop = MagicMock()
+        mock_loop.is_running.return_value = False
+        mock_browser_obj._launch_loop = mock_loop
+        mock_browser_obj.close = MagicMock()
 
         with (
-            patch("asyncio.new_event_loop", return_value=new_loop),
-            patch("asyncio.wait_for", new=mock_wf),
+            patch("asyncio.new_event_loop") as mock_nel,
             patch("asyncio.run_coroutine_threadsafe") as mock_rcts,
         ):
             ref = weakref.ref(mock_browser_obj)
             _atexit_close(ref)
 
-        # close() must be called so _pw_cm.__aexit__ has a chance to run
-        mock_browser_obj.close.assert_called_once()
-        mock_wf.assert_called_once_with(close_coro, timeout=10)
-        new_loop.run_until_complete.assert_called_once_with(wait_for_sentinel)
+        mock_nel.assert_not_called()
         mock_rcts.assert_not_called()
+        mock_browser_obj.close.assert_not_called()
+        assert mock_browser_obj._browser is None
+        assert mock_browser_obj._pw_cm is None
+        assert mock_browser_obj._pw is None
 
-    def test_atexit_close_else_branch_tolerates_timeout(self):
-        """_atexit_close else branch does not hang when close() exceeds 10s timeout."""
+    def test_atexit_close_drops_refs_when_launch_loop_is_none(self):
+        """_atexit_close drops references when _launch_loop was never set.
+
+        launch_loop=None means the browser was never launched (no asyncio state
+        to unwind).  Dropping refs is sufficient.
+        """
         import weakref
         from laughtrack.foundation.infrastructure.http.playwright_browser import _atexit_close
 
         mock_browser_obj = MagicMock()
         mock_browser_obj._browser = MagicMock()
-        mock_browser_obj._launch_loop = MagicMock()
-        mock_browser_obj._launch_loop.is_running.return_value = False
-
-        close_coro = MagicMock()
-        mock_browser_obj.close = MagicMock(return_value=close_coro)
-
-        new_loop = MagicMock()
-        new_loop.run_until_complete.side_effect = asyncio.TimeoutError()
+        mock_browser_obj._pw_cm = MagicMock()
+        mock_browser_obj._pw = MagicMock()
+        mock_browser_obj._launch_loop = None
+        mock_browser_obj.close = MagicMock()
 
         with (
-            patch("asyncio.new_event_loop", return_value=new_loop),
+            patch("asyncio.new_event_loop") as mock_nel,
             patch("asyncio.run_coroutine_threadsafe") as mock_rcts,
         ):
             ref = weakref.ref(mock_browser_obj)
-            _atexit_close(ref)  # must not raise
+            _atexit_close(ref)
 
-        new_loop.close.assert_called_once()  # finally block always runs
+        mock_nel.assert_not_called()
         mock_rcts.assert_not_called()
+        mock_browser_obj.close.assert_not_called()
+        assert mock_browser_obj._browser is None
+        assert mock_browser_obj._pw_cm is None
+        assert mock_browser_obj._pw is None
 
     def test_atexit_close_does_not_raise_when_future_times_out(self):
         """_atexit_close silently absorbs a TimeoutError from future.result()."""

@@ -235,14 +235,15 @@ def _atexit_close(browser_ref: "weakref.ref[PlaywrightBrowser]") -> None:
             except concurrent.futures.TimeoutError:
                 pass
         else:
-            # Original loop is done; a fresh loop is safe to use.
-            loop = asyncio.new_event_loop()
-            try:
-                loop.run_until_complete(asyncio.wait_for(browser.close(), timeout=10))
-            except asyncio.TimeoutError:
-                pass
-            finally:
-                loop.close()
+            # Original loop is done.  A fresh loop cannot await browser.close()
+            # because _browser_lock and Playwright's internal futures are still
+            # bound to the dead launch_loop — acquiring the lock would raise
+            # (or hang).  close() also short-circuits on loop mismatch now, so
+            # driving it through a new loop is pointless.  Drop references and
+            # let the OS reap Chromium at process exit.
+            browser._browser = None
+            browser._pw_cm = None
+            browser._pw = None
     except Exception:
         pass
 
@@ -332,43 +333,51 @@ class PlaywrightBrowser:
         If the current running loop differs from the loop the browser was
         launched on — which happens when a worker thread's ``asyncio.run()``
         creates the browser and the main loop later calls ``close_js_browser``
-        — the Playwright internals are bound to the (possibly closed) launch
-        loop and awaiting ``browser.close()`` from a different loop would
-        hang.  In that case we drop the references without awaiting and
-        return immediately.  The Chromium subprocess is then reaped by the OS
-        at Python process exit; ``_atexit_close`` cannot rescue it because
-        the launch loop is already closed (and awaiting its futures from a
-        new loop would itself hang).  This trade-off is acceptable for the
-        scraper's short-lived CLI invocations, where the process terminates
-        shortly after this path is taken.
+        — the Playwright internals *and* ``_browser_lock`` are bound to the
+        (possibly closed) launch loop.  Acquiring the lock from a different
+        loop raises ``RuntimeError('... bound to a different event loop')``
+        immediately, so the loop-mismatch check must run **before**
+        ``async with self._browser_lock``.  When mismatched we drop the
+        references without touching the lock and return.  The Chromium
+        subprocess is then reaped by the OS at Python process exit;
+        ``_atexit_close`` cannot rescue it because the launch loop is
+        already closed (and awaiting its futures from a new loop would
+        itself hang).  This trade-off is acceptable for the scraper's
+        short-lived CLI invocations, where the process terminates shortly
+        after this path is taken.
 
         Each shutdown step is bounded by an internal timeout so that one
         hung step (e.g. an unresponsive Node subprocess) cannot exhaust the
         outer ``close_js_browser`` budget — keeping the scraper teardown
         deterministic even when Playwright misbehaves.
         """
+        if self._browser is None and self._pw_cm is None:
+            return
+
+        try:
+            current_loop = asyncio.get_running_loop()
+        except RuntimeError:
+            current_loop = None
+
+        launch_loop = self._launch_loop
+        loop_mismatch = (
+            launch_loop is not None
+            and (launch_loop is not current_loop or launch_loop.is_closed())
+        )
+
+        if loop_mismatch:
+            # Playwright's connection futures and _browser_lock are both
+            # bound to launch_loop.  Acquiring the lock from a different
+            # loop raises RuntimeError; awaiting Playwright cross-loop
+            # would deadlock.  Drop references without touching the lock
+            # so scrape_shows' close_js_browser() can return cleanly.
+            self._browser = None
+            self._pw_cm = None
+            self._pw = None
+            return
+
         async with self._browser_lock:
             if self._browser is None and self._pw_cm is None:
-                return
-
-            try:
-                current_loop = asyncio.get_running_loop()
-            except RuntimeError:
-                current_loop = None
-
-            launch_loop = self._launch_loop
-            loop_mismatch = (
-                launch_loop is not None
-                and (launch_loop is not current_loop or launch_loop.is_closed())
-            )
-
-            if loop_mismatch:
-                # Playwright's connection futures are bound to launch_loop.
-                # Awaiting close() here would deadlock.  Let _atexit_close
-                # handle the subprocess teardown on a fresh loop.
-                self._browser = None
-                self._pw_cm = None
-                self._pw = None
                 return
 
             if self._browser is not None:
