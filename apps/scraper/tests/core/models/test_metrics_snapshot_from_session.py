@@ -49,6 +49,35 @@ def test_from_session_updates_only():
     assert snap.clubs.failed == 0
 
 
+def test_snapshot_roundtrip_preserves_structured_bot_block_fields():
+    stats = [
+        PerClubStat(
+            club="Club A",
+            num_shows=0,
+            execution_time=1.5,
+            success=True,
+            bot_block_detected=True,
+            bot_block_signature="datadome_captcha",
+            bot_block_provider="datadome",
+            bot_block_type="captcha",
+            bot_block_source="captcha_body",
+            bot_block_stage="direct_fetch",
+            playwright_fallback_used=False,
+        )
+    ]
+    session = ScrapingSessionResult(shows=[], errors=[], per_club_stats=stats)
+    snap = ScrapingMetricsSnapshot.from_session(session, DatabaseOperationResult(), dt=datetime.now(timezone.utc))
+
+    roundtrip = ScrapingMetricsSnapshot.from_dict(snap.to_full_json())
+
+    assert roundtrip is not None
+    club_stat = roundtrip.per_club_stats[0]
+    assert club_stat.bot_block_provider == "datadome"
+    assert club_stat.bot_block_type == "captcha"
+    assert club_stat.bot_block_source == "captcha_body"
+    assert club_stat.bot_block_stage == "direct_fetch"
+
+
 def test_from_session_with_duplicates():
     shows = [make_show(1)]
     stats = [PerClubStat(club="Club A", num_shows=1, execution_time=2.0, success=True)]

@@ -328,6 +328,10 @@ class TestPlaywrightBotBlockDiagnostic:
         assert diagnostics.bot_block_detected is True
         assert diagnostics.bot_block_signature == "playwright_just a moment"
         assert diagnostics.playwright_fallback_used is True
+        assert diagnostics.bot_block_provider == "cloudflare"
+        assert diagnostics.bot_block_type == "challenge"
+        assert diagnostics.bot_block_source == "playwright_rendered_html"
+        assert diagnostics.bot_block_stage == "playwright_fallback"
 
     @pytest.mark.asyncio
     async def test_fetch_json_records_prefixed_signature_when_playwright_blocked(self):
@@ -361,6 +365,10 @@ class TestPlaywrightBotBlockDiagnostic:
         assert result is None
         assert diagnostics.bot_block_detected is True
         assert diagnostics.bot_block_signature == "playwright_datadome"
+        assert diagnostics.bot_block_provider == "datadome"
+        assert diagnostics.bot_block_type == "interstitial"
+        assert diagnostics.bot_block_source == "playwright_rendered_html"
+        assert diagnostics.bot_block_stage == "playwright_fallback"
 
     @pytest.mark.asyncio
     async def test_no_prefixed_signature_when_playwright_returns_clean_content(self):

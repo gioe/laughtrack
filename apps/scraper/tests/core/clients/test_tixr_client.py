@@ -9,6 +9,11 @@ from laughtrack.core.clients.tixr.tixr_failure_monitor import FailureType
 from laughtrack.core.clients.base import BaseApiClient
 from laughtrack.core.entities.club.model import Club
 from laughtrack.foundation.infrastructure.http.client import HttpClient
+from laughtrack.foundation.infrastructure.http.diagnostics import (
+    ScrapeDiagnostics,
+    bind_diagnostics,
+    reset_diagnostics,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -225,6 +230,42 @@ class TestFetchTixrPage:
         # WARN must identify the captcha variant so triage can distinguish it
         # from a plain DataDome cookie block.
         assert any(FailureType.DATADOME_CAPTCHA.value in w for w in warnings)
+
+    @pytest.mark.asyncio
+    async def test_datadome_diagnostics_capture_structured_fields(self, monkeypatch, stub_base_init):
+        monkeypatch.setenv("PLAYWRIGHT_FALLBACK", "0")
+        client = TixrClient(_club())
+        client._failure_monitor = _RecordingMonitor()
+
+        class FakeResponse:
+            status_code = 200
+            text = (
+                "<html>DataDome captcha challenge from "
+                "https://geo.captcha-delivery.com/captcha/</html>"
+            )
+            headers: dict = {}
+
+        class Session(_FakeSession):
+            async def get(self, url, headers=None, proxies=None, **kwargs):
+                return FakeResponse()
+
+        monkeypatch.setattr(tixr_module, "AsyncSession", Session)
+        monkeypatch.setattr(client, "_apply_rate_limit", lambda url: _noop())
+        monkeypatch.setattr(client, "_get_impersonation_target", lambda url: "chrome124")
+
+        diagnostics = ScrapeDiagnostics()
+        token = bind_diagnostics(diagnostics)
+        try:
+            await client._fetch_tixr_page("https://tixr.com/groups/x")
+        finally:
+            reset_diagnostics(token)
+
+        assert diagnostics.bot_block_detected is True
+        assert diagnostics.bot_block_signature == FailureType.DATADOME_CAPTCHA.value
+        assert diagnostics.bot_block_provider == "datadome"
+        assert diagnostics.bot_block_type == "captcha"
+        assert diagnostics.bot_block_source == "captcha_body"
+        assert diagnostics.bot_block_stage == "direct_fetch"
 
     @pytest.mark.asyncio
     async def test_x_datadome_header_records_cookie_failure(self, monkeypatch, stub_base_init):

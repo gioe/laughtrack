@@ -97,6 +97,10 @@ class TestScrapeDiagnosticsFetchHtml:
         assert diagnostics.http_status == 200
         assert diagnostics.bot_block_detected is True
         assert diagnostics.bot_block_signature == "just a moment"
+        assert diagnostics.bot_block_provider == "cloudflare"
+        assert diagnostics.bot_block_type == "challenge"
+        assert diagnostics.bot_block_source == "response_body"
+        assert diagnostics.bot_block_stage == "direct_fetch"
 
     @pytest.mark.asyncio
     async def test_playwright_fallback_recorded_when_invoked(self):
@@ -121,6 +125,33 @@ class TestScrapeDiagnosticsFetchHtml:
 
         assert diagnostics.http_status == 403
         assert diagnostics.playwright_fallback_used is True
+
+    @pytest.mark.asyncio
+    async def test_playwright_bot_block_merges_stage_to_both(self):
+        session = AsyncMock()
+        session.get.return_value = _make_response(403, text="<html>datadome</html>")
+        mock_browser = MagicMock()
+        mock_browser.fetch_html = AsyncMock(
+            return_value="<html>DataDome captcha challenge from https://geo.captcha-delivery.com/captcha/</html>"
+        )
+
+        diagnostics = ScrapeDiagnostics()
+        token = bind_diagnostics(diagnostics)
+        try:
+            with patch(
+                "laughtrack.foundation.infrastructure.http.client._get_js_browser",
+                return_value=mock_browser,
+            ):
+                with patch("laughtrack.foundation.infrastructure.http.client.Logger.info"):
+                    with patch("laughtrack.foundation.infrastructure.http.client.Logger.warn"):
+                        await HttpClient.fetch_html(session, "https://example.com/")
+        finally:
+            reset_diagnostics(token)
+
+        assert diagnostics.bot_block_detected is True
+        assert diagnostics.bot_block_provider == "datadome"
+        assert diagnostics.bot_block_stage == "both"
+        assert diagnostics.bot_block_source == "response_body"
 
     @pytest.mark.asyncio
     async def test_no_recording_when_no_diagnostics_bound(self):
@@ -189,6 +220,8 @@ class TestScrapeDiagnosticsFetchJson:
         assert diagnostics.http_status == 403
         assert diagnostics.bot_block_detected is True
         assert diagnostics.bot_block_signature == "just a moment"
+        assert diagnostics.bot_block_provider == "cloudflare"
+        assert diagnostics.bot_block_type == "challenge"
 
 
 class TestItemsBeforeFilter:
