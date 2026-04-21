@@ -65,17 +65,19 @@ struct HomeView: View {
 
         ScrollView {
             VStack(alignment: .leading, spacing: theme.spacing.xl) {
-                VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
-                    Text("Discover")
-                        .font(laughTrack.typography.eyebrow)
-                        .foregroundStyle(laughTrack.colors.accentMuted)
-                        .textCase(.uppercase)
-                    Text("Shows, comedians, and clubs")
-                        .font(laughTrack.typography.hero)
-                        .foregroundStyle(laughTrack.colors.textInverse)
-                    Text("Browse the live API in native detail screens, then save favorite comedians wherever they appear.")
-                        .font(laughTrack.typography.body)
-                        .foregroundStyle(laughTrack.colors.textInverse.opacity(0.92))
+                LaughTrackCard(tone: .accent) {
+                    VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
+                        Text("Discover")
+                            .font(laughTrack.typography.eyebrow)
+                            .foregroundStyle(laughTrack.colors.textInverse.opacity(0.76))
+                            .textCase(.uppercase)
+                        Text("Shows, comedians, and clubs")
+                            .font(laughTrack.typography.hero)
+                            .foregroundStyle(laughTrack.colors.textInverse)
+                        Text("Browse the live API in native detail screens, then save favorite comedians wherever they appear.")
+                            .font(laughTrack.typography.body)
+                            .foregroundStyle(laughTrack.colors.textInverse.opacity(0.92))
+                    }
                 }
 
                 SessionBannerCard(signedOutMessage: signedOutMessage)
@@ -124,69 +126,112 @@ struct SettingsView: View {
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
-        List {
-            if let signedOutMessage {
-                Section {
-                    Text(signedOutMessage)
-                        .foregroundStyle(laughTrack.colors.accent)
-                }
-            }
+        ScrollView {
+            VStack(alignment: .leading, spacing: laughTrack.spacing.sectionGap) {
+                LaughTrackSectionHeader(
+                    eyebrow: "Settings",
+                    title: "Theme tokens in use",
+                    subtitle: "The reusable cards and buttons carry the same visual language as discovery and detail screens."
+                )
 
-            Section("Theme") {
-                HStack {
-                    Text("Canvas")
-                    Spacer()
-                    Circle()
-                        .fill(laughTrack.colors.canvas)
-                        .frame(width: 18, height: 18)
-                }
-                HStack {
-                    Text("Accent")
-                    Spacer()
-                    Circle()
-                        .fill(laughTrack.colors.accent)
-                        .frame(width: 18, height: 18)
-                }
-                HStack {
-                    Text("Motion")
-                    Spacer()
-                    Text("Spring")
-                        .font(laughTrack.typography.metadata)
-                        .foregroundStyle(laughTrack.colors.textSecondary)
-                }
-            }
-
-            if let session = authManager.currentSession {
-                Section("Account") {
-                    LabeledContent("Signed in with") {
-                        Text(session.provider?.displayName ?? "Saved session")
+                if let signedOutMessage {
+                    LaughTrackCard {
+                        Text(signedOutMessage)
+                            .font(laughTrack.typography.body)
+                            .foregroundStyle(laughTrack.colors.accentStrong)
                     }
-                    if let expiresAt = session.expiresAt {
-                        LabeledContent("Session expires") {
-                            Text(expiresAt.formatted(.dateTime.month().day().hour().minute()))
+                }
+
+                LaughTrackCard {
+                    VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
+                        tokenRow(title: "Canvas", color: laughTrack.colors.canvas)
+                        tokenRow(title: "Accent", color: laughTrack.colors.accent)
+                        tokenRow(title: "Highlight", color: laughTrack.colors.highlight)
+                    }
+                }
+
+                LaughTrackCard(tone: .muted) {
+                    VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
+                        Text("Motion")
+                            .font(laughTrack.typography.cardTitle)
+                            .foregroundStyle(laughTrack.colors.textPrimary)
+                        Text("Tap feedback and emphasis animations are sourced from the shared LaughTrack motion tokens.")
+                            .font(laughTrack.typography.body)
+                            .foregroundStyle(laughTrack.colors.textSecondary)
+                        Text("Spring emphasis")
+                            .font(laughTrack.typography.metadata)
+                            .foregroundStyle(laughTrack.colors.accent)
+                            .textCase(.uppercase)
+                    }
+                }
+
+                if let session = authManager.currentSession {
+                    LaughTrackSectionHeader(
+                        eyebrow: "Account",
+                        title: "Session details",
+                        subtitle: "Authentication state shares the same reusable card shell as the rest of the app."
+                    )
+
+                    LaughTrackCard {
+                        VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
+                            Text(session.provider?.displayName ?? "Saved session")
+                                .font(laughTrack.typography.cardTitle)
+                                .foregroundStyle(laughTrack.colors.textPrimary)
+                            Text(
+                                session.expiresAt.map {
+                                    "Session expires \($0.formatted(.dateTime.month().day().hour().minute()))."
+                                } ?? "Session expiration is not available."
+                            )
+                            .font(laughTrack.typography.body)
+                            .foregroundStyle(laughTrack.colors.textSecondary)
+
+                            LaughTrackButton(
+                                "Sign out",
+                                systemImage: "rectangle.portrait.and.arrow.right",
+                                tone: .destructive
+                            ) {
+                                Task {
+                                    await authManager.signOut()
+                                }
+                            }
                         }
                     }
+                } else {
+                    LaughTrackSectionHeader(
+                        eyebrow: "Sign in",
+                        title: "Connect your account",
+                        subtitle: "Apple and Google use the same token-backed button treatment as the rest of the component kit."
+                    )
 
-                    Button(role: .destructive) {
-                        Task {
-                            await authManager.signOut()
+                    VStack(spacing: theme.spacing.md) {
+                        ForEach(AuthProvider.allCases, id: \.self) { provider in
+                            AuthProviderButton(provider: provider)
                         }
-                    } label: {
-                        Text("Sign out")
-                    }
-                }
-            } else {
-                Section("Sign in") {
-                    ForEach(AuthProvider.allCases, id: \.self) { provider in
-                        AuthProviderButton(provider: provider)
-                            .listRowBackground(laughTrack.colors.canvas)
                     }
                 }
             }
+            .padding(.horizontal, theme.spacing.xl)
+            .padding(.vertical, laughTrack.spacing.heroPadding)
         }
-        .scrollContentBackground(.hidden)
-        .background(laughTrack.colors.canvas)
+        .background(laughTrack.colors.canvas.ignoresSafeArea())
         .navigationTitle("Settings")
+    }
+
+    @ViewBuilder
+    private func tokenRow(title: String, color: Color) -> some View {
+        HStack {
+            Text(title)
+                .font(theme.laughTrackTokens.typography.bodyEmphasis)
+                .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
+            Spacer()
+            Circle()
+                .fill(color)
+                .frame(width: 20, height: 20)
+                .overlay(
+                    Circle()
+                        .stroke(theme.laughTrackTokens.colors.borderSubtle, lineWidth: 1)
+                )
+        }
     }
 }
 
@@ -199,41 +244,34 @@ private struct SessionBannerCard: View {
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
-        VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
-            Text(authManager.currentSession == nil ? "Browsing as guest" : "Signed in")
-                .font(laughTrack.typography.metadata)
-                .foregroundStyle(laughTrack.colors.textSecondary)
-                .textCase(.uppercase)
+        LaughTrackCard {
+            VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
+                Text(authManager.currentSession == nil ? "Browsing as guest" : "Signed in")
+                    .font(laughTrack.typography.metadata)
+                    .foregroundStyle(laughTrack.colors.textSecondary)
+                    .textCase(.uppercase)
 
-            if let session = authManager.currentSession {
-                Text(session.provider?.displayName ?? "Saved mobile session")
-                    .font(laughTrack.typography.cardTitle)
-                    .foregroundStyle(laughTrack.colors.textPrimary)
-                Text(
-                    session.expiresAt.map {
-                        "Favorite actions are enabled. Your session expires \($0.formatted(.dateTime.month().day().hour().minute()))."
-                    } ?? "Favorite actions are enabled for this session."
-                )
-                .font(laughTrack.typography.body)
-                .foregroundStyle(laughTrack.colors.textSecondary)
-            } else {
-                Text("Discovery stays open even when you’re signed out.")
-                    .font(laughTrack.typography.cardTitle)
-                    .foregroundStyle(laughTrack.colors.textPrimary)
-                Text(signedOutMessage ?? "Open Settings when you want to connect Apple or Google and save comedians.")
+                if let session = authManager.currentSession {
+                    Text(session.provider?.displayName ?? "Saved mobile session")
+                        .font(laughTrack.typography.cardTitle)
+                        .foregroundStyle(laughTrack.colors.textPrimary)
+                    Text(
+                        session.expiresAt.map {
+                            "Favorite actions are enabled. Your session expires \($0.formatted(.dateTime.month().day().hour().minute()))."
+                        } ?? "Favorite actions are enabled for this session."
+                    )
                     .font(laughTrack.typography.body)
                     .foregroundStyle(laughTrack.colors.textSecondary)
+                } else {
+                    Text("Discovery stays open even when you’re signed out.")
+                        .font(laughTrack.typography.cardTitle)
+                        .foregroundStyle(laughTrack.colors.textPrimary)
+                    Text(signedOutMessage ?? "Open Settings when you want to connect Apple or Google and save comedians.")
+                        .font(laughTrack.typography.body)
+                        .foregroundStyle(laughTrack.colors.textSecondary)
+                }
             }
         }
-        .padding(theme.spacing.xl)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(laughTrack.colors.surfaceElevated)
-        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
-                .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
-        )
-        .shadowStyle(laughTrack.shadows.card)
     }
 }
 
@@ -251,30 +289,24 @@ private struct AuthProviderButton: View {
                 await authManager.signIn(with: provider)
             }
         } label: {
-            HStack(spacing: theme.spacing.md) {
-                Image(systemName: provider.symbolName)
-                    .font(.system(size: theme.iconSizes.md, weight: .semibold))
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(provider.title)
-                        .font(laughTrack.typography.action)
-                    Text(provider.subtitle)
-                        .font(laughTrack.typography.metadata)
+            LaughTrackCard {
+                HStack(spacing: theme.spacing.md) {
+                    Image(systemName: provider.symbolName)
+                        .font(.system(size: theme.iconSizes.md, weight: .semibold))
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(provider.title)
+                            .font(laughTrack.typography.action)
+                        Text(provider.subtitle)
+                            .font(laughTrack.typography.metadata)
+                            .foregroundStyle(laughTrack.colors.textSecondary)
+                    }
+                    Spacer()
+                    Image(systemName: "arrow.up.right")
+                        .font(.system(size: theme.iconSizes.sm, weight: .semibold))
                         .foregroundStyle(laughTrack.colors.textSecondary)
                 }
-                Spacer()
-                Image(systemName: "arrow.up.right")
-                    .font(.system(size: theme.iconSizes.sm, weight: .semibold))
-                    .foregroundStyle(laughTrack.colors.textSecondary)
+                .foregroundStyle(laughTrack.colors.textPrimary)
             }
-            .foregroundStyle(laughTrack.colors.textPrimary)
-            .padding(theme.spacing.lg)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(laughTrack.colors.surfaceElevated)
-            .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
-                    .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
-            )
         }
         .buttonStyle(.plain)
     }
@@ -286,18 +318,16 @@ private struct AuthLoadingView: View {
     let message: String
 
     var body: some View {
-        let laughTrack = theme.laughTrackTokens
-
-        VStack(spacing: theme.spacing.lg) {
-            ProgressView()
-                .progressViewStyle(.circular)
-                .tint(laughTrack.colors.accent)
-            Text(message)
-                .font(laughTrack.typography.body)
-                .foregroundStyle(laughTrack.colors.textPrimary)
+        VStack {
+            LaughTrackStateView(
+                tone: .loading,
+                title: "Loading LaughTrack",
+                message: message
+            )
+            .padding(theme.spacing.xl)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(laughTrack.colors.canvas.ignoresSafeArea())
+        .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
     }
 }
 
