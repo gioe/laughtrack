@@ -298,6 +298,26 @@ The `TixrScraper` fetches the page, extracts all Tixr URLs (both short-form and 
 - `haha_comedy_club`: Webflow calendar with JSON-LD Event blocks (name, date, performer, ticket URL) + time in `<div class="month day time">` — see `scrapers/implementations/venues/haha_comedy_club/`
 - `laugh_boston`: Pixl Calendar API response includes all show data (title, start, timezone, sales) — `LaughBostonEventExtractor.parse_events_from_pixl()` builds `TixrEvent` objects directly
 
+**Decision notes — should HAHA / Laugh Boston become generic `tixr` with fallback?**
+
+`TixrScraper` is generic only when the upstream page can be treated as:
+1. fetch calendar HTML
+2. extract Tixr URLs
+3. fetch each Tixr event page
+4. parse JSON-LD from the Tixr event page
+
+Both `haha_comedy_club` and `laugh_boston` intentionally break step 3 because the upstream source already contains the show data that generic `tixr` would otherwise try to recover from Tixr event pages.
+
+- `haha_comedy_club` should stay custom for now. The Webflow calendar page already contains one JSON-LD `Event` block per show plus the start time in nearby HTML, and the linked short-form `tixr.com/e/{id}` pages hit 100% HTTP 403 failure in the 2026-04-01 nightly run. Generic `tixr` can extract the ticket URLs from the page, but it cannot recover when the per-event Tixr fetch is blocked. Supporting HAHA as "generic `tixr` with fallback" would require a new fallback contract that can build `TixrEvent` objects directly from venue-page markup after URL extraction fails.
+- `laugh_boston` should stay custom for now. The Pixl Calendar API became the source because the homepage-based Tixr flow only surfaced a small subset of shows, and the Pixl endpoint returns the full catalogue plus the fields needed to build `Show`/`TixrEvent` objects directly. Generic `tixr` does not operate on JSON feeds and still assumes per-event Tixr page fetches; modeling Laugh Boston as "`tixr` with fallback" would really mean teaching the generic scraper to accept a non-HTML upstream feed and a direct-event parser, which is broader than a Tixr-only fallback.
+
+**Shared fallback behavior missing from generic `tixr`:**
+- A way to short-circuit per-event Tixr page fetches when the source page/feed already includes enough structured event data to build `TixrEvent` objects directly
+- A source-specific parser hook for turning that structured venue data into `TixrEvent` objects
+- Clear selection rules for when to trust direct upstream data vs. the Tixr event page as the source of truth
+
+**Recommendation:** keep both clubs on custom scrapers today. The only generic change worth considering is a narrow extension point on `TixrScraper` for "direct event fallback" sources, but only if more clubs appear with the same high-level shape: Tixr ticket URLs plus complete upstream event data. Even then, the shared abstraction should stop at the control flow ("use direct event data instead of per-event Tixr fetches") and not try to unify HAHA's Webflow HTML parsing with Laugh Boston's Pixl API parsing into one parser implementation.
+
 **Short URL format:** Tixr event links appear in two formats:
 1. **Long form**: `https://www.tixr.com/groups/{group}/events/{slug}-{id}` — regex: `r"https?://[^\s\"]*tixr\.com/[^\s\"]*/events/[^\s\"]*"`
 2. **Short form**: `https://tixr.com/e/{id}` — regex: `r"https?://(?:www\.)?tixr\.com/e/(\d+)"`
