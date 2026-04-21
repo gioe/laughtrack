@@ -65,20 +65,11 @@ struct HomeView: View {
 
         ScrollView {
             VStack(alignment: .leading, spacing: theme.spacing.xl) {
-                LaughTrackCard(tone: .accent) {
-                    VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
-                        Text("Discover")
-                            .font(laughTrack.typography.eyebrow)
-                            .foregroundStyle(laughTrack.colors.textInverse.opacity(0.76))
-                            .textCase(.uppercase)
-                        Text("Shows, comedians, and clubs")
-                            .font(laughTrack.typography.hero)
-                            .foregroundStyle(laughTrack.colors.textInverse)
-                        Text("Browse the live API in native detail screens, then save favorite comedians wherever they appear.")
-                            .font(laughTrack.typography.body)
-                            .foregroundStyle(laughTrack.colors.textInverse.opacity(0.92))
-                    }
-                }
+                LaughTrackSectionHeader(
+                    eyebrow: "Discovery",
+                    title: "Find comedy shows nearby",
+                    subtitle: "Browse live show results first, then refine by comedian, club, location, date, and sort without leaving the home screen."
+                )
 
                 SessionBannerCard(signedOutMessage: signedOutMessage)
 
@@ -102,7 +93,7 @@ struct HomeView: View {
                 } label: {
                     Image(systemName: authManager.currentSession == nil ? "person.crop.circle.badge.plus" : "gearshape")
                 }
-                .accessibilityLabel("Open settings")
+                .accessibilityLabel("Settings")
             }
         }
         .modifier(LaughTrackNavigationChrome(background: laughTrack.colors.canvas))
