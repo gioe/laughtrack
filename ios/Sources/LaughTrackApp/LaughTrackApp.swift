@@ -73,7 +73,7 @@ struct LaughTrackApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(apiClient: apiClient)
                 .environment(\.appTheme, LaughTrackTheme())
                 .environment(\.serviceContainer, container)
                 .navigationCoordinator(coordinator)
