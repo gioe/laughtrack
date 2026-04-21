@@ -34,6 +34,16 @@ private enum LoadPhase<Value> {
     case failure(String)
 }
 
+private struct DiscoverySearchPage<Item> {
+    let items: [Item]
+    let total: Int
+    let page: Int
+
+    var canLoadMore: Bool {
+        items.count < total
+    }
+}
+
 @MainActor
 final class ComedianFavoriteStore: ObservableObject {
     enum ToggleResult {
@@ -125,11 +135,268 @@ final class ComedianFavoriteStore: ObservableObject {
     }
 }
 
+@MainActor
+private final class ComediansDiscoveryModel: ObservableObject {
+    private static let pageSize = 20
+
+    @Published var searchText = ""
+    @Published private(set) var phase: LoadPhase<DiscoverySearchPage<Components.Schemas.ComedianSearchItem>> = .idle
+    @Published private(set) var isLoadingMore = false
+
+    private var loadedQuery: String?
+    private var loadingQuery: String?
+
+    func reload(apiClient: Client, favorites: ComedianFavoriteStore) async {
+        let query = normalizedQuery
+
+        if loadedQuery == query, case .success = phase {
+            return
+        }
+
+        if loadingQuery == query, case .loading = phase {
+            return
+        }
+
+        await load(page: 0, query: query, apiClient: apiClient, favorites: favorites, resetResults: true)
+    }
+
+    func loadMore(apiClient: Client, favorites: ComedianFavoriteStore) async {
+        guard case .success(let current) = phase, current.canLoadMore, !isLoadingMore else { return }
+        await load(page: current.page + 1, query: normalizedQuery, apiClient: apiClient, favorites: favorites, resetResults: false)
+    }
+
+    private var normalizedQuery: String {
+        searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func load(
+        page: Int,
+        query: String,
+        apiClient: Client,
+        favorites: ComedianFavoriteStore,
+        resetResults: Bool
+    ) async {
+        let existingItems = currentItems
+
+        if resetResults {
+            loadingQuery = query
+            phase = .loading
+            if !query.isEmpty {
+                try? await Task.sleep(for: .milliseconds(250))
+                guard !Task.isCancelled else { return }
+            }
+        } else {
+            isLoadingMore = true
+        }
+
+        defer {
+            if resetResults {
+                loadingQuery = nil
+            } else {
+                isLoadingMore = false
+            }
+        }
+
+        do {
+            let output = try await apiClient.searchComedians(
+                .init(
+                    query: .init(
+                        comedian: query.nonEmpty,
+                        page: page,
+                        size: Self.pageSize
+                    ),
+                    headers: .init(xTimezone: TimeZone.current.identifier)
+                )
+            )
+
+            switch output {
+            case .ok(let ok):
+                let response = try ok.body.json
+                let items = response.data.map { comedian in
+                    favorites.seed(uuid: comedian.uuid, value: comedian.isFavorite)
+                    return comedian
+                }
+                phase = .success(
+                    .init(
+                        items: resetResults ? items : existingItems + items,
+                        total: response.total,
+                        page: page
+                    )
+                )
+                loadedQuery = query
+            case .internalServerError, .undocumented:
+                phase = fallbackPage(query: query, page: page, existingItems: existingItems, resetResults: resetResults)
+                loadedQuery = query
+            }
+        } catch {
+            guard !Task.isCancelled else { return }
+            phase = fallbackPage(query: query, page: page, existingItems: existingItems, resetResults: resetResults)
+            loadedQuery = query
+        }
+    }
+
+    private var currentItems: [Components.Schemas.ComedianSearchItem] {
+        guard case .success(let current) = phase else { return [] }
+        return current.items
+    }
+
+    private func fallbackPage(
+        query: String,
+        page: Int,
+        existingItems: [Components.Schemas.ComedianSearchItem],
+        resetResults: Bool
+    ) -> LoadPhase<DiscoverySearchPage<Components.Schemas.ComedianSearchItem>> {
+        let allItems = DemoFixtures.comedians(matching: query)
+        let slice = Self.paginate(allItems, page: page)
+        return .success(
+            .init(
+                items: resetResults ? slice : existingItems + slice,
+                total: allItems.count,
+                page: page
+            )
+        )
+    }
+
+    private static func paginate<Item>(_ items: [Item], page: Int) -> [Item] {
+        let start = min(page * pageSize, items.count)
+        let end = min(start + pageSize, items.count)
+        guard start < end else { return [] }
+        return Array(items[start..<end])
+    }
+}
+
+@MainActor
+private final class ClubsDiscoveryModel: ObservableObject {
+    private static let pageSize = 20
+
+    @Published var searchText = ""
+    @Published private(set) var phase: LoadPhase<DiscoverySearchPage<Components.Schemas.ClubSearchItem>> = .idle
+    @Published private(set) var isLoadingMore = false
+
+    private var loadedQuery: String?
+    private var loadingQuery: String?
+
+    func reload(apiClient: Client) async {
+        let query = normalizedQuery
+
+        if loadedQuery == query, case .success = phase {
+            return
+        }
+
+        if loadingQuery == query, case .loading = phase {
+            return
+        }
+
+        await load(page: 0, query: query, apiClient: apiClient, resetResults: true)
+    }
+
+    func loadMore(apiClient: Client) async {
+        guard case .success(let current) = phase, current.canLoadMore, !isLoadingMore else { return }
+        await load(page: current.page + 1, query: normalizedQuery, apiClient: apiClient, resetResults: false)
+    }
+
+    private var normalizedQuery: String {
+        searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func load(
+        page: Int,
+        query: String,
+        apiClient: Client,
+        resetResults: Bool
+    ) async {
+        let existingItems = currentItems
+
+        if resetResults {
+            loadingQuery = query
+            phase = .loading
+            if !query.isEmpty {
+                try? await Task.sleep(for: .milliseconds(250))
+                guard !Task.isCancelled else { return }
+            }
+        } else {
+            isLoadingMore = true
+        }
+
+        defer {
+            if resetResults {
+                loadingQuery = nil
+            } else {
+                isLoadingMore = false
+            }
+        }
+
+        do {
+            let output = try await apiClient.searchClubs(
+                .init(
+                    query: .init(
+                        club: query.nonEmpty,
+                        page: page,
+                        size: Self.pageSize
+                    ),
+                    headers: .init(xTimezone: TimeZone.current.identifier)
+                )
+            )
+
+            switch output {
+            case .ok(let ok):
+                let response = try ok.body.json
+                phase = .success(
+                    .init(
+                        items: resetResults ? response.data : existingItems + response.data,
+                        total: response.total,
+                        page: page
+                    )
+                )
+                loadedQuery = query
+            case .internalServerError, .undocumented:
+                phase = fallbackPage(query: query, page: page, existingItems: existingItems, resetResults: resetResults)
+                loadedQuery = query
+            }
+        } catch {
+            guard !Task.isCancelled else { return }
+            phase = fallbackPage(query: query, page: page, existingItems: existingItems, resetResults: resetResults)
+            loadedQuery = query
+        }
+    }
+
+    private var currentItems: [Components.Schemas.ClubSearchItem] {
+        guard case .success(let current) = phase else { return [] }
+        return current.items
+    }
+
+    private func fallbackPage(
+        query: String,
+        page: Int,
+        existingItems: [Components.Schemas.ClubSearchItem],
+        resetResults: Bool
+    ) -> LoadPhase<DiscoverySearchPage<Components.Schemas.ClubSearchItem>> {
+        let allItems = DemoFixtures.clubs(matching: query)
+        let slice = Self.paginate(allItems, page: page)
+        return .success(
+            .init(
+                items: resetResults ? slice : existingItems + slice,
+                total: allItems.count,
+                page: page
+            )
+        )
+    }
+
+    private static func paginate<Item>(_ items: [Item], page: Int) -> [Item] {
+        let start = min(page * pageSize, items.count)
+        let end = min(start + pageSize, items.count)
+        guard start < end else { return [] }
+        return Array(items[start..<end])
+    }
+}
+
 struct DiscoveryHubView: View {
     let apiClient: Client
 
     @Environment(\.appTheme) private var theme
     @State private var selection: DiscoverySection = .shows
+    @StateObject private var comediansModel = ComediansDiscoveryModel()
+    @StateObject private var clubsModel = ClubsDiscoveryModel()
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
@@ -146,13 +413,15 @@ struct DiscoveryHubView: View {
                 .font(laughTrack.typography.body)
                 .foregroundStyle(laughTrack.colors.textSecondary)
 
-            switch selection {
-            case .shows:
-                ShowsDiscoveryView(apiClient: apiClient)
-            case .comedians:
-                ComediansDiscoveryView(apiClient: apiClient)
-            case .clubs:
-                ClubsDiscoveryView(apiClient: apiClient)
+            Group {
+                switch selection {
+                case .shows:
+                    ShowsDiscoveryView(apiClient: apiClient)
+                case .comedians:
+                    ComediansDiscoveryView(apiClient: apiClient, model: comediansModel)
+                case .clubs:
+                    ClubsDiscoveryView(apiClient: apiClient, model: clubsModel)
+                }
             }
         }
     }
@@ -223,12 +492,11 @@ private struct ShowsDiscoveryView: View {
 
 private struct ComediansDiscoveryView: View {
     let apiClient: Client
+    @ObservedObject var model: ComediansDiscoveryModel
 
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var favorites: ComedianFavoriteStore
-    @State private var searchText = ""
-    @State private var phase: LoadPhase<[Components.Schemas.ComedianSearchItem]> = .idle
     @State private var feedbackMessage: String?
 
     var body: some View {
@@ -237,20 +505,26 @@ private struct ComediansDiscoveryView: View {
                 SearchField(
                     title: "Comedian name",
                     prompt: "Mark Normand, Atsuko Okatsuka…",
-                    text: $searchText
+                    text: $model.searchText
                 )
 
-                switch phase {
+                switch model.phase {
                 case .idle, .loading:
                     LoadingCard()
                 case .failure(let message):
-                    ErrorCard(message: message, retry: load)
-                case .success(let comedians):
-                    if comedians.isEmpty {
-                        EmptyCard(message: searchText.isEmpty ? "No comedians are available right now." : "No comedians matched \"\(searchText)\".")
+                    ErrorCard(message: message) {
+                        Task {
+                            await model.reload(apiClient: apiClient, favorites: favorites)
+                        }
+                    }
+                case .success(let result):
+                    if result.items.isEmpty {
+                        EmptyCard(message: model.searchText.isEmpty ? "No comedians are available right now." : "No comedians matched \"\(model.searchText)\".")
                     } else {
                         VStack(spacing: 12) {
-                            ForEach(comedians, id: \.uuid) { comedian in
+                            SearchResultsSummary(count: result.items.count, total: result.total)
+
+                            ForEach(result.items, id: \.uuid) { comedian in
                                 ComedianRow(
                                     comedian: comedian,
                                     apiClient: apiClient,
@@ -258,13 +532,22 @@ private struct ComediansDiscoveryView: View {
                                     openDetail: { coordinator.push(.comedianDetail(comedian.id)) }
                                 )
                             }
+
+                            if result.canLoadMore {
+                                LoadMoreButton(
+                                    title: "Load more comedians",
+                                    isLoading: model.isLoadingMore
+                                ) {
+                                    await model.loadMore(apiClient: apiClient, favorites: favorites)
+                                }
+                            }
                         }
                     }
                 }
             }
         }
-        .task(id: searchText) {
-            await load()
+        .task(id: model.searchText) {
+            await model.reload(apiClient: apiClient, favorites: favorites)
         }
         .alert("Favorites", isPresented: .constant(feedbackMessage != nil), actions: {
             Button("OK") {
@@ -274,74 +557,13 @@ private struct ComediansDiscoveryView: View {
             Text(feedbackMessage ?? "")
         })
     }
-
-    private func load() async {
-        phase = .loading
-        if !searchText.isEmpty {
-            try? await Task.sleep(for: .milliseconds(250))
-            guard !Task.isCancelled else { return }
-        }
-
-        do {
-            if searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                let output = try await apiClient.listComedians(.init(query: .init(limit: 20)))
-
-                switch output {
-                case .ok(let ok):
-                    let items = try ok.body.json.data.map {
-                        favorites.seed(uuid: $0.uuid, value: nil)
-                        return Components.Schemas.ComedianSearchItem(
-                            id: $0.id,
-                            uuid: $0.uuid,
-                            name: $0.name,
-                            imageUrl: $0.imageUrl,
-                            socialData: $0.socialData,
-                            showCount: $0.showCount,
-                            isFavorite: favorites.value(for: $0.uuid)
-                        )
-                    }
-                    phase = .success(items)
-                case .badRequest:
-                    phase = .success(DemoFixtures.comedians(matching: searchText))
-                case .internalServerError:
-                    phase = .success(DemoFixtures.comedians(matching: searchText))
-                case .undocumented:
-                    phase = .success(DemoFixtures.comedians(matching: searchText))
-                }
-            } else {
-                let output = try await apiClient.searchComedians(
-                    .init(
-                        query: .init(comedian: searchText, size: 20),
-                        headers: .init(xTimezone: TimeZone.current.identifier)
-                    )
-                )
-
-                switch output {
-                case .ok(let ok):
-                    let items = try ok.body.json.data
-                    for comedian in items {
-                        favorites.seed(uuid: comedian.uuid, value: comedian.isFavorite)
-                    }
-                    phase = .success(items)
-                case .internalServerError:
-                    phase = .success(DemoFixtures.comedians(matching: searchText))
-                case .undocumented:
-                    phase = .success(DemoFixtures.comedians(matching: searchText))
-                }
-            }
-        } catch {
-            guard !Task.isCancelled else { return }
-            phase = .success(DemoFixtures.comedians(matching: searchText))
-        }
-    }
 }
 
 private struct ClubsDiscoveryView: View {
     let apiClient: Client
+    @ObservedObject var model: ClubsDiscoveryModel
 
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
-    @State private var searchText = ""
-    @State private var phase: LoadPhase<[Components.Schemas.ClubSearchItem]> = .idle
 
     var body: some View {
         DiscoveryCard(title: "Search clubs") {
@@ -349,20 +571,26 @@ private struct ClubsDiscoveryView: View {
                 SearchField(
                     title: "Club name",
                     prompt: "Comedy Cellar, The Stand…",
-                    text: $searchText
+                    text: $model.searchText
                 )
 
-                switch phase {
+                switch model.phase {
                 case .idle, .loading:
                     LoadingCard()
                 case .failure(let message):
-                    ErrorCard(message: message, retry: load)
-                case .success(let clubs):
-                    if clubs.isEmpty {
-                        EmptyCard(message: searchText.isEmpty ? "No clubs are available right now." : "No clubs matched \"\(searchText)\".")
+                    ErrorCard(message: message) {
+                        Task {
+                            await model.reload(apiClient: apiClient)
+                        }
+                    }
+                case .success(let result):
+                    if result.items.isEmpty {
+                        EmptyCard(message: model.searchText.isEmpty ? "No clubs are available right now." : "No clubs matched \"\(model.searchText)\".")
                     } else {
                         VStack(spacing: 12) {
-                            ForEach(Array(clubs.enumerated()), id: \.offset) { _, club in
+                            SearchResultsSummary(count: result.items.count, total: result.total)
+
+                            ForEach(Array(result.items.enumerated()), id: \.offset) { _, club in
                                 Button {
                                     if let id = club.id {
                                         coordinator.push(.clubDetail(id))
@@ -373,76 +601,22 @@ private struct ClubsDiscoveryView: View {
                                 .buttonStyle(.plain)
                                 .disabled(club.id == nil)
                             }
+
+                            if result.canLoadMore {
+                                LoadMoreButton(
+                                    title: "Load more clubs",
+                                    isLoading: model.isLoadingMore
+                                ) {
+                                    await model.loadMore(apiClient: apiClient)
+                                }
+                            }
                         }
                     }
                 }
             }
         }
-        .task(id: searchText) {
-            await load()
-        }
-    }
-
-    private func load() async {
-        phase = .loading
-        if !searchText.isEmpty {
-            try? await Task.sleep(for: .milliseconds(250))
-            guard !Task.isCancelled else { return }
-        }
-
-        do {
-            if searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                let output = try await apiClient.listClubs(.init(query: .init(limit: 20)))
-
-                switch output {
-                case .ok(let ok):
-                    let items = try ok.body.json.data.map {
-                        Components.Schemas.ClubSearchItem(
-                            id: $0.id,
-                            address: $0.address,
-                            name: $0.name,
-                            zipCode: $0.zipCode,
-                            imageUrl: $0.imageUrl,
-                            showCount: nil,
-                            isFavorite: nil,
-                            city: nil,
-                            state: nil,
-                            phoneNumber: nil,
-                            socialData: nil,
-                            activeComedianCount: $0.activeComedianCount,
-                            distanceMiles: nil
-                        )
-                    }
-                    phase = .success(items)
-                case .badRequest:
-                    phase = .success(DemoFixtures.clubs(matching: searchText))
-                case .tooManyRequests:
-                    phase = .success(DemoFixtures.clubs(matching: searchText))
-                case .internalServerError:
-                    phase = .success(DemoFixtures.clubs(matching: searchText))
-                case .undocumented:
-                    phase = .success(DemoFixtures.clubs(matching: searchText))
-                }
-            } else {
-                let output = try await apiClient.searchClubs(
-                    .init(
-                        query: .init(club: searchText, size: 20),
-                        headers: .init(xTimezone: TimeZone.current.identifier)
-                    )
-                )
-
-                switch output {
-                case .ok(let ok):
-                    phase = .success(try ok.body.json.data)
-                case .internalServerError:
-                    phase = .success(DemoFixtures.clubs(matching: searchText))
-                case .undocumented:
-                    phase = .success(DemoFixtures.clubs(matching: searchText))
-                }
-            }
-        } catch {
-            guard !Task.isCancelled else { return }
-            phase = .success(DemoFixtures.clubs(matching: searchText))
+        .task(id: model.searchText) {
+            await model.reload(apiClient: apiClient)
         }
     }
 }
@@ -1077,6 +1251,47 @@ private struct SearchField: View {
                     .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
             )
         }
+    }
+}
+
+private struct SearchResultsSummary: View {
+    @Environment(\.appTheme) private var theme
+
+    let count: Int
+    let total: Int
+
+    var body: some View {
+        Text("Showing \(count) of \(total)")
+            .font(theme.laughTrackTokens.typography.metadata)
+            .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
+    }
+}
+
+private struct LoadMoreButton: View {
+    @Environment(\.appTheme) private var theme
+
+    let title: String
+    let isLoading: Bool
+    let action: () async -> Void
+
+    var body: some View {
+        Button {
+            Task {
+                await action()
+            }
+        } label: {
+            HStack(spacing: 8) {
+                if isLoading {
+                    ProgressView()
+                        .progressViewStyle(.circular)
+                }
+                Text(isLoading ? "Loading…" : title)
+            }
+            .font(theme.laughTrackTokens.typography.action)
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.borderedProminent)
+        .disabled(isLoading)
     }
 }
 
