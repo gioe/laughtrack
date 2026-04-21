@@ -28,6 +28,10 @@ class ClubScrapingResult:
     http_status: Optional[int] = None
     bot_block_detected: bool = False
     bot_block_signature: Optional[str] = None
+    bot_block_provider: Optional[str] = None
+    bot_block_type: Optional[str] = None
+    bot_block_source: Optional[str] = None
+    bot_block_stage: Optional[str] = None
     playwright_fallback_used: bool = False
     items_before_filter: Optional[int] = None
 

@@ -52,6 +52,10 @@ class ScrapingMetricsSnapshot:
                     http_status=d.get("http_status"),
                     bot_block_detected=bool(d.get("bot_block_detected", False)),
                     bot_block_signature=d.get("bot_block_signature"),
+                    bot_block_provider=d.get("bot_block_provider"),
+                    bot_block_type=d.get("bot_block_type"),
+                    bot_block_source=d.get("bot_block_source"),
+                    bot_block_stage=d.get("bot_block_stage"),
                     playwright_fallback_used=bool(d.get("playwright_fallback_used", False)),
                     items_before_filter=d.get("items_before_filter"),
                 )

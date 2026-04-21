@@ -84,6 +84,15 @@ def build_sessions_payload(metrics: List[Dict[str, Any]]) -> List[Dict[str, Any]
                     "validation_failed": s.validation_failed,
                     "db_errors": s.db_errors,
                     "error_details": err_by_club.get(club_name, []),
+                    "http_status": s.http_status,
+                    "bot_block_detected": s.bot_block_detected,
+                    "bot_block_signature": s.bot_block_signature,
+                    "bot_block_provider": s.bot_block_provider,
+                    "bot_block_type": s.bot_block_type,
+                    "bot_block_source": s.bot_block_source,
+                    "bot_block_stage": s.bot_block_stage,
+                    "playwright_fallback_used": s.playwright_fallback_used,
+                    "items_before_filter": s.items_before_filter,
                 }
             )
         known = {c["club"] for c in clubs_list}
@@ -106,6 +115,15 @@ def build_sessions_payload(metrics: List[Dict[str, Any]]) -> List[Dict[str, Any]
                         "validation_failed": None,
                         "db_errors": None,
                         "error_details": msgs,
+                        "http_status": None,
+                        "bot_block_detected": False,
+                        "bot_block_signature": None,
+                        "bot_block_provider": None,
+                        "bot_block_type": None,
+                        "bot_block_source": None,
+                        "bot_block_stage": None,
+                        "playwright_fallback_used": False,
+                        "items_before_filter": None,
                     }
                 )
         totals = {

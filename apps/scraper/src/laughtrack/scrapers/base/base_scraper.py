@@ -433,6 +433,10 @@ class BaseScraper(HttpConvenienceMixin, ABC):
                     http_status=diagnostics.http_status,
                     bot_block_detected=diagnostics.bot_block_detected,
                     bot_block_signature=diagnostics.bot_block_signature,
+                    bot_block_provider=diagnostics.bot_block_provider,
+                    bot_block_type=diagnostics.bot_block_type,
+                    bot_block_source=diagnostics.bot_block_source,
+                    bot_block_stage=diagnostics.bot_block_stage,
                     playwright_fallback_used=diagnostics.playwright_fallback_used,
                     items_before_filter=diagnostics.items_before_filter,
                 )
@@ -453,6 +457,10 @@ class BaseScraper(HttpConvenienceMixin, ABC):
                     http_status=diagnostics.http_status,
                     bot_block_detected=diagnostics.bot_block_detected,
                     bot_block_signature=diagnostics.bot_block_signature,
+                    bot_block_provider=diagnostics.bot_block_provider,
+                    bot_block_type=diagnostics.bot_block_type,
+                    bot_block_source=diagnostics.bot_block_source,
+                    bot_block_stage=diagnostics.bot_block_stage,
                     playwright_fallback_used=diagnostics.playwright_fallback_used,
                     items_before_filter=diagnostics.items_before_filter,
                 )

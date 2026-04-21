@@ -269,6 +269,16 @@ class TixrClient(BaseApiClient):
 
         datadome_type = self._classify_datadome(response_headers, body)
         if datadome_type is not None:
+            if diagnostics is not None:
+                diagnostics.record_bot_block(
+                    datadome_type.value,
+                    provider="datadome",
+                    block_type=(
+                        "captcha" if datadome_type is FailureType.DATADOME_CAPTCHA else "cookie"
+                    ),
+                    source=self._datadome_source(response_headers, body),
+                    stage="direct_fetch",
+                )
             self.log_warning(
                 f"Tixr group-page DataDome interstitial detected "
                 f"(type={datadome_type.value}, status={status}): {normalized_url}"
@@ -287,7 +297,11 @@ class TixrClient(BaseApiClient):
                 sig = _bot_block_reason(body)
                 if sig is not None:
                     if diagnostics is not None:
-                        diagnostics.record_bot_block(sig)
+                        diagnostics.record_bot_block(
+                            sig,
+                            source="response_body",
+                            stage="direct_fetch",
+                        )
                     fallback_reason = sig
         elif not body.strip():
             fallback_reason = "empty body"
@@ -295,7 +309,11 @@ class TixrClient(BaseApiClient):
             sig = _bot_block_reason(body)
             if sig is not None:
                 if diagnostics is not None:
-                    diagnostics.record_bot_block(sig)
+                    diagnostics.record_bot_block(
+                        sig,
+                        source="response_body",
+                        stage="direct_fetch",
+                    )
                 fallback_reason = sig
 
         if fallback_reason is None:
@@ -367,6 +385,14 @@ class TixrClient(BaseApiClient):
             )
         except Exception as exc:
             self.log_warning(f"Failed to record Tixr group-page failure: {exc}")
+
+    @staticmethod
+    def _datadome_source(response_headers: Dict[str, str], response_body: str) -> str:
+        if any(k.lower() == "x-datadome" for k in response_headers):
+            return "response_header"
+        if "captcha-delivery.com" in (response_body or "").lower():
+            return "captcha_body"
+        return "response_body"
 
     def _extract_jsonld_event(self, html: str) -> Optional[Dict[str, Any]]:
         """

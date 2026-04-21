@@ -37,6 +37,10 @@ class MetricsAggregator:
                     http_status=result.http_status,
                     bot_block_detected=result.bot_block_detected,
                     bot_block_signature=result.bot_block_signature,
+                    bot_block_provider=result.bot_block_provider,
+                    bot_block_type=result.bot_block_type,
+                    bot_block_source=result.bot_block_source,
+                    bot_block_stage=result.bot_block_stage,
                     playwright_fallback_used=result.playwright_fallback_used,
                     items_before_filter=result.items_before_filter,
                 )

@@ -186,6 +186,8 @@ class ScrapingService:
             r = results[0]
             diag_suffix = (
                 f" [http={r.http_status}, bot_block={r.bot_block_detected}, "
+                f"provider={r.bot_block_provider}, type={r.bot_block_type}, "
+                f"source={r.bot_block_source}, stage={r.bot_block_stage}, "
                 f"fallback={r.playwright_fallback_used}, "
                 f"items_before_filter={r.items_before_filter}]"
             )

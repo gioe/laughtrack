@@ -276,10 +276,14 @@ class HttpClient:
             # (DataDome, Cloudflare). Prefer the signature as the fallback
             # reason so the Playwright activation log is informative.
             if response.text:
-                bot_signature = _bot_block_reason(response.text)
-                if bot_signature is not None:
-                    if diagnostics is not None:
-                        diagnostics.record_bot_block(bot_signature)
+                    bot_signature = _bot_block_reason(response.text)
+                    if bot_signature is not None:
+                        if diagnostics is not None:
+                            diagnostics.record_bot_block(
+                                bot_signature,
+                                source="response_body",
+                                stage="direct_fetch",
+                            )
                     fallback_reason = bot_signature
         elif not response.text or not response.text.strip():
             # Caller has opted into empty-body-is-OK semantics (Tessera's
@@ -298,7 +302,11 @@ class HttpClient:
             bot_signature = _bot_block_reason(response.text)
             if bot_signature is not None:
                 if diagnostics is not None:
-                    diagnostics.record_bot_block(bot_signature)
+                    diagnostics.record_bot_block(
+                        bot_signature,
+                        source="response_body",
+                        stage="direct_fetch",
+                    )
                 fallback_reason = bot_signature
 
         if fallback_reason is None:
@@ -345,7 +353,11 @@ class HttpClient:
                     logger_context,
                 )
                 if diagnostics is not None:
-                    diagnostics.record_bot_block(f"playwright_{rendered_bot_signature}")
+                    diagnostics.record_bot_block(
+                        f"playwright_{rendered_bot_signature}",
+                        source="playwright_rendered_html",
+                        stage="playwright_fallback",
+                    )
 
         # Preserve the mixin contract: non-2xx without rescue → raise so the
         # shared retry layer (ErrorHandler.execute_with_retry) can classify
