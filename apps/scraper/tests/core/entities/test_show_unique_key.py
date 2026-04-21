@@ -51,3 +51,12 @@ def test_none_date_produces_none_in_key():
     show.date = None  # bypass constructor validation to test None branch
     key = show.to_unique_key()
     assert key == (42, None, "Main Room")
+
+
+def test_to_tuple_serializes_last_scraped_date_as_utc_timestamp():
+    show = _show(datetime(2026, 4, 15, 20, 0, 0, tzinfo=timezone.utc))
+
+    last_scraped_date = show.to_tuple()[5]
+    parsed = datetime.fromisoformat(last_scraped_date)
+
+    assert parsed.tzinfo == timezone.utc

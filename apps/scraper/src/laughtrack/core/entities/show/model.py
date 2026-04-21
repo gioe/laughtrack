@@ -120,7 +120,7 @@ class Show(DatabaseEntity):
             self.description or "",
             self.date,
             self.club_id,
-            datetime.now().isoformat(),
+            datetime.now(timezone.utc).isoformat(),
             self.room,
             self.production_company_id,
         )
