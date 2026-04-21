@@ -357,3 +357,31 @@ class TestPostFormBotBlock:
             result = await client.post_form("https://example.com/api", {"k": "v"})
 
         assert result == "OK"
+
+
+# ---------------------------------------------------------------------------
+# fetch_json_list — allow_empty_body forwarding (TASK-1677)
+# ---------------------------------------------------------------------------
+
+
+class TestFetchJsonListAllowEmptyBody:
+    @pytest.mark.asyncio
+    async def test_allow_empty_body_forwarded_to_fetch_json(self):
+        """``fetch_json_list`` must forward ``allow_empty_body`` to ``fetch_json``
+        so array endpoints that use empty body as a stale-data signal can opt in."""
+        client = ConcreteClient(_make_club())
+        with patch.object(ConcreteClient, "fetch_json", new=AsyncMock(return_value=[])) as mock_fetch_json:
+            await client.fetch_json_list("https://example.com/api", allow_empty_body=True)
+
+        assert mock_fetch_json.await_count == 1
+        assert mock_fetch_json.await_args.kwargs["allow_empty_body"] is True
+
+    @pytest.mark.asyncio
+    async def test_allow_empty_body_defaults_to_false(self):
+        """Default ``allow_empty_body=False`` preserves the pre-refactor behavior."""
+        client = ConcreteClient(_make_club())
+        with patch.object(ConcreteClient, "fetch_json", new=AsyncMock(return_value=[])) as mock_fetch_json:
+            await client.fetch_json_list("https://example.com/api")
+
+        assert mock_fetch_json.await_count == 1
+        assert mock_fetch_json.await_args.kwargs["allow_empty_body"] is False

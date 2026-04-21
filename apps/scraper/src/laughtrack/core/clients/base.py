@@ -287,6 +287,7 @@ class BaseApiClient(ABC):
         headers: Optional[Dict[str, str]] = None,
         timeout: int = 30,
         logger_context: Optional[Dict[str, Any]] = None,
+        allow_empty_body: bool = False,
     ) -> Optional[List[Any]]:
         """
         Fetch a root-level JSON array from a URL.
@@ -300,11 +301,21 @@ class BaseApiClient(ABC):
             headers: Optional headers to include (defaults to self.headers)
             timeout: Request timeout in seconds
             logger_context: Context for logging
+            allow_empty_body: Forwarded to ``fetch_json``.  When True, an HTTP-200
+                empty body returns ``None`` directly without warning or invoking
+                the Playwright fallback — for array endpoints that use an empty
+                body as a stale-data signal.
 
         Returns:
             JSON array, or None if fetch failed or response was not a list
         """
-        data = await self.fetch_json(url, headers=headers, timeout=timeout, logger_context=logger_context)
+        data = await self.fetch_json(
+            url,
+            headers=headers,
+            timeout=timeout,
+            logger_context=logger_context,
+            allow_empty_body=allow_empty_body,
+        )
         if data is None:
             return None
         if not isinstance(data, list):
