@@ -1,6 +1,9 @@
 """Unit tests for HttpClient.fetch_html and fetch_json."""
 
+import asyncio
+import concurrent.futures
 import json as _json
+import weakref
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -16,6 +19,11 @@ def _make_response(status_code: int, text: str = "", json_data=None):
     resp.text = _json.dumps(json_data) if json_data is not None and not text else text
     resp.json = MagicMock(return_value=json_data if json_data is not None else {})
     return resp
+
+
+def _reset_browser_cache():
+    client_module._js_browser = None
+    client_module._js_browsers_by_loop = weakref.WeakKeyDictionary()
 
 
 # ---------------------------------------------------------------------------
@@ -170,8 +178,7 @@ def _make_browser_mock(html: str = "<html>playwright-rendered</html>"):
 
 class TestFetchHtmlFallback:
     def setup_method(self):
-        # Reset the module-level singleton between tests
-        client_module._js_browser = None
+        _reset_browser_cache()
 
     @pytest.mark.asyncio
     async def test_fallback_triggered_on_none_response(self):
@@ -470,11 +477,10 @@ class TestPlaywrightBotBlockDiagnostic:
 
 class TestGetJsBrowser:
     def setup_method(self):
-        client_module._js_browser = None
+        _reset_browser_cache()
 
     def teardown_method(self):
-        # Restore sentinel state so other tests aren't affected
-        client_module._js_browser = None
+        _reset_browser_cache()
 
     def test_returns_none_when_env_flag_disabled(self, monkeypatch):
         monkeypatch.setenv("PLAYWRIGHT_FALLBACK", "0")
@@ -484,7 +490,7 @@ class TestGetJsBrowser:
     def test_returns_none_when_playwright_not_installed(self, monkeypatch):
         """ImportError path: returns None, logs warn once, sets _BROWSER_UNAVAILABLE sentinel."""
         monkeypatch.setenv("PLAYWRIGHT_FALLBACK", "1")
-        client_module._js_browser = None
+        _reset_browser_cache()
 
         def _raise_import(*args, **kwargs):
             raise ImportError("No module named 'playwright'")
@@ -522,6 +528,68 @@ class TestGetJsBrowser:
         assert result2 is None
         mock_warn2.assert_not_called()  # no repeated warning
 
+    def test_creates_one_browser_per_worker_event_loop(self, monkeypatch):
+        """Two worker loops must not share one PlaywrightBrowser instance.
+
+        Regression for TASK-1691: scrape-all workers were all routing
+        Playwright fallback through one process-global browser, so the second
+        Etix/Tixr fallback could reuse a browser whose internal lock belonged
+        to another worker loop and fail with ``... bound to a different event
+        loop``.
+        """
+
+        class FakeLoopBoundBrowser:
+            def __init__(self):
+                self.launch_loop = None
+
+            async def fetch_html(self, url: str, proxy_url=None) -> str:  # noqa: ANN001
+                loop = asyncio.get_running_loop()
+                if self.launch_loop is None:
+                    self.launch_loop = loop
+                elif self.launch_loop is not loop:
+                    raise RuntimeError(
+                        "<asyncio.locks.Lock object at 0x1234 [locked, waiters:4]> "
+                        "is bound to a different event loop"
+                    )
+                return f"<html>{url}</html>"
+
+            async def close(self) -> None:
+                return None
+
+        class FakeSession:
+            async def get(self, *args, **kwargs):  # noqa: ANN002, ANN003
+                return _make_response(403)
+
+        created = []
+
+        def _factory():
+            browser = FakeLoopBoundBrowser()
+            created.append(browser)
+            return browser
+
+        async def _worker(url: str) -> str:
+            return await HttpClient.fetch_html(FakeSession(), url)
+
+        monkeypatch.setenv("PLAYWRIGHT_FALLBACK", "1")
+        _reset_browser_cache()
+
+        with patch(
+            "laughtrack.foundation.infrastructure.http.playwright_browser.PlaywrightBrowser",
+            side_effect=_factory,
+        ):
+            with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+                futures = [
+                    executor.submit(asyncio.run, _worker("https://example.com/one")),
+                    executor.submit(asyncio.run, _worker("https://example.com/two")),
+                ]
+                results = [future.result() for future in futures]
+
+        assert results == [
+            "<html>https://example.com/one</html>",
+            "<html>https://example.com/two</html>",
+        ]
+        assert len(created) == 2
+
 
 # ---------------------------------------------------------------------------
 # close_js_browser
@@ -530,10 +598,10 @@ class TestGetJsBrowser:
 
 class TestCloseJsBrowser:
     def setup_method(self):
-        client_module._js_browser = None
+        _reset_browser_cache()
 
     def teardown_method(self):
-        client_module._js_browser = None
+        _reset_browser_cache()
 
     @pytest.mark.asyncio
     async def test_returns_early_when_browser_is_none(self):
@@ -576,6 +644,30 @@ class TestCloseJsBrowser:
         await close_js_browser()  # second call: _js_browser is None, early return
 
         mock_browser.close.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_closes_loop_cached_browsers_and_clears_cache(self):
+        mock_browser_one = MagicMock()
+        mock_browser_one.close = AsyncMock()
+        mock_browser_two = MagicMock()
+        mock_browser_two.close = AsyncMock()
+
+        loop_one = asyncio.get_running_loop()
+        loop_two = asyncio.new_event_loop()
+        client_module._js_browsers_by_loop = weakref.WeakKeyDictionary(
+            {
+                loop_one: mock_browser_one,
+                loop_two: mock_browser_two,
+            }
+        )
+
+        from laughtrack.foundation.infrastructure.http.client import close_js_browser
+        await close_js_browser()
+
+        mock_browser_one.close.assert_awaited_once()
+        mock_browser_two.close.assert_awaited_once()
+        assert len(client_module._js_browsers_by_loop) == 0
+        loop_two.close()
 
     @pytest.mark.asyncio
     async def test_swallows_cross_loop_runtime_error(self):

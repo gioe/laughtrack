@@ -35,10 +35,13 @@ persistent WAF failures are distinguishable from curl-cffi-level blocks in
 the triage report.
 """
 
+import asyncio
 import html as _html_lib
 import json as _json
 import os
 import re
+import threading
+import weakref
 from typing import Any, Dict, Optional, Tuple
 
 from curl_cffi.requests import AsyncSession, Response
@@ -107,20 +110,27 @@ def _parse_json_from_rendered_html(rendered: str) -> Optional[Any]:
 
 
 # ---------------------------------------------------------------------------
-# Lazy JS-fallback browser singleton
+# Lazy JS-fallback browser cache
 # ---------------------------------------------------------------------------
 
-_js_browser: Optional[Any] = None  # PlaywrightBrowser, or _BROWSER_UNAVAILABLE sentinel
+_js_browser: Optional[Any] = None  # Legacy injected mock, or _BROWSER_UNAVAILABLE sentinel
+_js_browsers_by_loop: "weakref.WeakKeyDictionary[asyncio.AbstractEventLoop, Any]" = weakref.WeakKeyDictionary()
+_js_browser_lock = threading.Lock()
 
 # Sentinel used after a failed import so we don't re-attempt (and re-warn) on every call.
 _BROWSER_UNAVAILABLE = object()
 
 
 def _get_js_browser() -> Optional[Any]:
-    """Return the shared PlaywrightBrowser instance, or ``None`` when disabled.
+    """Return the PlaywrightBrowser bound to the current event loop.
 
     The browser is created lazily so that scrapers that never trigger a
     bot-block pay zero Playwright import overhead.
+
+    Each scraper worker thread runs its own ``asyncio.run()`` loop, so the
+    cache must be per-loop rather than process-global. Reusing one browser
+    across workers makes later fallbacks inherit a lock/transport that belongs
+    to a different loop.
 
     Returns ``None`` when:
     * ``PLAYWRIGHT_FALLBACK=0`` is set in the environment, or
@@ -135,14 +145,43 @@ def _get_js_browser() -> Optional[Any]:
     if _js_browser is _BROWSER_UNAVAILABLE:
         return None
 
-    if _js_browser is None:
+    # Test helpers sometimes inject a mock browser directly into the legacy
+    # slot. Honor it so those tests remain focused on fallback behavior.
+    if _js_browser is not None:
+        return _js_browser
+
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = None
+
+    if loop is None:
+        try:
+            from laughtrack.foundation.infrastructure.http.playwright_browser import (  # noqa: PLC0415
+                PlaywrightBrowser,
+            )
+        except ImportError:
+            Logger.warn(
+                "[HttpClient] playwright package not installed — JS fallback unavailable. "
+                "Install it with: pip install playwright && playwright install chromium",
+                {},
+            )
+            _js_browser = _BROWSER_UNAVAILABLE
+            return None
+        return PlaywrightBrowser()
+
+    with _js_browser_lock:
+        browser = _js_browsers_by_loop.get(loop)
+        if browser is not None:
+            return browser
+
         try:
             # Import here to keep playwright out of the top-level import graph
             from laughtrack.foundation.infrastructure.http.playwright_browser import (  # noqa: PLC0415
                 PlaywrightBrowser,
             )
 
-            _js_browser = PlaywrightBrowser()
+            browser = PlaywrightBrowser()
         except ImportError:
             Logger.warn(
                 "[HttpClient] playwright package not installed — JS fallback unavailable. "
@@ -152,11 +191,12 @@ def _get_js_browser() -> Optional[Any]:
             _js_browser = _BROWSER_UNAVAILABLE
             return None
 
-    return _js_browser
+        _js_browsers_by_loop[loop] = browser
+        return browser
 
 
 async def close_js_browser() -> None:
-    """Close and clear the shared PlaywrightBrowser singleton.
+    """Close and clear the cached PlaywrightBrowser instances.
 
     Call this while the event loop is still running (e.g., at the end of
     _scrape_clubs_concurrently) so Playwright objects are closed on the same
@@ -170,18 +210,30 @@ async def close_js_browser() -> None:
     through ``scrape_shows`` and trigger the 90-minute GHA timeout.
     """
     global _js_browser
-    browser = _js_browser
-    if browser is None or browser is _BROWSER_UNAVAILABLE:
+
+    browsers = []
+    with _js_browser_lock:
+        if _js_browser is _BROWSER_UNAVAILABLE:
+            return
+        if _js_browser is not None:
+            browsers.append(_js_browser)
+            _js_browser = None
+        if _js_browsers_by_loop:
+            browsers.extend(_js_browsers_by_loop.values())
+            _js_browsers_by_loop.clear()
+
+    if not browsers:
         return
-    _js_browser = None
-    try:
-        await browser.close()
-    except RuntimeError as exc:
-        # Only the cross-loop signature is expected here; re-raise any other
-        # RuntimeError so genuine transport failures remain visible.
-        if "bound to a different event loop" not in str(exc):
-            raise
-        Logger.warn(f"[HttpClient] close_js_browser swallowed cross-loop RuntimeError: {exc}")
+
+    for browser in browsers:
+        try:
+            await browser.close()
+        except RuntimeError as exc:
+            # Only the cross-loop signature is expected here; re-raise any other
+            # RuntimeError so genuine transport failures remain visible.
+            if "bound to a different event loop" not in str(exc):
+                raise
+            Logger.warn(f"[HttpClient] close_js_browser swallowed cross-loop RuntimeError: {exc}")
 
 
 # ---------------------------------------------------------------------------
