@@ -7,6 +7,7 @@ import OpenAPIURLSession
 @main
 struct LaughTrackApp: App {
     @StateObject private var coordinator = NavigationCoordinator<AppRoute>()
+    @StateObject private var authManager: AuthManager
 
     private let container: ServiceContainer
     private let apiClientFactory: APIClientFactory
@@ -17,10 +18,26 @@ struct LaughTrackApp: App {
         ServiceRegistration.configure(container)
         self.container = container
 
+        let secureStorage = container.resolveOptional(SecureStorageProtocol.self) ?? KeychainStorage()
+        let appStateStorage = container.resolveOptional(AppStateStorageProtocol.self) ?? AppStateStorage()
+
         let factory = APIClientFactory(
-            serverURL: AppConfiguration.apiBaseURL
+            serverURL: AppConfiguration.apiBaseURL,
+            secureStorage: secureStorage
         )
         self.apiClientFactory = factory
+
+        let authManager = AuthManager(
+            tokenManager: AuthTokenManager(secureStorage: secureStorage),
+            authMiddleware: factory.authMiddleware,
+            appStateStorage: appStateStorage,
+            oauthSessionRunner: SystemOAuthSessionRunner()
+        )
+        _authManager = StateObject(wrappedValue: authManager)
+
+        let unauthorizedMiddleware = UnauthorizedResponseMiddleware {
+            await authManager.handleUnauthorizedResponse()
+        }
 
         // Plain client for token refresh (excludes TokenRefreshMiddleware to avoid loops)
         let refreshClient = Client(
@@ -35,6 +52,7 @@ struct LaughTrackApp: App {
         ) { _ in
             let response = try await refreshClient.exchangeToken()
             guard case .ok(let ok) = response else {
+                await authManager.handleUnauthorizedResponse()
                 throw URLError(.userAuthenticationRequired)
             }
             let token = try ok.body.json.token
@@ -46,7 +64,7 @@ struct LaughTrackApp: App {
         let apiClient = Client(
             serverURL: factory.serverURL,
             transport: URLSessionTransport(),
-            middlewares: [tokenRefreshMiddleware, factory.authMiddleware, factory.retryMiddleware, factory.loggingMiddleware]
+            middlewares: [tokenRefreshMiddleware, unauthorizedMiddleware, factory.authMiddleware, factory.retryMiddleware, factory.loggingMiddleware]
         )
         self.apiClient = apiClient
 
@@ -59,6 +77,7 @@ struct LaughTrackApp: App {
                 .environment(\.appTheme, LaughTrackTheme())
                 .environment(\.serviceContainer, container)
                 .navigationCoordinator(coordinator)
+                .environmentObject(authManager)
         }
     }
 }

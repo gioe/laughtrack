@@ -36,6 +36,7 @@ public typealias NetworkMonitorProtocol = SharedKit.NetworkMonitorProtocol
 
 public typealias KeychainStorage = SharedKit.KeychainStorage
 public typealias SecureStorageProtocol = SharedKit.SecureStorageProtocol
+public typealias AuthTokenManager = SharedKit.AuthTokenManager
 
 // MARK: - ToastManager
 

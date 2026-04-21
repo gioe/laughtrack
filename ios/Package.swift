@@ -26,6 +26,9 @@ let package = Package(
                 "LaughTrackCore",
                 "LaughTrackBridge",
                 "LaughTrackAPIClient",
+            ],
+            exclude: [
+                "Info.plist"
             ]
         ),
         .target(

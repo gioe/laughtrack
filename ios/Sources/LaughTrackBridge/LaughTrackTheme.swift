@@ -355,6 +355,7 @@ public struct LaughTrackTheme: AppThemeProtocol {
 
     public var spacing: SpacingTokens {
         SpacingTokens(
+            xxs: DesignSystem.Spacing.xxs,
             xs: laughTrack.spacing.tight,
             sm: laughTrack.spacing.itemGap,
             md: DesignSystem.Spacing.md,
