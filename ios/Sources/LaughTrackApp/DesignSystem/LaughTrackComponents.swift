@@ -1,5 +1,6 @@
 import SwiftUI
 import LaughTrackBridge
+import LaughTrackCore
 
 enum LaughTrackButtonTone: Equatable {
     case primary
@@ -406,6 +407,91 @@ struct LaughTrackStateView: View {
             Image(systemName: "wifi.exclamationmark")
                 .font(.system(size: theme.iconSizes.xl, weight: .semibold))
                 .foregroundStyle(laughTrack.colors.danger)
+        }
+    }
+}
+
+struct LaughTrackAuthMessageCard: View {
+    let message: String
+
+    var body: some View {
+        LaughTrackStateView(
+            tone: isCancelled ? .empty : .error,
+            title: isCancelled ? "Sign-in cancelled" : "Couldn’t connect your account",
+            message: message
+        )
+    }
+
+    private var isCancelled: Bool {
+        message.localizedCaseInsensitiveContains("cancelled")
+    }
+}
+
+struct LaughTrackAuthProviderCard: View {
+    @Environment(\.appTheme) private var theme
+
+    let provider: AuthProvider
+    let action: () -> Void
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        Button(action: action) {
+            LaughTrackCard(tone: provider == .google ? .muted : .standard) {
+                HStack(alignment: .center, spacing: laughTrack.spacing.itemGap) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: laughTrack.radius.chip, style: .continuous)
+                            .fill(iconBackground)
+                        Image(systemName: provider.symbolName)
+                            .font(.system(size: theme.iconSizes.md, weight: .semibold))
+                            .foregroundStyle(iconForeground)
+                    }
+                    .frame(width: 52, height: 52)
+
+                    VStack(alignment: .leading, spacing: laughTrack.spacing.tight) {
+                        Text(provider.displayName)
+                            .font(laughTrack.typography.metadata)
+                            .foregroundStyle(laughTrack.colors.accent)
+                            .textCase(.uppercase)
+
+                        Text(provider.title)
+                            .font(laughTrack.typography.cardTitle)
+                            .foregroundStyle(laughTrack.colors.textPrimary)
+
+                        Text(provider.subtitle)
+                            .font(laughTrack.typography.body)
+                            .foregroundStyle(laughTrack.colors.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
+                    Spacer(minLength: 0)
+
+                    Image(systemName: "arrow.up.right")
+                        .font(.system(size: theme.iconSizes.sm, weight: .semibold))
+                        .foregroundStyle(laughTrack.colors.textSecondary)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var iconBackground: Color {
+        let laughTrack = theme.laughTrackTokens
+        switch provider {
+        case .apple:
+            return laughTrack.colors.surfaceMuted
+        case .google:
+            return laughTrack.colors.highlight
+        }
+    }
+
+    private var iconForeground: Color {
+        let laughTrack = theme.laughTrackTokens
+        switch provider {
+        case .apple:
+            return laughTrack.colors.textPrimary
+        case .google:
+            return laughTrack.colors.accentStrong
         }
     }
 }
