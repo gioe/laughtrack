@@ -610,7 +610,7 @@ struct ComedianDetailView: View {
                             isFavorite: isFavorite,
                             isPending: favorites.isPending(comedian.uuid)
                         ) {
-                            await toggleFavorite(uuid: comedian.uuid, currentValue: isFavorite)
+                            await toggleFavorite(name: comedian.name, uuid: comedian.uuid, currentValue: isFavorite)
                         }
                     }
 
@@ -661,7 +661,7 @@ struct ComedianDetailView: View {
         }
     }
 
-    private func toggleFavorite(uuid: String, currentValue: Bool) async {
+    private func toggleFavorite(name: String, uuid: String, currentValue: Bool) async {
         let result = await favorites.toggle(
             uuid: uuid,
             currentValue: currentValue,
@@ -671,7 +671,7 @@ struct ComedianDetailView: View {
 
         switch result {
         case .updated(let next):
-            feedbackMessage = next ? "Added to favorites." : "Removed from favorites."
+            feedbackMessage = FavoriteFeedback.message(for: name, isFavorite: next)
         case .signInRequired(let message), .failure(let message):
             feedbackMessage = message
         }
@@ -871,7 +871,7 @@ private struct ComedianLineupRow: View {
                 )
                 switch result {
                 case .updated(let next):
-                    feedbackMessage = next ? "Added to favorites." : "Removed from favorites."
+                    feedbackMessage = FavoriteFeedback.message(for: comedian.name, isFavorite: next)
                 case .signInRequired(let message), .failure(let message):
                     feedbackMessage = message
                 }
@@ -933,7 +933,7 @@ private struct ComedianRow: View {
                 )
                 switch result {
                 case .updated(let next):
-                    feedbackMessage = next ? "Added to favorites." : "Removed from favorites."
+                    feedbackMessage = FavoriteFeedback.message(for: comedian.name, isFavorite: next)
                 case .signInRequired(let message), .failure(let message):
                     feedbackMessage = message
                 }
@@ -1408,6 +1408,12 @@ private enum ShowFormatting {
     static func distance(_ miles: Double?) -> String? {
         guard let miles else { return nil }
         return String(format: "%.1f miles away", miles)
+    }
+}
+
+private enum FavoriteFeedback {
+    static func message(for name: String, isFavorite: Bool) -> String {
+        isFavorite ? "Saved \(name) to favorites." : "Removed \(name) from favorites."
     }
 }
 
