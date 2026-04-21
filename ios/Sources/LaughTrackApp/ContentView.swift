@@ -59,6 +59,7 @@ struct HomeView: View {
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
     @EnvironmentObject private var authManager: AuthManager
     @Environment(\.appTheme) private var theme
+    @StateObject private var nearbyPreferenceStore = NearbyPreferenceStore()
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
@@ -73,7 +74,15 @@ struct HomeView: View {
 
                 SessionBannerCard(signedOutMessage: signedOutMessage)
 
-                DiscoveryHubView(apiClient: apiClient)
+                HomeNearbyDiscoverySection(
+                    apiClient: apiClient,
+                    nearbyPreferenceStore: nearbyPreferenceStore
+                )
+
+                DiscoveryHubView(
+                    apiClient: apiClient,
+                    nearbyPreferenceStore: nearbyPreferenceStore
+                )
             }
             .padding(.horizontal, theme.spacing.xl)
             .padding(.vertical, laughTrack.spacing.heroPadding)

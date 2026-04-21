@@ -24,11 +24,11 @@
 		42424F768696DC2F72FF6B9E /* LaughTrackBridge.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20552640F544D4395DE585B7 /* LaughTrackBridge.framework */; };
 		5518B3838A0551BE0358E7FA /* HTTPTypes in Frameworks */ = {isa = PBXBuildFile; productRef = 3EE680D7B2961BCF494CE024 /* HTTPTypes */; };
 		6345F1EA9EAEA2507D01175F /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 427388AED0335B0C7AC80040 /* AuthManager.swift */; };
-		6D4B0B476C017C866EA919B0 /* LaughTrackComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F6BA6A10AEBC3DAE1904EC8 /* LaughTrackComponents.swift */; };
 		6EED35E475AD78DA03A3F5C7 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6A4759E6DB08350C5ADD176 /* ContentView.swift */; };
 		739A95D851F561B8547F9395 /* OpenAPIURLSession in Frameworks */ = {isa = PBXBuildFile; productRef = 61CB6BEBA8E2ACC482982705 /* OpenAPIURLSession */; };
 		84583D2BFAB07ACA108C3CFA /* Types.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFD6F86573233BBC5DAFD03B /* Types.swift */; };
 		89C07B42865A1B37AA845F1E /* LaughTrackBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD130C65850C7623AC95788F /* LaughTrackBridge.swift */; };
+		8A3AE319974FC54ABCE52FB2 /* NearbyPreferenceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92A8166F55F78405CB41E328 /* NearbyPreferenceStore.swift */; };
 		91F5129BA47F8724B27E8BF2 /* LaughTrackAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98FC93EDB4A27FDCCB09F568 /* LaughTrackAPIClient.swift */; };
 		92F47B2CCCE1D1296F3AE7BD /* AppRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C6A228D912DFFE3A74A36BB /* AppRoute.swift */; };
 		94487F196E7F1E52967A3AB0 /* LaughTrackCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8EA13D0C5CA2F5439E19E122 /* LaughTrackCore.framework */; };
@@ -39,6 +39,7 @@
 		C00B3DACF4547137AC8B27E5 /* DiscoveryViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE35EB33E76E6316CDCFCAB2 /* DiscoveryViews.swift */; };
 		C27DB4BAD000672EF70ED3E6 /* LaughTrackBridge.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 20552640F544D4395DE585B7 /* LaughTrackBridge.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		D8230A7E91161475D358210D /* HTTPTypes in Frameworks */ = {isa = PBXBuildFile; productRef = 02C7C5A65A09BD0E6A833275 /* HTTPTypes */; };
+		F07B8BFA93C29AAB9929748A /* LaughTrackComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = F97636A6D9A525F2A93EEBBD /* LaughTrackComponents.swift */; };
 		F9868C97E0278D3313F4DE79 /* ServiceRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E463D5C04287DCD22E50CB4 /* ServiceRegistration.swift */; };
 		FA4FC7D3B905C1516EFDFED2 /* OpenAPIRuntime in Frameworks */ = {isa = PBXBuildFile; productRef = 4472C700BD5B0922771D56BB /* OpenAPIRuntime */; };
 		FEA7B9F292F79DD9E58A7F6A /* LaughTrackBridge.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20552640F544D4395DE585B7 /* LaughTrackBridge.framework */; };
@@ -114,11 +115,11 @@
 		2AE66AEEC26F743787CDC4EE /* Client.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Client.swift; sourceTree = "<group>"; };
 		427388AED0335B0C7AC80040 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
 		613A6C65D3E6FDBC1FEE04C5 /* AuthProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthProvider.swift; sourceTree = "<group>"; };
-		6F6BA6A10AEBC3DAE1904EC8 /* LaughTrackComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/LaughTrackComponents.swift; sourceTree = "<group>"; };
 		84C5C5FE44DB9A0D821C72AD /* AppConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfiguration.swift; sourceTree = "<group>"; };
 		8D4BF4FCA9AD4D3056F0DF97 /* LaughTrack.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = LaughTrack.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8EA13D0C5CA2F5439E19E122 /* LaughTrackCore.framework */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.framework; path = LaughTrackCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		92337F6B1144FEF54810C74C /* UnauthorizedResponseMiddleware.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnauthorizedResponseMiddleware.swift; sourceTree = "<group>"; };
+		92A8166F55F78405CB41E328 /* NearbyPreferenceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyPreferenceStore.swift; sourceTree = "<group>"; };
 		98FC93EDB4A27FDCCB09F568 /* LaughTrackAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackAPIClient.swift; sourceTree = "<group>"; };
 		9F1CE5B8D82B0C6436FA4869 /* OAuthSessionRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OAuthSessionRunner.swift; sourceTree = "<group>"; };
 		A6A4759E6DB08350C5ADD176 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -126,6 +127,7 @@
 		DE90DE11FF14510C06890AB7 /* LaughTrackAPIClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LaughTrackAPIClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		DFD6F86573233BBC5DAFD03B /* Types.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Types.swift; sourceTree = "<group>"; };
 		E8FF3C7F0664E4874C83A911 /* LaughTrackOfflineOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackOfflineOperation.swift; sourceTree = "<group>"; };
+		F97636A6D9A525F2A93EEBBD /* LaughTrackComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackComponents.swift; sourceTree = "<group>"; };
 		FB6DE921008E3BE464BC6C0A /* LaughTrackUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = LaughTrackUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FD44BB9E3449C773B60FE7A7 /* LaughTrackTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackTheme.swift; sourceTree = "<group>"; };
 		FE35EB33E76E6316CDCFCAB2 /* DiscoveryViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoveryViews.swift; sourceTree = "<group>"; };
@@ -215,6 +217,7 @@
 				84C5C5FE44DB9A0D821C72AD /* AppConfiguration.swift */,
 				0A4A91F43782F9FDA4187D3F /* LaughTrackCacheKey.swift */,
 				E8FF3C7F0664E4874C83A911 /* LaughTrackOfflineOperation.swift */,
+				92A8166F55F78405CB41E328 /* NearbyPreferenceStore.swift */,
 				0E463D5C04287DCD22E50CB4 /* ServiceRegistration.swift */,
 				45B8672F75E839F8520DD760 /* Auth */,
 			);
@@ -249,12 +252,20 @@
 				1C6A228D912DFFE3A74A36BB /* AppRoute.swift */,
 				A6A4759E6DB08350C5ADD176 /* ContentView.swift */,
 				FE35EB33E76E6316CDCFCAB2 /* DiscoveryViews.swift */,
-				6F6BA6A10AEBC3DAE1904EC8 /* LaughTrackComponents.swift */,
 				FFF7EC3716232F6AB430AF80 /* Info.plist */,
 				281FB22CC5183EF10EE60C01 /* LaughTrackApp.swift */,
+				972D4E3777C6BD77ECF7577D /* DesignSystem */,
 			);
 			name = LaughTrackApp;
 			path = Sources/LaughTrackApp;
+			sourceTree = "<group>";
+		};
+		972D4E3777C6BD77ECF7577D /* DesignSystem */ = {
+			isa = PBXGroup;
+			children = (
+				F97636A6D9A525F2A93EEBBD /* LaughTrackComponents.swift */,
+			);
+			path = DesignSystem;
 			sourceTree = "<group>";
 		};
 		D333F5AE2F330FA240A413B7 /* UITests */ = {
@@ -436,8 +447,8 @@
 				92F47B2CCCE1D1296F3AE7BD /* AppRoute.swift in Sources */,
 				6EED35E475AD78DA03A3F5C7 /* ContentView.swift in Sources */,
 				C00B3DACF4547137AC8B27E5 /* DiscoveryViews.swift in Sources */,
-				6D4B0B476C017C866EA919B0 /* LaughTrackComponents.swift in Sources */,
 				1D2E87B73739EA1A7023E9E2 /* LaughTrackApp.swift in Sources */,
+				F07B8BFA93C29AAB9929748A /* LaughTrackComponents.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -460,6 +471,7 @@
 				03E5C3A13E13A63EDE0F87A0 /* AuthProvider.swift in Sources */,
 				2FDC04B26C9E078C0855E7FF /* LaughTrackCacheKey.swift in Sources */,
 				1B95B72A52E55A1521A3914B /* LaughTrackOfflineOperation.swift in Sources */,
+				8A3AE319974FC54ABCE52FB2 /* NearbyPreferenceStore.swift in Sources */,
 				38D7CA0826C7E00A4113ABA9 /* OAuthSessionRunner.swift in Sources */,
 				F9868C97E0278D3313F4DE79 /* ServiceRegistration.swift in Sources */,
 				3CEBAA68984331D050F4088C /* UnauthorizedResponseMiddleware.swift in Sources */,

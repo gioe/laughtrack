@@ -74,6 +74,7 @@ targets:
             CFBundleURLName: com.laughtrack.app.auth
             CFBundleURLSchemes:
               - laughtrack
+        NSLocationWhenInUseUsageDescription: LaughTrack uses your location to find nearby comedy shows without forcing manual ZIP entry.
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
         UIApplicationSupportsIndirectInputEvents: true

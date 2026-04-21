@@ -11,10 +11,37 @@ public enum NearbyPreferenceSource: String, Codable, Equatable {
 public struct NearbyPreference: Codable, Equatable {
     public let zipCode: String
     public let source: NearbyPreferenceSource
+    public let distanceMiles: Int
 
-    public init(zipCode: String, source: NearbyPreferenceSource) {
+    public init(
+        zipCode: String,
+        source: NearbyPreferenceSource,
+        distanceMiles: Int = Self.defaultDistanceMiles
+    ) {
         self.zipCode = NearbyPreferenceStore.normalize(zipCode)
         self.source = source
+        self.distanceMiles = Self.normalize(distanceMiles)
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let zipCode = try container.decode(String.self, forKey: .zipCode)
+        let source = try container.decode(NearbyPreferenceSource.self, forKey: .source)
+        let distanceMiles = try container.decodeIfPresent(Int.self, forKey: .distanceMiles) ?? Self.defaultDistanceMiles
+
+        self.init(zipCode: zipCode, source: source, distanceMiles: distanceMiles)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case zipCode
+        case source
+        case distanceMiles
+    }
+
+    public static let defaultDistanceMiles = 25
+
+    private static func normalize(_ distanceMiles: Int) -> Int {
+        max(1, distanceMiles)
     }
 }
 
@@ -37,16 +64,44 @@ public final class NearbyPreferenceStore: ObservableObject {
     }
 
     @discardableResult
-    public func setManualZip(_ zipCode: String) -> NearbyPreference? {
+    public func setManualZip(
+        _ zipCode: String,
+        distanceMiles: Int? = nil
+    ) -> NearbyPreference? {
         guard let normalized = Self.validZip(from: zipCode) else { return nil }
-        let preference = NearbyPreference(zipCode: normalized, source: .manual)
+        let preference = NearbyPreference(
+            zipCode: normalized,
+            source: .manual,
+            distanceMiles: normalizedDistance(distanceMiles)
+        )
         setPreference(preference)
         return preference
     }
 
-    public func setGeolocatedZip(_ zipCode: String) {
+    public func setGeolocatedZip(
+        _ zipCode: String,
+        distanceMiles: Int? = nil
+    ) {
         guard let normalized = Self.validZip(from: zipCode) else { return }
-        setPreference(NearbyPreference(zipCode: normalized, source: .geolocated))
+        setPreference(
+            NearbyPreference(
+                zipCode: normalized,
+                source: .geolocated,
+                distanceMiles: normalizedDistance(distanceMiles)
+            )
+        )
+    }
+
+    public func setDistance(_ distanceMiles: Int) {
+        guard let preference else { return }
+
+        setPreference(
+            NearbyPreference(
+                zipCode: preference.zipCode,
+                source: preference.source,
+                distanceMiles: distanceMiles
+            )
+        )
     }
 
     public func clear() {
@@ -67,6 +122,10 @@ public final class NearbyPreferenceStore: ObservableObject {
     private func setPreference(_ preference: NearbyPreference) {
         self.preference = preference
         appStateStorage.setValue(preference, forKey: StorageKey.preference)
+    }
+
+    private func normalizedDistance(_ distanceMiles: Int?) -> Int {
+        max(1, distanceMiles ?? preference?.distanceMiles ?? NearbyPreference.defaultDistanceMiles)
     }
 
     private enum StorageKey {

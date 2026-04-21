@@ -1,4 +1,5 @@
 import Combine
+import CoreLocation
 import SwiftUI
 import LaughTrackAPIClient
 import LaughTrackBridge
@@ -391,7 +392,7 @@ private final class ClubsDiscoveryModel: ObservableObject {
     }
 }
 
-private enum ShowDistanceOption: Int, CaseIterable, Identifiable {
+enum ShowDistanceOption: Int, CaseIterable, Identifiable {
     case nearby = 10
     case city = 25
     case regional = 50
@@ -401,6 +402,10 @@ private enum ShowDistanceOption: Int, CaseIterable, Identifiable {
 
     var title: String {
         "\(rawValue) mi"
+    }
+
+    static func from(distanceMiles: Int) -> Self {
+        Self(rawValue: distanceMiles) ?? .city
     }
 }
 
@@ -495,6 +500,7 @@ private final class ShowsDiscoveryModel: ObservableObject {
 
     private let nearbyPreferenceStore: NearbyPreferenceStore
     private var preferenceCancellable: AnyCancellable?
+    private var distanceCancellable: AnyCancellable?
     private var loadedQuery: ShowsDiscoveryQuery?
     private var loadingQuery: ShowsDiscoveryQuery?
 
@@ -508,6 +514,12 @@ private final class ShowsDiscoveryModel: ObservableObject {
         preferenceCancellable = nearbyPreferenceStore.$preference
             .sink { [weak self] preference in
                 self?.applyNearbyPreference(preference)
+            }
+        distanceCancellable = $distance
+            .removeDuplicates()
+            .dropFirst()
+            .sink { [weak self] distance in
+                self?.persistDistance(distance)
             }
     }
 
@@ -561,7 +573,10 @@ private final class ShowsDiscoveryModel: ObservableObject {
             return true
         }
 
-        guard nearbyPreferenceStore.setManualZip(zipCodeDraft) != nil else {
+        guard nearbyPreferenceStore.setManualZip(
+            zipCodeDraft,
+            distanceMiles: distance.rawValue
+        ) != nil else {
             zipValidationMessage = "Enter a valid 5-digit ZIP code to search nearby shows."
             return false
         }
@@ -681,9 +696,15 @@ private final class ShowsDiscoveryModel: ObservableObject {
 
         if let preference {
             zipCodeDraft = preference.zipCode
+            distance = .from(distanceMiles: preference.distanceMiles)
         } else if zipCodeDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             zipCodeDraft = ""
         }
+    }
+
+    private func persistDistance(_ distance: ShowDistanceOption) {
+        guard activeNearbyPreference != nil else { return }
+        nearbyPreferenceStore.setDistance(distance.rawValue)
     }
 }
 
@@ -692,9 +713,21 @@ struct DiscoveryHubView: View {
 
     @Environment(\.appTheme) private var theme
     @State private var selection: DiscoverySection = .shows
-    @StateObject private var showsModel = ShowsDiscoveryModel()
+    @StateObject private var showsModel: ShowsDiscoveryModel
     @StateObject private var comediansModel = ComediansDiscoveryModel()
     @StateObject private var clubsModel = ClubsDiscoveryModel()
+
+    init(
+        apiClient: Client,
+        nearbyPreferenceStore: NearbyPreferenceStore
+    ) {
+        self.apiClient = apiClient
+        _showsModel = StateObject(
+            wrappedValue: ShowsDiscoveryModel(
+                nearbyPreferenceStore: nearbyPreferenceStore
+            )
+        )
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: theme.spacing.lg) {
@@ -748,6 +781,533 @@ struct DiscoveryHubView: View {
             return "music.mic"
         case .clubs:
             return "building.2.fill"
+        }
+    }
+}
+
+private protocol CurrentLocationZipResolving {
+    func resolveZipCode() async throws -> String
+}
+
+private enum CurrentLocationZipResolverError: LocalizedError {
+    case disabled
+    case denied
+    case restricted
+    case unavailable
+    case missingPostalCode
+
+    var errorDescription: String? {
+        switch self {
+        case .disabled:
+            return "Location Services are disabled on this device."
+        case .denied:
+            return "LaughTrack does not have location access yet. Enable it in Settings or enter a ZIP instead."
+        case .restricted:
+            return "Location access is restricted on this device. Enter a ZIP instead."
+        case .unavailable:
+            return "LaughTrack could not determine your current location."
+        case .missingPostalCode:
+            return "LaughTrack found your location but could not resolve a nearby ZIP code."
+        }
+    }
+}
+
+@MainActor
+private final class CurrentLocationZipResolver: NSObject, @preconcurrency CLLocationManagerDelegate, CurrentLocationZipResolving {
+    private let locationManager = CLLocationManager()
+    private let geocoder = CLGeocoder()
+    private var authorizationContinuation: CheckedContinuation<Void, Error>?
+    private var locationContinuation: CheckedContinuation<CLLocation, Error>?
+
+    override init() {
+        super.init()
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
+    }
+
+    func resolveZipCode() async throws -> String {
+        guard CLLocationManager.locationServicesEnabled() else {
+            throw CurrentLocationZipResolverError.disabled
+        }
+
+        try await requestAuthorizationIfNeeded()
+        let location = try await requestLocation()
+        let placemarks = try await geocoder.reverseGeocodeLocation(location)
+
+        guard
+            let postalCode = placemarks.first?.postalCode,
+            let normalized = NearbyPreferenceStore.validZip(from: postalCode)
+        else {
+            throw CurrentLocationZipResolverError.missingPostalCode
+        }
+
+        return normalized
+    }
+
+    private func requestAuthorizationIfNeeded() async throws {
+        switch locationManager.authorizationStatus {
+        case .authorizedAlways, .authorizedWhenInUse:
+            return
+        case .notDetermined:
+            try await withCheckedThrowingContinuation { continuation in
+                authorizationContinuation = continuation
+                locationManager.requestWhenInUseAuthorization()
+            }
+        case .denied:
+            throw CurrentLocationZipResolverError.denied
+        case .restricted:
+            throw CurrentLocationZipResolverError.restricted
+        @unknown default:
+            throw CurrentLocationZipResolverError.unavailable
+        }
+    }
+
+    private func requestLocation() async throws -> CLLocation {
+        try await withCheckedThrowingContinuation { continuation in
+            locationContinuation = continuation
+            locationManager.requestLocation()
+        }
+    }
+
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        guard let continuation = authorizationContinuation else { return }
+
+        switch manager.authorizationStatus {
+        case .authorizedAlways, .authorizedWhenInUse:
+            authorizationContinuation = nil
+            continuation.resume()
+        case .denied:
+            authorizationContinuation = nil
+            continuation.resume(throwing: CurrentLocationZipResolverError.denied)
+        case .restricted:
+            authorizationContinuation = nil
+            continuation.resume(throwing: CurrentLocationZipResolverError.restricted)
+        case .notDetermined:
+            break
+        @unknown default:
+            authorizationContinuation = nil
+            continuation.resume(throwing: CurrentLocationZipResolverError.unavailable)
+        }
+    }
+
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let continuation = locationContinuation else { return }
+        locationContinuation = nil
+
+        guard let location = locations.last else {
+            continuation.resume(throwing: CurrentLocationZipResolverError.unavailable)
+            return
+        }
+
+        continuation.resume(returning: location)
+    }
+
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: any Error) {
+        guard let continuation = locationContinuation else { return }
+        locationContinuation = nil
+        continuation.resume(throwing: error)
+    }
+}
+
+private struct HomeNearbyPage {
+    let items: [Components.Schemas.Show]
+    let total: Int
+    let zipCapTriggered: Bool
+}
+
+@MainActor
+private final class HomeNearbyDiscoveryModel: ObservableObject {
+    @Published var zipCodeDraft = ""
+    @Published private(set) var activeNearbyPreference: NearbyPreference?
+    @Published private(set) var phase: LoadPhase<HomeNearbyPage> = .idle
+    @Published private(set) var zipValidationMessage: String?
+    @Published private(set) var locationMessage: String?
+    @Published private(set) var isEditingZip = false
+    @Published private(set) var isResolvingLocation = false
+    @Published private(set) var isPromptDismissed: Bool
+
+    private let nearbyPreferenceStore: NearbyPreferenceStore
+    private let appStateStorage: AppStateStorageProtocol
+    private let locationResolver: any CurrentLocationZipResolving
+    private var preferenceCancellable: AnyCancellable?
+    private var loadedPreference: NearbyPreference?
+
+    init(
+        nearbyPreferenceStore: NearbyPreferenceStore,
+        appStateStorage: AppStateStorageProtocol = AppStateStorage(),
+        locationResolver: (any CurrentLocationZipResolving)? = nil
+    ) {
+        self.nearbyPreferenceStore = nearbyPreferenceStore
+        self.appStateStorage = appStateStorage
+        self.locationResolver = locationResolver ?? CurrentLocationZipResolver()
+        self.isPromptDismissed = appStateStorage.getValue(
+            forKey: StorageKey.promptDismissed,
+            as: Bool.self
+        ) ?? false
+        self.activeNearbyPreference = nearbyPreferenceStore.preference
+        self.zipCodeDraft = nearbyPreferenceStore.preference?.zipCode ?? ""
+
+        preferenceCancellable = nearbyPreferenceStore.$preference
+            .sink { [weak self] preference in
+                self?.applyNearbyPreference(preference)
+            }
+    }
+
+    var requestKey: NearbyPreference? {
+        activeNearbyPreference
+    }
+
+    var shouldShowPrompt: Bool {
+        activeNearbyPreference == nil && !isPromptDismissed
+    }
+
+    func refresh(apiClient: Client) async {
+        guard let preference = activeNearbyPreference else {
+            loadedPreference = nil
+            phase = .idle
+            return
+        }
+
+        if loadedPreference == preference, case .success = phase {
+            return
+        }
+
+        phase = .loading
+
+        do {
+            let output = try await apiClient.searchShows(
+                .init(
+                    query: .init(
+                        zip: preference.zipCode,
+                        from: nil,
+                        to: nil,
+                        page: 0,
+                        size: 4,
+                        comedian: nil,
+                        club: nil,
+                        distance: preference.distanceMiles,
+                        sort: ShowSortOption.earliest.rawValue
+                    ),
+                    headers: .init(xTimezone: TimeZone.autoupdatingCurrent.identifier)
+                )
+            )
+
+            switch output {
+            case .ok(let ok):
+                let response = try ok.body.json
+                phase = .success(
+                    .init(
+                        items: response.data,
+                        total: response.total,
+                        zipCapTriggered: response.zipCapTriggered
+                    )
+                )
+                loadedPreference = preference
+            case .badRequest(let badRequest):
+                phase = .failure(
+                    (try? badRequest.body.json.error) ?? "LaughTrack could not apply those nearby filters."
+                )
+            case .internalServerError(let serverError):
+                phase = .failure(
+                    (try? serverError.body.json.error) ?? "LaughTrack could not load nearby shows right now."
+                )
+            case .undocumented(let status, _):
+                phase = .failure("LaughTrack returned an unexpected response (\(status)).")
+            }
+        } catch {
+            guard !Task.isCancelled else { return }
+            phase = .failure(
+                "LaughTrack could not reach the nearby shows service. Check your connection and try again."
+            )
+        }
+    }
+
+    func presentZipEntry() {
+        setPromptDismissed(false)
+        isEditingZip = true
+        zipValidationMessage = nil
+        locationMessage = nil
+    }
+
+    func dismissPrompt() {
+        isEditingZip = false
+        locationMessage = nil
+        setPromptDismissed(true)
+    }
+
+    func clearNearby() {
+        isEditingZip = false
+        zipCodeDraft = ""
+        loadedPreference = nil
+        setPromptDismissed(false)
+        nearbyPreferenceStore.clear()
+    }
+
+    func applyManualZip() -> Bool {
+        guard let preference = nearbyPreferenceStore.setManualZip(zipCodeDraft) else {
+            zipValidationMessage = "Enter a valid 5-digit ZIP code to search nearby shows."
+            return false
+        }
+
+        zipCodeDraft = preference.zipCode
+        zipValidationMessage = nil
+        locationMessage = nil
+        isEditingZip = false
+        return true
+    }
+
+    func useCurrentLocation() async {
+        isResolvingLocation = true
+        zipValidationMessage = nil
+        locationMessage = nil
+        defer { isResolvingLocation = false }
+
+        do {
+            let zipCode = try await locationResolver.resolveZipCode()
+            nearbyPreferenceStore.setGeolocatedZip(
+                zipCode,
+                distanceMiles: activeNearbyPreference?.distanceMiles
+            )
+            isEditingZip = false
+        } catch {
+            locationMessage = error.localizedDescription
+        }
+    }
+
+    private func applyNearbyPreference(_ preference: NearbyPreference?) {
+        activeNearbyPreference = preference
+        zipValidationMessage = nil
+
+        if let preference {
+            zipCodeDraft = preference.zipCode
+            loadedPreference = nil
+            if isPromptDismissed {
+                setPromptDismissed(false)
+            }
+        } else {
+            loadedPreference = nil
+            phase = .idle
+            if !isEditingZip {
+                zipCodeDraft = ""
+            }
+        }
+    }
+
+    private func setPromptDismissed(_ dismissed: Bool) {
+        isPromptDismissed = dismissed
+        appStateStorage.setValue(dismissed, forKey: StorageKey.promptDismissed)
+    }
+
+    private enum StorageKey {
+        static let promptDismissed = "laughtrack.discovery.home-nearby-prompt-dismissed"
+    }
+}
+
+struct HomeNearbyDiscoverySection: View {
+    let apiClient: Client
+
+    @Environment(\.appTheme) private var theme
+    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @StateObject private var model: HomeNearbyDiscoveryModel
+
+    init(
+        apiClient: Client,
+        nearbyPreferenceStore: NearbyPreferenceStore
+    ) {
+        self.apiClient = apiClient
+        _model = StateObject(
+            wrappedValue: HomeNearbyDiscoveryModel(
+                nearbyPreferenceStore: nearbyPreferenceStore
+            )
+        )
+    }
+
+    var body: some View {
+        DiscoveryCard(title: "Nearby tonight") {
+            VStack(alignment: .leading, spacing: theme.spacing.lg) {
+                if model.shouldShowPrompt {
+                    promptContent
+                } else if let preference = model.activeNearbyPreference {
+                    nearbyResultsContent(preference: preference)
+                } else {
+                    collapsedContent
+                }
+            }
+        }
+        .task(id: model.requestKey) {
+            await model.refresh(apiClient: apiClient)
+        }
+    }
+
+    @ViewBuilder
+    private var promptContent: some View {
+        VStack(alignment: .leading, spacing: theme.spacing.lg) {
+            LaughTrackSectionHeader(
+                eyebrow: "Nearby",
+                title: "Start with the room around you",
+                subtitle: "Use your current location or drop in a ZIP code. LaughTrack keeps the rest of home available even if you skip this for now."
+            )
+
+            HStack(spacing: theme.spacing.sm) {
+                LaughTrackBadge("Optional", systemImage: "hand.raised", tone: .neutral)
+                LaughTrackBadge("No lock-in", systemImage: "location.slash", tone: .highlight)
+            }
+
+            VStack(spacing: theme.spacing.sm) {
+                LaughTrackButton(
+                    model.isResolvingLocation ? "Finding your ZIP…" : "Use current location",
+                    systemImage: "location.fill"
+                ) {
+                    Task {
+                        await model.useCurrentLocation()
+                    }
+                }
+                .disabled(model.isResolvingLocation)
+
+                LaughTrackButton("Enter a ZIP instead", systemImage: "mappin.and.ellipse", tone: .secondary) {
+                    model.presentZipEntry()
+                }
+
+                LaughTrackButton("Not now", systemImage: "arrow.right", tone: .tertiary) {
+                    model.dismissPrompt()
+                }
+            }
+
+            if model.isEditingZip {
+                homeZipField
+            }
+
+            statusMessages
+        }
+    }
+
+    @ViewBuilder
+    private func nearbyResultsContent(preference: NearbyPreference) -> some View {
+        VStack(alignment: .leading, spacing: theme.spacing.lg) {
+            LaughTrackSectionHeader(
+                eyebrow: "Nearby",
+                title: "Shows around ZIP \(preference.zipCode)",
+                subtitle: preference.source == .manual
+                    ? "Using your saved ZIP and radius preference from home."
+                    : "Using the ZIP closest to your current location."
+            )
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: theme.spacing.sm) {
+                    LaughTrackBadge("ZIP \(preference.zipCode)", systemImage: "mappin.and.ellipse", tone: .neutral)
+                    LaughTrackBadge("Within \(preference.distanceMiles) mi", systemImage: "location.fill", tone: .highlight)
+                    LaughTrackBadge(
+                        preference.source == .manual ? "Saved manually" : "Current location",
+                        systemImage: preference.source == .manual ? "slider.horizontal.3" : "location.north.line",
+                        tone: .accent
+                    )
+                }
+            }
+
+            HStack(spacing: theme.spacing.sm) {
+                LaughTrackButton("Change ZIP", systemImage: "pencil", tone: .secondary, fullWidth: false) {
+                    model.presentZipEntry()
+                }
+                LaughTrackButton("Clear nearby", systemImage: "location.slash", tone: .tertiary, fullWidth: false) {
+                    model.clearNearby()
+                }
+            }
+
+            if model.isEditingZip {
+                homeZipField
+            }
+
+            statusMessages
+
+            switch model.phase {
+            case .idle, .loading:
+                LoadingCard()
+            case .failure(let message):
+                ErrorCard(message: message) {
+                    await model.refresh(apiClient: apiClient)
+                }
+            case .success(let result):
+                if result.items.isEmpty {
+                    EmptyCard(message: "No nearby shows matched this ZIP yet. Broaden the radius below or clear nearby filters.")
+                } else {
+                    VStack(alignment: .leading, spacing: theme.spacing.md) {
+                        SearchResultsSummary(count: result.items.count, total: result.total)
+
+                        if result.zipCapTriggered {
+                            InlineStatusMessage(message: "That ZIP was broadened by the server because it covered too many locations. Tighten the ZIP or clear nearby filters.")
+                        }
+
+                        ForEach(Array(result.items.prefix(3)), id: \.id) { show in
+                            Button {
+                                coordinator.push(.showDetail(show.id))
+                            } label: {
+                                ShowRow(show: show)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var collapsedContent: some View {
+        VStack(alignment: .leading, spacing: theme.spacing.lg) {
+            LaughTrackSectionHeader(
+                eyebrow: "Nearby",
+                title: "Nearby discovery is paused",
+                subtitle: "You can keep browsing nationally below, or turn nearby back on whenever you want."
+            )
+
+            VStack(spacing: theme.spacing.sm) {
+                LaughTrackButton(
+                    model.isResolvingLocation ? "Finding your ZIP…" : "Use current location",
+                    systemImage: "location.fill"
+                ) {
+                    Task {
+                        await model.useCurrentLocation()
+                    }
+                }
+                .disabled(model.isResolvingLocation)
+
+                LaughTrackButton("Enter a ZIP instead", systemImage: "mappin.and.ellipse", tone: .secondary) {
+                    model.presentZipEntry()
+                }
+            }
+
+            if model.isEditingZip {
+                homeZipField
+            }
+
+            statusMessages
+        }
+    }
+
+    private var homeZipField: some View {
+        LaughTrackLabeledField(title: "ZIP", detail: "5 digits") {
+            VStack(alignment: .leading, spacing: theme.spacing.sm) {
+                TextField("10012", text: $model.zipCodeDraft)
+                    .modifier(SearchFieldInputBehavior())
+                    #if os(iOS)
+                    .keyboardType(UIKeyboardType.numberPad)
+                    #endif
+
+                LaughTrackButton("Use this ZIP", systemImage: "checkmark", tone: .secondary, fullWidth: false) {
+                    _ = model.applyManualZip()
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var statusMessages: some View {
+        if let zipValidationMessage = model.zipValidationMessage {
+            InlineStatusMessage(message: zipValidationMessage)
+        }
+
+        if let locationMessage = model.locationMessage {
+            InlineStatusMessage(message: locationMessage)
         }
     }
 }
@@ -1569,7 +2129,7 @@ private struct ComedianRow: View {
     }
 }
 
-private struct ShowRow: View {
+struct ShowRow: View {
     let show: Components.Schemas.Show
 
     @Environment(\.appTheme) private var theme
@@ -1590,6 +2150,10 @@ private struct ShowRow: View {
                     HStack(spacing: 8) {
                         LaughTrackBadge(ShowFormatting.listDate(show.date), systemImage: "calendar", tone: .neutral)
                         LaughTrackBadge(show.clubName ?? "Unknown club", systemImage: "building.2.fill", tone: .highlight)
+                    }
+
+                    if let distance = ShowFormatting.distance(show.distanceMiles) {
+                        LaughTrackBadge(distance, systemImage: "location.fill", tone: .accent)
                     }
                 }
 

@@ -12,8 +12,8 @@ struct NearbyPreferenceStoreTests {
 
         let preference = store.setManualZip("10012-1234")
 
-        #expect(preference == NearbyPreference(zipCode: "10012", source: .manual))
-        #expect(store.preference == NearbyPreference(zipCode: "10012", source: .manual))
+        #expect(preference == NearbyPreference(zipCode: "10012", source: .manual, distanceMiles: 25))
+        #expect(store.preference == NearbyPreference(zipCode: "10012", source: .manual, distanceMiles: 25))
     }
 
     @Test("invalid ZIP input is rejected without replacing the saved preference")
@@ -25,7 +25,7 @@ struct NearbyPreferenceStoreTests {
         let preference = store.setManualZip("12")
 
         #expect(preference == nil)
-        #expect(store.preference == NearbyPreference(zipCode: "30309", source: .geolocated))
+        #expect(store.preference == NearbyPreference(zipCode: "30309", source: .geolocated, distanceMiles: 25))
     }
 
     @Test("geolocated ZIP updates the same saved nearby preference")
@@ -36,7 +36,27 @@ struct NearbyPreferenceStoreTests {
 
         store.setGeolocatedZip("60614")
 
-        #expect(store.preference == NearbyPreference(zipCode: "60614", source: .geolocated))
+        #expect(store.preference == NearbyPreference(zipCode: "60614", source: .geolocated, distanceMiles: 25))
+    }
+
+    @Test("distance updates preserve the saved ZIP and source")
+    @MainActor
+    func updatingDistancePreservesExistingPreference() {
+        let store = makeStore(name: "distance")
+        store.setGeolocatedZip("60614")
+
+        store.setDistance(50)
+
+        #expect(store.preference == NearbyPreference(zipCode: "60614", source: .geolocated, distanceMiles: 50))
+    }
+
+    @Test("legacy nearby preference payloads default distance to 25 miles")
+    func legacyPayloadDefaultsDistance() throws {
+        let data = #"{"zipCode":"10012","source":"manual"}"#.data(using: .utf8)!
+
+        let decoded = try JSONDecoder().decode(NearbyPreference.self, from: data)
+
+        #expect(decoded == NearbyPreference(zipCode: "10012", source: .manual, distanceMiles: 25))
     }
 
     @Test("clearing removes the saved nearby preference")
