@@ -27,12 +27,18 @@ public struct NearbyPreference: Codable, Equatable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let zipCode = try container.decode(String.self, forKey: .zipCode)
         let source = try container.decode(NearbyPreferenceSource.self, forKey: .source)
-        let distanceMiles =
-            try container.decodeIfPresent(Int.self, forKey: .distanceMiles) ??
-            try container.decodeIfPresent(Int.self, forKey: .radiusMiles) ??
-            Self.defaultDistanceMiles
+        let savedDistanceMiles = try container.decodeIfPresent(Int.self, forKey: .distanceMiles)
+        let legacyRadiusMiles = try container.decodeIfPresent(Int.self, forKey: .radiusMiles)
+        let distanceMiles = savedDistanceMiles ?? legacyRadiusMiles ?? Self.defaultDistanceMiles
 
         self.init(zipCode: zipCode, source: source, distanceMiles: distanceMiles)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(zipCode, forKey: .zipCode)
+        try container.encode(source, forKey: .source)
+        try container.encode(distanceMiles, forKey: .distanceMiles)
     }
 
     private enum CodingKeys: String, CodingKey {
