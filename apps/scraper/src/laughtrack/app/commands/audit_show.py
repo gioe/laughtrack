@@ -38,8 +38,6 @@ SELECT
     s.name,
     s.club_id,
     cl.name  AS club_name,
-    cl.scraper,
-    cl.scraping_url,
     cl.address,
     cl.website,
     cl.popularity,
@@ -49,16 +47,36 @@ SELECT
     cl.visible,
     cl.city,
     cl.state,
-    cl.eventbrite_id,
-    cl.ticketmaster_id,
-    cl.seatengine_id,
     cl.status,
     cl.rate_limit,
     cl.max_retries,
-    cl.timeout
+    cl.timeout,
+    COALESCE(
+        json_agg(
+            json_build_object(
+                'id', ss.id,
+                'club_id', ss.club_id,
+                'platform', ss.platform,
+                'scraper_key', ss.scraper_key,
+                'external_id', ss.external_id,
+                'source_url', ss.source_url,
+                'priority', ss.priority,
+                'enabled', ss.enabled,
+                'metadata', COALESCE(ss.metadata, '{}'::jsonb)
+            )
+            ORDER BY ss.priority, ss.id
+        ) FILTER (WHERE ss.id IS NOT NULL),
+        '[]'::json
+    ) AS scraping_sources
 FROM shows s
 JOIN clubs cl ON cl.id = s.club_id
+LEFT JOIN scraping_sources ss ON ss.club_id = cl.id AND ss.enabled = TRUE
 WHERE s.id = %s
+GROUP BY
+    s.id, s.date, s.room, s.name, s.club_id,
+    cl.name, cl.address, cl.website, cl.popularity, cl.zip_code,
+    cl.phone_number, cl.timezone, cl.visible, cl.city, cl.state,
+    cl.status, cl.rate_limit, cl.max_retries, cl.timeout
 """
 
 _LINEUP_SQL = """
@@ -243,12 +261,32 @@ def main(argv: list[str] | None = None) -> None:
     # 1. Fetch show + DB lineup
     show_row, db_lineup = _fetch_show_and_club(show_id)
 
-    club_scraper: Optional[str] = show_row.get("scraper")
     club_name: str = show_row.get("club_name", "")
     show_name: str = show_row.get("name", "")
     show_date: datetime = show_row["date"]
     room: str = show_row.get("room") or ""
     club_id: int = show_row["club_id"]
+    club = Club.from_db_row(
+        {
+            "id": club_id,
+            "name": club_name,
+            "address": show_row.get("address", ""),
+            "website": show_row.get("website", ""),
+            "popularity": show_row.get("popularity", 0),
+            "zip_code": show_row.get("zip_code", ""),
+            "phone_number": show_row.get("phone_number", ""),
+            "timezone": show_row.get("timezone", "America/New_York"),
+            "city": show_row.get("city"),
+            "state": show_row.get("state"),
+            "visible": show_row.get("visible", True),
+            "status": show_row.get("status", "active"),
+            "rate_limit": show_row.get("rate_limit", 1.0),
+            "max_retries": show_row.get("max_retries", 3),
+            "timeout": show_row.get("timeout", 30),
+            "scraping_sources": show_row.get("scraping_sources", []),
+        }
+    )
+    club_scraper: Optional[str] = club.scraper
 
     # 2. Check scraper is configured
     if not club_scraper:
@@ -259,29 +297,6 @@ def main(argv: list[str] | None = None) -> None:
         sys.exit(1)
 
     # 3. Reconstruct Club entity for the scraper
-    club = Club(
-        id=club_id,
-        name=club_name,
-        address=show_row.get("address", ""),
-        website=show_row.get("website", ""),
-        scraping_url=show_row.get("scraping_url", ""),
-        popularity=show_row.get("popularity", 0),
-        zip_code=show_row.get("zip_code", ""),
-        phone_number=show_row.get("phone_number", ""),
-        visible=show_row.get("visible", True),
-        scraper=club_scraper,
-        timezone=show_row.get("timezone", "America/New_York"),
-        city=show_row.get("city"),
-        state=show_row.get("state"),
-        eventbrite_id=show_row.get("eventbrite_id"),
-        ticketmaster_id=show_row.get("ticketmaster_id"),
-        seatengine_id=show_row.get("seatengine_id"),
-        status=show_row.get("status", "active"),
-        rate_limit=show_row.get("rate_limit", 1.0),
-        max_retries=show_row.get("max_retries", 3),
-        timeout=show_row.get("timeout", 30),
-    )
-
     print(
         f"Running scraper '{club_scraper}' for '{club_name}' (dry-run, no DB writes)...",
         flush=True,

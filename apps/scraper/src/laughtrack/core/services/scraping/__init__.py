@@ -13,7 +13,7 @@ from typing import Optional, List
 
 from laughtrack.app.scraper_resolver import ScraperResolver
 from laughtrack.core.entities.club.handler import ClubHandler
-from laughtrack.core.entities.club.model import Club
+from laughtrack.core.entities.club.model import Club, ScrapingSource
 from laughtrack.core.entities.production_company.handler import ProductionCompanyHandler
 from laughtrack.core.entities.production_company.model import ProductionCompany
 from laughtrack.scrapers.base.base_scraper import BaseScraper
@@ -88,6 +88,13 @@ def _build_proxy_club(venue_club: Club, company: ProductionCompany) -> Club:
     # Tag so scrape_one can stamp production_company_id before persistence
     proxy._production_company_id = company.id  # type: ignore[attr-defined]
     proxy._production_company = company  # type: ignore[attr-defined]
+    return proxy
+
+
+def _build_source_proxy_club(club: Club, source: ScrapingSource) -> Club:
+    """Copy a club and activate a specific scraping source for one scrape attempt."""
+    proxy = copy.copy(club)
+    proxy.activate_scraping_source(source)
     return proxy
 
 
@@ -284,6 +291,13 @@ class ScrapingService:
         except Exception as e:  # pragma: no cover - defensive
             Logger.warn(f"Scraper config validation skipped due to error: {e}")
 
+    @staticmethod
+    def _sorted_enabled_sources(club: Club) -> List[ScrapingSource]:
+        return sorted(
+            [source for source in club.scraping_sources if source.enabled],
+            key=lambda source: (source.priority, source.id or 0),
+        )
+
     def _scrape_clubs_with_metrics(
         self, clubs: List[Club]
     ) -> tuple[List[ClubScrapingResult], ScrapingRunSummary, DatabaseOperationResult]:
@@ -318,97 +332,146 @@ class ScrapingService:
             club: Club,
         ) -> tuple[Optional[ClubScrapingResult], Optional[DomainRequestMetrics]]:
             nonlocal total_db_result
-            if not getattr(club, "scraper", None):
+            sources = self._sorted_enabled_sources(club)
+            if not sources and club.scraping_source is not None:
+                sources = [club.scraping_source]
+            if not sources:
                 Logger.warn(f"Club '{club.name}' has no scraper key configured; skipping")
                 return None, None
-            key: str = club.scraper if club.scraper is not None else ""
-            scraper_cls = self._scraping_resolver.get(key)
-            if not scraper_cls:
-                Logger.warn(f"No scraper found for club '{club.name}' with key '{key}'")
-                return None, None
             async with semaphore:
-                metrics = DomainRequestMetrics(club_name=club.name, club_id=getattr(club, "id", None), scraper_type=key)
+                metrics = DomainRequestMetrics(
+                    club_name=club.name,
+                    club_id=getattr(club, "id", None),
+                    scraper_type=sources[0].scraper_key,
+                )
                 metrics.total += 1
                 _PER_CLUB_TIMEOUT = 300  # seconds; unblocks gather if a thread stalls on network
-                try:
-                    scraper: BaseScraper = scraper_cls(club, proxy_pool=self.proxy_pool)
-                    try:
-                        result = await asyncio.wait_for(
-                            loop.run_in_executor(None, _scrape_with_context, scraper, club),
-                            timeout=_PER_CLUB_TIMEOUT,
-                        )
-                    except asyncio.TimeoutError:
+                last_result: Optional[ClubScrapingResult] = None
+                last_key = sources[0].scraper_key
+                for index, source in enumerate(sources):
+                    attempt_club = _build_source_proxy_club(club, source)
+                    key = source.scraper_key
+                    last_key = key
+                    scraper_cls = self._scraping_resolver.get(key)
+                    if not scraper_cls:
+                        Logger.warn(f"No scraper found for club '{club.name}' with key '{key}'")
+                        continue
+                    if index > 0:
                         Logger.warn(
-                            f"scrape_one: club '{club.name}' timed out after {_PER_CLUB_TIMEOUT}s — skipping"
+                            f"Club '{club.name}': trying fallback source priority={source.priority} "
+                            f"with scraper '{key}'"
                         )
-                        metrics.error += 1
-                        return ClubScrapingResult(
+                    try:
+                        scraper: BaseScraper = scraper_cls(attempt_club, proxy_pool=self.proxy_pool)
+                        try:
+                            result = await asyncio.wait_for(
+                                loop.run_in_executor(None, _scrape_with_context, scraper, attempt_club),
+                                timeout=_PER_CLUB_TIMEOUT,
+                            )
+                        except asyncio.TimeoutError:
+                            Logger.warn(
+                                f"scrape_one: club '{club.name}' timed out after {_PER_CLUB_TIMEOUT}s "
+                                f"with scraper '{key}'"
+                            )
+                            last_result = ClubScrapingResult(
+                                club_name=club.name,
+                                shows=[],
+                                execution_time=float(_PER_CLUB_TIMEOUT),
+                                error=f"timed out after {_PER_CLUB_TIMEOUT}s",
+                                club_id=club.id,
+                            )
+                            continue
+
+                        last_result = result
+                        if (result.error or result.num_shows == 0) and index < len(sources) - 1:
+                            reason = result.error or "zero shows"
+                            Logger.warn(
+                                f"Club '{club.name}': scraper '{key}' produced {reason}; trying fallback"
+                            )
+                            continue
+
+                        # Stamp production_company_id on matching shows before persistence
+                        # when scraping via a production company proxy club.
+                        # If the company has show_name_keywords configured, only shows
+                        # whose name matches at least one keyword get stamped.
+                        pc_id = getattr(club, "_production_company_id", None)
+                        if pc_id is not None:
+                            pc: Optional[ProductionCompany] = getattr(club, "_production_company", None)
+                            stamped = 0
+                            for show in result.shows:
+                                if pc is None or pc.matches_show_name(show.name):
+                                    show.production_company_id = pc_id
+                                    stamped += 1
+                            if pc and pc.show_name_keywords and stamped < len(result.shows):
+                                Logger.info(
+                                    f"Production company '{pc.name}': stamped {stamped}/{len(result.shows)} "
+                                    f"shows (filtered by keywords)"
+                                )
+
+                        # Persist immediately after this club completes scraping.
+                        # db_lock serializes writes so insert_club_result() is called
+                        # from at most one thread at a time, ensuring ShowService thread safety.
+                        _DB_WRITE_TIMEOUT = 60  # seconds; unblocks db_lock if Neon connection drops
+                        try:
+                            async with db_lock:
+                                # Push club context before run_in_executor so the thread
+                                # inherits it via contextvars copy - ensures DB log lines
+                                # show the correct club name/id instead of club=-.
+                                with Logger.use_context(club.as_context()):
+                                    try:
+                                        club_db_result = await asyncio.wait_for(
+                                            loop.run_in_executor(
+                                                None, self.result_processor.insert_club_result, result
+                                            ),
+                                            timeout=_DB_WRITE_TIMEOUT,
+                                        )
+                                    except asyncio.TimeoutError:
+                                        Logger.warn(
+                                            f"scrape_one: DB write for club '{club.name}' timed out after "
+                                            f"{_DB_WRITE_TIMEOUT}s - skipping persist"
+                                        )
+                                        club_db_result = DatabaseOperationResult()
+                                total_db_result = total_db_result + club_db_result
+                        except Exception as insert_err:
+                            Logger.error(f"Failed to persist shows for club '{club.name}': {insert_err}")
+
+                        metrics.scraper_type = key
+                        if result.error:
+                            metrics.error += 1
+                        elif result.num_shows == 0:
+                            metrics.none_resp += 1
+                        else:
+                            metrics.ok += 1
+                        return result, metrics
+                    except Exception as e:
+                        Logger.error(f"Failed to scrape club '{club.name}' with scraper '{key}': {e}")
+                        last_result = ClubScrapingResult(
                             club_name=club.name,
                             shows=[],
-                            execution_time=float(_PER_CLUB_TIMEOUT),
-                            error=f"timed out after {_PER_CLUB_TIMEOUT}s",
+                            execution_time=0.0,
+                            error=str(e),
                             club_id=club.id,
-                        ), metrics
-                    if result.error:
-                        metrics.error += 1
-                    elif result.num_shows == 0:
-                        metrics.none_resp += 1
-                    else:
-                        metrics.ok += 1
-                    # Stamp production_company_id on matching shows before persistence
-                    # when scraping via a production company proxy club.
-                    # If the company has show_name_keywords configured, only shows
-                    # whose name matches at least one keyword get stamped.
-                    pc_id = getattr(club, "_production_company_id", None)
-                    if pc_id is not None:
-                        pc: Optional[ProductionCompany] = getattr(club, "_production_company", None)
-                        stamped = 0
-                        for show in result.shows:
-                            if pc is None or pc.matches_show_name(show.name):
-                                show.production_company_id = pc_id
-                                stamped += 1
-                        if pc and pc.show_name_keywords and stamped < len(result.shows):
-                            Logger.info(
-                                f"Production company '{pc.name}': stamped {stamped}/{len(result.shows)} "
-                                f"shows (filtered by keywords)"
-                            )
-                    # Persist immediately after this club completes scraping.
-                    # db_lock serializes writes so insert_club_result() is called
-                    # from at most one thread at a time, ensuring ShowService thread safety.
-                    _DB_WRITE_TIMEOUT = 60  # seconds; unblocks db_lock if Neon connection drops
-                    try:
-                        async with db_lock:
-                            # Push club context before run_in_executor so the thread
-                            # inherits it via contextvars copy — ensures DB log lines
-                            # show the correct club name/id instead of club=-.
-                            with Logger.use_context(club.as_context()):
-                                try:
-                                    club_db_result = await asyncio.wait_for(
-                                        loop.run_in_executor(
-                                            None, self.result_processor.insert_club_result, result
-                                        ),
-                                        timeout=_DB_WRITE_TIMEOUT,
-                                    )
-                                except asyncio.TimeoutError:
-                                    Logger.warn(
-                                        f"scrape_one: DB write for club '{club.name}' timed out after {_DB_WRITE_TIMEOUT}s — skipping persist"
-                                    )
-                                    club_db_result = DatabaseOperationResult()
-                            total_db_result = total_db_result + club_db_result
-                    except Exception as insert_err:
-                        Logger.error(f"Failed to persist shows for club '{club.name}': {insert_err}")
-                    return result, metrics
-                except Exception as e:
-                    Logger.error(f"Failed to scrape club '{club.name}': {e}")
-                    result = ClubScrapingResult(
+                        )
+                        if index == len(sources) - 1:
+                            break
+
+                metrics.scraper_type = last_key
+                if last_result is None:
+                    metrics.error += 1
+                    return ClubScrapingResult(
                         club_name=club.name,
                         shows=[],
                         execution_time=0.0,
-                        error=str(e),
+                        error="no enabled scraping source could be resolved",
                         club_id=club.id,
-                    )
+                    ), metrics
+                if last_result.error:
                     metrics.error += 1
-                    return result, metrics
+                elif last_result.num_shows == 0:
+                    metrics.none_resp += 1
+                else:
+                    metrics.ok += 1
+                return last_result, metrics
 
         # Close the shared Playwright browser while the event loop is still running
         # so Playwright objects are torn down on the correct loop — making the

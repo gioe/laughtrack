@@ -139,7 +139,7 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         try:
             results = self.execute_with_cursor(
                 ClubQueries.UPSERT_CLUB_BY_EVENTBRITE_VENUE,
-                (venue.name, address, venue.id, zip_code, city, state),
+                (venue.name, address, zip_code, city, state, venue.id),
                 return_results=True,
             )
             if not results:
@@ -180,7 +180,7 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         try:
             results = self.execute_with_cursor(
                 ClubQueries.UPSERT_CLUB_BY_SEATENGINE_VENUE,
-                (name, address, website, website, venue_id, zip_code, city, state),
+                (name, address, website, zip_code, city, state, venue_id, website),
                 return_results=True,
             )
             if not results:
@@ -230,7 +230,7 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         try:
             results = self.execute_with_cursor(
                 ClubQueries.UPSERT_CLUB_BY_SEATENGINE_V3_VENUE,
-                (name, address, website, scraping_url, venue_uuid, zip_code, city, state),
+                (name, address, website, zip_code, city, state, venue_uuid, scraping_url),
                 return_results=True,
             )
             if not results:
@@ -273,7 +273,7 @@ class ClubHandler(BaseDatabaseHandler[Club]):
         try:
             results = self.execute_with_cursor(
                 ClubQueries.UPSERT_CLUB_BY_TICKETMASTER_VENUE,
-                (name, address, venue_id, zip_code, city, state, timezone),
+                (name, address, zip_code, city, state, timezone, venue_id),
                 return_results=True,
             )
             if not results:
