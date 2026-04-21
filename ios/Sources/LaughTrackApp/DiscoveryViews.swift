@@ -390,11 +390,263 @@ private final class ClubsDiscoveryModel: ObservableObject {
     }
 }
 
+private enum ShowDistanceOption: Int, CaseIterable, Identifiable {
+    case nearby = 10
+    case city = 25
+    case regional = 50
+    case roadTrip = 100
+
+    var id: Int { rawValue }
+
+    var title: String {
+        "\(rawValue) mi"
+    }
+}
+
+private enum ShowSortOption: String, CaseIterable, Identifiable {
+    case earliest = "date_asc"
+    case latest = "date_desc"
+    case popular = "popularity_desc"
+    case budget = "price_asc"
+    case premium = "price_desc"
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .earliest:
+            return "Earliest"
+        case .latest:
+            return "Latest"
+        case .popular:
+            return "Popular"
+        case .budget:
+            return "Low price"
+        case .premium:
+            return "High price"
+        }
+    }
+}
+
+private struct ShowsDiscoveryQuery: Hashable {
+    let comedian: String
+    let club: String
+    let zip: String
+    let useDateRange: Bool
+    let from: Date
+    let to: Date
+    let distance: ShowDistanceOption
+    let sort: ShowSortOption
+
+    var fromString: String? {
+        guard useDateRange else { return nil }
+        return ShowFormatting.apiDate(from)
+    }
+
+    var toString: String? {
+        guard useDateRange else { return nil }
+        return ShowFormatting.apiDate(to)
+    }
+
+    var sanitizedZip: String? {
+        let digits = zip.filter(\.isNumber)
+        guard digits.count == 5 else { return nil }
+        return digits
+    }
+
+    var hasActiveFilters: Bool {
+        !comedian.isEmpty ||
+        !club.isEmpty ||
+        sanitizedZip != nil ||
+        useDateRange ||
+        sort != .earliest
+    }
+}
+
+private struct ShowsDiscoveryPage {
+    let items: [Components.Schemas.Show]
+    let total: Int
+    let page: Int
+    let zipCapTriggered: Bool
+
+    var canLoadMore: Bool {
+        items.count < total
+    }
+}
+
+@MainActor
+private final class ShowsDiscoveryModel: ObservableObject {
+    private static let pageSize = 10
+
+    @Published var comedianSearchText = ""
+    @Published var clubSearchText = ""
+    @Published var zipCode = ""
+    @Published var useDateRange = false
+    @Published var fromDate = Calendar.current.startOfDay(for: Date())
+    @Published var toDate = Calendar.current.date(byAdding: .day, value: 14, to: Calendar.current.startOfDay(for: Date())) ?? Date()
+    @Published var distance: ShowDistanceOption = .city
+    @Published var sort: ShowSortOption = .earliest
+    @Published private(set) var phase: LoadPhase<ShowsDiscoveryPage> = .idle
+    @Published private(set) var isLoadingMore = false
+    @Published private(set) var paginationMessage: String?
+
+    private var loadedQuery: ShowsDiscoveryQuery?
+    private var loadingQuery: ShowsDiscoveryQuery?
+
+    var requestKey: ShowsDiscoveryQuery {
+        let trimmedTo = max(toDate, fromDate)
+        return .init(
+            comedian: comedianSearchText.trimmingCharacters(in: .whitespacesAndNewlines),
+            club: clubSearchText.trimmingCharacters(in: .whitespacesAndNewlines),
+            zip: zipCode.trimmingCharacters(in: .whitespacesAndNewlines),
+            useDateRange: useDateRange,
+            from: fromDate,
+            to: trimmedTo,
+            distance: distance,
+            sort: sort
+        )
+    }
+
+    var timezoneLabel: String {
+        let timezone = TimeZone.autoupdatingCurrent
+        return timezone.localizedName(for: .shortStandard, locale: .current) ?? timezone.identifier
+    }
+
+    func reload(apiClient: Client) async {
+        let query = requestKey
+
+        if loadedQuery == query, case .success = phase {
+            return
+        }
+
+        if loadingQuery == query, case .loading = phase {
+            return
+        }
+
+        await load(page: 0, query: query, apiClient: apiClient, resetResults: true)
+    }
+
+    func loadMore(apiClient: Client) async {
+        guard case .success(let current) = phase, current.canLoadMore, !isLoadingMore else { return }
+        await load(page: current.page + 1, query: requestKey, apiClient: apiClient, resetResults: false)
+    }
+
+    func clearLocation() {
+        zipCode = ""
+    }
+
+    private func load(
+        page: Int,
+        query: ShowsDiscoveryQuery,
+        apiClient: Client,
+        resetResults: Bool
+    ) async {
+        let existingItems = currentItems
+        paginationMessage = nil
+
+        if resetResults {
+            loadingQuery = query
+            phase = .loading
+            if query.hasActiveFilters {
+                try? await Task.sleep(for: .milliseconds(250))
+                guard !Task.isCancelled else { return }
+            }
+        } else {
+            isLoadingMore = true
+        }
+
+        defer {
+            if resetResults {
+                loadingQuery = nil
+            } else {
+                isLoadingMore = false
+            }
+        }
+
+        do {
+            let output = try await apiClient.searchShows(
+                .init(
+                    query: .init(
+                        zip: query.sanitizedZip,
+                        from: query.fromString,
+                        to: query.toString,
+                        page: page,
+                        size: Self.pageSize,
+                        comedian: query.comedian.nonEmpty,
+                        club: query.club.nonEmpty,
+                        distance: query.sanitizedZip == nil ? nil : query.distance.rawValue,
+                        sort: query.sort.rawValue
+                    ),
+                    headers: .init(xTimezone: TimeZone.autoupdatingCurrent.identifier)
+                )
+            )
+
+            switch output {
+            case .ok(let ok):
+                let response = try ok.body.json
+                phase = .success(
+                    .init(
+                        items: resetResults ? response.data : existingItems + response.data,
+                        total: response.total,
+                        page: page,
+                        zipCapTriggered: response.zipCapTriggered
+                    )
+                )
+                loadedQuery = query
+            case .badRequest(let badRequest):
+                handleFailure(
+                    message: (try? badRequest.body.json.error) ?? "LaughTrack could not apply those show filters.",
+                    resetResults: resetResults,
+                    existingItems: existingItems
+                )
+            case .internalServerError(let serverError):
+                handleFailure(
+                    message: (try? serverError.body.json.error) ?? "LaughTrack could not load shows right now.",
+                    resetResults: resetResults,
+                    existingItems: existingItems
+                )
+            case .undocumented(let status, _):
+                handleFailure(
+                    message: "LaughTrack returned an unexpected response (\(status)).",
+                    resetResults: resetResults,
+                    existingItems: existingItems
+                )
+            }
+        } catch {
+            guard !Task.isCancelled else { return }
+            handleFailure(
+                message: "LaughTrack could not reach the shows search service. Check your connection and try again.",
+                resetResults: resetResults,
+                existingItems: existingItems
+            )
+        }
+    }
+
+    private func handleFailure(
+        message: String,
+        resetResults: Bool,
+        existingItems: [Components.Schemas.Show]
+    ) {
+        if resetResults || existingItems.isEmpty {
+            phase = .failure(message)
+        } else if case .success(let current) = phase {
+            paginationMessage = message
+            phase = .success(current)
+        }
+    }
+
+    private var currentItems: [Components.Schemas.Show] {
+        guard case .success(let current) = phase else { return [] }
+        return current.items
+    }
+}
+
 struct DiscoveryHubView: View {
     let apiClient: Client
 
     @Environment(\.appTheme) private var theme
     @State private var selection: DiscoverySection = .shows
+    @StateObject private var showsModel = ShowsDiscoveryModel()
     @StateObject private var comediansModel = ComediansDiscoveryModel()
     @StateObject private var clubsModel = ClubsDiscoveryModel()
 
@@ -416,7 +668,7 @@ struct DiscoveryHubView: View {
             Group {
                 switch selection {
                 case .shows:
-                    ShowsDiscoveryView(apiClient: apiClient)
+                    ShowsDiscoveryView(apiClient: apiClient, model: showsModel)
                 case .comedians:
                     ComediansDiscoveryView(apiClient: apiClient, model: comediansModel)
                 case .clubs:
@@ -429,64 +681,86 @@ struct DiscoveryHubView: View {
 
 private struct ShowsDiscoveryView: View {
     let apiClient: Client
+    @ObservedObject var model: ShowsDiscoveryModel
 
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
-    @State private var phase: LoadPhase<[Components.Schemas.Show]> = .idle
 
     var body: some View {
-        DiscoveryCard(title: "Upcoming shows") {
-            switch phase {
-            case .idle, .loading:
-                LoadingCard()
-            case .failure(let message):
-                ErrorCard(message: message, retry: load)
-            case .success(let shows):
-                if shows.isEmpty {
-                    EmptyCard(message: "No shows are available right now.")
-                } else {
-                    VStack(spacing: 12) {
-                        ForEach(shows, id: \.id) { show in
-                            Button {
-                                coordinator.push(.showDetail(show.id))
-                            } label: {
-                                ShowRow(show: show)
+        DiscoveryCard(title: "Find shows") {
+            VStack(spacing: 16) {
+                SearchField(
+                    title: "Comedian",
+                    prompt: "Mark Normand, Atsuko Okatsuka…",
+                    text: $model.comedianSearchText
+                )
+
+                SearchField(
+                    title: "Club",
+                    prompt: "Comedy Cellar, The Stand…",
+                    text: $model.clubSearchText
+                )
+
+                ShowFiltersPanel(model: model)
+
+                switch model.phase {
+                case .idle, .loading:
+                    LoadingCard()
+                case .failure(let message):
+                    ErrorCard(message: message) {
+                        Task {
+                            await model.reload(apiClient: apiClient)
+                        }
+                    }
+                case .success(let result):
+                    if result.items.isEmpty {
+                        EmptyCard(message: emptyMessage)
+                    } else {
+                        VStack(spacing: 12) {
+                            SearchResultsSummary(count: result.items.count, total: result.total)
+                            ShowsSearchMeta(model: model, zipCapTriggered: result.zipCapTriggered)
+
+                            ForEach(result.items, id: \.id) { show in
+                                Button {
+                                    coordinator.push(.showDetail(show.id))
+                                } label: {
+                                    ShowRow(show: show)
+                                }
+                                .buttonStyle(.plain)
                             }
-                            .buttonStyle(.plain)
+
+                            if let paginationMessage = model.paginationMessage {
+                                InlineStatusMessage(message: paginationMessage)
+                            }
+
+                            if result.canLoadMore {
+                                LoadMoreButton(
+                                    title: "Load more shows",
+                                    isLoading: model.isLoadingMore
+                                ) {
+                                    await model.loadMore(apiClient: apiClient)
+                                }
+                            }
                         }
                     }
                 }
             }
         }
-        .task {
-            guard case .idle = phase else { return }
-            await load()
+        .task(id: model.requestKey) {
+            await model.reload(apiClient: apiClient)
         }
     }
 
-    private func load() async {
-        phase = .loading
-
-        do {
-            let output = try await apiClient.searchShows(
-                .init(
-                    query: .init(size: 20),
-                    headers: .init(xTimezone: TimeZone.current.identifier)
-                )
-            )
-
-            switch output {
-            case .ok(let ok):
-                phase = .success(try ok.body.json.data)
-            case .badRequest:
-                phase = .success(DemoFixtures.shows)
-            case .internalServerError:
-                phase = .success(DemoFixtures.shows)
-            case .undocumented:
-                phase = .success(DemoFixtures.shows)
-            }
-        } catch {
-            phase = .success(DemoFixtures.shows)
+    private var emptyMessage: String {
+        if !model.comedianSearchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+            !model.clubSearchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return "No shows matched this search. Try another comedian, club, or a broader date range."
         }
+
+        if !model.zipCode.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return "No shows matched this ZIP code yet. Broaden the radius or clear location filters."
+        }
+
+        return "No shows are available right now."
     }
 }
 
@@ -1254,6 +1528,162 @@ private struct SearchField: View {
     }
 }
 
+private struct ShowFiltersPanel: View {
+    @Environment(\.appTheme) private var theme
+
+    @ObservedObject var model: ShowsDiscoveryModel
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Filters")
+                .font(laughTrack.typography.metadata)
+                .foregroundStyle(laughTrack.colors.textSecondary)
+                .textCase(.uppercase)
+
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("ZIP")
+                        .font(laughTrack.typography.metadata)
+                        .foregroundStyle(laughTrack.colors.textSecondary)
+                    TextField("10012", text: $model.zipCode)
+                        .keyboardType(.numberPad)
+                        .modifier(SearchFieldInputBehavior())
+                        .padding(theme.spacing.md)
+                        .background(laughTrack.colors.canvas)
+                        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Sort")
+                        .font(laughTrack.typography.metadata)
+                        .foregroundStyle(laughTrack.colors.textSecondary)
+                    Picker("Sort", selection: $model.sort) {
+                        ForEach(ShowSortOption.allCases) { option in
+                            Text(option.title).tag(option)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(theme.spacing.md)
+                    .background(laughTrack.colors.canvas)
+                    .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+                }
+            }
+
+            if model.requestKey.sanitizedZip != nil {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Distance")
+                        .font(laughTrack.typography.metadata)
+                        .foregroundStyle(laughTrack.colors.textSecondary)
+                    Picker("Distance", selection: $model.distance) {
+                        ForEach(ShowDistanceOption.allCases) { option in
+                            Text(option.title).tag(option)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                }
+            }
+
+            Toggle("Use date range", isOn: $model.useDateRange)
+                .font(laughTrack.typography.body)
+                .tint(laughTrack.colors.accent)
+
+            if model.useDateRange {
+                VStack(spacing: 12) {
+                    DatePicker("From", selection: $model.fromDate, displayedComponents: .date)
+                    DatePicker(
+                        "To",
+                        selection: Binding(
+                            get: { max(model.toDate, model.fromDate) },
+                            set: { model.toDate = max($0, model.fromDate) }
+                        ),
+                        in: model.fromDate...,
+                        displayedComponents: .date
+                    )
+                }
+                .font(laughTrack.typography.body)
+            }
+        }
+    }
+}
+
+private struct ShowsSearchMeta: View {
+    @Environment(\.appTheme) private var theme
+
+    @ObservedObject var model: ShowsDiscoveryModel
+    let zipCapTriggered: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Times shown in \(model.timezoneLabel).")
+                .font(theme.laughTrackTokens.typography.metadata)
+                .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(activeFilters, id: \.self) { filter in
+                        Text(filter)
+                            .font(theme.laughTrackTokens.typography.metadata)
+                            .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(theme.laughTrackTokens.colors.canvas)
+                            .clipShape(Capsule())
+                    }
+                }
+            }
+
+            if zipCapTriggered {
+                HStack(alignment: .top, spacing: 10) {
+                    Image(systemName: "location.magnifyingglass")
+                        .foregroundStyle(theme.laughTrackTokens.colors.accent)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Location was broadened")
+                            .font(theme.laughTrackTokens.typography.action)
+                            .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
+                        Text("That ZIP matched too many nearby locations. Try a tighter ZIP or clear the location filter.")
+                            .font(theme.laughTrackTokens.typography.metadata)
+                            .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
+                        Button("Browse all shows") {
+                            model.clearLocation()
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                }
+                .padding(theme.spacing.md)
+                .background(theme.laughTrackTokens.colors.surfaceElevated)
+                .clipShape(RoundedRectangle(cornerRadius: theme.laughTrackTokens.radius.card, style: .continuous))
+            }
+        }
+    }
+
+    private var activeFilters: [String] {
+        let query = model.requestKey
+        var filters = ["Sort: \(query.sort.title)"]
+
+        if let zip = query.sanitizedZip {
+            filters.append("ZIP \(zip)")
+            filters.append("Within \(query.distance.rawValue) mi")
+        }
+
+        if !query.comedian.isEmpty {
+            filters.append("Comedian: \(query.comedian)")
+        }
+
+        if !query.club.isEmpty {
+            filters.append("Club: \(query.club)")
+        }
+
+        if query.useDateRange, let from = query.fromString, let to = query.toString {
+            filters.append("\(from) to \(to)")
+        }
+
+        return filters
+    }
+}
+
 private struct SearchResultsSummary: View {
     @Environment(\.appTheme) private var theme
 
@@ -1264,6 +1694,26 @@ private struct SearchResultsSummary: View {
         Text("Showing \(count) of \(total)")
             .font(theme.laughTrackTokens.typography.metadata)
             .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
+    }
+}
+
+private struct InlineStatusMessage: View {
+    @Environment(\.appTheme) private var theme
+
+    let message: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundStyle(theme.laughTrackTokens.colors.accent)
+            Text(message)
+                .font(theme.laughTrackTokens.typography.metadata)
+                .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(theme.spacing.md)
+        .background(theme.laughTrackTokens.colors.canvas)
+        .clipShape(RoundedRectangle(cornerRadius: theme.laughTrackTokens.radius.card, style: .continuous))
     }
 }
 
@@ -1579,6 +2029,14 @@ private struct SearchFieldInputBehavior: ViewModifier {
 }
 
 private enum ShowFormatting {
+    private static let apiFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
+
     private static let listFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
@@ -1588,6 +2046,10 @@ private enum ShowFormatting {
 
     static func listDate(_ date: Date) -> String {
         listFormatter.string(from: date)
+    }
+
+    static func apiDate(_ date: Date) -> String {
+        apiFormatter.string(from: date)
     }
 
     static func detailDate(_ date: Date, timezoneID: String?) -> String {

@@ -11,7 +11,8 @@ final class LaughTrackUITests: XCTestCase {
 
     func testAppLaunchesAndDisplaysHomeView() throws {
         XCTAssertTrue(app.wait(for: .runningForeground, timeout: 5))
-        XCTAssertTrue(app.staticTexts["Welcome to LaughTrack"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["Find comedy shows nearby"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["Find shows"].exists)
         XCTAssertTrue(app.navigationBars["LaughTrack"].exists)
     }
 
@@ -25,7 +26,7 @@ final class LaughTrackUITests: XCTestCase {
 
         app.navigationBars["Settings"].buttons.firstMatch.tap()
 
-        XCTAssertTrue(app.staticTexts["Welcome to LaughTrack"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["Find comedy shows nearby"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.navigationBars["LaughTrack"].exists)
     }
 }
