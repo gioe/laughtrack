@@ -5,6 +5,15 @@ import SwiftUI
 
 public typealias AppThemeProtocol = SharedKit.AppThemeProtocol
 public typealias DefaultTheme = SharedKit.DefaultTheme
+public typealias ColorTokens = SharedKit.ColorTokens
+public typealias TypographyTokens = SharedKit.TypographyTokens
+public typealias SpacingTokens = SharedKit.SpacingTokens
+public typealias CornerRadiusTokens = SharedKit.CornerRadiusTokens
+public typealias ShadowTokens = SharedKit.ShadowTokens
+public typealias IconSizeTokens = SharedKit.IconSizeTokens
+public typealias AnimationTokens = SharedKit.AnimationTokens
+public typealias GradientTokens = SharedKit.GradientTokens
+public typealias ShadowStyle = SharedKit.ShadowStyle
 
 // MARK: - Service Container
 
