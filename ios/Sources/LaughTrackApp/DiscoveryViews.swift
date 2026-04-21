@@ -651,19 +651,35 @@ struct DiscoveryHubView: View {
     @StateObject private var clubsModel = ClubsDiscoveryModel()
 
     var body: some View {
-        let laughTrack = theme.laughTrackTokens
-
         VStack(alignment: .leading, spacing: theme.spacing.lg) {
-            Picker("Browse", selection: $selection) {
-                ForEach(DiscoverySection.allCases) { section in
-                    Text(section.title).tag(section)
+            LaughTrackCard(tone: .accent) {
+                VStack(alignment: .leading, spacing: theme.spacing.lg) {
+                    LaughTrackSectionHeader(
+                        eyebrow: "Browse",
+                        title: selection.title,
+                        subtitle: selection.subtitle
+                    )
+
+                    Picker("Browse", selection: $selection) {
+                        ForEach(DiscoverySection.allCases) { section in
+                            Text(section.title).tag(section)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: theme.spacing.sm) {
+                            ForEach(DiscoverySection.allCases) { section in
+                                LaughTrackBadge(
+                                    section.title,
+                                    systemImage: badgeIcon(for: section),
+                                    tone: selection == section ? .highlight : .neutral
+                                )
+                            }
+                        }
+                    }
                 }
             }
-            .pickerStyle(.segmented)
-
-            Text(selection.subtitle)
-                .font(laughTrack.typography.body)
-                .foregroundStyle(laughTrack.colors.textSecondary)
 
             Group {
                 switch selection {
@@ -675,6 +691,17 @@ struct DiscoveryHubView: View {
                     ClubsDiscoveryView(apiClient: apiClient, model: clubsModel)
                 }
             }
+        }
+    }
+
+    private func badgeIcon(for section: DiscoverySection) -> String {
+        switch section {
+        case .shows:
+            return "ticket.fill"
+        case .comedians:
+            return "music.mic"
+        case .clubs:
+            return "building.2.fill"
         }
     }
 }
@@ -923,7 +950,8 @@ struct ShowDetailView: View {
                     DetailHero(
                         title: show.name ?? "Untitled show",
                         subtitle: ShowFormatting.detailDate(show.date, timezoneID: show.timezone),
-                        imageURL: show.imageUrl
+                        imageURL: show.imageUrl,
+                        badges: showHeroBadges(show: show)
                     )
 
                     if let address = show.address ?? show.club.address {
@@ -946,29 +974,43 @@ struct ShowDetailView: View {
                     }
 
                     if let lineup = show.lineup, !lineup.isEmpty {
-                        VStack(alignment: .leading, spacing: 12) {
-                            SectionHeading(title: "Lineup")
-                            ForEach(lineup, id: \.uuid) { comedian in
-                                ComedianLineupRow(
-                                    comedian: comedian,
-                                    apiClient: apiClient,
-                                    feedbackMessage: $feedbackMessage,
-                                    openDetail: { coordinator.push(.comedianDetail(comedian.id)) }
+                        LaughTrackCard {
+                            VStack(alignment: .leading, spacing: 12) {
+                                LaughTrackSectionHeader(
+                                    eyebrow: "Lineup",
+                                    title: "Tonight’s bill",
+                                    subtitle: "Tap any comic to open their native detail page."
                                 )
+
+                                ForEach(lineup, id: \.uuid) { comedian in
+                                    ComedianLineupRow(
+                                        comedian: comedian,
+                                        apiClient: apiClient,
+                                        feedbackMessage: $feedbackMessage,
+                                        openDetail: { coordinator.push(.comedianDetail(comedian.id)) }
+                                    )
+                                }
                             }
                         }
                     }
 
                     if !response.relatedShows.isEmpty {
-                        VStack(alignment: .leading, spacing: 12) {
-                            SectionHeading(title: "Related shows")
-                            ForEach(response.relatedShows, id: \.id) { related in
-                                Button {
-                                    coordinator.push(.showDetail(related.id))
-                                } label: {
-                                    ShowRow(show: related)
+                        LaughTrackCard(tone: .muted) {
+                            VStack(alignment: .leading, spacing: 12) {
+                                LaughTrackSectionHeader(
+                                    eyebrow: "Keep browsing",
+                                    title: "Related shows",
+                                    subtitle: "More dates from nearby rooms and linked talent."
+                                )
+
+                                ForEach(response.relatedShows, id: \.id) { related in
+                                    Button {
+                                        coordinator.push(.showDetail(related.id))
+                                    } label: {
+                                        ShowRow(show: related)
+                                    }
+                                    .buttonStyle(.plain)
                                 }
-                                .buttonStyle(.plain)
                             }
                         }
                     }
@@ -1019,6 +1061,38 @@ struct ShowDetailView: View {
             phase = .success(DemoFixtures.showDetailResponse(id: showID) ?? DemoFixtures.primaryShowDetail)
         }
     }
+
+    private func showHeroBadges(show: Components.Schemas.ShowDetail) -> [DetailHeroBadge] {
+        var badges = [
+            DetailHeroBadge(
+                title: show.club.name,
+                systemImage: "building.2.fill",
+                tone: .highlight
+            )
+        ]
+
+        if let distance = ShowFormatting.distance(show.distanceMiles) {
+            badges.append(
+                DetailHeroBadge(
+                    title: distance,
+                    systemImage: "location.fill",
+                    tone: .neutral
+                )
+            )
+        }
+
+        if show.soldOut == true {
+            badges.append(
+                DetailHeroBadge(
+                    title: "Sold out",
+                    systemImage: "ticket.fill",
+                    tone: .warning
+                )
+            )
+        }
+
+        return badges
+    }
 }
 
 struct ComedianDetailView: View {
@@ -1048,17 +1122,34 @@ struct ComedianDetailView: View {
                     DetailHero(
                         title: comedian.name,
                         subtitle: "Comedian detail",
-                        imageURL: comedian.imageUrl
+                        imageURL: comedian.imageUrl,
+                        badges: comedianHeroBadges(comedian: comedian)
                     )
 
-                    HStack {
-                        SectionHeading(title: "Favorite")
-                        Spacer()
-                        FavoriteButton(
-                            isFavorite: isFavorite,
-                            isPending: favorites.isPending(comedian.uuid)
-                        ) {
-                            await toggleFavorite(name: comedian.name, uuid: comedian.uuid, currentValue: isFavorite)
+                    LaughTrackCard(tone: .muted) {
+                        VStack(alignment: .leading, spacing: 12) {
+                            LaughTrackSectionHeader(
+                                eyebrow: "Saved comics",
+                                title: "Favorite",
+                                subtitle: "Carry this comic back into discovery without leaving the detail flow."
+                            )
+                            HStack {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text(isFavorite ? "In your favorites" : "Not saved yet")
+                                        .font(theme.laughTrackTokens.typography.cardTitle)
+                                        .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
+                                    Text("Saved comedians stay consistent across discovery and show lineups.")
+                                        .font(theme.laughTrackTokens.typography.body)
+                                        .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
+                                }
+                                Spacer()
+                                FavoriteButton(
+                                    isFavorite: isFavorite,
+                                    isPending: favorites.isPending(comedian.uuid)
+                                ) {
+                                    await toggleFavorite(name: comedian.name, uuid: comedian.uuid, currentValue: isFavorite)
+                                }
+                            }
                         }
                     }
 
@@ -1124,6 +1215,22 @@ struct ComedianDetailView: View {
             feedbackMessage = message
         }
     }
+
+    private func comedianHeroBadges(comedian: Components.Schemas.ComedianDetail) -> [DetailHeroBadge] {
+        var badges = [DetailHeroBadge(title: "Comedian detail", systemImage: "music.mic", tone: .highlight)]
+
+        if let website = comedian.socialData.website, !website.isEmpty {
+            badges.append(
+                DetailHeroBadge(
+                    title: "Website on file",
+                    systemImage: "link",
+                    tone: .neutral
+                )
+            )
+        }
+
+        return badges
+    }
 }
 
 struct ClubDetailView: View {
@@ -1148,7 +1255,8 @@ struct ClubDetailView: View {
                     DetailHero(
                         title: club.name,
                         subtitle: club.zipCode ?? "Club detail",
-                        imageURL: club.imageUrl
+                        imageURL: club.imageUrl,
+                        badges: clubHeroBadges(club: club)
                     )
 
                     DetailInfoCard(title: "Venue", rows: [
@@ -1196,6 +1304,32 @@ struct ClubDetailView: View {
             phase = .success(DemoFixtures.clubDetail(id: clubID) ?? DemoFixtures.primaryClub)
         }
     }
+
+    private func clubHeroBadges(club: Components.Schemas.ClubDetail) -> [DetailHeroBadge] {
+        var badges = [DetailHeroBadge(title: "Club detail", systemImage: "building.2.fill", tone: .highlight)]
+
+        if !club.address.isEmpty {
+            badges.append(
+                DetailHeroBadge(
+                    title: "Address on file",
+                    systemImage: "mappin.and.ellipse",
+                    tone: .neutral
+                )
+            )
+        }
+
+        if let phoneNumber = club.phoneNumber, !phoneNumber.isEmpty {
+            badges.append(
+                DetailHeroBadge(
+                    title: "Call venue",
+                    systemImage: "phone.fill",
+                    tone: .accent
+                )
+            )
+        }
+
+        return badges
+    }
 }
 
 private struct ShowCTASection: View {
@@ -1209,63 +1343,63 @@ private struct ShowCTASection: View {
         let primaryURL = URL.normalizedExternalURL(show.cta.url) ?? URL.normalizedExternalURL(show.showPageUrl)
         let fallbackURL = URL.normalizedExternalURL(show.showPageUrl)
 
-        VStack(alignment: .leading, spacing: 12) {
-            SectionHeading(title: "Tickets")
+        LaughTrackCard(tone: show.cta.isSoldOut ? .muted : .accent) {
+            VStack(alignment: .leading, spacing: 12) {
+                LaughTrackSectionHeader(
+                    eyebrow: "Tickets",
+                    title: show.cta.isSoldOut ? "Join the wait for the next one" : "Secure your seat",
+                    subtitle: show.cta.isSoldOut ? "This show is marked sold out, but the venue path still stays visible." : "Primary and fallback CTAs use the same branded button language as discovery."
+                )
 
-            if let primaryURL {
-                Button {
-                    openURL(primaryURL)
-                } label: {
-                    HStack {
-                        Text(show.cta.label)
-                        Spacer()
-                        Image(systemName: "arrow.up.right")
+                if let primaryURL {
+                    LaughTrackButton(
+                        show.cta.label,
+                        systemImage: "arrow.up.right",
+                        tone: show.cta.isSoldOut ? .secondary : .primary
+                    ) {
+                        openURL(primaryURL)
                     }
-                    .font(laughTrack.typography.action)
-                    .foregroundStyle(laughTrack.colors.textInverse)
-                    .padding(.horizontal, theme.spacing.lg)
-                    .padding(.vertical, theme.spacing.md)
-                    .frame(maxWidth: .infinity)
-                    .background(show.cta.isSoldOut ? laughTrack.colors.textSecondary : laughTrack.colors.accent)
-                    .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.pill, style: .continuous))
+                    .disabled(show.cta.isSoldOut)
+                } else {
+                    EmptyCard(message: "Tickets are not linked yet for this show.")
                 }
-                .buttonStyle(.plain)
-                .disabled(show.cta.isSoldOut)
-            } else {
-                EmptyCard(message: "Tickets are not linked yet for this show.")
-            }
 
-            if let fallbackURL, primaryURL != fallbackURL {
-                Button("Open show page") {
-                    openURL(fallbackURL)
+                if let fallbackURL, primaryURL != fallbackURL {
+                    LaughTrackButton("Open show page", systemImage: "safari", tone: .tertiary) {
+                        openURL(fallbackURL)
+                    }
                 }
-                .buttonStyle(.bordered)
-            }
 
-            if let tickets = show.tickets, !tickets.isEmpty {
-                VStack(spacing: 10) {
-                    ForEach(Array(tickets.enumerated()), id: \.offset) { index, ticket in
-                        HStack {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(ticket._type ?? "Ticket option \(index + 1)")
-                                    .font(laughTrack.typography.action)
-                                    .foregroundStyle(laughTrack.colors.textPrimary)
-                                if let price = ticket.price {
-                                    Text(price, format: .currency(code: "USD"))
-                                        .font(laughTrack.typography.metadata)
-                                        .foregroundStyle(laughTrack.colors.textSecondary)
+                if let tickets = show.tickets, !tickets.isEmpty {
+                    VStack(spacing: 10) {
+                        ForEach(Array(tickets.enumerated()), id: \.offset) { index, ticket in
+                            LaughTrackCard {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(ticket._type ?? "Ticket option \(index + 1)")
+                                            .font(laughTrack.typography.action)
+                                            .foregroundStyle(laughTrack.colors.textPrimary)
+                                        if let price = ticket.price {
+                                            Text(price, format: .currency(code: "USD"))
+                                                .font(laughTrack.typography.metadata)
+                                                .foregroundStyle(laughTrack.colors.textSecondary)
+                                        }
+                                    }
+                                    Spacer()
+                                    if let url = URL.normalizedExternalURL(ticket.purchaseUrl) {
+                                        LaughTrackButton(
+                                            ticket.soldOut == true ? "Sold out" : "Open",
+                                            systemImage: ticket.soldOut == true ? "xmark.circle" : "arrow.up.right",
+                                            tone: ticket.soldOut == true ? .secondary : .tertiary,
+                                            fullWidth: false
+                                        ) {
+                                            openURL(url)
+                                        }
+                                        .disabled(ticket.soldOut == true)
+                                    }
                                 }
-                            }
-                            Spacer()
-                            if let url = URL.normalizedExternalURL(ticket.purchaseUrl) {
-                                Button(ticket.soldOut == true ? "Sold out" : "Open") {
-                                    openURL(url)
-                                }
-                                .buttonStyle(.bordered)
-                                .disabled(ticket.soldOut == true)
                             }
                         }
-                        .padding(.vertical, 4)
                     }
                 }
             }
@@ -1287,47 +1421,44 @@ private struct ComedianLineupRow: View {
         let laughTrack = theme.laughTrackTokens
         let isFavorite = favorites.value(for: comedian.uuid, fallback: comedian.isFavorite)
 
-        HStack(spacing: 12) {
-            Button(action: openDetail) {
-                HStack(spacing: 12) {
-                    RemoteImageView(urlString: comedian.imageUrl, aspectRatio: 1)
-                        .frame(width: 64, height: 64)
-                        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(comedian.name)
-                            .font(laughTrack.typography.cardTitle)
-                            .foregroundStyle(laughTrack.colors.textPrimary)
-                        Text("\(comedian.showCount ?? 0) upcoming shows")
-                            .font(laughTrack.typography.metadata)
-                            .foregroundStyle(laughTrack.colors.textSecondary)
+        LaughTrackCard(tone: .muted) {
+            HStack(spacing: 12) {
+                Button(action: openDetail) {
+                    HStack(spacing: 12) {
+                        RemoteImageView(urlString: comedian.imageUrl, aspectRatio: 1)
+                            .frame(width: 64, height: 64)
+                            .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(comedian.name)
+                                .font(laughTrack.typography.cardTitle)
+                                .foregroundStyle(laughTrack.colors.textPrimary)
+                            LaughTrackBadge("\(comedian.showCount ?? 0) upcoming shows", systemImage: "calendar", tone: .neutral)
+                        }
+                    }
+                }
+                .buttonStyle(.plain)
+
+                Spacer()
+
+                FavoriteButton(
+                    isFavorite: isFavorite,
+                    isPending: favorites.isPending(comedian.uuid)
+                ) {
+                    let result = await favorites.toggle(
+                        uuid: comedian.uuid,
+                        currentValue: isFavorite,
+                        apiClient: apiClient,
+                        authManager: authManager
+                    )
+                    switch result {
+                    case .updated(let next):
+                        feedbackMessage = FavoriteFeedback.message(for: comedian.name, isFavorite: next)
+                    case .signInRequired(let message), .failure(let message):
+                        feedbackMessage = message
                     }
                 }
             }
-            .buttonStyle(.plain)
-
-            Spacer()
-
-            FavoriteButton(
-                isFavorite: isFavorite,
-                isPending: favorites.isPending(comedian.uuid)
-            ) {
-                let result = await favorites.toggle(
-                    uuid: comedian.uuid,
-                    currentValue: isFavorite,
-                    apiClient: apiClient,
-                    authManager: authManager
-                )
-                switch result {
-                case .updated(let next):
-                    feedbackMessage = FavoriteFeedback.message(for: comedian.name, isFavorite: next)
-                case .signInRequired(let message), .failure(let message):
-                    feedbackMessage = message
-                }
-            }
         }
-        .padding(theme.spacing.md)
-        .background(laughTrack.colors.surfaceElevated)
-        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
     }
 }
 
@@ -1345,51 +1476,48 @@ private struct ComedianRow: View {
         let laughTrack = theme.laughTrackTokens
         let isFavorite = favorites.value(for: comedian.uuid, fallback: comedian.isFavorite)
 
-        HStack(spacing: 12) {
-            Button(action: openDetail) {
-                HStack(spacing: 12) {
-                    RemoteImageView(urlString: comedian.imageUrl, aspectRatio: 1)
-                        .frame(width: 72, height: 72)
-                        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(comedian.name)
-                            .font(laughTrack.typography.cardTitle)
-                            .foregroundStyle(laughTrack.colors.textPrimary)
-                        Text("\(comedian.showCount) upcoming shows")
-                            .font(laughTrack.typography.metadata)
-                            .foregroundStyle(laughTrack.colors.textSecondary)
-                        if let firstLink = SocialLink.links(from: comedian.socialData).first {
-                            Text(firstLink.label)
-                                .font(laughTrack.typography.metadata)
-                                .foregroundStyle(laughTrack.colors.accent)
+        LaughTrackCard(tone: .muted) {
+            HStack(spacing: 12) {
+                Button(action: openDetail) {
+                    HStack(spacing: 12) {
+                        RemoteImageView(urlString: comedian.imageUrl, aspectRatio: 1)
+                            .frame(width: 72, height: 72)
+                            .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(comedian.name)
+                                .font(laughTrack.typography.cardTitle)
+                                .foregroundStyle(laughTrack.colors.textPrimary)
+                            HStack(spacing: 8) {
+                                LaughTrackBadge("\(comedian.showCount) upcoming", systemImage: "calendar", tone: .neutral)
+                                if let firstLink = SocialLink.links(from: comedian.socialData).first {
+                                    LaughTrackBadge(firstLink.label, systemImage: "link", tone: .accent)
+                                }
+                            }
                         }
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .buttonStyle(.plain)
+                .buttonStyle(.plain)
 
-            FavoriteButton(
-                isFavorite: isFavorite,
-                isPending: favorites.isPending(comedian.uuid)
-            ) {
-                let result = await favorites.toggle(
-                    uuid: comedian.uuid,
-                    currentValue: isFavorite,
-                    apiClient: apiClient,
-                    authManager: authManager
-                )
-                switch result {
-                case .updated(let next):
-                    feedbackMessage = FavoriteFeedback.message(for: comedian.name, isFavorite: next)
-                case .signInRequired(let message), .failure(let message):
-                    feedbackMessage = message
+                FavoriteButton(
+                    isFavorite: isFavorite,
+                    isPending: favorites.isPending(comedian.uuid)
+                ) {
+                    let result = await favorites.toggle(
+                        uuid: comedian.uuid,
+                        currentValue: isFavorite,
+                        apiClient: apiClient,
+                        authManager: authManager
+                    )
+                    switch result {
+                    case .updated(let next):
+                        feedbackMessage = FavoriteFeedback.message(for: comedian.name, isFavorite: next)
+                    case .signInRequired(let message), .failure(let message):
+                        feedbackMessage = message
+                    }
                 }
             }
         }
-        .padding(theme.spacing.md)
-        .background(laughTrack.colors.surfaceElevated)
-        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
     }
 }
 
@@ -1401,34 +1529,29 @@ private struct ShowRow: View {
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
-        HStack(spacing: 12) {
-            RemoteImageView(urlString: show.imageUrl, aspectRatio: 1)
-                .frame(width: 72, height: 72)
-                .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+        LaughTrackCard(tone: .muted) {
+            HStack(spacing: 12) {
+                RemoteImageView(urlString: show.imageUrl, aspectRatio: 1)
+                    .frame(width: 72, height: 72)
+                    .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(show.name ?? "Untitled show")
-                    .font(laughTrack.typography.cardTitle)
-                    .foregroundStyle(laughTrack.colors.textPrimary)
-                Text(ShowFormatting.listDate(show.date))
-                    .font(laughTrack.typography.metadata)
-                    .foregroundStyle(laughTrack.colors.textSecondary)
-                Text(show.clubName ?? "Unknown club")
-                    .font(laughTrack.typography.body)
-                    .foregroundStyle(laughTrack.colors.textSecondary)
-            }
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(show.name ?? "Untitled show")
+                        .font(laughTrack.typography.cardTitle)
+                        .foregroundStyle(laughTrack.colors.textPrimary)
+                    HStack(spacing: 8) {
+                        LaughTrackBadge(ShowFormatting.listDate(show.date), systemImage: "calendar", tone: .neutral)
+                        LaughTrackBadge(show.clubName ?? "Unknown club", systemImage: "building.2.fill", tone: .highlight)
+                    }
+                }
 
-            Spacer()
+                Spacer()
 
-            if show.soldOut == true {
-                Text("Sold out")
-                    .font(laughTrack.typography.metadata)
-                    .foregroundStyle(laughTrack.colors.accent)
+                if show.soldOut == true {
+                    LaughTrackBadge("Sold out", systemImage: "ticket.fill", tone: .warning)
+                }
             }
         }
-        .padding(theme.spacing.md)
-        .background(laughTrack.colors.surfaceElevated)
-        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
     }
 }
 
@@ -1440,30 +1563,27 @@ private struct ClubRow: View {
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
-        HStack(spacing: 12) {
-            RemoteImageView(urlString: club.imageUrl, aspectRatio: 1)
-                .frame(width: 72, height: 72)
-                .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+        LaughTrackCard(tone: .muted) {
+            HStack(spacing: 12) {
+                RemoteImageView(urlString: club.imageUrl, aspectRatio: 1)
+                    .frame(width: 72, height: 72)
+                    .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(club.name ?? "Unknown club")
-                    .font(laughTrack.typography.cardTitle)
-                    .foregroundStyle(laughTrack.colors.textPrimary)
-                Text([club.city, club.state].compactMap { $0 }.joined(separator: ", ").nonEmpty ?? club.address ?? "Address unavailable")
-                    .font(laughTrack.typography.body)
-                    .foregroundStyle(laughTrack.colors.textSecondary)
-                if let count = club.activeComedianCount {
-                    Text("\(count) active comedians")
-                        .font(laughTrack.typography.metadata)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(club.name ?? "Unknown club")
+                        .font(laughTrack.typography.cardTitle)
+                        .foregroundStyle(laughTrack.colors.textPrimary)
+                    Text([club.city, club.state].compactMap { $0 }.joined(separator: ", ").nonEmpty ?? club.address ?? "Address unavailable")
+                        .font(laughTrack.typography.body)
                         .foregroundStyle(laughTrack.colors.textSecondary)
+                    if let count = club.activeComedianCount {
+                        LaughTrackBadge("\(count) active comedians", systemImage: "music.mic", tone: .neutral)
+                    }
                 }
-            }
 
-            Spacer()
+                Spacer()
+            }
         }
-        .padding(theme.spacing.md)
-        .background(laughTrack.colors.surfaceElevated)
-        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
     }
 }
 
@@ -1504,26 +1624,13 @@ private struct SearchField: View {
     @Binding var text: String
 
     var body: some View {
-        let laughTrack = theme.laughTrackTokens
-
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title)
-                .font(laughTrack.typography.metadata)
-                .foregroundStyle(laughTrack.colors.textSecondary)
-                .textCase(.uppercase)
+        LaughTrackLabeledField(title: title) {
             HStack(spacing: 8) {
                 Image(systemName: "magnifyingglass")
-                    .foregroundStyle(laughTrack.colors.textSecondary)
+                    .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
                 TextField(prompt, text: $text)
                     .modifier(SearchFieldInputBehavior())
             }
-            .padding(theme.spacing.md)
-            .background(laughTrack.colors.canvas)
-            .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
-                    .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
-            )
         }
     }
 }
@@ -1536,74 +1643,70 @@ private struct ShowFiltersPanel: View {
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Filters")
-                .font(laughTrack.typography.metadata)
-                .foregroundStyle(laughTrack.colors.textSecondary)
-                .textCase(.uppercase)
+        LaughTrackCard(tone: .muted) {
+            VStack(alignment: .leading, spacing: theme.spacing.lg) {
+                LaughTrackSectionHeader(
+                    eyebrow: "Filters",
+                    title: "Refine the marquee",
+                    subtitle: "Keep search controls in the same warm card language as the rest of discovery."
+                )
 
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("ZIP")
-                        .font(laughTrack.typography.metadata)
-                        .foregroundStyle(laughTrack.colors.textSecondary)
-                    TextField("10012", text: $model.zipCode)
-                        .keyboardType(.numberPad)
-                        .modifier(SearchFieldInputBehavior())
-                        .padding(theme.spacing.md)
-                        .background(laughTrack.colors.canvas)
-                        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+                HStack(spacing: theme.spacing.sm) {
+                    LaughTrackBadge("Live dates first", systemImage: "sparkles", tone: .highlight)
+                    LaughTrackBadge("Tap-friendly controls", systemImage: "hand.tap", tone: .neutral)
                 }
 
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Sort")
-                        .font(laughTrack.typography.metadata)
-                        .foregroundStyle(laughTrack.colors.textSecondary)
-                    Picker("Sort", selection: $model.sort) {
-                        ForEach(ShowSortOption.allCases) { option in
-                            Text(option.title).tag(option)
+                HStack(alignment: .top, spacing: theme.spacing.md) {
+                    LaughTrackLabeledField(title: "ZIP", detail: "5 digits") {
+                        TextField("10012", text: $model.zipCode)
+                            .keyboardType(.numberPad)
+                            .modifier(SearchFieldInputBehavior())
+                    }
+
+                    LaughTrackLabeledField(title: "Sort") {
+                        Picker("Sort", selection: $model.sort) {
+                            ForEach(ShowSortOption.allCases) { option in
+                                Text(option.title).tag(option)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                    }
+                }
+
+                if model.requestKey.sanitizedZip != nil {
+                    LaughTrackLabeledField(title: "Distance", detail: "Around that ZIP") {
+                        Picker("Distance", selection: $model.distance) {
+                            ForEach(ShowDistanceOption.allCases) { option in
+                                Text(option.title).tag(option)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                    }
+                }
+
+                LaughTrackLabeledField(title: "Dates", detail: model.useDateRange ? "Custom window" : "Upcoming by default") {
+                    VStack(alignment: .leading, spacing: theme.spacing.md) {
+                        Toggle("Use date range", isOn: $model.useDateRange)
+                            .font(laughTrack.typography.body)
+                            .tint(laughTrack.colors.accent)
+
+                        if model.useDateRange {
+                            VStack(spacing: theme.spacing.md) {
+                                DatePicker("From", selection: $model.fromDate, displayedComponents: .date)
+                                DatePicker(
+                                    "To",
+                                    selection: Binding(
+                                        get: { max(model.toDate, model.fromDate) },
+                                        set: { model.toDate = max($0, model.fromDate) }
+                                    ),
+                                    in: model.fromDate...,
+                                    displayedComponents: .date
+                                )
+                            }
+                            .font(laughTrack.typography.body)
                         }
                     }
-                    .pickerStyle(.menu)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(theme.spacing.md)
-                    .background(laughTrack.colors.canvas)
-                    .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
                 }
-            }
-
-            if model.requestKey.sanitizedZip != nil {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Distance")
-                        .font(laughTrack.typography.metadata)
-                        .foregroundStyle(laughTrack.colors.textSecondary)
-                    Picker("Distance", selection: $model.distance) {
-                        ForEach(ShowDistanceOption.allCases) { option in
-                            Text(option.title).tag(option)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                }
-            }
-
-            Toggle("Use date range", isOn: $model.useDateRange)
-                .font(laughTrack.typography.body)
-                .tint(laughTrack.colors.accent)
-
-            if model.useDateRange {
-                VStack(spacing: 12) {
-                    DatePicker("From", selection: $model.fromDate, displayedComponents: .date)
-                    DatePicker(
-                        "To",
-                        selection: Binding(
-                            get: { max(model.toDate, model.fromDate) },
-                            set: { model.toDate = max($0, model.fromDate) }
-                        ),
-                        in: model.fromDate...,
-                        displayedComponents: .date
-                    )
-                }
-                .font(laughTrack.typography.body)
             }
         }
     }
@@ -1624,13 +1727,7 @@ private struct ShowsSearchMeta: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
                     ForEach(activeFilters, id: \.self) { filter in
-                        Text(filter)
-                            .font(theme.laughTrackTokens.typography.metadata)
-                            .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .background(theme.laughTrackTokens.colors.canvas)
-                            .clipShape(Capsule())
+                        LaughTrackBadge(filter, tone: .neutral)
                     }
                 }
             }
@@ -1646,10 +1743,9 @@ private struct ShowsSearchMeta: View {
                         Text("That ZIP matched too many nearby locations. Try a tighter ZIP or clear the location filter.")
                             .font(theme.laughTrackTokens.typography.metadata)
                             .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
-                        Button("Browse all shows") {
+                        LaughTrackButton("Browse all shows", systemImage: "location.slash", tone: .tertiary, fullWidth: false) {
                             model.clearLocation()
                         }
-                        .buttonStyle(.bordered)
                     }
                 }
                 .padding(theme.spacing.md)
@@ -1725,23 +1821,19 @@ private struct LoadMoreButton: View {
     let action: () async -> Void
 
     var body: some View {
-        Button {
+        LaughTrackButton(isLoading ? "Loading…" : title, systemImage: isLoading ? nil : "arrow.down.circle", tone: .primary) {
             Task {
                 await action()
             }
-        } label: {
-            HStack(spacing: 8) {
-                if isLoading {
-                    ProgressView()
-                        .progressViewStyle(.circular)
-                }
-                Text(isLoading ? "Loading…" : title)
-            }
-            .font(theme.laughTrackTokens.typography.action)
-            .frame(maxWidth: .infinity)
         }
-        .buttonStyle(.borderedProminent)
         .disabled(isLoading)
+        .overlay(alignment: .trailing) {
+            if isLoading {
+                ProgressView()
+                    .progressViewStyle(.circular)
+                    .padding(.trailing, theme.spacing.lg)
+            }
+        }
     }
 }
 
@@ -1754,11 +1846,17 @@ private struct DiscoveryCard<Content: View>: View {
     var body: some View {
         LaughTrackCard {
             VStack(alignment: .leading, spacing: theme.spacing.lg) {
-                LaughTrackSectionHeader(title: title)
+                LaughTrackSectionHeader(eyebrow: "Discovery", title: title)
                 content
             }
         }
     }
+}
+
+private struct DetailHeroBadge {
+    let title: String
+    let systemImage: String?
+    let tone: LaughTrackBadgeTone
 }
 
 private struct DetailHero: View {
@@ -1767,22 +1865,39 @@ private struct DetailHero: View {
     let title: String
     let subtitle: String
     let imageURL: String
+    let badges: [DetailHeroBadge]
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
-        VStack(alignment: .leading, spacing: 12) {
-            RemoteImageView(urlString: imageURL, aspectRatio: 1.7)
-                .frame(maxWidth: .infinity)
-                .frame(height: 220)
-                .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
-            Text(subtitle)
-                .font(laughTrack.typography.metadata)
-                .foregroundStyle(laughTrack.colors.accentMuted)
-                .textCase(.uppercase)
-            Text(title)
-                .font(laughTrack.typography.hero)
-                .foregroundStyle(laughTrack.colors.textPrimary)
+        LaughTrackCard(tone: .accent) {
+            VStack(alignment: .leading, spacing: 12) {
+                RemoteImageView(urlString: imageURL, aspectRatio: 1.7)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 220)
+                    .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+                Text(subtitle)
+                    .font(laughTrack.typography.metadata)
+                    .foregroundStyle(laughTrack.colors.accentStrong)
+                    .textCase(.uppercase)
+                Text(title)
+                    .font(laughTrack.typography.hero)
+                    .foregroundStyle(laughTrack.colors.textPrimary)
+
+                if !badges.isEmpty {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: theme.spacing.sm) {
+                            ForEach(Array(badges.enumerated()), id: \.offset) { _, badge in
+                                LaughTrackBadge(
+                                    badge.title,
+                                    systemImage: badge.systemImage,
+                                    tone: badge.tone
+                                )
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

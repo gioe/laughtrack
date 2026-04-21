@@ -131,6 +131,13 @@ enum LaughTrackCardTone {
     case accent
 }
 
+enum LaughTrackBadgeTone {
+    case neutral
+    case accent
+    case highlight
+    case warning
+}
+
 struct LaughTrackCard<Content: View>: View {
     @Environment(\.appTheme) private var theme
 
@@ -201,6 +208,89 @@ struct LaughTrackCard<Content: View>: View {
     }
 }
 
+struct LaughTrackBadge: View {
+    @Environment(\.appTheme) private var theme
+
+    let title: String
+    let systemImage: String?
+    let tone: LaughTrackBadgeTone
+
+    init(_ title: String, systemImage: String? = nil, tone: LaughTrackBadgeTone = .neutral) {
+        self.title = title
+        self.systemImage = systemImage
+        self.tone = tone
+    }
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        HStack(spacing: theme.spacing.xs) {
+            if let systemImage {
+                Image(systemName: systemImage)
+                    .font(.system(size: theme.iconSizes.sm, weight: .semibold))
+            }
+
+            Text(title)
+                .font(laughTrack.typography.metadata)
+                .lineLimit(1)
+        }
+        .foregroundStyle(foregroundColor)
+        .padding(.horizontal, theme.spacing.md)
+        .padding(.vertical, theme.spacing.xs)
+        .background(background)
+        .overlay(
+            Capsule(style: .continuous)
+                .stroke(borderColor, lineWidth: 1)
+        )
+        .clipShape(Capsule(style: .continuous))
+    }
+
+    private var foregroundColor: Color {
+        let laughTrack = theme.laughTrackTokens
+
+        switch tone {
+        case .neutral:
+            return laughTrack.colors.textPrimary
+        case .accent:
+            return laughTrack.colors.accentStrong
+        case .highlight:
+            return laughTrack.colors.textPrimary
+        case .warning:
+            return laughTrack.colors.danger
+        }
+    }
+
+    private var background: Color {
+        let laughTrack = theme.laughTrackTokens
+
+        switch tone {
+        case .neutral:
+            return laughTrack.colors.canvas
+        case .accent:
+            return laughTrack.colors.accentMuted.opacity(0.45)
+        case .highlight:
+            return laughTrack.colors.highlight.opacity(0.85)
+        case .warning:
+            return laughTrack.colors.danger.opacity(0.12)
+        }
+    }
+
+    private var borderColor: Color {
+        let laughTrack = theme.laughTrackTokens
+
+        switch tone {
+        case .neutral:
+            return laughTrack.colors.borderSubtle
+        case .accent:
+            return laughTrack.colors.accentStrong.opacity(0.35)
+        case .highlight:
+            return laughTrack.colors.borderStrong.opacity(0.5)
+        case .warning:
+            return laughTrack.colors.danger.opacity(0.3)
+        }
+    }
+}
+
 struct LaughTrackSectionHeader: View {
     @Environment(\.appTheme) private var theme
 
@@ -252,6 +342,55 @@ struct LaughTrackSectionHeader: View {
             if let actionTitle, let action {
                 LaughTrackButton(actionTitle, systemImage: "arrow.up.right", tone: .tertiary, fullWidth: false, action: action)
             }
+        }
+    }
+}
+
+struct LaughTrackLabeledField<Content: View>: View {
+    @Environment(\.appTheme) private var theme
+
+    let title: String
+    let detail: String?
+    let content: Content
+
+    init(
+        title: String,
+        detail: String? = nil,
+        @ViewBuilder content: () -> Content
+    ) {
+        self.title = title
+        self.detail = detail
+        self.content = content()
+    }
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        VStack(alignment: .leading, spacing: theme.spacing.sm) {
+            HStack(alignment: .firstTextBaseline, spacing: theme.spacing.sm) {
+                Text(title)
+                    .font(laughTrack.typography.metadata)
+                    .foregroundStyle(laughTrack.colors.textSecondary)
+                    .textCase(.uppercase)
+
+                Spacer(minLength: 0)
+
+                if let detail {
+                    Text(detail)
+                        .font(laughTrack.typography.metadata)
+                        .foregroundStyle(laughTrack.colors.accent)
+                }
+            }
+
+            content
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(theme.spacing.md)
+                .background(laughTrack.colors.canvas)
+                .overlay(
+                    RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
+                        .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
         }
     }
 }
