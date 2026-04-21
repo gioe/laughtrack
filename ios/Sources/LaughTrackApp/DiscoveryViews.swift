@@ -1087,21 +1087,12 @@ private struct DiscoveryCard<Content: View>: View {
     @ViewBuilder let content: Content
 
     var body: some View {
-        let laughTrack = theme.laughTrackTokens
-
-        VStack(alignment: .leading, spacing: 16) {
-            SectionHeading(title: title)
-            content
+        LaughTrackCard {
+            VStack(alignment: .leading, spacing: theme.spacing.lg) {
+                LaughTrackSectionHeader(title: title)
+                content
+            }
         }
-        .padding(theme.spacing.xl)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(laughTrack.colors.surfaceElevated)
-        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
-                .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
-        )
-        .shadowStyle(laughTrack.shadows.card)
     }
 }
 
@@ -1146,20 +1137,22 @@ private struct DetailInfoCard: View {
         let laughTrack = theme.laughTrackTokens
         let visibleRows = rows.filter { ($0.value?.isEmpty == false) }
 
-        return VStack(alignment: .leading, spacing: 12) {
-            SectionHeading(title: title)
-            if visibleRows.isEmpty {
-                EmptyCard(message: "Details will appear here when LaughTrack has them.")
-            } else {
-                ForEach(Array(visibleRows.enumerated()), id: \.offset) { _, row in
-                    HStack(alignment: .top) {
-                        Text(row.label)
-                            .font(laughTrack.typography.metadata)
-                            .foregroundStyle(laughTrack.colors.textSecondary)
-                            .frame(width: 72, alignment: .leading)
-                        Text(row.value ?? "")
-                            .font(laughTrack.typography.body)
-                            .foregroundStyle(laughTrack.colors.textPrimary)
+        return LaughTrackCard {
+            VStack(alignment: .leading, spacing: 12) {
+                LaughTrackSectionHeader(title: title)
+                if visibleRows.isEmpty {
+                    EmptyCard(message: "Details will appear here when LaughTrack has them.")
+                } else {
+                    ForEach(Array(visibleRows.enumerated()), id: \.offset) { _, row in
+                        HStack(alignment: .top) {
+                            Text(row.label)
+                                .font(laughTrack.typography.metadata)
+                                .foregroundStyle(laughTrack.colors.textSecondary)
+                                .frame(width: 72, alignment: .leading)
+                            Text(row.value ?? "")
+                                .font(laughTrack.typography.body)
+                                .foregroundStyle(laughTrack.colors.textPrimary)
+                        }
                     }
                 }
             }
@@ -1174,11 +1167,13 @@ private struct DetailTextCard: View {
     let text: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            SectionHeading(title: title)
-            Text(text)
-                .font(theme.laughTrackTokens.typography.body)
-                .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
+        LaughTrackCard {
+            VStack(alignment: .leading, spacing: 12) {
+                LaughTrackSectionHeader(title: title)
+                Text(text)
+                    .font(theme.laughTrackTokens.typography.body)
+                    .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
+            }
         }
     }
 }
@@ -1196,18 +1191,19 @@ private struct DetailLinkCard: View {
     let openURL: (URL) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            SectionHeading(title: title)
-            ForEach(Array(links.enumerated()), id: \.offset) { _, link in
-                if let url = link.url {
-                    Button(link.title) {
-                        openURL(url)
+        LaughTrackCard {
+            VStack(alignment: .leading, spacing: 12) {
+                LaughTrackSectionHeader(title: title)
+                ForEach(Array(links.enumerated()), id: \.offset) { _, link in
+                    if let url = link.url {
+                        LaughTrackButton(link.title, systemImage: "arrow.up.right", tone: .secondary) {
+                            openURL(url)
+                        }
                     }
-                    .buttonStyle(.bordered)
                 }
-            }
-            if links.allSatisfy({ $0.url == nil }) {
-                EmptyCard(message: "No public links are available yet.")
+                if links.allSatisfy({ $0.url == nil }) {
+                    EmptyCard(message: "No public links are available yet.")
+                }
             }
         }
     }
@@ -1240,16 +1236,17 @@ private struct SocialLinkSection: View {
     var body: some View {
         let links = SocialLink.links(from: socialData)
 
-        return VStack(alignment: .leading, spacing: 12) {
-            SectionHeading(title: "Links")
-            if links.isEmpty {
-                EmptyCard(message: "No public links are available yet.")
-            } else {
-                ForEach(links) { link in
-                    Button(link.label) {
-                        openURL(link.url)
+        return LaughTrackCard {
+            VStack(alignment: .leading, spacing: 12) {
+                LaughTrackSectionHeader(title: "Links")
+                if links.isEmpty {
+                    EmptyCard(message: "No public links are available yet.")
+                } else {
+                    ForEach(links) { link in
+                        LaughTrackButton(link.label, systemImage: "arrow.up.right", tone: .secondary) {
+                            openURL(link.url)
+                        }
                     }
-                    .buttonStyle(.bordered)
                 }
             }
         }
@@ -1269,59 +1266,42 @@ private struct SectionHeading: View {
 }
 
 private struct LoadingCard: View {
-    @Environment(\.appTheme) private var theme
-
     var body: some View {
-        VStack(spacing: 12) {
-            ProgressView()
-                .progressViewStyle(.circular)
-            Text("Loading…")
-                .font(theme.laughTrackTokens.typography.body)
-                .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(theme.spacing.xl)
+        LaughTrackStateView(
+            tone: .loading,
+            title: "Loading",
+            message: "LaughTrack is fetching the latest data for this view."
+        )
     }
 }
 
 private struct EmptyCard: View {
-    @Environment(\.appTheme) private var theme
-
     let message: String
 
     var body: some View {
-        Text(message)
-            .font(theme.laughTrackTokens.typography.body)
-            .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(theme.spacing.md)
-            .background(theme.laughTrackTokens.colors.canvas)
-            .clipShape(RoundedRectangle(cornerRadius: theme.laughTrackTokens.radius.card, style: .continuous))
+        LaughTrackStateView(
+            tone: .empty,
+            title: "Nothing here yet",
+            message: message
+        )
     }
 }
 
 private struct ErrorCard: View {
-    @Environment(\.appTheme) private var theme
-
     let message: String
     let retry: () async -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(message)
-                .font(theme.laughTrackTokens.typography.body)
-                .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
-            Button("Try again") {
-                Task {
-                    await retry()
-                }
+        LaughTrackStateView(
+            tone: .error,
+            title: "Couldn’t load this section",
+            message: message,
+            actionTitle: "Try again"
+        ) {
+            Task {
+                await retry()
             }
-            .buttonStyle(.bordered)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(theme.spacing.lg)
-        .background(theme.laughTrackTokens.colors.canvas)
-        .clipShape(RoundedRectangle(cornerRadius: theme.laughTrackTokens.radius.card, style: .continuous))
     }
 }
 
