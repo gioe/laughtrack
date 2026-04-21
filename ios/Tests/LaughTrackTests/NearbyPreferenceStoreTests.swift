@@ -20,28 +20,28 @@ struct NearbyPreferenceStoreTests {
     @MainActor
     func invalidManualZipPreservesExistingPreference() {
         let store = makeStore(name: "invalid")
-        store.setGeolocatedZip("30309")
+        store.setGeolocatedZip("30309", distanceMiles: 50)
 
         let preference = store.setManualZip("12")
 
         #expect(preference == nil)
-        #expect(store.preference == NearbyPreference(zipCode: "30309", source: .geolocated, distanceMiles: 25))
+        #expect(store.preference == NearbyPreference(zipCode: "30309", source: .geolocated, distanceMiles: 50))
     }
 
     @Test("geolocated ZIP updates the same saved nearby preference")
     @MainActor
     func geolocatedZipReusesStoredPreference() {
         let store = makeStore(name: "shared")
-        store.setManualZip("10012")
+        store.setManualZip("10012", distanceMiles: 10)
 
-        store.setGeolocatedZip("60614")
+        store.setGeolocatedZip("60614", distanceMiles: 10)
 
-        #expect(store.preference == NearbyPreference(zipCode: "60614", source: .geolocated, distanceMiles: 25))
+        #expect(store.preference == NearbyPreference(zipCode: "60614", source: .geolocated, distanceMiles: 10))
     }
 
     @Test("distance updates preserve the saved ZIP and source")
     @MainActor
-    func updatingDistancePreservesExistingPreference() {
+    func updatingDistancePreservesSavedPreference() {
         let store = makeStore(name: "distance")
         store.setGeolocatedZip("60614")
 
@@ -52,11 +52,14 @@ struct NearbyPreferenceStoreTests {
 
     @Test("legacy nearby preference payloads default distance to 25 miles")
     func legacyPayloadDefaultsDistance() throws {
-        let data = #"{"zipCode":"10012","source":"manual"}"#.data(using: .utf8)!
+        let legacyData = #"{"zipCode":"10012","source":"manual"}"#.data(using: .utf8)!
+        let radiusAliasData = #"{"zipCode":"10012","source":"manual","radiusMiles":50}"#.data(using: .utf8)!
 
-        let decoded = try JSONDecoder().decode(NearbyPreference.self, from: data)
+        let legacyDecoded = try JSONDecoder().decode(NearbyPreference.self, from: legacyData)
+        let radiusAliasDecoded = try JSONDecoder().decode(NearbyPreference.self, from: radiusAliasData)
 
-        #expect(decoded == NearbyPreference(zipCode: "10012", source: .manual, distanceMiles: 25))
+        #expect(legacyDecoded == NearbyPreference(zipCode: "10012", source: .manual, distanceMiles: 25))
+        #expect(radiusAliasDecoded == NearbyPreference(zipCode: "10012", source: .manual, distanceMiles: 50))
     }
 
     @Test("clearing removes the saved nearby preference")
