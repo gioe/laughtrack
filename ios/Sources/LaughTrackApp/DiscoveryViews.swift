@@ -955,7 +955,7 @@ struct ShowDetailView: View {
                     )
 
                     if let address = show.address ?? show.club.address {
-                        DetailInfoCard(title: show.club.name, rows: [
+                        DetailInfoCard(eyebrow: "Venue", title: show.club.name, subtitle: "Tap this card to open the full club detail.", rows: [
                             DetailInfoRow(label: "Address", value: address),
                             DetailInfoRow(label: "Room", value: show.room),
                             DetailInfoRow(label: "Distance", value: ShowFormatting.distance(show.distanceMiles))
@@ -966,7 +966,7 @@ struct ShowDetailView: View {
                     }
 
                     if let description = show.description, !description.isEmpty {
-                        DetailTextCard(title: "About this show", text: description)
+                        DetailTextCard(eyebrow: "Editor’s note", title: "About this show", text: description)
                     }
 
                     ShowCTASection(show: show) { url in
@@ -1259,14 +1259,16 @@ struct ClubDetailView: View {
                         badges: clubHeroBadges(club: club)
                     )
 
-                    DetailInfoCard(title: "Venue", rows: [
+                    DetailInfoCard(eyebrow: "Club details", title: "Venue", subtitle: "Core contact information stays inside the shared card shell.", rows: [
                         DetailInfoRow(label: "Address", value: club.address),
                         DetailInfoRow(label: "ZIP", value: club.zipCode),
                         DetailInfoRow(label: "Phone", value: club.phoneNumber)
                     ])
 
                     DetailLinkCard(
+                        eyebrow: "Links",
                         title: "Website",
+                        subtitle: "Venue links use the same reusable button and card treatment as show CTAs.",
                         links: [DetailLink(title: club.website, url: URL.normalizedExternalURL(club.website))],
                         openURL: { url in openURL(url) }
                     )
@@ -1910,7 +1912,9 @@ private struct DetailInfoRow {
 private struct DetailInfoCard: View {
     @Environment(\.appTheme) private var theme
 
+    let eyebrow: String?
     let title: String
+    let subtitle: String?
     let rows: [DetailInfoRow]
 
     var body: some View {
@@ -1919,7 +1923,7 @@ private struct DetailInfoCard: View {
 
         return LaughTrackCard {
             VStack(alignment: .leading, spacing: 12) {
-                LaughTrackSectionHeader(title: title)
+                LaughTrackSectionHeader(eyebrow: eyebrow, title: title, subtitle: subtitle)
                 if visibleRows.isEmpty {
                     EmptyCard(message: "Details will appear here when LaughTrack has them.")
                 } else {
@@ -1943,13 +1947,14 @@ private struct DetailInfoCard: View {
 private struct DetailTextCard: View {
     @Environment(\.appTheme) private var theme
 
+    let eyebrow: String?
     let title: String
     let text: String
 
     var body: some View {
         LaughTrackCard {
             VStack(alignment: .leading, spacing: 12) {
-                LaughTrackSectionHeader(title: title)
+                LaughTrackSectionHeader(eyebrow: eyebrow, title: title)
                 Text(text)
                     .font(theme.laughTrackTokens.typography.body)
                     .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
@@ -1966,14 +1971,16 @@ private struct DetailLink {
 private struct DetailLinkCard: View {
     @Environment(\.appTheme) private var theme
 
+    let eyebrow: String?
     let title: String
+    let subtitle: String?
     let links: [DetailLink]
     let openURL: (URL) -> Void
 
     var body: some View {
         LaughTrackCard {
             VStack(alignment: .leading, spacing: 12) {
-                LaughTrackSectionHeader(title: title)
+                LaughTrackSectionHeader(eyebrow: eyebrow, title: title, subtitle: subtitle)
                 ForEach(Array(links.enumerated()), id: \.offset) { _, link in
                     if let url = link.url {
                         LaughTrackButton(link.title, systemImage: "arrow.up.right", tone: .secondary) {
@@ -2018,7 +2025,11 @@ private struct SocialLinkSection: View {
 
         return LaughTrackCard {
             VStack(alignment: .leading, spacing: 12) {
-                LaughTrackSectionHeader(title: "Links")
+                LaughTrackSectionHeader(
+                    eyebrow: "Follow",
+                    title: "Links",
+                    subtitle: "Social and web destinations use the same shared CTA treatment as the rest of the app."
+                )
                 if links.isEmpty {
                     EmptyCard(message: "No public links are available yet.")
                 } else {
