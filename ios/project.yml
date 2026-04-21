@@ -78,6 +78,7 @@ targets:
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
         UIApplicationSupportsIndirectInputEvents: true
+        NSLocationWhenInUseUsageDescription: LaughTrack uses your location to find nearby comedy shows and match it to a 5-digit ZIP code.
         UILaunchScreen: {}
         UISupportedInterfaceOrientations~ipad:
           - UIInterfaceOrientationPortrait
