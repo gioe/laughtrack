@@ -10,6 +10,36 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+enum ScrapingPlatform {
+  custom
+  crowdwork
+  etix
+  eventbrite
+  jetbook
+  ninkashi
+  opendate
+  ovationtix
+  seatengine
+  seatengine_v3
+  shopify
+  showpass
+  showslinger
+  simpletix
+  squarespace
+  squadup
+  stagetime
+  ticketleap
+  ticketmaster
+  ticketsource
+  ticketweb
+  tixr
+  tockify
+  tour_dates
+  tribe_events
+  vivenu
+  wix_events
+}
+
 model Chain {
   id      Int     @id @default(autoincrement())
   name    String  @unique
@@ -44,12 +74,31 @@ model ProductionCompanyVenue {
   @@map("production_company_venues")
 }
 
+model ScrapingSource {
+  id         Int              @id @default(autoincrement())
+  clubId     Int              @map("club_id")
+  platform   ScrapingPlatform
+  scraperKey String           @map("scraper_key")
+  externalId String?          @map("external_id")
+  sourceUrl  String?          @map("source_url")
+  priority   Int              @default(0)
+  enabled    Boolean          @default(true)
+  metadata   Json             @default("{}")
+  createdAt  DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime         @updatedAt @map("updated_at") @db.Timestamptz
+  club       Club             @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@unique([clubId, platform, priority])
+  @@index([clubId, enabled, priority])
+  @@index([platform, enabled])
+  @@map("scraping_sources")
+}
+
 model Club {
   id                 Int                 @id @default(autoincrement())
   name               String              @unique
   address            String
   website            String
-  scrapingUrl        String              @map("scraping_url")
   popularity         Float               @default(0.0)
   zipCode            String?             @map("zip_code") @db.VarChar(10)
   city               String?             @map("city")
@@ -60,14 +109,6 @@ model Club {
   hours              Json?               @map("hours")
   timezone           String?             @map("timezone")
   visible            Boolean?            @default(true)
-  scraper            String?
-  seatengineId       String?             @map("seatengine_id")
-  eventbriteId       String?             @map("eventbrite_id")
-  ticketmasterId     String?             @map("ticketmaster_id")
-  ovationtixClientId String?             @map("ovationtix_client_id")
-  wixCompId          String?             @map("wix_comp_id")
-  wixCategoryId      String?             @map("wix_category_id")
-  squadupUserId      String?             @map("squadup_user_id")
   totalShows         Int                 @default(0) @map("total_shows")
   hasImage           Boolean             @default(false) @map("has_image")
   status             String              @default("active")
@@ -80,6 +121,7 @@ model Club {
   emailSubscriptions      EmailSubscription[]
   processedEmails         ProcessedEmail[]
   productionCompanyVenues ProductionCompanyVenue[]
+  scrapingSources         ScrapingSource[]
 
   @@index([visible])
   @@index([chainId])

@@ -46,6 +46,25 @@ WebFetch remains appropriate for reading human-readable HTML pages or docs.
 
 For platform-specific venue onboarding guides (StageTime, Prekindle, Humanitix, Ninkashi, Tixr, Eventbrite, SeatEngine, Squarespace, Tockify, OvationTix, OpenDate, TicketSource, and more), see `apps/scraper/SCRAPERS.md`.
 
+## Scraper Configuration Model
+
+Scraper configuration no longer lives directly on `clubs`. Treat `clubs` as venue identity
+only (`name`, `address`, `website`, `timezone`, `city/state`, visibility/status, etc.).
+Per-platform scrape configuration now belongs in `scraping_sources`, keyed by
+`(club_id, platform, priority)`.
+
+Use these columns on `scraping_sources`:
+- `platform` — shared platform identity (`ticketmaster`, `seatengine`, `eventbrite`, etc.)
+- `scraper_key` — the concrete scraper implementation key (`live_nation`, `dr_grins`, `wix_events`, etc.)
+- `external_id` — platform identifier when the scraper needs one
+- `source_url` — canonical scrape/discovery URL for that source
+- `priority` / `enabled` — primary source is `priority=0`; fallbacks are `1+`
+- `metadata` — JSON for extra platform-specific config that does not fit `external_id`
+  (for example Wix `category_id`)
+
+Do not add new flat scraper config columns to `clubs`. When onboarding or switching a venue,
+insert/update the appropriate `scraping_sources` row instead.
+
 ## Scraper Testing Patterns
 
 For testing patterns when writing scraper tests (smoke tests, module loading, mocking, async, VCR cassettes, etc.), see `apps/scraper/CONTRIBUTING.md`.
