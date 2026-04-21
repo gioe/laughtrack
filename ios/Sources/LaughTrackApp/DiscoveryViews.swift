@@ -61,6 +61,10 @@ final class ComedianFavoriteStore: ObservableObject {
         values[uuid] ?? fallback ?? false
     }
 
+    func storedValue(for uuid: String) -> Bool? {
+        values[uuid]
+    }
+
     func isPending(_ uuid: String) -> Bool {
         pending.contains(uuid)
     }
@@ -144,6 +148,7 @@ private final class ComediansDiscoveryModel: ObservableObject {
     @Published var searchText = ""
     @Published private(set) var phase: LoadPhase<DiscoverySearchPage<Components.Schemas.ComedianSearchItem>> = .idle
     @Published private(set) var isLoadingMore = false
+    @Published private(set) var paginationMessage: String?
 
     private var loadedQuery: String?
     private var loadingQuery: String?
@@ -179,6 +184,7 @@ private final class ComediansDiscoveryModel: ObservableObject {
         resetResults: Bool
     ) async {
         let existingItems = currentItems
+        paginationMessage = nil
 
         if resetResults {
             loadingQuery = query
@@ -200,40 +206,105 @@ private final class ComediansDiscoveryModel: ObservableObject {
         }
 
         do {
-            let output = try await apiClient.searchComedians(
-                .init(
-                    query: .init(
-                        comedian: query.nonEmpty,
-                        page: page,
-                        size: Self.pageSize
-                    ),
-                    headers: .init(xTimezone: TimeZone.current.identifier)
-                )
-            )
-
-            switch output {
-            case .ok(let ok):
-                let response = try ok.body.json
-                let items = response.data.map { comedian in
-                    favorites.seed(uuid: comedian.uuid, value: comedian.isFavorite)
-                    return comedian
-                }
-                phase = .success(
+            if query.isEmpty {
+                let output = try await apiClient.listComedians(
                     .init(
-                        items: resetResults ? items : existingItems + items,
-                        total: response.total,
-                        page: page
+                        query: .init(
+                            limit: Self.pageSize,
+                            offset: page * Self.pageSize
+                        )
                     )
                 )
-                loadedQuery = query
-            case .internalServerError, .undocumented:
-                phase = fallbackPage(query: query, page: page, existingItems: existingItems, resetResults: resetResults)
-                loadedQuery = query
+
+                switch output {
+                case .ok(let ok):
+                    let response = try ok.body.json
+                    let items = response.data.map { comedian in
+                        return Components.Schemas.ComedianSearchItem(
+                            id: comedian.id,
+                            uuid: comedian.uuid,
+                            name: comedian.name,
+                            imageUrl: comedian.imageUrl,
+                            socialData: comedian.socialData,
+                            showCount: comedian.showCount,
+                            isFavorite: favorites.storedValue(for: comedian.uuid)
+                        )
+                    }
+                    phase = .success(
+                        .init(
+                            items: resetResults ? items : existingItems + items,
+                            total: response.data.count < Self.pageSize ? existingItems.count + items.count : (page + 1) * Self.pageSize + 1,
+                            page: page
+                        )
+                    )
+                    loadedQuery = query
+                case .badRequest(let badRequest):
+                    handleFailure(
+                        message: (try? badRequest.body.json.error) ?? "LaughTrack could not load comedians right now.",
+                        existingItems: existingItems,
+                        resetResults: resetResults
+                    )
+                case .internalServerError(let serverError):
+                    handleFailure(
+                        message: (try? serverError.body.json.error) ?? "LaughTrack could not load comedians right now.",
+                        existingItems: existingItems,
+                        resetResults: resetResults
+                    )
+                case .undocumented(let status, _):
+                    handleFailure(
+                        message: "LaughTrack returned an unexpected comedians response (\(status)).",
+                        existingItems: existingItems,
+                        resetResults: resetResults
+                    )
+                }
+            } else {
+                let output = try await apiClient.searchComedians(
+                    .init(
+                        query: .init(
+                            comedian: query.nonEmpty,
+                            page: page,
+                            size: Self.pageSize
+                        ),
+                        headers: .init(xTimezone: TimeZone.current.identifier)
+                    )
+                )
+
+                switch output {
+                case .ok(let ok):
+                    let response = try ok.body.json
+                    let items = response.data.map { comedian in
+                        favorites.seed(uuid: comedian.uuid, value: comedian.isFavorite)
+                        return comedian
+                    }
+                    phase = .success(
+                        .init(
+                            items: resetResults ? items : existingItems + items,
+                            total: response.total,
+                            page: page
+                        )
+                    )
+                    loadedQuery = query
+                case .internalServerError(let serverError):
+                    handleFailure(
+                        message: (try? serverError.body.json.error) ?? "LaughTrack could not load comedians right now.",
+                        existingItems: existingItems,
+                        resetResults: resetResults
+                    )
+                case .undocumented(let status, _):
+                    handleFailure(
+                        message: "LaughTrack returned an unexpected comedians response (\(status)).",
+                        existingItems: existingItems,
+                        resetResults: resetResults
+                    )
+                }
             }
         } catch {
             guard !Task.isCancelled else { return }
-            phase = fallbackPage(query: query, page: page, existingItems: existingItems, resetResults: resetResults)
-            loadedQuery = query
+            handleFailure(
+                message: "LaughTrack could not reach the comedians service. Check your connection and try again.",
+                existingItems: existingItems,
+                resetResults: resetResults
+            )
         }
     }
 
@@ -242,28 +313,17 @@ private final class ComediansDiscoveryModel: ObservableObject {
         return current.items
     }
 
-    private func fallbackPage(
-        query: String,
-        page: Int,
+    private func handleFailure(
+        message: String,
         existingItems: [Components.Schemas.ComedianSearchItem],
         resetResults: Bool
-    ) -> LoadPhase<DiscoverySearchPage<Components.Schemas.ComedianSearchItem>> {
-        let allItems = DemoFixtures.comedians(matching: query)
-        let slice = Self.paginate(allItems, page: page)
-        return .success(
-            .init(
-                items: resetResults ? slice : existingItems + slice,
-                total: allItems.count,
-                page: page
-            )
-        )
-    }
-
-    private static func paginate<Item>(_ items: [Item], page: Int) -> [Item] {
-        let start = min(page * pageSize, items.count)
-        let end = min(start + pageSize, items.count)
-        guard start < end else { return [] }
-        return Array(items[start..<end])
+    ) {
+        if resetResults || existingItems.isEmpty {
+            phase = .failure(message)
+        } else if case .success(let current) = phase {
+            paginationMessage = message
+            phase = .success(current)
+        }
     }
 }
 
@@ -274,6 +334,7 @@ private final class ClubsDiscoveryModel: ObservableObject {
     @Published var searchText = ""
     @Published private(set) var phase: LoadPhase<DiscoverySearchPage<Components.Schemas.ClubSearchItem>> = .idle
     @Published private(set) var isLoadingMore = false
+    @Published private(set) var paginationMessage: String?
 
     private var loadedQuery: String?
     private var loadingQuery: String?
@@ -308,6 +369,7 @@ private final class ClubsDiscoveryModel: ObservableObject {
         resetResults: Bool
     ) async {
         let existingItems = currentItems
+        paginationMessage = nil
 
         if resetResults {
             loadingQuery = query
@@ -329,36 +391,113 @@ private final class ClubsDiscoveryModel: ObservableObject {
         }
 
         do {
-            let output = try await apiClient.searchClubs(
-                .init(
-                    query: .init(
-                        club: query.nonEmpty,
-                        page: page,
-                        size: Self.pageSize
-                    ),
-                    headers: .init(xTimezone: TimeZone.current.identifier)
-                )
-            )
-
-            switch output {
-            case .ok(let ok):
-                let response = try ok.body.json
-                phase = .success(
+            if query.isEmpty {
+                let output = try await apiClient.listClubs(
                     .init(
-                        items: resetResults ? response.data : existingItems + response.data,
-                        total: response.total,
-                        page: page
+                        query: .init(
+                            limit: Self.pageSize,
+                            offset: page * Self.pageSize
+                        )
                     )
                 )
-                loadedQuery = query
-            case .internalServerError, .undocumented:
-                phase = fallbackPage(query: query, page: page, existingItems: existingItems, resetResults: resetResults)
-                loadedQuery = query
+
+                switch output {
+                case .ok(let ok):
+                    let response = try ok.body.json
+                    let items = response.data.map { club in
+                        Components.Schemas.ClubSearchItem(
+                            id: club.id,
+                            address: club.address,
+                            name: club.name,
+                            zipCode: club.zipCode,
+                            imageUrl: club.imageUrl,
+                            showCount: nil,
+                            isFavorite: nil,
+                            city: nil,
+                            state: nil,
+                            phoneNumber: nil,
+                            socialData: nil,
+                            activeComedianCount: club.activeComedianCount,
+                            distanceMiles: nil
+                        )
+                    }
+                    phase = .success(
+                        .init(
+                            items: resetResults ? items : existingItems + items,
+                            total: response.data.count < Self.pageSize ? existingItems.count + items.count : (page + 1) * Self.pageSize + 1,
+                            page: page
+                        )
+                    )
+                    loadedQuery = query
+                case .badRequest(let badRequest):
+                    handleFailure(
+                        message: (try? badRequest.body.json.error) ?? "LaughTrack could not load clubs right now.",
+                        existingItems: existingItems,
+                        resetResults: resetResults
+                    )
+                case .tooManyRequests(let tooManyRequests):
+                    handleFailure(
+                        message: (try? tooManyRequests.body.json.error) ?? "LaughTrack is rate-limiting club results right now.",
+                        existingItems: existingItems,
+                        resetResults: resetResults
+                    )
+                case .internalServerError(let serverError):
+                    handleFailure(
+                        message: (try? serverError.body.json.error) ?? "LaughTrack could not load clubs right now.",
+                        existingItems: existingItems,
+                        resetResults: resetResults
+                    )
+                case .undocumented(let status, _):
+                    handleFailure(
+                        message: "LaughTrack returned an unexpected clubs response (\(status)).",
+                        existingItems: existingItems,
+                        resetResults: resetResults
+                    )
+                }
+            } else {
+                let output = try await apiClient.searchClubs(
+                    .init(
+                        query: .init(
+                            club: query.nonEmpty,
+                            page: page,
+                            size: Self.pageSize
+                        ),
+                        headers: .init(xTimezone: TimeZone.current.identifier)
+                    )
+                )
+
+                switch output {
+                case .ok(let ok):
+                    let response = try ok.body.json
+                    phase = .success(
+                        .init(
+                            items: resetResults ? response.data : existingItems + response.data,
+                            total: response.total,
+                            page: page
+                        )
+                    )
+                    loadedQuery = query
+                case .internalServerError(let serverError):
+                    handleFailure(
+                        message: (try? serverError.body.json.error) ?? "LaughTrack could not load clubs right now.",
+                        existingItems: existingItems,
+                        resetResults: resetResults
+                    )
+                case .undocumented(let status, _):
+                    handleFailure(
+                        message: "LaughTrack returned an unexpected clubs response (\(status)).",
+                        existingItems: existingItems,
+                        resetResults: resetResults
+                    )
+                }
             }
         } catch {
             guard !Task.isCancelled else { return }
-            phase = fallbackPage(query: query, page: page, existingItems: existingItems, resetResults: resetResults)
-            loadedQuery = query
+            handleFailure(
+                message: "LaughTrack could not reach the clubs service. Check your connection and try again.",
+                existingItems: existingItems,
+                resetResults: resetResults
+            )
         }
     }
 
@@ -367,28 +506,17 @@ private final class ClubsDiscoveryModel: ObservableObject {
         return current.items
     }
 
-    private func fallbackPage(
-        query: String,
-        page: Int,
+    private func handleFailure(
+        message: String,
         existingItems: [Components.Schemas.ClubSearchItem],
         resetResults: Bool
-    ) -> LoadPhase<DiscoverySearchPage<Components.Schemas.ClubSearchItem>> {
-        let allItems = DemoFixtures.clubs(matching: query)
-        let slice = Self.paginate(allItems, page: page)
-        return .success(
-            .init(
-                items: resetResults ? slice : existingItems + slice,
-                total: allItems.count,
-                page: page
-            )
-        )
-    }
-
-    private static func paginate<Item>(_ items: [Item], page: Int) -> [Item] {
-        let start = min(page * pageSize, items.count)
-        let end = min(start + pageSize, items.count)
-        guard start < end else { return [] }
-        return Array(items[start..<end])
+    ) {
+        if resetResults || existingItems.isEmpty {
+            phase = .failure(message)
+        } else if case .success(let current) = phase {
+            paginationMessage = message
+            phase = .success(current)
+        }
     }
 }
 
@@ -1443,6 +1571,10 @@ private struct ComediansDiscoveryView: View {
                                 )
                             }
 
+                            if let paginationMessage = model.paginationMessage {
+                                InlineStatusMessage(message: paginationMessage)
+                            }
+
                             if result.canLoadMore {
                                 LoadMoreButton(
                                     title: "Load more comedians",
@@ -1510,6 +1642,10 @@ private struct ClubsDiscoveryView: View {
                                 }
                                 .buttonStyle(.plain)
                                 .disabled(club.id == nil)
+                            }
+
+                            if let paginationMessage = model.paginationMessage {
+                                InlineStatusMessage(message: paginationMessage)
                             }
 
                             if result.canLoadMore {
