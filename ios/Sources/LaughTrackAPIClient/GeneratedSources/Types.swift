@@ -53,6 +53,11 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `GET /shows`.
     /// - Remark: Generated from `#/paths//shows/get(listShows)`.
     func listShows(_ input: Operations.ListShows.Input) async throws -> Operations.ListShows.Output
+    /// Get a single show by ID
+    ///
+    /// - Remark: HTTP `GET /shows/{id}`.
+    /// - Remark: Generated from `#/paths//shows/{id}/get(getShow)`.
+    func getShow(_ input: Operations.GetShow.Input) async throws -> Operations.GetShow.Output
     /// Search shows with flexible filters
     ///
     /// More flexible than /shows — ZIP is optional, supports club filter and sort.
@@ -171,6 +176,19 @@ extension APIProtocol {
     ) async throws -> Operations.ListShows.Output {
         try await listShows(Operations.ListShows.Input(
             query: query,
+            headers: headers
+        ))
+    }
+    /// Get a single show by ID
+    ///
+    /// - Remark: HTTP `GET /shows/{id}`.
+    /// - Remark: Generated from `#/paths//shows/{id}/get(getShow)`.
+    public func getShow(
+        path: Operations.GetShow.Input.Path,
+        headers: Operations.GetShow.Input.Headers = .init()
+    ) async throws -> Operations.GetShow.Output {
+        try await getShow(Operations.GetShow.Input(
+            path: path,
             headers: headers
         ))
     }
@@ -811,6 +829,212 @@ public enum Components {
                 case total
                 case filters
                 case zipCapTriggered
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/ShowDetailClub`.
+        public struct ShowDetailClub: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/ShowDetailClub/id`.
+            public var id: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/ShowDetailClub/name`.
+            public var name: Swift.String
+            /// - Remark: Generated from `#/components/schemas/ShowDetailClub/address`.
+            public var address: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/ShowDetailClub/imageUrl`.
+            public var imageUrl: Swift.String
+            /// - Remark: Generated from `#/components/schemas/ShowDetailClub/timezone`.
+            public var timezone: Swift.String?
+            /// Creates a new `ShowDetailClub`.
+            ///
+            /// - Parameters:
+            ///   - id:
+            ///   - name:
+            ///   - address:
+            ///   - imageUrl:
+            ///   - timezone:
+            public init(
+                id: Swift.Int,
+                name: Swift.String,
+                address: Swift.String? = nil,
+                imageUrl: Swift.String,
+                timezone: Swift.String? = nil
+            ) {
+                self.id = id
+                self.name = name
+                self.address = address
+                self.imageUrl = imageUrl
+                self.timezone = timezone
+            }
+            public enum CodingKeys: String, CodingKey {
+                case id
+                case name
+                case address
+                case imageUrl
+                case timezone
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/ShowDetailCta`.
+        public struct ShowDetailCta: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/ShowDetailCta/url`.
+            public var url: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/ShowDetailCta/label`.
+            public var label: Swift.String
+            /// - Remark: Generated from `#/components/schemas/ShowDetailCta/isSoldOut`.
+            public var isSoldOut: Swift.Bool
+            /// Creates a new `ShowDetailCta`.
+            ///
+            /// - Parameters:
+            ///   - url:
+            ///   - label:
+            ///   - isSoldOut:
+            public init(
+                url: Swift.String? = nil,
+                label: Swift.String,
+                isSoldOut: Swift.Bool
+            ) {
+                self.url = url
+                self.label = label
+                self.isSoldOut = isSoldOut
+            }
+            public enum CodingKeys: String, CodingKey {
+                case url
+                case label
+                case isSoldOut
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/ShowDetail`.
+        public struct ShowDetail: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/ShowDetail/id`.
+            public var id: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/ShowDetail/clubName`.
+            public var clubName: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/ShowDetail/date`.
+            public var date: Foundation.Date
+            /// - Remark: Generated from `#/components/schemas/ShowDetail/tickets`.
+            public var tickets: [Components.Schemas.Ticket]?
+            /// - Remark: Generated from `#/components/schemas/ShowDetail/name`.
+            public var name: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/ShowDetail/social_data`.
+            public var socialData: Components.Schemas.SocialData?
+            /// - Remark: Generated from `#/components/schemas/ShowDetail/lineup`.
+            public var lineup: [Components.Schemas.ComedianLineup]?
+            /// - Remark: Generated from `#/components/schemas/ShowDetail/description`.
+            public var description: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/ShowDetail/address`.
+            public var address: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/ShowDetail/room`.
+            public var room: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/ShowDetail/imageUrl`.
+            public var imageUrl: Swift.String
+            /// - Remark: Generated from `#/components/schemas/ShowDetail/soldOut`.
+            public var soldOut: Swift.Bool?
+            /// - Remark: Generated from `#/components/schemas/ShowDetail/distanceMiles`.
+            public var distanceMiles: Swift.Double?
+            /// - Remark: Generated from `#/components/schemas/ShowDetail/timezone`.
+            public var timezone: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/ShowDetail/showPageUrl`.
+            public var showPageUrl: Swift.String
+            /// - Remark: Generated from `#/components/schemas/ShowDetail/club`.
+            public var club: Components.Schemas.ShowDetailClub
+            /// - Remark: Generated from `#/components/schemas/ShowDetail/cta`.
+            public var cta: Components.Schemas.ShowDetailCta
+            /// Creates a new `ShowDetail`.
+            ///
+            /// - Parameters:
+            ///   - id:
+            ///   - clubName:
+            ///   - date:
+            ///   - tickets:
+            ///   - name:
+            ///   - socialData:
+            ///   - lineup:
+            ///   - description:
+            ///   - address:
+            ///   - room:
+            ///   - imageUrl:
+            ///   - soldOut:
+            ///   - distanceMiles:
+            ///   - timezone:
+            ///   - showPageUrl:
+            ///   - club:
+            ///   - cta:
+            public init(
+                id: Swift.Int,
+                clubName: Swift.String? = nil,
+                date: Foundation.Date,
+                tickets: [Components.Schemas.Ticket]? = nil,
+                name: Swift.String? = nil,
+                socialData: Components.Schemas.SocialData? = nil,
+                lineup: [Components.Schemas.ComedianLineup]? = nil,
+                description: Swift.String? = nil,
+                address: Swift.String? = nil,
+                room: Swift.String? = nil,
+                imageUrl: Swift.String,
+                soldOut: Swift.Bool? = nil,
+                distanceMiles: Swift.Double? = nil,
+                timezone: Swift.String? = nil,
+                showPageUrl: Swift.String,
+                club: Components.Schemas.ShowDetailClub,
+                cta: Components.Schemas.ShowDetailCta
+            ) {
+                self.id = id
+                self.clubName = clubName
+                self.date = date
+                self.tickets = tickets
+                self.name = name
+                self.socialData = socialData
+                self.lineup = lineup
+                self.description = description
+                self.address = address
+                self.room = room
+                self.imageUrl = imageUrl
+                self.soldOut = soldOut
+                self.distanceMiles = distanceMiles
+                self.timezone = timezone
+                self.showPageUrl = showPageUrl
+                self.club = club
+                self.cta = cta
+            }
+            public enum CodingKeys: String, CodingKey {
+                case id
+                case clubName
+                case date
+                case tickets
+                case name
+                case socialData = "social_data"
+                case lineup
+                case description
+                case address
+                case room
+                case imageUrl
+                case soldOut
+                case distanceMiles
+                case timezone
+                case showPageUrl
+                case club
+                case cta
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/ShowDetailResponse`.
+        public struct ShowDetailResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/ShowDetailResponse/data`.
+            public var data: Components.Schemas.ShowDetail
+            /// - Remark: Generated from `#/components/schemas/ShowDetailResponse/relatedShows`.
+            public var relatedShows: [Components.Schemas.Show]
+            /// Creates a new `ShowDetailResponse`.
+            ///
+            /// - Parameters:
+            ///   - data:
+            ///   - relatedShows:
+            public init(
+                data: Components.Schemas.ShowDetail,
+                relatedShows: [Components.Schemas.Show]
+            ) {
+                self.data = data
+                self.relatedShows = relatedShows
+            }
+            public enum CodingKeys: String, CodingKey {
+                case data
+                case relatedShows
             }
         }
         /// - Remark: Generated from `#/components/schemas/ClubListItem`.
@@ -3385,6 +3609,283 @@ public enum Operations {
             /// Undocumented response.
             ///
             /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Get a single show by ID
+    ///
+    /// - Remark: HTTP `GET /shows/{id}`.
+    /// - Remark: Generated from `#/paths//shows/{id}/get(getShow)`.
+    public enum GetShow {
+        public static let id: Swift.String = "getShow"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/shows/{id}/GET/path`.
+            public struct Path: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/shows/{id}/GET/path/id`.
+                public var id: Swift.Int
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - id:
+                public init(id: Swift.Int) {
+                    self.id = id
+                }
+            }
+            public var path: Operations.GetShow.Input.Path
+            /// - Remark: Generated from `#/paths/shows/{id}/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetShow.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetShow.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.GetShow.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - headers:
+            public init(
+                path: Operations.GetShow.Input.Path,
+                headers: Operations.GetShow.Input.Headers = .init()
+            ) {
+                self.path = path
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.ShowDetailResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ShowDetailResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.GetShow.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.GetShow.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Show detail
+            ///
+            /// - Remark: Generated from `#/paths//shows/{id}/get(getShow)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.GetShow.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.GetShow.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct BadRequest: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/400/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/400/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                public var body: Operations.GetShow.Output.BadRequest.Body
+                public init(body: Operations.GetShow.Output.BadRequest.Body) {
+                    self.body = body
+                }
+            }
+            /// Non-numeric ID
+            ///
+            /// - Remark: Generated from `#/paths//shows/{id}/get(getShow)/responses/400`.
+            ///
+            /// HTTP response code: `400 badRequest`.
+            case badRequest(Operations.GetShow.Output.BadRequest)
+            public var badRequest: Operations.GetShow.Output.BadRequest {
+                get throws {
+                    switch self {
+                    case let .badRequest(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "badRequest",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct NotFound: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/404/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/404/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                public var body: Operations.GetShow.Output.NotFound.Body
+                public init(body: Operations.GetShow.Output.NotFound.Body) {
+                    self.body = body
+                }
+            }
+            /// Show not found or hidden
+            ///
+            /// - Remark: Generated from `#/paths//shows/{id}/get(getShow)/responses/404`.
+            ///
+            /// HTTP response code: `404 notFound`.
+            case notFound(Operations.GetShow.Output.NotFound)
+            public var notFound: Operations.GetShow.Output.NotFound {
+                get throws {
+                    switch self {
+                    case let .notFound(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "notFound",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct TooManyRequests: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/429/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/429/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                public var body: Operations.GetShow.Output.TooManyRequests.Body
+                public init(body: Operations.GetShow.Output.TooManyRequests.Body) {
+                    self.body = body
+                }
+            }
+            /// Rate limit exceeded
+            ///
+            /// - Remark: Generated from `#/paths//shows/{id}/get(getShow)/responses/429`.
+            ///
+            /// HTTP response code: `429 tooManyRequests`.
+            case tooManyRequests(Operations.GetShow.Output.TooManyRequests)
+            public var tooManyRequests: Operations.GetShow.Output.TooManyRequests {
+                get throws {
+                    switch self {
+                    case let .tooManyRequests(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "tooManyRequests",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct InternalServerError: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/500/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/shows/{id}/GET/responses/500/content/application\/json`.
+                    case json(Components.Schemas.ErrorResponse)
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                public var body: Operations.GetShow.Output.InternalServerError.Body
+                public init(body: Operations.GetShow.Output.InternalServerError.Body) {
+                    self.body = body
+                }
+            }
+            /// Server error
+            ///
+            /// - Remark: Generated from `#/paths//shows/{id}/get(getShow)/responses/500`.
+            ///
+            /// HTTP response code: `500 internalServerError`.
+            case internalServerError(Operations.GetShow.Output.InternalServerError)
+            public var internalServerError: Operations.GetShow.Output.InternalServerError {
+                get throws {
+                    switch self {
+                    case let .internalServerError(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "internalServerError",
+                            response: self
+                        )
+                    }
+                }
+            }
             case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
         }
         @frozen public enum AcceptableContentType: AcceptableProtocol {

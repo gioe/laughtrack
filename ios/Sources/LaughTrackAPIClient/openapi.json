@@ -615,6 +615,63 @@
         }
       }
     },
+    "/shows/{id}": {
+      "get": {
+        "operationId": "getShow",
+        "summary": "Get a single show by ID",
+        "tags": ["shows"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Show detail",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ShowDetailResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Non-numeric ID",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Show not found or hidden",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/favorites": {
       "post": {
         "operationId": "addFavorite",
@@ -907,6 +964,66 @@
             "items": { "$ref": "#/components/schemas/Filter" }
           },
           "zipCapTriggered": { "type": "boolean" }
+        }
+      },
+      "ShowDetailClub": {
+        "type": "object",
+        "required": ["id", "name", "imageUrl"],
+        "properties": {
+          "id": { "type": "integer" },
+          "name": { "type": "string" },
+          "address": { "type": ["string", "null"] },
+          "imageUrl": { "type": "string" },
+          "timezone": { "type": ["string", "null"] }
+        }
+      },
+      "ShowDetailCta": {
+        "type": "object",
+        "required": ["label", "isSoldOut"],
+        "properties": {
+          "url": { "type": ["string", "null"] },
+          "label": { "type": "string" },
+          "isSoldOut": { "type": "boolean" }
+        }
+      },
+      "ShowDetail": {
+        "type": "object",
+        "required": ["id", "date", "imageUrl", "showPageUrl", "club", "cta"],
+        "properties": {
+          "id": { "type": "integer" },
+          "clubName": { "type": "string" },
+          "date": { "type": "string", "format": "date-time" },
+          "tickets": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Ticket" }
+          },
+          "name": { "type": ["string", "null"] },
+          "social_data": { "$ref": "#/components/schemas/SocialData" },
+          "lineup": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ComedianLineup" }
+          },
+          "description": { "type": "string" },
+          "address": { "type": "string" },
+          "room": { "type": ["string", "null"] },
+          "imageUrl": { "type": "string" },
+          "soldOut": { "type": "boolean" },
+          "distanceMiles": { "type": ["number", "null"] },
+          "timezone": { "type": ["string", "null"] },
+          "showPageUrl": { "type": "string" },
+          "club": { "$ref": "#/components/schemas/ShowDetailClub" },
+          "cta": { "$ref": "#/components/schemas/ShowDetailCta" }
+        }
+      },
+      "ShowDetailResponse": {
+        "type": "object",
+        "required": ["data", "relatedShows"],
+        "properties": {
+          "data": { "$ref": "#/components/schemas/ShowDetail" },
+          "relatedShows": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Show" }
+          }
         }
       },
       "ClubListItem": {
