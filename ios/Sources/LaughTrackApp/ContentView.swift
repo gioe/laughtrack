@@ -190,13 +190,48 @@ struct SettingsView: View {
                 } else {
                     LaughTrackSectionHeader(
                         eyebrow: "Sign in",
-                        title: "Connect your account",
-                        subtitle: "Apple and Google use the same token-backed button treatment as the rest of the component kit."
+                        title: "Bring favorites and alerts with you",
+                        subtitle: "Use the same LaughTrack auth surfaces for Apple, Google, and recovery states without changing the token-backed flow underneath."
                     )
 
-                    VStack(spacing: theme.spacing.md) {
+                    LaughTrackCard(tone: .accent) {
+                        VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
+                            Text("LaughTrack account")
+                                .font(laughTrack.typography.eyebrow)
+                                .foregroundStyle(laughTrack.colors.textInverse.opacity(0.78))
+                                .textCase(.uppercase)
+                            Text("Sign in once, then keep your comedy world in sync.")
+                                .font(laughTrack.typography.screenTitle)
+                                .foregroundStyle(laughTrack.colors.textInverse)
+                            Text("Saved comedians, favorite actions, and recovery messaging all stay in the same native component system instead of dropping into a temporary shell.")
+                                .font(laughTrack.typography.body)
+                                .foregroundStyle(laughTrack.colors.textInverse.opacity(0.92))
+                        }
+                    }
+
+                    if let signedOutMessage {
+                        LaughTrackAuthMessageCard(message: signedOutMessage)
+                    }
+
+                    VStack(spacing: laughTrack.spacing.itemGap) {
                         ForEach(AuthProvider.allCases, id: \.self) { provider in
-                            AuthProviderButton(provider: provider)
+                            LaughTrackAuthProviderCard(provider: provider) {
+                                Task {
+                                    await authManager.signIn(with: provider)
+                                }
+                            }
+                        }
+                    }
+
+                    LaughTrackCard(tone: .muted) {
+                        VStack(alignment: .leading, spacing: laughTrack.spacing.tight) {
+                            Text("What you unlock")
+                                .font(laughTrack.typography.metadata)
+                                .foregroundStyle(laughTrack.colors.accent)
+                                .textCase(.uppercase)
+                            Text("Save comedians faster, recover cleanly if a browser handoff fails, and keep the auth copy consistent with discovery and detail screens.")
+                                .font(laughTrack.typography.body)
+                                .foregroundStyle(laughTrack.colors.textSecondary)
                         }
                     }
                 }
@@ -257,49 +292,12 @@ private struct SessionBannerCard: View {
                     Text("Discovery stays open even when you’re signed out.")
                         .font(laughTrack.typography.cardTitle)
                         .foregroundStyle(laughTrack.colors.textPrimary)
-                    Text(signedOutMessage ?? "Open Settings when you want to connect Apple or Google and save comedians.")
+                    Text(signedOutMessage ?? "Open Settings when you want to connect Apple or Google, sync favorites, and recover quickly if sign-in is interrupted.")
                         .font(laughTrack.typography.body)
                         .foregroundStyle(laughTrack.colors.textSecondary)
                 }
             }
         }
-    }
-}
-
-private struct AuthProviderButton: View {
-    @EnvironmentObject private var authManager: AuthManager
-    @Environment(\.appTheme) private var theme
-
-    let provider: AuthProvider
-
-    var body: some View {
-        let laughTrack = theme.laughTrackTokens
-
-        Button {
-            Task {
-                await authManager.signIn(with: provider)
-            }
-        } label: {
-            LaughTrackCard {
-                HStack(spacing: theme.spacing.md) {
-                    Image(systemName: provider.symbolName)
-                        .font(.system(size: theme.iconSizes.md, weight: .semibold))
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(provider.title)
-                            .font(laughTrack.typography.action)
-                        Text(provider.subtitle)
-                            .font(laughTrack.typography.metadata)
-                            .foregroundStyle(laughTrack.colors.textSecondary)
-                    }
-                    Spacer()
-                    Image(systemName: "arrow.up.right")
-                        .font(.system(size: theme.iconSizes.sm, weight: .semibold))
-                        .foregroundStyle(laughTrack.colors.textSecondary)
-                }
-                .foregroundStyle(laughTrack.colors.textPrimary)
-            }
-        }
-        .buttonStyle(.plain)
     }
 }
 
@@ -309,14 +307,31 @@ private struct AuthLoadingView: View {
     let message: String
 
     var body: some View {
-        VStack {
+        let laughTrack = theme.laughTrackTokens
+
+        VStack(spacing: laughTrack.spacing.sectionGap) {
+            LaughTrackCard(tone: .accent) {
+                VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
+                    Text("LaughTrack account")
+                        .font(laughTrack.typography.eyebrow)
+                        .foregroundStyle(laughTrack.colors.textInverse.opacity(0.78))
+                        .textCase(.uppercase)
+                    Text("Signing you in with the shared token flow.")
+                        .font(laughTrack.typography.screenTitle)
+                        .foregroundStyle(laughTrack.colors.textInverse)
+                    Text("The browser handoff and session exchange stay the same; this screen now uses the same branded cards and typography as the rest of the app.")
+                        .font(laughTrack.typography.body)
+                        .foregroundStyle(laughTrack.colors.textInverse.opacity(0.92))
+                }
+            }
+
             LaughTrackStateView(
                 tone: .loading,
                 title: "Loading LaughTrack",
                 message: message
             )
-            .padding(theme.spacing.xl)
         }
+        .padding(theme.spacing.xl)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
     }
