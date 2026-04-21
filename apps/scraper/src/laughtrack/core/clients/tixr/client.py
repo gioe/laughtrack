@@ -250,8 +250,7 @@ class TixrClient(BaseApiClient):
                 response_headers = self._response_headers_dict(response)
                 body = response.text or ""
         except Exception as e:
-            if proxy_url and self.proxy_pool is not None:
-                self.proxy_pool.report_failure(proxy_url)
+            self._report_proxy_outcome(proxy_url, success=False)
             self.log_error(f"Failed to fetch Tixr page {url}: {e}")
             return None
 
@@ -265,8 +264,7 @@ class TixrClient(BaseApiClient):
         # reclassify it as NETWORK_ERROR anyway).
         if 500 <= status < 600:
             self.log_warning(f"Tixr HTTP {status} fetching group page: {normalized_url}")
-            if proxy_url and self.proxy_pool is not None:
-                self.proxy_pool.report_failure(proxy_url)
+            self._report_proxy_outcome(proxy_url, success=False)
             return None
 
         datadome_type = self._classify_datadome(response_headers, body)
@@ -301,14 +299,12 @@ class TixrClient(BaseApiClient):
                 fallback_reason = sig
 
         if fallback_reason is None:
-            if proxy_url and self.proxy_pool is not None:
-                self.proxy_pool.report_success(proxy_url)
+            self._report_proxy_outcome(proxy_url, success=True)
             return body
 
         browser = _get_js_browser()
         if browser is None:
-            if proxy_url and self.proxy_pool is not None:
-                self.proxy_pool.report_failure(proxy_url)
+            self._report_proxy_outcome(proxy_url, success=False)
             return None
         if diagnostics is not None:
             diagnostics.record_playwright_fallback()
@@ -325,11 +321,7 @@ class TixrClient(BaseApiClient):
             )
             fallback_html = None
 
-        if proxy_url and self.proxy_pool is not None:
-            if fallback_html is None:
-                self.proxy_pool.report_failure(proxy_url)
-            else:
-                self.proxy_pool.report_success(proxy_url)
+        self._report_proxy_outcome(proxy_url, success=fallback_html is not None)
         return fallback_html
 
     @staticmethod

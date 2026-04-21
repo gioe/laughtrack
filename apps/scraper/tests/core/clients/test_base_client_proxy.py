@@ -385,3 +385,40 @@ class TestFetchJsonListAllowEmptyBody:
 
         assert mock_fetch_json.await_count == 1
         assert mock_fetch_json.await_args.kwargs["allow_empty_body"] is False
+
+
+# ---------------------------------------------------------------------------
+# _report_proxy_outcome helper (TASK-1678)
+# ---------------------------------------------------------------------------
+
+
+class TestReportProxyOutcomeHelper:
+    """Direct coverage for the shared proxy-accounting helper."""
+
+    def test_success_routes_to_report_success(self):
+        pool = _make_pool()
+        client = ConcreteClient(_make_club(), proxy_pool=pool)
+        client._report_proxy_outcome(PROXY_URL, success=True)
+        pool.report_success.assert_called_once_with(PROXY_URL)
+        pool.report_failure.assert_not_called()
+
+    def test_failure_routes_to_report_failure(self):
+        pool = _make_pool()
+        client = ConcreteClient(_make_club(), proxy_pool=pool)
+        client._report_proxy_outcome(PROXY_URL, success=False)
+        pool.report_failure.assert_called_once_with(PROXY_URL)
+        pool.report_success.assert_not_called()
+
+    def test_noop_when_proxy_url_is_none(self):
+        pool = _make_pool()
+        client = ConcreteClient(_make_club(), proxy_pool=pool)
+        client._report_proxy_outcome(None, success=True)
+        client._report_proxy_outcome(None, success=False)
+        pool.report_success.assert_not_called()
+        pool.report_failure.assert_not_called()
+
+    def test_noop_when_proxy_pool_is_none(self):
+        client = ConcreteClient(_make_club(), proxy_pool=None)
+        # Must not raise even though there is no pool to report to.
+        client._report_proxy_outcome(PROXY_URL, success=True)
+        client._report_proxy_outcome(PROXY_URL, success=False)

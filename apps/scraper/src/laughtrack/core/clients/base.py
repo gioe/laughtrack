@@ -174,6 +174,21 @@ class BaseApiClient(ABC):
             return None
         return self.proxy_pool.get_proxy()
 
+    def _report_proxy_outcome(self, proxy_url: Optional[str], success: bool) -> None:
+        """Report a proxy-request outcome to the pool, if one is configured.
+
+        No-op when ``proxy_url`` is ``None`` or ``self.proxy_pool`` is ``None``
+        — the guard lives here so call sites don't each repeat it. Subclasses
+        whose request methods live outside this module (e.g.
+        ``TixrClient._fetch_tixr_page``) can call this so every proxy-aware
+        return branch reports via a single path.
+        """
+        if proxy_url and self.proxy_pool is not None:
+            if success:
+                self.proxy_pool.report_success(proxy_url)
+            else:
+                self.proxy_pool.report_failure(proxy_url)
+
     def _initialize_headers(self) -> Dict[str, str]:
         """Initialize default headers. Subclasses should override for custom auth."""
         return BaseHeaders.get_headers("json")
@@ -261,23 +276,21 @@ class BaseApiClient(ABC):
                     Logger.debug(f"HTTP GET {url} → {summary}", context=ctx)
                 except Exception:
                     pass
-                if proxy_url and self.proxy_pool is not None:
-                    if data is None:
-                        # When the caller opted into empty-body-as-valid,
-                        # data=None is ambiguous (could be a legitimate
-                        # HTTP 200 stale-event response, or a fallback-
-                        # failed 403).  Skip proxy accounting rather than
-                        # falsely penalize a proxy that handled the
-                        # request cleanly — this keeps Tessera stale-event
-                        # volume from poisoning the proxy health score.
-                        if not allow_empty_body:
-                            self.proxy_pool.report_failure(proxy_url)
-                    else:
-                        self.proxy_pool.report_success(proxy_url)
+                if data is None:
+                    # When the caller opted into empty-body-as-valid,
+                    # data=None is ambiguous (could be a legitimate
+                    # HTTP 200 stale-event response, or a fallback-
+                    # failed 403).  Skip proxy accounting rather than
+                    # falsely penalize a proxy that handled the
+                    # request cleanly — this keeps Tessera stale-event
+                    # volume from poisoning the proxy health score.
+                    if not allow_empty_body:
+                        self._report_proxy_outcome(proxy_url, success=False)
+                else:
+                    self._report_proxy_outcome(proxy_url, success=True)
                 return data
         except Exception as e:
-            if proxy_url and self.proxy_pool is not None:
-                self.proxy_pool.report_failure(proxy_url)
+            self._report_proxy_outcome(proxy_url, success=False)
             self.log_error(f"Failed to fetch JSON from {url}: {e}")
             return None
 
@@ -382,15 +395,10 @@ class BaseApiClient(ABC):
                     Logger.debug(f"HTTP GET {url} → {summary}", context=ctx)
                 except Exception:
                     pass
-                if proxy_url and self.proxy_pool is not None:
-                    if text is None:
-                        self.proxy_pool.report_failure(proxy_url)
-                    else:
-                        self.proxy_pool.report_success(proxy_url)
+                self._report_proxy_outcome(proxy_url, success=text is not None)
                 return text
         except Exception as e:
-            if proxy_url and self.proxy_pool is not None:
-                self.proxy_pool.report_failure(proxy_url)
+            self._report_proxy_outcome(proxy_url, success=False)
             self.log_error(f"Failed to fetch HTML from {url}: {e}")
             return None
 
@@ -456,13 +464,11 @@ class BaseApiClient(ABC):
                         )
                     else:
                         Logger.error(f"HTTP {response.status_code} when POSTing {url}")
-                    if proxy_url and self.proxy_pool is not None:
-                        self.proxy_pool.report_failure(proxy_url)
+                    self._report_proxy_outcome(proxy_url, success=False)
                     return None
                 if not resp_text or not resp_text.strip():
                     Logger.error(f"HTTP 200 with empty body when POSTing {url}")
-                    if proxy_url and self.proxy_pool is not None:
-                        self.proxy_pool.report_failure(proxy_url)
+                    self._report_proxy_outcome(proxy_url, success=False)
                     return None
                 # Some WAFs return 200 + an HTML challenge interstitial; detect that here
                 # so the caller isn't handed a cart/auth response that is actually a block page.
@@ -472,8 +478,7 @@ class BaseApiClient(ABC):
                         url, bot_signature, response.status_code,
                         is_form=False, is_200_interstitial=True,
                     )
-                    if proxy_url and self.proxy_pool is not None:
-                        self.proxy_pool.report_failure(proxy_url)
+                    self._report_proxy_outcome(proxy_url, success=False)
                     return None
                 obj = response.json()
                 # DEBUG summary of response
@@ -499,12 +504,10 @@ class BaseApiClient(ABC):
                 if not isinstance(obj, dict):
                     Logger.warning(f"Unexpected JSON type from {url}; expected dict, got {type(obj).__name__}")
                     return None
-                if proxy_url and self.proxy_pool is not None:
-                    self.proxy_pool.report_success(proxy_url)
+                self._report_proxy_outcome(proxy_url, success=True)
                 return obj
         except Exception as e:
-            if proxy_url and self.proxy_pool is not None:
-                self.proxy_pool.report_failure(proxy_url)
+            self._report_proxy_outcome(proxy_url, success=False)
             self.log_error(f"Failed to POST JSON to {url}: {e}")
             return None
 
@@ -564,13 +567,11 @@ class BaseApiClient(ABC):
                         )
                     else:
                         Logger.error(f"HTTP {response.status_code} when POSTing form to {url}")
-                    if proxy_url and self.proxy_pool is not None:
-                        self.proxy_pool.report_failure(proxy_url)
+                    self._report_proxy_outcome(proxy_url, success=False)
                     return None
                 if not resp_text or not resp_text.strip():
                     Logger.error(f"HTTP 200 with empty body when POSTing form to {url}")
-                    if proxy_url and self.proxy_pool is not None:
-                        self.proxy_pool.report_failure(proxy_url)
+                    self._report_proxy_outcome(proxy_url, success=False)
                     return None
                 # Some WAFs return 200 + an HTML challenge interstitial in response to a POST;
                 # surface that as an error so the caller doesn't treat the block page as real data.
@@ -580,8 +581,7 @@ class BaseApiClient(ABC):
                         url, bot_signature, response.status_code,
                         is_form=True, is_200_interstitial=True,
                     )
-                    if proxy_url and self.proxy_pool is not None:
-                        self.proxy_pool.report_failure(proxy_url)
+                    self._report_proxy_outcome(proxy_url, success=False)
                     return None
                 # DEBUG summary of response
                 try:
@@ -593,11 +593,9 @@ class BaseApiClient(ABC):
                     Logger.debug(f"HTTP POST {url} → {summary}", context=ctx)
                 except Exception:
                     pass
-                if proxy_url and self.proxy_pool is not None:
-                    self.proxy_pool.report_success(proxy_url)
+                self._report_proxy_outcome(proxy_url, success=True)
                 return resp_text
         except Exception as e:
-            if proxy_url and self.proxy_pool is not None:
-                self.proxy_pool.report_failure(proxy_url)
+            self._report_proxy_outcome(proxy_url, success=False)
             self.log_error(f"Failed to POST form to {url}: {e}")
             return None
