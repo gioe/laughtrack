@@ -54,7 +54,7 @@ describe("GET /api/v1/shows/[id]", () => {
                 lineup: [{ id: 1, name: "Alice", imageUrl: "x", uuid: "u1" }],
                 tickets: [
                     {
-                        price: "25.00",
+                        price: 25,
                         purchaseUrl: "https://tickets.example.com/show/42",
                         soldOut: false,
                         type: "General Admission",
