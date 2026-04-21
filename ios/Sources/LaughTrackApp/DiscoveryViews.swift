@@ -490,36 +490,45 @@ private final class ShowsDiscoveryModel: ObservableObject {
     @Published var useDateRange = false
     @Published var fromDate = Calendar.current.startOfDay(for: Date())
     @Published var toDate = Calendar.current.date(byAdding: .day, value: 14, to: Calendar.current.startOfDay(for: Date())) ?? Date()
-    @Published var distance: ShowDistanceOption = .city
+    @Published var distance: ShowDistanceOption = .city {
+        didSet {
+            guard let activeNearbyPreference, activeNearbyPreference.distanceMiles != distance.rawValue else { return }
+            nearbyLocationController.updateDistanceMiles(distance.rawValue)
+        }
+    }
     @Published var sort: ShowSortOption = .earliest
     @Published private(set) var activeNearbyPreference: NearbyPreference?
-    @Published private(set) var zipValidationMessage: String?
+    @Published private(set) var nearbyStatusMessage: String?
     @Published private(set) var phase: LoadPhase<ShowsDiscoveryPage> = .idle
     @Published private(set) var isLoadingMore = false
+    @Published private(set) var isResolvingCurrentLocation = false
     @Published private(set) var paginationMessage: String?
 
-    private let nearbyPreferenceStore: NearbyPreferenceStore
-    private var preferenceCancellable: AnyCancellable?
-    private var distanceCancellable: AnyCancellable?
+    private let nearbyLocationController: NearbyLocationController
+    private var nearbyPreferenceCancellable: AnyCancellable?
+    private var nearbyStatusCancellable: AnyCancellable?
+    private var nearbyLoadingCancellable: AnyCancellable?
     private var loadedQuery: ShowsDiscoveryQuery?
     private var loadingQuery: ShowsDiscoveryQuery?
 
     convenience init() {
-        self.init(nearbyPreferenceStore: NearbyPreferenceStore())
+        self.init(nearbyLocationController: NearbyLocationController())
     }
 
-    init(nearbyPreferenceStore: NearbyPreferenceStore) {
-        self.nearbyPreferenceStore = nearbyPreferenceStore
-        applyNearbyPreference(nearbyPreferenceStore.preference)
-        preferenceCancellable = nearbyPreferenceStore.$preference
+    init(nearbyLocationController: NearbyLocationController) {
+        self.nearbyLocationController = nearbyLocationController
+        applyNearbyPreference(nearbyLocationController.preference)
+        nearbyPreferenceCancellable = nearbyLocationController.$preference
             .sink { [weak self] preference in
                 self?.applyNearbyPreference(preference)
             }
-        distanceCancellable = $distance
-            .removeDuplicates()
-            .dropFirst()
-            .sink { [weak self] distance in
-                self?.persistDistance(distance)
+        nearbyStatusCancellable = nearbyLocationController.$statusMessage
+            .sink { [weak self] message in
+                self?.nearbyStatusMessage = message
+            }
+        nearbyLoadingCancellable = nearbyLocationController.$isResolvingCurrentLocation
+            .sink { [weak self] isResolving in
+                self?.isResolvingCurrentLocation = isResolving
             }
     }
 
@@ -563,8 +572,8 @@ private final class ShowsDiscoveryModel: ObservableObject {
 
     func clearLocation() {
         zipCodeDraft = ""
-        zipValidationMessage = nil
-        nearbyPreferenceStore.clear()
+        nearbyStatusMessage = nil
+        nearbyLocationController.clear()
     }
 
     func applyManualZip() -> Bool {
@@ -573,16 +582,12 @@ private final class ShowsDiscoveryModel: ObservableObject {
             return true
         }
 
-        guard nearbyPreferenceStore.setManualZip(
-            zipCodeDraft,
-            distanceMiles: distance.rawValue
-        ) != nil else {
-            zipValidationMessage = "Enter a valid 5-digit ZIP code to search nearby shows."
-            return false
-        }
+        return nearbyLocationController.applyManualZip(zipCodeDraft, distanceMiles: distance.rawValue)
+    }
 
-        zipValidationMessage = nil
-        return true
+    @discardableResult
+    func useCurrentLocation() async -> Bool {
+        await nearbyLocationController.useCurrentLocation(distanceMiles: distance.rawValue)
     }
 
     private func load(
@@ -692,19 +697,14 @@ private final class ShowsDiscoveryModel: ObservableObject {
 
     private func applyNearbyPreference(_ preference: NearbyPreference?) {
         activeNearbyPreference = preference
-        zipValidationMessage = nil
 
         if let preference {
             zipCodeDraft = preference.zipCode
             distance = .from(distanceMiles: preference.distanceMiles)
         } else if zipCodeDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             zipCodeDraft = ""
+            distance = .city
         }
-    }
-
-    private func persistDistance(_ distance: ShowDistanceOption) {
-        guard activeNearbyPreference != nil else { return }
-        nearbyPreferenceStore.setDistance(distance.rawValue)
     }
 }
 
@@ -724,7 +724,10 @@ struct DiscoveryHubView: View {
         self.apiClient = apiClient
         _showsModel = StateObject(
             wrappedValue: ShowsDiscoveryModel(
-                nearbyPreferenceStore: nearbyPreferenceStore
+                nearbyLocationController: NearbyLocationController(
+                    store: nearbyPreferenceStore,
+                    resolver: LaughTrackCore.CurrentLocationZipResolver()
+                )
             )
         )
     }
@@ -2282,6 +2285,10 @@ private struct ShowFiltersPanel: View {
                                     _ = model.applyManualZip()
                                 }
 
+                                CurrentLocationButton(isLoading: model.isResolvingCurrentLocation) {
+                                    await model.useCurrentLocation()
+                                }
+
                                 if model.activeNearbyPreference != nil {
                                     LaughTrackButton("Clear", systemImage: "location.slash", tone: .tertiary, fullWidth: false) {
                                         model.clearLocation()
@@ -2289,13 +2296,13 @@ private struct ShowFiltersPanel: View {
                                 }
                             }
 
-                            if let zipValidationMessage = model.zipValidationMessage {
-                                InlineStatusMessage(message: zipValidationMessage)
+                            if let nearbyStatusMessage = model.nearbyStatusMessage {
+                                InlineStatusMessage(message: nearbyStatusMessage)
                             } else if let activeNearbyPreference = model.activeNearbyPreference {
                                 LaughTrackBadge(
                                     activeNearbyPreference.source == .manual
-                                        ? "Nearby ZIP \(activeNearbyPreference.zipCode)"
-                                        : "Current location ZIP \(activeNearbyPreference.zipCode)",
+                                        ? "Nearby ZIP \(activeNearbyPreference.zipCode) · \(activeNearbyPreference.distanceMiles) mi"
+                                        : "Current location ZIP \(activeNearbyPreference.zipCode) · \(activeNearbyPreference.distanceMiles) mi",
                                     systemImage: activeNearbyPreference.source == .manual ? "mappin.and.ellipse" : "location.fill",
                                     tone: .neutral
                                 )
@@ -2450,6 +2457,31 @@ private struct InlineStatusMessage: View {
         .padding(theme.spacing.md)
         .background(theme.laughTrackTokens.colors.canvas)
         .clipShape(RoundedRectangle(cornerRadius: theme.laughTrackTokens.radius.card, style: .continuous))
+    }
+}
+
+private struct CurrentLocationButton: View {
+    let isLoading: Bool
+    let action: () async -> Void
+
+    var body: some View {
+        LaughTrackButton(
+            isLoading ? "Finding ZIP…" : "Use Current Location",
+            systemImage: isLoading ? nil : "location.circle",
+            tone: .secondary,
+            fullWidth: false
+        ) {
+            Task {
+                await action()
+            }
+        }
+        .disabled(isLoading)
+        .overlay(alignment: .trailing) {
+            if isLoading {
+                ProgressView()
+                    .padding(.trailing, 12)
+            }
+        }
     }
 }
 

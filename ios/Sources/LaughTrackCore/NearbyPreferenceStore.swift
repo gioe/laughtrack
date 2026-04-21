@@ -27,7 +27,10 @@ public struct NearbyPreference: Codable, Equatable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let zipCode = try container.decode(String.self, forKey: .zipCode)
         let source = try container.decode(NearbyPreferenceSource.self, forKey: .source)
-        let distanceMiles = try container.decodeIfPresent(Int.self, forKey: .distanceMiles) ?? Self.defaultDistanceMiles
+        let distanceMiles =
+            try container.decodeIfPresent(Int.self, forKey: .distanceMiles) ??
+            try container.decodeIfPresent(Int.self, forKey: .radiusMiles) ??
+            Self.defaultDistanceMiles
 
         self.init(zipCode: zipCode, source: source, distanceMiles: distanceMiles)
     }
@@ -36,6 +39,7 @@ public struct NearbyPreference: Codable, Equatable {
         case zipCode
         case source
         case distanceMiles
+        case radiusMiles
     }
 
     public static let defaultDistanceMiles = 25
@@ -78,18 +82,19 @@ public final class NearbyPreferenceStore: ObservableObject {
         return preference
     }
 
+    @discardableResult
     public func setGeolocatedZip(
         _ zipCode: String,
         distanceMiles: Int? = nil
-    ) {
-        guard let normalized = Self.validZip(from: zipCode) else { return }
-        setPreference(
-            NearbyPreference(
-                zipCode: normalized,
-                source: .geolocated,
-                distanceMiles: normalizedDistance(distanceMiles)
-            )
+    ) -> NearbyPreference? {
+        guard let normalized = Self.validZip(from: zipCode) else { return nil }
+        let preference = NearbyPreference(
+            zipCode: normalized,
+            source: .geolocated,
+            distanceMiles: normalizedDistance(distanceMiles)
         )
+        setPreference(preference)
+        return preference
     }
 
     public func setDistance(_ distanceMiles: Int) {
