@@ -68,7 +68,7 @@ const SITE_URL = "https://www.laugh-track.com";
 const SITE_TITLE = "LaughTrack — Find Live Comedy Near You";
 const SITE_DESCRIPTION =
     "Discover comedy shows, comedians, and tickets near you. Browse upcoming live comedy events, find your favorite comedians, and never miss a show.";
-const OG_IMAGE = `${SITE_URL}/logomark-512.png`;
+const OG_IMAGE = `${SITE_URL}/icons/android-chrome-512x512.png`;
 
 export const metadata: Metadata = {
     title: {
@@ -104,17 +104,17 @@ export const metadata: Metadata = {
     },
     icons: {
         icon: [
-            { url: "/logomark-32.png", sizes: "32x32", type: "image/png" },
-            { url: "/logomark-64.png", sizes: "64x64", type: "image/png" },
-            { url: "/logomark-192.png", sizes: "192x192", type: "image/png" },
-            { url: "/logomark-512.png", sizes: "512x512", type: "image/png" },
+            { url: "/icons/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+            { url: "/icons/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+            { url: "/icons/android-chrome-192x192.png", sizes: "192x192", type: "image/png" },
+            { url: "/icons/android-chrome-512x512.png", sizes: "512x512", type: "image/png" },
         ],
         apple: {
-            url: "/logomark-192.png",
-            sizes: "192x192",
+            url: "/icons/apple-touch-icon.png",
+            sizes: "180x180",
             type: "image/png",
         },
-        shortcut: "/logomark.svg",
+        shortcut: "/icons/favicon-32x32.png",
     },
 };
 

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		03E5C3A13E13A63EDE0F87A0 /* AuthProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 613A6C65D3E6FDBC1FEE04C5 /* AuthProvider.swift */; };
+		0F8D6C2A7B4E1F009A110001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0F8D6C2A7B4E1F009A110002 /* Assets.xcassets */; };
 		0E0EE5D3C981B00E1290F2FD /* Client.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AE66AEEC26F743787CDC4EE /* Client.swift */; };
 		0FC8D86160FD6351D3956617 /* AppConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84C5C5FE44DB9A0D821C72AD /* AppConfiguration.swift */; };
 		10F4B6790860867934B334F8 /* OpenAPIRuntime in Frameworks */ = {isa = PBXBuildFile; productRef = 8780AC234414FC21BE50A118 /* OpenAPIRuntime */; };
@@ -105,6 +106,7 @@
 /* Begin PBXFileReference section */
 		0A4A91F43782F9FDA4187D3F /* LaughTrackCacheKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackCacheKey.swift; sourceTree = "<group>"; };
 		0E463D5C04287DCD22E50CB4 /* ServiceRegistration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceRegistration.swift; sourceTree = "<group>"; };
+		0F8D6C2A7B4E1F009A110002 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		1C6A228D912DFFE3A74A36BB /* AppRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRoute.swift; sourceTree = "<group>"; };
 		1F3879DA9C6AF40691D8C7DD /* LaughTrackUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackUITests.swift; sourceTree = "<group>"; };
 		20552640F544D4395DE585B7 /* LaughTrackBridge.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LaughTrackBridge.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -174,6 +176,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0F8D6C2A7B4E1F009A110003 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				0F8D6C2A7B4E1F009A110002 /* Assets.xcassets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
 		11CB7D3C335525FFE3629FA9 /* LaughTrackBridge */ = {
 			isa = PBXGroup;
 			children = (
@@ -225,6 +235,7 @@
 				60D274A90614E6596D6F336D /* LaughTrackApp */,
 				11CB7D3C335525FFE3629FA9 /* LaughTrackBridge */,
 				48A1C8253AED9F441B4B02FA /* LaughTrackCore */,
+				0F8D6C2A7B4E1F009A110003 /* Resources */,
 				D333F5AE2F330FA240A413B7 /* UITests */,
 				D8FE5A1E404D541E9C145D48 /* Products */,
 			);
@@ -272,6 +283,17 @@
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
+
+/* Begin PBXResourcesBuildPhase section */
+		0F8D6C2A7B4E1F009A110004 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0F8D6C2A7B4E1F009A110001 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXNativeTarget section */
 		52750A922363534F75FFBF6B /* LaughTrackUITests */ = {
@@ -357,6 +379,7 @@
 			buildConfigurationList = 8554C3F4C5FA71D5F8D90DA5 /* Build configuration list for PBXNativeTarget "LaughTrack" */;
 			buildPhases = (
 				08CC6FAA7FD758ED8CC803EC /* Sources */,
+				0F8D6C2A7B4E1F009A110004 /* Resources */,
 				79CB179671AEFAFA805BEAD0 /* Frameworks */,
 				FCB232C13A5BE6125D562EF3 /* Embed Frameworks */,
 			);
