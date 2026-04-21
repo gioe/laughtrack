@@ -1,3 +1,4 @@
+import Combine
 import SwiftUI
 import LaughTrackAPIClient
 import LaughTrackBridge
@@ -478,27 +479,44 @@ private struct ShowsDiscoveryPage {
 private final class ShowsDiscoveryModel: ObservableObject {
     private static let pageSize = 10
 
+    @Published var zipCodeDraft = ""
     @Published var comedianSearchText = ""
     @Published var clubSearchText = ""
-    @Published var zipCode = ""
     @Published var useDateRange = false
     @Published var fromDate = Calendar.current.startOfDay(for: Date())
     @Published var toDate = Calendar.current.date(byAdding: .day, value: 14, to: Calendar.current.startOfDay(for: Date())) ?? Date()
     @Published var distance: ShowDistanceOption = .city
     @Published var sort: ShowSortOption = .earliest
+    @Published private(set) var activeNearbyPreference: NearbyPreference?
+    @Published private(set) var zipValidationMessage: String?
     @Published private(set) var phase: LoadPhase<ShowsDiscoveryPage> = .idle
     @Published private(set) var isLoadingMore = false
     @Published private(set) var paginationMessage: String?
 
+    private let nearbyPreferenceStore: NearbyPreferenceStore
+    private var preferenceCancellable: AnyCancellable?
     private var loadedQuery: ShowsDiscoveryQuery?
     private var loadingQuery: ShowsDiscoveryQuery?
+
+    convenience init() {
+        self.init(nearbyPreferenceStore: NearbyPreferenceStore())
+    }
+
+    init(nearbyPreferenceStore: NearbyPreferenceStore) {
+        self.nearbyPreferenceStore = nearbyPreferenceStore
+        applyNearbyPreference(nearbyPreferenceStore.preference)
+        preferenceCancellable = nearbyPreferenceStore.$preference
+            .sink { [weak self] preference in
+                self?.applyNearbyPreference(preference)
+            }
+    }
 
     var requestKey: ShowsDiscoveryQuery {
         let trimmedTo = max(toDate, fromDate)
         return .init(
             comedian: comedianSearchText.trimmingCharacters(in: .whitespacesAndNewlines),
             club: clubSearchText.trimmingCharacters(in: .whitespacesAndNewlines),
-            zip: zipCode.trimmingCharacters(in: .whitespacesAndNewlines),
+            zip: activeNearbyPreference?.zipCode ?? "",
             useDateRange: useDateRange,
             from: fromDate,
             to: trimmedTo,
@@ -532,7 +550,24 @@ private final class ShowsDiscoveryModel: ObservableObject {
     }
 
     func clearLocation() {
-        zipCode = ""
+        zipCodeDraft = ""
+        zipValidationMessage = nil
+        nearbyPreferenceStore.clear()
+    }
+
+    func applyManualZip() -> Bool {
+        guard !zipCodeDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            clearLocation()
+            return true
+        }
+
+        guard nearbyPreferenceStore.setManualZip(zipCodeDraft) != nil else {
+            zipValidationMessage = "Enter a valid 5-digit ZIP code to search nearby shows."
+            return false
+        }
+
+        zipValidationMessage = nil
+        return true
     }
 
     private func load(
@@ -638,6 +673,17 @@ private final class ShowsDiscoveryModel: ObservableObject {
     private var currentItems: [Components.Schemas.Show] {
         guard case .success(let current) = phase else { return [] }
         return current.items
+    }
+
+    private func applyNearbyPreference(_ preference: NearbyPreference?) {
+        activeNearbyPreference = preference
+        zipValidationMessage = nil
+
+        if let preference {
+            zipCodeDraft = preference.zipCode
+        } else if zipCodeDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            zipCodeDraft = ""
+        }
     }
 }
 
@@ -783,7 +829,7 @@ private struct ShowsDiscoveryView: View {
             return "No shows matched this search. Try another comedian, club, or a broader date range."
         }
 
-        if !model.zipCode.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+        if model.activeNearbyPreference != nil {
             return "No shows matched this ZIP code yet. Broaden the radius or clear location filters."
         }
 
@@ -1660,9 +1706,37 @@ private struct ShowFiltersPanel: View {
 
                 HStack(alignment: .top, spacing: theme.spacing.md) {
                     LaughTrackLabeledField(title: "ZIP", detail: "5 digits") {
-                        TextField("10012", text: $model.zipCode)
-                            .keyboardType(.numberPad)
-                            .modifier(SearchFieldInputBehavior())
+                        VStack(alignment: .leading, spacing: theme.spacing.sm) {
+                            TextField("10012", text: $model.zipCodeDraft)
+                                .modifier(SearchFieldInputBehavior())
+                                #if os(iOS)
+                                .keyboardType(UIKeyboardType.numberPad)
+                                #endif
+
+                            HStack(spacing: theme.spacing.sm) {
+                                LaughTrackButton("Use ZIP", systemImage: "location.fill", tone: .secondary, fullWidth: false) {
+                                    _ = model.applyManualZip()
+                                }
+
+                                if model.activeNearbyPreference != nil {
+                                    LaughTrackButton("Clear", systemImage: "location.slash", tone: .tertiary, fullWidth: false) {
+                                        model.clearLocation()
+                                    }
+                                }
+                            }
+
+                            if let zipValidationMessage = model.zipValidationMessage {
+                                InlineStatusMessage(message: zipValidationMessage)
+                            } else if let activeNearbyPreference = model.activeNearbyPreference {
+                                LaughTrackBadge(
+                                    activeNearbyPreference.source == .manual
+                                        ? "Nearby ZIP \(activeNearbyPreference.zipCode)"
+                                        : "Current location ZIP \(activeNearbyPreference.zipCode)",
+                                    systemImage: activeNearbyPreference.source == .manual ? "mappin.and.ellipse" : "location.fill",
+                                    tone: .neutral
+                                )
+                            }
+                        }
                     }
 
                     LaughTrackLabeledField(title: "Sort") {
@@ -1675,7 +1749,7 @@ private struct ShowFiltersPanel: View {
                     }
                 }
 
-                if model.requestKey.sanitizedZip != nil {
+                if model.activeNearbyPreference != nil {
                     LaughTrackLabeledField(title: "Distance", detail: "Around that ZIP") {
                         Picker("Distance", selection: $model.distance) {
                             ForEach(ShowDistanceOption.allCases) { option in
