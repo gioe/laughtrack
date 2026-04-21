@@ -1,4 +1,15 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(git diff:*)",
+      "Bash(git remote:*)",
+      "Bash(git symbolic-ref:*)",
+      "Bash(git branch:*)",
+      "Bash(tusk review:*)",
+      "Bash(tusk lint:*)",
+      "Bash(bin/tusk lint:*)"
+    ]
+  },
   "hooks": {
     "SessionStart": [
       {
@@ -73,6 +84,15 @@
             "command": "bash -c 'R=$(git rev-parse --show-toplevel 2>/dev/null); [ -z \"$R\" ] && exit 0; exec \"$R/.claude/hooks/version-bump-check.sh\"'"
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/conventions-preflight.sh"
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -121,13 +141,13 @@
       }
     ]
   },
-  "permissions": {
-    "allow": [
-      "Bash(git diff:*)",
-      "Bash(git remote:*)",
-      "Bash(git symbolic-ref:*)",
-      "Bash(git branch:*)",
-      "Bash(tusk review:*)"
-    ]
+  "mcpServers": {
+    "discord": {
+      "command": ".claude/mcp/run-discord-mcp.sh",
+      "args": []
+    }
+  },
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true
   }
 }

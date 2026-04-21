@@ -62,6 +62,44 @@ make -C "$(git rev-parse --show-toplevel)/apps/scraper" club ID=<club_id>
 Use this output to inform your research — e.g., check the existing `seatengine_id`,
 `eventbrite_id`, or `scraping_url` before searching the web.
 
+## Step 0a: Regression Fast-Path (Existing Scraper Only)
+
+If Step 0 showed the club **already has a working scraper** (non-null `scraper`
+column, non-null `scraping_url`), this is most likely a nightly-triage regression
+task — not a new-venue onboarding. Before launching the full discovery flow,
+reproduce the failure:
+
+```bash
+cd apps/scraper && make scrape-club CLUB='<Club Name>' 2>&1 | tail -30
+```
+
+- **Scraper returns shows locally** → do NOT close as transient yet. A local
+  pass only proves the scraper works from a residential IP; the nightly runs
+  on GHA datacenter IPs, which DataDome / Cloudflare / Tixr's WAFs treat very
+  differently. Confirm against GHA before closing:
+
+  ```bash
+  gh workflow run scraper-verify.yml -f club_id=<club_id>
+  gh run list --workflow=scraper-verify.yml --limit 3
+  gh run watch <run_id> --exit-status
+  gh run download <run_id> -n "scraper-verify-club-<club_id>-<run_id>" -D /tmp/verify-<club_id>
+  tail -3 /tmp/verify-<club_id>/scrape-output.log     # look for "Scraped N shows"
+  ```
+
+  - **GHA returns shows** → the nightly failure was transient. Mark criteria
+    done with a `--note` citing BOTH the local baseline AND the GHA run ID,
+    then close via `tusk abandon <id> --reason wont_do --session <sid>`.
+    Skip Steps 1–5.
+  - **GHA returns 0 shows** → the failure is GHA-specific (datacenter-IP
+    block, TLS fingerprint, etc.). Proceed to Step 1 with the full
+    rediscovery flow, and focus on bot-bypass fixes (Playwright fallback,
+    TLS impersonation, proxy) rather than platform migration.
+
+- **Scraper returns 0 shows or errors locally** → the failure is reproducible
+  on any IP. Proceed to Step 1 with the full rediscovery flow.
+
+For genuinely new venues (no existing scraper), skip this step.
+
 ## Step 1: Research the Venue
 
 ### 1a. Find the Club Website
@@ -166,6 +204,28 @@ code during the research).
 
 If the festival is permanently cancelled (organizers announce it's over), use
 `status = 'closed'` instead and follow the normal closure pattern.
+
+### 1a-4. Check if This Is a Festival With Fragmented Multi-Venue Ticketing
+
+Some festivals are actively running (not on hiatus, not closed) but sell tickets
+through **many different platforms per show** — e.g., one show on Crowdwork, another
+on exploretock, others on Don't Tell Comedy / Humanitix / Next Stop Comedy — with
+no single aggregator API or widget on the festival's own site. The tickets page is
+just static HTML with hand-authored links to each per-event platform.
+
+Signs:
+
+- `club_type = 'festival'`
+- Tickets page links to 3+ distinct ticketing domains
+- No iframe, widget, or JSON API ties them together
+- Main partner venues (e.g., the comedy-club host) are already onboarded as
+  separate clubs and will capture their festival-week shows through their own
+  scrapers
+
+**Action:** update metadata (current website, clear stale platform IDs) and keep
+`visible = false`. Set `scraper = NULL` (no unified scraper applies). Note in a
+`tusk progress` message that festival improv/standup shows are captured via the
+host venue's scraper. Do not hide or close — `status` stays `active`.
 
 ### 1b. Find the Events/Shows Page
 
@@ -322,7 +382,7 @@ Each generic scraper needs a platform-specific identifier:
 | `ticketweb` | `scraping_url` | The club's calendar/events page URL containing the TicketWeb WordPress plugin (`var all_events` JS array + `tw-plugin-calendar` classes) |
 | `live_nation` | `ticketmaster_id` | Search Discovery API: `curl -s "https://app.ticketmaster.com/discovery/v2/venues.json?apikey=$TICKETMASTER_API_KEY&keyword=<name>&countryCode=US"` — use the alphanumeric `id` field (e.g., `KovZpZAJalFA`), NOT a numeric ID |
 | `eventbrite` | `eventbrite_id` | Extract organizer ID (11 digits) or venue ID (8-9 digits) from the Eventbrite URL |
-| `seatengine` | `seatengine_id` | Numeric ID from `{venue}.seatengine.net` URL (1-700 range). **If the stored ID returns 0 events**, fetch a live show page from the SeatEngine domain (`<slug>.seatengine.com/shows/<show_id>`) and grep for `venue_id` in the HTML — the real numeric ID is embedded in the page's JSON data (e.g., `"venue_id":366`). The stored ID may be stale after SeatEngine migrations. |
+| `seatengine` | `seatengine_id` | Numeric ID from `{venue}.seatengine.net` URL (1-700 range). **If the stored ID returns 0 events**, fetch the venue's events page (`<slug>.seatengine.com/events` or `/calendar`) and grep for `files.seatengine.com/styles/logos/(\d+)/` — the real venue_id is often embedded in the logo path and is present even when 0 shows are on sale. **Always verify a logo-derived ID against `GET https://services.seatengine.com/api/v1/venues/<id>` (header `x-auth-token: $SEATENGINE_AUTH_TOKEN`) and confirm the returned `name` matches the venue being researched** — festival/pop-up subdomains can display a producing venue's logo (e.g., `showemcomedyfestival-com.seatengine.com` serves logo `204` = "Off The Hook Comedy Club", but the festival's real venue is `216`). As a fallback, fetch a live show page (`<slug>.seatengine.com/shows/<show_id>`) and grep for `venue_id` in the HTML (e.g., `"venue_id":366`). The stored ID may be stale after SeatEngine migrations. |
 | `seatengine_v3` | `seatengine_id` | UUID from `v-{uuid}.seatengine.net` URL |
 | `json_ld` | `scraping_url` | The events page URL containing JSON-LD Event markup |
 | `the_rockwell` | `scraping_url` | The Tribe Events REST API base URL |

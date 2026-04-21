@@ -17,6 +17,10 @@ if TYPE_CHECKING:
 class TicketHandler(BaseDatabaseHandler[Ticket]):
     """Handler for ticket database operations."""
 
+    @staticmethod
+    def _schema_org_ticket_type(ticket_type: str) -> bool:
+        return ticket_type.startswith("http://schema.org/") or ticket_type.startswith("https://schema.org/")
+
     def get_entity_name(self) -> str:
         """Return the entity name for logging purposes."""
         return "ticket"
@@ -45,10 +49,33 @@ class TicketHandler(BaseDatabaseHandler[Ticket]):
             Logger.info("insert_tickets: no tickets to insert (shows have no ticket data)")
             return
 
+        show_ids = sorted({show.id for show in shows if getattr(show, "id", None) is not None})
+
         # Deduplicate tickets based on unique constraint (show_id, type)
         deduplicated_tickets = TicketUtils.deduplicate_tickets(all_tickets)
 
         try:
+            if show_ids:
+                self.execute_with_cursor(
+                    TicketQueries.DELETE_INVALID_SCHEMA_ORG_TICKETS_FOR_SHOWS,
+                    (show_ids,),
+                )
+
+                removed_invalid = sum(
+                    1 for ticket in deduplicated_tickets if self._schema_org_ticket_type(ticket.type)
+                )
+                if removed_invalid:
+                    Logger.warning(
+                        f"insert_tickets: dropping {removed_invalid} invalid schema.org ticket type(s) before insert"
+                    )
+                    deduplicated_tickets = [
+                        ticket for ticket in deduplicated_tickets if not self._schema_org_ticket_type(ticket.type)
+                    ]
+
+            if not deduplicated_tickets:
+                Logger.info("insert_tickets: no tickets to insert after invalid schema.org cleanup")
+                return
+
             # Convert tickets to tuples for batch operation
             ticket_tuples = [ticket.to_tuple() for ticket in deduplicated_tickets]
             results = self.execute_batch_operation(TicketQueries.BATCH_ADD_TICKETS, ticket_tuples, return_results=True)

@@ -119,6 +119,12 @@ class TestBatchAddTicketsSql:
         sql = TicketQueries.BATCH_ADD_TICKETS
         assert "ON CONFLICT (show_id, type)" in sql
 
+    def test_cleanup_query_targets_schema_org_ticket_types(self):
+        sql = TicketQueries.DELETE_INVALID_SCHEMA_ORG_TICKETS_FOR_SHOWS
+        assert "DELETE FROM tickets" in sql
+        assert "show_id = ANY(%s)" in sql
+        assert "schema.org" in sql
+
 
 # ---------------------------------------------------------------------------
 # Upsert behaviour
@@ -137,6 +143,7 @@ class TestInsertTicketsPurchaseUrlUpsert:
         updated_url = "https://tickets.example.com/show/42?v=2"
 
         handler = TicketHandler()
+        handler.execute_with_cursor = MagicMock(return_value=None)
         handler.execute_batch_operation = MagicMock(return_value=None)
 
         # First insert — original URL
@@ -159,6 +166,7 @@ class TestInsertTicketsPurchaseUrlUpsert:
     def test_both_calls_use_batch_add_tickets_query(self):
         """insert_tickets always calls execute_batch_operation with BATCH_ADD_TICKETS."""
         handler = TicketHandler()
+        handler.execute_with_cursor = MagicMock(return_value=None)
         handler.execute_batch_operation = MagicMock(return_value=None)
 
         show = _FakeShow(10, [_make_ticket("https://example.com/buy")])
@@ -171,6 +179,7 @@ class TestInsertTicketsPurchaseUrlUpsert:
     def test_no_op_when_shows_have_no_tickets(self):
         """insert_tickets should return without calling execute_batch_operation when all shows have empty ticket lists."""
         handler = TicketHandler()
+        handler.execute_with_cursor = MagicMock(return_value=None)
         handler.execute_batch_operation = MagicMock(return_value=None)
 
         show = _FakeShow(42, [])
@@ -189,3 +198,33 @@ class TestInsertTicketsPurchaseUrlUpsert:
         assert price == 30.0
         assert sold_out is True
         assert ticket_type == "General Admission"
+
+    def test_invalid_schema_org_ticket_rows_are_pruned_before_insert(self):
+        handler = TicketHandler()
+        handler.execute_with_cursor = MagicMock(return_value=None)
+        handler.execute_batch_operation = MagicMock(return_value=None)
+
+        invalid = Ticket(
+            price=25.0,
+            purchase_url="https://bad.example/ticket",
+            sold_out=False,
+            type="http://schema.org/InStock",
+        )
+        valid = Ticket(
+            price=30.0,
+            purchase_url="https://good.example/ticket",
+            sold_out=False,
+            type="General Admission",
+        )
+        show = _FakeShow(42, [invalid, valid])
+
+        handler.insert_tickets([show])
+
+        handler.execute_with_cursor.assert_called_once_with(
+            TicketQueries.DELETE_INVALID_SCHEMA_ORG_TICKETS_FOR_SHOWS,
+            ([42],),
+        )
+        inserted_tuples = handler.execute_batch_operation.call_args.args[1]
+        assert len(inserted_tuples) == 1
+        assert inserted_tuples[0][1] == "https://good.example/ticket"
+        assert inserted_tuples[0][4] == "General Admission"

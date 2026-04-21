@@ -25,6 +25,15 @@ class TicketQueries:
         RETURNING 
             id, show_id, purchase_url, price, sold_out, type
     '''
+
+    DELETE_INVALID_SCHEMA_ORG_TICKETS_FOR_SHOWS = """
+        DELETE FROM tickets
+        WHERE show_id = ANY(%s)
+          AND (
+              type LIKE 'http://schema.org/%'
+              OR type LIKE 'https://schema.org/%'
+          )
+    """
     
     BATCH_UPDATE_TICKET_AVAILABILITY = '''
         UPDATE tickets

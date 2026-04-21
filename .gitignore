@@ -30,6 +30,7 @@ apps/scraper/.env
 .claude/bin/
 .claude/settings.json
 .claude/tusk-manifest.json
+.mcp.json
 
 # tusk database
 tusk/tasks.db
@@ -40,3 +41,9 @@ tusk/tasks.db-wal
 tusk/laughtrack-dashboard.html
 .env*.local
 .vercel
+
+# iOS / Xcode (generated)
+ios/LaughTrack.xcodeproj/
+ios/.build/
+ios/DerivedData/
+tusk/backups/

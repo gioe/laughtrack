@@ -50,6 +50,28 @@ For platform-specific venue onboarding guides (StageTime, Prekindle, Humanitix, 
 
 For testing patterns when writing scraper tests (smoke tests, module loading, mocking, async, VCR cassettes, etc.), see `apps/scraper/CONTRIBUTING.md`.
 
+## Scraper Concurrency — Each Club Runs on Its Own asyncio Event Loop
+
+`ScrapingService._scrape_clubs_concurrently` gathers `scrape_one` tasks on a
+main asyncio loop, but the actual scraper work is dispatched via
+`loop.run_in_executor(None, _scrape_with_context, …)` to a ThreadPoolExecutor.
+Each worker thread then calls `BaseScraper.scrape()` which does
+`asyncio.run(self.scrape_async())` — **a fresh event loop per club**.
+
+Consequence: any module-level asyncio primitive bound to a specific loop
+(`asyncio.Lock`, `asyncio.Event`, `asyncio.Queue`, most Playwright internals)
+will fail with `RuntimeError: … bound to a different event loop` when accessed
+from a second worker. The shared `PlaywrightBrowser` singleton in
+`foundation/infrastructure/http/` has hit this twice (TASK-1541, TASK-1668 —
+the latter caused a 90-minute GHA timeout because the cross-loop error
+propagated out of `close_js_browser()`'s finally block in the orchestrator).
+
+When adding shared async state to the scraper: either
+1. create a new instance per worker loop (thread-local / per-loop dict),
+2. use a `threading.Lock` for the shared slot and per-loop asyncio primitives
+   for the async bits, or
+3. pin all calls to one loop via `asyncio.run_coroutine_threadsafe`.
+
 ## Scraper Tests — Module-Level sys.modules Stubs Persist Across Session
 
 Several scraper test files (e.g., `test_comedian_handler.py`, `test_lineup_handler.py`,
