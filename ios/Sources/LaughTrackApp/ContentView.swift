@@ -7,8 +7,10 @@ enum LaughTrackViewTestID {
     static let homeScreen = "laughtrack.home.screen"
     static let homeSettingsButton = "laughtrack.home.settings-button"
     static let homeShowsSearchButton = "laughtrack.home.shows-search-button"
+    static let homeComediansSearchButton = "laughtrack.home.comedians-search-button"
     static let settingsScreen = "laughtrack.settings.screen"
     static let showsSearchScreen = "laughtrack.shows-search.screen"
+    static let comediansSearchScreen = "laughtrack.comedians-search.screen"
     static let showDetailScreen = "laughtrack.show-detail.screen"
     static let comedianDetailScreen = "laughtrack.comedian-detail.screen"
     static let settingsNearbyEmptyState = "laughtrack.settings.nearby.empty-state"
@@ -20,6 +22,10 @@ enum LaughTrackViewTestID {
 
     static func showsSearchResultButton(_ id: Int) -> String {
         "laughtrack.shows-search.result-\(id)"
+    }
+
+    static func comediansSearchResultButton(_ id: Int) -> String {
+        "laughtrack.comedians-search.result-\(id)"
     }
 }
 
@@ -72,6 +78,8 @@ struct ContentView: View {
                     apiClient: apiClient,
                     nearbyPreferenceStore: nearbyPreferenceStore
                 )
+            case .comediansSearch:
+                ComediansSearchScreen(apiClient: apiClient)
             case .showDetail(let id):
                 ShowDetailView(showID: id, apiClient: apiClient)
             case .comedianDetail(let id):
@@ -117,6 +125,7 @@ struct HomeView: View {
                 )
 
                 HomeShowsSearchEntryCard()
+                HomeComediansSearchEntryCard()
 
                 DiscoveryHubView(
                     apiClient: apiClient,
@@ -193,6 +202,44 @@ private struct HomeShowsSearchEntryCard: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier(LaughTrackViewTestID.homeShowsSearchButton)
+    }
+}
+
+private struct HomeComediansSearchEntryCard: View {
+    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        Button {
+            coordinator.push(.comediansSearch)
+        } label: {
+            LaughTrackCard(tone: .muted) {
+                VStack(alignment: .leading, spacing: theme.spacing.md) {
+                    HStack(spacing: theme.spacing.sm) {
+                        LaughTrackBadge("Comedians", systemImage: "music.mic", tone: .highlight)
+                        LaughTrackBadge("Live API", systemImage: "dot.radiowaves.left.and.right", tone: .neutral)
+                    }
+
+                    Text("Open the dedicated comedians search")
+                        .font(theme.laughTrackTokens.typography.cardTitle)
+                        .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
+
+                    Text("Search live comedian results on a full screen tuned for mobile discovery, clear loading states, and quick jumps into each comedian profile.")
+                        .font(theme.laughTrackTokens.typography.body)
+                        .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
+
+                    HStack(spacing: theme.spacing.sm) {
+                        Image(systemName: "arrow.up.right")
+                            .font(.system(size: theme.iconSizes.sm, weight: .semibold))
+                        Text("Search comedians")
+                            .font(theme.laughTrackTokens.typography.metadata)
+                    }
+                    .foregroundStyle(theme.laughTrackTokens.colors.accent)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(LaughTrackViewTestID.homeComediansSearchButton)
     }
 }
 

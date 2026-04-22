@@ -712,6 +712,45 @@ struct ShowsSearchScreen: View {
     }
 }
 
+struct ComediansSearchScreen: View {
+    let apiClient: Client
+
+    @Environment(\.appTheme) private var theme
+    @StateObject private var model = ComediansDiscoveryModel()
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: theme.spacing.xl) {
+                LaughTrackSectionHeader(
+                    eyebrow: "Comedians Search",
+                    title: "Search live comedians",
+                    subtitle: "Query the live LaughTrack backend for comedians, keep loading and failure states explicit, and move directly into each comedian detail screen."
+                )
+
+                HStack(spacing: theme.spacing.sm) {
+                    LaughTrackBadge("Live results", systemImage: "dot.radiowaves.left.and.right", tone: .highlight)
+                    LaughTrackBadge("Comedian details", systemImage: "music.mic", tone: .neutral)
+                    LaughTrackBadge("Mobile discovery", systemImage: "iphone", tone: .accent)
+                }
+
+                ComediansDiscoveryView(apiClient: apiClient, model: model)
+            }
+            .padding(.horizontal, theme.spacing.xl)
+            .padding(.vertical, theme.laughTrackTokens.spacing.heroPadding)
+        }
+        .accessibilityIdentifier(LaughTrackViewTestID.comediansSearchScreen)
+        .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
+        .background(
+            theme.laughTrackTokens.gradients.heroWash
+                .frame(maxHeight: 220)
+                .ignoresSafeArea(edges: .top),
+            alignment: .top
+        )
+        .navigationTitle("Search Comedians")
+        .modifier(LaughTrackNavigationChrome(background: theme.laughTrackTokens.colors.canvas))
+    }
+}
+
 private protocol CurrentLocationZipResolving {
     func resolveZipCode() async throws -> String
 }
@@ -1365,6 +1404,7 @@ private struct ComediansDiscoveryView: View {
                                     feedbackMessage: $feedbackMessage,
                                     openDetail: { coordinator.open(.comedian(comedian.id)) }
                                 )
+                                .accessibilityIdentifier(LaughTrackViewTestID.comediansSearchResultButton(comedian.id))
                             }
 
                             if let paginationMessage = model.paginationMessage {
