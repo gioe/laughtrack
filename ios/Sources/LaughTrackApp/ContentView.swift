@@ -7,6 +7,7 @@ enum LaughTrackViewTestID {
     static let homeScreen = "laughtrack.home.screen"
     static let homeSettingsButton = "laughtrack.home.settings-button"
     static let settingsScreen = "laughtrack.settings.screen"
+    static let showDetailScreen = "laughtrack.show-detail.screen"
     static let settingsNearbyEmptyState = "laughtrack.settings.nearby.empty-state"
     static let settingsNearbySavedState = "laughtrack.settings.nearby.saved-state"
     static let settingsZipField = "laughtrack.settings.zip-field"

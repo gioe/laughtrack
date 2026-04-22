@@ -1607,51 +1607,22 @@ struct ShowDetailView: View {
                         openURL(url)
                     }
 
-                    if let lineup = show.lineup, !lineup.isEmpty {
-                        LaughTrackCard {
-                            VStack(alignment: .leading, spacing: 12) {
-                                LaughTrackSectionHeader(
-                                    eyebrow: "Lineup",
-                                    title: "Tonight’s bill",
-                                    subtitle: "Tap any comic to open their native detail page."
-                                )
-
-                                ForEach(lineup, id: \.uuid) { comedian in
-                                    ComedianLineupRow(
-                                        comedian: comedian,
-                                        apiClient: apiClient,
-                                        feedbackMessage: $feedbackMessage,
-                                        openDetail: { coordinator.open(.comedian(comedian.id)) }
-                                    )
-                                }
-                            }
-                        }
+                    ShowLineupSection(
+                        lineup: show.lineup ?? [],
+                        apiClient: apiClient,
+                        feedbackMessage: $feedbackMessage
+                    ) { comedian in
+                        coordinator.open(.comedian(comedian.id))
                     }
 
-                    if !response.relatedShows.isEmpty {
-                        LaughTrackCard(tone: .muted) {
-                            VStack(alignment: .leading, spacing: 12) {
-                                LaughTrackSectionHeader(
-                                    eyebrow: "Keep browsing",
-                                    title: "Related shows",
-                                    subtitle: "More dates from nearby rooms and linked talent."
-                                )
-
-                                ForEach(response.relatedShows, id: \.id) { related in
-                                    Button {
-                                        coordinator.open(.show(related.id))
-                                    } label: {
-                                        ShowRow(show: related)
-                                    }
-                                    .buttonStyle(.plain)
-                                }
-                            }
-                        }
+                    RelatedShowsSection(relatedShows: response.relatedShows) { related in
+                        coordinator.open(.show(related.id))
                     }
                 }
                 .padding()
             }
         }
+        .accessibilityIdentifier(LaughTrackViewTestID.showDetailScreen)
         .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
         .navigationTitle("Show")
         .modifier(InlineNavigationTitle())
@@ -1697,6 +1668,68 @@ struct ShowDetailView: View {
         }
 
         return badges
+    }
+}
+
+private struct ShowLineupSection: View {
+    let lineup: [Components.Schemas.ComedianLineup]
+    let apiClient: Client
+    @Binding var feedbackMessage: String?
+    let openDetail: (Components.Schemas.ComedianLineup) -> Void
+
+    var body: some View {
+        LaughTrackCard {
+            VStack(alignment: .leading, spacing: 12) {
+                LaughTrackSectionHeader(
+                    eyebrow: "Lineup",
+                    title: "Tonight’s bill",
+                    subtitle: "Tap any comic to open their native detail page."
+                )
+
+                if lineup.isEmpty {
+                    EmptyCard(message: "Lineup details are not available yet.")
+                } else {
+                    ForEach(lineup, id: \.uuid) { comedian in
+                        ComedianLineupRow(
+                            comedian: comedian,
+                            apiClient: apiClient,
+                            feedbackMessage: $feedbackMessage,
+                            openDetail: { openDetail(comedian) }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+private struct RelatedShowsSection: View {
+    let relatedShows: [Components.Schemas.Show]
+    let openDetail: (Components.Schemas.Show) -> Void
+
+    var body: some View {
+        LaughTrackCard(tone: .muted) {
+            VStack(alignment: .leading, spacing: 12) {
+                LaughTrackSectionHeader(
+                    eyebrow: "Keep browsing",
+                    title: "Related shows",
+                    subtitle: "More dates from nearby rooms and linked talent."
+                )
+
+                if relatedShows.isEmpty {
+                    EmptyCard(message: "No related shows are available yet.")
+                } else {
+                    ForEach(relatedShows, id: \.id) { related in
+                        Button {
+                            openDetail(related)
+                        } label: {
+                            ShowRow(show: related)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+        }
     }
 }
 
