@@ -1,7 +1,6 @@
 ---
 name: update-comedian-website
 description: Update or clear a comedian's website URL in the database. Usage: /update-comedian-website <comedian name> [new URL | --clear]
-allowed-tools: Bash, Read
 ---
 
 # Update Comedian Website

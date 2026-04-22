@@ -1,7 +1,6 @@
 ---
 name: hide-club
 description: "Hide a club from the platform — sets visible=false, creates a Prisma migration, and records it. Usage: /hide-club <club name or ID>"
-allowed-tools: Bash, Read, Grep
 ---
 
 # Hide Club

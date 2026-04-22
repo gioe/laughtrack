@@ -1,7 +1,6 @@
 ---
 name: investigate
 description: Investigate the scope of a problem and form an honest assessment — task creation is optional
-allowed-tools: Bash, Read, Glob, Grep, Task, Write, EnterPlanMode
 ---
 
 # Investigate Skill
@@ -162,7 +161,7 @@ Record cost for this investigation run. Replace `<run_id>` with the value captur
 tusk skill-run finish <run_id> --metadata '{"tasks_proposed":<N>,"tasks_created":<M>}'
 ```
 
-This reads the Codex transcript for the time window of this run and stores token counts, estimated cost, and productivity metadata in the `skill_runs` table. The captured window covers the full session — investigation plus `/create-task` — so the reported cost reflects the entire `/investigate` invocation.
+This reads the Claude Code transcript for the time window of this run and stores token counts, estimated cost, and productivity metadata in the `skill_runs` table. The captured window covers the full session — investigation plus `/create-task` — so the reported cost reflects the entire `/investigate` invocation.
 
 To view cost history:
 

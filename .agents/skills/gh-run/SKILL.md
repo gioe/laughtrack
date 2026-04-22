@@ -1,7 +1,6 @@
 ---
 name: gh-run
 description: Inspect a GitHub Actions run — prints header, per-job breakdown, and categorized failure insights. Usage: /gh-run [run-id] [--level error|warning|notice|debug]
-allowed-tools: Bash
 ---
 
 # GH Run Skill

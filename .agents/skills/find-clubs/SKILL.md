@@ -1,7 +1,6 @@
 ---
 name: find-clubs
 description: Discover comedy clubs in a city, compare against the known clubs DB, and create tasks for new ones. Usage: /find-clubs [city name]
-allowed-tools: Bash, WebSearch
 ---
 
 # Find Clubs Skill

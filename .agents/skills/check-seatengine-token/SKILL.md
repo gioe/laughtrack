@@ -1,7 +1,6 @@
 ---
 name: check-seatengine-token
 description: Verify that the SEATENGINE_AUTH_TOKEN in apps/scraper/.env is still accepted by the SeatEngine API. Usage: /check-seatengine-token
-allowed-tools: Bash
 ---
 
 # Check SeatEngine Token Skill

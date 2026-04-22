@@ -1,3 +1,8 @@
+---
+name: seatengine-audit
+description: "Bulk health audit of all visible SeatEngine-scraped clubs. Usage: /seatengine-audit"
+---
+
 # SeatEngine Audit
 
 Bulk health audit of all visible SeatEngine-scraped clubs. Checks every club with

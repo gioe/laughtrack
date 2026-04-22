@@ -1,12 +1,12 @@
-# Tusk Init Reference: CLAUDE.md Snippet & TODO Seeding
+# Tusk Init Reference: AGENTS.md Snippet & TODO Seeding
 
-## Step 7: CLAUDE.md Append Workflow
+## Step 7: AGENTS.md Append Workflow
 
 Offer to append a Task Queue section:
 
-> I can add a Task Queue section to your CLAUDE.md with tusk usage instructions. Would you like me to append it?
+> I can add a Task Queue section to your AGENTS.md with tusk usage instructions. Would you like me to append it?
 
-If the user confirms, append this snippet to the end of `CLAUDE.md`:
+If the user confirms, append this snippet to the end of `AGENTS.md`:
 
 ```markdown
 
@@ -27,7 +27,7 @@ tusk upgrade                # Upgrade from GitHub
 
 Never hardcode the DB path — always go through `tusk`.
 
-Do not modify `.claude/bin/` or `.claude/skills/` — changes are overwritten by `tusk upgrade`.
+Do not modify `.claude/bin/` or `.agents/skills/` — changes are overwritten by `tusk upgrade`.
 
 Found a bug in tusk? Open an issue at https://github.com/gioe/tusk/issues
 ```

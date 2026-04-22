@@ -1,13 +1,14 @@
 ---
 name: investigate-site
-description: "Deep-inspect a venue URL with Playwright MCP — captures network requests, identifies ticketing platform, and reports API endpoints. Usage: /investigate-site <url>"
+description: "Deep-inspect a venue URL with browser automation, capture network requests, identify the ticketing platform, and report API endpoints. Usage: /investigate-site <url>"
 allowed-tools: Bash, Read, Grep, Glob, WebFetch, Agent
 ---
 
 # Investigate Site
 
-Open a venue URL in Playwright MCP, capture all network requests, inspect page
-source / bootstrap JSON, and report what ticketing platform and API endpoints are
+Open a venue URL with the runtime's available browser automation, capture all
+network requests, inspect page source / bootstrap JSON, and report what
+ticketing platform and API endpoints are
 available. Designed to catch JS-only APIs that static HTML inspection misses
 (e.g., Square Online JSON API, Crowdwork widget, Wix Events).
 
@@ -25,18 +26,19 @@ available. Designed to catch JS-only APIs that static HTML inspection misses
 
 ## Step 1: Navigate to the Page
 
-Open the URL in Playwright MCP and wait for the page to fully load:
+Open the URL in the available browser automation tooling and wait for the page
+to fully load:
 
 ```
-browser_navigate → <url>
+Navigate to `<url>`.
 ```
 
 If the page redirects, note the final URL.
 
-If navigation fails (Chrome conflict — "Opening in existing browser session"), inform
-the user:
+If browser automation fails because of a profile or Chrome-session conflict,
+inform the user:
 
-> Playwright MCP failed — Chrome is already running with a conflicting profile.
+> Browser automation failed — Chrome is already running with a conflicting profile.
 > Close Chrome and retry, or I can fall back to the scraper's own Playwright via
 > `apps/scraper/.venv/bin/python3` (captures full network + DOM on JS-heavy sites).
 > WebFetch is a last resort — it cannot see JS-rendered content, which is usually
@@ -70,18 +72,19 @@ TASK-1529 where WebFetch returned only "no events listed."
 
 ## Step 2: Find the Events Page
 
-If the URL is a homepage (no `/shows`, `/events`, `/calendar`, `/tickets`, `/schedule`
-in the path), take a snapshot and look for navigation links:
+If the URL is a homepage (no `/shows`, `/events`, `/calendar`, `/tickets`,
+`/schedule` in the path), inspect the rendered page and look for navigation
+links:
 
 ```
-browser_snapshot
+Inspect the rendered page to find the events-page link.
 ```
 
 Look for links labeled "Shows", "Events", "Calendar", "Tickets", or "Schedule".
 If found, navigate to that page:
 
 ```
-browser_click → <events link ref>
+Open the discovered events page link.
 ```
 
 ## Step 3: Capture Network Requests
@@ -89,7 +92,7 @@ browser_click → <events link ref>
 After the events page is loaded, capture all network requests made by the page:
 
 ```
-browser_network_requests
+Capture the page's network requests.
 ```
 
 ## Step 4: Analyze Network Requests
@@ -134,10 +137,11 @@ APIs not in the tables above.
 
 ## Step 5: Inspect Page Source for Static Patterns
 
-Take a page snapshot to check for non-API patterns embedded in HTML:
+Inspect the rendered page or page source to check for non-API patterns embedded
+in HTML:
 
 ```
-browser_snapshot
+Inspect the rendered page and page source.
 ```
 
 Look for:

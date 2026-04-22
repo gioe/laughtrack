@@ -86,11 +86,11 @@ If `<base_directory>/FOCUS.md` was found in Step 1, use those categories.
 
 Otherwise organize into the default four categories:
 
-- **A**: Process improvements — skill/CLAUDE.md/tooling friction, confusing instructions, missing conventions
+- **A**: Process improvements — skill/AGENTS.md/tooling friction, confusing instructions, missing conventions
 - **B**: Tangential issues — out-of-scope bugs, tech debt, architectural concerns
 - **C**: Follow-up work — incomplete items, deferred decisions, edge cases
 - **D**: Lint Rules — concrete, grep-detectable anti-patterns (max 3). Only if an actual mistake occurred that a grep rule could prevent. Applied inline when possible (step 5d); task creation is the fallback.
-- **E**: Debugging Velocity — only if the session involved fixing a bug or diagnosing unexpected behavior. Reflect on: (1) what information was missing that delayed diagnosis; what tool, log, or trace would have surfaced the root cause immediately; whether a test would have caught this before it became a bug. (2) Did fixing this bug change the conditions under which adjacent issues matter? (e.g., removing noise that was masking a separate signal, raising the quality bar in a way that exposes nearby gaps.) If so, those adjacent issues are in scope for this category even if they predate the session — "predated the session" is not sufficient grounds for dismissal when the fix elevated their relevance. If no bug was present, this category is empty. Findings must be concrete (tasks or skill/CLAUDE.md patches) — not generic advice like "add more logging."
+- **E**: Debugging Velocity — only if the session involved fixing a bug or diagnosing unexpected behavior. Reflect on: (1) what information was missing that delayed diagnosis; what tool, log, or trace would have surfaced the root cause immediately; whether a test would have caught this before it became a bug. (2) Did fixing this bug change the conditions under which adjacent issues matter? (e.g., removing noise that was masking a separate signal, raising the quality bar in a way that exposes nearby gaps.) If so, those adjacent issues are in scope for this category even if they predate the session — "predated the session" is not sufficient grounds for dismissal when the fix elevated their relevance. If no bug was present, this category is empty. Findings must be concrete (tasks or skill/AGENTS.md patches) — not generic advice like "add more logging."
 
 If a category has no findings, note that explicitly — an empty category is a positive signal.
 
@@ -346,13 +346,13 @@ Fill in `<pattern>` (grep regex), `<file_glob>` (e.g., `*.md` or `bin/tusk-*.py`
 
 ### 5e: Skill-Patch for Category A and Category E Findings (only if Category A or Category E findings exist)
 
-Before creating tasks for Category A (process improvement) or Category E (debugging velocity) findings, check if any can be applied as inline patches to an existing skill or CLAUDE.md. Run this step **before** 5b for Category A and Category E findings.
+Before creating tasks for Category A (process improvement) or Category E (debugging velocity) findings, check if any can be applied as inline patches to an existing skill or AGENTS.md. Run this step **before** 5b for Category A and Category E findings.
 
 For each approved Category A finding:
 
 1. **Classify the finding as rule-like or narrative:**
    - **Rule-like**: a single heuristic, invariant, or convention — e.g., "always quote file paths in zsh". These belong in the conventions DB.
-   - **Narrative/reference**: multi-step procedures, workflow descriptions, or anything requiring more than one sentence. These belong as a patch to a skill file or CLAUDE.md.
+   - **Narrative/reference**: multi-step procedures, workflow descriptions, or anything requiring more than one sentence. These belong as a patch to a skill file or AGENTS.md.
 
 2. **If the finding is rule-like** — propose adding a convention via `tusk conventions add`:
    a. Draft the exact convention text (one concise sentence) and a comma-separated list of relevant topic tags.
@@ -373,16 +373,16 @@ For each approved Category A finding:
    e. **If skipped**: proceed to 5b normally.
 
 3. **If the finding is narrative/reference** — identify a target file:
-   - A skill name matching a directory in `.claude/skills/` (list them with `ls .claude/skills/`)
-   - The string `CLAUDE.md`
+   - A skill name matching a directory in `.agents/skills/` (list them with `ls .agents/skills/`)
+   - The string `AGENTS.md`
 
    **If a target file is identified**:
-   a. Read the file (`Read .claude/skills/<name>/SKILL.md` or `Read CLAUDE.md`)
+   a. Read the file (`Read .agents/skills/<name>/SKILL.md` or `Read AGENTS.md`)
    b. Produce a **concrete proposed edit** — the exact text to add, change, or remove. Show the specific diff, not a vague description.
    c. Present the patch with three options:
 
       > **Skill Patch Proposal** — [finding title]
-      > File: `.claude/skills/<name>/SKILL.md`
+      > File: `.agents/skills/<name>/SKILL.md`
       >
       > ```diff
       > - [existing text to replace]
@@ -440,7 +440,7 @@ tusk retro-finding add \
 - `issue:<url>` — a GitHub issue was filed via `tusk report-issue`
 - `lint:<id>` — a lint rule was added via `tusk lint-rule add`
 - `convention:<id>` — a convention was added via `tusk conventions add`
-- `skill-patch:<file>` — an inline edit was applied to a skill or CLAUDE.md
+- `skill-patch:<file>` — an inline edit was applied to a skill or AGENTS.md
 - `subsumed:TASK-<id>` — folded into an existing task via 5a
 - `documented` — recorded without a concrete action (e.g. noted for context)
 

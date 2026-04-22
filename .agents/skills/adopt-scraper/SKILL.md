@@ -1,8 +1,6 @@
 ---
 name: adopt-scraper
 description: "Standard process to research a venue, identify its ticketing platform, and build/configure the correct scraper. Usage: /adopt-scraper <club name>"
-allowed-tools: Bash, Read, Edit, Write, Grep, Glob, WebSearch, WebFetch, Agent
-trigger: automatically invoked by /tusk when working on an "Onboard <club>" task
 ---
 
 # Adopt Scraper
@@ -289,11 +287,12 @@ If a match is found, skip to Step 3.
 ### 2c. Check for Platform APIs (JS-Heavy Sites)
 
 If no patterns were found in the HTML source, the site may use an embedded widget
-that loads data via JavaScript. Use Playwright to check network requests:
+that loads data via JavaScript. Use the runtime's browser automation to check
+network requests:
 
 ```
-browser_navigate → <events page URL>
-browser_network_requests
+Navigate to `<events page URL>`.
+Capture the page's network requests.
 ```
 
 Look for these API calls (ordered by preference — club-hosted APIs first):
@@ -327,7 +326,7 @@ If no API calls match, inspect the page HTML for remaining widget patterns:
 
 **CRITICAL: Before concluding a platform is unsupported or recommending hide/close,
 you MUST run `/investigate-site` on the venue's events page URL.** This opens the page
-in Playwright MCP, captures all network requests, inspects page source for widget
+in the runtime's browser automation tooling, captures all network requests, inspects page source for widget
 patterns, and reports any detected platform and API endpoints.
 
 ```

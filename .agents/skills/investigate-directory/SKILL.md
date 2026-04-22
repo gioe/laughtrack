@@ -1,7 +1,6 @@
 ---
 name: investigate-directory
 description: "Audit a directory: (1) Primary — describe its actual purpose from content, structure, and project context; (2) Secondary — assess code quality signals and pillar alignment, including how well it serves its stated values"
-allowed-tools: Bash, Read, Glob, Grep
 ---
 
 # Investigate Directory Skill

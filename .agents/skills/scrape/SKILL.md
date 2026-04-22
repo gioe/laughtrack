@@ -1,7 +1,6 @@
 ---
 name: scrape
 description: Run a scrape for all venues or a specific club. Usage: /scrape [all | <venue name> | id:<N> | types:<type1,type2>]
-allowed-tools: Bash
 ---
 
 # Scrape Skill

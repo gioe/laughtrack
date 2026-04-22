@@ -1,7 +1,6 @@
 ---
 name: onboard-club
 description: Check if clubs are already in the DB, then create onboarding tasks for new ones. Usage: /onboard-club <club1>, <club2>, ...
-allowed-tools: Bash, Read, Skill
 ---
 
 # Onboard Club

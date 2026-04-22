@@ -1,3 +1,8 @@
+---
+name: seatengine-check
+description: Check the health of a single SeatEngine venue by venue ID or club name/ID. Usage: /seatengine-check <venue-id|club-name|club-id>
+---
+
 # SeatEngine Check
 
 Check the health of a single SeatEngine venue by its venue ID or club name/ID.

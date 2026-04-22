@@ -1,7 +1,6 @@
 ---
 name: resume-task
 description: Resume work on a task after a session crash or timeout
-allowed-tools: Bash, Task, Read, Edit, Write, Grep, Glob
 ---
 
 # Resume Task Skill

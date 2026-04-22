@@ -1,7 +1,6 @@
 ---
 name: address-issue
 description: Fetch a GitHub issue, create a tusk task from it, and work through it with /tusk
-allowed-tools: Bash, Read, Edit, Write, Grep, Glob
 ---
 
 # Address Issue Skill

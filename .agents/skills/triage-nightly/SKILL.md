@@ -1,7 +1,6 @@
 ---
 name: triage-nightly
 description: Analyze scraper metrics and categorize failures into regressions, errors, and broken clubs with streak detection. Posts triage report to Discord.
-allowed-tools: Bash, Read, mcp__discord__discord_fetch_messages
 ---
 
 # Triage Nightly Skill

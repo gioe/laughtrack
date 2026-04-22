@@ -1,7 +1,6 @@
 ---
 name: tusk
 description: Get the most important task that is ready to be worked on
-allowed-tools: Bash, Task, Read, Edit, Write, Grep, Glob
 ---
 
 # Tusk Skill
@@ -71,7 +70,7 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
 
 1b. **Workflow routing** — If the task's `workflow` field (from the `task` object in step 1) is non-null, the task uses a custom workflow instead of the default development cycle. Look up the corresponding skill:
    ```
-   Read file: .Codex/skills/<workflow>/SKILL.md
+   Read file: .agents/skills/<workflow>/SKILL.md
    ```
    If the file exists, cancel the /tusk skill-run (the handoff skill will open its own run) and **stop following the steps below**, following that skill's instructions instead, passing the task ID and session_id from step 1:
    ```bash
@@ -162,7 +161,7 @@ When called with a task ID (e.g., `/tusk 6`), begin the full development workflo
     ```
     Then mark criteria done with `tusk criteria done <cid> --skip-verify` as usual.
 
-    **If `tusk commit` fails with `pathspec '…' is beyond a symbolic link`** (exit code 3), the path lives under a symlinked directory that `git add` refuses to traverse. In tusk's own repo this hits any path under `.Codex/skills/<name>/`, because each skill is a symlink to `skills/<name>/`. Retry with the real source path:
+    **If `tusk commit` fails with `pathspec '…' is beyond a symbolic link`** (exit code 3), the path lives under a symlinked directory that `git add` refuses to traverse. In tusk's own repo this hits any path under `.agents/skills/<name>/`, because each skill is a symlink to `skills/<name>/`. Retry with the real source path:
     ```bash
     tusk commit <id> "<message>" "skills/<name>/SKILL.md" --criteria <cid>
     ```

@@ -42,6 +42,30 @@ print(len(data), data[0])  # actual count and first item
 
 WebFetch remains appropriate for reading human-readable HTML pages or docs.
 
+## Skills Dual-Runtime Setup — Claude Is Canonical, Codex Is Generated
+
+This repo intentionally supports both **Claude Code** and **Codex**, but the skill
+trees are **not** dual-maintained by hand.
+
+- Canonical skill source: `.claude/skills/`
+- Generated Codex mirror: `.agents/skills/`
+- Sync/check script: `scripts/sync_runtime_skills.py`
+
+When editing repo-local skills:
+
+1. Edit files in `.claude/skills/` only.
+2. Regenerate the Codex mirror:
+   ```bash
+   python3 scripts/sync_runtime_skills.py
+   ```
+3. Verify nothing drifted:
+   ```bash
+   python3 scripts/sync_runtime_skills.py --check
+   ```
+
+The sync script also refreshes `.claude/tusk-manifest.json`, so do **not** hand-edit
+`.agents/skills/` or manually maintain the Claude manifest entries for skill files.
+
 ## Scraper Platform Reference
 
 For platform-specific venue onboarding guides (StageTime, Prekindle, Humanitix, Ninkashi, Tixr, Eventbrite, SeatEngine, Squarespace, Tockify, OvationTix, OpenDate, TicketSource, and more), see `apps/scraper/SCRAPERS.md`.

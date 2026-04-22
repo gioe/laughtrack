@@ -26,7 +26,7 @@ Prior Progress:
    ```
    The `--force` flag ensures the workflow proceeds even if the task has no acceptance criteria (emits a warning rather than hard-failing). This returns JSON with task details, prior progress, criteria, and a session_id. Hold onto the session_id. The `criteria` array contains acceptance criteria — work through them in order and mark each done as you complete it.
 
-   **Workflow routing:** If the task's `workflow` field is non-null, read `.claude/skills/<workflow>/SKILL.md`. If that file exists, follow its instructions instead of the remaining steps below (pass the task ID and session_id). If the file does not exist, continue with the default workflow.
+   **Workflow routing:** If the task's `workflow` field is non-null, read `.agents/skills/<workflow>/SKILL.md`. If that file exists, follow its instructions instead of the remaining steps below (pass the task ID and session_id). If the file does not exist, continue with the default workflow.
 
 2. **Create a git branch** from the default branch:
    ```
@@ -67,7 +67,7 @@ Prior Progress:
    - **mode = disabled** (or review key missing): skip review, proceed to step 9.
    - **mode = ai_only**: read and follow the review-commits skill instructions end-to-end:
      ```
-     Read file: .claude/skills/review-commits/SKILL.md
+     Read file: .agents/skills/review-commits/SKILL.md
      ```
      Follow those instructions for task {id}. After all passes complete:
      - **Verdict APPROVED**: proceed to step 9.

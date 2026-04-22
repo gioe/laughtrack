@@ -10,7 +10,7 @@ concrete, grep-detectable anti-patterns (max 3, actual mistakes only).
 
 ## Category A: Process Improvements
 
-Friction in skills, CLAUDE.md, tooling, or instructions. Confusing steps that led to
+Friction in skills, AGENTS.md, tooling, or instructions. Confusing steps that led to
 repeated mistakes or unnecessary backtracking.
 
 ## Category B: Tangential Issues

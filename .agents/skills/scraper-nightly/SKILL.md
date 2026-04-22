@@ -1,7 +1,6 @@
 ---
 name: scraper-nightly
 description: Surface nightly scraper run metrics — fetches latest GH Actions artifact or reads local metrics files. Usage: /scraper-nightly [--local]
-allowed-tools: Bash
 ---
 
 # Scraper Nightly Skill

@@ -1,7 +1,6 @@
 ---
 name: chain
 description: Execute a dependency chain in parallel waves using background agents
-allowed-tools: Bash, Task, Read, Glob, Grep
 ---
 
 # Chain

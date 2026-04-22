@@ -1,7 +1,6 @@
 ---
 name: tusk-init
 description: Interactive setup wizard to configure tusk for your project — scans codebase, suggests domains/agents, writes config, and optionally seeds tasks from TODOs or project description
-allowed-tools: Bash, Read, Write, Glob, Grep
 ---
 
 # Tusk Init — Project Setup Wizard
@@ -302,7 +301,7 @@ The command returns JSON: `{"success": true, "config_path": "...", "backed_up": 
 ## Step 7: AGENTS.md Snippet
 
 1. Glob for `AGENTS.md` at repo root
-2. If exists, Read and search for `tusk` or `.Codex/bin/tusk`
+2. If exists, Read and search for `tusk` or `.claude/bin/tusk`
 3. Already mentioned → skip: "Your AGENTS.md already references tusk."
 4. Exists but no mention → read and follow Step 7 from:
    ```

@@ -1,7 +1,6 @@
 ---
 name: retro
 description: Review the current session, surface process improvements and tangential issues, and create follow-up tasks
-allowed-tools: Bash, Read, Edit
 ---
 
 # Retrospective Skill
@@ -159,16 +158,16 @@ For each approved Category A finding:
    e. **If skipped**: proceed to normal task creation (step 4 in LR-2).
 
 3. **If the finding is narrative/reference** — identify a target file:
-   - A skill name matching a directory in `.Codex/skills/` (list them with `ls .Codex/skills/`)
+   - A skill name matching a directory in `.agents/skills/` (list them with `ls .agents/skills/`)
    - The string `AGENTS.md`
 
    **If a target file is identified**:
-   a. Read the file (`Read .Codex/skills/<name>/SKILL.md` or `Read AGENTS.md`)
+   a. Read the file (`Read .agents/skills/<name>/SKILL.md` or `Read AGENTS.md`)
    b. Produce a **concrete proposed edit** — the exact text to add, change, or remove. Show the specific diff, not a vague description.
    c. Present the patch with three options:
 
       > **Skill Patch Proposal** — [finding title]
-      > File: `.Codex/skills/<name>/SKILL.md`
+      > File: `.agents/skills/<name>/SKILL.md`
       >
       > ```diff
       > - [existing text to replace]
@@ -270,10 +269,10 @@ tusk skill-run finish <run_id>
 
 ## Customization
 
-To override the default analysis categories, create a `FOCUS.md` file in the skill directory (replace `<base_directory>` with the actual path shown at the top of the loaded skill — typically `.Codex/skills/retro`):
+To override the default analysis categories, create a `FOCUS.md` file in the skill directory (replace `<base_directory>` with the actual path shown at the top of the loaded skill — typically `.agents/skills/retro`):
 
 ```
-cp .Codex/skills/retro/FOCUS.md.example .Codex/skills/retro/FOCUS.md
+cp .agents/skills/retro/FOCUS.md.example .agents/skills/retro/FOCUS.md
 # Edit FOCUS.md to define your custom categories
 ```
 

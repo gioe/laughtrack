@@ -1,7 +1,6 @@
 ---
 name: remove-comedians
 description: Batch-remove comedian records from the DB and add them to the deny list. Runs dry-run first, waits for explicit user confirmation, then executes. Usage: /remove-comedians [--name "Name"] [--names-file path]
-allowed-tools: Bash
 ---
 
 # Remove Comedians Skill

@@ -1,7 +1,6 @@
 ---
 name: groom-backlog
 description: Groom the backlog by closing completed tickets, removing redundant/stale tickets, reprioritizing, and assigning agents
-allowed-tools: Bash, Glob, Grep, Read
 ---
 
 # Groom Backlog Skill
@@ -240,7 +239,7 @@ Record cost for this groom run. Replace `<run_id>` with the value captured in St
 tusk skill-run finish <run_id> --metadata '{"tasks_done":<W>,"tasks_deleted":<X>,"tasks_reprioritized":<Y>,"tasks_assigned":<U>}'
 ```
 
-This reads the Codex transcript for the time window of this run and stores token counts and estimated cost in the `skill_runs` table.
+This reads the Claude Code transcript for the time window of this run and stores token counts and estimated cost in the `skill_runs` table.
 
 To view cost history across all groom runs:
 
@@ -250,10 +249,10 @@ tusk skill-run list groom-backlog
 
 ## Headless / CI Usage
 
-`/groom-backlog` can be run unattended via `Codex -p` (non-interactive print mode):
+`/groom-backlog` can be run unattended via `claude -p` (non-interactive print mode):
 
 ```bash
-Codex -p /groom-backlog
+claude -p /groom-backlog
 ```
 
 **Caveats for unattended runs:**

@@ -1,7 +1,6 @@
 ---
 name: review-commits
 description: Run an AI code reviewer against the task's git diff, fix must_fix issues, and defer or dismiss suggestions
-allowed-tools: Bash, Read, Task
 ---
 
 # Review Commits Skill
@@ -106,13 +105,13 @@ Only when the diff is non-empty and a review has been started in Step 4, proceed
 
 ### Step 5.1: Choose review strategy and verify permissions
 
-> **Important:** Background reviewer agents run in an **isolated sandbox** and do **not** inherit the parent session's tool permissions. Approving Bash in this conversation does not grant Bash access to spawned agents. The `permissions.allow` block in `.Codex/settings.json` is the only reliable way to grant tool access in agent sandboxes — it applies to all subagents spawned from this project, regardless of what is auto-approved in the current session.
+> **Important:** Background reviewer agents run in an **isolated sandbox** and do **not** inherit the parent session's tool permissions. Approving Bash in this conversation does not grant Bash access to spawned agents. The `permissions.allow` block in `.claude/settings.json` is the only reliable way to grant tool access in agent sandboxes — it applies to all subagents spawned from this project, regardless of what is auto-approved in the current session.
 
 **Inline-review path (no agent spawned).** Use the inline path when *any* of the following is true:
 - The diff is small (fewer than ~200 lines) or contains only non-code files (`.md`, `.json`, `.yaml`).
 - `review.reviewer` is absent from config (the review record is unassigned and no agent is configured to handle it).
 
-Read the diff yourself, evaluate it, and record the result directly. Always pass `--model <your_model_id>` — the canonical ID matching the format in `task_sessions.model` (e.g. `Codex-opus-4-7`, `Codex-sonnet-4-6`, `Codex-haiku-4-5`). Strip any suffixes like `[1m]` or date-stamps from your system prompt's ID so the value joins cleanly against other model-tagged tables (e.g. `Codex-opus-4-7[1m]` → `Codex-opus-4-7`):
+Read the diff yourself, evaluate it, and record the result directly. Always pass `--model <your_model_id>` — the canonical ID matching the format in `task_sessions.model` (e.g. `claude-opus-4-7`, `claude-sonnet-4-6`, `claude-haiku-4-5`). Strip any suffixes like `[1m]` or date-stamps from your system prompt's ID so the value joins cleanly against other model-tagged tables (e.g. `claude-opus-4-7[1m]` → `claude-opus-4-7`):
 
 ```bash
 # Approve with no findings:
@@ -132,7 +131,7 @@ REVIEW_PERM_CHECK=$(tusk review-check-perms) || { echo "Agent review aborted: $R
 ```
 
 On success the command prints `OK` and exits 0. On failure it prints a single `MISSING: …` line (either `not found on disk or in HEAD`, a JSON/shape error, or a comma-separated list of missing `permissions.allow` entries), cancels the skill run to avoid an orphan pending row, and exits 1. When the check fails, surface to the user:
-> Agent review aborted: `<captured MISSING: line>`. Create `.Codex/settings.json` or add the missing entries manually, or run `tusk upgrade` to apply them, then restart the session.
+> Agent review aborted: `<captured MISSING: line>`. Create `.claude/settings.json` or add the missing entries manually, or run `tusk upgrade` to apply them, then restart the session.
 
 Proceed to spawn the agent only if the check prints `OK`.
 
@@ -205,7 +204,7 @@ STALL_THRESHOLD = 5   # iterations (~2.5 min at 30 s/iter)
      ```bash
      tusk review approve <review_id> --model <your_model_id> --note "Auto-approved (no verdict): reviewer agent completed without posting a decision. Most likely cause: Bash tool not permitted in agent sandbox. Required permissions.allow entries: Bash(git diff:*), Bash(git remote:*), Bash(git symbolic-ref:*), Bash(git branch:*), Bash(tusk review:*)"
      ```
-     The most common cause is missing Bash tool permissions (the agent could not run `git diff` or `tusk review`). Run `tusk upgrade` to propagate the required `permissions.allow` entries if they are missing from `.Codex/settings.json`. Continue as if the review returned no findings.
+     The most common cause is missing Bash tool permissions (the agent could not run `git diff` or `tusk review`). Run `tusk upgrade` to propagate the required `permissions.allow` entries if they are missing from `.claude/settings.json`. Continue as if the review returned no findings.
 
 4. If the agent is still running and has not been stall-auto-approved, go back to step 1.
 
@@ -335,7 +334,7 @@ Otherwise, loop while `can_retry` is true:
    ```
 
    On failure the command prints a single `MISSING: …` line and exits 1. When the check fails, surface to the user:
-   > Re-review agent aborted: `<captured MISSING: line>`. Create `.Codex/settings.json` or add the missing entries manually, or run `tusk upgrade` to apply them, then restart the session.
+   > Re-review agent aborted: `<captured MISSING: line>`. Create `.claude/settings.json` or add the missing entries manually, or run `tusk upgrade` to apply them, then restart the session.
 
    Proceed to spawn the re-review agent only if the check prints `OK`. The re-review agent fetches the diff itself — no diff is passed inline.
 
@@ -428,7 +427,7 @@ Record cost for this review run. Replace `<run_id>` with the value captured in S
 tusk skill-run finish <run_id> --metadata '{"must_fix_count":<M>,"passes":<P>,"diff_lines":<D>}'
 ```
 
-This reads the Codex transcript for the time window of this run and stores token counts and estimated cost in the `skill_runs` table.
+This reads the Claude Code transcript for the time window of this run and stores token counts and estimated cost in the `skill_runs` table.
 
 To view cost history across all review-commits runs:
 

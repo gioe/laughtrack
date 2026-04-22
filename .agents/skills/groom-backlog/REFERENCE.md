@@ -43,4 +43,4 @@ After applying complexity estimates, recompute priority scores for all open task
 tusk wsjf
 ```
 
-See CLAUDE.md Key Conventions for the WSJF formula details.
+See AGENTS.md Key Conventions for the WSJF formula details.

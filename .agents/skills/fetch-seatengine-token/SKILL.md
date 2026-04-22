@@ -1,7 +1,6 @@
 ---
 name: fetch-seatengine-token
 description: "[DEPRECATED] Use /check-seatengine-token instead. The old cart bundle extraction no longer works — SeatEngine removed the cdn-new React widget."
-allowed-tools: Bash
 ---
 
 # Fetch SeatEngine Token Skill (DEPRECATED)

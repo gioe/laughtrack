@@ -1,7 +1,6 @@
 ---
 name: create-task
 description: Break down freeform text (feature specs, meeting notes, bug reports) into structured tusk tasks with deduplication
-allowed-tools: Bash, Read
 ---
 
 # Create Task Skill

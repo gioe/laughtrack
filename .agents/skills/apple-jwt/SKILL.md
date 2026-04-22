@@ -1,7 +1,6 @@
 ---
 name: apple-jwt
 description: Regenerate the Apple OAuth JWT secret and update .env.local and Vercel production
-allowed-tools: Bash, Edit, Read
 ---
 
 # Apple JWT Regeneration Skill

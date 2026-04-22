@@ -1,7 +1,6 @@
 ---
 name: close-club
 description: "Close a permanently-defunct club — sets status=closed, visible=false, closed_at=NOW(), and creates a Prisma migration. Usage: /close-club <club name or ID>"
-allowed-tools: Bash, Read, Grep
 ---
 
 # Close Club

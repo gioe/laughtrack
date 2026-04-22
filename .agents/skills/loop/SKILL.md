@@ -1,7 +1,6 @@
 ---
 name: loop
 description: Autonomously work through the backlog — dispatches /chain for chain heads, /tusk for standalone tasks, repeating until empty
-allowed-tools: Bash
 ---
 
 # Loop
@@ -34,8 +33,8 @@ tusk loop --on-failure abort
 1. Queries the highest-priority ready task (same WSJF ranking as `tusk task-select`)
 2. Checks whether the task is a chain head (has non-Done downstream dependents via `tusk chain scope`)
 3. Dispatches:
-   - **Chain head** → `Codex -p /chain <id> [--on-failure <strategy>]`
-   - **Standalone** → `Codex -p /tusk <id>`
+   - **Chain head** → `claude -p /chain <id> [--on-failure <strategy>]`
+   - **Standalone** → `claude -p /tusk <id>`
 4. Stops on non-zero exit from any agent, on empty backlog, or when `--max-tasks` is reached
 
 > **Note:** Tasks dispatched via `/tusk` or `/chain` use `tusk task-start --force` so that zero-criteria tasks emit a warning rather than hard-failing the automated workflow.
@@ -50,14 +49,14 @@ tusk loop --on-failure abort
 
 ## Headless / CI Usage
 
-`/loop` can be run unattended via `Codex -p` (non-interactive print mode):
+`/loop` can be run unattended via `claude -p` (non-interactive print mode):
 
 ```bash
 # Run up to 5 tasks; abort if any chain task gets stuck
-Codex -p /loop --max-tasks 5 --on-failure abort
+claude -p /loop --max-tasks 5 --on-failure abort
 
 # Run until empty; skip stuck chain tasks and continue
-Codex -p /loop --on-failure skip
+claude -p /loop --on-failure skip
 ```
 
 **Prerequisites for unattended runs:**
@@ -65,5 +64,5 @@ Codex -p /loop --on-failure skip
 - `--max-tasks N` is recommended in CI to cap unbounded execution and avoid runaway costs.
 
 **When to use each strategy:**
-- `--on-failure abort` — prefer this in CI pipelines where a stuck task signals a problem that needs human attention. The loop stops and reports incomplete tasks; whether the CI job fails depends on how the Codex CLI exits.
+- `--on-failure abort` — prefer this in CI pipelines where a stuck task signals a problem that needs human attention. The loop stops and reports incomplete tasks; whether the CI job fails depends on how the Claude CLI exits.
 - `--on-failure skip` — prefer this for overnight batch runs where partial progress is acceptable and you want to drain as much of the backlog as possible.

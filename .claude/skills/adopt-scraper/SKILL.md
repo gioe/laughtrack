@@ -289,11 +289,12 @@ If a match is found, skip to Step 3.
 ### 2c. Check for Platform APIs (JS-Heavy Sites)
 
 If no patterns were found in the HTML source, the site may use an embedded widget
-that loads data via JavaScript. Use Playwright to check network requests:
+that loads data via JavaScript. Use the runtime's browser automation to check
+network requests:
 
 ```
-browser_navigate → <events page URL>
-browser_network_requests
+Navigate to `<events page URL>`.
+Capture the page's network requests.
 ```
 
 Look for these API calls (ordered by preference — club-hosted APIs first):

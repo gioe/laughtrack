@@ -1,12 +1,12 @@
 ---
 name: scrape-shows
 description: Run the show scraper for all venues or a specific club. Usage: /scrape-shows [--club "Name"] [--club-id 123] [--types "type1,type2"] [--interactive]
-allowed-tools: Bash
 ---
 
 # Scrape Shows Skill
 
-Runs the show scraper via `bin/scrape` from the repo root. Prints output inline.
+Runs the show scraper from `apps/scraper/` using the Make targets that exist in
+this repo. Prints output inline.
 
 ## Arguments
 
@@ -22,7 +22,7 @@ Parse `ARGUMENTS`:
 ## Mode: All
 
 ```bash
-./bin/scrape --all
+cd apps/scraper && make scrape-all --no-print-directory 2>&1
 ```
 
 ---
@@ -32,7 +32,7 @@ Parse `ARGUMENTS`:
 Extract the club name from the `--club "..."` argument, then run:
 
 ```bash
-./bin/scrape "<name>"
+cd apps/scraper && make scrape-club CLUB="<name>" --no-print-directory 2>&1
 ```
 
 ---
@@ -42,7 +42,7 @@ Extract the club name from the `--club "..."` argument, then run:
 Extract the numeric ID from `--club-id`, then run:
 
 ```bash
-./bin/scrape --id <id>
+cd apps/scraper && make scrape-club-id ID=<id> --no-print-directory 2>&1
 ```
 
 ---
@@ -52,14 +52,14 @@ Extract the numeric ID from `--club-id`, then run:
 Extract the types string from `--types "..."`, then run:
 
 ```bash
-./bin/scrape --types "<types>"
+cd apps/scraper && make scrape-types TYPES="<types>" --no-print-directory 2>&1
 ```
 
 ---
 
 ## Mode: Interactive
 
-`bin/scrape` does not support interactive mode directly. Fall back to:
+Run the interactive selector directly from the scraper Makefile:
 
 ```bash
 cd apps/scraper && make scrape-interactive
@@ -78,7 +78,7 @@ Stream and print all command output verbatim. When the command finishes, print a
 To see per-target fetch results and confirm a fix is working, set `LAUGHTRACK_LOG_CONSOLE_LEVEL=INFO` explicitly:
 
 ```bash
-LAUGHTRACK_LOG_CONSOLE_LEVEL=INFO ./bin/scrape "<name>"
+cd apps/scraper && LAUGHTRACK_LOG_CONSOLE_LEVEL=INFO make scrape-club CLUB="<name>" --no-print-directory 2>&1
 ```
 
 This is useful after fixing rate-limit or 503 issues — the INFO log will show lines like `Successfully fetched data from N/M targets` and each per-target fetch result.
