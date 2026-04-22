@@ -10,6 +10,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/gioe/ios-libs.git", branch: "main"),
         .package(url: "https://github.com/apple/swift-openapi-runtime", from: "1.9.0"),
+        .package(url: "https://github.com/apple/swift-openapi-urlsession", from: "1.3.0"),
         .package(url: "https://github.com/apple/swift-http-types", from: "1.0.0")
     ],
     targets: [
@@ -18,6 +19,7 @@ let package = Package(
             dependencies: [
                 "LaughTrackBridge",
                 "LaughTrackAPIClient",
+                .product(name: "OpenAPIURLSession", package: "swift-openapi-urlsession"),
             ]
         ),
         .target(
