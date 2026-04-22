@@ -13,13 +13,17 @@ struct SettingsViewStateTests {
         let store = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "settings")
         let model = SettingsNearbyPreferenceModel(nearbyPreferenceStore: store)
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "settings-view")
+        let favorites = ComedianFavoriteStore()
         let host = HostedView(
             SettingsView(
+                apiClient: LaughTrackHostedViewTestSupport.makeClient(),
                 signedOutMessage: nil,
                 nearbyPreferenceStore: store,
                 model: model
             )
             .environment(\.appTheme, LaughTrackTheme())
+            .navigationCoordinator(NavigationCoordinator<AppRoute>())
+            .environmentObject(favorites)
             .environmentObject(authManager)
         )
 

@@ -40,6 +40,58 @@ enum LaughTrackHostedViewTestSupport {
         await manager.restoreSession()
         return manager
     }
+
+    static func makeAuthenticatedAuthManager(
+        name: String,
+        provider: AuthProvider = .apple,
+        expiresAt: Date = Date().addingTimeInterval(60 * 60)
+    ) async -> AuthManager {
+        let secureStorage = InMemorySecureStorage()
+        let authMiddleware = AuthenticationMiddleware(secureStorage: secureStorage)
+        let appStateStorage = AppStateStorage(
+            userDefaults: UserDefaults(suiteName: "LaughTrackHostedViewTestSupport.authenticated.\(name).\(UUID().uuidString)")!
+        )
+        let tokenManager = AuthTokenManager(secureStorage: secureStorage)
+        let manager = AuthManager(
+            tokenManager: tokenManager,
+            authMiddleware: authMiddleware,
+            appStateStorage: appStateStorage,
+            oauthSessionRunner: MockOAuthSessionRunner()
+        )
+
+        let token = makeAccessToken(expiresAt: expiresAt)
+        try? tokenManager.storeTokens(accessToken: token, refreshToken: token)
+        appStateStorage.setValue(
+            AuthSessionMetadata(
+                provider: provider,
+                signedInAt: Date(),
+                expiresAt: expiresAt
+            ),
+            forKey: "laughtrack.auth.session-metadata"
+        )
+
+        await manager.restoreSession()
+        return manager
+    }
+
+    private static func makeAccessToken(expiresAt: Date) -> String {
+        let header = ["alg": "HS256", "typ": "JWT"]
+        let payload = ["exp": Int(expiresAt.timeIntervalSince1970)]
+
+        return [
+            base64URL(header),
+            base64URL(payload),
+            "signature",
+        ].joined(separator: ".")
+    }
+
+    private static func base64URL(_ object: [String: Any]) -> String {
+        let data = try! JSONSerialization.data(withJSONObject: object)
+        return data.base64EncodedString()
+            .replacingOccurrences(of: "+", with: "-")
+            .replacingOccurrences(of: "/", with: "_")
+            .replacingOccurrences(of: "=", with: "")
+    }
 }
 
 private struct FailingTransport: ClientTransport {
