@@ -1513,8 +1513,16 @@ private final class ShowDetailModel: EntityDetailModel<Components.Schemas.ShowDe
     }
 }
 
+private struct ComedianDetailContent: Hashable {
+    let comedian: Components.Schemas.ComedianDetail
+    let upcomingShows: [Components.Schemas.Show]
+    let relatedComedians: [Components.Schemas.ComedianLineup]
+    let relatedContentMessage: String?
+}
+
 @MainActor
-private final class ComedianDetailModel: EntityDetailModel<Components.Schemas.ComedianDetail> {
+private final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
+    private static let pageSize = 8
     let comedianID: Int
 
     init(comedianID: Int) {
@@ -1536,14 +1544,18 @@ private final class ComedianDetailModel: EntityDetailModel<Components.Schemas.Co
     private func fetch(
         apiClient: Client,
         favorites: ComedianFavoriteStore
-    ) async -> LoadResult<Components.Schemas.ComedianDetail> {
+    ) async -> LoadResult<ComedianDetailContent> {
         do {
             let output = try await apiClient.getComedian(.init(path: .init(id: comedianID)))
             switch output {
             case .ok(let ok):
                 let comedian = try ok.body.json.data
                 favorites.overwrite(uuid: comedian.uuid, value: favorites.value(for: comedian.uuid))
-                return .success(comedian)
+                return await loadRelatedContent(
+                    for: comedian,
+                    apiClient: apiClient,
+                    favorites: favorites
+                )
             case .badRequest:
                 return .failure(.init("LaughTrack could not load this comedian right now."))
             case .notFound:
@@ -1555,6 +1567,98 @@ private final class ComedianDetailModel: EntityDetailModel<Components.Schemas.Co
             }
         } catch {
             return .failure(.init("LaughTrack could not reach the comedian details service. Check your connection and try again."))
+        }
+    }
+
+    private func loadRelatedContent(
+        for comedian: Components.Schemas.ComedianDetail,
+        apiClient: Client,
+        favorites: ComedianFavoriteStore
+    ) async -> LoadResult<ComedianDetailContent> {
+        do {
+            let output = try await apiClient.searchShows(
+                .init(
+                    query: .init(
+                        from: ShowFormatting.apiDate(Date()),
+                        page: 0,
+                        size: Self.pageSize,
+                        comedian: comedian.name,
+                        sort: ShowSortOption.earliest.rawValue
+                    )
+                )
+            )
+
+            switch output {
+            case .ok(let ok):
+                let response = try ok.body.json
+                let relatedShows = response.data.filter { show in
+                    guard let lineup = show.lineup else { return true }
+                    return lineup.contains { lineupComedian in
+                        lineupComedian.id == comedian.id || lineupComedian.uuid == comedian.uuid
+                    }
+                }
+
+                for show in relatedShows {
+                    for lineupComedian in show.lineup ?? [] {
+                        favorites.seed(uuid: lineupComedian.uuid, value: lineupComedian.isFavorite)
+                    }
+                }
+
+                var seenRelatedComedians = Set<String>()
+                let relatedComedians = relatedShows
+                    .flatMap { $0.lineup ?? [] }
+                    .filter { lineupComedian in
+                        lineupComedian.id != comedian.id && lineupComedian.uuid != comedian.uuid
+                    }
+                    .filter { lineupComedian in
+                        seenRelatedComedians.insert(lineupComedian.uuid).inserted
+                    }
+
+                return .success(
+                    .init(
+                        comedian: comedian,
+                        upcomingShows: relatedShows,
+                        relatedComedians: relatedComedians,
+                        relatedContentMessage: nil
+                    )
+                )
+            case .badRequest:
+                return .success(
+                    .init(
+                        comedian: comedian,
+                        upcomingShows: [],
+                        relatedComedians: [],
+                        relatedContentMessage: "LaughTrack could not load the comedian's upcoming shows right now."
+                    )
+                )
+            case .internalServerError:
+                return .success(
+                    .init(
+                        comedian: comedian,
+                        upcomingShows: [],
+                        relatedComedians: [],
+                        relatedContentMessage: "LaughTrack hit a server error while loading related shows."
+                    )
+                )
+            case .undocumented(let status, _):
+                return .success(
+                    .init(
+                        comedian: comedian,
+                        upcomingShows: [],
+                        relatedComedians: [],
+                        relatedContentMessage: "LaughTrack returned an unexpected related shows response (\(status))."
+                    )
+                )
+            }
+        } catch {
+            return .success(
+                .init(
+                    comedian: comedian,
+                    upcomingShows: [],
+                    relatedComedians: [],
+                    relatedContentMessage: "LaughTrack could not reach the related shows service. Check your connection and try again."
+                )
+            )
         }
     }
 }
@@ -1789,6 +1893,7 @@ struct ComedianDetailView: View {
     let comedianID: Int
     let apiClient: Client
 
+    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var favorites: ComedianFavoriteStore
     @Environment(\.appTheme) private var theme
@@ -1814,14 +1919,15 @@ struct ComedianDetailView: View {
                     await model.reload(apiClient: apiClient, favorites: favorites)
                 }
                 .padding()
-            case .success(let comedian):
+            case .success(let content):
+                let comedian = content.comedian
                 let isFavorite = favorites.value(for: comedian.uuid)
                 VStack(alignment: .leading, spacing: 20) {
                     DetailHero(
                         title: comedian.name,
-                        subtitle: "Comedian detail",
+                        subtitle: content.upcomingShows.isEmpty ? "Comedian detail" : "\(content.upcomingShows.count) upcoming show\(content.upcomingShows.count == 1 ? "" : "s")",
                         imageURL: comedian.imageUrl,
-                        badges: comedianHeroBadges(comedian: comedian)
+                        badges: comedianHeroBadges(comedian: comedian, upcomingShowCount: content.upcomingShows.count)
                     )
 
                     LaughTrackCard(tone: .muted) {
@@ -1851,8 +1957,65 @@ struct ComedianDetailView: View {
                         }
                     }
 
+                    DetailInfoCard(
+                        eyebrow: "Profile",
+                        title: "What LaughTrack knows",
+                        subtitle: "Live profile details come from the API contract and stay grounded in the comedian's active links.",
+                        rows: comedianProfileRows(comedian: comedian, upcomingShowCount: content.upcomingShows.count)
+                    )
+
                     SocialLinkSection(socialData: comedian.socialData) { url in
                         openURL(url)
+                    }
+
+                    LaughTrackCard {
+                        VStack(alignment: .leading, spacing: 12) {
+                            LaughTrackSectionHeader(
+                                eyebrow: "Upcoming shows",
+                                title: "Catch them live",
+                                subtitle: "Every result here comes from the live shows search filtered to this comedian."
+                            )
+
+                            if let relatedContentMessage = content.relatedContentMessage {
+                                InlineStatusMessage(message: relatedContentMessage)
+                            }
+
+                            if content.upcomingShows.isEmpty {
+                                EmptyCard(message: "No upcoming shows are available for this comedian right now.")
+                            } else {
+                                ForEach(content.upcomingShows, id: \.id) { show in
+                                    Button {
+                                        coordinator.open(.show(show.id))
+                                    } label: {
+                                        ShowRow(show: show)
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                        }
+                    }
+
+                    LaughTrackCard(tone: .muted) {
+                        VStack(alignment: .leading, spacing: 12) {
+                            LaughTrackSectionHeader(
+                                eyebrow: "Related comedians",
+                                title: "People sharing the bill",
+                                subtitle: "When lineup data is available, you can hop straight into the next comedian detail page."
+                            )
+
+                            if content.relatedComedians.isEmpty {
+                                EmptyCard(message: "No related comedians are available yet.")
+                            } else {
+                                ForEach(content.relatedComedians, id: \.uuid) { relatedComedian in
+                                    ComedianLineupRow(
+                                        comedian: relatedComedian,
+                                        apiClient: apiClient,
+                                        feedbackMessage: $feedbackMessage,
+                                        openDetail: { coordinator.open(.comedian(relatedComedian.id)) }
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
                 .padding()
@@ -1890,8 +2053,31 @@ struct ComedianDetailView: View {
         }
     }
 
-    private func comedianHeroBadges(comedian: Components.Schemas.ComedianDetail) -> [DetailHeroBadge] {
+    private func comedianHeroBadges(
+        comedian: Components.Schemas.ComedianDetail,
+        upcomingShowCount: Int
+    ) -> [DetailHeroBadge] {
         var badges = [DetailHeroBadge(title: "Comedian detail", systemImage: "music.mic", tone: .highlight)]
+
+        if upcomingShowCount > 0 {
+            badges.append(
+                DetailHeroBadge(
+                    title: "\(upcomingShowCount) upcoming",
+                    systemImage: "calendar",
+                    tone: .neutral
+                )
+            )
+        }
+
+        if let audienceReach = audienceReachText(for: comedian.socialData) {
+            badges.append(
+                DetailHeroBadge(
+                    title: audienceReach,
+                    systemImage: "person.3.fill",
+                    tone: .accent
+                )
+            )
+        }
 
         if let website = comedian.socialData.website, !website.isEmpty {
             badges.append(
@@ -1904,6 +2090,36 @@ struct ComedianDetailView: View {
         }
 
         return badges
+    }
+
+    private func comedianProfileRows(
+        comedian: Components.Schemas.ComedianDetail,
+        upcomingShowCount: Int
+    ) -> [DetailInfoRow] {
+        [
+            DetailInfoRow(label: "Upcoming", value: upcomingShowCount == 0 ? "No live dates returned yet" : "\(upcomingShowCount) shows"),
+            DetailInfoRow(label: "Audience", value: audienceReachText(for: comedian.socialData)),
+            DetailInfoRow(label: "Instagram", value: socialHandle(comedian.socialData.instagramAccount, prefix: "@")),
+            DetailInfoRow(label: "TikTok", value: socialHandle(comedian.socialData.tiktokAccount, prefix: "@")),
+            DetailInfoRow(label: "YouTube", value: socialHandle(comedian.socialData.youtubeAccount, prefix: "@")),
+            DetailInfoRow(label: "Website", value: comedian.socialData.website),
+            DetailInfoRow(label: "Linktree", value: comedian.socialData.linktree)
+        ]
+    }
+
+    private func audienceReachText(for socialData: Components.Schemas.SocialData) -> String? {
+        let followerCount =
+            (socialData.instagramFollowers ?? 0) +
+            (socialData.tiktokFollowers ?? 0) +
+            (socialData.youtubeFollowers ?? 0)
+
+        guard followerCount > 0 else { return nil }
+        return "\(followerCount.formatted(.number.notation(.compactName))) followers"
+    }
+
+    private func socialHandle(_ handle: String?, prefix: String) -> String? {
+        guard let handle, !handle.isEmpty else { return nil }
+        return handle.hasPrefix(prefix) ? handle : "\(prefix)\(handle)"
     }
 }
 
@@ -3112,6 +3328,19 @@ private enum DemoFixtures {
     private static let stageImage = "https://images.unsplash.com/photo-1503095396549-807759245b35?auto=format&fit=crop&w=1200&q=80"
     private static let clubImage = "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80"
     private static let clubAltImage = "https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?auto=format&fit=crop&w=1200&q=80"
+}
+
+enum DemoContent {
+    static let primaryShowDetail = DemoFixtures.primaryShowDetail
+    static let primaryComedian = DemoFixtures.primaryComedian
+
+    static func showDetailResponse(id: Int) -> Components.Schemas.ShowDetailResponse? {
+        DemoFixtures.showDetailResponse(id: id)
+    }
+
+    static func comedianDetail(id: Int) -> Components.Schemas.ComedianDetail? {
+        DemoFixtures.comedianDetail(id: id)
+    }
 }
 
 private extension String {
