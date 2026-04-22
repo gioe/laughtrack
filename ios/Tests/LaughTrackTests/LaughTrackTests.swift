@@ -51,6 +51,29 @@ struct LaughTrackTests {
         #expect(bootstrap.theme.typography.button == bootstrap.theme.laughTrack.typography.action)
         #expect(bootstrap.theme.laughTrackTokens.colors.accent == bootstrap.theme.laughTrack.colors.accent)
     }
+
+    @Test("settings preferences model saves and clears the nearby preference used by discovery")
+    @MainActor
+    func settingsPreferencesModelPersistsNearbyPreference() {
+        let defaults = UserDefaults(suiteName: "SettingsPreferencesModel.\(UUID().uuidString)")!
+        let store = NearbyPreferenceStore(appStateStorage: AppStateStorage(userDefaults: defaults))
+        let model = SettingsNearbyPreferenceModel(nearbyPreferenceStore: store)
+
+        model.zipCodeDraft = "10012-1234"
+        model.distanceMiles = 50
+        model.saveNearbyPreference()
+
+        #expect(model.validationMessage == nil)
+        #expect(model.nearbyPreference == NearbyPreference(zipCode: "10012", source: .manual, distanceMiles: 50))
+        #expect(store.preference == NearbyPreference(zipCode: "10012", source: .manual, distanceMiles: 50))
+
+        model.clearNearbyPreference()
+
+        #expect(model.nearbyPreference == nil)
+        #expect(model.zipCodeDraft.isEmpty)
+        #expect(model.distanceMiles == NearbyPreference.defaultDistanceMiles)
+        #expect(store.preference == nil)
+    }
 }
 
 private final class MockOAuthSessionRunner: OAuthSessionRunning {
