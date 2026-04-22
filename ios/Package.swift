@@ -54,6 +54,7 @@ let package = Package(
         .testTarget(
             name: "LaughTrackTests",
             dependencies: [
+                "LaughTrackApp",
                 "LaughTrackCore",
                 "LaughTrackBridge",
                 "LaughTrackAPIClient",
