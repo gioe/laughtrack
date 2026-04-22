@@ -3,6 +3,7 @@ import LaughTrackCore
 import LaughTrackBridge
 import LaughTrackAPIClient
 import OpenAPIURLSession
+import Foundation
 
 @main
 struct LaughTrackApp: App {
@@ -14,6 +15,7 @@ struct LaughTrackApp: App {
     private let theme: LaughTrackTheme
 
     init() {
+        Self.resetPersistentStateForUITestsIfNeeded()
         let bootstrap = AppBootstrap()
         self.container = bootstrap.container
         self.apiClient = bootstrap.apiClient
@@ -29,5 +31,14 @@ struct LaughTrackApp: App {
                 .navigationCoordinator(coordinator)
                 .environmentObject(authManager)
         }
+    }
+
+    private static func resetPersistentStateForUITestsIfNeeded() {
+        guard ProcessInfo.processInfo.arguments.contains("UITEST_RESET_STATE") else { return }
+
+        let defaults = UserDefaults.standard
+        defaults.removeObject(forKey: "laughtrack.discovery.nearby-preference")
+        defaults.removeObject(forKey: "laughtrack.discovery.home-nearby-prompt-dismissed")
+        defaults.removeObject(forKey: "laughtrack.auth.session-metadata")
     }
 }

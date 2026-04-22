@@ -135,6 +135,20 @@ struct SettingsView: View {
 
     @EnvironmentObject private var authManager: AuthManager
     @Environment(\.appTheme) private var theme
+    @StateObject private var model: SettingsNearbyPreferenceModel
+
+    init(
+        signedOutMessage: String?,
+        nearbyPreferenceStore: NearbyPreferenceStore
+    ) {
+        self.signedOutMessage = signedOutMessage
+        self.nearbyPreferenceStore = nearbyPreferenceStore
+        _model = StateObject(
+            wrappedValue: SettingsNearbyPreferenceModel(
+                nearbyPreferenceStore: nearbyPreferenceStore
+            )
+        )
+    }
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
@@ -143,89 +157,23 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: laughTrack.spacing.sectionGap) {
                 LaughTrackSectionHeader(
                     eyebrow: "Settings",
-                    title: "Keep discovery grounded in real app state",
-                    subtitle: "This screen only surfaces settings LaughTrack actually persists today, plus your current account state."
+                    title: "Real preferences, not placeholder toggles",
+                    subtitle: "Save the nearby filters LaughTrack actually uses today, keep account state truthful, and avoid controls the app cannot honor yet."
                 )
 
                 if let signedOutMessage {
-                    LaughTrackCard {
-                        Text(signedOutMessage)
-                            .font(laughTrack.typography.body)
-                            .foregroundStyle(laughTrack.colors.accentStrong)
-                    }
+                    LaughTrackAuthMessageCard(message: signedOutMessage)
                 }
 
-                LaughTrackSectionHeader(
-                    eyebrow: "Discovery",
-                    title: "Nearby discovery",
-                    subtitle: "Home and Settings share the same saved ZIP and search radius."
-                )
+                nearbyPreferencesSection
 
-                LaughTrackCard {
-                    VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
-                        if let preference = nearbyPreferenceStore.preference {
-                            Text("Saved nearby preference")
-                                .font(laughTrack.typography.cardTitle)
-                                .foregroundStyle(laughTrack.colors.textPrimary)
-
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: theme.spacing.sm) {
-                                    LaughTrackBadge(
-                                        "ZIP \(preference.zipCode)",
-                                        systemImage: "mappin.and.ellipse",
-                                        tone: .neutral
-                                    )
-                                    LaughTrackBadge(
-                                        "\(preference.distanceMiles) mi",
-                                        systemImage: "location.fill",
-                                        tone: .highlight
-                                    )
-                                    LaughTrackBadge(
-                                        preference.source == .manual ? "Saved manually" : "Current location",
-                                        systemImage: preference.source == .manual ? "slider.horizontal.3" : "location.north.line",
-                                        tone: .accent
-                                    )
-                                }
-                            }
-
-                            Text("Adjust the search radius here or return home when you want to replace the ZIP itself.")
-                                .font(laughTrack.typography.body)
-                                .foregroundStyle(laughTrack.colors.textSecondary)
-
-                            HStack(spacing: theme.spacing.sm) {
-                                LaughTrackButton("Radius -5", systemImage: "minus", tone: .secondary, fullWidth: false) {
-                                    updateNearbyRadius(by: -5)
-                                }
-                                .disabled(preference.distanceMiles <= 5)
-
-                                LaughTrackButton("Radius +5", systemImage: "plus", tone: .secondary, fullWidth: false) {
-                                    updateNearbyRadius(by: 5)
-                                }
-                            }
-
-                            LaughTrackButton(
-                                "Clear saved nearby preference",
-                                systemImage: "location.slash",
-                                tone: .tertiary
-                            ) {
-                                nearbyPreferenceStore.clear()
-                            }
-                        } else {
-                            Text("No nearby ZIP is saved yet.")
-                                .font(laughTrack.typography.cardTitle)
-                                .foregroundStyle(laughTrack.colors.textPrimary)
-                            Text("Set a ZIP or use current location from Home when you want nearby shows to stay pinned across launches.")
-                                .font(laughTrack.typography.body)
-                                .foregroundStyle(laughTrack.colors.textSecondary)
-                        }
-                    }
-                }
+                notificationsSection
 
                 if let session = authManager.currentSession {
                     LaughTrackSectionHeader(
                         eyebrow: "Account",
-                        title: "Session details",
-                        subtitle: "Authentication state shares the same reusable card shell as the rest of the app."
+                        title: "Signed in on this device",
+                        subtitle: "Account status stays accurate to the saved mobile session."
                     )
 
                     LaughTrackCard {
@@ -255,8 +203,8 @@ struct SettingsView: View {
                 } else {
                     LaughTrackSectionHeader(
                         eyebrow: "Sign in",
-                        title: "Bring favorites and alerts with you",
-                        subtitle: "Use the same LaughTrack auth surfaces for Apple, Google, and recovery states without changing the token-backed flow underneath."
+                        title: "Save favorites across sessions",
+                        subtitle: "Sign in when you want synced favorite comedians and recovery messaging tied to a real account."
                     )
 
                     LaughTrackCard(tone: .accent) {
@@ -265,17 +213,13 @@ struct SettingsView: View {
                                 .font(laughTrack.typography.eyebrow)
                                 .foregroundStyle(laughTrack.colors.textInverse.opacity(0.78))
                                 .textCase(.uppercase)
-                            Text("Sign in once, then keep your comedy world in sync.")
+                            Text("Keep your account state in sync.")
                                 .font(laughTrack.typography.screenTitle)
                                 .foregroundStyle(laughTrack.colors.textInverse)
-                            Text("Saved comedians, favorite actions, and recovery messaging all stay in the same native component system instead of dropping into a temporary shell.")
+                            Text("Signing in lets LaughTrack keep favorite comedians with your account instead of only on this device.")
                                 .font(laughTrack.typography.body)
                                 .foregroundStyle(laughTrack.colors.textInverse.opacity(0.92))
                         }
-                    }
-
-                    if let signedOutMessage {
-                        LaughTrackAuthMessageCard(message: signedOutMessage)
                     }
 
                     VStack(spacing: laughTrack.spacing.itemGap) {
@@ -290,11 +234,11 @@ struct SettingsView: View {
 
                     LaughTrackCard(tone: .muted) {
                         VStack(alignment: .leading, spacing: laughTrack.spacing.tight) {
-                            Text("What you unlock")
+                            Text("What this enables")
                                 .font(laughTrack.typography.metadata)
                                 .foregroundStyle(laughTrack.colors.accent)
                                 .textCase(.uppercase)
-                            Text("Save comedians faster, recover cleanly if a browser handoff fails, and keep the auth copy consistent with discovery and detail screens.")
+                            Text("A signed-in session lets the app keep favorite-comedian actions tied to your account and recover cleanly if sign-in is interrupted.")
                                 .font(laughTrack.typography.body)
                                 .foregroundStyle(laughTrack.colors.textSecondary)
                         }
@@ -308,9 +252,150 @@ struct SettingsView: View {
         .navigationTitle("Settings")
     }
 
-    private func updateNearbyRadius(by delta: Int) {
-        guard let preference = nearbyPreferenceStore.preference else { return }
-        nearbyPreferenceStore.setDistance(max(5, preference.distanceMiles + delta))
+    private var nearbyPreferencesSection: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
+            LaughTrackSectionHeader(
+                eyebrow: "Discovery",
+                title: "Nearby defaults",
+                subtitle: "Home and nearby results read from the same saved ZIP code and radius."
+            )
+
+            if let preference = model.nearbyPreference {
+                LaughTrackCard {
+                    VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
+                        Text("Nearby preference saved")
+                            .font(laughTrack.typography.cardTitle)
+                            .foregroundStyle(laughTrack.colors.textPrimary)
+
+                        Text(
+                            preference.source == .manual
+                                ? "LaughTrack is using your saved manual nearby preference."
+                                : "LaughTrack last saved a nearby preference from your current location."
+                        )
+                        .font(laughTrack.typography.body)
+                        .foregroundStyle(laughTrack.colors.textSecondary)
+
+                        HStack(spacing: theme.spacing.sm) {
+                            LaughTrackBadge("ZIP \(preference.zipCode)", systemImage: "mappin.and.ellipse", tone: .neutral)
+                            LaughTrackBadge("\(preference.distanceMiles) mi", systemImage: "location.fill", tone: .highlight)
+                            LaughTrackBadge(
+                                preference.source == .manual ? "Saved manually" : "Saved from location",
+                                systemImage: preference.source == .manual ? "slider.horizontal.3" : "location.north.line",
+                                tone: .accent
+                            )
+                        }
+                    }
+                }
+            } else {
+                LaughTrackStateView(
+                    tone: .empty,
+                    title: "No nearby preference saved",
+                    message: "Save a ZIP code and distance here to reuse the same nearby defaults on home and nearby search."
+                )
+            }
+
+            LaughTrackCard(tone: .muted) {
+                VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
+                    Text("Edit nearby preference")
+                        .font(laughTrack.typography.cardTitle)
+                        .foregroundStyle(laughTrack.colors.textPrimary)
+
+                    Text("The saved ZIP code and distance below are persisted on this device and used by the nearby discovery surfaces.")
+                        .font(laughTrack.typography.body)
+                        .foregroundStyle(laughTrack.colors.textSecondary)
+
+                    settingsTextField(
+                        title: "Saved ZIP code",
+                        text: $model.zipCodeDraft
+                    )
+                        .accessibilityLabel("Saved ZIP code")
+
+                    VStack(alignment: .leading, spacing: theme.spacing.sm) {
+                        Text("Distance")
+                            .font(laughTrack.typography.metadata)
+                            .foregroundStyle(laughTrack.colors.textSecondary)
+                            .textCase(.uppercase)
+
+                        Picker("Distance", selection: $model.distanceMiles) {
+                            ForEach(SettingsNearbyPreferenceModel.distanceOptions, id: \.self) { distance in
+                                Text("\(distance) mi").tag(distance)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .accessibilityLabel("Distance")
+                    }
+
+                    if let validationMessage = model.validationMessage {
+                        Text(validationMessage)
+                            .font(laughTrack.typography.body)
+                            .foregroundStyle(laughTrack.colors.danger)
+                    }
+
+                    VStack(spacing: theme.spacing.sm) {
+                        LaughTrackButton(
+                            "Save nearby preference",
+                            systemImage: "square.and.arrow.down"
+                        ) {
+                            model.saveNearbyPreference()
+                        }
+
+                        if model.nearbyPreference != nil {
+                            LaughTrackButton(
+                                "Clear nearby preference",
+                                systemImage: "trash",
+                                tone: .destructive
+                            ) {
+                                model.clearNearbyPreference()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private var notificationsSection: some View {
+        VStack(alignment: .leading, spacing: theme.laughTrackTokens.spacing.itemGap) {
+            LaughTrackSectionHeader(
+                eyebrow: "Notifications",
+                title: "No fake alert toggles",
+                subtitle: "Push settings only belong here once the iOS app can actually honor them."
+            )
+
+            LaughTrackStateView(
+                tone: .empty,
+                title: "Push notifications are not available yet",
+                message: "This build does not deliver push alerts, so Settings intentionally avoids notification switches that would imply working behavior."
+            )
+        }
+    }
+
+    private func settingsTextField(
+        title: String,
+        text: Binding<String>
+    ) -> some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return VStack(alignment: .leading, spacing: theme.spacing.sm) {
+            Text(title)
+                .font(laughTrack.typography.metadata)
+                .foregroundStyle(laughTrack.colors.textSecondary)
+                .textCase(.uppercase)
+
+            TextField(title, text: text)
+                .font(laughTrack.typography.body)
+                .foregroundStyle(laughTrack.colors.textPrimary)
+                .padding(.horizontal, theme.spacing.md)
+                .padding(.vertical, theme.spacing.md)
+                .background(laughTrack.colors.surfaceElevated)
+                .overlay(
+                    RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
+                        .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+        }
     }
 }
 

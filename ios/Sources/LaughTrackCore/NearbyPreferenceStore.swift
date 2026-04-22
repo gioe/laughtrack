@@ -143,3 +143,52 @@ public final class NearbyPreferenceStore: ObservableObject {
         static let preference = "laughtrack.discovery.nearby-preference"
     }
 }
+
+@MainActor
+public final class SettingsNearbyPreferenceModel: ObservableObject {
+    public static let distanceOptions = [10, 25, 50, 100]
+
+    @Published public var zipCodeDraft = ""
+    @Published public var distanceMiles = NearbyPreference.defaultDistanceMiles
+    @Published public private(set) var nearbyPreference: NearbyPreference?
+    @Published public private(set) var validationMessage: String?
+
+    private let nearbyPreferenceStore: NearbyPreferenceStore
+    private var preferenceCancellable: AnyCancellable?
+
+    public init(nearbyPreferenceStore: NearbyPreferenceStore) {
+        self.nearbyPreferenceStore = nearbyPreferenceStore
+        applyPreference(nearbyPreferenceStore.preference)
+        preferenceCancellable = nearbyPreferenceStore.$preference
+            .sink { [weak self] preference in
+                self?.applyPreference(preference)
+            }
+    }
+
+    public func saveNearbyPreference() {
+        guard let preference = nearbyPreferenceStore.setManualZip(zipCodeDraft, distanceMiles: distanceMiles) else {
+            validationMessage = "Enter a valid 5-digit ZIP code before saving this nearby preference."
+            return
+        }
+
+        validationMessage = nil
+        applyPreference(preference)
+    }
+
+    public func clearNearbyPreference() {
+        validationMessage = nil
+        nearbyPreferenceStore.clear()
+    }
+
+    private func applyPreference(_ preference: NearbyPreference?) {
+        nearbyPreference = preference
+
+        if let preference {
+            zipCodeDraft = preference.zipCode
+            distanceMiles = preference.distanceMiles
+        } else {
+            zipCodeDraft = ""
+            distanceMiles = NearbyPreference.defaultDistanceMiles
+        }
+    }
+}
