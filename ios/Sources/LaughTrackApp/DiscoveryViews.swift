@@ -1560,6 +1560,13 @@ private struct ComedianDetailContent: Hashable {
     let relatedContentMessage: String?
 }
 
+private struct ClubDetailContent: Hashable {
+    let club: Components.Schemas.ClubDetail
+    let upcomingShows: [Components.Schemas.Show]
+    let featuredComedians: [Components.Schemas.ComedianLineup]
+    let relatedContentMessage: String?
+}
+
 @MainActor
 private final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent> {
     private static let pageSize = 8
@@ -1704,7 +1711,8 @@ private final class ComedianDetailModel: EntityDetailModel<ComedianDetailContent
 }
 
 @MainActor
-private final class ClubDetailModel: EntityDetailModel<Components.Schemas.ClubDetail> {
+private final class ClubDetailModel: EntityDetailModel<ClubDetailContent> {
+    private static let pageSize = 8
     let clubID: Int
 
     init(clubID: Int) {
@@ -1723,12 +1731,12 @@ private final class ClubDetailModel: EntityDetailModel<Components.Schemas.ClubDe
         }
     }
 
-    private func fetch(apiClient: Client) async -> LoadResult<Components.Schemas.ClubDetail> {
+    private func fetch(apiClient: Client) async -> LoadResult<ClubDetailContent> {
         do {
             let output = try await apiClient.getClub(.init(path: .init(id: clubID)))
             switch output {
             case .ok(let ok):
-                return .success(try ok.body.json.data)
+                return await loadRelatedContent(for: try ok.body.json.data, apiClient: apiClient)
             case .badRequest:
                 return .failure(.init("LaughTrack could not load this club right now."))
             case .notFound:
@@ -1740,6 +1748,85 @@ private final class ClubDetailModel: EntityDetailModel<Components.Schemas.ClubDe
             }
         } catch {
             return .failure(.init("LaughTrack could not reach the club details service. Check your connection and try again."))
+        }
+    }
+
+    private func loadRelatedContent(
+        for club: Components.Schemas.ClubDetail,
+        apiClient: Client
+    ) async -> LoadResult<ClubDetailContent> {
+        do {
+            let output = try await apiClient.searchShows(
+                .init(
+                    query: .init(
+                        from: ShowFormatting.apiDate(Date()),
+                        page: 0,
+                        size: Self.pageSize,
+                        club: club.name,
+                        sort: ShowSortOption.earliest.rawValue
+                    )
+                )
+            )
+
+            switch output {
+            case .ok(let ok):
+                let response = try ok.body.json
+                let upcomingShows = response.data.filter { show in
+                    (show.clubName ?? "").localizedCaseInsensitiveCompare(club.name) == .orderedSame
+                }
+
+                var seenComedians = Set<String>()
+                let featuredComedians = upcomingShows
+                    .flatMap { $0.lineup ?? [] }
+                    .filter { comedian in
+                        seenComedians.insert(comedian.uuid).inserted
+                    }
+
+                return .success(
+                    .init(
+                        club: club,
+                        upcomingShows: upcomingShows,
+                        featuredComedians: featuredComedians,
+                        relatedContentMessage: nil
+                    )
+                )
+            case .badRequest:
+                return .success(
+                    .init(
+                        club: club,
+                        upcomingShows: [],
+                        featuredComedians: [],
+                        relatedContentMessage: "LaughTrack could not load this club’s upcoming shows right now."
+                    )
+                )
+            case .internalServerError:
+                return .success(
+                    .init(
+                        club: club,
+                        upcomingShows: [],
+                        featuredComedians: [],
+                        relatedContentMessage: "LaughTrack hit a server error while loading this club’s related content."
+                    )
+                )
+            case .undocumented(let status, _):
+                return .success(
+                    .init(
+                        club: club,
+                        upcomingShows: [],
+                        featuredComedians: [],
+                        relatedContentMessage: "LaughTrack returned an unexpected related shows response (\(status))."
+                    )
+                )
+            }
+        } catch {
+            return .success(
+                .init(
+                    club: club,
+                    upcomingShows: [],
+                    featuredComedians: [],
+                    relatedContentMessage: "LaughTrack could not reach this club’s related content service. Check your connection and try again."
+                )
+            )
         }
     }
 }
@@ -2167,9 +2254,13 @@ struct ClubDetailView: View {
     let clubID: Int
     let apiClient: Client
 
+    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @EnvironmentObject private var authManager: AuthManager
+    @EnvironmentObject private var favorites: ComedianFavoriteStore
     @Environment(\.appTheme) private var theme
     @Environment(\.openURL) private var openURL
     @StateObject private var model: ClubDetailModel
+    @State private var feedbackMessage: String?
 
     init(clubID: Int, apiClient: Client) {
         self.clubID = clubID
@@ -2188,42 +2279,125 @@ struct ClubDetailView: View {
                     await model.reload(apiClient: apiClient)
                 }
                 .padding()
-            case .success(let club):
+            case .success(let content):
+                let club = content.club
                 VStack(alignment: .leading, spacing: 20) {
                     DetailHero(
                         title: club.name,
-                        subtitle: club.zipCode ?? "Club detail",
+                        subtitle: content.upcomingShows.isEmpty ? (club.zipCode ?? "Club detail") : "\(content.upcomingShows.count) upcoming show\(content.upcomingShows.count == 1 ? "" : "s")",
                         imageURL: club.imageUrl,
-                        badges: clubHeroBadges(club: club)
+                        badges: clubHeroBadges(club: club, upcomingShowCount: content.upcomingShows.count, featuredComedianCount: content.featuredComedians.count)
                     )
 
-                    DetailInfoCard(eyebrow: "Club details", title: "Venue", subtitle: "Core contact information stays inside the shared card shell.", rows: [
+                    DetailInfoCard(eyebrow: "Club details", title: "Venue", subtitle: "Core contact information comes directly from the live club endpoint.", rows: [
                         DetailInfoRow(label: "Address", value: club.address),
                         DetailInfoRow(label: "ZIP", value: club.zipCode),
                         DetailInfoRow(label: "Phone", value: club.phoneNumber)
                     ])
 
                     DetailLinkCard(
-                        eyebrow: "Links",
-                        title: "Website",
-                        subtitle: "Venue links use the same reusable button and card treatment as show CTAs.",
-                        links: [DetailLink(title: club.website, url: URL.normalizedExternalURL(club.website))],
+                        eyebrow: "Actions",
+                        title: "Take the next step",
+                        subtitle: "Jump out to the venue’s website, maps, or phone line when that data is available.",
+                        links: clubActionLinks(club: club),
                         openURL: { url in openURL(url) }
                     )
+
+                    LaughTrackCard {
+                        VStack(alignment: .leading, spacing: 12) {
+                            LaughTrackSectionHeader(
+                                eyebrow: "Upcoming shows",
+                                title: "What’s on at this room",
+                                subtitle: "Live show results are filtered to this club so you can jump straight into a date."
+                            )
+
+                            if let relatedContentMessage = content.relatedContentMessage {
+                                InlineStatusMessage(message: relatedContentMessage)
+                            }
+
+                            if content.upcomingShows.isEmpty {
+                                EmptyCard(message: "No upcoming shows are available for this club right now.")
+                            } else {
+                                ForEach(content.upcomingShows, id: \.id) { show in
+                                    Button {
+                                        coordinator.open(.show(show.id))
+                                    } label: {
+                                        ShowRow(show: show)
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                        }
+                    }
+
+                    LaughTrackCard(tone: .muted) {
+                        VStack(alignment: .leading, spacing: 12) {
+                            LaughTrackSectionHeader(
+                                eyebrow: "Featured comedians",
+                                title: "Artists on upcoming bills",
+                                subtitle: "When lineup data is available, you can move straight from the club profile into comedian details."
+                            )
+
+                            if content.featuredComedians.isEmpty {
+                                EmptyCard(message: "No featured comedians are available for this club yet.")
+                            } else {
+                                ForEach(content.featuredComedians, id: \.uuid) { comedian in
+                                    ComedianLineupRow(
+                                        comedian: comedian,
+                                        apiClient: apiClient,
+                                        feedbackMessage: $feedbackMessage,
+                                        openDetail: { coordinator.open(.comedian(comedian.id)) }
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
                 .padding()
             }
         }
+        .accessibilityIdentifier(LaughTrackViewTestID.clubDetailScreen)
         .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
         .navigationTitle("Club")
         .modifier(InlineNavigationTitle())
         .task {
             await model.loadIfNeeded(apiClient: apiClient)
         }
+        .alert("LaughTrack", isPresented: .constant(feedbackMessage != nil), actions: {
+            Button("OK") {
+                feedbackMessage = nil
+            }
+        }, message: {
+            Text(feedbackMessage ?? "")
+        })
     }
 
-    private func clubHeroBadges(club: Components.Schemas.ClubDetail) -> [DetailHeroBadge] {
+    private func clubHeroBadges(
+        club: Components.Schemas.ClubDetail,
+        upcomingShowCount: Int,
+        featuredComedianCount: Int
+    ) -> [DetailHeroBadge] {
         var badges = [DetailHeroBadge(title: "Club detail", systemImage: "building.2.fill", tone: .highlight)]
+
+        if upcomingShowCount > 0 {
+            badges.append(
+                DetailHeroBadge(
+                    title: "\(upcomingShowCount) upcoming",
+                    systemImage: "calendar",
+                    tone: .neutral
+                )
+            )
+        }
+
+        if featuredComedianCount > 0 {
+            badges.append(
+                DetailHeroBadge(
+                    title: "\(featuredComedianCount) comics",
+                    systemImage: "music.mic",
+                    tone: .accent
+                )
+            )
+        }
 
         if !club.address.isEmpty {
             badges.append(
@@ -2246,6 +2420,14 @@ struct ClubDetailView: View {
         }
 
         return badges
+    }
+
+    private func clubActionLinks(club: Components.Schemas.ClubDetail) -> [DetailLink] {
+        [
+            DetailLink(title: "Visit website", url: URL.normalizedExternalURL(club.website)),
+            DetailLink(title: "Open in Maps", url: URL.mapsURL(for: club.address)),
+            DetailLink(title: "Call venue", url: URL.phoneURL(club.phoneNumber))
+        ]
     }
 }
 
@@ -3401,5 +3583,20 @@ private extension URL {
             return direct
         }
         return URL(string: "https://\(rawValue)")
+    }
+
+    static func phoneURL(_ rawValue: String?) -> URL? {
+        guard let rawValue, !rawValue.isEmpty else { return nil }
+        let digits = rawValue.filter(\.isNumber)
+        guard !digits.isEmpty else { return nil }
+        return URL(string: "tel://\(digits)")
+    }
+
+    static func mapsURL(for address: String) -> URL? {
+        guard
+            !address.isEmpty,
+            let encodedAddress = address.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
+        else { return nil }
+        return URL(string: "http://maps.apple.com/?q=\(encodedAddress)")
     }
 }
