@@ -22,7 +22,8 @@ final class LaughTrackUITests: XCTestCase {
         settingsButton.tap()
 
         XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.staticTexts["Settings"].exists)
+        XCTAssertTrue(app.staticTexts["Nearby discovery"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["No nearby ZIP is saved yet."].exists)
 
         app.navigationBars["Settings"].buttons.firstMatch.tap()
 
