@@ -152,7 +152,7 @@ private final class ComediansDiscoveryModel: EntitySearchModel<String, Component
         query: String,
         apiClient: Client,
         favorites: ComedianFavoriteStore
-    ) async -> Result<DiscoverySearchResponse<Components.Schemas.ComedianSearchItem>, String> {
+    ) async -> LoadResult<DiscoverySearchResponse<Components.Schemas.ComedianSearchItem>> {
         do {
             if query.isEmpty {
                 let output = try await apiClient.listComedians(
@@ -185,11 +185,11 @@ private final class ComediansDiscoveryModel: EntitySearchModel<String, Component
                         )
                     )
                 case .badRequest(let badRequest):
-                    return .failure((try? badRequest.body.json.error) ?? "LaughTrack could not load comedians right now.")
+                    return .failure(.init((try? badRequest.body.json.error) ?? "LaughTrack could not load comedians right now."))
                 case .internalServerError(let serverError):
-                    return .failure((try? serverError.body.json.error) ?? "LaughTrack could not load comedians right now.")
+                    return .failure(.init((try? serverError.body.json.error) ?? "LaughTrack could not load comedians right now."))
                 case .undocumented(let status, _):
-                    return .failure("LaughTrack returned an unexpected comedians response (\(status)).")
+                    return .failure(.init("LaughTrack returned an unexpected comedians response (\(status))."))
                 }
             } else {
                 let output = try await apiClient.searchComedians(
@@ -217,16 +217,16 @@ private final class ComediansDiscoveryModel: EntitySearchModel<String, Component
                         )
                     )
                 case .internalServerError(let serverError):
-                    return .failure((try? serverError.body.json.error) ?? "LaughTrack could not load comedians right now.")
+                    return .failure(.init((try? serverError.body.json.error) ?? "LaughTrack could not load comedians right now."))
                 case .undocumented(let status, _):
-                    return .failure("LaughTrack returned an unexpected comedians response (\(status)).")
+                    return .failure(.init("LaughTrack returned an unexpected comedians response (\(status))."))
                 }
             }
         } catch {
             guard !Task.isCancelled else {
-                return .failure("LaughTrack could not load comedians right now.")
+                return .failure(.init("LaughTrack could not load comedians right now."))
             }
-            return .failure("LaughTrack could not reach the comedians service. Check your connection and try again.")
+            return .failure(.init("LaughTrack could not reach the comedians service. Check your connection and try again."))
         }
     }
 }
@@ -258,7 +258,7 @@ private final class ClubsDiscoveryModel: EntitySearchModel<String, Components.Sc
         page: Int,
         query: String,
         apiClient: Client
-    ) async -> Result<DiscoverySearchResponse<Components.Schemas.ClubSearchItem>, String> {
+    ) async -> LoadResult<DiscoverySearchResponse<Components.Schemas.ClubSearchItem>> {
         do {
             if query.isEmpty {
                 let output = try await apiClient.listClubs(
@@ -297,13 +297,13 @@ private final class ClubsDiscoveryModel: EntitySearchModel<String, Components.Sc
                         )
                     )
                 case .badRequest(let badRequest):
-                    return .failure((try? badRequest.body.json.error) ?? "LaughTrack could not load clubs right now.")
+                    return .failure(.init((try? badRequest.body.json.error) ?? "LaughTrack could not load clubs right now."))
                 case .tooManyRequests(let tooManyRequests):
-                    return .failure((try? tooManyRequests.body.json.error) ?? "LaughTrack is rate-limiting club results right now.")
+                    return .failure(.init((try? tooManyRequests.body.json.error) ?? "LaughTrack is rate-limiting club results right now."))
                 case .internalServerError(let serverError):
-                    return .failure((try? serverError.body.json.error) ?? "LaughTrack could not load clubs right now.")
+                    return .failure(.init((try? serverError.body.json.error) ?? "LaughTrack could not load clubs right now."))
                 case .undocumented(let status, _):
-                    return .failure("LaughTrack returned an unexpected clubs response (\(status)).")
+                    return .failure(.init("LaughTrack returned an unexpected clubs response (\(status))."))
                 }
             } else {
                 let output = try await apiClient.searchClubs(
@@ -327,16 +327,16 @@ private final class ClubsDiscoveryModel: EntitySearchModel<String, Components.Sc
                         )
                     )
                 case .internalServerError(let serverError):
-                    return .failure((try? serverError.body.json.error) ?? "LaughTrack could not load clubs right now.")
+                    return .failure(.init((try? serverError.body.json.error) ?? "LaughTrack could not load clubs right now."))
                 case .undocumented(let status, _):
-                    return .failure("LaughTrack returned an unexpected clubs response (\(status)).")
+                    return .failure(.init("LaughTrack returned an unexpected clubs response (\(status))."))
                 }
             }
         } catch {
             guard !Task.isCancelled else {
-                return .failure("LaughTrack could not load clubs right now.")
+                return .failure(.init("LaughTrack could not load clubs right now."))
             }
-            return .failure("LaughTrack could not reach the clubs service. Check your connection and try again.")
+            return .failure(.init("LaughTrack could not reach the clubs service. Check your connection and try again."))
         }
     }
 }
@@ -444,12 +444,9 @@ private final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, 
     private var nearbyPreferenceCancellable: AnyCancellable?
     private var nearbyStatusCancellable: AnyCancellable?
     private var nearbyLoadingCancellable: AnyCancellable?
-    convenience init() {
-        self.init(nearbyLocationController: NearbyLocationController())
-    }
-
     init(nearbyLocationController: NearbyLocationController) {
         self.nearbyLocationController = nearbyLocationController
+        super.init()
         applyNearbyPreference(nearbyLocationController.preference)
         nearbyPreferenceCancellable = nearbyLocationController.$preference
             .sink { [weak self] preference in
@@ -487,14 +484,14 @@ private final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, 
     func reload(apiClient: Client) async {
         let query = requestKey
         await super.reload(query: query, shouldDebounce: query.hasActiveFilters) { [weak self] page, query in
-            guard let self else { return .failure("LaughTrack could not load shows right now.") }
+            guard let self else { return .failure(.init("LaughTrack could not load shows right now.")) }
             return await self.fetchPage(page: page, query: query, apiClient: apiClient)
         }
     }
 
     func loadMore(apiClient: Client) async {
         await super.loadMore(query: requestKey) { [weak self] page, query in
-            guard let self else { return .failure("LaughTrack could not load shows right now.") }
+            guard let self else { return .failure(.init("LaughTrack could not load shows right now.")) }
             return await self.fetchPage(page: page, query: query, apiClient: apiClient)
         }
     }
@@ -523,7 +520,7 @@ private final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, 
         page: Int,
         query: ShowsDiscoveryQuery,
         apiClient: Client
-    ) async -> Result<DiscoverySearchResponse<Components.Schemas.Show>, String> {
+    ) async -> LoadResult<DiscoverySearchResponse<Components.Schemas.Show>> {
         do {
             let output = try await apiClient.searchShows(
                 .init(
@@ -553,17 +550,17 @@ private final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, 
                     )
                 )
             case .badRequest(let badRequest):
-                return .failure((try? badRequest.body.json.error) ?? "LaughTrack could not apply those show filters.")
+                return .failure(.init((try? badRequest.body.json.error) ?? "LaughTrack could not apply those show filters."))
             case .internalServerError(let serverError):
-                return .failure((try? serverError.body.json.error) ?? "LaughTrack could not load shows right now.")
+                return .failure(.init((try? serverError.body.json.error) ?? "LaughTrack could not load shows right now."))
             case .undocumented(let status, _):
-                return .failure("LaughTrack returned an unexpected response (\(status)).")
+                return .failure(.init("LaughTrack returned an unexpected response (\(status))."))
             }
         } catch {
             guard !Task.isCancelled else {
-                return .failure("LaughTrack could not load shows right now.")
+                return .failure(.init("LaughTrack could not load shows right now."))
             }
-            return .failure("LaughTrack could not reach the shows search service. Check your connection and try again.")
+            return .failure(.init("LaughTrack could not reach the shows search service. Check your connection and try again."))
         }
     }
 
@@ -1489,7 +1486,7 @@ private final class ShowDetailModel: EntityDetailModel<Components.Schemas.ShowDe
     private func fetch(
         apiClient: Client,
         favorites: ComedianFavoriteStore
-    ) async -> Result<Components.Schemas.ShowDetailResponse, String> {
+    ) async -> LoadResult<Components.Schemas.ShowDetailResponse> {
         do {
             let output = try await apiClient.getShow(.init(path: .init(id: showID)))
             switch output {
@@ -1500,18 +1497,18 @@ private final class ShowDetailModel: EntityDetailModel<Components.Schemas.ShowDe
                 }
                 return .success(response)
             case .badRequest:
-                return .failure("LaughTrack could not load this show right now.")
+                return .failure(.init("LaughTrack could not load this show right now."))
             case .notFound:
-                return .failure("This show could not be found.")
+                return .failure(.init("This show could not be found."))
             case .tooManyRequests:
-                return .failure("LaughTrack is rate-limiting show details right now.")
+                return .failure(.init("LaughTrack is rate-limiting show details right now."))
             case .internalServerError:
-                return .failure("LaughTrack hit a server error while loading this show.")
+                return .failure(.init("LaughTrack hit a server error while loading this show."))
             case .undocumented(let status, _):
-                return .failure("LaughTrack returned an unexpected show detail response (\(status)).")
+                return .failure(.init("LaughTrack returned an unexpected show detail response (\(status))."))
             }
         } catch {
-            return .failure("LaughTrack could not reach the show details service. Check your connection and try again.")
+            return .failure(.init("LaughTrack could not reach the show details service. Check your connection and try again."))
         }
     }
 }
@@ -1539,7 +1536,7 @@ private final class ComedianDetailModel: EntityDetailModel<Components.Schemas.Co
     private func fetch(
         apiClient: Client,
         favorites: ComedianFavoriteStore
-    ) async -> Result<Components.Schemas.ComedianDetail, String> {
+    ) async -> LoadResult<Components.Schemas.ComedianDetail> {
         do {
             let output = try await apiClient.getComedian(.init(path: .init(id: comedianID)))
             switch output {
@@ -1548,16 +1545,16 @@ private final class ComedianDetailModel: EntityDetailModel<Components.Schemas.Co
                 favorites.overwrite(uuid: comedian.uuid, value: favorites.value(for: comedian.uuid))
                 return .success(comedian)
             case .badRequest:
-                return .failure("LaughTrack could not load this comedian right now.")
+                return .failure(.init("LaughTrack could not load this comedian right now."))
             case .notFound:
-                return .failure("This comedian could not be found.")
+                return .failure(.init("This comedian could not be found."))
             case .internalServerError:
-                return .failure("LaughTrack hit a server error while loading this comedian.")
+                return .failure(.init("LaughTrack hit a server error while loading this comedian."))
             case .undocumented(let status, _):
-                return .failure("LaughTrack returned an unexpected comedian detail response (\(status)).")
+                return .failure(.init("LaughTrack returned an unexpected comedian detail response (\(status))."))
             }
         } catch {
-            return .failure("LaughTrack could not reach the comedian details service. Check your connection and try again.")
+            return .failure(.init("LaughTrack could not reach the comedian details service. Check your connection and try again."))
         }
     }
 }
@@ -1582,23 +1579,23 @@ private final class ClubDetailModel: EntityDetailModel<Components.Schemas.ClubDe
         }
     }
 
-    private func fetch(apiClient: Client) async -> Result<Components.Schemas.ClubDetail, String> {
+    private func fetch(apiClient: Client) async -> LoadResult<Components.Schemas.ClubDetail> {
         do {
             let output = try await apiClient.getClub(.init(path: .init(id: clubID)))
             switch output {
             case .ok(let ok):
                 return .success(try ok.body.json.data)
             case .badRequest:
-                return .failure("LaughTrack could not load this club right now.")
+                return .failure(.init("LaughTrack could not load this club right now."))
             case .notFound:
-                return .failure("This club could not be found.")
+                return .failure(.init("This club could not be found."))
             case .internalServerError:
-                return .failure("LaughTrack hit a server error while loading this club.")
+                return .failure(.init("LaughTrack hit a server error while loading this club."))
             case .undocumented(let status, _):
-                return .failure("LaughTrack returned an unexpected club detail response (\(status)).")
+                return .failure(.init("LaughTrack returned an unexpected club detail response (\(status))."))
             }
         } catch {
-            return .failure("LaughTrack could not reach the club details service. Check your connection and try again.")
+            return .failure(.init("LaughTrack could not reach the club details service. Check your connection and try again."))
         }
     }
 }

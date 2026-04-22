@@ -550,7 +550,7 @@ private struct AuthLoadingView: View {
     }
 }
 
-private struct LaughTrackNavigationChrome: ViewModifier {
+struct LaughTrackNavigationChrome: ViewModifier {
     let background: Color
 
     func body(content: Content) -> some View {

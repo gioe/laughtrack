@@ -32,6 +32,22 @@ enum LoadPhase<Value> {
     case failure(String)
 }
 
+struct LoadFailure: Error, Equatable, Sendable, ExpressibleByStringLiteral, CustomStringConvertible {
+    let message: String
+
+    init(_ message: String) {
+        self.message = message
+    }
+
+    init(stringLiteral value: StringLiteralType) {
+        self.message = value
+    }
+
+    var description: String { message }
+}
+
+typealias LoadResult<Value> = Result<Value, LoadFailure>
+
 struct DiscoverySearchPage<Item> {
     let items: [Item]
     let total: Int
@@ -59,7 +75,7 @@ class EntitySearchModel<Query: Equatable, Item>: ObservableObject {
     func reload(
         query: Query,
         shouldDebounce: Bool = false,
-        fetch: @escaping (_ page: Int, _ query: Query) async throws -> Result<DiscoverySearchResponse<Item>, String>
+        fetch: @escaping (_ page: Int, _ query: Query) async throws -> LoadResult<DiscoverySearchResponse<Item>>
     ) async {
         if loadedQuery == query, case .success = phase {
             return
@@ -74,7 +90,7 @@ class EntitySearchModel<Query: Equatable, Item>: ObservableObject {
 
     func loadMore(
         query: Query,
-        fetch: @escaping (_ page: Int, _ query: Query) async throws -> Result<DiscoverySearchResponse<Item>, String>
+        fetch: @escaping (_ page: Int, _ query: Query) async throws -> LoadResult<DiscoverySearchResponse<Item>>
     ) async {
         guard case .success(let current) = phase, current.canLoadMore, !isLoadingMore else { return }
         await load(page: current.page + 1, query: query, shouldDebounce: false, fetch: fetch, resetResults: false)
@@ -96,7 +112,7 @@ class EntitySearchModel<Query: Equatable, Item>: ObservableObject {
         page: Int,
         query: Query,
         shouldDebounce: Bool,
-        fetch: @escaping (_ page: Int, _ query: Query) async throws -> Result<DiscoverySearchResponse<Item>, String>,
+        fetch: @escaping (_ page: Int, _ query: Query) async throws -> LoadResult<DiscoverySearchResponse<Item>>,
         resetResults: Bool
     ) async {
         let existingItems = currentItems
@@ -133,8 +149,8 @@ class EntitySearchModel<Query: Equatable, Item>: ObservableObject {
                     )
                 )
                 loadedQuery = query
-            case .failure(let message):
-                handleFailure(message: message, existingItems: existingItems, resetResults: resetResults)
+            case .failure(let error):
+                handleFailure(message: error.message, existingItems: existingItems, resetResults: resetResults)
             }
         } catch {
             guard !Task.isCancelled else { return }
@@ -165,19 +181,19 @@ class EntityDetailModel<Value>: ObservableObject {
     @Published private(set) var phase: LoadPhase<Value> = .idle
 
     func loadIfNeeded(
-        using request: @escaping () async -> Result<Value, String>
+        using request: @escaping () async -> LoadResult<Value>
     ) async {
         guard case .idle = phase else { return }
         await reload(using: request)
     }
 
     func reload(
-        using request: @escaping () async -> Result<Value, String>
+        using request: @escaping () async -> LoadResult<Value>
     ) async {
         phase = .loading
         phase = await request().fold(
             onSuccess: { .success($0) },
-            onFailure: { .failure($0) }
+            onFailure: { .failure($0.message) }
         )
     }
 }

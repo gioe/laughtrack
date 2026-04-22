@@ -5,6 +5,8 @@ import LaughTrackAPIClient
 import OpenAPIURLSession
 import Foundation
 
+// SwiftPM test bundles provide their own entrypoint; keep the app entrypoint for Xcode builds.
+#if !SWIFT_PACKAGE
 @main
 struct LaughTrackApp: App {
     @StateObject private var coordinator = NavigationCoordinator<AppRoute>()
@@ -42,3 +44,4 @@ struct LaughTrackApp: App {
         defaults.removeObject(forKey: "laughtrack.auth.session-metadata")
     }
 }
+#endif
