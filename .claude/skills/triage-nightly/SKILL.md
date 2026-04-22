@@ -33,7 +33,7 @@ Then go to **Mode: Local**.
 
 **Step 2 — Find recent successful scheduled runs (up to 7):**
 ```bash
-gh run list --workflow scraper-schedule.yml --limit 10 --json databaseId,conclusion,createdAt 2>&1
+gh run list --workflow scraper-schedule.yml --limit 10 --json databaseId,conclusion,createdAt,headSha 2>&1
 ```
 Filter to `conclusion == "success"`. Take up to 7 entries (newest first). Note their `databaseId` values.
 
@@ -278,7 +278,7 @@ If `--create-tasks` was passed:
    ```bash
    tusk task-insert \
      "Investigate scraper regression: <club_name>" \
-     "Scraper for <club_name> (club id=<club_id>) returned 0 shows after having <prev_shows> shows in the previous nightly run. No error was reported — the scraper ran successfully but found nothing. This may indicate a site redesign, changed selectors, or a temporary calendar gap.\n\nReproduction:\ncd apps/scraper && make scrape-club CLUB='<club_name>'" \
+     "Scraper for <club_name> (club id=<club_id>) returned 0 shows after having <prev_shows> shows in the previous nightly run. No error was reported — the scraper ran successfully but found nothing. This may indicate a site redesign, changed selectors, or a temporary calendar gap.\n\nNightly run: <head_sha> (GHA run <run_id>) — check \`git log <head_sha>..HEAD\` for intervening fixes before investigating.\n\nReproduction:\ncd apps/scraper && make scrape-club CLUB='<club_name>'" \
      --priority High \
      --domain scraper \
      --task-type bug \
@@ -292,7 +292,7 @@ If `--create-tasks` was passed:
    ```bash
    tusk task-insert \
      "Fix scraper error: <club_name>" \
-     "Scraper for <club_name> (club id=<club_id>) started failing after being OK in the previous nightly run.\n\nError: <error_message>\n\nReproduction:\ncd apps/scraper && make scrape-club CLUB='<club_name>'" \
+     "Scraper for <club_name> (club id=<club_id>) started failing after being OK in the previous nightly run.\n\nError: <error_message>\n\nNightly run: <head_sha> (GHA run <run_id>) — check \`git log <head_sha>..HEAD\` for intervening fixes before investigating.\n\nReproduction:\ncd apps/scraper && make scrape-club CLUB='<club_name>'" \
      --priority High \
      --domain scraper \
      --task-type bug \

@@ -1,9 +1,11 @@
-"""Generic Tixr URL extraction utilities."""
+"""Generic Tixr URL extraction and pagination utilities."""
 
 import re
 from typing import List, Optional
+from urllib.parse import urljoin, urlparse
 
 from laughtrack.foundation.utilities.json.utils import JSONUtils
+from laughtrack.utilities.infrastructure.html.scraper import HtmlScraper
 
 
 class TixrExtractor:
@@ -34,6 +36,14 @@ class TixrExtractor:
     # Extracts the trailing numeric event ID from a long-form URL slug.
     # Matches the final -\d+ sequence (single-dash format with a digit ID).
     _LONG_URL_ID_RE = re.compile(r'-(\d+)$')
+
+    _PAGINATION_HINTS: tuple[str, ...] = (
+        "more shows",
+        "next month",
+        "next",
+        "older",
+        "load more",
+    )
 
     @staticmethod
     def extract_tixr_urls(html_content: str) -> List[str]:
@@ -146,3 +156,53 @@ class TixrExtractor:
                 if isinstance(event, dict) and event.get("url"):
                     urls.append(event["url"])
         return urls
+
+    @staticmethod
+    def extract_pagination_urls(html_content: str, base_url: str) -> List[str]:
+        """
+        Extract likely pagination URLs from a venue calendar page.
+
+        This is intentionally conservative: it follows same-site navigation that
+        looks like "more shows" / "next month" style pagination, and excludes
+        Tixr event-detail URLs so the discovery phase cannot wander into the
+        blocked detail pages.
+        """
+        candidates: List[str] = []
+        seen: set[str] = set()
+        base_netloc = urlparse(base_url).netloc.lower()
+
+        def add_candidate(href: Optional[str]) -> None:
+            if not href:
+                return
+            absolute = urljoin(base_url, href)
+            parsed = urlparse(absolute)
+            if parsed.netloc.lower() != base_netloc:
+                return
+            if "/events/" in parsed.path:
+                return
+            if absolute not in seen:
+                seen.add(absolute)
+                candidates.append(absolute)
+
+        for link in HtmlScraper.find_elements_by_selector(
+            html_content, "a.btn.btn-outline-light.loading-btn[href]"
+        ):
+            add_candidate(getattr(link, "get", lambda *_: None)("href"))
+
+        for link in HtmlScraper.find_elements(html_content, "a", href=True):
+            href = getattr(link, "get", lambda *_: None)("href")
+            title = str(getattr(link, "get", lambda *_: None)("title") or "").lower()
+            aria_label = str(getattr(link, "get", lambda *_: None)("aria-label") or "").lower()
+            rel = " ".join(getattr(link, "get", lambda *_: None)("rel") or []).lower()
+            text = str(getattr(link, "get_text", lambda **_: "")(strip=True) or "").lower()
+
+            hint_text = " ".join(part for part in (title, aria_label, rel, text) if part)
+            if any(hint in hint_text for hint in TixrExtractor._PAGINATION_HINTS):
+                add_candidate(href)
+
+        for icon in HtmlScraper.find_elements(html_content, "i", class_="fas fa-caret-right"):
+            parent = getattr(icon, "find_parent", lambda *_: None)("a")
+            if parent is not None:
+                add_candidate(getattr(parent, "get", lambda *_: None)("href"))
+
+        return candidates

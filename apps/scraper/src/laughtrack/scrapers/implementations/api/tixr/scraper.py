@@ -31,6 +31,8 @@ from laughtrack.utilities.infrastructure.scraper.scraper import BatchScraper
 from .extractor import TixrExtractor
 from .data import TixrPageData
 
+_MAX_DISCOVERY_PAGES = 12
+
 
 class TixrScraper(BaseScraper):
     """
@@ -54,11 +56,57 @@ class TixrScraper(BaseScraper):
         )
 
     async def collect_scraping_targets(self) -> List[ScrapingTarget]:
-        """Return the venue calendar page URL."""
+        """
+        Discover the venue calendar pages to scrape.
+
+        Most Tixr-backed venues expose all event links on a single page, but some
+        paginate venue-owned calendar pages ("more shows", month navigation, etc.).
+        Crawl a bounded same-site pagination graph first, then extract Tixr event
+        links from each discovered page in ``get_data()``.
+        """
         url = self.club.scraping_url
         if not url.startswith(("http://", "https://")):
             url = f"https://{url}"
-        return [url]
+
+        pending = [url]
+        seen: set[str] = set()
+        targets: List[ScrapingTarget] = []
+
+        while pending and len(targets) < _MAX_DISCOVERY_PAGES:
+            current = URLUtils.normalize_url(pending.pop(0))
+            if current in seen:
+                continue
+            seen.add(current)
+            targets.append(current)
+
+            html_content = await self._fetch_calendar_html(current)
+            if not html_content:
+                continue
+
+            for next_url in TixrExtractor.extract_pagination_urls(html_content, current):
+                normalized_next = URLUtils.normalize_url(next_url)
+                if normalized_next not in seen and normalized_next not in pending:
+                    pending.append(normalized_next)
+
+        if len(targets) > 1:
+            Logger.info(
+                f"{self._log_prefix}: Discovered {len(targets)} calendar pages before Tixr extraction",
+                self.logger_context,
+            )
+
+        return targets
+
+    async def _fetch_calendar_html(self, url: str) -> Optional[str]:
+        """
+        Fetch a venue calendar page through the appropriate HTTP path.
+
+        Tixr-hosted group pages use the DataDome-aware Tixr client path; venue-owned
+        pages stay on the standard HttpClient path with shared retry/fallback logic.
+        """
+        normalized = URLUtils.normalize_url(url)
+        if "tixr.com" in normalized:
+            return await self.tixr_client._fetch_tixr_page(normalized)
+        return await self.fetch_html(normalized)
 
     async def get_data(self, url: str) -> Optional[TixrPageData]:
         """
@@ -71,15 +119,7 @@ class TixrScraper(BaseScraper):
             TixrPageData containing resolved TixrEvent objects, or None if no events found
         """
         try:
-            normalized = URLUtils.normalize_url(url)
-            # Tixr group pages (tixr.com/groups/*) are behind DataDome WAF and
-            # require a bare curl_cffi session to bypass bot detection.  Non-Tixr
-            # calendar pages (venue's own domain) are fetched via the standard
-            # HttpClient path which includes Playwright fallback.
-            if "tixr.com" in normalized:
-                html_content = await self.tixr_client._fetch_tixr_page(normalized)
-            else:
-                html_content = await self.fetch_html(normalized)
+            html_content = await self._fetch_calendar_html(url)
 
             if not html_content:
                 Logger.info(f"{self._log_prefix}: No HTML content returned from {url}", self.logger_context)

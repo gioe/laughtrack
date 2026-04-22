@@ -1,40 +1,56 @@
 <!DOCTYPE html><html lang='en'><head><meta charset='utf-8'/><title>Scraper Metrics Dashboard</title><style>body { font-family: system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; margin:0; padding:24px; background:#f6f8fa;}h1{margin-top:0;}table{border-collapse:collapse;width:100%;}th,td{padding:6px 8px;border:1px solid #e1e4e8;font-size:0.85rem;}tr.success{background:#f0fff4;}tr.error{background:#fff5f5;}.section{background:#fff;border:1px solid #e1e4e8;border-radius:8px;padding:16px;margin-bottom:24px;box-shadow:0 1px 2px rgba(0,0,0,0.04);} .muted{color:#666;}.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;}@media (max-width:1000px){.grid{grid-template-columns:1fr;}}code{background:#f3f4f6;padding:2px 4px;border-radius:4px;}#club-filter-bar label{font-size:0.9rem;}#club-filter-bar select{padding:4px 8px;border-radius:6px;border:1px solid #d0d7de;background:#fff;}#club-filter-bar{display:none;align-items:center;gap:12px;} .mc-value{font-weight:600;color:#111827;}</style></head><body><h1>Scraper Metrics Dashboard</h1><p class='muted'>Sessions: 1</p><div class='section' id='club-filter-bar'><div style='display:flex;align-items:center;gap:8px;flex-wrap:wrap;'><label for='club-select'><strong>Club:</strong></label><select id='club-select'><option value=''>All Clubs</option></select><span id='club-summary' class='muted'></span></div></div><div class='section'><h2>Recent Sessions</h2><table><thead><tr><th>Datetime</th><th>Scraped</th><th>Saved</th><th>Inserted</th><th>Updated</th><th>Failed</th><th>Clubs</th><th>Errors</th><th>Skipped</th><th>Validation</th><th>DB Errors</th><th>Success %</th></tr></thead><tbody>
-        <tr class="success">
-            <td>✅ 2025-10-03 08:37:08</td>
-            <td>100</td>
-            <td>100</td>
-            <td>97</td>
-            <td>3</td>
+        <tr class="error">
+            <td>❌ 2026-04-21 09:10:19</td>
+            <td>270</td>
             <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>3</td>
             <td>1</td>
             <td>0</td>
             <td>0</td>
             <td>0</td>
             <td>0</td>
-            <td>100.0%</td>
+            <td>0.0%</td>
         </tr>
         </tbody></table></div><div class='grid'><div class='section'><h2>Latest Error Details</h2><table id='error-details-table'><thead><tr><th>Club</th><th>Error</th></tr></thead><tbody>
-        <tr>
-            <td colspan="2" style="text-align: center; color: green;">🎉 No scraping errors in latest session!</td>
-        </tr>
-        </tbody></table></div><div class='section'><h2>Latest DB Operations</h2><table><thead><tr><th>Operation</th><th>Count</th><th>Status</th></tr></thead><tbody>
+            <tr>
+                <td>Cap City Comedy Club</td>
+                <td>Unexpected error batch 1/3: tuple index out of range</td>
+            </tr>
+            
+            <tr>
+                <td>Cap City Comedy Club</td>
+                <td>Unexpected error batch 2/3: tuple index out of range</td>
+            </tr>
+            
+            <tr>
+                <td>Cap City Comedy Club</td>
+                <td>Unexpected error batch 3/3: tuple index out of range</td>
+            </tr>
+            </tbody></table></div><div class='section'><h2>Latest DB Operations</h2><table><thead><tr><th>Operation</th><th>Count</th><th>Status</th></tr></thead><tbody>
                     <tr class="success">
                         <td>Shows Scraped</td>
-                        <td>100</td>
+                        <td>270</td>
                         <td>✅ Complete</td>
                     </tr>
-                    <tr class="success">
+                    <tr class="error">
                         <td>Shows Saved</td>
-                        <td>100</td>
-                        <td>✅ Success</td>
+                        <td>0</td>
+                        <td>❌ With Failures</td>
                     </tr>
                     <tr class="success">
                         <td>New Shows Inserted</td>
-                        <td>97</td>
+                        <td>0</td>
                         <td>✅ Complete</td>
                     </tr>
                     <tr class="success">
                         <td>Shows Updated</td>
-                        <td>3</td>
+                        <td>0</td>
                         <td>✅ Complete</td>
-                    </tr></tbody></table></div></div><div class='section'><h2>Deduplicated Shows</h2><div class="dedup-card" style="margin-top:12px;"><div class="dedup-header"><h3 class="dedup-title">Deduped Shows (Latest)</h3><div class="muted" style="padding:10px 16px;">No deduplicated shows in the latest session.</div></div></div></div><script>window.DASHBOARD_SESSIONS=[{"id": "2025-10-03T08:37:08.285889", "datetime": "2025-10-03 08:37:08", "totals": {"scraped": 100, "saved": 100, "inserted": 97, "updated": 3, "failed_saves": 0, "errors": 0, "clubs": 1, "success_rate": 100.0, "skipped_dedup": 0, "validation_failed": 0, "db_errors": 0}, "clubs": [{"club": "Comedy Cellar New York", "club_id": 1, "num_shows": 100, "status": "success", "error": null, "saved": null, "inserted": null, "updated": null, "failed_saves": null, "errors": null, "success_rate": null, "skipped_dedup": null, "validation_failed": null, "db_errors": null, "error_details": []}]}];</script><script>(function(){const s=window.DASHBOARD_SESSIONS||[];if(!s.length)return;const l=s[0];if(!l||!l.clubs||!l.clubs.length)return;const bar=document.getElementById('club-filter-bar');const sel=document.getElementById('club-select');const summary=document.getElementById('club-summary');const errTable=document.getElementById('error-details-table');const errRows=errTable?Array.from(errTable.querySelectorAll('tbody tr')):[];const uniq=[];l.clubs.forEach(c=>{const id=(c.club_id!=null?String(c.club_id):'');const name=c.club||'';if(!id)return; if(!uniq.find(x=>x.id===id)){uniq.push({id,name});}});uniq.sort((a,b)=>a.name.localeCompare(b.name)).forEach(o=>{const opt=document.createElement('option');opt.value=o.id;opt.textContent=o.name;opt.setAttribute('data-name',o.name);sel.appendChild(opt);});bar.style.display='block';function fc(id){return l.clubs.find(c=>String(c.club_id)===String(id));}function upd(){const id=sel.value;if(id){const c=fc(id)||{};const sr=c.success_rate!=null?Number(c.success_rate).toFixed(1)+'%':'-';const name=c.club||'(unknown)';summary.textContent=`${name} (#${id}) — shows: ${(c.num_shows||0).toLocaleString()} saved: ${(c.saved||0).toLocaleString()} inserted: ${(c.inserted||0).toLocaleString()} updated: ${(c.updated||0).toLocaleString()} failed_saves: ${(c.failed_saves||0).toLocaleString()} errors: ${(c.errors||0).toLocaleString()} success: ${sr}`;} else summary.textContent='';if(errRows.length){errRows.forEach(r=>{if(!id){r.style.display='';return;}const cell=r.children[0];const cc=cell?cell.textContent.trim():'';const rowMatches=cc && cc.indexOf('#')>-1 ? cc.split('#').pop().replace(/[^0-9].*$/,'')===id : cc===id; r.style.display=rowMatches?'':'none';});}if(window.DEDUP_WIDGET){if(typeof window.DEDUP_WIDGET.setClubId==='function'){window.DEDUP_WIDGET.setClubId(id);}else if(typeof window.DEDUP_WIDGET.setClubName==='function'){window.DEDUP_WIDGET.setClubName(id);}} (window.__CLUB_SELECTION_LISTENERS||[]).forEach(fn=>{try{fn(id);}catch(e){}});} sel.addEventListener('change',upd); window.__CLUB_SELECTION_LISTENERS=window.__CLUB_SELECTION_LISTENERS||[]; upd();})();</script></body></html>
+                    </tr>
+                    <tr class="error">
+                        <td>Failed Saves</td>
+                        <td>3</td>
+                        <td>❌ Failed</td>
+                    </tr></tbody></table></div></div><div class='section'><h2>Deduplicated Shows</h2><div class="dedup-card" style="margin-top:12px;"><div class="dedup-header"><h3 class="dedup-title">Deduped Shows (Latest)</h3><div class="muted" style="padding:10px 16px;">No deduplicated shows in the latest session.</div></div></div></div><script>window.DASHBOARD_SESSIONS=[{"id": "2026-04-21T09:10:19.659422", "datetime": "2026-04-21 09:10:19", "totals": {"scraped": 270, "saved": 0, "inserted": 0, "updated": 0, "failed_saves": 3, "errors": 0, "clubs": 1, "success_rate": 0.0, "skipped_dedup": 0, "validation_failed": 0, "db_errors": 0}, "clubs": [{"club": "Cap City Comedy Club", "club_id": 93, "num_shows": 270, "status": "success", "error": null, "saved": null, "inserted": null, "updated": null, "failed_saves": null, "errors": 0, "success_rate": null, "skipped_dedup": null, "validation_failed": null, "db_errors": null, "error_details": ["Unexpected error batch 1/3: tuple index out of range", "Unexpected error batch 2/3: tuple index out of range", "Unexpected error batch 3/3: tuple index out of range"]}]}];</script><script>(function(){const s=window.DASHBOARD_SESSIONS||[];if(!s.length)return;const l=s[0];if(!l||!l.clubs||!l.clubs.length)return;const bar=document.getElementById('club-filter-bar');const sel=document.getElementById('club-select');const summary=document.getElementById('club-summary');const errTable=document.getElementById('error-details-table');const errRows=errTable?Array.from(errTable.querySelectorAll('tbody tr')):[];const uniq=[];l.clubs.forEach(c=>{const id=(c.club_id!=null?String(c.club_id):'');const name=c.club||'';if(!id)return; if(!uniq.find(x=>x.id===id)){uniq.push({id,name});}});uniq.sort((a,b)=>a.name.localeCompare(b.name)).forEach(o=>{const opt=document.createElement('option');opt.value=o.id;opt.textContent=o.name;opt.setAttribute('data-name',o.name);sel.appendChild(opt);});bar.style.display='block';function fc(id){return l.clubs.find(c=>String(c.club_id)===String(id));}function upd(){const id=sel.value;if(id){const c=fc(id)||{};const sr=c.success_rate!=null?Number(c.success_rate).toFixed(1)+'%':'-';const name=c.club||'(unknown)';summary.textContent=`${name} (#${id}) — shows: ${(c.num_shows||0).toLocaleString()} saved: ${(c.saved||0).toLocaleString()} inserted: ${(c.inserted||0).toLocaleString()} updated: ${(c.updated||0).toLocaleString()} failed_saves: ${(c.failed_saves||0).toLocaleString()} errors: ${(c.errors||0).toLocaleString()} success: ${sr}`;} else summary.textContent='';if(errRows.length){errRows.forEach(r=>{if(!id){r.style.display='';return;}const cell=r.children[0];const cc=cell?cell.textContent.trim():'';const rowMatches=cc && cc.indexOf('#')>-1 ? cc.split('#').pop().replace(/[^0-9].*$/,'')===id : cc===id; r.style.display=rowMatches?'':'none';});}if(window.DEDUP_WIDGET){if(typeof window.DEDUP_WIDGET.setClubId==='function'){window.DEDUP_WIDGET.setClubId(id);}else if(typeof window.DEDUP_WIDGET.setClubName==='function'){window.DEDUP_WIDGET.setClubName(id);}} (window.__CLUB_SELECTION_LISTENERS||[]).forEach(fn=>{try{fn(id);}catch(e){}});} sel.addEventListener('change',upd); window.__CLUB_SELECTION_LISTENERS=window.__CLUB_SELECTION_LISTENERS||[]; upd();})();</script></body></html>

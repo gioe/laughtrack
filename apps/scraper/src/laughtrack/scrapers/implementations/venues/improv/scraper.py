@@ -6,6 +6,7 @@ Follows the standardized 5-component architecture pattern.
 """
 
 from typing import List, Optional
+from urllib.parse import urlparse
 
 from laughtrack.core.entities.club.model import Club
 from laughtrack.core.entities.event.improv import ImprovEvent
@@ -42,6 +43,69 @@ class ImprovScraper(BaseScraper):
         self.transformation_pipeline.register_transformer(ImprovEventTransformer(club))
         # Use BaseHeaders for consistent mobile browser headers
         self.headers = BaseHeaders.get_venue_headers("improv", domain=club.scraping_url, referer=club.scraping_url)
+
+    @staticmethod
+    def _normalize_label(value: str) -> str:
+        return "".join(ch for ch in value.lower() if ch.isalnum())
+
+    def _expected_slug(self) -> str:
+        url = self.club.scraping_url
+        if "://" not in url:
+            url = "https://" + url
+        parsed = urlparse(url)
+        parts = [part for part in parsed.path.split("/") if part]
+        return parts[0].lower() if parts else ""
+
+    def _url_matches_current_club(self, url: str) -> bool:
+        if not url:
+            return False
+
+        expected_slug = self._expected_slug()
+        normalized_url = url.lower()
+        if expected_slug and expected_slug in normalized_url:
+            return True
+
+        # Fallback for a few short TicketWeb codes like `hollyimprov` where the
+        # full club name isn't present in the query params, but the path still is.
+        normalized_name = self._normalize_label(self.club.name.replace("improv", ""))
+        if normalized_name and normalized_name in self._normalize_label(url):
+            return True
+
+        return False
+
+    def _event_matches_current_club(self, event: ImprovEvent) -> bool:
+        location_name = (event.location_name or "").strip()
+        if location_name:
+            return self._normalize_label(location_name) == self._normalize_label(self.club.name)
+
+        candidate_urls = [event.url] + [offer.get("url", "") for offer in (event.offers or [])]
+        return any(self._url_matches_current_club(url) for url in candidate_urls)
+
+    def _filter_cross_venue_events(self, events: List[ImprovEvent]) -> List[ImprovEvent]:
+        kept: List[ImprovEvent] = []
+        filtered = 0
+
+        for event in events:
+            if self._event_matches_current_club(event):
+                kept.append(event)
+                continue
+
+            filtered += 1
+            ticket_urls = [offer.get("url", "") for offer in (event.offers or []) if offer.get("url")]
+            Logger.warning(
+                f"{self._log_prefix}: Filtering cross-venue event '{event.name}' "
+                f"(location='{event.location_name or ''}', event_url='{event.url}', "
+                f"ticket_urls={ticket_urls[:2]})",
+                self.logger_context,
+            )
+
+        if filtered:
+            Logger.warning(
+                f"{self._log_prefix}: Filtered {filtered} cross-venue event(s) before persistence",
+                self.logger_context,
+            )
+
+        return kept
 
     async def get_data(self, url: str) -> Optional[ImprovPageData]:
         """
@@ -119,6 +183,7 @@ class ImprovScraper(BaseScraper):
 
             # Flatten the list of lists into a single list of ImprovEvent
             event_list: List[ImprovEvent] = [event for sublist in raw_event_lists if sublist for event in sublist]
+            event_list = self._filter_cross_venue_events(event_list)
 
             return ImprovPageData(event_list)
 

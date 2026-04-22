@@ -1,0 +1,208 @@
+---
+name: investigate-site
+description: "Deep-inspect a venue URL with browser automation, capture network requests, identify the ticketing platform, and report API endpoints. Usage: /investigate-site <url>"
+---
+
+# Investigate Site
+
+Open a venue URL with the runtime's available browser automation, capture all
+network requests, inspect page source / bootstrap JSON, and report what
+ticketing platform and API endpoints are
+available. Designed to catch JS-only APIs that static HTML inspection misses
+(e.g., Square Online JSON API, Crowdwork widget, Wix Events).
+
+## Usage
+
+```
+/investigate-site https://www.examplecomedy.com/shows
+/investigate-site https://www.examplecomedy.com
+```
+
+## Arguments
+
+- **URL** (required) — the venue's events/shows page to inspect. If only the homepage
+  is given, navigate to the events/shows page first.
+
+## Step 1: Navigate to the Page
+
+Open the URL in the available browser automation tooling and wait for the page
+to fully load:
+
+```
+Navigate to `<url>`.
+```
+
+If the page redirects, note the final URL.
+
+If browser automation fails because of a profile or Chrome-session conflict,
+inform the user:
+
+> Browser automation failed — Chrome is already running with a conflicting profile.
+> Close Chrome and retry, or I can fall back to the scraper's own Playwright via
+> `apps/scraper/.venv/bin/python3` (captures full network + DOM on JS-heavy sites).
+> WebFetch is a last resort — it cannot see JS-rendered content, which is usually
+> the whole point of running /investigate-site.
+
+Scraper-Playwright fallback pattern (run with cwd = `apps/scraper/`):
+
+```python
+# .venv/bin/python3
+import asyncio
+from playwright.async_api import async_playwright
+async def t():
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+        page = await (await browser.new_context()).new_page()
+        reqs = []
+        page.on("request", lambda r: reqs.append((r.method, r.url, r.resource_type)))
+        await page.goto('<url>', wait_until='networkidle', timeout=60000)
+        await page.wait_for_timeout(5000)
+        await page.evaluate('window.scrollTo(0, 4000)')  # force lazy-load
+        await page.wait_for_timeout(3000)
+        body_text = await page.evaluate('document.body.innerText')
+        # Inspect reqs for XHR/fetch to identify platform API calls
+        # Inspect body_text for rendered event titles/dates
+        await browser.close()
+asyncio.run(t())
+```
+
+This pattern captured the JetBook iframe's Bubble.io Elasticsearch calls in
+TASK-1529 where WebFetch returned only "no events listed."
+
+## Step 2: Find the Events Page
+
+If the URL is a homepage (no `/shows`, `/events`, `/calendar`, `/tickets`,
+`/schedule` in the path), inspect the rendered page and look for navigation
+links:
+
+```
+Inspect the rendered page to find the events-page link.
+```
+
+Look for links labeled "Shows", "Events", "Calendar", "Tickets", or "Schedule".
+If found, navigate to that page:
+
+```
+Open the discovered events page link.
+```
+
+## Step 3: Capture Network Requests
+
+After the events page is loaded, capture all network requests made by the page:
+
+```
+Capture the page's network requests.
+```
+
+## Step 4: Analyze Network Requests
+
+Scan the captured requests for known API patterns. Categorize matches by platform:
+
+### Club-Hosted APIs (preferred — show_page_url stays on venue site)
+
+| Network request pattern | Platform | Notes |
+|------------------------|----------|-------|
+| `/wp-json/tribe/events/v1/events` | Tribe Events (WordPress) | REST API, paginated |
+| `/api/open/GetItemsByMonth` | Squarespace | Calendar widget API |
+| `crowdwork.com/api/v2` | Crowdwork | Embedded ticket widget |
+| `tockify.com/api/` | Tockify | Calendar embed |
+| `plugin.vbotickets.com` | VBO Tickets | Ticket widget |
+| `/.netlify/functions/` | Netlify Functions | Custom serverless API |
+| `editmysite.com/app/store/api/` | Square Online (Weebly) | Product/event API |
+| `app.showslinger.com` | ShowSlinger | Embedded widget |
+| `showpass.com/api/public/venues/` | Showpass | Venue events API |
+| `wixstatic.com` / `wix-events` | Wix Events | Client-side widget |
+| `stageti.me` | StageTime | RSC segments |
+| `app.opendate.io` | OpenDate | Booking widget |
+
+### Third-Party Aggregator APIs (fallback)
+
+| Network request pattern | Platform | Notes |
+|------------------------|----------|-------|
+| `ticketmaster.com` / `livenation.com` | Ticketmaster/Live Nation | Discovery API |
+| `eventbrite.com` or `evbqa.com` | Eventbrite | Organizer/venue API |
+| `seatengine.net` or `seatengine.com` | SeatEngine | Venue shows API |
+| `api.ninkashi.com` | Ninkashi | Ticket platform |
+| `vivenu` | Vivenu | Seller page API |
+| `tixr.com` | Tixr | Event API |
+| `prekindle.com` | Prekindle | Ticket platform |
+| `thundertix.com` | ThunderTix | Ticket platform |
+
+### Generic Patterns (any JSON endpoint returning event data)
+
+Also flag any request that returns JSON containing arrays of objects with date-like
+fields (`date`, `start_time`, `event_date`, `starts_at`, etc.) — these may be custom
+APIs not in the tables above.
+
+## Step 5: Inspect Page Source for Static Patterns
+
+Inspect the rendered page or page source to check for non-API patterns embedded
+in HTML:
+
+```
+Inspect the rendered page and page source.
+```
+
+Look for:
+
+| Source pattern | Platform |
+|---------------|----------|
+| `var all_events = [...]` + `tw-plugin-calendar` | TicketWeb (WordPress) |
+| `<script type="application/ld+json">` with `"@type": "Event"` | JSON-LD |
+| `rhpSingleEvent` / `rhp-event__title--list` | rhp-events (WordPress) |
+| `self.__next_f.push` + `stageti.me` | StageTime (Next.js RSC) |
+| `app.opendate.io` / `confirm-card` | OpenDate |
+| `data-compId` on Wix widget | Wix Events |
+| `squadup = { userId:` | SquadUP |
+| `showpass.com/widget/` iframe | Showpass |
+| `app.showslinger.com` iframe / `promo_widget_v3` | ShowSlinger |
+
+## Step 6: Sample API Data (Optional)
+
+If a promising API endpoint was found in Step 4, fetch it directly to confirm it
+returns usable event data:
+
+```bash
+cd apps/scraper && .venv/bin/python3 -c "
+import ssl, urllib.request, json
+ctx = ssl.create_default_context()
+ctx.check_hostname = False; ctx.verify_mode = ssl.CERT_NONE
+with urllib.request.urlopen('<api_url>', context=ctx) as r:
+    data = json.loads(r.read())
+print(type(data), len(data) if isinstance(data, list) else 'dict')
+import json as j; print(j.dumps(data if isinstance(data, list) and len(data) <= 3 else data[:3] if isinstance(data, list) else data, indent=2, default=str)[:2000])
+"
+```
+
+This confirms the API is publicly accessible and shows the response structure.
+
+## Step 7: Report Results
+
+Present findings in this format:
+
+```
+Investigate Site Results
+━━━━━━━━━━━━━━━━━━━━━━━
+URL:              <final URL after redirects>
+Platform:         <detected platform name, or "Unknown / No platform detected">
+API Endpoints:    <list of discovered API URLs>
+Data Available:   <yes/no — does the API return event data?>
+Static Patterns:  <any HTML-embedded patterns found>
+Sample Events:    <count of events in API response, if sampled>
+
+Recommendation:
+  <one of:>
+  - Use generic scraper: <scraper_key> (e.g., json_ld, eventbrite, live_nation)
+  - Build venue-specific scraper for <platform> (reference: <existing venue>)
+  - No scrapable data found — venue may not sell tickets online
+  - Site uses <platform> but API returns 0 events — shows may not be on sale yet
+```
+
+## Integration with /adopt-scraper
+
+This skill is called by `/adopt-scraper` at Step 2e before concluding a platform is
+unsupported. When invoked in that context, the report feeds directly into the
+adopt-scraper's platform decision — no need to repeat the research.
+
+When used standalone, the user can act on the recommendation manually or invoke
+`/adopt-scraper <club name>` to proceed with onboarding.
