@@ -82,10 +82,13 @@ class ImprovEvent(ShowConvertible):
                 price = float(raw_price) if raw_price else None
                 availability = offer.get("availability", "")
                 is_sold_out = "SoldOut" in availability or "OutOfStock" in availability
+                ticket_type = offer.get("name") or "General Admission"
+                if "schema.org/" in ticket_type:
+                    ticket_type = "General Admission"
                 ticket = Ticket(
                     price=price,
                     purchase_url=offer.get("url", ""),
-                    type=offer.get("name", "General Admission"),
+                    type=ticket_type,
                     sold_out=is_sold_out,
                 )
                 tickets.append(ticket)

@@ -64,3 +64,29 @@ This:
 3. Prints a summary of deleted records and added deny-list entries
 
 Report the output to the user.
+
+### 4. Check for false-positive heuristic opportunities
+
+After each confirmed removal, evaluate whether the removed name(s) could have been
+caught earlier by `false_positive_detector.py`
+(`apps/scraper/src/laughtrack/core/entities/comedian/false_positive_detector.py`).
+
+Run `detect_false_positive(name)` mentally against each removed name. If it returns
+None (i.e., the detector would have missed it), consider whether a **simple, general**
+heuristic exists:
+
+- A new entry in `PLACEHOLDER_NAMES` (e.g., "show more")
+- A new entry in `STRUCTURAL_KEYWORDS` (e.g., "closed for")
+- A new entry in `PLACEHOLDER_SUBSTRINGS`
+
+**Only add a heuristic if** it is clearly general-purpose and won't produce false
+negatives on real comedian names. Many removed names are one-off oddities (e.g.,
+"A Summer In Fort Laudy", "UpDating") that don't generalize — skip those silently.
+
+If you identify a good heuristic:
+1. Edit `false_positive_detector.py` to add it
+2. Run the existing tests: `cd apps/scraper && .venv/bin/python -m pytest tests/core/entities/test_false_positive_detector.py -q`
+3. Add a test case for the new heuristic
+4. Briefly tell the user what you added and why
+
+If no good heuristic exists, move on without comment.

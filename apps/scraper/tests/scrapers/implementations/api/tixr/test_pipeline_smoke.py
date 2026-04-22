@@ -94,6 +94,19 @@ def _calendar_html_subdomain(group: str, event_slugs: list) -> str:
     return f"<html><body><div class='calendar'>{links}</div></body></html>"
 
 
+def _calendar_html_with_more_shows(next_href: str, event_ids: list[str]) -> str:
+    links = "".join(
+        f'<a href="https://tixr.com/e/{event_id}" class="buy-tickets-btn">Buy Tickets</a>'
+        for event_id in event_ids
+    )
+    return f"""
+    <html><body>
+    <div class='calendar'>{links}</div>
+    <a class="btn btn-outline-light loading-btn" href="{next_href}">More Shows</a>
+    </body></html>
+    """
+
+
 # ---------------------------------------------------------------------------
 # TixrExtractor unit tests
 # ---------------------------------------------------------------------------
@@ -271,20 +284,54 @@ def test_extract_org_jsonld_event_urls_ignores_non_org_blocks():
 
 
 @pytest.mark.asyncio
-async def test_collect_targets_returns_scraping_url():
-    """collect_scraping_targets() returns only the club's scraping_url."""
+async def test_collect_targets_returns_scraping_url(monkeypatch):
+    """collect_scraping_targets() returns the club's scraping_url when no pagination exists."""
     scraper = TixrScraper(_club())
+
+    async def fake_fetch_html(self, url, **kwargs):
+        return _calendar_html_short(["177558"])
+
+    monkeypatch.setattr(TixrScraper, "fetch_html", fake_fetch_html)
     targets = await scraper.collect_scraping_targets()
     assert len(targets) == 1
     assert targets[0].rstrip("/") == CALENDAR_URL.rstrip("/")
 
 
 @pytest.mark.asyncio
-async def test_collect_targets_prepends_https_when_missing():
+async def test_collect_targets_prepends_https_when_missing(monkeypatch):
     """collect_scraping_targets() adds https:// when scraping_url has no scheme."""
     scraper = TixrScraper(_club(scraping_url="www.example.com/shows"))
+
+    async def fake_fetch_html(self, url, **kwargs):
+        return _calendar_html_short(["177558"])
+
+    monkeypatch.setattr(TixrScraper, "fetch_html", fake_fetch_html)
     targets = await scraper.collect_scraping_targets()
     assert targets[0].startswith("https://")
+
+
+@pytest.mark.asyncio
+async def test_collect_targets_discovers_more_shows_pages(monkeypatch):
+    """collect_scraping_targets() follows bounded same-site pagination links."""
+    scraper = TixrScraper(_club(scraping_url="https://thestandnyc.com/shows"))
+    page_map = {
+        "https://thestandnyc.com/shows": _calendar_html_with_more_shows(
+            "/shows?page=2", ["177558"]
+        ),
+        "https://thestandnyc.com/shows?page=2": _calendar_html_short(["176996"]),
+    }
+
+    async def fake_fetch_html(self, url, **kwargs):
+        return page_map[url]
+
+    monkeypatch.setattr(TixrScraper, "fetch_html", fake_fetch_html)
+
+    targets = await scraper.collect_scraping_targets()
+
+    assert targets == [
+        "https://thestandnyc.com/shows",
+        "https://thestandnyc.com/shows?page=2",
+    ]
 
 
 # ---------------------------------------------------------------------------

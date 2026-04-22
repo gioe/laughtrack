@@ -148,6 +148,33 @@ def test_in_stock_availability_not_sold_out():
     assert shows[0].tickets[0].sold_out is False
 
 
+def test_schema_org_ticket_name_falls_back_to_general_admission():
+    """A schema.org URL accidentally placed in offer.name must not become the ticket type."""
+    club = _club()
+    scraper = ImprovScraper(club)
+
+    events = [
+        ImprovEvent(
+            name="Available Show",
+            start_date=datetime(2026, 6, 15, 20, 0, tzinfo=timezone.utc),
+            url="https://improv.test/show/avail",
+            offers=[
+                {
+                    "url": "https://improv.test/tickets/avail",
+                    "price": "20",
+                    "name": "https://schema.org/InStock",
+                    "availability": "https://schema.org/InStock",
+                }
+            ],
+        )
+    ]
+    page_data = ImprovPageData(event_list=events)
+    shows = scraper.transformation_pipeline.transform(page_data)
+
+    assert len(shows) == 1
+    assert shows[0].tickets[0].type == "General Admission"
+
+
 def test_empty_price_coerced_to_none():
     """
     Regression: empty string price must become None (not '') on the Ticket,
