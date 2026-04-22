@@ -3,6 +3,18 @@ import LaughTrackBridge
 import LaughTrackCore
 import LaughTrackAPIClient
 
+enum LaughTrackViewTestID {
+    static let homeScreen = "laughtrack.home.screen"
+    static let homeSettingsButton = "laughtrack.home.settings-button"
+    static let settingsScreen = "laughtrack.settings.screen"
+    static let settingsNearbyEmptyState = "laughtrack.settings.nearby.empty-state"
+    static let settingsNearbySavedState = "laughtrack.settings.nearby.saved-state"
+    static let settingsZipField = "laughtrack.settings.zip-field"
+    static let settingsDistancePicker = "laughtrack.settings.distance-picker"
+    static let settingsSaveButton = "laughtrack.settings.save-button"
+    static let settingsClearButton = "laughtrack.settings.clear-button"
+}
+
 struct ContentView: View {
     let apiClient: Client
 
@@ -99,6 +111,7 @@ struct HomeView: View {
             .padding(.horizontal, theme.spacing.xl)
             .padding(.vertical, laughTrack.spacing.heroPadding)
         }
+        .accessibilityIdentifier(LaughTrackViewTestID.homeScreen)
         .background(laughTrack.colors.canvas.ignoresSafeArea())
         .background(
             laughTrack.gradients.heroWash
@@ -115,6 +128,7 @@ struct HomeView: View {
                     Image(systemName: authManager.currentSession == nil ? "person.crop.circle.badge.plus" : "gearshape")
                 }
                 .accessibilityLabel("Settings")
+                .accessibilityIdentifier(LaughTrackViewTestID.homeSettingsButton)
             }
         }
         .modifier(LaughTrackNavigationChrome(background: laughTrack.colors.canvas))
@@ -139,14 +153,16 @@ struct SettingsView: View {
 
     init(
         signedOutMessage: String?,
-        nearbyPreferenceStore: NearbyPreferenceStore
+        nearbyPreferenceStore: NearbyPreferenceStore,
+        model: SettingsNearbyPreferenceModel? = nil
     ) {
         self.signedOutMessage = signedOutMessage
         self.nearbyPreferenceStore = nearbyPreferenceStore
+        let resolvedModel = model ?? SettingsNearbyPreferenceModel(
+            nearbyPreferenceStore: nearbyPreferenceStore
+        )
         _model = StateObject(
-            wrappedValue: SettingsNearbyPreferenceModel(
-                nearbyPreferenceStore: nearbyPreferenceStore
-            )
+            wrappedValue: resolvedModel
         )
     }
 
@@ -248,6 +264,7 @@ struct SettingsView: View {
             .padding(.horizontal, theme.spacing.xl)
             .padding(.vertical, laughTrack.spacing.heroPadding)
         }
+        .accessibilityIdentifier(LaughTrackViewTestID.settingsScreen)
         .background(laughTrack.colors.canvas.ignoresSafeArea())
         .navigationTitle("Settings")
     }
@@ -288,12 +305,14 @@ struct SettingsView: View {
                         }
                     }
                 }
+                .accessibilityIdentifier(LaughTrackViewTestID.settingsNearbySavedState)
             } else {
                 LaughTrackStateView(
                     tone: .empty,
                     title: "No nearby preference saved",
                     message: "Save a ZIP code and distance here to reuse the same nearby defaults on home and nearby search."
                 )
+                .accessibilityIdentifier(LaughTrackViewTestID.settingsNearbyEmptyState)
             }
 
             LaughTrackCard(tone: .muted) {
@@ -311,6 +330,7 @@ struct SettingsView: View {
                         text: $model.zipCodeDraft
                     )
                         .accessibilityLabel("Saved ZIP code")
+                        .accessibilityIdentifier(LaughTrackViewTestID.settingsZipField)
 
                     VStack(alignment: .leading, spacing: theme.spacing.sm) {
                         Text("Distance")
@@ -325,6 +345,7 @@ struct SettingsView: View {
                         }
                         .pickerStyle(.segmented)
                         .accessibilityLabel("Distance")
+                        .accessibilityIdentifier(LaughTrackViewTestID.settingsDistancePicker)
                     }
 
                     if let validationMessage = model.validationMessage {
@@ -340,6 +361,7 @@ struct SettingsView: View {
                         ) {
                             model.saveNearbyPreference()
                         }
+                        .accessibilityIdentifier(LaughTrackViewTestID.settingsSaveButton)
 
                         if model.nearbyPreference != nil {
                             LaughTrackButton(
@@ -349,6 +371,7 @@ struct SettingsView: View {
                             ) {
                                 model.clearNearbyPreference()
                             }
+                            .accessibilityIdentifier(LaughTrackViewTestID.settingsClearButton)
                         }
                     }
                 }
