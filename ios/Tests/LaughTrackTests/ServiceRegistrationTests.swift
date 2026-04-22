@@ -111,9 +111,9 @@ struct ServiceRegistrationTests {
 @Suite("AppConfiguration")
 struct AppConfigurationTests {
 
-    @Test("apiBaseURL points to laughtrack API")
+    @Test("apiBaseURL points to the laughtrack host root")
     func apiBaseURL() {
-        #expect(AppConfiguration.apiBaseURL == URL(string: "https://laughtrack.app/api/v1")!)
+        #expect(AppConfiguration.apiBaseURL == URL(string: "https://laughtrack.app")!)
     }
 
     @Test("bundleID matches expected value")

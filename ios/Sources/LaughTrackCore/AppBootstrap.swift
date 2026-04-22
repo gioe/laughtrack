@@ -45,7 +45,12 @@ public struct AppBootstrap {
         let refreshClient = Client(
             serverURL: factory.serverURL,
             transport: URLSessionTransport(),
-            middlewares: [factory.authMiddleware, factory.retryMiddleware, factory.loggingMiddleware]
+            middlewares: [
+                APIVersionPathMiddleware(),
+                factory.authMiddleware,
+                factory.retryMiddleware,
+                factory.loggingMiddleware,
+            ]
         )
 
         let tokenRefreshMiddleware = TokenRefreshMiddleware(
@@ -64,7 +69,14 @@ public struct AppBootstrap {
         let apiClient = Client(
             serverURL: factory.serverURL,
             transport: URLSessionTransport(),
-            middlewares: [tokenRefreshMiddleware, unauthorizedMiddleware, factory.authMiddleware, factory.retryMiddleware, factory.loggingMiddleware]
+            middlewares: [
+                APIVersionPathMiddleware(),
+                tokenRefreshMiddleware,
+                unauthorizedMiddleware,
+                factory.authMiddleware,
+                factory.retryMiddleware,
+                factory.loggingMiddleware,
+            ]
         )
         self.apiClient = apiClient
 

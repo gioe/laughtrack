@@ -10,6 +10,7 @@ struct ContentView: View {
     @EnvironmentObject private var authManager: AuthManager
     @Environment(\.appTheme) private var theme
     @StateObject private var favorites = ComedianFavoriteStore()
+    @StateObject private var nearbyPreferenceStore = NearbyPreferenceStore()
 
     var body: some View {
         Group {
@@ -36,9 +37,16 @@ struct ContentView: View {
         CoordinatedNavigationStack(coordinator: coordinator) { route in
             switch route {
             case .home:
-                HomeView(apiClient: apiClient, signedOutMessage: signedOutMessage)
+                HomeView(
+                    apiClient: apiClient,
+                    signedOutMessage: signedOutMessage,
+                    nearbyPreferenceStore: nearbyPreferenceStore
+                )
             case .settings:
-                SettingsView(signedOutMessage: signedOutMessage)
+                SettingsView(
+                    signedOutMessage: signedOutMessage,
+                    nearbyPreferenceStore: nearbyPreferenceStore
+                )
             case .showDetail(let id):
                 ShowDetailView(showID: id, apiClient: apiClient)
             case .comedianDetail(let id):
@@ -47,7 +55,11 @@ struct ContentView: View {
                 ClubDetailView(clubID: id, apiClient: apiClient)
             }
         } root: {
-            HomeView(apiClient: apiClient, signedOutMessage: signedOutMessage)
+            HomeView(
+                apiClient: apiClient,
+                signedOutMessage: signedOutMessage,
+                nearbyPreferenceStore: nearbyPreferenceStore
+            )
         }
     }
 }
@@ -55,11 +67,11 @@ struct ContentView: View {
 struct HomeView: View {
     let apiClient: Client
     let signedOutMessage: String?
+    let nearbyPreferenceStore: NearbyPreferenceStore
 
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
     @EnvironmentObject private var authManager: AuthManager
     @Environment(\.appTheme) private var theme
-    @StateObject private var nearbyPreferenceStore = NearbyPreferenceStore()
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
@@ -119,6 +131,7 @@ struct HomeView: View {
 
 struct SettingsView: View {
     let signedOutMessage: String?
+    @ObservedObject var nearbyPreferenceStore: NearbyPreferenceStore
 
     @EnvironmentObject private var authManager: AuthManager
     @Environment(\.appTheme) private var theme
@@ -130,8 +143,8 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: laughTrack.spacing.sectionGap) {
                 LaughTrackSectionHeader(
                     eyebrow: "Settings",
-                    title: "Theme tokens in use",
-                    subtitle: "The reusable cards and buttons carry the same visual language as discovery and detail screens."
+                    title: "Keep discovery grounded in real app state",
+                    subtitle: "This screen only surfaces settings LaughTrack actually persists today, plus your current account state."
                 )
 
                 if let signedOutMessage {
@@ -142,26 +155,69 @@ struct SettingsView: View {
                     }
                 }
 
+                LaughTrackSectionHeader(
+                    eyebrow: "Discovery",
+                    title: "Nearby discovery",
+                    subtitle: "Home and Settings share the same saved ZIP and search radius."
+                )
+
                 LaughTrackCard {
                     VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
-                        tokenRow(title: "Canvas", color: laughTrack.colors.canvas)
-                        tokenRow(title: "Accent", color: laughTrack.colors.accent)
-                        tokenRow(title: "Highlight", color: laughTrack.colors.highlight)
-                    }
-                }
+                        if let preference = nearbyPreferenceStore.preference {
+                            Text("Saved nearby preference")
+                                .font(laughTrack.typography.cardTitle)
+                                .foregroundStyle(laughTrack.colors.textPrimary)
 
-                LaughTrackCard(tone: .muted) {
-                    VStack(alignment: .leading, spacing: laughTrack.spacing.itemGap) {
-                        Text("Motion")
-                            .font(laughTrack.typography.cardTitle)
-                            .foregroundStyle(laughTrack.colors.textPrimary)
-                        Text("Tap feedback and emphasis animations are sourced from the shared LaughTrack motion tokens.")
-                            .font(laughTrack.typography.body)
-                            .foregroundStyle(laughTrack.colors.textSecondary)
-                        Text("Spring emphasis")
-                            .font(laughTrack.typography.metadata)
-                            .foregroundStyle(laughTrack.colors.accent)
-                            .textCase(.uppercase)
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: theme.spacing.sm) {
+                                    LaughTrackBadge(
+                                        "ZIP \(preference.zipCode)",
+                                        systemImage: "mappin.and.ellipse",
+                                        tone: .neutral
+                                    )
+                                    LaughTrackBadge(
+                                        "\(preference.distanceMiles) mi",
+                                        systemImage: "location.fill",
+                                        tone: .highlight
+                                    )
+                                    LaughTrackBadge(
+                                        preference.source == .manual ? "Saved manually" : "Current location",
+                                        systemImage: preference.source == .manual ? "slider.horizontal.3" : "location.north.line",
+                                        tone: .accent
+                                    )
+                                }
+                            }
+
+                            Text("Adjust the search radius here or return home when you want to replace the ZIP itself.")
+                                .font(laughTrack.typography.body)
+                                .foregroundStyle(laughTrack.colors.textSecondary)
+
+                            HStack(spacing: theme.spacing.sm) {
+                                LaughTrackButton("Radius -5", systemImage: "minus", tone: .secondary, fullWidth: false) {
+                                    updateNearbyRadius(by: -5)
+                                }
+                                .disabled(preference.distanceMiles <= 5)
+
+                                LaughTrackButton("Radius +5", systemImage: "plus", tone: .secondary, fullWidth: false) {
+                                    updateNearbyRadius(by: 5)
+                                }
+                            }
+
+                            LaughTrackButton(
+                                "Clear saved nearby preference",
+                                systemImage: "location.slash",
+                                tone: .tertiary
+                            ) {
+                                nearbyPreferenceStore.clear()
+                            }
+                        } else {
+                            Text("No nearby ZIP is saved yet.")
+                                .font(laughTrack.typography.cardTitle)
+                                .foregroundStyle(laughTrack.colors.textPrimary)
+                            Text("Set a ZIP or use current location from Home when you want nearby shows to stay pinned across launches.")
+                                .font(laughTrack.typography.body)
+                                .foregroundStyle(laughTrack.colors.textSecondary)
+                        }
                     }
                 }
 
@@ -252,21 +308,9 @@ struct SettingsView: View {
         .navigationTitle("Settings")
     }
 
-    @ViewBuilder
-    private func tokenRow(title: String, color: Color) -> some View {
-        HStack {
-            Text(title)
-                .font(theme.laughTrackTokens.typography.bodyEmphasis)
-                .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
-            Spacer()
-            Circle()
-                .fill(color)
-                .frame(width: 20, height: 20)
-                .overlay(
-                    Circle()
-                        .stroke(theme.laughTrackTokens.colors.borderSubtle, lineWidth: 1)
-                )
-        }
+    private func updateNearbyRadius(by delta: Int) {
+        guard let preference = nearbyPreferenceStore.preference else { return }
+        nearbyPreferenceStore.setDistance(max(5, preference.distanceMiles + delta))
     }
 }
 

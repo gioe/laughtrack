@@ -1,9 +1,23 @@
 import Foundation
 
 public enum AppConfiguration {
-    /// Base URL for the API backend.
-    /// Update this to point to your actual server.
-    public static let apiBaseURL = URL(string: "https://laughtrack.app/api/v1")!
+    /// Base URL for the LaughTrack web host.
+    ///
+    /// The OpenAPI client emits absolute operation paths, so the app injects the
+    /// `/api/v1` mount point in middleware and keeps the configured base URL at
+    /// the host root. The simulator can override this at runtime for local
+    /// verification while production launches continue to default to the hosted
+    /// LaughTrack web domain.
+    public static let apiBaseURL: URL = {
+        if
+            let override = ProcessInfo.processInfo.environment["LAUGHTRACK_API_BASE_URL"],
+            let url = URL(string: override)
+        {
+            return url
+        }
+
+        return URL(string: "https://laughtrack.app")!
+    }()
 
     /// Bundle identifier
     public static let bundleID = "com.laughtrack.laughtrack"

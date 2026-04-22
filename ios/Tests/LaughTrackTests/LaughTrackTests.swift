@@ -23,7 +23,7 @@ struct LaughTrackTests {
     func startupConfigurationMatchesProductionContracts() {
         #expect(AppConfiguration.apiBaseURL.scheme == "https")
         #expect(AppConfiguration.apiBaseURL.host == "laughtrack.app")
-        #expect(AppConfiguration.apiBaseURL.path == "/api/v1")
+        #expect(AppConfiguration.apiBaseURL.path.isEmpty)
         #expect(AppConfiguration.bundleID == "com.laughtrack.laughtrack")
     }
 
