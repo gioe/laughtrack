@@ -1859,6 +1859,7 @@ struct ComedianDetailView: View {
             }
         }
         .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
+        .accessibilityIdentifier(LaughTrackViewTestID.comedianDetailScreen)
         .navigationTitle("Comedian")
         .modifier(InlineNavigationTitle())
         .task {

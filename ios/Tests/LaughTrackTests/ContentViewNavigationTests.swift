@@ -101,5 +101,21 @@ struct ContentViewNavigationTests {
         try host.requireView(withIdentifier: LaughTrackViewTestID.showsSearchScreen)
     }
 
+    @Test("ContentView renders the comedian detail route")
+    func contentViewShowsComedianDetailRoute() async throws {
+        let coordinator = NavigationCoordinator<AppRoute>()
+        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "comedian-detail-route")
+        let host = HostedView(
+            ContentView(apiClient: LaughTrackHostedViewTestSupport.makeClient())
+                .environment(\.appTheme, LaughTrackTheme())
+                .navigationCoordinator(coordinator)
+                .environmentObject(authManager)
+        )
+
+        coordinator.push(.comedianDetail(101))
+        host.render()
+
+        try host.requireView(withIdentifier: LaughTrackViewTestID.comedianDetailScreen)
+    }
 }
 #endif
