@@ -46,6 +46,27 @@ struct ContentViewNavigationTests {
         #expect(coordinator.path.count == 1)
     }
 
+    @Test("Home shows search entry pushes the dedicated shows search route")
+    func homeShowsSearchButtonPushesShowsSearchRoute() async throws {
+        let coordinator = NavigationCoordinator<AppRoute>()
+        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "home-shows-search")
+        let host = HostedView(
+            HomeView(
+                apiClient: LaughTrackHostedViewTestSupport.makeClient(),
+                signedOutMessage: nil,
+                nearbyPreferenceStore: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home-shows-search")
+            )
+            .environment(\.appTheme, LaughTrackTheme())
+            .navigationCoordinator(coordinator)
+            .environmentObject(authManager)
+        )
+
+        try host.tapControl(withIdentifier: LaughTrackViewTestID.homeShowsSearchButton)
+
+        #expect(coordinator.path.count == 1)
+        #expect(coordinator.path.last == .showsSearch)
+    }
+
     @Test("ContentView renders the show detail route")
     func contentViewShowsShowDetailRoute() async throws {
         let coordinator = NavigationCoordinator<AppRoute>()
@@ -62,5 +83,23 @@ struct ContentViewNavigationTests {
 
         try host.requireView(withIdentifier: LaughTrackViewTestID.showDetailScreen)
     }
+
+    @Test("ContentView renders the dedicated shows search route")
+    func contentViewShowsDedicatedShowsSearchRoute() async throws {
+        let coordinator = NavigationCoordinator<AppRoute>()
+        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "shows-search-route")
+        let host = HostedView(
+            ContentView(apiClient: LaughTrackHostedViewTestSupport.makeClient())
+                .environment(\.appTheme, LaughTrackTheme())
+                .navigationCoordinator(coordinator)
+                .environmentObject(authManager)
+        )
+
+        coordinator.push(.showsSearch)
+        host.render()
+
+        try host.requireView(withIdentifier: LaughTrackViewTestID.showsSearchScreen)
+    }
+
 }
 #endif

@@ -6,7 +6,9 @@ import LaughTrackAPIClient
 enum LaughTrackViewTestID {
     static let homeScreen = "laughtrack.home.screen"
     static let homeSettingsButton = "laughtrack.home.settings-button"
+    static let homeShowsSearchButton = "laughtrack.home.shows-search-button"
     static let settingsScreen = "laughtrack.settings.screen"
+    static let showsSearchScreen = "laughtrack.shows-search.screen"
     static let showDetailScreen = "laughtrack.show-detail.screen"
     static let settingsNearbyEmptyState = "laughtrack.settings.nearby.empty-state"
     static let settingsNearbySavedState = "laughtrack.settings.nearby.saved-state"
@@ -14,6 +16,10 @@ enum LaughTrackViewTestID {
     static let settingsDistancePicker = "laughtrack.settings.distance-picker"
     static let settingsSaveButton = "laughtrack.settings.save-button"
     static let settingsClearButton = "laughtrack.settings.clear-button"
+
+    static func showsSearchResultButton(_ id: Int) -> String {
+        "laughtrack.shows-search.result-\(id)"
+    }
 }
 
 struct ContentView: View {
@@ -60,6 +66,11 @@ struct ContentView: View {
                     signedOutMessage: signedOutMessage,
                     nearbyPreferenceStore: nearbyPreferenceStore
                 )
+            case .showsSearch:
+                ShowsSearchScreen(
+                    apiClient: apiClient,
+                    nearbyPreferenceStore: nearbyPreferenceStore
+                )
             case .showDetail(let id):
                 ShowDetailView(showID: id, apiClient: apiClient)
             case .comedianDetail(let id):
@@ -104,6 +115,8 @@ struct HomeView: View {
                     nearbyPreferenceStore: nearbyPreferenceStore
                 )
 
+                HomeShowsSearchEntryCard()
+
                 DiscoveryHubView(
                     apiClient: apiClient,
                     nearbyPreferenceStore: nearbyPreferenceStore
@@ -141,6 +154,44 @@ struct HomeView: View {
         #else
         .primaryAction
         #endif
+    }
+}
+
+private struct HomeShowsSearchEntryCard: View {
+    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
+    @Environment(\.appTheme) private var theme
+
+    var body: some View {
+        Button {
+            coordinator.push(.showsSearch)
+        } label: {
+            LaughTrackCard(tone: .accent) {
+                VStack(alignment: .leading, spacing: theme.spacing.md) {
+                    HStack(spacing: theme.spacing.sm) {
+                        LaughTrackBadge("Shows", systemImage: "magnifyingglass", tone: .highlight)
+                        LaughTrackBadge("Live API", systemImage: "dot.radiowaves.left.and.right", tone: .neutral)
+                    }
+
+                    Text("Open the dedicated shows search")
+                        .font(theme.laughTrackTokens.typography.cardTitle)
+                        .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
+
+                    Text("Search live backend results on a full screen built for mobile-sized filters, result states, and quick jumps into show details.")
+                        .font(theme.laughTrackTokens.typography.body)
+                        .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
+
+                    HStack(spacing: theme.spacing.sm) {
+                        Image(systemName: "arrow.up.right")
+                            .font(.system(size: theme.iconSizes.sm, weight: .semibold))
+                        Text("Search shows")
+                            .font(theme.laughTrackTokens.typography.metadata)
+                    }
+                    .foregroundStyle(theme.laughTrackTokens.colors.accent)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(LaughTrackViewTestID.homeShowsSearchButton)
     }
 }
 

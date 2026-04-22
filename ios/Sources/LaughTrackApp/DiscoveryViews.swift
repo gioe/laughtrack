@@ -661,6 +661,60 @@ struct DiscoveryHubView: View {
     }
 }
 
+struct ShowsSearchScreen: View {
+    let apiClient: Client
+
+    @Environment(\.appTheme) private var theme
+    @StateObject private var model: ShowsDiscoveryModel
+
+    init(
+        apiClient: Client,
+        nearbyPreferenceStore: NearbyPreferenceStore
+    ) {
+        self.apiClient = apiClient
+        _model = StateObject(
+            wrappedValue: ShowsDiscoveryModel(
+                nearbyLocationController: NearbyLocationController(
+                    store: nearbyPreferenceStore,
+                    resolver: LaughTrackCore.CurrentLocationZipResolver()
+                )
+            )
+        )
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: theme.spacing.xl) {
+                LaughTrackSectionHeader(
+                    eyebrow: "Shows Search",
+                    title: "Search live shows",
+                    subtitle: "Run focused show searches against the live LaughTrack backend, keep result states explicit, and jump straight into the matching show detail screen."
+                )
+
+                HStack(spacing: theme.spacing.sm) {
+                    LaughTrackBadge("Live results", systemImage: "dot.radiowaves.left.and.right", tone: .highlight)
+                    LaughTrackBadge("Show details", systemImage: "ticket.fill", tone: .neutral)
+                    LaughTrackBadge("Mobile filters", systemImage: "slider.horizontal.3", tone: .accent)
+                }
+
+                ShowsDiscoveryView(apiClient: apiClient, model: model)
+            }
+            .padding(.horizontal, theme.spacing.xl)
+            .padding(.vertical, theme.laughTrackTokens.spacing.heroPadding)
+        }
+        .accessibilityIdentifier(LaughTrackViewTestID.showsSearchScreen)
+        .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
+        .background(
+            theme.laughTrackTokens.gradients.heroWash
+                .frame(maxHeight: 220)
+                .ignoresSafeArea(edges: .top),
+            alignment: .top
+        )
+        .navigationTitle("Search Shows")
+        .modifier(LaughTrackNavigationChrome(background: theme.laughTrackTokens.colors.canvas))
+    }
+}
+
 private protocol CurrentLocationZipResolving {
     func resolveZipCode() async throws -> String
 }
@@ -1235,6 +1289,7 @@ private struct ShowsDiscoveryView: View {
                                     ShowRow(show: show)
                                 }
                                 .buttonStyle(.plain)
+                                .accessibilityIdentifier(LaughTrackViewTestID.showsSearchResultButton(show.id))
                             }
 
                             if let paginationMessage = model.paginationMessage {
