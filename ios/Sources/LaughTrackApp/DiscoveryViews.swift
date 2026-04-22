@@ -29,23 +29,6 @@ private enum DiscoverySection: String, CaseIterable, Identifiable {
     }
 }
 
-private enum LoadPhase<Value> {
-    case idle
-    case loading
-    case success(Value)
-    case failure(String)
-}
-
-private struct DiscoverySearchPage<Item> {
-    let items: [Item]
-    let total: Int
-    let page: Int
-
-    var canLoadMore: Bool {
-        items.count < total
-    }
-}
-
 @MainActor
 final class ComedianFavoriteStore: ObservableObject {
     enum ToggleResult {
@@ -142,69 +125,34 @@ final class ComedianFavoriteStore: ObservableObject {
 }
 
 @MainActor
-private final class ComediansDiscoveryModel: ObservableObject {
+private final class ComediansDiscoveryModel: EntitySearchModel<String, Components.Schemas.ComedianSearchItem> {
     private static let pageSize = 20
 
     @Published var searchText = ""
-    @Published private(set) var phase: LoadPhase<DiscoverySearchPage<Components.Schemas.ComedianSearchItem>> = .idle
-    @Published private(set) var isLoadingMore = false
-    @Published private(set) var paginationMessage: String?
-
-    private var loadedQuery: String?
-    private var loadingQuery: String?
 
     func reload(apiClient: Client, favorites: ComedianFavoriteStore) async {
         let query = normalizedQuery
-
-        if loadedQuery == query, case .success = phase {
-            return
+        await super.reload(query: query, shouldDebounce: !query.isEmpty) { page, query in
+            await Self.fetchPage(page: page, query: query, apiClient: apiClient, favorites: favorites)
         }
-
-        if loadingQuery == query, case .loading = phase {
-            return
-        }
-
-        await load(page: 0, query: query, apiClient: apiClient, favorites: favorites, resetResults: true)
     }
 
     func loadMore(apiClient: Client, favorites: ComedianFavoriteStore) async {
-        guard case .success(let current) = phase, current.canLoadMore, !isLoadingMore else { return }
-        await load(page: current.page + 1, query: normalizedQuery, apiClient: apiClient, favorites: favorites, resetResults: false)
+        await super.loadMore(query: normalizedQuery) { page, query in
+            await Self.fetchPage(page: page, query: query, apiClient: apiClient, favorites: favorites)
+        }
     }
 
     private var normalizedQuery: String {
         searchText.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    private func load(
+    private static func fetchPage(
         page: Int,
         query: String,
         apiClient: Client,
-        favorites: ComedianFavoriteStore,
-        resetResults: Bool
-    ) async {
-        let existingItems = currentItems
-        paginationMessage = nil
-
-        if resetResults {
-            loadingQuery = query
-            phase = .loading
-            if !query.isEmpty {
-                try? await Task.sleep(for: .milliseconds(250))
-                guard !Task.isCancelled else { return }
-            }
-        } else {
-            isLoadingMore = true
-        }
-
-        defer {
-            if resetResults {
-                loadingQuery = nil
-            } else {
-                isLoadingMore = false
-            }
-        }
-
+        favorites: ComedianFavoriteStore
+    ) async -> Result<DiscoverySearchResponse<Components.Schemas.ComedianSearchItem>, String> {
         do {
             if query.isEmpty {
                 let output = try await apiClient.listComedians(
@@ -220,7 +168,7 @@ private final class ComediansDiscoveryModel: ObservableObject {
                 case .ok(let ok):
                     let response = try ok.body.json
                     let items = response.data.map { comedian in
-                        return Components.Schemas.ComedianSearchItem(
+                        Components.Schemas.ComedianSearchItem(
                             id: comedian.id,
                             uuid: comedian.uuid,
                             name: comedian.name,
@@ -230,32 +178,18 @@ private final class ComediansDiscoveryModel: ObservableObject {
                             isFavorite: favorites.storedValue(for: comedian.uuid)
                         )
                     }
-                    phase = .success(
+                    return .success(
                         .init(
-                            items: resetResults ? items : existingItems + items,
-                            total: response.data.count < Self.pageSize ? existingItems.count + items.count : (page + 1) * Self.pageSize + 1,
-                            page: page
+                            items: items,
+                            total: response.data.count < Self.pageSize ? page * Self.pageSize + items.count : (page + 1) * Self.pageSize + 1
                         )
                     )
-                    loadedQuery = query
                 case .badRequest(let badRequest):
-                    handleFailure(
-                        message: (try? badRequest.body.json.error) ?? "LaughTrack could not load comedians right now.",
-                        existingItems: existingItems,
-                        resetResults: resetResults
-                    )
+                    return .failure((try? badRequest.body.json.error) ?? "LaughTrack could not load comedians right now.")
                 case .internalServerError(let serverError):
-                    handleFailure(
-                        message: (try? serverError.body.json.error) ?? "LaughTrack could not load comedians right now.",
-                        existingItems: existingItems,
-                        resetResults: resetResults
-                    )
+                    return .failure((try? serverError.body.json.error) ?? "LaughTrack could not load comedians right now.")
                 case .undocumented(let status, _):
-                    handleFailure(
-                        message: "LaughTrack returned an unexpected comedians response (\(status)).",
-                        existingItems: existingItems,
-                        resetResults: resetResults
-                    )
+                    return .failure("LaughTrack returned an unexpected comedians response (\(status)).")
                 }
             } else {
                 let output = try await apiClient.searchComedians(
@@ -276,120 +210,55 @@ private final class ComediansDiscoveryModel: ObservableObject {
                         favorites.seed(uuid: comedian.uuid, value: comedian.isFavorite)
                         return comedian
                     }
-                    phase = .success(
+                    return .success(
                         .init(
-                            items: resetResults ? items : existingItems + items,
-                            total: response.total,
-                            page: page
+                            items: items,
+                            total: response.total
                         )
                     )
-                    loadedQuery = query
                 case .internalServerError(let serverError):
-                    handleFailure(
-                        message: (try? serverError.body.json.error) ?? "LaughTrack could not load comedians right now.",
-                        existingItems: existingItems,
-                        resetResults: resetResults
-                    )
+                    return .failure((try? serverError.body.json.error) ?? "LaughTrack could not load comedians right now.")
                 case .undocumented(let status, _):
-                    handleFailure(
-                        message: "LaughTrack returned an unexpected comedians response (\(status)).",
-                        existingItems: existingItems,
-                        resetResults: resetResults
-                    )
+                    return .failure("LaughTrack returned an unexpected comedians response (\(status)).")
                 }
             }
         } catch {
-            guard !Task.isCancelled else { return }
-            handleFailure(
-                message: "LaughTrack could not reach the comedians service. Check your connection and try again.",
-                existingItems: existingItems,
-                resetResults: resetResults
-            )
-        }
-    }
-
-    private var currentItems: [Components.Schemas.ComedianSearchItem] {
-        guard case .success(let current) = phase else { return [] }
-        return current.items
-    }
-
-    private func handleFailure(
-        message: String,
-        existingItems: [Components.Schemas.ComedianSearchItem],
-        resetResults: Bool
-    ) {
-        if resetResults || existingItems.isEmpty {
-            phase = .failure(message)
-        } else if case .success(let current) = phase {
-            paginationMessage = message
-            phase = .success(current)
+            guard !Task.isCancelled else {
+                return .failure("LaughTrack could not load comedians right now.")
+            }
+            return .failure("LaughTrack could not reach the comedians service. Check your connection and try again.")
         }
     }
 }
 
 @MainActor
-private final class ClubsDiscoveryModel: ObservableObject {
+private final class ClubsDiscoveryModel: EntitySearchModel<String, Components.Schemas.ClubSearchItem> {
     private static let pageSize = 20
 
     @Published var searchText = ""
-    @Published private(set) var phase: LoadPhase<DiscoverySearchPage<Components.Schemas.ClubSearchItem>> = .idle
-    @Published private(set) var isLoadingMore = false
-    @Published private(set) var paginationMessage: String?
-
-    private var loadedQuery: String?
-    private var loadingQuery: String?
 
     func reload(apiClient: Client) async {
         let query = normalizedQuery
-
-        if loadedQuery == query, case .success = phase {
-            return
+        await super.reload(query: query, shouldDebounce: !query.isEmpty) { page, query in
+            await Self.fetchPage(page: page, query: query, apiClient: apiClient)
         }
-
-        if loadingQuery == query, case .loading = phase {
-            return
-        }
-
-        await load(page: 0, query: query, apiClient: apiClient, resetResults: true)
     }
 
     func loadMore(apiClient: Client) async {
-        guard case .success(let current) = phase, current.canLoadMore, !isLoadingMore else { return }
-        await load(page: current.page + 1, query: normalizedQuery, apiClient: apiClient, resetResults: false)
+        await super.loadMore(query: normalizedQuery) { page, query in
+            await Self.fetchPage(page: page, query: query, apiClient: apiClient)
+        }
     }
 
     private var normalizedQuery: String {
         searchText.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    private func load(
+    private static func fetchPage(
         page: Int,
         query: String,
-        apiClient: Client,
-        resetResults: Bool
-    ) async {
-        let existingItems = currentItems
-        paginationMessage = nil
-
-        if resetResults {
-            loadingQuery = query
-            phase = .loading
-            if !query.isEmpty {
-                try? await Task.sleep(for: .milliseconds(250))
-                guard !Task.isCancelled else { return }
-            }
-        } else {
-            isLoadingMore = true
-        }
-
-        defer {
-            if resetResults {
-                loadingQuery = nil
-            } else {
-                isLoadingMore = false
-            }
-        }
-
+        apiClient: Client
+    ) async -> Result<DiscoverySearchResponse<Components.Schemas.ClubSearchItem>, String> {
         do {
             if query.isEmpty {
                 let output = try await apiClient.listClubs(
@@ -421,38 +290,20 @@ private final class ClubsDiscoveryModel: ObservableObject {
                             distanceMiles: nil
                         )
                     }
-                    phase = .success(
+                    return .success(
                         .init(
-                            items: resetResults ? items : existingItems + items,
-                            total: response.data.count < Self.pageSize ? existingItems.count + items.count : (page + 1) * Self.pageSize + 1,
-                            page: page
+                            items: items,
+                            total: response.data.count < Self.pageSize ? page * Self.pageSize + items.count : (page + 1) * Self.pageSize + 1
                         )
                     )
-                    loadedQuery = query
                 case .badRequest(let badRequest):
-                    handleFailure(
-                        message: (try? badRequest.body.json.error) ?? "LaughTrack could not load clubs right now.",
-                        existingItems: existingItems,
-                        resetResults: resetResults
-                    )
+                    return .failure((try? badRequest.body.json.error) ?? "LaughTrack could not load clubs right now.")
                 case .tooManyRequests(let tooManyRequests):
-                    handleFailure(
-                        message: (try? tooManyRequests.body.json.error) ?? "LaughTrack is rate-limiting club results right now.",
-                        existingItems: existingItems,
-                        resetResults: resetResults
-                    )
+                    return .failure((try? tooManyRequests.body.json.error) ?? "LaughTrack is rate-limiting club results right now.")
                 case .internalServerError(let serverError):
-                    handleFailure(
-                        message: (try? serverError.body.json.error) ?? "LaughTrack could not load clubs right now.",
-                        existingItems: existingItems,
-                        resetResults: resetResults
-                    )
+                    return .failure((try? serverError.body.json.error) ?? "LaughTrack could not load clubs right now.")
                 case .undocumented(let status, _):
-                    handleFailure(
-                        message: "LaughTrack returned an unexpected clubs response (\(status)).",
-                        existingItems: existingItems,
-                        resetResults: resetResults
-                    )
+                    return .failure("LaughTrack returned an unexpected clubs response (\(status)).")
                 }
             } else {
                 let output = try await apiClient.searchClubs(
@@ -469,53 +320,23 @@ private final class ClubsDiscoveryModel: ObservableObject {
                 switch output {
                 case .ok(let ok):
                     let response = try ok.body.json
-                    phase = .success(
+                    return .success(
                         .init(
-                            items: resetResults ? response.data : existingItems + response.data,
-                            total: response.total,
-                            page: page
+                            items: response.data,
+                            total: response.total
                         )
                     )
-                    loadedQuery = query
                 case .internalServerError(let serverError):
-                    handleFailure(
-                        message: (try? serverError.body.json.error) ?? "LaughTrack could not load clubs right now.",
-                        existingItems: existingItems,
-                        resetResults: resetResults
-                    )
+                    return .failure((try? serverError.body.json.error) ?? "LaughTrack could not load clubs right now.")
                 case .undocumented(let status, _):
-                    handleFailure(
-                        message: "LaughTrack returned an unexpected clubs response (\(status)).",
-                        existingItems: existingItems,
-                        resetResults: resetResults
-                    )
+                    return .failure("LaughTrack returned an unexpected clubs response (\(status)).")
                 }
             }
         } catch {
-            guard !Task.isCancelled else { return }
-            handleFailure(
-                message: "LaughTrack could not reach the clubs service. Check your connection and try again.",
-                existingItems: existingItems,
-                resetResults: resetResults
-            )
-        }
-    }
-
-    private var currentItems: [Components.Schemas.ClubSearchItem] {
-        guard case .success(let current) = phase else { return [] }
-        return current.items
-    }
-
-    private func handleFailure(
-        message: String,
-        existingItems: [Components.Schemas.ClubSearchItem],
-        resetResults: Bool
-    ) {
-        if resetResults || existingItems.isEmpty {
-            phase = .failure(message)
-        } else if case .success(let current) = phase {
-            paginationMessage = message
-            phase = .success(current)
+            guard !Task.isCancelled else {
+                return .failure("LaughTrack could not load clubs right now.")
+            }
+            return .failure("LaughTrack could not reach the clubs service. Check your connection and try again.")
         }
     }
 }
@@ -597,19 +418,8 @@ private struct ShowsDiscoveryQuery: Hashable {
     }
 }
 
-private struct ShowsDiscoveryPage {
-    let items: [Components.Schemas.Show]
-    let total: Int
-    let page: Int
-    let zipCapTriggered: Bool
-
-    var canLoadMore: Bool {
-        items.count < total
-    }
-}
-
 @MainActor
-private final class ShowsDiscoveryModel: ObservableObject {
+private final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, Components.Schemas.Show> {
     private static let pageSize = 10
 
     @Published var zipCodeDraft = ""
@@ -627,18 +437,13 @@ private final class ShowsDiscoveryModel: ObservableObject {
     @Published var sort: ShowSortOption = .earliest
     @Published private(set) var activeNearbyPreference: NearbyPreference?
     @Published private(set) var nearbyStatusMessage: String?
-    @Published private(set) var phase: LoadPhase<ShowsDiscoveryPage> = .idle
-    @Published private(set) var isLoadingMore = false
+    @Published private(set) var zipCapTriggered = false
     @Published private(set) var isResolvingCurrentLocation = false
-    @Published private(set) var paginationMessage: String?
 
     private let nearbyLocationController: NearbyLocationController
     private var nearbyPreferenceCancellable: AnyCancellable?
     private var nearbyStatusCancellable: AnyCancellable?
     private var nearbyLoadingCancellable: AnyCancellable?
-    private var loadedQuery: ShowsDiscoveryQuery?
-    private var loadingQuery: ShowsDiscoveryQuery?
-
     convenience init() {
         self.init(nearbyLocationController: NearbyLocationController())
     }
@@ -681,21 +486,17 @@ private final class ShowsDiscoveryModel: ObservableObject {
 
     func reload(apiClient: Client) async {
         let query = requestKey
-
-        if loadedQuery == query, case .success = phase {
-            return
+        await super.reload(query: query, shouldDebounce: query.hasActiveFilters) { [weak self] page, query in
+            guard let self else { return .failure("LaughTrack could not load shows right now.") }
+            return await self.fetchPage(page: page, query: query, apiClient: apiClient)
         }
-
-        if loadingQuery == query, case .loading = phase {
-            return
-        }
-
-        await load(page: 0, query: query, apiClient: apiClient, resetResults: true)
     }
 
     func loadMore(apiClient: Client) async {
-        guard case .success(let current) = phase, current.canLoadMore, !isLoadingMore else { return }
-        await load(page: current.page + 1, query: requestKey, apiClient: apiClient, resetResults: false)
+        await super.loadMore(query: requestKey) { [weak self] page, query in
+            guard let self else { return .failure("LaughTrack could not load shows right now.") }
+            return await self.fetchPage(page: page, query: query, apiClient: apiClient)
+        }
     }
 
     func clearLocation() {
@@ -718,34 +519,11 @@ private final class ShowsDiscoveryModel: ObservableObject {
         await nearbyLocationController.useCurrentLocation(distanceMiles: distance.rawValue)
     }
 
-    private func load(
+    private func fetchPage(
         page: Int,
         query: ShowsDiscoveryQuery,
-        apiClient: Client,
-        resetResults: Bool
-    ) async {
-        let existingItems = currentItems
-        paginationMessage = nil
-
-        if resetResults {
-            loadingQuery = query
-            phase = .loading
-            if query.hasActiveFilters {
-                try? await Task.sleep(for: .milliseconds(250))
-                guard !Task.isCancelled else { return }
-            }
-        } else {
-            isLoadingMore = true
-        }
-
-        defer {
-            if resetResults {
-                loadingQuery = nil
-            } else {
-                isLoadingMore = false
-            }
-        }
-
+        apiClient: Client
+    ) async -> Result<DiscoverySearchResponse<Components.Schemas.Show>, String> {
         do {
             let output = try await apiClient.searchShows(
                 .init(
@@ -767,60 +545,26 @@ private final class ShowsDiscoveryModel: ObservableObject {
             switch output {
             case .ok(let ok):
                 let response = try ok.body.json
-                phase = .success(
+                zipCapTriggered = response.zipCapTriggered
+                return .success(
                     .init(
-                        items: resetResults ? response.data : existingItems + response.data,
-                        total: response.total,
-                        page: page,
-                        zipCapTriggered: response.zipCapTriggered
+                        items: response.data,
+                        total: response.total
                     )
                 )
-                loadedQuery = query
             case .badRequest(let badRequest):
-                handleFailure(
-                    message: (try? badRequest.body.json.error) ?? "LaughTrack could not apply those show filters.",
-                    resetResults: resetResults,
-                    existingItems: existingItems
-                )
+                return .failure((try? badRequest.body.json.error) ?? "LaughTrack could not apply those show filters.")
             case .internalServerError(let serverError):
-                handleFailure(
-                    message: (try? serverError.body.json.error) ?? "LaughTrack could not load shows right now.",
-                    resetResults: resetResults,
-                    existingItems: existingItems
-                )
+                return .failure((try? serverError.body.json.error) ?? "LaughTrack could not load shows right now.")
             case .undocumented(let status, _):
-                handleFailure(
-                    message: "LaughTrack returned an unexpected response (\(status)).",
-                    resetResults: resetResults,
-                    existingItems: existingItems
-                )
+                return .failure("LaughTrack returned an unexpected response (\(status)).")
             }
         } catch {
-            guard !Task.isCancelled else { return }
-            handleFailure(
-                message: "LaughTrack could not reach the shows search service. Check your connection and try again.",
-                resetResults: resetResults,
-                existingItems: existingItems
-            )
+            guard !Task.isCancelled else {
+                return .failure("LaughTrack could not load shows right now.")
+            }
+            return .failure("LaughTrack could not reach the shows search service. Check your connection and try again.")
         }
-    }
-
-    private func handleFailure(
-        message: String,
-        resetResults: Bool,
-        existingItems: [Components.Schemas.Show]
-    ) {
-        if resetResults || existingItems.isEmpty {
-            phase = .failure(message)
-        } else if case .success(let current) = phase {
-            paginationMessage = message
-            phase = .success(current)
-        }
-    }
-
-    private var currentItems: [Components.Schemas.Show] {
-        guard case .success(let current) = phase else { return [] }
-        return current.items
     }
 
     private func applyNearbyPreference(_ preference: NearbyPreference?) {
@@ -834,6 +578,7 @@ private final class ShowsDiscoveryModel: ObservableObject {
             distance = .city
         }
     }
+
 }
 
 struct DiscoveryHubView: View {
@@ -1370,7 +1115,7 @@ struct HomeNearbyDiscoverySection: View {
 
                         ForEach(Array(result.items.prefix(3)), id: \.id) { show in
                             Button {
-                                coordinator.push(.showDetail(show.id))
+                                coordinator.open(.show(show.id))
                             } label: {
                                 ShowRow(show: show)
                             }
@@ -1481,11 +1226,11 @@ private struct ShowsDiscoveryView: View {
                     } else {
                         VStack(spacing: 12) {
                             SearchResultsSummary(count: result.items.count, total: result.total)
-                            ShowsSearchMeta(model: model, zipCapTriggered: result.zipCapTriggered)
+                            ShowsSearchMeta(model: model, zipCapTriggered: model.zipCapTriggered)
 
                             ForEach(result.items, id: \.id) { show in
                                 Button {
-                                    coordinator.push(.showDetail(show.id))
+                                    coordinator.open(.show(show.id))
                                 } label: {
                                     ShowRow(show: show)
                                 }
@@ -1533,7 +1278,6 @@ private struct ComediansDiscoveryView: View {
     @ObservedObject var model: ComediansDiscoveryModel
 
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
-    @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var favorites: ComedianFavoriteStore
     @State private var feedbackMessage: String?
 
@@ -1567,7 +1311,7 @@ private struct ComediansDiscoveryView: View {
                                     comedian: comedian,
                                     apiClient: apiClient,
                                     feedbackMessage: $feedbackMessage,
-                                    openDetail: { coordinator.push(.comedianDetail(comedian.id)) }
+                                    openDetail: { coordinator.open(.comedian(comedian.id)) }
                                 )
                             }
 
@@ -1635,7 +1379,7 @@ private struct ClubsDiscoveryView: View {
                             ForEach(Array(result.items.enumerated()), id: \.offset) { _, club in
                                 Button {
                                     if let id = club.id {
-                                        coordinator.push(.clubDetail(id))
+                                        coordinator.open(.club(id))
                                     }
                                 } label: {
                                     ClubRow(club: club)
@@ -1667,6 +1411,143 @@ private struct ClubsDiscoveryView: View {
     }
 }
 
+@MainActor
+private final class ShowDetailModel: EntityDetailModel<Components.Schemas.ShowDetailResponse> {
+    let showID: Int
+
+    init(showID: Int) {
+        self.showID = showID
+    }
+
+    func loadIfNeeded(apiClient: Client, favorites: ComedianFavoriteStore) async {
+        await super.loadIfNeeded {
+            await self.fetch(apiClient: apiClient, favorites: favorites)
+        }
+    }
+
+    func reload(apiClient: Client, favorites: ComedianFavoriteStore) async {
+        await super.reload {
+            await self.fetch(apiClient: apiClient, favorites: favorites)
+        }
+    }
+
+    private func fetch(
+        apiClient: Client,
+        favorites: ComedianFavoriteStore
+    ) async -> Result<Components.Schemas.ShowDetailResponse, String> {
+        do {
+            let output = try await apiClient.getShow(.init(path: .init(id: showID)))
+            switch output {
+            case .ok(let ok):
+                let response = try ok.body.json
+                for comedian in response.data.lineup ?? [] {
+                    favorites.seed(uuid: comedian.uuid, value: comedian.isFavorite)
+                }
+                return .success(response)
+            case .badRequest:
+                return .failure("LaughTrack could not load this show right now.")
+            case .notFound:
+                return .failure("This show could not be found.")
+            case .tooManyRequests:
+                return .failure("LaughTrack is rate-limiting show details right now.")
+            case .internalServerError:
+                return .failure("LaughTrack hit a server error while loading this show.")
+            case .undocumented(let status, _):
+                return .failure("LaughTrack returned an unexpected show detail response (\(status)).")
+            }
+        } catch {
+            return .failure("LaughTrack could not reach the show details service. Check your connection and try again.")
+        }
+    }
+}
+
+@MainActor
+private final class ComedianDetailModel: EntityDetailModel<Components.Schemas.ComedianDetail> {
+    let comedianID: Int
+
+    init(comedianID: Int) {
+        self.comedianID = comedianID
+    }
+
+    func loadIfNeeded(apiClient: Client, favorites: ComedianFavoriteStore) async {
+        await super.loadIfNeeded {
+            await self.fetch(apiClient: apiClient, favorites: favorites)
+        }
+    }
+
+    func reload(apiClient: Client, favorites: ComedianFavoriteStore) async {
+        await super.reload {
+            await self.fetch(apiClient: apiClient, favorites: favorites)
+        }
+    }
+
+    private func fetch(
+        apiClient: Client,
+        favorites: ComedianFavoriteStore
+    ) async -> Result<Components.Schemas.ComedianDetail, String> {
+        do {
+            let output = try await apiClient.getComedian(.init(path: .init(id: comedianID)))
+            switch output {
+            case .ok(let ok):
+                let comedian = try ok.body.json.data
+                favorites.overwrite(uuid: comedian.uuid, value: favorites.value(for: comedian.uuid))
+                return .success(comedian)
+            case .badRequest:
+                return .failure("LaughTrack could not load this comedian right now.")
+            case .notFound:
+                return .failure("This comedian could not be found.")
+            case .internalServerError:
+                return .failure("LaughTrack hit a server error while loading this comedian.")
+            case .undocumented(let status, _):
+                return .failure("LaughTrack returned an unexpected comedian detail response (\(status)).")
+            }
+        } catch {
+            return .failure("LaughTrack could not reach the comedian details service. Check your connection and try again.")
+        }
+    }
+}
+
+@MainActor
+private final class ClubDetailModel: EntityDetailModel<Components.Schemas.ClubDetail> {
+    let clubID: Int
+
+    init(clubID: Int) {
+        self.clubID = clubID
+    }
+
+    func loadIfNeeded(apiClient: Client) async {
+        await super.loadIfNeeded {
+            await self.fetch(apiClient: apiClient)
+        }
+    }
+
+    func reload(apiClient: Client) async {
+        await super.reload {
+            await self.fetch(apiClient: apiClient)
+        }
+    }
+
+    private func fetch(apiClient: Client) async -> Result<Components.Schemas.ClubDetail, String> {
+        do {
+            let output = try await apiClient.getClub(.init(path: .init(id: clubID)))
+            switch output {
+            case .ok(let ok):
+                return .success(try ok.body.json.data)
+            case .badRequest:
+                return .failure("LaughTrack could not load this club right now.")
+            case .notFound:
+                return .failure("This club could not be found.")
+            case .internalServerError:
+                return .failure("LaughTrack hit a server error while loading this club.")
+            case .undocumented(let status, _):
+                return .failure("LaughTrack returned an unexpected club detail response (\(status)).")
+            }
+        } catch {
+            return .failure("LaughTrack could not reach the club details service. Check your connection and try again.")
+        }
+    }
+}
+
 struct ShowDetailView: View {
     let showID: Int
     let apiClient: Client
@@ -1677,18 +1558,26 @@ struct ShowDetailView: View {
     @Environment(\.appTheme) private var theme
     @Environment(\.openURL) private var openURL
 
-    @State private var phase: LoadPhase<Components.Schemas.ShowDetailResponse> = .idle
+    @StateObject private var model: ShowDetailModel
     @State private var feedbackMessage: String?
+
+    init(showID: Int, apiClient: Client) {
+        self.showID = showID
+        self.apiClient = apiClient
+        _model = StateObject(wrappedValue: ShowDetailModel(showID: showID))
+    }
 
     var body: some View {
         ScrollView {
-            switch phase {
+            switch model.phase {
             case .idle, .loading:
                 LoadingCard()
                     .padding()
             case .failure(let message):
-                ErrorCard(message: message, retry: load)
-                    .padding()
+                ErrorCard(message: message) {
+                    await model.reload(apiClient: apiClient, favorites: favorites)
+                }
+                .padding()
             case .success(let response):
                 let show = response.data
                 VStack(alignment: .leading, spacing: 20) {
@@ -1706,7 +1595,7 @@ struct ShowDetailView: View {
                             DetailInfoRow(label: "Distance", value: ShowFormatting.distance(show.distanceMiles))
                         ])
                         .onTapGesture {
-                            coordinator.push(.clubDetail(show.club.id))
+                            coordinator.open(.club(show.club.id))
                         }
                     }
 
@@ -1732,7 +1621,7 @@ struct ShowDetailView: View {
                                         comedian: comedian,
                                         apiClient: apiClient,
                                         feedbackMessage: $feedbackMessage,
-                                        openDetail: { coordinator.push(.comedianDetail(comedian.id)) }
+                                        openDetail: { coordinator.open(.comedian(comedian.id)) }
                                     )
                                 }
                             }
@@ -1750,7 +1639,7 @@ struct ShowDetailView: View {
 
                                 ForEach(response.relatedShows, id: \.id) { related in
                                     Button {
-                                        coordinator.push(.showDetail(related.id))
+                                        coordinator.open(.show(related.id))
                                     } label: {
                                         ShowRow(show: related)
                                     }
@@ -1767,8 +1656,7 @@ struct ShowDetailView: View {
         .navigationTitle("Show")
         .modifier(InlineNavigationTitle())
         .task {
-            guard case .idle = phase else { return }
-            await load()
+            await model.loadIfNeeded(apiClient: apiClient, favorites: favorites)
         }
         .alert("LaughTrack", isPresented: .constant(feedbackMessage != nil), actions: {
             Button("OK") {
@@ -1777,34 +1665,6 @@ struct ShowDetailView: View {
         }, message: {
             Text(feedbackMessage ?? "")
         })
-    }
-
-    private func load() async {
-        phase = .loading
-
-        do {
-            let output = try await apiClient.getShow(.init(path: .init(id: showID)))
-            switch output {
-            case .ok(let ok):
-                let response = try ok.body.json
-                for comedian in response.data.lineup ?? [] {
-                    favorites.seed(uuid: comedian.uuid, value: comedian.isFavorite)
-                }
-                phase = .success(response)
-            case .badRequest:
-                phase = .success(DemoFixtures.showDetailResponse(id: showID) ?? DemoFixtures.primaryShowDetail)
-            case .notFound:
-                phase = .success(DemoFixtures.showDetailResponse(id: showID) ?? DemoFixtures.primaryShowDetail)
-            case .tooManyRequests:
-                phase = .success(DemoFixtures.showDetailResponse(id: showID) ?? DemoFixtures.primaryShowDetail)
-            case .internalServerError:
-                phase = .success(DemoFixtures.showDetailResponse(id: showID) ?? DemoFixtures.primaryShowDetail)
-            case .undocumented:
-                phase = .success(DemoFixtures.showDetailResponse(id: showID) ?? DemoFixtures.primaryShowDetail)
-            }
-        } catch {
-            phase = .success(DemoFixtures.showDetailResponse(id: showID) ?? DemoFixtures.primaryShowDetail)
-        }
     }
 
     private func showHeroBadges(show: Components.Schemas.ShowDetail) -> [DetailHeroBadge] {
@@ -1849,18 +1709,26 @@ struct ComedianDetailView: View {
     @Environment(\.appTheme) private var theme
     @Environment(\.openURL) private var openURL
 
-    @State private var phase: LoadPhase<Components.Schemas.ComedianDetail> = .idle
+    @StateObject private var model: ComedianDetailModel
     @State private var feedbackMessage: String?
+
+    init(comedianID: Int, apiClient: Client) {
+        self.comedianID = comedianID
+        self.apiClient = apiClient
+        _model = StateObject(wrappedValue: ComedianDetailModel(comedianID: comedianID))
+    }
 
     var body: some View {
         ScrollView {
-            switch phase {
+            switch model.phase {
             case .idle, .loading:
                 LoadingCard()
                     .padding()
             case .failure(let message):
-                ErrorCard(message: message, retry: load)
-                    .padding()
+                ErrorCard(message: message) {
+                    await model.reload(apiClient: apiClient, favorites: favorites)
+                }
+                .padding()
             case .success(let comedian):
                 let isFavorite = favorites.value(for: comedian.uuid)
                 VStack(alignment: .leading, spacing: 20) {
@@ -1909,8 +1777,7 @@ struct ComedianDetailView: View {
         .navigationTitle("Comedian")
         .modifier(InlineNavigationTitle())
         .task {
-            guard case .idle = phase else { return }
-            await load()
+            await model.loadIfNeeded(apiClient: apiClient, favorites: favorites)
         }
         .alert("LaughTrack", isPresented: .constant(feedbackMessage != nil), actions: {
             Button("OK") {
@@ -1919,30 +1786,6 @@ struct ComedianDetailView: View {
         }, message: {
             Text(feedbackMessage ?? "")
         })
-    }
-
-    private func load() async {
-        phase = .loading
-
-        do {
-            let output = try await apiClient.getComedian(.init(path: .init(id: comedianID)))
-            switch output {
-            case .ok(let ok):
-                let comedian = try ok.body.json.data
-                favorites.overwrite(uuid: comedian.uuid, value: favorites.value(for: comedian.uuid))
-                phase = .success(comedian)
-            case .badRequest:
-                phase = .success(DemoFixtures.comedianDetail(id: comedianID) ?? DemoFixtures.primaryComedian)
-            case .notFound:
-                phase = .success(DemoFixtures.comedianDetail(id: comedianID) ?? DemoFixtures.primaryComedian)
-            case .internalServerError:
-                phase = .success(DemoFixtures.comedianDetail(id: comedianID) ?? DemoFixtures.primaryComedian)
-            case .undocumented:
-                phase = .success(DemoFixtures.comedianDetail(id: comedianID) ?? DemoFixtures.primaryComedian)
-            }
-        } catch {
-            phase = .success(DemoFixtures.comedianDetail(id: comedianID) ?? DemoFixtures.primaryComedian)
-        }
     }
 
     private func toggleFavorite(name: String, uuid: String, currentValue: Bool) async {
@@ -1984,17 +1827,25 @@ struct ClubDetailView: View {
 
     @Environment(\.appTheme) private var theme
     @Environment(\.openURL) private var openURL
-    @State private var phase: LoadPhase<Components.Schemas.ClubDetail> = .idle
+    @StateObject private var model: ClubDetailModel
+
+    init(clubID: Int, apiClient: Client) {
+        self.clubID = clubID
+        self.apiClient = apiClient
+        _model = StateObject(wrappedValue: ClubDetailModel(clubID: clubID))
+    }
 
     var body: some View {
         ScrollView {
-            switch phase {
+            switch model.phase {
             case .idle, .loading:
                 LoadingCard()
                     .padding()
             case .failure(let message):
-                ErrorCard(message: message, retry: load)
-                    .padding()
+                ErrorCard(message: message) {
+                    await model.reload(apiClient: apiClient)
+                }
+                .padding()
             case .success(let club):
                 VStack(alignment: .leading, spacing: 20) {
                     DetailHero(
@@ -2025,30 +1876,7 @@ struct ClubDetailView: View {
         .navigationTitle("Club")
         .modifier(InlineNavigationTitle())
         .task {
-            guard case .idle = phase else { return }
-            await load()
-        }
-    }
-
-    private func load() async {
-        phase = .loading
-
-        do {
-            let output = try await apiClient.getClub(.init(path: .init(id: clubID)))
-            switch output {
-            case .ok(let ok):
-                phase = .success(try ok.body.json.data)
-            case .badRequest:
-                phase = .success(DemoFixtures.clubDetail(id: clubID) ?? DemoFixtures.primaryClub)
-            case .notFound:
-                phase = .success(DemoFixtures.clubDetail(id: clubID) ?? DemoFixtures.primaryClub)
-            case .internalServerError:
-                phase = .success(DemoFixtures.clubDetail(id: clubID) ?? DemoFixtures.primaryClub)
-            case .undocumented:
-                phase = .success(DemoFixtures.clubDetail(id: clubID) ?? DemoFixtures.primaryClub)
-            }
-        } catch {
-            phase = .success(DemoFixtures.clubDetail(id: clubID) ?? DemoFixtures.primaryClub)
+            await model.loadIfNeeded(apiClient: apiClient)
         }
     }
 
