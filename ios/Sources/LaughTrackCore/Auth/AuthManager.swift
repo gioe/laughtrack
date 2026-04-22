@@ -135,33 +135,7 @@ public final class AuthManager: ObservableObject {
     }
 
     private static func makeSignInURL(for provider: AuthProvider) -> URL {
-        let callbackURL = websiteBaseURL
-            .appendingPathComponent("api")
-            .appendingPathComponent("v1")
-            .appendingPathComponent("auth")
-            .appendingPathComponent("native")
-            .appendingPathComponent("callback")
-
-        var callbackComponents = URLComponents(
-            url: callbackURL,
-            resolvingAgainstBaseURL: false
-        )!
-        callbackComponents.queryItems = [
-            URLQueryItem(name: "provider", value: provider.rawValue)
-        ]
-
-        var components = URLComponents(
-            url: websiteBaseURL
-                .appendingPathComponent("api")
-                .appendingPathComponent("auth")
-                .appendingPathComponent("signin")
-                .appendingPathComponent(provider.rawValue),
-            resolvingAgainstBaseURL: false
-        )!
-        components.queryItems = [
-            URLQueryItem(name: "callbackUrl", value: callbackComponents.url?.absoluteString)
-        ]
-        return components.url!
+        AuthRouteConfiguration.signInURL(for: provider)
     }
 
     private static func extractQueryValue(named name: String, from url: URL) -> String? {
@@ -216,8 +190,7 @@ public final class AuthManager: ObservableObject {
         static let sessionMetadata = "laughtrack.auth.session-metadata"
     }
 
-    private static let callbackScheme = "laughtrack"
-    private static let websiteBaseURL = URL(string: "https://laughtrack.app")!
+    private static let callbackScheme = AuthRouteConfiguration.callbackScheme
 }
 
 public struct AuthSessionMetadata: Codable, Equatable, Sendable {

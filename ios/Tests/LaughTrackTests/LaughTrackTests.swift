@@ -19,6 +19,28 @@ struct LaughTrackTests {
         #expect(bootstrap.container.resolveOptional(OfflineOperationQueue<LaughTrackOfflineOperation>.self) != nil)
     }
 
+    @Test("app configuration startup invariants stay aligned with production URLs")
+    func startupConfigurationMatchesProductionContracts() {
+        #expect(AppConfiguration.apiBaseURL.scheme == "https")
+        #expect(AppConfiguration.apiBaseURL.host == "laughtrack.app")
+        #expect(AppConfiguration.apiBaseURL.path == "/api/v1")
+        #expect(AppConfiguration.bundleID == "com.laughtrack.laughtrack")
+    }
+
+    @Test("route definitions keep the launch-visible destinations stable")
+    func routeDefinitionsRemainDistinct() {
+        let googleSignInURL = AuthRouteConfiguration.signInURL(for: .google)
+        let appleSignInURL = AuthRouteConfiguration.signInURL(for: .apple)
+        let callbackURL = AuthRouteConfiguration.nativeCallbackURL(for: .google)
+
+        #expect(AuthRouteConfiguration.callbackScheme == "laughtrack")
+        #expect(googleSignInURL.host == "laughtrack.app")
+        #expect(googleSignInURL.path == "/api/auth/signin/google")
+        #expect(appleSignInURL.path == "/api/auth/signin/apple")
+        #expect(callbackURL.path == "/api/v1/auth/native/callback")
+        #expect(URLComponents(url: callbackURL, resolvingAgainstBaseURL: false)?.queryItems?.first?.value == "google")
+    }
+
     @Test("bootstrap theme keeps bridge semantics available at launch")
     @MainActor
     func bootstrapThemeExposesExpectedBridgeContracts() {
