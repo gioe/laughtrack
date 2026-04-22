@@ -65,6 +65,11 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `GET /shows/search`.
     /// - Remark: Generated from `#/paths//shows/search/get(searchShows)`.
     func searchShows(_ input: Operations.SearchShows.Input) async throws -> Operations.SearchShows.Output
+    /// List the signed-in user’s saved favorite comedians
+    ///
+    /// - Remark: HTTP `GET /favorites`.
+    /// - Remark: Generated from `#/paths//favorites/get(getFavorites)`.
+    func getFavorites(_ input: Operations.GetFavorites.Input) async throws -> Operations.GetFavorites.Output
     /// Favorite a comedian
     ///
     /// - Remark: HTTP `POST /favorites`.
@@ -207,6 +212,15 @@ extension APIProtocol {
             headers: headers
         ))
     }
+    /// List the signed-in user’s saved favorite comedians
+    ///
+    /// - Remark: HTTP `GET /favorites`.
+    /// - Remark: Generated from `#/paths//favorites/get(getFavorites)`.
+    public func getFavorites(
+        headers: Operations.GetFavorites.Input.Headers = .init()
+    ) async throws -> Operations.GetFavorites.Output {
+        try await getFavorites(Operations.GetFavorites.Input(headers: headers))
+    }
     /// Favorite a comedian
     ///
     /// - Remark: HTTP `POST /favorites`.
@@ -317,6 +331,21 @@ public enum Components {
             /// - Parameters:
             ///   - data:
             public init(data: Components.Schemas.FavoriteResponse.DataPayload) {
+                self.data = data
+            }
+            public enum CodingKeys: String, CodingKey {
+                case data
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/FavoriteListResponse`.
+        public struct FavoriteListResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/FavoriteListResponse/data`.
+            public var data: [Components.Schemas.ComedianSearchItem]
+            /// Creates a new `FavoriteListResponse`.
+            ///
+            /// - Parameters:
+            ///   - data:
+            public init(data: [Components.Schemas.ComedianSearchItem]) {
                 self.data = data
             }
             public enum CodingKeys: String, CodingKey {
@@ -4222,6 +4251,173 @@ public enum Operations {
     ///
     /// - Remark: HTTP `POST /favorites`.
     /// - Remark: Generated from `#/paths//favorites/post(addFavorite)`.
+    public enum GetFavorites {
+        public static let id: Swift.String = "getFavorites"
+        public struct Input: Sendable, Hashable {
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetFavorites.AcceptableContentType>]
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.GetFavorites.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.GetFavorites.Input.Headers
+            public init(headers: Operations.GetFavorites.Input.Headers = .init()) {
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                @frozen public enum Body: Sendable, Hashable {
+                    case json(Components.Schemas.FavoriteListResponse)
+                    public var json: Components.Schemas.FavoriteListResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                public var body: Operations.GetFavorites.Output.Ok.Body
+                public init(body: Operations.GetFavorites.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            case ok(Operations.GetFavorites.Output.Ok)
+            public var ok: Operations.GetFavorites.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct Unauthorized: Sendable, Hashable {
+                @frozen public enum Body: Sendable, Hashable {
+                    case json(Components.Schemas.ErrorResponse)
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                public var body: Operations.GetFavorites.Output.Unauthorized.Body
+                public init(body: Operations.GetFavorites.Output.Unauthorized.Body) {
+                    self.body = body
+                }
+            }
+            case unauthorized(Operations.GetFavorites.Output.Unauthorized)
+            public var unauthorized: Operations.GetFavorites.Output.Unauthorized {
+                get throws {
+                    switch self {
+                    case let .unauthorized(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unauthorized",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct UnprocessableContent: Sendable, Hashable {
+                @frozen public enum Body: Sendable, Hashable {
+                    case json(Components.Schemas.ErrorResponse)
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                public var body: Operations.GetFavorites.Output.UnprocessableContent.Body
+                public init(body: Operations.GetFavorites.Output.UnprocessableContent.Body) {
+                    self.body = body
+                }
+            }
+            case unprocessableContent(Operations.GetFavorites.Output.UnprocessableContent)
+            public var unprocessableContent: Operations.GetFavorites.Output.UnprocessableContent {
+                get throws {
+                    switch self {
+                    case let .unprocessableContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "unprocessableContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            public struct InternalServerError: Sendable, Hashable {
+                @frozen public enum Body: Sendable, Hashable {
+                    case json(Components.Schemas.ErrorResponse)
+                    public var json: Components.Schemas.ErrorResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                public var body: Operations.GetFavorites.Output.InternalServerError.Body
+                public init(body: Operations.GetFavorites.Output.InternalServerError.Body) {
+                    self.body = body
+                }
+            }
+            case internalServerError(Operations.GetFavorites.Output.InternalServerError)
+            public var internalServerError: Operations.GetFavorites.Output.InternalServerError {
+                get throws {
+                    switch self {
+                    case let .internalServerError(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "internalServerError",
+                            response: self
+                        )
+                    }
+                }
+            }
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
     public enum AddFavorite {
         public static let id: Swift.String = "addFavorite"
         public struct Input: Sendable, Hashable {

@@ -37,8 +37,20 @@ final class ComedianFavoriteStore: ObservableObject {
         case failure(String)
     }
 
+    enum SavedFavoritesPhase: Equatable {
+        case idle
+        case loading
+        case loaded
+        case empty
+        case failure(String)
+    }
+
     @Published private var values: [String: Bool] = [:]
     @Published private var pending: Set<String> = []
+    @Published private(set) var savedFavoriteComedians: [Components.Schemas.ComedianSearchItem] = []
+    @Published private(set) var savedFavoritesPhase: SavedFavoritesPhase = .idle
+
+    private var hasLoadedSavedFavorites = false
 
     func value(for uuid: String, fallback: Bool? = nil) -> Bool {
         values[uuid] ?? fallback ?? false
@@ -52,6 +64,12 @@ final class ComedianFavoriteStore: ObservableObject {
         pending.contains(uuid)
     }
 
+    func resetSavedFavorites() {
+        hasLoadedSavedFavorites = false
+        savedFavoriteComedians = []
+        savedFavoritesPhase = .idle
+    }
+
     func seed(uuid: String, value: Bool?) {
         guard let value, values[uuid] == nil else { return }
         values[uuid] = value
@@ -60,6 +78,62 @@ final class ComedianFavoriteStore: ObservableObject {
     func overwrite(uuid: String, value: Bool?) {
         guard let value else { return }
         values[uuid] = value
+    }
+
+    func loadSavedFavorites(
+        apiClient: Client,
+        authManager: AuthManager,
+        force: Bool = false
+    ) async {
+        guard authManager.currentSession != nil else {
+            resetSavedFavorites()
+            return
+        }
+        if hasLoadedSavedFavorites && !force {
+            return
+        }
+
+        savedFavoritesPhase = .loading
+
+        do {
+            let output = try await apiClient.getFavorites()
+            switch output {
+            case .ok(let ok):
+                let response = try ok.body.json
+                savedFavoriteComedians = response.data
+                hasLoadedSavedFavorites = true
+                response.data.forEach { comedian in
+                    values[comedian.uuid] = true
+                }
+                savedFavoritesPhase = response.data.isEmpty ? .empty : .loaded
+            case .unauthorized(let unauthorized):
+                resetSavedFavorites()
+                savedFavoritesPhase = .failure(
+                    (try? unauthorized.body.json.error) ??
+                        "Your session expired. Sign in again to load favorites."
+                )
+            case .unprocessableContent(let invalidProfile):
+                resetSavedFavorites()
+                savedFavoritesPhase = .failure(
+                    (try? invalidProfile.body.json.error) ??
+                        "Your account needs to sign in again before loading favorites."
+                )
+            case .internalServerError(let serverError):
+                savedFavoritesPhase = .failure(
+                    (try? serverError.body.json.error) ??
+                        "LaughTrack hit a server error while loading favorites."
+                )
+            case .undocumented(let status, _):
+                savedFavoritesPhase = .failure(
+                    "LaughTrack returned an unexpected favorites response (\(status))."
+                )
+            }
+        } catch {
+            guard !Task.isCancelled else { return }
+            savedFavoritesPhase = .failure(
+                "LaughTrack couldn’t reach the favorites service. Please try again."
+            )
+        }
     }
 
     func toggle(
@@ -117,6 +191,16 @@ final class ComedianFavoriteStore: ObservableObject {
 
             let nextValue = response.data.isFavorited
             values[uuid] = nextValue
+            if nextValue {
+                if let index = savedFavoriteComedians.firstIndex(where: { $0.uuid == uuid }) {
+                    savedFavoriteComedians[index].isFavorite = true
+                }
+            } else {
+                savedFavoriteComedians.removeAll { $0.uuid == uuid }
+                if savedFavoriteComedians.isEmpty, hasLoadedSavedFavorites {
+                    savedFavoritesPhase = .empty
+                }
+            }
             return .updated(nextValue)
         } catch {
             return .failure("LaughTrack couldn’t reach the favorites service. Please try again.")

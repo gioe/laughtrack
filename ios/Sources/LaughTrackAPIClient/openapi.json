@@ -673,6 +673,46 @@
       }
     },
     "/favorites": {
+      "get": {
+        "operationId": "getFavorites",
+        "summary": "List the signed-in user’s saved favorite comedians",
+        "tags": ["favorites"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Favorite comedians",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FavoriteListResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "User profile not found (re-auth needed)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "operationId": "addFavorite",
         "summary": "Favorite a comedian",
@@ -852,6 +892,16 @@
             "properties": {
               "isFavorited": { "type": "boolean" }
             }
+          }
+        }
+      },
+      "FavoriteListResponse": {
+        "type": "object",
+        "required": ["data"],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ComedianSearchItem" }
           }
         }
       },
