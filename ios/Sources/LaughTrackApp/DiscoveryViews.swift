@@ -712,6 +712,45 @@ struct ShowsSearchScreen: View {
     }
 }
 
+struct ClubsSearchScreen: View {
+    let apiClient: Client
+
+    @Environment(\.appTheme) private var theme
+    @StateObject private var model = ClubsDiscoveryModel()
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: theme.spacing.xl) {
+                LaughTrackSectionHeader(
+                    eyebrow: "Clubs Search",
+                    title: "Search live clubs",
+                    subtitle: "Browse live venue results from the LaughTrack backend, keep search states explicit, and move straight into each club detail screen."
+                )
+
+                HStack(spacing: theme.spacing.sm) {
+                    LaughTrackBadge("Live results", systemImage: "dot.radiowaves.left.and.right", tone: .highlight)
+                    LaughTrackBadge("Club details", systemImage: "building.2.fill", tone: .neutral)
+                    LaughTrackBadge("Mobile browse", systemImage: "iphone", tone: .accent)
+                }
+
+                ClubsDiscoveryView(apiClient: apiClient, model: model)
+            }
+            .padding(.horizontal, theme.spacing.xl)
+            .padding(.vertical, theme.laughTrackTokens.spacing.heroPadding)
+        }
+        .accessibilityIdentifier(LaughTrackViewTestID.clubsSearchScreen)
+        .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
+        .background(
+            theme.laughTrackTokens.gradients.heroWash
+                .frame(maxHeight: 220)
+                .ignoresSafeArea(edges: .top),
+            alignment: .top
+        )
+        .navigationTitle("Search Clubs")
+        .modifier(LaughTrackNavigationChrome(background: theme.laughTrackTokens.colors.canvas))
+    }
+}
+
 struct ComediansSearchScreen: View {
     let apiClient: Client
 
@@ -1478,6 +1517,7 @@ private struct ClubsDiscoveryView: View {
                                 }
                                 .buttonStyle(.plain)
                                 .disabled(club.id == nil)
+                                .accessibilityIdentifier(club.id.map(LaughTrackViewTestID.clubsSearchResultButton) ?? "laughtrack.clubs-search.result-missing-id")
                             }
 
                             if let paginationMessage = model.paginationMessage {
