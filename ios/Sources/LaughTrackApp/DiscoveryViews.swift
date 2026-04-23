@@ -589,6 +589,8 @@ final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, Componen
     }
 
     func applySearchRootQuery(_ query: String) {
+        // The unified root currently treats show search as a comedian-name query.
+        // Venue-name discovery remains explicit in the Clubs pivot.
         comedianSearchText = query
         clubSearchText = ""
     }
@@ -1417,14 +1419,14 @@ struct HomeNearbyDiscoverySection: View {
 struct ShowsDiscoveryView: View {
     let apiClient: Client
     @ObservedObject var model: ShowsDiscoveryModel
-    var showsSearchFields = true
+    var displaysSearchFields = true
 
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
 
     var body: some View {
         DiscoveryCard(title: "Find shows") {
             VStack(spacing: 16) {
-                if showsSearchFields {
+                if displaysSearchFields {
                     SearchField(
                         title: "Comedian",
                         prompt: "Mark Normand, Atsuko Okatsuka…",
@@ -1507,7 +1509,7 @@ struct ShowsDiscoveryView: View {
 struct ComediansDiscoveryView: View {
     let apiClient: Client
     @ObservedObject var model: ComediansDiscoveryModel
-    var showsSearchInput = true
+    var displaysSearchInput = true
 
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
     @EnvironmentObject private var favorites: ComedianFavoriteStore
@@ -1516,7 +1518,7 @@ struct ComediansDiscoveryView: View {
     var body: some View {
         DiscoveryCard(title: "Search comedians") {
             VStack(spacing: 16) {
-                if showsSearchInput {
+                if displaysSearchInput {
                     SearchField(
                         title: "Comedian name",
                         prompt: "Mark Normand, Atsuko Okatsuka…",
@@ -1584,14 +1586,14 @@ struct ComediansDiscoveryView: View {
 struct ClubsDiscoveryView: View {
     let apiClient: Client
     @ObservedObject var model: ClubsDiscoveryModel
-    var showsSearchInput = true
+    var displaysSearchInput = true
 
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
 
     var body: some View {
         DiscoveryCard(title: "Search clubs") {
             VStack(spacing: 16) {
-                if showsSearchInput {
+                if displaysSearchInput {
                     SearchField(
                         title: "Club name",
                         prompt: "Comedy Cellar, The Stand…",

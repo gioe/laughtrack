@@ -14,6 +14,28 @@ final class SearchRootModel: ObservableObject {
 
         var id: String { rawValue }
         var title: String { rawValue.capitalized }
+
+        var queryPrompt: String {
+            switch self {
+            case .shows:
+                return "Search comedians appearing in shows"
+            case .comedians:
+                return "Search comedian names"
+            case .clubs:
+                return "Search club names"
+            }
+        }
+
+        var queryHelpText: String {
+            switch self {
+            case .shows:
+                return "Shows search matches comedian names for now. Switch to Clubs to search by venue."
+            case .comedians:
+                return "Find comedian profiles by name."
+            case .clubs:
+                return "Find comedy clubs and venue pages by name."
+            }
+        }
     }
 
     @Published var query = ""

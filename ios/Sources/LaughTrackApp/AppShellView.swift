@@ -11,6 +11,7 @@ struct AppShellView: View {
     @ObservedObject var nearbyPreferenceStore: NearbyPreferenceStore
 
     @Environment(\.appTheme) private var theme
+    @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
     @State private var selectedTab: AppTab
 
     init(
@@ -39,6 +40,8 @@ struct AppShellView: View {
 
             SearchRootView(
                 apiClient: apiClient,
+                favorites: favorites,
+                coordinator: coordinator,
                 nearbyPreferenceStore: nearbyPreferenceStore
             )
                 .tabItem { Label("Search", systemImage: "magnifyingglass") }

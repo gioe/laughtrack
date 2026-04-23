@@ -9,15 +9,20 @@ import LaughTrackCore
 struct SearchRootViewTests {
     @Test("search root defaults to shows pivot")
     func defaultsToShows() async throws {
+        let coordinator = NavigationCoordinator<AppRoute>()
+        let favorites = ComedianFavoriteStore()
         let host = HostedView(
             SearchRootView(
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
+                favorites: favorites,
+                coordinator: coordinator,
                 nearbyPreferenceStore: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "search-root-default")
             )
             .environment(\.appTheme, LaughTrackTheme())
         )
 
         try host.requireText("Shows")
+        try host.requireText("Shows search matches comedian names for now. Switch to Clubs to search by venue.")
         try host.requireView(withIdentifier: LaughTrackViewTestID.showsSearchScreen)
     }
 }
@@ -34,7 +39,13 @@ struct SearchRootModelTests {
         #expect(model.activePivot == .clubs)
     }
 
-    @Test("root query is applied to the active pivot model")
+    @Test("pivot copy documents query behavior")
+    func pivotCopyDocumentsQueryBehavior() async throws {
+        #expect(SearchRootModel.Pivot.shows.queryPrompt == "Search comedians appearing in shows")
+        #expect(SearchRootModel.Pivot.shows.queryHelpText == "Shows search matches comedian names for now. Switch to Clubs to search by venue.")
+    }
+
+    @Test("root query is applied only to the active pivot model")
     func rootQueryAppliesToActivePivotModel() async throws {
         let model = SearchRootModel()
         let showsModel = ShowsDiscoveryModel(
@@ -75,6 +86,24 @@ struct SearchRootModelTests {
             comediansModel: comediansModel,
             clubsModel: clubsModel
         )
+        #expect(showsModel.comedianSearchText == "Mark Normand")
+        #expect(showsModel.clubSearchText == "")
+    }
+
+    @Test("shows root query maps to comedian search for now")
+    func showsRootQueryMapsToComedianSearch() async throws {
+        let model = SearchRootModel()
+        let showsModel = ShowsDiscoveryModel(
+            nearbyLocationController: NearbyLocationController(
+                store: NearbyPreferenceStore(),
+                resolver: LaughTrackCore.CurrentLocationZipResolver()
+            )
+        )
+
+        showsModel.clubSearchText = "Comedy Cellar"
+        model.query = "Mark Normand"
+        model.applyQuery(to: showsModel)
+
         #expect(showsModel.comedianSearchText == "Mark Normand")
         #expect(showsModel.clubSearchText == "")
     }

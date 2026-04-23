@@ -1,9 +1,12 @@
 import SwiftUI
 import LaughTrackAPIClient
+import LaughTrackBridge
 import LaughTrackCore
 
 struct SearchRootView: View {
     let apiClient: Client
+    let favorites: ComedianFavoriteStore
+    let coordinator: NavigationCoordinator<AppRoute>
     @ObservedObject var nearbyPreferenceStore: NearbyPreferenceStore
 
     @Environment(\.appTheme) private var theme
@@ -14,9 +17,13 @@ struct SearchRootView: View {
 
     init(
         apiClient: Client,
+        favorites: ComedianFavoriteStore,
+        coordinator: NavigationCoordinator<AppRoute>,
         nearbyPreferenceStore: NearbyPreferenceStore
     ) {
         self.apiClient = apiClient
+        self.favorites = favorites
+        self.coordinator = coordinator
         self.nearbyPreferenceStore = nearbyPreferenceStore
         _showsModel = StateObject(
             wrappedValue: ShowsDiscoveryModel(
@@ -31,8 +38,12 @@ struct SearchRootView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: theme.spacing.xl) {
-                TextField("Search comedy near you", text: $model.query)
+                TextField(model.activePivot.queryPrompt, text: $model.query)
                     .textFieldStyle(.roundedBorder)
+
+                Text(model.activePivot.queryHelpText)
+                    .font(theme.laughTrackTokens.typography.metadata)
+                    .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
 
                 Picker("Entity", selection: $model.activePivot) {
                     ForEach(SearchRootModel.Pivot.allCases) { pivot in
@@ -41,7 +52,7 @@ struct SearchRootView: View {
                 }
                 .pickerStyle(.segmented)
 
-                activeSearchScreen
+                activeSearchScreenWithDependencies
             }
             .padding(.horizontal, theme.spacing.xl)
             .padding(.vertical, theme.laughTrackTokens.spacing.heroPadding)
@@ -61,6 +72,12 @@ struct SearchRootView: View {
         }
     }
 
+    private var activeSearchScreenWithDependencies: some View {
+        activeSearchScreen
+            .environmentObject(favorites)
+            .navigationCoordinator(coordinator)
+    }
+
     @ViewBuilder
     private var activeSearchScreen: some View {
         switch model.activePivot {
@@ -68,19 +85,19 @@ struct SearchRootView: View {
             ShowsDiscoveryView(
                 apiClient: apiClient,
                 model: showsModel,
-                showsSearchFields: false
+                displaysSearchFields: false
             )
         case .comedians:
             ComediansDiscoveryView(
                 apiClient: apiClient,
                 model: comediansModel,
-                showsSearchInput: false
+                displaysSearchInput: false
             )
         case .clubs:
             ClubsDiscoveryView(
                 apiClient: apiClient,
                 model: clubsModel,
-                showsSearchInput: false
+                displaysSearchInput: false
             )
         }
     }
