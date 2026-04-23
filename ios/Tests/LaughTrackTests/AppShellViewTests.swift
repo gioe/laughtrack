@@ -11,10 +11,12 @@ struct AppShellViewTests {
     func shellRendersTabs() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "app-shell-tabs")
         let coordinator = NavigationCoordinator<AppRoute>()
+        let nearbyStore = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "app-shell-tabs")
         let host = HostedView(
             AppShellView(
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
-                nearbyPreferenceStore: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "app-shell-tabs")
+                favorites: ComedianFavoriteStore(),
+                nearbyPreferenceStore: nearbyStore
             )
                 .environment(\.appTheme, LaughTrackTheme())
                 .navigationCoordinator(coordinator)
@@ -32,9 +34,12 @@ struct AppShellViewTests {
     func shellCanStartOnSearchTab() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "app-shell-search")
         let coordinator = NavigationCoordinator<AppRoute>()
+        let nearbyStore = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "app-shell-search")
         let host = HostedView(
             AppShellView(
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
+                favorites: ComedianFavoriteStore(),
+                nearbyPreferenceStore: nearbyStore,
                 initialTab: .search
             )
             .environment(\.appTheme, LaughTrackTheme())
@@ -47,18 +52,48 @@ struct AppShellViewTests {
         try host.requireText("Search")
     }
 
-    @Test("home tab renders the existing discovery home view")
-    func homeTabRendersHomeView() async throws {
+    @Test("home tab keeps the real home affordances inside shell chrome")
+    func homeTabKeepsRealHomeAffordances() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "shell-home")
         let coordinator = NavigationCoordinator<AppRoute>()
+        let nearbyStore = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "shell-home")
         let host = HostedView(
-            AppShellView(apiClient: LaughTrackHostedViewTestSupport.makeClient())
+            AppShellView(
+                apiClient: LaughTrackHostedViewTestSupport.makeClient(),
+                favorites: ComedianFavoriteStore(),
+                nearbyPreferenceStore: nearbyStore
+            )
                 .environment(\.appTheme, LaughTrackTheme())
                 .navigationCoordinator(coordinator)
                 .environmentObject(authManager)
         )
 
         try host.requireView(withIdentifier: LaughTrackViewTestID.homeScreen)
+        try host.requireView(withIdentifier: LaughTrackViewTestID.homeSettingsButton)
+        try host.requireView(withIdentifier: LaughTrackViewTestID.homeShowsSearchButton)
+    }
+
+    @Test("shell can start on the profile tab and shows real settings content")
+    func shellCanStartOnProfileTab() async throws {
+        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "app-shell-profile")
+        let coordinator = NavigationCoordinator<AppRoute>()
+        let nearbyStore = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "app-shell-profile")
+        let host = HostedView(
+            AppShellView(
+                apiClient: LaughTrackHostedViewTestSupport.makeClient(),
+                favorites: ComedianFavoriteStore(),
+                nearbyPreferenceStore: nearbyStore,
+                initialTab: .profile
+            )
+            .environment(\.appTheme, LaughTrackTheme())
+            .navigationCoordinator(coordinator)
+            .environmentObject(authManager)
+        )
+
+        try host.requireView(withIdentifier: LaughTrackViewTestID.settingsScreen)
+        try host.requireText("Nearby defaults")
+        try host.requireView(withIdentifier: LaughTrackViewTestID.settingsFavoritesSection)
+        #expect(host.findView(withIdentifier: LaughTrackViewTestID.profileTabScreen) == nil)
     }
 }
 #endif

@@ -6,19 +6,16 @@ import LaughTrackCore
 struct ProfileView: View {
     let apiClient: Client
     let signedOutMessage: String?
-
-    @StateObject private var nearbyPreferenceStore: NearbyPreferenceStore
+    @ObservedObject var nearbyPreferenceStore: NearbyPreferenceStore
 
     init(
         apiClient: Client,
         signedOutMessage: String?,
-        nearbyPreferenceStore: NearbyPreferenceStore? = nil
+        nearbyPreferenceStore: NearbyPreferenceStore
     ) {
         self.apiClient = apiClient
         self.signedOutMessage = signedOutMessage
-        _nearbyPreferenceStore = StateObject(
-            wrappedValue: nearbyPreferenceStore ?? NearbyPreferenceStore()
-        )
+        self._nearbyPreferenceStore = ObservedObject(wrappedValue: nearbyPreferenceStore)
     }
 
     var body: some View {
