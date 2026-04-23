@@ -1,0 +1,165 @@
+import SwiftUI
+import Testing
+import LaughTrackCore
+@testable import LaughTrackApp
+
+#if canImport(UIKit)
+@Suite("Search root")
+@MainActor
+struct SearchRootViewTests {
+    @Test("search root defaults to shows pivot")
+    func defaultsToShows() async throws {
+        let coordinator = NavigationCoordinator<AppRoute>()
+        let favorites = ComedianFavoriteStore()
+        let host = HostedView(
+            SearchRootView(
+                apiClient: LaughTrackHostedViewTestSupport.makeClient(),
+                favorites: favorites,
+                coordinator: coordinator,
+                searchNavigationBridge: SearchNavigationBridge(),
+                nearbyPreferenceStore: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "search-root-default")
+            )
+            .environment(\.appTheme, LaughTrackTheme())
+        )
+
+        try host.requireText("Shows")
+        try host.requireText("Shows search matches comedian names for now. Switch to Clubs to search by venue.")
+        try host.requireView(withIdentifier: LaughTrackViewTestID.showsSearchScreen)
+    }
+}
+#endif
+
+@Suite("Search root model")
+@MainActor
+struct SearchRootModelTests {
+    @Test("switching pivots does not navigate away from search root")
+    func switchingPivotsStaysInPlace() async throws {
+        let model = SearchRootModel()
+        #expect(model.activePivot == .shows)
+        model.activePivot = .clubs
+        #expect(model.activePivot == .clubs)
+    }
+
+    @Test("pivot copy documents query behavior")
+    func pivotCopyDocumentsQueryBehavior() async throws {
+        #expect(SearchRootModel.Pivot.shows.queryPrompt == "Search comedians appearing in shows")
+        #expect(SearchRootModel.Pivot.shows.queryHelpText == "Shows search matches comedian names for now. Switch to Clubs to search by venue.")
+    }
+
+    @Test("search seeds update pivot query and shortcut")
+    func searchSeedsUpdatePivotQueryAndShortcut() async throws {
+        let model = SearchRootModel()
+
+        model.applySeed(.init(pivot: .clubs, query: "Cellar", shortcut: "Tonight"))
+
+        #expect(model.activePivot == .clubs)
+        #expect(model.query == "Cellar")
+        #expect(model.selectedShortcut == "Tonight")
+    }
+
+    @Test("home search bridge stores latest seed request")
+    func homeSearchBridgeStoresLatestSeedRequest() async throws {
+        let bridge = SearchNavigationBridge()
+        let seed = SearchRootModel.Seed(pivot: .comedians, query: "Atsuko", shortcut: nil)
+
+        bridge.openSearch(seed)
+
+        #expect(bridge.request?.seed == seed)
+    }
+
+    @Test("home search bridge consumes seed requests once")
+    func homeSearchBridgeConsumesSeedRequestsOnce() async throws {
+        let bridge = SearchNavigationBridge()
+        bridge.openSearch(.init(pivot: .shows, query: "", shortcut: "Near Me"))
+
+        let request = try #require(bridge.request)
+        bridge.clearRequest(request)
+
+        #expect(bridge.request == nil)
+    }
+
+    @Test("shortcut selection applies show date filters")
+    func shortcutSelectionAppliesShowDateFilters() async throws {
+        let model = SearchRootModel()
+        let showsModel = ShowsDiscoveryModel(
+            nearbyLocationController: NearbyLocationController(
+                store: NearbyPreferenceStore(),
+                resolver: LaughTrackCore.CurrentLocationZipResolver()
+            )
+        )
+        let now = Date(timeIntervalSince1970: 1_710_000_000)
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+
+        model.selectShortcut("Tonight")
+        model.applyShortcutFilters(to: showsModel, now: now, calendar: calendar)
+
+        #expect(model.activePivot == .shows)
+        #expect(showsModel.useDateRange)
+        #expect(showsModel.fromDate == calendar.startOfDay(for: now))
+        #expect(showsModel.toDate == calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: now)))
+    }
+
+    @Test("root query is applied only to the active pivot model")
+    func rootQueryAppliesToActivePivotModel() async throws {
+        let model = SearchRootModel()
+        let showsModel = ShowsDiscoveryModel(
+            nearbyLocationController: NearbyLocationController(
+                store: NearbyPreferenceStore(),
+                resolver: LaughTrackCore.CurrentLocationZipResolver()
+            )
+        )
+        let clubsModel = ClubsDiscoveryModel()
+        let comediansModel = ComediansDiscoveryModel()
+
+        model.query = "Comedy Cellar"
+        model.activePivot = .clubs
+        model.applyQuery(
+            showsModel: showsModel,
+            comediansModel: comediansModel,
+            clubsModel: clubsModel
+        )
+        #expect(clubsModel.searchText == "Comedy Cellar")
+        #expect(comediansModel.searchText == "")
+        #expect(showsModel.comedianSearchText == "")
+
+        model.query = "Atsuko"
+        model.activePivot = .comedians
+        model.applyQuery(
+            showsModel: showsModel,
+            comediansModel: comediansModel,
+            clubsModel: clubsModel
+        )
+        #expect(comediansModel.searchText == "Atsuko")
+        #expect(clubsModel.searchText == "Comedy Cellar")
+        #expect(showsModel.comedianSearchText == "")
+
+        model.query = "Mark Normand"
+        model.activePivot = .shows
+        model.applyQuery(
+            showsModel: showsModel,
+            comediansModel: comediansModel,
+            clubsModel: clubsModel
+        )
+        #expect(showsModel.comedianSearchText == "Mark Normand")
+        #expect(showsModel.clubSearchText == "")
+    }
+
+    @Test("shows root query maps to comedian search for now")
+    func showsRootQueryMapsToComedianSearch() async throws {
+        let model = SearchRootModel()
+        let showsModel = ShowsDiscoveryModel(
+            nearbyLocationController: NearbyLocationController(
+                store: NearbyPreferenceStore(),
+                resolver: LaughTrackCore.CurrentLocationZipResolver()
+            )
+        )
+
+        showsModel.clubSearchText = "Comedy Cellar"
+        model.query = "Mark Normand"
+        model.applyQuery(to: showsModel)
+
+        #expect(showsModel.comedianSearchText == "Mark Normand")
+        #expect(showsModel.clubSearchText == "")
+    }
+}

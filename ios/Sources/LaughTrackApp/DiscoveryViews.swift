@@ -209,7 +209,7 @@ final class ComedianFavoriteStore: ObservableObject {
 }
 
 @MainActor
-private final class ComediansDiscoveryModel: EntitySearchModel<String, Components.Schemas.ComedianSearchItem> {
+final class ComediansDiscoveryModel: EntitySearchModel<String, Components.Schemas.ComedianSearchItem>, SearchRootQueryReceivable {
     private static let pageSize = 20
 
     @Published var searchText = ""
@@ -225,6 +225,10 @@ private final class ComediansDiscoveryModel: EntitySearchModel<String, Component
         await super.loadMore(query: normalizedQuery) { page, query in
             await Self.fetchPage(page: page, query: query, apiClient: apiClient, favorites: favorites)
         }
+    }
+
+    func applySearchRootQuery(_ query: String) {
+        searchText = query
     }
 
     private var normalizedQuery: String {
@@ -316,7 +320,7 @@ private final class ComediansDiscoveryModel: EntitySearchModel<String, Component
 }
 
 @MainActor
-private final class ClubsDiscoveryModel: EntitySearchModel<String, Components.Schemas.ClubSearchItem> {
+final class ClubsDiscoveryModel: EntitySearchModel<String, Components.Schemas.ClubSearchItem>, SearchRootQueryReceivable {
     private static let pageSize = 20
 
     @Published var searchText = ""
@@ -332,6 +336,10 @@ private final class ClubsDiscoveryModel: EntitySearchModel<String, Components.Sc
         await super.loadMore(query: normalizedQuery) { page, query in
             await Self.fetchPage(page: page, query: query, apiClient: apiClient)
         }
+    }
+
+    func applySearchRootQuery(_ query: String) {
+        searchText = query
     }
 
     private var normalizedQuery: String {
@@ -442,7 +450,7 @@ enum ShowDistanceOption: Int, CaseIterable, Identifiable {
     }
 }
 
-private enum ShowSortOption: String, CaseIterable, Identifiable {
+enum ShowSortOption: String, CaseIterable, Identifiable {
     case earliest = "date_asc"
     case latest = "date_desc"
     case popular = "popularity_desc"
@@ -467,7 +475,7 @@ private enum ShowSortOption: String, CaseIterable, Identifiable {
     }
 }
 
-private struct ShowsDiscoveryQuery: Hashable {
+struct ShowsDiscoveryQuery: Hashable {
     let comedian: String
     let club: String
     let zip: String
@@ -503,7 +511,7 @@ private struct ShowsDiscoveryQuery: Hashable {
 }
 
 @MainActor
-private final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, Components.Schemas.Show> {
+final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, Components.Schemas.Show>, SearchRootQueryReceivable {
     private static let pageSize = 10
 
     @Published var zipCodeDraft = ""
@@ -578,6 +586,13 @@ private final class ShowsDiscoveryModel: EntitySearchModel<ShowsDiscoveryQuery, 
             guard let self else { return .failure(.init("LaughTrack could not load shows right now.")) }
             return await self.fetchPage(page: page, query: query, apiClient: apiClient)
         }
+    }
+
+    func applySearchRootQuery(_ query: String) {
+        // The unified root currently treats show search as a comedian-name query.
+        // Venue-name discovery remains explicit in the Clubs pivot.
+        comedianSearchText = query
+        clubSearchText = ""
     }
 
     func clearLocation() {
@@ -1401,26 +1416,29 @@ struct HomeNearbyDiscoverySection: View {
     }
 }
 
-private struct ShowsDiscoveryView: View {
+struct ShowsDiscoveryView: View {
     let apiClient: Client
     @ObservedObject var model: ShowsDiscoveryModel
+    var displaysSearchFields = true
 
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
 
     var body: some View {
         DiscoveryCard(title: "Find shows") {
             VStack(spacing: 16) {
-                SearchField(
-                    title: "Comedian",
-                    prompt: "Mark Normand, Atsuko Okatsuka…",
-                    text: $model.comedianSearchText
-                )
+                if displaysSearchFields {
+                    SearchField(
+                        title: "Comedian",
+                        prompt: "Mark Normand, Atsuko Okatsuka…",
+                        text: $model.comedianSearchText
+                    )
 
-                SearchField(
-                    title: "Club",
-                    prompt: "Comedy Cellar, The Stand…",
-                    text: $model.clubSearchText
-                )
+                    SearchField(
+                        title: "Club",
+                        prompt: "Comedy Cellar, The Stand…",
+                        text: $model.clubSearchText
+                    )
+                }
 
                 ShowFiltersPanel(model: model)
 
@@ -1471,6 +1489,7 @@ private struct ShowsDiscoveryView: View {
         .task(id: model.requestKey) {
             await model.reload(apiClient: apiClient)
         }
+        .accessibilityIdentifier(LaughTrackViewTestID.showsSearchScreen)
     }
 
     private var emptyMessage: String {
@@ -1487,9 +1506,10 @@ private struct ShowsDiscoveryView: View {
     }
 }
 
-private struct ComediansDiscoveryView: View {
+struct ComediansDiscoveryView: View {
     let apiClient: Client
     @ObservedObject var model: ComediansDiscoveryModel
+    var displaysSearchInput = true
 
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
     @EnvironmentObject private var favorites: ComedianFavoriteStore
@@ -1498,11 +1518,13 @@ private struct ComediansDiscoveryView: View {
     var body: some View {
         DiscoveryCard(title: "Search comedians") {
             VStack(spacing: 16) {
-                SearchField(
-                    title: "Comedian name",
-                    prompt: "Mark Normand, Atsuko Okatsuka…",
-                    text: $model.searchText
-                )
+                if displaysSearchInput {
+                    SearchField(
+                        title: "Comedian name",
+                        prompt: "Mark Normand, Atsuko Okatsuka…",
+                        text: $model.searchText
+                    )
+                }
 
                 switch model.phase {
                 case .idle, .loading:
@@ -1557,23 +1579,27 @@ private struct ComediansDiscoveryView: View {
         }, message: {
             Text(feedbackMessage ?? "")
         })
+        .accessibilityIdentifier(LaughTrackViewTestID.comediansSearchScreen)
     }
 }
 
-private struct ClubsDiscoveryView: View {
+struct ClubsDiscoveryView: View {
     let apiClient: Client
     @ObservedObject var model: ClubsDiscoveryModel
+    var displaysSearchInput = true
 
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
 
     var body: some View {
         DiscoveryCard(title: "Search clubs") {
             VStack(spacing: 16) {
-                SearchField(
-                    title: "Club name",
-                    prompt: "Comedy Cellar, The Stand…",
-                    text: $model.searchText
-                )
+                if displaysSearchInput {
+                    SearchField(
+                        title: "Club name",
+                        prompt: "Comedy Cellar, The Stand…",
+                        text: $model.searchText
+                    )
+                }
 
                 switch model.phase {
                 case .idle, .loading:
@@ -1624,6 +1650,7 @@ private struct ClubsDiscoveryView: View {
         .task(id: model.searchText) {
             await model.reload(apiClient: apiClient)
         }
+        .accessibilityIdentifier(LaughTrackViewTestID.clubsSearchScreen)
     }
 }
 
