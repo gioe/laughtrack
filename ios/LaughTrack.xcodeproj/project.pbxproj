@@ -42,6 +42,7 @@
 		9F699E60A40D89F8C4A837CF /* APIVersionPathMiddleware.swift in Sources */ = {isa = PBXBuildFile; fileRef = B534BFFF719C94C2A0D86C6D /* APIVersionPathMiddleware.swift */; };
 		A24095B90BCF6912A7533AED /* APIClient in Frameworks */ = {isa = PBXBuildFile; productRef = 835B2849E1649BAD8DA6A0F9 /* APIClient */; };
 		A77B253353CA4E36DAC82C2E /* LaughTrackUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F3879DA9C6AF40691D8C7DD /* LaughTrackUITests.swift */; };
+		B207179F163C197224CDF050 /* ActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22F34CFB0953B3E423A1E672 /* ActivityView.swift */; };
 		B5FC8176CE8E0E5C21F62C33 /* LaughTrackAPIClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DE90DE11FF14510C06890AB7 /* LaughTrackAPIClient.framework */; };
 		B769EDC068BE0787A90C22F3 /* LaughTrackTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD44BB9E3449C773B60FE7A7 /* LaughTrackTheme.swift */; };
 		C00B3DACF4547137AC8B27E5 /* DiscoveryViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE35EB33E76E6316CDCFCAB2 /* DiscoveryViews.swift */; };
@@ -124,6 +125,7 @@
 		1F3879DA9C6AF40691D8C7DD /* LaughTrackUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackUITests.swift; sourceTree = "<group>"; };
 		20552640F544D4395DE585B7 /* LaughTrackBridge.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LaughTrackBridge.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		22E3FEC26FAACA575C943CBF /* SearchRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchRootView.swift; sourceTree = "<group>"; };
+		22F34CFB0953B3E423A1E672 /* ActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityView.swift; sourceTree = "<group>"; };
 		281FB22CC5183EF10EE60C01 /* LaughTrackApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackApp.swift; sourceTree = "<group>"; };
 		2AE66AEEC26F743787CDC4EE /* Client.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Client.swift; sourceTree = "<group>"; };
 		30BC17288637FF61B8F14864 /* CurrentLocationZipResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentLocationZipResolver.swift; sourceTree = "<group>"; };
@@ -276,6 +278,7 @@
 		60D274A90614E6596D6F336D /* LaughTrackApp */ = {
 			isa = PBXGroup;
 			children = (
+				22F34CFB0953B3E423A1E672 /* ActivityView.swift */,
 				1C6A228D912DFFE3A74A36BB /* AppRoute.swift */,
 				B5E043BF19430E526D649ECA /* AppShellView.swift */,
 				E34F7E79132A5EA5AA3552B4 /* AppTab.swift */,
@@ -477,6 +480,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B207179F163C197224CDF050 /* ActivityView.swift in Sources */,
 				92F47B2CCCE1D1296F3AE7BD /* AppRoute.swift in Sources */,
 				7BF5BA4980BD8A9267682209 /* AppShellView.swift in Sources */,
 				9009C5A81846DBC1B9A15358 /* AppTab.swift in Sources */,

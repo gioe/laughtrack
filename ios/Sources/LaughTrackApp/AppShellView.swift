@@ -50,10 +50,7 @@ struct AppShellView: View {
                 .tabItem { Label("Search", systemImage: "magnifyingglass") }
                 .tag(AppTab.search)
 
-            AppShellPlaceholderView(
-                title: "Activity",
-                accessibilityID: LaughTrackViewTestID.activityTabScreen
-            )
+            ActivityView()
                 .tabItem { Label("Activity", systemImage: "bell.fill") }
                 .tag(AppTab.activity)
 
@@ -70,15 +67,5 @@ struct AppShellView: View {
         .onReceive(searchNavigationBridge.$request.compactMap { $0 }) { _ in
             selectedTab = .search
         }
-    }
-}
-
-private struct AppShellPlaceholderView: View {
-    let title: String
-    let accessibilityID: String
-
-    var body: some View {
-        Text(title)
-            .accessibilityIdentifier(accessibilityID)
     }
 }
