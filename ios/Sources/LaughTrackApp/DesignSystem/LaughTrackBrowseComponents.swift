@@ -1,0 +1,376 @@
+import SwiftUI
+import LaughTrackBridge
+
+enum LaughTrackBrowseChipTone: Equatable {
+    case neutral
+    case accent
+    case selected
+}
+
+struct LaughTrackHeroModule: View {
+    @Environment(\.appTheme) private var theme
+
+    let eyebrow: String?
+    let title: String
+    let subtitle: String?
+    let ctaTitle: String?
+    let action: (() -> Void)?
+
+    init(
+        eyebrow: String? = nil,
+        title: String,
+        subtitle: String? = nil,
+        ctaTitle: String? = nil,
+        action: (() -> Void)? = nil
+    ) {
+        self.eyebrow = eyebrow
+        self.title = title
+        self.subtitle = subtitle
+        self.ctaTitle = ctaTitle
+        self.action = action
+    }
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+        let browseDensity = laughTrack.browseDensity
+
+        VStack(alignment: .leading, spacing: browseDensity.rowGap) {
+            if let eyebrow {
+                Text(eyebrow)
+                    .font(laughTrack.typography.eyebrow)
+                    .foregroundStyle(laughTrack.colors.textInverse.opacity(0.76))
+                    .textCase(.uppercase)
+            }
+
+            Text(title)
+                .font(laughTrack.typography.screenTitle)
+                .foregroundStyle(laughTrack.colors.textInverse)
+                .fixedSize(horizontal: false, vertical: true)
+
+            if let subtitle {
+                Text(subtitle)
+                    .font(laughTrack.typography.body)
+                    .foregroundStyle(laughTrack.colors.textInverse.opacity(0.88))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            if let ctaTitle {
+                heroCTA(title: ctaTitle)
+            }
+        }
+        .padding(browseDensity.heroPadding)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(heroBackground)
+        .overlay(heroBorder)
+        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.heroPanel, style: .continuous))
+        .shadowStyle(laughTrack.shadows.hero)
+    }
+
+    @ViewBuilder
+    private func heroCTA(title: String) -> some View {
+        let laughTrack = theme.laughTrackTokens
+
+        if let action {
+            LaughTrackButton(
+                title,
+                systemImage: "arrow.up.right",
+                tone: .secondary,
+                density: .compact,
+                fullWidth: false,
+                action: action
+            )
+        } else {
+            HStack(spacing: theme.spacing.xs) {
+                Image(systemName: "arrow.up.right")
+                Text(title)
+            }
+            .font(laughTrack.typography.metadata)
+            .foregroundStyle(laughTrack.colors.highlight)
+        }
+    }
+
+    private var heroBackground: some View {
+        let laughTrack = theme.laughTrackTokens
+        return LinearGradient(
+            colors: [
+                laughTrack.colors.heroStart,
+                laughTrack.colors.heroEnd.opacity(0.94),
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    private var heroBorder: some View {
+        let laughTrack = theme.laughTrackTokens
+        return RoundedRectangle(cornerRadius: laughTrack.radius.heroPanel, style: .continuous)
+            .stroke(laughTrack.colors.highlight.opacity(0.2), lineWidth: 1)
+    }
+}
+
+struct LaughTrackShelfHeader: View {
+    let eyebrow: String?
+    let title: String
+    let subtitle: String?
+    let actionTitle: String?
+    let action: (() -> Void)?
+
+    init(
+        eyebrow: String? = nil,
+        title: String,
+        subtitle: String? = nil,
+        actionTitle: String? = nil,
+        action: (() -> Void)? = nil
+    ) {
+        self.eyebrow = eyebrow
+        self.title = title
+        self.subtitle = subtitle
+        self.actionTitle = actionTitle
+        self.action = action
+    }
+
+    var body: some View {
+        LaughTrackSectionHeader(
+            eyebrow: eyebrow,
+            title: title,
+            subtitle: subtitle,
+            actionTitle: actionTitle,
+            action: action,
+            density: .compact
+        )
+    }
+}
+
+struct LaughTrackBrowseChip: View {
+    @Environment(\.appTheme) private var theme
+
+    let title: String
+    let systemImage: String?
+    let tone: LaughTrackBrowseChipTone
+
+    init(_ title: String, systemImage: String? = nil, tone: LaughTrackBrowseChipTone = .neutral) {
+        self.title = title
+        self.systemImage = systemImage
+        self.tone = tone
+    }
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+        let browseDensity = laughTrack.browseDensity
+
+        HStack(spacing: theme.spacing.xs) {
+            if let systemImage {
+                Image(systemName: systemImage)
+                    .font(.system(size: theme.iconSizes.sm, weight: .semibold))
+            }
+
+            Text(title)
+                .font(laughTrack.typography.metadata)
+                .lineLimit(1)
+        }
+        .foregroundStyle(foregroundColor)
+        .padding(.horizontal, browseDensity.chipHorizontalPadding)
+        .padding(.vertical, browseDensity.chipVerticalPadding)
+        .background(backgroundColor)
+        .overlay(
+            Capsule(style: .continuous)
+                .stroke(borderColor, lineWidth: 1)
+        )
+        .clipShape(Capsule(style: .continuous))
+    }
+
+    private var foregroundColor: Color {
+        let laughTrack = theme.laughTrackTokens
+
+        switch tone {
+        case .neutral:
+            return laughTrack.colors.textPrimary
+        case .accent:
+            return laughTrack.colors.accentStrong
+        case .selected:
+            return laughTrack.colors.textInverse
+        }
+    }
+
+    private var backgroundColor: Color {
+        let laughTrack = theme.laughTrackTokens
+
+        switch tone {
+        case .neutral:
+            return laughTrack.colors.surface
+        case .accent:
+            return laughTrack.colors.highlight.opacity(0.92)
+        case .selected:
+            return laughTrack.colors.heroStart
+        }
+    }
+
+    private var borderColor: Color {
+        let laughTrack = theme.laughTrackTokens
+
+        switch tone {
+        case .neutral:
+            return laughTrack.colors.borderSubtle
+        case .accent:
+            return laughTrack.colors.borderStrong.opacity(0.5)
+        case .selected:
+            return laughTrack.colors.heroEnd.opacity(0.42)
+        }
+    }
+}
+
+struct LaughTrackResultRow: View {
+    @Environment(\.appTheme) private var theme
+
+    let title: String
+    let subtitle: String?
+    let metadata: [String]
+    let systemImage: String
+    let accessoryTitle: String?
+
+    init(
+        title: String,
+        subtitle: String? = nil,
+        metadata: [String] = [],
+        systemImage: String,
+        accessoryTitle: String? = nil
+    ) {
+        self.title = title
+        self.subtitle = subtitle
+        self.metadata = metadata
+        self.systemImage = systemImage
+        self.accessoryTitle = accessoryTitle
+    }
+
+    var body: some View {
+        let laughTrack = theme.laughTrackTokens
+        let browseDensity = laughTrack.browseDensity
+
+        HStack(spacing: browseDensity.rowGap) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(laughTrack.colors.surfaceMuted)
+
+                Image(systemName: systemImage)
+                    .font(.system(size: theme.iconSizes.lg, weight: .semibold))
+                    .foregroundStyle(laughTrack.colors.accentStrong)
+            }
+            .frame(width: 54, height: 54)
+
+            VStack(alignment: .leading, spacing: theme.spacing.xxs) {
+                Text(title)
+                    .font(laughTrack.typography.cardTitle)
+                    .foregroundStyle(laughTrack.colors.textPrimary)
+                    .lineLimit(1)
+
+                if let subtitle {
+                    Text(subtitle)
+                        .font(laughTrack.typography.metadata)
+                        .foregroundStyle(laughTrack.colors.textSecondary)
+                        .lineLimit(1)
+                }
+
+                if !metadata.isEmpty {
+                    Text(metadata.joined(separator: " • "))
+                        .font(laughTrack.typography.metadata)
+                        .foregroundStyle(laughTrack.colors.textSecondary)
+                        .lineLimit(1)
+                }
+            }
+
+            Spacer(minLength: theme.spacing.sm)
+
+            if let accessoryTitle {
+                Text(accessoryTitle)
+                    .font(laughTrack.typography.metadata)
+                    .foregroundStyle(laughTrack.colors.accent)
+                    .lineLimit(1)
+            } else {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: theme.iconSizes.sm, weight: .semibold))
+                    .foregroundStyle(laughTrack.colors.textSecondary)
+            }
+        }
+        .frame(maxWidth: .infinity, minHeight: browseDensity.resultRowMinHeight, alignment: .leading)
+        .padding(browseDensity.compactCardPadding)
+        .background(laughTrack.colors.surfaceElevated)
+        .overlay(
+            RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous)
+                .stroke(laughTrack.colors.borderSubtle, lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
+        .shadowStyle(laughTrack.shadows.card)
+    }
+}
+
+struct LaughTrackInlineStateCard: View {
+    let tone: LaughTrackStateTone
+    let title: String
+    let message: String
+    let actionTitle: String?
+    let action: (() -> Void)?
+
+    init(
+        tone: LaughTrackStateTone,
+        title: String,
+        message: String,
+        actionTitle: String? = nil,
+        action: (() -> Void)? = nil
+    ) {
+        self.tone = tone
+        self.title = title
+        self.message = message
+        self.actionTitle = actionTitle
+        self.action = action
+    }
+
+    var body: some View {
+        LaughTrackCard(tone: .muted, density: .compact) {
+            VStack(alignment: .leading, spacing: 12) {
+                LaughTrackStateView(
+                    tone: tone,
+                    title: title,
+                    message: message,
+                    actionTitle: actionTitle,
+                    action: action
+                )
+            }
+        }
+    }
+}
+
+#if DEBUG
+struct LaughTrackBrowseComponents_Previews: PreviewProvider {
+    static var previews: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                LaughTrackHeroModule(
+                    eyebrow: "Nearby",
+                    title: "Comedy worth noticing near you",
+                    subtitle: "Use compact browse modules to push people into Search instead of giant instructional cards.",
+                    ctaTitle: "Open Search"
+                )
+
+                LaughTrackShelfHeader(
+                    eyebrow: "Tonight",
+                    title: "Nearby picks",
+                    subtitle: "Compact browse sections should scan quickly.",
+                    actionTitle: "See all"
+                ) {}
+
+                LaughTrackResultRow(
+                    title: "Comedy Cellar",
+                    subtitle: "New York, NY",
+                    metadata: ["14 shows", "Live API"],
+                    systemImage: "building.2"
+                )
+
+                LaughTrackBrowseChip("Live dates first", systemImage: "sparkles", tone: .accent)
+            }
+            .padding()
+        }
+        .background(LaughTrackTheme().laughTrack.colors.canvas)
+        .environment(\.appTheme, LaughTrackTheme())
+    }
+}
+#endif

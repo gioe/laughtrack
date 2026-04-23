@@ -9,12 +9,18 @@ enum LaughTrackButtonTone: Equatable {
     case destructive
 }
 
+enum LaughTrackButtonDensity: Equatable {
+    case standard
+    case compact
+}
+
 struct LaughTrackButton: View {
     @Environment(\.appTheme) private var theme
 
     let title: String
     let systemImage: String?
     let tone: LaughTrackButtonTone
+    let density: LaughTrackButtonDensity
     let fullWidth: Bool
     let action: () -> Void
 
@@ -22,12 +28,14 @@ struct LaughTrackButton: View {
         _ title: String,
         systemImage: String? = nil,
         tone: LaughTrackButtonTone = .primary,
+        density: LaughTrackButtonDensity = .standard,
         fullWidth: Bool = true,
         action: @escaping () -> Void
     ) {
         self.title = title
         self.systemImage = systemImage
         self.tone = tone
+        self.density = density
         self.fullWidth = fullWidth
         self.action = action
     }
@@ -43,7 +51,7 @@ struct LaughTrackButton: View {
                 }
 
                 Text(title)
-                    .font(laughTrack.typography.action)
+                    .font(buttonFont)
 
                 if tone == .tertiary {
                     Image(systemName: "arrow.right")
@@ -52,14 +60,43 @@ struct LaughTrackButton: View {
             }
             .foregroundStyle(foregroundColor)
             .frame(maxWidth: fullWidth ? .infinity : nil)
-            .padding(.horizontal, theme.spacing.lg)
-            .padding(.vertical, theme.spacing.md)
+            .padding(.horizontal, horizontalPadding)
+            .padding(.vertical, verticalPadding)
             .background(background)
             .overlay(borderOverlay)
             .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.pill, style: .continuous))
             .shadowStyle(componentShadowStyle)
         }
         .buttonStyle(.plain)
+    }
+
+    private var buttonFont: Font {
+        let laughTrack = theme.laughTrackTokens
+
+        switch density {
+        case .standard:
+            return laughTrack.typography.action
+        case .compact:
+            return laughTrack.typography.metadata
+        }
+    }
+
+    private var horizontalPadding: CGFloat {
+        switch density {
+        case .standard:
+            return theme.spacing.lg
+        case .compact:
+            return theme.laughTrackTokens.browseDensity.compactCardPadding
+        }
+    }
+
+    private var verticalPadding: CGFloat {
+        switch density {
+        case .standard:
+            return theme.spacing.md
+        case .compact:
+            return theme.spacing.sm
+        }
     }
 
     private var foregroundColor: Color {
@@ -131,6 +168,11 @@ enum LaughTrackCardTone {
     case accent
 }
 
+enum LaughTrackCardDensity: Equatable {
+    case standard
+    case compact
+}
+
 enum LaughTrackBadgeTone {
     case neutral
     case accent
@@ -142,10 +184,16 @@ struct LaughTrackCard<Content: View>: View {
     @Environment(\.appTheme) private var theme
 
     let tone: LaughTrackCardTone
+    let density: LaughTrackCardDensity
     let content: Content
 
-    init(tone: LaughTrackCardTone = .standard, @ViewBuilder content: () -> Content) {
+    init(
+        tone: LaughTrackCardTone = .standard,
+        density: LaughTrackCardDensity = .standard,
+        @ViewBuilder content: () -> Content
+    ) {
         self.tone = tone
+        self.density = density
         self.content = content()
     }
 
@@ -153,12 +201,21 @@ struct LaughTrackCard<Content: View>: View {
         let laughTrack = theme.laughTrackTokens
 
         content
-            .padding(laughTrack.spacing.cardPadding)
+            .padding(contentPadding)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(background)
             .overlay(borderOverlay)
             .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
             .shadowStyle(componentShadowStyle)
+    }
+
+    private var contentPadding: CGFloat {
+        switch density {
+        case .standard:
+            return theme.laughTrackTokens.spacing.cardPadding
+        case .compact:
+            return theme.laughTrackTokens.browseDensity.compactCardPadding
+        }
     }
 
     @ViewBuilder
@@ -294,31 +351,39 @@ struct LaughTrackBadge: View {
 struct LaughTrackSectionHeader: View {
     @Environment(\.appTheme) private var theme
 
+    enum Density: Equatable {
+        case standard
+        case compact
+    }
+
     let eyebrow: String?
     let title: String
     let subtitle: String?
     let actionTitle: String?
     let action: (() -> Void)?
+    let density: Density
 
     init(
         eyebrow: String? = nil,
         title: String,
         subtitle: String? = nil,
         actionTitle: String? = nil,
-        action: (() -> Void)? = nil
+        action: (() -> Void)? = nil,
+        density: Density = .standard
     ) {
         self.eyebrow = eyebrow
         self.title = title
         self.subtitle = subtitle
         self.actionTitle = actionTitle
         self.action = action
+        self.density = density
     }
 
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
-        HStack(alignment: .top, spacing: theme.spacing.md) {
-            VStack(alignment: .leading, spacing: laughTrack.spacing.tight) {
+        HStack(alignment: .top, spacing: horizontalSpacing) {
+            VStack(alignment: .leading, spacing: verticalSpacing) {
                 if let eyebrow {
                     Text(eyebrow)
                         .font(laughTrack.typography.eyebrow)
@@ -327,12 +392,12 @@ struct LaughTrackSectionHeader: View {
                 }
 
                 Text(title)
-                    .font(laughTrack.typography.sectionTitle)
+                    .font(titleFont)
                     .foregroundStyle(laughTrack.colors.textPrimary)
 
                 if let subtitle {
                     Text(subtitle)
-                        .font(laughTrack.typography.body)
+                        .font(subtitleFont)
                         .foregroundStyle(laughTrack.colors.textSecondary)
                 }
             }
@@ -340,8 +405,53 @@ struct LaughTrackSectionHeader: View {
             Spacer(minLength: 0)
 
             if let actionTitle, let action {
-                LaughTrackButton(actionTitle, systemImage: "arrow.up.right", tone: .tertiary, fullWidth: false, action: action)
+                LaughTrackButton(
+                    actionTitle,
+                    systemImage: "arrow.up.right",
+                    tone: .tertiary,
+                    density: density == .compact ? .compact : .standard,
+                    fullWidth: false,
+                    action: action
+                )
             }
+        }
+    }
+
+    private var horizontalSpacing: CGFloat {
+        switch density {
+        case .standard:
+            return theme.spacing.md
+        case .compact:
+            return theme.laughTrackTokens.browseDensity.rowGap
+        }
+    }
+
+    private var verticalSpacing: CGFloat {
+        switch density {
+        case .standard:
+            return theme.laughTrackTokens.spacing.tight
+        case .compact:
+            return theme.spacing.xxs
+        }
+    }
+
+    private var titleFont: Font {
+        let laughTrack = theme.laughTrackTokens
+        switch density {
+        case .standard:
+            return laughTrack.typography.sectionTitle
+        case .compact:
+            return laughTrack.typography.cardTitle
+        }
+    }
+
+    private var subtitleFont: Font {
+        let laughTrack = theme.laughTrackTokens
+        switch density {
+        case .standard:
+            return laughTrack.typography.body
+        case .compact:
+            return laughTrack.typography.metadata
         }
     }
 }
