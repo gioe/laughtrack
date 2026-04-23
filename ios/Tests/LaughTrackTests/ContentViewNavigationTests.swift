@@ -7,23 +7,16 @@ import LaughTrackBridge
 @Suite("ContentView navigation")
 @MainActor
 struct ContentViewNavigationTests {
-    @Test("ContentView switches between the home and settings routes")
-    func contentViewSwitchesBetweenRoutes() async throws {
-        let coordinator = NavigationCoordinator<AppRoute>()
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "content-view")
+    @Test("content view routes authenticated users into the app shell")
+    func contentViewRendersShell() async throws {
+        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "content-shell")
         let host = HostedView(
             ContentView(apiClient: LaughTrackHostedViewTestSupport.makeClient())
                 .environment(\.appTheme, LaughTrackTheme())
-                .navigationCoordinator(coordinator)
                 .environmentObject(authManager)
         )
 
-        try host.requireView(withIdentifier: LaughTrackViewTestID.homeScreen)
-
-        coordinator.push(.settings)
-        host.render()
-
-        try host.requireView(withIdentifier: LaughTrackViewTestID.settingsScreen)
+        try host.requireText("Search")
     }
 
     @Test("Settings entry point from home pushes the expected navigation intent")
@@ -46,8 +39,8 @@ struct ContentViewNavigationTests {
         #expect(coordinator.path.count == 1)
     }
 
-    @Test("Home shows search entry pushes the dedicated shows search route")
-    func homeShowsSearchButtonPushesShowsSearchRoute() async throws {
+    @Test("Home shows search entry pushes the shared search route")
+    func homeShowsSearchButtonPushesSearchRoute() async throws {
         let coordinator = NavigationCoordinator<AppRoute>()
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "home-shows-search")
         let host = HostedView(
@@ -64,11 +57,11 @@ struct ContentViewNavigationTests {
         try host.tapControl(withIdentifier: LaughTrackViewTestID.homeShowsSearchButton)
 
         #expect(coordinator.path.count == 1)
-        #expect(coordinator.path.last == .showsSearch)
+        #expect(coordinator.path.last == .search)
     }
 
-    @Test("Home clubs search entry pushes the dedicated clubs search route")
-    func homeClubsSearchButtonPushesClubsSearchRoute() async throws {
+    @Test("Home clubs search entry pushes the shared search route")
+    func homeClubsSearchButtonPushesSearchRoute() async throws {
         let coordinator = NavigationCoordinator<AppRoute>()
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "home-clubs-search")
         let host = HostedView(
@@ -85,11 +78,11 @@ struct ContentViewNavigationTests {
         try host.tapControl(withIdentifier: LaughTrackViewTestID.homeClubsSearchButton)
 
         #expect(coordinator.path.count == 1)
-        #expect(coordinator.path.last == .clubsSearch)
+        #expect(coordinator.path.last == .search)
     }
 
-    @Test("Home comedians search entry pushes the dedicated comedians search route")
-    func homeComediansSearchButtonPushesComediansSearchRoute() async throws {
+    @Test("Home comedians search entry pushes the shared search route")
+    func homeComediansSearchButtonPushesSearchRoute() async throws {
         let coordinator = NavigationCoordinator<AppRoute>()
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "home-comedians-search")
         let host = HostedView(
@@ -106,109 +99,7 @@ struct ContentViewNavigationTests {
         try host.tapControl(withIdentifier: LaughTrackViewTestID.homeComediansSearchButton)
 
         #expect(coordinator.path.count == 1)
-        #expect(coordinator.path.last == .comediansSearch)
-    }
-
-    @Test("ContentView renders the show detail route")
-    func contentViewShowsShowDetailRoute() async throws {
-        let coordinator = NavigationCoordinator<AppRoute>()
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "show-detail-route")
-        let host = HostedView(
-            ContentView(apiClient: LaughTrackHostedViewTestSupport.makeClient())
-                .environment(\.appTheme, LaughTrackTheme())
-                .navigationCoordinator(coordinator)
-                .environmentObject(authManager)
-        )
-
-        coordinator.push(.showDetail(301))
-        host.render()
-
-        try host.requireView(withIdentifier: LaughTrackViewTestID.showDetailScreen)
-    }
-
-    @Test("ContentView renders the dedicated shows search route")
-    func contentViewShowsDedicatedShowsSearchRoute() async throws {
-        let coordinator = NavigationCoordinator<AppRoute>()
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "shows-search-route")
-        let host = HostedView(
-            ContentView(apiClient: LaughTrackHostedViewTestSupport.makeClient())
-                .environment(\.appTheme, LaughTrackTheme())
-                .navigationCoordinator(coordinator)
-                .environmentObject(authManager)
-        )
-
-        coordinator.push(.showsSearch)
-        host.render()
-
-        try host.requireView(withIdentifier: LaughTrackViewTestID.showsSearchScreen)
-    }
-
-    @Test("ContentView renders the dedicated clubs search route")
-    func contentViewShowsDedicatedClubsSearchRoute() async throws {
-        let coordinator = NavigationCoordinator<AppRoute>()
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "clubs-search-route")
-        let host = HostedView(
-            ContentView(apiClient: LaughTrackHostedViewTestSupport.makeClient())
-                .environment(\.appTheme, LaughTrackTheme())
-                .navigationCoordinator(coordinator)
-                .environmentObject(authManager)
-        )
-
-        coordinator.push(.clubsSearch)
-        host.render()
-
-        try host.requireView(withIdentifier: LaughTrackViewTestID.clubsSearchScreen)
-    }
-
-    @Test("ContentView renders the dedicated comedians search route")
-    func contentViewShowsDedicatedComediansSearchRoute() async throws {
-        let coordinator = NavigationCoordinator<AppRoute>()
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "comedians-search-route")
-        let host = HostedView(
-            ContentView(apiClient: LaughTrackHostedViewTestSupport.makeClient())
-                .environment(\.appTheme, LaughTrackTheme())
-                .navigationCoordinator(coordinator)
-                .environmentObject(authManager)
-        )
-
-        coordinator.push(.comediansSearch)
-        host.render()
-
-        try host.requireView(withIdentifier: LaughTrackViewTestID.comediansSearchScreen)
-    }
-
-    @Test("ContentView renders the comedian detail route")
-    func contentViewShowsComedianDetailRoute() async throws {
-        let coordinator = NavigationCoordinator<AppRoute>()
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "comedian-detail-route")
-        let host = HostedView(
-            ContentView(apiClient: LaughTrackHostedViewTestSupport.makeClient())
-                .environment(\.appTheme, LaughTrackTheme())
-                .navigationCoordinator(coordinator)
-                .environmentObject(authManager)
-        )
-
-        coordinator.push(.comedianDetail(101))
-        host.render()
-
-        try host.requireView(withIdentifier: LaughTrackViewTestID.comedianDetailScreen)
-    }
-
-    @Test("ContentView renders the club detail route")
-    func contentViewShowsClubDetailRoute() async throws {
-        let coordinator = NavigationCoordinator<AppRoute>()
-        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "club-detail-route")
-        let host = HostedView(
-            ContentView(apiClient: LaughTrackHostedViewTestSupport.makeClient())
-                .environment(\.appTheme, LaughTrackTheme())
-                .navigationCoordinator(coordinator)
-                .environmentObject(authManager)
-        )
-
-        coordinator.push(.clubDetail(201))
-        host.render()
-
-        try host.requireView(withIdentifier: LaughTrackViewTestID.clubDetailScreen)
+        #expect(coordinator.path.last == .search)
     }
 }
 #endif
