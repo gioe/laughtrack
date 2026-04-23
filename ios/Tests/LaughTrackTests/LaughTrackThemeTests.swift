@@ -22,4 +22,14 @@ struct LaughTrackThemeTests {
         #expect(theme.typography.button == theme.laughTrack.typography.action)
         #expect(theme.iconSizes.huge >= theme.iconSizes.lg)
     }
+
+    @Test("browse tokens expose denser defaults without collapsing surfaces")
+    func browseTokensExposeDenseSurfaceDefaults() {
+        let theme = LaughTrackTheme()
+
+        #expect(theme.laughTrack.browseDensity.compactCardPadding < theme.laughTrack.spacing.cardPadding)
+        #expect(theme.laughTrack.browseDensity.resultRowMinHeight < 96)
+        #expect(theme.laughTrack.colors.canvas != theme.laughTrack.colors.surfaceElevated)
+        #expect(theme.laughTrackTokens.browseDensity.heroPadding == theme.laughTrack.browseDensity.heroPadding)
+    }
 }

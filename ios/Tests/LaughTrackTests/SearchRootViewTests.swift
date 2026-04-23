@@ -7,8 +7,8 @@ import LaughTrackCore
 @Suite("Search root")
 @MainActor
 struct SearchRootViewTests {
-    @Test("search root defaults to shows pivot")
-    func defaultsToShows() async throws {
+    @Test("search root shows compact query chrome and browse shortcuts")
+    func searchRootShowsCompactChrome() async throws {
         let coordinator = NavigationCoordinator<AppRoute>()
         let favorites = ComedianFavoriteStore()
         let host = HostedView(
@@ -22,8 +22,10 @@ struct SearchRootViewTests {
             .environment(\.appTheme, LaughTrackTheme())
         )
 
+        try host.requireText("Search nearby comedy")
+        try host.requireText("Near Me")
+        try host.requireText("Tonight")
         try host.requireText("Shows")
-        try host.requireText("Shows search matches comedian names for now. Switch to Clubs to search by venue.")
         try host.requireView(withIdentifier: LaughTrackViewTestID.showsSearchScreen)
     }
 }
@@ -40,10 +42,23 @@ struct SearchRootModelTests {
         #expect(model.activePivot == .clubs)
     }
 
-    @Test("pivot copy documents query behavior")
-    func pivotCopyDocumentsQueryBehavior() async throws {
-        #expect(SearchRootModel.Pivot.shows.queryPrompt == "Search comedians appearing in shows")
-        #expect(SearchRootModel.Pivot.shows.queryHelpText == "Shows search matches comedian names for now. Switch to Clubs to search by venue.")
+    @Test("search model exposes compact prompt copy")
+    func searchModelExposesCompactPromptCopy() async throws {
+        #expect(SearchRootModel.Pivot.shows.queryPrompt == "Search nearby comedy")
+        #expect(SearchRootModel.Pivot.shows.queryHelpText == "Start with nearby shows, then pivot into clubs or comedian profiles without leaving Search.")
+    }
+
+    @Test("context summary reflects active shortcut framing")
+    func contextSummaryReflectsShortcut() async throws {
+        let model = SearchRootModel()
+
+        #expect(model.contextSummary == "Nearby results first")
+
+        model.selectShortcut("Tonight")
+        #expect(model.contextSummary == "Local dates tonight")
+
+        model.selectShortcut("This Week")
+        #expect(model.contextSummary == "Local dates this week")
     }
 
     @Test("search seeds update pivot query and shortcut")

@@ -124,6 +124,34 @@ public struct LaughTrackSemanticSpacingTokens {
     }
 }
 
+public struct LaughTrackSemanticBrowseDensityTokens {
+    public let heroPadding: CGFloat
+    public let shelfGap: CGFloat
+    public let rowGap: CGFloat
+    public let compactCardPadding: CGFloat
+    public let resultRowMinHeight: CGFloat
+    public let chipHorizontalPadding: CGFloat
+    public let chipVerticalPadding: CGFloat
+
+    public init(
+        heroPadding: CGFloat,
+        shelfGap: CGFloat,
+        rowGap: CGFloat,
+        compactCardPadding: CGFloat,
+        resultRowMinHeight: CGFloat,
+        chipHorizontalPadding: CGFloat,
+        chipVerticalPadding: CGFloat
+    ) {
+        self.heroPadding = heroPadding
+        self.shelfGap = shelfGap
+        self.rowGap = rowGap
+        self.compactCardPadding = compactCardPadding
+        self.resultRowMinHeight = resultRowMinHeight
+        self.chipHorizontalPadding = chipHorizontalPadding
+        self.chipVerticalPadding = chipVerticalPadding
+    }
+}
+
 public struct LaughTrackSemanticRadiusTokens {
     public let chip: CGFloat
     public let card: CGFloat
@@ -176,6 +204,7 @@ public struct LaughTrackSemanticTokens {
     public let colors: LaughTrackSemanticColorTokens
     public let typography: LaughTrackSemanticTypographyTokens
     public let spacing: LaughTrackSemanticSpacingTokens
+    public let browseDensity: LaughTrackSemanticBrowseDensityTokens
     public let radius: LaughTrackSemanticRadiusTokens
     public let shadows: LaughTrackSemanticShadowTokens
     public let motion: LaughTrackSemanticMotionTokens
@@ -185,6 +214,7 @@ public struct LaughTrackSemanticTokens {
         colors: LaughTrackSemanticColorTokens,
         typography: LaughTrackSemanticTypographyTokens,
         spacing: LaughTrackSemanticSpacingTokens,
+        browseDensity: LaughTrackSemanticBrowseDensityTokens,
         radius: LaughTrackSemanticRadiusTokens,
         shadows: LaughTrackSemanticShadowTokens,
         motion: LaughTrackSemanticMotionTokens,
@@ -193,6 +223,7 @@ public struct LaughTrackSemanticTokens {
         self.colors = colors
         self.typography = typography
         self.spacing = spacing
+        self.browseDensity = browseDensity
         self.radius = radius
         self.shadows = shadows
         self.motion = motion
@@ -247,6 +278,16 @@ public struct LaughTrackTheme: AppThemeProtocol {
             heroPadding: 28
         )
 
+        let semanticBrowseDensity = LaughTrackSemanticBrowseDensityTokens(
+            heroPadding: 20,
+            shelfGap: 18,
+            rowGap: 12,
+            compactCardPadding: 16,
+            resultRowMinHeight: 78,
+            chipHorizontalPadding: 12,
+            chipVerticalPadding: 8
+        )
+
         let semanticRadius = LaughTrackSemanticRadiusTokens(
             chip: DesignSystem.CornerRadius.full,
             card: DesignSystem.CornerRadius.lg,
@@ -298,6 +339,7 @@ public struct LaughTrackTheme: AppThemeProtocol {
             colors: semanticColors,
             typography: semanticTypography,
             spacing: semanticSpacing,
+            browseDensity: semanticBrowseDensity,
             radius: semanticRadius,
             shadows: semanticShadows,
             motion: semanticMotion,

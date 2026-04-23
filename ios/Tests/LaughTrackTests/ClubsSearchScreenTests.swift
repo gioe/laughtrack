@@ -27,10 +27,26 @@ struct ClubsSearchScreenTests {
         try host.requireView(withIdentifier: LaughTrackViewTestID.clubsSearchScreen)
         try host.requireLabel("Search live clubs")
         try host.requireLabel("Comedy Cellar")
+        try host.requireLabel("Clubs in reach")
 
         try host.tapControl(withIdentifier: LaughTrackViewTestID.clubsSearchResultButton(201))
 
         #expect(coordinator.path.last == .clubDetail(201))
+    }
+
+    @Test("clubs search errors render as inline browse states")
+    func clubsSearchErrorsRenderAsInlineBrowseStates() async throws {
+        let coordinator = NavigationCoordinator<AppRoute>()
+        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "clubs-search-inline-error")
+        let host = HostedView(
+            makeView(
+                apiClient: makeClient(response: .status(.notFound)),
+                coordinator: coordinator,
+                authManager: authManager
+            )
+        )
+
+        try host.requireLabel("Couldn’t load clubs")
     }
 
     @Test("clubs search screen surfaces an explicit loading state")
@@ -45,7 +61,7 @@ struct ClubsSearchScreenTests {
             )
         )
 
-        try host.requireLabel("Loading")
+        try host.requireLabel("Loading clubs")
     }
 
     @Test("clubs search screen surfaces an explicit empty state")
@@ -60,7 +76,7 @@ struct ClubsSearchScreenTests {
             )
         )
 
-        try host.requireLabel("Nothing here yet")
+        try host.requireLabel("No clubs yet")
         try host.requireLabel("No clubs are available right now.")
     }
 
@@ -76,7 +92,7 @@ struct ClubsSearchScreenTests {
             )
         )
 
-        try host.requireLabel("Couldn’t load this section")
+        try host.requireLabel("Couldn’t load clubs")
         try host.requireLabel("LaughTrack could not load clubs right now.")
     }
 

@@ -27,10 +27,27 @@ struct ShowsSearchScreenTests {
         try host.requireView(withIdentifier: LaughTrackViewTestID.showsSearchScreen)
         try host.requireLabel("Search live shows")
         try host.requireLabel("Mark Normand and Friends")
+        try host.requireLabel("Tune the search")
 
         try host.tapControl(withIdentifier: LaughTrackViewTestID.showsSearchResultButton(301))
 
         #expect(coordinator.path.last == .showDetail(301))
+    }
+
+    @Test("shows search uses compact filter copy")
+    func showsSearchUsesCompactFilterCopy() async throws {
+        let coordinator = NavigationCoordinator<AppRoute>()
+        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "shows-search-compact")
+        let host = HostedView(
+            makeView(
+                apiClient: makeClient(response: .success(makeResponse())),
+                coordinator: coordinator,
+                authManager: authManager
+            )
+        )
+
+        #expect(host.findText("Refine the marquee") == nil)
+        try host.requireLabel("Tune the search")
     }
 
     @Test("shows search screen surfaces an explicit loading state")
@@ -45,7 +62,7 @@ struct ShowsSearchScreenTests {
             )
         )
 
-        try host.requireLabel("Loading")
+        try host.requireLabel("Loading shows")
     }
 
     @Test("shows search screen surfaces an explicit empty state")
@@ -60,7 +77,7 @@ struct ShowsSearchScreenTests {
             )
         )
 
-        try host.requireLabel("Nothing here yet")
+        try host.requireLabel("No shows yet")
         try host.requireLabel("No shows are available right now.")
     }
 
@@ -76,7 +93,7 @@ struct ShowsSearchScreenTests {
             )
         )
 
-        try host.requireLabel("Couldn’t load this section")
+        try host.requireLabel("Couldn’t load shows")
         try host.requireLabel("LaughTrack could not load shows right now.")
     }
 

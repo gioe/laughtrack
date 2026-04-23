@@ -88,6 +88,29 @@ struct ContentViewNavigationTests {
         #expect(searchBridge.request?.seed == .init(pivot: .shows, query: "", shortcut: "Near Me"))
     }
 
+    @Test("home uses compact search entry copy instead of dedicated giant cards")
+    func homeUsesCompactSearchEntryCopy() async throws {
+        let coordinator = NavigationCoordinator<AppRoute>()
+        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "home-browse-redesign")
+        let host = HostedView(
+            HomeView(
+                apiClient: LaughTrackHostedViewTestSupport.makeClient(),
+                signedOutMessage: nil,
+                nearbyPreferenceStore: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "home-browse-redesign"),
+                searchNavigationBridge: SearchNavigationBridge()
+            )
+            .environment(\.appTheme, LaughTrackTheme())
+            .navigationCoordinator(coordinator)
+            .environmentObject(authManager)
+        )
+
+        try host.requireText("Jump back into Search")
+        try host.requireText("Open Search from a head start")
+        try host.requireText("Shows")
+        try host.requireText("Clubs")
+        try host.requireText("Comedians")
+    }
+
     @Test("Home clubs search entry seeds the search tab")
     func homeClubsSearchButtonSeedsSearchTab() async throws {
         let coordinator = NavigationCoordinator<AppRoute>()

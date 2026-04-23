@@ -27,6 +27,7 @@ struct ComediansSearchScreenTests {
         try host.requireView(withIdentifier: LaughTrackViewTestID.comediansSearchScreen)
         try host.requireLabel("Search live comedians")
         try host.requireLabel("Mark Normand")
+        try host.requireLabel("Comedians in rotation")
 
         try host.tapControl(withIdentifier: LaughTrackViewTestID.comediansSearchResultButton(101))
 
@@ -45,7 +46,7 @@ struct ComediansSearchScreenTests {
             )
         )
 
-        try host.requireLabel("Loading")
+        try host.requireLabel("Loading comedians")
     }
 
     @Test("comedians search screen surfaces an explicit empty state")
@@ -60,7 +61,7 @@ struct ComediansSearchScreenTests {
             )
         )
 
-        try host.requireLabel("Nothing here yet")
+        try host.requireLabel("No comedians yet")
         try host.requireLabel("No comedians are available right now.")
     }
 
@@ -76,7 +77,7 @@ struct ComediansSearchScreenTests {
             )
         )
 
-        try host.requireLabel("Couldn’t load this section")
+        try host.requireLabel("Couldn’t load comedians")
         try host.requireLabel("LaughTrack could not load comedians right now.")
     }
 

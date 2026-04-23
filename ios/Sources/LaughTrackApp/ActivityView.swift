@@ -2,25 +2,33 @@ import SwiftUI
 
 struct ActivityView: View {
     static let title = "Activity"
-    static let emptyStateMessage = "Alerts and reminders will appear here."
+    static let emptyStateMessage = "Followed comics, saved reminders, and venue alerts will show up here."
 
     @Environment(\.appTheme) private var theme
 
     var body: some View {
-        VStack(alignment: .leading, spacing: theme.spacing.lg) {
-            Text(Self.title)
-                .font(theme.laughTrackTokens.typography.screenTitle)
-                .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
+        let tokens = theme.laughTrackTokens
 
-            Text(Self.emptyStateMessage)
-                .font(theme.laughTrackTokens.typography.body)
-                .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
+        ScrollView {
+            VStack(alignment: .leading, spacing: tokens.browseDensity.shelfGap) {
+                LaughTrackHeroModule(
+                    eyebrow: "Activity",
+                    title: Self.title,
+                    subtitle: Self.emptyStateMessage
+                )
+
+                LaughTrackInlineStateCard(
+                    tone: .empty,
+                    title: "Nothing queued yet",
+                    message: "As you follow comics and save plans, this tab will turn into your running feed."
+                )
+            }
+            .padding(.horizontal, theme.spacing.lg)
+            .padding(.vertical, tokens.browseDensity.heroPadding)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .padding(theme.spacing.xl)
         .accessibilityIdentifier(LaughTrackViewTestID.activityTabScreen)
-        .background(theme.laughTrackTokens.colors.canvas.ignoresSafeArea())
+        .background(tokens.colors.canvas.ignoresSafeArea())
         .navigationTitle(Self.title)
-        .modifier(LaughTrackNavigationChrome(background: theme.laughTrackTokens.colors.canvas))
+        .modifier(LaughTrackNavigationChrome(background: tokens.colors.canvas))
     }
 }

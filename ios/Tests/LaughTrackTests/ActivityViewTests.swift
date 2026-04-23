@@ -4,9 +4,9 @@ import Testing
 @Suite("Activity view")
 @MainActor
 struct ActivityViewTests {
-    @Test("activity tab has coherent empty state copy")
-    func activityTabHasEmptyStateCopy() async throws {
+    @Test("activity empty state reads like a product surface")
+    func activityUsesProductCopy() async throws {
         #expect(ActivityView.title == "Activity")
-        #expect(ActivityView.emptyStateMessage == "Alerts and reminders will appear here.")
+        #expect(ActivityView.emptyStateMessage == "Followed comics, saved reminders, and venue alerts will show up here.")
     }
 }
