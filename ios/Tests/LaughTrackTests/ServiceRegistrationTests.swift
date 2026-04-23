@@ -113,11 +113,6 @@ struct AppConfigurationTests {
 
     @Test("apiBaseURL points to the laughtrack host root")
     func apiBaseURL() {
-        #expect(AppConfiguration.apiBaseURL == URL(string: "https://laughtrack.app")!)
-    }
-
-    @Test("bundleID matches expected value")
-    func bundleID() {
-        #expect(AppConfiguration.bundleID == "com.laughtrack.laughtrack")
+        #expect(AppConfiguration.apiBaseURL == URL(string: "https://www.laugh-track.com")!)
     }
 }

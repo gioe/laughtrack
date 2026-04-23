@@ -16,9 +16,6 @@ public enum AppConfiguration {
             return url
         }
 
-        return URL(string: "https://laughtrack.app")!
+        return URL(string: "https://www.laugh-track.com")!
     }()
-
-    /// Bundle identifier
-    public static let bundleID = "com.laughtrack.laughtrack"
 }

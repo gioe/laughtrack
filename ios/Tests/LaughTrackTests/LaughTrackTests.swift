@@ -22,9 +22,8 @@ struct LaughTrackTests {
     @Test("app configuration startup invariants stay aligned with production URLs")
     func startupConfigurationMatchesProductionContracts() {
         #expect(AppConfiguration.apiBaseURL.scheme == "https")
-        #expect(AppConfiguration.apiBaseURL.host == "laughtrack.app")
+        #expect(AppConfiguration.apiBaseURL.host == "www.laugh-track.com")
         #expect(AppConfiguration.apiBaseURL.path.isEmpty)
-        #expect(AppConfiguration.bundleID == "com.laughtrack.laughtrack")
     }
 
     @Test("route definitions keep the launch-visible destinations stable")
