@@ -95,6 +95,26 @@ struct AppShellViewTests {
         try host.requireText("Nearby tonight")
     }
 
+    @Test("home search seed still opens search after browse redesign")
+    func homeSearchSeedStillOpensSearch() async throws {
+        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "shell-home-search-smoke")
+        let coordinator = NavigationCoordinator<AppRoute>()
+        let nearbyStore = LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "shell-home-search-smoke")
+        let host = HostedView(
+            AppShellView(
+                apiClient: LaughTrackHostedViewTestSupport.makeClient(),
+                favorites: ComedianFavoriteStore(),
+                nearbyPreferenceStore: nearbyStore
+            )
+            .environment(\.appTheme, LaughTrackTheme())
+            .navigationCoordinator(coordinator)
+            .environmentObject(authManager)
+        )
+
+        try host.tapControl(withIdentifier: LaughTrackViewTestID.homeShowsSearchButton)
+        try host.requireView(withIdentifier: LaughTrackViewTestID.searchTabScreen)
+    }
+
     @Test("shell can start on the profile tab and shows real settings content")
     func shellCanStartOnProfileTab() async throws {
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "app-shell-profile")

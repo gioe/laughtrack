@@ -51,6 +51,7 @@
 		E2889930BEDFE54F911EC6D1 /* AppBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8510FB22DBE58FC68078455A /* AppBootstrap.swift */; };
 		E3DDB8037254DC0B356EBBEB /* NearbyLocationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 498BFB68E6063E822195D27C /* NearbyLocationController.swift */; };
 		F07B8BFA93C29AAB9929748A /* LaughTrackComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = F97636A6D9A525F2A93EEBBD /* LaughTrackComponents.swift */; };
+		F07B8BFB93C29AAB9929748A /* LaughTrackBrowseComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = F97636A7D9A525F2A93EEBBD /* LaughTrackBrowseComponents.swift */; };
 		F3010080CDE3E66A512F6423 /* CurrentLocationZipResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30BC17288637FF61B8F14864 /* CurrentLocationZipResolver.swift */; };
 		F9868C97E0278D3313F4DE79 /* ServiceRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E463D5C04287DCD22E50CB4 /* ServiceRegistration.swift */; };
 		FA4FC7D3B905C1516EFDFED2 /* OpenAPIRuntime in Frameworks */ = {isa = PBXBuildFile; productRef = 4472C700BD5B0922771D56BB /* OpenAPIRuntime */; };
@@ -151,6 +152,7 @@
 		DFD6F86573233BBC5DAFD03B /* Types.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Types.swift; sourceTree = "<group>"; };
 		E34F7E79132A5EA5AA3552B4 /* AppTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTab.swift; sourceTree = "<group>"; };
 		E8FF3C7F0664E4874C83A911 /* LaughTrackOfflineOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackOfflineOperation.swift; sourceTree = "<group>"; };
+		F97636A7D9A525F2A93EEBBD /* LaughTrackBrowseComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackBrowseComponents.swift; sourceTree = "<group>"; };
 		F97636A6D9A525F2A93EEBBD /* LaughTrackComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackComponents.swift; sourceTree = "<group>"; };
 		FB6DE921008E3BE464BC6C0A /* LaughTrackUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = LaughTrackUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FD44BB9E3449C773B60FE7A7 /* LaughTrackTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaughTrackTheme.swift; sourceTree = "<group>"; };
@@ -299,6 +301,7 @@
 		972D4E3777C6BD77ECF7577D /* DesignSystem */ = {
 			isa = PBXGroup;
 			children = (
+				F97636A7D9A525F2A93EEBBD /* LaughTrackBrowseComponents.swift */,
 				F97636A6D9A525F2A93EEBBD /* LaughTrackComponents.swift */,
 			);
 			path = DesignSystem;
@@ -488,6 +491,7 @@
 				C00B3DACF4547137AC8B27E5 /* DiscoveryViews.swift in Sources */,
 				9ECD9CBBBF4146F96875CF95 /* EntityDataFlow.swift in Sources */,
 				1D2E87B73739EA1A7023E9E2 /* LaughTrackApp.swift in Sources */,
+				F07B8BFB93C29AAB9929748A /* LaughTrackBrowseComponents.swift in Sources */,
 				F07B8BFA93C29AAB9929748A /* LaughTrackComponents.swift in Sources */,
 				41F25FA51A32EFBC75B3B7B7 /* ProfileView.swift in Sources */,
 				8873B3618E229562016FB042 /* SearchRootModel.swift in Sources */,
