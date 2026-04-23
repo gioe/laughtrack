@@ -1421,11 +1421,18 @@ struct ShowsDiscoveryView: View {
     @ObservedObject var model: ShowsDiscoveryModel
     var displaysSearchFields = true
 
+    @Environment(\.appTheme) private var theme
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
 
     var body: some View {
-        DiscoveryCard(title: "Find shows") {
-            VStack(spacing: 16) {
+        LaughTrackCard(density: .compact) {
+            VStack(alignment: .leading, spacing: theme.laughTrackTokens.browseDensity.shelfGap) {
+                LaughTrackShelfHeader(
+                    eyebrow: "Shows",
+                    title: "Shows nearby",
+                    subtitle: "Keep filters close and results dense."
+                )
+
                 if displaysSearchFields {
                     SearchField(
                         title: "Comedian",
@@ -1444,18 +1451,18 @@ struct ShowsDiscoveryView: View {
 
                 switch model.phase {
                 case .idle, .loading:
-                    LoadingCard()
+                    LoadingCard(title: "Loading shows")
                 case .failure(let message):
-                    ErrorCard(message: message) {
+                    ErrorCard(title: "Couldn’t load shows", message: message) {
                         Task {
                             await model.reload(apiClient: apiClient)
                         }
                     }
                 case .success(let result):
                     if result.items.isEmpty {
-                        EmptyCard(message: emptyMessage)
+                        EmptyCard(title: "No shows yet", message: emptyMessage)
                     } else {
-                        VStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: theme.spacing.md) {
                             SearchResultsSummary(count: result.items.count, total: result.total)
                             ShowsSearchMeta(model: model, zipCapTriggered: model.zipCapTriggered)
 
@@ -1511,13 +1518,20 @@ struct ComediansDiscoveryView: View {
     @ObservedObject var model: ComediansDiscoveryModel
     var displaysSearchInput = true
 
+    @Environment(\.appTheme) private var theme
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
     @EnvironmentObject private var favorites: ComedianFavoriteStore
     @State private var feedbackMessage: String?
 
     var body: some View {
-        DiscoveryCard(title: "Search comedians") {
-            VStack(spacing: 16) {
+        LaughTrackCard(density: .compact) {
+            VStack(alignment: .leading, spacing: theme.laughTrackTokens.browseDensity.shelfGap) {
+                LaughTrackShelfHeader(
+                    eyebrow: "Comedians",
+                    title: "Comedians in rotation",
+                    subtitle: "Scan favorites and upcoming sets without leaving Search."
+                )
+
                 if displaysSearchInput {
                     SearchField(
                         title: "Comedian name",
@@ -1528,18 +1542,23 @@ struct ComediansDiscoveryView: View {
 
                 switch model.phase {
                 case .idle, .loading:
-                    LoadingCard()
+                    LoadingCard(title: "Loading comedians")
                 case .failure(let message):
-                    ErrorCard(message: message) {
+                    ErrorCard(title: "Couldn’t load comedians", message: message) {
                         Task {
                             await model.reload(apiClient: apiClient, favorites: favorites)
                         }
                     }
                 case .success(let result):
                     if result.items.isEmpty {
-                        EmptyCard(message: model.searchText.isEmpty ? "No comedians are available right now." : "No comedians matched \"\(model.searchText)\".")
+                        EmptyCard(
+                            title: "No comedians yet",
+                            message: model.searchText.isEmpty
+                                ? "No comedians are available right now."
+                                : "No comedians matched \"\(model.searchText)\"."
+                        )
                     } else {
-                        VStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: theme.spacing.md) {
                             SearchResultsSummary(count: result.items.count, total: result.total)
 
                             ForEach(result.items, id: \.uuid) { comedian in
@@ -1588,11 +1607,18 @@ struct ClubsDiscoveryView: View {
     @ObservedObject var model: ClubsDiscoveryModel
     var displaysSearchInput = true
 
+    @Environment(\.appTheme) private var theme
     @EnvironmentObject private var coordinator: NavigationCoordinator<AppRoute>
 
     var body: some View {
-        DiscoveryCard(title: "Search clubs") {
-            VStack(spacing: 16) {
+        LaughTrackCard(density: .compact) {
+            VStack(alignment: .leading, spacing: theme.laughTrackTokens.browseDensity.shelfGap) {
+                LaughTrackShelfHeader(
+                    eyebrow: "Clubs",
+                    title: "Clubs in reach",
+                    subtitle: "Keep venues dense, tappable, and easy to scan."
+                )
+
                 if displaysSearchInput {
                     SearchField(
                         title: "Club name",
@@ -1603,18 +1629,23 @@ struct ClubsDiscoveryView: View {
 
                 switch model.phase {
                 case .idle, .loading:
-                    LoadingCard()
+                    LoadingCard(title: "Loading clubs")
                 case .failure(let message):
-                    ErrorCard(message: message) {
+                    ErrorCard(title: "Couldn’t load clubs", message: message) {
                         Task {
                             await model.reload(apiClient: apiClient)
                         }
                     }
                 case .success(let result):
                     if result.items.isEmpty {
-                        EmptyCard(message: model.searchText.isEmpty ? "No clubs are available right now." : "No clubs matched \"\(model.searchText)\".")
+                        EmptyCard(
+                            title: "No clubs yet",
+                            message: model.searchText.isEmpty
+                                ? "No clubs are available right now."
+                                : "No clubs matched \"\(model.searchText)\"."
+                        )
                     } else {
-                        VStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: theme.spacing.md) {
                             SearchResultsSummary(count: result.items.count, total: result.total)
 
                             ForEach(Array(result.items.enumerated()), id: \.offset) { _, club in
@@ -2668,44 +2699,36 @@ private struct ComedianLineupRow: View {
     @Environment(\.appTheme) private var theme
 
     var body: some View {
-        let laughTrack = theme.laughTrackTokens
         let isFavorite = favorites.value(for: comedian.uuid, fallback: comedian.isFavorite)
 
-        LaughTrackCard(tone: .muted) {
-            HStack(spacing: 12) {
-                Button(action: openDetail) {
-                    HStack(spacing: 12) {
-                        RemoteImageView(urlString: comedian.imageUrl, aspectRatio: 1)
-                            .frame(width: 64, height: 64)
-                            .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(comedian.name)
-                                .font(laughTrack.typography.cardTitle)
-                                .foregroundStyle(laughTrack.colors.textPrimary)
-                            LaughTrackBadge("\(comedian.showCount ?? 0) upcoming shows", systemImage: "calendar", tone: .neutral)
-                        }
-                    }
-                }
-                .buttonStyle(.plain)
+        HStack(spacing: theme.spacing.sm) {
+            Button(action: openDetail) {
+                LaughTrackResultRow(
+                    title: comedian.name,
+                    subtitle: nil,
+                    metadata: ["\(comedian.showCount ?? 0) upcoming shows"],
+                    systemImage: "music.mic",
+                    imageURL: comedian.imageUrl,
+                    showsDisclosureIndicator: false
+                )
+            }
+            .buttonStyle(.plain)
 
-                Spacer()
-
-                FavoriteButton(
-                    isFavorite: isFavorite,
-                    isPending: favorites.isPending(comedian.uuid)
-                ) {
-                    let result = await favorites.toggle(
-                        uuid: comedian.uuid,
-                        currentValue: isFavorite,
-                        apiClient: apiClient,
-                        authManager: authManager
-                    )
-                    switch result {
-                    case .updated(let next):
-                        feedbackMessage = FavoriteFeedback.message(for: comedian.name, isFavorite: next)
-                    case .signInRequired(let message), .failure(let message):
-                        feedbackMessage = message
-                    }
+            FavoriteButton(
+                isFavorite: isFavorite,
+                isPending: favorites.isPending(comedian.uuid)
+            ) {
+                let result = await favorites.toggle(
+                    uuid: comedian.uuid,
+                    currentValue: isFavorite,
+                    apiClient: apiClient,
+                    authManager: authManager
+                )
+                switch result {
+                case .updated(let next):
+                    feedbackMessage = FavoriteFeedback.message(for: comedian.name, isFavorite: next)
+                case .signInRequired(let message), .failure(let message):
+                    feedbackMessage = message
                 }
             }
         }
@@ -2723,48 +2746,36 @@ private struct ComedianRow: View {
     @Environment(\.appTheme) private var theme
 
     var body: some View {
-        let laughTrack = theme.laughTrackTokens
         let isFavorite = favorites.value(for: comedian.uuid, fallback: comedian.isFavorite)
 
-        LaughTrackCard(tone: .muted) {
-            HStack(spacing: 12) {
-                Button(action: openDetail) {
-                    HStack(spacing: 12) {
-                        RemoteImageView(urlString: comedian.imageUrl, aspectRatio: 1)
-                            .frame(width: 72, height: 72)
-                            .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(comedian.name)
-                                .font(laughTrack.typography.cardTitle)
-                                .foregroundStyle(laughTrack.colors.textPrimary)
-                            HStack(spacing: 8) {
-                                LaughTrackBadge("\(comedian.showCount) upcoming", systemImage: "calendar", tone: .neutral)
-                                if let firstLink = SocialLink.links(from: comedian.socialData).first {
-                                    LaughTrackBadge(firstLink.label, systemImage: "link", tone: .accent)
-                                }
-                            }
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .buttonStyle(.plain)
+        HStack(spacing: theme.spacing.sm) {
+            Button(action: openDetail) {
+                LaughTrackResultRow(
+                    title: comedian.name,
+                    subtitle: SocialLink.links(from: comedian.socialData).first?.label,
+                    metadata: ["\(comedian.showCount) upcoming"],
+                    systemImage: "music.mic",
+                    imageURL: comedian.imageUrl,
+                    showsDisclosureIndicator: false
+                )
+            }
+            .buttonStyle(.plain)
 
-                FavoriteButton(
-                    isFavorite: isFavorite,
-                    isPending: favorites.isPending(comedian.uuid)
-                ) {
-                    let result = await favorites.toggle(
-                        uuid: comedian.uuid,
-                        currentValue: isFavorite,
-                        apiClient: apiClient,
-                        authManager: authManager
-                    )
-                    switch result {
-                    case .updated(let next):
-                        feedbackMessage = FavoriteFeedback.message(for: comedian.name, isFavorite: next)
-                    case .signInRequired(let message), .failure(let message):
-                        feedbackMessage = message
-                    }
+            FavoriteButton(
+                isFavorite: isFavorite,
+                isPending: favorites.isPending(comedian.uuid)
+            ) {
+                let result = await favorites.toggle(
+                    uuid: comedian.uuid,
+                    currentValue: isFavorite,
+                    apiClient: apiClient,
+                    authManager: authManager
+                )
+                switch result {
+                case .updated(let next):
+                    feedbackMessage = FavoriteFeedback.message(for: comedian.name, isFavorite: next)
+                case .signInRequired(let message), .failure(let message):
+                    feedbackMessage = message
                 }
             }
         }
@@ -2774,70 +2785,35 @@ private struct ComedianRow: View {
 struct ShowRow: View {
     let show: Components.Schemas.Show
 
-    @Environment(\.appTheme) private var theme
-
     var body: some View {
-        let laughTrack = theme.laughTrackTokens
-
-        LaughTrackCard(tone: .muted) {
-            HStack(spacing: 12) {
-                RemoteImageView(urlString: show.imageUrl, aspectRatio: 1)
-                    .frame(width: 72, height: 72)
-                    .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
-
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(show.name ?? "Untitled show")
-                        .font(laughTrack.typography.cardTitle)
-                        .foregroundStyle(laughTrack.colors.textPrimary)
-                    HStack(spacing: 8) {
-                        LaughTrackBadge(ShowFormatting.listDate(show.date), systemImage: "calendar", tone: .neutral)
-                        LaughTrackBadge(show.clubName ?? "Unknown club", systemImage: "building.2.fill", tone: .highlight)
-                    }
-
-                    if let distance = ShowFormatting.distance(show.distanceMiles) {
-                        LaughTrackBadge(distance, systemImage: "location.fill", tone: .accent)
-                    }
-                }
-
-                Spacer()
-
-                if show.soldOut == true {
-                    LaughTrackBadge("Sold out", systemImage: "ticket.fill", tone: .warning)
-                }
-            }
-        }
+        LaughTrackResultRow(
+            title: show.name ?? "Untitled show",
+            subtitle: show.clubName ?? "Unknown club",
+            metadata: [
+                ShowFormatting.listDate(show.date),
+                ShowFormatting.distance(show.distanceMiles),
+                show.soldOut == true ? "Sold out" : nil,
+            ].compactMap { $0 },
+            systemImage: "ticket.fill",
+            imageURL: show.imageUrl
+        )
     }
 }
 
 private struct ClubRow: View {
     let club: Components.Schemas.ClubSearchItem
 
-    @Environment(\.appTheme) private var theme
-
     var body: some View {
-        let laughTrack = theme.laughTrackTokens
-
-        LaughTrackCard(tone: .muted) {
-            HStack(spacing: 12) {
-                RemoteImageView(urlString: club.imageUrl, aspectRatio: 1)
-                    .frame(width: 72, height: 72)
-                    .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
-
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(club.name ?? "Unknown club")
-                        .font(laughTrack.typography.cardTitle)
-                        .foregroundStyle(laughTrack.colors.textPrimary)
-                    Text([club.city, club.state].compactMap { $0 }.joined(separator: ", ").nonEmpty ?? club.address ?? "Address unavailable")
-                        .font(laughTrack.typography.body)
-                        .foregroundStyle(laughTrack.colors.textSecondary)
-                    if let count = club.activeComedianCount {
-                        LaughTrackBadge("\(count) active comedians", systemImage: "music.mic", tone: .neutral)
-                    }
-                }
-
-                Spacer()
-            }
-        }
+        LaughTrackResultRow(
+            title: club.name ?? "Unknown club",
+            subtitle: [club.city, club.state].compactMap { $0 }.joined(separator: ", ").nonEmpty ?? club.address ?? "Address unavailable",
+            metadata: [
+                club.activeComedianCount.map { "\($0) active comedians" },
+                club.showCount.map { "\($0) shows" },
+            ].compactMap { $0 },
+            systemImage: "building.2.fill",
+            imageURL: club.imageUrl
+        )
     }
 }
 
@@ -2878,13 +2854,14 @@ private struct SearchField: View {
     @Binding var text: String
 
     var body: some View {
-        LaughTrackLabeledField(title: title) {
-            HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
-                TextField(prompt, text: $text)
-                    .modifier(SearchFieldInputBehavior())
-            }
+        VStack(alignment: .leading, spacing: theme.spacing.xs) {
+            Text(title)
+                .font(theme.laughTrackTokens.typography.eyebrow)
+                .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
+                .textCase(.uppercase)
+
+            LaughTrackSearchField(placeholder: prompt, text: $text)
+                .modifier(SearchFieldInputBehavior())
         }
     }
 }
@@ -2897,100 +2874,127 @@ private struct ShowFiltersPanel: View {
     var body: some View {
         let laughTrack = theme.laughTrackTokens
 
-        LaughTrackCard(tone: .muted) {
-            VStack(alignment: .leading, spacing: theme.spacing.lg) {
-                LaughTrackSectionHeader(
+        LaughTrackCard(tone: .muted, density: .compact) {
+            VStack(alignment: .leading, spacing: theme.spacing.md) {
+                LaughTrackShelfHeader(
                     eyebrow: "Filters",
-                    title: "Refine the marquee",
-                    subtitle: "Keep search controls in the same warm card language as the rest of discovery."
+                    title: "Tune the search",
+                    subtitle: "Keep location, sort, and dates in reach."
                 )
 
-                HStack(spacing: theme.spacing.sm) {
-                    LaughTrackBadge("Live dates first", systemImage: "sparkles", tone: .highlight)
-                    LaughTrackBadge("Tap-friendly controls", systemImage: "hand.tap", tone: .neutral)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: theme.spacing.sm) {
+                        LaughTrackBrowseChip("Live dates first", systemImage: "sparkles", tone: .accent)
+                        LaughTrackBrowseChip("Dense result rows", systemImage: "rectangle.grid.1x2", tone: .neutral)
+                        LaughTrackBrowseChip("Nearby aware", systemImage: "location.fill", tone: .neutral)
+                    }
                 }
 
-                HStack(alignment: .top, spacing: theme.spacing.md) {
-                    LaughTrackLabeledField(title: "ZIP", detail: "5 digits") {
-                        VStack(alignment: .leading, spacing: theme.spacing.sm) {
-                            TextField("10012", text: $model.zipCodeDraft)
-                                .modifier(SearchFieldInputBehavior())
-                                #if os(iOS)
-                                .keyboardType(UIKeyboardType.numberPad)
-                                #endif
+                VStack(alignment: .leading, spacing: theme.spacing.sm) {
+                    Text("ZIP")
+                        .font(laughTrack.typography.eyebrow)
+                        .foregroundStyle(laughTrack.colors.textSecondary)
+                        .textCase(.uppercase)
 
-                            HStack(spacing: theme.spacing.sm) {
-                                LaughTrackButton("Use ZIP", systemImage: "location.fill", tone: .secondary, fullWidth: false) {
-                                    _ = model.applyManualZip()
-                                }
+                    LaughTrackSearchField(placeholder: "10012", text: $model.zipCodeDraft)
+                        .modifier(SearchFieldInputBehavior())
+                        #if os(iOS)
+                        .keyboardType(UIKeyboardType.numberPad)
+                        #endif
 
-                                CurrentLocationButton(isLoading: model.isResolvingCurrentLocation) {
-                                    await model.useCurrentLocation()
-                                }
-
-                                if model.activeNearbyPreference != nil {
-                                    LaughTrackButton("Clear", systemImage: "location.slash", tone: .tertiary, fullWidth: false) {
-                                        model.clearLocation()
-                                    }
-                                }
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: theme.spacing.sm) {
+                            LaughTrackButton("Use ZIP", systemImage: "location.fill", tone: .secondary, density: .compact, fullWidth: false) {
+                                _ = model.applyManualZip()
                             }
 
-                            if let nearbyStatusMessage = model.nearbyStatusMessage {
-                                InlineStatusMessage(message: nearbyStatusMessage)
-                            } else if let activeNearbyPreference = model.activeNearbyPreference {
-                                LaughTrackBadge(
-                                    activeNearbyPreference.source == .manual
-                                        ? "Nearby ZIP \(activeNearbyPreference.zipCode) · \(activeNearbyPreference.distanceMiles) mi"
-                                        : "Current location ZIP \(activeNearbyPreference.zipCode) · \(activeNearbyPreference.distanceMiles) mi",
-                                    systemImage: activeNearbyPreference.source == .manual ? "mappin.and.ellipse" : "location.fill",
-                                    tone: .neutral
-                                )
+                            CurrentLocationButton(isLoading: model.isResolvingCurrentLocation) {
+                                await model.useCurrentLocation()
+                            }
+
+                            if model.activeNearbyPreference != nil {
+                                LaughTrackButton("Clear", systemImage: "location.slash", tone: .tertiary, density: .compact, fullWidth: false) {
+                                    model.clearLocation()
+                                }
                             }
                         }
                     }
 
-                    LaughTrackLabeledField(title: "Sort") {
+                    if let nearbyStatusMessage = model.nearbyStatusMessage {
+                        InlineStatusMessage(message: nearbyStatusMessage)
+                    } else if let activeNearbyPreference = model.activeNearbyPreference {
+                        LaughTrackContextRow(
+                            leading: activeNearbyPreference.source == .manual ? "Saved ZIP" : "Current location",
+                            trailing: "\(activeNearbyPreference.zipCode) • \(activeNearbyPreference.distanceMiles) mi"
+                        )
+                    }
+                }
+
+                HStack(spacing: theme.spacing.sm) {
+                    Menu {
                         Picker("Sort", selection: $model.sort) {
                             ForEach(ShowSortOption.allCases) { option in
                                 Text(option.title).tag(option)
                             }
                         }
-                        .pickerStyle(.menu)
+                    } label: {
+                        LaughTrackBrowseChip(
+                            "Sort: \(model.sort.title)",
+                            systemImage: "arrow.up.arrow.down",
+                            tone: .neutral
+                        )
+                    }
+
+                    if model.activeNearbyPreference != nil {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: theme.spacing.sm) {
+                                ForEach(ShowDistanceOption.allCases) { option in
+                                    Button {
+                                        model.distance = option
+                                    } label: {
+                                        LaughTrackBrowseChip(
+                                            option.title,
+                                            systemImage: "location.north.line",
+                                            tone: model.distance == option ? .selected : .neutral
+                                        )
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                        }
                     }
                 }
 
-                if model.activeNearbyPreference != nil {
-                    LaughTrackLabeledField(title: "Distance", detail: "Around that ZIP") {
-                        Picker("Distance", selection: $model.distance) {
-                            ForEach(ShowDistanceOption.allCases) { option in
-                                Text(option.title).tag(option)
-                            }
-                        }
-                        .pickerStyle(.segmented)
+                VStack(alignment: .leading, spacing: theme.spacing.sm) {
+                    HStack {
+                        Text("Dates")
+                            .font(laughTrack.typography.eyebrow)
+                            .foregroundStyle(laughTrack.colors.textSecondary)
+                            .textCase(.uppercase)
+                        Spacer()
+                        Text(model.useDateRange ? "Custom window" : "Upcoming by default")
+                            .font(laughTrack.typography.metadata)
+                            .foregroundStyle(laughTrack.colors.textSecondary)
                     }
-                }
 
-                LaughTrackLabeledField(title: "Dates", detail: model.useDateRange ? "Custom window" : "Upcoming by default") {
-                    VStack(alignment: .leading, spacing: theme.spacing.md) {
-                        Toggle("Use date range", isOn: $model.useDateRange)
-                            .font(laughTrack.typography.body)
-                            .tint(laughTrack.colors.accent)
+                    Toggle("Use date range", isOn: $model.useDateRange)
+                        .font(laughTrack.typography.body)
+                        .tint(laughTrack.colors.accent)
 
-                        if model.useDateRange {
-                            VStack(spacing: theme.spacing.md) {
-                                DatePicker("From", selection: $model.fromDate, displayedComponents: .date)
-                                DatePicker(
-                                    "To",
-                                    selection: Binding(
-                                        get: { max(model.toDate, model.fromDate) },
-                                        set: { model.toDate = max($0, model.fromDate) }
-                                    ),
-                                    in: model.fromDate...,
-                                    displayedComponents: .date
-                                )
-                            }
-                            .font(laughTrack.typography.body)
+                    if model.useDateRange {
+                        VStack(spacing: theme.spacing.md) {
+                            DatePicker("From", selection: $model.fromDate, displayedComponents: .date)
+                            DatePicker(
+                                "To",
+                                selection: Binding(
+                                    get: { max(model.toDate, model.fromDate) },
+                                    set: { model.toDate = max($0, model.fromDate) }
+                                ),
+                                in: model.fromDate...,
+                                displayedComponents: .date
+                            )
                         }
+                        .font(laughTrack.typography.body)
                     }
                 }
             }
@@ -3005,38 +3009,29 @@ private struct ShowsSearchMeta: View {
     let zipCapTriggered: Bool
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Times shown in \(model.timezoneLabel).")
-                .font(theme.laughTrackTokens.typography.metadata)
-                .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
+        VStack(alignment: .leading, spacing: theme.spacing.sm) {
+            LaughTrackContextRow(
+                leading: "Times shown in \(model.timezoneLabel)",
+                trailing: "\(activeFilters.count) filters"
+            )
 
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
+                HStack(spacing: theme.spacing.sm) {
                     ForEach(activeFilters, id: \.self) { filter in
-                        LaughTrackBadge(filter, tone: .neutral)
+                        LaughTrackBrowseChip(filter, tone: .neutral)
                     }
                 }
             }
 
             if zipCapTriggered {
-                HStack(alignment: .top, spacing: 10) {
-                    Image(systemName: "location.magnifyingglass")
-                        .foregroundStyle(theme.laughTrackTokens.colors.accent)
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Location was broadened")
-                            .font(theme.laughTrackTokens.typography.action)
-                            .foregroundStyle(theme.laughTrackTokens.colors.textPrimary)
-                        Text("That ZIP matched too many nearby locations. Try a tighter ZIP or clear the location filter.")
-                            .font(theme.laughTrackTokens.typography.metadata)
-                            .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
-                        LaughTrackButton("Browse all shows", systemImage: "location.slash", tone: .tertiary, fullWidth: false) {
-                            model.clearLocation()
-                        }
-                    }
+                LaughTrackInlineStateCard(
+                    tone: .error,
+                    title: "Location was broadened",
+                    message: "That ZIP matched too many nearby locations. Try a tighter ZIP or clear the location filter.",
+                    actionTitle: "Browse all shows"
+                ) {
+                    model.clearLocation()
                 }
-                .padding(theme.spacing.md)
-                .background(theme.laughTrackTokens.colors.surfaceElevated)
-                .clipShape(RoundedRectangle(cornerRadius: theme.laughTrackTokens.radius.card, style: .continuous))
             }
         }
     }
@@ -3073,9 +3068,10 @@ private struct SearchResultsSummary: View {
     let total: Int
 
     var body: some View {
-        Text("Showing \(count) of \(total)")
-            .font(theme.laughTrackTokens.typography.metadata)
-            .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
+        LaughTrackContextRow(
+            leading: "Showing \(count) of \(total)",
+            trailing: "Live"
+        )
     }
 }
 
@@ -3085,17 +3081,16 @@ private struct InlineStatusMessage: View {
     let message: String
 
     var body: some View {
-        HStack(alignment: .top, spacing: 8) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundStyle(theme.laughTrackTokens.colors.accent)
-            Text(message)
-                .font(theme.laughTrackTokens.typography.metadata)
-                .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
+        LaughTrackCard(tone: .muted, density: .compact) {
+            HStack(alignment: .top, spacing: theme.spacing.sm) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundStyle(theme.laughTrackTokens.colors.accent)
+                Text(message)
+                    .font(theme.laughTrackTokens.typography.metadata)
+                    .foregroundStyle(theme.laughTrackTokens.colors.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(theme.spacing.md)
-        .background(theme.laughTrackTokens.colors.canvas)
-        .clipShape(RoundedRectangle(cornerRadius: theme.laughTrackTokens.radius.card, style: .continuous))
     }
 }
 
@@ -3108,6 +3103,7 @@ private struct CurrentLocationButton: View {
             isLoading ? "Finding ZIP…" : "Use Current Location",
             systemImage: isLoading ? nil : "location.circle",
             tone: .secondary,
+            density: .compact,
             fullWidth: false
         ) {
             Task {
@@ -3132,7 +3128,12 @@ private struct LoadMoreButton: View {
     let action: () async -> Void
 
     var body: some View {
-        LaughTrackButton(isLoading ? "Loading…" : title, systemImage: isLoading ? nil : "arrow.down.circle", tone: .primary) {
+        LaughTrackButton(
+            isLoading ? "Loading…" : title,
+            systemImage: isLoading ? nil : "arrow.down.circle",
+            tone: .primary,
+            density: .compact
+        ) {
             Task {
                 await action()
             }
@@ -3366,35 +3367,58 @@ private struct SectionHeading: View {
 }
 
 private struct LoadingCard: View {
+    let title: String
+
+    init(title: String = "Loading") {
+        self.title = title
+    }
+
     var body: some View {
-        LaughTrackStateView(
+        LaughTrackInlineStateCard(
             tone: .loading,
-            title: "Loading",
+            title: title,
             message: "LaughTrack is fetching the latest data for this view."
         )
     }
 }
 
 private struct EmptyCard: View {
+    let title: String
     let message: String
 
+    init(title: String = "Nothing here yet", message: String) {
+        self.title = title
+        self.message = message
+    }
+
     var body: some View {
-        LaughTrackStateView(
+        LaughTrackInlineStateCard(
             tone: .empty,
-            title: "Nothing here yet",
+            title: title,
             message: message
         )
     }
 }
 
 private struct ErrorCard: View {
+    let title: String
     let message: String
     let retry: () async -> Void
 
+    init(
+        title: String = "Couldn’t load this section",
+        message: String,
+        retry: @escaping () async -> Void
+    ) {
+        self.title = title
+        self.message = message
+        self.retry = retry
+    }
+
     var body: some View {
-        LaughTrackStateView(
+        LaughTrackInlineStateCard(
             tone: .error,
-            title: "Couldn’t load this section",
+            title: title,
             message: message,
             actionTitle: "Try again"
         ) {

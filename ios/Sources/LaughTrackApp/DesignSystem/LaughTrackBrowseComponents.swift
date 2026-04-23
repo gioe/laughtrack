@@ -290,20 +290,26 @@ struct LaughTrackResultRow: View {
     let subtitle: String?
     let metadata: [String]
     let systemImage: String
+    let imageURL: String?
     let accessoryTitle: String?
+    let showsDisclosureIndicator: Bool
 
     init(
         title: String,
         subtitle: String? = nil,
         metadata: [String] = [],
         systemImage: String,
-        accessoryTitle: String? = nil
+        imageURL: String? = nil,
+        accessoryTitle: String? = nil,
+        showsDisclosureIndicator: Bool = true
     ) {
         self.title = title
         self.subtitle = subtitle
         self.metadata = metadata
         self.systemImage = systemImage
+        self.imageURL = imageURL
         self.accessoryTitle = accessoryTitle
+        self.showsDisclosureIndicator = showsDisclosureIndicator
     }
 
     var body: some View {
@@ -311,15 +317,7 @@ struct LaughTrackResultRow: View {
         let browseDensity = laughTrack.browseDensity
 
         HStack(spacing: browseDensity.rowGap) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(laughTrack.colors.surfaceMuted)
-
-                Image(systemName: systemImage)
-                    .font(.system(size: theme.iconSizes.lg, weight: .semibold))
-                    .foregroundStyle(laughTrack.colors.accentStrong)
-            }
-            .frame(width: 54, height: 54)
+            artwork
 
             VStack(alignment: .leading, spacing: theme.spacing.xxs) {
                 Text(title)
@@ -349,7 +347,7 @@ struct LaughTrackResultRow: View {
                     .font(laughTrack.typography.metadata)
                     .foregroundStyle(laughTrack.colors.accent)
                     .lineLimit(1)
-            } else {
+            } else if showsDisclosureIndicator {
                 Image(systemName: "chevron.right")
                     .font(.system(size: theme.iconSizes.sm, weight: .semibold))
                     .foregroundStyle(laughTrack.colors.textSecondary)
@@ -365,9 +363,80 @@ struct LaughTrackResultRow: View {
         .clipShape(RoundedRectangle(cornerRadius: laughTrack.radius.card, style: .continuous))
         .shadowStyle(laughTrack.shadows.card)
     }
+
+    @ViewBuilder
+    private var artwork: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        if let imageURL, let url = normalizedExternalURL(imageURL) {
+            AsyncImage(url: url) { phase in
+                switch phase {
+                case .empty:
+                    progressArtwork
+                case .success(let image):
+                    image
+                        .resizable()
+                        .scaledToFill()
+                case .failure:
+                    fallbackArtwork
+                @unknown default:
+                    fallbackArtwork
+                }
+            }
+            .frame(width: 54, height: 54)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        } else {
+            ZStack {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(laughTrack.colors.surfaceMuted)
+
+                Image(systemName: systemImage)
+                    .font(.system(size: theme.iconSizes.lg, weight: .semibold))
+                    .foregroundStyle(laughTrack.colors.accentStrong)
+            }
+            .frame(width: 54, height: 54)
+        }
+    }
+
+    private var progressArtwork: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return ZStack {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(laughTrack.colors.surfaceMuted)
+            ProgressView()
+                .progressViewStyle(.circular)
+                .tint(laughTrack.colors.accent)
+        }
+    }
+
+    private var fallbackArtwork: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        return ZStack {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(laughTrack.colors.surfaceMuted)
+
+            Image(systemName: systemImage)
+                .font(.system(size: theme.iconSizes.lg, weight: .semibold))
+                .foregroundStyle(laughTrack.colors.accentStrong)
+        }
+    }
+
+    private func normalizedExternalURL(_ rawValue: String?) -> URL? {
+        guard let rawValue, !rawValue.isEmpty else { return nil }
+
+        if let direct = URL(string: rawValue), direct.scheme != nil {
+            return direct
+        }
+
+        return URL(string: "https://\(rawValue)")
+    }
 }
 
 struct LaughTrackInlineStateCard: View {
+    @Environment(\.appTheme) private var theme
+
     let tone: LaughTrackStateTone
     let title: String
     let message: String
@@ -389,16 +458,59 @@ struct LaughTrackInlineStateCard: View {
     }
 
     var body: some View {
+        let laughTrack = theme.laughTrackTokens
+
         LaughTrackCard(tone: .muted, density: .compact) {
-            VStack(alignment: .leading, spacing: 12) {
-                LaughTrackStateView(
-                    tone: tone,
-                    title: title,
-                    message: message,
-                    actionTitle: actionTitle,
-                    action: action
-                )
+            VStack(alignment: .leading, spacing: theme.spacing.sm) {
+                HStack(alignment: .top, spacing: theme.spacing.sm) {
+                    indicator
+
+                    VStack(alignment: .leading, spacing: theme.spacing.xxs) {
+                        Text(title)
+                            .font(laughTrack.typography.cardTitle)
+                            .foregroundStyle(laughTrack.colors.textPrimary)
+
+                        Text(message)
+                            .font(laughTrack.typography.metadata)
+                            .foregroundStyle(laughTrack.colors.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+
+                if let actionTitle, let action, tone != .loading {
+                    LaughTrackButton(
+                        actionTitle,
+                        systemImage: tone == .error ? "arrow.clockwise" : "arrow.right",
+                        tone: .secondary,
+                        density: .compact,
+                        fullWidth: false,
+                        action: action
+                    )
+                }
             }
+        }
+    }
+
+    @ViewBuilder
+    private var indicator: some View {
+        let laughTrack = theme.laughTrackTokens
+
+        switch tone {
+        case .loading:
+            ProgressView()
+                .progressViewStyle(.circular)
+                .tint(laughTrack.colors.accent)
+                .frame(width: 20, height: 20)
+        case .empty:
+            Image(systemName: "sparkles")
+                .font(.system(size: theme.iconSizes.md, weight: .semibold))
+                .foregroundStyle(laughTrack.colors.accentStrong)
+                .frame(width: 20, height: 20)
+        case .error:
+            Image(systemName: "wifi.exclamationmark")
+                .font(.system(size: theme.iconSizes.md, weight: .semibold))
+                .foregroundStyle(laughTrack.colors.danger)
+                .frame(width: 20, height: 20)
         }
     }
 }
