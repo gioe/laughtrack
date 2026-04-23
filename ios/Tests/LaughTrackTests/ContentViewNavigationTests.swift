@@ -9,10 +9,12 @@ import LaughTrackBridge
 struct ContentViewNavigationTests {
     @Test("content view routes authenticated users into the app shell")
     func contentViewRendersShell() async throws {
+        let coordinator = NavigationCoordinator<AppRoute>()
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "content-shell")
         let host = HostedView(
             ContentView(apiClient: LaughTrackHostedViewTestSupport.makeClient())
                 .environment(\.appTheme, LaughTrackTheme())
+                .navigationCoordinator(coordinator)
                 .environmentObject(authManager)
         )
 
@@ -40,6 +42,7 @@ struct ContentViewNavigationTests {
         try host.tapControl(withIdentifier: LaughTrackViewTestID.homeSettingsButton)
 
         #expect(coordinator.path.count == 1)
+        #expect(coordinator.path.last == .settings)
     }
 
     @Test("ContentView switches between the home and settings routes")
