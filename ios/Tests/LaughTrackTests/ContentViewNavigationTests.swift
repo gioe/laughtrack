@@ -108,7 +108,7 @@ struct ContentViewNavigationTests {
         try host.tapControl(withIdentifier: LaughTrackViewTestID.homeClubsSearchButton)
 
         #expect(coordinator.path.isEmpty)
-        #expect(searchBridge.request?.seed == .init(pivot: .clubs, query: "", shortcut: "Tonight"))
+        #expect(searchBridge.request?.seed == .init(pivot: .clubs, query: "", shortcut: nil))
     }
 
     @Test("Home comedians search entry seeds the search tab")

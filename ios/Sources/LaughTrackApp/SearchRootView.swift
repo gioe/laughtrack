@@ -78,6 +78,7 @@ struct SearchRootView: View {
         .onReceive(searchNavigationBridge.$request.compactMap { $0 }) { request in
             model.applySeed(request.seed)
             applyRootQueryToActivePivot()
+            searchNavigationBridge.clearRequest(request)
         }
     }
 
@@ -85,7 +86,8 @@ struct SearchRootView: View {
         HStack(spacing: theme.spacing.sm) {
             ForEach(["Near Me", "Tonight", "This Week"], id: \.self) { shortcut in
                 Button {
-                    model.selectedShortcut = shortcut
+                    model.selectShortcut(shortcut)
+                    applyRootQueryToActivePivot()
                 } label: {
                     Text(shortcut)
                         .font(theme.laughTrackTokens.typography.metadata)
@@ -136,6 +138,7 @@ struct SearchRootView: View {
     }
 
     private func applyRootQueryToActivePivot() {
+        model.applyShortcutFilters(to: showsModel)
         model.applyQuery(
             showsModel: showsModel,
             comediansModel: comediansModel,

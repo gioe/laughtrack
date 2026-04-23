@@ -67,6 +67,39 @@ struct SearchRootModelTests {
         #expect(bridge.request?.seed == seed)
     }
 
+    @Test("home search bridge consumes seed requests once")
+    func homeSearchBridgeConsumesSeedRequestsOnce() async throws {
+        let bridge = SearchNavigationBridge()
+        bridge.openSearch(.init(pivot: .shows, query: "", shortcut: "Near Me"))
+
+        let request = try #require(bridge.request)
+        bridge.clearRequest(request)
+
+        #expect(bridge.request == nil)
+    }
+
+    @Test("shortcut selection applies show date filters")
+    func shortcutSelectionAppliesShowDateFilters() async throws {
+        let model = SearchRootModel()
+        let showsModel = ShowsDiscoveryModel(
+            nearbyLocationController: NearbyLocationController(
+                store: NearbyPreferenceStore(),
+                resolver: LaughTrackCore.CurrentLocationZipResolver()
+            )
+        )
+        let now = Date(timeIntervalSince1970: 1_710_000_000)
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+
+        model.selectShortcut("Tonight")
+        model.applyShortcutFilters(to: showsModel, now: now, calendar: calendar)
+
+        #expect(model.activePivot == .shows)
+        #expect(showsModel.useDateRange)
+        #expect(showsModel.fromDate == calendar.startOfDay(for: now))
+        #expect(showsModel.toDate == calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: now)))
+    }
+
     @Test("root query is applied only to the active pivot model")
     func rootQueryAppliesToActivePivotModel() async throws {
         let model = SearchRootModel()

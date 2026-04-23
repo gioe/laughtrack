@@ -247,7 +247,7 @@ private struct HomeClubsSearchEntryCard: View {
 
     var body: some View {
         Button {
-            searchNavigationBridge.openSearch(.init(pivot: .clubs, query: "", shortcut: "Tonight"))
+            searchNavigationBridge.openSearch(.init(pivot: .clubs, query: "", shortcut: nil))
         } label: {
             LaughTrackCard(tone: .accent) {
                 VStack(alignment: .leading, spacing: theme.spacing.md) {

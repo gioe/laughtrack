@@ -54,6 +54,37 @@ final class SearchRootModel: ObservableObject {
         selectedShortcut = seed.shortcut
     }
 
+    func selectShortcut(_ shortcut: String) {
+        selectedShortcut = shortcut
+        activePivot = .shows
+    }
+
+    func applyShortcutFilters(
+        to showsModel: ShowsDiscoveryModel,
+        now: Date = Date(),
+        calendar: Calendar = .current
+    ) {
+        switch selectedShortcut {
+        case "Tonight":
+            let start = calendar.startOfDay(for: now)
+            showsModel.useDateRange = true
+            showsModel.fromDate = start
+            showsModel.toDate = calendar.date(byAdding: .day, value: 1, to: start) ?? start
+            showsModel.sort = .earliest
+        case "This Week":
+            let start = calendar.startOfDay(for: now)
+            showsModel.useDateRange = true
+            showsModel.fromDate = start
+            showsModel.toDate = calendar.date(byAdding: .day, value: 7, to: start) ?? start
+            showsModel.sort = .earliest
+        case "Near Me":
+            showsModel.useDateRange = false
+            showsModel.sort = .earliest
+        default:
+            break
+        }
+    }
+
     func applyQuery(to target: any SearchRootQueryReceivable) {
         target.applySearchRootQuery(query)
     }
@@ -85,5 +116,13 @@ final class SearchNavigationBridge: ObservableObject {
 
     func openSearch(_ seed: SearchRootModel.Seed) {
         request = Request(seed: seed)
+    }
+
+    func clearRequest(_ consumedRequest: Request) {
+        guard request?.id == consumedRequest.id else {
+            return
+        }
+
+        request = nil
     }
 }
