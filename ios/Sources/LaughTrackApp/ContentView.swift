@@ -5,6 +5,9 @@ import LaughTrackAPIClient
 
 enum LaughTrackViewTestID {
     static let homeScreen = "laughtrack.home.screen"
+    static let searchTabScreen = "laughtrack.search-tab.screen"
+    static let activityTabScreen = "laughtrack.activity-tab.screen"
+    static let profileTabScreen = "laughtrack.profile-tab.screen"
     static let homeSettingsButton = "laughtrack.home.settings-button"
     static let homeShowsSearchButton = "laughtrack.home.shows-search-button"
     static let homeClubsSearchButton = "laughtrack.home.clubs-search-button"
@@ -71,17 +74,33 @@ struct ContentView: View {
         CoordinatedNavigationStack(coordinator: coordinator) { route in
             switch route {
             case .home:
-                HomeView(
+                AppShellView(
                     apiClient: apiClient,
                     signedOutMessage: signedOutMessage,
-                    nearbyPreferenceStore: nearbyPreferenceStore
+                    nearbyPreferenceStore: nearbyPreferenceStore,
+                    initialTab: .home
                 )
             case .search:
-                Text("Search")
+                AppShellView(
+                    apiClient: apiClient,
+                    signedOutMessage: signedOutMessage,
+                    nearbyPreferenceStore: nearbyPreferenceStore,
+                    initialTab: .search
+                )
             case .activity:
-                Text("Activity")
+                AppShellView(
+                    apiClient: apiClient,
+                    signedOutMessage: signedOutMessage,
+                    nearbyPreferenceStore: nearbyPreferenceStore,
+                    initialTab: .activity
+                )
             case .profile:
-                Text("Profile")
+                AppShellView(
+                    apiClient: apiClient,
+                    signedOutMessage: signedOutMessage,
+                    nearbyPreferenceStore: nearbyPreferenceStore,
+                    initialTab: .profile
+                )
             case .settings:
                 SettingsView(
                     apiClient: apiClient,
@@ -105,7 +124,11 @@ struct ContentView: View {
                 ClubDetailView(clubID: id, apiClient: apiClient)
             }
         } root: {
-            AppShellView(apiClient: apiClient)
+            AppShellView(
+                apiClient: apiClient,
+                signedOutMessage: signedOutMessage,
+                nearbyPreferenceStore: nearbyPreferenceStore
+            )
         }
     }
 }

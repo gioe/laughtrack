@@ -16,7 +16,10 @@ struct ContentViewNavigationTests {
                 .environmentObject(authManager)
         )
 
+        try host.requireView(withIdentifier: LaughTrackViewTestID.homeScreen)
         try host.requireText("Search")
+        try host.requireText("Activity")
+        try host.requireText("Profile")
     }
 
     @Test("Settings entry point from home pushes the expected navigation intent")
@@ -50,7 +53,7 @@ struct ContentViewNavigationTests {
                 .environmentObject(authManager)
         )
 
-        try host.requireText("Search")
+        try host.requireView(withIdentifier: LaughTrackViewTestID.homeScreen)
 
         coordinator.push(.settings)
         host.render()
@@ -221,6 +224,57 @@ struct ContentViewNavigationTests {
         host.render()
 
         try host.requireView(withIdentifier: LaughTrackViewTestID.clubDetailScreen)
+    }
+
+    @Test("ContentView routes the shared search route through the shell tab")
+    func contentViewShowsSearchShellRoute() async throws {
+        let coordinator = NavigationCoordinator<AppRoute>()
+        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "search-shell-route")
+        let host = HostedView(
+            ContentView(apiClient: LaughTrackHostedViewTestSupport.makeClient())
+                .environment(\.appTheme, LaughTrackTheme())
+                .navigationCoordinator(coordinator)
+                .environmentObject(authManager)
+        )
+
+        coordinator.push(.search)
+        host.render()
+
+        try host.requireView(withIdentifier: LaughTrackViewTestID.searchTabScreen)
+    }
+
+    @Test("ContentView routes the activity route through the shell tab")
+    func contentViewShowsActivityShellRoute() async throws {
+        let coordinator = NavigationCoordinator<AppRoute>()
+        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "activity-shell-route")
+        let host = HostedView(
+            ContentView(apiClient: LaughTrackHostedViewTestSupport.makeClient())
+                .environment(\.appTheme, LaughTrackTheme())
+                .navigationCoordinator(coordinator)
+                .environmentObject(authManager)
+        )
+
+        coordinator.push(.activity)
+        host.render()
+
+        try host.requireView(withIdentifier: LaughTrackViewTestID.activityTabScreen)
+    }
+
+    @Test("ContentView routes the profile route through the shell tab")
+    func contentViewShowsProfileShellRoute() async throws {
+        let coordinator = NavigationCoordinator<AppRoute>()
+        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "profile-shell-route")
+        let host = HostedView(
+            ContentView(apiClient: LaughTrackHostedViewTestSupport.makeClient())
+                .environment(\.appTheme, LaughTrackTheme())
+                .navigationCoordinator(coordinator)
+                .environmentObject(authManager)
+        )
+
+        coordinator.push(.profile)
+        host.render()
+
+        try host.requireView(withIdentifier: LaughTrackViewTestID.profileTabScreen)
     }
 }
 #endif
