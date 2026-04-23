@@ -62,7 +62,6 @@ struct ContentView: View {
                 appShell(signedOutMessage: nil)
             }
         }
-        .environmentObject(favorites)
         .tint(theme.colors.primary)
         .task {
             await authManager.restoreSessionIfNeeded()
@@ -77,6 +76,7 @@ struct ContentView: View {
                 AppShellView(
                     apiClient: apiClient,
                     signedOutMessage: signedOutMessage,
+                    favorites: favorites,
                     nearbyPreferenceStore: nearbyPreferenceStore,
                     initialTab: .home
                 )
@@ -84,6 +84,7 @@ struct ContentView: View {
                 AppShellView(
                     apiClient: apiClient,
                     signedOutMessage: signedOutMessage,
+                    favorites: favorites,
                     nearbyPreferenceStore: nearbyPreferenceStore,
                     initialTab: .search
                 )
@@ -91,6 +92,7 @@ struct ContentView: View {
                 AppShellView(
                     apiClient: apiClient,
                     signedOutMessage: signedOutMessage,
+                    favorites: favorites,
                     nearbyPreferenceStore: nearbyPreferenceStore,
                     initialTab: .activity
                 )
@@ -98,6 +100,7 @@ struct ContentView: View {
                 AppShellView(
                     apiClient: apiClient,
                     signedOutMessage: signedOutMessage,
+                    favorites: favorites,
                     nearbyPreferenceStore: nearbyPreferenceStore,
                     initialTab: .profile
                 )
@@ -127,9 +130,11 @@ struct ContentView: View {
             AppShellView(
                 apiClient: apiClient,
                 signedOutMessage: signedOutMessage,
+                favorites: favorites,
                 nearbyPreferenceStore: nearbyPreferenceStore
             )
         }
+        .environmentObject(favorites)
     }
 }
 

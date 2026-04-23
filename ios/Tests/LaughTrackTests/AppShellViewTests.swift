@@ -35,7 +35,6 @@ struct AppShellViewTests {
         let host = HostedView(
             AppShellView(
                 apiClient: LaughTrackHostedViewTestSupport.makeClient(),
-                nearbyPreferenceStore: LaughTrackHostedViewTestSupport.makeNearbyPreferenceStore(name: "app-shell-search"),
                 initialTab: .search
             )
             .environment(\.appTheme, LaughTrackTheme())
@@ -46,6 +45,20 @@ struct AppShellViewTests {
         try host.requireView(withIdentifier: LaughTrackViewTestID.searchTabScreen)
         try host.requireText("Home")
         try host.requireText("Search")
+    }
+
+    @Test("home tab renders the existing discovery home view")
+    func homeTabRendersHomeView() async throws {
+        let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "shell-home")
+        let coordinator = NavigationCoordinator<AppRoute>()
+        let host = HostedView(
+            AppShellView(apiClient: LaughTrackHostedViewTestSupport.makeClient())
+                .environment(\.appTheme, LaughTrackTheme())
+                .navigationCoordinator(coordinator)
+                .environmentObject(authManager)
+        )
+
+        try host.requireView(withIdentifier: LaughTrackViewTestID.homeScreen)
     }
 }
 #endif

@@ -48,6 +48,7 @@ struct SettingsFavoritesViewTests {
         )
 
         try host.requireView(withIdentifier: LaughTrackViewTestID.settingsFavoritesSection)
+        try host.requireText("Nearby defaults")
         try host.requireLabel("Taylor Tomlinson")
         try host.requireLabel("5 tracked show appearances")
     }
@@ -70,7 +71,8 @@ struct SettingsFavoritesViewTests {
             .environmentObject(authManager)
         )
 
-        try host.requireLabel("Keep your account state in sync.")
+        try host.requireLabel("Sign in to sync your favorites.")
+        try host.requireText("Nearby defaults")
         #expect(recorder.getFavoritesCalls == 0)
     }
 

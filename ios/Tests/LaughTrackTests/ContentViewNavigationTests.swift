@@ -263,7 +263,7 @@ struct ContentViewNavigationTests {
         try host.requireView(withIdentifier: LaughTrackViewTestID.activityTabScreen)
     }
 
-    @Test("ContentView routes the profile route through the shell tab")
+    @Test("ContentView routes the profile route through the real profile surface")
     func contentViewShowsProfileShellRoute() async throws {
         let coordinator = NavigationCoordinator<AppRoute>()
         let authManager = await LaughTrackHostedViewTestSupport.makeAuthManager(name: "profile-shell-route")
@@ -277,7 +277,8 @@ struct ContentViewNavigationTests {
         coordinator.push(.profile)
         host.render()
 
-        try host.requireView(withIdentifier: LaughTrackViewTestID.profileTabScreen)
+        try host.requireText("Nearby defaults")
+        try host.requireView(withIdentifier: LaughTrackViewTestID.settingsFavoritesSection)
     }
 }
 #endif
