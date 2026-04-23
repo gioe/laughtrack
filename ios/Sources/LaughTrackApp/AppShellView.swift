@@ -37,9 +37,9 @@ struct AppShellView: View {
                 .tabItem { Label("Home", systemImage: "house.fill") }
                 .tag(AppTab.home)
 
-            AppShellPlaceholderView(
-                title: "Search",
-                accessibilityID: LaughTrackViewTestID.searchTabScreen
+            SearchRootView(
+                apiClient: apiClient,
+                nearbyPreferenceStore: nearbyPreferenceStore
             )
                 .tabItem { Label("Search", systemImage: "magnifyingglass") }
                 .tag(AppTab.search)
