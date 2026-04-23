@@ -67,8 +67,46 @@ struct ContentView: View {
     }
 
     @ViewBuilder
-    private func appShell(signedOutMessage _: String?) -> some View {
-        AppShellView(apiClient: apiClient)
+    private func appShell(signedOutMessage: String?) -> some View {
+        CoordinatedNavigationStack(coordinator: coordinator) { route in
+            switch route {
+            case .home:
+                HomeView(
+                    apiClient: apiClient,
+                    signedOutMessage: signedOutMessage,
+                    nearbyPreferenceStore: nearbyPreferenceStore
+                )
+            case .search:
+                Text("Search")
+            case .activity:
+                Text("Activity")
+            case .profile:
+                Text("Profile")
+            case .settings:
+                SettingsView(
+                    apiClient: apiClient,
+                    signedOutMessage: signedOutMessage,
+                    nearbyPreferenceStore: nearbyPreferenceStore
+                )
+            case .showsSearch:
+                ShowsSearchScreen(
+                    apiClient: apiClient,
+                    nearbyPreferenceStore: nearbyPreferenceStore
+                )
+            case .clubsSearch:
+                ClubsSearchScreen(apiClient: apiClient)
+            case .comediansSearch:
+                ComediansSearchScreen(apiClient: apiClient)
+            case .showDetail(let id):
+                ShowDetailView(showID: id, apiClient: apiClient)
+            case .comedianDetail(let id):
+                ComedianDetailView(comedianID: id, apiClient: apiClient)
+            case .clubDetail(let id):
+                ClubDetailView(clubID: id, apiClient: apiClient)
+            }
+        } root: {
+            AppShellView(apiClient: apiClient)
+        }
     }
 }
 
@@ -149,7 +187,7 @@ private struct HomeShowsSearchEntryCard: View {
 
     var body: some View {
         Button {
-            coordinator.push(.search)
+            coordinator.push(.showsSearch)
         } label: {
             LaughTrackCard(tone: .accent) {
                 VStack(alignment: .leading, spacing: theme.spacing.md) {
@@ -187,7 +225,7 @@ private struct HomeClubsSearchEntryCard: View {
 
     var body: some View {
         Button {
-            coordinator.push(.search)
+            coordinator.push(.clubsSearch)
         } label: {
             LaughTrackCard(tone: .accent) {
                 VStack(alignment: .leading, spacing: theme.spacing.md) {
@@ -225,7 +263,7 @@ private struct HomeComediansSearchEntryCard: View {
 
     var body: some View {
         Button {
-            coordinator.push(.search)
+            coordinator.push(.comediansSearch)
         } label: {
             LaughTrackCard(tone: .muted) {
                 VStack(alignment: .leading, spacing: theme.spacing.md) {
