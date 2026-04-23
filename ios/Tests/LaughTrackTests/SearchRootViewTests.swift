@@ -1,5 +1,6 @@
 import SwiftUI
 import Testing
+import LaughTrackCore
 @testable import LaughTrackApp
 
 #if canImport(UIKit)
@@ -31,5 +32,50 @@ struct SearchRootModelTests {
         #expect(model.activePivot == .shows)
         model.activePivot = .clubs
         #expect(model.activePivot == .clubs)
+    }
+
+    @Test("root query is applied to the active pivot model")
+    func rootQueryAppliesToActivePivotModel() async throws {
+        let model = SearchRootModel()
+        let showsModel = ShowsDiscoveryModel(
+            nearbyLocationController: NearbyLocationController(
+                store: NearbyPreferenceStore(),
+                resolver: LaughTrackCore.CurrentLocationZipResolver()
+            )
+        )
+        let clubsModel = ClubsDiscoveryModel()
+        let comediansModel = ComediansDiscoveryModel()
+
+        model.query = "Comedy Cellar"
+        model.activePivot = .clubs
+        model.applyQuery(
+            showsModel: showsModel,
+            comediansModel: comediansModel,
+            clubsModel: clubsModel
+        )
+        #expect(clubsModel.searchText == "Comedy Cellar")
+        #expect(comediansModel.searchText == "")
+        #expect(showsModel.comedianSearchText == "")
+
+        model.query = "Atsuko"
+        model.activePivot = .comedians
+        model.applyQuery(
+            showsModel: showsModel,
+            comediansModel: comediansModel,
+            clubsModel: clubsModel
+        )
+        #expect(comediansModel.searchText == "Atsuko")
+        #expect(clubsModel.searchText == "Comedy Cellar")
+        #expect(showsModel.comedianSearchText == "")
+
+        model.query = "Mark Normand"
+        model.activePivot = .shows
+        model.applyQuery(
+            showsModel: showsModel,
+            comediansModel: comediansModel,
+            clubsModel: clubsModel
+        )
+        #expect(showsModel.comedianSearchText == "Mark Normand")
+        #expect(showsModel.clubSearchText == "")
     }
 }
